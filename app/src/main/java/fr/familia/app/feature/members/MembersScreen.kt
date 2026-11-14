@@ -1,5 +1,6 @@
 package fr.familia.app.feature.members
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +16,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -44,6 +48,8 @@ fun MembersScreen(
     state: MembersUiState,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Null for members who are not admin: rows are then read-only and there is no add button. */
+    onEditMember: ((memberId: String?) -> Unit)? = null,
     versionName: String = BuildConfig.VERSION_NAME,
 ) {
     when (state) {
@@ -60,34 +66,49 @@ fun MembersScreen(
                 }
             },
         )
-        is MembersUiState.Success -> LazyColumn(
-            modifier = modifier.fillMaxSize(),
-            contentPadding = PaddingValues(vertical = 8.dp),
-        ) {
-            if (state.groups.isEmpty()) {
-                item(key = "empty") {
-                    EmptyState(
-                        icon = Icons.Outlined.Groups,
-                        title = stringResource(R.string.members_empty_title),
-                        body = stringResource(R.string.members_empty_body),
+        is MembersUiState.Success -> Box(modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                // Room at the bottom so the add button never hides the last row.
+                contentPadding = PaddingValues(top = 8.dp, bottom = if (onEditMember != null) 96.dp else 8.dp),
+            ) {
+                if (state.groups.isEmpty()) {
+                    item(key = "empty") {
+                        EmptyState(
+                            icon = Icons.Outlined.Groups,
+                            title = stringResource(R.string.members_empty_title),
+                            body = stringResource(R.string.members_empty_body),
+                        )
+                    }
+                }
+                state.groups.forEach { group ->
+                    item(key = "household-${group.household?.id ?: "other"}") {
+                        HouseholdHeader(group.household?.name ?: stringResource(R.string.members_other_household))
+                    }
+                    items(group.members, key = { "member-${it.id}" }) { member ->
+                        MemberRow(
+                            member = member,
+                            isMe = member.id == state.currentMemberId,
+                            onClick = onEditMember?.let { edit -> { edit(member.id) } },
+                        )
+                    }
+                }
+                item(key = "version") {
+                    Text(
+                        text = stringResource(R.string.app_version, versionName),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
                     )
                 }
             }
-            state.groups.forEach { group ->
-                item(key = "household-${group.household?.id ?: "other"}") {
-                    HouseholdHeader(group.household?.name ?: stringResource(R.string.members_other_household))
-                }
-                items(group.members, key = { "member-${it.id}" }) { member ->
-                    MemberRow(member, isMe = member.id == state.currentMemberId)
-                }
-            }
-            item(key = "version") {
-                Text(
-                    text = stringResource(R.string.app_version, versionName),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+            if (onEditMember != null) {
+                ExtendedFloatingActionButton(
+                    onClick = { onEditMember(null) },
+                    icon = { Icon(Icons.Outlined.PersonAdd, contentDescription = null) },
+                    text = { Text(stringResource(R.string.members_add)) },
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
                 )
             }
         }
@@ -108,10 +129,12 @@ private fun HouseholdHeader(name: String) {
 }
 
 @Composable
-private fun MemberRow(member: Member, isMe: Boolean) {
+private fun MemberRow(member: Member, isMe: Boolean, onClick: (() -> Unit)?) {
+    val editLabel = stringResource(R.string.members_edit_action)
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable(onClickLabel = editLabel, onClick = onClick) else Modifier)
             .heightIn(min = 56.dp)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -161,7 +184,11 @@ internal fun previewGroups(): List<HouseholdGroup> {
 @FamiliaPreviews
 @Composable
 private fun MembersScreenPreview() {
-    FamiliaTheme { Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0") } }
+    FamiliaTheme {
+        Surface {
+            MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0", onEditMember = {})
+        }
+    }
 }
 
 @FamiliaPreviews

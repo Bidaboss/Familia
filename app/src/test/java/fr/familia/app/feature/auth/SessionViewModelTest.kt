@@ -2,6 +2,7 @@ package fr.familia.app.feature.auth
 
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Family
+import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.normalizeEmail
@@ -163,6 +164,10 @@ class SessionViewModelTest {
         override suspend fun linkAccount(memberId: String, uid: String) {
             linked = memberId to uid
         }
+        override fun newMemberId(): String = "new"
+        override suspend fun saveMember(member: Member, previousEmail: String?) = Unit
+        override fun newHouseholdId(): String = "h-new"
+        override suspend fun saveHousehold(household: Household) = Unit
         override fun observeFamily(): Flow<Family> = emptyFlow()
     }
 }

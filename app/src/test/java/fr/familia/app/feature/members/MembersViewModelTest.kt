@@ -103,5 +103,9 @@ class MembersViewModelTest {
         override suspend fun findByEmail(email: String): Member? = null
         override suspend fun linkAccount(memberId: String, uid: String) = Unit
         override fun observeFamily(): Flow<Family> = family
+        override fun newMemberId(): String = "new"
+        override suspend fun saveMember(member: Member, previousEmail: String?) = Unit
+        override fun newHouseholdId(): String = "h-new"
+        override suspend fun saveHousehold(household: Household) = Unit
     }
 }

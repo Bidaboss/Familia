@@ -11,12 +11,17 @@ import fr.familia.app.core.model.Member
 
 /** Connects the Famille tab to its ViewModel. */
 @Composable
-fun MembersRoute(container: AppContainer?, currentMember: Member) {
+fun MembersRoute(container: AppContainer?, currentMember: Member, onEditMember: (memberId: String?) -> Unit) {
     val viewModel: MembersViewModel = viewModel(
         factory = viewModelFactory {
             initializer { MembersViewModel(container?.memberRepository, currentMember.id) }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    MembersScreen(state = state, onRetry = viewModel::retry)
+    MembersScreen(
+        state = state,
+        onRetry = viewModel::retry,
+        // Only admins add and edit members (the security rules check it too).
+        onEditMember = if (currentMember.isAdmin) onEditMember else null,
+    )
 }

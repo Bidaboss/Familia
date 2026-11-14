@@ -27,7 +27,7 @@ class NetworkMonitor(context: Context) {
         }
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
-                trySend(capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET))
+                trySend(capabilities.hasInternet())
             }
 
             override fun onLost(network: Network) {
@@ -43,5 +43,10 @@ class NetworkMonitor(context: Context) {
 
     private fun ConnectivityManager.isCurrentlyOnline(): Boolean =
         activeNetwork?.let { getNetworkCapabilities(it) }
-            ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
+            ?.hasInternet() == true
+
+    /** VALIDATED: the network really reaches the internet (a hotel wifi before login does not). */
+    private fun NetworkCapabilities.hasInternet(): Boolean =
+        hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+            hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
 }

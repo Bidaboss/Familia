@@ -1,6 +1,7 @@
 package fr.familia.app.core.data
 
 import fr.familia.app.core.model.Family
+import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 import kotlinx.coroutines.flow.Flow
 
@@ -14,4 +15,19 @@ interface MemberRepository {
 
     /** Members and households, updated live (and served from the offline cache without network). */
     fun observeFamily(): Flow<Family>
+
+    /** A fresh id for a member that is not saved yet. */
+    fun newMemberId(): String
+
+    /**
+     * Admins only. Writes [member] and its email entry in one batch; [previousEmail] is the address
+     * before the edit (null for a new member), whose entry is removed if it changed.
+     */
+    suspend fun saveMember(member: Member, previousEmail: String?)
+
+    /** A fresh id for a household that is not saved yet. */
+    fun newHouseholdId(): String
+
+    /** Admins only. Creates or renames a household. */
+    suspend fun saveHousehold(household: Household)
 }
