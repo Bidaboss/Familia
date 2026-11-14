@@ -48,7 +48,7 @@ describe('reading the family', () => {
   });
 
   test('collections not opened yet stay closed', async () => {
-    await assertFails(getDoc(doc(as(env, ADULT), 'events/e1')));
+    await assertFails(getDoc(doc(as(env, ADULT), 'giftSpaces/g1')));
   });
 });
 

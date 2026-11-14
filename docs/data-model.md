@@ -60,7 +60,38 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 |---|---|---|
 | `name` | texte | Nom du foyer |
 
+### `events/{eventId}` (lot 4)
+
+| Champ | Type | Description |
+|---|---|---|
+| `title` | texte, 1 à 80 caractères | Obligatoire |
+| `date` | texte `AAAA-MM-JJ` | Obligatoire |
+| `time` | texte `HH:mm` ou null | Heure facultative |
+| `place` | texte (120 au plus) ou null | Lieu facultatif |
+| `note` | texte (1 000 au plus) ou null | Note facultative |
+| `targetType` | `self` \| `child` \| `household` \| `family` | Pour qui : moi, un enfant, un foyer, toute la famille |
+| `targetMemberId` | `memberId` ou null | L'auteur pour `self`, l'enfant pour `child`, sinon null |
+| `householdId` | `householdId` ou null | Le foyer pour `household`, sinon null |
+| `authorId` | `memberId` | L'auteur, jamais modifié |
+| `authorName` | texte | Prénom de l'auteur au moment de la création : les événements d'un membre retiré restent lisibles (PRD, cas « séparation ») |
+| `createdAt`, `updatedAt` | horodatage serveur | `createdAt` jamais modifié, `updatedAt` à chaque écriture |
+
+Le destinataire est écrit dans l'événement, pour que les règles vérifient les droits sans lire d'autres événements.
+
+Droits (PRD, « Droits par profil ») :
+
+- **Lire** : tous les membres.
+- **Créer** :
+  - un admin, pour qui il veut ;
+  - un adulte, pour lui, pour un enfant dont il est adulte responsable, pour son foyer ou pour toute la famille ;
+  - un enfant avec l'appli, pour lui seulement.
+- **Modifier, supprimer** :
+  - un admin, tous les événements ;
+  - chacun, les siens ;
+  - un adulte, aussi ceux de ses enfants, écrits par eux ou pour eux.
+  - Un nouveau destinataire doit être un de ceux que la personne a le droit de choisir.
+- Un membre retiré : ses événements restent visibles, et seul un admin peut encore les modifier ou les supprimer.
+
 ## À venir
 
-- Lot 4 : `events/{eventId}` avec `authorId`, `targetType` (`self` \| `household` \| `child` \| `family`), `targetMemberId` ou `householdId`, pour que les règles vérifient les droits sans lectures en cascade.
 - Lot 6 : `events/{eventId}/rsvps/{memberId}`.
