@@ -17,7 +17,7 @@ keystore.properties
 
 # Firebase / Node (Cloud Functions)
 node_modules/
-functions/lib/
+firebase/functions/lib/
 .firebase/
 firebase-debug.log
 firestore-debug.log

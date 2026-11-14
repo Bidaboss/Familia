@@ -107,4 +107,38 @@ Droits :
 - **Lire** : tous les membres.
 - **Répondre, changer ou retirer sa réponse** : le membre lui-même, ou un adulte responsable s'il s'agit d'un enfant. Personne d'autre, pas même un admin, ne répond à la place de quelqu'un.
 - L'événement et le membre doivent exister.
-- Quand un événement est supprimé, ses réponses sont effacées côté serveur au lot 8, par la même Cloud Function qui prévient les membres inscrits (PRD, récit 5).
+- Quand un événement est supprimé, la Cloud Function `onEventDeleted` efface ses réponses et prévient la famille. Quand un membre est retiré, `onMemberDeleted` efface ses réponses à tous les événements.
+
+### `members/{memberId}/devices/{token}` (lot 8)
+
+Les téléphones d'un membre, pour les notifications. L'identifiant du document est le jeton de notification (FCM) du téléphone, donc un même téléphone n'est enregistré qu'une fois.
+
+| Champ | Type | Description |
+|---|---|---|
+| `updatedAt` | horodatage serveur | Dernière fois que l'appli a confirmé ce jeton |
+
+Droits : seul le membre lui-même lit, ajoute ou supprime ses téléphones. Les Cloud Functions les lisent avec leur accès serveur, et suppriment le jeton d'une appli désinstallée.
+
+### `members/{memberId}/settings/notifications` (lot 8)
+
+| Champ | Type | Description |
+|---|---|---|
+| `dayBeforeReminder` | booléen | `false` coupe le rappel de la veille (PRD, récit 6 bis). Sans document, le rappel est actif. |
+
+Droits : seul le membre lui-même lit et modifie ses réglages.
+
+## Cloud Functions (lot 8)
+
+Le code est dans `firebase/functions`, en TypeScript, et tourne en Europe (`europe-west1`), avec une seule instance au plus.
+
+| Fonction | Quand | Ce qu'elle fait |
+|---|---|---|
+| `onEventCreated` | Un événement est ajouté | Prévient tous les membres qui ont l'appli, sauf l'auteur (PRD, récit 6) |
+| `onEventUpdated` | Un événement est modifié | Idem, seulement si un champ visible a changé |
+| `onEventDeleted` | Un événement est supprimé | Efface ses réponses, puis prévient la famille |
+| `onMemberDeleted` | Un membre est retiré | Efface ses réponses, ses téléphones et ses réglages |
+| `dayBeforeReminder` | Chaque jour à 18 h, heure de Paris | Rappelle l'événement du lendemain à ceux qui ont répondu « Je viens » ou « Peut-être ». Un enfant sans l'appli est rappelé à ses adultes responsables (PRD, récit 6 bis). |
+
+Un événement déjà passé ne prévient personne. L'auteur d'un changement est reconnu par son compte Firebase.
+
+Tests : `cd firebase && npm run test:functions` (la logique, et les fonctions contre l'émulateur Firestore, avec un faux envoi de notifications).
