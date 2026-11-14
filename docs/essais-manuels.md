@@ -47,7 +47,7 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 ## Tuto de démarrage (lot 11a)
 
 1. Installe l'appli sur un téléphone où elle n'a jamais été ouverte, puis connecte-toi avec un compte adulte. **Attendu :** « Bienvenue dans Familia » s'affiche, avec « 1 sur 5 » en haut.
-2. Touche « Suivant » jusqu'au 4e écran. **Attendu :** « Dire si tu viens » parle aussi de répondre pour tes enfants. Avec un compte enfant, cette phrase n'apparaît pas.
+2. Touche « Suivant » jusqu'au 4e écran. **Attendu :** « Dire si tu viens » parle aussi de répondre pour tes enfants. Avec un compte enfant, ou un adulte sans enfant rattaché (un grand-parent par exemple), cette phrase n’apparaît pas.
 3. Touche le bouton retour d'Android. **Attendu :** l'écran précédent s'affiche.
 4. Touche « Passer ». **Attendu :** l'écran « Rester prévenu » s'affiche (5 sur 5), avec « Autoriser les notifications » et « Pas maintenant ».
 5. Touche « Autoriser les notifications », puis accepte dans la fenêtre d'Android. **Attendu :** le planning s'ouvre.

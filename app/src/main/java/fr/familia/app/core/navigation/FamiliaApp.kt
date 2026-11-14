@@ -60,6 +60,7 @@ import fr.familia.app.feature.export.ExportRoute
 import fr.familia.app.feature.onboarding.OnboardingPreferences
 import fr.familia.app.feature.onboarding.OnboardingRoute
 import kotlinx.coroutines.CancellationException
+import fr.familia.app.feature.events.answerableMembers
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
 @Composable
@@ -88,7 +89,11 @@ fun FamiliaApp(
     val onboarding = remember(context) { OnboardingPreferences(context.applicationContext) }
     var showOnboarding by rememberSaveable { mutableStateOf(!onboarding.seen) }
     if (showOnboarding) {
-        OnboardingRoute(profile = currentMember.profile) {
+        // The 4th screen mentions answering for one's children only to those who have some.
+        val familyFlow = remember(container) { container?.memberRepository?.observeFamily() ?: flowOf(null) }
+        val family by familyFlow.collectAsStateWithLifecycle(initialValue = null)
+        val answersForChildren = family?.let { answerableMembers(currentMember, it).size > 1 } ?: false
+        OnboardingRoute(answersForChildren = answersForChildren) {
             onboarding.markSeen()
             showOnboarding = false
         }
