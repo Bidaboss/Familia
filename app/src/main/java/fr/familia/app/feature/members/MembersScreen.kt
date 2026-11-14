@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material.icons.outlined.PersonAdd
@@ -61,6 +62,7 @@ fun MembersScreen(
     /** Null for members who are not admin. */
     onOpenExport: (() -> Unit)? = null,
     onOpenUpdates: (() -> Unit)? = null,
+    onOpenHelp: (() -> Unit)? = null,
 ) {
     when (state) {
         MembersUiState.Loading ->
@@ -116,6 +118,9 @@ fun MembersScreen(
                 }
                 if (onOpenUpdates != null) {
                     item(key = "updates") { SettingsRow(Icons.Outlined.SystemUpdate, R.string.update_check_title, onOpenUpdates) }
+                }
+                if (onOpenHelp != null) {
+                    item(key = "help") { SettingsRow(Icons.AutoMirrored.Outlined.HelpOutline, R.string.help_title, onOpenHelp) }
                 }
                 item(key = "version") {
                     Text(

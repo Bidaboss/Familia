@@ -28,7 +28,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
-import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.FamiliaPreviews
 
@@ -105,6 +104,6 @@ fun OnboardingScreen(
 @Composable
 private fun OnboardingScreenPreview() {
     FamiliaTheme {
-        OnboardingScreen(onboardingPages(MemberProfile.Adult), 0, false, {}, {}, {}, {})
+        OnboardingScreen(onboardingPages(answersForChildren = true), 0, false, {}, {}, {}, {})
     }
 }

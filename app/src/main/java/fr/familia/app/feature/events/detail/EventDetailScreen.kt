@@ -37,6 +37,8 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.feature.help.HelpButton
+import fr.familia.app.feature.help.ScreenHelp
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventTarget
@@ -73,6 +75,7 @@ fun EventDetailScreen(
                     BackButton(onClick = onBack)
                 },
                 actions = {
+                    HelpButton(ScreenHelp.EventDetail)
                     if ((state as? EventDetailUiState.Success)?.canManage == true) {
                         TextButton(onClick = onEdit, modifier = Modifier.heightIn(min = 56.dp)) {
                             Text(stringResource(R.string.event_detail_edit), style = MaterialTheme.typography.labelLarge)

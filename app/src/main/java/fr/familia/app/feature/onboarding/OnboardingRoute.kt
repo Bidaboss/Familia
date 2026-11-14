@@ -9,13 +9,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.notifications.rememberNotificationPermission
 
 /** The tutorial, screen after screen. [onDone] is called once, when the member reaches the app. */
 @Composable
-fun OnboardingRoute(profile: MemberProfile, onDone: () -> Unit) {
-    val pages = remember(profile) { onboardingPages(profile) }
+fun OnboardingRoute(answersForChildren: Boolean, onDone: () -> Unit) {
+    val pages = remember(answersForChildren) { onboardingPages(answersForChildren) }
     var index by rememberSaveable { mutableIntStateOf(0) }
     val permission = rememberNotificationPermission()
     var askedPermission by rememberSaveable { mutableStateOf(false) }

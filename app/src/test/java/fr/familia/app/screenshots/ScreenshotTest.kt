@@ -17,6 +17,12 @@ import fr.familia.app.feature.members.MembersScreen
 import fr.familia.app.feature.settings.NotificationSettingsScreen
 import fr.familia.app.feature.export.ExportScreen
 import fr.familia.app.feature.update.AppUpdate
+import fr.familia.app.feature.help.HelpScreen
+import fr.familia.app.feature.help.HelpSheetContent
+import fr.familia.app.feature.help.HelpTopic
+import fr.familia.app.feature.help.HelpUiState
+import fr.familia.app.feature.help.ScreenHelp
+import fr.familia.app.feature.help.helpTopics
 import fr.familia.app.feature.onboarding.OnboardingScreen
 import fr.familia.app.feature.onboarding.onboardingPages
 import fr.familia.app.feature.update.UpdateBanner
@@ -269,21 +275,38 @@ class ScreenshotTest {
     }
 
     @Test
-    fun onboardingLight() = capture("tuto_clair") { onboarding(MemberProfile.Adult, index = 0) }
+    fun onboardingLight() = capture("tuto_clair") { onboarding(answersForChildren = true, index = 0) }
 
     @Test
     @Config(qualifiers = "+night")
-    fun onboardingChildDark() = capture("tuto_enfant_sombre", darkTheme = true) { onboarding(MemberProfile.ChildWithApp, index = 3) }
+    fun onboardingChildDark() = capture("tuto_enfant_sombre", darkTheme = true) { onboarding(answersForChildren = false, index = 3) }
 
     @Test
     @Config(fontScale = 2f)
     fun onboardingNotificationsFontScale200() = capture("tuto_notifications_police_200") {
-        onboarding(MemberProfile.Adult, index = 4)
+        onboarding(answersForChildren = true, index = 4)
     }
 
     @Composable
-    private fun onboarding(profile: MemberProfile, index: Int) {
-        OnboardingScreen(onboardingPages(profile), index, notificationsAllowed = false, {}, {}, {}, {})
+    private fun onboarding(answersForChildren: Boolean, index: Int) {
+        OnboardingScreen(onboardingPages(answersForChildren), index, notificationsAllowed = false, {}, {}, {}, {})
+    }
+
+    @Test
+    fun helpLight() = capture("aide_clair") {
+        Surface { HelpScreen(HelpUiState(helpTopics(isAdmin = true), "Camille ou Inès"), {}, {}, initiallyOpen = HelpTopic.AddEvent) }
+    }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun helpSheetDark() = capture("aide_planning_sombre", darkTheme = true) {
+        Surface { HelpSheetContent(ScreenHelp.Planning, onOpenAllHelp = {}) }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun helpFontScale200() = capture("aide_police_200") {
+        Surface { HelpScreen(HelpUiState(helpTopics(isAdmin = false), null), {}, {}, initiallyOpen = HelpTopic.Notifications) }
     }
 
     @Test
