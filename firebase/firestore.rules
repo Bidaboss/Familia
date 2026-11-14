@@ -265,6 +265,31 @@ service cloud.firestore {
       allow read: if isMember();
     }
 
+    // --- Notifications (lot 8) --------------------------------------------------------------------
+
+    // members/{memberId}/devices/{token}: the phones of a member, one document per notification
+    // token. Only that member reads or writes them. The Cloud Functions read them with their own
+    // server access, and delete the token of an uninstalled app.
+    match /members/{memberId}/devices/{token} {
+      allow read, delete: if isMember() && myMemberId() == memberId;
+      allow create, update: if isMember()
+        && myMemberId() == memberId
+        && token.size() <= 4096
+        && request.resource.data.keys().hasOnly(['updatedAt'])
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    // members/{memberId}/settings/notifications: the member's own choices (PRD, récit 6 bis: the
+    // reminder the evening before can be turned off). Nobody else reads or changes them.
+    match /members/{memberId}/settings/{settingId} {
+      allow read: if isMember() && myMemberId() == memberId;
+      allow create, update: if isMember()
+        && myMemberId() == memberId
+        && settingId == 'notifications'
+        && request.resource.data.keys().hasOnly(['dayBeforeReminder'])
+        && request.resource.data.dayBeforeReminder is bool;
+    }
+
     // Everything else is closed until a lot opens it explicitly.
   }
 }

@@ -92,9 +92,17 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: firebase/package-lock.json
+          cache-dependency-path: |
+            firebase/package-lock.json
+            firebase/functions/package-lock.json
 
       - run: npm ci
 
       - name: Run the rules tests against the Firestore emulator
         run: npm run test:emulator
+
+      - name: Install the Cloud Functions dependencies
+        run: npm ci --prefix functions
+
+      - name: Build the Cloud Functions and run their tests against the emulator
+        run: npm run test:functions

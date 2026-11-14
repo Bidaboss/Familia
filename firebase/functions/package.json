@@ -1,0 +1,21 @@
+{
+  "name": "familia-functions",
+  "private": true,
+  "description": "Familia Cloud Functions: notifications, the reminder the evening before, cleanup of answers",
+  "main": "lib/src/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test --test-concurrency=1 lib/test/*.test.js"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.2",
+    "firebase-functions": "^6.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2"
+  }
+}
