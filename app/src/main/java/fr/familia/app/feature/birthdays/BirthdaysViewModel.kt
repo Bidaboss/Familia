@@ -3,11 +3,14 @@ package fr.familia.app.feature.birthdays
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.MemberRepository
+import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.upcomingBirthdays
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -26,19 +29,18 @@ import java.time.LocalDate
 @OptIn(ExperimentalCoroutinesApi::class)
 class BirthdaysViewModel(
     private val members: MemberRepository?,
-    private val today: () -> LocalDate = LocalDate::now,
+    private val today: Flow<LocalDate> = currentDayFlow(),
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
 
-    val uiState: StateFlow<BirthdaysUiState> = attempt
-        .flatMapLatest { n ->
+    val uiState: StateFlow<BirthdaysUiState> = combine(attempt, today) { n, day -> n to day }
+        .flatMapLatest { (n, day) ->
             if (members == null) {
-                flowOf(BirthdaysUiState.Success(today(), emptyList(), emptyList())) // Previews.
+                flowOf(BirthdaysUiState.Success(day, emptyList(), emptyList())) // Previews.
             } else {
                 members.observeFamily()
                     .map<Family, BirthdaysUiState> { family ->
-                        val day = today()
                         BirthdaysUiState.Success(
                             today = day,
                             birthdays = upcomingBirthdays(family.members, day),

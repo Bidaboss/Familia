@@ -14,6 +14,11 @@
     <string name="planning_all_day">Journée</string>
     <string name="planning_for_by">Pour %1$s · par %2$s</string>
     <string name="planning_birthday_of">Anniversaire de %1$s</string>
+    <string name="planning_mode_list">Liste</string>
+    <string name="planning_mode_month">Mois</string>
+    <string name="planning_month_previous">Mois précédent</string>
+    <string name="planning_month_next">Mois suivant</string>
+    <string name="planning_month_empty">Rien de prévu ce mois-ci.</string>
     <string name="action_keep">Garder</string>
     <string name="event_add_title">Nouvel événement</string>
     <string name="event_edit_title">Modifier l\'événement</string>

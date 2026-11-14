@@ -6,6 +6,8 @@ import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -36,7 +38,7 @@ class PlanningViewModelTest {
                 TestFamily.event("other", TestFamily.adult, date = LocalDate.of(2026, 12, 25)),
             ),
         )
-        val vm = PlanningViewModel(events, FakeMembers(), "adult1", today = { today })
+        val vm = PlanningViewModel(events, FakeMembers(), "adult1", today = flowOf(today))
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         val days = (vm.uiState.value as PlanningUiState.Success).days
         assertEquals(listOf(day, LocalDate.of(2026, 12, 25)), days.map { it.date })
@@ -51,7 +53,7 @@ class PlanningViewModelTest {
                 TestFamily.event("theirs", TestFamily.otherAdult, EventTarget.ForHousehold("h2")),
             ),
         )
-        val vm = PlanningViewModel(events, FakeMembers(), "adult1", today = { today })
+        val vm = PlanningViewModel(events, FakeMembers(), "adult1", today = flowOf(today))
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         val items = (vm.uiState.value as PlanningUiState.Success).days.single().items.associateBy { it.event.id }
         assertTrue(items.getValue("mine").canManage)
@@ -64,7 +66,7 @@ class PlanningViewModelTest {
     @Test
     fun `a new event appears live`() = runTest {
         val events = FakeEvents()
-        val vm = PlanningViewModel(events, FakeMembers(), "adult1", today = { today })
+        val vm = PlanningViewModel(events, FakeMembers(), "adult1", today = flowOf(today))
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         assertTrue((vm.uiState.value as PlanningUiState.Success).days.isEmpty())
         events.events.value = listOf(TestFamily.event("e1", TestFamily.otherAdult))
@@ -77,7 +79,7 @@ class PlanningViewModelTest {
             members = TestFamily.family.members.map { if (it.id == "kid2") it.copy(birthDate = LocalDate.of(2016, 12, 24)) else it },
         )
         val events = FakeEvents(listOf(TestFamily.event("e1", TestFamily.adult, date = LocalDate.of(2026, 12, 24))))
-        val vm = PlanningViewModel(events, FakeMembers(family), "adult1", today = { today })
+        val vm = PlanningViewModel(events, FakeMembers(family), "adult1", today = flowOf(today))
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         val state = vm.uiState.value as PlanningUiState.Success
         assertEquals(today, state.today)
@@ -92,10 +94,23 @@ class PlanningViewModelTest {
         val family = TestFamily.family.copy(
             members = TestFamily.family.members.map { if (it.id == "adult2") it.copy(birthDate = LocalDate.of(1980, 1, 5)) else it },
         )
-        val vm = PlanningViewModel(FakeEvents(), FakeMembers(family), "adult1", today = { today })
+        val vm = PlanningViewModel(FakeEvents(), FakeMembers(family), "adult1", today = flowOf(today))
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         val day = (vm.uiState.value as PlanningUiState.Success).days.single()
         assertEquals(LocalDate.of(2027, 1, 5), day.date)
         assertEquals(emptyList<Any>(), day.items)
+    }
+
+    @Test
+    fun `at midnight the list moves on by itself`() = runTest {
+        val day = MutableStateFlow(today)
+        val events = FakeEvents(listOf(TestFamily.event("tonight", TestFamily.adult, date = today)))
+        val vm = PlanningViewModel(events, FakeMembers(), "adult1", today = day)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        assertEquals(listOf("tonight"), (vm.uiState.value as PlanningUiState.Success).days.single().items.map { it.event.id })
+        day.value = today.plusDays(1)
+        val state = vm.uiState.value as PlanningUiState.Success
+        assertEquals(today.plusDays(1), state.today)
+        assertTrue(state.days.isEmpty())
     }
 }
