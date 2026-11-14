@@ -154,3 +154,13 @@ Un admin crée une sauvegarde depuis Famille, puis « Sauvegarde des données »
 | `rsvps` | Les réponses, avec `eventId` et `memberId` |
 
 Les données sont lues sur le serveur, jamais dans le cache du téléphone. Hors ligne, aucune sauvegarde n'est faite et l'appli demande de se connecter : une sauvegarde est complète ou n'existe pas. L'appli lit les données avant d'ouvrir le sélecteur, et si l'écriture échoue, elle supprime le fichier créé. Les documents sont triés par identifiant, donc deux exports des mêmes données donnent le même fichier. Ne sont pas exportés : `memberEmails`, qui se reconstruit à partir des membres, et les téléphones et réglages de chacun, que seul le membre concerné peut lire. À partir de la V2, les cadeaux s'ajouteront au fichier, avec un `formatVersion` augmenté si sa forme change.
+
+### `config/app` (lot 10)
+
+| Champ | Type | Description |
+|---|---|---|
+| `latestVersionCode` | nombre | Le `versionCode` de la dernière version publiée |
+| `latestVersionName` | texte | Son nom affiché, par exemple « 0.2.0 » |
+| `downloadUrl` | texte | Le lien HTTPS de l'APK dans le Drive. Tout autre lien est ignoré par l'appli. |
+
+Droits : tous les membres le lisent, et personne ne l'écrit depuis l'appli. Kévin le modifie dans la console Firebase (voir [mise-a-jour.md](mise-a-jour.md)).

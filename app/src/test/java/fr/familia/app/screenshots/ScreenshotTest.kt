@@ -16,6 +16,8 @@ import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.feature.members.MembersScreen
 import fr.familia.app.feature.settings.NotificationSettingsScreen
 import fr.familia.app.feature.export.ExportScreen
+import fr.familia.app.feature.update.AppUpdate
+import fr.familia.app.feature.update.UpdateBanner
 import fr.familia.app.feature.export.ExportUiState
 import fr.familia.app.feature.settings.NotificationSettingsUiState
 import fr.familia.app.feature.members.MembersUiState
@@ -233,6 +235,15 @@ class ScreenshotTest {
                 onOpenExport = {},
             )
         }
+    }
+
+    @Test
+    fun updateBannerLight() = capture("mise_a_jour_clair") { UpdateBanner(AppUpdate("0.2.0", "https://example.com"), {}, {}) }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun updateBannerFontScale200() = capture("mise_a_jour_police_200") {
+        UpdateBanner(AppUpdate("0.2.0", "https://example.com"), {}, {})
     }
 
     @Test

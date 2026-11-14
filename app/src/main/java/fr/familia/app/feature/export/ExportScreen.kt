@@ -66,7 +66,7 @@ fun ExportScreen(state: ExportUiState, onExport: () -> Unit, onBack: () -> Unit,
             val exporting = state == ExportUiState.Exporting
             Button(
                 onClick = onExport,
-                enabled = !exporting && state !is ExportUiState.AwaitingDestination,
+                enabled = !exporting && state != ExportUiState.Picking && state !is ExportUiState.AwaitingDestination,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             ) {
                 if (exporting) {

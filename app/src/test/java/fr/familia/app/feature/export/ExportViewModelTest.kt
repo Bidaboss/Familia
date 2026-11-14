@@ -84,4 +84,16 @@ class ExportViewModelTest {
         vm.prepare()
         assertEquals(1, repo.loads)
     }
+
+    @Test
+    fun `once the picker is open, a recreated screen does not open it again`() = runTest {
+        val vm = ExportViewModel(FakeExport(), "1.0.0", now)
+        vm.prepare()
+        vm.pickerOpened()
+        assertEquals(ExportUiState.Picking, vm.uiState.value)
+        var written = ""
+        vm.save { written = it }
+        assertEquals(ExportUiState.Done, vm.uiState.value)
+        assertTrue(written.isNotEmpty())
+    }
 }

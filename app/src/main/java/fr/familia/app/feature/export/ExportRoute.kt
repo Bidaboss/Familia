@@ -50,7 +50,10 @@ fun ExportRoute(container: AppContainer?, onBack: () -> Unit) {
     }
     val awaiting = state as? ExportUiState.AwaitingDestination
     LaunchedEffect(awaiting) {
-        if (awaiting != null) picker.launch(awaiting.fileName)
+        if (awaiting != null) {
+            picker.launch(awaiting.fileName)
+            viewModel.pickerOpened()
+        }
     }
     ExportScreen(state = state, onExport = viewModel::prepare, onBack = onBack)
 }
