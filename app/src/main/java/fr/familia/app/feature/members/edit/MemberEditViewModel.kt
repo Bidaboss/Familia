@@ -35,6 +35,7 @@ class MemberEditViewModel(
     private var original: Member? = null
     private var editedId = ""
     private var showErrors = false
+    private var initialForm = MemberForm()
 
     init {
         viewModelScope.launch { load() }
@@ -57,9 +58,10 @@ class MemberEditViewModel(
         }
         original = existing
         editedId = existing?.id ?: repo.newMemberId()
+        initialForm = existing?.let { MemberForm.from(it) }
+            ?: MemberForm(householdId = family.households.singleOrNull()?.id)
         _uiState.value = MemberEditUiState.Editing(
-            form = existing?.let { MemberForm.from(it) }
-                ?: MemberForm(householdId = family.households.singleOrNull()?.id),
+            form = initialForm,
             isNew = existing == null,
             households = family.households.sortedBy { it.name.lowercase() },
             adults = family.members
@@ -73,7 +75,12 @@ class MemberEditViewModel(
     fun update(change: (MemberForm) -> MemberForm) {
         val state = _uiState.value as? MemberEditUiState.Editing ?: return
         val form = change(state.form)
-        _uiState.value = state.copy(form = form, errors = errorsFor(form), saveFailed = false)
+        _uiState.value = state.copy(
+            form = form,
+            errors = errorsFor(form),
+            hasChanges = form != initialForm,
+            saveFailed = false,
+        )
     }
 
     /** Creates a household from the form and selects it. */
@@ -89,6 +96,7 @@ class MemberEditViewModel(
             form = form,
             households = family.households.sortedBy { it.name.lowercase() },
             errors = errorsFor(form),
+            hasChanges = true,
         )
         viewModelScope.launch {
             if (!write { repo.saveHousehold(household) }) markFailed()

@@ -1,5 +1,6 @@
 package fr.familia.app.feature.members.edit
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -92,6 +93,32 @@ fun MemberEditScreen(
     onBack: () -> Unit,
     today: LocalDate = LocalDate.now(),
 ) {
+    // Leaving a changed form asks first, so a slip of the thumb does not lose what was typed.
+    var confirmLeave by rememberSaveable { mutableStateOf(false) }
+    val hasChanges = (state as? MemberEditUiState.Editing)?.hasChanges == true
+    val back: () -> Unit = {
+        if (hasChanges) {
+            confirmLeave = true
+        } else {
+            onBack()
+        }
+    }
+    BackHandler(enabled = hasChanges) { confirmLeave = true }
+    if (confirmLeave) {
+        AlertDialog(
+            onDismissRequest = { confirmLeave = false },
+            title = { Text(stringResource(R.string.member_leave_title)) },
+            text = { Text(stringResource(R.string.member_leave_body)) },
+            confirmButton = {
+                TextButton(onClick = { confirmLeave = false }) { Text(stringResource(R.string.member_leave_keep)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmLeave = false; onBack() }) {
+                    Text(stringResource(R.string.member_leave_discard))
+                }
+            },
+        )
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -107,7 +134,7 @@ fun MemberEditScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = back) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
@@ -390,7 +417,7 @@ private fun ColorSection(selected: Int?, onPick: (Int) -> Unit) {
                 val label = stringResource(R.string.member_color_n, index + 1)
                 Box(
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(56.dp)
                         .clip(CircleShape)
                         .background(color)
                         .then(

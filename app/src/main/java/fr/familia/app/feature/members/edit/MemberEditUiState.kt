@@ -19,6 +19,8 @@ sealed interface MemberEditUiState {
         val canChangeAdmin: Boolean,
         /** Shown once the admin has tried to save, so empty fields are not red from the start. */
         val errors: Set<FormError>,
+        /** True once the form differs from what was opened: leaving then asks for confirmation. */
+        val hasChanges: Boolean = false,
         val isSaving: Boolean = false,
         val saveFailed: Boolean = false,
     ) : MemberEditUiState

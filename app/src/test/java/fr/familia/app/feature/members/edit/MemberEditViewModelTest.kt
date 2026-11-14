@@ -91,6 +91,16 @@ class MemberEditViewModelTest {
     }
 
     @Test
+    fun `the form knows when it differs from what was opened`() {
+        val viewModel = vm(FakeMembers(family), memberId = "adult1")
+        assertFalse(viewModel.editing().hasChanges)
+        viewModel.update { it.copy(firstName = "Sasha") }
+        assertTrue(viewModel.editing().hasChanges)
+        viewModel.update { it.copy(firstName = "Sacha") }
+        assertFalse(viewModel.editing().hasChanges)
+    }
+
+    @Test
     fun `a member that no longer exists shows the not found state`() {
         assertEquals(MemberEditUiState.NotFound, vm(FakeMembers(family), memberId = "gone").uiState.value)
     }
