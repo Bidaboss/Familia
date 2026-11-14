@@ -49,6 +49,17 @@ fun canManage(event: Event, me: Member, family: Family): Boolean =
                     )
             )
 
+/**
+ * Whose answer [me] may give to "qui vient" (PRD, récit 4): themselves first, then, for an adult,
+ * each child they are a responsible adult of. Admins have no more rights here: an answer is personal.
+ */
+fun answerableMembers(me: Member, family: Family): List<Member> =
+    listOf(me) + if (me.profile == MemberProfile.Adult) {
+        family.members.filter { me.id in it.parentIds }.sortedBy { it.firstName.lowercase() }
+    } else {
+        emptyList()
+    }
+
 /** The author's current first name, or the one saved on the event once they have been removed. */
 fun authorDisplayName(event: Event, family: Family): String =
     family.members.firstOrNull { it.id == event.authorId }?.firstName ?: event.authorName

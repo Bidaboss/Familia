@@ -2,6 +2,7 @@ package fr.familia.app.feature.events
 
 import fr.familia.app.core.data.EventRepository
 import fr.familia.app.core.data.MemberRepository
+import fr.familia.app.core.data.RsvpRepository
 import fr.familia.app.core.data.eventOrder
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventTarget
@@ -9,6 +10,8 @@ import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
+import fr.familia.app.core.model.Rsvp
+import fr.familia.app.core.model.RsvpStatus
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,6 +59,7 @@ class FakeEvents(initial: List<Event> = emptyList(), private val failWith: Excep
     override fun observeUpcoming(from: LocalDate): Flow<List<Event>> =
         events.map { list -> list.filter { it.date >= from }.sortedWith(eventOrder) }
     override suspend fun getEvent(id: String): Event? = events.value.firstOrNull { it.id == id }
+    override fun observeEvent(id: String): Flow<Event?> = events.map { list -> list.firstOrNull { it.id == id } }
     override fun newEventId(): String = "e-new"
     override suspend fun saveEvent(event: Event, isNew: Boolean) {
         failWith?.let { throw it }
@@ -65,5 +69,17 @@ class FakeEvents(initial: List<Event> = emptyList(), private val failWith: Excep
     override suspend fun deleteEvent(id: String) {
         failWith?.let { throw it }
         deleted += id
+    }
+}
+
+class FakeRsvps(private val failWith: Exception? = null, private val hang: Boolean = false) : RsvpRepository {
+    /** Answers by event id. */
+    val answers = MutableStateFlow<Map<String, List<Rsvp>>>(emptyMap())
+    override fun observeRsvps(eventId: String): Flow<List<Rsvp>> = answers.map { it[eventId].orEmpty() }
+    override suspend fun setRsvp(eventId: String, memberId: String, status: RsvpStatus, answeredBy: String) {
+        failWith?.let { throw it }
+        // Like Firestore offline: the cache shows the answer at once, the server never confirms.
+        answers.value = answers.value + (eventId to (answers.value[eventId].orEmpty().filter { it.memberId != memberId } + Rsvp(memberId, status, answeredBy)))
+        if (hang) awaitCancellation()
     }
 }

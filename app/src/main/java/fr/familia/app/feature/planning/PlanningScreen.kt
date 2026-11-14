@@ -158,7 +158,7 @@ private fun LazyListScope.dayItems(days: List<PlanningDay>, today: LocalDate, on
         item(key = "day-${day.date}") { DayHeader(day.date, today) }
         items(day.birthdays, key = { "birthday-${day.date}-${it.member.id}" }) { BirthdayRow(it) }
         items(day.items, key = { "event-${it.event.id}" }) { item ->
-            EventRow(item, onClick = if (item.canManage) ({ onOpenEvent(item.event.id) }) else null)
+            EventRow(item, onClick = { onOpenEvent(item.event.id) })
         }
     }
 }
@@ -295,14 +295,14 @@ private fun DayHeader(date: LocalDate, today: LocalDate) {
 }
 
 @Composable
-private fun EventRow(item: PlanningItem, onClick: (() -> Unit)?) {
+private fun EventRow(item: PlanningItem, onClick: () -> Unit) {
     val event = item.event
-    val editLabel = stringResource(R.string.members_edit_action)
+    val openLabel = stringResource(R.string.planning_open_action)
     Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .then(if (onClick != null) Modifier.clickable(onClickLabel = editLabel, onClick = onClick) else Modifier)
+                .clickable(onClickLabel = openLabel, onClick = onClick)
                 .heightIn(min = 56.dp)
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.Top,

@@ -24,6 +24,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import fr.familia.app.feature.members.edit.MemberEditRoute
 import fr.familia.app.feature.birthdays.BirthdaysRoute
+import fr.familia.app.feature.events.detail.EventDetailRoute
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.OfflineBanner
@@ -76,7 +77,18 @@ fun FamiliaApp(
                     PlanningRoute(
                         container = container,
                         currentMember = currentMember,
-                        onEditEvent = { id -> navController.navigate(EventEditDestination(id)) },
+                        onAddEvent = { navController.navigate(EventEditDestination()) },
+                        onOpenEvent = { id -> navController.navigate(EventDetailDestination(id)) },
+                    )
+                }
+                composable<EventDetailDestination> { entry ->
+                    val eventId = entry.toRoute<EventDetailDestination>().eventId
+                    EventDetailRoute(
+                        container = container,
+                        currentMember = currentMember,
+                        eventId = eventId,
+                        onEdit = { navController.navigate(EventEditDestination(eventId)) },
+                        onBack = { navController.popBackStack() },
                     )
                 }
                 composable<EventEditDestination> { entry ->

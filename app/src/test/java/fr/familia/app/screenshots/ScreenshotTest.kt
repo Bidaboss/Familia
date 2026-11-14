@@ -8,6 +8,8 @@ import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.feature.auth.SessionUiState
 import fr.familia.app.feature.auth.SignInScreen
 import fr.familia.app.feature.birthdays.BirthdaysScreen
+import fr.familia.app.feature.events.detail.EventDetailScreen
+import fr.familia.app.feature.events.detail.previewEventDetail
 import fr.familia.app.feature.birthdays.previewBirthdays
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
@@ -163,6 +165,23 @@ class ScreenshotTest {
     @Config(fontScale = 2f)
     fun planningListFontScale200() = capture("planning_liste_police_200") {
         Surface { PlanningScreen(previewPlanning(), {}, {}, {}) }
+    }
+
+    @Test
+    fun eventDetailLight() = capture("evenement_detail_clair") {
+        EventDetailScreen(previewEventDetail(), { _, _ -> }, {}, {}, {})
+    }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun eventDetailDark() = capture("evenement_detail_sombre", darkTheme = true) {
+        EventDetailScreen(previewEventDetail(canManage = false), { _, _ -> }, {}, {}, {})
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun eventDetailFontScale200() = capture("evenement_detail_police_200") {
+        EventDetailScreen(previewEventDetail(), { _, _ -> }, {}, {}, {})
     }
 
     @Test

@@ -61,4 +61,15 @@ class EventRightsTest {
         assertEquals("Ancien", authorDisplayName(gone, family))
         assertEquals("Adult1", authorDisplayName(event("f", adult).copy(authorName = "Old name"), family))
     }
+
+    @Test
+    fun `an adult answers for themselves, then their children`() {
+        assertEquals(listOf("adult1", "kid1"), answerableMembers(adult, family).map { it.id })
+    }
+
+    @Test
+    fun `a child answers for themselves only, and an admin gets no extra answers`() {
+        assertEquals(listOf("kid1"), answerableMembers(kid, family).map { it.id })
+        assertEquals(listOf("admin1"), answerableMembers(admin, family).map { it.id })
+    }
 }

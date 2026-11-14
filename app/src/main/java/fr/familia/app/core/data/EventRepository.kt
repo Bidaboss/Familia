@@ -12,6 +12,9 @@ interface EventRepository {
     /** One event, or null if it was deleted. */
     suspend fun getEvent(id: String): Event?
 
+    /** One event, updated live; null once it is deleted or if it has a malformed shape. */
+    fun observeEvent(id: String): Flow<Event?>
+
     /** A fresh id for an event that is not saved yet. */
     fun newEventId(): String
 

@@ -22,6 +22,10 @@ data object BirthdaysRoute
 @Serializable
 data object MembersRoute
 
+/** Read-only view of an event with "qui vient", opened from the Planning tab. */
+@Serializable
+data class EventDetailDestination(val eventId: String)
+
 /** Event form opened from the Planning tab: a new event when [eventId] is null. */
 @Serializable
 data class EventEditDestination(val eventId: String? = null)

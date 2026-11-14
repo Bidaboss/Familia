@@ -10,7 +10,7 @@ data class PlanningItem(
     val event: Event,
     val target: TargetChoice,
     val authorName: String,
-    /** True when this member may edit or delete it: the row then opens the form. */
+    /** True when this member may edit or delete it (the event view then shows "Modifier"). */
     val canManage: Boolean,
 )
 

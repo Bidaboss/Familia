@@ -32,6 +32,17 @@ class FirestoreEventRepository(private val db: FirebaseFirestore) : EventReposit
     override suspend fun getEvent(id: String): Event? =
         db.collection(EVENTS).document(id).get().await().takeIf { it.exists() }?.toEvent()
 
+    override fun observeEvent(id: String): Flow<Event?> = callbackFlow {
+        val registration = db.collection(EVENTS).document(id).addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+            } else if (snapshot != null) {
+                trySend(snapshot.takeIf { it.exists() }?.toEvent())
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
     override fun newEventId(): String = db.collection(EVENTS).document().id
 
     override suspend fun saveEvent(event: Event, isNew: Boolean) {
