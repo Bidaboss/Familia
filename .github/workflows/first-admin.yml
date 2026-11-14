@@ -48,7 +48,8 @@ jobs:
 
       - run: npm ci
 
-      # The address is masked so that it never shows in the logs.
+      # GitHub shows the inputs at the top of the step, before any mask can apply: they stay
+      # visible on the run page (private repository). The script itself never prints them.
       - name: Create
         env:
           FIREBASE_SECRET_ACCOUNT: ${{ secrets.FIREBASE_SECRET_ACCOUNT }}
@@ -56,7 +57,6 @@ jobs:
           EMAIL: ${{ inputs.adresse }}
           HOUSEHOLD: ${{ inputs.foyer }}
         run: |
-          echo "::add-mask::$EMAIL"
           if [ -z "$FIREBASE_SECRET_ACCOUNT" ]; then
             echo "::error::Le secret FIREBASE_SECRET_ACCOUNT est absent (voir docs/deploiement.md)."
             exit 1
@@ -64,5 +64,5 @@ jobs:
           key="$RUNNER_TEMP/firebase-key.json"
           trap 'rm -f "$key"' EXIT
           printf '%s' "$FIREBASE_SECRET_ACCOUNT" > "$key"
-          PROJECT_ID=$(node -p "require('../.firebaserc').projects.default")
+          PROJECT_ID=$(node -p "JSON.parse(require('fs').readFileSync('../.firebaserc', 'utf8')).projects.default")
           PROJECT_ID="$PROJECT_ID" GOOGLE_APPLICATION_CREDENTIALS="$key" node scripts/first-admin.mjs
