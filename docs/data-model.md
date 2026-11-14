@@ -142,3 +142,15 @@ Le code est dans `firebase/functions`, en TypeScript, et tourne en Europe (`euro
 Un événement déjà passé ne prévient personne. L'auteur d'un changement est reconnu par son compte Firebase.
 
 Tests : `cd firebase && npm run test:functions` (la logique, et les fonctions contre l'émulateur Firestore, avec un faux envoi de notifications).
+
+## Export JSON (lot 9)
+
+Un admin crée une sauvegarde depuis Famille, puis « Sauvegarde des données » (PRD, récit 6 ter). Le sélecteur de fichiers d'Android lui laisse choisir le téléphone ou Google Drive. Le fichier `familia-sauvegarde-AAAA-MM-JJ.json` contient :
+
+| Clé | Contenu |
+|---|---|
+| `app`, `formatVersion`, `appVersion`, `exportedAt` | « Familia », la version du format (1), la version de l'appli, l'heure de l'export (ISO 8601, UTC) |
+| `households`, `members`, `events` | Les documents tels qu'ils sont stockés, avec leur `id` |
+| `rsvps` | Les réponses, avec `eventId` et `memberId` |
+
+Les documents sont triés par identifiant, donc deux exports des mêmes données donnent le même fichier. Ne sont pas exportés : `memberEmails`, qui se reconstruit à partir des membres, et les téléphones et réglages de chacun, que seul le membre concerné peut lire. À partir de la V2, les cadeaux s'ajouteront au fichier, avec un `formatVersion` augmenté si sa forme change.

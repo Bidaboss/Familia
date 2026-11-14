@@ -16,6 +16,7 @@ fun MembersRoute(
     currentMember: Member,
     onEditMember: (memberId: String?) -> Unit,
     onOpenNotifications: () -> Unit,
+    onOpenExport: () -> Unit,
 ) {
     val viewModel: MembersViewModel = viewModel(
         factory = viewModelFactory {
@@ -27,6 +28,8 @@ fun MembersRoute(
         state = state,
         onRetry = viewModel::retry,
         onOpenNotifications = onOpenNotifications,
+        // The backup holds everyone's data: admins only (PRD, récit 6 ter).
+        onOpenExport = if ((state as? MembersUiState.Success)?.isAdmin == true) onOpenExport else null,
         // Only admins add and edit members (the security rules check it too).
         onEditMember = if ((state as? MembersUiState.Success)?.isAdmin == true) onEditMember else null,
     )

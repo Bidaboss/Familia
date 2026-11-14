@@ -15,6 +15,8 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.feature.members.MembersScreen
 import fr.familia.app.feature.settings.NotificationSettingsScreen
+import fr.familia.app.feature.export.ExportScreen
+import fr.familia.app.feature.export.ExportUiState
 import fr.familia.app.feature.settings.NotificationSettingsUiState
 import fr.familia.app.feature.members.MembersUiState
 import fr.familia.app.feature.members.previewGroups
@@ -222,8 +224,30 @@ class ScreenshotTest {
     @Test
     fun membersAdminLight() = capture("famille_admin_clair") {
         Surface {
-            MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0", onEditMember = {})
+            MembersScreen(
+                MembersUiState.Success(previewGroups(), "a", isAdmin = true),
+                onRetry = {},
+                versionName = "0.1.0",
+                onEditMember = {},
+                onOpenNotifications = {},
+                onOpenExport = {},
+            )
         }
+    }
+
+    @Test
+    fun exportLight() = capture("sauvegarde_clair") { Surface { ExportScreen(ExportUiState.Done, onExport = {}, onBack = {}) } }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun exportDark() = capture("sauvegarde_sombre", darkTheme = true) {
+        Surface { ExportScreen(ExportUiState.Failed, onExport = {}, onBack = {}) }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun exportFontScale200() = capture("sauvegarde_police_200") {
+        Surface { ExportScreen(ExportUiState.Exporting, onExport = {}, onBack = {}) }
     }
 
     @Test

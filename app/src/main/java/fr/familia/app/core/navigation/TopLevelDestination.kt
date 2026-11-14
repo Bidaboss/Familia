@@ -38,6 +38,10 @@ data class MemberEditDestination(val memberId: String? = null)
 @Serializable
 data object NotificationSettingsDestination
 
+/** Admin backup of the family's data, opened from the Famille tab (lot 9). */
+@Serializable
+data object ExportDestination
+
 /**
  * The tabs of the bottom navigation bar, in display order (design principles, "Navigation et structure").
  * Settings and app updates live inside the Famille tab, so V1 keeps three tabs.

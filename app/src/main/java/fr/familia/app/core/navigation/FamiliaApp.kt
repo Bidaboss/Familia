@@ -33,6 +33,7 @@ import fr.familia.app.feature.members.MembersRoute
 import fr.familia.app.feature.events.edit.EventEditRoute
 import fr.familia.app.feature.planning.PlanningRoute
 import fr.familia.app.feature.settings.NotificationSettingsRoute
+import fr.familia.app.feature.export.ExportRoute
 import fr.familia.app.core.notifications.AskNotificationPermissionOnce
 import kotlinx.coroutines.CancellationException
 
@@ -131,7 +132,11 @@ fun FamiliaApp(
                         currentMember = currentMember,
                         onEditMember = { id -> navController.navigate(MemberEditDestination(id)) },
                         onOpenNotifications = { navController.navigate(NotificationSettingsDestination) },
+                        onOpenExport = { navController.navigate(ExportDestination) },
                     )
+                }
+                composable<ExportDestination> {
+                    ExportRoute(container = container, onBack = { navController.popBackStack() })
                 }
                 composable<NotificationSettingsDestination> {
                     NotificationSettingsRoute(
