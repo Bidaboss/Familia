@@ -25,8 +25,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination
@@ -82,15 +84,19 @@ fun FamiliaApp(
         }
     }
 
-    // Lot 10: a newer version in config/app is offered above the tabs, once per opening.
+    // Lot 10: a newer version in config/app is offered above the tabs. The check runs each time the
+    // app comes back on screen, even if it stayed open in the background: collection stops in the
+    // background and starts again, with a fresh read, when the app is shown. "Plus tard" lasts
+    // until then.
     val updates = remember(container) {
         container?.appConfigRepository?.observeAppConfig()
             ?.map { config -> availableUpdate(config, BuildConfig.VERSION_CODE, BuildConfig.DOWNLOAD_URL) }
             ?.catch { /* Offline or no config yet: nothing to offer. */ }
             ?: flowOf(null)
     }
-    val update by updates.collectAsState(initial = null)
+    val update by updates.collectAsStateWithLifecycle(initialValue = null)
     var updateDismissed by rememberSaveable { mutableStateOf(false) }
+    LifecycleEventEffect(Lifecycle.Event.ON_START) { updateDismissed = false }
     val context = LocalContext.current
 
     val backStackEntry by navController.currentBackStackEntryAsState()

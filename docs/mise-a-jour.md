@@ -1,6 +1,6 @@
 # Publier une nouvelle version de Familia
 
-Chaque fois que l'appli s'ouvre, elle lit le document `config/app` dans Firestore. Si ce document annonce une version plus récente que celle qui est installée, un encadré « Nouvelle version disponible » apparaît en haut de l'appli, avec un bouton « Mettre à jour ». Ce bouton ouvre le dossier Drive de Familia, où tu déposes chaque nouvelle version. Le lien de ce dossier est écrit dans le code de l'appli (`app/build.gradle.kts`) : il n'y a rien à régler dans l'appli, et c'est le même lien que dans l'invitation.
+Chaque fois que l'appli s'ouvre ou revient à l'écran, même si elle était restée ouverte en arrière-plan, elle lit le document `config/app` dans Firestore. Si ce document annonce une version plus récente que celle qui est installée, un encadré « Nouvelle version disponible » apparaît en haut de l'appli, avec un bouton « Mettre à jour ». Ce bouton ouvre le dossier Drive de Familia, où tu déposes chaque nouvelle version. Le lien de ce dossier est écrit dans le code de l'appli (`app/build.gradle.kts`) : il n'y a rien à régler dans l'appli, et c'est le même lien que dans l'invitation.
 
 ## Ce qui protège la famille
 
@@ -22,4 +22,4 @@ Chaque fois que l'appli s'ouvre, elle lit le document `config/app` dans Firestor
 
 5. Ouvre Familia sur ton téléphone. **Attendu :** l'encadré « Nouvelle version 0.2.0 disponible » apparaît. Touche « Mettre à jour », le dossier Drive s'ouvre : télécharge l'APK, puis ouvre-le pour l'installer par-dessus l'appli. Tes données ne bougent pas, puisqu'elles sont dans Firebase.
 
-« Plus tard » cache l'encadré jusqu'à la prochaine ouverture de l'appli.
+« Plus tard » cache l'encadré jusqu'à ce que l'appli revienne à l'écran.
