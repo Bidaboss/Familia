@@ -1,16 +1,14 @@
 package fr.familia.app.core.navigation
 
-import android.content.ActivityNotFoundException
-import android.content.Context
-import android.content.Intent
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.net.toUri
 import fr.familia.app.BuildConfig
 import fr.familia.app.feature.update.UpdateBanner
 import fr.familia.app.feature.update.availableUpdate
+import fr.familia.app.feature.update.openDownload
+import fr.familia.app.feature.update.UpdateCheckRoute
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -25,8 +23,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination
@@ -82,15 +82,19 @@ fun FamiliaApp(
         }
     }
 
-    // Lot 10: a newer version in config/app is offered above the tabs, once per opening.
+    // Lot 10: a newer version in config/app is offered above the tabs. The check runs each time the
+    // app comes back on screen, even if it stayed open in the background: collection stops in the
+    // background and starts again, with a fresh read, when the app is shown. "Plus tard" lasts
+    // until then.
     val updates = remember(container) {
         container?.appConfigRepository?.observeAppConfig()
-            ?.map { config -> availableUpdate(config, BuildConfig.VERSION_CODE) }
+            ?.map { config -> availableUpdate(config, BuildConfig.VERSION_CODE, BuildConfig.DOWNLOAD_URL) }
             ?.catch { /* Offline or no config yet: nothing to offer. */ }
             ?: flowOf(null)
     }
-    val update by updates.collectAsState(initial = null)
+    val update by updates.collectAsStateWithLifecycle(initialValue = null)
     var updateDismissed by rememberSaveable { mutableStateOf(false) }
+    LifecycleEventEffect(Lifecycle.Event.ON_START) { updateDismissed = false }
     val context = LocalContext.current
 
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -168,7 +172,11 @@ fun FamiliaApp(
                         onEditMember = { id -> navController.navigate(MemberEditDestination(id)) },
                         onOpenNotifications = { navController.navigate(NotificationSettingsDestination) },
                         onOpenExport = { navController.navigate(ExportDestination) },
+                        onOpenUpdates = { navController.navigate(UpdateCheckDestination) },
                     )
+                }
+                composable<UpdateCheckDestination> {
+                    UpdateCheckRoute(container = container, onBack = { navController.popBackStack() })
                 }
                 composable<ExportDestination> {
                     ExportRoute(container = container, onBack = { navController.popBackStack() })
@@ -194,14 +202,6 @@ fun FamiliaApp(
 }
 
 /** Opens the APK link in the browser or the Drive app; Android then checks the signature on install. */
-private fun openDownload(context: Context, url: String) {
-    try {
-        context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-    } catch (e: ActivityNotFoundException) {
-        // No browser at all: nothing sensible to do, the banner stays.
-    }
-}
-
 private fun NavDestination?.isOn(destination: TopLevelDestination): Boolean =
     this?.hierarchy?.any { it.hasRoute(destination.route::class) } == true
 

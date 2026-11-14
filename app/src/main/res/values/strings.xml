@@ -140,7 +140,6 @@
     <string name="invite_send">Envoyer l\'invitation</string>
     <string name="invite_chooser">Envoyer l\'invitation avec</string>
     <string name="invite_message">Bonjour %1$s ! Bienvenue dans Familia, l\'appli de notre famille.\n\n1. Installe l\'appli : %2$s\n2. Ouvre-la et connecte-toi avec ton compte Google %3$s.</string>
-    <string name="invite_link_missing">demande-moi le lien</string>
     <string name="member_leave_title">Quitter la fiche ?</string>
     <string name="member_leave_body">Les changements de cette fiche ne sont pas enregistrés.</string>
     <string name="member_leave_keep">Continuer la fiche</string>
@@ -200,4 +199,11 @@
     <string name="update_help">Télécharge-la, puis ouvre le fichier pour l\'installer par-dessus l\'appli actuelle. Tes données ne bougent pas.</string>
     <string name="update_action">Mettre à jour</string>
     <string name="update_later">Plus tard</string>
+    <string name="update_check_title">Vérifier les mises à jour</string>
+    <string name="update_check_installed">Version installée : %1$s</string>
+    <string name="update_check_in_progress">Vérification en cours…</string>
+    <string name="update_check_up_to_date">Tu as la dernière version.</string>
+    <string name="update_check_offline">Connecte-toi à Internet pour vérifier les mises à jour.</string>
+    <string name="update_check_failed">La vérification n\'a pas abouti. Réessaie dans un instant.</string>
+    <string name="update_check_again">Vérifier à nouveau</string>
 </resources>

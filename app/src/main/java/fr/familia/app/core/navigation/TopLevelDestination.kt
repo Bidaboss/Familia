@@ -42,6 +42,10 @@ data object NotificationSettingsDestination
 @Serializable
 data object ExportDestination
 
+/** "Vérifier les mises à jour", opened from the Famille tab (lot 10). */
+@Serializable
+data object UpdateCheckDestination
+
 /**
  * The tabs of the bottom navigation bar, in display order (design principles, "Navigation et structure").
  * Settings and app updates live inside the Famille tab, so V1 keeps three tabs.
