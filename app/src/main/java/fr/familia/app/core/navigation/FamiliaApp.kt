@@ -21,6 +21,13 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBar
+import fr.familia.app.feature.help.HelpButton
+import fr.familia.app.feature.help.HelpRoute
+import fr.familia.app.feature.help.LocalOpenHelp
+import fr.familia.app.feature.help.ScreenHelp
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -114,105 +121,136 @@ fun FamiliaApp(
     // The bar only shows on the three tabs, not on screens opened from them.
     val onTab = TopLevelDestination.entries.any { currentDestination.isOn(it) }
 
-    Scaffold(
-        bottomBar = {
-            if (onTab) NavigationBar {
-                TopLevelDestination.entries.forEach { destination ->
-                    val selected = currentDestination.isOn(destination)
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = { navController.navigateToTab(destination) },
-                        icon = {
-                            Icon(
-                                imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
-                                contentDescription = null, // The label below already names the tab.
-                            )
-                        },
-                        label = { Text(stringResource(destination.labelRes)) },
+    CompositionLocalProvider(LocalOpenHelp provides { navController.navigate(HelpDestination) { launchSingleTop = true } }) {
+        Scaffold(
+            topBar = {
+                // The tabs get a title bar, with the « ? » of their screen (spec « tuto et aide », récit 26).
+                val tab = TopLevelDestination.entries.firstOrNull { currentDestination.isOn(it) }
+                if (tab != null) TabTopBar(tab)
+            },
+            bottomBar = {
+                if (onTab) NavigationBar {
+                    TopLevelDestination.entries.forEach { destination ->
+                        val selected = currentDestination.isOn(destination)
+                        NavigationBarItem(
+                            selected = selected,
+                            onClick = { navController.navigateToTab(destination) },
+                            icon = {
+                                Icon(
+                                    imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
+                                    contentDescription = null, // The label below already names the tab.
+                                )
+                            },
+                            label = { Text(stringResource(destination.labelRes)) },
+                        )
+                    }
+                }
+            },
+        ) { innerPadding ->
+            Column(Modifier.padding(innerPadding)) {
+                AnimatedVisibility(visible = isOffline) { OfflineBanner() }
+                val shownUpdate = update?.takeIf { onTab && !updateDismissed }
+                if (shownUpdate != null) {
+                    UpdateBanner(
+                        update = shownUpdate,
+                        onUpdate = { openDownload(context, shownUpdate.downloadUrl) },
+                        onLater = { updateDismissed = true },
                     )
                 }
-            }
-        },
-    ) { innerPadding ->
-        Column(Modifier.padding(innerPadding)) {
-            AnimatedVisibility(visible = isOffline) { OfflineBanner() }
-            val shownUpdate = update?.takeIf { onTab && !updateDismissed }
-            if (shownUpdate != null) {
-                UpdateBanner(
-                    update = shownUpdate,
-                    onUpdate = { openDownload(context, shownUpdate.downloadUrl) },
-                    onLater = { updateDismissed = true },
-                )
-            }
-            NavHost(
-                navController = navController,
-                startDestination = TopLevelDestination.start.route,
-                modifier = Modifier.weight(1f),
-            ) {
-                composable<PlanningRoute> {
-                    PlanningRoute(
-                        container = container,
-                        currentMember = currentMember,
-                        onAddEvent = { navController.navigate(EventEditDestination()) },
-                        onOpenEvent = { id -> navController.navigate(EventDetailDestination(id)) },
-                    )
-                }
-                composable<EventDetailDestination> { entry ->
-                    val eventId = entry.toRoute<EventDetailDestination>().eventId
-                    EventDetailRoute(
-                        container = container,
-                        currentMember = currentMember,
-                        eventId = eventId,
-                        onEdit = { navController.navigate(EventEditDestination(eventId)) },
-                        onBack = { navController.popBackStack() },
-                    )
-                }
-                composable<EventEditDestination> { entry ->
-                    EventEditRoute(
-                        container = container,
-                        currentMember = currentMember,
-                        eventId = entry.toRoute<EventEditDestination>().eventId,
-                        onDone = { navController.popBackStack() },
-                    )
-                }
-                composable<BirthdaysRoute> { BirthdaysRoute(container) }
-                composable<MembersRoute> {
-                    MembersRoute(
-                        container = container,
-                        currentMember = currentMember,
-                        onEditMember = { id -> navController.navigate(MemberEditDestination(id)) },
-                        onOpenNotifications = { navController.navigate(NotificationSettingsDestination) },
-                        onOpenExport = { navController.navigate(ExportDestination) },
-                        onOpenUpdates = { navController.navigate(UpdateCheckDestination) },
-                    )
-                }
-                composable<UpdateCheckDestination> {
-                    UpdateCheckRoute(container = container, onBack = { navController.popBackStack() })
-                }
-                composable<ExportDestination> {
-                    ExportRoute(container = container, onBack = { navController.popBackStack() })
-                }
-                composable<NotificationSettingsDestination> {
-                    NotificationSettingsRoute(
-                        container = container,
-                        currentMember = currentMember,
-                        onBack = { navController.popBackStack() },
-                    )
-                }
-                composable<MemberEditDestination> { entry ->
-                    MemberEditRoute(
-                        container = container,
-                        currentMember = currentMember,
-                        memberId = entry.toRoute<MemberEditDestination>().memberId,
-                        onDone = { navController.popBackStack() },
-                    )
+                NavHost(
+                    navController = navController,
+                    startDestination = TopLevelDestination.start.route,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    composable<PlanningRoute> {
+                        PlanningRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onAddEvent = { navController.navigate(EventEditDestination()) },
+                            onOpenEvent = { id -> navController.navigate(EventDetailDestination(id)) },
+                        )
+                    }
+                    composable<EventDetailDestination> { entry ->
+                        val eventId = entry.toRoute<EventDetailDestination>().eventId
+                        EventDetailRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            eventId = eventId,
+                            onEdit = { navController.navigate(EventEditDestination(eventId)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<EventEditDestination> { entry ->
+                        EventEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            eventId = entry.toRoute<EventEditDestination>().eventId,
+                            onDone = { navController.popBackStack() },
+                        )
+                    }
+                    composable<BirthdaysRoute> { BirthdaysRoute(container) }
+                    composable<MembersRoute> {
+                        MembersRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onEditMember = { id -> navController.navigate(MemberEditDestination(id)) },
+                            onOpenNotifications = { navController.navigate(NotificationSettingsDestination) },
+                            onOpenExport = { navController.navigate(ExportDestination) },
+                            onOpenUpdates = { navController.navigate(UpdateCheckDestination) },
+                            onOpenHelp = { navController.navigate(HelpDestination) },
+                        )
+                    }
+                    composable<HelpDestination> {
+                        HelpRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onReplayOnboarding = { showOnboarding = true },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<UpdateCheckDestination> {
+                        UpdateCheckRoute(container = container, onBack = { navController.popBackStack() })
+                    }
+                    composable<ExportDestination> {
+                        ExportRoute(container = container, onBack = { navController.popBackStack() })
+                    }
+                    composable<NotificationSettingsDestination> {
+                        NotificationSettingsRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<MemberEditDestination> { entry ->
+                        MemberEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            memberId = entry.toRoute<MemberEditDestination>().memberId,
+                            onDone = { navController.popBackStack() },
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-/** Opens the APK link in the browser or the Drive app; Android then checks the signature on install. */
+/** Title bar of a tab, with its « ? » where the spec has one. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TabTopBar(tab: TopLevelDestination) {
+    TopAppBar(
+        title = { Text(stringResource(tab.labelRes)) },
+        actions = {
+            when (tab) {
+                TopLevelDestination.Planning -> HelpButton(ScreenHelp.Planning)
+                TopLevelDestination.Members -> HelpButton(ScreenHelp.Family)
+                TopLevelDestination.Birthdays -> Unit
+            }
+        },
+    )
+}
+
 private fun NavDestination?.isOn(destination: TopLevelDestination): Boolean =
     this?.hierarchy?.any { it.hasRoute(destination.route::class) } == true
 

@@ -52,3 +52,12 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 4. Touche « Passer ». **Attendu :** l'écran « Rester prévenu » s'affiche (5 sur 5), avec « Autoriser les notifications » et « Pas maintenant ».
 5. Touche « Autoriser les notifications », puis accepte dans la fenêtre d'Android. **Attendu :** le planning s'ouvre.
 6. Ferme l'appli, puis rouvre-la. **Attendu :** le tuto ne s'affiche plus.
+
+## Aide (lot 11b)
+
+1. Sur le planning, touche « ? » en haut à droite. **Attendu :** un panneau s'ouvre par le bas avec quelques phrases sur le planning et le bouton « Toute l'aide ».
+2. Fais la même chose sur la fiche d'un événement, sur l'ajout d'un événement et dans l'onglet Famille. **Attendu :** chaque panneau parle de son écran.
+3. Touche « Toute l'aide ». **Attendu :** la page Aide s'ouvre. Touche une fonction : elle se déplie. Avec un compte qui n'est pas admin, les deux fonctions « Réservé aux admins » n'apparaissent pas.
+4. En bas de la page, **attendu :** « Un souci ? » donne les prénoms des admins.
+5. Touche « Revoir le tuto ». **Attendu :** le tuto recommence au premier écran, et à la fin tu reviens dans l'appli.
+6. Dans l'onglet Famille, **attendu :** une ligne « Aide » ouvre la même page.

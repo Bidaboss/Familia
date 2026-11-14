@@ -53,6 +53,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.feature.help.HelpButton
+import fr.familia.app.feature.help.ScreenHelp
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.theme.FamiliaTheme
@@ -115,6 +117,7 @@ fun EventEditScreen(
                 navigationIcon = {
                     BackButton(onClick = back)
                 },
+                actions = { HelpButton(ScreenHelp.EventEdit) },
             )
         },
     ) { padding ->

@@ -42,6 +42,10 @@ data object NotificationSettingsDestination
 @Serializable
 data object ExportDestination
 
+/** Help page, opened from the Famille tab or from a « ? » (lot 11b). */
+@Serializable
+data object HelpDestination
+
 /** "Vérifier les mises à jour", opened from the Famille tab (lot 10). */
 @Serializable
 data object UpdateCheckDestination
