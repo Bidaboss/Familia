@@ -53,6 +53,14 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
         batch.commit().await()
     }
 
+    override suspend fun removeMember(member: Member, updatedChildren: List<Member>) {
+        val batch = db.batch()
+        batch.delete(db.collection(MEMBERS).document(member.id))
+        member.email?.let { batch.delete(db.collection(MEMBER_EMAILS).document(it)) }
+        updatedChildren.forEach { batch.set(db.collection(MEMBERS).document(it.id), it.toFirestore()) }
+        batch.commit().await()
+    }
+
     override fun newHouseholdId(): String = db.collection(HOUSEHOLDS).document().id
 
     override suspend fun saveHousehold(household: Household) {

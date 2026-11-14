@@ -11,6 +11,11 @@ data class HouseholdGroup(val household: Household?, val members: List<Member>)
 
 sealed interface MembersUiState {
     data object Loading : MembersUiState
-    data class Success(val groups: List<HouseholdGroup>, val currentMemberId: String) : MembersUiState
+    /** [isAdmin] is read live, so a member whose admin role is removed loses the edit buttons at once. */
+    data class Success(
+        val groups: List<HouseholdGroup>,
+        val currentMemberId: String,
+        val isAdmin: Boolean = false,
+    ) : MembersUiState
     data object Error : MembersUiState
 }

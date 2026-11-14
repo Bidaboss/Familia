@@ -52,7 +52,9 @@ class MemberEditViewModel(
             return
         }
         val existing = memberId?.let { id -> family.members.firstOrNull { it.id == id } }
-        if (memberId != null && existing == null) {
+        // Read live: an admin whose role was just removed cannot open the form any more.
+        val stillAdmin = family.members.any { it.id == currentMember.id && it.isAdmin }
+        if (!stillAdmin || (memberId != null && existing == null)) {
             _uiState.value = MemberEditUiState.NotFound
             return
         }
@@ -68,6 +70,12 @@ class MemberEditViewModel(
                 .filter { it.profile == MemberProfile.Adult && it.id != editedId }
                 .sortedBy { it.firstName.lowercase() },
             canChangeAdmin = editedId != currentMember.id,
+            canRemove = existing != null && existing.id != currentMember.id,
+            soleParentOf = family.members
+                .filter { child -> editedId in child.parentIds && child.otherParents().isEmpty() }
+                .map { it.firstName }
+                .sorted(),
+            canInvite = existing?.email != null && existing.uid == null,
             errors = emptySet(),
         )
     }
@@ -119,12 +127,38 @@ class MemberEditViewModel(
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
             if (write { repo.saveMember(member, original?.email) }) {
-                _uiState.value = MemberEditUiState.Saved
+                _uiState.value = if (original == null) {
+                    MemberEditUiState.Added(member.firstName, member.email)
+                } else {
+                    MemberEditUiState.Saved
+                }
             } else {
                 markFailed()
             }
         }
     }
+
+    /**
+     * Removes the member (a separation, for example). Children who listed them keep their other
+     * responsible adults; removal is not offered while they are a child's only one.
+     */
+    fun remove() {
+        val state = _uiState.value as? MemberEditUiState.Editing ?: return
+        val member = original ?: return
+        val repo = members ?: return
+        if (!state.canRemove || state.soleParentOf.isNotEmpty() || state.isSaving) return
+        val children = family.members
+            .filter { member.id in it.parentIds }
+            .map { it.copy(parentIds = it.parentIds - member.id) }
+        _uiState.value = state.copy(isSaving = true, saveFailed = false)
+        viewModelScope.launch {
+            if (write { repo.removeMember(member, children) }) _uiState.value = MemberEditUiState.Saved else markFailed()
+        }
+    }
+
+    /** The child's responsible adults other than the edited member who still exist. */
+    private fun Member.otherParents(): List<String> =
+        parentIds.filter { id -> id != editedId && family.members.any { it.id == id } }
 
     private fun errorsFor(form: MemberForm): Set<FormError> =
         if (showErrors) validate(form, family, editedId, today()) else emptySet()

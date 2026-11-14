@@ -32,7 +32,13 @@ class MembersViewModel(
     val uiState: StateFlow<MembersUiState> = attempt
         .flatMapLatest { n ->
             (members?.observeFamily() ?: emptyFlow())
-                .map<Family, MembersUiState> { MembersUiState.Success(group(it), currentMemberId) }
+                .map<Family, MembersUiState> { family ->
+                    MembersUiState.Success(
+                        groups = group(family),
+                        currentMemberId = currentMemberId,
+                        isAdmin = family.members.any { it.id == currentMemberId && it.isAdmin },
+                    )
+                }
                 .onStart { if (n > 0) emit(MembersUiState.Loading) }
                 .catch { e ->
                     if (e is CancellationException) throw e

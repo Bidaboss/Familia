@@ -60,7 +60,7 @@ class MemberEditViewModelTest {
         val viewModel = vm(repo)
         viewModel.update { it.copy(firstName = "Sam", email = "Sam@Example.com") }
         viewModel.save()
-        assertEquals(MemberEditUiState.Saved, viewModel.uiState.value)
+        assertEquals(MemberEditUiState.Added("Sam", "sam@example.com"), viewModel.uiState.value)
         val (saved, previous) = repo.saved.single()
         assertEquals("new1", saved.id)
         assertEquals("sam@example.com", saved.email)
@@ -101,6 +101,52 @@ class MemberEditViewModelTest {
     }
 
     @Test
+    fun `removing a parent keeps the child with the other responsible adult`() {
+        val kid = Member("kid1", "Noé", null, null, "h1", MemberProfile.ChildWithoutApp, false, listOf("adult1", "admin1"), null)
+        val repo = FakeMembers(family.copy(members = family.members + kid))
+        val viewModel = vm(repo, memberId = "adult1")
+        assertTrue(viewModel.editing().canRemove)
+        assertEquals(emptyList<String>(), viewModel.editing().soleParentOf)
+
+        viewModel.remove()
+        assertEquals(MemberEditUiState.Saved, viewModel.uiState.value)
+        val (removed, children) = repo.removed.single()
+        assertEquals("adult1", removed.id)
+        assertEquals(listOf("admin1"), children.single().parentIds)
+    }
+
+    @Test
+    fun `the only responsible adult of a child cannot be removed`() {
+        val kid = Member("kid1", "Noé", null, null, "h1", MemberProfile.ChildWithoutApp, false, listOf("adult1"), null)
+        val repo = FakeMembers(family.copy(members = family.members + kid))
+        val viewModel = vm(repo, memberId = "adult1")
+        assertEquals(listOf("Noé"), viewModel.editing().soleParentOf)
+        viewModel.remove()
+        assertTrue(repo.removed.isEmpty())
+    }
+
+    @Test
+    fun `nobody can remove themselves, and a new member has nothing to remove`() {
+        assertFalse(vm(FakeMembers(family), memberId = "admin1").editing().canRemove)
+        assertFalse(vm(FakeMembers(family)).editing().canRemove)
+    }
+
+    @Test
+    fun `the invitation is offered until the member has signed in`() {
+        val invited = adult.copy(id = "adult2", email = "adult2@example.com", uid = null)
+        val repo = FakeMembers(family.copy(members = family.members + invited))
+        assertTrue(vm(repo, memberId = "adult2").editing().canInvite)
+        assertFalse(vm(repo, memberId = "adult1").editing().canInvite)
+    }
+
+    @Test
+    fun `a member who is no longer admin cannot open the form`() {
+        val demoted = admin.copy(isAdmin = false)
+        val repo = FakeMembers(Family(family.households, listOf(demoted, adult)))
+        assertEquals(MemberEditUiState.NotFound, vm(repo, me = admin).uiState.value)
+    }
+
+    @Test
     fun `a member that no longer exists shows the not found state`() {
         assertEquals(MemberEditUiState.NotFound, vm(FakeMembers(family), memberId = "gone").uiState.value)
     }
@@ -121,7 +167,7 @@ class MemberEditViewModelTest {
         viewModel.save()
         assertTrue(viewModel.editing().isSaving)
         advanceTimeBy(5_000)
-        assertEquals(MemberEditUiState.Saved, viewModel.uiState.value)
+        assertEquals(MemberEditUiState.Added("Sam", "sam@example.com"), viewModel.uiState.value)
     }
 
     @Test
@@ -149,6 +195,11 @@ class MemberEditViewModelTest {
             failWith?.let { throw it }
             if (hang) awaitCancellation()
             saved += member to previousEmail
+        }
+        val removed = mutableListOf<Pair<Member, List<Member>>>()
+        override suspend fun removeMember(member: Member, updatedChildren: List<Member>) {
+            failWith?.let { throw it }
+            removed += member to updatedChildren
         }
         override fun newHouseholdId(): String = "h-new"
         override suspend fun saveHousehold(household: Household) {

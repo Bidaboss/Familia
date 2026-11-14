@@ -22,6 +22,6 @@ fun MembersRoute(container: AppContainer?, currentMember: Member, onEditMember: 
         state = state,
         onRetry = viewModel::retry,
         // Only admins add and edit members (the security rules check it too).
-        onEditMember = if (currentMember.isAdmin) onEditMember else null,
+        onEditMember = if ((state as? MembersUiState.Success)?.isAdmin == true) onEditMember else null,
     )
 }

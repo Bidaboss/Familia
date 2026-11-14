@@ -16,6 +16,8 @@ import fr.familia.app.feature.members.previewGroups
 import fr.familia.app.feature.members.edit.FormError
 import fr.familia.app.feature.members.edit.MemberEditScreen
 import fr.familia.app.feature.members.edit.previewEditState
+import fr.familia.app.feature.members.edit.previewExistingState
+import fr.familia.app.feature.members.edit.MemberEditUiState
 import java.time.LocalDate
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -118,6 +120,17 @@ class ScreenshotTest {
     @Config(fontScale = 2f)
     fun memberFormFontScale200() = capture("fiche_membre_police_200") {
         MemberEditScreen(previewEditState(), {}, {}, {}, {}, today = LocalDate.of(2026, 11, 14))
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun memberFormExistingFontScale200() = capture("fiche_membre_existant_police_200") {
+        MemberEditScreen(previewExistingState(), {}, {}, {}, {}, today = LocalDate.of(2026, 11, 14))
+    }
+
+    @Test
+    fun memberAddedLight() = capture("membre_ajoute_clair") {
+        MemberEditScreen(MemberEditUiState.Added("Lou", "lou@example.com"), {}, {}, {}, {})
     }
 
     @Test
