@@ -9,6 +9,7 @@ import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -40,7 +41,7 @@ class MembersViewModelTest {
             ),
         )
         val groups = MembersViewModel.group(family)
-        assertEquals(listOf("Abeille", "Zèbre"), groups.map { it.household.name })
+        assertEquals(listOf("Abeille", "Zèbre"), groups.map { it.household?.name })
         assertEquals(listOf("Alice", "bruno", "Anna", "Zoé"), groups[0].members.map { it.firstName })
     }
 
@@ -66,6 +67,36 @@ class MembersViewModelTest {
         val vm = MembersViewModel(FakeMembers(flow { throw IOException("offline") }), currentMemberId = "1")
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         assertEquals(MembersUiState.Error, vm.uiState.value)
+    }
+
+    @Test
+    fun `a member whose household is missing goes to the last group instead of disappearing`() {
+        val family = Family(
+            households = listOf(Household("h1", "Foyer")),
+            members = listOf(m("1", "Alice", "h1"), m("2", "Bruno", "gone")),
+        )
+        val groups = MembersViewModel.group(family)
+        assertEquals(listOf("Foyer", null), groups.map { it.household?.name })
+        assertEquals(listOf("Bruno"), groups.last().members.map { it.firstName })
+    }
+
+    @Test
+    fun `retry listens again after a failure`() = runTest {
+        var calls = 0
+        val repo = object : MemberRepository by FakeMembers(emptyFlow()) {
+            override fun observeFamily(): Flow<Family> = flow {
+                calls++
+                if (calls == 1) throw IOException("denied")
+                emit(Family(listOf(Household("h1", "Foyer")), listOf(m("1", "Alice", "h1"))))
+            }
+        }
+        val vm = MembersViewModel(repo, currentMemberId = "1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        assertEquals(MembersUiState.Error, vm.uiState.value)
+
+        vm.retry()
+        assertEquals(2, calls)
+        assertEquals("Alice", (vm.uiState.value as MembersUiState.Success).groups.single().members.single().firstName)
     }
 
     private class FakeMembers(private val family: Flow<Family>) : MemberRepository {

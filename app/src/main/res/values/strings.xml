@@ -13,7 +13,10 @@
     <string name="members_empty_title">La famille arrive bientôt</string>
     <string name="members_empty_body">Les membres, leurs foyers et tes réglages apparaîtront ici.</string>
     <string name="members_error_title">La famille ne s\'affiche pas</string>
-    <string name="members_error_body">Pas de connexion. Réessaie dans un moment.</string>
+    <string name="members_error_body">L\'appli n\'a pas pu lire la liste de la famille. Réessaie, et si ça continue, préviens un admin de la famille.</string>
+    <string name="members_retry">Réessayer</string>
+    <string name="members_other_household">Autres</string>
+    <string name="offline_banner">Hors ligne. Tu vois la dernière version enregistrée sur ce téléphone.</string>
     <string name="members_me">%1$s (toi)</string>
     <string name="profile_adult">Adulte</string>
     <string name="profile_child_with_app">Enfant, avec l\'appli</string>

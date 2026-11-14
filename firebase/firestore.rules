@@ -43,9 +43,11 @@ service cloud.firestore {
     }
 
     // Shape of a member document written by an admin. Profiles and parents follow docs/data-model.md.
+    // colorIndex is optional: one of the 13 member colors of the app.
     function isValidMember(m) {
       return m.keys().hasAll(['firstName', 'email', 'birthDate', 'householdId', 'profile', 'isAdmin', 'parentIds', 'uid'])
-        && m.keys().hasOnly(['firstName', 'email', 'birthDate', 'householdId', 'profile', 'isAdmin', 'parentIds', 'uid'])
+        && m.keys().hasOnly(['firstName', 'email', 'birthDate', 'householdId', 'profile', 'isAdmin', 'parentIds', 'uid', 'colorIndex'])
+        && (!('colorIndex' in m) || (m.colorIndex is int && m.colorIndex >= 0 && m.colorIndex <= 12))
         && m.firstName is string && m.firstName.size() > 0 && m.firstName.size() <= 40
         && (m.email == null || (m.email is string && m.email == m.email.lower()))
         && (m.birthDate == null || (m.birthDate is string && m.birthDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')))

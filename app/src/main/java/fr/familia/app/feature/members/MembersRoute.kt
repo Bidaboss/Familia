@@ -18,5 +18,5 @@ fun MembersRoute(container: AppContainer?, currentMember: Member) {
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    MembersScreen(state = state)
+    MembersScreen(state = state, onRetry = viewModel::retry)
 }

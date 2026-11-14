@@ -54,13 +54,13 @@ class ScreenshotTest {
 
     @Test
     fun membersLight() = capture("famille_clair") {
-        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), versionName = "0.1.0") }
+        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0") }
     }
 
     @Test
     @Config(qualifiers = "+night")
     fun membersDark() = capture("famille_sombre", darkTheme = true) {
-        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), versionName = "0.1.0") }
+        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0") }
     }
 
     @Test
@@ -81,7 +81,18 @@ class ScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun membersFontScale200() = capture("famille_police_200") {
-        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), versionName = "0.1.0") }
+        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0") }
+    }
+
+    @Test
+    fun membersErrorLight() = capture("famille_erreur_clair") {
+        Surface { MembersScreen(MembersUiState.Error, onRetry = {}, versionName = "0.1.0") }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun offlineFontScale200() = capture("hors_ligne_police_200") {
+        FamiliaApp(container = null, currentMember = sampleMember, isOffline = true)
     }
 
     private val sampleMember = Member("a", "Camille", null, null, "h1", MemberProfile.Adult, true, emptyList(), null)

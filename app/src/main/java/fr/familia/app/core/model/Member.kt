@@ -29,6 +29,8 @@ data class Member(
     val isAdmin: Boolean,
     val parentIds: List<String>,
     val uid: String?,
+    /** Index in the 13 member colors, chosen by an admin. Null until one is chosen. */
+    val colorIndex: Int? = null,
 )
 
 /** Firestore stores emails in lower case so a member is recognised whatever the casing typed. */

@@ -1,5 +1,7 @@
 package fr.familia.app.core.navigation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -22,6 +24,7 @@ import androidx.navigation.compose.rememberNavController
 import fr.familia.app.feature.birthdays.BirthdaysScreen
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.ui.OfflineBanner
 import fr.familia.app.feature.members.MembersRoute
 import fr.familia.app.feature.planning.PlanningScreen
 
@@ -30,6 +33,7 @@ import fr.familia.app.feature.planning.PlanningScreen
 fun FamiliaApp(
     container: AppContainer?,
     currentMember: Member,
+    isOffline: Boolean = false,
     navController: NavHostController = rememberNavController(),
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -55,14 +59,17 @@ fun FamiliaApp(
             }
         },
     ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = TopLevelDestination.start.route,
-            modifier = Modifier.padding(innerPadding),
-        ) {
-            composable<PlanningRoute> { PlanningScreen() }
-            composable<BirthdaysRoute> { BirthdaysScreen() }
-            composable<MembersRoute> { MembersRoute(container, currentMember) }
+        Column(Modifier.padding(innerPadding)) {
+            AnimatedVisibility(visible = isOffline) { OfflineBanner() }
+            NavHost(
+                navController = navController,
+                startDestination = TopLevelDestination.start.route,
+                modifier = Modifier.weight(1f),
+            ) {
+                composable<PlanningRoute> { PlanningScreen() }
+                composable<BirthdaysRoute> { BirthdaysScreen() }
+                composable<MembersRoute> { MembersRoute(container, currentMember) }
+            }
         }
     }
 }

@@ -21,13 +21,14 @@ import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.theme.FamiliaTheme
 
-/** Centered message shown when a screen has nothing to display yet. */
+/** Centered message shown when a screen has nothing to display yet, with an optional button. */
 @Composable
 fun EmptyState(
     icon: ImageVector,
     title: String,
     body: String,
     modifier: Modifier = Modifier,
+    action: (@Composable () -> Unit)? = null,
 ) {
     Column(
         modifier = modifier
@@ -53,6 +54,7 @@ fun EmptyState(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
+        action?.invoke()
     }
 }
 
