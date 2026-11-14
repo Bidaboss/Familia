@@ -50,7 +50,8 @@ import fr.familia.app.feature.events.edit.EventEditRoute
 import fr.familia.app.feature.planning.PlanningRoute
 import fr.familia.app.feature.settings.NotificationSettingsRoute
 import fr.familia.app.feature.export.ExportRoute
-import fr.familia.app.core.notifications.AskNotificationPermissionOnce
+import fr.familia.app.feature.onboarding.OnboardingPreferences
+import fr.familia.app.feature.onboarding.OnboardingRoute
 import kotlinx.coroutines.CancellationException
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
@@ -74,7 +75,18 @@ fun FamiliaApp(
             // Offline or no Play services: the next opening tries again.
         }
     }
-    if (container != null) AskNotificationPermissionOnce()
+    // First launch on this phone: the tutorial comes first, and asks for the notifications on its
+    // last screen (spec « tuto et aide », récit 25).
+    val context = LocalContext.current
+    val onboarding = remember(context) { OnboardingPreferences(context.applicationContext) }
+    var showOnboarding by rememberSaveable { mutableStateOf(!onboarding.seen) }
+    if (showOnboarding) {
+        OnboardingRoute(profile = currentMember.profile) {
+            onboarding.markSeen()
+            showOnboarding = false
+        }
+        return
+    }
     LaunchedEffect(openEventId) {
         if (openEventId != null) {
             navController.navigate(EventDetailDestination(openEventId))
@@ -95,7 +107,6 @@ fun FamiliaApp(
     val update by updates.collectAsStateWithLifecycle(initialValue = null)
     var updateDismissed by rememberSaveable { mutableStateOf(false) }
     LifecycleEventEffect(Lifecycle.Event.ON_START) { updateDismissed = false }
-    val context = LocalContext.current
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination

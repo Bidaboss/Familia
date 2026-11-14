@@ -43,3 +43,12 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 3. Ouvre le fichier sur un ordinateur. **Attendu :** tu y retrouves les membres, les foyers, les événements et les réponses.
 4. Touche à nouveau « Créer la sauvegarde », puis ferme le sélecteur sans enregistrer. **Attendu :** rien ne change, et aucun message d'erreur n'apparaît.
 5. Active le mode avion, puis touche « Créer la sauvegarde ». **Attendu :** le sélecteur ne s'ouvre pas, et l'appli affiche « Connecte-toi à Internet pour faire une sauvegarde complète. »
+
+## Tuto de démarrage (lot 11a)
+
+1. Installe l'appli sur un téléphone où elle n'a jamais été ouverte, puis connecte-toi avec un compte adulte. **Attendu :** « Bienvenue dans Familia » s'affiche, avec « 1 sur 5 » en haut.
+2. Touche « Suivant » jusqu'au 4e écran. **Attendu :** « Dire si tu viens » parle aussi de répondre pour tes enfants. Avec un compte enfant, cette phrase n'apparaît pas.
+3. Touche le bouton retour d'Android. **Attendu :** l'écran précédent s'affiche.
+4. Touche « Passer ». **Attendu :** l'écran « Rester prévenu » s'affiche (5 sur 5), avec « Autoriser les notifications » et « Pas maintenant ».
+5. Touche « Autoriser les notifications », puis accepte dans la fenêtre d'Android. **Attendu :** le planning s'ouvre.
+6. Ferme l'appli, puis rouvre-la. **Attendu :** le tuto ne s'affiche plus.
