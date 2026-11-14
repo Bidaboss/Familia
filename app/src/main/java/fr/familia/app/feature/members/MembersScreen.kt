@@ -16,9 +16,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -51,6 +53,7 @@ fun MembersScreen(
     /** Null for members who are not admin: rows are then read-only and there is no add button. */
     onEditMember: ((memberId: String?) -> Unit)? = null,
     versionName: String = BuildConfig.VERSION_NAME,
+    onOpenNotifications: (() -> Unit)? = null,
 ) {
     when (state) {
         MembersUiState.Loading ->
@@ -93,6 +96,9 @@ fun MembersScreen(
                         )
                     }
                 }
+                if (onOpenNotifications != null) {
+                    item(key = "notifications") { NotificationsRow(onOpenNotifications) }
+                }
                 item(key = "version") {
                     Text(
                         text = stringResource(R.string.app_version, versionName),
@@ -111,6 +117,26 @@ fun MembersScreen(
                     modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
                 )
             }
+        }
+    }
+}
+
+/** Entry to the notification settings, below the members (design: settings live in Famille). */
+@Composable
+private fun NotificationsRow(onClick: () -> Unit) {
+    Column {
+        HorizontalDivider(Modifier.padding(top = 8.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .heightIn(min = 56.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(Icons.Outlined.Notifications, contentDescription = null)
+            Spacer(Modifier.width(16.dp))
+            Text(stringResource(R.string.notifications_title), style = MaterialTheme.typography.titleMedium)
         }
     }
 }

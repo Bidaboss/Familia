@@ -1,5 +1,9 @@
 // Pure logic of the notifications: who gets what, and the French texts. No Firebase here, so
 // everything is tested without the emulator (test/logic.test.ts).
+//
+// The texts are written here rather than in the app, since the server sends them. They follow the
+// app's wording: "tu" (never "vous"), the words of the PRD ("Je viens", "Peut-être", "rappel la
+// veille"), times as "10 h 00" and "Journée" for an all-day event, as in the planning.
 
 export type Profile = 'adult' | 'childWithApp' | 'childWithoutApp';
 
@@ -129,7 +133,7 @@ export function reminders(
       recipients.set(memberId, []);
     }
   }
-  const details = [event.time ? formatTime(event.time) : 'Toute la journée', event.place].filter(Boolean).join(' · ');
+  const details = [event.time ? formatTime(event.time) : 'Journée', event.place].filter(Boolean).join(' · ');
   return [...recipients.entries()]
     .filter(([id]) => !remindersOff.has(id))
     .sort(([a], [b]) => a.localeCompare(b))

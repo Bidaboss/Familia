@@ -6,6 +6,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestoreSettings
 import com.google.firebase.firestore.persistentCacheSettings
+import com.google.firebase.messaging.FirebaseMessaging
 import fr.familia.app.feature.auth.AuthRepository
 import fr.familia.app.feature.auth.FirebaseAuthRepository
 import fr.familia.app.feature.auth.GoogleCredentialProvider
@@ -35,6 +36,10 @@ class AppContainer(context: Context) {
     val eventRepository: EventRepository? by lazy { firestore?.let { FirestoreEventRepository(it) } }
 
     val rsvpRepository: RsvpRepository? by lazy { firestore?.let { FirestoreRsvpRepository(it) } }
+
+    val notificationRepository: NotificationRepository? by lazy {
+        firestore?.let { FirestoreNotificationRepository(it, FirebaseMessaging.getInstance()) }
+    }
 
     /** The web client id is generated from google-services.json by the Google services plugin. */
     val googleCredentialProvider: GoogleCredentialProvider? by lazy {

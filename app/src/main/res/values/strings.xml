@@ -174,4 +174,18 @@
     <string name="sign_in_error_no_account">Aucun compte Google sur ce téléphone. Ajoute ton compte dans les réglages d\'Android, puis réessaie.</string>
     <string name="sign_in_error_network">Pas de connexion. Réessaie dans un moment.</string>
     <string name="sign_in_error_unknown">La connexion n\'a pas marché. Réessaie dans un moment.</string>
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_events_help">Tu es prévenu quand quelqu\'un ajoute, modifie ou supprime un événement. Tes propres changements ne te préviennent pas.</string>
+    <string name="notifications_reminder">Rappel la veille à 18\u00A0h</string>
+    <string name="notifications_reminder_help">Pour les événements où tu as répondu « Je viens » ou « Peut-être », et ceux de tes enfants.</string>
+    <string name="notifications_blocked">Les notifications de Familia sont bloquées sur ce téléphone. Tu ne seras prévenu de rien tant qu\'elles le restent.</string>
+    <string name="notifications_allow">Autoriser les notifications</string>
+    <string name="notifications_system_settings">Réglages Android des notifications</string>
+    <string name="notifications_save_failed">Le réglage n\'a pas été enregistré. Réessaie.</string>
+    <string name="notifications_error_title">Réglages indisponibles</string>
+    <string name="notifications_error_body">Tes réglages n\'ont pas pu être lus. Réessaie dans un instant.</string>
+    <string name="channel_events">Événements de la famille</string>
+    <string name="channel_events_description">Un événement ajouté, modifié ou supprimé</string>
+    <string name="channel_reminders">Rappels de la veille</string>
+    <string name="channel_reminders_description">Les événements de demain où tu as dit que tu venais</string>
 </resources>

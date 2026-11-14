@@ -9,6 +9,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -31,6 +32,9 @@ import fr.familia.app.core.ui.OfflineBanner
 import fr.familia.app.feature.members.MembersRoute
 import fr.familia.app.feature.events.edit.EventEditRoute
 import fr.familia.app.feature.planning.PlanningRoute
+import fr.familia.app.feature.settings.NotificationSettingsRoute
+import fr.familia.app.core.notifications.AskNotificationPermissionOnce
+import kotlinx.coroutines.CancellationException
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
 @Composable
@@ -38,8 +42,29 @@ fun FamiliaApp(
     container: AppContainer?,
     currentMember: Member,
     isOffline: Boolean = false,
+    /** The event of a tapped notification, to open once. */
+    openEventId: String? = null,
+    onEventOpened: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
+    // Each time the app opens, this phone is (re)registered for the notifications of this member.
+    LaunchedEffect(currentMember.id) {
+        try {
+            container?.notificationRepository?.registerThisDevice(currentMember.id)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Offline or no Play services: the next opening tries again.
+        }
+    }
+    if (container != null) AskNotificationPermissionOnce()
+    LaunchedEffect(openEventId) {
+        if (openEventId != null) {
+            navController.navigate(EventDetailDestination(openEventId))
+            onEventOpened()
+        }
+    }
+
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
 
@@ -105,6 +130,14 @@ fun FamiliaApp(
                         container = container,
                         currentMember = currentMember,
                         onEditMember = { id -> navController.navigate(MemberEditDestination(id)) },
+                        onOpenNotifications = { navController.navigate(NotificationSettingsDestination) },
+                    )
+                }
+                composable<NotificationSettingsDestination> {
+                    NotificationSettingsRoute(
+                        container = container,
+                        currentMember = currentMember,
+                        onBack = { navController.popBackStack() },
                     )
                 }
                 composable<MemberEditDestination> { entry ->

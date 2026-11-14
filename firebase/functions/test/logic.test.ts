@@ -81,7 +81,7 @@ test('an adult coming with their child gets one reminder that says so', () => {
   const answers = new Map<string, RsvpStatus>([['camille', 'yes'], ['lina', 'yes']]);
   const result = reminders(members, 'e1', { ...event, time: null, place: null }, answers, new Set());
   assert.deepEqual(result.map((r) => r.notice.title), ['Demain : Piscine (avec Lina)']);
-  assert.equal(result[0].notice.body, 'Toute la journée');
+  assert.equal(result[0].notice.body, 'Journée'); // the same word as the planning
 });
 
 test('a member who turned the reminder off gets none', () => {

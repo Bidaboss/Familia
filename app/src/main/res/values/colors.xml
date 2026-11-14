@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Terracotta of the theme, for the small notification icon. -->
+    <color name="notification_accent">#B5541C</color>
+</resources>

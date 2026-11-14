@@ -1,0 +1,66 @@
+package fr.familia.app.feature.settings
+
+import fr.familia.app.core.data.NotificationRepository
+import fr.familia.app.testing.MainDispatcherRule
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Rule
+import org.junit.Test
+
+private class FakeNotifications(
+    private val readFails: Boolean = false,
+    private val writeFails: Boolean = false,
+) : NotificationRepository {
+    val settings = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val devices = mutableListOf<String>()
+    override suspend fun registerThisDevice(memberId: String) {
+        devices += memberId
+    }
+    override fun observeDayBeforeReminder(memberId: String): Flow<Boolean> =
+        if (readFails) flow { throw IllegalStateException("offline") } else settings.map { it[memberId] ?: true }
+    override suspend fun setDayBeforeReminder(memberId: String, enabled: Boolean) {
+        if (writeFails) throw IllegalStateException("refused")
+        settings.value = settings.value + (memberId to enabled)
+    }
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class NotificationSettingsViewModelTest {
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
+    @Test
+    fun `the reminder is on until the member turns it off`() = runTest {
+        val repo = FakeNotifications()
+        val vm = NotificationSettingsViewModel(repo, "adult1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        assertEquals(NotificationSettingsUiState.Ready(dayBeforeReminder = true), vm.uiState.value)
+
+        vm.setDayBeforeReminder(false)
+        assertEquals(NotificationSettingsUiState.Ready(dayBeforeReminder = false), vm.uiState.value)
+        assertEquals(mapOf("adult1" to false), repo.settings.value)
+    }
+
+    @Test
+    fun `a refused change is reported and the switch stays as it was`() = runTest {
+        val vm = NotificationSettingsViewModel(FakeNotifications(writeFails = true), "adult1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        vm.setDayBeforeReminder(false)
+        assertEquals(NotificationSettingsUiState.Ready(dayBeforeReminder = true, saveFailed = true), vm.uiState.value)
+    }
+
+    @Test
+    fun `settings that cannot be read show an error`() = runTest {
+        val vm = NotificationSettingsViewModel(FakeNotifications(readFails = true), "adult1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        assertEquals(NotificationSettingsUiState.Error, vm.uiState.value)
+    }
+}
