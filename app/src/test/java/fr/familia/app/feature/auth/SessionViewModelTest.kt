@@ -1,10 +1,13 @@
 package fr.familia.app.feature.auth
 
 import fr.familia.app.core.data.MemberRepository
+import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.normalizeEmail
 import fr.familia.app.testing.MainDispatcherRule
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -160,5 +163,6 @@ class SessionViewModelTest {
         override suspend fun linkAccount(memberId: String, uid: String) {
             linked = memberId to uid
         }
+        override fun observeFamily(): Flow<Family> = emptyFlow()
     }
 }

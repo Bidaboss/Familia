@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
         val container = (application as FamiliaApplication).container
         setContent {
             FamiliaTheme {
-                SessionRoute(container = container) { FamiliaApp() }
+                SessionRoute(container = container) { member -> FamiliaApp(container, member) }
             }
         }
     }

@@ -5,6 +5,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.normalizeEmail
+import fr.familia.app.core.model.Family
+import fr.familia.app.core.model.Household
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 
@@ -26,6 +32,24 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
         db.collection(MEMBERS).document(memberId).update("uid", uid).await()
     }
 
+    override fun observeFamily(): Flow<Family> =
+        combine(
+            snapshots(HOUSEHOLDS) { Household(id = it.id, name = it.getString("name").orEmpty()) },
+            snapshots(MEMBERS) { it.toMember() },
+        ) { households, members -> Family(households, members) }
+
+    /** Live list of a whole collection; the listener is removed when the screen stops collecting. */
+    private fun <T> snapshots(collection: String, map: (DocumentSnapshot) -> T): Flow<List<T>> = callbackFlow {
+        val registration = db.collection(collection).addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+            } else if (snapshot != null) {
+                trySend(snapshot.documents.map(map))
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
     private fun DocumentSnapshot.toMember() = Member(
         id = id,
         firstName = getString("firstName").orEmpty(),
@@ -41,5 +65,6 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
     private companion object {
         const val MEMBERS = "members"
         const val MEMBER_EMAILS = "memberEmails"
+        const val HOUSEHOLDS = "households"
     }
 }

@@ -33,3 +33,9 @@ data class Member(
 
 /** Firestore stores emails in lower case so a member is recognised whatever the casing typed. */
 fun normalizeEmail(email: String): String = email.trim().lowercase()
+
+/** A household of the family (Parents, a sister's family…). */
+data class Household(val id: String, val name: String)
+
+/** Everything the Famille tab shows. */
+data class Family(val households: List<Household>, val members: List<Member>)

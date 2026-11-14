@@ -20,12 +20,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import fr.familia.app.feature.birthdays.BirthdaysScreen
-import fr.familia.app.feature.members.MembersScreen
+import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Member
+import fr.familia.app.feature.members.MembersRoute
 import fr.familia.app.feature.planning.PlanningScreen
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
 @Composable
-fun FamiliaApp(navController: NavHostController = rememberNavController()) {
+fun FamiliaApp(
+    container: AppContainer?,
+    currentMember: Member,
+    navController: NavHostController = rememberNavController(),
+) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
 
@@ -56,7 +62,7 @@ fun FamiliaApp(navController: NavHostController = rememberNavController()) {
         ) {
             composable<PlanningRoute> { PlanningScreen() }
             composable<BirthdaysRoute> { BirthdaysScreen() }
-            composable<MembersRoute> { MembersScreen() }
+            composable<MembersRoute> { MembersRoute(container, currentMember) }
         }
     }
 }
