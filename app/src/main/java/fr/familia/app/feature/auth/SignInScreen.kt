@@ -23,6 +23,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
@@ -81,7 +83,13 @@ fun SignInScreen(
                     modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                 ) {
                     if (busy) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                        val signingIn = stringResource(R.string.sign_in_in_progress)
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .semantics { contentDescription = signingIn },
+                            strokeWidth = 2.dp,
+                        )
                     } else {
                         Text(stringResource(R.string.sign_in_with_google))
                     }

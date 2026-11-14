@@ -33,32 +33,96 @@ service cloud.firestore {
       return get(emailIndexPath(myEmail())).data.memberId;
     }
 
-    // --- Collections ----------------------------------------------------------------------------
-
-    // memberEmails/{email} -> { memberId }. Written by admins only (lot 3).
-    // Anyone signed in may read the entry for their own address, so the app can tell
-    // "not in the family" apart from a permission error.
-    match /memberEmails/{email} {
-      allow read: if hasVerifiedEmail() && (email == myEmail() || isMember());
-      allow write: if false;
+    function memberPath(memberId) {
+      return /databases/$(database)/documents/members/$(memberId);
     }
 
-    // members/{memberId}. Readable by the whole family. In lot 2 the only write is the first
-    // sign-in linking the member's own Firebase UID; admin management arrives in lot 3.
+    // One of the (at most two) admins: Kévin and a second adult of his choice.
+    function isAdmin() {
+      return isMember() && get(memberPath(myMemberId())).data.isAdmin == true;
+    }
+
+    // Shape of a member document written by an admin. Profiles and parents follow docs/data-model.md.
+    function isValidMember(m) {
+      return m.keys().hasAll(['firstName', 'email', 'birthDate', 'householdId', 'profile', 'isAdmin', 'parentIds', 'uid'])
+        && m.keys().hasOnly(['firstName', 'email', 'birthDate', 'householdId', 'profile', 'isAdmin', 'parentIds', 'uid'])
+        && m.firstName is string && m.firstName.size() > 0 && m.firstName.size() <= 40
+        && (m.email == null || (m.email is string && m.email == m.email.lower()))
+        && (m.birthDate == null || (m.birthDate is string && m.birthDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')))
+        && m.householdId is string && exists(/databases/$(database)/documents/households/$(m.householdId))
+        && m.profile in ['adult', 'childWithApp', 'childWithoutApp']
+        && m.isAdmin is bool && (!m.isAdmin || m.profile == 'adult')
+        && m.parentIds is list
+        && (m.profile == 'adult' || m.parentIds.size() > 0)
+        && (m.profile != 'childWithoutApp' || m.email == null)
+        && (m.profile == 'childWithoutApp' || m.email != null);
+    }
+
+    // The email index and the member document must always agree, in the same batched write.
+    function emailIndexMatches(memberId, email) {
+      return email == null || getAfter(emailIndexPath(email)).data.memberId == memberId;
+    }
+
+    // --- Collections ----------------------------------------------------------------------------
+
+    // memberEmails/{email} -> { memberId }. Written by admins only, always in the same batch as
+    // the member document it points to. Anyone signed in may read the entry for their own address,
+    // so the app can tell "not in the family" apart from a permission error.
+    match /memberEmails/{email} {
+      allow read: if hasVerifiedEmail() && (email == myEmail() || isMember());
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['memberId'])
+        && getAfter(memberPath(request.resource.data.memberId)).data.email == email;
+      // Removing a member or changing their address must drop the old entry, otherwise the
+      // person would keep access.
+      allow delete: if isAdmin()
+        && (!existsAfter(memberPath(resource.data.memberId))
+            || getAfter(memberPath(resource.data.memberId)).data.email != email);
+      allow update: if false;
+    }
+
+    // members/{memberId}. Readable by the whole family.
     match /members/{memberId} {
       allow read: if isMember();
+
+      // First sign-in: a member links their own Firebase UID, once, and nothing else.
       allow update: if isMember()
         && myMemberId() == memberId
         && resource.data.get('uid', null) == null
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uid']);
-      allow create, delete: if false;
+
+      // Admins add members. A new member has no linked account yet.
+      allow create: if isAdmin()
+        && isValidMember(request.resource.data)
+        && request.resource.data.uid == null
+        && emailIndexMatches(memberId, request.resource.data.email);
+
+      // Admins edit members, but never the linked account, and never their own admin flag:
+      // an admin can name or remove the other admin, so the last admin can never be removed.
+      allow update: if isAdmin()
+        && isValidMember(request.resource.data)
+        && request.resource.data.uid == resource.data.uid
+        && (memberId != myMemberId() || request.resource.data.isAdmin == resource.data.isAdmin)
+        && emailIndexMatches(memberId, request.resource.data.email)
+        && (resource.data.email == null || resource.data.email == request.resource.data.email
+            || !existsAfter(emailIndexPath(resource.data.email)));
+
+      // Admins remove members (a separation, for example), but not themselves, and the email
+      // entry goes in the same batch.
+      allow delete: if isAdmin()
+        && memberId != myMemberId()
+        && (resource.data.email == null || !existsAfter(emailIndexPath(resource.data.email)));
     }
 
-    // households/{householdId}. Readable by the whole family, written by admins (lot 3).
+    // households/{householdId}. Readable by the whole family, written by admins.
     match /households/{householdId} {
       allow read: if isMember();
-      allow write: if false;
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['name'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 40;
+      allow delete: if false; // A household is never deleted, its members may still point to it.
     }
 
     // Everything else is closed until a lot opens it explicitly.
