@@ -9,14 +9,12 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -58,24 +56,3 @@ fun rememberNotificationPermission(): NotificationPermissionState {
         if (canAsk) launcher.launch(Manifest.permission.POST_NOTIFICATIONS) else openNotificationSettings(context)
     }
 }
-
-/**
- * Asks once, the first time a member is signed in on this phone, so that nobody misses the first
- * notifications. After that, the Notifications screen of the Famille tab asks again.
- */
-@Composable
-fun AskNotificationPermissionOnce() {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
-    val context = LocalContext.current
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
-    LaunchedEffect(Unit) {
-        val prefs = context.getSharedPreferences("familia", Context.MODE_PRIVATE)
-        if (prefs.getBoolean(ASKED_KEY, false)) return@LaunchedEffect
-        prefs.edit { putBoolean(ASKED_KEY, true) }
-        if (context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
-    }
-}
-
-private const val ASKED_KEY = "notificationPermissionAsked"

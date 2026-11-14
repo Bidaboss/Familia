@@ -206,4 +206,22 @@
     <string name="update_check_offline">Connecte-toi à Internet pour vérifier les mises à jour.</string>
     <string name="update_check_failed">La vérification n\'a pas abouti. Réessaie dans un instant.</string>
     <string name="update_check_again">Vérifier à nouveau</string>
+    <!-- Tuto de démarrage (spec « tuto et aide », récit 25) -->
+    <string name="onboarding_progress">%1$d sur %2$d</string>
+    <string name="onboarding_skip">Passer</string>
+    <string name="onboarding_next">Suivant</string>
+    <string name="onboarding_start">C\'est parti</string>
+    <string name="onboarding_allow_notifications">Autoriser les notifications</string>
+    <string name="onboarding_not_now">Pas maintenant</string>
+    <string name="onboarding_welcome_title">Bienvenue dans Familia</string>
+    <string name="onboarding_welcome_body">Ici, la famille partage ses dates sans les perdre dans WhatsApp. Tout le monde voit le même planning.</string>
+    <string name="onboarding_planning_title">Le planning</string>
+    <string name="onboarding_planning_body">Les événements à venir et les anniversaires de toute la famille. Touche un événement pour voir le détail.</string>
+    <string name="onboarding_add_title">Ajouter un événement</string>
+    <string name="onboarding_add_body">Touche le bouton « Ajouter », donne un titre et une date. Toute la famille le voit aussitôt.</string>
+    <string name="onboarding_answer_title">Dire si tu viens</string>
+    <string name="onboarding_answer_body">Sur un événement, réponds « Je viens », « Peut-être » ou « Je ne viens pas ». Tu peux aussi répondre pour tes enfants.</string>
+    <string name="onboarding_answer_body_child">Sur un événement, réponds « Je viens », « Peut-être » ou « Je ne viens pas ».</string>
+    <string name="onboarding_notifications_title">Rester prévenu</string>
+    <string name="onboarding_notifications_body">Familia te prévient des nouveautés et te rappelle la veille d\'un événement. Autorise les notifications pour ne rien manquer.</string>
 </resources>
