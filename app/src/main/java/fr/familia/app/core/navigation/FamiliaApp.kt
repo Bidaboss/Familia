@@ -21,6 +21,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import fr.familia.app.feature.members.edit.MemberEditRoute
 import fr.familia.app.feature.birthdays.BirthdaysScreen
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
@@ -39,9 +41,12 @@ fun FamiliaApp(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
 
+    // The bar only shows on the three tabs, not on screens opened from them.
+    val onTab = TopLevelDestination.entries.any { currentDestination.isOn(it) }
+
     Scaffold(
         bottomBar = {
-            NavigationBar {
+            if (onTab) NavigationBar {
                 TopLevelDestination.entries.forEach { destination ->
                     val selected = currentDestination.isOn(destination)
                     NavigationBarItem(
@@ -68,7 +73,21 @@ fun FamiliaApp(
             ) {
                 composable<PlanningRoute> { PlanningScreen() }
                 composable<BirthdaysRoute> { BirthdaysScreen() }
-                composable<MembersRoute> { MembersRoute(container, currentMember) }
+                composable<MembersRoute> {
+                    MembersRoute(
+                        container = container,
+                        currentMember = currentMember,
+                        onEditMember = { id -> navController.navigate(MemberEditDestination(id)) },
+                    )
+                }
+                composable<MemberEditDestination> { entry ->
+                    MemberEditRoute(
+                        container = container,
+                        currentMember = currentMember,
+                        memberId = entry.toRoute<MemberEditDestination>().memberId,
+                        onDone = { navController.popBackStack() },
+                    )
+                }
             }
         }
     }

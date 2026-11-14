@@ -13,6 +13,10 @@ import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.feature.members.MembersScreen
 import fr.familia.app.feature.members.MembersUiState
 import fr.familia.app.feature.members.previewGroups
+import fr.familia.app.feature.members.edit.FormError
+import fr.familia.app.feature.members.edit.MemberEditScreen
+import fr.familia.app.feature.members.edit.previewEditState
+import java.time.LocalDate
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -93,6 +97,34 @@ class ScreenshotTest {
     @Config(fontScale = 2f)
     fun offlineFontScale200() = capture("hors_ligne_police_200") {
         FamiliaApp(container = null, currentMember = sampleMember, isOffline = true)
+    }
+
+    @Test
+    fun memberFormLight() = capture("fiche_membre_clair") {
+        MemberEditScreen(previewEditState(), {}, {}, {}, {}, today = LocalDate.of(2026, 11, 14))
+    }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun memberFormErrorsDark() = capture("fiche_membre_erreurs_sombre", darkTheme = true) {
+        MemberEditScreen(
+            previewEditState(errors = setOf(FormError.EmailTaken, FormError.ParentsMissing)),
+            {}, {}, {}, {},
+            today = LocalDate.of(2026, 11, 14),
+        )
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun memberFormFontScale200() = capture("fiche_membre_police_200") {
+        MemberEditScreen(previewEditState(), {}, {}, {}, {}, today = LocalDate.of(2026, 11, 14))
+    }
+
+    @Test
+    fun membersAdminLight() = capture("famille_admin_clair") {
+        Surface {
+            MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0", onEditMember = {})
+        }
     }
 
     private val sampleMember = Member("a", "Camille", null, null, "h1", MemberProfile.Adult, true, emptyList(), null)

@@ -1,0 +1,472 @@
+package fr.familia.app.feature.members.edit
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.PersonOff
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import fr.familia.app.R
+import fr.familia.app.core.model.Household
+import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.MemberProfile
+import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.theme.MemberColors
+import fr.familia.app.core.theme.OnMemberColor
+import fr.familia.app.core.ui.EmptyState
+import fr.familia.app.core.ui.FamiliaPreviews
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Locale
+
+/** Admin form for one member. Stateless: every change goes through [onChange]. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MemberEditScreen(
+    state: MemberEditUiState,
+    onChange: ((MemberForm) -> MemberForm) -> Unit,
+    onAddHousehold: (String) -> Unit,
+    onSave: () -> Unit,
+    onBack: () -> Unit,
+    today: LocalDate = LocalDate.now(),
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        stringResource(
+                            if ((state as? MemberEditUiState.Editing)?.isNew == false) {
+                                R.string.member_edit_title
+                            } else {
+                                R.string.member_add_title
+                            },
+                        ),
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
+                    }
+                },
+            )
+        },
+    ) { padding ->
+        Box(Modifier.padding(padding).fillMaxSize()) {
+            when (state) {
+                MemberEditUiState.Loading, MemberEditUiState.Saved ->
+                    CircularProgressIndicator(Modifier.align(Alignment.Center))
+                MemberEditUiState.NotFound -> EmptyState(
+                    icon = Icons.Outlined.PersonOff,
+                    title = stringResource(R.string.member_not_found_title),
+                    body = stringResource(R.string.member_not_found_body),
+                )
+                is MemberEditUiState.Editing -> MemberFormContent(state, onChange, onAddHousehold, onSave, today)
+            }
+        }
+    }
+}
+
+@Composable
+private fun MemberFormContent(
+    state: MemberEditUiState.Editing,
+    onChange: ((MemberForm) -> MemberForm) -> Unit,
+    onAddHousehold: (String) -> Unit,
+    onSave: () -> Unit,
+    today: LocalDate,
+) {
+    val form = state.form
+    val errors = state.errors
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .imePadding()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        OutlinedTextField(
+            value = form.firstName,
+            onValueChange = { value -> onChange { it.copy(firstName = value) } },
+            label = { Text(stringResource(R.string.member_first_name)) },
+            isError = FormError.FirstNameMissing in errors || FormError.FirstNameTooLong in errors,
+            supportingText = errorText(errors, FormError.FirstNameMissing, FormError.FirstNameTooLong),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        Section(stringResource(R.string.member_profile)) {
+            Column(Modifier.selectableGroup()) {
+                MemberProfile.entries.forEach { profile ->
+                    ChoiceRow(
+                        label = stringResource(profile.labelRes()),
+                        selected = form.profile == profile,
+                        onClick = { onChange { it.copy(profile = profile) } },
+                    )
+                }
+            }
+        }
+
+        if (form.needsEmail) {
+            OutlinedTextField(
+                value = form.email,
+                onValueChange = { value -> onChange { it.copy(email = value) } },
+                label = { Text(stringResource(R.string.member_email)) },
+                isError = FormError.EmailInvalid in errors || FormError.EmailTaken in errors,
+                supportingText = errorText(errors, FormError.EmailInvalid, FormError.EmailTaken)
+                    ?: helpText(stringResource(R.string.member_email_help)),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+
+        HouseholdSection(state.households, form.householdId, errors, onChange, onAddHousehold)
+
+        BirthDateField(form.birthDate, FormError.BirthDateInFuture in errors, today) { date ->
+            onChange { it.copy(birthDate = date) }
+        }
+
+        if (form.needsParents) {
+            Section(stringResource(R.string.member_parents)) {
+                Text(
+                    stringResource(R.string.member_parents_help),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                state.adults.forEach { adult ->
+                    val checked = adult.id in form.parentIds
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 56.dp)
+                            .toggleable(checked, role = Role.Checkbox) { on ->
+                                onChange { it.copy(parentIds = if (on) it.parentIds + adult.id else it.parentIds - adult.id) }
+                            },
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Checkbox(checked = checked, onCheckedChange = null)
+                        Spacer(Modifier.width(16.dp))
+                        Text(adult.firstName, style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+                errorText(errors, FormError.ParentsMissing)?.invoke()
+            }
+        }
+
+        ColorSection(form.colorIndex) { index -> onChange { it.copy(colorIndex = index) } }
+
+        if (form.profile == MemberProfile.Adult) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 56.dp)
+                    .toggleable(form.isAdmin, enabled = state.canChangeAdmin, role = Role.Switch) { on ->
+                        onChange { it.copy(isAdmin = on) }
+                    },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.member_admin), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        stringResource(if (state.canChangeAdmin) R.string.member_admin_help else R.string.member_admin_self),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Switch(checked = form.isAdmin, onCheckedChange = null, enabled = state.canChangeAdmin)
+            }
+            errorText(errors, FormError.TooManyAdmins)?.invoke()
+        }
+
+        if (state.saveFailed) {
+            Text(
+                stringResource(R.string.member_save_failed),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        Button(
+            onClick = onSave,
+            enabled = !state.isSaving,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+        ) {
+            if (state.isSaving) {
+                CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+            } else {
+                Text(stringResource(R.string.member_save))
+            }
+        }
+    }
+}
+
+@Composable
+private fun Section(title: String, content: @Composable () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+        content()
+    }
+}
+
+@Composable
+private fun ChoiceRow(label: String, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(selected = selected, onClick = null)
+        Spacer(Modifier.width(16.dp))
+        Text(label, style = MaterialTheme.typography.bodyLarge)
+    }
+}
+
+@Composable
+private fun HouseholdSection(
+    households: List<Household>,
+    selectedId: String?,
+    errors: Set<FormError>,
+    onChange: ((MemberForm) -> MemberForm) -> Unit,
+    onAddHousehold: (String) -> Unit,
+) {
+    var dialogOpen by rememberSaveable { mutableStateOf(false) }
+    Section(stringResource(R.string.member_household)) {
+        Column(Modifier.selectableGroup()) {
+            households.forEach { household ->
+                ChoiceRow(household.name, household.id == selectedId) { onChange { it.copy(householdId = household.id) } }
+            }
+        }
+        TextButton(onClick = { dialogOpen = true }, modifier = Modifier.heightIn(min = 56.dp)) {
+            Text(stringResource(R.string.member_household_new))
+        }
+        errorText(errors, FormError.HouseholdMissing)?.invoke()
+    }
+    if (dialogOpen) {
+        var name by rememberSaveable { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { dialogOpen = false },
+            title = { Text(stringResource(R.string.member_household_new)) },
+            text = {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it.take(MAX_FIRST_NAME) },
+                    label = { Text(stringResource(R.string.member_household_name)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { onAddHousehold(name); dialogOpen = false },
+                    enabled = name.isNotBlank(),
+                ) { Text(stringResource(R.string.action_create)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { dialogOpen = false }) { Text(stringResource(R.string.action_cancel)) }
+            },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun BirthDateField(date: LocalDate?, inFuture: Boolean, today: LocalDate, onPick: (LocalDate?) -> Unit) {
+    var pickerOpen by rememberSaveable { mutableStateOf(false) }
+    Section(stringResource(R.string.member_birth_date)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = { pickerOpen = true }, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(date?.format(dateFormatter) ?: stringResource(R.string.member_birth_date_none))
+            }
+            if (date != null) {
+                TextButton(onClick = { onPick(null) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.action_clear))
+                }
+            }
+        }
+        if (inFuture) errorText(setOf(FormError.BirthDateInFuture), FormError.BirthDateInFuture)?.invoke()
+    }
+    if (pickerOpen) {
+        val todayMillis = today.toUtcMillis()
+        val pickerState = rememberDatePickerState(
+            initialSelectedDateMillis = date?.toUtcMillis(),
+            selectableDates = remember(todayMillis) {
+                object : SelectableDates {
+                    override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= todayMillis
+                    override fun isSelectableYear(year: Int) = year <= today.year
+                }
+            },
+        )
+        DatePickerDialog(
+            onDismissRequest = { pickerOpen = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    pickerState.selectedDateMillis?.let { onPick(it.toUtcDate()) }
+                    pickerOpen = false
+                }) { Text(stringResource(R.string.action_ok)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { pickerOpen = false }) { Text(stringResource(R.string.action_cancel)) }
+            },
+        ) { DatePicker(state = pickerState) }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ColorSection(selected: Int?, onPick: (Int) -> Unit) {
+    Section(stringResource(R.string.member_color)) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.selectableGroup(),
+        ) {
+            MemberColors.forEachIndexed { index, color ->
+                val isSelected = index == selected
+                val label = stringResource(R.string.member_color_n, index + 1)
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(color)
+                        .then(
+                            if (isSelected) Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, CircleShape) else Modifier,
+                        )
+                        .selectable(selected = isSelected, role = Role.RadioButton) { onPick(index) }
+                        .semantics { contentDescription = label },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (isSelected) Icon(Icons.Filled.Check, contentDescription = null, tint = OnMemberColor)
+                }
+            }
+        }
+    }
+}
+
+/** Supporting text showing the first of [kinds] present in [errors], or null if none is. */
+@Composable
+private fun errorText(errors: Set<FormError>, vararg kinds: FormError): (@Composable () -> Unit)? {
+    val error = kinds.firstOrNull { it in errors } ?: return null
+    val message = stringResource(error.messageRes())
+    return { Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
+}
+
+private fun helpText(text: String): @Composable () -> Unit = { Text(text) }
+
+private fun FormError.messageRes(): Int = when (this) {
+    FormError.FirstNameMissing -> R.string.error_first_name_missing
+    FormError.FirstNameTooLong -> R.string.error_first_name_too_long
+    FormError.EmailInvalid -> R.string.error_email_invalid
+    FormError.EmailTaken -> R.string.error_email_taken
+    FormError.HouseholdMissing -> R.string.error_household_missing
+    FormError.ParentsMissing -> R.string.error_parents_missing
+    FormError.TooManyAdmins -> R.string.error_too_many_admins
+    FormError.BirthDateInFuture -> R.string.error_birth_date_future
+}
+
+private fun MemberProfile.labelRes(): Int = when (this) {
+    MemberProfile.Adult -> R.string.profile_adult
+    MemberProfile.ChildWithApp -> R.string.profile_child_with_app
+    MemberProfile.ChildWithoutApp -> R.string.profile_child_without_app
+}
+
+private val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(Locale.FRANCE)
+
+// The date picker works in UTC milliseconds.
+private fun LocalDate.toUtcMillis(): Long = atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+private fun Long.toUtcDate(): LocalDate = Instant.ofEpochMilli(this).atZone(ZoneOffset.UTC).toLocalDate()
+
+/** Fictional data for previews and screenshots. */
+internal fun previewEditState(errors: Set<FormError> = emptySet()) = MemberEditUiState.Editing(
+    form = MemberForm(
+        firstName = "Lou",
+        profile = MemberProfile.ChildWithApp,
+        email = "lou@example.com",
+        householdId = "h1",
+        birthDate = LocalDate.of(2015, 3, 12),
+        parentIds = setOf("a"),
+        colorIndex = 4,
+    ),
+    isNew = true,
+    households = listOf(Household("h1", "Foyer Martin"), Household("h2", "Foyer Bernard")),
+    adults = listOf(
+        Member("a", "Camille", null, null, "h1", MemberProfile.Adult, true, emptyList(), null),
+        Member("b", "Sacha", null, null, "h1", MemberProfile.Adult, false, emptyList(), null),
+    ),
+    canChangeAdmin = true,
+    errors = errors,
+)
+
+@FamiliaPreviews
+@Composable
+private fun MemberEditScreenPreview() {
+    FamiliaTheme {
+        Surface {
+            MemberEditScreen(previewEditState(), {}, {}, {}, {}, today = LocalDate.of(2026, 11, 14))
+        }
+    }
+}

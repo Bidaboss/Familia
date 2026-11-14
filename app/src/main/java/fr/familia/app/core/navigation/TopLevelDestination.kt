@@ -22,6 +22,10 @@ data object BirthdaysRoute
 @Serializable
 data object MembersRoute
 
+/** Admin form opened from the Famille tab: a new member when [memberId] is null. */
+@Serializable
+data class MemberEditDestination(val memberId: String? = null)
+
 /**
  * The tabs of the bottom navigation bar, in display order (design principles, "Navigation et structure").
  * Settings and app updates live inside the Famille tab, so V1 keeps three tabs.

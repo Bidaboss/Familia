@@ -38,6 +38,27 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
             snapshots(MEMBERS) { it.toMember() },
         ) { households, members -> Family(households, members) }
 
+    override fun newMemberId(): String = db.collection(MEMBERS).document().id
+
+    override suspend fun saveMember(member: Member, previousEmail: String?) {
+        val batch = db.batch()
+        batch.set(db.collection(MEMBERS).document(member.id), member.toFirestore())
+        // The rules refuse a member whose email entry is missing, or an old entry left behind.
+        if (previousEmail != null && previousEmail != member.email) {
+            batch.delete(db.collection(MEMBER_EMAILS).document(previousEmail))
+        }
+        if (member.email != null && member.email != previousEmail) {
+            batch.set(db.collection(MEMBER_EMAILS).document(member.email), mapOf("memberId" to member.id))
+        }
+        batch.commit().await()
+    }
+
+    override fun newHouseholdId(): String = db.collection(HOUSEHOLDS).document().id
+
+    override suspend fun saveHousehold(household: Household) {
+        db.collection(HOUSEHOLDS).document(household.id).set(mapOf("name" to household.name)).await()
+    }
+
     /** Live list of a whole collection; the listener is removed when the screen stops collecting. */
     private fun <T> snapshots(collection: String, map: (DocumentSnapshot) -> T): Flow<List<T>> = callbackFlow {
         val registration = db.collection(collection).addSnapshotListener { snapshot, error ->
@@ -62,6 +83,19 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
         uid = getString("uid"),
         colorIndex = getLong("colorIndex")?.toInt(),
     )
+
+    private fun Member.toFirestore(): Map<String, Any?> = buildMap {
+        put("firstName", firstName)
+        put("email", email)
+        put("birthDate", birthDate?.toString())
+        put("householdId", householdId)
+        put("profile", profile.firestoreValue)
+        put("isAdmin", isAdmin)
+        put("parentIds", parentIds)
+        put("uid", uid)
+        // Optional in the rules: absent rather than null when no color was chosen.
+        colorIndex?.let { put("colorIndex", it) }
+    }
 
     private companion object {
         const val MEMBERS = "members"

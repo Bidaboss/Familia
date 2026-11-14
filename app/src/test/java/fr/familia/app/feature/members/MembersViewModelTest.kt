@@ -84,7 +84,11 @@ class MembersViewModelTest {
     fun `retry listens again after a failure`() = runTest {
         var calls = 0
         val repo = object : MemberRepository by FakeMembers(emptyFlow()) {
-            override fun observeFamily(): Flow<Family> = flow {
+            override fun newMemberId(): String = "new"
+        override suspend fun saveMember(member: Member, previousEmail: String?) = Unit
+        override fun newHouseholdId(): String = "h-new"
+        override suspend fun saveHousehold(household: Household) = Unit
+        override fun observeFamily(): Flow<Family> = flow {
                 calls++
                 if (calls == 1) throw IOException("denied")
                 emit(Family(listOf(Household("h1", "Foyer")), listOf(m("1", "Alice", "h1"))))
