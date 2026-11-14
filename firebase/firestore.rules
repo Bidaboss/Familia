@@ -1,0 +1,66 @@
+rules_version = '2';
+
+// Familia security rules. They apply the PRD "Droits par profil" on the server, so nothing changes
+// even if someone bypasses the app. Each lot adds the rules for the collections it introduces.
+// Data model: docs/data-model.md. Tests: firebase/tests (run against the Firestore emulator).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Who is calling -------------------------------------------------------------------------
+
+    function hasVerifiedEmail() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email_verified == true;
+    }
+
+    // Emails are stored lower-case; Google may return any casing.
+    function myEmail() {
+      return request.auth.token.email.lower();
+    }
+
+    function emailIndexPath(email) {
+      return /databases/$(database)/documents/memberEmails/$(email);
+    }
+
+    // A member is recognised by their verified Google address, which works before the first
+    // sign-in has linked a Firebase UID to the member document.
+    function isMember() {
+      return hasVerifiedEmail() && exists(emailIndexPath(myEmail()));
+    }
+
+    function myMemberId() {
+      return get(emailIndexPath(myEmail())).data.memberId;
+    }
+
+    // --- Collections ----------------------------------------------------------------------------
+
+    // memberEmails/{email} -> { memberId }. Written by admins only (lot 3).
+    // Anyone signed in may read the entry for their own address, so the app can tell
+    // "not in the family" apart from a permission error.
+    match /memberEmails/{email} {
+      allow read: if hasVerifiedEmail() && (email == myEmail() || isMember());
+      allow write: if false;
+    }
+
+    // members/{memberId}. Readable by the whole family. In lot 2 the only write is the first
+    // sign-in linking the member's own Firebase UID; admin management arrives in lot 3.
+    match /members/{memberId} {
+      allow read: if isMember();
+      allow update: if isMember()
+        && myMemberId() == memberId
+        && resource.data.get('uid', null) == null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uid']);
+      allow create, delete: if false;
+    }
+
+    // households/{householdId}. Readable by the whole family, written by admins (lot 3).
+    match /households/{householdId} {
+      allow read: if isMember();
+      allow write: if false;
+    }
+
+    // Everything else is closed until a lot opens it explicitly.
+  }
+}

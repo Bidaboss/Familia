@@ -40,13 +40,16 @@ android {
         }
     }
 
+    val hasKeystore = signingValue("FAMILIA_KEYSTORE_PATH") != null
     buildTypes {
+        // Test APKs use the same stable key as releases when it is available, so an update installs
+        // over the previous one and Google sign-in recognises the app (SHA-1 registered in Firebase).
+        debug {
+            if (hasKeystore) signingConfig = signingConfigs.getByName("release")
+        }
         release {
             isMinifyEnabled = false
-            // Only sign when a keystore is provided, so the build still works without secrets.
-            if (signingValue("FAMILIA_KEYSTORE_PATH") != null) {
-                signingConfig = signingConfigs.getByName("release")
-            }
+            if (hasKeystore) signingConfig = signingConfigs.getByName("release")
         }
     }
 
