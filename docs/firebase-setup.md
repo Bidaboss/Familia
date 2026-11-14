@@ -9,7 +9,7 @@
 
 ## Créer le premier admin
 
-Après la première publication des règles (« Publier Firebase »), lance une seule fois le workflow GitHub **Créer le premier admin** (onglet Actions, branche `main`) avec ton prénom, ton adresse Google et le nom de ton foyer. Il crée le foyer, ta fiche d'admin et l'entrée `memberEmails` en une seule écriture, et refuse de tourner si la famille a déjà des membres. Les suivants s'ajoutent depuis l'appli.
+Après la première publication des règles (« Publier Firebase »), lance une seule fois le workflow GitHub **Créer le premier admin** (onglet Actions, branche `main`) avec ton prénom, ton adresse Google et le nom de ton foyer. Il crée le foyer, ta fiche d'admin et l'entrée `memberEmails` en une seule écriture, et refuse de tourner si la famille a déjà des membres. Les suivants s'ajoutent depuis l'appli. Les valeurs saisies au lancement restent visibles sur la page du lancement dans GitHub. C'est acceptable, car le dépôt est privé, et l'adresse est masquée dans les journaux.
 
 En secours, la même chose à la main dans la console Firestore :
 

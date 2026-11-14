@@ -18,6 +18,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: first-admin
+  cancel-in-progress: false
+
 jobs:
   create:
     name: Create the first admin
