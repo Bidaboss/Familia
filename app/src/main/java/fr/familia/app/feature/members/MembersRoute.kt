@@ -26,6 +26,7 @@ fun MembersRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val renameFailed by viewModel.renameFailed.collectAsStateWithLifecycle()
     MembersScreen(
         state = state,
         onRetry = viewModel::retry,
@@ -36,5 +37,9 @@ fun MembersRoute(
         onOpenExport = if ((state as? MembersUiState.Success)?.isAdmin == true) onOpenExport else null,
         // Only admins add and edit members (the security rules check it too).
         onEditMember = if ((state as? MembersUiState.Success)?.isAdmin == true) onEditMember else null,
+        // Any admin renames any household (data-model.md, « Droits des admins »).
+        onRenameHousehold = if ((state as? MembersUiState.Success)?.isAdmin == true) viewModel::renameHousehold else null,
+        renameFailed = renameFailed,
+        onRenameFailureShown = viewModel::renameFailureShown,
     )
 }

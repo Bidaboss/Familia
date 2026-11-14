@@ -113,6 +113,53 @@ class MembersViewModelTest {
         assertEquals("Alice", (vm.uiState.value as MembersUiState.Success).groups.single().members.single().firstName)
     }
 
+    @Test
+    fun `renaming a household trims the name and saves it`() = runTest {
+        val saved = mutableListOf<Household>()
+        val repo = object : MemberRepository by FakeMembers(emptyFlow()) {
+            override suspend fun saveHousehold(household: Household) { saved += household }
+        }
+        val vm = MembersViewModel(repo, currentMemberId = "1")
+        vm.renameHousehold(Household("h1", "Foyer"), "  Les Martin  ")
+        assertEquals(listOf(Household("h1", "Les Martin")), saved)
+        assertFalse(vm.renameFailed.value)
+    }
+
+    @Test
+    fun `a blank or unchanged name saves nothing`() = runTest {
+        val saved = mutableListOf<Household>()
+        val repo = object : MemberRepository by FakeMembers(emptyFlow()) {
+            override suspend fun saveHousehold(household: Household) { saved += household }
+        }
+        val vm = MembersViewModel(repo, currentMemberId = "1")
+        vm.renameHousehold(Household("h1", "Foyer"), "   ")
+        vm.renameHousehold(Household("h1", "Foyer"), " Foyer ")
+        assertTrue(saved.isEmpty())
+    }
+
+    @Test
+    fun `a name longer than the limit is cut`() = runTest {
+        val saved = mutableListOf<Household>()
+        val repo = object : MemberRepository by FakeMembers(emptyFlow()) {
+            override suspend fun saveHousehold(household: Household) { saved += household }
+        }
+        val vm = MembersViewModel(repo, currentMemberId = "1")
+        vm.renameHousehold(Household("h1", "Foyer"), "a".repeat(60))
+        assertEquals(MembersViewModel.MAX_HOUSEHOLD_NAME, saved.single().name.length)
+    }
+
+    @Test
+    fun `a refused rename is reported once`() = runTest {
+        val repo = object : MemberRepository by FakeMembers(emptyFlow()) {
+            override suspend fun saveHousehold(household: Household) { throw IOException("denied") }
+        }
+        val vm = MembersViewModel(repo, currentMemberId = "1")
+        vm.renameHousehold(Household("h1", "Foyer"), "Les Martin")
+        assertTrue(vm.renameFailed.value)
+        vm.renameFailureShown()
+        assertFalse(vm.renameFailed.value)
+    }
+
     private class FakeMembers(private val family: Flow<Family>) : MemberRepository {
         override suspend fun findByEmail(email: String): Member? = null
         override suspend fun linkAccount(memberId: String, uid: String) = Unit

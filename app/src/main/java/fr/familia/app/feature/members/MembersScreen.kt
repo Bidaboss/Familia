@@ -12,31 +12,43 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material.icons.outlined.PersonAdd
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import fr.familia.app.BuildConfig
@@ -63,7 +75,12 @@ fun MembersScreen(
     onOpenExport: (() -> Unit)? = null,
     onOpenUpdates: (() -> Unit)? = null,
     onOpenHelp: (() -> Unit)? = null,
+    /** Null for members who are not admin: household names are then read-only. */
+    onRenameHousehold: ((Household, String) -> Unit)? = null,
+    renameFailed: Boolean = false,
+    onRenameFailureShown: () -> Unit = {},
 ) {
+    var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     when (state) {
         MembersUiState.Loading ->
             Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
@@ -95,7 +112,15 @@ fun MembersScreen(
                 }
                 state.groups.forEach { group ->
                     item(key = "household-${group.household?.id ?: "other"}") {
-                        HouseholdHeader(group.household?.name ?: stringResource(R.string.members_other_household))
+                        val household = group.household
+                        HouseholdHeader(
+                            name = household?.name ?: stringResource(R.string.members_other_household),
+                            onRename = if (household != null && onRenameHousehold != null) {
+                                { renaming = household.id }
+                            } else {
+                                null
+                            },
+                        )
                     }
                     items(group.members, key = { "member-${it.id}" }) { member ->
                         MemberRow(
@@ -142,6 +167,28 @@ fun MembersScreen(
             }
         }
     }
+    val renamed = (state as? MembersUiState.Success)?.groups?.firstNotNullOfOrNull { group ->
+        group.household?.takeIf { it.id == renaming }
+    }
+    if (renamed != null && onRenameHousehold != null) {
+        RenameHouseholdDialog(
+            household = renamed,
+            onConfirm = { name -> onRenameHousehold(renamed, name); renaming = null },
+            onDismiss = { renaming = null },
+        )
+    }
+    if (renameFailed) {
+        AlertDialog(
+            onDismissRequest = onRenameFailureShown,
+            title = { Text(stringResource(R.string.household_rename_failed_title)) },
+            text = { Text(stringResource(R.string.household_rename_failed_body)) },
+            confirmButton = {
+                TextButton(onClick = onRenameFailureShown, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.action_ok))
+                }
+            },
+        )
+    }
 }
 
 /** A settings entry below the members (design: settings live in the Famille tab). */
@@ -162,15 +209,58 @@ private fun SettingsRow(icon: ImageVector, @StringRes labelRes: Int, onClick: ()
 }
 
 @Composable
-private fun HouseholdHeader(name: String) {
-    Text(
-        text = name,
-        style = MaterialTheme.typography.titleLarge,
-        color = MaterialTheme.colorScheme.primary,
+private fun HouseholdHeader(name: String, onRename: (() -> Unit)?) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp)
-            .semantics { heading() },
+            .padding(start = 16.dp, end = 4.dp, top = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = name,
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .weight(1f)
+                .padding(vertical = 8.dp)
+                .semantics { heading() },
+        )
+        if (onRename != null) {
+            IconButton(onClick = onRename, modifier = Modifier.size(56.dp)) {
+                Icon(Icons.Outlined.Edit, contentDescription = stringResource(R.string.household_rename_action, name))
+            }
+        }
+    }
+}
+
+/** Asks for the new name of [household]; "Enregistrer" stays off while the name is empty or unchanged. */
+@Composable
+private fun RenameHouseholdDialog(household: Household, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
+    var name by rememberSaveable(household.id) { mutableStateOf(household.name) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.household_rename_title)) },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it.take(MembersViewModel.MAX_HOUSEHOLD_NAME) },
+                label = { Text(stringResource(R.string.member_household_name)) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(name) },
+                enabled = name.isNotBlank() && name.trim() != household.name,
+                modifier = Modifier.heightIn(min = 56.dp),
+            ) { Text(stringResource(R.string.member_save)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.action_cancel))
+            }
+        },
     )
 }
 
