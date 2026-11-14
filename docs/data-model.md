@@ -161,6 +161,7 @@ Les données sont lues sur le serveur, jamais dans le cache du téléphone. Hors
 |---|---|---|
 | `latestVersionCode` | nombre | Le `versionCode` de la dernière version publiée |
 | `latestVersionName` | texte | Son nom affiché, par exemple « 0.2.0 » |
-| `downloadUrl` | texte | Le lien HTTPS de l'APK dans le Drive. Tout autre lien est ignoré par l'appli. |
+
+Le lien de téléchargement n'est pas dans ce document : il est fixé dans l'appli (`BuildConfig.DOWNLOAD_URL`, le dossier Drive).
 
 Droits : tous les membres le lisent, et personne ne l'écrit depuis l'appli. Kévin le modifie dans la console Firebase (voir [mise-a-jour.md](mise-a-jour.md)).

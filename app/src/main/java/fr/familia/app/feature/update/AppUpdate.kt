@@ -7,13 +7,14 @@ import java.net.URI
 data class AppUpdate(val versionName: String, val downloadUrl: String)
 
 /**
- * The update to offer, or null. Only an HTTPS link is ever opened: the APK itself is checked by
- * Android, which refuses an update not signed with the same key as the installed app.
+ * The update to offer, or null. [downloadUrl] is the Drive folder fixed in the app. Only an HTTPS
+ * link is ever opened: the APK itself is checked by Android, which refuses an update not signed
+ * with the same key as the installed app.
  */
-fun availableUpdate(config: AppConfig, installedVersionCode: Int): AppUpdate? {
+fun availableUpdate(config: AppConfig, installedVersionCode: Int, downloadUrl: String): AppUpdate? {
     val latest = config.latestVersionCode ?: return null
     if (latest <= installedVersionCode) return null
-    val url = config.downloadUrl?.trim()?.takeIf(::isHttpsUrl) ?: return null
+    val url = downloadUrl.trim().takeIf(::isHttpsUrl) ?: return null
     return AppUpdate(config.latestVersionName?.trim()?.takeIf { it.isNotEmpty() } ?: latest.toString(), url)
 }
 

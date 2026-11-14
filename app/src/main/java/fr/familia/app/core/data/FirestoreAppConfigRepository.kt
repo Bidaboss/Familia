@@ -16,7 +16,6 @@ class FirestoreAppConfigRepository(private val db: FirebaseFirestore) : AppConfi
                     AppConfig(
                         latestVersionCode = snapshot?.getLong("latestVersionCode"),
                         latestVersionName = snapshot?.getString("latestVersionName"),
-                        downloadUrl = snapshot?.getString("downloadUrl"),
                     ),
                 )
             }

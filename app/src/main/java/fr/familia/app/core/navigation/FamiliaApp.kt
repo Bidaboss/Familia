@@ -85,7 +85,7 @@ fun FamiliaApp(
     // Lot 10: a newer version in config/app is offered above the tabs, once per opening.
     val updates = remember(container) {
         container?.appConfigRepository?.observeAppConfig()
-            ?.map { config -> availableUpdate(config, BuildConfig.VERSION_CODE) }
+            ?.map { config -> availableUpdate(config, BuildConfig.VERSION_CODE, BuildConfig.DOWNLOAD_URL) }
             ?.catch { /* Offline or no config yet: nothing to offer. */ }
             ?: flowOf(null)
     }

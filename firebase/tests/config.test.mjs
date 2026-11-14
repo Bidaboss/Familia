@@ -9,7 +9,7 @@ let env;
 before(async () => { env = await createEnv(); });
 after(async () => { await env.cleanup(); });
 
-const config = { latestVersionCode: 2, latestVersionName: '0.2.0', downloadUrl: 'https://example.com/familia.apk' };
+const config = { latestVersionCode: 2, latestVersionName: '0.2.0' };
 
 beforeEach(async () => {
   await env.clearFirestore();
@@ -28,7 +28,7 @@ describe('config/app', () => {
 
   test('nobody writes it from the app, not even an admin', async () => {
     const db = as(env, ADMIN);
-    await assertFails(setDoc(doc(db, 'config/app'), { ...config, downloadUrl: 'https://evil.example/x.apk' }));
+    await assertFails(setDoc(doc(db, 'config/app'), { ...config, latestVersionCode: 99 }));
     await assertFails(deleteDoc(doc(db, 'config/app')));
   });
 
