@@ -194,5 +194,6 @@
     <string name="export_action">Créer la sauvegarde</string>
     <string name="export_in_progress">Sauvegarde en cours…</string>
     <string name="export_done">Sauvegarde enregistrée.</string>
-    <string name="export_failed">La sauvegarde n\'a pas pu être créée. Vérifie la connexion et réessaie.</string>
+    <string name="export_failed">La sauvegarde n\'a pas pu être créée. Aucun fichier n\'a été laissé. Réessaie dans un instant.</string>
+    <string name="export_offline">Connecte-toi à Internet pour faire une sauvegarde complète.</string>
 </resources>
