@@ -13,6 +13,11 @@ import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.feature.members.MembersScreen
 import fr.familia.app.feature.members.MembersUiState
 import fr.familia.app.feature.members.previewGroups
+import fr.familia.app.feature.events.edit.EventEditScreen
+import fr.familia.app.feature.events.edit.EventFormError
+import fr.familia.app.feature.events.edit.previewEventState
+import fr.familia.app.feature.planning.PlanningScreen
+import fr.familia.app.feature.planning.previewPlanning
 import fr.familia.app.feature.members.edit.FormError
 import fr.familia.app.feature.members.edit.MemberEditScreen
 import fr.familia.app.feature.members.edit.previewEditState
@@ -131,6 +136,39 @@ class ScreenshotTest {
     @Test
     fun memberAddedLight() = capture("membre_ajoute_clair") {
         MemberEditScreen(MemberEditUiState.Added("Lou", "lou@example.com"), {}, {}, {}, {})
+    }
+
+    @Test
+    fun planningListLight() = capture("planning_liste_clair") {
+        Surface { PlanningScreen(previewPlanning(), {}, {}, {}) }
+    }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun planningListDark() = capture("planning_liste_sombre", darkTheme = true) {
+        Surface { PlanningScreen(previewPlanning(), {}, {}, {}) }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun planningListFontScale200() = capture("planning_liste_police_200") {
+        Surface { PlanningScreen(previewPlanning(), {}, {}, {}) }
+    }
+
+    @Test
+    fun eventFormLight() = capture("evenement_clair") {
+        EventEditScreen(previewEventState(isNew = false), {}, {}, {}, {})
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun eventFormErrorsFontScale200() = capture("evenement_erreurs_police_200") {
+        EventEditScreen(
+            previewEventState(errors = setOf(EventFormError.TitleMissing, EventFormError.DateMissing)).let {
+                it.copy(form = it.form.copy(title = "", date = null))
+            },
+            {}, {}, {}, {},
+        )
     }
 
     @Test

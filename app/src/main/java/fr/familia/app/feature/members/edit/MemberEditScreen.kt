@@ -338,7 +338,7 @@ private fun RemoveButton(firstName: String, soleParentOf: List<String>, enabled:
                 }
             },
             dismissButton = {
-                TextButton(onClick = { confirm = false }) { Text(stringResource(R.string.action_cancel)) }
+                TextButton(onClick = { confirm = false }) { Text(stringResource(R.string.action_keep)) }
             },
         )
     }

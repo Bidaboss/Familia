@@ -22,6 +22,10 @@ data object BirthdaysRoute
 @Serializable
 data object MembersRoute
 
+/** Event form opened from the Planning tab: a new event when [eventId] is null. */
+@Serializable
+data class EventEditDestination(val eventId: String? = null)
+
 /** Admin form opened from the Famille tab: a new member when [memberId] is null. */
 @Serializable
 data class MemberEditDestination(val memberId: String? = null)

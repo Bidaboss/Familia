@@ -190,6 +190,7 @@ service cloud.firestore {
       allow create: if isMember()
         && isValidEvent(request.resource.data)
         && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
         && request.resource.data.createdAt == request.time
         && canTarget(request.resource.data);
 
