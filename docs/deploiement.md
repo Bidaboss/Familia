@@ -7,13 +7,25 @@ Cette page sert à mettre en ligne la partie serveur de Familia. Il s'agit des r
 1. Le projet doit être en **offre Blaze**, car les Cloud Functions l'exigent.
 2. Ouvre console.cloud.google.com sur le projet Familia, puis **IAM et administration** et **Comptes de service**. Touche **Créer un compte de service**.
    - Nom : `github-deploy`.
-   - Rôles (bouton « Ajouter un autre rôle » entre chaque) : **Administrateur Firebase**, **Utilisateur du compte de service**, **Administrateur Cloud Scheduler**.
+   - Rôles (bouton « Ajouter un autre rôle » entre chaque) : **Administrateur Firebase**, **Utilisateur du compte de service**, **Administrateur Cloud Scheduler**, **Administrateur Service Usage** (pour activer les services Google au premier lancement).
    - Touche **OK**.
 3. Ouvre le compte `github-deploy`, onglet **Clés**, puis **Ajouter une clé**, **Créer une clé** et **JSON**. Un fichier se télécharge.
 4. Dans GitHub, ouvre `Settings`, `Secrets and variables`, `Actions`, puis **New repository secret**. Le nom est `FIREBASE_SECRET_ACCOUNT`, et la valeur est le contenu complet du fichier.
 5. Supprime ensuite le fichier de ton téléphone.
 
 Cette clé peut modifier le projet Firebase. Elle ne va que dans ce secret GitHub, jamais dans le dépôt ni dans une discussion. Si elle fuit, supprime-la dans l'onglet **Clés** du compte et crée-en une autre.
+
+## Une fois, au tout premier lancement
+
+Ces étapes ont été faites pour le projet `familia-93286` le 14/11/2026. Il faut les refaire seulement sur un nouveau projet.
+
+1. Active l'API de facturation : https://console.cloud.google.com/apis/library/cloudbilling.googleapis.com, puis **Activer**.
+2. Dans **IAM**, puis **Accorder l'accès**, donne ces rôles aux comptes internes de Google (remplace `<numéro>` par le numéro du projet, visible dans les paramètres Firebase) :
+   - `service-<numéro>@gcp-sa-pubsub.iam.gserviceaccount.com` : **Créateur de jetons du compte de service** ;
+   - `<numéro>-compute@developer.gserviceaccount.com` : **Demandeur Cloud Run** et **Destinataire d'événements Eventarc**.
+3. Au premier lancement, les fonctions liées à la base peuvent échouer avec « Permission denied while using the Eventarc Service Agent ». Google met quelques minutes à préparer ce service : relance simplement 5 minutes plus tard.
+
+À chaque publication, un avertissement « Unhandled error cleaning up build images » peut apparaître. Les anciennes images des fonctions restent alors stockées dans Artifact Registry. C'est quelques Mo, sous la part gratuite de 0,5 Go, et l'alerte de budget à 1 € préviendrait si ça grossissait. Pour les supprimer automatiquement, il faudrait donner à `github-deploy` le rôle **Administrateur Artifact Registry**, puis lancer `npx firebase functions:artifacts:setpolicy`.
 
 ## Publier
 
