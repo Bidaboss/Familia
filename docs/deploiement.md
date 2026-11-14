@@ -1,30 +1,41 @@
 # Déployer les règles et les Cloud Functions
 
-Cette page sert à mettre en ligne la partie serveur de Familia. Il s'agit des règles de sécurité de Firestore et des Cloud Functions qui envoient les notifications (lot 8). On le fait à la main, ensemble, la première fois. GitHub n'a aucune clé pour le faire à ta place, et c'est voulu : rien ne part en ligne sans toi.
+Cette page sert à mettre en ligne la partie serveur de Familia. Il s'agit des règles de sécurité de Firestore et des Cloud Functions qui envoient les notifications (lot 8). Depuis la carte DEV-7, on publie avec le workflow GitHub « Publier Firebase », lancé à la main. Rien ne part en ligne sans toi.
 
-## Ce qu'il faut une fois
+## Ce qu'il faut une fois : la clé de publication
 
-1. Installer Node.js 22 sur ton ordinateur (nodejs.org).
-2. Ouvrir un terminal dans le dossier `firebase` du dépôt, puis lancer :
-   ```
-   npm ci
-   npm ci --prefix functions
-   npx firebase login
-   ```
-   Le projet Familia (`familia-93286`) est déjà choisi dans `firebase/.firebaserc`.
-3. Vérifier que le projet est bien en **offre Blaze**. Les Cloud Functions l'exigent.
+1. Le projet doit être en **offre Blaze**, car les Cloud Functions l'exigent.
+2. Ouvre console.cloud.google.com sur le projet Familia, puis **IAM et administration** et **Comptes de service**. Touche **Créer un compte de service**.
+   - Nom : `github-deploy`.
+   - Rôles (bouton « Ajouter un autre rôle » entre chaque) : **Administrateur Firebase**, **Utilisateur du compte de service**, **Administrateur Cloud Scheduler**.
+   - Touche **OK**.
+3. Ouvre le compte `github-deploy`, onglet **Clés**, puis **Ajouter une clé**, **Créer une clé** et **JSON**. Un fichier se télécharge.
+4. Dans GitHub, ouvre `Settings`, `Secrets and variables`, `Actions`, puis **New repository secret**. Le nom est `FIREBASE_SERVICE_ACCOUNT`, et la valeur est le contenu complet du fichier.
+5. Supprime ensuite le fichier de ton téléphone.
 
-## Déployer
+Cette clé peut modifier le projet Firebase. Elle ne va que dans ce secret GitHub, jamais dans le dépôt ni dans une discussion. Si elle fuit, supprime-la dans l'onglet **Clés** du compte et crée-en une autre.
 
-Toujours depuis le dossier `firebase` :
+## Publier
+
+1. La CI de la pull request doit être verte, car elle a déjà testé les règles et les fonctions. La PR doit aussi être fusionnée dans `main`.
+2. Dans GitHub, ouvre l'onglet **Actions**, puis **Publier Firebase**, puis **Run workflow** sur la branche `main`.
+3. Attends la coche verte, environ 5 minutes la première fois.
+
+- Les fonctions tournent en **Europe (europe-west1)**. C'est réglé dans le code (`functions/src/index.ts`).
+- Au premier déploiement, Firebase active lui-même les services nécessaires (Cloud Functions, Cloud Build, Cloud Scheduler pour le rappel de 18 h). S'il échoue en signalant une API pas encore activée, attends 2 minutes et relance.
+
+## Publier depuis un ordinateur (secours)
+
+Depuis le dossier `firebase`, avec Node.js 22 :
 
 ```
-npx firebase deploy --only functions,firestore:rules
+npm ci
+npm ci --prefix functions
+npx firebase login
+npx firebase deploy --only firestore:rules,firestore:indexes,functions
 ```
 
-- Les fonctions tournent en **Europe (europe-west1)**. C'est réglé dans le code (`functions/src/index.ts`), donc tu n'as rien à choisir.
-- Au premier déploiement, Firebase active lui-même les services nécessaires (Cloud Functions, Cloud Build, Cloud Scheduler pour le rappel de 18 h). Si un message demande d'accepter, réponds oui.
-- Avant de déployer, la CI de la pull request doit être verte : elle a déjà testé les règles et les fonctions.
+Le projet Familia (`familia-93286`) est déjà choisi dans `firebase/.firebaserc`.
 
 ## Vérifier après le déploiement
 
@@ -44,4 +55,4 @@ Pour une famille de 13 personnes, les notifications et le rappel restent dans la
 
 ## Revenir en arrière
 
-Si une nouvelle version pose problème, redéploie la version précédente : reviens sur le commit d'avant dans `main` (`git checkout <commit>`), puis relance la commande de déploiement.
+Si une nouvelle version pose problème, redéploie la version précédente : annule la PR fautive dans `main` (bouton « Revert » de GitHub), puis relance « Publier Firebase ».
