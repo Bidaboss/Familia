@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.Instant
-import java.time.LocalDate
 import java.time.ZoneId
 
 sealed interface ExportUiState {
@@ -53,7 +52,7 @@ class ExportViewModel(
             _uiState.value = try {
                 val at = now()
                 json = familyExportJson(repo.loadFamilyData(), at, appVersion)
-                ExportUiState.AwaitingDestination(exportFileName(LocalDate.ofInstant(at, ZoneId.systemDefault())))
+                ExportUiState.AwaitingDestination(exportFileName(at.atZone(ZoneId.systemDefault()).toLocalDate()))
             } catch (e: CancellationException) {
                 throw e
             } catch (e: ExportOfflineException) {
