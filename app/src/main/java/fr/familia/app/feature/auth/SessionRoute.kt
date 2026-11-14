@@ -10,16 +10,17 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Member
 import kotlinx.coroutines.launch
 
 /**
  * Gate in front of the app: shows [SignInScreen] until a family member is signed in,
- * then [signedInContent].
+ * then [signedInContent] for that member.
  */
 @Composable
 fun SessionRoute(
     container: AppContainer,
-    signedInContent: @Composable () -> Unit,
+    signedInContent: @Composable (Member) -> Unit,
 ) {
     val viewModel: SessionViewModel = viewModel(
         factory = viewModelFactory {
@@ -30,8 +31,8 @@ fun SessionRoute(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    if (state is SessionUiState.SignedIn) {
-        signedInContent()
+    (state as? SessionUiState.SignedIn)?.let {
+        signedInContent(it.member)
         return
     }
     Surface {

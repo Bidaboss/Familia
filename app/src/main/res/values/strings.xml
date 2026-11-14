@@ -12,6 +12,13 @@
     <string name="birthdays_empty_body">Les anniversaires des 13 membres apparaîtront ici, du plus proche au plus lointain.</string>
     <string name="members_empty_title">La famille arrive bientôt</string>
     <string name="members_empty_body">Les membres, leurs foyers et tes réglages apparaîtront ici.</string>
+    <string name="members_error_title">La famille ne s\'affiche pas</string>
+    <string name="members_error_body">Pas de connexion. Réessaie dans un moment.</string>
+    <string name="members_me">%1$s (toi)</string>
+    <string name="profile_adult">Adulte</string>
+    <string name="profile_child_with_app">Enfant, avec l\'appli</string>
+    <string name="profile_child_without_app">Enfant, sans l\'appli</string>
+    <string name="profile_with_admin">%1$s · admin</string>
     <string name="app_version">Version %1$s</string>
 
     <string name="sign_in_intro">Le planning et les anniversaires de la famille, au même endroit.</string>
