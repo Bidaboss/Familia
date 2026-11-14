@@ -1,5 +1,19 @@
 package fr.familia.app.core.navigation
 
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.net.toUri
+import fr.familia.app.BuildConfig
+import fr.familia.app.feature.update.AppUpdate
+import fr.familia.app.feature.update.UpdateBanner
+import fr.familia.app.feature.update.availableUpdate
+import kotlinx.coroutines.flow.catch
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -66,6 +80,15 @@ fun FamiliaApp(
         }
     }
 
+    // Lot 10: a newer version in config/app is offered above the tabs, once per opening.
+    val update by produceState<AppUpdate?>(null, container) {
+        container?.appConfigRepository?.observeAppConfig()
+            ?.catch { /* Offline or no config yet: nothing to offer. */ }
+            ?.collect { value = availableUpdate(it, BuildConfig.VERSION_CODE) }
+    }
+    var updateDismissed by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
 
@@ -94,6 +117,14 @@ fun FamiliaApp(
     ) { innerPadding ->
         Column(Modifier.padding(innerPadding)) {
             AnimatedVisibility(visible = isOffline) { OfflineBanner() }
+            val shownUpdate = update?.takeIf { onTab && !updateDismissed }
+            if (shownUpdate != null) {
+                UpdateBanner(
+                    update = shownUpdate,
+                    onUpdate = { openDownload(context, shownUpdate.downloadUrl) },
+                    onLater = { updateDismissed = true },
+                )
+            }
             NavHost(
                 navController = navController,
                 startDestination = TopLevelDestination.start.route,
@@ -155,6 +186,15 @@ fun FamiliaApp(
                 }
             }
         }
+    }
+}
+
+/** Opens the APK link in the browser or the Drive app; Android then checks the signature on install. */
+private fun openDownload(context: Context, url: String) {
+    try {
+        context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    } catch (e: ActivityNotFoundException) {
+        // No browser at all: nothing sensible to do, the banner stays.
     }
 }
 

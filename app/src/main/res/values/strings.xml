@@ -196,4 +196,8 @@
     <string name="export_done">Sauvegarde enregistrée.</string>
     <string name="export_failed">La sauvegarde n\'a pas pu être créée. Aucun fichier n\'a été laissé. Réessaie dans un instant.</string>
     <string name="export_offline">Connecte-toi à Internet pour faire une sauvegarde complète.</string>
+    <string name="update_available">Nouvelle version %1$s disponible</string>
+    <string name="update_help">Télécharge-la, puis ouvre le fichier pour l\'installer par-dessus l\'appli actuelle. Tes données ne bougent pas.</string>
+    <string name="update_action">Mettre à jour</string>
+    <string name="update_later">Plus tard</string>
 </resources>

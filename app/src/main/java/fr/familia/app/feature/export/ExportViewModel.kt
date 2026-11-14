@@ -21,6 +21,9 @@ sealed interface ExportUiState {
     /** The data is ready: the screen opens the file picker with [fileName]. */
     data class AwaitingDestination(val fileName: String) : ExportUiState
 
+    /** The file picker is open. Kept apart so that a recreated screen does not open it twice. */
+    data object Picking : ExportUiState
+
     data object Done : ExportUiState
 
     /** The server could not be reached: no backup at all rather than an incomplete one. */
@@ -46,7 +49,8 @@ class ExportViewModel(
 
     fun prepare() {
         val repo = export ?: return
-        if (_uiState.value == ExportUiState.Exporting || _uiState.value is ExportUiState.AwaitingDestination) return
+        val current = _uiState.value
+        if (current == ExportUiState.Exporting || current == ExportUiState.Picking || current is ExportUiState.AwaitingDestination) return
         _uiState.value = ExportUiState.Exporting
         viewModelScope.launch {
             _uiState.value = try {
@@ -78,6 +82,11 @@ class ExportViewModel(
                 ExportUiState.Failed
             }
         }
+    }
+
+    /** The screen has opened the file picker. */
+    fun pickerOpened() {
+        if (_uiState.value is ExportUiState.AwaitingDestination) _uiState.value = ExportUiState.Picking
     }
 
     /** The file picker was closed without choosing a place. */

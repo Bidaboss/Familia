@@ -290,6 +290,16 @@ service cloud.firestore {
         && request.resource.data.dayBeforeReminder is bool;
     }
 
+    // --- App updates (lot 10) ---------------------------------------------------------------------
+
+    // config/app: the latest version and the HTTPS link of its APK (docs/mise-a-jour.md). Every
+    // member reads it at each opening. Nobody writes it from the app: Kévin edits it in the
+    // Firebase console, which is not bound by these rules.
+    match /config/{docId} {
+      allow read: if isMember() && docId == 'app';
+      allow write: if false;
+    }
+
     // Everything else is closed until a lot opens it explicitly.
   }
 }
