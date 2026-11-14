@@ -4,16 +4,16 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.net.toUri
 import fr.familia.app.BuildConfig
-import fr.familia.app.feature.update.AppUpdate
 import fr.familia.app.feature.update.UpdateBanner
 import fr.familia.app.feature.update.availableUpdate
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -25,6 +25,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination
@@ -81,12 +83,13 @@ fun FamiliaApp(
     }
 
     // Lot 10: a newer version in config/app is offered above the tabs, once per opening.
-    val update by produceState<AppUpdate?>(null, container) {
-        val repository = container?.appConfigRepository ?: return@produceState
-        repository.observeAppConfig()
-            .catch { /* Offline or no config yet: nothing to offer. */ }
-            .collect { config -> value = availableUpdate(config, BuildConfig.VERSION_CODE) }
+    val updates = remember(container) {
+        container?.appConfigRepository?.observeAppConfig()
+            ?.map { config -> availableUpdate(config, BuildConfig.VERSION_CODE) }
+            ?.catch { /* Offline or no config yet: nothing to offer. */ }
+            ?: flowOf(null)
     }
+    val update by updates.collectAsState(initial = null)
     var updateDismissed by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
 
