@@ -70,4 +70,32 @@ class PlanningViewModelTest {
         events.events.value = listOf(TestFamily.event("e1", TestFamily.otherAdult))
         assertEquals(1, (vm.uiState.value as PlanningUiState.Success).days.size)
     }
+
+    @Test
+    fun `birthdays appear on their day, before the events, with nothing stored`() = runTest {
+        val family = TestFamily.family.copy(
+            members = TestFamily.family.members.map { if (it.id == "kid2") it.copy(birthDate = LocalDate.of(2016, 12, 24)) else it },
+        )
+        val events = FakeEvents(listOf(TestFamily.event("e1", TestFamily.adult, date = LocalDate.of(2026, 12, 24))))
+        val vm = PlanningViewModel(events, FakeMembers(family), "adult1", today = { today })
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        val state = vm.uiState.value as PlanningUiState.Success
+        assertEquals(today, state.today)
+        val day = state.days.single()
+        assertEquals("kid2", day.birthdays.single().member.id)
+        assertEquals(10, day.birthdays.single().age)
+        assertEquals(listOf("e1"), day.items.map { it.event.id })
+    }
+
+    @Test
+    fun `a day with only a birthday still gets its own header`() = runTest {
+        val family = TestFamily.family.copy(
+            members = TestFamily.family.members.map { if (it.id == "adult2") it.copy(birthDate = LocalDate.of(1980, 1, 5)) else it },
+        )
+        val vm = PlanningViewModel(FakeEvents(), FakeMembers(family), "adult1", today = { today })
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        val day = (vm.uiState.value as PlanningUiState.Success).days.single()
+        assertEquals(LocalDate.of(2027, 1, 5), day.date)
+        assertEquals(emptyList<Any>(), day.items)
+    }
 }

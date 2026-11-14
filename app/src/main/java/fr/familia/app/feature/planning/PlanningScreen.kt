@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,22 +30,26 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.model.Birthday
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventTarget
+import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.dayTitle
+import fr.familia.app.core.ui.formatTime
 import fr.familia.app.feature.events.edit.TargetChoice
 import fr.familia.app.feature.events.edit.targetLabel
 import java.time.LocalDate
 import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 /** Planning tab: upcoming events day by day, and the button to add one. Stateless. */
 @Composable
@@ -64,7 +69,7 @@ fun PlanningScreen(
                 body = stringResource(R.string.planning_error_body),
                 action = {
                     Button(onClick = onRetry, modifier = Modifier.heightIn(min = 56.dp)) {
-                        Text(stringResource(R.string.members_retry))
+                        Text(stringResource(R.string.action_retry))
                     }
                 },
             )
@@ -81,7 +86,8 @@ fun PlanningScreen(
                     contentPadding = PaddingValues(top = 8.dp, bottom = 96.dp),
                 ) {
                     state.days.forEach { day ->
-                        item(key = "day-${day.date}") { DayHeader(day.date) }
+                        item(key = "day-${day.date}") { DayHeader(day.date, state.today) }
+                        items(day.birthdays, key = { "birthday-${it.member.id}" }) { BirthdayRow(it) }
                         items(day.items, key = { "event-${it.event.id}" }) { item ->
                             EventRow(item, onClick = if (item.canManage) ({ onOpenEvent(item.event.id) }) else null)
                         }
@@ -101,9 +107,9 @@ fun PlanningScreen(
 }
 
 @Composable
-private fun DayHeader(date: LocalDate) {
+private fun DayHeader(date: LocalDate, today: LocalDate) {
     Text(
-        text = date.format(dayFormatter).replaceFirstChar { it.titlecase(Locale.FRANCE) },
+        text = dayTitle(date, today),
         style = MaterialTheme.typography.titleLarge,
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier
@@ -127,7 +133,7 @@ private fun EventRow(item: PlanningItem, onClick: (() -> Unit)?) {
             verticalAlignment = Alignment.Top,
         ) {
             Text(
-                text = event.time?.format(timeFormatter) ?: stringResource(R.string.planning_all_day),
+                text = event.time?.let(::formatTime) ?: stringResource(R.string.planning_all_day),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.widthIn(min = 72.dp),
@@ -149,20 +155,56 @@ private fun EventRow(item: PlanningItem, onClick: (() -> Unit)?) {
     }
 }
 
-private val dayFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRANCE)
-private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.FRANCE)
+/** A birthday in the planning: read only, it comes from the member's birth date. */
+@Composable
+private fun BirthdayRow(birthday: Birthday) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Box(Modifier.widthIn(min = 72.dp)) {
+                Icon(Icons.Outlined.Cake, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    stringResource(R.string.planning_birthday_of, birthday.member.firstName),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    pluralStringResource(R.plurals.birthday_age, birthday.age, birthday.age),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        HorizontalDivider(Modifier.padding(start = 100.dp))
+    }
+}
 
 /** Fictional planning for previews and screenshots. */
 internal fun previewPlanning(): PlanningUiState.Success {
     fun item(id: String, title: String, date: LocalDate, time: LocalTime?, place: String?, target: TargetChoice, author: String, manage: Boolean) =
         PlanningItem(Event(id, title, date, time, place, null, target.target, "a", author), target, author, manage)
+    val today = LocalDate.of(2026, 12, 19)
     val day1 = LocalDate.of(2026, 12, 20)
     val day2 = LocalDate.of(2026, 12, 24)
+    val noe = Member("c", "Noé", null, LocalDate.of(2016, 12, 20), "h1", MemberProfile.ChildWithoutApp, false, listOf("a"), null)
     return PlanningUiState.Success(
-        listOf(
+        today = today,
+        days = listOf(
+            PlanningDay(
+                today,
+                listOf(item("0", "Cinéma", today, LocalTime.of(14, 30), null, TargetChoice(EventTarget.ForSelf("a"), null), "Camille", true)),
+            ),
             PlanningDay(
                 day1,
-                listOf(
+                birthdays = listOf(Birthday(noe, day1, 10)),
+                items = listOf(
                     item("1", "Piscine", day1, LocalTime.of(10, 0), "Centre aquatique", TargetChoice(EventTarget.ForChild("c"), "Noé"), "Camille", true),
                     item("2", "Marché de Noël", day1, null, null, TargetChoice(EventTarget.ForHousehold("h2"), "Foyer Bernard"), "Inès", false),
                 ),
@@ -184,5 +226,5 @@ private fun PlanningScreenPreview() {
 @FamiliaPreviews
 @Composable
 private fun PlanningScreenEmptyPreview() {
-    FamiliaTheme { Surface { PlanningScreen(PlanningUiState.Success(emptyList()), {}, {}, {}) } }
+    FamiliaTheme { Surface { PlanningScreen(PlanningUiState.Success(emptyList(), LocalDate.of(2026, 12, 19)), {}, {}, {}) } }
 }

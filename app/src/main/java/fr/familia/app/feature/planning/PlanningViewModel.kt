@@ -7,6 +7,7 @@ import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.model.Family
+import fr.familia.app.core.model.upcomingBirthdays
 import fr.familia.app.feature.events.authorDisplayName
 import fr.familia.app.feature.events.canManage
 import fr.familia.app.feature.events.edit.TargetChoice
@@ -26,8 +27,9 @@ import kotlinx.coroutines.flow.update
 import java.time.LocalDate
 
 /**
- * Planning tab: upcoming events, day by day (PRD, récit 3). Lot 5 adds the month view and the
- * birthdays; this list already works offline from the Firestore cache.
+ * Planning tab: upcoming events and the members' next birthdays, day by day (PRD, récit 3).
+ * Birthdays are computed from the birth dates, so they come back every year with nothing to type.
+ * The list works offline from the Firestore cache. Lot 5b adds the month view.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlanningViewModel(
@@ -41,13 +43,14 @@ class PlanningViewModel(
 
     val uiState: StateFlow<PlanningUiState> = attempt
         .flatMapLatest { n ->
+            val day = today()
             if (events == null || members == null) {
-                flowOf(PlanningUiState.Success(emptyList())) // Firebase not configured (previews).
+                flowOf(PlanningUiState.Success(emptyList(), day)) // Firebase not configured (previews).
             } else {
                 combine<List<Event>, Family, PlanningUiState>(
-                    events.observeUpcoming(today()),
+                    events.observeUpcoming(day),
                     members.observeFamily(),
-                ) { list, family -> PlanningUiState.Success(days(list, family)) }
+                ) { list, family -> PlanningUiState.Success(days(list, family, day), day) }
                     .onStart { if (n > 0) emit(PlanningUiState.Loading) }
                     .catch { e ->
                         if (e is CancellationException) throw e
@@ -61,12 +64,15 @@ class PlanningViewModel(
         attempt.update { it + 1 }
     }
 
-    private fun days(list: List<Event>, family: Family): List<PlanningDay> {
+    private fun days(list: List<Event>, family: Family, today: LocalDate): List<PlanningDay> {
         val me = family.members.firstOrNull { it.id == currentMemberId }
-        return list.groupBy { it.date }.map { (date, dayEvents) ->
+        val eventsByDay = list.groupBy { it.date }
+        val birthdaysByDay = upcomingBirthdays(family.members, today).groupBy { it.date }
+        return (eventsByDay.keys + birthdaysByDay.keys).sorted().map { date ->
             PlanningDay(
                 date = date,
-                items = dayEvents.map { event ->
+                birthdays = birthdaysByDay[date].orEmpty(),
+                items = eventsByDay[date].orEmpty().map { event ->
                     val isMe = event.target is EventTarget.ForSelf && event.target.memberId == currentMemberId
                     PlanningItem(
                         event = event,

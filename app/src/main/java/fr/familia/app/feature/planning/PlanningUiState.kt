@@ -1,5 +1,6 @@
 package fr.familia.app.feature.planning
 
+import fr.familia.app.core.model.Birthday
 import fr.familia.app.core.model.Event
 import fr.familia.app.feature.events.edit.TargetChoice
 import java.time.LocalDate
@@ -13,11 +14,16 @@ data class PlanningItem(
     val canManage: Boolean,
 )
 
-/** The events of one day. */
-data class PlanningDay(val date: LocalDate, val items: List<PlanningItem>)
+/** The birthdays and events of one day. Birthdays come first: they last the whole day. */
+data class PlanningDay(
+    val date: LocalDate,
+    val items: List<PlanningItem>,
+    val birthdays: List<Birthday> = emptyList(),
+)
 
 sealed interface PlanningUiState {
     data object Loading : PlanningUiState
-    data class Success(val days: List<PlanningDay>) : PlanningUiState
+    /** [today] lets the screen write "Aujourd'hui" and "Demain" in the day headers. */
+    data class Success(val days: List<PlanningDay>, val today: LocalDate) : PlanningUiState
     data object Error : PlanningUiState
 }
