@@ -56,12 +56,16 @@ enum class FormError {
     EmailTaken,
     HouseholdMissing,
     ParentsMissing,
+    TooManyParents,
     TooManyAdmins,
     BirthDateInFuture,
 }
 
 const val MAX_FIRST_NAME = 40
 const val MAX_ADMINS = 2
+
+/** The security rules accept four responsible adults at most (lot 7 audit). */
+const val MAX_PARENTS = 4
 
 /**
  * The same checks as the security rules, plus the ones only the app can make (unique address,
@@ -88,6 +92,7 @@ fun validate(form: MemberForm, family: Family, editedId: String, today: LocalDat
     if (form.needsParents) {
         val adults = family.members.filter { it.profile == MemberProfile.Adult && it.id != editedId }.map { it.id }.toSet()
         if (form.parentIds.none { it in adults }) add(FormError.ParentsMissing)
+        if (form.parentIds.count { it in adults } > MAX_PARENTS) add(FormError.TooManyParents)
     }
 
     if (form.isAdmin && form.profile == MemberProfile.Adult &&

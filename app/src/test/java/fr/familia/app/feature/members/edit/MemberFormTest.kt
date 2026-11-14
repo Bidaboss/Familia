@@ -57,6 +57,19 @@ class MemberFormTest {
     }
 
     @Test
+    fun `four responsible adults at most, as the rules require`() {
+        val fiveAdults = family.copy(
+            members = family.members + (2..6).map { n ->
+                Member("extra$n", "Extra$n", "extra$n@example.com", null, "h1", MemberProfile.Adult, false, emptyList(), null)
+            },
+        )
+        val child = MemberForm(firstName = "Noé", profile = MemberProfile.ChildWithoutApp, householdId = "h1")
+        val five = (2..6).map { "extra$it" }.toSet()
+        assertTrue(FormError.TooManyParents in validate(child.copy(parentIds = five), fiveAdults, "new", today))
+        assertEquals(emptySet<FormError>(), validate(child.copy(parentIds = five.take(4).toSet()), fiveAdults, "new", today))
+    }
+
+    @Test
     fun `household must exist`() {
         assertTrue(FormError.HouseholdMissing in validate(validAdult.copy(householdId = null), family, "new", today))
         assertTrue(FormError.HouseholdMissing in validate(validAdult.copy(householdId = "gone"), family, "new", today))
