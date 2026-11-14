@@ -11,8 +11,10 @@ Chaque fois que l'appli s'ouvre ou revient à l'écran, même si elle était res
 ## Publier une version, étape par étape
 
 1. Dans `app/build.gradle.kts`, augmente `versionCode` de 1 (par exemple de 1 à 2) et change `versionName` (par exemple de « 0.1.0 » à « 0.2.0 »). Ces changements passent par une pull request, comme le reste du code.
-2. Une fois la pull request fusionnée, récupère l'APK signé avec la clé de publication. La façon de le fabriquer sera décrite avec le lot 10b.
-3. Dépose l'APK dans le dossier Drive de Familia. Le dossier doit être partagé en « Tous les utilisateurs disposant du lien », pour que la famille puisse l'ouvrir sans compte particulier. Ce n'est pas un risque : l'APK ne contient aucune donnée de la famille. Les données restent dans Firebase, protégées par la connexion Google et les règles de sécurité. Garde un seul APK dans le dossier, le plus récent, pour que personne n'installe une ancienne version par erreur.
+2. Une fois la pull request fusionnée, fabrique l'APK signé : sur GitHub, ouvre l'onglet **Actions**, choisis **APK de publication** à gauche, puis **Run workflow** (branche `main`). Au bout de 5 à 10 minutes, ouvre l'exécution terminée et télécharge l'artefact **familia-apk** en bas de la page. C'est un zip qui contient `familia-0.2.0.apk`.
+   - Ce workflow est le seul à utiliser la clé de publication, rangée dans les secrets GitHub. Les APK de test des pull requests ont une autre clé et un autre nom (`fr.familia.app.test`) : ils ne peuvent pas remplacer l'appli de la famille.
+   - S'il échoue tout de suite, le message dit ce qui manque (un secret ou `google-services.json`).
+3. Décompresse le zip et dépose l'APK dans le dossier Drive de Familia. Le dossier doit être partagé en « Tous les utilisateurs disposant du lien », pour que la famille puisse l'ouvrir sans compte particulier. Ce n'est pas un risque : l'APK ne contient aucune donnée de la famille. Les données restent dans Firebase, protégées par la connexion Google et les règles de sécurité. Garde un seul APK dans le dossier, le plus récent, pour que personne n'installe une ancienne version par erreur.
 4. Dans la console Firebase, ouvre **Firestore**, puis la collection `config` et le document `app`. Crée-les s'ils n'existent pas encore. Renseigne :
 
    | Champ | Type | Exemple |
