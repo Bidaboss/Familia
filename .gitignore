@@ -1,0 +1,23 @@
+# Gradle / Android Studio
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
+.kotlin/
+
+# Signing: never commit keys or passwords
+*.jks
+*.keystore
+keystore.properties
+
+# Firebase / Node (Cloud Functions)
+node_modules/
+functions/lib/
+.firebase/
+firebase-debug.log
+firestore-debug.log
