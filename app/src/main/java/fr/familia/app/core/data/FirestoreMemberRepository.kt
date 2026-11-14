@@ -34,8 +34,7 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
         householdId = getString("householdId").orEmpty(),
         profile = MemberProfile.fromFirestore(getString("profile")),
         isAdmin = getBoolean("isAdmin") == true,
-        @Suppress("UNCHECKED_CAST")
-        parentIds = (get("parentIds") as? List<String>).orEmpty(),
+        parentIds = (get("parentIds") as? List<*>).orEmpty().filterIsInstance<String>(),
         uid = getString("uid"),
     )
 
