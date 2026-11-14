@@ -60,6 +60,7 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
         isAdmin = getBoolean("isAdmin") == true,
         parentIds = (get("parentIds") as? List<*>).orEmpty().filterIsInstance<String>(),
         uid = getString("uid"),
+        colorIndex = getLong("colorIndex")?.toInt(),
     )
 
     private companion object {

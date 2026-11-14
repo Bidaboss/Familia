@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -41,6 +42,7 @@ import fr.familia.app.core.ui.MemberAvatar
 @Composable
 fun MembersScreen(
     state: MembersUiState,
+    onRetry: () -> Unit,
     modifier: Modifier = Modifier,
     versionName: String = BuildConfig.VERSION_NAME,
 ) {
@@ -52,6 +54,11 @@ fun MembersScreen(
             title = stringResource(R.string.members_error_title),
             body = stringResource(R.string.members_error_body),
             modifier = modifier,
+            action = {
+                Button(onClick = onRetry, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.members_retry))
+                }
+            },
         )
         is MembersUiState.Success -> LazyColumn(
             modifier = modifier.fillMaxSize(),
@@ -67,7 +74,9 @@ fun MembersScreen(
                 }
             }
             state.groups.forEach { group ->
-                item(key = "household-${group.household.id}") { HouseholdHeader(group.household) }
+                item(key = "household-${group.household?.id ?: "other"}") {
+                    HouseholdHeader(group.household?.name ?: stringResource(R.string.members_other_household))
+                }
                 items(group.members, key = { "member-${it.id}" }) { member ->
                     MemberRow(member, isMe = member.id == state.currentMemberId)
                 }
@@ -86,9 +95,9 @@ fun MembersScreen(
 }
 
 @Composable
-private fun HouseholdHeader(household: Household) {
+private fun HouseholdHeader(name: String) {
     Text(
-        text = household.name,
+        text = name,
         style = MaterialTheme.typography.titleLarge,
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier
@@ -145,17 +154,18 @@ internal fun previewGroups(): List<HouseholdGroup> {
             listOf(m("a", "Camille", admin = true), m("b", "Sacha"), m("c", "Noé", MemberProfile.ChildWithoutApp)),
         ),
         HouseholdGroup(Household("h2", "Foyer Bernard"), listOf(m("d", "Inès"), m("e", "Lou", MemberProfile.ChildWithApp))),
+        HouseholdGroup(null, listOf(m("f", "Jules"))),
     )
 }
 
 @FamiliaPreviews
 @Composable
 private fun MembersScreenPreview() {
-    FamiliaTheme { Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), versionName = "0.1.0") } }
+    FamiliaTheme { Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0") } }
 }
 
 @FamiliaPreviews
 @Composable
 private fun MembersScreenErrorPreview() {
-    FamiliaTheme { Surface { MembersScreen(MembersUiState.Error, versionName = "0.1.0") } }
+    FamiliaTheme { Surface { MembersScreen(MembersUiState.Error, onRetry = {}, versionName = "0.1.0") } }
 }
