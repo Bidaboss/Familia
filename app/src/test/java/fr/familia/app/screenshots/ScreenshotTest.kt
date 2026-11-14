@@ -14,6 +14,8 @@ import fr.familia.app.feature.birthdays.previewBirthdays
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.feature.members.MembersScreen
+import fr.familia.app.feature.settings.NotificationSettingsScreen
+import fr.familia.app.feature.settings.NotificationSettingsUiState
 import fr.familia.app.feature.members.MembersUiState
 import fr.familia.app.feature.members.previewGroups
 import fr.familia.app.feature.events.edit.EventEditScreen
@@ -222,6 +224,30 @@ class ScreenshotTest {
         Surface {
             MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0", onEditMember = {})
         }
+    }
+
+    @Test
+    fun notificationsLight() = capture("notifications_clair") { notifications(allowed = false) }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun notificationsDark() = capture("notifications_sombre", darkTheme = true) { notifications(allowed = true) }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun notificationsFontScale200() = capture("notifications_police_200") { notifications(allowed = false) }
+
+    @Composable
+    private fun notifications(allowed: Boolean) = Surface {
+        NotificationSettingsScreen(
+            state = NotificationSettingsUiState.Ready(dayBeforeReminder = true),
+            notificationsAllowed = allowed,
+            onAllowNotifications = {},
+            onDayBeforeReminderChange = {},
+            onOpenSystemSettings = {},
+            onRetry = {},
+            onBack = {},
+        )
     }
 
     private val sampleMember = Member("a", "Camille", null, null, "h1", MemberProfile.Adult, true, emptyList(), null)

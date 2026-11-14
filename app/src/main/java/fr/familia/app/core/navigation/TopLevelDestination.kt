@@ -34,6 +34,10 @@ data class EventEditDestination(val eventId: String? = null)
 @Serializable
 data class MemberEditDestination(val memberId: String? = null)
 
+/** Notification settings, opened from the Famille tab (lot 8). */
+@Serializable
+data object NotificationSettingsDestination
+
 /**
  * The tabs of the bottom navigation bar, in display order (design principles, "Navigation et structure").
  * Settings and app updates live inside the Famille tab, so V1 keeps three tabs.

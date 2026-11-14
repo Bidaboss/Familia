@@ -1,0 +1,42 @@
+package fr.familia.app.core.data
+
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
+
+/** Phones in `members/{id}/devices/{token}`, settings in `members/{id}/settings/notifications`. */
+class FirestoreNotificationRepository(
+    private val db: FirebaseFirestore,
+    private val messaging: FirebaseMessaging,
+) : NotificationRepository {
+
+    override suspend fun registerThisDevice(memberId: String) {
+        val token = messaging.token.await()
+        db.collection("members").document(memberId).collection("devices").document(token)
+            .set(mapOf("updatedAt" to FieldValue.serverTimestamp()))
+            .await()
+    }
+
+    override fun observeDayBeforeReminder(memberId: String): Flow<Boolean> = callbackFlow {
+        val registration = settings(memberId).addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+            } else {
+                // No document yet: the reminder is on.
+                trySend(snapshot?.getBoolean("dayBeforeReminder") != false)
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
+    override suspend fun setDayBeforeReminder(memberId: String, enabled: Boolean) {
+        settings(memberId).set(mapOf("dayBeforeReminder" to enabled)).await()
+    }
+
+    private fun settings(memberId: String) =
+        db.collection("members").document(memberId).collection("settings").document("notifications")
+}

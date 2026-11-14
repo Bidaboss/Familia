@@ -22,3 +22,16 @@ PRD, récit 3 et cas limite « Pas de réseau » : le planning reste consultable
 
 1. Le soir, laisse l'appli ouverte sur Planning un peu avant minuit, écran allumé.
 2. Après minuit, attends une minute. **Attendu :** l'en-tête « Demain » devient « Aujourd'hui », et les événements de la veille disparaissent de la liste.
+
+## Notifications (lot 8)
+
+Il faut deux téléphones connectés avec deux membres différents, et les fonctions déployées (voir [deploiement.md](deploiement.md)).
+
+1. Au premier lancement après la mise à jour, Android demande si Familia peut envoyer des notifications. **Attendu :** la question n'apparaît qu'une fois. Réponds « Autoriser ».
+2. Sur le téléphone A, ajoute un événement « Essai notif » pour demain. **Attendu :** le téléphone B reçoit « Nouvel événement » en quelques secondes, et le téléphone A ne reçoit rien.
+3. Sur B, touche la notification. **Attendu :** l'appli s'ouvre sur l'événement.
+4. Sur A, change l'heure de l'événement. **Attendu :** B reçoit « Événement modifié ».
+5. Sur B, réponds « Je viens ». Le soir à 18 h, **attendu :** B reçoit « Demain : Essai notif ».
+6. Sur B, ouvre Famille, puis Notifications, et coupe « Rappel la veille à 18 h ». **Attendu :** le soir suivant, B ne reçoit plus de rappel.
+7. Sur A, supprime l'événement. **Attendu :** B reçoit « Événement annulé ».
+8. Sur B, bloque les notifications de Familia dans les réglages Android, puis rouvre Famille et Notifications. **Attendu :** un encadré dit que les notifications sont bloquées, avec un bouton pour les autoriser.

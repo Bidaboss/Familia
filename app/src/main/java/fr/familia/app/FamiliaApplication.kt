@@ -3,6 +3,7 @@ package fr.familia.app
 import android.app.Application
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.data.NetworkMonitor
+import fr.familia.app.core.notifications.NotificationChannels
 
 class FamiliaApplication : Application() {
     lateinit var container: AppContainer
@@ -14,5 +15,6 @@ class FamiliaApplication : Application() {
         super.onCreate()
         container = AppContainer(this)
         networkMonitor = NetworkMonitor(this)
+        NotificationChannels.create(this)
     }
 }
