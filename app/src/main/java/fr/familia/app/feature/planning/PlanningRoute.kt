@@ -11,7 +11,7 @@ import fr.familia.app.core.model.Member
 
 /** Connects the Planning tab to its ViewModel. */
 @Composable
-fun PlanningRoute(container: AppContainer?, currentMember: Member, onEditEvent: (eventId: String?) -> Unit) {
+fun PlanningRoute(container: AppContainer?, currentMember: Member, onAddEvent: () -> Unit, onOpenEvent: (eventId: String) -> Unit) {
     val viewModel: PlanningViewModel = viewModel(
         factory = viewModelFactory {
             initializer { PlanningViewModel(container?.eventRepository, container?.memberRepository, currentMember.id) }
@@ -21,7 +21,7 @@ fun PlanningRoute(container: AppContainer?, currentMember: Member, onEditEvent: 
     PlanningScreen(
         state = state,
         onRetry = viewModel::retry,
-        onAddEvent = { onEditEvent(null) },
-        onOpenEvent = { onEditEvent(it) },
+        onAddEvent = onAddEvent,
+        onOpenEvent = onOpenEvent,
     )
 }
