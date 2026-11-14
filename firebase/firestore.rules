@@ -209,6 +209,34 @@ service cloud.firestore {
       allow delete: if isMember() && canManage(resource.data);
     }
 
+    // --- Who is coming (lot 6) --------------------------------------------------------------------
+
+    // PRD, récit 4: each member answers for themselves, and each adult also for their children.
+    function canAnswerFor(memberId) {
+      return memberId == myMemberId() || (me().profile == 'adult' && isParentOf(memberId));
+    }
+
+    function isValidRsvp(r) {
+      return r.keys().hasAll(['status', 'answeredBy', 'updatedAt'])
+        && r.keys().hasOnly(['status', 'answeredBy', 'updatedAt'])
+        && r.status in ['yes', 'maybe', 'no']
+        && r.answeredBy == myMemberId()
+        && r.updatedAt == request.time;
+    }
+
+    // events/{eventId}/rsvps/{memberId}: one answer per member, written by that member or one of
+    // their responsible adults. When an event is deleted, its answers are cleaned up on the server
+    // (lot 8), which also warns the members who said they were coming.
+    match /events/{eventId}/rsvps/{memberId} {
+      allow read: if isMember();
+      allow create, update: if isMember()
+        && exists(/databases/$(database)/documents/events/$(eventId))
+        && exists(memberPath(memberId))
+        && canAnswerFor(memberId)
+        && isValidRsvp(request.resource.data);
+      allow delete: if isMember() && canAnswerFor(memberId);
+    }
+
     // Everything else is closed until a lot opens it explicitly.
   }
 }

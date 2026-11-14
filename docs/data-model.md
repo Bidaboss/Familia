@@ -92,6 +92,19 @@ Droits (PRD, « Droits par profil ») :
   - Un nouveau destinataire doit être un de ceux que la personne a le droit de choisir.
 - Un membre retiré : ses événements restent visibles, et seul un admin peut encore les modifier ou les supprimer.
 
-## À venir
+### `events/{eventId}/rsvps/{memberId}` (lot 6)
 
-- Lot 6 : `events/{eventId}/rsvps/{memberId}`.
+Une réponse par membre et par événement (PRD, récit 4). L'identifiant du document est celui du membre concerné, donc il ne peut y avoir qu'une réponse par personne.
+
+| Champ | Type | Description |
+|---|---|---|
+| `status` | `yes` \| `maybe` \| `no` | « Je viens », « Peut-être », « Je ne viens pas » |
+| `answeredBy` | `memberId` | Qui a répondu : le membre lui-même ou un de ses adultes responsables |
+| `updatedAt` | horodatage serveur | À chaque réponse |
+
+Droits :
+
+- **Lire** : tous les membres.
+- **Répondre, changer ou retirer sa réponse** : le membre lui-même, ou un adulte responsable s'il s'agit d'un enfant. Personne d'autre, pas même un admin, ne répond à la place de quelqu'un.
+- L'événement et le membre doivent exister.
+- Quand un événement est supprimé, ses réponses sont effacées côté serveur au lot 8, par la même Cloud Function qui prévient les membres inscrits (PRD, récit 5).
