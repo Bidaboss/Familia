@@ -199,4 +199,11 @@
     <string name="update_help">Télécharge-la, puis ouvre le fichier pour l\'installer par-dessus l\'appli actuelle. Tes données ne bougent pas.</string>
     <string name="update_action">Mettre à jour</string>
     <string name="update_later">Plus tard</string>
+    <string name="update_check_title">Vérifier les mises à jour</string>
+    <string name="update_check_installed">Version installée : %1$s</string>
+    <string name="update_check_in_progress">Vérification en cours…</string>
+    <string name="update_check_up_to_date">Tu as la dernière version.</string>
+    <string name="update_check_offline">Connecte-toi à Internet pour vérifier les mises à jour.</string>
+    <string name="update_check_failed">La vérification n\'a pas abouti. Réessaie dans un instant.</string>
+    <string name="update_check_again">Vérifier à nouveau</string>
 </resources>

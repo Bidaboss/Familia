@@ -18,6 +18,8 @@ import fr.familia.app.feature.settings.NotificationSettingsScreen
 import fr.familia.app.feature.export.ExportScreen
 import fr.familia.app.feature.update.AppUpdate
 import fr.familia.app.feature.update.UpdateBanner
+import fr.familia.app.feature.update.UpdateCheckScreen
+import fr.familia.app.feature.update.UpdateCheckUiState
 import fr.familia.app.feature.export.ExportUiState
 import fr.familia.app.feature.settings.NotificationSettingsUiState
 import fr.familia.app.feature.members.MembersUiState
@@ -244,6 +246,24 @@ class ScreenshotTest {
     @Config(fontScale = 2f)
     fun updateBannerFontScale200() = capture("mise_a_jour_police_200") {
         UpdateBanner(AppUpdate("0.2.0", "https://example.com"), {}, {})
+    }
+
+    @Test
+    fun updateCheckLight() = capture("verifier_mises_a_jour_clair") { updateCheck(UpdateCheckUiState.UpToDate) }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun updateCheckDark() = capture("verifier_mises_a_jour_sombre", darkTheme = true) {
+        updateCheck(UpdateCheckUiState.Available(AppUpdate("0.2.0", "https://example.com")))
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun updateCheckFontScale200() = capture("verifier_mises_a_jour_police_200") { updateCheck(UpdateCheckUiState.Offline) }
+
+    @Composable
+    private fun updateCheck(state: UpdateCheckUiState) {
+        Surface { UpdateCheckScreen(state, installedVersion = "0.1.0", onCheck = {}, onUpdate = {}, onBack = {}) }
     }
 
     @Test

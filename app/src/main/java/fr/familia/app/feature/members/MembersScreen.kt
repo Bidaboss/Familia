@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.SaveAlt
+import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -59,6 +60,7 @@ fun MembersScreen(
     onOpenNotifications: (() -> Unit)? = null,
     /** Null for members who are not admin. */
     onOpenExport: (() -> Unit)? = null,
+    onOpenUpdates: (() -> Unit)? = null,
 ) {
     when (state) {
         MembersUiState.Loading ->
@@ -111,6 +113,9 @@ fun MembersScreen(
                 }
                 if (onOpenExport != null) {
                     item(key = "export") { SettingsRow(Icons.Outlined.SaveAlt, R.string.export_title, onOpenExport) }
+                }
+                if (onOpenUpdates != null) {
+                    item(key = "updates") { SettingsRow(Icons.Outlined.SystemUpdate, R.string.update_check_title, onOpenUpdates) }
                 }
                 item(key = "version") {
                     Text(

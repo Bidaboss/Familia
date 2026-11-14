@@ -23,3 +23,5 @@ Chaque fois que l'appli s'ouvre ou revient à l'écran, même si elle était res
 5. Ouvre Familia sur ton téléphone. **Attendu :** l'encadré « Nouvelle version 0.2.0 disponible » apparaît. Touche « Mettre à jour », le dossier Drive s'ouvre : télécharge l'APK, puis ouvre-le pour l'installer par-dessus l'appli. Tes données ne bougent pas, puisqu'elles sont dans Firebase.
 
 « Plus tard » cache l'encadré jusqu'à ce que l'appli revienne à l'écran.
+
+Chacun peut aussi vérifier à la main : dans l'onglet **Famille**, la ligne **Vérifier les mises à jour** interroge directement le serveur. Elle répond « Tu as la dernière version », ou bien elle propose « Mettre à jour ». Hors ligne, elle demande de se connecter à Internet.

@@ -10,6 +10,14 @@ import kotlinx.coroutines.flow.Flow
 data class AppConfig(val latestVersionCode: Long?, val latestVersionName: String?)
 
 interface AppConfigRepository {
-    /** Read at each opening of the app, then kept up to date. */
+    /** Read each time the app comes on screen, then kept up to date. */
     fun observeAppConfig(): Flow<AppConfig>
+
+    /**
+     * Reads the document from the server, never from the cache, for the "Vérifier les mises à
+     * jour" button. Throws [AppConfigOfflineException] when the server cannot be reached.
+     */
+    suspend fun fetchAppConfig(): AppConfig
 }
+
+class AppConfigOfflineException(cause: Throwable? = null) : Exception(cause)

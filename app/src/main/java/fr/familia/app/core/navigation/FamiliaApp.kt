@@ -1,16 +1,14 @@
 package fr.familia.app.core.navigation
 
-import android.content.ActivityNotFoundException
-import android.content.Context
-import android.content.Intent
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.net.toUri
 import fr.familia.app.BuildConfig
 import fr.familia.app.feature.update.UpdateBanner
 import fr.familia.app.feature.update.availableUpdate
+import fr.familia.app.feature.update.openDownload
+import fr.familia.app.feature.update.UpdateCheckRoute
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -174,7 +172,11 @@ fun FamiliaApp(
                         onEditMember = { id -> navController.navigate(MemberEditDestination(id)) },
                         onOpenNotifications = { navController.navigate(NotificationSettingsDestination) },
                         onOpenExport = { navController.navigate(ExportDestination) },
+                        onOpenUpdates = { navController.navigate(UpdateCheckDestination) },
                     )
+                }
+                composable<UpdateCheckDestination> {
+                    UpdateCheckRoute(container = container, onBack = { navController.popBackStack() })
                 }
                 composable<ExportDestination> {
                     ExportRoute(container = container, onBack = { navController.popBackStack() })
@@ -200,14 +202,6 @@ fun FamiliaApp(
 }
 
 /** Opens the APK link in the browser or the Drive app; Android then checks the signature on install. */
-private fun openDownload(context: Context, url: String) {
-    try {
-        context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-    } catch (e: ActivityNotFoundException) {
-        // No browser at all: nothing sensible to do, the banner stays.
-    }
-}
-
 private fun NavDestination?.isOn(destination: TopLevelDestination): Boolean =
     this?.hierarchy?.any { it.hasRoute(destination.route::class) } == true
 
