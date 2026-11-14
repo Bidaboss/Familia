@@ -80,8 +80,8 @@ describe('linking the account on first sign-in', () => {
   });
 });
 
-describe('managing members (opens to admins in lot 3)', () => {
-  test('nobody creates or deletes members, households or email entries yet', async () => {
+describe('managing members is reserved to admins', () => {
+  test('a member who is not admin creates or deletes nothing', async () => {
     const db = as(env, ADULT);
     await assertFails(setDoc(doc(db, 'members/new'), { firstName: 'x' }));
     await assertFails(deleteDoc(doc(db, 'members/adult2')));

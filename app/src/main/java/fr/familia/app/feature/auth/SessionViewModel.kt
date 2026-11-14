@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.IOException
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Decides whether the person holding the phone may enter Familia.
@@ -47,6 +48,8 @@ class SessionViewModel(
             is GoogleTokenResult.Success -> viewModelScope.launch {
                 try {
                     resolveMember(auth.signInWithGoogleIdToken(result.idToken))
+                } catch (e: CancellationException) {
+                    throw e // Never swallow coroutine cancellation.
                 } catch (e: IOException) {
                     _uiState.value = SessionUiState.SignedOut(SignInError.Network)
                 } catch (e: Exception) {
@@ -83,6 +86,8 @@ class SessionViewModel(
             }
             if (member.uid == null) members.linkAccount(member.id, user.uid)
             _uiState.value = SessionUiState.SignedIn(member.copy(uid = user.uid))
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             // Offline on first launch, or Firestore unreachable: stay signed in and let the person retry.
             _uiState.value = SessionUiState.SignedOut(SignInError.Network)

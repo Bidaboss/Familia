@@ -113,6 +113,15 @@ class SessionViewModelTest {
     }
 
     @Test
+    fun `a kept account that cannot reach the family list asks to retry without signing out`() {
+        val auth = FakeAuth(current = user("alex@example.com"))
+        val vm = SessionViewModel(auth, FakeMembers(member, failWith = IOException("offline")))
+        assertEquals(SessionUiState.SignedOut(SignInError.Network), vm.uiState.value)
+        // The Firebase session is kept, so the next attempt works once the network is back.
+        assertEquals("alex@example.com", auth.currentUser()?.email)
+    }
+
+    @Test
     fun `using another account signs out`() {
         val auth = FakeAuth(current = user("alex@example.com"))
         val vm = SessionViewModel(auth, FakeMembers(member))
@@ -139,10 +148,15 @@ class SessionViewModelTest {
         }
     }
 
-    private class FakeMembers(private val member: Member) : MemberRepository {
+    private class FakeMembers(
+        private val member: Member,
+        private val failWith: Exception? = null,
+    ) : MemberRepository {
         var linked: Pair<String, String>? = null
-        override suspend fun findByEmail(email: String) =
-            member.takeIf { normalizeEmail(email) == member.email }
+        override suspend fun findByEmail(email: String): Member? {
+            failWith?.let { throw it }
+            return member.takeIf { normalizeEmail(email) == member.email }
+        }
         override suspend fun linkAccount(memberId: String, uid: String) {
             linked = memberId to uid
         }

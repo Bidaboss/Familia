@@ -27,7 +27,7 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 | `birthDate` | texte `AAAA-MM-JJ` ou null | Sert à calculer les anniversaires (lot 5) |
 | `householdId` | texte | Foyer du membre |
 | `profile` | `adult` \| `childWithApp` \| `childWithoutApp` | Droits du membre |
-| `isAdmin` | booléen | Deux admins au plus (lot 3) |
+| `isAdmin` | booléen | Deux admins au plus, toujours adultes |
 | `parentIds` | liste de `memberId` | Pour un enfant : les adultes responsables, sans limite à deux (un beau-parent a les mêmes droits qu'un parent). Vide pour un adulte |
 | `uid` | texte ou null | UID Firebase, écrit à la première connexion |
 
@@ -37,7 +37,18 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 |---|---|---|
 | `memberId` | texte | Le membre qui a cette adresse |
 
-Écrit uniquement par les admins (lot 3), en même temps que le membre.
+Écrit uniquement par les admins, **dans la même écriture groupée** (batch) que le membre :
+
+- ajouter un membre : créer `members/{id}` et `memberEmails/{email}` ensemble ;
+- changer son adresse : mettre à jour le membre, supprimer l'ancienne entrée et créer la nouvelle ;
+- retirer un membre : supprimer `members/{id}` et son entrée ensemble. Sinon la personne garderait l'accès, et les règles refusent l'écriture.
+
+## Droits des admins (lot 3)
+
+- Deux admins au plus : Kévin et un second adulte. Un admin nomme ou retire l'autre, mais **ne peut pas changer son propre rôle ni se retirer lui-même** : il reste donc toujours au moins un admin. La limite de deux est vérifiée par l'appli.
+- Un admin ajoute, modifie et retire les membres, et crée ou renomme les foyers. Un foyer n'est jamais supprimé.
+- Un admin ne peut jamais modifier le champ `uid` : seul le membre le lie, à sa première connexion.
+- Les règles vérifient la forme d'un membre : prénom de 1 à 40 caractères, adresse en minuscules, date au format `AAAA-MM-JJ`, foyer existant, un enfant a au moins un adulte responsable, un enfant sans l'appli n'a pas d'adresse, un admin est forcément adulte.
 
 ### `households/{householdId}`
 
