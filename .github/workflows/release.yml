@@ -18,11 +18,8 @@ jobs:
     name: Build the signed release APK
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      FAMILIA_KEYSTORE_BASE64: ${{ secrets.FAMILIA_KEYSTORE_BASE64 }}
-      FAMILIA_KEYSTORE_PASSWORD: ${{ secrets.FAMILIA_KEYSTORE_PASSWORD }}
-      FAMILIA_KEY_ALIAS: ${{ secrets.FAMILIA_KEY_ALIAS }}
-      FAMILIA_KEY_PASSWORD: ${{ secrets.FAMILIA_KEY_PASSWORD }}
+    # Each secret is given only to the steps of ours that need it, never to the external actions
+    # (checkout, setup-java, setup-gradle, upload-artifact).
     steps:
       - name: Only from main
         if: ${{ github.ref != 'refs/heads/main' }}
@@ -33,6 +30,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Check that everything needed is there
+        env:
+          FAMILIA_KEYSTORE_BASE64: ${{ secrets.FAMILIA_KEYSTORE_BASE64 }}
+          FAMILIA_KEYSTORE_PASSWORD: ${{ secrets.FAMILIA_KEYSTORE_PASSWORD }}
+          FAMILIA_KEY_ALIAS: ${{ secrets.FAMILIA_KEY_ALIAS }}
+          FAMILIA_KEY_PASSWORD: ${{ secrets.FAMILIA_KEY_PASSWORD }}
         run: |
           missing=0
           for name in FAMILIA_KEYSTORE_BASE64 FAMILIA_KEYSTORE_PASSWORD FAMILIA_KEY_ALIAS FAMILIA_KEY_PASSWORD; do
@@ -55,11 +57,17 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Restore the release key
+        env:
+          FAMILIA_KEYSTORE_BASE64: ${{ secrets.FAMILIA_KEYSTORE_BASE64 }}
         run: |
           echo "$FAMILIA_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/familia-release.jks"
           echo "FAMILIA_KEYSTORE_PATH=$RUNNER_TEMP/familia-release.jks" >> "$GITHUB_ENV"
 
       - name: Build the release APK
+        env:
+          FAMILIA_KEYSTORE_PASSWORD: ${{ secrets.FAMILIA_KEYSTORE_PASSWORD }}
+          FAMILIA_KEY_ALIAS: ${{ secrets.FAMILIA_KEY_ALIAS }}
+          FAMILIA_KEY_PASSWORD: ${{ secrets.FAMILIA_KEY_PASSWORD }}
         run: ./gradlew --no-daemon assembleRelease
 
       - name: Check the signature and name the file
