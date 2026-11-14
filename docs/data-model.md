@@ -49,6 +49,8 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 - Deux admins au plus : Kévin et un second adulte. Un admin nomme ou retire l'autre, mais **ne peut pas changer son propre rôle ni se retirer lui-même** : il reste donc toujours au moins un admin. La limite de deux est vérifiée par l'appli.
 - Un admin ajoute, modifie et retire les membres, et crée ou renomme les foyers. Un foyer n'est jamais supprimé.
 - La fiche membre de l'appli (lot 3c) vérifie en plus ce que les règles ne peuvent pas vérifier : une adresse qui n'appartient à aucun autre membre, deux admins au plus, des adultes responsables qui sont bien des adultes, une date de naissance qui n'est pas dans le futur. Hors ligne, la fiche se ferme au bout de 4 secondes et l'écriture part au retour du réseau. Limite connue : si les règles la refusent à ce moment-là, le refus passe inaperçu (le cache revient simplement à l'état du serveur). Le risque est faible, puisque la fiche vérifie les mêmes contraintes avant d'écrire.
+- Retirer un membre retire aussi son identifiant des `parentIds` des enfants qui le listaient, dans le même batch. L'appli refuse de retirer le seul adulte responsable d'un enfant.
+- Le rôle admin est lu en direct : un admin dont le rôle est retiré perd les boutons d'ajout et de modification tout de suite.
 - Un admin ne peut jamais modifier le champ `uid` : seul le membre le lie, à sa première connexion.
 - Les règles vérifient la forme d'un membre : prénom de 1 à 40 caractères, adresse en minuscules, date au format `AAAA-MM-JJ`, foyer existant, un enfant a au moins un adulte responsable, un enfant sans l'appli n'a pas d'adresse, un admin est forcément adulte.
 

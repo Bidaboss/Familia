@@ -166,6 +166,7 @@ class SessionViewModelTest {
         }
         override fun newMemberId(): String = "new"
         override suspend fun saveMember(member: Member, previousEmail: String?) = Unit
+        override suspend fun removeMember(member: Member, updatedChildren: List<Member>) = Unit
         override fun newHouseholdId(): String = "h-new"
         override suspend fun saveHousehold(household: Household) = Unit
         override fun observeFamily(): Flow<Family> = emptyFlow()

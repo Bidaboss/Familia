@@ -32,6 +32,10 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "0.1.0"
+        // Link to the Drive folder with the APK, put in the invitation message. Not a secret: set it
+        // in gradle.properties (familia.downloadUrl=...). Empty means "ask me for the link".
+        val downloadUrl = (project.findProperty("familia.downloadUrl") as String?).orEmpty()
+        buildConfigField("String", "DOWNLOAD_URL", "\"${downloadUrl.replace("\"", "")}\"")
     }
 
     signingConfigs {

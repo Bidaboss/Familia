@@ -27,9 +27,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.PersonOff
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
@@ -92,6 +95,8 @@ fun MemberEditScreen(
     onSave: () -> Unit,
     onBack: () -> Unit,
     today: LocalDate = LocalDate.now(),
+    onRemove: () -> Unit = {},
+    onInvite: (firstName: String, email: String) -> Unit = { _, _ -> },
 ) {
     // Leaving a changed form asks first, so a slip of the thumb does not lose what was typed.
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
@@ -125,10 +130,10 @@ fun MemberEditScreen(
                 title = {
                     Text(
                         stringResource(
-                            if ((state as? MemberEditUiState.Editing)?.isNew == false) {
-                                R.string.member_edit_title
-                            } else {
-                                R.string.member_add_title
+                            when {
+                                state is MemberEditUiState.Added -> R.string.member_added_title
+                                (state as? MemberEditUiState.Editing)?.isNew == false -> R.string.member_edit_title
+                                else -> R.string.member_add_title
                             },
                         ),
                     )
@@ -150,7 +155,9 @@ fun MemberEditScreen(
                     title = stringResource(R.string.member_not_found_title),
                     body = stringResource(R.string.member_not_found_body),
                 )
-                is MemberEditUiState.Editing -> MemberFormContent(state, onChange, onAddHousehold, onSave, today)
+                is MemberEditUiState.Editing ->
+                    MemberFormContent(state, onChange, onAddHousehold, onSave, onRemove, onInvite, today)
+                is MemberEditUiState.Added -> AddedContent(state, onInvite, onBack)
             }
         }
     }
@@ -162,6 +169,8 @@ private fun MemberFormContent(
     onChange: ((MemberForm) -> MemberForm) -> Unit,
     onAddHousehold: (String) -> Unit,
     onSave: () -> Unit,
+    onRemove: () -> Unit,
+    onInvite: (firstName: String, email: String) -> Unit,
     today: LocalDate,
 ) {
     val form = state.form
@@ -287,7 +296,84 @@ private fun MemberFormContent(
                 Text(stringResource(R.string.member_save))
             }
         }
+        if (state.canInvite) {
+            OutlinedButton(
+                onClick = { onInvite(form.firstName.trim(), form.email.trim().lowercase()) },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+            ) {
+                Icon(Icons.Outlined.Share, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.invite_send))
+            }
+        }
+        if (state.canRemove) RemoveButton(form.firstName, state.soleParentOf, enabled = !state.isSaving, onRemove)
     }
+}
+
+@Composable
+private fun RemoveButton(firstName: String, soleParentOf: List<String>, enabled: Boolean, onRemove: () -> Unit) {
+    var confirm by rememberSaveable { mutableStateOf(false) }
+    val blocked = soleParentOf.isNotEmpty()
+    OutlinedButton(
+        onClick = { confirm = true },
+        enabled = enabled && !blocked,
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+    ) { Text(stringResource(R.string.member_remove)) }
+    if (blocked) {
+        Text(
+            stringResource(R.string.member_remove_blocked, soleParentOf.joinToString(", ")),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+    if (confirm) {
+        AlertDialog(
+            onDismissRequest = { confirm = false },
+            title = { Text(stringResource(R.string.member_remove_title, firstName)) },
+            text = { Text(stringResource(R.string.member_remove_body, firstName)) },
+            confirmButton = {
+                TextButton(onClick = { confirm = false; onRemove() }) {
+                    Text(stringResource(R.string.member_remove_confirm), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirm = false }) { Text(stringResource(R.string.action_cancel)) }
+            },
+        )
+    }
+}
+
+/** After adding a member: offer to send the invitation right away. */
+@Composable
+private fun AddedContent(
+    state: MemberEditUiState.Added,
+    onInvite: (firstName: String, email: String) -> Unit,
+    onDone: () -> Unit,
+) {
+    EmptyState(
+        icon = Icons.Outlined.CheckCircle,
+        title = stringResource(R.string.member_added_body_title, state.firstName),
+        body = if (state.email != null) {
+            stringResource(R.string.member_added_body_invite)
+        } else {
+            stringResource(R.string.member_added_body_no_app, state.firstName)
+        },
+        action = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                if (state.email != null) {
+                    Button(onClick = { onInvite(state.firstName, state.email) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                        Icon(Icons.Outlined.Share, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.invite_send))
+                    }
+                }
+                TextButton(onClick = onDone, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.action_done))
+                }
+            }
+        },
+    )
 }
 
 @Composable
@@ -488,6 +574,15 @@ internal fun previewEditState(errors: Set<FormError> = emptySet()) = MemberEditU
     errors = errors,
 )
 
+/** An existing member who has not signed in yet, and is the only responsible adult of a child. */
+internal fun previewExistingState() = previewEditState().copy(
+    form = MemberForm(firstName = "Sacha", email = "sacha@example.com", householdId = "h1", colorIndex = 2),
+    isNew = false,
+    canRemove = true,
+    soleParentOf = listOf("Noé"),
+    canInvite = true,
+)
+
 @FamiliaPreviews
 @Composable
 private fun MemberEditScreenPreview() {
@@ -496,4 +591,20 @@ private fun MemberEditScreenPreview() {
             MemberEditScreen(previewEditState(), {}, {}, {}, {}, today = LocalDate.of(2026, 11, 14))
         }
     }
+}
+
+@FamiliaPreviews
+@Composable
+private fun MemberEditExistingPreview() {
+    FamiliaTheme {
+        Surface {
+            MemberEditScreen(previewExistingState(), {}, {}, {}, {}, today = LocalDate.of(2026, 11, 14))
+        }
+    }
+}
+
+@FamiliaPreviews
+@Composable
+private fun MemberAddedPreview() {
+    FamiliaTheme { Surface { MemberEditScreen(MemberEditUiState.Added("Lou", "lou@example.com"), {}, {}, {}, {}) } }
 }

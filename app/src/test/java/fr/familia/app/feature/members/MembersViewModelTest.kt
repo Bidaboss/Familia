@@ -15,6 +15,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.io.IOException
@@ -63,6 +65,18 @@ class MembersViewModelTest {
     }
 
     @Test
+    fun `the admin role is read live from the family`() = runTest {
+        val me = m("1", "Alice", "h1")
+        val source = MutableStateFlow(Family(listOf(Household("h1", "Foyer")), listOf(me.copy(isAdmin = true))))
+        val vm = MembersViewModel(FakeMembers(source), currentMemberId = "1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        assertTrue((vm.uiState.value as MembersUiState.Success).isAdmin)
+
+        source.value = source.value.copy(members = listOf(me))
+        assertFalse((vm.uiState.value as MembersUiState.Success).isAdmin)
+    }
+
+    @Test
     fun `a failure shows the error state`() = runTest {
         val vm = MembersViewModel(FakeMembers(flow { throw IOException("offline") }), currentMemberId = "1")
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
@@ -105,6 +119,7 @@ class MembersViewModelTest {
         override fun observeFamily(): Flow<Family> = family
         override fun newMemberId(): String = "new"
         override suspend fun saveMember(member: Member, previousEmail: String?) = Unit
+        override suspend fun removeMember(member: Member, updatedChildren: List<Member>) = Unit
         override fun newHouseholdId(): String = "h-new"
         override suspend fun saveHousehold(household: Household) = Unit
     }
