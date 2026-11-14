@@ -1,0 +1,64 @@
+name: Créer le premier admin
+
+# Run once by hand, from main, after "Publier Firebase": creates the first household and its admin
+# so that someone can sign in. Refuses to run if the family already has members.
+on:
+  workflow_dispatch:
+    inputs:
+      prenom:
+        description: "Ton prénom, tel qu'il s'affichera"
+        required: true
+      adresse:
+        description: "Ton adresse Google (celle du téléphone)"
+        required: true
+      foyer:
+        description: "Nom de ton foyer, par exemple « Maison de Kévin »"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  create:
+    name: Create the first admin
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: firebase/functions
+    steps:
+      - name: Only from main
+        if: ${{ github.ref != 'refs/heads/main' }}
+        working-directory: .
+        run: |
+          echo "::error::Lance ce workflow depuis la branche main."
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: firebase/functions/package-lock.json
+
+      - run: npm ci
+
+      # The address is masked so that it never shows in the logs.
+      - name: Create
+        env:
+          FIREBASE_SECRET_ACCOUNT: ${{ secrets.FIREBASE_SECRET_ACCOUNT }}
+          FIRST_NAME: ${{ inputs.prenom }}
+          EMAIL: ${{ inputs.adresse }}
+          HOUSEHOLD: ${{ inputs.foyer }}
+        run: |
+          echo "::add-mask::$EMAIL"
+          if [ -z "$FIREBASE_SECRET_ACCOUNT" ]; then
+            echo "::error::Le secret FIREBASE_SECRET_ACCOUNT est absent (voir docs/deploiement.md)."
+            exit 1
+          fi
+          key="$RUNNER_TEMP/firebase-key.json"
+          trap 'rm -f "$key"' EXIT
+          printf '%s' "$FIREBASE_SECRET_ACCOUNT" > "$key"
+          PROJECT_ID=$(node -p "require('../.firebaserc').projects.default")
+          PROJECT_ID="$PROJECT_ID" GOOGLE_APPLICATION_CREDENTIALS="$key" node scripts/first-admin.mjs
