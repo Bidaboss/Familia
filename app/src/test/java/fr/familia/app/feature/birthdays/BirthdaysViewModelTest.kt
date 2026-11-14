@@ -4,6 +4,7 @@ import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -31,7 +32,7 @@ class BirthdaysViewModelTest {
                 }
             },
         )
-        val vm = BirthdaysViewModel(FakeMembers(family), today = { today })
+        val vm = BirthdaysViewModel(FakeMembers(family), today = flowOf(today))
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         val state = vm.uiState.value as BirthdaysUiState.Success
         assertEquals(listOf("kid1", "adult1"), state.birthdays.map { it.member.id })
@@ -42,7 +43,7 @@ class BirthdaysViewModelTest {
     @Test
     fun `a birth date added by an admin shows up live`() = runTest {
         val members = FakeMembers()
-        val vm = BirthdaysViewModel(members, today = { today })
+        val vm = BirthdaysViewModel(members, today = flowOf(today))
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         assertEquals(0, (vm.uiState.value as BirthdaysUiState.Success).birthdays.size)
         members.family.value = TestFamily.family.copy(

@@ -1,6 +1,27 @@
 package fr.familia.app.feature.planning
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.text.style.TextAlign
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -59,7 +80,9 @@ fun PlanningScreen(
     onAddEvent: () -> Unit,
     onOpenEvent: (eventId: String) -> Unit,
     modifier: Modifier = Modifier,
+    initialMode: PlanningMode = PlanningMode.List,
 ) {
+    var mode by rememberSaveable { mutableStateOf(initialMode) }
     Box(modifier.fillMaxSize()) {
         when (state) {
             PlanningUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -73,25 +96,25 @@ fun PlanningScreen(
                     }
                 },
             )
-            is PlanningUiState.Success -> if (state.days.isEmpty()) {
-                EmptyState(
-                    icon = Icons.Outlined.Event,
-                    title = stringResource(R.string.planning_empty_title),
-                    body = stringResource(R.string.planning_empty_body),
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    // Room at the bottom so the add button never hides the last event.
-                    contentPadding = PaddingValues(top = 8.dp, bottom = 96.dp),
-                ) {
-                    state.days.forEach { day ->
-                        item(key = "day-${day.date}") { DayHeader(day.date, state.today) }
-                        items(day.birthdays, key = { "birthday-${it.member.id}" }) { BirthdayRow(it) }
-                        items(day.items, key = { "event-${it.event.id}" }) { item ->
-                            EventRow(item, onClick = if (item.canManage) ({ onOpenEvent(item.event.id) }) else null)
+            is PlanningUiState.Success -> Column(Modifier.fillMaxSize()) {
+                ModeSwitch(mode, onModeChange = { mode = it })
+                when (mode) {
+                    PlanningMode.List -> if (state.days.isEmpty()) {
+                        EmptyState(
+                            icon = Icons.Outlined.Event,
+                            title = stringResource(R.string.planning_empty_title),
+                            body = stringResource(R.string.planning_empty_body),
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            // Room at the bottom so the add button never hides the last event.
+                            contentPadding = PaddingValues(bottom = 96.dp),
+                        ) {
+                            dayItems(state.days, state.today, onOpenEvent)
                         }
                     }
+                    PlanningMode.Month -> MonthView(state, onOpenEvent)
                 }
             }
         }
@@ -103,6 +126,158 @@ fun PlanningScreen(
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
             )
         }
+    }
+}
+
+/** "Liste" or "Mois": two labelled buttons, always visible, 56 dp high. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ModeSwitch(mode: PlanningMode, onModeChange: (PlanningMode) -> Unit) {
+    val labels = listOf(PlanningMode.List to R.string.planning_mode_list, PlanningMode.Month to R.string.planning_mode_month)
+    SingleChoiceSegmentedButtonRow(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    ) {
+        labels.forEachIndexed { index, (value, label) ->
+            SegmentedButton(
+                selected = mode == value,
+                onClick = { onModeChange(value) },
+                shape = SegmentedButtonDefaults.itemShape(index, labels.size),
+                modifier = Modifier.heightIn(min = 56.dp),
+            ) {
+                Text(stringResource(label), style = MaterialTheme.typography.labelLarge)
+            }
+        }
+    }
+}
+
+/** The headers and rows of the given days, shared by the list and the month view. */
+private fun LazyListScope.dayItems(days: List<PlanningDay>, today: LocalDate, onOpenEvent: (String) -> Unit) {
+    days.forEach { day ->
+        item(key = "day-${day.date}") { DayHeader(day.date, today) }
+        items(day.birthdays, key = { "birthday-${day.date}-${it.member.id}" }) { BirthdayRow(it) }
+        items(day.items, key = { "event-${it.event.id}" }) { item ->
+            EventRow(item, onClick = if (item.canManage) ({ onOpenEvent(item.event.id) }) else null)
+        }
+    }
+}
+
+/**
+ * Month view: a grid that shows at a glance which days have something, then the list of those
+ * days below it. The grid is a picture, not buttons: seven columns on a 360 dp screen cannot give
+ * 56 dp touch targets, and everything it shows is in the list right under it, which TalkBack reads.
+ * Only the current month and the next twelve: the planning shows what is to come.
+ */
+@Composable
+private fun MonthView(state: PlanningUiState.Success, onOpenEvent: (String) -> Unit) {
+    var offset by rememberSaveable { mutableIntStateOf(0) }
+    val month = YearMonth.from(state.today).plusMonths(offset.toLong())
+    val monthDays = state.days.filter { YearMonth.from(it.date) == month }
+    val busy = monthDays.map { it.date }.toSet()
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
+        item(key = "month-nav") {
+            MonthNavigation(
+                month = month,
+                canGoBack = offset > 0,
+                canGoForward = offset < MONTHS_AHEAD,
+                onPrevious = { offset-- },
+                onNext = { offset++ },
+            )
+        }
+        item(key = "month-grid-$month") { MonthGrid(month, state.today, busy) }
+        if (monthDays.isEmpty()) {
+            item(key = "month-empty") {
+                Text(
+                    stringResource(R.string.planning_month_empty),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(16.dp),
+                )
+            }
+        } else {
+            dayItems(monthDays, state.today, onOpenEvent)
+        }
+    }
+}
+
+@Composable
+private fun MonthNavigation(month: YearMonth, canGoBack: Boolean, canGoForward: Boolean, onPrevious: () -> Unit, onNext: () -> Unit) {
+    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            month.format(monthFormatter).replaceFirstChar { it.titlecase(Locale.FRANCE) },
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.semantics { heading() },
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = onPrevious, enabled = canGoBack, modifier = Modifier.weight(1f).heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.planning_month_previous), textAlign = TextAlign.Center)
+            }
+            OutlinedButton(onClick = onNext, enabled = canGoForward, modifier = Modifier.weight(1f).heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.planning_month_next), textAlign = TextAlign.Center)
+            }
+        }
+    }
+}
+
+@Composable
+private fun MonthGrid(month: YearMonth, today: LocalDate, busy: Set<LocalDate>) {
+    val cells = monthCells(month)
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp)
+            .clearAndSetSemantics {}, // The list below says the same thing, in words.
+    ) {
+        Row(Modifier.fillMaxWidth()) {
+            weekDayInitials.forEach { initial ->
+                Text(
+                    initial,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+        cells.chunked(7).forEach { week ->
+            Row(Modifier.fillMaxWidth()) {
+                week.forEach { date -> DayCell(date, today, date in busy, Modifier.weight(1f)) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DayCell(date: LocalDate?, today: LocalDate, hasSomething: Boolean, modifier: Modifier) {
+    Column(
+        modifier.heightIn(min = 48.dp).padding(vertical = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        if (date == null) return@Column
+        val isToday = date == today
+        val color = when {
+            isToday -> MaterialTheme.colorScheme.onPrimary
+            date < today -> MaterialTheme.colorScheme.outline
+            else -> MaterialTheme.colorScheme.onSurface
+        }
+        Box(
+            Modifier
+                .clip(CircleShape)
+                .then(if (isToday) Modifier.background(MaterialTheme.colorScheme.primary) else Modifier)
+                .padding(horizontal = 6.dp, vertical = 2.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(date.dayOfMonth.toString(), style = MaterialTheme.typography.bodyMedium, color = color)
+        }
+        // A dot, not just a color: a day with an event or a birthday.
+        Box(
+            Modifier
+                .size(6.dp)
+                .clip(CircleShape)
+                .background(if (hasSomething) MaterialTheme.colorScheme.primary else Color.Transparent),
+        )
     }
 }
 
@@ -186,6 +361,9 @@ private fun BirthdayRow(birthday: Birthday) {
     }
 }
 
+private val monthFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.FRANCE)
+private val weekDayInitials = listOf("L", "M", "M", "J", "V", "S", "D")
+
 /** Fictional planning for previews and screenshots. */
 internal fun previewPlanning(): PlanningUiState.Success {
     fun item(id: String, title: String, date: LocalDate, time: LocalTime?, place: String?, target: TargetChoice, author: String, manage: Boolean) =
@@ -221,6 +399,12 @@ internal fun previewPlanning(): PlanningUiState.Success {
 @Composable
 private fun PlanningScreenPreview() {
     FamiliaTheme { Surface { PlanningScreen(previewPlanning(), {}, {}, {}) } }
+}
+
+@FamiliaPreviews
+@Composable
+private fun PlanningScreenMonthPreview() {
+    FamiliaTheme { Surface { PlanningScreen(previewPlanning(), {}, {}, {}, initialMode = PlanningMode.Month) } }
 }
 
 @FamiliaPreviews

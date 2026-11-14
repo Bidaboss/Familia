@@ -3,6 +3,7 @@ package fr.familia.app.feature.planning
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.EventRepository
+import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventTarget
@@ -14,6 +15,7 @@ import fr.familia.app.feature.events.edit.TargetChoice
 import fr.familia.app.feature.events.targetName
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -29,21 +31,20 @@ import java.time.LocalDate
 /**
  * Planning tab: upcoming events and the members' next birthdays, day by day (PRD, récit 3).
  * Birthdays are computed from the birth dates, so they come back every year with nothing to type.
- * The list works offline from the Firestore cache. Lot 5b adds the month view.
+ * The list works offline from the Firestore cache, and moves on by itself at midnight.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlanningViewModel(
     private val events: EventRepository?,
     private val members: MemberRepository?,
     private val currentMemberId: String,
-    private val today: () -> LocalDate = LocalDate::now,
+    private val today: Flow<LocalDate> = currentDayFlow(),
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
 
-    val uiState: StateFlow<PlanningUiState> = attempt
-        .flatMapLatest { n ->
-            val day = today()
+    val uiState: StateFlow<PlanningUiState> = combine(attempt, today) { n, day -> n to day }
+        .flatMapLatest { (n, day) ->
             if (events == null || members == null) {
                 flowOf(PlanningUiState.Success(emptyList(), day)) // Firebase not configured (previews).
             } else {

@@ -17,6 +17,7 @@ import fr.familia.app.feature.members.previewGroups
 import fr.familia.app.feature.events.edit.EventEditScreen
 import fr.familia.app.feature.events.edit.EventFormError
 import fr.familia.app.feature.events.edit.previewEventState
+import fr.familia.app.feature.planning.PlanningMode
 import fr.familia.app.feature.planning.PlanningScreen
 import fr.familia.app.feature.planning.previewPlanning
 import fr.familia.app.feature.members.edit.FormError
@@ -162,6 +163,23 @@ class ScreenshotTest {
     @Config(fontScale = 2f)
     fun planningListFontScale200() = capture("planning_liste_police_200") {
         Surface { PlanningScreen(previewPlanning(), {}, {}, {}) }
+    }
+
+    @Test
+    fun planningMonthLight() = capture("planning_mois_clair") {
+        Surface { PlanningScreen(previewPlanning(), {}, {}, {}, initialMode = PlanningMode.Month) }
+    }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun planningMonthDark() = capture("planning_mois_sombre", darkTheme = true) {
+        Surface { PlanningScreen(previewPlanning(), {}, {}, {}, initialMode = PlanningMode.Month) }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun planningMonthFontScale200() = capture("planning_mois_police_200") {
+        Surface { PlanningScreen(previewPlanning(), {}, {}, {}, initialMode = PlanningMode.Month) }
     }
 
     @Test
