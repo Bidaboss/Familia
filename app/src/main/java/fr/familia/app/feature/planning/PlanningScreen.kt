@@ -324,10 +324,23 @@ private fun EventRow(item: PlanningItem, onClick: () -> Unit) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                answersLabel(item)?.let {
+                    Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                }
             }
         }
         HorizontalDivider(Modifier.padding(start = 100.dp))
     }
+}
+
+/** "2 viennent · 1 peut-être", or nothing while nobody has answered yes or maybe. */
+@Composable
+private fun answersLabel(item: PlanningItem): String? {
+    val parts = buildList {
+        if (item.coming > 0) add(pluralStringResource(R.plurals.planning_coming, item.coming, item.coming))
+        if (item.maybe > 0) add(pluralStringResource(R.plurals.planning_maybe, item.maybe, item.maybe))
+    }
+    return parts.takeIf { it.isNotEmpty() }?.joinToString(" · ")
 }
 
 /** A birthday in the planning: read only, it comes from the member's birth date. */
@@ -389,7 +402,7 @@ internal fun previewPlanning(): PlanningUiState.Success {
             ),
             PlanningDay(
                 day2,
-                listOf(item("3", "Repas de Noël", day2, LocalTime.of(19, 30), "Chez les parents", TargetChoice(EventTarget.ForFamily, null), "Camille", true)),
+                listOf(item("3", "Repas de Noël", day2, LocalTime.of(19, 30), "Chez les parents", TargetChoice(EventTarget.ForFamily, null), "Camille", true).copy(coming = 7, maybe = 2)),
             ),
         ),
     )

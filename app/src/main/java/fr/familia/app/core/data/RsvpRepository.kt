@@ -9,6 +9,9 @@ interface RsvpRepository {
     /** The answers to [eventId], updated live (and served from the offline cache). */
     fun observeRsvps(eventId: String): Flow<List<Rsvp>>
 
+    /** Every answer of the family, by event id, for the counters of the planning. */
+    fun observeAllRsvps(): Flow<Map<String, List<Rsvp>>>
+
     /** Answers for [memberId]; [answeredBy] is the member signed in, who may answer for a child. */
     suspend fun setRsvp(eventId: String, memberId: String, status: RsvpStatus, answeredBy: String)
 }

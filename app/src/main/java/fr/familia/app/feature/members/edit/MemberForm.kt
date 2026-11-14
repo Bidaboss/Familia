@@ -57,6 +57,8 @@ enum class FormError {
     HouseholdMissing,
     ParentsMissing,
     TooManyParents,
+    /** An adult who is a child's only responsible adult cannot become a child (lot 7 audit). */
+    SoleParentOfChild,
     TooManyAdmins,
     BirthDateInFuture,
 }
@@ -93,6 +95,11 @@ fun validate(form: MemberForm, family: Family, editedId: String, today: LocalDat
         val adults = family.members.filter { it.profile == MemberProfile.Adult && it.id != editedId }.map { it.id }.toSet()
         if (form.parentIds.none { it in adults }) add(FormError.ParentsMissing)
         if (form.parentIds.count { it in adults } > MAX_PARENTS) add(FormError.TooManyParents)
+        // The rules would then refuse every change to that child, until someone else is chosen.
+        val soleParent = family.members.any { child ->
+            editedId in child.parentIds && child.parentIds.none { id -> id != editedId && family.members.any { it.id == id } }
+        }
+        if (soleParent) add(FormError.SoleParentOfChild)
     }
 
     if (form.isAdmin && form.profile == MemberProfile.Adult &&

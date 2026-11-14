@@ -80,6 +80,16 @@
         <item quantity="many">%d ans</item>
         <item quantity="other">%d ans</item>
     </plurals>
+    <plurals name="planning_coming">
+        <item quantity="one">%d vient</item>
+        <item quantity="many">%d viennent</item>
+        <item quantity="other">%d viennent</item>
+    </plurals>
+    <plurals name="planning_maybe">
+        <item quantity="one">%d peut-être</item>
+        <item quantity="many">%d peut-être</item>
+        <item quantity="other">%d peut-être</item>
+    </plurals>
     <string name="day_today">Aujourd\'hui</string>
     <string name="day_tomorrow">Demain</string>
     <string name="day_today_with_date">Aujourd\'hui, %1$s</string>
@@ -143,6 +153,7 @@
     <string name="error_household_missing">Choisis un foyer.</string>
     <string name="error_parents_missing">Coche au moins un adulte responsable.</string>
     <string name="error_too_many_parents">4 adultes responsables au plus.</string>
+    <string name="error_sole_parent_of_child">C\'est le seul adulte responsable d\'un enfant. Choisis d\'abord un autre adulte pour cet enfant.</string>
     <string name="error_too_many_admins">La famille a déjà deux admins. Retire ce rôle à l\'un d\'eux d\'abord.</string>
     <string name="error_birth_date_future">La date de naissance ne peut pas être dans le futur.</string>
     <string name="members_other_household">Autres</string>

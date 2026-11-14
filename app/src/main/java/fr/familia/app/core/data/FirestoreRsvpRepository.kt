@@ -29,6 +29,28 @@ class FirestoreRsvpRepository(private val db: FirebaseFirestore) : RsvpRepositor
         awaitClose { registration.remove() }
     }
 
+    /**
+     * One listener on the `rsvps` collection group instead of one per planning row. The family is
+     * small (a few dozen answers a month), so reading them all costs less than many listeners.
+     */
+    override fun observeAllRsvps(): Flow<Map<String, List<Rsvp>>> = callbackFlow {
+        val registration = db.collectionGroup("rsvps")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                } else if (snapshot != null) {
+                    trySend(
+                        snapshot.documents.mapNotNull { doc ->
+                            val eventId = doc.reference.parent.parent?.id ?: return@mapNotNull null
+                            val status = RsvpStatus.fromFirestore(doc.getString("status")) ?: return@mapNotNull null
+                            eventId to Rsvp(doc.id, status, doc.getString("answeredBy").orEmpty())
+                        }.groupBy({ it.first }, { it.second }),
+                    )
+                }
+            }
+        awaitClose { registration.remove() }
+    }
+
     override suspend fun setRsvp(eventId: String, memberId: String, status: RsvpStatus, answeredBy: String) {
         db.collection("events").document(eventId).collection("rsvps").document(memberId)
             .set(

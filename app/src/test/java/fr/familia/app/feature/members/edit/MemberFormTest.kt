@@ -70,6 +70,23 @@ class MemberFormTest {
     }
 
     @Test
+    fun `a child's only responsible adult cannot become a child`() {
+        val withChildren = family.copy(
+            members = family.members + listOf(
+                m("kidA", MemberProfile.ChildWithoutApp).copy(parentIds = listOf("adult1")),
+                m("kidB", MemberProfile.ChildWithoutApp).copy(parentIds = listOf("adult1", "admin1")),
+            ),
+        )
+        val asChild = MemberForm(firstName = "adult1", email = "adult1@example.com", profile = MemberProfile.ChildWithApp, householdId = "h1", parentIds = setOf("admin1"))
+        assertTrue(FormError.SoleParentOfChild in validate(asChild, withChildren, "adult1", today))
+        // Once kidA has another adult, the change is allowed.
+        val fixed = withChildren.copy(
+            members = withChildren.members.map { if (it.id == "kidA") it.copy(parentIds = listOf("adult1", "admin1")) else it },
+        )
+        assertEquals(emptySet<FormError>(), validate(asChild, fixed, "adult1", today))
+    }
+
+    @Test
     fun `household must exist`() {
         assertTrue(FormError.HouseholdMissing in validate(validAdult.copy(householdId = null), family, "new", today))
         assertTrue(FormError.HouseholdMissing in validate(validAdult.copy(householdId = "gone"), family, "new", today))

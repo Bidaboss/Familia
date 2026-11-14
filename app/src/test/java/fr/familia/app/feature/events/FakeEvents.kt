@@ -15,6 +15,7 @@ import fr.familia.app.core.model.RsvpStatus
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 
@@ -72,10 +73,16 @@ class FakeEvents(initial: List<Event> = emptyList(), private val failWith: Excep
     }
 }
 
-class FakeRsvps(private val failWith: Exception? = null, private val hang: Boolean = false) : RsvpRepository {
+class FakeRsvps(
+    private val failWith: Exception? = null,
+    private val hang: Boolean = false,
+    /** Makes the planning counters fail, to check the planning still shows. */
+    private val allFailWith: Exception? = null,
+) : RsvpRepository {
     /** Answers by event id. */
     val answers = MutableStateFlow<Map<String, List<Rsvp>>>(emptyMap())
     override fun observeRsvps(eventId: String): Flow<List<Rsvp>> = answers.map { it[eventId].orEmpty() }
+    override fun observeAllRsvps(): Flow<Map<String, List<Rsvp>>> = allFailWith?.let { e -> flow { throw e } } ?: answers
     override suspend fun setRsvp(eventId: String, memberId: String, status: RsvpStatus, answeredBy: String) {
         failWith?.let { throw it }
         // Like Firestore offline: the cache shows the answer at once, the server never confirms.

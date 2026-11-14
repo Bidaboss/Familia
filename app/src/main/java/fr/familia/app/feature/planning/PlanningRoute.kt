@@ -14,7 +14,12 @@ import fr.familia.app.core.model.Member
 fun PlanningRoute(container: AppContainer?, currentMember: Member, onAddEvent: () -> Unit, onOpenEvent: (eventId: String) -> Unit) {
     val viewModel: PlanningViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { PlanningViewModel(container?.eventRepository, container?.memberRepository, currentMember.id) }
+            initializer { PlanningViewModel(
+                    container?.eventRepository,
+                    container?.memberRepository,
+                    currentMember.id,
+                    rsvps = container?.rsvpRepository,
+                ) }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
