@@ -82,9 +82,10 @@ fun FamiliaApp(
 
     // Lot 10: a newer version in config/app is offered above the tabs, once per opening.
     val update by produceState<AppUpdate?>(null, container) {
-        container?.appConfigRepository?.observeAppConfig()
-            ?.catch { /* Offline or no config yet: nothing to offer. */ }
-            ?.collect { value = availableUpdate(it, BuildConfig.VERSION_CODE) }
+        val repository = container?.appConfigRepository ?: return@produceState
+        repository.observeAppConfig()
+            .catch { /* Offline or no config yet: nothing to offer. */ }
+            .collect { config -> value = availableUpdate(config, BuildConfig.VERSION_CODE) }
     }
     var updateDismissed by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
