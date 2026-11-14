@@ -62,7 +62,7 @@ fun MembersScreen(
             modifier = modifier,
             action = {
                 Button(onClick = onRetry, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.members_retry))
+                    Text(stringResource(R.string.action_retry))
                 }
             },
         )

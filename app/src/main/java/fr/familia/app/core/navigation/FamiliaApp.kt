@@ -23,7 +23,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import fr.familia.app.feature.members.edit.MemberEditRoute
-import fr.familia.app.feature.birthdays.BirthdaysScreen
+import fr.familia.app.feature.birthdays.BirthdaysRoute
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.OfflineBanner
@@ -87,7 +87,7 @@ fun FamiliaApp(
                         onDone = { navController.popBackStack() },
                     )
                 }
-                composable<BirthdaysRoute> { BirthdaysScreen() }
+                composable<BirthdaysRoute> { BirthdaysRoute(container) }
                 composable<MembersRoute> {
                     MembersRoute(
                         container = container,

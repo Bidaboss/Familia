@@ -8,6 +8,7 @@ import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.feature.auth.SessionUiState
 import fr.familia.app.feature.auth.SignInScreen
 import fr.familia.app.feature.birthdays.BirthdaysScreen
+import fr.familia.app.feature.birthdays.previewBirthdays
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.feature.members.MembersScreen
@@ -57,11 +58,19 @@ class ScreenshotTest {
     }
 
     @Test
-    fun birthdaysLight() = capture("anniversaires_clair") { Surface { BirthdaysScreen() } }
+    fun birthdaysLight() = capture("anniversaires_clair") { Surface { BirthdaysScreen(previewBirthdays(), onRetry = {}) } }
 
     @Test
     @Config(qualifiers = "+night")
-    fun birthdaysDark() = capture("anniversaires_sombre", darkTheme = true) { Surface { BirthdaysScreen() } }
+    fun birthdaysDark() = capture("anniversaires_sombre", darkTheme = true) {
+        Surface { BirthdaysScreen(previewBirthdays(), onRetry = {}) }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun birthdaysFontScale200() = capture("anniversaires_police_200") {
+        Surface { BirthdaysScreen(previewBirthdays(), onRetry = {}) }
+    }
 
     @Test
     fun membersLight() = capture("famille_clair") {

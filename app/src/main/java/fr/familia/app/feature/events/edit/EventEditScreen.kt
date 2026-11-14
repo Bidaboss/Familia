@@ -60,6 +60,7 @@ import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.formatTime
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -253,7 +254,7 @@ private fun DateTimeSection(form: EventForm, dateMissing: Boolean, onChange: ((E
         if (dateMissing) errorText(setOf(EventFormError.DateMissing), EventFormError.DateMissing)?.invoke()
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick = { timePicker = true }, modifier = Modifier.heightIn(min = 56.dp)) {
-                Text(form.time?.format(timeFormatter) ?: stringResource(R.string.event_pick_time))
+                Text(form.time?.let(::formatTime) ?: stringResource(R.string.event_pick_time))
             }
             if (form.time != null) {
                 TextButton(onClick = { onChange { it.copy(time = null) } }, modifier = Modifier.heightIn(min = 56.dp)) {
@@ -348,7 +349,6 @@ private fun errorText(errors: Set<EventFormError>, vararg kinds: EventFormError)
 }
 
 private val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(Locale.FRANCE)
-private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.FRANCE)
 
 // The date picker works in UTC milliseconds.
 private fun LocalDate.toUtcMillis(): Long = atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
