@@ -1,0 +1,35 @@
+package fr.familia.app.core.model
+
+import java.time.LocalDate
+
+/** What a member can do in the app (PRD, "Profils"). */
+enum class MemberProfile(val firestoreValue: String) {
+    Adult("adult"),
+    ChildWithApp("childWithApp"),
+    ChildWithoutApp("childWithoutApp"),
+    ;
+
+    companion object {
+        fun fromFirestore(value: String?): MemberProfile =
+            entries.firstOrNull { it.firestoreValue == value } ?: ChildWithoutApp
+    }
+}
+
+/**
+ * One of the 13 family members. A child lists the adults responsible for them in [parentIds]
+ * (no limit to two: a step-parent has the same rights as a parent).
+ */
+data class Member(
+    val id: String,
+    val firstName: String,
+    val email: String?,
+    val birthDate: LocalDate?,
+    val householdId: String,
+    val profile: MemberProfile,
+    val isAdmin: Boolean,
+    val parentIds: List<String>,
+    val uid: String?,
+)
+
+/** Firestore stores emails in lower case so a member is recognised whatever the casing typed. */
+fun normalizeEmail(email: String): String = email.trim().lowercase()

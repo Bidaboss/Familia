@@ -5,6 +5,8 @@ import androidx.compose.runtime.Composable
 import com.github.takahirom.roborazzi.captureRoboImage
 import fr.familia.app.core.navigation.FamiliaApp
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.feature.auth.SessionUiState
+import fr.familia.app.feature.auth.SignInScreen
 import fr.familia.app.feature.birthdays.BirthdaysScreen
 import fr.familia.app.feature.members.MembersScreen
 import org.junit.Test
@@ -47,6 +49,21 @@ class ScreenshotTest {
     @Config(qualifiers = "+night")
     fun membersDark() = capture("famille_sombre", darkTheme = true) {
         Surface { MembersScreen(versionName = "0.1.0") }
+    }
+
+    @Test
+    fun signInLight() = capture("connexion_clair") { Surface { SignInScreen(SessionUiState.SignedOut(), {}, {}) } }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun signInDark() = capture("connexion_sombre", darkTheme = true) {
+        Surface { SignInScreen(SessionUiState.SignedOut(), {}, {}) }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun signInNotAMemberFontScale200() = capture("connexion_refusee_police_200") {
+        Surface { SignInScreen(SessionUiState.NotAMember("prenom.nom@gmail.com"), {}, {}) }
     }
 
     private fun capture(name: String, darkTheme: Boolean = false, content: @Composable () -> Unit) {

@@ -8,6 +8,12 @@ plugins {
     alias(libs.plugins.roborazzi)
 }
 
+// google-services.json comes from the Firebase console. Until it is added, the app still builds
+// (CI stays green) but cannot reach Firebase; the sign-in screen then says so.
+if (file("google-services.json").exists()) {
+    apply(plugin = libs.plugins.google.services.get().pluginId)
+}
+
 // Release signing comes from environment variables (GitHub secrets in CI) or from a local
 // keystore.properties file that is git-ignored. The keystore itself never enters the repository.
 val keystoreProps = Properties().apply {
@@ -29,27 +35,35 @@ android {
     }
 
     signingConfigs {
+        // Two stable keys: the release key signs only the APKs given to the family; the test key
+        // signs CI test builds, so a test APK can never replace the family's installed app.
         create("release") {
-            val storePath = signingValue("FAMILIA_KEYSTORE_PATH")
-            if (storePath != null) {
-                storeFile = file(storePath)
+            signingValue("FAMILIA_KEYSTORE_PATH")?.let { path ->
+                storeFile = file(path)
                 storePassword = signingValue("FAMILIA_KEYSTORE_PASSWORD")
                 keyAlias = signingValue("FAMILIA_KEY_ALIAS")
                 keyPassword = signingValue("FAMILIA_KEY_PASSWORD")
             }
         }
+        create("test") {
+            signingValue("FAMILIA_TEST_KEYSTORE_PATH")?.let { path ->
+                storeFile = file(path)
+                storePassword = signingValue("FAMILIA_TEST_KEYSTORE_PASSWORD")
+                keyAlias = signingValue("FAMILIA_TEST_KEY_ALIAS")
+                keyPassword = signingValue("FAMILIA_TEST_KEY_PASSWORD")
+            }
+        }
     }
 
-    val hasKeystore = signingValue("FAMILIA_KEYSTORE_PATH") != null
     buildTypes {
-        // Test APKs use the same stable key as releases when it is available, so an update installs
-        // over the previous one and Google sign-in recognises the app (SHA-1 registered in Firebase).
+        // Without the test key (e.g. on a fresh machine) debug builds fall back to the local debug key.
         debug {
-            if (hasKeystore) signingConfig = signingConfigs.getByName("release")
+            applicationIdSuffix = ".test"
+            if (signingValue("FAMILIA_TEST_KEYSTORE_PATH") != null) signingConfig = signingConfigs.getByName("test")
         }
         release {
             isMinifyEnabled = false
-            if (hasKeystore) signingConfig = signingConfigs.getByName("release")
+            if (signingValue("FAMILIA_KEYSTORE_PATH") != null) signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -85,9 +99,18 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services)
+    implementation(libs.googleid)
+    implementation(libs.kotlinx.coroutines.play.services)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(platform(libs.androidx.compose.bom))
     testImplementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.robolectric)

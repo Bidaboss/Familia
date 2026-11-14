@@ -15,15 +15,24 @@ Tant que l'écran d'ajout de membres (lot 3) n'existe pas, le premier admin se c
 2. Collection `members`, document `<memberId>` : les champs de `docs/data-model.md`, avec `isAdmin` = `true`, `profile` = `adult`, `uid` = null.
 3. Collection `memberEmails`, document `<ton adresse Google en minuscules>` : `memberId` = le même `<memberId>`.
 
-## Clé de signature
+## Clés de signature
 
-La CI signe les APK avec la clé stockée dans les secrets GitHub du dépôt (`Settings → Secrets and variables → Actions`) :
+Il y a deux clés, chacune stable :
+
+- **La clé de test** signe les APK fabriqués par la CI à chaque pull request. Leur nom de package est `fr.familia.app.test` : ils s'installent à côté de l'appli de la famille sans jamais la remplacer.
+- **La clé de publication** signe seulement les APK déposés dans le Drive pour la famille (lot 10).
+
+Dans Firebase, ajoute une appli Android pour chaque nom de package (`fr.familia.app` et `fr.familia.app.test`), chacune avec l'empreinte SHA-1 de sa clé, sinon la connexion Google échoue.
+
+Secrets GitHub du dépôt (`Settings → Secrets and variables → Actions`) pour la clé de test :
 
 | Secret | Contenu |
 |---|---|
-| `FAMILIA_KEYSTORE_BASE64` | le fichier `.jks` encodé en base64 |
-| `FAMILIA_KEYSTORE_PASSWORD` | mot de passe du fichier |
-| `FAMILIA_KEY_ALIAS` | nom de la clé dans le fichier |
-| `FAMILIA_KEY_PASSWORD` | mot de passe de la clé |
+| `FAMILIA_TEST_KEYSTORE_BASE64` | le fichier `.jks` de test encodé en base64 |
+| `FAMILIA_TEST_KEYSTORE_PASSWORD` | mot de passe du fichier |
+| `FAMILIA_TEST_KEY_ALIAS` | nom de la clé dans le fichier |
+| `FAMILIA_TEST_KEY_PASSWORD` | mot de passe de la clé |
 
-Garde aussi une copie du fichier et des mots de passe dans ton gestionnaire de mots de passe : si la clé est perdue, chacun doit désinstaller et réinstaller l'appli.
+Les secrets de la clé de publication (`FAMILIA_KEYSTORE_*`) arriveront avec le lot 10.
+
+Garde une copie des deux fichiers et de leurs mots de passe dans ton gestionnaire de mots de passe : si la clé de publication est perdue, chacun doit désinstaller et réinstaller l'appli.
