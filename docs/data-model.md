@@ -29,7 +29,7 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 | `profile` | `adult` \| `childWithApp` \| `childWithoutApp` | Droits du membre |
 | `isAdmin` | booléen | Deux admins au plus, toujours adultes |
 | `colorIndex` | entier 0 à 12, facultatif | Couleur du membre parmi les 13 de l'appli. Sans valeur, l'appli en déduit une de l'identifiant |
-| `parentIds` | liste de `memberId` | Pour un enfant : les adultes responsables, sans limite à deux (un beau-parent a les mêmes droits qu'un parent). Vide pour un adulte |
+| `parentIds` | liste de `memberId` | Pour un enfant : de 1 à 4 adultes responsables, qui doivent exister et être adultes (un beau-parent a les mêmes droits qu'un parent). Toujours vide pour un adulte (audit du lot 7) |
 | `uid` | texte ou null | UID Firebase, écrit à la première connexion |
 
 ### `memberEmails/{email}`

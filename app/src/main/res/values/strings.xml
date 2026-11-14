@@ -142,6 +142,7 @@
     <string name="error_email_taken">Cette adresse est déjà celle d\'un autre membre.</string>
     <string name="error_household_missing">Choisis un foyer.</string>
     <string name="error_parents_missing">Coche au moins un adulte responsable.</string>
+    <string name="error_too_many_parents">4 adultes responsables au plus.</string>
     <string name="error_too_many_admins">La famille a déjà deux admins. Retire ce rôle à l\'un d\'eux d\'abord.</string>
     <string name="error_birth_date_future">La date de naissance ne peut pas être dans le futur.</string>
     <string name="members_other_household">Autres</string>

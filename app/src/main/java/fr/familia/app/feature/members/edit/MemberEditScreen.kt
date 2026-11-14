@@ -249,7 +249,7 @@ private fun MemberFormContent(
                         Text(adult.firstName, style = MaterialTheme.typography.bodyLarge)
                     }
                 }
-                errorText(errors, FormError.ParentsMissing)?.invoke()
+                errorText(errors, FormError.ParentsMissing, FormError.TooManyParents)?.invoke()
             }
         }
 
@@ -537,6 +537,7 @@ private fun FormError.messageRes(): Int = when (this) {
     FormError.EmailTaken -> R.string.error_email_taken
     FormError.HouseholdMissing -> R.string.error_household_missing
     FormError.ParentsMissing -> R.string.error_parents_missing
+    FormError.TooManyParents -> R.string.error_too_many_parents
     FormError.TooManyAdmins -> R.string.error_too_many_admins
     FormError.BirthDateInFuture -> R.string.error_birth_date_future
 }

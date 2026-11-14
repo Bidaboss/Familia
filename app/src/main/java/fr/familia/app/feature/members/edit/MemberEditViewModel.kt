@@ -122,7 +122,10 @@ class MemberEditViewModel(
             return
         }
         // Nobody changes their own admin flag, even if the form was tampered with.
-        val form = if (state.canChangeAdmin) state.form else state.form.copy(isAdmin = original?.isAdmin == true)
+        val chosen = if (state.canChangeAdmin) state.form else state.form.copy(isAdmin = original?.isAdmin == true)
+        // Only current adults are kept: the rules refuse any other responsible adult (lot 7 audit).
+        val adults = family.members.filter { it.profile == MemberProfile.Adult && it.id != editedId }.map { it.id }.toSet()
+        val form = chosen.copy(parentIds = chosen.parentIds.filter { it in adults }.toSet())
         val member = form.toMember(editedId, original?.uid)
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
