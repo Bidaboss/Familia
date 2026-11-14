@@ -1,8 +1,11 @@
 package fr.familia.app.feature.planning
 
 import fr.familia.app.core.model.EventTarget
+import fr.familia.app.core.model.Rsvp
+import fr.familia.app.core.model.RsvpStatus
 import fr.familia.app.feature.events.FakeEvents
 import fr.familia.app.feature.events.FakeMembers
+import fr.familia.app.feature.events.FakeRsvps
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -112,5 +115,40 @@ class PlanningViewModelTest {
         val state = vm.uiState.value as PlanningUiState.Success
         assertEquals(today.plusDays(1), state.today)
         assertTrue(state.days.isEmpty())
+    }
+
+    @Test
+    fun `each row counts the family members who come or may come`() = runTest {
+        val events = FakeEvents(listOf(TestFamily.event("meal", TestFamily.adult)))
+        val rsvps = FakeRsvps()
+        rsvps.answers.value = mapOf(
+            "meal" to listOf(
+                Rsvp("adult1", RsvpStatus.Yes, "adult1"),
+                Rsvp("kid1", RsvpStatus.Yes, "adult1"),
+                Rsvp("adult2", RsvpStatus.Maybe, "adult2"),
+                Rsvp("admin1", RsvpStatus.No, "admin1"),
+                Rsvp("gone", RsvpStatus.Yes, "gone"), // a member who has left the family
+            ),
+        )
+        val vm = PlanningViewModel(events, FakeMembers(), "adult1", today = flowOf(today), rsvps = rsvps)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        val item = (vm.uiState.value as PlanningUiState.Success).days.single().items.single()
+        assertEquals(2, item.coming)
+        assertEquals(1, item.maybe)
+
+        rsvps.setRsvp("meal", "adult2", RsvpStatus.Yes, "adult2")
+        val updated = (vm.uiState.value as PlanningUiState.Success).days.single().items.single()
+        assertEquals(3, updated.coming)
+        assertEquals(0, updated.maybe)
+    }
+
+    @Test
+    fun `the planning still shows when the counters cannot load`() = runTest {
+        val events = FakeEvents(listOf(TestFamily.event("meal", TestFamily.adult)))
+        val rsvps = FakeRsvps(allFailWith = IllegalStateException("offline"))
+        val vm = PlanningViewModel(events, FakeMembers(), "adult1", today = flowOf(today), rsvps = rsvps)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        val item = (vm.uiState.value as PlanningUiState.Success).days.single().items.single()
+        assertEquals(0, item.coming)
     }
 }

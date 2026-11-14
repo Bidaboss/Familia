@@ -5,9 +5,12 @@ import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.EventRepository
 import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.core.data.MemberRepository
+import fr.familia.app.core.data.RsvpRepository
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.model.Family
+import fr.familia.app.core.model.Rsvp
+import fr.familia.app.core.model.RsvpStatus
 import fr.familia.app.core.model.upcomingBirthdays
 import fr.familia.app.feature.events.authorDisplayName
 import fr.familia.app.feature.events.canManage
@@ -39,6 +42,7 @@ class PlanningViewModel(
     private val members: MemberRepository?,
     private val currentMemberId: String,
     private val today: Flow<LocalDate> = currentDayFlow(),
+    private val rsvps: RsvpRepository? = null,
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
@@ -48,10 +52,11 @@ class PlanningViewModel(
             if (events == null || members == null) {
                 flowOf(PlanningUiState.Success(emptyList(), day)) // Firebase not configured (previews).
             } else {
-                combine<List<Event>, Family, PlanningUiState>(
+                combine<List<Event>, Family, Map<String, List<Rsvp>>, PlanningUiState>(
                     events.observeUpcoming(day),
                     members.observeFamily(),
-                ) { list, family -> PlanningUiState.Success(days(list, family, day), day) }
+                    answers(),
+                ) { list, family, answers -> PlanningUiState.Success(days(list, family, answers, day), day) }
                     .onStart { if (n > 0) emit(PlanningUiState.Loading) }
                     .catch { e ->
                         if (e is CancellationException) throw e
@@ -65,8 +70,19 @@ class PlanningViewModel(
         attempt.update { it + 1 }
     }
 
-    private fun days(list: List<Event>, family: Family, today: LocalDate): List<PlanningDay> {
+    /** The counters are a bonus: if they cannot load, the planning still shows, without them. */
+    private fun answers(): Flow<Map<String, List<Rsvp>>> =
+        (rsvps?.observeAllRsvps() ?: flowOf(emptyMap()))
+            .onStart { emit(emptyMap()) }
+            .catch { e ->
+                if (e is CancellationException) throw e
+                emit(emptyMap())
+            }
+
+    private fun days(list: List<Event>, family: Family, answers: Map<String, List<Rsvp>>, today: LocalDate): List<PlanningDay> {
         val me = family.members.firstOrNull { it.id == currentMemberId }
+        // An answer from a member who has left the family no longer counts.
+        val memberIds = family.members.map { it.id }.toSet()
         val eventsByDay = list.groupBy { it.date }
         val birthdaysByDay = upcomingBirthdays(family.members, today).groupBy { it.date }
         return (eventsByDay.keys + birthdaysByDay.keys).sorted().map { date ->
@@ -80,6 +96,8 @@ class PlanningViewModel(
                         target = TargetChoice(event.target, if (isMe) null else targetName(event.target, family)),
                         authorName = authorDisplayName(event, family),
                         canManage = me != null && canManage(event, me, family),
+                        coming = answers[event.id].orEmpty().count { it.memberId in memberIds && it.status == RsvpStatus.Yes },
+                        maybe = answers[event.id].orEmpty().count { it.memberId in memberIds && it.status == RsvpStatus.Maybe },
                     )
                 },
             )

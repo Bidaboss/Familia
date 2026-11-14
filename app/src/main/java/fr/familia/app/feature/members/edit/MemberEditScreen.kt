@@ -25,7 +25,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.PersonOff
@@ -39,7 +38,6 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -70,6 +68,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
@@ -139,9 +138,7 @@ fun MemberEditScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = back) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
-                    }
+                    BackButton(onClick = back)
                 },
             )
         },
@@ -249,7 +246,7 @@ private fun MemberFormContent(
                         Text(adult.firstName, style = MaterialTheme.typography.bodyLarge)
                     }
                 }
-                errorText(errors, FormError.ParentsMissing, FormError.TooManyParents)?.invoke()
+                errorText(errors, FormError.SoleParentOfChild, FormError.ParentsMissing, FormError.TooManyParents)?.invoke()
             }
         }
 
@@ -538,6 +535,7 @@ private fun FormError.messageRes(): Int = when (this) {
     FormError.HouseholdMissing -> R.string.error_household_missing
     FormError.ParentsMissing -> R.string.error_parents_missing
     FormError.TooManyParents -> R.string.error_too_many_parents
+    FormError.SoleParentOfChild -> R.string.error_sole_parent_of_child
     FormError.TooManyAdmins -> R.string.error_too_many_admins
     FormError.BirthDateInFuture -> R.string.error_birth_date_future
 }

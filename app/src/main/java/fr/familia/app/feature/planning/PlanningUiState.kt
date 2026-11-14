@@ -12,6 +12,9 @@ data class PlanningItem(
     val authorName: String,
     /** True when this member may edit or delete it (the event view then shows "Modifier"). */
     val canManage: Boolean,
+    /** "Qui vient": members of the family who answered yes, and maybe. */
+    val coming: Int = 0,
+    val maybe: Int = 0,
 )
 
 /** The birthdays and events of one day. Birthdays come first: they last the whole day. */
