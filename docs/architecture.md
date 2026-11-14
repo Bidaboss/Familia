@@ -22,7 +22,7 @@ app/src/main/java/fr/familia/app/
 ## Règles suivies
 
 - **MVVM** : à partir du lot 2, chaque écran a un `ViewModel` qui expose un `StateFlow<UiState>` (`Loading | Success | Error`). L'écran ne parle jamais à Firebase directement : il passe par un `Repository`.
-- **Injection de dépendances manuelle** (pas de Hilt) : un objet `AppContainer` créé dans l'`Application` fournira les repositories. Choix tenu pour tout le projet, plus facile à lire pour un débutant.
+- **Injection de dépendances manuelle** (pas de Hilt) : un objet `AppContainer` créé dans `FamiliaApplication` fournit les repositories. Choix tenu pour tout le projet, plus facile à lire pour un débutant.
 - **Design** : les [principes de design Familia](https://claude.ai/artifact/YV4g9YiKNhYhmN2Dx7WzCs) priment sur la skill générique (pas de couleurs dynamiques, texte à 16 sp minimum, zones tactiles de 56 dp, aperçus clair, sombre et police 200 %).
 - **Thème** : couleurs lues dans `MaterialTheme.colorScheme`, styles dans `MaterialTheme.typography`, textes dans `strings.xml`. Rien en dur dans les écrans.
 - **Versions** : toutes dans `gradle/libs.versions.toml`, Compose via sa BOM.
@@ -32,4 +32,5 @@ app/src/main/java/fr/familia/app/
 
 - La CI GitHub (`.github/workflows/android.yml`) compile l'APK de test, lance le lint Android et les tests unitaires à chaque pull request. L'APK est téléchargeable dans l'onglet « Actions » de la PR, rubrique « Artifacts ».
 - Des captures d'écran clair et sombre sont produites sans téléphone par Roborazzi (`app/src/test/.../screenshots`) et publiées dans l'artefact « captures-ecrans ».
-- La signature de l'APK de publication lit ses informations dans des variables d'environnement (secrets GitHub) ou dans un fichier local `keystore.properties` ignoré par git. Aucune clé n'entre dans le dépôt.
+- Deux clés de signature stables (test et publication), lues dans des variables d'environnement (secrets GitHub) ou un fichier local `keystore.properties` ignoré par git. Aucune clé n'entre dans le dépôt. Voir `docs/firebase-setup.md`.
+- **Connexion** (lot 2) : `feature/auth` contient `SessionViewModel` (qui expose `SessionUiState`), `AuthRepository` (Firebase Auth) et `GoogleCredentialProvider` (sélecteur de compte Google d'Android). `core/data/AppContainer` construit les repositories ; ils valent `null` tant que `google-services.json` manque, et l'écran le dit.

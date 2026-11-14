@@ -17,13 +17,13 @@ jobs:
     name: Build, lint and unit tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # The signing key lives only in GitHub secrets. Without it, the APK is signed with a
-    # throwaway debug key that changes on every run.
+    # Test APKs are signed with the stable test key kept in GitHub secrets. Without it, they are
+    # signed with a throwaway debug key that changes on every run. The release key is never used here.
     env:
-      FAMILIA_KEYSTORE_BASE64: ${{ secrets.FAMILIA_KEYSTORE_BASE64 }}
-      FAMILIA_KEYSTORE_PASSWORD: ${{ secrets.FAMILIA_KEYSTORE_PASSWORD }}
-      FAMILIA_KEY_ALIAS: ${{ secrets.FAMILIA_KEY_ALIAS }}
-      FAMILIA_KEY_PASSWORD: ${{ secrets.FAMILIA_KEY_PASSWORD }}
+      FAMILIA_TEST_KEYSTORE_BASE64: ${{ secrets.FAMILIA_TEST_KEYSTORE_BASE64 }}
+      FAMILIA_TEST_KEYSTORE_PASSWORD: ${{ secrets.FAMILIA_TEST_KEYSTORE_PASSWORD }}
+      FAMILIA_TEST_KEY_ALIAS: ${{ secrets.FAMILIA_TEST_KEY_ALIAS }}
+      FAMILIA_TEST_KEY_PASSWORD: ${{ secrets.FAMILIA_TEST_KEY_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -34,11 +34,11 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Restore signing key
-        if: ${{ env.FAMILIA_KEYSTORE_BASE64 != '' }}
+      - name: Restore test signing key
+        if: ${{ env.FAMILIA_TEST_KEYSTORE_BASE64 != '' }}
         run: |
-          echo "$FAMILIA_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/familia.jks"
-          echo "FAMILIA_KEYSTORE_PATH=$RUNNER_TEMP/familia.jks" >> "$GITHUB_ENV"
+          echo "$FAMILIA_TEST_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/familia-test.jks"
+          echo "FAMILIA_TEST_KEYSTORE_PATH=$RUNNER_TEMP/familia-test.jks" >> "$GITHUB_ENV"
 
       - name: Build debug APK
         run: ./gradlew --no-daemon assembleDebug

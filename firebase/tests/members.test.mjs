@@ -61,6 +61,10 @@ describe('linking the account on first sign-in', () => {
     await assertFails(updateDoc(doc(as(env, ADULT), 'members/adult1'), { uid: 'someone-else' }));
   });
 
+  test('a Google account outside the family cannot write any uid', async () => {
+    await assertFails(updateDoc(doc(as(env, STRANGER), 'members/adult1'), { uid: STRANGER.uid }));
+  });
+
   test('a member cannot link another member', async () => {
     await assertFails(updateDoc(doc(as(env, ADULT), 'members/adult2'), { uid: ADULT.uid }));
   });
