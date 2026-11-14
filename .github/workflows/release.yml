@@ -1,0 +1,95 @@
+name: APK de publication
+
+# Run by hand from the Actions tab ("Run workflow"), once the version number has been raised in
+# app/build.gradle.kts and merged into main (docs/mise-a-jour.md). Only this workflow sees the
+# release key; pull requests never do.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build the signed release APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      FAMILIA_KEYSTORE_BASE64: ${{ secrets.FAMILIA_KEYSTORE_BASE64 }}
+      FAMILIA_KEYSTORE_PASSWORD: ${{ secrets.FAMILIA_KEYSTORE_PASSWORD }}
+      FAMILIA_KEY_ALIAS: ${{ secrets.FAMILIA_KEY_ALIAS }}
+      FAMILIA_KEY_PASSWORD: ${{ secrets.FAMILIA_KEY_PASSWORD }}
+    steps:
+      - name: Only from main
+        if: ${{ github.ref != 'refs/heads/main' }}
+        run: |
+          echo "::error::Lance ce workflow depuis la branche main."
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - name: Check that everything needed is there
+        run: |
+          missing=0
+          for name in FAMILIA_KEYSTORE_BASE64 FAMILIA_KEYSTORE_PASSWORD FAMILIA_KEY_ALIAS FAMILIA_KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Le secret GitHub $name manque (Settings, Secrets and variables, Actions)."
+              missing=1
+            fi
+          done
+          if [ ! -f app/google-services.json ]; then
+            echo "::error::app/google-services.json manque : sans lui, l'appli n'a pas de données (docs/firebase-setup.md)."
+            missing=1
+          fi
+          exit $missing
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Restore the release key
+        run: |
+          echo "$FAMILIA_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/familia-release.jks"
+          echo "FAMILIA_KEYSTORE_PATH=$RUNNER_TEMP/familia-release.jks" >> "$GITHUB_ENV"
+
+      - name: Build the release APK
+        run: ./gradlew --no-daemon assembleRelease
+
+      - name: Check the signature and name the file
+        run: |
+          apk=app/build/outputs/apk/release/app-release.apk
+          if [ ! -f "$apk" ]; then
+            echo "::error::L'APK signé n'a pas été produit (le fichier est-il resté non signé ?)."
+            exit 1
+          fi
+          apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)
+          "$apksigner" verify --print-certs "$apk" | tee signature.txt
+          version=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
+          mkdir -p out
+          cp "$apk" "out/familia-$version.apk"
+          {
+            echo "### Familia $version"
+            echo "Empreinte de la clé :"
+            echo '```'
+            grep "SHA-256" signature.txt
+            echo '```'
+            echo "Télécharge l'artefact **familia-apk** ci-dessous, puis dépose familia-$version.apk dans le dossier Drive."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove the key from the runner
+        if: always()
+        run: rm -f "$RUNNER_TEMP/familia-release.jks"
+
+      - name: Upload the APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: familia-apk
+          path: out/*.apk
+          retention-days: 30
