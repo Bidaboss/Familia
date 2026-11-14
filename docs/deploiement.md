@@ -10,9 +10,8 @@ Cette page sert à mettre en ligne la partie serveur de Familia. Il s'agit des r
    npm ci
    npm ci --prefix functions
    npx firebase login
-   npx firebase use --add
    ```
-   `firebase use --add` te demande de choisir le projet Familia et de lui donner un nom court, par exemple `familia`.
+   Le projet Familia (`familia-93286`) est déjà choisi dans `firebase/.firebaserc`.
 3. Vérifier que le projet est bien en **offre Blaze**. Les Cloud Functions l'exigent.
 
 ## Déployer
