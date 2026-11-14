@@ -10,7 +10,7 @@ Cette page sert à mettre en ligne la partie serveur de Familia. Il s'agit des r
    - Rôles (bouton « Ajouter un autre rôle » entre chaque) : **Administrateur Firebase**, **Utilisateur du compte de service**, **Administrateur Cloud Scheduler**.
    - Touche **OK**.
 3. Ouvre le compte `github-deploy`, onglet **Clés**, puis **Ajouter une clé**, **Créer une clé** et **JSON**. Un fichier se télécharge.
-4. Dans GitHub, ouvre `Settings`, `Secrets and variables`, `Actions`, puis **New repository secret**. Le nom est `FIREBASE_SERVICE_ACCOUNT`, et la valeur est le contenu complet du fichier.
+4. Dans GitHub, ouvre `Settings`, `Secrets and variables`, `Actions`, puis **New repository secret**. Le nom est `FIREBASE_SECRET_ACCOUNT`, et la valeur est le contenu complet du fichier.
 5. Supprime ensuite le fichier de ton téléphone.
 
 Cette clé peut modifier le projet Firebase. Elle ne va que dans ce secret GitHub, jamais dans le dépôt ni dans une discussion. Si elle fuit, supprime-la dans l'onglet **Clés** du compte et crée-en une autre.

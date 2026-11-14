@@ -46,15 +46,15 @@ jobs:
       # The secret only reaches this step, through a file deleted when the step ends.
       - name: Publish
         env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_SECRET_ACCOUNT: ${{ secrets.FIREBASE_SECRET_ACCOUNT }}
         run: |
-          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
-            echo "::error::Le secret FIREBASE_SERVICE_ACCOUNT est absent (voir docs/deploiement.md)."
+          if [ -z "$FIREBASE_SECRET_ACCOUNT" ]; then
+            echo "::error::Le secret FIREBASE_SECRET_ACCOUNT est absent (voir docs/deploiement.md)."
             exit 1
           fi
           key="$RUNNER_TEMP/firebase-key.json"
           trap 'rm -f "$key"' EXIT
-          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$key"
+          printf '%s' "$FIREBASE_SECRET_ACCOUNT" > "$key"
           GOOGLE_APPLICATION_CREDENTIALS="$key" npx firebase deploy \
             --only firestore:rules,firestore:indexes,functions \
             --non-interactive
