@@ -18,6 +18,9 @@ data class FamilyData(
     val answers: List<ExportAnswer>,
 )
 
+/** The server could not be reached. A backup is complete or not made at all, never read from the cache. */
+class ExportOfflineException(cause: Throwable) : Exception(cause)
+
 /** PRD, récit 6 ter: everything the family wrote, for a backup or to leave Firebase. */
 interface ExportRepository {
     suspend fun loadFamilyData(): FamilyData

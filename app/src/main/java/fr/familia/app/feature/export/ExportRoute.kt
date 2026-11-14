@@ -1,8 +1,10 @@
 package fr.familia.app.feature.export
 
+import android.provider.DocumentsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -11,10 +13,10 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.BuildConfig
 import fr.familia.app.core.data.AppContainer
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
-import java.time.LocalDate
 
 /** Connects the backup screen to its ViewModel and to the Android file picker. */
 @Composable
@@ -31,17 +33,24 @@ fun ExportRoute(container: AppContainer?, onBack: () -> Unit) {
         if (uri == null) {
             viewModel.cancelled()
         } else {
-            viewModel.export { json ->
+            viewModel.save { json ->
                 withContext(Dispatchers.IO) {
-                    val stream = resolver.openOutputStream(uri, "wt") ?: throw IOException("No output stream")
-                    stream.use { it.write(json.toByteArray(Charsets.UTF_8)) }
+                    try {
+                        val stream = resolver.openOutputStream(uri, "wt") ?: throw IOException("No output stream")
+                        stream.use { it.write(json.toByteArray(Charsets.UTF_8)) }
+                    } catch (e: Exception) {
+                        if (e is CancellationException) throw e
+                        // No empty or half-written file left behind.
+                        runCatching { DocumentsContract.deleteDocument(resolver, uri) }
+                        throw e
+                    }
                 }
             }
         }
     }
-    ExportScreen(
-        state = state,
-        onExport = { picker.launch(exportFileName(LocalDate.now())) },
-        onBack = onBack,
-    )
+    val awaiting = state as? ExportUiState.AwaitingDestination
+    LaunchedEffect(awaiting) {
+        if (awaiting != null) picker.launch(awaiting.fileName)
+    }
+    ExportScreen(state = state, onExport = viewModel::prepare, onBack = onBack)
 }

@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -65,7 +66,7 @@ fun ExportScreen(state: ExportUiState, onExport: () -> Unit, onBack: () -> Unit,
             val exporting = state == ExportUiState.Exporting
             Button(
                 onClick = onExport,
-                enabled = !exporting,
+                enabled = !exporting && state !is ExportUiState.AwaitingDestination,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             ) {
                 if (exporting) {
@@ -79,6 +80,7 @@ fun ExportScreen(state: ExportUiState, onExport: () -> Unit, onBack: () -> Unit,
             when (state) {
                 ExportUiState.Done -> Outcome(Icons.Outlined.CheckCircle, MaterialTheme.colorScheme.primary, R.string.export_done)
                 ExportUiState.Failed -> Outcome(Icons.Outlined.ErrorOutline, MaterialTheme.colorScheme.error, R.string.export_failed)
+                ExportUiState.Offline -> Outcome(Icons.Outlined.CloudOff, MaterialTheme.colorScheme.error, R.string.export_offline)
                 else -> Unit
             }
         }
