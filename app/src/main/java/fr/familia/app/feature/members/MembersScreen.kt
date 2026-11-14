@@ -1,5 +1,6 @@
 package fr.familia.app.feature.members
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -29,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -54,6 +57,8 @@ fun MembersScreen(
     onEditMember: ((memberId: String?) -> Unit)? = null,
     versionName: String = BuildConfig.VERSION_NAME,
     onOpenNotifications: (() -> Unit)? = null,
+    /** Null for members who are not admin. */
+    onOpenExport: (() -> Unit)? = null,
 ) {
     when (state) {
         MembersUiState.Loading ->
@@ -97,7 +102,15 @@ fun MembersScreen(
                     }
                 }
                 if (onOpenNotifications != null) {
-                    item(key = "notifications") { NotificationsRow(onOpenNotifications) }
+                    item(key = "notifications") {
+                        Column {
+                            HorizontalDivider(Modifier.padding(top = 8.dp))
+                            SettingsRow(Icons.Outlined.Notifications, R.string.notifications_title, onOpenNotifications)
+                        }
+                    }
+                }
+                if (onOpenExport != null) {
+                    item(key = "export") { SettingsRow(Icons.Outlined.SaveAlt, R.string.export_title, onOpenExport) }
                 }
                 item(key = "version") {
                     Text(
@@ -121,23 +134,20 @@ fun MembersScreen(
     }
 }
 
-/** Entry to the notification settings, below the members (design: settings live in Famille). */
+/** A settings entry below the members (design: settings live in the Famille tab). */
 @Composable
-private fun NotificationsRow(onClick: () -> Unit) {
-    Column {
-        HorizontalDivider(Modifier.padding(top = 8.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick)
-                .heightIn(min = 56.dp)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(Icons.Outlined.Notifications, contentDescription = null)
-            Spacer(Modifier.width(16.dp))
-            Text(stringResource(R.string.notifications_title), style = MaterialTheme.typography.titleMedium)
-        }
+private fun SettingsRow(icon: ImageVector, @StringRes labelRes: Int, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .heightIn(min = 56.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(icon, contentDescription = null)
+        Spacer(Modifier.width(16.dp))
+        Text(stringResource(labelRes), style = MaterialTheme.typography.titleMedium)
     }
 }
 

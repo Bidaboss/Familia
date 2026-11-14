@@ -188,4 +188,11 @@
     <string name="channel_events_description">Un événement ajouté, modifié ou supprimé</string>
     <string name="channel_reminders">Rappels de la veille</string>
     <string name="channel_reminders_description">Les événements de demain où tu as dit que tu venais</string>
+    <string name="export_title">Sauvegarde des données</string>
+    <string name="export_body">Crée un fichier avec tous les membres, les foyers, les événements et les réponses de la famille. Tu choisis où l\'enregistrer : sur ce téléphone ou dans ton Google Drive.</string>
+    <string name="export_privacy">Ce fichier contient les adresses et les dates de naissance de toute la famille. Garde-le pour toi et ne le partage pas.</string>
+    <string name="export_action">Créer la sauvegarde</string>
+    <string name="export_in_progress">Sauvegarde en cours…</string>
+    <string name="export_done">Sauvegarde enregistrée.</string>
+    <string name="export_failed">La sauvegarde n\'a pas pu être créée. Vérifie la connexion et réessaie.</string>
 </resources>
