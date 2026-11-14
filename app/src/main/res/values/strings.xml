@@ -117,6 +117,10 @@
     <string name="member_household">Foyer</string>
     <string name="member_household_new">Nouveau foyer</string>
     <string name="member_household_name">Nom du foyer</string>
+    <string name="household_rename_action">Renommer le foyer %1$s</string>
+    <string name="household_rename_title">Renommer le foyer</string>
+    <string name="household_rename_failed_title">Le nom n\'a pas changé</string>
+    <string name="household_rename_failed_body">Ça n\'a pas marché. Vérifie ta connexion et réessaie.</string>
     <string name="member_birth_date">Date de naissance</string>
     <string name="member_birth_date_none">Choisir une date</string>
     <string name="member_parents">Adultes responsables</string>
