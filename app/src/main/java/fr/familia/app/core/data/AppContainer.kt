@@ -32,6 +32,8 @@ class AppContainer(context: Context) {
 
     val memberRepository: MemberRepository? by lazy { firestore?.let { FirestoreMemberRepository(it) } }
 
+    val eventRepository: EventRepository? by lazy { firestore?.let { FirestoreEventRepository(it) } }
+
     /** The web client id is generated from google-services.json by the Google services plugin. */
     val googleCredentialProvider: GoogleCredentialProvider? by lazy {
         @Suppress("DiscouragedApi") // The resource only exists once google-services.json is added.

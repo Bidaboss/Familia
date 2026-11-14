@@ -28,7 +28,8 @@ import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.OfflineBanner
 import fr.familia.app.feature.members.MembersRoute
-import fr.familia.app.feature.planning.PlanningScreen
+import fr.familia.app.feature.events.edit.EventEditRoute
+import fr.familia.app.feature.planning.PlanningRoute
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
 @Composable
@@ -71,7 +72,21 @@ fun FamiliaApp(
                 startDestination = TopLevelDestination.start.route,
                 modifier = Modifier.weight(1f),
             ) {
-                composable<PlanningRoute> { PlanningScreen() }
+                composable<PlanningRoute> {
+                    PlanningRoute(
+                        container = container,
+                        currentMember = currentMember,
+                        onEditEvent = { id -> navController.navigate(EventEditDestination(id)) },
+                    )
+                }
+                composable<EventEditDestination> { entry ->
+                    EventEditRoute(
+                        container = container,
+                        currentMember = currentMember,
+                        eventId = entry.toRoute<EventEditDestination>().eventId,
+                        onDone = { navController.popBackStack() },
+                    )
+                }
                 composable<BirthdaysRoute> { BirthdaysScreen() }
                 composable<MembersRoute> {
                     MembersRoute(

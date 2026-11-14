@@ -105,6 +105,10 @@ describe('creating', () => {
     await assertFails(setDoc(doc(as(env, STRANGER), 'events/b'), event({ memberId: 'stranger' })));
   });
 
+  test('the author name is the author\'s own first name', async () => {
+    await assertFails(setDoc(doc(as(env, KID), 'events/a'), event(KID, { ...self(KID), authorName: 'Maman' })));
+  });
+
   test('a title and a date are required, and the shape is checked', async () => {
     const db = as(env, ADULT);
     await assertFails(setDoc(doc(db, 'events/a'), event(ADULT, { title: '' })));
