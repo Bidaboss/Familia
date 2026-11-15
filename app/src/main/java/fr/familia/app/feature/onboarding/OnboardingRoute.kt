@@ -13,8 +13,13 @@ import fr.familia.app.core.notifications.rememberNotificationPermission
 
 /** The tutorial, screen after screen. [onDone] is called once, when the member reaches the app. */
 @Composable
-fun OnboardingRoute(answersForChildren: Boolean, onDone: () -> Unit) {
-    val pages = remember(answersForChildren) { onboardingPages(answersForChildren) }
+fun OnboardingRoute(
+    answersForChildren: Boolean,
+    gifts: Boolean = false,
+    helpRequests: Boolean = false,
+    onDone: () -> Unit,
+) {
+    val pages = remember(answersForChildren, gifts, helpRequests) { onboardingPages(answersForChildren, gifts, helpRequests) }
     var index by rememberSaveable { mutableIntStateOf(0) }
     val permission = rememberNotificationPermission()
     var askedPermission by rememberSaveable { mutableStateOf(false) }

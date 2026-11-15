@@ -148,7 +148,20 @@ fun FamiliaApp(
         val familyFlow = remember(container) { container?.memberRepository?.observeFamily() ?: flowOf(null) }
         val family by familyFlow.collectAsStateWithLifecycle(initialValue = null)
         val answersForChildren = family?.let { answerableMembers(currentMember, it).size > 1 } ?: false
-        OnboardingRoute(answersForChildren = answersForChildren) {
+        // Cadeaux and Entraide get a screen only while their module shows (AVIS-18).
+        val tutoConfigs = remember(container) {
+            container?.appConfigRepository?.observeAppConfig()?.catch { } ?: flowOf(null)
+        }
+        val tutoConfig by tutoConfigs.collectAsStateWithLifecycle(initialValue = null)
+        val tutoFlags = FeatureFlags(
+            tutoConfig?.features.orEmpty(),
+            isOwner = family?.ownerId != null && family?.ownerId == currentMember.id,
+        )
+        OnboardingRoute(
+            answersForChildren = answersForChildren,
+            gifts = tutoFlags.isOn(Feature.Gifts),
+            helpRequests = tutoFlags.isOn(Feature.HelpRequests),
+        ) {
             onboarding.markSeen()
             showOnboarding = false
         }

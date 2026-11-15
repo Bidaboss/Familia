@@ -91,3 +91,8 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 1. Ouvre le planning. **Attendu :** une seule rangée en haut, avec « Liste | Mois » à gauche et « Mon foyer » à droite.
 2. Touche « Mon foyer ». **Attendu :** une coche apparaît et seuls les événements de ton foyer restent. Touche-le à nouveau : toute la famille revient.
 3. En police à 200 %, **attendu :** rien n'est coupé, et les boutons gardent au moins la hauteur d'un doigt.
+
+## Tuto : écrans Cadeaux et Entraide (AVIS-18)
+
+1. Dans Administration > Modules, allume Cadeaux et Entraide. Sur un autre téléphone, avec un compte qui n'est pas admin, ouvre l'appli pour la première fois. **Attendu :** après « Dire si tu viens », les écrans « Les cadeaux » puis « L'entraide » s'affichent, et « Rester prévenu » reste le dernier (6 sur 6).
+2. Éteins Entraide, puis touche « Revoir le tuto » dans l'Aide. **Attendu :** l'écran « L'entraide » n'apparaît plus (5 écrans).

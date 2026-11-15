@@ -23,4 +23,18 @@ class OnboardingPagesTest {
         assertEquals(OnboardingPage.Notifications, pages.last())
         assertEquals(4, pages.size)
     }
+
+    @Test
+    fun `cadeaux and entraide come before notifications, only when their module shows`() {
+        assertEquals(
+            listOf(
+                OnboardingPage.Welcome, OnboardingPage.AddEvent, OnboardingPage.Answer,
+                OnboardingPage.Gifts, OnboardingPage.HelpRequests, OnboardingPage.Notifications,
+            ),
+            onboardingPages(answersForChildren = true, gifts = true, helpRequests = true),
+        )
+        val giftsOnly = onboardingPages(answersForChildren = false, gifts = true)
+        assertEquals(OnboardingPage.Gifts, giftsOnly[3])
+        assertEquals(false, OnboardingPage.HelpRequests in giftsOnly)
+    }
 }

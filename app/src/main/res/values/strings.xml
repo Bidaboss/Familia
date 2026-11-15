@@ -279,6 +279,10 @@
     <string name="onboarding_answer_title">Dire si tu viens</string>
     <string name="onboarding_answer_body">Sur un événement, réponds « Je viens », « Peut-être » ou « Je ne viens pas ». Tu peux aussi répondre pour tes enfants.</string>
     <string name="onboarding_answer_body_child">Sur un événement, réponds « Je viens », « Peut-être » ou « Je ne viens pas ».</string>
+    <string name="onboarding_gifts_title">Les cadeaux</string>
+    <string name="onboarding_gifts_body">Note tes idées dans « Mes envies » pour que la famille trouve quoi t\'offrir. Réserve un cadeau pour quelqu\'un : la personne ne le voit pas.</string>
+    <string name="onboarding_help_title">L\'entraide</string>
+    <string name="onboarding_help_body">Besoin d\'un coup de main pour garder les enfants ou faire un trajet ? Demande-le dans l\'onglet Entraide. Tu peux aussi proposer ton aide quand quelqu\'un en cherche.</string>
     <string name="onboarding_notifications_title">Rester prévenu</string>
     <string name="onboarding_notifications_body">Familia te prévient des nouveautés et te rappelle la veille d\'un événement. Autorise les notifications pour ne rien manquer.</string>
     <!-- Aide (spec « tuto et aide », récits 26 et 27) -->
