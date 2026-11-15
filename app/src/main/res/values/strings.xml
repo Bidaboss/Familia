@@ -127,6 +127,7 @@
     <string name="member_household_name">Nom du foyer</string>
     <string name="member_remove_owner_only">Seul l\'admin principal peut retirer %1$s.</string>
     <string name="administration_title">Administration</string>
+    <string name="members_settings_title">Réglages</string>
     <string name="administration_error_body">L\'appli n\'a pas pu lire la famille. Réessaie dans un moment.</string>
     <string name="administration_not_allowed_title">Réservé à l\'admin principal</string>
     <string name="administration_not_allowed_body">Ce menu sert à nommer les chefs de famille, gérer les foyers et sauvegarder les données.</string>
@@ -136,7 +137,7 @@
     <string name="administration_chefs_help">Un chef de famille ajoute, modifie et retire les membres de son foyer, et corrige les événements écrits par son foyer. Un foyer peut avoir plusieurs chefs.</string>
     <string name="administration_owner_row">Admin principal : tous les droits</string>
     <string name="administration_households_title">Foyers</string>
-    <string name="administration_households_help">Pour renommer un foyer, touche le crayon dans l\'onglet Famille. Un foyer se supprime quand il n\'a plus de membres.</string>
+    <string name="administration_households_help">Renomme un foyer avec le crayon. Un foyer se supprime quand il n\'a plus de membres.</string>
     <plurals name="administration_household_members">
         <item quantity="one">%d membre</item>
         <item quantity="many">%d membres</item>

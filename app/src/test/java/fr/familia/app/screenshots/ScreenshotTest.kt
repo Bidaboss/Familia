@@ -125,13 +125,13 @@ class ScreenshotTest {
 
     @Test
     fun membersLight() = capture("famille_clair") {
-        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0") }
+        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}) }
     }
 
     @Test
     @Config(qualifiers = "+night")
     fun membersDark() = capture("famille_sombre", darkTheme = true) {
-        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0") }
+        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}) }
     }
 
     @Test
@@ -166,7 +166,6 @@ class ScreenshotTest {
                 MembersScreen(
                     MembersUiState.Success(previewGroups(), "a", photoEditableMemberIds = setOf("a", "c")),
                     onRetry = {},
-                    versionName = "0.1.0",
                     onSavePhoto = { _, _ -> },
                 )
             }
@@ -191,12 +190,12 @@ class ScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun membersFontScale200() = capture("famille_police_200") {
-        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0") }
+        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}) }
     }
 
     @Test
     fun membersErrorLight() = capture("famille_erreur_clair") {
-        Surface { MembersScreen(MembersUiState.Error, onRetry = {}, versionName = "0.1.0") }
+        Surface { MembersScreen(MembersUiState.Error, onRetry = {}) }
     }
 
     @Test
@@ -329,7 +328,6 @@ class ScreenshotTest {
                     renamableHouseholdIds = setOf("h1", "h2"),
                 ),
                 onRetry = {},
-                versionName = "0.1.0",
                 onEditMember = {},
                 onOpenNotifications = {},
                 onOpenAdministration = {},
@@ -350,7 +348,6 @@ class ScreenshotTest {
                     renamableHouseholdIds = setOf("h1"),
                 ),
                 onRetry = {},
-                versionName = "0.1.0",
                 onEditMember = {},
                 onOpenNotifications = {},
                 onOpenAdministration = {},
@@ -416,7 +413,7 @@ class ScreenshotTest {
 
     @Test
     fun helpLight() = capture("aide_clair") {
-        Surface { HelpScreen(HelpUiState(helpTopics(isChef = true, isOwner = true), "Camille ou Inès"), {}, {}, initiallyOpen = HelpTopic.AddEvent) }
+        Surface { HelpScreen(HelpUiState(helpTopics(isChef = true, isOwner = true), "Camille ou Inès"), {}, {}, initiallyOpen = HelpTopic.AddEvent, versionName = "0.1.0") }
     }
 
     @Test
@@ -428,7 +425,7 @@ class ScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun helpFontScale200() = capture("aide_police_200") {
-        Surface { HelpScreen(HelpUiState(helpTopics(isChef = false), null), {}, {}, initiallyOpen = HelpTopic.Notifications) }
+        Surface { HelpScreen(HelpUiState(helpTopics(isChef = false), null), {}, {}, initiallyOpen = HelpTopic.Notifications, versionName = "0.1.0") }
     }
 
     @Test

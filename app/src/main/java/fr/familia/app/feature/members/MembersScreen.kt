@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -33,7 +32,6 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -52,10 +50,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import fr.familia.app.BuildConfig
 import fr.familia.app.R
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
@@ -75,7 +70,6 @@ fun MembersScreen(
     modifier: Modifier = Modifier,
     /** Opens the form; each row and the add button follow the rights in [MembersUiState.Success]. */
     onEditMember: ((memberId: String?) -> Unit)? = null,
-    versionName: String = BuildConfig.VERSION_NAME,
     onOpenNotifications: (() -> Unit)? = null,
     /** Shown to the admin principal only (PRD, récit 1 ter). */
     onOpenAdministration: (() -> Unit)? = null,
@@ -129,7 +123,9 @@ fun MembersScreen(
                         val household = group.household
                         HouseholdHeader(
                             name = household?.name ?: stringResource(R.string.members_other_household),
-                            onRename = if (household != null && onRenameHousehold != null &&
+                            // The admin principal renames every household in Administration (DESIGN-5);
+                            // a chef de famille keeps the pencil on their own household here.
+                            onRename = if (household != null && onRenameHousehold != null && !state.isOwner &&
                                 household.id in state.renamableHouseholdIds
                             ) {
                                 { renaming = household.id }
@@ -153,12 +149,22 @@ fun MembersScreen(
                         )
                     }
                 }
+                item(key = "settings-title") {
+                    Column {
+                        HorizontalDivider(Modifier.padding(top = 8.dp))
+                        Text(
+                            stringResource(R.string.members_settings_title),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp)
+                                .semantics { heading() },
+                        )
+                    }
+                }
                 if (onOpenNotifications != null) {
                     item(key = "notifications") {
-                        Column {
-                            HorizontalDivider(Modifier.padding(top = 8.dp))
-                            SettingsRow(Icons.Outlined.Notifications, R.string.notifications_title, onOpenNotifications)
-                        }
+                        SettingsRow(Icons.Outlined.Notifications, R.string.notifications_title, onOpenNotifications)
                     }
                 }
                 if (onOpenAdministration != null && state.isOwner) {
@@ -171,15 +177,6 @@ fun MembersScreen(
                 }
                 if (onOpenHelp != null) {
                     item(key = "help") { SettingsRow(Icons.AutoMirrored.Outlined.HelpOutline, R.string.help_title, onOpenHelp) }
-                }
-                item(key = "version") {
-                    Text(
-                        text = stringResource(R.string.app_version, versionName),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    )
                 }
             }
             if (canAdd && onEditMember != null) {
@@ -280,37 +277,6 @@ private fun HouseholdHeader(name: String, onRename: (() -> Unit)?) {
             }
         }
     }
-}
-
-/** Asks for the new name of [household]; "Enregistrer" stays off while the name is empty or unchanged. */
-@Composable
-private fun RenameHouseholdDialog(household: Household, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
-    var name by rememberSaveable(household.id) { mutableStateOf(household.name) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.household_rename_title)) },
-        text = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it.take(MembersViewModel.MAX_HOUSEHOLD_NAME) },
-                label = { Text(stringResource(R.string.member_household_name)) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onConfirm(name) },
-                enabled = name.isNotBlank() && name.trim() != household.name,
-                modifier = Modifier.heightIn(min = 56.dp),
-            ) { Text(stringResource(R.string.member_save)) }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.action_cancel))
-            }
-        },
-    )
 }
 
 @Composable
@@ -432,7 +398,6 @@ private fun MembersScreenPreview() {
                     photoEditableMemberIds = setOf("a", "c"),
                 ),
                 onRetry = {},
-                versionName = "0.1.0",
                 onEditMember = {},
                 onSavePhoto = { _, _ -> },
             )
@@ -443,5 +408,5 @@ private fun MembersScreenPreview() {
 @FamiliaPreviews
 @Composable
 private fun MembersScreenErrorPreview() {
-    FamiliaTheme { Surface { MembersScreen(MembersUiState.Error, onRetry = {}, versionName = "0.1.0") } }
+    FamiliaTheme { Surface { MembersScreen(MembersUiState.Error, onRetry = {}) } }
 }
