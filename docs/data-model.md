@@ -288,6 +288,8 @@ Une part d'un cadeau commun, une par adulte. Aucun paiement ne passe par l'appli
 
 Une notification des cadeaux porte `listId` dans ses données à la place de `eventId`. Le bénéficiaire ne reçoit jamais de notification sur ses cadeaux, sauf celle de la révélation.
 
+Tant que le module n'est pas allumé pour la famille (`config/app.features.gifts` différent de `true`), ces fonctions ne préviennent que l'admin principal (`config/family.ownerMemberId`), le seul à qui l'appli montre déjà le module. La révélation et le nettoyage se font quand même.
+
 Limite connue : les règles ne vérifient pas que chaque identifiant de `viewerIds` est un membre (cela coûterait une lecture par personne). L'appli ne propose que des membres de la famille.
 
 ## Bonnes nouvelles (PRD, récit 32)

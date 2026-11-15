@@ -91,6 +91,7 @@ describe('functions', () => {
     batch.set(db.doc('giftLists/noel/claims/i1'), { type: 'shared', holderId: 'ines', holderName: 'Inès', createdAt: new Date() });
     batch.set(db.doc('giftLists/noel/claims/i1/shares/jade'), { amount: 5, memberName: 'Jade', received: false, updatedAt: new Date() });
     batch.set(db.doc('giftLists/wishes-camille'), list('camille', null, 'wishes'));
+    batch.set(db.doc('config/app'), { features: { gifts: true } });
     await batch.commit();
   });
 
@@ -117,6 +118,21 @@ describe('functions', () => {
     await sendBirthdayGiftReminders(db, send, new Date('2026-11-25T09:00:00Z'));
     assert.deepEqual(sent.map((s) => s.token), ['token-ines']);
     assert.match(sent[0].notice.title, /2 semaines/);
+  });
+
+  test('while the gifts module is switched off, only the admin principal is notified', async () => {
+    const { sent, send } = fakeSender();
+    await db.doc('config/app').set({ features: { gifts: false } });
+    await db.doc('config/family').delete();
+    assert.equal(await sendBirthdayGiftReminders(db, send, new Date('2026-11-18T09:00:00Z')), 0);
+    assert.equal(await revealGiftLists(db, send, new Date('2026-12-26T06:00:00Z')), 1); // Still revealed.
+    assert.equal(sent.length, 0);
+
+    await db.doc('config/app').delete();
+    await db.doc('config/family').set({ ownerMemberId: 'ines' });
+    await sendBirthdayGiftReminders(db, send, new Date('2026-11-18T09:00:00Z'));
+    assert.deepEqual(sent.map((s) => s.token), ['token-ines']);
+    await db.doc('config/family').delete();
   });
 
   test('the beneficiary removes a reserved item: the reservers are warned, the reservation goes', async () => {
