@@ -1,5 +1,6 @@
 package fr.familia.app.feature.members.edit
 
+import fr.familia.app.core.ui.Confirmation
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Household
@@ -109,7 +110,7 @@ class MemberEditViewModelTest {
         assertEquals(emptyList<String>(), viewModel.editing().soleParentOf)
 
         viewModel.remove()
-        assertEquals(MemberEditUiState.Saved, viewModel.uiState.value)
+        assertEquals(MemberEditUiState.Saved(Confirmation.MemberRemoved), viewModel.uiState.value)
         val (removed, children) = repo.removed.single()
         assertEquals("adult1", removed.id)
         assertEquals(listOf("admin1"), children.single().parentIds)

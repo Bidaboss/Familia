@@ -1,5 +1,6 @@
 package fr.familia.app.feature.events.edit
 
+import fr.familia.app.core.ui.Confirmation
 import fr.familia.app.core.model.EventTarget
 import fr.familia.app.feature.events.FakeEvents
 import fr.familia.app.feature.events.FakeMembers
@@ -56,7 +57,7 @@ class EventEditViewModelTest {
         val viewModel = vm(events)
         viewModel.update { it.copy(title = " Repas ", date = LocalDate.of(2026, 12, 24), time = LocalTime.of(19, 30), place = " ") }
         viewModel.save()
-        assertEquals(EventEditUiState.Done, viewModel.uiState.value)
+        assertEquals(EventEditUiState.Done(Confirmation.Saved), viewModel.uiState.value)
         val (event, isNew) = events.saved.single()
         assertTrue(isNew)
         assertEquals("e-new", event.id)
@@ -94,7 +95,7 @@ class EventEditViewModelTest {
         val viewModel = vm(events, eventId = "e1")
         viewModel.delete()
         assertEquals(listOf("e1"), events.deleted)
-        assertEquals(EventEditUiState.Done, viewModel.uiState.value)
+        assertEquals(EventEditUiState.Done(Confirmation.Deleted), viewModel.uiState.value)
     }
 
     @Test
@@ -112,7 +113,7 @@ class EventEditViewModelTest {
         viewModel.save()
         assertTrue(viewModel.editing().isSaving)
         advanceTimeBy(5_000)
-        assertEquals(EventEditUiState.Done, viewModel.uiState.value)
+        assertEquals(EventEditUiState.Done(Confirmation.Queued), viewModel.uiState.value)
     }
 
     @Test

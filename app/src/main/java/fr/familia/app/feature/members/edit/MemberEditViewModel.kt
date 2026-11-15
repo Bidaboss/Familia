@@ -12,13 +12,15 @@ import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.canAddMembers
 import fr.familia.app.core.model.canEditMember
 import fr.familia.app.core.model.isOwner
+import fr.familia.app.core.ui.Confirmation
+import fr.familia.app.core.ui.WriteSent
+import fr.familia.app.core.ui.sendWrite
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 import java.time.LocalDate
 
 /**
@@ -177,14 +179,12 @@ class MemberEditViewModel(
         val member = withEmail.toMember(editedId, original?.uid)
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
-            if (write { repo.saveMember(member, original?.email) }) {
-                _uiState.value = if (original == null) {
-                    MemberEditUiState.Added(member.firstName, member.email)
-                } else {
-                    MemberEditUiState.Saved
-                }
+            val sent = write { repo.saveMember(member, original?.email) }
+            if (sent == null) return@launch markFailed()
+            _uiState.value = if (original == null) {
+                MemberEditUiState.Added(member.firstName, member.email)
             } else {
-                markFailed()
+                MemberEditUiState.Saved(sent.or(Confirmation.Saved))
             }
         }
     }
@@ -203,7 +203,8 @@ class MemberEditViewModel(
             .map { it.copy(parentIds = it.parentIds - member.id) }
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
-            if (write { repo.removeMember(member, children) }) _uiState.value = MemberEditUiState.Saved else markFailed()
+            val sent = write { repo.removeMember(member, children) }
+            if (sent != null) _uiState.value = MemberEditUiState.Saved(sent.or(Confirmation.MemberRemoved)) else markFailed()
         }
     }
 
@@ -219,18 +220,8 @@ class MemberEditViewModel(
         _uiState.value = state.copy(isSaving = false, saveFailed = true)
     }
 
-    /**
-     * True once the write is accepted, or still pending after the timeout: offline, Firestore only
-     * confirms a write when the server has it, and it stays queued until then.
-     */
-    private suspend fun write(block: suspend () -> Unit): Boolean = try {
-        withTimeoutOrNull(writeTimeoutMillis) { block() }
-        true
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        false
-    }
+    /** How the write ended, null when the server refused it (see [sendWrite]). */
+    private suspend fun write(block: suspend () -> Unit): WriteSent? = sendWrite(writeTimeoutMillis, block)
 }
 
 private const val KEY_ID = "memberDraft.id"

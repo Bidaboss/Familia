@@ -197,6 +197,10 @@
     <string name="error_sole_parent_of_child">C\'est le seul adulte responsable d\'un enfant. Choisis d\'abord un autre adulte pour cet enfant.</string>
     <string name="error_birth_date_future">La date de naissance ne peut pas être dans le futur.</string>
     <string name="members_other_household">Autres</string>
+    <string name="confirm_saved">C\'est enregistré.</string>
+    <string name="confirm_deleted">Événement supprimé.</string>
+    <string name="confirm_member_removed">Fiche retirée de la famille.</string>
+    <string name="confirm_queued">Enregistré, envoi au retour du réseau.</string>
     <string name="offline_banner">Hors ligne. Tu vois la dernière version enregistrée sur ce téléphone.</string>
     <string name="members_me">%1$s (toi)</string>
     <string name="profile_adult">Adulte</string>

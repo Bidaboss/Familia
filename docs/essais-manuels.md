@@ -64,3 +64,10 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 4. En bas de la page, **attendu :** « Un souci ? » donne les prénoms des admins.
 5. Touche « Revoir le tuto ». **Attendu :** le tuto recommence au premier écran, et à la fin tu reviens dans l'appli.
 6. Dans l'onglet Famille, **attendu :** une ligne « Aide » ouvre la même page.
+
+## Message de confirmation (audit DESIGN du 14/11)
+
+1. Ajoute un événement, puis touche « Enregistrer ». **Attendu :** le planning revient, et « C'est enregistré. » s'affiche en bas pendant 8 secondes. Le bouton « Ajouter » remonte au-dessus du message.
+2. Ouvre cet événement, « Modifier », puis « Supprimer ». **Attendu :** le planning revient directement (pas la fiche de l'événement), avec « Événement supprimé. ».
+3. Active le mode avion, modifie une fiche de la famille et enregistre. **Attendu :** après 5 secondes environ, la fiche se ferme avec « Enregistré, envoi au retour du réseau. ». Coupe le mode avion : la modification arrive chez les autres.
+4. Touche la flèche retour d'un formulaire sans rien changer. **Attendu :** aucun message.

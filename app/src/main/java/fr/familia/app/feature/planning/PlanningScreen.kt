@@ -1,5 +1,6 @@
 package fr.familia.app.feature.planning
 
+import fr.familia.app.core.ui.aboveSnackbar
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
@@ -136,7 +137,7 @@ fun PlanningScreen(
                 onClick = onAddEvent,
                 icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
                 text = { Text(stringResource(R.string.planning_add)) },
-                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                modifier = Modifier.align(Alignment.BottomEnd).aboveSnackbar().padding(16.dp),
             )
         }
     }

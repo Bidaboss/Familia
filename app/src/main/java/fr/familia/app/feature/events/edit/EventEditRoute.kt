@@ -10,10 +10,20 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.ui.Confirmation
 
-/** Connects the event form to its ViewModel, and closes it once saved or deleted. */
+/**
+ * Connects the event form to its ViewModel. [onDone] closes it once saved or deleted, with the
+ * message to show; [onBack] closes it without a change.
+ */
 @Composable
-fun EventEditRoute(container: AppContainer?, currentMember: Member, eventId: String?, onDone: () -> Unit) {
+fun EventEditRoute(
+    container: AppContainer?,
+    currentMember: Member,
+    eventId: String?,
+    onDone: (Confirmation) -> Unit,
+    onBack: () -> Unit,
+) {
     val viewModel: EventEditViewModel = viewModel(
         factory = viewModelFactory {
             initializer {
@@ -29,13 +39,13 @@ fun EventEditRoute(container: AppContainer?, currentMember: Member, eventId: Str
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(state) {
-        if (state == EventEditUiState.Done) onDone()
+        (state as? EventEditUiState.Done)?.let { onDone(it.confirmation) }
     }
     EventEditScreen(
         state = state,
         onChange = viewModel::update,
         onSave = viewModel::save,
         onDelete = viewModel::delete,
-        onBack = onDone,
+        onBack = onBack,
     )
 }

@@ -123,7 +123,7 @@ fun EventEditScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                EventEditUiState.Loading, EventEditUiState.Done ->
+                EventEditUiState.Loading, is EventEditUiState.Done ->
                     CircularProgressIndicator(Modifier.align(Alignment.Center))
                 EventEditUiState.Unavailable -> EmptyState(
                     icon = Icons.Outlined.EventBusy,

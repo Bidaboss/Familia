@@ -18,7 +18,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
+import fr.familia.app.core.ui.Confirmation
+import fr.familia.app.core.ui.WriteSent
+import fr.familia.app.core.ui.sendWrite
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -124,11 +126,8 @@ class EventEditViewModel(
         )
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
-            if (write { repo.saveEvent(event, isNew = original == null) }) {
-                _uiState.value = EventEditUiState.Done
-            } else {
-                markFailed()
-            }
+            val sent = write { repo.saveEvent(event, isNew = original == null) }
+            if (sent != null) _uiState.value = EventEditUiState.Done(sent.or(Confirmation.Saved)) else markFailed()
         }
     }
 
@@ -140,7 +139,8 @@ class EventEditViewModel(
         if (state.isSaving) return
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
-            if (write { repo.deleteEvent(event.id) }) _uiState.value = EventEditUiState.Done else markFailed()
+            val sent = write { repo.deleteEvent(event.id) }
+            if (sent != null) _uiState.value = EventEditUiState.Done(sent.or(Confirmation.Deleted)) else markFailed()
         }
     }
 
@@ -152,15 +152,8 @@ class EventEditViewModel(
         _uiState.value = state.copy(isSaving = false, saveFailed = true)
     }
 
-    /** True once the write is accepted, or still pending after the timeout (queued offline). */
-    private suspend fun write(block: suspend () -> Unit): Boolean = try {
-        withTimeoutOrNull(writeTimeoutMillis) { block() }
-        true
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        false
-    }
+    /** How the write ended, null when the server refused it (see [sendWrite]). */
+    private suspend fun write(block: suspend () -> Unit): WriteSent? = sendWrite(writeTimeoutMillis, block)
 
     private companion object {
         const val KEY_ID = "eventDraft.id"

@@ -147,7 +147,7 @@ fun MemberEditScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                MemberEditUiState.Loading, MemberEditUiState.Saved ->
+                MemberEditUiState.Loading, is MemberEditUiState.Saved ->
                     CircularProgressIndicator(Modifier.align(Alignment.Center))
                 MemberEditUiState.NotFound -> EmptyState(
                     icon = Icons.Outlined.PersonOff,
