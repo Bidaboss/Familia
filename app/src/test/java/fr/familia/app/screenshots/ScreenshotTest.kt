@@ -61,6 +61,7 @@ import fr.familia.app.feature.gifts.GiftsScreen
 import fr.familia.app.feature.gifts.previewGifts
 import fr.familia.app.feature.gifts.detail.GiftListActions
 import fr.familia.app.feature.gifts.detail.GiftListScreen
+import fr.familia.app.feature.gifts.detail.ItemSheetContent
 import fr.familia.app.feature.gifts.detail.previewGiftList
 import fr.familia.app.feature.gifts.edit.GiftListEditScreen
 import fr.familia.app.feature.gifts.edit.previewGiftListForm
@@ -499,6 +500,20 @@ class ScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun giftListFontScale200() = capture("liste_cadeaux_police_200") { GiftListScreen(previewGiftList(), GiftListActions()) }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun giftItemSheetDark() = capture("liste_cadeaux_detail_sombre", darkTheme = true) {
+        val state = previewGiftList()
+        Surface { ItemSheetContent(state.items[1], state, GiftListActions(), onEdit = {}) }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun giftItemSheetFontScale200() = capture("liste_cadeaux_detail_police_200") {
+        val state = previewGiftList()
+        Surface { ItemSheetContent(state.items[0], state, GiftListActions(), onEdit = {}) }
+    }
 
     @Test
     fun giftListFormLight() = capture("liste_cadeaux_formulaire_clair") { GiftListEditScreen(previewGiftListForm(), {}, {}, {}, {}) }

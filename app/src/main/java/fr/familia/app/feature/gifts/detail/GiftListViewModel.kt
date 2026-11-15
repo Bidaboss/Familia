@@ -177,7 +177,13 @@ class GiftListViewModel(
                         isMine = it.holderId == me.id,
                         shares = parts,
                         myShare = parts.firstOrNull { share -> share.memberId == me.id },
-                        total = if (it.holderId == me.id) parts.sumOf { share -> share.amount } else it.sharesTotal,
+                        // A reservation made before the server kept the total has none yet:
+                        // the part I see is then the best lower bound, rather than 0 €.
+                        total = if (it.holderId == me.id) {
+                            parts.sumOf { share -> share.amount }
+                        } else {
+                            maxOf(it.sharesTotal, parts.sumOf { share -> share.amount })
+                        },
                     )
                 },
             )

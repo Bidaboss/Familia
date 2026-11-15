@@ -154,6 +154,16 @@ class GiftsTest {
     }
 
     @Test
+    fun `a joint gift opened before the server kept its total shows at least my part`() = runTest {
+        val gifts = FakeGifts(list("l", "adult1", viewers = listOf("adult1", "adult2")))
+        gifts.claims.value = listOf(GiftClaim("i1", ClaimType.Shared, "admin1", "Admin1"))
+        gifts.shares.value = mapOf("i1" to listOf(GiftShare("adult2", "Adult2", 20.0, false), GiftShare("admin1", "Admin1", 25.0, false)))
+        val vm = GiftListViewModel(gifts, FakeMembers(), "adult2", "l", today = flowOf(today))
+        val state = vm.uiState.first { it is GiftListUiState.Success && it.items.isNotEmpty() } as GiftListUiState.Success
+        assertEquals(20.0, state.items.single().claim!!.total, 0.001)
+    }
+
+    @Test
     fun `an empty « Mes envies » shows to everyone, and only its keeper adds to it`() = runTest {
         val vm = GiftListViewModel(FakeGifts(null), FakeMembers(), "adult2", "wishes-kid2", today = flowOf(today))
         val state = vm.uiState.first { it !is GiftListUiState.Loading }

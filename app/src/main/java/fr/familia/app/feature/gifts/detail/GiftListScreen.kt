@@ -7,14 +7,19 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CardGiftcard
@@ -26,6 +31,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -70,6 +76,7 @@ import fr.familia.app.feature.gifts.listSubtitle
 import fr.familia.app.feature.gifts.listTitle
 import fr.familia.app.feature.gifts.parseEuros
 import fr.familia.app.feature.help.HelpButton
+import fr.familia.app.feature.help.HelpLink
 import fr.familia.app.feature.help.ScreenHelp
 import java.time.LocalDate
 
@@ -155,6 +162,7 @@ fun GiftListScreen(state: GiftListUiState, actions: GiftListActions, modifier: M
 
 @Composable
 private fun Content(state: GiftListUiState.Success, actions: GiftListActions) {
+    var openItemId by rememberSaveable { mutableStateOf<String?>(null) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
@@ -176,13 +184,29 @@ private fun Content(state: GiftListUiState.Success, actions: GiftListActions) {
                 )
             }
         }
-        items(state.items, key = { it.item.id }) { row -> ItemCard(row, state, actions) }
+        items(state.items, key = { it.item.id }) { row ->
+            // On my own list, an idea has nothing to reserve: touching it edits it.
+            val editsDirectly = state.keptFromMe && row.canEdit
+            ItemCard(
+                row = row,
+                state = state,
+                onOpen = { if (editsDirectly) actions.onEditItem(row.item.id) else openItemId = row.item.id },
+                openLabel = stringResource(if (editsDirectly) R.string.gift_item_edit_action else R.string.gift_item_details),
+                onTake = { actions.onTake(row.item.id) },
+            )
+        }
+    }
+    // The row is looked up again at each change, so that the sheet follows the live list
+    // and closes by itself if the idea is removed meanwhile.
+    state.items.firstOrNull { it.item.id == openItemId }?.let { row ->
+        ItemSheet(row, state, actions, onDismiss = { openItemId = null })
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Header(state: GiftListUiState.Success) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         val subtitle = listSubtitle(state.list, state.beneficiary.firstName, state.today)
         if (subtitle.isNotEmpty()) {
             Text(subtitle, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
@@ -192,10 +216,13 @@ private fun Header(state: GiftListUiState.Success) {
             state.keptFromMe && state.list.kind == GiftListKind.Wishes -> stringResource(R.string.gift_list_hidden_wishes)
             state.keptFromMe -> stringResource(R.string.gift_list_hidden_mine)
             state.list.kind == GiftListKind.Surprise -> stringResource(R.string.gift_list_surprise_notice, state.beneficiary.firstName)
-            state.list.kind == GiftListKind.Wishes -> stringResource(R.string.gift_list_wishes_notice, state.beneficiary.firstName)
             else -> stringResource(R.string.gift_list_own_notice, state.beneficiary.firstName)
         }
-        Text(notice, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        // One short sentence; the whole explanation is one touch away.
+        FlowRow(verticalArrangement = Arrangement.Center, itemVerticalAlignment = Alignment.CenterVertically) {
+            Text(notice, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            HelpLink(ScreenHelp.GiftList)
+        }
         if (state.actionFailed) {
             Text(
                 stringResource(R.string.gift_action_failed),
@@ -207,43 +234,81 @@ private fun Header(state: GiftListUiState.Success) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+/** An idea at a glance: title, price, status, and « Je le prends » when it is free. */
 @Composable
-private fun ItemCard(row: ItemRow, state: GiftListUiState.Success, actions: GiftListActions) {
+private fun ItemCard(row: ItemRow, state: GiftListUiState.Success, onOpen: () -> Unit, openLabel: String, onTake: () -> Unit) {
     val item = row.item
     val claim = row.claim
     val tint = if (claim != null) ClayTint.Household else ClayTint.Plain
-    val uriHandler = LocalUriHandler.current
-    ClayCard(modifier = Modifier.fillMaxWidth(), tint = tint) {
+    ClayCard(modifier = Modifier.fillMaxWidth(), tint = tint, onClick = onOpen, onClickLabel = openLabel) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(item.title, style = MaterialTheme.typography.titleMedium)
-            val details = listOfNotNull(
-                item.price?.let { stringResource(R.string.gift_item_price, formatEuros(it)) },
-                if (row.isSurpriseIdea) stringResource(R.string.gift_item_idea_of, item.authorName) else null,
-            ).joinToString(" · ")
-            if (details.isNotEmpty()) {
-                Text(details, style = MaterialTheme.typography.bodyMedium, color = FamiliaClay.colors.onTintVariant(tint))
-            }
-            item.note?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
+            ItemDetails(row, tint)
             claim?.let { ClaimStatus(it, item, tint) }
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(top = 4.dp),
-            ) {
-                item.url?.let { url ->
-                    OutlinedButton(onClick = { runCatching { uriHandler.openUri(url) } }, modifier = Modifier.heightIn(min = 56.dp)) {
-                        Text(stringResource(R.string.gift_item_open_link))
-                    }
+            if (state.canReserve && claim == null) {
+                Button(onClick = onTake, modifier = Modifier.padding(top = 4.dp).heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.gift_take))
                 }
-                if (row.canEdit) {
-                    OutlinedButton(onClick = { actions.onEditItem(item.id) }, modifier = Modifier.heightIn(min = 56.dp)) {
-                        Text(stringResource(R.string.event_detail_edit))
-                    }
-                }
-                ReservationButtons(row, state, actions)
             }
         }
+    }
+}
+
+@Composable
+private fun ItemDetails(row: ItemRow, tint: ClayTint) {
+    val details = listOfNotNull(
+        row.item.price?.let { stringResource(R.string.gift_item_price, formatEuros(it)) },
+        if (row.isSurpriseIdea) stringResource(R.string.gift_item_idea_of, row.item.authorName) else null,
+    ).joinToString(" · ")
+    if (details.isNotEmpty()) {
+        Text(details, style = MaterialTheme.typography.bodyMedium, color = FamiliaClay.colors.onTintVariant(tint))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ItemSheet(row: ItemRow, state: GiftListUiState.Success, actions: GiftListActions, onDismiss: () -> Unit) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        ItemSheetContent(row, state, actions, onEdit = {
+            onDismiss()
+            actions.onEditItem(row.item.id)
+        })
+    }
+}
+
+/** Everything about one idea: note, link, edit, joint gift and its parts. Apart for screenshots. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun ItemSheetContent(row: ItemRow, state: GiftListUiState.Success, actions: GiftListActions, onEdit: () -> Unit) {
+    val item = row.item
+    val uriHandler = LocalUriHandler.current
+    Column(
+        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).navigationBarsPadding(),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(item.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+        ItemDetails(row, ClayTint.Plain)
+        item.note?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
+        row.claim?.let { ClaimStatus(it, item, ClayTint.Plain) }
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(top = 4.dp),
+        ) {
+            ReservationButtons(row, state, actions)
+            item.url?.let { url ->
+                OutlinedButton(onClick = { runCatching { uriHandler.openUri(url) } }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.gift_item_open_link))
+                }
+            }
+            if (row.canEdit) {
+                OutlinedButton(onClick = onEdit, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.event_detail_edit))
+                }
+            }
+        }
+        row.claim?.takeIf { it.type == ClaimType.Shared }?.let { Shares(item.id, it, actions) }
+        Spacer(Modifier.height(16.dp))
     }
 }
 
@@ -273,7 +338,6 @@ private fun ClaimStatus(claim: ClaimView, item: GiftItem, tint: ClayTint) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ReservationButtons(row: ItemRow, state: GiftListUiState.Success, actions: GiftListActions) {
     if (!state.canReserve) return
@@ -297,7 +361,7 @@ private fun ReservationButtons(row: ItemRow, state: GiftListUiState.Success, act
             }
         claim.type == ClaimType.Shared -> {
             if (state.canShare) {
-                OutlinedButton(onClick = { amountDialog = true }, modifier = Modifier.heightIn(min = 56.dp)) {
+                Button(onClick = { amountDialog = true }, modifier = Modifier.heightIn(min = 56.dp)) {
                     Text(stringResource(if (claim.myShare == null) R.string.gift_join else R.string.gift_change_share))
                 }
                 if (claim.myShare != null) {
@@ -313,7 +377,6 @@ private fun ReservationButtons(row: ItemRow, state: GiftListUiState.Success, act
             }
         }
     }
-    if (claim?.type == ClaimType.Shared) Shares(row.item.id, claim, actions)
     if (amountDialog) {
         AmountDialog(
             initial = claim?.myShare?.amount,
@@ -439,4 +502,11 @@ private fun GiftListScreenPreview() {
 @Composable
 private fun GiftListScreenMinePreview() {
     FamiliaTheme { Surface { GiftListScreen(previewGiftList(keptFromMe = true), GiftListActions()) } }
+}
+
+@FamiliaPreviews
+@Composable
+private fun GiftItemSheetPreview() {
+    val state = previewGiftList()
+    FamiliaTheme { Surface { ItemSheetContent(state.items[1], state, GiftListActions(), onEdit = {}) } }
 }

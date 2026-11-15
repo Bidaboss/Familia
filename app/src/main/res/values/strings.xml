@@ -281,6 +281,7 @@
     <!-- Aide (spec « tuto et aide », récits 26 et 27) -->
     <string name="help_button">Aide sur cet écran</string>
     <string name="help_all">Toute l\'aide</string>
+    <string name="help_more">En savoir plus</string>
     <string name="help_title">Aide</string>
     <string name="help_replay_onboarding">Revoir le tuto</string>
     <string name="help_topic_open">Déplié</string>
@@ -299,7 +300,7 @@
     <string name="help_screen_gifts_title">Cadeaux</string>
     <string name="help_screen_gifts_body">En haut, les prochains anniversaires. Plus bas, les listes de chacun : « Mes envies », que chacun remplit toute l\'année, et les listes d\'occasion, comme Noël. Touche une liste pour l\'ouvrir, ou « Nouvelle liste » pour en créer une.</string>
     <string name="help_screen_gift_list_title">Une liste</string>
-    <string name="help_screen_gift_list_body">Sur ta propre liste, tu ajoutes, modifies ou retires tes idées. Tu ne vois jamais qui a réservé quoi : la surprise reste entière. Sur la liste d\'un autre, touche « Je le prends » pour réserver une idée. Les autres verront qu\'elle est prise, mais pas la personne qui la recevra.</string>
+    <string name="help_screen_gift_list_body">Sur ta liste ou tes envies, touche une idée pour la modifier. Ce que les autres réservent ou ajoutent te reste caché jusqu\'au lendemain de l\'occasion : la surprise reste entière. Sur la liste d\'un autre, touche « Je le prends » pour réserver une idée. Touche l\'idée elle-même pour voir son lien, lancer un cadeau commun ou donner ta part. La personne fêtée ne voit rien de tout ça, et une liste surprise lui reste invisible.</string>
     <string name="help_screen_gift_list_edit_title">Préparer une liste</string>
     <string name="help_screen_gift_list_edit_body">Donne un titre, une occasion et une date. Coche les personnes qui verront la liste : tout ton foyer ou toute la famille en un geste. Pour une liste surprise, la personne qui recevra les cadeaux ne la voit jamais. Le lendemain de la date, elle découvre qui lui a offert quoi.</string>
     <string name="help_screen_gift_item_edit_title">Une idée de cadeau</string>
@@ -358,12 +359,11 @@
     <string name="members_wishes_button">Envies</string>
     <string name="gift_wishes_empty_other">%1$s n\'a encore rien noté. Reviens plus tard, ou demande-lui ce qui lui ferait plaisir.</string>
     <string name="gift_list_empty_mine">Aucun article pour l\'instant. Touche « Ajouter » pour dire ce qui te ferait plaisir.</string>
-    <string name="gift_list_hidden_mine">Les idées ajoutées par les autres et les réservations te restent cachées jusqu\'au lendemain de l\'occasion.</string>
-    <string name="gift_list_hidden_wishes">Toute la famille voit tes envies. Ce qui est réservé et les idées des autres te restent cachés.</string>
-    <string name="gift_list_surprise_notice">Liste surprise : %1$s ne la voit pas et n\'en saura rien avant le lendemain de l\'occasion.</string>
-    <string name="gift_list_wishes_notice">Les envies de %1$s. Ce que tu réserves ou ajoutes ici lui reste caché.</string>
-    <string name="gift_list_own_notice">La liste de %1$s. Ce que tu réserves ou ajoutes ici lui reste caché.</string>
-    <string name="gift_list_revealed">Liste archivée : l\'occasion est passée, tout est révélé.</string>
+    <string name="gift_list_hidden_mine">Les réservations te restent cachées.</string>
+    <string name="gift_list_hidden_wishes">Tout le monde voit tes envies, pas les réservations.</string>
+    <string name="gift_list_surprise_notice">%1$s ne voit pas cette liste surprise.</string>
+    <string name="gift_list_own_notice">%1$s ne voit pas ce que tu réserves.</string>
+    <string name="gift_list_revealed">L\'occasion est passée : tout est révélé.</string>
     <string name="gift_add_item">Ajouter</string>
     <string name="gift_add_wish">Ajouter une envie</string>
     <string name="gift_action_failed">Ça n\'a pas marché. Réessaie dans un instant.</string>
@@ -376,6 +376,8 @@
     <string name="gift_joint_total">%1$s de parts annoncées</string>
     <string name="gift_joint_total_of">%1$s de parts annoncées sur %2$s</string>
     <string name="gift_take">Je le prends</string>
+    <string name="gift_item_details">Voir le détail</string>
+    <string name="gift_item_edit_action">Modifier l\'idée</string>
     <string name="gift_open_joint">Cadeau commun</string>
     <string name="gift_release">Je ne le prends plus</string>
     <string name="gift_cancel_joint">Annuler le cadeau commun</string>
