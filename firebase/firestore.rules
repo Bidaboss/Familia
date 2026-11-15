@@ -781,13 +781,20 @@ service cloud.firestore {
 
     // --- App updates (lot 10) ---------------------------------------------------------------------
 
-    // config/app: the latest version and the HTTPS link of its APK (docs/mise-a-jour.md).
-    // config/family: { ownerMemberId }, the admin principal. Every member reads them. Nobody
-    // writes them from the app: the workflow « APK de publication » writes config/app, and the workflow
-    // « Créer le premier admin » writes config/family, neither bound by these rules.
+    // config/app: the latest version and the HTTPS link of its APK (docs/mise-a-jour.md), and
+    // the module switches `features` (PRD rév. 120). config/family: { ownerMemberId }, the admin
+    // principal. Every member reads them. The workflow « APK de publication » writes the version
+    // fields of config/app and the workflow « Créer le premier admin » writes config/family,
+    // neither bound by these rules. From the app, only the admin principal changes `features`,
+    // and nothing else.
     match /config/{docId} {
       allow read: if isMember() && docId in ['app', 'family'];
-      allow write: if false;
+      allow update: if docId == 'app'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['features'])
+        && request.resource.data.features is map
+        && request.resource.data.features.size() <= 30
+        && isOwner();
+      allow create, delete: if false;
     }
 
     // Everything else is closed until a lot opens it explicitly.

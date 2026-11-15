@@ -179,10 +179,14 @@ Les données sont lues sur le serveur, jamais dans le cache du téléphone. Hors
 |---|---|---|
 | `latestVersionCode` | nombre | Le `versionCode` de la dernière version publiée |
 | `latestVersionName` | texte | Son nom affiché, par exemple « 0.2.0 » |
+| `apkFileId` | texte | L'identifiant Drive de l'APK, pour le télécharger depuis l'appli (récit 6 quater) |
+| `apkSize` | nombre | Sa taille en octets, vérifiée après le téléchargement |
+| `apkSha256` | texte | Son empreinte SHA-256 (64 caractères hexadécimaux), vérifiée avant l'installation |
+| `features` | map texte → booléen | Les modules allumés pour la famille (`gifts`, `helpRequests`, `trips`, `home`…). Un module absent ou à `false` reste caché, sauf pour l'admin principal |
 
-Le lien de téléchargement n'est pas dans ce document : il est fixé dans l'appli (`BuildConfig.DOWNLOAD_URL`, le dossier Drive).
+Le lien du dossier Drive n'est pas dans ce document : il est fixé dans l'appli (`BuildConfig.DOWNLOAD_URL`). Si un champ de l'APK manque ou paraît faux, l'appli ouvre ce dossier comme avant.
 
-Droits : tous les membres le lisent, et personne ne l'écrit depuis l'appli. Kévin le modifie dans la console Firebase (voir [mise-a-jour.md](mise-a-jour.md)).
+Droits : tous les membres le lisent. Le workflow « APK de publication » écrit les champs de version et d'APK. Depuis l'appli, seul l'admin principal modifie `features`, et rien d'autre (menu Administration, carte « Modules »). Voir [mise-a-jour.md](mise-a-jour.md).
 
 ### `config/family` (carte DEV-8)
 

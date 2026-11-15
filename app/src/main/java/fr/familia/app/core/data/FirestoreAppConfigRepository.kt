@@ -3,6 +3,7 @@ package fr.familia.app.core.data
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.Source
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -28,8 +29,20 @@ class FirestoreAppConfigRepository(private val db: FirebaseFirestore) : AppConfi
         if (e.code == FirebaseFirestoreException.Code.UNAVAILABLE) throw AppConfigOfflineException(e) else throw e
     }
 
+    override suspend fun setFeature(key: String, enabled: Boolean) {
+        db.collection("config").document("app")
+            .set(mapOf("features" to mapOf(key to enabled)), SetOptions.merge())
+            .await()
+    }
+
     private fun toConfig(snapshot: DocumentSnapshot?) = AppConfig(
         latestVersionCode = snapshot?.getLong("latestVersionCode"),
         latestVersionName = snapshot?.getString("latestVersionName"),
+        apkFileId = snapshot?.getString("apkFileId"),
+        apkSize = snapshot?.getLong("apkSize"),
+        apkSha256 = snapshot?.getString("apkSha256"),
+        features = (snapshot?.get("features") as? Map<*, *>).orEmpty()
+            .mapNotNull { (k, v) -> (k as? String)?.let { key -> (v as? Boolean)?.let { key to it } } }
+            .toMap(),
     )
 }
