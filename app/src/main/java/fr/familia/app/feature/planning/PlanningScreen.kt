@@ -65,6 +65,8 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.EmptyState
+import androidx.compose.ui.semantics.contentDescription
+import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.dayTitle
 import fr.familia.app.core.ui.formatDay
@@ -360,19 +362,26 @@ private fun EventRow(item: PlanningItem, onClick: () -> Unit) {
                 modifier = Modifier.widthIn(min = 72.dp),
             )
             Spacer(Modifier.width(12.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            // Two lines (DESIGN-5): the title, then where, for whom when it is not the whole family,
+            // and who comes. The author is the avatar at the end.
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(event.title, style = MaterialTheme.typography.titleMedium)
-                event.place?.let {
-                    Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                val forWhom = if (event.target is EventTarget.ForFamily) null else stringResource(R.string.planning_for, targetLabel(item.target))
+                val details = listOfNotNull(event.place, forWhom).joinToString(" · ")
+                if (details.isNotEmpty()) {
+                    Text(details, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Text(
-                    stringResource(R.string.planning_for_by, targetLabel(item.target), item.authorName),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
                 answersLabel(item)?.let {
                     Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
                 }
+            }
+            val by = stringResource(R.string.planning_by, item.authorName)
+            if (item.author != null) {
+                Spacer(Modifier.width(12.dp))
+                MemberAvatar(item.author, size = 32.dp, modifier = Modifier.semantics { contentDescription = by })
+            } else {
+                Spacer(Modifier.width(12.dp))
+                Text(item.authorName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         HorizontalDivider(Modifier.padding(start = 100.dp))
@@ -467,7 +476,7 @@ private val weekDayInitials = listOf("L", "M", "M", "J", "V", "S", "D")
 /** Fictional planning for previews and screenshots. */
 internal fun previewPlanning(): PlanningUiState.Success {
     fun item(id: String, title: String, date: LocalDate, time: LocalTime?, place: String?, target: TargetChoice, author: String, manage: Boolean) =
-        PlanningItem(Event(id, title, date, time, place, null, target.target, "a", author), target, author, manage)
+        PlanningItem(Event(id, title, date, time, place, null, target.target, "a", author), target, author, canManage = manage)
     val today = LocalDate.of(2026, 12, 19)
     val day1 = LocalDate.of(2026, 12, 20)
     val day2 = LocalDate.of(2026, 12, 24)

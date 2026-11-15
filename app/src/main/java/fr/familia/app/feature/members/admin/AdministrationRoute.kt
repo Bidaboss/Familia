@@ -32,5 +32,6 @@ fun AdministrationRoute(container: AppContainer?, currentMember: Member, onOpenE
         onFailureShown = viewModel::failureShown,
         features = features,
         onSetFeature = viewModel::setFeature,
+        onRenameHousehold = viewModel::renameHousehold,
     )
 }

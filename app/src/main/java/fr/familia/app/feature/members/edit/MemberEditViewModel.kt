@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Family
+import fr.familia.app.core.theme.MemberColors
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
@@ -74,7 +75,7 @@ class MemberEditViewModel(
         editedId = existing?.id ?: repo.newMemberId()
         val households = if (isOwner) family.households else family.households.filter { it.id == me.householdId }
         initialForm = existing?.let { MemberForm.from(it) }
-            ?: MemberForm(householdId = households.singleOrNull()?.id)
+            ?: MemberForm(householdId = households.singleOrNull()?.id, colorIndex = freeColor(family))
         // A chef chooses responsible adults in their own household. If the admin principal chose
         // one from another household, only the admin principal changes them (the rules check it).
         val outsideParents = existing?.parentIds.orEmpty().filter { id ->
@@ -220,4 +221,10 @@ class MemberEditViewModel(
     } catch (e: Exception) {
         false
     }
+}
+
+/** The first of the member colors nobody has yet (DESIGN-5), or null when all 13 are taken. */
+internal fun freeColor(family: Family): Int? {
+    val taken = family.members.mapNotNull { it.colorIndex }.toSet()
+    return MemberColors.indices.firstOrNull { it !in taken }
 }

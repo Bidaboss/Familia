@@ -39,6 +39,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
+import fr.familia.app.BuildConfig
 import fr.familia.app.R
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
@@ -53,6 +54,7 @@ fun HelpScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     initiallyOpen: HelpTopic? = null,
+    versionName: String = BuildConfig.VERSION_NAME,
 ) {
     var openTopic by rememberSaveable { mutableStateOf(initiallyOpen) }
     Scaffold(
@@ -92,6 +94,15 @@ fun HelpScreen(
                         style = MaterialTheme.typography.bodyLarge,
                     )
                 }
+            }
+            // The version moved here from the Famille tab (DESIGN-5): it is what one gives when asking for help.
+            item(key = "version") {
+                Text(
+                    stringResource(R.string.app_version, versionName),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                )
             }
         }
     }

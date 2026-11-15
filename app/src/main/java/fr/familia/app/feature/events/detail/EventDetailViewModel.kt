@@ -98,10 +98,10 @@ class EventDetailViewModel(
         val me = family.members.firstOrNull { it.id == currentMemberId } ?: return EventDetailUiState.Missing
         val byMember = answers.associateBy { it.memberId }
         // Answers of removed members are not shown: they are cleaned up on the server (lot 8).
-        fun names(status: RsvpStatus) = family.members
+        fun members(status: RsvpStatus) = family.members
             .filter { byMember[it.id]?.status == status }
             .sortedBy { it.firstName.lowercase() }
-            .map { it.firstName }
+        fun names(status: RsvpStatus) = members(status).map { it.firstName }
         val isMe = event.target is EventTarget.ForSelf && event.target.memberId == currentMemberId
         return EventDetailUiState.Success(
             event = event,
@@ -113,6 +113,7 @@ class EventDetailViewModel(
             coming = names(RsvpStatus.Yes),
             maybe = names(RsvpStatus.Maybe),
             notComing = names(RsvpStatus.No),
+            comingMembers = members(RsvpStatus.Yes),
             sendFailed = failed,
         )
     }

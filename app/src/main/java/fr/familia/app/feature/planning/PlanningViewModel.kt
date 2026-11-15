@@ -155,6 +155,7 @@ class PlanningViewModel(
                         event = event,
                         target = TargetChoice(event.target, if (isMe) null else targetName(event.target, family)),
                         authorName = authorDisplayName(event, family),
+                        author = family.members.firstOrNull { it.id == event.authorId },
                         canManage = me != null && canManage(event, me, family),
                         coming = answers[event.id].orEmpty().count { it.memberId in memberIds && it.status == RsvpStatus.Yes },
                         maybe = answers[event.id].orEmpty().count { it.memberId in memberIds && it.status == RsvpStatus.Maybe },

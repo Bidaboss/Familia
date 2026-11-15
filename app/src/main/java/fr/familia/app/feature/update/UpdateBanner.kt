@@ -1,7 +1,5 @@
 package fr.familia.app.feature.update
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,7 +26,10 @@ import fr.familia.app.R
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.FamiliaPreviews
 
-/** Offered above the tabs when a newer version is in the Drive folder (plan, lot 10). */
+/**
+ * Offered above the tabs when a newer version is in the Drive folder (plan, lot 10). One line and
+ * one button (DESIGN-5): the explanations come after the tap, in the update dialogs.
+ */
 @Composable
 fun UpdateBanner(update: AppUpdate, onUpdate: () -> Unit, onLater: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
@@ -36,23 +37,22 @@ fun UpdateBanner(update: AppUpdate, onUpdate: () -> Unit, onLater: () -> Unit, m
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         modifier = modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Outlined.SystemUpdate, contentDescription = null)
-                Spacer(Modifier.width(12.dp))
-                Text(
-                    stringResource(R.string.update_available, update.versionName),
-                    style = MaterialTheme.typography.titleMedium,
-                )
+        Row(
+            Modifier.padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(Icons.Outlined.SystemUpdate, contentDescription = null)
+            Spacer(Modifier.width(12.dp))
+            Text(
+                stringResource(R.string.update_available, update.versionName),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = onLater, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.update_later))
             }
-            Text(stringResource(R.string.update_help), style = MaterialTheme.typography.bodyMedium)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Button(onClick = onUpdate, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.update_action))
-                }
-                TextButton(onClick = onLater, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.update_later))
-                }
+            Button(onClick = onUpdate, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.update_action))
             }
         }
     }

@@ -1,5 +1,16 @@
 package fr.familia.app.feature.events.detail
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.pluralStringResource
+import fr.familia.app.core.ui.MemberAvatar
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -76,11 +87,6 @@ fun EventDetailScreen(
                 },
                 actions = {
                     HelpButton(ScreenHelp.EventDetail)
-                    if ((state as? EventDetailUiState.Success)?.canManage == true) {
-                        TextButton(onClick = onEdit, modifier = Modifier.heightIn(min = 56.dp)) {
-                            Text(stringResource(R.string.event_detail_edit), style = MaterialTheme.typography.labelLarge)
-                        }
-                    }
                 },
             )
         },
@@ -108,15 +114,16 @@ fun EventDetailScreen(
                         }
                     },
                 )
-                is EventDetailUiState.Success -> Content(state, onAnswer)
+                is EventDetailUiState.Success -> Content(state, onAnswer, onEdit)
             }
         }
     }
 }
 
 @Composable
-private fun Content(state: EventDetailUiState.Success, onAnswer: (String, RsvpStatus) -> Unit) {
+private fun Content(state: EventDetailUiState.Success, onAnswer: (String, RsvpStatus) -> Unit, onEdit: () -> Unit) {
     val event = state.event
+    var showAnswers by rememberSaveable { mutableStateOf(false) }
     Column(
         Modifier
             .fillMaxSize()
@@ -133,7 +140,11 @@ private fun Content(state: EventDetailUiState.Success, onAnswer: (String, RsvpSt
         )
         event.place?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
         Text(
-            stringResource(R.string.planning_for_by, targetLabel(state.target), state.authorName),
+            if (event.target is EventTarget.ForFamily) {
+                stringResource(R.string.planning_by, state.authorName)
+            } else {
+                stringResource(R.string.event_detail_for_by, targetLabel(state.target), state.authorName)
+            },
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -156,11 +167,68 @@ private fun Content(state: EventDetailUiState.Success, onAnswer: (String, RsvpSt
             )
         }
 
-        HorizontalDivider(Modifier.padding(vertical = 8.dp))
+        // « N viennent » with their avatars; a tap shows every answer (DESIGN-5).
+        ComingLine(state, onClick = { showAnswers = true })
 
-        Summary(R.string.rsvp_summary_coming, state.coming)
-        Summary(R.string.rsvp_summary_maybe, state.maybe)
-        Summary(R.string.rsvp_summary_not_coming, state.notComing)
+        if (state.canManage) {
+            OutlinedButton(
+                onClick = onEdit,
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp).heightIn(min = 56.dp),
+            ) {
+                Text(stringResource(R.string.event_detail_edit), style = MaterialTheme.typography.labelLarge)
+            }
+        }
+    }
+    if (showAnswers) {
+        AlertDialog(
+            onDismissRequest = { showAnswers = false },
+            title = { Text(stringResource(R.string.rsvp_answers_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Summary(R.string.rsvp_summary_coming, state.coming)
+                    Summary(R.string.rsvp_summary_maybe, state.maybe)
+                    Summary(R.string.rsvp_summary_not_coming, state.notComing)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showAnswers = false }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.action_ok))
+                }
+            },
+        )
+    }
+}
+
+/** Up to five avatars of those who come, then « 3 viennent · 1 peut-être ». */
+@Composable
+private fun ComingLine(state: EventDetailUiState.Success, onClick: () -> Unit) {
+    val coming = state.coming.size
+    val maybe = state.maybe.size
+    val label = when {
+        coming == 0 && maybe == 0 -> stringResource(R.string.rsvp_nobody_yet)
+        else -> listOfNotNull(
+            pluralStringResource(R.plurals.planning_coming, coming, coming).takeIf { coming > 0 },
+            pluralStringResource(R.plurals.planning_maybe, maybe, maybe).takeIf { maybe > 0 },
+        ).joinToString(" · ")
+    }
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClickLabel = stringResource(R.string.rsvp_answers_open), onClick = onClick)
+            .heightIn(min = 56.dp)
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        val shown = state.comingMembers.take(5)
+        if (shown.isNotEmpty()) {
+            Box(Modifier.padding(end = 12.dp)) {
+                shown.forEachIndexed { index, member ->
+                    MemberAvatar(member, size = 32.dp, modifier = Modifier.padding(start = (index * 22).dp))
+                }
+            }
+        }
+        Text(label, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
+        Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null)
     }
 }
 
