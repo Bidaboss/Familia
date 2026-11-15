@@ -1,0 +1,257 @@
+package fr.familia.app.feature.gifts
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.CardGiftcard
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
+import fr.familia.app.R
+import fr.familia.app.core.model.GiftList
+import fr.familia.app.core.model.GiftListKind
+import fr.familia.app.core.model.GiftOccasion
+import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.MemberProfile
+import fr.familia.app.core.model.wishesListId
+import fr.familia.app.core.theme.ClayTint
+import fr.familia.app.core.theme.FamiliaClay
+import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.EmptyState
+import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.MemberAvatar
+import fr.familia.app.core.ui.dayShortLabel
+import fr.familia.app.core.model.Birthday
+import java.time.LocalDate
+
+/** Cadeaux tab: the lists of the family, grouped by person, the member first. Stateless. */
+@Composable
+fun GiftsScreen(
+    state: GiftsUiState,
+    onOpenList: (listId: String) -> Unit,
+    onNewList: () -> Unit,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+    onAllBirthdays: () -> Unit = {},
+    onPrepareSurprise: (memberId: String) -> Unit = {},
+) {
+    Box(modifier.fillMaxSize()) {
+        when (state) {
+            GiftsUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+            GiftsUiState.Error -> EmptyState(
+                icon = Icons.Outlined.CardGiftcard,
+                title = stringResource(R.string.gifts_error_title),
+                body = stringResource(R.string.planning_error_body),
+                action = {
+                    Button(onClick = onRetry, modifier = Modifier.heightIn(min = 56.dp)) {
+                        Text(stringResource(R.string.action_retry))
+                    }
+                },
+            )
+            is GiftsUiState.Success -> LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                // Room at the bottom so the add button never hides the last list.
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                birthdaysSection(state, onAllBirthdays, onPrepareSurprise)
+                state.sections.forEach { section -> personSection(section, state.today, onOpenList) }
+                if (state.archived.isNotEmpty()) archivedSection(state.archived, state.today, onOpenList)
+            }
+        }
+        if (state is GiftsUiState.Success) {
+            ExtendedFloatingActionButton(
+                onClick = onNewList,
+                icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                text = { Text(stringResource(R.string.gifts_new_list)) },
+                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+            )
+        }
+    }
+}
+
+private fun LazyListScope.personSection(section: GiftPersonSection, today: LocalDate, onOpenList: (String) -> Unit) {
+    item(key = "person-${section.member.id}") {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp).semantics(mergeDescendants = true) { heading() },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            MemberAvatar(section.member)
+            Spacer(Modifier.width(12.dp))
+            Text(
+                if (section.isMe) stringResource(R.string.gifts_section_me) else section.member.firstName,
+                style = MaterialTheme.typography.titleLarge,
+            )
+        }
+    }
+    // « Mes envies » always shows for the member and the children whose lists they keep, even empty.
+    val wishes = section.wishes
+    if (wishes != null || section.keptByMe) {
+        item(key = "wishes-${section.member.id}") {
+            val title = if (section.isMe) {
+                stringResource(R.string.gift_my_wishes)
+            } else {
+                stringResource(R.string.gift_wishes_of, section.member.firstName)
+            }
+            ListCard(
+                title = title,
+                subtitle = if (wishes == null) {
+                    stringResource(R.string.gifts_wishes_empty)
+                } else {
+                    stringResource(R.string.gift_wishes_subtitle)
+                },
+                tint = ClayTint.Family,
+                onClick = { onOpenList(wishes?.id ?: wishesListId(section.member.id)) },
+            )
+        }
+    }
+    items(section.lists, key = { "list-${it.id}" }) { list ->
+        ListCard(
+            title = list.title,
+            subtitle = listSubtitle(list, section.member.firstName, today),
+            tint = if (list.kind == GiftListKind.Surprise) ClayTint.Birthday else ClayTint.Plain,
+            onClick = { onOpenList(list.id) },
+        )
+    }
+}
+
+/** The next birthdays first (carte DESIGN-4), each with « Préparer une surprise » for the adults. */
+private fun LazyListScope.birthdaysSection(
+    state: GiftsUiState.Success,
+    onAllBirthdays: () -> Unit,
+    onPrepareSurprise: (String) -> Unit,
+) {
+    item(key = "birthdays-title") {
+        Text(
+            stringResource(R.string.gifts_birthdays_title),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(top = 8.dp).semantics { heading() },
+        )
+    }
+    items(state.birthdays, key = { "birthday-${it.member.id}" }) { birthday ->
+        ClayCard(Modifier.fillMaxWidth(), tint = ClayTint.Birthday) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                MemberAvatar(birthday.member)
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text(
+                        stringResource(R.string.gifts_birthday_of, birthday.member.firstName),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Text(
+                        stringResource(
+                            R.string.birthday_when_age,
+                            dayShortLabel(birthday.date, state.today),
+                            pluralStringResource(R.plurals.birthday_age, birthday.age, birthday.age),
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = FamiliaClay.colors.onTintVariant(ClayTint.Birthday),
+                    )
+                }
+            }
+            if (state.canPrepareSurprise && state.sections.none { it.isMe && it.member.id == birthday.member.id }) {
+                OutlinedButton(
+                    onClick = { onPrepareSurprise(birthday.member.id) },
+                    modifier = Modifier.padding(top = 8.dp).heightIn(min = 56.dp),
+                ) { Text(stringResource(R.string.gifts_prepare_surprise)) }
+            }
+        }
+    }
+    item(key = "birthdays-all") {
+        TextButton(onClick = onAllBirthdays, modifier = Modifier.heightIn(min = 56.dp)) {
+            Text(stringResource(R.string.gifts_all_birthdays))
+        }
+    }
+}
+
+private fun LazyListScope.archivedSection(archived: List<Pair<GiftList, String>>, today: LocalDate, onOpenList: (String) -> Unit) {
+    item(key = "archived-title") {
+        Text(
+            stringResource(R.string.gifts_archived_title),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(top = 24.dp).semantics { heading() },
+        )
+    }
+    items(archived, key = { "archived-${it.first.id}" }) { (list, name) ->
+        ListCard(
+            title = list.title,
+            subtitle = stringResource(R.string.gifts_archived_for, name, listSubtitle(list, name, today)),
+            tint = ClayTint.Plain,
+            onClick = { onOpenList(list.id) },
+        )
+    }
+}
+
+@Composable
+private fun ListCard(title: String, subtitle: String, tint: ClayTint, onClick: () -> Unit) {
+    ClayCard(
+        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+        tint = tint,
+        onClick = onClick,
+        onClickLabel = stringResource(R.string.gifts_open_list),
+    ) {
+        Text(title, style = MaterialTheme.typography.titleMedium)
+        if (subtitle.isNotEmpty()) {
+            Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = FamiliaClay.colors.onTintVariant(tint))
+        }
+    }
+}
+
+/** Fictional lists for previews and screenshots. */
+internal fun previewGifts(): GiftsUiState.Success {
+    fun member(id: String, name: String, profile: MemberProfile = MemberProfile.Adult, parents: List<String> = emptyList()) =
+        Member(id, name, null, null, "h1", profile, false, parents, null)
+    val me = member("a", "Camille")
+    val kid = member("c", "Noé", MemberProfile.ChildWithoutApp, listOf("a"))
+    val other = member("b", "Inès")
+    fun list(id: String, kind: GiftListKind, title: String, beneficiary: String, occasion: GiftOccasion?, date: LocalDate?) =
+        GiftList(id, kind, title, occasion, date, beneficiary, emptyList(), "a", "Camille")
+    val christmas = LocalDate.of(2026, 12, 25)
+    return GiftsUiState.Success(
+        today = LocalDate.of(2026, 11, 15),
+        birthdays = listOf(Birthday(other, LocalDate.of(2026, 11, 22), 40)),
+        canPrepareSurprise = true,
+        sections = listOf(
+            GiftPersonSection(me, isMe = true, keptByMe = true, wishes = list("w-a", GiftListKind.Wishes, "Mes envies", "a", null, null),
+                lists = listOf(list("l1", GiftListKind.Own, "Noël 2026", "a", GiftOccasion.Christmas, christmas))),
+            GiftPersonSection(kid, isMe = false, keptByMe = true, wishes = null, lists = emptyList()),
+            GiftPersonSection(other, isMe = false, keptByMe = false, wishes = list("w-b", GiftListKind.Wishes, "Mes envies", "b", null, null),
+                lists = listOf(list("l2", GiftListKind.Surprise, "Les 40 ans d'Inès", "b", GiftOccasion.Birthday, LocalDate.of(2027, 2, 3)))),
+        ),
+        archived = emptyList(),
+    )
+}
+
+@FamiliaPreviews
+@Composable
+private fun GiftsScreenPreview() {
+    FamiliaTheme { Surface { GiftsScreen(previewGifts(), {}, {}, {}) } }
+}

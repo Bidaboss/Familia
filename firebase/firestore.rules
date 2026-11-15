@@ -669,8 +669,10 @@ service cloud.firestore {
         && request.resource.data.visibleToBeneficiary == resource.data.visibleToBeneficiary
         && request.resource.data.createdAt == resource.data.createdAt;
 
+      // A revealed list is archived: nothing leaves it any more.
       allow delete: if isMember()
         && resource.data.authorId == myMemberId()
+        && list().revealed == false
         && (resource.data.visibleToBeneficiary == true || !exists(claimPath()));
     }
 
@@ -701,7 +703,7 @@ service cloud.firestore {
       allow update: if false;
 
       // The holder releases the item; the shares of a joint gift are removed on the server.
-      allow delete: if isMember() && resource.data.holderId == myMemberId();
+      allow delete: if isMember() && resource.data.holderId == myMemberId() && list().revealed == false;
     }
 
     function isValidShare(s) {

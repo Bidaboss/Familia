@@ -33,7 +33,9 @@ export interface Notice {
   channel: 'events' | 'reminders';
   title: string;
   body: string;
-  eventId: string;
+  /** What a tap opens: an event of the planning, or a gift list (V2). */
+  eventId?: string;
+  listId?: string;
 }
 
 export type ChangeKind = 'added' | 'edited' | 'deleted';
