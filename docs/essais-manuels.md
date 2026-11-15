@@ -96,3 +96,15 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 
 1. Dans Administration > Modules, allume Cadeaux et Entraide. Sur un autre téléphone, avec un compte qui n'est pas admin, ouvre l'appli pour la première fois. **Attendu :** après « Dire si tu viens », les écrans « Les cadeaux » puis « L'entraide » s'affichent, et « Rester prévenu » reste le dernier (6 sur 6).
 2. Éteins Entraide, puis touche « Revoir le tuto » dans l'Aide. **Attendu :** l'écran « L'entraide » n'apparaît plus (5 écrans).
+
+## Écran d'Accueil (récit 29)
+
+1. Dans Administration > Modules, allume « Accueil ». Ferme complètement l'appli et rouvre-la. **Attendu :** l'onglet « Accueil » est le premier de la barre, et l'appli s'ouvre dessus.
+2. Crée un événement pour toute la famille dans les 7 jours, sans répondre. **Attendu :** il apparaît dans « À faire pour moi » (avec « Dis si tu viens ») et dans « Les 7 prochains jours ». Réponds « Je viens » : il quitte « À faire pour moi ».
+3. Touche « Voir le planning ». **Attendu :** l'onglet Planning s'ouvre.
+4. Avec un anniversaire dans le mois et Cadeaux allumé, touche la ligne. **Attendu :** les envies de la personne s'ouvrent.
+5. Avec une liste d'occasion à venir (pas une surprise), **attendu :** « Prochaine occasion » donne le nombre de jours et combien d'idées tu as réservées, jamais leur nom. Sur ta propre liste, aucune réservation n'est donnée. Une liste surprise n'apparaît jamais sur l'Accueil.
+6. Avec un voyage en cours où quelqu'un a touché « Bien arrivé », **attendu :** « En voyage » montre « En cours » et la dernière arrivée.
+7. Sur le téléphone d'un enfant, **attendu :** pas de coup de main à prendre, pas de bouton « Nouveau voyage ».
+8. Une carte sans rien à dire ne s'affiche pas. Sans aucune carte, **attendu :** « Rien de prévu pour l'instant » avec « Voir le planning ».
+9. Éteins « Accueil ». **Attendu :** l'onglet reste jusqu'à la prochaine ouverture de l'appli, puis l'appli s'ouvre à nouveau sur le Planning.

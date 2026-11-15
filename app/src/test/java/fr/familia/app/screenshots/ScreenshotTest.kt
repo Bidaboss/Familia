@@ -39,6 +39,9 @@ import fr.familia.app.feature.events.edit.previewEventState
 import fr.familia.app.feature.planning.PlanningMode
 import fr.familia.app.feature.planning.PlanningScope
 import fr.familia.app.feature.planning.PlanningScreen
+import fr.familia.app.feature.home.HomeActions
+import fr.familia.app.feature.home.HomeScreen
+import fr.familia.app.feature.home.previewHome
 import fr.familia.app.feature.planning.previewPlanning
 import fr.familia.app.feature.members.edit.FormError
 import fr.familia.app.feature.members.edit.MemberEditScreen
@@ -298,6 +301,23 @@ class ScreenshotTest {
     @Config(fontScale = 2f)
     fun eventDetailFontScale200() = capture("evenement_detail_police_200") {
         EventDetailScreen(previewEventDetail(), { _, _ -> }, {}, {}, {})
+    }
+
+    @Test
+    fun homeLight() = capture("accueil_clair") {
+        Surface { HomeScreen(previewHome(), HomeActions(onOpenWishes = {})) }
+    }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun homeDark() = capture("accueil_sombre", darkTheme = true) {
+        Surface { HomeScreen(previewHome(), HomeActions(onOpenWishes = {})) }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun homeFontScale200() = capture("accueil_police_200") {
+        Surface { HomeScreen(previewHome(), HomeActions(onOpenWishes = {})) }
     }
 
     @Test

@@ -700,4 +700,43 @@
     <string name="help_screen_trip_step_body">Choisis le type, le lieu, le départ et l\'arrivée prévue. Avec une heure d\'arrivée, ceux qui partent reçoivent un rappel 3 h après s\'ils n\'ont pas dit « Bien arrivé ».</string>
     <string name="help_topic_trips_title">Les voyages</string>
     <string name="help_topic_trips_body">Touche « Voyages » en haut du planning. Un voyage a des dates, des personnes qui partent et des étapes. Il apparaît dans le planning de ceux qui le suivent. À chaque arrivée, une personne qui part touche « Bien arrivé » : ceux qui suivent le voyage sont prévenus. Sans « Bien arrivé » 3 h après l\'heure prévue, ceux qui partent reçoivent un rappel. Aucune position GPS n\'est collectée.</string>
+    <!-- Accueil (PRD, récit 29, « Tableau de bord d'accueil ») -->
+    <string name="nav_home">Accueil</string>
+    <string name="home_empty_title">Rien de prévu pour l\'instant</string>
+    <string name="home_empty_body">Les prochains événements, les anniversaires et ce que tu as à faire s\'afficheront ici.</string>
+    <string name="home_todo_title">À faire pour moi</string>
+    <string name="home_todo_answer">%1$s · Dis si tu viens</string>
+    <string name="home_todo_help">Demandé par %1$s · %2$s</string>
+    <string name="home_open_event">ouvrir l\'événement</string>
+    <string name="home_open_help">ouvrir le coup de main</string>
+    <string name="home_week_title">Les 7 prochains jours</string>
+    <plurals name="home_week_more">
+        <item quantity="one">Et %d autre événement</item>
+        <item quantity="many">Et %d autres événements</item>
+        <item quantity="other">Et %d autres événements</item>
+    </plurals>
+    <string name="home_week_all">Voir le planning</string>
+    <string name="home_birthdays_title">Anniversaires à venir</string>
+    <string name="home_open_wishes">voir ses envies</string>
+    <string name="home_occasion_title">Prochaine occasion</string>
+    <string name="home_open_list">ouvrir la liste</string>
+    <string name="home_occasion_today">C\'est aujourd\'hui !</string>
+    <string name="home_occasion_tomorrow">C\'est demain</string>
+    <plurals name="home_occasion_in_days">
+        <item quantity="one">Dans %d jour</item>
+        <item quantity="many">Dans %d jours</item>
+        <item quantity="other">Dans %d jours</item>
+    </plurals>
+    <string name="home_occasion_no_claim">Tu n\'as encore rien réservé.</string>
+    <plurals name="home_occasion_claims">
+        <item quantity="one">Tu as réservé %d idée.</item>
+        <item quantity="many">Tu as réservé %d idées.</item>
+        <item quantity="other">Tu as réservé %d idées.</item>
+    </plurals>
+    <string name="home_trips_title">En voyage</string>
+    <string name="home_trip_ongoing">En cours</string>
+    <string name="help_screen_home_title">L\'accueil</string>
+    <string name="help_screen_home_body">Ici, l\'essentiel du moment : ce que tu as à faire, les 7 prochains jours, les anniversaires, la prochaine occasion et les voyages. Une carte vide ne s\'affiche pas. Touche une ligne pour l\'ouvrir.</string>
+    <string name="help_topic_home_title">L\'accueil</string>
+    <string name="help_topic_home_body">Le premier onglet résume le moment : les événements où tu n\'as pas encore répondu, les coups de main pour toi, la semaine qui vient, les anniversaires du mois, la prochaine occasion de cadeaux et les voyages que tu suis. Il est le même pour tout le monde.</string>
 </resources>

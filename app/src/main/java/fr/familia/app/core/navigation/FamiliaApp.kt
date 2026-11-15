@@ -82,6 +82,9 @@ import fr.familia.app.core.ui.rememberMemberPhotos
 import fr.familia.app.feature.members.MembersRoute
 import fr.familia.app.feature.events.edit.EventEditRoute
 import fr.familia.app.feature.planning.PlanningRoute
+import fr.familia.app.feature.home.HomeActions
+import fr.familia.app.feature.home.HomePreferences
+import fr.familia.app.feature.home.HomeRoute as HomeTab
 import fr.familia.app.feature.settings.NotificationSettingsRoute
 import fr.familia.app.feature.export.ExportRoute
 import fr.familia.app.feature.members.admin.AdministrationRoute
@@ -153,6 +156,7 @@ fun FamiliaApp(
     // last screen (spec « tuto et aide », récit 25).
     val context = LocalContext.current
     val onboarding = remember(context) { OnboardingPreferences(context.applicationContext) }
+    val homePrefs = remember(context) { HomePreferences(context.applicationContext) }
     var showOnboarding by rememberSaveable { mutableStateOf(!onboarding.seen) }
     if (showOnboarding) {
         // The 4th screen mentions answering for one's children only to those who have some.
@@ -168,6 +172,10 @@ fun FamiliaApp(
             tutoConfig?.features.orEmpty(),
             isOwner = family?.ownerId != null && family?.ownerId == currentMember.id,
         )
+        // Read during the tutorial, so a new phone opens on the Accueil right after it.
+        LaunchedEffect(tutoConfig, family) {
+            if (tutoConfig != null && family != null) homePrefs.homeOn = tutoFlags.isOn(Feature.Home)
+        }
         OnboardingRoute(
             answersForChildren = answersForChildren,
             gifts = tutoFlags.isOn(Feature.Gifts),
@@ -219,9 +227,19 @@ fun FamiliaApp(
     val ownerId by ownerFlow.collectAsStateWithLifecycle(initialValue = null)
     val features = FeatureFlags(appConfig?.features.orEmpty(), isOwner = ownerId != null && ownerId == currentMember.id)
 
+    // The Accueil (récit 29) is the first tab and the start screen once its module shows. The start
+    // is read from the phone at once, and kept for this opening even if the module changes.
+    val startTab = rememberSaveable { TopLevelDestination.startFor(homePrefs.homeOn) }
+    LaunchedEffect(appConfig, ownerId) {
+        if (appConfig != null && ownerId != null) homePrefs.homeOn = features.isOn(Feature.Home)
+    }
+
     // The Entraide tab and its entry points stay hidden while the module is off (PRD rév. 120).
     val helpRequestsOn = features.isOn(Feature.HelpRequests)
-    val tabs = TopLevelDestination.visible(features)
+    val tabs = TopLevelDestination.visible(features).let { visible ->
+        // The start screen keeps its tab until the next opening, so the bar always shows where one is.
+        if (startTab in visible) visible else listOf(startTab) + visible
+    }
     // The notification channels of a module appear in the Android settings once it shows.
     LaunchedEffect(features) { NotificationChannels.create(context.applicationContext, features) }
     // A notification of a coup de main opens it only once the module shows; otherwise it is dropped.
@@ -255,7 +273,7 @@ fun FamiliaApp(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
 
-    // The bar only shows on the three tabs, not on screens opened from them.
+    // The bar only shows on the tabs, not on screens opened from them.
     val onTab = TopLevelDestination.entries.any { currentDestination.isOn(it) }
 
     // Profile photos (PRD, récit 3 bis): read once here, shown by every avatar of the app.
@@ -327,9 +345,31 @@ fun FamiliaApp(
                 }
                 NavHost(
                     navController = navController,
-                    startDestination = TopLevelDestination.start.route,
+                    startDestination = startTab.route,
                     modifier = Modifier.weight(1f),
                 ) {
+                    composable<HomeRoute> {
+                        HomeTab(
+                            container = container,
+                            currentMember = currentMember,
+                            actions = HomeActions(
+                                onOpenEvent = { id -> navController.navigate(EventDetailDestination(id)) },
+                                onOpenPlanning = { navController.navigateToTab(TopLevelDestination.Planning) },
+                                onOpenHelpRequest = { id -> navController.navigate(HelpRequestDetailDestination(id)) },
+                                onOpenWishes = if (features.isOn(Feature.Gifts)) {
+                                    { id -> navController.navigate(GiftListDestination(wishesListId(id))) }
+                                } else {
+                                    null
+                                },
+                                onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
+                                onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
+                                onNewTrip = { navController.navigate(TripEditDestination()) },
+                            ),
+                            onOpenGoodNewsFeed = { navController.navigate(GoodNewsFeedDestination) },
+                            onOpenGoodNews = { id -> navController.navigate(GoodNewsDetailDestination(id)) },
+                            onPublishGoodNews = { navController.navigate(GoodNewsEditDestination()) },
+                        )
+                    }
                     composable<PlanningRoute> {
                         PlanningRoute(
                             container = container,
@@ -616,6 +656,7 @@ private fun TabTopBar(tab: TopLevelDestination, member: Member, onOpenTrips: () 
                     }
                     HelpButton(ScreenHelp.Planning)
                 }
+                TopLevelDestination.Home -> HelpButton(ScreenHelp.Home)
                 TopLevelDestination.Members -> HelpButton(ScreenHelp.Family)
                 TopLevelDestination.HelpRequests -> HelpButton(ScreenHelp.HelpRequests)
                 TopLevelDestination.Gifts -> HelpButton(ScreenHelp.Gifts)

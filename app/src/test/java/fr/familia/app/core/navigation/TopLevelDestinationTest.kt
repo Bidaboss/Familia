@@ -7,16 +7,17 @@ import org.junit.Test
 class TopLevelDestinationTest {
 
     @Test
-    fun `bottom bar shows planning, gifts, entraide and family in that order`() {
+    fun `bottom bar shows accueil, planning, gifts, entraide and family in that order`() {
         assertEquals(
-            listOf(TopLevelDestination.Planning, TopLevelDestination.Gifts, TopLevelDestination.HelpRequests, TopLevelDestination.Members),
+            listOf(TopLevelDestination.Home, TopLevelDestination.Planning, TopLevelDestination.Gifts, TopLevelDestination.HelpRequests, TopLevelDestination.Members),
             TopLevelDestination.entries.toList(),
         )
     }
 
     @Test
-    fun `app opens on the planning tab`() {
-        assertEquals(TopLevelDestination.Planning, TopLevelDestination.start)
+    fun `app opens on the accueil once its module shows, on the planning before`() {
+        assertEquals(TopLevelDestination.Planning, TopLevelDestination.startFor(homeOn = false))
+        assertEquals(TopLevelDestination.Home, TopLevelDestination.startFor(homeOn = true))
     }
 
     @Test
@@ -26,7 +27,7 @@ class TopLevelDestinationTest {
     }
 
     @Test
-    fun `the gifts and entraide tabs wait for their module, except for the admin principal`() {
+    fun `the accueil, gifts and entraide tabs wait for their module, except for the admin principal`() {
         val off = TopLevelDestination.visible(FeatureFlags())
         assertEquals(listOf(TopLevelDestination.Planning, TopLevelDestination.Members), off)
         assertEquals(
