@@ -62,6 +62,7 @@ fun GiftsScreen(
     modifier: Modifier = Modifier,
     onAllBirthdays: () -> Unit = {},
     onPrepareSurprise: (memberId: String) -> Unit = {},
+    onOpenNotebook: (() -> Unit)? = null,
 ) {
     Box(modifier.fillMaxSize()) {
         when (state) {
@@ -82,6 +83,16 @@ fun GiftsScreen(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                onOpenNotebook?.let { open ->
+                    item(key = "notebook") {
+                        ListCard(
+                            title = stringResource(R.string.notebook_entry),
+                            subtitle = stringResource(R.string.notebook_entry_subtitle),
+                            tint = ClayTint.Household,
+                            onClick = open,
+                        )
+                    }
+                }
                 birthdaysSection(state, onAllBirthdays, onPrepareSurprise)
                 state.sections.forEach { section -> personSection(section, state.today, onOpenList) }
                 if (state.archived.isNotEmpty()) archivedSection(state.archived, state.today, onOpenList)

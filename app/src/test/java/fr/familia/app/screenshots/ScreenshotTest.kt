@@ -67,6 +67,10 @@ import fr.familia.app.feature.gifts.edit.GiftListEditScreen
 import fr.familia.app.feature.gifts.edit.previewGiftListForm
 import fr.familia.app.feature.gifts.item.GiftItemEditScreen
 import fr.familia.app.feature.gifts.item.previewGiftItemForm
+import fr.familia.app.feature.gifts.notebook.NotebookActions
+import fr.familia.app.feature.gifts.notebook.NotebookScreen
+import fr.familia.app.feature.gifts.notebook.StatusSheetContent
+import fr.familia.app.feature.gifts.notebook.previewNotebook
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.feature.members.photo.PhotoCropContent
 import fr.familia.app.feature.members.photo.previewPicture
@@ -514,6 +518,19 @@ class ScreenshotTest {
         val state = previewGiftList()
         Surface { ItemSheetContent(state.items[0], state, GiftListActions(), onEdit = {}) }
     }
+
+    @Test
+    fun notebookLight() = capture("carnet_cadeaux_clair") { NotebookScreen(previewNotebook(), NotebookActions()) }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun notebookStatusDark() = capture("carnet_cadeaux_etat_sombre", darkTheme = true) {
+        Surface { StatusSheetContent(previewNotebook().people.first().entries[1], {}, {}) }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun notebookFontScale200() = capture("carnet_cadeaux_police_200") { NotebookScreen(previewNotebook(), NotebookActions()) }
 
     @Test
     fun giftListFormLight() = capture("liste_cadeaux_formulaire_clair") { GiftListEditScreen(previewGiftListForm(), {}, {}, {}, {}) }
