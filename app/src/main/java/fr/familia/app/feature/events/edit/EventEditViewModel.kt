@@ -1,5 +1,6 @@
 package fr.familia.app.feature.events.edit
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.EventRepository
@@ -18,6 +19,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import java.time.LocalDate
+import java.time.LocalTime
 
 /**
  * Create an event ([eventId] null), or edit and delete one (PRD, récits 2 and 5). Offline, the write
@@ -29,6 +32,8 @@ class EventEditViewModel(
     private val currentMemberId: String,
     private val eventId: String?,
     private val writeTimeoutMillis: Long = 4_000,
+    /** Keeps the draft if Android closes the app in the background (audit DESIGN du 15/11). */
+    private val savedState: SavedStateHandle? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<EventEditUiState>(EventEditUiState.Loading)
@@ -64,7 +69,8 @@ class EventEditViewModel(
 
         me = current
         original = existing
-        editedId = existing?.id ?: eventRepo.newEventId()
+        editedId = existing?.id ?: savedState?.get<String>(KEY_ID) ?: eventRepo.newEventId()
+        savedState?.set(KEY_ID, editedId)
         allowed = allowedTargets(current, family)
         // Editing keeps the current target even if this member could not have chosen it.
         val choices = (listOfNotNull(existing?.target).filter { it !in allowed } + allowed)
@@ -73,11 +79,14 @@ class EventEditViewModel(
                 TargetChoice(target, if (isMe) null else targetName(target, family))
             }
         initialForm = existing?.let { EventForm.from(it) } ?: EventForm(target = allowed.first())
+        val draft = savedState?.let { restoreDraft(it) }?.takeIf { d -> d.target == null || choices.any { it.target == d.target } }
+        val form = draft ?: initialForm
         _uiState.value = EventEditUiState.Editing(
-            form = initialForm,
+            form = form,
             isNew = existing == null,
             targets = choices,
             errors = emptySet(),
+            hasChanges = form != initialForm,
         )
     }
 
@@ -88,6 +97,7 @@ class EventEditViewModel(
     fun update(change: (EventForm) -> EventForm) {
         val state = _uiState.value as? EventEditUiState.Editing ?: return
         val form = change(state.form)
+        savedState?.let { saveDraft(it, form) }
         _uiState.value = state.copy(
             form = form,
             errors = errorsFor(form, state),
@@ -150,5 +160,54 @@ class EventEditViewModel(
         throw e
     } catch (e: Exception) {
         false
+    }
+
+    private companion object {
+        const val KEY_ID = "eventDraft.id"
+        const val KEY_TITLE = "eventDraft.title"
+        const val KEY_DATE = "eventDraft.date"
+        const val KEY_TIME = "eventDraft.time"
+        const val KEY_PLACE = "eventDraft.place"
+        const val KEY_NOTE = "eventDraft.note"
+        const val KEY_TARGET = "eventDraft.target"
+
+        fun saveDraft(handle: SavedStateHandle, form: EventForm) {
+            handle[KEY_TITLE] = form.title
+            handle[KEY_DATE] = form.date?.toString()
+            handle[KEY_TIME] = form.time?.toString()
+            handle[KEY_PLACE] = form.place
+            handle[KEY_NOTE] = form.note
+            handle[KEY_TARGET] = form.target?.let(::encodeTarget)
+        }
+
+        fun restoreDraft(handle: SavedStateHandle): EventForm? {
+            val title = handle.get<String>(KEY_TITLE) ?: return null
+            return EventForm(
+                title = title,
+                date = handle.get<String>(KEY_DATE)?.let { runCatching { LocalDate.parse(it) }.getOrNull() },
+                time = handle.get<String>(KEY_TIME)?.let { runCatching { LocalTime.parse(it) }.getOrNull() },
+                place = handle.get<String>(KEY_PLACE).orEmpty(),
+                note = handle.get<String>(KEY_NOTE).orEmpty(),
+                target = handle.get<String>(KEY_TARGET)?.let(::decodeTarget),
+            )
+        }
+    }
+}
+
+internal fun encodeTarget(target: EventTarget): String = when (target) {
+    EventTarget.ForFamily -> "family"
+    is EventTarget.ForHousehold -> "household:${target.householdId}"
+    is EventTarget.ForSelf -> "self:${target.memberId}"
+    is EventTarget.ForChild -> "child:${target.memberId}"
+}
+
+internal fun decodeTarget(value: String): EventTarget? {
+    val (kind, id) = value.split(":", limit = 2).let { it[0] to it.getOrNull(1) }
+    return when (kind) {
+        "family" -> EventTarget.ForFamily
+        "household" -> id?.let { EventTarget.ForHousehold(it) }
+        "self" -> id?.let { EventTarget.ForSelf(it) }
+        "child" -> id?.let { EventTarget.ForChild(it) }
+        else -> null
     }
 }

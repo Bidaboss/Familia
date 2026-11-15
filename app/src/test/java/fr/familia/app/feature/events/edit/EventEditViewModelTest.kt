@@ -123,4 +123,26 @@ class EventEditViewModelTest {
         viewModel.update { it.copy(title = "") }
         assertFalse(viewModel.editing().hasChanges)
     }
+
+    @Test
+    fun `a draft comes back after Android closed the app in the background`() {
+        val handle = androidx.lifecycle.SavedStateHandle()
+        val first = EventEditViewModel(FakeEvents(), FakeMembers(), "adult1", null, savedState = handle)
+        first.update { it.copy(title = "Galette", date = LocalDate.of(2027, 1, 6), time = LocalTime.of(16, 0), target = EventTarget.ForHousehold("h1")) }
+
+        val again = EventEditViewModel(FakeEvents(), FakeMembers(), "adult1", null, savedState = handle)
+        val form = again.editing().form
+        assertEquals("Galette", form.title)
+        assertEquals(LocalDate.of(2027, 1, 6), form.date)
+        assertEquals(LocalTime.of(16, 0), form.time)
+        assertEquals(EventTarget.ForHousehold("h1"), form.target)
+        assertTrue(again.editing().hasChanges)
+    }
+
+    @Test
+    fun `every target survives its encoding`() {
+        listOf(EventTarget.ForFamily, EventTarget.ForHousehold("h1"), EventTarget.ForSelf("a"), EventTarget.ForChild("k"))
+            .forEach { assertEquals(it, decodeTarget(encodeTarget(it))) }
+        assertNull(decodeTarget("other:x"))
+    }
 }

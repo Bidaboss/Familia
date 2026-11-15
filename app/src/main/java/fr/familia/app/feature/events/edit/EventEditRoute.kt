@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
@@ -16,7 +17,13 @@ fun EventEditRoute(container: AppContainer?, currentMember: Member, eventId: Str
     val viewModel: EventEditViewModel = viewModel(
         factory = viewModelFactory {
             initializer {
-                EventEditViewModel(container?.eventRepository, container?.memberRepository, currentMember.id, eventId)
+                EventEditViewModel(
+                    container?.eventRepository,
+                    container?.memberRepository,
+                    currentMember.id,
+                    eventId,
+                    savedState = createSavedStateHandle(),
+                )
             }
         },
     )
