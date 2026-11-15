@@ -40,7 +40,6 @@
     <string name="rsvp_answers_open">voir les réponses</string>
     <string name="event_detail_for_by">Pour %1$s · ajouté par %2$s</string>
     <string name="planning_mode_month">Mois</string>
-    <string name="planning_scope_family">Toute la famille</string>
     <string name="planning_scope_household">Mon foyer</string>
     <string name="planning_scope_empty_body">Rien de prévu pour ton foyer. « Toute la famille » montre aussi les événements des autres foyers.</string>
     <string name="planning_month_previous">Mois précédent</string>
@@ -59,6 +58,9 @@
     <string name="event_place">Lieu (facultatif)</string>
     <string name="event_note">Note (facultative)</string>
     <string name="event_for_whom">Pour qui</string>
+    <string name="event_for_whom_none">À choisir</string>
+    <string name="event_for_whom_change">Changer</string>
+    <string name="event_note_add">Ajouter une note</string>
     <string name="event_for_family">Toute la famille</string>
     <string name="event_for_household">Un foyer</string>
     <string name="event_for_me">Moi</string>
@@ -134,10 +136,10 @@
     <string name="administration_failed_title">Ça n\'a pas marché</string>
     <string name="administration_failed_body">Le changement n\'a pas été accepté. Réessaie, et si ça recommence, vérifie que tu es toujours admin principal.</string>
     <string name="administration_chefs_title">Chefs de famille</string>
-    <string name="administration_chefs_help">Un chef de famille ajoute, modifie et retire les membres de son foyer, et corrige les événements écrits par son foyer. Un foyer peut avoir plusieurs chefs.</string>
+    <string name="administration_chefs_help">Un chef de famille gère les membres et les événements de son foyer.</string>
     <string name="administration_owner_row">Admin principal : tous les droits</string>
     <string name="administration_households_title">Foyers</string>
-    <string name="administration_households_help">Renomme un foyer avec le crayon. Un foyer se supprime quand il n\'a plus de membres.</string>
+    <string name="administration_households_help">Le crayon renomme un foyer ; un foyer sans membre peut être supprimé.</string>
     <plurals name="administration_household_members">
         <item quantity="one">%d membre</item>
         <item quantity="many">%d membres</item>
@@ -149,7 +151,7 @@
     <string name="administration_household_delete_body">Il n\'a plus de membres. Ses anciens événements restent dans le planning.</string>
     <string name="administration_household_delete_confirm">Supprimer</string>
     <string name="administration_features_title">Modules</string>
-    <string name="administration_features_help">Un module éteint reste caché pour la famille. Toi, tu le vois toujours, pour l\'essayer avant de l\'allumer.</string>
+    <string name="administration_features_help">Un module éteint est caché à la famille, mais toi tu le vois toujours.</string>
     <string name="administration_feature_on">Visible par la famille</string>
     <string name="administration_feature_off">Caché à la famille</string>
     <string name="feature_home">Accueil</string>
@@ -198,6 +200,10 @@
     <string name="error_sole_parent_of_child">C\'est le seul adulte responsable d\'un enfant. Choisis d\'abord un autre adulte pour cet enfant.</string>
     <string name="error_birth_date_future">La date de naissance ne peut pas être dans le futur.</string>
     <string name="members_other_household">Autres</string>
+    <string name="confirm_saved">C\'est enregistré.</string>
+    <string name="confirm_deleted">Événement supprimé.</string>
+    <string name="confirm_member_removed">Fiche retirée de la famille.</string>
+    <string name="confirm_queued">Enregistré, envoi au retour du réseau.</string>
     <string name="offline_banner">Hors ligne. Tu vois la dernière version enregistrée sur ce téléphone.</string>
     <string name="members_me">%1$s (toi)</string>
     <string name="profile_adult">Adulte</string>
@@ -235,8 +241,7 @@
     <string name="channel_help_requests">Entraide</string>
     <string name="channel_help_requests_description">Coups de main demandés, proposés ou confirmés</string>
     <string name="export_title">Sauvegarde des données</string>
-    <string name="export_body">Crée un fichier avec tous les membres, les foyers, les événements et les réponses de la famille. Tu choisis où l\'enregistrer : sur ce téléphone ou dans ton Google Drive.</string>
-    <string name="export_privacy">Ce fichier contient les adresses et les dates de naissance de toute la famille. Garde-le pour toi et ne le partage pas.</string>
+    <string name="export_body">Un fichier avec toutes les données de la famille, à garder pour toi : sur ce téléphone ou dans ton Drive.</string>
     <string name="export_action">Créer la sauvegarde</string>
     <string name="export_in_progress">Sauvegarde en cours…</string>
     <string name="export_done">Sauvegarde enregistrée.</string>
@@ -269,14 +274,16 @@
     <string name="onboarding_allow_notifications">Autoriser les notifications</string>
     <string name="onboarding_not_now">Pas maintenant</string>
     <string name="onboarding_welcome_title">Bienvenue dans Familia</string>
-    <string name="onboarding_welcome_body">Ici, la famille partage ses dates sans les perdre dans WhatsApp. Tout le monde voit le même planning.</string>
-    <string name="onboarding_planning_title">Le planning</string>
-    <string name="onboarding_planning_body">Les événements à venir et les anniversaires de toute la famille. Touche un événement pour voir le détail.</string>
+    <string name="onboarding_welcome_body">Tout le monde voit le même planning : les événements et les anniversaires de la famille. Touche un événement pour voir le détail.</string>
     <string name="onboarding_add_title">Ajouter un événement</string>
     <string name="onboarding_add_body">Touche le bouton « Ajouter », donne un titre et une date. Toute la famille le voit aussitôt.</string>
     <string name="onboarding_answer_title">Dire si tu viens</string>
     <string name="onboarding_answer_body">Sur un événement, réponds « Je viens », « Peut-être » ou « Je ne viens pas ». Tu peux aussi répondre pour tes enfants.</string>
     <string name="onboarding_answer_body_child">Sur un événement, réponds « Je viens », « Peut-être » ou « Je ne viens pas ».</string>
+    <string name="onboarding_gifts_title">Les cadeaux</string>
+    <string name="onboarding_gifts_body">Note tes idées dans « Mes envies » pour que la famille trouve quoi t\'offrir. Réserve un cadeau pour quelqu\'un : la personne ne le voit pas.</string>
+    <string name="onboarding_help_title">L\'entraide</string>
+    <string name="onboarding_help_body">Besoin d\'un coup de main pour garder les enfants ou faire un trajet ? Demande-le dans l\'onglet Entraide. Tu peux aussi proposer ton aide quand quelqu\'un en cherche.</string>
     <string name="onboarding_notifications_title">Rester prévenu</string>
     <string name="onboarding_notifications_body">Familia te prévient des nouveautés et te rappelle la veille d\'un événement. Autorise les notifications pour ne rien manquer.</string>
     <!-- Aide (spec « tuto et aide », récits 26 et 27) -->
@@ -430,12 +437,15 @@
     <string name="error_gift_note_too_long">500 caractères au plus.</string>
     <!-- Photo de profil (PRD, récit 3 bis) -->
     <string name="photo_change_action">changer la photo</string>
+    <string name="photo_view_action">voir la photo en grand</string>
+    <string name="photo_viewer_close">Fermer</string>
+    <string name="photo_viewer_change">Changer la photo</string>
     <string name="photo_of">Photo de %1$s</string>
     <string name="photo_pick_gallery">Choisir dans la galerie</string>
     <string name="photo_take">Prendre une photo</string>
     <string name="photo_remove">Retirer la photo</string>
     <string name="photo_crop_title">Cadrer la photo</string>
-    <string name="photo_crop_hint">Fais glisser pour déplacer la photo et pince pour zoomer. Le rond montre ce que la famille verra.</string>
+    <string name="photo_crop_hint">Glisse et pince pour cadrer la photo dans le rond.</string>
     <string name="photo_zoom_in">Zoomer</string>
     <string name="photo_zoom_out">Dézoomer</string>
     <string name="photo_crop_confirm">Valider</string>

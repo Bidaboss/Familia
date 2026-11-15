@@ -1,5 +1,6 @@
 package fr.familia.app.feature.members.edit
 
+import fr.familia.app.core.ui.Confirmation
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Household
@@ -109,7 +110,7 @@ class MemberEditViewModelTest {
         assertEquals(emptyList<String>(), viewModel.editing().soleParentOf)
 
         viewModel.remove()
-        assertEquals(MemberEditUiState.Saved, viewModel.uiState.value)
+        assertEquals(MemberEditUiState.Saved(Confirmation.MemberRemoved), viewModel.uiState.value)
         val (removed, children) = repo.removed.single()
         assertEquals("adult1", removed.id)
         assertEquals(listOf("admin1"), children.single().parentIds)
@@ -272,5 +273,22 @@ class MemberEditViewModelTest {
             households += household
         }
         override suspend fun deleteHousehold(householdId: String) = Unit
+    }
+
+    @Test
+    fun `a member draft comes back after Android closed the app in the background`() {
+        val handle = androidx.lifecycle.SavedStateHandle()
+        val repo = FakeMembers(family)
+        val first = MemberEditViewModel(repo, admin, null, today = { LocalDate.of(2026, 11, 14) }, savedState = handle)
+        first.update { it.copy(firstName = "Lou", email = "lou@example.com", birthDate = LocalDate.of(1990, 5, 2), colorIndex = 7) }
+
+        val again = MemberEditViewModel(repo, admin, null, today = { LocalDate.of(2026, 11, 14) }, savedState = handle)
+        val form = again.editing().form
+        assertEquals("Lou", form.firstName)
+        assertEquals("lou@example.com", form.email)
+        assertEquals(LocalDate.of(1990, 5, 2), form.birthDate)
+        assertEquals(7, form.colorIndex)
+        assertEquals("h1", form.householdId)
+        assertTrue(again.editing().hasChanges)
     }
 }

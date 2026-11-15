@@ -417,12 +417,12 @@ class ScreenshotTest {
 
     @Test
     @Config(qualifiers = "+night")
-    fun onboardingChildDark() = capture("tuto_enfant_sombre", darkTheme = true) { onboarding(answersForChildren = false, index = 3) }
+    fun onboardingChildDark() = capture("tuto_enfant_sombre", darkTheme = true) { onboarding(answersForChildren = false, index = 2) }
 
     @Test
     @Config(fontScale = 2f)
     fun onboardingNotificationsFontScale200() = capture("tuto_notifications_police_200") {
-        onboarding(answersForChildren = true, index = 4)
+        onboarding(answersForChildren = true, index = 3)
     }
 
     @Composable

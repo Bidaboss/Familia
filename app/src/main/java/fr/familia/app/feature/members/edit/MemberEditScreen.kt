@@ -36,6 +36,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -146,7 +147,7 @@ fun MemberEditScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                MemberEditUiState.Loading, MemberEditUiState.Saved ->
+                MemberEditUiState.Loading, is MemberEditUiState.Saved ->
                     CircularProgressIndicator(Modifier.align(Alignment.Center))
                 MemberEditUiState.NotFound -> EmptyState(
                     icon = Icons.Outlined.PersonOff,
@@ -502,8 +503,11 @@ private fun BirthDateField(date: LocalDate?, inFuture: Boolean, today: LocalDate
     }
     if (pickerOpen) {
         val todayMillis = today.toUtcMillis()
+        // A birth date is typed rather than scrolled to, decades back (audit DESIGN du 14/11);
+        // the calendar stays one tap away.
         val pickerState = rememberDatePickerState(
             initialSelectedDateMillis = date?.toUtcMillis(),
+            initialDisplayMode = DisplayMode.Input,
             selectableDates = remember(todayMillis) {
                 object : SelectableDates {
                     override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= todayMillis

@@ -49,10 +49,10 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 
 ## Tuto de démarrage (lot 11a)
 
-1. Installe l'appli sur un téléphone où elle n'a jamais été ouverte, puis connecte-toi avec un compte adulte. **Attendu :** « Bienvenue dans Familia » s'affiche, avec « 1 sur 5 » en haut.
-2. Touche « Suivant » jusqu'au 4e écran. **Attendu :** « Dire si tu viens » parle aussi de répondre pour tes enfants. Avec un compte enfant, ou un adulte sans enfant rattaché (un grand-parent par exemple), cette phrase n’apparaît pas.
+1. Installe l'appli sur un téléphone où elle n'a jamais été ouverte, puis connecte-toi avec un compte adulte. **Attendu :** « Bienvenue dans Familia » s'affiche, avec « 1 sur 4 » en haut.
+2. Touche « Suivant » jusqu'au 3e écran. **Attendu :** « Dire si tu viens » parle aussi de répondre pour tes enfants. Avec un compte enfant, ou un adulte sans enfant rattaché (un grand-parent par exemple), cette phrase n’apparaît pas.
 3. Touche le bouton retour d'Android. **Attendu :** l'écran précédent s'affiche.
-4. Touche « Passer ». **Attendu :** l'écran « Rester prévenu » s'affiche (5 sur 5), avec « Autoriser les notifications » et « Pas maintenant ».
+4. Touche « Passer ». **Attendu :** l'écran « Rester prévenu » s'affiche (4 sur 4), avec « Autoriser les notifications » et « Pas maintenant ».
 5. Touche « Autoriser les notifications », puis accepte dans la fenêtre d'Android. **Attendu :** le planning s'ouvre.
 6. Ferme l'appli, puis rouvre-la. **Attendu :** le tuto ne s'affiche plus.
 
@@ -64,3 +64,35 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 4. En bas de la page, **attendu :** « Un souci ? » donne les prénoms des admins.
 5. Touche « Revoir le tuto ». **Attendu :** le tuto recommence au premier écran, et à la fin tu reviens dans l'appli.
 6. Dans l'onglet Famille, **attendu :** une ligne « Aide » ouvre la même page.
+
+## Message de confirmation (audit DESIGN du 14/11)
+
+1. Ajoute un événement, puis touche « Enregistrer ». **Attendu :** le planning revient, et « C'est enregistré. » s'affiche en bas pendant 8 secondes. Le bouton « Ajouter » remonte au-dessus du message.
+2. Ouvre cet événement, « Modifier », puis « Supprimer ». **Attendu :** le planning revient directement (pas la fiche de l'événement), avec « Événement supprimé. ».
+3. Active le mode avion, modifie une fiche de la famille et enregistre. **Attendu :** après 5 secondes environ, la fiche se ferme avec « Enregistré, envoi au retour du réseau. ». Coupe le mode avion : la modification arrive chez les autres.
+4. Touche la flèche retour d'un formulaire sans rien changer. **Attendu :** aucun message.
+
+## Formulaire d'événement allégé (audit DESIGN du 15/11)
+
+1. Touche « Ajouter » sur le planning. **Attendu :** « Pour qui » tient sur une ligne avec « Toute la famille », et la note est remplacée par « Ajouter une note ».
+2. Touche la ligne « Pour qui ». **Attendu :** la liste s'ouvre ; choisis ton foyer, elle se ferme et la ligne affiche ton foyer.
+3. Touche « Ajouter une note ». **Attendu :** le champ de note apparaît. Une fois enregistré, rouvre l'événement avec « Modifier » : la note est dépliée.
+4. Avec un compte enfant, **attendu :** la ligne « Pour qui » affiche le prénom de l'enfant, sans « Changer ».
+
+## Photo en grand (demande de Kévin, 15/11)
+
+1. Dans l'onglet Famille, touche la photo d'un membre qui en a une. **Attendu :** elle s'affiche en plein écran sur fond noir, avec son prénom en bas.
+2. Touche « Fermer » en haut à gauche, puis recommence et fais le geste retour d'Android. **Attendu :** les deux referment la photo.
+3. Sur ta propre photo (ou celle d'un enfant de ton foyer), **attendu :** le bouton « Changer la photo » est en bas et ouvre le choix galerie ou appareil photo. Sur la photo d'un autre foyer, ce bouton n'apparaît pas.
+4. Sur un membre sans photo que tu peux modifier, touche l'avatar. **Attendu :** le choix de la photo s'ouvre directement, comme avant.
+
+## Haut du planning sur une rangée (audit DESIGN n°3)
+
+1. Ouvre le planning. **Attendu :** une seule rangée en haut, avec « Liste | Mois » à gauche et « Mon foyer » à droite.
+2. Touche « Mon foyer ». **Attendu :** une coche apparaît et seuls les événements de ton foyer restent. Touche-le à nouveau : toute la famille revient.
+3. En police à 200 %, **attendu :** rien n'est coupé, et les boutons gardent au moins la hauteur d'un doigt.
+
+## Tuto : écrans Cadeaux et Entraide (AVIS-18)
+
+1. Dans Administration > Modules, allume Cadeaux et Entraide. Sur un autre téléphone, avec un compte qui n'est pas admin, ouvre l'appli pour la première fois. **Attendu :** après « Dire si tu viens », les écrans « Les cadeaux » puis « L'entraide » s'affichent, et « Rester prévenu » reste le dernier (6 sur 6).
+2. Éteins Entraide, puis touche « Revoir le tuto » dans l'Aide. **Attendu :** l'écran « L'entraide » n'apparaît plus (5 écrans).
