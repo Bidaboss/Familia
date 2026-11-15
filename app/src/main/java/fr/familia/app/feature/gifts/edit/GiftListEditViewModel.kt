@@ -1,5 +1,6 @@
 package fr.familia.app.feature.gifts.edit
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.GiftRepository
@@ -73,6 +74,8 @@ class GiftListEditViewModel(
     private val listId: String?,
     /** Preselected beneficiary, for « Créer une liste surprise » from a reminder. */
     private val forMemberId: String? = null,
+    /** Keeps the draft when Android closes the app in the background. */
+    private val saved: SavedStateHandle = SavedStateHandle(),
     private val writeTimeoutMillis: Long = 4_000,
 ) : ViewModel() {
 
@@ -125,13 +128,18 @@ class GiftListEditViewModel(
         initialForm = existing?.let {
             GiftListForm(it.title, it.occasion ?: GiftOccasion.Other, it.date, it.beneficiaryId, it.viewerIds.toSet())
         } ?: defaultForm(fam, current, beneficiaryId)
+        val beneficiaries = if (existing == null) choices else choices.filter { it.member.id == existing.beneficiaryId }
+        val draft = restoredDraft(fam, beneficiaries.map { it.member.id }.toSet())
+        val form = draft ?: initialForm
+        val locked = locked(fam, current, form)
         _uiState.value = GiftListEditUiState.Editing(
-            form = initialForm,
+            form = form.copy(viewerIds = form.viewerIds + locked),
+            hasChanges = form != initialForm,
             isNew = existing == null,
-            beneficiaries = if (existing == null) choices else choices.filter { it.member.id == existing.beneficiaryId },
+            beneficiaries = beneficiaries,
             members = fam.members.sortedBy { it.firstName.lowercase() },
             households = fam.households.sortedBy { it.name.lowercase() },
-            locked = locked(fam, current, initialForm),
+            locked = locked,
         )
     }
 
@@ -162,6 +170,29 @@ class GiftListEditViewModel(
         _uiState.value = GiftListEditUiState.Unavailable
     }
 
+    /** The draft kept by Android, checked again against the family: members may have changed. */
+    private fun restoredDraft(fam: Family, allowedBeneficiaries: Set<String>): GiftListForm? {
+        val title = saved.get<String>(DRAFT_TITLE) ?: return null
+        val beneficiaryId = saved.get<String>(DRAFT_BENEFICIARY)?.takeIf { it in allowedBeneficiaries } ?: return null
+        val memberIds = fam.members.map { it.id }.toSet()
+        return GiftListForm(
+            title = title,
+            occasion = saved.get<String>(DRAFT_OCCASION)?.let { name -> GiftOccasion.entries.firstOrNull { it.name == name } }
+                ?: GiftOccasion.Other,
+            date = saved.get<Long>(DRAFT_DATE)?.let(LocalDate::ofEpochDay),
+            beneficiaryId = beneficiaryId,
+            viewerIds = saved.get<ArrayList<String>>(DRAFT_VIEWERS).orEmpty().filter { it in memberIds }.toSet(),
+        )
+    }
+
+    private fun keepDraft(form: GiftListForm) {
+        saved[DRAFT_TITLE] = form.title
+        saved[DRAFT_OCCASION] = form.occasion.name
+        saved[DRAFT_DATE] = form.date?.toEpochDay()
+        saved[DRAFT_BENEFICIARY] = form.beneficiaryId
+        saved[DRAFT_VIEWERS] = ArrayList(form.viewerIds)
+    }
+
     fun update(change: (GiftListForm) -> GiftListForm) {
         val state = _uiState.value as? GiftListEditUiState.Editing ?: return
         val fam = family ?: return
@@ -176,6 +207,7 @@ class GiftListEditViewModel(
             }
         }
         val locked = locked(fam, current, form)
+        keepDraft(form.copy(viewerIds = form.viewerIds + locked))
         _uiState.value = state.copy(
             form = form.copy(viewerIds = form.viewerIds + locked),
             locked = locked,
@@ -265,3 +297,9 @@ class GiftListEditViewModel(
         false
     }
 }
+
+private const val DRAFT_TITLE = "draft.title"
+private const val DRAFT_OCCASION = "draft.occasion"
+private const val DRAFT_DATE = "draft.date"
+private const val DRAFT_BENEFICIARY = "draft.beneficiary"
+private const val DRAFT_VIEWERS = "draft.viewers"
