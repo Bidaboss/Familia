@@ -9,6 +9,7 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Trip
 import fr.familia.app.feature.trips.canManageTrip
 import fr.familia.app.feature.trips.participantChoices
+import fr.familia.app.feature.trips.tripAudience
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -87,7 +88,7 @@ class TripEditViewModel(
 
         me = current
         original = existing
-        familyIds = family.members.map { it.id }.toSet()
+        familyIds = tripAudience(family).map { it.id }.toSet()
         editedId = existing?.id ?: tripRepo.newTripId()
         val creatorId = existing?.creatorId ?: current.id
         val households = family.households.associate { it.id to it.name }
@@ -101,7 +102,7 @@ class TripEditViewModel(
             form = initialForm,
             isNew = existing == null,
             participants = (offered + kept).map(::choice),
-            readers = family.members.sortedBy { it.firstName.lowercase() }.map { choice(it).copy(locked = false) },
+            readers = tripAudience(family).sortedBy { it.firstName.lowercase() }.map { choice(it).copy(locked = false) },
             errors = emptySet(),
         )
     }

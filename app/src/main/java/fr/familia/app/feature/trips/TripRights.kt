@@ -22,6 +22,13 @@ fun canManageTrip(trip: Trip, me: Member, family: Family): Boolean =
     trip.creatorId == me.id || family.isOwner(me)
 
 /** Each participant adds and edits the steps and says « bien arrivé ». */
+/**
+ * The members who can be ticked as followers of a trip, all ticked for a new one. Today the whole
+ * family; when the family becomes several circles, this is the one place to switch to the shared
+ * audience function of core/model.
+ */
+fun tripAudience(family: Family): List<Member> = family.members
+
 fun isParticipant(trip: Trip, me: Member): Boolean = me.id in trip.participantIds
 
 /** A participant removes a step; the admin principal too, to tidy up. */

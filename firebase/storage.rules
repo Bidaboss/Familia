@@ -1,0 +1,50 @@
+rules_version = '2';
+
+// Familia rules for Cloud Storage (photos of the trips, the good news, the comments). Nothing is
+// readable or writable unless a module opens its own folder below, with a block of its own and
+// tests in firebase/tests/storage.test.mjs. The rights come from Firestore, read with firestore.get,
+// so a photo is never more visible than the document it belongs to.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // --- Who is calling (the same checks as firestore.rules) ----------------------------------
+
+    function hasVerifiedEmail() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email_verified == true;
+    }
+
+    function docPath(path) {
+      return /databases/(default)/documents/$(path);
+    }
+
+    function emailIndexPath() {
+      return docPath('memberEmails/' + request.auth.token.email.lower());
+    }
+
+    function isMember() {
+      return hasVerifiedEmail() && firestore.exists(emailIndexPath());
+    }
+
+    function myMemberId() {
+      return firestore.get(emailIndexPath()).data.memberId;
+    }
+
+    // --- What is sent --------------------------------------------------------------------------
+
+    // A compressed JPEG made by the app (about 300 KB, or 30 KB for a thumbnail), never another file.
+    function isJpegUnder(maxBytes) {
+      return request.resource.contentType == 'image/jpeg'
+        && request.resource.size > 0
+        && request.resource.size <= maxBytes;
+    }
+
+    // --- Modules add their folder here, before the closing rule --------------------------------
+
+    // --- Everything else is closed --------------------------------------------------------------
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
