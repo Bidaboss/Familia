@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.BuildConfig
@@ -20,7 +21,9 @@ import fr.familia.app.core.model.Member
 fun MemberEditRoute(container: AppContainer?, currentMember: Member, memberId: String?, onDone: () -> Unit) {
     val viewModel: MemberEditViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { MemberEditViewModel(container?.memberRepository, currentMember, memberId) }
+            initializer {
+                MemberEditViewModel(container?.memberRepository, currentMember, memberId, savedState = createSavedStateHandle())
+            }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()

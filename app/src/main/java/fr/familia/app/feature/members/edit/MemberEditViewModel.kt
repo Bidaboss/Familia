@@ -1,5 +1,6 @@
 package fr.familia.app.feature.members.edit
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.MemberRepository
@@ -30,6 +31,8 @@ class MemberEditViewModel(
     private val memberId: String?,
     private val today: () -> LocalDate = LocalDate::now,
     private val writeTimeoutMillis: Long = 4_000,
+    /** Keeps the draft if Android closes the app in the background (audit DESIGN du 15/11). */
+    private val savedState: SavedStateHandle? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<MemberEditUiState>(MemberEditUiState.Loading)
@@ -72,7 +75,8 @@ class MemberEditViewModel(
         isOwner = family.isOwner(me)
         myHouseholdId = me.householdId
         original = existing
-        editedId = existing?.id ?: repo.newMemberId()
+        editedId = existing?.id ?: savedState?.get<String>(KEY_ID) ?: repo.newMemberId()
+        savedState?.set(KEY_ID, editedId)
         val households = if (isOwner) family.households else family.households.filter { it.id == me.householdId }
         initialForm = existing?.let { MemberForm.from(it) }
             ?: MemberForm(householdId = households.singleOrNull()?.id, colorIndex = freeColor(family))
@@ -82,8 +86,13 @@ class MemberEditViewModel(
             family.members.any { it.id == id && it.householdId != me.householdId }
         }
         val children = family.members.filter { editedId in it.parentIds }
+        val draft = savedState?.let { restoreDraft(it) }?.let { d ->
+            d.copy(householdId = d.householdId?.takeIf { id -> households.any { it.id == id } } ?: initialForm.householdId)
+        }
+        val form = draft ?: initialForm
         _uiState.value = MemberEditUiState.Editing(
-            form = initialForm,
+            form = form,
+            hasChanges = form != initialForm,
             isNew = existing == null,
             households = households.sortedBy { it.name.lowercase() },
             adults = family.members
@@ -109,6 +118,7 @@ class MemberEditViewModel(
     fun update(change: (MemberForm) -> MemberForm) {
         val state = _uiState.value as? MemberEditUiState.Editing ?: return
         val form = change(state.form)
+        savedState?.let { saveDraft(it, form) }
         _uiState.value = state.copy(
             form = form,
             errors = errorsFor(form),
@@ -221,6 +231,35 @@ class MemberEditViewModel(
     } catch (e: Exception) {
         false
     }
+}
+
+private const val KEY_ID = "memberDraft.id"
+private const val KEY_DRAFT = "memberDraft."
+
+/** The form as plain values, the only kind a SavedStateHandle keeps across the end of the process. */
+private fun saveDraft(handle: SavedStateHandle, form: MemberForm) {
+    handle[KEY_DRAFT + "firstName"] = form.firstName
+    handle[KEY_DRAFT + "profile"] = form.profile.firestoreValue
+    handle[KEY_DRAFT + "email"] = form.email
+    handle[KEY_DRAFT + "householdId"] = form.householdId
+    handle[KEY_DRAFT + "birthDate"] = form.birthDate?.toString()
+    handle[KEY_DRAFT + "parentIds"] = ArrayList(form.parentIds)
+    handle[KEY_DRAFT + "colorIndex"] = form.colorIndex
+    handle[KEY_DRAFT + "isAdmin"] = form.isAdmin
+}
+
+private fun restoreDraft(handle: SavedStateHandle): MemberForm? {
+    val firstName = handle.get<String>(KEY_DRAFT + "firstName") ?: return null
+    return MemberForm(
+        firstName = firstName,
+        profile = MemberProfile.fromFirestore(handle.get<String>(KEY_DRAFT + "profile")),
+        email = handle.get<String>(KEY_DRAFT + "email").orEmpty(),
+        householdId = handle.get<String>(KEY_DRAFT + "householdId"),
+        birthDate = handle.get<String>(KEY_DRAFT + "birthDate")?.let { runCatching { LocalDate.parse(it) }.getOrNull() },
+        parentIds = handle.get<ArrayList<String>>(KEY_DRAFT + "parentIds").orEmpty().toSet(),
+        colorIndex = handle.get<Int>(KEY_DRAFT + "colorIndex"),
+        isAdmin = handle.get<Boolean>(KEY_DRAFT + "isAdmin") ?: false,
+    )
 }
 
 /** The first of the member colors nobody has yet (DESIGN-5), or null when all 13 are taken. */

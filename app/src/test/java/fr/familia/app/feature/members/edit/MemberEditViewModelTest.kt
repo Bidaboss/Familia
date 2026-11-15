@@ -273,4 +273,21 @@ class MemberEditViewModelTest {
         }
         override suspend fun deleteHousehold(householdId: String) = Unit
     }
+
+    @Test
+    fun `a member draft comes back after Android closed the app in the background`() {
+        val handle = androidx.lifecycle.SavedStateHandle()
+        val repo = FakeMembers(family)
+        val first = MemberEditViewModel(repo, admin, null, today = { LocalDate.of(2026, 11, 14) }, savedState = handle)
+        first.update { it.copy(firstName = "Lou", email = "lou@example.com", birthDate = LocalDate.of(1990, 5, 2), colorIndex = 7) }
+
+        val again = MemberEditViewModel(repo, admin, null, today = { LocalDate.of(2026, 11, 14) }, savedState = handle)
+        val form = again.editing().form
+        assertEquals("Lou", form.firstName)
+        assertEquals("lou@example.com", form.email)
+        assertEquals(LocalDate.of(1990, 5, 2), form.birthDate)
+        assertEquals(7, form.colorIndex)
+        assertEquals("h1", form.householdId)
+        assertTrue(again.editing().hasChanges)
+    }
 }
