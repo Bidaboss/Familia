@@ -12,6 +12,7 @@ import fr.familia.app.feature.update.InAppUpdateDialogs
 import fr.familia.app.feature.update.LocalInAppUpdater
 import fr.familia.app.feature.update.rememberInAppUpdater
 import fr.familia.app.core.model.Feature
+import fr.familia.app.core.notifications.NotificationChannels
 import fr.familia.app.core.model.FeatureFlags
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.update.UpdateCheckRoute
@@ -221,6 +222,8 @@ fun FamiliaApp(
     // The Entraide tab and its entry points stay hidden while the module is off (PRD rév. 120).
     val helpRequestsOn = features.isOn(Feature.HelpRequests)
     val tabs = TopLevelDestination.visible(features)
+    // The notification channels of a module appear in the Android settings once it shows.
+    LaunchedEffect(features) { NotificationChannels.create(context.applicationContext, features) }
     // A notification of a coup de main opens it only once the module shows; otherwise it is dropped.
     LaunchedEffect(openHelpRequestId, helpRequestsOn) {
         if (openHelpRequestId != null && helpRequestsOn) {
