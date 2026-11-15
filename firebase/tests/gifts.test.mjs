@@ -332,6 +332,8 @@ describe('items (récit 8)', () => {
     await assertFails(setDoc(doc(db, 'giftLists/own1/items/c'), newItem(NEIGHBOUR, { price: -1 })));
     await assertFails(setDoc(doc(db, 'giftLists/own1/items/d'), newItem(NEIGHBOUR, { authorName: 'Autre' })));
     await assertSucceeds(setDoc(doc(db, 'giftLists/own1/items/e'), newItem(NEIGHBOUR, { url: null, price: null, note: 'Taille M' })));
+    await assertSucceeds(setDoc(doc(db, 'giftLists/own1/items/f'), newItem(NEIGHBOUR, { imageUrl: 'https://example.com/a.jpg' })));
+    await assertFails(setDoc(doc(db, 'giftLists/own1/items/g'), newItem(NEIGHBOUR, { imageUrl: 'http://example.com/a.jpg' })));
   });
 
   test('the author edits or removes an item until it is reserved', async () => {

@@ -462,11 +462,14 @@ service cloud.firestore {
       return i.keys().hasAll(['title', 'url', 'price', 'note', 'authorId', 'authorName',
                               'visibleToBeneficiary', 'createdAt', 'updatedAt'])
         && i.keys().hasOnly(['title', 'url', 'price', 'note', 'authorId', 'authorName',
-                             'visibleToBeneficiary', 'createdAt', 'updatedAt'])
+                             'visibleToBeneficiary', 'createdAt', 'updatedAt', 'imageUrl'])
         && i.title is string && i.title.size() > 0 && i.title.size() <= 80
         && (i.url == null || (i.url is string && i.url.size() <= 500 && i.url.matches('^https?://.+')))
         && (i.price == null || (i.price is number && i.price >= 0 && i.price <= 100000))
         && (i.note == null || (i.note is string && i.note.size() <= 500))
+        // Optional picture of a shared link (carte PRODUIT-34), never a file stored by Familia.
+        && (!('imageUrl' in i) || i.imageUrl == null
+            || (i.imageUrl is string && i.imageUrl.size() <= 1000 && i.imageUrl.matches('^https://.+')))
         && i.authorName is string && i.authorName.size() > 0 && i.authorName.size() <= 40
         && i.visibleToBeneficiary is bool
         && i.updatedAt == request.time;

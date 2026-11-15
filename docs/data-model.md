@@ -214,6 +214,7 @@ Requêtes de l'appli, toutes acceptées par les règles : `viewerIds array-conta
 | `url` | texte `http(s)://` (500 au plus) ou null | Lien facultatif |
 | `price` | nombre de 0 à 100 000 ou null | Prix indicatif, en euros |
 | `note` | texte (500 au plus) ou null | Taille, couleur… |
+| `imageUrl` | texte `https://` (1 000 au plus), null ou absent | Facultatif : image lue dans l'aperçu d'un lien partagé (carte PRODUIT-34). Familia ne stocke aucune image |
 | `authorId`, `authorName` | `memberId`, texte | Qui l'a ajouté, jamais modifiés |
 | `visibleToBeneficiary` | booléen | Vrai seulement si l'auteur tient les listes du bénéficiaire et que la liste n'est pas une surprise. Les règles l'imposent |
 | `createdAt`, `updatedAt` | horodatage serveur | |
