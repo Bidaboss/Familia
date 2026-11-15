@@ -16,6 +16,8 @@ data class FamilyData(
     val members: List<ExportDocument>,
     val events: List<ExportDocument>,
     val answers: List<ExportAnswer>,
+    /** Coups de main (spec, « Données et notifications »): the admin principal reads them all. */
+    val helpRequests: List<ExportDocument> = emptyList(),
 )
 
 /** The server could not be reached. A backup is complete or not made at all, never read from the cache. */
