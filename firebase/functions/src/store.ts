@@ -15,6 +15,7 @@ export async function loadMembers(db: Firestore): Promise<Member[]> {
     id: doc.id,
     firstName: String(doc.get('firstName') ?? ''),
     profile: doc.get('profile'),
+    householdId: (doc.get('householdId') as string | null | undefined) ?? null,
     parentIds: (doc.get('parentIds') as string[] | undefined) ?? [],
     uid: (doc.get('uid') as string | null | undefined) ?? null,
   }));
@@ -43,15 +44,38 @@ export async function notify(db: Firestore, send: Sender, memberIds: string[], n
   return sent;
 }
 
-/** PRD, récit 6: an event was added, edited or deleted by [actor]. */
+/**
+ * PRD, récit 6: an event was added, edited or deleted by [actor]. [answered] holds the members who
+ * said « Je viens » or « Peut-être »: read before a deletion removes the answers.
+ */
 export async function notifyChange(
   db: Firestore, send: Sender, kind: ChangeKind, eventId: string, event: EventData, actorUid: string | undefined, now: Date,
+  answered: Set<string> = new Set(),
 ): Promise<number> {
   const members = await loadMembers(db);
   const actor = memberForUid(members, actorUid);
-  const recipients = changeRecipients(members, actor?.id ?? null, event, parisDay(now));
+  const recipients = changeRecipients(members, actor?.id ?? null, event, parisDay(now), answered);
   if (recipients.length === 0) return 0;
   return notify(db, send, recipients, changeNotice(kind, eventId, event, actor?.firstName ?? null));
+}
+
+/**
+ * Who said « Je viens » or « Peut-être » to [eventId]. A child without the app answers through
+ * their adults, who are then told instead.
+ */
+export async function comingMembers(db: Firestore, eventId: string, members?: Member[]): Promise<Set<string>> {
+  const rsvps = await db.collection('events').doc(eventId).collection('rsvps').get();
+  const all = members ?? await loadMembers(db);
+  const byId = new Map(all.map((m) => [m.id, m]));
+  const coming = new Set<string>();
+  for (const r of rsvps.docs) {
+    if (r.get('status') === 'no') continue;
+    const member = byId.get(r.id);
+    if (!member) continue;
+    if (member.profile === 'childWithoutApp') member.parentIds.forEach((id) => coming.add(id));
+    else coming.add(member.id);
+  }
+  return coming;
 }
 
 /** The answers of a deleted event are useless and would stay readable: they go with it. */
