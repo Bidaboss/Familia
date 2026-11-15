@@ -5,6 +5,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
 
 private val LightColors = lightColorScheme(
     primary = PrimaryLight,
@@ -61,7 +63,7 @@ private val DarkColors = darkColorScheme(
 )
 
 /**
- * Wraps every Familia screen with the fixed terracotta theme, in light or dark mode.
+ * Wraps every Familia screen with the fixed terracotta theme and the Argile style, in light or dark mode.
  * Android 12 dynamic color is intentionally not used (see Color.kt).
  */
 @Composable
@@ -69,10 +71,19 @@ fun FamiliaTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
-    MaterialTheme(
-        colorScheme = if (darkTheme) DarkColors else LightColors,
-        typography = FamiliaTypography,
-        shapes = FamiliaShapes,
-        content = content,
-    )
+    CompositionLocalProvider(LocalClayColors provides if (darkTheme) DarkClayColors else LightClayColors) {
+        MaterialTheme(
+            colorScheme = if (darkTheme) DarkColors else LightColors,
+            typography = FamiliaTypography,
+            shapes = FamiliaShapes,
+            content = content,
+        )
+    }
+}
+
+/** The Argile colors of the current theme (cards, tints, reliefs). */
+object FamiliaClay {
+    val colors: ClayColors
+        @Composable @ReadOnlyComposable
+        get() = LocalClayColors.current
 }

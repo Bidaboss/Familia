@@ -10,6 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -21,18 +25,39 @@ import fr.familia.app.core.theme.OnMemberColor
 import kotlin.math.absoluteValue
 
 /**
- * Round avatar with the member's color and initial. The circle grows with the font size so the
+ * Avatar in the Argile style: a small sphere of the member's color (lighter at the top left,
+ * darker at the bottom right) with a soft shadow, and the initial. The circle grows with the font size so the
  * initial always fits (40 dp at normal size). Hidden from TalkBack: the first name next to it
  * already says who it is.
  */
 @Composable
 fun MemberAvatar(member: Member, modifier: Modifier = Modifier, size: Dp = 40.dp) {
     val fontScale = LocalDensity.current.fontScale.coerceAtLeast(1f)
+    val color = memberColor(member)
     Box(
         modifier = modifier
             .size(size * fontScale)
+            .shadow(3.dp, CircleShape, ambientColor = color, spotColor = color)
             .clip(CircleShape)
-            .background(memberColor(member))
+            .background(color)
+            .drawBehind {
+                // Light from the top left and shade at the bottom right make a sphere. Both fade out
+                // before the center, so the initial keeps its 4.5:1 contrast.
+                drawRect(
+                    Brush.radialGradient(
+                        colors = listOf(Color.White.copy(alpha = 0.25f), Color.Transparent),
+                        center = Offset(this.size.width * 0.3f, this.size.height * 0.25f),
+                        radius = this.size.minDimension * 0.45f,
+                    ),
+                )
+                drawRect(
+                    Brush.radialGradient(
+                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.18f)),
+                        center = Offset(this.size.width * 0.35f, this.size.height * 0.3f),
+                        radius = this.size.minDimension * 0.85f,
+                    ),
+                )
+            }
             .clearAndSetSemantics {},
         contentAlignment = Alignment.Center,
     ) {
