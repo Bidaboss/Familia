@@ -34,6 +34,8 @@ export interface Notice {
   title: string;
   body: string;
   eventId: string;
+  /** Set for the notices of a trip (V3): the app opens the trip rather than an event. */
+  tripId?: string;
 }
 
 export type ChangeKind = 'added' | 'edited' | 'deleted';

@@ -9,6 +9,10 @@ enum class ScreenHelp(@StringRes val titleRes: Int, @StringRes val bodyRes: Int)
     EventDetail(R.string.help_screen_event_detail_title, R.string.help_screen_event_detail_body),
     EventEdit(R.string.help_screen_event_edit_title, R.string.help_screen_event_edit_body),
     Family(R.string.help_screen_family_title, R.string.help_screen_family_body),
+    Trips(R.string.help_screen_trips_title, R.string.help_screen_trips_body),
+    TripDetail(R.string.help_screen_trip_detail_title, R.string.help_screen_trip_detail_body),
+    TripEdit(R.string.help_screen_trip_edit_title, R.string.help_screen_trip_edit_body),
+    TripStepEdit(R.string.help_screen_trip_step_title, R.string.help_screen_trip_step_body),
 }
 
 /** Who sees a topic of the help page: the functions they can use. */
@@ -23,6 +27,7 @@ enum class HelpTopic(@StringRes val titleRes: Int, @StringRes val bodyRes: Int, 
     Notifications(R.string.help_topic_notifications_title, R.string.help_topic_notifications_body),
     Family(R.string.help_topic_family_title, R.string.help_topic_family_body),
     Updates(R.string.help_topic_updates_title, R.string.help_topic_updates_body),
+    Trips(R.string.help_topic_trips_title, R.string.help_topic_trips_body),
     Invite(R.string.help_topic_invite_title, R.string.help_topic_invite_body, HelpAudience.Chefs),
     Export(R.string.help_topic_export_title, R.string.help_topic_export_body, HelpAudience.Owner),
 }

@@ -11,6 +11,7 @@ import {
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { EventData, hasVisibleChange, Notice } from './logic';
 import { deleteEventAnswers, deleteMemberData, notifyChange, Sender, sendDayBeforeReminders } from './store';
+import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
 
 initializeApp();
 
@@ -24,7 +25,7 @@ const send: Sender = async (token: string, notice: Notice) => {
     await getMessaging().send({
       token,
       notification: { title: notice.title, body: notice.body },
-      data: { eventId: notice.eventId },
+      data: notice.tripId ? { tripId: notice.tripId } : { eventId: notice.eventId },
       android: { notification: { channelId: notice.channel } },
     });
     return 'ok';
@@ -65,4 +66,21 @@ export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (ev
 
 export const dayBeforeReminder = onSchedule({ schedule: '0 18 * * *', timeZone: 'Europe/Paris' }, async () => {
   await sendDayBeforeReminders(getFirestore(), send, new Date());
+});
+
+// --- Trips (V3, récit 14) ---------------------------------------------------------------------
+
+export const onTripStepUpdated = onDocumentUpdatedWithAuthContext('trips/{tripId}/steps/{stepId}', async (event) => {
+  const before = event.data?.before.data() as StepData | undefined;
+  const after = event.data?.after.data() as StepData | undefined;
+  if (!before || !after || !isNewArrival(before, after)) return;
+  await notifyArrival(getFirestore(), send, event.params.tripId, after, actorUid(event));
+});
+
+export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) => {
+  await deleteTripContents(getFirestore(), event.params.tripId);
+});
+
+export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/Paris' }, async () => {
+  await sendArrivalReminders(getFirestore(), send, new Date());
 });
