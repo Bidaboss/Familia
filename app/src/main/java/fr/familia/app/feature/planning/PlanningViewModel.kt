@@ -6,17 +6,20 @@ import fr.familia.app.core.data.EventRepository
 import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.RsvpRepository
+import fr.familia.app.core.data.TripRepository
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Rsvp
 import fr.familia.app.core.model.RsvpStatus
+import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.concerns
 import fr.familia.app.core.model.upcomingBirthdays
 import fr.familia.app.feature.events.authorDisplayName
 import fr.familia.app.feature.events.canManage
 import fr.familia.app.feature.events.edit.TargetChoice
 import fr.familia.app.feature.events.targetName
+import fr.familia.app.feature.trips.firstNames
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -48,6 +51,7 @@ class PlanningViewModel(
     initialScope: PlanningScope = PlanningScope.Family,
     /** Keeps the filter on the phone (PlanningScopePreferences). */
     private val saveScope: (PlanningScope) -> Unit = {},
+    private val trips: TripRepository? = null,
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
@@ -58,12 +62,21 @@ class PlanningViewModel(
             if (events == null || members == null) {
                 scope.map { PlanningUiState.Success(emptyList(), day, it) } // Firebase not configured (previews).
             } else {
-                combine<List<Event>, Family, Map<String, List<Rsvp>>, PlanningScope, PlanningUiState>(
+                combine<List<Event>, Family, Map<String, List<Rsvp>>, PlanningScope, List<Trip>, PlanningUiState>(
                     events.observeUpcoming(day),
                     members.observeFamily(),
                     answers(),
                     scope,
-                ) { list, family, answers, scope -> PlanningUiState.Success(days(list, family, answers, day, scope), day, scope) }
+                    followedTrips(),
+                ) { list, family, answers, scope, trips ->
+                    val upcoming = trips.filter { it.endDate >= day }
+                    PlanningUiState.Success(
+                        days = days(list, family, answers, day, scope, upcoming),
+                        today = day,
+                        scope = scope,
+                        tripDays = tripDays(upcoming, day),
+                    )
+                }
                     .onStart { if (n > 0) emit(PlanningUiState.Loading) }
                     .catch { e ->
                         if (e is CancellationException) throw e
@@ -93,12 +106,32 @@ class PlanningViewModel(
                 emit(emptyMap())
             }
 
+    /** Trips are a bonus too: if they cannot load, the planning still shows, without them. */
+    private fun followedTrips(): Flow<List<Trip>> =
+        (trips?.observeFollowedTrips(currentMemberId) ?: flowOf(emptyList()))
+            .onStart { emit(emptyList()) }
+            .catch { e ->
+                if (e is CancellationException) throw e
+                emit(emptyList())
+            }
+
+    /** Every day of [trips] from [today] on, at most a year ahead (the span of the month view). */
+    private fun tripDays(trips: List<Trip>, today: LocalDate): Set<LocalDate> {
+        val last = today.plusYears(1)
+        return trips.flatMap { trip ->
+            generateSequence(maxOf(trip.startDate, today)) { it.plusDays(1) }
+                .takeWhile { it <= trip.endDate && it <= last }
+                .toList()
+        }.toSet()
+    }
+
     private fun days(
         list: List<Event>,
         family: Family,
         answers: Map<String, List<Rsvp>>,
         today: LocalDate,
         scope: PlanningScope,
+        trips: List<Trip> = emptyList(),
     ): List<PlanningDay> {
         val me = family.members.firstOrNull { it.id == currentMemberId }
         // An answer from a member who has left the family no longer counts.
@@ -107,10 +140,15 @@ class PlanningViewModel(
         val shown = if (scope == PlanningScope.Household && me != null) list.filter { concerns(it.target, me, family) } else list
         val eventsByDay = shown.groupBy { it.date }
         val birthdaysByDay = upcomingBirthdays(family.members, today).groupBy { it.date }
-        return (eventsByDay.keys + birthdaysByDay.keys).sorted().map { date ->
+        // A trip shows on its first day, or today while it is ongoing; the month view marks every day.
+        val tripsByDay = trips.groupBy { maxOf(it.startDate, today) }
+        return (eventsByDay.keys + birthdaysByDay.keys + tripsByDay.keys).sorted().map { date ->
             PlanningDay(
                 date = date,
                 birthdays = birthdaysByDay[date].orEmpty(),
+                trips = tripsByDay[date].orEmpty().map {
+                    PlanningTrip(it, firstNames(it.participantIds, family), ongoing = it.startDate <= today)
+                },
                 items = eventsByDay[date].orEmpty().map { event ->
                     val isMe = event.target is EventTarget.ForSelf && event.target.memberId == currentMemberId
                     PlanningItem(

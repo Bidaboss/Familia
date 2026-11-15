@@ -32,7 +32,7 @@ export type RsvpStatus = 'yes' | 'maybe' | 'no';
 
 /** The ids of NotificationChannels in the app. `events` is the « Planning » channel. */
 // Each module adds its id here and its channel in the app, in the same pull request.
-export type Channel = 'events' | 'reminders' | 'gifts' | 'helpRequests' | 'goodNews';
+export type Channel = 'events' | 'reminders' | 'gifts' | 'helpRequests' | 'goodNews' | 'trips';
 
 export interface Notice {
   /**
@@ -42,9 +42,10 @@ export interface Notice {
   channel: Channel;
   title: string;
   body: string;
-  /** What a tap opens: an event of the planning, or a gift list (V2). */
+  /** What a tap opens: an event of the planning, a gift list (V2) or a trip (V3). */
   eventId?: string;
   listId?: string;
+  tripId?: string;
 }
 
 export type ChangeKind = 'added' | 'edited' | 'deleted';

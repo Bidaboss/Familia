@@ -2,6 +2,7 @@ package fr.familia.app.feature.planning
 
 import fr.familia.app.core.model.Birthday
 import fr.familia.app.core.model.Event
+import fr.familia.app.core.model.Trip
 import fr.familia.app.feature.events.edit.TargetChoice
 import java.time.LocalDate
 
@@ -22,7 +23,12 @@ data class PlanningDay(
     val date: LocalDate,
     val items: List<PlanningItem>,
     val birthdays: List<Birthday> = emptyList(),
+    /** Trips (V3) shown on their first day, or today while they are ongoing. */
+    val trips: List<PlanningTrip> = emptyList(),
 )
+
+/** A trip the member follows, in the planning (PRD, récit 11). */
+data class PlanningTrip(val trip: Trip, val participants: List<String>, val ongoing: Boolean)
 
 sealed interface PlanningUiState {
     data object Loading : PlanningUiState
@@ -31,6 +37,8 @@ sealed interface PlanningUiState {
         val days: List<PlanningDay>,
         val today: LocalDate,
         val scope: PlanningScope = PlanningScope.Family,
+        /** Every day of the trips to come, marked in the month view (PRD, récit 11). */
+        val tripDays: Set<LocalDate> = emptySet(),
     ) : PlanningUiState
     data object Error : PlanningUiState
 }
