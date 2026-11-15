@@ -815,6 +815,8 @@ service cloud.firestore {
 
     // giftLists/{listId}/claims/{itemId}/shares/{memberId}: a part of a joint gift. Each adult
     // declares their own; the responsible (the holder) marks it received. No real payment.
+    // The amount of a part is read by its author and the responsible only, even after the reveal
+    // (PRD rév. 151): the others see the total that the server keeps on the reservation.
     match /giftLists/{listId}/claims/{itemId}/shares/{memberId} {
       function list() {
         return get(giftListPath(listId)).data;
@@ -824,7 +826,8 @@ service cloud.firestore {
         return get(/databases/$(database)/documents/giftLists/$(listId)/claims/$(itemId)).data;
       }
 
-      allow read: if isMember() && canSeeList(list()) && !isKeptFromMe(list());
+      allow read: if isMember() && canSeeList(list()) && !isKeptFromMe(list())
+        && (memberId == myMemberId() || claim().holderId == myMemberId());
 
       allow create: if isMember()
         && memberId == myMemberId()

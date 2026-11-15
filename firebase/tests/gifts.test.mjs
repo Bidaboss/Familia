@@ -223,12 +223,26 @@ describe('the surprise is kept by the server (récit 10 bis)', () => {
     await assertFails(getDocs(collection(db, 'giftLists/wishes-adult1/claims')));
   });
 
-  test('the viewers read everything', async () => {
+  test('the viewers read the items and the reservations', async () => {
     const db = as(env, NEIGHBOUR);
     await assertSucceeds(getDocs(collection(db, 'giftLists/own1/items')));
     await assertSucceeds(getDocs(collection(db, 'giftLists/own1/claims')));
-    await assertSucceeds(getDocs(collection(db, 'giftLists/own1/claims/mine/shares')));
     await assertSucceeds(getDocs(collection(db, 'giftLists/surprise1/items')));
+  });
+
+  test('the amount of a part: its author and the responsible of the joint gift only', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'giftLists/own1/claims/mine/shares/adult3'), {
+        amount: 15, memberName: 'adult3', received: false, updatedAt: OLD,
+      });
+    });
+    const holder = as(env, OTHER_ADULT);
+    await assertSucceeds(getDocs(collection(holder, 'giftLists/own1/claims/mine/shares')));
+    await assertSucceeds(getDoc(doc(holder, 'giftLists/own1/claims/mine/shares/adult3')));
+    const participant = as(env, NEIGHBOUR);
+    await assertSucceeds(getDoc(doc(participant, 'giftLists/own1/claims/mine/shares/adult3')));
+    await assertFails(getDoc(doc(participant, 'giftLists/own1/claims/mine/shares/adult2')));
+    await assertFails(getDocs(collection(participant, 'giftLists/own1/claims/mine/shares')));
   });
 
   test('the day after the occasion, the beneficiary discovers everything', async () => {
@@ -239,7 +253,7 @@ describe('the surprise is kept by the server (récit 10 bis)', () => {
     const db = as(env, ADULT);
     await assertSucceeds(getDocs(collection(db, 'giftLists/own1/items')));
     await assertSucceeds(getDocs(collection(db, 'giftLists/own1/claims')));
-    await assertSucceeds(getDocs(collection(db, 'giftLists/own1/claims/mine/shares')));
+    await assertFails(getDocs(collection(db, 'giftLists/own1/claims/mine/shares'))); // The amounts stay private.
     await assertSucceeds(getDoc(doc(db, 'giftLists/surprise1')));
     await assertSucceeds(getDocs(collection(db, 'giftLists/surprise1/items')));
     await assertSucceeds(getDocs(query(collection(db, 'giftLists'),

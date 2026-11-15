@@ -329,7 +329,7 @@ private fun Shares(itemId: String, claim: ClaimView, actions: GiftListActions) {
     if (claim.shares.isEmpty()) return
     Column(Modifier.fillMaxWidth()) {
         Text(
-            stringResource(R.string.gift_shares_title),
+            stringResource(if (claim.isMine) R.string.gift_shares_title else R.string.gift_my_share_title),
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.semantics { heading() },
         )
