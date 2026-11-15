@@ -61,6 +61,7 @@ import fr.familia.app.feature.gifts.GiftsScreen
 import fr.familia.app.feature.gifts.previewGifts
 import fr.familia.app.feature.gifts.detail.GiftListActions
 import fr.familia.app.feature.gifts.detail.GiftListScreen
+import fr.familia.app.feature.gifts.detail.ItemSheetContent
 import fr.familia.app.feature.gifts.detail.previewGiftList
 import fr.familia.app.feature.gifts.edit.GiftListEditScreen
 import fr.familia.app.feature.gifts.edit.previewGiftListForm
@@ -69,10 +70,21 @@ import fr.familia.app.feature.gifts.item.previewGiftItemForm
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.feature.members.photo.PhotoCropContent
 import fr.familia.app.feature.members.photo.previewPicture
+import fr.familia.app.feature.goodnews.detail.GoodNewsDetailScreen
+import fr.familia.app.feature.goodnews.detail.GoodNewsDetailUiState
+import fr.familia.app.feature.goodnews.edit.GoodNewsEditScreen
+import fr.familia.app.feature.goodnews.edit.GoodNewsFormError
+import fr.familia.app.feature.goodnews.edit.previewGoodNewsEdit
+import fr.familia.app.feature.goodnews.feed.GoodNewsFeedScreen
+import fr.familia.app.feature.goodnews.feed.GoodNewsFeedUiState
+import fr.familia.app.feature.goodnews.home.GoodNewsHomeContent
+import fr.familia.app.feature.goodnews.home.GoodNewsHomeUiState
+import fr.familia.app.feature.goodnews.previewGoodNewsItems
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import java.time.Instant
 
 /**
  * Renders the screens on the JVM and saves PNG files, so each pull request carries light and dark
@@ -132,13 +144,13 @@ class ScreenshotTest {
 
     @Test
     fun membersLight() = capture("famille_clair") {
-        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0", onOpenWishes = {}) }
+        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, onOpenWishes = {}) }
     }
 
     @Test
     @Config(qualifiers = "+night")
     fun membersDark() = capture("famille_sombre", darkTheme = true) {
-        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0", onOpenWishes = {}) }
+        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, onOpenWishes = {}) }
     }
 
     @Test
@@ -173,7 +185,6 @@ class ScreenshotTest {
                 MembersScreen(
                     MembersUiState.Success(previewGroups(), "a", photoEditableMemberIds = setOf("a", "c")),
                     onRetry = {},
-                    versionName = "0.1.0",
                     onSavePhoto = { _, _ -> },
                 )
             }
@@ -198,12 +209,12 @@ class ScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun membersFontScale200() = capture("famille_police_200") {
-        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0", onOpenWishes = {}) }
+        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, onOpenWishes = {}) }
     }
 
     @Test
     fun membersErrorLight() = capture("famille_erreur_clair") {
-        Surface { MembersScreen(MembersUiState.Error, onRetry = {}, versionName = "0.1.0") }
+        Surface { MembersScreen(MembersUiState.Error, onRetry = {}) }
     }
 
     @Test
@@ -336,7 +347,6 @@ class ScreenshotTest {
                     renamableHouseholdIds = setOf("h1", "h2"),
                 ),
                 onRetry = {},
-                versionName = "0.1.0",
                 onEditMember = {},
                 onOpenNotifications = {},
                 onOpenAdministration = {},
@@ -357,7 +367,6 @@ class ScreenshotTest {
                     renamableHouseholdIds = setOf("h1"),
                 ),
                 onRetry = {},
-                versionName = "0.1.0",
                 onEditMember = {},
                 onOpenNotifications = {},
                 onOpenAdministration = {},
@@ -408,12 +417,12 @@ class ScreenshotTest {
 
     @Test
     @Config(qualifiers = "+night")
-    fun onboardingChildDark() = capture("tuto_enfant_sombre", darkTheme = true) { onboarding(answersForChildren = false, index = 3) }
+    fun onboardingChildDark() = capture("tuto_enfant_sombre", darkTheme = true) { onboarding(answersForChildren = false, index = 2) }
 
     @Test
     @Config(fontScale = 2f)
     fun onboardingNotificationsFontScale200() = capture("tuto_notifications_police_200") {
-        onboarding(answersForChildren = true, index = 4)
+        onboarding(answersForChildren = true, index = 3)
     }
 
     @Composable
@@ -423,7 +432,7 @@ class ScreenshotTest {
 
     @Test
     fun helpLight() = capture("aide_clair") {
-        Surface { HelpScreen(HelpUiState(helpTopics(isChef = true, isOwner = true), "Camille ou Inès"), {}, {}, initiallyOpen = HelpTopic.AddEvent) }
+        Surface { HelpScreen(HelpUiState(helpTopics(isChef = true, isOwner = true), "Camille ou Inès"), {}, {}, initiallyOpen = HelpTopic.AddEvent, versionName = "0.1.0") }
     }
 
     @Test
@@ -435,7 +444,7 @@ class ScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun helpFontScale200() = capture("aide_police_200") {
-        Surface { HelpScreen(HelpUiState(helpTopics(isChef = false), null), {}, {}, initiallyOpen = HelpTopic.Notifications) }
+        Surface { HelpScreen(HelpUiState(helpTopics(isChef = false), null), {}, {}, initiallyOpen = HelpTopic.Notifications, versionName = "0.1.0") }
     }
 
     @Test
@@ -504,6 +513,20 @@ class ScreenshotTest {
     fun giftListFontScale200() = capture("liste_cadeaux_police_200") { GiftListScreen(previewGiftList(), GiftListActions()) }
 
     @Test
+    @Config(qualifiers = "+night")
+    fun giftItemSheetDark() = capture("liste_cadeaux_detail_sombre", darkTheme = true) {
+        val state = previewGiftList()
+        Surface { ItemSheetContent(state.items[1], state, GiftListActions(), onEdit = {}) }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun giftItemSheetFontScale200() = capture("liste_cadeaux_detail_police_200") {
+        val state = previewGiftList()
+        Surface { ItemSheetContent(state.items[0], state, GiftListActions(), onEdit = {}) }
+    }
+
+    @Test
     fun giftListFormLight() = capture("liste_cadeaux_formulaire_clair") { GiftListEditScreen(previewGiftListForm(), {}, {}, {}, {}) }
 
     @Test
@@ -559,6 +582,56 @@ class ScreenshotTest {
     @Config(fontScale = 2f)
     fun helpRequestDetailFontScale200() = capture("entraide_detail_police_200") {
         HelpRequestDetailScreen(previewHelpRequestDetail(), {}, {}, {}, {}, {}, {}, {}, {}, {})
+    }
+
+    // --- Bonnes nouvelles (récit 32) -------------------------------------------------------------
+
+    private val goodNewsNow = Instant.parse("2026-11-21T16:00:00Z")
+
+    private fun goodNewsFeed() = GoodNewsFeedUiState.Success(previewGoodNewsItems(), canLoadMore = true, now = goodNewsNow)
+
+    @Test
+    fun goodNewsFeedLight() = capture("bonnes_nouvelles_fil_clair") {
+        GoodNewsFeedScreen(goodNewsFeed(), {}, {}, {}, { _, _ -> }, {}, {}, {}, {}, {}, {})
+    }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun goodNewsFeedDark() = capture("bonnes_nouvelles_fil_sombre", darkTheme = true) {
+        GoodNewsFeedScreen(goodNewsFeed(), {}, {}, {}, { _, _ -> }, {}, {}, {}, {}, {}, {})
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun goodNewsFeedFontScale200() = capture("bonnes_nouvelles_fil_police_200") {
+        GoodNewsFeedScreen(goodNewsFeed(), {}, {}, {}, { _, _ -> }, {}, {}, {}, {}, {}, {})
+    }
+
+    @Test
+    fun goodNewsDetailLight() = capture("bonnes_nouvelles_detail_clair") {
+        GoodNewsDetailScreen(GoodNewsDetailUiState.Success(previewGoodNewsItems()[1], goodNewsNow), {}, {}, {}, {}, {}, {})
+    }
+
+    @Test
+    fun goodNewsEditLight() = capture("bonnes_nouvelles_publier_clair") {
+        GoodNewsEditScreen(previewGoodNewsEdit(), {}, {}, {}, {}, {}, {}, {}, {})
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun goodNewsEditFontScale200() = capture("bonnes_nouvelles_publier_police_200") {
+        GoodNewsEditScreen(previewGoodNewsEdit(setOf(GoodNewsFormError.NoPhoto)), {}, {}, {}, {}, {}, {}, {}, {})
+    }
+
+    @Test
+    fun goodNewsHomeCardLight() = capture("bonnes_nouvelles_accueil_clair") {
+        Surface { GoodNewsHomeContent(GoodNewsHomeUiState.Ready(previewGoodNewsItems(), goodNewsNow), {}, {}, {}) }
+    }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun goodNewsHomeCardEmptyDark() = capture("bonnes_nouvelles_accueil_vide_sombre", darkTheme = true) {
+        Surface { GoodNewsHomeContent(GoodNewsHomeUiState.Ready(emptyList(), goodNewsNow), {}, {}, {}) }
     }
 
     private val sampleMember = Member("a", "Camille", null, null, "h1", MemberProfile.Adult, true, emptyList(), null)

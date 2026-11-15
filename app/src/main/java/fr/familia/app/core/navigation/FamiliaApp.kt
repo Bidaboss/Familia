@@ -12,6 +12,7 @@ import fr.familia.app.feature.update.InAppUpdateDialogs
 import fr.familia.app.feature.update.LocalInAppUpdater
 import fr.familia.app.feature.update.rememberInAppUpdater
 import fr.familia.app.core.model.Feature
+import fr.familia.app.core.notifications.NotificationChannels
 import fr.familia.app.core.model.FeatureFlags
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.update.UpdateCheckRoute
@@ -19,12 +20,25 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Celebration
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.rememberCoroutineScope
+import fr.familia.app.core.ui.Confirmation
+import fr.familia.app.core.ui.LocalSnackbarHost
+import fr.familia.app.core.ui.showConfirmation
+import kotlinx.coroutines.launch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -32,6 +46,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpRoute
+import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
+import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
+import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
 import fr.familia.app.feature.help.LocalOpenHelp
 import fr.familia.app.feature.help.ScreenHelp
 import androidx.compose.runtime.LaunchedEffect
@@ -56,6 +73,7 @@ import fr.familia.app.feature.members.edit.MemberEditRoute
 import fr.familia.app.feature.birthdays.BirthdaysRoute
 import fr.familia.app.feature.events.detail.EventDetailRoute
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.photo.LocalPhotoStorage
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.wishesListId
 import fr.familia.app.core.ui.LocalMemberPhotos
@@ -92,13 +110,11 @@ import fr.familia.app.feature.trips.detail.TripDetailRoute
 import fr.familia.app.feature.trips.edit.TripEditRoute
 import fr.familia.app.feature.trips.list.TripsRoute
 import fr.familia.app.feature.trips.step.StepEditRoute
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
-import androidx.compose.ui.unit.dp
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
 @Composable
@@ -115,6 +131,9 @@ fun FamiliaApp(
     /** The gift list of a tapped notification, to open once (V2). */
     openListId: String? = null,
     onListOpened: () -> Unit = {},
+    /** The good news of a tapped notification, to open once. */
+    openGoodNewsId: String? = null,
+    onGoodNewsOpened: () -> Unit = {},
     /** The trip of a tapped « bien arrivé » notification, to open once (V3). */
     openTripId: String? = null,
     onTripOpened: () -> Unit = {},
@@ -140,7 +159,20 @@ fun FamiliaApp(
         val familyFlow = remember(container) { container?.memberRepository?.observeFamily() ?: flowOf(null) }
         val family by familyFlow.collectAsStateWithLifecycle(initialValue = null)
         val answersForChildren = family?.let { answerableMembers(currentMember, it).size > 1 } ?: false
-        OnboardingRoute(answersForChildren = answersForChildren) {
+        // Cadeaux and Entraide get a screen only while their module shows (AVIS-18).
+        val tutoConfigs = remember(container) {
+            container?.appConfigRepository?.observeAppConfig()?.catch { } ?: flowOf(null)
+        }
+        val tutoConfig by tutoConfigs.collectAsStateWithLifecycle(initialValue = null)
+        val tutoFlags = FeatureFlags(
+            tutoConfig?.features.orEmpty(),
+            isOwner = family?.ownerId != null && family?.ownerId == currentMember.id,
+        )
+        OnboardingRoute(
+            answersForChildren = answersForChildren,
+            gifts = tutoFlags.isOn(Feature.Gifts),
+            helpRequests = tutoFlags.isOn(Feature.HelpRequests),
+        ) {
             onboarding.markSeen()
             showOnboarding = false
         }
@@ -190,11 +222,21 @@ fun FamiliaApp(
     // The Entraide tab and its entry points stay hidden while the module is off (PRD rév. 120).
     val helpRequestsOn = features.isOn(Feature.HelpRequests)
     val tabs = TopLevelDestination.visible(features)
+    // The notification channels of a module appear in the Android settings once it shows.
+    LaunchedEffect(features) { NotificationChannels.create(context.applicationContext, features) }
     // A notification of a coup de main opens it only once the module shows; otherwise it is dropped.
     LaunchedEffect(openHelpRequestId, helpRequestsOn) {
         if (openHelpRequestId != null && helpRequestsOn) {
             navController.navigate(HelpRequestDetailDestination(openHelpRequestId))
             onHelpRequestOpened()
+        }
+    }
+    // Same for a good news (PRD, récit 32), while its module is off.
+    val goodNewsOn = features.isOn(Feature.GoodNews)
+    LaunchedEffect(openGoodNewsId, goodNewsOn) {
+        if (openGoodNewsId != null && goodNewsOn) {
+            navController.navigate(GoodNewsDetailDestination(openGoodNewsId))
+            onGoodNewsOpened()
         }
     }
 
@@ -219,18 +261,35 @@ fun FamiliaApp(
     // Profile photos (PRD, récit 3 bis): read once here, shown by every avatar of the app.
     val photos by rememberMemberPhotos(container?.memberPhotoRepository)
 
+    // « C'est enregistré », at the bottom, once a form closes (audit DESIGN du 14/11).
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val confirm: (Confirmation) -> Unit = { confirmation ->
+        scope.launch { snackbar.showConfirmation(context.getString(confirmation.textRes)) }
+    }
+
     CompositionLocalProvider(
         LocalOpenHelp provides { navController.navigate(HelpDestination) { launchSingleTop = true } },
         LocalMemberPhotos provides photos,
         LocalFeatureFlags provides features,
         LocalInAppUpdater provides updater,
+        LocalSnackbarHost provides snackbar,
+        LocalPhotoStorage provides container?.photoStorage,
     ) {
         Scaffold(
+            snackbarHost = { SnackbarHost(snackbar) },
             topBar = {
                 // The tabs get a title bar, with the « ? » of their screen (spec « tuto et aide », récit 26).
                 val tab = TopLevelDestination.entries.firstOrNull { currentDestination.isOn(it) }
+                // Until the Accueil arrives, the Bonnes nouvelles and the trips open from the Planning bar,
+                // each behind its module.
+                val onGoodNews = if (goodNewsOn) ({ navController.navigate(GoodNewsFeedDestination) }) else null
                 if (tab != null) {
-                    TabTopBar(tab, currentMember, onOpenTrips = { navController.navigate(TripsDestination) { launchSingleTop = true } })
+                    TabTopBar(
+                        tab, currentMember,
+                        onOpenTrips = { navController.navigate(TripsDestination) { launchSingleTop = true } },
+                        onGoodNews = onGoodNews,
+                    )
                 }
             },
             bottomBar = {
@@ -255,7 +314,8 @@ fun FamiliaApp(
                 }
             },
         ) { innerPadding ->
-            Column(Modifier.padding(innerPadding)) {
+            // Consumed here, so the inner screens with their own Scaffold do not add the system bars again.
+            Column(Modifier.padding(innerPadding).consumeWindowInsets(innerPadding)) {
                 AnimatedVisibility(visible = isOffline) { OfflineBanner() }
                 val shownUpdate = update?.takeIf { onTab && !updateDismissed }
                 if (shownUpdate != null) {
@@ -347,7 +407,15 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             eventId = entry.toRoute<EventEditDestination>().eventId,
-                            onDone = { navController.popBackStack() },
+                            onDone = { confirmation ->
+                                // A deleted event has no detail left: back to the planning.
+                                val deleted = confirmation == Confirmation.Deleted
+                                if (!deleted || !navController.popBackStack<EventDetailDestination>(inclusive = true)) {
+                                    navController.popBackStack()
+                                }
+                                confirm(confirmation)
+                            },
+                            onBack = { navController.popBackStack() },
                         )
                     }
                     composable<BirthdaysRoute> {
@@ -430,6 +498,35 @@ fun FamiliaApp(
                             onDone = { navController.popBackStack() },
                         )
                     }
+                    composable<GoodNewsFeedDestination> {
+                        GoodNewsFeedRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onPublish = { navController.navigate(GoodNewsEditDestination()) },
+                            onOpen = { id -> navController.navigate(GoodNewsDetailDestination(id)) },
+                            onEdit = { id -> navController.navigate(GoodNewsEditDestination(id)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<GoodNewsDetailDestination> { entry ->
+                        val postId = entry.toRoute<GoodNewsDetailDestination>().postId
+                        GoodNewsDetailRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            postId = postId,
+                            onEdit = { navController.navigate(GoodNewsEditDestination(postId)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<GoodNewsEditDestination> { entry ->
+                        GoodNewsEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            postId = entry.toRoute<GoodNewsEditDestination>().postId,
+                            onDone = { navController.popBackStack() },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
                     composable<MembersRoute> {
                         MembersRoute(
                             container = container,
@@ -480,7 +577,11 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             memberId = entry.toRoute<MemberEditDestination>().memberId,
-                            onDone = { navController.popBackStack() },
+                            onDone = { confirmation ->
+                                navController.popBackStack()
+                                confirm(confirmation)
+                            },
+                            onBack = { navController.popBackStack() },
                         )
                     }
                 }
@@ -492,13 +593,18 @@ fun FamiliaApp(
 /** Title bar of a tab, with its « ? » where the spec has one. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TabTopBar(tab: TopLevelDestination, member: Member, onOpenTrips: () -> Unit = {}) {
+private fun TabTopBar(tab: TopLevelDestination, member: Member, onOpenTrips: () -> Unit = {}, onGoodNews: (() -> Unit)? = null) {
     TopAppBar(
         // The Entraide tab keeps the full name « Coups de main » as its title (DESIGN-4).
         title = { Text(stringResource(if (tab == TopLevelDestination.HelpRequests) R.string.helprequest_screen_title else tab.labelFor(member))) },
         actions = {
             when (tab) {
                 TopLevelDestination.Planning -> {
+                    if (onGoodNews != null) {
+                        IconButton(onClick = onGoodNews, modifier = Modifier.size(56.dp)) {
+                            Icon(Icons.Outlined.Celebration, contentDescription = stringResource(R.string.goodnews_open_feed))
+                        }
+                    }
                     // Trips have no tab (carte DESIGN-4): until the Accueil tab, they open from here,
                     // once the module is switched on in Administration.
                     if (LocalFeatureFlags.current.isOn(Feature.Trips)) {

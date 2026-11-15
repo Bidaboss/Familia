@@ -1,6 +1,7 @@
 package fr.familia.app.feature.events.edit
 
 import fr.familia.app.core.model.EventTarget
+import fr.familia.app.core.ui.Confirmation
 
 /** A choice of the "Pour qui" list, with the household or child name when there is one. */
 data class TargetChoice(val target: EventTarget, val name: String?)
@@ -22,5 +23,5 @@ sealed interface EventEditUiState {
     ) : EventEditUiState
 
     /** Saved or deleted (or queued until the network is back): the screen closes. */
-    data object Done : EventEditUiState
+    data class Done(val confirmation: Confirmation) : EventEditUiState
 }

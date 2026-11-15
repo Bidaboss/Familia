@@ -1,5 +1,6 @@
 package fr.familia.app.feature.gifts
 
+import androidx.lifecycle.SavedStateHandle
 import fr.familia.app.core.data.GiftRepository
 import fr.familia.app.core.model.ClaimType
 import fr.familia.app.core.model.GiftClaim
@@ -12,6 +13,10 @@ import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.gifts.detail.GiftListUiState
 import fr.familia.app.feature.gifts.detail.GiftListViewModel
+import fr.familia.app.feature.gifts.edit.GiftListEditUiState
+import fr.familia.app.feature.gifts.edit.GiftListEditViewModel
+import fr.familia.app.feature.gifts.item.GiftItemEditUiState
+import fr.familia.app.feature.gifts.item.GiftItemEditViewModel
 import fr.familia.app.feature.gifts.item.GiftItemForm
 import fr.familia.app.feature.gifts.item.GiftItemFormError
 import fr.familia.app.feature.gifts.item.normalizeLink
@@ -136,14 +141,66 @@ class GiftsTest {
     @Test
     fun `a viewer sees who reserved and the parts of a joint gift`() = runTest {
         val gifts = FakeGifts(list("l", "adult1", viewers = listOf("adult1", "adult2")))
-        gifts.claims.value = listOf(GiftClaim("i1", ClaimType.Shared, "admin1", "Admin1"))
-        gifts.shares.value = mapOf("i1" to listOf(GiftShare("adult2", "Adult2", 20.0, false)))
+        gifts.claims.value = listOf(GiftClaim("i1", ClaimType.Shared, "admin1", "Admin1", sharesTotal = 45.0, sharesCount = 2))
+        gifts.shares.value = mapOf("i1" to listOf(GiftShare("adult2", "Adult2", 20.0, false), GiftShare("admin1", "Admin1", 25.0, false)))
         val vm = GiftListViewModel(gifts, FakeMembers(), "adult2", "l", today = flowOf(today))
         val state = vm.uiState.first { it is GiftListUiState.Success && it.items.isNotEmpty() } as GiftListUiState.Success
         val claim = state.items.single().claim!!
         assertEquals("Admin1", claim.holderName)
         assertEquals(20.0, claim.myShare!!.amount, 0.001)
-        assertEquals(listOf(false), gifts.itemQueries)
+        // A participant sees their own part and the total, never the part of another (PRD rév. 151).
+        assertEquals(listOf("adult2"), claim.shares.map { it.memberId })
+        assertEquals(45.0, claim.total, 0.001)
+        val holder = GiftListViewModel(gifts, FakeMembers(), "admin1", "l", today = flowOf(today))
+        val held = holder.uiState.first { it is GiftListUiState.Success && it.items.isNotEmpty() } as GiftListUiState.Success
+        assertEquals(2, held.items.single().claim!!.shares.size)
+        // One query per screen, and neither hides the surprise ideas.
+        assertEquals(listOf(false, false), gifts.itemQueries)
+    }
+
+    @Test
+    fun `a joint gift opened before the server kept its total shows at least my part`() = runTest {
+        val gifts = FakeGifts(list("l", "adult1", viewers = listOf("adult1", "adult2")))
+        gifts.claims.value = listOf(GiftClaim("i1", ClaimType.Shared, "admin1", "Admin1"))
+        gifts.shares.value = mapOf("i1" to listOf(GiftShare("adult2", "Adult2", 20.0, false), GiftShare("admin1", "Admin1", 25.0, false)))
+        val vm = GiftListViewModel(gifts, FakeMembers(), "adult2", "l", today = flowOf(today))
+        val state = vm.uiState.first { it is GiftListUiState.Success && it.items.isNotEmpty() } as GiftListUiState.Success
+        assertEquals(20.0, state.items.single().claim!!.total, 0.001)
+    }
+
+    @Test
+    fun `an idea being written survives Android closing the app`() = runTest {
+        val saved = SavedStateHandle()
+        val gifts = FakeGifts(list("l", "adult1", viewers = listOf("adult1", "adult2")))
+        val first = GiftItemEditViewModel(gifts, FakeMembers(), "adult2", "l", null, saved = saved)
+        first.uiState.first { it is GiftItemEditUiState.Editing }
+        first.update { it.copy(title = "Un vélo", price = "120") }
+        val again = GiftItemEditViewModel(gifts, FakeMembers(), "adult2", "l", null, saved = saved)
+        val state = again.uiState.first { it is GiftItemEditUiState.Editing } as GiftItemEditUiState.Editing
+        assertEquals(GiftItemForm(title = "Un vélo", price = "120"), state.form)
+        assertTrue(state.hasChanges)
+    }
+
+    @Test
+    fun `a list draft is checked again against the family`() = runTest {
+        val saved = SavedStateHandle(
+            mapOf(
+                "draft.title" to "Noël chez Mamie",
+                "draft.occasion" to "Christmas",
+                "draft.date" to LocalDate.of(2026, 12, 25).toEpochDay(),
+                "draft.beneficiary" to "adult2",
+                "draft.viewers" to arrayListOf("adult1", "gone"),
+            ),
+        )
+        val vm = GiftListEditViewModel(FakeGifts(null), FakeMembers(), "adult2", null, saved = saved)
+        val state = vm.uiState.first { it is GiftListEditUiState.Editing } as GiftListEditUiState.Editing
+        assertEquals("Noël chez Mamie", state.form.title)
+        assertEquals(LocalDate.of(2026, 12, 25), state.form.date)
+        // A member who left is dropped, and the beneficiary of an own list always sees it.
+        assertEquals(setOf("adult1", "adult2"), state.form.viewerIds)
+        val stranger = GiftListEditViewModel(FakeGifts(null), FakeMembers(), "adult2", null, saved = SavedStateHandle(mapOf("draft.title" to "X", "draft.beneficiary" to "gone")))
+        val fresh = stranger.uiState.first { it is GiftListEditUiState.Editing } as GiftListEditUiState.Editing
+        assertEquals("", fresh.form.title)
     }
 
     @Test
@@ -181,8 +238,10 @@ class FakeGifts(list: GiftList?) : GiftRepository {
         claimQueries++
         return claims
     }
-    override fun observeShares(listId: String, itemIds: List<String>): Flow<Map<String, List<GiftShare>>> =
-        shares.map { all -> all.filterKeys { it in itemIds } }
+    override fun observeShares(listId: String, itemIds: List<String>, memberId: String, allOf: Set<String>): Flow<Map<String, List<GiftShare>>> =
+        shares.map { all ->
+            all.filterKeys { it in itemIds }.mapValues { (itemId, parts) -> if (itemId in allOf) parts else parts.filter { it.memberId == memberId } }
+        }
     override fun newListId(): String = "new-list"
     override fun newItemId(listId: String): String = "new-item"
     override suspend fun saveList(list: GiftList, isNew: Boolean) = Unit

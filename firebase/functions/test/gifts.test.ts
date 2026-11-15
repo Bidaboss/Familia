@@ -8,7 +8,7 @@ import { Notice } from '../src/logic';
 import { Sender } from '../src/store';
 import {
   birthdayRecipients, birthdaysIn, deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftMember, isDueForReveal,
-  nextBirthday, onGiftItemChanged, revealGiftLists, sendBirthdayGiftReminders,
+  nextBirthday, onGiftItemChanged, revealGiftLists, sendBirthdayGiftReminders, updateSharesTotal,
 } from '../src/gifts';
 
 const members: GiftMember[] = [
@@ -133,6 +133,21 @@ describe('functions', () => {
     await sendBirthdayGiftReminders(db, send, new Date('2026-11-18T09:00:00Z'));
     assert.deepEqual(sent.map((s) => s.token), ['token-ines']);
     await db.doc('config/family').delete();
+  });
+
+  test('the reservation keeps the total and the number of parts for the participants', async () => {
+    await db.doc('giftLists/noel/claims/i1/shares/ines').set({ amount: 12.5, memberName: 'Inès', received: false, updatedAt: new Date() });
+    await updateSharesTotal(db, 'noel', 'i1');
+    let claim = await db.doc('giftLists/noel/claims/i1').get();
+    assert.equal(claim.get('sharesTotal'), 17.5);
+    assert.equal(claim.get('sharesCount'), 2);
+    await db.doc('giftLists/noel/claims/i1/shares/jade').delete();
+    await updateSharesTotal(db, 'noel', 'i1');
+    claim = await db.doc('giftLists/noel/claims/i1').get();
+    assert.equal(claim.get('sharesTotal'), 12.5);
+    assert.equal(claim.get('sharesCount'), 1);
+    await updateSharesTotal(db, 'noel', 'missing'); // A released gift: nothing to keep.
+    assert.equal((await db.doc('giftLists/noel/claims/missing').get()).exists, false);
   });
 
   test('the beneficiary removes a reserved item: the reservers are warned, the reservation goes', async () => {

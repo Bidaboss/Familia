@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -21,7 +22,12 @@ fun GiftItemEditRoute(
 ) {
     val viewModel: GiftItemEditViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { GiftItemEditViewModel(container?.giftRepository, container?.memberRepository, currentMember.id, listId, itemId) }
+            initializer {
+                GiftItemEditViewModel(
+                    container?.giftRepository, container?.memberRepository, currentMember.id, listId, itemId,
+                    saved = createSavedStateHandle(),
+                )
+            }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()

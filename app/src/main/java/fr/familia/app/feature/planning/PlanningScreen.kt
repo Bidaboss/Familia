@@ -1,5 +1,6 @@
 package fr.familia.app.feature.planning
 
+import fr.familia.app.core.ui.aboveSnackbar
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
@@ -46,6 +47,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -65,6 +69,8 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.EmptyState
+import androidx.compose.ui.semantics.contentDescription
+import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.dayTitle
 import fr.familia.app.core.ui.formatDay
@@ -105,8 +111,15 @@ fun PlanningScreen(
                 },
             )
             is PlanningUiState.Success -> Column(Modifier.fillMaxSize()) {
-                ModeSwitch(mode, onModeChange = { mode = it })
-                if (onScopeChange != null) ScopeSwitch(state.scope, onScopeChange)
+                // One row (audit DESIGN n°3): « Liste | Mois » on the left, « Mon foyer » on the right.
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    ModeSwitch(mode, onModeChange = { mode = it }, modifier = Modifier.weight(1f))
+                    if (onScopeChange != null) ScopeChip(state.scope, onScopeChange)
+                }
                 when (mode) {
                     PlanningMode.List -> if (state.days.isEmpty()) {
                         EmptyState(
@@ -134,7 +147,7 @@ fun PlanningScreen(
                 onClick = onAddEvent,
                 icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
                 text = { Text(stringResource(R.string.planning_add)) },
-                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                modifier = Modifier.align(Alignment.BottomEnd).aboveSnackbar().padding(16.dp),
             )
         }
     }
@@ -143,13 +156,9 @@ fun PlanningScreen(
 /** "Liste" or "Mois": two labelled buttons, always visible, 56 dp high. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ModeSwitch(mode: PlanningMode, onModeChange: (PlanningMode) -> Unit) {
+private fun ModeSwitch(mode: PlanningMode, onModeChange: (PlanningMode) -> Unit, modifier: Modifier = Modifier) {
     val labels = listOf(PlanningMode.List to R.string.planning_mode_list, PlanningMode.Month to R.string.planning_mode_month)
-    SingleChoiceSegmentedButtonRow(
-        Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-    ) {
+    SingleChoiceSegmentedButtonRow(modifier) {
         labels.forEachIndexed { index, (value, label) ->
             SegmentedButton(
                 selected = mode == value,
@@ -164,29 +173,23 @@ private fun ModeSwitch(mode: PlanningMode, onModeChange: (PlanningMode) -> Unit)
 }
 
 /**
- * « Toute la famille » or « Mon foyer »: Mon foyer keeps the events for the whole family, for my
- * household, for its members and for the children I am responsible for, and every birthday.
+ * « Mon foyer », on or off: on, it keeps the events for the whole family, for my household, for its
+ * members and for the children I am responsible for, and every birthday. Off is the whole family.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ScopeSwitch(scope: PlanningScope, onScopeChange: (PlanningScope) -> Unit) {
-    val labels = listOf(PlanningScope.Family to R.string.planning_scope_family, PlanningScope.Household to R.string.planning_scope_household)
-    SingleChoiceSegmentedButtonRow(
-        Modifier
-            .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-    ) {
-        labels.forEachIndexed { index, (value, label) ->
-            SegmentedButton(
-                selected = scope == value,
-                onClick = { onScopeChange(value) },
-                shape = SegmentedButtonDefaults.itemShape(index, labels.size),
-                modifier = Modifier.heightIn(min = 56.dp),
-            ) {
-                Text(stringResource(label), style = MaterialTheme.typography.labelLarge)
-            }
-        }
-    }
+private fun ScopeChip(scope: PlanningScope, onScopeChange: (PlanningScope) -> Unit) {
+    val selected = scope == PlanningScope.Household
+    FilterChip(
+        selected = selected,
+        onClick = { onScopeChange(if (selected) PlanningScope.Family else PlanningScope.Household) },
+        label = { Text(stringResource(R.string.planning_scope_household), style = MaterialTheme.typography.labelLarge) },
+        leadingIcon = if (selected) {
+            { Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
+        } else {
+            null
+        },
+        modifier = Modifier.heightIn(min = 56.dp),
+    )
 }
 
 /** The headers and rows of the given days, shared by the list and the month view. */
@@ -360,19 +363,26 @@ private fun EventRow(item: PlanningItem, onClick: () -> Unit) {
                 modifier = Modifier.widthIn(min = 72.dp),
             )
             Spacer(Modifier.width(12.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            // Two lines (DESIGN-5): the title, then where, for whom when it is not the whole family,
+            // and who comes. The author is the avatar at the end.
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(event.title, style = MaterialTheme.typography.titleMedium)
-                event.place?.let {
-                    Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                val forWhom = if (event.target is EventTarget.ForFamily) null else stringResource(R.string.planning_for, targetLabel(item.target))
+                val details = listOfNotNull(event.place, forWhom).joinToString(" · ")
+                if (details.isNotEmpty()) {
+                    Text(details, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Text(
-                    stringResource(R.string.planning_for_by, targetLabel(item.target), item.authorName),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
                 answersLabel(item)?.let {
                     Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
                 }
+            }
+            val by = stringResource(R.string.planning_by, item.authorName)
+            if (item.author != null) {
+                Spacer(Modifier.width(12.dp))
+                MemberAvatar(item.author, size = 32.dp, modifier = Modifier.semantics { contentDescription = by })
+            } else {
+                Spacer(Modifier.width(12.dp))
+                Text(item.authorName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         HorizontalDivider(Modifier.padding(start = 100.dp))
@@ -467,7 +477,7 @@ private val weekDayInitials = listOf("L", "M", "M", "J", "V", "S", "D")
 /** Fictional planning for previews and screenshots. */
 internal fun previewPlanning(): PlanningUiState.Success {
     fun item(id: String, title: String, date: LocalDate, time: LocalTime?, place: String?, target: TargetChoice, author: String, manage: Boolean) =
-        PlanningItem(Event(id, title, date, time, place, null, target.target, "a", author), target, author, manage)
+        PlanningItem(Event(id, title, date, time, place, null, target.target, "a", author), target, author, canManage = manage)
     val today = LocalDate.of(2026, 12, 19)
     val day1 = LocalDate.of(2026, 12, 20)
     val day2 = LocalDate.of(2026, 12, 24)

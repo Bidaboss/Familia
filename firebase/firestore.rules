@@ -815,6 +815,8 @@ service cloud.firestore {
 
     // giftLists/{listId}/claims/{itemId}/shares/{memberId}: a part of a joint gift. Each adult
     // declares their own; the responsible (the holder) marks it received. No real payment.
+    // The amount of a part is read by its author and the responsible only, even after the reveal
+    // (PRD rév. 151): the others see the total that the server keeps on the reservation.
     match /giftLists/{listId}/claims/{itemId}/shares/{memberId} {
       function list() {
         return get(giftListPath(listId)).data;
@@ -824,7 +826,8 @@ service cloud.firestore {
         return get(/databases/$(database)/documents/giftLists/$(listId)/claims/$(itemId)).data;
       }
 
-      allow read: if isMember() && canSeeList(list()) && !isKeptFromMe(list());
+      allow read: if isMember() && canSeeList(list()) && !isKeptFromMe(list())
+        && (memberId == myMemberId() || claim().holderId == myMemberId());
 
       allow create: if isMember()
         && memberId == myMemberId()
@@ -847,6 +850,83 @@ service cloud.firestore {
                 && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['received', 'updatedAt'])));
 
       allow delete: if isMember() && (memberId == myMemberId() || claim().holderId == myMemberId());
+    }
+
+    // --- Mon carnet de cadeaux (PRD, récit 9 bis) ----------------------------------------------
+    //
+    // notebooks/{memberId}: what a member plans to give. Only that member reads or writes it: not
+    // the person who receives, not the admin principal, not anyone acting for them. The entries
+    // of a reservation or of a part of a joint gift are written by the Cloud Function; the member
+    // only follows them (state, occasion, note). Data model: docs/data-model.md.
+
+    function isNotebookOwner(memberId) {
+      return isMember() && memberId == myMemberId();
+    }
+
+    // What the member may set on any entry, a private idea or a reservation taken up.
+    function isValidNotebookFollowUp(e) {
+      return e.status in ['idea', 'bought', 'wrapped', 'given']
+        && (e.occasion == null || e.occasion in ['christmas', 'birthday', 'birth', 'other'])
+        && (e.year == null || (e.year is int && e.year >= 2020 && e.year <= 2100))
+        && (e.note == null || (e.note is string && e.note.size() <= 500))
+        && e.updatedAt == request.time;
+    }
+
+    function isValidNotebookIdea(e) {
+      return e.keys().hasAll(['source', 'personId', 'personName', 'occasion', 'year', 'title', 'url',
+                              'price', 'note', 'status', 'createdAt', 'updatedAt'])
+        && e.keys().hasOnly(['source', 'personId', 'personName', 'occasion', 'year', 'title', 'url',
+                             'price', 'note', 'status', 'createdAt', 'updatedAt'])
+        && e.source == 'idea'
+        // Someone of the family, or a person outside it known by their first name only.
+        && (e.personId == null || (e.personId is string && exists(memberPath(e.personId))))
+        && e.personName is string && e.personName.size() > 0 && e.personName.size() <= 40
+        && e.title is string && e.title.size() > 0 && e.title.size() <= 80
+        && (e.url == null || (e.url is string && e.url.size() <= 500 && e.url.matches('^https?://.+')))
+        && (e.price == null || (e.price is number && e.price >= 0 && e.price <= 100000))
+        && isValidNotebookFollowUp(e);
+    }
+
+    match /notebooks/{memberId}/entries/{entryId} {
+      allow read: if isNotebookOwner(memberId);
+
+      allow create: if isNotebookOwner(memberId)
+        && isValidNotebookIdea(request.resource.data)
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if isNotebookOwner(memberId)
+        && request.resource.data.source == resource.data.source
+        && request.resource.data.createdAt == resource.data.createdAt
+        && ((resource.data.source == 'idea' && isValidNotebookIdea(request.resource.data))
+            || (resource.data.source != 'idea'
+                && isValidNotebookFollowUp(request.resource.data)
+                && request.resource.data.diff(resource.data).affectedKeys()
+                     .hasOnly(['status', 'occasion', 'year', 'note', 'updatedAt'])));
+
+      // A reservation leaves the notebook when it is released, on the server.
+      allow delete: if isNotebookOwner(memberId) && resource.data.source == 'idea';
+    }
+
+    // notebooks/{memberId}/budgets/{budgetId}: what the member means to spend for one person and
+    // one occasion. The id is chosen by the app, one per person and occasion.
+    match /notebooks/{memberId}/budgets/{budgetId} {
+      allow read: if isNotebookOwner(memberId);
+
+      allow create, update: if isNotebookOwner(memberId)
+        && request.resource.data.keys().hasAll(['personId', 'personName', 'occasion', 'year', 'amount', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['personId', 'personName', 'occasion', 'year', 'amount', 'updatedAt'])
+        && (request.resource.data.personId == null || request.resource.data.personId is string)
+        && request.resource.data.personName is string
+        && request.resource.data.personName.size() > 0 && request.resource.data.personName.size() <= 40
+        && (request.resource.data.occasion == null
+            || request.resource.data.occasion in ['christmas', 'birthday', 'birth', 'other'])
+        && (request.resource.data.year == null
+            || (request.resource.data.year is int && request.resource.data.year >= 2020 && request.resource.data.year <= 2100))
+        && request.resource.data.amount is number
+        && request.resource.data.amount > 0 && request.resource.data.amount <= 100000
+        && request.resource.data.updatedAt == request.time;
+
+      allow delete: if isNotebookOwner(memberId);
     }
 
     // --- Profile photos (PRD, récit 3 bis) -------------------------------------------------------

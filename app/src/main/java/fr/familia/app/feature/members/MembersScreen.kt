@@ -1,5 +1,6 @@
 package fr.familia.app.feature.members
 
+import fr.familia.app.core.ui.aboveSnackbar
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -34,7 +34,6 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -53,11 +52,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.OutlinedButton
-import fr.familia.app.BuildConfig
 import fr.familia.app.R
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
@@ -68,6 +64,7 @@ import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.feature.members.photo.MemberPhotoEditor
+import fr.familia.app.feature.members.photo.MemberPhotoViewer
 
 /** Famille tab: members grouped by household, then the installed version. Stateless. */
 @Composable
@@ -77,7 +74,6 @@ fun MembersScreen(
     modifier: Modifier = Modifier,
     /** Opens the form; each row and the add button follow the rights in [MembersUiState.Success]. */
     onEditMember: ((memberId: String?) -> Unit)? = null,
-    versionName: String = BuildConfig.VERSION_NAME,
     onOpenNotifications: (() -> Unit)? = null,
     /** Shown to the admin principal only (PRD, récit 1 ter). */
     onOpenAdministration: (() -> Unit)? = null,
@@ -97,6 +93,7 @@ fun MembersScreen(
 ) {
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var photoOf by rememberSaveable { mutableStateOf<String?>(null) }
+    var viewing by rememberSaveable { mutableStateOf<String?>(null) }
     val photos = LocalMemberPhotos.current
     when (state) {
         MembersUiState.Loading ->
@@ -133,7 +130,9 @@ fun MembersScreen(
                         val household = group.household
                         HouseholdHeader(
                             name = household?.name ?: stringResource(R.string.members_other_household),
-                            onRename = if (household != null && onRenameHousehold != null &&
+                            // The admin principal renames every household in Administration (DESIGN-5);
+                            // a chef de famille keeps the pencil on their own household here.
+                            onRename = if (household != null && onRenameHousehold != null && !state.isOwner &&
                                 household.id in state.renamableHouseholdIds
                             ) {
                                 { renaming = household.id }
@@ -149,21 +148,32 @@ fun MembersScreen(
                             isOwner = member.id == state.ownerId,
                             onClick = onEditMember?.takeIf { member.id in state.editableMemberIds }?.let { edit -> { edit(member.id) } },
                             hasPhoto = member.id in photos,
-                            onPhotoClick = if (onSavePhoto != null && member.id in state.photoEditableMemberIds) {
-                                { photoOf = member.id }
-                            } else {
-                                null
+                            // A photo opens in full screen; without one, those who may add it choose one.
+                            onPhotoClick = when {
+                                member.id in photos -> { { viewing = member.id } }
+                                onSavePhoto != null && member.id in state.photoEditableMemberIds -> { { photoOf = member.id } }
+                                else -> null
                             },
                             onWishesClick = onOpenWishes?.let { open -> { open(member.id) } },
                         )
                     }
                 }
+                item(key = "settings-title") {
+                    Column {
+                        HorizontalDivider(Modifier.padding(top = 8.dp))
+                        Text(
+                            stringResource(R.string.members_settings_title),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp)
+                                .semantics { heading() },
+                        )
+                    }
+                }
                 if (onOpenNotifications != null) {
                     item(key = "notifications") {
-                        Column {
-                            HorizontalDivider(Modifier.padding(top = 8.dp))
-                            SettingsRow(Icons.Outlined.Notifications, R.string.notifications_title, onOpenNotifications)
-                        }
+                        SettingsRow(Icons.Outlined.Notifications, R.string.notifications_title, onOpenNotifications)
                     }
                 }
                 if (onOpenAdministration != null && state.isOwner) {
@@ -177,22 +187,13 @@ fun MembersScreen(
                 if (onOpenHelp != null) {
                     item(key = "help") { SettingsRow(Icons.AutoMirrored.Outlined.HelpOutline, R.string.help_title, onOpenHelp) }
                 }
-                item(key = "version") {
-                    Text(
-                        text = stringResource(R.string.app_version, versionName),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    )
-                }
             }
             if (canAdd && onEditMember != null) {
                 ExtendedFloatingActionButton(
                     onClick = { onEditMember(null) },
                     icon = { Icon(Icons.Outlined.PersonAdd, contentDescription = null) },
                     text = { Text(stringResource(R.string.members_add)) },
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                    modifier = Modifier.align(Alignment.BottomEnd).aboveSnackbar().padding(16.dp),
                 )
             }
         }
@@ -209,6 +210,26 @@ fun MembersScreen(
     }
     val photoMember = (state as? MembersUiState.Success)?.groups?.firstNotNullOfOrNull { group ->
         group.members.firstOrNull { it.id == photoOf }
+    }
+    val viewed = (state as? MembersUiState.Success)?.groups?.firstNotNullOfOrNull { group ->
+        group.members.firstOrNull { it.id == viewing }
+    }
+    val viewedPhoto = viewed?.let { photos[it.id] }
+    if (viewed != null && viewedPhoto != null) {
+        val canChange = onSavePhoto != null && viewed.id in (state as MembersUiState.Success).photoEditableMemberIds
+        MemberPhotoViewer(
+            member = viewed,
+            photo = viewedPhoto,
+            onDismiss = { viewing = null },
+            onChange = if (canChange) {
+                {
+                    viewing = null
+                    photoOf = viewed.id
+                }
+            } else {
+                null
+            },
+        )
     }
     if (photoMember != null && onSavePhoto != null) {
         MemberPhotoEditor(
@@ -287,37 +308,6 @@ private fun HouseholdHeader(name: String, onRename: (() -> Unit)?) {
     }
 }
 
-/** Asks for the new name of [household]; "Enregistrer" stays off while the name is empty or unchanged. */
-@Composable
-private fun RenameHouseholdDialog(household: Household, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
-    var name by rememberSaveable(household.id) { mutableStateOf(household.name) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.household_rename_title)) },
-        text = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it.take(MembersViewModel.MAX_HOUSEHOLD_NAME) },
-                label = { Text(stringResource(R.string.member_household_name)) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onConfirm(name) },
-                enabled = name.isNotBlank() && name.trim() != household.name,
-                modifier = Modifier.heightIn(min = 56.dp),
-            ) { Text(stringResource(R.string.member_save)) }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.action_cancel))
-            }
-        },
-    )
-}
-
 @Composable
 private fun MemberRow(
     member: Member,
@@ -382,7 +372,10 @@ private fun PhotoButton(member: Member, hasPhoto: Boolean, onClick: () -> Unit) 
         modifier = Modifier
             .size(56.dp)
             .clip(CircleShape)
-            .clickable(onClickLabel = stringResource(R.string.photo_change_action), onClick = onClick)
+            .clickable(
+                onClickLabel = stringResource(if (hasPhoto) R.string.photo_view_action else R.string.photo_change_action),
+                onClick = onClick,
+            )
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) {
@@ -451,7 +444,6 @@ private fun MembersScreenPreview() {
                     photoEditableMemberIds = setOf("a", "c"),
                 ),
                 onRetry = {},
-                versionName = "0.1.0",
                 onEditMember = {},
                 onSavePhoto = { _, _ -> },
                 onOpenWishes = {},
@@ -463,5 +455,5 @@ private fun MembersScreenPreview() {
 @FamiliaPreviews
 @Composable
 private fun MembersScreenErrorPreview() {
-    FamiliaTheme { Surface { MembersScreen(MembersUiState.Error, onRetry = {}, versionName = "0.1.0") } }
+    FamiliaTheme { Surface { MembersScreen(MembersUiState.Error, onRetry = {}) } }
 }

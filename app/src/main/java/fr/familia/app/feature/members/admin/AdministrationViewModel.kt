@@ -81,6 +81,22 @@ class AdministrationViewModel(
         }
     }
 
+    /** Renames [household] (the admin principal; the rules check it). */
+    fun renameHousehold(household: Household, name: String) {
+        val repo = members ?: return
+        val trimmed = name.trim().take(MAX_HOUSEHOLD_NAME)
+        if (trimmed.isEmpty() || trimmed == household.name) return
+        viewModelScope.launch {
+            try {
+                repo.saveHousehold(household.copy(name = trimmed))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _actionFailed.value = true
+            }
+        }
+    }
+
     fun retry() {
         attempt.update { it + 1 }
     }
