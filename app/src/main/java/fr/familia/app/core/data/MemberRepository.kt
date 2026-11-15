@@ -26,7 +26,7 @@ interface MemberRepository {
     suspend fun saveMember(member: Member, previousEmail: String?)
 
     /**
-     * The admin principal, or a chef de famille for their household. Removes [member] and its email entry in one batch, so they lose access at once.
+     * The admin principal, or a chef de famille for their household. Removes [member], its email entry and its photo in one batch, so they lose access at once.
      * [updatedChildren] are the children who listed them as responsible adult, saved without them.
      */
     suspend fun removeMember(member: Member, updatedChildren: List<Member>)

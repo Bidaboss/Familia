@@ -2,6 +2,7 @@ package fr.familia.app.screenshots
 
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import com.github.takahirom.roborazzi.captureRoboImage
 import fr.familia.app.core.navigation.FamiliaApp
 import fr.familia.app.core.theme.FamiliaTheme
@@ -48,6 +49,9 @@ import fr.familia.app.feature.members.edit.MemberEditUiState
 import java.time.LocalDate
 import org.junit.Test
 import fr.familia.app.core.ui.ClayCardSamples
+import fr.familia.app.core.ui.LocalMemberPhotos
+import fr.familia.app.feature.members.photo.PhotoCropContent
+import fr.familia.app.feature.members.photo.previewPicture
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -118,6 +122,45 @@ class ScreenshotTest {
     @Config(qualifiers = "+night")
     fun membersDark() = capture("famille_sombre", darkTheme = true) {
         Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0") }
+    }
+
+    @Test
+    fun membersWithPhotosLight() = capture("famille_photos_clair") { MembersWithPhotos() }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun membersWithPhotosDark() = capture("famille_photos_sombre", darkTheme = true) { MembersWithPhotos() }
+
+    @Test
+    fun photoCropLight() = capture("photo_cadrage_clair") {
+        Surface { PhotoCropContent(previewPicture(), saving = false, onConfirm = {}, onDismiss = {}) }
+    }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun photoCropDark() = capture("photo_cadrage_sombre", darkTheme = true) {
+        Surface { PhotoCropContent(previewPicture(), saving = false, onConfirm = {}, onDismiss = {}) }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun photoCropFontScale200() = capture("photo_cadrage_police_200") {
+        Surface { PhotoCropContent(previewPicture(), saving = false, onConfirm = {}, onDismiss = {}) }
+    }
+
+    /** Camille has a photo; Camille and Noé get the photo button (fictional family, gradient picture). */
+    @Composable
+    private fun MembersWithPhotos() {
+        CompositionLocalProvider(LocalMemberPhotos provides mapOf("a" to previewPicture())) {
+            Surface {
+                MembersScreen(
+                    MembersUiState.Success(previewGroups(), "a", photoEditableMemberIds = setOf("a", "c")),
+                    onRetry = {},
+                    versionName = "0.1.0",
+                    onSavePhoto = { _, _ -> },
+                )
+            }
+        }
     }
 
     @Test
