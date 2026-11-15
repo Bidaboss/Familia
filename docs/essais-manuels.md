@@ -85,3 +85,9 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 2. Touche « Fermer » en haut à gauche, puis recommence et fais le geste retour d'Android. **Attendu :** les deux referment la photo.
 3. Sur ta propre photo (ou celle d'un enfant de ton foyer), **attendu :** le bouton « Changer la photo » est en bas et ouvre le choix galerie ou appareil photo. Sur la photo d'un autre foyer, ce bouton n'apparaît pas.
 4. Sur un membre sans photo que tu peux modifier, touche l'avatar. **Attendu :** le choix de la photo s'ouvre directement, comme avant.
+
+## Haut du planning sur une rangée (audit DESIGN n°3)
+
+1. Ouvre le planning. **Attendu :** une seule rangée en haut, avec « Liste | Mois » à gauche et « Mon foyer » à droite.
+2. Touche « Mon foyer ». **Attendu :** une coche apparaît et seuls les événements de ton foyer restent. Touche-le à nouveau : toute la famille revient.
+3. En police à 200 %, **attendu :** rien n'est coupé, et les boutons gardent au moins la hauteur d'un doigt.
