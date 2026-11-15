@@ -430,6 +430,9 @@
     <string name="error_gift_note_too_long">500 caractères au plus.</string>
     <!-- Photo de profil (PRD, récit 3 bis) -->
     <string name="photo_change_action">changer la photo</string>
+    <string name="photo_view_action">voir la photo en grand</string>
+    <string name="photo_viewer_close">Fermer</string>
+    <string name="photo_viewer_change">Changer la photo</string>
     <string name="photo_of">Photo de %1$s</string>
     <string name="photo_pick_gallery">Choisir dans la galerie</string>
     <string name="photo_take">Prendre une photo</string>

@@ -64,6 +64,7 @@ import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.feature.members.photo.MemberPhotoEditor
+import fr.familia.app.feature.members.photo.MemberPhotoViewer
 
 /** Famille tab: members grouped by household, then the installed version. Stateless. */
 @Composable
@@ -92,6 +93,7 @@ fun MembersScreen(
 ) {
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var photoOf by rememberSaveable { mutableStateOf<String?>(null) }
+    var viewing by rememberSaveable { mutableStateOf<String?>(null) }
     val photos = LocalMemberPhotos.current
     when (state) {
         MembersUiState.Loading ->
@@ -146,10 +148,11 @@ fun MembersScreen(
                             isOwner = member.id == state.ownerId,
                             onClick = onEditMember?.takeIf { member.id in state.editableMemberIds }?.let { edit -> { edit(member.id) } },
                             hasPhoto = member.id in photos,
-                            onPhotoClick = if (onSavePhoto != null && member.id in state.photoEditableMemberIds) {
-                                { photoOf = member.id }
-                            } else {
-                                null
+                            // A photo opens in full screen; without one, those who may add it choose one.
+                            onPhotoClick = when {
+                                member.id in photos -> { { viewing = member.id } }
+                                onSavePhoto != null && member.id in state.photoEditableMemberIds -> { { photoOf = member.id } }
+                                else -> null
                             },
                             onWishesClick = onOpenWishes?.let { open -> { open(member.id) } },
                         )
@@ -207,6 +210,26 @@ fun MembersScreen(
     }
     val photoMember = (state as? MembersUiState.Success)?.groups?.firstNotNullOfOrNull { group ->
         group.members.firstOrNull { it.id == photoOf }
+    }
+    val viewed = (state as? MembersUiState.Success)?.groups?.firstNotNullOfOrNull { group ->
+        group.members.firstOrNull { it.id == viewing }
+    }
+    val viewedPhoto = viewed?.let { photos[it.id] }
+    if (viewed != null && viewedPhoto != null) {
+        val canChange = onSavePhoto != null && viewed.id in (state as MembersUiState.Success).photoEditableMemberIds
+        MemberPhotoViewer(
+            member = viewed,
+            photo = viewedPhoto,
+            onDismiss = { viewing = null },
+            onChange = if (canChange) {
+                {
+                    viewing = null
+                    photoOf = viewed.id
+                }
+            } else {
+                null
+            },
+        )
     }
     if (photoMember != null && onSavePhoto != null) {
         MemberPhotoEditor(
@@ -349,7 +372,10 @@ private fun PhotoButton(member: Member, hasPhoto: Boolean, onClick: () -> Unit) 
         modifier = Modifier
             .size(56.dp)
             .clip(CircleShape)
-            .clickable(onClickLabel = stringResource(R.string.photo_change_action), onClick = onClick)
+            .clickable(
+                onClickLabel = stringResource(if (hasPhoto) R.string.photo_view_action else R.string.photo_change_action),
+                onClick = onClick,
+            )
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) {
