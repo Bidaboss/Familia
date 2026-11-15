@@ -5,7 +5,8 @@
 3. Ajoute une appli **Android** avec le nom de package `fr.familia.app`. Renseigne l'empreinte **SHA-1** de la clé de signature (voir plus bas). Télécharge `google-services.json` et place-le dans `app/` (il peut être versionné : il identifie le projet mais n'est pas un secret, les règles protègent les données).
 4. **Authentication** → Commencer → fournisseur **Google** → Activer.
 5. **Firestore Database** → Créer → région **europe-west1** → mode production.
-6. Publie les règles : `cd firebase && npx firebase deploy --only firestore:rules --project <id-du-projet>`.
+6. **Storage** → Commencer → emplacement sans frais **US-EAST1** → mode production. C'est fait depuis le 15/11/2026 : bucket par défaut `familia-93286.firebasestorage.app`. Les Cloud Functions l'utilisent sans réglage (`getStorage().bucket()`, bucket par défaut du projet), même si elles tournent en europe-west1.
+7. Publie les règles : `cd firebase && npx firebase deploy --only firestore:rules,storage --project <id-du-projet>`.
 
 ## Créer le premier admin
 

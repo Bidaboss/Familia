@@ -352,14 +352,16 @@ service cloud.firestore {
     }
 
     // members/{memberId}/settings/notifications: the member's own choices (PRD, récit 6 bis: the
-    // reminder the evening before can be turned off). Nobody else reads or changes them.
+    // reminder the evening before can be turned off; récit 32: the good news too). Nobody else reads
+    // or changes them.
     match /members/{memberId}/settings/{settingId} {
       allow read: if isMember() && myMemberId() == memberId;
       allow create, update: if isMember()
         && myMemberId() == memberId
         && settingId == 'notifications'
-        && request.resource.data.keys().hasOnly(['dayBeforeReminder'])
-        && request.resource.data.dayBeforeReminder is bool;
+        && request.resource.data.keys().hasOnly(['dayBeforeReminder', 'goodNews'])
+        && (!('dayBeforeReminder' in request.resource.data) || request.resource.data.dayBeforeReminder is bool)
+        && (!('goodNews' in request.resource.data) || request.resource.data.goodNews is bool);
     }
 
     // --- Coups de main (PRD, récits 13 à 18) ---------------------------------------------------------
@@ -514,6 +516,102 @@ service cloud.firestore {
         && (isHelpTake() || isHelpWithdraw() || isHelpDecline() || isHelpThanks() || isHelpEdit());
 
       allow delete: if isMember() && canManageHelp(resource.data);
+    }
+
+    // --- Bonnes nouvelles (PRD, récit 32) ----------------------------------------------------------
+    //
+    // goodNews/{postId}: a short text, one to three photos in Storage (goodNews/{authorId}/{postId}/,
+    // see storage.rules) and the members named. The whole family sees them (récit 32); when the
+    // circles (PRD rév. 124) arrive, the audience check goes in the read rule here and in the
+    // Storage folder. Data model: docs/data-model.md.
+
+    // The six fixed reactions (❤️ 👏 🎉 😂 😮 👍), stored by name so the rules never compare emojis.
+    function goodNewsReactions() {
+      return ['heart', 'clap', 'party', 'laugh', 'wow', 'thumbsUp'];
+    }
+
+    // Whose good news it is: one's own, or for an adult, a child of their household (récit 32).
+    function canPostFor(memberId) {
+      return memberId == myMemberId()
+        || (me().profile == 'adult'
+            && get(memberPath(memberId)).data.profile != 'adult'
+            && get(memberPath(memberId)).data.householdId == me().householdId);
+    }
+
+    // A photo id is the file name in Storage, without « .jpg » or « -thumb.jpg ».
+    function isPhotoId(ids, i) {
+      return ids.size() <= i || (ids[i] is string && ids[i].matches('^[A-Za-z0-9_]{1,40}$'));
+    }
+
+    // The 11 fields exactly. householdId is the household of the member the news is for, so a
+    // chef de famille can remove it there without the rules reading another document.
+    function isValidGoodNews(n) {
+      return n.keys().hasAll(['text', 'photoIds', 'authorId', 'authorName', 'forMemberId', 'householdId',
+                              'mentionIds', 'reactions', 'hiddenByIds', 'createdAt', 'updatedAt'])
+        && n.keys().size() == 11
+        && n.text is string && n.text.trim().size() > 0 && n.text.size() <= 500
+        && n.photoIds is list && n.photoIds.size() >= 1 && n.photoIds.size() <= 3
+        && isPhotoId(n.photoIds, 0) && isPhotoId(n.photoIds, 1) && isPhotoId(n.photoIds, 2)
+        && n.authorName is string && n.authorName.size() > 0 && n.authorName.size() <= 40
+        && n.forMemberId is string
+        && n.householdId == get(memberPath(n.forMemberId)).data.householdId
+        && n.mentionIds is list && n.mentionIds.size() <= 20
+        && n.reactions is map
+        && n.hiddenByIds is list && n.hiddenByIds.size() <= 21
+        && n.updatedAt == request.time;
+    }
+
+    // Remove (récit 32 and carte AVIS-12): the author, the responsible adults of the author or of
+    // the member it is for, a chef de famille of that household, and the admin principal.
+    function canRemoveGoodNews(n) {
+      return n.authorId == myMemberId()
+        || isParentOf(n.authorId)
+        || (n.forMemberId != n.authorId && isParentOf(n.forMemberId))
+        || managesHousehold(n.householdId);
+    }
+
+    // React: a member sets, changes or removes their own reaction, and nothing else. It does not
+    // touch updatedAt, which the app shows as « modifiée ».
+    function isGoodNewsReaction() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
+        && request.resource.data.reactions.diff(resource.data.reactions).affectedKeys().hasOnly([myMemberId()])
+        && (!(myMemberId() in request.resource.data.reactions)
+            || request.resource.data.reactions[myMemberId()] in goodNewsReactions());
+    }
+
+    // « Masquer pour moi » (PRD rév. 158) : the member it is for, or a member named, adds or takes
+    // back their own id in hiddenByIds, and nothing else. The others still see the post.
+    function isGoodNewsHide() {
+      return (resource.data.forMemberId == myMemberId() || myMemberId() in resource.data.mentionIds)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hiddenByIds'])
+        && request.resource.data.hiddenByIds is list
+        && request.resource.data.hiddenByIds.size() <= 21
+        && request.resource.data.hiddenByIds.toSet().difference(resource.data.hiddenByIds.toSet()).hasOnly([myMemberId()])
+        && resource.data.hiddenByIds.toSet().difference(request.resource.data.hiddenByIds.toSet()).hasOnly([myMemberId()]);
+    }
+
+    // Modify: the author changes the text, the photos and the members named.
+    function isGoodNewsEdit() {
+      return resource.data.authorId == myMemberId()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'photoIds', 'mentionIds', 'updatedAt'])
+        && isValidGoodNews(request.resource.data);
+    }
+
+    match /goodNews/{postId} {
+      allow read: if isMember();
+
+      allow create: if isMember()
+        && isValidGoodNews(request.resource.data)
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && canPostFor(request.resource.data.forMemberId)
+        && request.resource.data.reactions.size() == 0
+        && request.resource.data.hiddenByIds.size() == 0
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if isMember() && (isGoodNewsReaction() || isGoodNewsHide() || isGoodNewsEdit());
+
+      allow delete: if isMember() && canRemoveGoodNews(resource.data);
     }
 
     // --- Listes et cadeaux (V2) -------------------------------------------------------------------
