@@ -18,15 +18,22 @@ class MainActivity : ComponentActivity() {
     /** The event of a tapped notification, opened once the member is signed in. */
     private val openEventId = mutableStateOf<String?>(null)
 
+    /** The gift list of a tapped notification (V2). */
+    private val openListId = mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        if (savedInstanceState == null) openEventId.value = intent.eventId()
+        if (savedInstanceState == null) {
+            openEventId.value = intent.eventId()
+            openListId.value = intent.listId()
+        }
         val app = application as FamiliaApplication
         val container = app.container
         setContent {
             val isOnline by app.networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
             val eventToOpen by openEventId
+            val listToOpen by openListId
             FamiliaTheme {
                 SessionRoute(container = container) { member ->
                     FamiliaApp(
@@ -35,6 +42,8 @@ class MainActivity : ComponentActivity() {
                         isOffline = !isOnline,
                         openEventId = eventToOpen,
                         onEventOpened = { openEventId.value = null },
+                        openListId = listToOpen,
+                        onListOpened = { openListId.value = null },
                     )
                 }
             }
@@ -45,7 +54,10 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         intent.eventId()?.let { openEventId.value = it }
+        intent.listId()?.let { openListId.value = it }
     }
 
     private fun Intent.eventId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_EVENT_ID)
+
+    private fun Intent.listId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_LIST_ID)
 }
