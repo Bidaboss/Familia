@@ -45,6 +45,18 @@ data class HelpRequestDetailDestination(val requestId: String)
 @Serializable
 data class HelpRequestEditDestination(val requestId: String? = null, val duplicateOf: String? = null)
 
+/** All the « Bonnes nouvelles », opened from the home card (récit 32). */
+@Serializable
+data object GoodNewsFeedDestination
+
+/** One good news, opened from the feed, the home card or a notification. */
+@Serializable
+data class GoodNewsDetailDestination(val postId: String)
+
+/** Publish a good news, or change one's own when [postId] is set. */
+@Serializable
+data class GoodNewsEditDestination(val postId: String? = null)
+
 /** Read-only view of an event with "qui vient", opened from the Planning tab. */
 @Serializable
 data class EventDetailDestination(val eventId: String)

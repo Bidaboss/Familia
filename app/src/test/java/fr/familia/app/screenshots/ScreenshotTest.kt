@@ -70,10 +70,21 @@ import fr.familia.app.feature.gifts.item.previewGiftItemForm
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.feature.members.photo.PhotoCropContent
 import fr.familia.app.feature.members.photo.previewPicture
+import fr.familia.app.feature.goodnews.detail.GoodNewsDetailScreen
+import fr.familia.app.feature.goodnews.detail.GoodNewsDetailUiState
+import fr.familia.app.feature.goodnews.edit.GoodNewsEditScreen
+import fr.familia.app.feature.goodnews.edit.GoodNewsFormError
+import fr.familia.app.feature.goodnews.edit.previewGoodNewsEdit
+import fr.familia.app.feature.goodnews.feed.GoodNewsFeedScreen
+import fr.familia.app.feature.goodnews.feed.GoodNewsFeedUiState
+import fr.familia.app.feature.goodnews.home.GoodNewsHomeContent
+import fr.familia.app.feature.goodnews.home.GoodNewsHomeUiState
+import fr.familia.app.feature.goodnews.previewGoodNewsItems
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import java.time.Instant
 
 /**
  * Renders the screens on the JVM and saves PNG files, so each pull request carries light and dark
@@ -571,6 +582,56 @@ class ScreenshotTest {
     @Config(fontScale = 2f)
     fun helpRequestDetailFontScale200() = capture("entraide_detail_police_200") {
         HelpRequestDetailScreen(previewHelpRequestDetail(), {}, {}, {}, {}, {}, {}, {}, {}, {})
+    }
+
+    // --- Bonnes nouvelles (récit 32) -------------------------------------------------------------
+
+    private val goodNewsNow = Instant.parse("2026-11-21T16:00:00Z")
+
+    private fun goodNewsFeed() = GoodNewsFeedUiState.Success(previewGoodNewsItems(), canLoadMore = true, now = goodNewsNow)
+
+    @Test
+    fun goodNewsFeedLight() = capture("bonnes_nouvelles_fil_clair") {
+        GoodNewsFeedScreen(goodNewsFeed(), {}, {}, {}, { _, _ -> }, {}, {}, {}, {}, {}, {})
+    }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun goodNewsFeedDark() = capture("bonnes_nouvelles_fil_sombre", darkTheme = true) {
+        GoodNewsFeedScreen(goodNewsFeed(), {}, {}, {}, { _, _ -> }, {}, {}, {}, {}, {}, {})
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun goodNewsFeedFontScale200() = capture("bonnes_nouvelles_fil_police_200") {
+        GoodNewsFeedScreen(goodNewsFeed(), {}, {}, {}, { _, _ -> }, {}, {}, {}, {}, {}, {})
+    }
+
+    @Test
+    fun goodNewsDetailLight() = capture("bonnes_nouvelles_detail_clair") {
+        GoodNewsDetailScreen(GoodNewsDetailUiState.Success(previewGoodNewsItems()[1], goodNewsNow), {}, {}, {}, {}, {}, {})
+    }
+
+    @Test
+    fun goodNewsEditLight() = capture("bonnes_nouvelles_publier_clair") {
+        GoodNewsEditScreen(previewGoodNewsEdit(), {}, {}, {}, {}, {}, {}, {}, {})
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun goodNewsEditFontScale200() = capture("bonnes_nouvelles_publier_police_200") {
+        GoodNewsEditScreen(previewGoodNewsEdit(setOf(GoodNewsFormError.NoPhoto)), {}, {}, {}, {}, {}, {}, {}, {})
+    }
+
+    @Test
+    fun goodNewsHomeCardLight() = capture("bonnes_nouvelles_accueil_clair") {
+        Surface { GoodNewsHomeContent(GoodNewsHomeUiState.Ready(previewGoodNewsItems(), goodNewsNow), {}, {}, {}) }
+    }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun goodNewsHomeCardEmptyDark() = capture("bonnes_nouvelles_accueil_vide_sombre", darkTheme = true) {
+        Surface { GoodNewsHomeContent(GoodNewsHomeUiState.Ready(emptyList(), goodNewsNow), {}, {}, {}) }
     }
 
     private val sampleMember = Member("a", "Camille", null, null, "h1", MemberProfile.Adult, true, emptyList(), null)

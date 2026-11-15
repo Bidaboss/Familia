@@ -20,6 +20,7 @@ object NotificationChannels {
     const val REMINDERS = "reminders"
     const val GIFTS = "gifts"
     const val HELP_REQUESTS = "helpRequests"
+    const val GOOD_NEWS = "goodNews"
     const val TRIPS = "trips"
 
     private data class Spec(val id: String, val name: Int, val description: Int, val importance: Int)
@@ -29,6 +30,7 @@ object NotificationChannels {
         Spec(REMINDERS, R.string.channel_reminders, R.string.channel_reminders_description, NotificationManager.IMPORTANCE_HIGH),
         Spec(GIFTS, R.string.channel_gifts, R.string.channel_gifts_description, NotificationManager.IMPORTANCE_DEFAULT),
         Spec(HELP_REQUESTS, R.string.channel_help_requests, R.string.channel_help_requests_description, NotificationManager.IMPORTANCE_HIGH),
+        Spec(GOOD_NEWS, R.string.channel_good_news, R.string.channel_good_news_description, NotificationManager.IMPORTANCE_DEFAULT),
         Spec(TRIPS, R.string.channel_trips, R.string.channel_trips_description, NotificationManager.IMPORTANCE_DEFAULT),
     )
 

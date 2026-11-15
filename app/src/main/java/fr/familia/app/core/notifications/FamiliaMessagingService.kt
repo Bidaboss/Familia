@@ -41,9 +41,12 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         // Coups de main: the request to open, when the notification is about one.
         val helpRequestId = message.data[EXTRA_HELP_REQUEST_ID]
         helpRequestId?.let { open.putExtra(EXTRA_HELP_REQUEST_ID, it) }
+        // Bonnes nouvelles: the good news to open.
+        val goodNewsId = message.data[EXTRA_GOOD_NEWS_ID]
+        goodNewsId?.let { open.putExtra(EXTRA_GOOD_NEWS_ID, it) }
         val pending = PendingIntent.getActivity(
             this,
-            (eventId ?: listId ?: helpRequestId ?: tripId).hashCode(),
+            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId).hashCode(),
             open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -75,6 +78,8 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         /** Same key as the `data` of functions/src/helpRequests.ts. */
         const val EXTRA_HELP_REQUEST_ID = "helpRequestId"
 
+        /** Same key as the `data` of functions/src/goodNews.ts. */
+        const val EXTRA_GOOD_NEWS_ID = "goodNewsId"
         /** The trip of a « bien arrivé » or of its reminder (V3). */
         const val EXTRA_TRIP_ID = "tripId"
     }
