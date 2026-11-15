@@ -330,7 +330,7 @@ private fun TabTopBar(tab: TopLevelDestination, member: Member) {
             when (tab) {
                 TopLevelDestination.Planning -> HelpButton(ScreenHelp.Planning)
                 TopLevelDestination.Members -> HelpButton(ScreenHelp.Family)
-                TopLevelDestination.Gifts -> Unit
+                TopLevelDestination.Gifts -> HelpButton(ScreenHelp.Gifts)
             }
         },
     )

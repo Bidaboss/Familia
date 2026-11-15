@@ -29,6 +29,11 @@ class HelpTest {
     }
 
     @Test
+    fun `everyone finds the gifts in the help page`() {
+        assertTrue(helpTopics(isChef = false).containsAll(listOf(HelpTopic.Wishes, HelpTopic.GiftLists, HelpTopic.Reserve)))
+    }
+
+    @Test
     fun `the admins are named the French way`() {
         assertNull(adminNames(emptyList()))
         assertEquals("Camille", adminNames(listOf("Camille")))

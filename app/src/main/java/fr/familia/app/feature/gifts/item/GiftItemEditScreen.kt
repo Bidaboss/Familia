@@ -44,6 +44,8 @@ import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.feature.help.HelpButton
+import fr.familia.app.feature.help.ScreenHelp
 
 /** Form of a gift item (add, edit, remove). Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,6 +82,7 @@ fun GiftItemEditScreen(
                     )
                 },
                 navigationIcon = { BackButton(onClick = { if (hasChanges) confirmLeave = true else onBack() }) },
+                actions = { HelpButton(ScreenHelp.GiftItemEdit) },
             )
         },
     ) { padding ->
