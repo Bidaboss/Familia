@@ -285,4 +285,19 @@
     <string name="help_topic_invite_body">Dans l\'onglet Famille, touche « Ajouter un membre ». Indique son adresse Google, son foyer et son profil, puis envoie-lui l\'invitation par WhatsApp ou SMS.</string>
     <string name="help_topic_export_title">Réservé à l\'admin principal : sauvegarder les données</string>
     <string name="help_topic_export_body">Dans l\'onglet Famille, ouvre « Administration » puis « Sauvegarde des données ». Elle enregistre toutes les données dans un fichier JSON, sur le téléphone ou dans ton Drive.</string>
+    <!-- Photo de profil (PRD, récit 3 bis) -->
+    <string name="photo_change_action">changer la photo</string>
+    <string name="photo_of">Photo de %1$s</string>
+    <string name="photo_pick_gallery">Choisir dans la galerie</string>
+    <string name="photo_take">Prendre une photo</string>
+    <string name="photo_remove">Retirer la photo</string>
+    <string name="photo_crop_title">Cadrer la photo</string>
+    <string name="photo_crop_hint">Fais glisser pour déplacer la photo et pince pour zoomer. Le rond montre ce que la famille verra.</string>
+    <string name="photo_zoom_in">Zoomer</string>
+    <string name="photo_zoom_out">Dézoomer</string>
+    <string name="photo_crop_confirm">Valider</string>
+    <string name="photo_unreadable_title">Impossible d\'ouvrir cette photo</string>
+    <string name="photo_unreadable_body">Choisis-en une autre, ou prends une nouvelle photo.</string>
+    <string name="photo_failed_title">La photo n\'a pas changé</string>
+    <string name="photo_failed_body">Ça n\'a pas marché. Réessaie, et si ça recommence, demande à l\'admin principal.</string>
 </resources>

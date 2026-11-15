@@ -64,6 +64,19 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 |---|---|---|
 | `name` | texte | Nom du foyer |
 
+### `memberPhotos/{memberId}` (récit 3 bis, photo de profil)
+
+| Champ | Type | Rôle |
+|---|---|---|
+| `jpeg` | bytes | Photo carrée de 512 px au plus, en JPEG, faite par l'appli (100 Ko visés, 150 Ko au maximum dans les règles) |
+| `updatedAt` | timestamp | Heure du serveur au moment de l'envoi |
+
+- **Qui la change :** le membre lui-même (enfant avec l'appli compris), tout adulte du même foyer pour un enfant (avec ou sans l'appli), et l'admin principal. Un chef de famille n'a pas de droit en plus ici.
+- **Qui la lit :** toute la famille, et personne d'autre.
+- **Retirer la photo** supprime le document. La suppression d'un membre retire aussi sa photo, dans le même lot d'écriture.
+- **Pourquoi Firestore plutôt que Storage :** 13 photos d'environ 100 Ko tiennent largement dans un document chacune (la limite est de 1 Mo). Elles restent lisibles hors ligne, comme le reste. Les mêmes règles de sécurité les protègent. Et il n'y a aucun service ni aucune facturation de plus à activer.
+- **L'export JSON ne contient pas les photos.**
+
 ### `events/{eventId}` (lot 4)
 
 | Champ | Type | Description |

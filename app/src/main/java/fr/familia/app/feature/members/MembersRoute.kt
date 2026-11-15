@@ -22,11 +22,12 @@ fun MembersRoute(
 ) {
     val viewModel: MembersViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { MembersViewModel(container?.memberRepository, currentMember.id) }
+            initializer { MembersViewModel(container?.memberRepository, currentMember.id, container?.memberPhotoRepository) }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val renameFailed by viewModel.renameFailed.collectAsStateWithLifecycle()
+    val photoFailed by viewModel.photoFailed.collectAsStateWithLifecycle()
     MembersScreen(
         state = state,
         onRetry = viewModel::retry,
@@ -39,5 +40,9 @@ fun MembersRoute(
         onRenameHousehold = viewModel::renameHousehold,
         renameFailed = renameFailed,
         onRenameFailureShown = viewModel::renameFailureShown,
+        onSavePhoto = viewModel::savePhoto,
+        onRemovePhoto = viewModel::removePhoto,
+        photoFailed = photoFailed,
+        onPhotoFailureShown = viewModel::photoFailureShown,
     )
 }
