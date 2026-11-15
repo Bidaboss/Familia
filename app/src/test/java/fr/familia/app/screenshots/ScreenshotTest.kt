@@ -47,6 +47,7 @@ import fr.familia.app.feature.members.edit.previewExistingState
 import fr.familia.app.feature.members.edit.MemberEditUiState
 import java.time.LocalDate
 import org.junit.Test
+import fr.familia.app.core.ui.ClayCardSamples
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -77,6 +78,17 @@ class ScreenshotTest {
     fun planningFontScale200() = capture("planning_police_200") {
         FamiliaApp(container = null, currentMember = sampleMember)
     }
+
+    @Test
+    fun clayCardsLight() = capture("argile_cartes_clair") { ClayCardSamples() }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun clayCardsDark() = capture("argile_cartes_sombre", darkTheme = true) { ClayCardSamples() }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun clayCardsFontScale200() = capture("argile_cartes_police_200") { ClayCardSamples() }
 
     @Test
     fun birthdaysLight() = capture("anniversaires_clair") { Surface { BirthdaysScreen(previewBirthdays(), onRetry = {}) } }
