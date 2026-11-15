@@ -1,6 +1,7 @@
 package fr.familia.app.core.theme
 
 import androidx.compose.material3.Typography
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -13,6 +14,8 @@ import fr.familia.app.R
  * Style Argile: Fredoka for titles, times, buttons and tabs, Nunito for text. Both are embedded
  * (variable fonts, SIL Open Font License, see assets/licences), so every phone shows the same.
  */
+// Font variation settings are still marked experimental in Compose, but are stable since API 26.
+@OptIn(ExperimentalTextApi::class)
 private fun variable(resId: Int, weight: FontWeight) =
     Font(resId, weight, variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)))
 
