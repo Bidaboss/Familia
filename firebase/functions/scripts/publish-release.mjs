@@ -24,15 +24,15 @@ function fail(message) {
   process.exit(1);
 }
 
-if (!Number.isInteger(versionCode) || versionCode < 1) fail('versionCode est introuvable dans app/build.gradle.kts.');
-if (!versionName) fail('versionName est introuvable dans app/build.gradle.kts.');
+if (!Number.isInteger(versionCode) || versionCode < 1) fail('Le numéro de version est introuvable (étape « Number the version »).');
+if (!versionName) fail("Le nom de version est introuvable dans l'APK.");
 if (!/^[A-Za-z0-9_-]{10,}$/.test(folderId)) fail("L'identifiant du dossier Drive est introuvable (DOWNLOAD_URL).");
 
 initializeApp({ projectId });
 const configApp = getFirestore().collection('config').doc('app');
 const published = (await configApp.get()).get('latestVersionCode') ?? 0;
 if (versionCode <= published) {
-  fail(`La version ${published} est déjà annoncée. Augmente versionCode dans app/build.gradle.kts (pull request), puis relance.`);
+  fail(`La version ${published} est déjà annoncée et rien de nouveau n'a été fusionné depuis : il n'y a rien à publier.`);
 }
 
 // --- Google access token for the service account (OAuth 2.0 JWT bearer flow) -------------------
