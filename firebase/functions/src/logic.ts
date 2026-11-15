@@ -11,6 +11,8 @@ export interface Member {
   id: string;
   firstName: string;
   profile: Profile;
+  /** Missing on very old documents: such a member is then in no household's scope. */
+  householdId?: string | null;
   parentIds: string[];
   uid: string | null;
 }
@@ -28,9 +30,16 @@ export interface EventData {
 
 export type RsvpStatus = 'yes' | 'maybe' | 'no';
 
+/** The ids of NotificationChannels in the app. `events` is the « Planning » channel. */
+// Each module adds its id here and its channel in the app, in the same pull request.
+export type Channel = 'events' | 'reminders' | 'gifts';
+
 export interface Notice {
-  /** Android notification channel, created by the app (lot 8b). */
-  channel: 'events' | 'reminders';
+  /**
+   * Android notification channel, created by the app (core/notifications/NotificationChannels.kt,
+   * PRD récit 6 quinquies): one per kind, so each can be turned off in the phone's settings.
+   */
+  channel: Channel;
   title: string;
   body: string;
   /** What a tap opens: an event of the planning, or a gift list (V2). */
@@ -82,13 +91,46 @@ export function hasVisibleChange(before: EventData, after: EventData): boolean {
 }
 
 /**
- * PRD, récit 6: everyone with the app is told, except the member who made the change. Events
- * already past notify nobody (cleaning up old events should not wake the family).
+ * The one place that says who an event concerns (PRD, cartes AVIS-7 et AVIS-8), the same rule as
+ * `concerns` in the app (core/model/Audience.kt). A future « cercle » only changes this function:
+ * never test « tous les membres » elsewhere. An event concerns [me] when it is for the whole
+ * family, or when its target is in my scope: me, a member or a child of my household, my
+ * household itself, or a child I am a responsible adult for (even in another household).
  */
-export function changeRecipients(members: Member[], actorId: string | null, event: EventData, today: string): string[] {
+export function concerns(
+  event: Pick<EventData, 'targetType' | 'targetMemberId' | 'householdId'>, me: Member, members: Member[],
+): boolean {
+  switch (event.targetType) {
+    case 'family':
+      return true;
+    case 'household':
+      return !!me.householdId && event.householdId === me.householdId;
+    case 'self':
+    case 'child': {
+      if (!event.targetMemberId) return false;
+      if (event.targetMemberId === me.id) return true;
+      const target = members.find((m) => m.id === event.targetMemberId);
+      if (!target) return false;
+      return (!!me.householdId && target.householdId === me.householdId) || target.parentIds.includes(me.id);
+    }
+    default:
+      return false;
+  }
+}
+
+/**
+ * PRD, récit 6 and carte AVIS-7: each member with the app is told of what concerns them
+ * ([concerns]), never of their own change. An edit or a deletion also reaches those who answered
+ * « Je viens » or « Peut-être » ([answered]), whatever the target. Events already past notify
+ * nobody (cleaning up old events should not wake the family).
+ */
+export function changeRecipients(
+  members: Member[], actorId: string | null, event: EventData, today: string, answered: Set<string> = new Set(),
+): string[] {
   if (event.date < today) return [];
   return members
     .filter((m) => m.profile !== 'childWithoutApp' && m.id !== actorId)
+    .filter((m) => concerns(event, m, members) || answered.has(m.id))
     .map((m) => m.id);
 }
 

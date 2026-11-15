@@ -11,6 +11,7 @@ import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Rsvp
 import fr.familia.app.core.model.RsvpStatus
+import fr.familia.app.core.model.concerns
 import fr.familia.app.core.model.upcomingBirthdays
 import fr.familia.app.feature.events.authorDisplayName
 import fr.familia.app.feature.events.canManage
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -43,20 +45,25 @@ class PlanningViewModel(
     private val currentMemberId: String,
     private val today: Flow<LocalDate> = currentDayFlow(),
     private val rsvps: RsvpRepository? = null,
+    initialScope: PlanningScope = PlanningScope.Family,
+    /** Keeps the filter on the phone (PlanningScopePreferences). */
+    private val saveScope: (PlanningScope) -> Unit = {},
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
+    private val scope = MutableStateFlow(initialScope)
 
     val uiState: StateFlow<PlanningUiState> = combine(attempt, today) { n, day -> n to day }
         .flatMapLatest { (n, day) ->
             if (events == null || members == null) {
-                flowOf(PlanningUiState.Success(emptyList(), day)) // Firebase not configured (previews).
+                scope.map { PlanningUiState.Success(emptyList(), day, it) } // Firebase not configured (previews).
             } else {
-                combine<List<Event>, Family, Map<String, List<Rsvp>>, PlanningUiState>(
+                combine<List<Event>, Family, Map<String, List<Rsvp>>, PlanningScope, PlanningUiState>(
                     events.observeUpcoming(day),
                     members.observeFamily(),
                     answers(),
-                ) { list, family, answers -> PlanningUiState.Success(days(list, family, answers, day), day) }
+                    scope,
+                ) { list, family, answers, scope -> PlanningUiState.Success(days(list, family, answers, day, scope), day, scope) }
                     .onStart { if (n > 0) emit(PlanningUiState.Loading) }
                     .catch { e ->
                         if (e is CancellationException) throw e
@@ -70,6 +77,13 @@ class PlanningViewModel(
         attempt.update { it + 1 }
     }
 
+    /** « Toute la famille » or « Mon foyer »; the choice is kept on the phone. */
+    fun setScope(value: PlanningScope) {
+        if (scope.value == value) return
+        scope.value = value
+        saveScope(value)
+    }
+
     /** The counters are a bonus: if they cannot load, the planning still shows, without them. */
     private fun answers(): Flow<Map<String, List<Rsvp>>> =
         (rsvps?.observeAllRsvps() ?: flowOf(emptyMap()))
@@ -79,11 +93,19 @@ class PlanningViewModel(
                 emit(emptyMap())
             }
 
-    private fun days(list: List<Event>, family: Family, answers: Map<String, List<Rsvp>>, today: LocalDate): List<PlanningDay> {
+    private fun days(
+        list: List<Event>,
+        family: Family,
+        answers: Map<String, List<Rsvp>>,
+        today: LocalDate,
+        scope: PlanningScope,
+    ): List<PlanningDay> {
         val me = family.members.firstOrNull { it.id == currentMemberId }
         // An answer from a member who has left the family no longer counts.
         val memberIds = family.members.map { it.id }.toSet()
-        val eventsByDay = list.groupBy { it.date }
+        // « Mon foyer » keeps what concerns me, and every birthday (PRD, carte AVIS-8).
+        val shown = if (scope == PlanningScope.Household && me != null) list.filter { concerns(it.target, me, family) } else list
+        val eventsByDay = shown.groupBy { it.date }
         val birthdaysByDay = upcomingBirthdays(family.members, today).groupBy { it.date }
         return (eventsByDay.keys + birthdaysByDay.keys).sorted().map { date ->
             PlanningDay(

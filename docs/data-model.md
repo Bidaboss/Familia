@@ -151,13 +151,17 @@ Le code est dans `firebase/functions`, en TypeScript, et tourne en Europe (`euro
 
 | Fonction | Quand | Ce qu'elle fait |
 |---|---|---|
-| `onEventCreated` | Un événement est ajouté | Prévient tous les membres qui ont l'appli, sauf l'auteur (PRD, récit 6) |
-| `onEventUpdated` | Un événement est modifié | Idem, seulement si un champ visible a changé |
-| `onEventDeleted` | Un événement est supprimé | Efface ses réponses, puis prévient la famille |
+| `onEventCreated` | Un événement est ajouté | Prévient les membres qui ont l'appli et que l'événement concerne, sauf l'auteur (PRD, récit 6, carte AVIS-7) |
+| `onEventUpdated` | Un événement est modifié | Idem, plus ceux qui ont répondu « Je viens » ou « Peut-être », seulement si un champ visible a changé |
+| `onEventDeleted` | Un événement est supprimé | Prévient comme une modification, puis efface ses réponses |
 | `onMemberDeleted` | Un membre est retiré | Efface ses réponses, ses téléphones et ses réglages |
 | `dayBeforeReminder` | Chaque jour à 18 h, heure de Paris | Rappelle l'événement du lendemain à ceux qui ont répondu « Je viens » ou « Peut-être ». Un enfant sans l'appli est rappelé à ses adultes responsables (PRD, récit 6 bis). |
 
 Un événement déjà passé ne prévient personne. L'auteur d'un changement est reconnu par son compte Firebase.
+
+**Qui un événement concerne** (cartes AVIS-7 et AVIS-8) : une seule fonction le dit, `concerns` dans `functions/src/logic.ts`, et la même règle dans l'appli (`core/model/Audience.kt`), qui sert au filtre « Mon foyer » du planning. Un événement concerne un membre s'il est pour toute la famille, ou si sa cible est lui-même, son foyer, un membre ou un enfant de son foyer, ou un enfant dont il est adulte responsable (même dans un autre foyer). Un futur « cercle » ne changera que cette fonction.
+
+**Canaux Android** (récit 6 quinquies) : chaque notification part sur un canal, que chacun peut couper dans les réglages Android : `events` (affiché « Planning »), `reminders`, `gifts`. Chaque module ajoute le sien en même temps que lui : `goodNews` (Bonnes nouvelles), `helpRequests` (Entraide), `trips` (Voyages), `comments` (Commentaires et réactions), `weekly` (Rendez-vous de la semaine). Les identifiants ne changent jamais, car Android y garde le choix du membre. Un canal inconnu de l'appli retombe sur « Planning ».
 
 Tests : `cd firebase && npm run test:functions` (la logique, et les fonctions contre l'émulateur Firestore, avec un faux envoi de notifications).
 

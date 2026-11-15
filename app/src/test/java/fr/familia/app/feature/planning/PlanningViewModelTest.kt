@@ -151,4 +151,41 @@ class PlanningViewModelTest {
         val item = (vm.uiState.value as PlanningUiState.Success).days.single().items.single()
         assertEquals(0, item.coming)
     }
+
+    @Test
+    fun `mon foyer keeps what concerns me and every birthday, and the choice is saved`() = runTest {
+        val family = TestFamily.family.copy(
+            members = TestFamily.family.members.map { if (it.id == "kid2") it.copy(birthDate = LocalDate.of(2016, 12, 24)) else it },
+        )
+        val events = FakeEvents(
+            listOf(
+                TestFamily.event("family", TestFamily.otherAdult),
+                TestFamily.event("mine", TestFamily.adult, EventTarget.ForHousehold("h1")),
+                TestFamily.event("kid", TestFamily.adult, EventTarget.ForChild("kid1")),
+                TestFamily.event("theirs", TestFamily.otherAdult, EventTarget.ForHousehold("h2")),
+                TestFamily.event("theirKid", TestFamily.otherAdult, EventTarget.ForChild("kid2")),
+            ),
+        )
+        val saved = mutableListOf<PlanningScope>()
+        val vm = PlanningViewModel(events, FakeMembers(family), "adult1", today = flowOf(today), saveScope = { saved += it })
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        assertEquals(5, (vm.uiState.value as PlanningUiState.Success).days.single().items.size)
+
+        vm.setScope(PlanningScope.Household)
+        val state = vm.uiState.value as PlanningUiState.Success
+        assertEquals(PlanningScope.Household, state.scope)
+        assertEquals(setOf("family", "mine", "kid"), state.days.single().items.map { it.event.id }.toSet())
+        assertEquals("kid2", state.days.single().birthdays.single().member.id)
+        assertEquals(listOf(PlanningScope.Household), saved)
+    }
+
+    @Test
+    fun `the last choice comes back`() = runTest {
+        val events = FakeEvents(listOf(TestFamily.event("theirs", TestFamily.otherAdult, EventTarget.ForHousehold("h2"))))
+        val vm = PlanningViewModel(events, FakeMembers(), "adult1", today = flowOf(today), initialScope = PlanningScope.Household)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        val state = vm.uiState.value as PlanningUiState.Success
+        assertEquals(PlanningScope.Household, state.scope)
+        assertTrue(state.days.isEmpty())
+    }
 }

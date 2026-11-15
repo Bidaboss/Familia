@@ -27,6 +27,10 @@ data class PlanningDay(
 sealed interface PlanningUiState {
     data object Loading : PlanningUiState
     /** [today] lets the screen write "Aujourd'hui" and "Demain" in the day headers. */
-    data class Success(val days: List<PlanningDay>, val today: LocalDate) : PlanningUiState
+    data class Success(
+        val days: List<PlanningDay>,
+        val today: LocalDate,
+        val scope: PlanningScope = PlanningScope.Family,
+    ) : PlanningUiState
     data object Error : PlanningUiState
 }

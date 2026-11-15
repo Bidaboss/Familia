@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { Notice } from '../src/logic';
-import { deleteEventAnswers, deleteMemberData, notify, notifyChange, Sender, sendDayBeforeReminders } from '../src/store';
+import { comingMembers, deleteEventAnswers, deleteMemberData, notify, notifyChange, Sender, sendDayBeforeReminders } from '../src/store';
 
 assert.ok(process.env.FIRESTORE_EMULATOR_HOST, 'Start these tests with the emulator: npm run test:functions');
 
@@ -70,6 +70,21 @@ test('the token of an uninstalled app is forgotten', async () => {
   assert.deepEqual(sent.map((s) => s.token), ['token-ines']);
   assert.equal((await db.doc('members/ines/devices/token-old').get()).exists, false);
   assert.equal((await db.doc('members/ines/devices/token-ines').get()).exists, true);
+});
+
+test('those coming are read from the answers, a child without the app through their adults', async () => {
+  assert.deepEqual([...(await comingMembers(db, 'meal'))].sort(), ['camille', 'ines']);
+  await db.doc('events/meal/rsvps/ines').set({ status: 'no', answeredBy: 'ines', updatedAt: new Date() });
+  assert.deepEqual([...(await comingMembers(db, 'meal'))], ['camille']);
+});
+
+test('an event of another household still reaches whoever said they were coming', async () => {
+  const { sent, send } = fakeSender();
+  const other = { ...event('Goûter', '2026-12-19'), targetType: 'household', householdId: 'h9' } as never;
+  await notifyChange(db, send, 'deleted', 'meal', other, 'uid-camille', now);
+  assert.equal(sent.length, 0);
+  await notifyChange(db, send, 'deleted', 'meal', other, 'uid-camille', now, new Set(['ines']));
+  assert.deepEqual(sent.map((s) => s.token).sort(), ['token-ines', 'token-old']);
 });
 
 test('deleting an event deletes its answers, and only its answers', async () => {

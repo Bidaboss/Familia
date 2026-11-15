@@ -52,7 +52,7 @@ export function birthdayRecipients(members: GiftMember[], birthdayId: string): s
 
 export function birthdayNotice(member: GiftMember, birthday: string, second: boolean, wishesListId: string | null): Notice {
   return {
-    channel: 'reminders',
+    channel: 'gifts',
     title: second
       ? `Anniversaire de ${member.firstName} dans 2 semaines`
       : `Anniversaire de ${member.firstName} dans 3 semaines`,
@@ -70,7 +70,7 @@ export function isDueForReveal(list: { kind?: string; date?: string | null; reve
 
 export function revealNotice(listId: string, title: string): Notice {
   return {
-    channel: 'events',
+    channel: 'gifts',
     title: `« ${title} » : découvre tes cadeaux`,
     body: 'L\'occasion est passée : tu peux voir qui t\'a offert quoi, pour remercier.',
     listId,
@@ -86,13 +86,13 @@ export function itemChanged(before: GiftItemData, after: GiftItemData): boolean 
 export function itemNotice(kind: 'edited' | 'deleted', listId: string, beneficiaryName: string, title: string): Notice {
   return kind === 'deleted'
     ? {
-      channel: 'events',
+      channel: 'gifts',
       title: 'Réservation annulée',
       body: `${beneficiaryName} a retiré « ${title} » de sa liste. Ta réservation est annulée.`,
       listId,
     }
     : {
-      channel: 'events',
+      channel: 'gifts',
       title: 'Article modifié',
       body: `${beneficiaryName} a modifié « ${title} », que tu as réservé. Jette un œil avant de l'acheter.`,
       listId,

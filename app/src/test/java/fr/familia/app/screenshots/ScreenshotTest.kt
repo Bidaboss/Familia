@@ -37,6 +37,7 @@ import fr.familia.app.feature.events.edit.EventEditScreen
 import fr.familia.app.feature.events.edit.EventFormError
 import fr.familia.app.feature.events.edit.previewEventState
 import fr.familia.app.feature.planning.PlanningMode
+import fr.familia.app.feature.planning.PlanningScope
 import fr.familia.app.feature.planning.PlanningScreen
 import fr.familia.app.feature.planning.previewPlanning
 import fr.familia.app.feature.members.edit.FormError
@@ -239,6 +240,17 @@ class ScreenshotTest {
     @Test
     fun planningListLight() = capture("planning_liste_clair") {
         Surface { PlanningScreen(previewPlanning(), {}, {}, {}) }
+    }
+
+    @Test
+    fun planningHouseholdLight() = capture("planning_mon_foyer_clair") {
+        Surface { PlanningScreen(previewPlanning().copy(scope = PlanningScope.Household), {}, {}, {}, onScopeChange = {}) }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun planningHouseholdFontScale200() = capture("planning_mon_foyer_police_200") {
+        Surface { PlanningScreen(previewPlanning().copy(scope = PlanningScope.Household), {}, {}, {}, onScopeChange = {}) }
     }
 
     @Test
