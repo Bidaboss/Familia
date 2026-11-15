@@ -420,7 +420,7 @@ private val weekDayInitials = listOf("L", "M", "M", "J", "V", "S", "D")
 /** Fictional planning for previews and screenshots. */
 internal fun previewPlanning(): PlanningUiState.Success {
     fun item(id: String, title: String, date: LocalDate, time: LocalTime?, place: String?, target: TargetChoice, author: String, manage: Boolean) =
-        PlanningItem(Event(id, title, date, time, place, null, target.target, "a", author), target, author, manage)
+        PlanningItem(Event(id, title, date, time, place, null, target.target, "a", author), target, author, canManage = manage)
     val today = LocalDate.of(2026, 12, 19)
     val day1 = LocalDate.of(2026, 12, 20)
     val day2 = LocalDate.of(2026, 12, 24)
