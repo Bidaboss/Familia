@@ -315,7 +315,7 @@
     <string name="help_topic_notifications_title">Notifications et rappels</string>
     <string name="help_topic_notifications_body">Tu es prévenu quand quelqu\'un ajoute, modifie ou supprime un événement qui te concerne (toute la famille, ton foyer, un enfant dont tu t\'occupes, ou un événement où tu viens), mais jamais pour tes propres changements. La veille à 18\u00A0h, un rappel part si tu as répondu « Je viens » ou « Peut-être ». Tu peux couper ce rappel dans l\'onglet Famille, ligne « Notifications ».</string>
     <string name="help_topic_family_title">La famille</string>
-    <string name="help_topic_family_body">La liste des membres, rangés par foyer. Les anniversaires de chacun sont dans l\'onglet Anniversaires.</string>
+    <string name="help_topic_family_body">La liste des membres, rangés par foyer. Les anniversaires de chacun sont dans le planning, et en haut de l\'onglet Cadeaux.</string>
     <string name="help_topic_wishes_title">Mes envies</string>
     <string name="help_topic_wishes_body">Chacun a sa liste « Mes envies », à remplir toute l\'année. Toute la famille peut la voir pour trouver une idée. Un parent remplit celle d\'un enfant qui n\'a pas l\'appli. Pour l\'ouvrir : onglet Cadeaux, ta section, « Mes envies ».</string>
     <string name="help_topic_gift_lists_title">Les listes d\'occasion</string>
@@ -355,6 +355,8 @@
     <string name="gift_list_missing_body">Elle a été supprimée, ou tu ne fais pas partie des personnes qui la voient.</string>
     <string name="gift_list_unavailable_body">Seuls la personne qui a créé la liste, et pour ses propres listes le bénéficiaire, peuvent la modifier.</string>
     <string name="gift_list_empty">Aucun article pour l\'instant. Touche « Ajouter » pour proposer une idée.</string>
+    <string name="members_wishes_button">Envies</string>
+    <string name="gift_wishes_empty_other">%1$s n\'a encore rien noté. Reviens plus tard, ou demande-lui ce qui lui ferait plaisir.</string>
     <string name="gift_list_empty_mine">Aucun article pour l\'instant. Touche « Ajouter » pour dire ce qui te ferait plaisir.</string>
     <string name="gift_list_hidden_mine">Les idées ajoutées par les autres et les réservations te restent cachées jusqu\'au lendemain de l\'occasion.</string>
     <string name="gift_list_hidden_wishes">Toute la famille voit tes envies. Ce qui est réservé et les idées des autres te restent cachés.</string>
