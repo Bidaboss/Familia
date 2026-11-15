@@ -98,7 +98,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.unit.dp
-import fr.familia.app.R
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
 @Composable
