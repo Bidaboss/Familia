@@ -3,23 +3,30 @@ package fr.familia.app.core.navigation
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Cake
+import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.VolunteerActivism
 import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.Cake
+import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.ui.graphics.vector.ImageVector
 import fr.familia.app.R
+import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.MemberProfile
 import kotlinx.serialization.Serializable
 
 /** Type-safe routes of the three tabs. */
 @Serializable
 data object PlanningRoute
 
+/** Every birthday, opened from the Cadeaux tab (carte DESIGN-4: no Anniversaires tab any more). */
 @Serializable
 data object BirthdaysRoute
+
+/** Cadeaux tab: birthdays, « Mes envies » and the gift lists (PRD, V2). */
+@Serializable
+data object GiftsRoute
 
 @Serializable
 data object MembersRoute
@@ -64,6 +71,18 @@ data object AdministrationDestination
 @Serializable
 data object HelpDestination
 
+/** One gift list, opened from the Cadeaux tab. */
+@Serializable
+data class GiftListDestination(val listId: String)
+
+/** Gift list form: a new list when [listId] is null, for [forMemberId] when it is set (a birthday). */
+@Serializable
+data class GiftListEditDestination(val listId: String? = null, val forMemberId: String? = null)
+
+/** Item form of a gift list: a new item when [itemId] is null. */
+@Serializable
+data class GiftItemEditDestination(val listId: String, val itemId: String? = null)
+
 /** "Vérifier les mises à jour", opened from the Famille tab (lot 10). */
 @Serializable
 data object UpdateCheckDestination
@@ -79,10 +98,15 @@ enum class TopLevelDestination(
     val unselectedIcon: ImageVector,
 ) {
     Planning(PlanningRoute, R.string.nav_planning, Icons.Filled.CalendarMonth, Icons.Outlined.CalendarMonth),
-    Birthdays(BirthdaysRoute, R.string.nav_birthdays, Icons.Filled.Cake, Icons.Outlined.Cake),
+    Gifts(GiftsRoute, R.string.nav_gifts, Icons.Filled.CardGiftcard, Icons.Outlined.CardGiftcard),
     HelpRequests(HelpRequestsRoute, R.string.nav_help_requests, Icons.Filled.VolunteerActivism, Icons.Outlined.VolunteerActivism),
     Members(MembersRoute, R.string.nav_members, Icons.Filled.Groups, Icons.Outlined.Groups),
     ;
+
+    /** A child reads « Mes envies » on the Cadeaux tab (carte DESIGN-4). */
+    @StringRes
+    fun labelFor(member: Member): Int =
+        if (this == Gifts && member.profile != MemberProfile.Adult) R.string.nav_gifts_child else labelRes
 
     companion object {
         /** The app always opens on the planning. */

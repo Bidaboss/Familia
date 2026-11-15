@@ -70,6 +70,8 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
         batch.delete(db.collection(MEMBERS).document(member.id))
         member.email?.let { batch.delete(db.collection(MEMBER_EMAILS).document(it)) }
         updatedChildren.forEach { batch.set(db.collection(MEMBERS).document(it.id), it.toFirestore()) }
+        // No photo outlives its member (PRD, récit 3 bis). Deleting a missing document is fine.
+        batch.delete(db.collection(MEMBER_PHOTOS).document(member.id))
         batch.commit().await()
     }
 
@@ -125,6 +127,7 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
         const val MEMBERS = "members"
         const val MEMBER_EMAILS = "memberEmails"
         const val HOUSEHOLDS = "households"
+        const val MEMBER_PHOTOS = FirestoreMemberPhotoRepository.MEMBER_PHOTOS
         const val CONFIG = "config"
         const val FAMILY = "family"
     }

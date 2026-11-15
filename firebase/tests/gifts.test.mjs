@@ -303,6 +303,9 @@ describe('managing a list', () => {
     await assertFails(updateDoc(doc(as(env, ADULT), 'giftLists/own1'), { title: 'X', updatedAt: serverTimestamp() }));
     await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'giftLists/own1/items/new'), newItem(NEIGHBOUR)));
     await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'giftLists/own1/claims/mine2'), newClaim(NEIGHBOUR)));
+    // Nothing leaves an archived list.
+    await assertFails(deleteDoc(doc(as(env, ADULT), 'giftLists/own1/items/mine')));
+    await assertFails(deleteDoc(doc(as(env, OTHER_ADULT), 'giftLists/own1/claims/mine')));
   });
 });
 

@@ -33,6 +33,18 @@
             </intent-filter>
         </service>
 
+        <!-- Lets the camera app write the picture taken for a profile photo (PRD, récit 3 bis).
+             No camera permission: the camera app takes the picture, not Familia. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.photos"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/photo_paths" />
+        </provider>
+
         <!-- singleTop: a tapped notification reuses the open app instead of stacking a second one. -->
         <activity
             android:name=".MainActivity"

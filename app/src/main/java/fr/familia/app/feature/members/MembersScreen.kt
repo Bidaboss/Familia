@@ -17,10 +17,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.SystemUpdate
@@ -44,8 +46,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -59,7 +63,9 @@ import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.MemberAvatar
+import fr.familia.app.feature.members.photo.MemberPhotoEditor
 
 /** Famille tab: members grouped by household, then the installed version. Stateless. */
 @Composable
@@ -79,8 +85,15 @@ fun MembersScreen(
     onRenameHousehold: ((Household, String) -> Unit)? = null,
     renameFailed: Boolean = false,
     onRenameFailureShown: () -> Unit = {},
+    /** The avatar of [MembersUiState.Success.photoEditableMemberIds] opens the photo choice (PRD, récit 3 bis). */
+    onSavePhoto: ((memberId: String, jpeg: ByteArray) -> Unit)? = null,
+    onRemovePhoto: (memberId: String) -> Unit = {},
+    photoFailed: Boolean = false,
+    onPhotoFailureShown: () -> Unit = {},
 ) {
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
+    var photoOf by rememberSaveable { mutableStateOf<String?>(null) }
+    val photos = LocalMemberPhotos.current
     when (state) {
         MembersUiState.Loading ->
             Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
@@ -131,6 +144,12 @@ fun MembersScreen(
                             isMe = member.id == state.currentMemberId,
                             isOwner = member.id == state.ownerId,
                             onClick = onEditMember?.takeIf { member.id in state.editableMemberIds }?.let { edit -> { edit(member.id) } },
+                            hasPhoto = member.id in photos,
+                            onPhotoClick = if (onSavePhoto != null && member.id in state.photoEditableMemberIds) {
+                                { photoOf = member.id }
+                            } else {
+                                null
+                            },
                         )
                     }
                 }
@@ -181,6 +200,30 @@ fun MembersScreen(
             household = renamed,
             onConfirm = { name -> onRenameHousehold(renamed, name); renaming = null },
             onDismiss = { renaming = null },
+        )
+    }
+    val photoMember = (state as? MembersUiState.Success)?.groups?.firstNotNullOfOrNull { group ->
+        group.members.firstOrNull { it.id == photoOf }
+    }
+    if (photoMember != null && onSavePhoto != null) {
+        MemberPhotoEditor(
+            member = photoMember,
+            hasPhoto = photoMember.id in photos,
+            onSave = { jpeg -> onSavePhoto(photoMember.id, jpeg) },
+            onRemove = { onRemovePhoto(photoMember.id) },
+            onDismiss = { photoOf = null },
+        )
+    }
+    if (photoFailed) {
+        AlertDialog(
+            onDismissRequest = onPhotoFailureShown,
+            title = { Text(stringResource(R.string.photo_failed_title)) },
+            text = { Text(stringResource(R.string.photo_failed_body)) },
+            confirmButton = {
+                TextButton(onClick = onPhotoFailureShown, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.action_ok))
+                }
+            },
         )
     }
     if (renameFailed) {
@@ -271,7 +314,14 @@ private fun RenameHouseholdDialog(household: Household, onConfirm: (String) -> U
 }
 
 @Composable
-private fun MemberRow(member: Member, isMe: Boolean, isOwner: Boolean, onClick: (() -> Unit)?) {
+private fun MemberRow(
+    member: Member,
+    isMe: Boolean,
+    isOwner: Boolean,
+    onClick: (() -> Unit)?,
+    hasPhoto: Boolean = false,
+    onPhotoClick: (() -> Unit)? = null,
+) {
     val editLabel = stringResource(R.string.members_edit_action)
     Row(
         modifier = Modifier
@@ -281,8 +331,13 @@ private fun MemberRow(member: Member, isMe: Boolean, isOwner: Boolean, onClick: 
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        MemberAvatar(member)
-        Spacer(Modifier.width(16.dp))
+        if (onPhotoClick != null) {
+            PhotoButton(member, hasPhoto, onPhotoClick)
+            Spacer(Modifier.width(8.dp))
+        } else {
+            MemberAvatar(member)
+            Spacer(Modifier.width(16.dp))
+        }
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 text = if (isMe) stringResource(R.string.members_me, member.firstName) else member.firstName,
@@ -293,6 +348,39 @@ private fun MemberRow(member: Member, isMe: Boolean, isOwner: Boolean, onClick: 
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+    }
+}
+
+/**
+ * The avatar as a 56 dp button that opens the photo choice. Without a photo yet, a small camera
+ * badge says that one can be added.
+ */
+@Composable
+private fun PhotoButton(member: Member, hasPhoto: Boolean, onClick: () -> Unit) {
+    val description = stringResource(R.string.photo_of, member.firstName)
+    Box(
+        modifier = Modifier
+            .size(56.dp)
+            .clip(CircleShape)
+            .clickable(onClickLabel = stringResource(R.string.photo_change_action), onClick = onClick)
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        MemberAvatar(member)
+        if (!hasPhoto) {
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp).size(20.dp),
+            ) {
+                Icon(
+                    Icons.Outlined.PhotoCamera,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.padding(3.dp),
+                )
+            }
         }
     }
 }
@@ -341,10 +429,12 @@ private fun MembersScreenPreview() {
                     canAddMembers = true,
                     editableMemberIds = setOf("a", "b", "c", "d", "e", "f"),
                     renamableHouseholdIds = setOf("h1", "h2"),
+                    photoEditableMemberIds = setOf("a", "c"),
                 ),
                 onRetry = {},
                 versionName = "0.1.0",
                 onEditMember = {},
+                onSavePhoto = { _, _ -> },
             )
         }
     }

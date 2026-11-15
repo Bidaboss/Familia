@@ -1,5 +1,7 @@
 package fr.familia.app.feature.members
 
+import fr.familia.app.core.data.MemberPhoto
+import fr.familia.app.core.data.MemberPhotoRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Household
@@ -181,6 +183,60 @@ class MembersViewModelTest {
         assertTrue(vm.renameFailed.value)
         vm.renameFailureShown()
         assertFalse(vm.renameFailed.value)
+    }
+
+    @Test
+    fun `an adult changes their own photo and those of the children of their household`() = runTest {
+        val family = Family(
+            households = listOf(Household("h1", "Foyer"), Household("h2", "Voisins")),
+            members = listOf(
+                m("1", "Alice", "h1"),
+                m("2", "Bruno", "h1"),
+                m("3", "Zoé", "h1", MemberProfile.ChildWithoutApp),
+                m("4", "Yann", "h2", MemberProfile.ChildWithApp),
+            ),
+        )
+        val vm = MembersViewModel(FakeMembers(MutableStateFlow(family)), currentMemberId = "1", photos = FakePhotos())
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        assertEquals(setOf("1", "3"), (vm.uiState.value as MembersUiState.Success).photoEditableMemberIds)
+    }
+
+    @Test
+    fun `without photo storage no avatar offers a photo`() = runTest {
+        val family = Family(listOf(Household("h1", "Foyer")), listOf(m("1", "Alice", "h1")))
+        val vm = MembersViewModel(FakeMembers(MutableStateFlow(family)), currentMemberId = "1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        assertTrue((vm.uiState.value as MembersUiState.Success).photoEditableMemberIds.isEmpty())
+    }
+
+    @Test
+    fun `a photo is saved and removed, and a refusal is reported once`() = runTest {
+        val photos = FakePhotos()
+        val vm = MembersViewModel(FakeMembers(emptyFlow()), currentMemberId = "1", photos = photos)
+        vm.savePhoto("1", byteArrayOf(1, 2, 3))
+        vm.removePhoto("3")
+        assertEquals(listOf("save 1", "remove 3"), photos.calls)
+        assertFalse(vm.photoFailed.value)
+
+        photos.fail = true
+        vm.savePhoto("1", byteArrayOf(1))
+        assertTrue(vm.photoFailed.value)
+        vm.photoFailureShown()
+        assertFalse(vm.photoFailed.value)
+    }
+
+    private class FakePhotos : MemberPhotoRepository {
+        val calls = mutableListOf<String>()
+        var fail = false
+        override fun observePhotos(): Flow<Map<String, MemberPhoto>> = emptyFlow()
+        override suspend fun savePhoto(memberId: String, jpeg: ByteArray) {
+            if (fail) throw IOException("denied")
+            calls += "save $memberId"
+        }
+        override suspend fun removePhoto(memberId: String) {
+            if (fail) throw IOException("denied")
+            calls += "remove $memberId"
+        }
     }
 
     private class FakeMembers(private val family: Flow<Family>) : MemberRepository {

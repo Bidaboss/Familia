@@ -19,3 +19,12 @@ fun Family.canAddMembers(me: Member): Boolean = isOwner(me) || me.isAdmin
 /** True when [me] may edit [member]: the admin principal anyone, a chef the members of their household. */
 fun Family.canEditMember(me: Member, member: Member): Boolean =
     isOwner(me) || (me.isAdmin && member.householdId == me.householdId && member.id != ownerId)
+
+/**
+ * True when [me] may change the photo of [member] (PRD, récit 3 bis): their own, a child of their
+ * household for an adult, or anyone for the admin principal. Chefs have no extra right here.
+ */
+fun Family.canChangePhoto(me: Member, member: Member): Boolean =
+    me.id == member.id ||
+        isOwner(me) ||
+        (member.profile != MemberProfile.Adult && me.profile == MemberProfile.Adult && me.householdId == member.householdId)

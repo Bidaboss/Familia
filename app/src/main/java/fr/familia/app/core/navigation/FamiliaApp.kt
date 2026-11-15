@@ -52,7 +52,9 @@ import fr.familia.app.feature.birthdays.BirthdaysRoute
 import fr.familia.app.feature.events.detail.EventDetailRoute
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.OfflineBanner
+import fr.familia.app.core.ui.rememberMemberPhotos
 import fr.familia.app.feature.members.MembersRoute
 import fr.familia.app.feature.events.edit.EventEditRoute
 import fr.familia.app.feature.planning.PlanningRoute
@@ -62,6 +64,11 @@ import fr.familia.app.feature.members.admin.AdministrationRoute
 import fr.familia.app.feature.onboarding.OnboardingPreferences
 import fr.familia.app.feature.onboarding.OnboardingRoute
 import kotlinx.coroutines.CancellationException
+import fr.familia.app.feature.gifts.AllBirthdaysScreen
+import fr.familia.app.feature.gifts.GiftsRoute
+import fr.familia.app.feature.gifts.detail.GiftListRoute
+import fr.familia.app.feature.gifts.edit.GiftListEditRoute
+import fr.familia.app.feature.gifts.item.GiftItemEditRoute
 import fr.familia.app.feature.events.answerableMembers
 import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.feature.helprequests.badgeCount
@@ -84,6 +91,9 @@ fun FamiliaApp(
     /** The « coup de main » of a tapped notification, to open once. */
     openHelpRequestId: String? = null,
     onHelpRequestOpened: () -> Unit = {},
+    /** The gift list of a tapped notification, to open once (V2). */
+    openListId: String? = null,
+    onListOpened: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
     // Each time the app opens, this phone is (re)registered for the notifications of this member.
@@ -111,6 +121,12 @@ fun FamiliaApp(
             showOnboarding = false
         }
         return
+    }
+    LaunchedEffect(openListId) {
+        if (openListId != null) {
+            navController.navigate(GiftListDestination(openListId))
+            onListOpened()
+        }
     }
     LaunchedEffect(openEventId) {
         if (openEventId != null) {
@@ -154,12 +170,18 @@ fun FamiliaApp(
     // The bar only shows on the three tabs, not on screens opened from them.
     val onTab = TopLevelDestination.entries.any { currentDestination.isOn(it) }
 
-    CompositionLocalProvider(LocalOpenHelp provides { navController.navigate(HelpDestination) { launchSingleTop = true } }) {
+    // Profile photos (PRD, récit 3 bis): read once here, shown by every avatar of the app.
+    val photos by rememberMemberPhotos(container?.memberPhotoRepository)
+
+    CompositionLocalProvider(
+        LocalOpenHelp provides { navController.navigate(HelpDestination) { launchSingleTop = true } },
+        LocalMemberPhotos provides photos,
+    ) {
         Scaffold(
             topBar = {
                 // The tabs get a title bar, with the « ? » of their screen (spec « tuto et aide », récit 26).
                 val tab = TopLevelDestination.entries.firstOrNull { currentDestination.isOn(it) }
-                if (tab != null) TabTopBar(tab)
+                if (tab != null) TabTopBar(tab, currentMember)
             },
             bottomBar = {
                 if (onTab) NavigationBar {
@@ -177,7 +199,7 @@ fun FamiliaApp(
                                     )
                                 }
                             },
-                            label = { Text(stringResource(destination.labelRes)) },
+                            label = { Text(stringResource(destination.labelFor(currentMember))) },
                         )
                     }
                 }
@@ -224,7 +246,57 @@ fun FamiliaApp(
                             onDone = { navController.popBackStack() },
                         )
                     }
-                    composable<BirthdaysRoute> { BirthdaysRoute(container) }
+                    composable<BirthdaysRoute> {
+                        AllBirthdaysScreen(onBack = { navController.popBackStack() }) { BirthdaysRoute(container) }
+                    }
+                    // --- Listes et cadeaux (V2) ---
+                    composable<GiftsRoute> {
+                        GiftsRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
+                            onNewList = { navController.navigate(GiftListEditDestination()) },
+                            onAllBirthdays = { navController.navigate(BirthdaysRoute) },
+                            onPrepareSurprise = { id -> navController.navigate(GiftListEditDestination(forMemberId = id)) },
+                        )
+                    }
+                    composable<GiftListDestination> { entry ->
+                        val listId = entry.toRoute<GiftListDestination>().listId
+                        GiftListRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            listId = listId,
+                            onEditList = { navController.navigate(GiftListEditDestination(listId)) },
+                            onAddItem = { navController.navigate(GiftItemEditDestination(listId)) },
+                            onEditItem = { itemId -> navController.navigate(GiftItemEditDestination(listId, itemId)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<GiftListEditDestination> { entry ->
+                        val route = entry.toRoute<GiftListEditDestination>()
+                        GiftListEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            listId = route.listId,
+                            forMemberId = route.forMemberId,
+                            onDone = { deleted ->
+                                // A deleted list closes its screen too.
+                                if (deleted) navController.popBackStack(GiftsRoute, inclusive = false) else navController.popBackStack()
+                            },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<GiftItemEditDestination> { entry ->
+                        val route = entry.toRoute<GiftItemEditDestination>()
+                        GiftItemEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            listId = route.listId,
+                            itemId = route.itemId,
+                            onDone = { navController.popBackStack() },
+                        )
+                    }
+                    // --- Coups de main ---
                     composable<HelpRequestsRoute> {
                         HelpRequestsRoute(
                             container = container,
@@ -311,16 +383,16 @@ fun FamiliaApp(
 /** Title bar of a tab, with its « ? » where the spec has one. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TabTopBar(tab: TopLevelDestination) {
+private fun TabTopBar(tab: TopLevelDestination, member: Member) {
     TopAppBar(
         // The Entraide tab keeps the full name « Coups de main » as its title (DESIGN-4).
-        title = { Text(stringResource(if (tab == TopLevelDestination.HelpRequests) R.string.helprequest_screen_title else tab.labelRes)) },
+        title = { Text(stringResource(if (tab == TopLevelDestination.HelpRequests) R.string.helprequest_screen_title else tab.labelFor(member))) },
         actions = {
             when (tab) {
                 TopLevelDestination.Planning -> HelpButton(ScreenHelp.Planning)
                 TopLevelDestination.Members -> HelpButton(ScreenHelp.Family)
                 TopLevelDestination.HelpRequests -> HelpButton(ScreenHelp.HelpRequests)
-                TopLevelDestination.Birthdays -> Unit
+                TopLevelDestination.Gifts -> Unit
             }
         },
     )

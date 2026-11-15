@@ -2,6 +2,7 @@ package fr.familia.app.screenshots
 
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import com.github.takahirom.roborazzi.captureRoboImage
 import fr.familia.app.core.navigation.FamiliaApp
 import fr.familia.app.core.theme.FamiliaTheme
@@ -55,6 +56,18 @@ import fr.familia.app.feature.helprequests.edit.previewHelpRequestEdit
 import fr.familia.app.feature.helprequests.list.HelpRequestsScreen
 import fr.familia.app.feature.helprequests.list.previewHelpRequests
 import fr.familia.app.core.ui.ClayCardSamples
+import fr.familia.app.feature.gifts.GiftsScreen
+import fr.familia.app.feature.gifts.previewGifts
+import fr.familia.app.feature.gifts.detail.GiftListActions
+import fr.familia.app.feature.gifts.detail.GiftListScreen
+import fr.familia.app.feature.gifts.detail.previewGiftList
+import fr.familia.app.feature.gifts.edit.GiftListEditScreen
+import fr.familia.app.feature.gifts.edit.previewGiftListForm
+import fr.familia.app.feature.gifts.item.GiftItemEditScreen
+import fr.familia.app.feature.gifts.item.previewGiftItemForm
+import fr.familia.app.core.ui.LocalMemberPhotos
+import fr.familia.app.feature.members.photo.PhotoCropContent
+import fr.familia.app.feature.members.photo.previewPicture
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -125,6 +138,45 @@ class ScreenshotTest {
     @Config(qualifiers = "+night")
     fun membersDark() = capture("famille_sombre", darkTheme = true) {
         Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0") }
+    }
+
+    @Test
+    fun membersWithPhotosLight() = capture("famille_photos_clair") { MembersWithPhotos() }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun membersWithPhotosDark() = capture("famille_photos_sombre", darkTheme = true) { MembersWithPhotos() }
+
+    @Test
+    fun photoCropLight() = capture("photo_cadrage_clair") {
+        Surface { PhotoCropContent(previewPicture(), saving = false, onConfirm = {}, onDismiss = {}) }
+    }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun photoCropDark() = capture("photo_cadrage_sombre", darkTheme = true) {
+        Surface { PhotoCropContent(previewPicture(), saving = false, onConfirm = {}, onDismiss = {}) }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun photoCropFontScale200() = capture("photo_cadrage_police_200") {
+        Surface { PhotoCropContent(previewPicture(), saving = false, onConfirm = {}, onDismiss = {}) }
+    }
+
+    /** Camille has a photo; Camille and Noé get the photo button (fictional family, gradient picture). */
+    @Composable
+    private fun MembersWithPhotos() {
+        CompositionLocalProvider(LocalMemberPhotos provides mapOf("a" to previewPicture())) {
+            Surface {
+                MembersScreen(
+                    MembersUiState.Success(previewGroups(), "a", photoEditableMemberIds = setOf("a", "c")),
+                    onRetry = {},
+                    versionName = "0.1.0",
+                    onSavePhoto = { _, _ -> },
+                )
+            }
+        }
     }
 
     @Test
@@ -412,6 +464,39 @@ class ScreenshotTest {
             onBack = {},
         )
     }
+
+    // --- Listes et cadeaux (V2) ---
+
+    @Test
+    fun giftsLight() = capture("cadeaux_clair") { Surface { GiftsScreen(previewGifts(), {}, {}, {}) } }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun giftsDark() = capture("cadeaux_sombre", darkTheme = true) { Surface { GiftsScreen(previewGifts(), {}, {}, {}) } }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun giftsFontScale200() = capture("cadeaux_police_200") { Surface { GiftsScreen(previewGifts(), {}, {}, {}) } }
+
+    @Test
+    fun giftListLight() = capture("liste_cadeaux_clair") { GiftListScreen(previewGiftList(), GiftListActions()) }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun giftListMineDark() = capture("liste_cadeaux_beneficiaire_sombre", darkTheme = true) {
+        GiftListScreen(previewGiftList(keptFromMe = true), GiftListActions())
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun giftListFontScale200() = capture("liste_cadeaux_police_200") { GiftListScreen(previewGiftList(), GiftListActions()) }
+
+    @Test
+    fun giftListFormLight() = capture("liste_cadeaux_formulaire_clair") { GiftListEditScreen(previewGiftListForm(), {}, {}, {}, {}) }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun giftItemFormFontScale200() = capture("article_formulaire_police_200") { GiftItemEditScreen(previewGiftItemForm(), {}, {}, {}, {}) }
 
     // --- Coups de main (fil [DEV] coups de main) ---------------------------------------------------
 
