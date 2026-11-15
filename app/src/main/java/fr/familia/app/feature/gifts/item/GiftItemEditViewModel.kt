@@ -1,5 +1,6 @@
 package fr.familia.app.feature.gifts.item
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.GiftRepository
@@ -56,6 +57,8 @@ class GiftItemEditViewModel(
     private val currentMemberId: String,
     private val listId: String,
     private val itemId: String?,
+    /** Keeps the draft when Android closes the app in the background. */
+    private val saved: SavedStateHandle = SavedStateHandle(),
     private val writeTimeoutMillis: Long = 4_000,
 ) : ViewModel() {
 
@@ -116,8 +119,10 @@ class GiftItemEditViewModel(
                 note = it.note.orEmpty(),
             )
         } ?: GiftItemForm()
+        val form = restoredDraft() ?: initialForm
         _uiState.value = GiftItemEditUiState.Editing(
-            form = initialForm,
+            form = form,
+            hasChanges = form != initialForm,
             isNew = existing == null,
             hiddenFromBeneficiary = !visible && beneficiary.id != current.id,
             beneficiaryName = beneficiary.firstName,
@@ -134,9 +139,18 @@ class GiftItemEditViewModel(
         _uiState.value = GiftItemEditUiState.Unavailable
     }
 
+    private fun restoredDraft(): GiftItemForm? {
+        val title = saved.get<String>(DRAFT_TITLE) ?: return null
+        return GiftItemForm(title, saved[DRAFT_URL] ?: "", saved[DRAFT_PRICE] ?: "", saved[DRAFT_NOTE] ?: "")
+    }
+
     fun update(change: (GiftItemForm) -> GiftItemForm) {
         val state = _uiState.value as? GiftItemEditUiState.Editing ?: return
         val form = change(state.form)
+        saved[DRAFT_TITLE] = form.title
+        saved[DRAFT_URL] = form.url
+        saved[DRAFT_PRICE] = form.price
+        saved[DRAFT_NOTE] = form.note
         _uiState.value = state.copy(form = form, errors = errorsFor(form), hasChanges = form != initialForm, saveFailed = false)
     }
 
@@ -202,6 +216,11 @@ class GiftItemEditViewModel(
         false
     }
 }
+
+private const val DRAFT_TITLE = "draft.title"
+private const val DRAFT_URL = "draft.url"
+private const val DRAFT_PRICE = "draft.price"
+private const val DRAFT_NOTE = "draft.note"
 
 /** The same limits as the security rules. */
 fun validateItem(form: GiftItemForm): Set<GiftItemFormError> = buildSet {
