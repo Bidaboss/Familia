@@ -8,7 +8,12 @@ import fr.familia.app.BuildConfig
 import fr.familia.app.R
 import fr.familia.app.feature.update.UpdateBanner
 import fr.familia.app.feature.update.availableUpdate
-import fr.familia.app.feature.update.openDownload
+import fr.familia.app.feature.update.InAppUpdateDialogs
+import fr.familia.app.feature.update.LocalInAppUpdater
+import fr.familia.app.feature.update.rememberInAppUpdater
+import fr.familia.app.core.model.Feature
+import fr.familia.app.core.model.FeatureFlags
+import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.update.UpdateCheckRoute
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
@@ -134,24 +139,40 @@ fun FamiliaApp(
             onEventOpened()
         }
     }
-    LaunchedEffect(openHelpRequestId) {
-        if (openHelpRequestId != null) {
-            navController.navigate(HelpRequestDetailDestination(openHelpRequestId))
-            onHelpRequestOpened()
-        }
-    }
 
     // Lot 10: a newer version in config/app is offered above the tabs. The check runs each time the
     // app comes back on screen, even if it stayed open in the background: collection stops in the
     // background and starts again, with a fresh read, when the app is shown. "Plus tard" lasts
     // until then.
-    val updates = remember(container) {
+    val configs = remember(container) {
         container?.appConfigRepository?.observeAppConfig()
-            ?.map { config -> availableUpdate(config, BuildConfig.VERSION_CODE, BuildConfig.DOWNLOAD_URL) }
-            ?.catch { /* Offline or no config yet: nothing to offer. */ }
+            ?.catch { /* Offline or no config yet: nothing to offer, every flag off. */ }
             ?: flowOf(null)
     }
-    val update by updates.collectAsStateWithLifecycle(initialValue = null)
+    val appConfig by configs.collectAsStateWithLifecycle(initialValue = null)
+    val update = appConfig?.let { availableUpdate(it, BuildConfig.VERSION_CODE, BuildConfig.DOWNLOAD_URL) }
+    val updater = rememberInAppUpdater()
+    InAppUpdateDialogs(updater, update)
+
+    // Modules still in test are shown to the admin principal only, until switched on in
+    // Administration (config/app.features). The owner is read from the live family.
+    val ownerFlow = remember(container) {
+        container?.memberRepository?.observeFamily()?.map { it.ownerId }?.catch { emit(null) } ?: flowOf(null)
+    }
+    val ownerId by ownerFlow.collectAsStateWithLifecycle(initialValue = null)
+    val features = FeatureFlags(appConfig?.features.orEmpty(), isOwner = ownerId != null && ownerId == currentMember.id)
+
+    // The Entraide tab and its entry points stay hidden while the module is off (PRD rév. 120).
+    val helpRequestsOn = features.isOn(Feature.HelpRequests)
+    val tabs = TopLevelDestination.entries.filter { it != TopLevelDestination.HelpRequests || helpRequestsOn }
+    // A notification of a coup de main opens it only once the module shows; otherwise it is dropped.
+    LaunchedEffect(openHelpRequestId, helpRequestsOn) {
+        if (openHelpRequestId != null && helpRequestsOn) {
+            navController.navigate(HelpRequestDetailDestination(openHelpRequestId))
+            onHelpRequestOpened()
+        }
+    }
+
     var updateDismissed by rememberSaveable { mutableStateOf(false) }
     LifecycleEventEffect(Lifecycle.Event.ON_START) { updateDismissed = false }
 
@@ -176,6 +197,8 @@ fun FamiliaApp(
     CompositionLocalProvider(
         LocalOpenHelp provides { navController.navigate(HelpDestination) { launchSingleTop = true } },
         LocalMemberPhotos provides photos,
+        LocalFeatureFlags provides features,
+        LocalInAppUpdater provides updater,
     ) {
         Scaffold(
             topBar = {
@@ -185,7 +208,7 @@ fun FamiliaApp(
             },
             bottomBar = {
                 if (onTab) NavigationBar {
-                    TopLevelDestination.entries.forEach { destination ->
+                    tabs.forEach { destination ->
                         val selected = currentDestination.isOn(destination)
                         NavigationBarItem(
                             selected = selected,
@@ -211,7 +234,7 @@ fun FamiliaApp(
                 if (shownUpdate != null) {
                     UpdateBanner(
                         update = shownUpdate,
-                        onUpdate = { openDownload(context, shownUpdate.downloadUrl) },
+                        onUpdate = { updater.start(shownUpdate) },
                         onLater = { updateDismissed = true },
                     )
                 }
