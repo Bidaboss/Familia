@@ -4,16 +4,20 @@
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getMessaging } from 'firebase-admin/messaging';
+import { getStorage } from 'firebase-admin/storage';
 import { setGlobalOptions } from 'firebase-functions/v2';
 import {
-  onDocumentCreatedWithAuthContext, onDocumentDeleted, onDocumentDeletedWithAuthContext, onDocumentUpdatedWithAuthContext,
-  onDocumentWritten, onDocumentWrittenWithAuthContext,
+  onDocumentCreated, onDocumentCreatedWithAuthContext, onDocumentDeleted, onDocumentDeletedWithAuthContext, onDocumentUpdated,
+  onDocumentUpdatedWithAuthContext, onDocumentWritten, onDocumentWrittenWithAuthContext,
 } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import {
   deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
   sendBirthdayGiftReminders,
 } from './gifts';
+import {
+  FileRemover, GoodNewsData, GoodNewsNotice, GoodNewsSender, onGoodNewsEdited, onGoodNewsPublished, onGoodNewsRemoved,
+} from './goodNews';
 import {
   HelpNotice, HelpRequestData, HelpSender, onHelpRequestWritten, reopenRequestsOf, sendStillOpenReminders,
 } from './helpRequests';
@@ -149,4 +153,43 @@ export const revealGifts = onSchedule({ schedule: '0 7 * * *', timeZone: 'Europe
 // D-21 and D-14 before a birthday (PRD, récit 10).
 export const birthdayGiftReminders = onSchedule({ schedule: '0 10 * * *', timeZone: 'Europe/Paris' }, async () => {
   await sendBirthdayGiftReminders(getFirestore(), send, new Date());
+});
+
+// --- Bonnes nouvelles (PRD, récit 32) ---------------------------------------------------------------
+
+// A tap on the notification opens the good news (goodNewsId).
+const sendGoodNews: GoodNewsSender = async (token: string, notice: GoodNewsNotice) => {
+  try {
+    await getMessaging().send({
+      token,
+      notification: { title: notice.title, body: notice.body },
+      data: { goodNewsId: notice.goodNewsId },
+      android: { notification: { channelId: notice.channel } },
+    });
+    return 'ok';
+  } catch (e) {
+    const code = (e as { code?: string }).code ?? '';
+    return UNREGISTERED.has(code) ? 'unregistered' : 'error';
+  }
+};
+
+const removeFiles: FileRemover = async (paths: string[]) => {
+  const bucket = getStorage().bucket();
+  await Promise.all(paths.map((path) => bucket.file(path).delete({ ignoreNotFound: true })));
+};
+
+export const onGoodNewsCreated = onDocumentCreated('goodNews/{postId}', async (event) => {
+  const data = event.data?.data() as GoodNewsData | undefined;
+  if (data) await onGoodNewsPublished(getFirestore(), sendGoodNews, event.params.postId, data);
+});
+
+export const onGoodNewsUpdated = onDocumentUpdated('goodNews/{postId}', async (event) => {
+  const before = event.data?.before.data() as GoodNewsData | undefined;
+  const after = event.data?.after.data() as GoodNewsData | undefined;
+  if (before && after) await onGoodNewsEdited(removeFiles, event.params.postId, before, after);
+});
+
+export const onGoodNewsDeleted = onDocumentDeleted('goodNews/{postId}', async (event) => {
+  const data = event.data?.data() as GoodNewsData | undefined;
+  if (data) await onGoodNewsRemoved(removeFiles, event.params.postId, data);
 });

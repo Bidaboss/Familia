@@ -5,7 +5,8 @@
 3. Ajoute une appli **Android** avec le nom de package `fr.familia.app`. Renseigne l'empreinte **SHA-1** de la clé de signature (voir plus bas). Télécharge `google-services.json` et place-le dans `app/` (il peut être versionné : il identifie le projet mais n'est pas un secret, les règles protègent les données).
 4. **Authentication** → Commencer → fournisseur **Google** → Activer.
 5. **Firestore Database** → Créer → région **europe-west1** → mode production.
-6. Publie les règles : `cd firebase && npx firebase deploy --only firestore:rules --project <id-du-projet>`.
+6. **Storage** → Commencer → région **europe-west1** (la même que Firestore) → mode production. Hors des régions américaines, Google facture dès le premier octet, mais les photos de la famille restent de l'ordre du centime par mois.
+7. Publie les règles : `cd firebase && npx firebase deploy --only firestore:rules,storage --project <id-du-projet>`.
 
 ## Créer le premier admin
 
