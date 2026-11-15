@@ -21,7 +21,9 @@ object PhotoProcessing {
     private const val MAX_DECODED_SIDE = 2048
 
     /** The picture at [uri], turned upright and reduced to [MAX_DECODED_SIDE]; null if unreadable. */
-    fun decode(resolver: ContentResolver, uri: Uri): Bitmap? = runCatching {
+    fun decode(resolver: ContentResolver, uri: Uri): Bitmap? = runCatching { decodeOrNull(resolver, uri) }.getOrNull()
+
+    private fun decodeOrNull(resolver: ContentResolver, uri: Uri): Bitmap? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
@@ -33,8 +35,8 @@ object PhotoProcessing {
         val orientation = resolver.openInputStream(uri)?.use {
             ExifInterface(it).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
         } ?: ExifInterface.ORIENTATION_NORMAL
-        upright(bitmap, orientation)
-    }.getOrNull()
+        return upright(bitmap, orientation)
+    }
 
     /** Largest power of two that keeps the longest side at [maxSide] or more. */
     fun sampleSize(width: Int, height: Int, maxSide: Int): Int {
@@ -58,21 +60,26 @@ object PhotoProcessing {
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
-    /** The chosen square of [bitmap], as a JPEG of [PHOTO_SIDE] pixels and at most [MAX_PHOTO_BYTES]. */
+    /**
+     * The chosen square of [bitmap], as a JPEG of [PHOTO_SIDE] pixels (never enlarged) and at most
+     * [MAX_PHOTO_BYTES]: the quality goes down first, then the size if a very busy picture needs it.
+     */
     fun encode(bitmap: Bitmap, crop: SquareCrop): ByteArray {
         val square = crop.sourceSquare()
-        val side = minOf(PHOTO_SIDE, square.side)
-        val matrix = Matrix().apply { val s = side.toFloat() / square.side; setScale(s, s) }
-        val cropped = Bitmap.createBitmap(bitmap, square.left, square.top, square.side, square.side, matrix, true)
-        var quality = 85
-        while (true) {
-            val bytes = ByteArrayOutputStream().use { out ->
-                cropped.compress(Bitmap.CompressFormat.JPEG, quality, out)
-                out.toByteArray()
+        var last = ByteArray(0)
+        for (wanted in listOf(PHOTO_SIDE, 384, 256)) {
+            val side = minOf(wanted, square.side)
+            val matrix = Matrix().apply { val s = side.toFloat() / square.side; setScale(s, s) }
+            val cropped = Bitmap.createBitmap(bitmap, square.left, square.top, square.side, square.side, matrix, true)
+            for (quality in listOf(85, 70, 55, 40)) {
+                last = ByteArrayOutputStream().use { out ->
+                    cropped.compress(Bitmap.CompressFormat.JPEG, quality, out)
+                    out.toByteArray()
+                }
+                if (last.size <= MAX_PHOTO_BYTES) return last
             }
-            if (bytes.size <= MAX_PHOTO_BYTES || quality <= 25) return bytes
-            quality -= 15
         }
+        return last
     }
 
     /** A stored photo, read at half size: plenty for an avatar and four times less memory. */
