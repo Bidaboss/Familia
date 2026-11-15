@@ -7,7 +7,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
-import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.LocalFeatureFlags
 
@@ -18,8 +17,7 @@ fun HelpRoute(container: AppContainer?, currentMember: Member, onReplayOnboardin
         factory = viewModelFactory { initializer { HelpViewModel(container?.memberRepository, currentMember) } },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    // No help on the coups de main while the Entraide tab is hidden.
-    val shown = if (LocalFeatureFlags.current.isOn(Feature.HelpRequests)) state
-    else state.copy(topics = state.topics - HelpTopic.HelpRequests)
+    val flags = LocalFeatureFlags.current
+    val shown = state.copy(topics = state.topics.filter { topic -> topic.feature?.let(flags::isOn) ?: true })
     HelpScreen(state = shown, onReplayOnboarding = onReplayOnboarding, onBack = onBack)
 }

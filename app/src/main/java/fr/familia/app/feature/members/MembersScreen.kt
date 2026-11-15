@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Notifications
@@ -55,6 +56,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.OutlinedButton
 import fr.familia.app.BuildConfig
 import fr.familia.app.R
 import fr.familia.app.core.model.Household
@@ -90,6 +92,8 @@ fun MembersScreen(
     onRemovePhoto: (memberId: String) -> Unit = {},
     photoFailed: Boolean = false,
     onPhotoFailureShown: () -> Unit = {},
+    /** The gift button of each row opens the member's « Mes envies » (PRD, récit 7). */
+    onOpenWishes: ((memberId: String) -> Unit)? = null,
 ) {
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var photoOf by rememberSaveable { mutableStateOf<String?>(null) }
@@ -150,6 +154,7 @@ fun MembersScreen(
                             } else {
                                 null
                             },
+                            onWishesClick = onOpenWishes?.let { open -> { open(member.id) } },
                         )
                     }
                 }
@@ -321,6 +326,7 @@ private fun MemberRow(
     onClick: (() -> Unit)?,
     hasPhoto: Boolean = false,
     onPhotoClick: (() -> Unit)? = null,
+    onWishesClick: (() -> Unit)? = null,
 ) {
     val editLabel = stringResource(R.string.members_edit_action)
     Row(
@@ -338,7 +344,7 @@ private fun MemberRow(
             MemberAvatar(member)
             Spacer(Modifier.width(16.dp))
         }
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp), modifier = Modifier.weight(1f)) {
             Text(
                 text = if (isMe) stringResource(R.string.members_me, member.firstName) else member.firstName,
                 style = MaterialTheme.typography.titleMedium,
@@ -348,6 +354,19 @@ private fun MemberRow(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+        if (onWishesClick != null) {
+            val wishesLabel = stringResource(R.string.gift_wishes_of, member.firstName)
+            Spacer(Modifier.width(8.dp))
+            OutlinedButton(
+                onClick = onWishesClick,
+                contentPadding = PaddingValues(horizontal = 12.dp),
+                modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = wishesLabel },
+            ) {
+                Icon(Icons.Outlined.CardGiftcard, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.members_wishes_button))
+            }
         }
     }
 }
@@ -435,6 +454,7 @@ private fun MembersScreenPreview() {
                 versionName = "0.1.0",
                 onEditMember = {},
                 onSavePhoto = { _, _ -> },
+                onOpenWishes = {},
             )
         }
     }

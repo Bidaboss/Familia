@@ -57,6 +57,7 @@ import fr.familia.app.feature.birthdays.BirthdaysRoute
 import fr.familia.app.feature.events.detail.EventDetailRoute
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.wishesListId
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.OfflineBanner
 import fr.familia.app.core.ui.rememberMemberPhotos
@@ -188,7 +189,7 @@ fun FamiliaApp(
 
     // The Entraide tab and its entry points stay hidden while the module is off (PRD rév. 120).
     val helpRequestsOn = features.isOn(Feature.HelpRequests)
-    val tabs = TopLevelDestination.entries.filter { it != TopLevelDestination.HelpRequests || helpRequestsOn }
+    val tabs = TopLevelDestination.visible(features)
     // A notification of a coup de main opens it only once the module shows; otherwise it is dropped.
     LaunchedEffect(openHelpRequestId, helpRequestsOn) {
         if (openHelpRequestId != null && helpRequestsOn) {
@@ -438,6 +439,11 @@ fun FamiliaApp(
                             onOpenAdministration = { navController.navigate(AdministrationDestination) },
                             onOpenUpdates = { navController.navigate(UpdateCheckDestination) },
                             onOpenHelp = { navController.navigate(HelpDestination) },
+                            onOpenWishes = if (features.isOn(Feature.Gifts)) {
+                                { id -> navController.navigate(GiftListDestination(wishesListId(id))) }
+                            } else {
+                                null
+                            },
                         )
                     }
                     composable<HelpDestination> {

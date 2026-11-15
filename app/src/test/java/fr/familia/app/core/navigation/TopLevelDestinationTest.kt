@@ -1,5 +1,6 @@
 package fr.familia.app.core.navigation
 
+import fr.familia.app.core.model.FeatureFlags
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -22,5 +23,16 @@ class TopLevelDestinationTest {
     fun `each tab has its own route`() {
         val routes = TopLevelDestination.entries.map { it.route }
         assertEquals(routes.size, routes.toSet().size)
+    }
+
+    @Test
+    fun `the gifts and entraide tabs wait for their module, except for the admin principal`() {
+        val off = TopLevelDestination.visible(FeatureFlags())
+        assertEquals(listOf(TopLevelDestination.Planning, TopLevelDestination.Members), off)
+        assertEquals(
+            listOf(TopLevelDestination.Planning, TopLevelDestination.Gifts, TopLevelDestination.Members),
+            TopLevelDestination.visible(FeatureFlags(mapOf("gifts" to true))),
+        )
+        assertEquals(TopLevelDestination.entries.toList(), TopLevelDestination.visible(FeatureFlags(isOwner = true)))
     }
 }
