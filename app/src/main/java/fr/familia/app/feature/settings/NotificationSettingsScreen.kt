@@ -1,5 +1,7 @@
 package fr.familia.app.feature.settings
 
+import fr.familia.app.core.model.Feature
+import fr.familia.app.core.ui.LocalFeatureFlags
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,6 +58,7 @@ fun NotificationSettingsScreen(
     onRetry: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    onGoodNewsChange: (Boolean) -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier,
@@ -91,7 +94,21 @@ fun NotificationSettingsScreen(
                         modifier = Modifier.padding(horizontal = 16.dp),
                     )
                     HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                    ReminderSwitch(state.dayBeforeReminder, onDayBeforeReminderChange)
+                    SettingSwitch(
+                        title = stringResource(R.string.notifications_reminder),
+                        help = stringResource(R.string.notifications_reminder_help),
+                        checked = state.dayBeforeReminder,
+                        onChange = onDayBeforeReminderChange,
+                    )
+                    // Shown once the Bonnes nouvelles module is switched on (or to the admin principal).
+                    if (LocalFeatureFlags.current.isOn(Feature.GoodNews)) {
+                        SettingSwitch(
+                            title = stringResource(R.string.notifications_good_news),
+                            help = stringResource(R.string.notifications_good_news_help),
+                            checked = state.goodNews,
+                            onChange = onGoodNewsChange,
+                        )
+                    }
                     if (state.saveFailed) {
                         Text(
                             stringResource(R.string.notifications_save_failed),
@@ -133,7 +150,7 @@ private fun BlockedCard(onAllow: () -> Unit) {
 }
 
 @Composable
-private fun ReminderSwitch(checked: Boolean, onChange: (Boolean) -> Unit) {
+private fun SettingSwitch(title: String, help: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -143,9 +160,9 @@ private fun ReminderSwitch(checked: Boolean, onChange: (Boolean) -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(stringResource(R.string.notifications_reminder), style = MaterialTheme.typography.titleMedium)
+            Text(title, style = MaterialTheme.typography.titleMedium)
             Text(
-                stringResource(R.string.notifications_reminder_help),
+                help,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
