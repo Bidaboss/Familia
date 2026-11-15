@@ -1,5 +1,6 @@
 package fr.familia.app.core.data
 
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -53,11 +54,17 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
     override fun observeClaims(listId: String): Flow<List<GiftClaim>> =
         db.collection(LISTS).document(listId).collection(CLAIMS).observe { it.toGiftClaim() }
 
-    override fun observeShares(listId: String, itemIds: List<String>): Flow<Map<String, List<GiftShare>>> {
+    override fun observeShares(
+        listId: String,
+        itemIds: List<String>,
+        memberId: String,
+        allOf: Set<String>,
+    ): Flow<Map<String, List<GiftShare>>> {
         if (itemIds.isEmpty()) return flowOf(emptyMap())
         val claims = db.collection(LISTS).document(listId).collection(CLAIMS)
         val flows = itemIds.map { itemId ->
-            claims.document(itemId).collection(SHARES).observe { it.toGiftShare() }
+            val shares = claims.document(itemId).collection(SHARES)
+            if (itemId in allOf) shares.observe { it.toGiftShare() } else shares.document(memberId).observeOne()
         }
         return combine(flows) { parts -> itemIds.zip(parts.toList()).toMap() }
     }
@@ -168,6 +175,18 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
     private fun shareRef(listId: String, itemId: String, memberId: String) =
         db.collection(LISTS).document(listId).collection(CLAIMS).document(itemId).collection(SHARES).document(memberId)
 
+    /** One live document as a list of zero or one item: a part that does not exist yet is empty. */
+    private fun DocumentReference.observeOne(): Flow<List<GiftShare>> = callbackFlow {
+        val registration = addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+            } else if (snapshot != null) {
+                trySend(listOfNotNull(snapshot.takeIf { it.exists() }?.toGiftShare()))
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
     /** Live documents of a query; malformed ones are skipped rather than crash the screen. */
     private fun <T> Query.observe(map: (DocumentSnapshot) -> T?): Flow<List<T>> = callbackFlow {
         val registration = addSnapshotListener { snapshot, error ->
@@ -218,6 +237,8 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
             type = ClaimType.fromFirestore(getString("type")) ?: return null,
             holderId = getString("holderId") ?: return null,
             holderName = getString("holderName").orEmpty(),
+            sharesTotal = getDouble("sharesTotal") ?: 0.0,
+            sharesCount = getLong("sharesCount")?.toInt() ?: 0,
         )
     }
 

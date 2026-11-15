@@ -24,7 +24,11 @@ interface GiftRepository {
     fun observeClaims(listId: String): Flow<List<GiftClaim>>
 
     /** Parts of the joint gifts of the list, by item id. Same restriction as [observeClaims]. */
-    fun observeShares(listId: String, itemIds: List<String>): Flow<Map<String, List<GiftShare>>>
+    /**
+     * The parts of the joint gifts [itemIds]: all of them for the items in [allOf] (those the member
+     * is responsible for), only the member's own part for the others. The rules refuse the rest.
+     */
+    fun observeShares(listId: String, itemIds: List<String>, memberId: String, allOf: Set<String>): Flow<Map<String, List<GiftShare>>>
 
     fun newListId(): String
 

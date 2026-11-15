@@ -178,6 +178,20 @@ export async function deleteGiftListContent(db: Firestore, listId: string): Prom
   await db.recursiveDelete(list.collection('claims'));
 }
 
+/**
+ * PRD rév. 151: the amount of a part is read by its author and the responsible only. The others
+ * see the total and the number of parts, kept here on the reservation after each change.
+ */
+export async function updateSharesTotal(db: Firestore, listId: string, itemId: string): Promise<void> {
+  const claim = db.collection('giftLists').doc(listId).collection('claims').doc(itemId);
+  const [snapshot, shares] = await Promise.all([claim.get(), claim.collection('shares').get()]);
+  if (!snapshot.exists) return;
+  const amounts = shares.docs.map((s) => Number(s.get('amount'))).filter((n) => Number.isFinite(n) && n > 0);
+  const total = Math.round(amounts.reduce((sum, n) => sum + n, 0) * 100) / 100;
+  if (snapshot.get('sharesTotal') === total && snapshot.get('sharesCount') === amounts.length) return;
+  await claim.update({ sharesTotal: total, sharesCount: amounts.length });
+}
+
 /** The parts of a released joint gift go with it. */
 export async function deleteClaimShares(db: Firestore, listId: string, itemId: string): Promise<void> {
   await db.recursiveDelete(db.collection('giftLists').doc(listId).collection('claims').doc(itemId).collection('shares'));

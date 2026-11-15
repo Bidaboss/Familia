@@ -136,14 +136,21 @@ class GiftsTest {
     @Test
     fun `a viewer sees who reserved and the parts of a joint gift`() = runTest {
         val gifts = FakeGifts(list("l", "adult1", viewers = listOf("adult1", "adult2")))
-        gifts.claims.value = listOf(GiftClaim("i1", ClaimType.Shared, "admin1", "Admin1"))
-        gifts.shares.value = mapOf("i1" to listOf(GiftShare("adult2", "Adult2", 20.0, false)))
+        gifts.claims.value = listOf(GiftClaim("i1", ClaimType.Shared, "admin1", "Admin1", sharesTotal = 45.0, sharesCount = 2))
+        gifts.shares.value = mapOf("i1" to listOf(GiftShare("adult2", "Adult2", 20.0, false), GiftShare("admin1", "Admin1", 25.0, false)))
         val vm = GiftListViewModel(gifts, FakeMembers(), "adult2", "l", today = flowOf(today))
         val state = vm.uiState.first { it is GiftListUiState.Success && it.items.isNotEmpty() } as GiftListUiState.Success
         val claim = state.items.single().claim!!
         assertEquals("Admin1", claim.holderName)
         assertEquals(20.0, claim.myShare!!.amount, 0.001)
-        assertEquals(listOf(false), gifts.itemQueries)
+        // A participant sees their own part and the total, never the part of another (PRD rév. 151).
+        assertEquals(listOf("adult2"), claim.shares.map { it.memberId })
+        assertEquals(45.0, claim.total, 0.001)
+        val holder = GiftListViewModel(gifts, FakeMembers(), "admin1", "l", today = flowOf(today))
+        val held = holder.uiState.first { it is GiftListUiState.Success && it.items.isNotEmpty() } as GiftListUiState.Success
+        assertEquals(2, held.items.single().claim!!.shares.size)
+        // One query per screen, and neither hides the surprise ideas.
+        assertEquals(listOf(false, false), gifts.itemQueries)
     }
 
     @Test
@@ -181,8 +188,10 @@ class FakeGifts(list: GiftList?) : GiftRepository {
         claimQueries++
         return claims
     }
-    override fun observeShares(listId: String, itemIds: List<String>): Flow<Map<String, List<GiftShare>>> =
-        shares.map { all -> all.filterKeys { it in itemIds } }
+    override fun observeShares(listId: String, itemIds: List<String>, memberId: String, allOf: Set<String>): Flow<Map<String, List<GiftShare>>> =
+        shares.map { all ->
+            all.filterKeys { it in itemIds }.mapValues { (itemId, parts) -> if (itemId in allOf) parts else parts.filter { it.memberId == memberId } }
+        }
     override fun newListId(): String = "new-list"
     override fun newItemId(listId: String): String = "new-item"
     override suspend fun saveList(list: GiftList, isNew: Boolean) = Unit

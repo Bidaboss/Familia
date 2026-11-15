@@ -13,7 +13,7 @@ import {
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import {
   deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
-  sendBirthdayGiftReminders,
+  sendBirthdayGiftReminders, updateSharesTotal,
 } from './gifts';
 import {
   FileRemover, GoodNewsData, GoodNewsNotice, GoodNewsSender, onGoodNewsEdited, onGoodNewsPublished, onGoodNewsRemoved,
@@ -135,6 +135,10 @@ export const onGiftListDeleted = onDocumentDeleted('giftLists/{listId}', async (
 
 export const onGiftClaimDeleted = onDocumentDeleted('giftLists/{listId}/claims/{itemId}', async (event) => {
   await deleteClaimShares(getFirestore(), event.params.listId, event.params.itemId);
+});
+
+export const onGiftShareWritten = onDocumentWritten('giftLists/{listId}/claims/{itemId}/shares/{memberId}', async (event) => {
+  await updateSharesTotal(getFirestore(), event.params.listId, event.params.itemId);
 });
 
 export const onGiftItemWritten = onDocumentWritten('giftLists/{listId}/items/{itemId}', async (event) => {

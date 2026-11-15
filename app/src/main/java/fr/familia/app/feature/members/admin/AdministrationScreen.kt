@@ -20,6 +20,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -52,6 +53,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.feature.members.RenameHouseholdDialog
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
@@ -80,6 +82,8 @@ fun AdministrationScreen(
     /** Modules switched on for the family (config/app.features); the others stay in test. */
     features: Map<String, Boolean> = emptyMap(),
     onSetFeature: ((Feature, Boolean) -> Unit)? = null,
+    /** Renames a household (moved here from the Famille tab, DESIGN-5); hidden when null. */
+    onRenameHousehold: ((Household, String) -> Unit)? = null,
 ) {
     Scaffold(
         modifier = modifier,
@@ -109,7 +113,7 @@ fun AdministrationScreen(
                     body = stringResource(R.string.administration_not_allowed_body),
                 )
                 is AdministrationUiState.Ready ->
-                    ReadyContent(state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport, features, onSetFeature)
+                    ReadyContent(state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport, features, onSetFeature, onRenameHousehold)
             }
         }
     }
@@ -136,8 +140,10 @@ private fun ReadyContent(
     onOpenExport: () -> Unit,
     features: Map<String, Boolean>,
     onSetFeature: ((Feature, Boolean) -> Unit)?,
+    onRenameHousehold: ((Household, String) -> Unit)?,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
+    var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var deleting by rememberSaveable { mutableStateOf<String?>(null) }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 8.dp)) {
         item(key = "chefs-title") {
@@ -149,7 +155,11 @@ private fun ReadyContent(
             SectionTitle(R.string.administration_households_title, R.string.administration_households_help)
         }
         items(state.households, key = { "household-${it.household.id}" }) { row ->
-            HouseholdLine(row, onDelete = { deleting = row.household.id })
+            HouseholdLine(
+                row,
+                onRename = onRenameHousehold?.let { { renaming = row.household.id } },
+                onDelete = { deleting = row.household.id },
+            )
         }
         item(key = "household-add") {
             OutlinedButton(
@@ -181,6 +191,14 @@ private fun ReadyContent(
                 Text(stringResource(R.string.export_title), style = MaterialTheme.typography.titleMedium)
             }
         }
+    }
+    val toRename = state.households.firstOrNull { it.household.id == renaming }?.household
+    if (toRename != null && onRenameHousehold != null) {
+        RenameHouseholdDialog(
+            household = toRename,
+            onConfirm = { name -> onRenameHousehold(toRename, name); renaming = null },
+            onDismiss = { renaming = null },
+        )
     }
     if (adding) {
         NewHouseholdDialog(onConfirm = { name -> onAddHousehold(name); adding = false }, onDismiss = { adding = false })
@@ -281,7 +299,7 @@ private fun FeatureSwitchRow(feature: Feature, on: Boolean, onSetFeature: (Featu
 }
 
 @Composable
-private fun HouseholdLine(row: HouseholdRow, onDelete: () -> Unit) {
+private fun HouseholdLine(row: HouseholdRow, onRename: (() -> Unit)?, onDelete: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -296,6 +314,11 @@ private fun HouseholdLine(row: HouseholdRow, onDelete: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+        if (onRename != null) {
+            IconButton(onClick = onRename, modifier = Modifier.size(56.dp)) {
+                Icon(Icons.Outlined.Edit, contentDescription = stringResource(R.string.household_rename_action, row.household.name))
+            }
         }
         // Only an empty household can go: its members would otherwise point to nothing.
         if (row.memberCount == 0) {
