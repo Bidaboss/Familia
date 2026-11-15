@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -255,7 +256,8 @@ fun FamiliaApp(
                 }
             },
         ) { innerPadding ->
-            Column(Modifier.padding(innerPadding)) {
+            // Consumed here, so the inner screens with their own Scaffold do not add the system bars again.
+            Column(Modifier.padding(innerPadding).consumeWindowInsets(innerPadding)) {
                 AnimatedVisibility(visible = isOffline) { OfflineBanner() }
                 val shownUpdate = update?.takeIf { onTab && !updateDismissed }
                 if (shownUpdate != null) {
