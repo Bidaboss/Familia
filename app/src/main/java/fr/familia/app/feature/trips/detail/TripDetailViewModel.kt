@@ -8,6 +8,7 @@ import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Trip
+import fr.familia.app.core.model.TripItem
 import fr.familia.app.core.model.TripStep
 import fr.familia.app.feature.trips.canManageTrip
 import fr.familia.app.feature.trips.firstNames
@@ -48,8 +49,18 @@ sealed interface TripDetailUiState {
         val isParticipant: Boolean,
         val today: LocalDate,
         val sendFailed: Boolean = false,
+        /** The checklist (récit 13): what is left to do first. */
+        val items: List<TripItem> = emptyList(),
+        /** The participants, who can be put in charge of a line. */
+        val assignees: List<ItemAssignee> = emptyList(),
     ) : TripDetailUiState
 }
+
+/** A participant offered as the person in charge of a line of the checklist. */
+data class ItemAssignee(val id: String, val name: String)
+
+/** The longest label of a line of the checklist, as the rules allow. */
+const val ITEM_LABEL_MAX = 80
 
 /**
  * One trip and its steps (PRD, récits 11 and 14). A participant says « bien arrivé » in one tap
@@ -77,11 +88,11 @@ class TripDetailViewModel(
             } else {
                 combine(
                     trips.observeTrip(tripId),
-                    trips.observeSteps(tripId),
+                    combine(trips.observeSteps(tripId), trips.observeItems(tripId)) { steps, items -> steps to items },
                     members.observeFamily(),
                     today,
                     sendFailed,
-                ) { trip, steps, family, day, failed -> state(trip, steps, family, day, failed) }
+                ) { trip, (steps, items), family, day, failed -> state(trip, steps, items, family, day, failed) }
                     .onStart { if (n > 0) emit(TripDetailUiState.Loading) }
                     .catch { e ->
                         if (e is CancellationException) throw e
@@ -108,6 +119,37 @@ class TripDetailViewModel(
         write { repo.clearArrival(tripId, stepId) }
     }
 
+    /** Adds a line to the checklist, maybe in the charge of a participant. Blank labels are ignored. */
+    fun addItem(label: String, assigneeId: String?) {
+        val repo = trips ?: return
+        val item = item(repo.newItemId(tripId), label, assigneeId, done = false) ?: return
+        write { repo.saveItem(tripId, item, isNew = true) }
+    }
+
+    /** Changes the label or the person in charge of a line, keeping whether it is done. */
+    fun editItem(item: TripItem, label: String, assigneeId: String?) {
+        val repo = trips ?: return
+        val edited = item(item.id, label, assigneeId, item.done) ?: return
+        write { repo.saveItem(tripId, edited, isNew = false) }
+    }
+
+    fun setItemDone(itemId: String, done: Boolean) {
+        val repo = trips ?: return
+        write { repo.setItemDone(tripId, itemId, done) }
+    }
+
+    fun deleteItem(itemId: String) {
+        val repo = trips ?: return
+        write { repo.deleteItem(tripId, itemId) }
+    }
+
+    private fun item(id: String, label: String, assigneeId: String?, done: Boolean): TripItem? {
+        val clean = label.trim().take(ITEM_LABEL_MAX)
+        if (clean.isEmpty()) return null
+        val assignee = (uiState.value as? TripDetailUiState.Success)?.assignees?.firstOrNull { it.id == assigneeId }
+        return TripItem(id, clean, assignee?.id, assignee?.name, done)
+    }
+
     private fun write(block: suspend () -> Unit) {
         sendFailed.value = false
         viewModelScope.launch {
@@ -124,7 +166,14 @@ class TripDetailViewModel(
         }
     }
 
-    private fun state(trip: Trip?, steps: List<TripStep>, family: Family, day: LocalDate, failed: Boolean): TripDetailUiState {
+    private fun state(
+        trip: Trip?,
+        steps: List<TripStep>,
+        items: List<TripItem>,
+        family: Family,
+        day: LocalDate,
+        failed: Boolean,
+    ): TripDetailUiState {
         val current = family.members.firstOrNull { it.id == currentMemberId }
         if (trip == null || current == null) return TripDetailUiState.Missing
         me = current
@@ -137,6 +186,10 @@ class TripDetailViewModel(
             isParticipant = isParticipant(trip, current),
             today = day,
             sendFailed = failed,
+            items = items,
+            assignees = trip.participantIds.mapNotNull { id -> family.members.firstOrNull { it.id == id } }
+                .map { ItemAssignee(it.id, it.firstName) }
+                .sortedBy { it.name.lowercase() },
         )
     }
 }

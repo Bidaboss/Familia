@@ -1,4 +1,4 @@
-// V3 rules: trips, their followers and their steps (PRD, récits 11, 12 and 14). Fictional family:
+// V3 rules: trips, their followers, their steps and their checklist (PRD, récits 11 to 14). Fictional family:
 // admin1 (admin principal) and adult1, adult2, admin2 in h1, adult3 in h2, kid1 (child with the app,
 // parent adult1).
 import { after, before, beforeEach, describe, test } from 'node:test';
@@ -252,5 +252,59 @@ describe('« bien arrivé » (récit 14)', () => {
     await assertSucceeds(updateDoc(doc(db, 'trips/t1/steps/s1'), {
       arrivedAt: null, arrivedBy: null, arrivedByName: null, updatedAt: serverTimestamp(),
     }));
+  });
+});
+
+/** A valid line of the checklist (récit 13). */
+function item(overrides = {}) {
+  return { label: 'Crème solaire', assigneeId: null, assigneeName: null, done: false, updatedAt: serverTimestamp(), ...overrides };
+}
+
+describe('trip checklist', () => {
+  beforeEach(async () => {
+    // ADULT and adult3 take part; everyone but OTHER_ADULT follows.
+    await storedTrip('t1', ADULT, { readerIds: EVERYONE.filter((id) => id !== 'adult2') });
+  });
+
+  test('a participant adds a line, gives it to another participant and ticks it', async () => {
+    const ref = doc(as(env, ADULT), 'trips/t1/items/i1');
+    await assertSucceeds(setDoc(ref, item()));
+    await assertSucceeds(updateDoc(ref, { assigneeId: 'adult3', assigneeName: 'adult3', updatedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(as(env, NEIGHBOUR), 'trips/t1/items/i1'), { done: true, updatedAt: serverTimestamp() }));
+    await assertSucceeds(deleteDoc(doc(as(env, NEIGHBOUR), 'trips/t1/items/i1')));
+  });
+
+  test('a follower reads the checklist but cannot change it', async () => {
+    await setDoc(doc(as(env, ADULT), 'trips/t1/items/i1'), item());
+    const db = as(env, KID);
+    await assertSucceeds(getDoc(doc(db, 'trips/t1/items/i1')));
+    await assertSucceeds(getDocs(collection(db, 'trips/t1/items')));
+    await assertFails(setDoc(doc(db, 'trips/t1/items/i2'), item()));
+    await assertFails(updateDoc(doc(db, 'trips/t1/items/i1'), { done: true, updatedAt: serverTimestamp() }));
+    await assertFails(deleteDoc(doc(db, 'trips/t1/items/i1')));
+  });
+
+  test('an unticked member and someone outside the family read nothing', async () => {
+    await setDoc(doc(as(env, ADULT), 'trips/t1/items/i1'), item());
+    await assertFails(getDoc(doc(as(env, OTHER_ADULT), 'trips/t1/items/i1')));
+    await assertFails(getDocs(collection(as(env, OTHER_ADULT), 'trips/t1/items')));
+    await assertFails(getDoc(doc(as(env, STRANGER), 'trips/t1/items/i1')));
+  });
+
+  test('only a participant can be in charge, and the shape is checked', async () => {
+    const ref = doc(as(env, ADULT), 'trips/t1/items/i1');
+    await assertFails(setDoc(ref, item({ assigneeId: 'kid1', assigneeName: 'kid1' })));
+    await assertFails(setDoc(ref, item({ assigneeId: 'adult3', assigneeName: null })));
+    await assertFails(setDoc(ref, item({ label: '' })));
+    await assertFails(setDoc(ref, item({ label: 'x'.repeat(81) })));
+    await assertFails(setDoc(ref, item({ done: 'yes' })));
+    await assertFails(setDoc(ref, item({ position: '41.9,8.7' })));
+    await assertFails(setDoc(ref, item({ updatedAt: Timestamp.fromMillis(0) })));
+  });
+
+  test('the admin principal may delete a line, not add one', async () => {
+    await setDoc(doc(as(env, ADULT), 'trips/t1/items/i1'), item());
+    await assertFails(setDoc(doc(as(env, ADMIN), 'trips/t1/items/i2'), item()));
+    await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'trips/t1/items/i1')));
   });
 });

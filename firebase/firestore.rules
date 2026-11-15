@@ -959,7 +959,7 @@ service cloud.firestore {
       allow delete: if canChangePhoto(memberId) || (isMember() && !existsAfter(memberPath(memberId)));
     }
 
-    // --- Trips (V3, récits 11, 12 et 14) ----------------------------------------------------------
+    // --- Trips (V3, récits 11 à 14) ----------------------------------------------------------------
 
     function tripPath(tripId) {
       return /databases/$(database)/documents/trips/$(tripId);
@@ -1075,6 +1075,27 @@ service cloud.firestore {
                 && request.resource.data.arrivedBy == resource.data.arrivedBy
                 && request.resource.data.arrivedByName == resource.data.arrivedByName));
 
+      allow delete: if isMember() && (isParticipantOf(tripId) || isOwner());
+    }
+
+    // Shape of a line of the checklist (récit 13). The person in charge, if any, takes part in the
+    // trip; their first name is kept so the line stays readable if they leave it.
+    function isValidItem(i, tripId) {
+      return i.keys().hasAll(['label', 'assigneeId', 'assigneeName', 'done', 'updatedAt'])
+        && i.keys().hasOnly(['label', 'assigneeId', 'assigneeName', 'done', 'updatedAt'])
+        && i.label is string && i.label.size() > 0 && i.label.size() <= 80
+        && i.done is bool
+        && i.updatedAt == request.time
+        && ((i.assigneeId == null && i.assigneeName == null)
+            || (i.assigneeId in tripOf(tripId).participantIds
+                && i.assigneeName is string && i.assigneeName.size() > 0 && i.assigneeName.size() <= 40));
+    }
+
+    // trips/{tripId}/items/{itemId}. The followers read the checklist; the participants add, tick,
+    // edit and delete its lines, like the steps. Deleting the trip deletes them on the server.
+    match /trips/{tripId}/items/{itemId} {
+      allow read: if isMember() && myMemberId() in tripOf(tripId).readerIds;
+      allow create, update: if isMember() && isParticipantOf(tripId) && isValidItem(request.resource.data, tripId);
       allow delete: if isMember() && (isParticipantOf(tripId) || isOwner());
     }
 
