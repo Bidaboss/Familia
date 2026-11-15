@@ -669,8 +669,10 @@ service cloud.firestore {
         && request.resource.data.visibleToBeneficiary == resource.data.visibleToBeneficiary
         && request.resource.data.createdAt == resource.data.createdAt;
 
+      // A revealed list is archived: nothing leaves it any more.
       allow delete: if isMember()
         && resource.data.authorId == myMemberId()
+        && list().revealed == false
         && (resource.data.visibleToBeneficiary == true || !exists(claimPath()));
     }
 
@@ -701,7 +703,7 @@ service cloud.firestore {
       allow update: if false;
 
       // The holder releases the item; the shares of a joint gift are removed on the server.
-      allow delete: if isMember() && resource.data.holderId == myMemberId();
+      allow delete: if isMember() && resource.data.holderId == myMemberId() && list().revealed == false;
     }
 
     function isValidShare(s) {
@@ -747,6 +749,36 @@ service cloud.firestore {
                 && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['received', 'updatedAt'])));
 
       allow delete: if isMember() && (memberId == myMemberId() || claim().holderId == myMemberId());
+    }
+
+    // --- Profile photos (PRD, récit 3 bis) -------------------------------------------------------
+
+    // Who may change the photo of [memberId]: the member themself (a child with the app too), any
+    // adult of the same household for a child (with or without the app), and the admin principal.
+    function canChangePhoto(memberId) {
+      return isMember()
+        && (myMemberId() == memberId
+            || isOwner()
+            || (get(memberPath(memberId)).data.profile != 'adult'
+                && get(memberPath(myMemberId())).data.profile == 'adult'
+                && get(memberPath(myMemberId())).data.householdId == get(memberPath(memberId)).data.householdId));
+    }
+
+    // memberPhotos/{memberId} -> { jpeg, updatedAt }: a square JPEG of about 100 KB, made by the
+    // app. Kept in Firestore rather than Storage: 13 small photos fit easily, they are served from
+    // the offline cache like the rest, and these rules stay the only ones to check. Only the
+    // family reads them. Removing the photo deletes the document.
+    match /memberPhotos/{memberId} {
+      allow read: if isMember();
+      allow create, update: if canChangePhoto(memberId)
+        && exists(memberPath(memberId))
+        && request.resource.data.keys().hasOnly(['jpeg', 'updatedAt'])
+        && request.resource.data.jpeg is bytes
+        && request.resource.data.jpeg.size() > 0
+        && request.resource.data.jpeg.size() <= 150000
+        && request.resource.data.updatedAt == request.time;
+      // Also when the member is removed, in the same batch, so no photo outlives its member.
+      allow delete: if canChangePhoto(memberId) || (isMember() && !existsAfter(memberPath(memberId)));
     }
 
     // --- Trips (V3, récits 11, 12 et 14) ----------------------------------------------------------
@@ -870,13 +902,20 @@ service cloud.firestore {
 
     // --- App updates (lot 10) ---------------------------------------------------------------------
 
-    // config/app: the latest version and the HTTPS link of its APK (docs/mise-a-jour.md).
-    // config/family: { ownerMemberId }, the admin principal. Every member reads them. Nobody
-    // writes them from the app: the workflow « APK de publication » writes config/app, and the workflow
-    // « Créer le premier admin » writes config/family, neither bound by these rules.
+    // config/app: the latest version and the HTTPS link of its APK (docs/mise-a-jour.md), and
+    // the module switches `features` (PRD rév. 120). config/family: { ownerMemberId }, the admin
+    // principal. Every member reads them. The workflow « APK de publication » writes the version
+    // fields of config/app and the workflow « Créer le premier admin » writes config/family,
+    // neither bound by these rules. From the app, only the admin principal changes `features`,
+    // and nothing else.
     match /config/{docId} {
       allow read: if isMember() && docId in ['app', 'family'];
-      allow write: if false;
+      allow update: if docId == 'app'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['features'])
+        && request.resource.data.features is map
+        && request.resource.data.features.size() <= 30
+        && isOwner();
+      allow create, delete: if false;
     }
 
     // Everything else is closed until a lot opens it explicitly.

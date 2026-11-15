@@ -7,7 +7,12 @@ import androidx.compose.ui.platform.LocalContext
 import fr.familia.app.BuildConfig
 import fr.familia.app.feature.update.UpdateBanner
 import fr.familia.app.feature.update.availableUpdate
-import fr.familia.app.feature.update.openDownload
+import fr.familia.app.feature.update.InAppUpdateDialogs
+import fr.familia.app.feature.update.LocalInAppUpdater
+import fr.familia.app.feature.update.rememberInAppUpdater
+import fr.familia.app.core.model.Feature
+import fr.familia.app.core.model.FeatureFlags
+import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.update.UpdateCheckRoute
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
@@ -51,7 +56,9 @@ import fr.familia.app.feature.birthdays.BirthdaysRoute
 import fr.familia.app.feature.events.detail.EventDetailRoute
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.OfflineBanner
+import fr.familia.app.core.ui.rememberMemberPhotos
 import fr.familia.app.feature.members.MembersRoute
 import fr.familia.app.feature.events.edit.EventEditRoute
 import fr.familia.app.feature.planning.PlanningRoute
@@ -61,6 +68,11 @@ import fr.familia.app.feature.members.admin.AdministrationRoute
 import fr.familia.app.feature.onboarding.OnboardingPreferences
 import fr.familia.app.feature.onboarding.OnboardingRoute
 import kotlinx.coroutines.CancellationException
+import fr.familia.app.feature.gifts.AllBirthdaysScreen
+import fr.familia.app.feature.gifts.GiftsRoute
+import fr.familia.app.feature.gifts.detail.GiftListRoute
+import fr.familia.app.feature.gifts.edit.GiftListEditRoute
+import fr.familia.app.feature.gifts.item.GiftItemEditRoute
 import fr.familia.app.feature.events.answerableMembers
 import fr.familia.app.feature.trips.TripDetailDestination
 import fr.familia.app.feature.trips.TripEditDestination
@@ -88,6 +100,9 @@ fun FamiliaApp(
     /** The event of a tapped notification, to open once. */
     openEventId: String? = null,
     onEventOpened: () -> Unit = {},
+    /** The gift list of a tapped notification, to open once (V2). */
+    openListId: String? = null,
+    onListOpened: () -> Unit = {},
     /** The trip of a tapped « bien arrivé » notification, to open once (V3). */
     openTripId: String? = null,
     onTripOpened: () -> Unit = {},
@@ -119,6 +134,12 @@ fun FamiliaApp(
         }
         return
     }
+    LaunchedEffect(openListId) {
+        if (openListId != null) {
+            navController.navigate(GiftListDestination(openListId))
+            onListOpened()
+        }
+    }
     LaunchedEffect(openEventId) {
         if (openEventId != null) {
             navController.navigate(EventDetailDestination(openEventId))
@@ -136,13 +157,24 @@ fun FamiliaApp(
     // app comes back on screen, even if it stayed open in the background: collection stops in the
     // background and starts again, with a fresh read, when the app is shown. "Plus tard" lasts
     // until then.
-    val updates = remember(container) {
+    val configs = remember(container) {
         container?.appConfigRepository?.observeAppConfig()
-            ?.map { config -> availableUpdate(config, BuildConfig.VERSION_CODE, BuildConfig.DOWNLOAD_URL) }
-            ?.catch { /* Offline or no config yet: nothing to offer. */ }
+            ?.catch { /* Offline or no config yet: nothing to offer, every flag off. */ }
             ?: flowOf(null)
     }
-    val update by updates.collectAsStateWithLifecycle(initialValue = null)
+    val appConfig by configs.collectAsStateWithLifecycle(initialValue = null)
+    val update = appConfig?.let { availableUpdate(it, BuildConfig.VERSION_CODE, BuildConfig.DOWNLOAD_URL) }
+    val updater = rememberInAppUpdater()
+    InAppUpdateDialogs(updater, update)
+
+    // Modules still in test are shown to the admin principal only, until switched on in
+    // Administration (config/app.features). The owner is read from the live family.
+    val ownerFlow = remember(container) {
+        container?.memberRepository?.observeFamily()?.map { it.ownerId }?.catch { emit(null) } ?: flowOf(null)
+    }
+    val ownerId by ownerFlow.collectAsStateWithLifecycle(initialValue = null)
+    val features = FeatureFlags(appConfig?.features.orEmpty(), isOwner = ownerId != null && ownerId == currentMember.id)
+
     var updateDismissed by rememberSaveable { mutableStateOf(false) }
     LifecycleEventEffect(Lifecycle.Event.ON_START) { updateDismissed = false }
 
@@ -152,12 +184,22 @@ fun FamiliaApp(
     // The bar only shows on the three tabs, not on screens opened from them.
     val onTab = TopLevelDestination.entries.any { currentDestination.isOn(it) }
 
-    CompositionLocalProvider(LocalOpenHelp provides { navController.navigate(HelpDestination) { launchSingleTop = true } }) {
+    // Profile photos (PRD, récit 3 bis): read once here, shown by every avatar of the app.
+    val photos by rememberMemberPhotos(container?.memberPhotoRepository)
+
+    CompositionLocalProvider(
+        LocalOpenHelp provides { navController.navigate(HelpDestination) { launchSingleTop = true } },
+        LocalMemberPhotos provides photos,
+        LocalFeatureFlags provides features,
+        LocalInAppUpdater provides updater,
+    ) {
         Scaffold(
             topBar = {
                 // The tabs get a title bar, with the « ? » of their screen (spec « tuto et aide », récit 26).
                 val tab = TopLevelDestination.entries.firstOrNull { currentDestination.isOn(it) }
-                if (tab != null) TabTopBar(tab, onOpenTrips = { navController.navigate(TripsDestination) { launchSingleTop = true } })
+                if (tab != null) {
+                    TabTopBar(tab, currentMember, onOpenTrips = { navController.navigate(TripsDestination) { launchSingleTop = true } })
+                }
             },
             bottomBar = {
                 if (onTab) NavigationBar {
@@ -172,7 +214,7 @@ fun FamiliaApp(
                                     contentDescription = null, // The label below already names the tab.
                                 )
                             },
-                            label = { Text(stringResource(destination.labelRes)) },
+                            label = { Text(stringResource(destination.labelFor(currentMember))) },
                         )
                     }
                 }
@@ -184,7 +226,7 @@ fun FamiliaApp(
                 if (shownUpdate != null) {
                     UpdateBanner(
                         update = shownUpdate,
-                        onUpdate = { openDownload(context, shownUpdate.downloadUrl) },
+                        onUpdate = { updater.start(shownUpdate) },
                         onLater = { updateDismissed = true },
                     )
                 }
@@ -273,7 +315,56 @@ fun FamiliaApp(
                             onDone = { navController.popBackStack() },
                         )
                     }
-                    composable<BirthdaysRoute> { BirthdaysRoute(container) }
+                    composable<BirthdaysRoute> {
+                        AllBirthdaysScreen(onBack = { navController.popBackStack() }) { BirthdaysRoute(container) }
+                    }
+                    // --- Listes et cadeaux (V2) ---
+                    composable<GiftsRoute> {
+                        GiftsRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
+                            onNewList = { navController.navigate(GiftListEditDestination()) },
+                            onAllBirthdays = { navController.navigate(BirthdaysRoute) },
+                            onPrepareSurprise = { id -> navController.navigate(GiftListEditDestination(forMemberId = id)) },
+                        )
+                    }
+                    composable<GiftListDestination> { entry ->
+                        val listId = entry.toRoute<GiftListDestination>().listId
+                        GiftListRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            listId = listId,
+                            onEditList = { navController.navigate(GiftListEditDestination(listId)) },
+                            onAddItem = { navController.navigate(GiftItemEditDestination(listId)) },
+                            onEditItem = { itemId -> navController.navigate(GiftItemEditDestination(listId, itemId)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<GiftListEditDestination> { entry ->
+                        val route = entry.toRoute<GiftListEditDestination>()
+                        GiftListEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            listId = route.listId,
+                            forMemberId = route.forMemberId,
+                            onDone = { deleted ->
+                                // A deleted list closes its screen too.
+                                if (deleted) navController.popBackStack(GiftsRoute, inclusive = false) else navController.popBackStack()
+                            },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<GiftItemEditDestination> { entry ->
+                        val route = entry.toRoute<GiftItemEditDestination>()
+                        GiftItemEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            listId = route.listId,
+                            itemId = route.itemId,
+                            onDone = { navController.popBackStack() },
+                        )
+                    }
                     composable<MembersRoute> {
                         MembersRoute(
                             container = container,
@@ -331,22 +422,25 @@ fun FamiliaApp(
 /** Title bar of a tab, with its « ? » where the spec has one. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TabTopBar(tab: TopLevelDestination, onOpenTrips: () -> Unit = {}) {
+private fun TabTopBar(tab: TopLevelDestination, member: Member, onOpenTrips: () -> Unit = {}) {
     TopAppBar(
-        title = { Text(stringResource(tab.labelRes)) },
+        title = { Text(stringResource(tab.labelFor(member))) },
         actions = {
             when (tab) {
                 TopLevelDestination.Planning -> {
-                    // Trips have no tab (carte DESIGN-4): until the Accueil tab, they open from here.
-                    TextButton(onClick = onOpenTrips, modifier = Modifier.heightIn(min = 56.dp)) {
-                        Icon(Icons.Outlined.CardTravel, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.trips_title))
+                    // Trips have no tab (carte DESIGN-4): until the Accueil tab, they open from here,
+                    // once the module is switched on in Administration.
+                    if (LocalFeatureFlags.current.isOn(Feature.Trips)) {
+                        TextButton(onClick = onOpenTrips, modifier = Modifier.heightIn(min = 56.dp)) {
+                            Icon(Icons.Outlined.CardTravel, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.trips_title))
+                        }
                     }
                     HelpButton(ScreenHelp.Planning)
                 }
                 TopLevelDestination.Members -> HelpButton(ScreenHelp.Family)
-                TopLevelDestination.Birthdays -> Unit
+                TopLevelDestination.Gifts -> HelpButton(ScreenHelp.Gifts)
             }
         },
     )

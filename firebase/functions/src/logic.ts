@@ -33,8 +33,9 @@ export interface Notice {
   channel: 'events' | 'reminders';
   title: string;
   body: string;
-  eventId: string;
-  /** Set for the notices of a trip (V3): the app opens the trip rather than an event. */
+  /** What a tap opens: an event of the planning, a gift list (V2) or a trip (V3). */
+  eventId?: string;
+  listId?: string;
   tripId?: string;
 }
 

@@ -1,0 +1,251 @@
+package fr.familia.app.feature.gifts.detail
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import fr.familia.app.core.data.GiftRepository
+import fr.familia.app.core.data.MemberRepository
+import fr.familia.app.core.data.currentDayFlow
+import fr.familia.app.core.model.ClaimType
+import fr.familia.app.core.model.Family
+import fr.familia.app.core.model.GiftClaim
+import fr.familia.app.core.model.GiftItem
+import fr.familia.app.core.model.GiftList
+import fr.familia.app.core.model.GiftListKind
+import fr.familia.app.core.model.GiftShare
+import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.wishesListId
+import fr.familia.app.feature.gifts.canManageList
+import fr.familia.app.feature.gifts.canReserve
+import fr.familia.app.feature.gifts.canShare
+import fr.familia.app.feature.gifts.isKeptFrom
+import fr.familia.app.feature.gifts.keepsListsOf
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import java.time.LocalDate
+
+/** A reservation as the screen shows it, with the parts of a joint gift. */
+data class ClaimView(
+    val type: ClaimType,
+    val holderName: String,
+    val isMine: Boolean,
+    val shares: List<GiftShare> = emptyList(),
+    val myShare: GiftShare? = null,
+) {
+    val total: Double get() = shares.sumOf { it.amount }
+}
+
+data class ItemRow(
+    val item: GiftItem,
+    /** Edit and delete: the author, until it is reserved; the beneficiary's side always. */
+    val canEdit: Boolean,
+    /** A surprise idea of someone else: shown to the viewers with « Idée de … ». */
+    val isSurpriseIdea: Boolean,
+    /** Null when free, or when the reservations are hidden from this member. */
+    val claim: ClaimView?,
+)
+
+sealed interface GiftListUiState {
+    data object Loading : GiftListUiState
+
+    data class Success(
+        val list: GiftList,
+        val beneficiary: Member,
+        val today: LocalDate,
+        /** The member is the beneficiary and the list is not revealed: ideas and reservations stay hidden. */
+        val keptFromMe: Boolean,
+        val isMine: Boolean,
+        val canManage: Boolean,
+        val canAddItems: Boolean,
+        val canReserve: Boolean,
+        /** Adults only: a child takes an item alone (carte PRODUIT-19). */
+        val canShare: Boolean,
+        val items: List<ItemRow>,
+        /** First name of the signed-in member, written with what they reserve. */
+        val myName: String,
+        val actionFailed: Boolean = false,
+    ) : GiftListUiState
+
+    /** Deleted, or not one this member may see. */
+    data object Missing : GiftListUiState
+
+    data object Error : GiftListUiState
+}
+
+/**
+ * One gift list (PRD, récits 7 to 9): its items, and for everyone but the beneficiary the
+ * reservations and joint gifts. A « Mes envies » nobody wrote to yet shows empty for the member who keeps it.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+class GiftListViewModel(
+    private val gifts: GiftRepository?,
+    private val members: MemberRepository?,
+    private val currentMemberId: String,
+    private val listId: String,
+    private val writeTimeoutMillis: Long = 4_000,
+    private val today: Flow<LocalDate> = currentDayFlow(),
+) : ViewModel() {
+
+    private val attempt = MutableStateFlow(0)
+    private val failed = MutableStateFlow(false)
+
+    val uiState: StateFlow<GiftListUiState> = attempt
+        .flatMapLatest { n ->
+            val repo = gifts
+            if (repo == null || members == null) {
+                flowOf(GiftListUiState.Missing)
+            } else {
+                combine(members.observeFamily(), repo.observeList(listId)) { family, list -> family to list }
+                    .flatMapLatest { (family, stored) -> content(repo, family, stored) }
+                    .onStart { if (n > 0) emit(GiftListUiState.Loading) }
+                    .catch { e ->
+                        if (e is CancellationException) throw e
+                        emit(GiftListUiState.Error)
+                    }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), GiftListUiState.Loading)
+
+    private fun content(repo: GiftRepository, family: Family, stored: GiftList?): Flow<GiftListUiState> {
+        val me = family.members.firstOrNull { it.id == currentMemberId } ?: return flowOf(GiftListUiState.Missing)
+        val list = stored ?: emptyWishes(family, me) ?: return flowOf(GiftListUiState.Missing)
+        val beneficiary = family.members.firstOrNull { it.id == list.beneficiaryId } ?: return flowOf(GiftListUiState.Missing)
+        val kept = isKeptFrom(list, me)
+        val items = if (stored == null) flowOf(emptyList<GiftItem>()) else repo.observeItems(list.id, hiddenFromMe = kept)
+        val claims = if (stored == null || kept) flowOf(emptyList<GiftClaim>()) else repo.observeClaims(list.id)
+        val shares = claims
+            .map { all -> all.filter { it.type == ClaimType.Shared }.map { it.itemId }.sorted() }
+            .distinctUntilChanged()
+            .flatMapLatest { ids -> repo.observeShares(list.id, ids) }
+        return combine(items, claims, shares, today, failed) { itemList, claimList, shareMap, day, didFail ->
+            state(list, stored != null, beneficiary, me, family, itemList, claimList, shareMap, day, didFail)
+        }
+    }
+
+    /** A « Mes envies » nobody created yet, for the member who keeps it: shown empty, created with its first item. */
+    private fun emptyWishes(family: Family, me: Member): GiftList? {
+        val owner = family.members.firstOrNull { wishesListId(it.id) == listId } ?: return null
+        if (!keepsListsOf(me, owner)) return null
+        return GiftList(listId, GiftListKind.Wishes, "Mes envies", null, null, owner.id, emptyList(), me.id, me.firstName)
+    }
+
+    private fun state(
+        list: GiftList,
+        exists: Boolean,
+        beneficiary: Member,
+        me: Member,
+        family: Family,
+        items: List<GiftItem>,
+        claims: List<GiftClaim>,
+        shares: Map<String, List<GiftShare>>,
+        day: LocalDate,
+        didFail: Boolean,
+    ): GiftListUiState.Success {
+        val kept = isKeptFrom(list, me)
+        val claimById = claims.associateBy { it.itemId }
+        val rows = items.sortedBy { it.title.lowercase() }.map { item ->
+            val claim = claimById[item.id]
+            val parts = shares[item.id].orEmpty().sortedBy { it.memberName.lowercase() }
+            ItemRow(
+                item = item,
+                canEdit = !list.revealed && item.authorId == me.id && (item.visibleToBeneficiary || claim == null),
+                isSurpriseIdea = !item.visibleToBeneficiary && list.kind != GiftListKind.Surprise,
+                claim = claim?.let {
+                    ClaimView(
+                        type = it.type,
+                        holderName = it.holderName,
+                        isMine = it.holderId == me.id,
+                        shares = parts,
+                        myShare = parts.firstOrNull { share -> share.memberId == me.id },
+                    )
+                },
+            )
+        }
+        return GiftListUiState.Success(
+            list = list,
+            beneficiary = beneficiary,
+            today = day,
+            keptFromMe = kept,
+            isMine = beneficiary.id == me.id,
+            canManage = exists && canManageList(list, me, family),
+            canAddItems = !list.revealed,
+            canReserve = exists && canReserve(list, me),
+            canShare = exists && canShare(list, me),
+            items = rows,
+            myName = me.firstName,
+            actionFailed = didFail,
+        )
+    }
+
+    fun retry() {
+        attempt.update { it + 1 }
+    }
+
+    fun take(itemId: String) = claim(itemId, ClaimType.Solo)
+
+    fun openJointGift(itemId: String) = claim(itemId, ClaimType.Shared)
+
+    private fun claim(itemId: String, type: ClaimType) {
+        val me = currentSuccess()?.let { meOf(it) } ?: return
+        write { it.claim(listId, GiftClaim(itemId, type, me.first, me.second)) }
+    }
+
+    fun release(itemId: String) = write { it.release(listId, itemId) }
+
+    /** Joins a joint gift with [amount], or changes one's part. */
+    fun setShare(itemId: String, amount: Double) {
+        val state = currentSuccess() ?: return
+        val me = meOf(state) ?: return
+        val isNew = state.items.firstOrNull { it.item.id == itemId }?.claim?.myShare == null
+        write { it.setShare(listId, itemId, GiftShare(me.first, me.second, amount, received = false), isNew) }
+    }
+
+    fun leaveShare(itemId: String) = write { it.leaveShare(listId, itemId, currentMemberId) }
+
+    fun markReceived(itemId: String, memberId: String, received: Boolean) =
+        write { it.markShareReceived(listId, itemId, memberId, received) }
+
+    fun deleteItem(itemId: String) = write { it.deleteItem(listId, itemId) }
+
+    fun deleteList(onDone: () -> Unit) {
+        val repo = gifts ?: return
+        viewModelScope.launch {
+            if (send { repo.deleteList(listId) }) onDone() else failed.value = true
+        }
+    }
+
+    private fun currentSuccess(): GiftListUiState.Success? = uiState.value as? GiftListUiState.Success
+
+    /** The signed-in member's id and first name, as the rules expect them in what they write. */
+    private fun meOf(state: GiftListUiState.Success): Pair<String, String>? =
+        if (state.isMine) null else currentMemberId to state.myName
+
+    private fun write(block: suspend (GiftRepository) -> Unit) {
+        val repo = gifts ?: return
+        viewModelScope.launch { failed.value = !send { block(repo) } }
+    }
+
+    /** True once the write is accepted, or still pending after the timeout (queued offline). */
+    private suspend fun send(block: suspend () -> Unit): Boolean = try {
+        withTimeoutOrNull(writeTimeoutMillis) { block() }
+        true
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        false
+    }
+}

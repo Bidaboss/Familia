@@ -5,6 +5,10 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Android 13 and later ask before showing notifications (lot 8). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- « Mettre à jour » installs the new version from the app (PRD, récit 6 quater). Android asks
+         the member once, in the settings, and checks the signature of every APK. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name=".FamiliaApplication"
@@ -32,6 +36,23 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+
+        <!-- Lets the camera app write the picture taken for a profile photo (PRD, récit 3 bis).
+             No camera permission: the camera app takes the picture, not Familia. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.photos"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/photo_paths" />
+        </provider>
+
+        <!-- Result of an in-app update install. -->
+        <receiver
+            android:name=".feature.update.InstallResultReceiver"
+            android:exported="false" />
 
         <!-- singleTop: a tapped notification reuses the open app instead of stacking a second one. -->
         <activity

@@ -3,11 +3,12 @@
 // 1. refuses a version that is not newer than the one in config/app;
 // 2. replaces the APK of the Drive folder, so the download link never changes;
 // 3. then announces the version in config/app, so the "Nouvelle version" banner only shows once
-//    the file is there.
+//    the file is there, with the Drive file id, size and SHA-256 the app checks when it downloads
+//    the APK itself (PRD, récit 6 quater).
 // The Drive folder must be shared with the service account as editor, and hold exactly one APK,
 // uploaded once by Kévin. A service account has no Drive space of its own: it can replace the
 // content of a file someone shared, but not create one. No dependency besides firebase-admin.
-import { createSign } from 'node:crypto';
+import { createHash, createSign } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -116,5 +117,11 @@ console.log(`APK remplacé sur le Drive : ${files[0].name} -> ${newName}.`);
 
 // --- Announce the version ------------------------------------------------------------------------
 
-await configApp.set({ latestVersionCode: versionCode, latestVersionName: versionName }, { merge: true });
+await configApp.set({
+  latestVersionCode: versionCode,
+  latestVersionName: versionName,
+  apkFileId: files[0].id,
+  apkSize: apk.length,
+  apkSha256: createHash('sha256').update(apk).digest('hex'),
+}, { merge: true });
 console.log(`Version ${versionName} (${versionCode}) annoncée dans config/app.`);

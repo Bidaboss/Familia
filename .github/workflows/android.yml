@@ -5,16 +5,59 @@ on:
   push:
     branches: [main]
 
+# On a pull request, a new commit stops the build of the previous one. On main, runs are never
+# cancelled: only a finished main build saves the Gradle cache that pull requests then reuse.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
 
 jobs:
+  # Which parts a pull request touches. A skipped job counts as passed for GitHub. On main,
+  # everything runs. Unsure (the list cannot be read), everything runs too.
+  changes:
+    name: Changed parts
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      android: ${{ steps.filter.outputs.android }}
+      firebase: ${{ steps.filter.outputs.firebase }}
+    steps:
+      - id: filter
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ] \
+            || ! files=$(gh api "repos/${{ github.repository }}/pulls/$PR_NUMBER/files" --paginate --jq '.[].filename'); then
+            echo "android=true" >> "$GITHUB_OUTPUT"
+            echo "firebase=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "$files"
+          android=false
+          firebase=false
+          while IFS= read -r f; do
+            case "$f" in
+              .github/*) android=true; firebase=true ;;
+              firebase/*) firebase=true ;;
+              docs/*|*.md) ;;
+              *) android=true ;;
+            esac
+          done <<< "$files"
+          echo "Android : $android, Firebase : $firebase"
+          echo "android=$android" >> "$GITHUB_OUTPUT"
+          echo "firebase=$firebase" >> "$GITHUB_OUTPUT"
+
   build:
     name: Build, lint and unit tests
+    needs: changes
+    if: ${{ needs.changes.outputs.android == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # Test APKs are signed with the stable test key kept in GitHub secrets. Without it, they are
@@ -40,14 +83,16 @@ jobs:
           echo "$FAMILIA_TEST_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/familia-test.jks"
           echo "FAMILIA_TEST_KEYSTORE_PATH=$RUNNER_TEMP/familia-test.jks" >> "$GITHUB_ENV"
 
+      # The three steps share one Gradle daemon (setup-gradle stops it at the end of the job):
+      # the second and third ones skip the start-up and the project configuration.
       - name: Build debug APK
-        run: ./gradlew --no-daemon assembleDebug
+        run: ./gradlew assembleDebug
 
       - name: Android lint
-        run: ./gradlew --no-daemon lintDebug
+        run: ./gradlew lintDebug
 
       - name: Unit tests and screenshots
-        run: ./gradlew --no-daemon recordRoborazziDebug
+        run: ./gradlew recordRoborazziDebug
 
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
@@ -75,6 +120,8 @@ jobs:
 
   rules:
     name: Firestore security rules tests
+    needs: changes
+    if: ${{ needs.changes.outputs.firebase == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:

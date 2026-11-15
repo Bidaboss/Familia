@@ -21,12 +21,16 @@ fun UpdateCheckRoute(container: AppContainer?, onBack: () -> Unit) {
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val updater = LocalInAppUpdater.current
     val context = LocalContext.current
     UpdateCheckScreen(
         state = state,
         installedVersion = BuildConfig.VERSION_NAME,
         onCheck = viewModel::check,
-        onUpdate = { url -> openDownload(context, url) },
+        onUpdate = { url ->
+            val update = (state as? UpdateCheckUiState.Available)?.update
+            if (updater != null && update != null) updater.start(update) else openDownload(context, url)
+        },
         onBack = onBack,
     )
 }

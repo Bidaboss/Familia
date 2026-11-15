@@ -2,12 +2,14 @@ package fr.familia.app.feature.members
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.familia.app.core.data.MemberPhotoRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.canAddMembers
+import fr.familia.app.core.model.canChangePhoto
 import fr.familia.app.core.model.canEditMember
 import fr.familia.app.core.model.isOwner
 import fr.familia.app.core.model.managesHousehold
@@ -31,6 +33,7 @@ import kotlinx.coroutines.launch
 class MembersViewModel(
     private val members: MemberRepository?,
     private val currentMemberId: String,
+    private val photos: MemberPhotoRepository? = null,
 ) : ViewModel() {
 
     /** Bumped by [retry]: a failed listener is finished, so retrying starts a new one. */
@@ -56,6 +59,11 @@ class MembersViewModel(
                             emptySet()
                         } else {
                             family.households.filter { family.managesHousehold(me, it.id) }.map { it.id }.toSet()
+                        },
+                        photoEditableMemberIds = if (me == null || photos == null) {
+                            emptySet()
+                        } else {
+                            family.members.filter { family.canChangePhoto(me, it) }.map { it.id }.toSet()
                         },
                     )
                 }
@@ -97,6 +105,33 @@ class MembersViewModel(
 
     fun renameFailureShown() {
         _renameFailed.value = false
+    }
+
+    private val _photoFailed = MutableStateFlow(false)
+
+    /** True when a photo could not be saved or removed: the screen says so once. */
+    val photoFailed: StateFlow<Boolean> = _photoFailed.asStateFlow()
+
+    /** Saves the profile photo of [memberId], a JPEG made by the app (the rules check the rights and size). */
+    fun savePhoto(memberId: String, jpeg: ByteArray) = writePhoto { it.savePhoto(memberId, jpeg) }
+
+    fun removePhoto(memberId: String) = writePhoto { it.removePhoto(memberId) }
+
+    private fun writePhoto(write: suspend (MemberPhotoRepository) -> Unit) {
+        val repo = photos ?: return
+        viewModelScope.launch {
+            try {
+                write(repo)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _photoFailed.value = true
+            }
+        }
+    }
+
+    fun photoFailureShown() {
+        _photoFailed.value = false
     }
 
     companion object {
