@@ -39,6 +39,8 @@ class AppContainer(context: Context) {
 
     val appConfigRepository: AppConfigRepository? by lazy { firestore?.let { FirestoreAppConfigRepository(it) } }
 
+    val giftRepository: GiftRepository? by lazy { firestore?.let { FirestoreGiftRepository(it) } }
+
     val exportRepository: ExportRepository? by lazy { firestore?.let { FirestoreExportRepository(it) } }
 
     val notificationRepository: NotificationRepository? by lazy {

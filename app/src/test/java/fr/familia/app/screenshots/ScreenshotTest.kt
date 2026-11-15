@@ -48,6 +48,15 @@ import fr.familia.app.feature.members.edit.MemberEditUiState
 import java.time.LocalDate
 import org.junit.Test
 import fr.familia.app.core.ui.ClayCardSamples
+import fr.familia.app.feature.gifts.GiftsScreen
+import fr.familia.app.feature.gifts.previewGifts
+import fr.familia.app.feature.gifts.detail.GiftListActions
+import fr.familia.app.feature.gifts.detail.GiftListScreen
+import fr.familia.app.feature.gifts.detail.previewGiftList
+import fr.familia.app.feature.gifts.edit.GiftListEditScreen
+import fr.familia.app.feature.gifts.edit.previewGiftListForm
+import fr.familia.app.feature.gifts.item.GiftItemEditScreen
+import fr.familia.app.feature.gifts.item.previewGiftItemForm
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -405,6 +414,39 @@ class ScreenshotTest {
             onBack = {},
         )
     }
+
+    // --- Listes et cadeaux (V2) ---
+
+    @Test
+    fun giftsLight() = capture("cadeaux_clair") { Surface { GiftsScreen(previewGifts(), {}, {}, {}) } }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun giftsDark() = capture("cadeaux_sombre", darkTheme = true) { Surface { GiftsScreen(previewGifts(), {}, {}, {}) } }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun giftsFontScale200() = capture("cadeaux_police_200") { Surface { GiftsScreen(previewGifts(), {}, {}, {}) } }
+
+    @Test
+    fun giftListLight() = capture("liste_cadeaux_clair") { GiftListScreen(previewGiftList(), GiftListActions()) }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun giftListMineDark() = capture("liste_cadeaux_beneficiaire_sombre", darkTheme = true) {
+        GiftListScreen(previewGiftList(keptFromMe = true), GiftListActions())
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun giftListFontScale200() = capture("liste_cadeaux_police_200") { GiftListScreen(previewGiftList(), GiftListActions()) }
+
+    @Test
+    fun giftListFormLight() = capture("liste_cadeaux_formulaire_clair") { GiftListEditScreen(previewGiftListForm(), {}, {}, {}, {}) }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun giftItemFormFontScale200() = capture("article_formulaire_police_200") { GiftItemEditScreen(previewGiftItemForm(), {}, {}, {}, {}) }
 
     private val sampleMember = Member("a", "Camille", null, null, "h1", MemberProfile.Adult, true, emptyList(), null)
 
