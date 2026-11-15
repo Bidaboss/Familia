@@ -454,6 +454,7 @@ private fun MembersScreenPreview() {
                 versionName = "0.1.0",
                 onEditMember = {},
                 onSavePhoto = { _, _ -> },
+                onOpenWishes = {},
             )
         }
     }
