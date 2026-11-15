@@ -22,6 +22,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Celebration
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -40,6 +45,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpRoute
+import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
+import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
+import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
 import fr.familia.app.feature.help.LocalOpenHelp
 import fr.familia.app.feature.help.ScreenHelp
 import androidx.compose.runtime.LaunchedEffect
@@ -64,6 +72,7 @@ import fr.familia.app.feature.members.edit.MemberEditRoute
 import fr.familia.app.feature.birthdays.BirthdaysRoute
 import fr.familia.app.feature.events.detail.EventDetailRoute
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.photo.LocalPhotoStorage
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.wishesListId
 import fr.familia.app.core.ui.LocalMemberPhotos
@@ -100,13 +109,11 @@ import fr.familia.app.feature.trips.detail.TripDetailRoute
 import fr.familia.app.feature.trips.edit.TripEditRoute
 import fr.familia.app.feature.trips.list.TripsRoute
 import fr.familia.app.feature.trips.step.StepEditRoute
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
-import androidx.compose.ui.unit.dp
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
 @Composable
@@ -123,6 +130,9 @@ fun FamiliaApp(
     /** The gift list of a tapped notification, to open once (V2). */
     openListId: String? = null,
     onListOpened: () -> Unit = {},
+    /** The good news of a tapped notification, to open once. */
+    openGoodNewsId: String? = null,
+    onGoodNewsOpened: () -> Unit = {},
     /** The trip of a tapped « bien arrivé » notification, to open once (V3). */
     openTripId: String? = null,
     onTripOpened: () -> Unit = {},
@@ -218,6 +228,14 @@ fun FamiliaApp(
             onHelpRequestOpened()
         }
     }
+    // Same for a good news (PRD, récit 32), while its module is off.
+    val goodNewsOn = features.isOn(Feature.GoodNews)
+    LaunchedEffect(openGoodNewsId, goodNewsOn) {
+        if (openGoodNewsId != null && goodNewsOn) {
+            navController.navigate(GoodNewsDetailDestination(openGoodNewsId))
+            onGoodNewsOpened()
+        }
+    }
 
     var updateDismissed by rememberSaveable { mutableStateOf(false) }
     LifecycleEventEffect(Lifecycle.Event.ON_START) { updateDismissed = false }
@@ -253,14 +271,22 @@ fun FamiliaApp(
         LocalFeatureFlags provides features,
         LocalInAppUpdater provides updater,
         LocalSnackbarHost provides snackbar,
+        LocalPhotoStorage provides container?.photoStorage,
     ) {
         Scaffold(
             snackbarHost = { SnackbarHost(snackbar) },
             topBar = {
                 // The tabs get a title bar, with the « ? » of their screen (spec « tuto et aide », récit 26).
                 val tab = TopLevelDestination.entries.firstOrNull { currentDestination.isOn(it) }
+                // Until the Accueil arrives, the Bonnes nouvelles and the trips open from the Planning bar,
+                // each behind its module.
+                val onGoodNews = if (goodNewsOn) ({ navController.navigate(GoodNewsFeedDestination) }) else null
                 if (tab != null) {
-                    TabTopBar(tab, currentMember, onOpenTrips = { navController.navigate(TripsDestination) { launchSingleTop = true } })
+                    TabTopBar(
+                        tab, currentMember,
+                        onOpenTrips = { navController.navigate(TripsDestination) { launchSingleTop = true } },
+                        onGoodNews = onGoodNews,
+                    )
                 }
             },
             bottomBar = {
@@ -469,6 +495,35 @@ fun FamiliaApp(
                             onDone = { navController.popBackStack() },
                         )
                     }
+                    composable<GoodNewsFeedDestination> {
+                        GoodNewsFeedRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onPublish = { navController.navigate(GoodNewsEditDestination()) },
+                            onOpen = { id -> navController.navigate(GoodNewsDetailDestination(id)) },
+                            onEdit = { id -> navController.navigate(GoodNewsEditDestination(id)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<GoodNewsDetailDestination> { entry ->
+                        val postId = entry.toRoute<GoodNewsDetailDestination>().postId
+                        GoodNewsDetailRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            postId = postId,
+                            onEdit = { navController.navigate(GoodNewsEditDestination(postId)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<GoodNewsEditDestination> { entry ->
+                        GoodNewsEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            postId = entry.toRoute<GoodNewsEditDestination>().postId,
+                            onDone = { navController.popBackStack() },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
                     composable<MembersRoute> {
                         MembersRoute(
                             container = container,
@@ -535,13 +590,18 @@ fun FamiliaApp(
 /** Title bar of a tab, with its « ? » where the spec has one. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TabTopBar(tab: TopLevelDestination, member: Member, onOpenTrips: () -> Unit = {}) {
+private fun TabTopBar(tab: TopLevelDestination, member: Member, onOpenTrips: () -> Unit = {}, onGoodNews: (() -> Unit)? = null) {
     TopAppBar(
         // The Entraide tab keeps the full name « Coups de main » as its title (DESIGN-4).
         title = { Text(stringResource(if (tab == TopLevelDestination.HelpRequests) R.string.helprequest_screen_title else tab.labelFor(member))) },
         actions = {
             when (tab) {
                 TopLevelDestination.Planning -> {
+                    if (onGoodNews != null) {
+                        IconButton(onClick = onGoodNews, modifier = Modifier.size(56.dp)) {
+                            Icon(Icons.Outlined.Celebration, contentDescription = stringResource(R.string.goodnews_open_feed))
+                        }
+                    }
                     // Trips have no tab (carte DESIGN-4): until the Accueil tab, they open from here,
                     // once the module is switched on in Administration.
                     if (LocalFeatureFlags.current.isOn(Feature.Trips)) {

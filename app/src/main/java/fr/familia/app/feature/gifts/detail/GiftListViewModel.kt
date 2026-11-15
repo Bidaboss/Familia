@@ -43,11 +43,12 @@ data class ClaimView(
     val type: ClaimType,
     val holderName: String,
     val isMine: Boolean,
+    /** Every part for the responsible; only the member's own part for the other participants. */
     val shares: List<GiftShare> = emptyList(),
     val myShare: GiftShare? = null,
-) {
-    val total: Double get() = shares.sumOf { it.amount }
-}
+    /** The total of the parts: counted live by the responsible, kept by the server for the others. */
+    val total: Double = shares.sumOf { it.amount },
+)
 
 data class ItemRow(
     val item: GiftItem,
@@ -128,9 +129,12 @@ class GiftListViewModel(
         val items = if (stored == null) flowOf(emptyList<GiftItem>()) else repo.observeItems(list.id, hiddenFromMe = kept)
         val claims = if (stored == null || kept) flowOf(emptyList<GiftClaim>()) else repo.observeClaims(list.id)
         val shares = claims
-            .map { all -> all.filter { it.type == ClaimType.Shared }.map { it.itemId }.sorted() }
+            .map { all ->
+                val joint = all.filter { it.type == ClaimType.Shared }
+                joint.map { it.itemId }.sorted() to joint.filter { it.holderId == me.id }.map { it.itemId }.toSet()
+            }
             .distinctUntilChanged()
-            .flatMapLatest { ids -> repo.observeShares(list.id, ids) }
+            .flatMapLatest { (ids, mine) -> repo.observeShares(list.id, ids, me.id, mine) }
         return combine(items, claims, shares, today, failed) { itemList, claimList, shareMap, day, didFail ->
             state(list, stored != null, beneficiary, me, family, itemList, claimList, shareMap, day, didFail)
         }
@@ -173,6 +177,13 @@ class GiftListViewModel(
                         isMine = it.holderId == me.id,
                         shares = parts,
                         myShare = parts.firstOrNull { share -> share.memberId == me.id },
+                        // A reservation made before the server kept the total has none yet:
+                        // the part I see is then the best lower bound, rather than 0 €.
+                        total = if (it.holderId == me.id) {
+                            parts.sumOf { share -> share.amount }
+                        } else {
+                            maxOf(it.sharesTotal, parts.sumOf { share -> share.amount })
+                        },
                     )
                 },
             )

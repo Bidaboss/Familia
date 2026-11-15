@@ -254,6 +254,7 @@ La réservation d'un article. Son identifiant est celui de l'article, donc un ar
 | `type` | `solo` \| `shared` | « Je le prends » ou cadeau commun |
 | `holderId`, `holderName` | `memberId`, texte | Le réservant, ou le responsable du cadeau commun |
 | `createdAt` | horodatage serveur | |
+| `sharesTotal`, `sharesCount` | nombre, entier | Cadeau commun : total et nombre des parts, tenus par une Cloud Function (absents tant qu'aucune part n'a changé) |
 
 - **Lire** : ceux qui voient la liste, sauf le bénéficiaire avant la révélation.
 - **Réserver** : ceux qui voient la liste, sauf le bénéficiaire. Un enfant réserve seul, jamais en cadeau commun (carte PRODUIT-19).
@@ -270,7 +271,7 @@ Une part d'un cadeau commun, une par adulte. Aucun paiement ne passe par l'appli
 | `received` | booléen | Faux à la création. Le responsable le passe à vrai quand il a reçu la part |
 | `updatedAt` | horodatage serveur | |
 
-- **Lire** : comme les réservations.
+- **Lire** : la part elle-même, par son auteur ; toutes les parts, par le responsable du cadeau commun. Personne d'autre, même après la révélation (PRD rév. 151) : les autres participants voient le total sur la réservation.
 - **Rejoindre** : un adulte qui voit la liste, pour lui-même, sur un cadeau commun.
 - **Modifier** : le membre change son montant ; le responsable marque la part reçue ou non. Personne d'autre.
 - **Retirer** : le membre ou le responsable.
@@ -281,16 +282,41 @@ Une part d'un cadeau commun, une par adulte. Aucun paiement ne passe par l'appli
 |---|---|---|
 | `revealGifts` | Chaque jour à 7 h, heure de Paris | Passe `revealed` à vrai pour les listes dont l'occasion est passée (pas « Mes envies »), et prévient leur bénéficiaire s'il a l'appli (PRD, récit 10 bis) |
 | `birthdayGiftReminders` | Chaque jour à 10 h, heure de Paris | À J-21 d'un anniversaire, prévient tous les adultes sauf le fêté, avec ses envies. À J-14, recommence si aucun article de ses listes n'est réservé (récit 10) |
-| `onGiftItemWritten` | Un article est modifié ou supprimé | S'il était réservé, prévient le réservant et les participants (jamais le bénéficiaire). Une suppression efface aussi la réservation et ses parts |
-| `onGiftClaimDeleted` | Une réservation est relâchée | Efface les parts du cadeau commun |
+| `onGiftItemWritten` | Un article est modifié ou supprimé | S'il était réservé, prévient le réservant et les participants (jamais le bénéficiaire), et met à jour leur carnet. Une suppression efface aussi la réservation et ses parts |
+| `onGiftShareWritten` | Une part est ajoutée, modifiée ou retirée | Recalcule `sharesTotal` et `sharesCount` sur la réservation, et met à jour le carnet du participant |
+| `onGiftClaimCreated` | Une réservation est faite | La reprend dans le carnet de son auteur |
+| `onGiftClaimDeleted` | Une réservation est relâchée | Efface les parts du cadeau commun, et la retire du carnet de son auteur |
 | `onGiftListDeleted` | Une liste est supprimée | Efface ses articles, réservations et parts |
-| `onMemberDeletedGifts` | Un membre est retiré | Efface les listes dont il est le bénéficiaire |
+| `onMemberDeletedGifts` | Un membre est retiré | Efface les listes dont il est le bénéficiaire, et son carnet |
 
 Une notification des cadeaux porte `listId` dans ses données à la place de `eventId`. Le bénéficiaire ne reçoit jamais de notification sur ses cadeaux, sauf celle de la révélation.
 
 Tant que le module n'est pas allumé pour la famille (`config/app.features.gifts` différent de `true`), ces fonctions ne préviennent que l'admin principal (`config/family.ownerMemberId`), le seul à qui l'appli montre déjà le module. La révélation et le nettoyage se font quand même.
 
 Limite connue : les règles ne vérifient pas que chaque identifiant de `viewerIds` est un membre (cela coûterait une lecture par personne). L'appli ne propose que des membres de la famille.
+
+### `notebooks/{memberId}/entries/{entryId}` (récit 9 bis, « Mon carnet de cadeaux »)
+
+Ce que le membre prévoit d'offrir. Seul ce membre lit et écrit son carnet : ni la personne qui recevra, ni l'admin principal, ni quelqu'un qui agit pour lui. Le carnet n'est pas dans l'export.
+
+| Champ | Type | Description |
+|---|---|---|
+| `source` | `idea`, `claim` ou `share` | Une idée privée, une réservation « Je le prends », ou une part d'un cadeau commun (ou un cadeau commun dont le membre est responsable) |
+| `listId`, `itemId` | texte | Seulement pour `claim` et `share` : l'article repris. L'identifiant est alors `gift_{listId}_{itemId}` |
+| `personId` | texte ou null | Le membre à qui offrir, ou null pour une personne hors famille |
+| `personName` | texte de 1 à 40 caractères | Son prénom |
+| `occasion`, `year` | comme une liste, et entier de 2020 à 2100, ou null | L'occasion. Celle d'une liste reprise vient de la liste ; pour « Mes envies », le membre la choisit |
+| `title`, `url`, `price` | comme un article | Le prix d'une réservation est celui de l'article ; celui d'une part, le montant du membre |
+| `note` | texte de 500 caractères au plus, ou null | Pour soi |
+| `status` | `idea`, `bought`, `wrapped` ou `given` | Idée, Acheté, Emballé, Offert |
+| `createdAt`, `updatedAt` | horodatage serveur | |
+
+- **Idée privée** : le membre la crée, la modifie et la retire. Elle ne réserve rien.
+- **Réservation ou part reprise** : écrite par la fonction, qui garde le titre, le lien, le prix et la personne à jour. Le membre ne change que `status`, `occasion`, `year` et `note`, et ne la retire pas : elle part quand la réservation ou la part est retirée.
+
+### `notebooks/{memberId}/budgets/{budgetId}`
+
+Ce que le membre compte dépenser pour une personne et une occasion : `personId` (ou null), `personName`, `occasion`, `year`, `amount` (de 0 exclu à 100 000 euros), `updatedAt`. Seul le membre le lit et l'écrit.
 
 ## Bonnes nouvelles (PRD, récit 32)
 

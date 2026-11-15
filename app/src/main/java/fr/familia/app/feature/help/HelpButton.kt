@@ -41,10 +41,25 @@ fun HelpButton(help: ScreenHelp) {
     IconButton(onClick = { open = true }, modifier = Modifier.size(56.dp)) {
         Icon(Icons.AutoMirrored.Outlined.HelpOutline, contentDescription = stringResource(R.string.help_button))
     }
+    HelpSheetWhen(open, help) { open = false }
+}
+
+/** « En savoir plus », after a short sentence: opens the same sheet as [HelpButton]. */
+@Composable
+fun HelpLink(help: ScreenHelp, modifier: Modifier = Modifier) {
+    var open by rememberSaveable { mutableStateOf(false) }
+    TextButton(onClick = { open = true }, modifier = modifier.heightIn(min = 56.dp)) {
+        Text(stringResource(R.string.help_more))
+    }
+    HelpSheetWhen(open, help) { open = false }
+}
+
+@Composable
+private fun HelpSheetWhen(open: Boolean, help: ScreenHelp, close: () -> Unit) {
     if (open) {
         val openHelp = LocalOpenHelp.current
-        HelpSheet(help, onDismiss = { open = false }, onOpenAllHelp = {
-            open = false
+        HelpSheet(help, onDismiss = close, onOpenAllHelp = {
+            close()
             openHelp()
         })
     }

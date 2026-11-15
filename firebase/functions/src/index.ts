@@ -13,8 +13,9 @@ import {
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import {
   deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
-  sendBirthdayGiftReminders,
+  sendBirthdayGiftReminders, updateSharesTotal,
 } from './gifts';
+import { deleteMemberNotebook, syncNotebookEntry, syncNotebookItem } from './notebook';
 import {
   FileRemover, GoodNewsData, GoodNewsNotice, GoodNewsSender, onGoodNewsEdited, onGoodNewsPublished, onGoodNewsRemoved,
 } from './goodNews';
@@ -133,18 +134,34 @@ export const onGiftListDeleted = onDocumentDeleted('giftLists/{listId}', async (
   await deleteGiftListContent(getFirestore(), event.params.listId);
 });
 
+// A reservation is taken up in the private notebook of who made it (récit 9 bis).
+export const onGiftClaimCreated = onDocumentCreated('giftLists/{listId}/claims/{itemId}', async (event) => {
+  const holderId = String(event.data?.get('holderId') ?? '');
+  await syncNotebookEntry(getFirestore(), event.params.listId, event.params.itemId, holderId);
+});
+
 export const onGiftClaimDeleted = onDocumentDeleted('giftLists/{listId}/claims/{itemId}', async (event) => {
-  await deleteClaimShares(getFirestore(), event.params.listId, event.params.itemId);
+  const db = getFirestore();
+  await deleteClaimShares(db, event.params.listId, event.params.itemId);
+  await syncNotebookEntry(db, event.params.listId, event.params.itemId, String(event.data?.get('holderId') ?? ''));
+});
+
+export const onGiftShareWritten = onDocumentWritten('giftLists/{listId}/claims/{itemId}/shares/{memberId}', async (event) => {
+  const db = getFirestore();
+  await updateSharesTotal(db, event.params.listId, event.params.itemId);
+  await syncNotebookEntry(db, event.params.listId, event.params.itemId, event.params.memberId);
 });
 
 export const onGiftItemWritten = onDocumentWritten('giftLists/{listId}/items/{itemId}', async (event) => {
   const before = event.data?.before.data() as GiftItemData | undefined;
   const after = event.data?.after.data() as GiftItemData | undefined;
   await onGiftItemChanged(getFirestore(), send, event.params.listId, event.params.itemId, before, after);
+  if (before && after) await syncNotebookItem(getFirestore(), event.params.listId, event.params.itemId);
 });
 
 export const onMemberDeletedGifts = onDocumentDeleted('members/{memberId}', async (event) => {
   await deleteMemberGiftLists(getFirestore(), event.params.memberId);
+  await deleteMemberNotebook(getFirestore(), event.params.memberId);
 });
 
 // The morning after an occasion, its lists are revealed (PRD, récit 10 bis).

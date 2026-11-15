@@ -77,7 +77,18 @@ enum class ClaimType(val firestoreValue: String) {
 }
 
 /** The reservation of the item [itemId] (same id). Never readable by the beneficiary before the reveal. */
-data class GiftClaim(val itemId: String, val type: ClaimType, val holderId: String, val holderName: String)
+/**
+ * The reservation of an item. For a joint gift, [sharesTotal] and [sharesCount] are kept by the
+ * server: the participants see the total, only the responsible sees each part (PRD rév. 151).
+ */
+data class GiftClaim(
+    val itemId: String,
+    val type: ClaimType,
+    val holderId: String,
+    val holderName: String,
+    val sharesTotal: Double = 0.0,
+    val sharesCount: Int = 0,
+)
 
 /** The part of [memberId] in a joint gift, in euros. The responsible marks it [received]. */
 data class GiftShare(val memberId: String, val memberName: String, val amount: Double, val received: Boolean)
