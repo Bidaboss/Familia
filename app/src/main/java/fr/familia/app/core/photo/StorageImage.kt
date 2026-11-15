@@ -5,7 +5,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.CancellationException
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -26,8 +30,16 @@ fun StorageImage(
     contentScale: ContentScale = ContentScale.Crop,
 ) {
     val storage = LocalPhotoStorage.current
-    val url by produceState<String?>(initialValue = null, path, storage) {
-        value = storage?.let { runCatching { it.downloadUrl(path) }.getOrNull() }
+    var url by remember(path, storage) { mutableStateOf<String?>(null) }
+    LaunchedEffect(path, storage) {
+        val photos = storage ?: return@LaunchedEffect
+        url = try {
+            photos.downloadUrl(path)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null // Offline or removed: the grey box stays.
+        }
     }
     Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant)) {
         url?.let {
