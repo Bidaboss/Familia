@@ -198,31 +198,37 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
         )
     }
 
-    private fun DocumentSnapshot.toGiftItem(): GiftItem? = GiftItem(
-        id = id,
-        title = getString("title") ?: return null,
-        url = getString("url"),
-        price = getDouble("price"),
-        note = getString("note"),
-        authorId = getString("authorId").orEmpty(),
-        authorName = getString("authorName").orEmpty(),
-        visibleToBeneficiary = getBoolean("visibleToBeneficiary") == true,
-        imageUrl = getString("imageUrl"),
-    )
+    private fun DocumentSnapshot.toGiftItem(): GiftItem? {
+        return GiftItem(
+            id = id,
+            title = getString("title") ?: return null,
+            url = getString("url"),
+            price = getDouble("price"),
+            note = getString("note"),
+            authorId = getString("authorId").orEmpty(),
+            authorName = getString("authorName").orEmpty(),
+            visibleToBeneficiary = getBoolean("visibleToBeneficiary") == true,
+            imageUrl = getString("imageUrl"),
+        )
+    }
 
-    private fun DocumentSnapshot.toGiftClaim(): GiftClaim? = GiftClaim(
-        itemId = id,
-        type = ClaimType.fromFirestore(getString("type")) ?: return null,
-        holderId = getString("holderId") ?: return null,
-        holderName = getString("holderName").orEmpty(),
-    )
+    private fun DocumentSnapshot.toGiftClaim(): GiftClaim? {
+        return GiftClaim(
+            itemId = id,
+            type = ClaimType.fromFirestore(getString("type")) ?: return null,
+            holderId = getString("holderId") ?: return null,
+            holderName = getString("holderName").orEmpty(),
+        )
+    }
 
-    private fun DocumentSnapshot.toGiftShare(): GiftShare? = GiftShare(
-        memberId = id,
-        memberName = getString("memberName").orEmpty(),
-        amount = getDouble("amount") ?: return null,
-        received = getBoolean("received") == true,
-    )
+    private fun DocumentSnapshot.toGiftShare(): GiftShare? {
+        return GiftShare(
+            memberId = id,
+            memberName = getString("memberName").orEmpty(),
+            amount = getDouble("amount") ?: return null,
+            received = getBoolean("received") == true,
+        )
+    }
 
     private companion object {
         const val LISTS = "giftLists"
