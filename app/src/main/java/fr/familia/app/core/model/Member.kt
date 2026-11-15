@@ -26,6 +26,7 @@ data class Member(
     val birthDate: LocalDate?,
     val householdId: String,
     val profile: MemberProfile,
+    /** Chef de famille: manages the members and events of their own household (PRD, carte DEV-8). */
     val isAdmin: Boolean,
     val parentIds: List<String>,
     val uid: String?,
@@ -39,5 +40,8 @@ fun normalizeEmail(email: String): String = email.trim().lowercase()
 /** A household of the family (Parents, a sister's family…). */
 data class Household(val id: String, val name: String)
 
-/** Everything the Famille tab shows. */
-data class Family(val households: List<Household>, val members: List<Member>)
+/**
+ * Everything the Famille tab shows. [ownerId] is the admin principal (config/family), who has every
+ * right; null while it cannot be read.
+ */
+data class Family(val households: List<Household>, val members: List<Member>, val ownerId: String? = null)

@@ -1,6 +1,5 @@
 package fr.familia.app.feature.help
 
-import fr.familia.app.core.model.Family
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.testing.MainDispatcherRule
@@ -22,9 +21,11 @@ class HelpTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun `a member who is not admin does not see the admin topics`() {
-        assertFalse(helpTopics(isAdmin = false).any { it.adminOnly })
-        assertTrue(helpTopics(isAdmin = true).containsAll(listOf(HelpTopic.Invite, HelpTopic.Export)))
+    fun `each member sees the topics of the functions they can use`() {
+        assertFalse(helpTopics(isChef = false).any { it.audience != HelpAudience.Everyone })
+        assertTrue(HelpTopic.Invite in helpTopics(isChef = true))
+        assertFalse(HelpTopic.Export in helpTopics(isChef = true))
+        assertTrue(helpTopics(isChef = false, isOwner = true).containsAll(listOf(HelpTopic.Invite, HelpTopic.Export)))
     }
 
     @Test
@@ -36,15 +37,21 @@ class HelpTest {
     }
 
     @Test
-    fun `the help page names the family's admins`() = runTest {
+    fun `the help page names the admin principal, then the chefs of the member's household`() = runTest {
         val members = FakeMembers()
-        members.family.value = Family(
-            TestFamily.family.households,
-            TestFamily.family.members + TestFamily.otherAdult.copy(id = "adult3", firstName = "Bea", isAdmin = true),
+        members.family.value = TestFamily.family.copy(
+            members = TestFamily.family.members.map {
+                when (it.id) {
+                    "adult1" -> it.copy(isAdmin = true)
+                    "adult2" -> it.copy(isAdmin = true)
+                    else -> it
+                }
+            },
         )
-        val vm = HelpViewModel(members, isAdmin = false)
+        val vm = HelpViewModel(members, TestFamily.kid)
         vm.uiState.launchIn(backgroundScope)
-        assertEquals("Admin1 ou Bea", vm.uiState.first { it.admins != null }.admins)
-        assertEquals(helpTopics(isAdmin = false), vm.uiState.value.topics)
+        // adult2 is chef of another household: not named to kid1.
+        assertEquals("Admin1 ou Adult1", vm.uiState.first { it.admins != null }.admins)
+        assertEquals(helpTopics(isChef = false), vm.uiState.value.topics)
     }
 }

@@ -45,7 +45,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -210,14 +209,23 @@ private fun MemberFormContent(
                 label = { Text(stringResource(R.string.member_email)) },
                 isError = FormError.EmailInvalid in errors || FormError.EmailTaken in errors,
                 supportingText = errorText(errors, FormError.EmailInvalid, FormError.EmailTaken)
-                    ?: helpText(stringResource(R.string.member_email_help)),
+                    ?: helpText(
+                        stringResource(if (state.canEditEmail) R.string.member_email_help else R.string.member_email_owner_only),
+                    ),
+                enabled = state.canEditEmail,
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth(),
             )
         }
 
-        HouseholdSection(state.households, form.householdId, errors, onChange, onAddHousehold)
+        HouseholdSection(
+            state.households,
+            form.householdId,
+            errors,
+            onChange,
+            onAddHousehold = if (state.canAddHousehold) onAddHousehold else null,
+        )
 
         BirthDateField(form.birthDate, FormError.BirthDateInFuture in errors, today) { date ->
             onChange { it.copy(birthDate = date) }
@@ -230,18 +238,25 @@ private fun MemberFormContent(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (!state.canEditParents) {
+                    Text(
+                        stringResource(R.string.member_parents_owner_only),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 state.adults.forEach { adult ->
                     val checked = adult.id in form.parentIds
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 56.dp)
-                            .toggleable(checked, role = Role.Checkbox) { on ->
+                            .toggleable(checked, enabled = state.canEditParents, role = Role.Checkbox) { on ->
                                 onChange { it.copy(parentIds = if (on) it.parentIds + adult.id else it.parentIds - adult.id) }
                             },
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Checkbox(checked = checked, onCheckedChange = null)
+                        Checkbox(checked = checked, onCheckedChange = null, enabled = state.canEditParents)
                         Spacer(Modifier.width(16.dp))
                         Text(adult.firstName, style = MaterialTheme.typography.bodyLarge)
                     }
@@ -251,29 +266,6 @@ private fun MemberFormContent(
         }
 
         ColorSection(form.colorIndex) { index -> onChange { it.copy(colorIndex = index) } }
-
-        if (form.profile == MemberProfile.Adult) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp)
-                    .toggleable(form.isAdmin, enabled = state.canChangeAdmin, role = Role.Switch) { on ->
-                        onChange { it.copy(isAdmin = on) }
-                    },
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.member_admin), style = MaterialTheme.typography.bodyLarge)
-                    Text(
-                        stringResource(if (state.canChangeAdmin) R.string.member_admin_help else R.string.member_admin_self),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                Switch(checked = form.isAdmin, onCheckedChange = null, enabled = state.canChangeAdmin)
-            }
-            errorText(errors, FormError.TooManyAdmins)?.invoke()
-        }
 
         if (state.saveFailed) {
             Text(
@@ -304,6 +296,13 @@ private fun MemberFormContent(
             }
         }
         if (state.canRemove) RemoveButton(form.firstName, state.soleParentOf, enabled = !state.isSaving, onRemove)
+        if (state.removeOwnerOnly) {
+            Text(
+                stringResource(R.string.member_remove_owner_only, form.firstName),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -402,7 +401,8 @@ private fun HouseholdSection(
     selectedId: String?,
     errors: Set<FormError>,
     onChange: ((MemberForm) -> MemberForm) -> Unit,
-    onAddHousehold: (String) -> Unit,
+    /** Null for a chef de famille: only the admin principal creates households. */
+    onAddHousehold: ((String) -> Unit)?,
 ) {
     var dialogOpen by rememberSaveable { mutableStateOf(false) }
     Section(stringResource(R.string.member_household)) {
@@ -411,12 +411,14 @@ private fun HouseholdSection(
                 ChoiceRow(household.name, household.id == selectedId) { onChange { it.copy(householdId = household.id) } }
             }
         }
-        TextButton(onClick = { dialogOpen = true }, modifier = Modifier.heightIn(min = 56.dp)) {
-            Text(stringResource(R.string.member_household_new))
+        if (onAddHousehold != null) {
+            TextButton(onClick = { dialogOpen = true }, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.member_household_new))
+            }
         }
         errorText(errors, FormError.HouseholdMissing)?.invoke()
     }
-    if (dialogOpen) {
+    if (dialogOpen && onAddHousehold != null) {
         var name by rememberSaveable { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { dialogOpen = false },
@@ -536,7 +538,6 @@ private fun FormError.messageRes(): Int = when (this) {
     FormError.ParentsMissing -> R.string.error_parents_missing
     FormError.TooManyParents -> R.string.error_too_many_parents
     FormError.SoleParentOfChild -> R.string.error_sole_parent_of_child
-    FormError.TooManyAdmins -> R.string.error_too_many_admins
     FormError.BirthDateInFuture -> R.string.error_birth_date_future
 }
 
@@ -569,8 +570,8 @@ internal fun previewEditState(errors: Set<FormError> = emptySet()) = MemberEditU
         Member("a", "Camille", null, null, "h1", MemberProfile.Adult, true, emptyList(), null),
         Member("b", "Sacha", null, null, "h1", MemberProfile.Adult, false, emptyList(), null),
     ),
-    canChangeAdmin = true,
     errors = errors,
+    canAddHousehold = true,
 )
 
 /** An existing member who has not signed in yet, and is the only responsible adult of a child. */

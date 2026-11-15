@@ -22,7 +22,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
-import androidx.compose.material.icons.outlined.SaveAlt
+import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material3.AlertDialog
@@ -67,15 +67,15 @@ fun MembersScreen(
     state: MembersUiState,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
-    /** Null for members who are not admin: rows are then read-only and there is no add button. */
+    /** Opens the form; each row and the add button follow the rights in [MembersUiState.Success]. */
     onEditMember: ((memberId: String?) -> Unit)? = null,
     versionName: String = BuildConfig.VERSION_NAME,
     onOpenNotifications: (() -> Unit)? = null,
-    /** Null for members who are not admin. */
-    onOpenExport: (() -> Unit)? = null,
+    /** Shown to the admin principal only (PRD, récit 1 ter). */
+    onOpenAdministration: (() -> Unit)? = null,
     onOpenUpdates: (() -> Unit)? = null,
     onOpenHelp: (() -> Unit)? = null,
-    /** Null for members who are not admin: household names are then read-only. */
+    /** The pencil shows on the households of [MembersUiState.Success.renamableHouseholdIds]. */
     onRenameHousehold: ((Household, String) -> Unit)? = null,
     renameFailed: Boolean = false,
     onRenameFailureShown: () -> Unit = {},
@@ -96,10 +96,11 @@ fun MembersScreen(
             },
         )
         is MembersUiState.Success -> Box(modifier.fillMaxSize()) {
+            val canAdd = onEditMember != null && state.canAddMembers
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 // Room at the bottom so the add button never hides the last row.
-                contentPadding = PaddingValues(top = 8.dp, bottom = if (onEditMember != null) 96.dp else 8.dp),
+                contentPadding = PaddingValues(top = 8.dp, bottom = if (canAdd) 96.dp else 8.dp),
             ) {
                 if (state.groups.isEmpty()) {
                     item(key = "empty") {
@@ -115,7 +116,9 @@ fun MembersScreen(
                         val household = group.household
                         HouseholdHeader(
                             name = household?.name ?: stringResource(R.string.members_other_household),
-                            onRename = if (household != null && onRenameHousehold != null) {
+                            onRename = if (household != null && onRenameHousehold != null &&
+                                household.id in state.renamableHouseholdIds
+                            ) {
                                 { renaming = household.id }
                             } else {
                                 null
@@ -126,7 +129,8 @@ fun MembersScreen(
                         MemberRow(
                             member = member,
                             isMe = member.id == state.currentMemberId,
-                            onClick = onEditMember?.let { edit -> { edit(member.id) } },
+                            isOwner = member.id == state.ownerId,
+                            onClick = onEditMember?.takeIf { member.id in state.editableMemberIds }?.let { edit -> { edit(member.id) } },
                         )
                     }
                 }
@@ -138,8 +142,10 @@ fun MembersScreen(
                         }
                     }
                 }
-                if (onOpenExport != null) {
-                    item(key = "export") { SettingsRow(Icons.Outlined.SaveAlt, R.string.export_title, onOpenExport) }
+                if (onOpenAdministration != null && state.isOwner) {
+                    item(key = "administration") {
+                        SettingsRow(Icons.Outlined.AdminPanelSettings, R.string.administration_title, onOpenAdministration)
+                    }
                 }
                 if (onOpenUpdates != null) {
                     item(key = "updates") { SettingsRow(Icons.Outlined.SystemUpdate, R.string.update_check_title, onOpenUpdates) }
@@ -157,7 +163,7 @@ fun MembersScreen(
                     )
                 }
             }
-            if (onEditMember != null) {
+            if (canAdd && onEditMember != null) {
                 ExtendedFloatingActionButton(
                     onClick = { onEditMember(null) },
                     icon = { Icon(Icons.Outlined.PersonAdd, contentDescription = null) },
@@ -265,7 +271,7 @@ private fun RenameHouseholdDialog(household: Household, onConfirm: (String) -> U
 }
 
 @Composable
-private fun MemberRow(member: Member, isMe: Boolean, onClick: (() -> Unit)?) {
+private fun MemberRow(member: Member, isMe: Boolean, isOwner: Boolean, onClick: (() -> Unit)?) {
     val editLabel = stringResource(R.string.members_edit_action)
     Row(
         modifier = Modifier
@@ -283,7 +289,7 @@ private fun MemberRow(member: Member, isMe: Boolean, onClick: (() -> Unit)?) {
                 style = MaterialTheme.typography.titleMedium,
             )
             Text(
-                text = profileLabel(member),
+                text = profileLabel(member, isOwner),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -292,7 +298,7 @@ private fun MemberRow(member: Member, isMe: Boolean, onClick: (() -> Unit)?) {
 }
 
 @Composable
-private fun profileLabel(member: Member): String {
+private fun profileLabel(member: Member, isOwner: Boolean): String {
     val profile = stringResource(
         when (member.profile) {
             MemberProfile.Adult -> R.string.profile_adult
@@ -300,7 +306,11 @@ private fun profileLabel(member: Member): String {
             MemberProfile.ChildWithoutApp -> R.string.profile_child_without_app
         },
     )
-    return if (member.isAdmin) stringResource(R.string.profile_with_admin, profile) else profile
+    return when {
+        isOwner -> stringResource(R.string.profile_with_owner, profile)
+        member.isAdmin -> stringResource(R.string.profile_with_admin, profile)
+        else -> profile
+    }
 }
 
 /** Fictional family used by previews and screenshots (never real names). */
@@ -322,7 +332,20 @@ internal fun previewGroups(): List<HouseholdGroup> {
 private fun MembersScreenPreview() {
     FamiliaTheme {
         Surface {
-            MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0", onEditMember = {})
+            MembersScreen(
+                MembersUiState.Success(
+                    previewGroups(),
+                    "a",
+                    ownerId = "a",
+                    isOwner = true,
+                    canAddMembers = true,
+                    editableMemberIds = setOf("a", "b", "c", "d", "e", "f"),
+                    renamableHouseholdIds = setOf("h1", "h2"),
+                ),
+                onRetry = {},
+                versionName = "0.1.0",
+                onEditMember = {},
+            )
         }
     }
 }

@@ -1,19 +1,20 @@
 name: Créer le premier admin
 
-# Run once by hand, from main, after "Publier Firebase": creates the first household and its admin
-# so that someone can sign in. Refuses to run if the family already has members.
+# Run by hand, from main, after "Publier Firebase". On an empty family, creates the first household
+# and its admin principal so that someone can sign in. On a family with members, names the adult
+# with this address admin principal again (lost access); the first name and household are ignored.
 on:
   workflow_dispatch:
     inputs:
       prenom:
-        description: "Ton prénom, tel qu'il s'affichera"
-        required: true
+        description: "Ton prénom, tel qu'il s'affichera (seulement pour une famille vide)"
+        required: false
       adresse:
         description: "Ton adresse Google (celle du téléphone)"
         required: true
       foyer:
-        description: "Nom de ton foyer, par exemple « Maison de Kévin »"
-        required: true
+        description: "Nom de ton foyer, par exemple « Maison de Kévin » (seulement pour une famille vide)"
+        required: false
 
 permissions:
   contents: read

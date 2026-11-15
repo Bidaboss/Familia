@@ -27,7 +27,8 @@ class MemberEditViewModelTest {
 
     private val admin = Member("admin1", "Camille", "admin1@example.com", null, "h1", MemberProfile.Adult, true, emptyList(), "uid-a")
     private val adult = Member("adult1", "Sacha", "adult1@example.com", null, "h1", MemberProfile.Adult, false, emptyList(), "uid-b")
-    private val family = Family(listOf(Household("h1", "Foyer")), listOf(admin, adult))
+    // admin1 is the admin principal (and chef of h1).
+    private val family = Family(listOf(Household("h1", "Foyer")), listOf(admin, adult), ownerId = "admin1")
 
     private fun vm(repo: FakeMembers, memberId: String? = null, me: Member = admin) =
         MemberEditViewModel(repo, me, memberId, today = { LocalDate.of(2026, 11, 14) })
@@ -81,10 +82,9 @@ class MemberEditViewModelTest {
     }
 
     @Test
-    fun `an admin cannot change their own admin flag`() {
+    fun `the form never changes the chef flag, which lives in the Administration menu`() {
         val repo = FakeMembers(family)
         val viewModel = vm(repo, memberId = "admin1")
-        assertFalse(viewModel.editing().canChangeAdmin)
         viewModel.update { it.copy(isAdmin = false) }
         viewModel.save()
         assertTrue(repo.saved.single().first.isAdmin)
@@ -140,7 +140,7 @@ class MemberEditViewModelTest {
     }
 
     @Test
-    fun `a member who is no longer admin cannot open the form`() {
+    fun `a member who is no longer chef cannot open the form`() {
         val demoted = admin.copy(isAdmin = false)
         val repo = FakeMembers(Family(family.households, listOf(demoted, adult)))
         assertEquals(MemberEditUiState.NotFound, vm(repo, me = admin).uiState.value)
@@ -180,6 +180,72 @@ class MemberEditViewModelTest {
         assertEquals(Household("h-new", "Foyer Neuf"), repo.households.single())
     }
 
+    private val chef = Member("chef2", "Inès", "chef2@example.com", null, "h2", MemberProfile.Adult, true, emptyList(), "uid-c")
+    private val neighbour = Member("adult2", "Lou", "adult2@example.com", null, "h2", MemberProfile.Adult, false, emptyList(), "uid-d")
+    private val twoHouseholds = Family(
+        listOf(Household("h1", "Foyer"), Household("h2", "Voisins")),
+        listOf(admin, adult, chef, neighbour),
+        ownerId = "admin1",
+    )
+
+    @Test
+    fun `a chef adds members to their own household only, without creating households`() {
+        val state = vm(FakeMembers(twoHouseholds), me = chef).editing()
+        assertEquals(listOf("h2"), state.households.map { it.id })
+        assertEquals("h2", state.form.householdId)
+        assertFalse(state.canAddHousehold)
+        // Responsible adults come from the chef's household.
+        assertEquals(listOf("Inès", "Lou"), state.adults.map { it.firstName })
+    }
+
+    @Test
+    fun `a chef cannot open a member of another household, nor the admin principal`() {
+        assertEquals(MemberEditUiState.NotFound, vm(FakeMembers(twoHouseholds), memberId = "adult1", me = chef).uiState.value)
+        assertEquals(MemberEditUiState.NotFound, vm(FakeMembers(twoHouseholds), memberId = "admin1", me = chef).uiState.value)
+        assertTrue(vm(FakeMembers(twoHouseholds), memberId = "adult2", me = chef).editing().canRemove)
+    }
+
+    @Test
+    fun `only the admin principal removes a chef`() {
+        val otherChef = neighbour.copy(isAdmin = true)
+        val family = twoHouseholds.copy(members = listOf(admin, adult, chef, otherChef))
+        val state = vm(FakeMembers(family), memberId = "adult2", me = chef).editing()
+        assertFalse(state.canRemove)
+        assertTrue(state.removeOwnerOnly)
+        assertTrue(vm(FakeMembers(family), memberId = "adult2", me = admin).editing().canRemove)
+    }
+
+    @Test
+    fun `a chef cannot change another chef's address, only their own`() {
+        val otherChef = neighbour.copy(isAdmin = true)
+        val repo = FakeMembers(twoHouseholds.copy(members = listOf(admin, adult, chef, otherChef)))
+        val viewModel = vm(repo, memberId = "adult2", me = chef)
+        assertFalse(viewModel.editing().canEditEmail)
+        viewModel.update { it.copy(firstName = "Loup", email = "taken@example.com") }
+        viewModel.save()
+        assertEquals("adult2@example.com", repo.saved.single().first.email)
+        assertTrue(vm(repo, memberId = "chef2", me = chef).editing().canEditEmail)
+    }
+
+    @Test
+    fun `a chef keeps the responsible adults the admin principal chose in another household`() {
+        val kid = Member("kid2", "Noé", null, null, "h2", MemberProfile.ChildWithoutApp, false, listOf("adult1", "chef2"), null)
+        val repo = FakeMembers(twoHouseholds.copy(members = twoHouseholds.members + kid))
+        val viewModel = vm(repo, memberId = "kid2", me = chef)
+        assertFalse(viewModel.editing().canEditParents)
+        viewModel.update { it.copy(firstName = "Noa", parentIds = setOf("chef2")) }
+        viewModel.save()
+        assertEquals(listOf("adult1", "chef2"), repo.saved.single().first.parentIds)
+    }
+
+    @Test
+    fun `a chef cannot create a household even if asked`() {
+        val repo = FakeMembers(twoHouseholds)
+        val viewModel = vm(repo, me = chef)
+        viewModel.addHousehold("Nouveau")
+        assertTrue(repo.households.isEmpty())
+    }
+
     private class FakeMembers(
         private val family: Family,
         private val failWith: Exception? = null,
@@ -205,5 +271,6 @@ class MemberEditViewModelTest {
         override suspend fun saveHousehold(household: Household) {
             households += household
         }
+        override suspend fun deleteHousehold(householdId: String) = Unit
     }
 }

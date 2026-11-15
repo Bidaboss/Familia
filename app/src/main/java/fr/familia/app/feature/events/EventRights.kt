@@ -5,6 +5,7 @@ import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
+import fr.familia.app.core.model.isOwner
 
 /*
  * The PRD "Droits par profil" for events, as the app shows them. The security rules check the same
@@ -16,12 +17,13 @@ private fun Family.isParentOf(me: Member, memberId: String): Boolean =
 
 /**
  * Who [me] may create an event for, in display order: the whole family, households, themselves,
- * then children. An admin may pick any household and any child.
+ * then children. The admin principal may pick any household and any child; a chef de famille has
+ * the rights of an adult here.
  */
 fun allowedTargets(me: Member, family: Family): List<EventTarget> {
     val children = family.members.filter { it.profile != MemberProfile.Adult }.sortedBy { it.firstName.lowercase() }
     return when {
-        me.isAdmin -> buildList {
+        family.isOwner(me) -> buildList {
             add(EventTarget.ForFamily)
             family.households.sortedBy { it.name.lowercase() }.forEach { add(EventTarget.ForHousehold(it.id)) }
             add(EventTarget.ForSelf(me.id))
@@ -37,10 +39,14 @@ fun allowedTargets(me: Member, family: Family): List<EventTarget> {
     }
 }
 
-/** True when [me] may edit or delete [event]: admins all, everyone their own, parents their children's. */
+/**
+ * True when [me] may edit or delete [event] (PRD, récit 5): the admin principal all, everyone their
+ * own, a chef de famille those written by a member of their household, parents their children's.
+ */
 fun canManage(event: Event, me: Member, family: Family): Boolean =
-    me.isAdmin ||
+    family.isOwner(me) ||
         event.authorId == me.id ||
+        (me.isAdmin && family.members.any { it.id == event.authorId && it.householdId == me.householdId }) ||
         (
             me.profile == MemberProfile.Adult &&
                 (
@@ -51,7 +57,7 @@ fun canManage(event: Event, me: Member, family: Family): Boolean =
 
 /**
  * Whose answer [me] may give to "qui vient" (PRD, récit 4): themselves first, then, for an adult,
- * each child they are a responsible adult of. Admins have no more rights here: an answer is personal.
+ * each child they are a responsible adult of. The admin principal and chefs have no more rights here: an answer is personal.
  */
 fun answerableMembers(me: Member, family: Family): List<Member> =
     listOf(me) + if (me.profile == MemberProfile.Adult) {

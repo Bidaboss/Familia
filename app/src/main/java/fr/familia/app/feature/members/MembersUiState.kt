@@ -11,11 +11,23 @@ data class HouseholdGroup(val household: Household?, val members: List<Member>)
 
 sealed interface MembersUiState {
     data object Loading : MembersUiState
-    /** [isAdmin] is read live, so a member whose admin role is removed loses the edit buttons at once. */
+    /**
+     * The rights are read live, so a chef whose role is removed loses the edit buttons at once
+     * (PRD, « Périmètre d'un chef de famille »).
+     */
     data class Success(
         val groups: List<HouseholdGroup>,
         val currentMemberId: String,
-        val isAdmin: Boolean = false,
+        /** The admin principal, shown as such in the list. */
+        val ownerId: String? = null,
+        /** The admin principal: sees the Administration menu. */
+        val isOwner: Boolean = false,
+        /** The admin principal or a chef de famille: sees the add button. */
+        val canAddMembers: Boolean = false,
+        /** Members whose row opens the form. */
+        val editableMemberIds: Set<String> = emptySet(),
+        /** Households that get the rename pencil. */
+        val renamableHouseholdIds: Set<String> = emptySet(),
     ) : MembersUiState
     data object Error : MembersUiState
 }

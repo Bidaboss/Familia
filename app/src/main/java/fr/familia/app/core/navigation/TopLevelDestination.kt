@@ -42,6 +42,10 @@ data object NotificationSettingsDestination
 @Serializable
 data object ExportDestination
 
+/** The Administration menu of the admin principal (PRD, récit 1 ter). */
+@Serializable
+data object AdministrationDestination
+
 /** Help page, opened from the Famille tab or from a « ? » (lot 11b). */
 @Serializable
 data object HelpDestination

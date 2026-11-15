@@ -57,6 +57,7 @@ import fr.familia.app.feature.events.edit.EventEditRoute
 import fr.familia.app.feature.planning.PlanningRoute
 import fr.familia.app.feature.settings.NotificationSettingsRoute
 import fr.familia.app.feature.export.ExportRoute
+import fr.familia.app.feature.members.admin.AdministrationRoute
 import fr.familia.app.feature.onboarding.OnboardingPreferences
 import fr.familia.app.feature.onboarding.OnboardingRoute
 import kotlinx.coroutines.CancellationException
@@ -200,7 +201,7 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             onEditMember = { id -> navController.navigate(MemberEditDestination(id)) },
                             onOpenNotifications = { navController.navigate(NotificationSettingsDestination) },
-                            onOpenExport = { navController.navigate(ExportDestination) },
+                            onOpenAdministration = { navController.navigate(AdministrationDestination) },
                             onOpenUpdates = { navController.navigate(UpdateCheckDestination) },
                             onOpenHelp = { navController.navigate(HelpDestination) },
                         )
@@ -215,6 +216,14 @@ fun FamiliaApp(
                     }
                     composable<UpdateCheckDestination> {
                         UpdateCheckRoute(container = container, onBack = { navController.popBackStack() })
+                    }
+                    composable<AdministrationDestination> {
+                        AdministrationRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onOpenExport = { navController.navigate(ExportDestination) },
+                            onBack = { navController.popBackStack() },
+                        )
                     }
                     composable<ExportDestination> {
                         ExportRoute(container = container, onBack = { navController.popBackStack() })

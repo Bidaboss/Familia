@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 
 /**
- * Fictional family shared by the event tests: admin1 (admin) and adult1 in h1, adult2 in h2,
+ * Fictional family shared by the event tests: admin1 (admin principal and chef) and adult1 in h1, adult2 in h2,
  * kid1 (child with the app, parent adult1), kid2 (child without the app, parent adult2).
  */
 object TestFamily {
@@ -35,6 +35,7 @@ object TestFamily {
     val family = Family(
         households = listOf(Household("h1", "Foyer Un"), Household("h2", "Foyer Deux")),
         members = listOf(admin, adult, otherAdult, kid, otherKid),
+        ownerId = "admin1",
     )
 
     fun event(id: String, author: Member, target: EventTarget = EventTarget.ForFamily, date: LocalDate = LocalDate.of(2026, 12, 24)) =
@@ -51,6 +52,7 @@ class FakeMembers(family: Family = TestFamily.family) : MemberRepository {
     override suspend fun removeMember(member: Member, updatedChildren: List<Member>) = Unit
     override fun newHouseholdId(): String = "h-new"
     override suspend fun saveHousehold(household: Household) = Unit
+    override suspend fun deleteHousehold(householdId: String) = Unit
 }
 
 class FakeEvents(initial: List<Event> = emptyList(), private val failWith: Exception? = null, private val hang: Boolean = false) : EventRepository {
