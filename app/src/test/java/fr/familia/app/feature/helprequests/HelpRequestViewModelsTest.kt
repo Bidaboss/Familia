@@ -8,6 +8,7 @@ import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.helprequests.detail.HelpActionError
 import fr.familia.app.feature.helprequests.detail.HelpRequestDetailUiState
 import fr.familia.app.feature.helprequests.detail.HelpRequestDetailViewModel
+import fr.familia.app.feature.helprequests.detail.cleanNote
 import fr.familia.app.feature.helprequests.edit.HelpFormError
 import fr.familia.app.feature.helprequests.edit.HelpRequestEditUiState
 import fr.familia.app.feature.helprequests.edit.HelpRequestEditViewModel
