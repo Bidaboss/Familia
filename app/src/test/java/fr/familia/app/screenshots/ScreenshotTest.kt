@@ -132,13 +132,13 @@ class ScreenshotTest {
 
     @Test
     fun membersLight() = capture("famille_clair") {
-        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0") }
+        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0", onOpenWishes = {}) }
     }
 
     @Test
     @Config(qualifiers = "+night")
     fun membersDark() = capture("famille_sombre", darkTheme = true) {
-        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0") }
+        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0", onOpenWishes = {}) }
     }
 
     @Test
@@ -198,7 +198,7 @@ class ScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun membersFontScale200() = capture("famille_police_200") {
-        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0") }
+        Surface { MembersScreen(MembersUiState.Success(previewGroups(), "a"), onRetry = {}, versionName = "0.1.0", onOpenWishes = {}) }
     }
 
     @Test

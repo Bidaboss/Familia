@@ -147,12 +147,16 @@ class GiftsTest {
     }
 
     @Test
-    fun `an empty « Mes envies » shows for the member who keeps it`() = runTest {
+    fun `an empty « Mes envies » shows to everyone, and only its keeper adds to it`() = runTest {
         val vm = GiftListViewModel(FakeGifts(null), FakeMembers(), "adult2", "wishes-kid2", today = flowOf(today))
         val state = vm.uiState.first { it !is GiftListUiState.Loading }
         assertTrue(state is GiftListUiState.Success && state.list.kind == GiftListKind.Wishes && state.canAddItems)
         val other = GiftListViewModel(FakeGifts(null), FakeMembers(), "adult1", "wishes-kid2", today = flowOf(today))
-        assertEquals(GiftListUiState.Missing, other.uiState.first { it !is GiftListUiState.Loading })
+        val seen = other.uiState.first { it !is GiftListUiState.Loading } as GiftListUiState.Success
+        assertFalse(seen.canAddItems)
+        assertFalse(seen.canReserve)
+        val nobody = GiftListViewModel(FakeGifts(null), FakeMembers(), "adult1", "wishes-stranger", today = flowOf(today))
+        assertEquals(GiftListUiState.Missing, nobody.uiState.first { it !is GiftListUiState.Loading })
     }
 }
 
