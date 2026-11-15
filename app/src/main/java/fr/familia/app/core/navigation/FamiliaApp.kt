@@ -51,7 +51,9 @@ import fr.familia.app.feature.birthdays.BirthdaysRoute
 import fr.familia.app.feature.events.detail.EventDetailRoute
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.OfflineBanner
+import fr.familia.app.core.ui.rememberMemberPhotos
 import fr.familia.app.feature.members.MembersRoute
 import fr.familia.app.feature.events.edit.EventEditRoute
 import fr.familia.app.feature.planning.PlanningRoute
@@ -141,7 +143,13 @@ fun FamiliaApp(
     // The bar only shows on the three tabs, not on screens opened from them.
     val onTab = TopLevelDestination.entries.any { currentDestination.isOn(it) }
 
-    CompositionLocalProvider(LocalOpenHelp provides { navController.navigate(HelpDestination) { launchSingleTop = true } }) {
+    // Profile photos (PRD, récit 3 bis): read once here, shown by every avatar of the app.
+    val photos by rememberMemberPhotos(container?.memberPhotoRepository)
+
+    CompositionLocalProvider(
+        LocalOpenHelp provides { navController.navigate(HelpDestination) { launchSingleTop = true } },
+        LocalMemberPhotos provides photos,
+    ) {
         Scaffold(
             topBar = {
                 // The tabs get a title bar, with the « ? » of their screen (spec « tuto et aide », récit 26).

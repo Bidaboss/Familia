@@ -33,6 +33,8 @@ class AppContainer(context: Context) {
 
     val memberRepository: MemberRepository? by lazy { firestore?.let { FirestoreMemberRepository(it) } }
 
+    val memberPhotoRepository: MemberPhotoRepository? by lazy { firestore?.let { FirestoreMemberPhotoRepository(it) } }
+
     val eventRepository: EventRepository? by lazy { firestore?.let { FirestoreEventRepository(it) } }
 
     val rsvpRepository: RsvpRepository? by lazy { firestore?.let { FirestoreRsvpRepository(it) } }

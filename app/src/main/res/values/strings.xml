@@ -379,4 +379,19 @@
     <string name="error_gift_bad_link">Ce lien ne ressemble pas à une adresse web.</string>
     <string name="error_gift_bad_price">Indique un montant, par exemple 25 ou 19,90.</string>
     <string name="error_gift_note_too_long">500 caractères au plus.</string>
+    <!-- Photo de profil (PRD, récit 3 bis) -->
+    <string name="photo_change_action">changer la photo</string>
+    <string name="photo_of">Photo de %1$s</string>
+    <string name="photo_pick_gallery">Choisir dans la galerie</string>
+    <string name="photo_take">Prendre une photo</string>
+    <string name="photo_remove">Retirer la photo</string>
+    <string name="photo_crop_title">Cadrer la photo</string>
+    <string name="photo_crop_hint">Fais glisser pour déplacer la photo et pince pour zoomer. Le rond montre ce que la famille verra.</string>
+    <string name="photo_zoom_in">Zoomer</string>
+    <string name="photo_zoom_out">Dézoomer</string>
+    <string name="photo_crop_confirm">Valider</string>
+    <string name="photo_unreadable_title">Impossible d\'ouvrir cette photo</string>
+    <string name="photo_unreadable_body">Choisis-en une autre, ou prends une nouvelle photo.</string>
+    <string name="photo_failed_title">La photo n\'a pas changé</string>
+    <string name="photo_failed_body">Ça n\'a pas marché. Réessaie, et si ça recommence, demande à l\'admin principal.</string>
 </resources>

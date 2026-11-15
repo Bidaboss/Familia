@@ -64,6 +64,19 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 |---|---|---|
 | `name` | texte | Nom du foyer |
 
+### `memberPhotos/{memberId}` (récit 3 bis, photo de profil)
+
+| Champ | Type | Rôle |
+|---|---|---|
+| `jpeg` | bytes | Photo carrée de 512 px au plus, en JPEG, faite par l'appli (100 Ko visés, 150 Ko au maximum dans les règles) |
+| `updatedAt` | timestamp | Heure du serveur au moment de l'envoi |
+
+- **Qui la change :** le membre lui-même (enfant avec l'appli compris), tout adulte du même foyer pour un enfant (avec ou sans l'appli), et l'admin principal. Un chef de famille n'a pas de droit en plus ici.
+- **Qui la lit :** toute la famille, et personne d'autre.
+- **Retirer la photo** supprime le document. La suppression d'un membre retire aussi sa photo, dans le même lot d'écriture.
+- **Pourquoi Firestore plutôt que Storage :** 13 photos d'environ 100 Ko tiennent largement dans un document chacune (la limite est de 1 Mo). Elles restent lisibles hors ligne, comme le reste. Les mêmes règles de sécurité les protègent. Et il n'y a aucun service ni aucune facturation de plus à activer.
+- **L'export JSON ne contient pas les photos.**
+
 ### `events/{eventId}` (lot 4)
 
 | Champ | Type | Description |
@@ -267,3 +280,40 @@ Une part d'un cadeau commun, une par adulte. Aucun paiement ne passe par l'appli
 Une notification des cadeaux porte `listId` dans ses données à la place de `eventId`. Le bénéficiaire ne reçoit jamais de notification sur ses cadeaux, sauf celle de la révélation.
 
 Limite connue : les règles ne vérifient pas que chaque identifiant de `viewerIds` est un membre (cela coûterait une lecture par personne). L'appli ne propose que des membres de la famille.
+
+## Coups de main (PRD, récits 13 à 18)
+
+Spec : « Spec Familia : coups de main » (tenue par [PRODUIT]), avec les cartes PRODUIT-8, PRODUIT-22 et PRODUIT-23.
+
+### `helpRequests/{requestId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `kind` | `childcare` \| `ride` \| `other` | Garde, trajet, autre |
+| `title` | texte, 1 à 80 caractères | Obligatoire |
+| `date` | texte `AAAA-MM-JJ` | Obligatoire, pas dans le passé à la création ni quand on la change |
+| `startTime`, `endTime` | texte `HH:mm` ou null | Facultatives ; la fin après le début |
+| `place` | texte (120 au plus) ou null | Lieu facultatif |
+| `note` | texte (1 000 au plus) ou null | Note facultative |
+| `authorId`, `authorName` | `memberId`, texte | Le demandeur et son prénom au moment de la demande, jamais modifiés |
+| `forMemberId` | `memberId` | Le membre aidé : le demandeur, ou un de ses enfants pour un adulte |
+| `notifyIds` | liste de `memberId`, 1 à 30 | Les personnes prévenues, jamais le demandeur. Pour un enfant, ses adultes responsables y sont toujours (sauf s'il est lui-même le demandeur) |
+| `viewerIds` | liste de `memberId` | Toujours `[authorId]` suivi de `notifyIds` : sert à la requête de l'onglet (`array-contains`) |
+| `status` | `open` \| `taken` \| `cancelled` | Ouverte, prise, annulée. Une demande annulée le reste |
+| `volunteerId`, `volunteerName` | `memberId` et texte, ou null | Le volontaire et son prénom |
+| `declinedBy` | `memberId` ou null | « Je ne peux pas » de la seule personne prévenue (carte PRODUIT-22). Remis à null quand le demandeur élargit |
+| `thankedAt` | horodatage serveur ou null | Le « Merci » du demandeur, une seule fois |
+| `createdAt`, `updatedAt` | horodatage serveur | `createdAt` jamais modifié, `updatedAt` à chaque écriture |
+
+« Dupliquer » (carte PRODUIT-23) crée simplement une nouvelle demande avec les mêmes personnes prévenues : il n'y a pas de demande récurrente.
+
+Droits :
+
+- **Lire** : le demandeur et les personnes prévenues (`viewerIds`), donc aussi les adultes responsables de l'enfant aidé (carte PRODUIT-8). L'admin principal lit toutes les demandes, pour la sauvegarde et pour « modifier toutes » ; l'onglet ne lui montre pourtant que celles où il est dans `viewerIds`. Un chef de famille n'a pas de droit en plus.
+- **Créer** : un membre avec l'appli, pour lui ; un adulte, aussi pour un de ses enfants ; l'admin principal, pour n'importe qui. La demande naît ouverte, sans volontaire.
+- **« Je m'en occupe »** : un adulte prévenu, jamais le demandeur, sur une demande ouverte. L'appli l'écrit dans une transaction, qui demande le réseau : de deux volontaires en même temps, seul le premier l'emporte, l'autre voit « déjà prise ».
+- **Se retirer** : le volontaire seulement ; la demande redevient ouverte.
+- **« Je ne peux pas »** : la seule personne prévenue, sur une demande ouverte.
+- **Modifier, élargir, annuler, « Merci », supprimer** : l'admin principal, le demandeur, et un adulte responsable du demandeur ou de l'enfant aidé. Le volontaire reste parmi les personnes prévenues ; le « Merci » n'existe que pour une demande prise.
+- Limite connue : les règles ne vérifient pas que chaque personne prévenue est un adulte (il faudrait lire jusqu'à 30 documents, au-delà de la limite de 10). L'appli ne propose que des adultes, et un enfant prévenu par erreur pourrait seulement lire la demande, pas la prendre.
+- Les règles de mise à jour sont regroupées en une seule, dont chaque cas commence par des vérifications légères, pour rester loin de la limite de 1 000 expressions par écriture.

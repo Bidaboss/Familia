@@ -24,6 +24,8 @@ function removeMember(db, m) {
   const batch = writeBatch(db);
   batch.delete(doc(db, `members/${m.memberId}`));
   batch.delete(doc(db, `memberEmails/${m.email}`));
+  // The app also removes the photo in the same batch (récit 3 bis).
+  batch.delete(doc(db, `memberPhotos/${m.memberId}`));
   return batch.commit();
 }
 

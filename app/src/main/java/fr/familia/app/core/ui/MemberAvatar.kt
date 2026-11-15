@@ -1,5 +1,6 @@
 package fr.familia.app.core.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -15,6 +16,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.Dp
@@ -27,13 +30,28 @@ import kotlin.math.absoluteValue
 /**
  * Avatar in the Argile style: a small sphere of the member's color (lighter at the top left,
  * darker at the bottom right) with a soft shadow, and the initial. The circle grows with the font size so the
- * initial always fits (40 dp at normal size). Hidden from TalkBack: the first name next to it
- * already says who it is.
+ * initial always fits (40 dp at normal size). With a profile photo (PRD, récit 3 bis, from
+ * [LocalMemberPhotos]) the photo fills the sphere instead. Hidden from TalkBack: the first name
+ * next to it already says who it is.
  */
 @Composable
 fun MemberAvatar(member: Member, modifier: Modifier = Modifier, size: Dp = 40.dp) {
     val fontScale = LocalDensity.current.fontScale.coerceAtLeast(1f)
     val color = memberColor(member)
+    val photo: ImageBitmap? = LocalMemberPhotos.current[member.id]
+    if (photo != null) {
+        Image(
+            bitmap = photo,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = modifier
+                .size(size * fontScale)
+                .shadow(3.dp, CircleShape, ambientColor = color, spotColor = color)
+                .clip(CircleShape)
+                .clearAndSetSemantics {},
+        )
+        return
+    }
     Box(
         modifier = modifier
             .size(size * fontScale)

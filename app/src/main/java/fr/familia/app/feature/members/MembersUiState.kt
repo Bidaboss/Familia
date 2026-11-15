@@ -28,6 +28,8 @@ sealed interface MembersUiState {
         val editableMemberIds: Set<String> = emptySet(),
         /** Households that get the rename pencil. */
         val renamableHouseholdIds: Set<String> = emptySet(),
+        /** Members whose avatar opens the photo choice (PRD, récit 3 bis). */
+        val photoEditableMemberIds: Set<String> = emptySet(),
     ) : MembersUiState
     data object Error : MembersUiState
 }
