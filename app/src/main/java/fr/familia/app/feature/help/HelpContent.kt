@@ -45,6 +45,7 @@ enum class HelpTopic(
     GiftLists(R.string.help_topic_gift_lists_title, R.string.help_topic_gift_lists_body, feature = Feature.Gifts),
     Reserve(R.string.help_topic_reserve_title, R.string.help_topic_reserve_body, feature = Feature.Gifts),
     Updates(R.string.help_topic_updates_title, R.string.help_topic_updates_body),
+    Appearance(R.string.help_topic_appearance_title, R.string.help_topic_appearance_body, feature = Feature.Themes),
     Trips(R.string.help_topic_trips_title, R.string.help_topic_trips_body),
     Invite(R.string.help_topic_invite_title, R.string.help_topic_invite_body, HelpAudience.Chefs),
     Export(R.string.help_topic_export_title, R.string.help_topic_export_body, HelpAudience.Owner),

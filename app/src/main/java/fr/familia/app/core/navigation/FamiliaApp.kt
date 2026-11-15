@@ -84,6 +84,15 @@ import fr.familia.app.feature.events.edit.EventEditRoute
 import fr.familia.app.feature.planning.PlanningRoute
 import fr.familia.app.feature.home.HomeActions
 import fr.familia.app.feature.home.HomePreferences
+import fr.familia.app.feature.settings.appearance.AppearanceScreen
+import fr.familia.app.feature.settings.appearance.ThemePreferences
+import fr.familia.app.core.theme.FamiliaClay
+import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.theme.FamiliaThemeId
+import fr.familia.app.core.theme.themeBackground
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.graphics.Color
 import fr.familia.app.feature.home.HomeRoute as HomeTab
 import fr.familia.app.feature.settings.NotificationSettingsRoute
 import fr.familia.app.feature.export.ExportRoute
@@ -157,6 +166,8 @@ fun FamiliaApp(
     val context = LocalContext.current
     val onboarding = remember(context) { OnboardingPreferences(context.applicationContext) }
     val homePrefs = remember(context) { HomePreferences(context.applicationContext) }
+    val themePrefs = remember(context) { ThemePreferences(context.applicationContext) }
+    var chosenTheme by remember { mutableStateOf(themePrefs.theme) }
     var showOnboarding by rememberSaveable { mutableStateOf(!onboarding.seen) }
     if (showOnboarding) {
         // The 4th screen mentions answering for one's children only to those who have some.
@@ -286,6 +297,9 @@ fun FamiliaApp(
         scope.launch { snackbar.showConfirmation(context.getString(confirmation.textRes)) }
     }
 
+    // The theme chosen on this phone shows once the Thèmes module is on; before, Classique (DESIGN-7).
+    val themesOn = features.isOn(Feature.Themes)
+    FamiliaTheme(theme = if (themesOn) chosenTheme else FamiliaThemeId.Classic) {
     CompositionLocalProvider(
         LocalOpenHelp provides { navController.navigate(HelpDestination) { launchSingleTop = true } },
         LocalMemberPhotos provides photos,
@@ -295,6 +309,10 @@ fun FamiliaApp(
         LocalPhotoStorage provides container?.photoStorage,
     ) {
         Scaffold(
+            // The theme's background and its pattern show behind the tabs.
+            modifier = Modifier.themeBackground(),
+            containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.onBackground,
             snackbarHost = { SnackbarHost(snackbar) },
             topBar = {
                 // The tabs get a title bar, with the « ? » of their screen (spec « tuto et aide », récit 26).
@@ -576,6 +594,7 @@ fun FamiliaApp(
                             onOpenAdministration = { navController.navigate(AdministrationDestination) },
                             onOpenUpdates = { navController.navigate(UpdateCheckDestination) },
                             onOpenHelp = { navController.navigate(HelpDestination) },
+                            onOpenAppearance = if (themesOn) ({ navController.navigate(AppearanceDestination) }) else null,
                             onOpenWishes = if (features.isOn(Feature.Gifts)) {
                                 { id -> navController.navigate(GiftListDestination(wishesListId(id))) }
                             } else {
@@ -605,6 +624,16 @@ fun FamiliaApp(
                     composable<ExportDestination> {
                         ExportRoute(container = container, onBack = { navController.popBackStack() })
                     }
+                    composable<AppearanceDestination> {
+                        AppearanceScreen(
+                            current = chosenTheme,
+                            onChoose = { theme ->
+                                chosenTheme = theme
+                                themePrefs.theme = theme
+                            },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
                     composable<NotificationSettingsDestination> {
                         NotificationSettingsRoute(
                             container = container,
@@ -628,6 +657,7 @@ fun FamiliaApp(
             }
         }
     }
+    }
 }
 
 /** Title bar of a tab, with its « ? » where the spec has one. */
@@ -635,6 +665,11 @@ fun FamiliaApp(
 @Composable
 private fun TabTopBar(tab: TopLevelDestination, member: Member, onOpenTrips: () -> Unit = {}, onGoodNews: (() -> Unit)? = null) {
     TopAppBar(
+        // Transparent, so the theme's pattern shows behind the title too.
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.Transparent,
+            titleContentColor = FamiliaClay.style.titleColor ?: MaterialTheme.colorScheme.onSurface,
+        ),
         // The Entraide tab keeps the full name « Coups de main » as its title (DESIGN-4).
         title = { Text(stringResource(if (tab == TopLevelDestination.HelpRequests) R.string.helprequest_screen_title else tab.labelFor(member))) },
         actions = {

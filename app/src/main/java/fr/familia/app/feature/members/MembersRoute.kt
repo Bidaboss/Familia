@@ -20,6 +20,8 @@ fun MembersRoute(
     onOpenUpdates: () -> Unit,
     onOpenHelp: () -> Unit,
     onOpenWishes: ((memberId: String) -> Unit)?,
+    /** Shown while the Thèmes module is on. */
+    onOpenAppearance: (() -> Unit)? = null,
 ) {
     val viewModel: MembersViewModel = viewModel(
         factory = viewModelFactory {
@@ -35,6 +37,7 @@ fun MembersRoute(
         onOpenNotifications = onOpenNotifications,
         onOpenUpdates = onOpenUpdates,
         onOpenHelp = onOpenHelp,
+        onOpenAppearance = onOpenAppearance,
         // The screen shows each action only where the live rights allow it (the rules check it too).
         onOpenAdministration = onOpenAdministration,
         onEditMember = onEditMember,

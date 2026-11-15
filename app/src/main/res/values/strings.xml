@@ -159,6 +159,7 @@
     <string name="feature_help_requests">Coups de main</string>
     <string name="feature_trips">Carnet de voyage</string>
     <string name="feature_good_news">Bonnes nouvelles</string>
+    <string name="feature_themes">Thèmes au choix</string>
     <string name="household_rename_action">Renommer le foyer %1$s</string>
     <string name="household_rename_title">Renommer le foyer</string>
     <string name="household_rename_failed_title">Le nom n\'a pas changé</string>
@@ -759,4 +760,20 @@
     <string name="help_screen_home_body">Ici, l\'essentiel du moment : ce que tu as à faire, les 7 prochains jours, les anniversaires, la prochaine occasion et les voyages. Une carte vide ne s\'affiche pas. Touche une ligne pour l\'ouvrir.</string>
     <string name="help_topic_home_title">L\'accueil</string>
     <string name="help_topic_home_body">Le premier onglet résume le moment : les événements où tu n\'as pas encore répondu, les coups de main pour toi, la semaine qui vient, les anniversaires du mois, la prochaine occasion de cadeaux et les voyages que tu suis. Il est le même pour tout le monde.</string>
+    <!-- Thèmes au choix (DESIGN-7) -->
+    <string name="appearance_title">Apparence</string>
+    <string name="appearance_theme_title">Thème</string>
+    <string name="appearance_theme_help">Choisis l\'allure de l\'appli sur ce téléphone. Les textes et les boutons restent à la même place.</string>
+    <string name="appearance_sample_event">Repas de famille · 12 h 30</string>
+    <string name="theme_classic">Classique</string>
+    <string name="theme_arcade">Arcade</string>
+    <string name="theme_retro">Rétro 70</string>
+    <string name="theme_travel">Carnet de voyage</string>
+    <string name="theme_garden">Jardin</string>
+    <string name="theme_cosmos">Cosmos</string>
+    <string name="theme_winter">Hiver</string>
+    <string name="theme_spain">Espagne</string>
+    <string name="theme_contrast">Contraste fort</string>
+    <string name="help_topic_appearance_title">Changer l\'apparence</string>
+    <string name="help_topic_appearance_body">Dans l\'onglet Famille, touche « Apparence » et choisis un thème. Il ne change que ce téléphone. « Contraste fort » est le plus facile à lire.</string>
 </resources>
