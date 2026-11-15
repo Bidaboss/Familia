@@ -21,6 +21,7 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material3.AlertDialog
@@ -29,6 +30,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -219,7 +221,7 @@ private fun Header(state: GiftListUiState.Success) {
             else -> stringResource(R.string.gift_list_own_notice, state.beneficiary.firstName)
         }
         // One short sentence; the whole explanation is one touch away.
-        FlowRow(verticalArrangement = Arrangement.Center, itemVerticalAlignment = Alignment.CenterVertically) {
+        FlowRow(verticalArrangement = Arrangement.Center) {
             Text(notice, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             HelpLink(ScreenHelp.GiftList)
         }
@@ -242,11 +244,16 @@ private fun ItemCard(row: ItemRow, state: GiftListUiState.Success, onOpen: () ->
     val tint = if (claim != null) ClayTint.Household else ClayTint.Plain
     ClayCard(modifier = Modifier.fillMaxWidth(), tint = tint, onClick = onOpen, onClickLabel = openLabel) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(item.title, style = MaterialTheme.typography.titleMedium)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(item.title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                // Says to the eye what the click label says to TalkBack: the card opens.
+                Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null)
+            }
             ItemDetails(row, tint)
             claim?.let { ClaimStatus(it, item, tint) }
             if (state.canReserve && claim == null) {
-                Button(onClick = onTake, modifier = Modifier.padding(top = 4.dp).heightIn(min = 56.dp)) {
+                // Tonal: the screen keeps a single filled action, « Ajouter ».
+                FilledTonalButton(onClick = onTake, modifier = Modifier.padding(top = 4.dp).heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.gift_take))
                 }
             }
