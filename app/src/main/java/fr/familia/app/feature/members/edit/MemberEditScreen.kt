@@ -209,7 +209,10 @@ private fun MemberFormContent(
                 label = { Text(stringResource(R.string.member_email)) },
                 isError = FormError.EmailInvalid in errors || FormError.EmailTaken in errors,
                 supportingText = errorText(errors, FormError.EmailInvalid, FormError.EmailTaken)
-                    ?: helpText(stringResource(R.string.member_email_help)),
+                    ?: helpText(
+                        stringResource(if (state.canEditEmail) R.string.member_email_help else R.string.member_email_owner_only),
+                    ),
+                enabled = state.canEditEmail,
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth(),

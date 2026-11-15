@@ -23,6 +23,8 @@ sealed interface MemberEditUiState {
         val errors: Set<FormError>,
         /** False for a new member and for oneself: the rules forbid removing oneself. */
         val canRemove: Boolean = false,
+        /** False when a chef opens another chef: changing the address would hand over their access. */
+        val canEditEmail: Boolean = true,
         /** True when only the admin principal may remove this member (a chef, or a parent elsewhere). */
         val removeOwnerOnly: Boolean = false,
         /** Children for whom this member is the only responsible adult: removal waits until another is added. */

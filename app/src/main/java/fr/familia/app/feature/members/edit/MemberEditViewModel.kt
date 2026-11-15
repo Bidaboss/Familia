@@ -90,6 +90,7 @@ class MemberEditViewModel(
                 .filter { isOwner || it.householdId == me.householdId }
                 .sortedBy { it.firstName.lowercase() },
             canAddHousehold = isOwner,
+            canEditEmail = isOwner || existing == null || !existing.isAdmin || existing.id == me.id,
             canEditParents = isOwner || outsideParents.isEmpty(),
             canRemove = existing != null && existing.id != currentMember.id &&
                 (isOwner || (!existing.isAdmin && children.all { it.householdId == me.householdId })),
@@ -155,12 +156,14 @@ class MemberEditViewModel(
         } else {
             chosen.copy(parentIds = original?.parentIds.orEmpty().toSet())
         }
+        // The rules refuse a chef changing another chef's address.
+        val withEmail = if (state.canEditEmail) form else form.copy(email = original?.email.orEmpty())
         // A chef keeps the member in their own household, even if the form was tampered with.
-        if (!isOwner && form.householdId != myHouseholdId) {
+        if (!isOwner && withEmail.householdId != myHouseholdId) {
             markFailed()
             return
         }
-        val member = form.toMember(editedId, original?.uid)
+        val member = withEmail.toMember(editedId, original?.uid)
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
             if (write { repo.saveMember(member, original?.email) }) {

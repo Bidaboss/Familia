@@ -49,6 +49,25 @@ describe('members', () => {
     await assertFails(updateDoc(doc(chef(), 'members/adult1'), { householdId: 'h2' }));
   });
 
+  test("a chef never changes another chef's address, which would hand over their access", async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), 'members/adult1'), { isAdmin: true });
+    });
+    const db = chef();
+    const batch = writeBatch(db);
+    batch.update(doc(db, 'members/adult1'), { email: 'taken@example.com' });
+    batch.delete(doc(db, 'memberEmails/adult1@example.com'));
+    batch.set(doc(db, 'memberEmails/taken@example.com'), { memberId: 'adult1' });
+    await assertFails(batch.commit());
+    // The rest of that chef's card stays editable, and a chef still edits their own address.
+    await assertSucceeds(updateDoc(doc(db, 'members/adult1'), { firstName: 'Autre prénom' }));
+    const own = writeBatch(db);
+    own.update(doc(db, 'members/admin2'), { email: 'admin2.new@example.com' });
+    own.delete(doc(db, 'memberEmails/admin2@example.com'));
+    own.set(doc(db, 'memberEmails/admin2.new@example.com'), { memberId: 'admin2' });
+    await assertSucceeds(own.commit());
+  });
+
   test('a chef never touches the admin principal', async () => {
     await assertFails(updateDoc(doc(chef(), 'members/admin1'), { firstName: 'Autre' }));
     await assertFails(removeMember(chef(), ADMIN));

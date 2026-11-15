@@ -184,6 +184,10 @@ service cloud.firestore {
                 && request.resource.data.householdId == resource.data.householdId
                 && request.resource.data.isAdmin == resource.data.isAdmin
                 && memberId != ownerId()
+                // Changing another chef's address would hand their access to someone else.
+                && (resource.data.isAdmin == false
+                    || memberId == myMemberId()
+                    || request.resource.data.email == resource.data.email)
                 && (request.resource.data.parentIds == resource.data.parentIds
                     || parentsInHousehold(request.resource.data))));
 

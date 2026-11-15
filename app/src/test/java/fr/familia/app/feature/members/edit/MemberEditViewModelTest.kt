@@ -216,6 +216,18 @@ class MemberEditViewModelTest {
     }
 
     @Test
+    fun `a chef cannot change another chef's address, only their own`() {
+        val otherChef = neighbour.copy(isAdmin = true)
+        val repo = FakeMembers(twoHouseholds.copy(members = listOf(admin, adult, chef, otherChef)))
+        val viewModel = vm(repo, memberId = "adult2", me = chef)
+        assertFalse(viewModel.editing().canEditEmail)
+        viewModel.update { it.copy(firstName = "Loup", email = "taken@example.com") }
+        viewModel.save()
+        assertEquals("adult2@example.com", repo.saved.single().first.email)
+        assertTrue(vm(repo, memberId = "chef2", me = chef).editing().canEditEmail)
+    }
+
+    @Test
     fun `a chef keeps the responsible adults the admin principal chose in another household`() {
         val kid = Member("kid2", "Noé", null, null, "h2", MemberProfile.ChildWithoutApp, false, listOf("adult1", "chef2"), null)
         val repo = FakeMembers(twoHouseholds.copy(members = twoHouseholds.members + kid))
