@@ -2,6 +2,7 @@ package fr.familia.app.feature.planning
 
 import fr.familia.app.core.model.Birthday
 import fr.familia.app.core.model.Event
+import fr.familia.app.core.model.Member
 import fr.familia.app.feature.events.edit.TargetChoice
 import java.time.LocalDate
 
@@ -10,6 +11,8 @@ data class PlanningItem(
     val event: Event,
     val target: TargetChoice,
     val authorName: String,
+    /** The author, for their avatar; null once they have left the family (the name is then shown). */
+    val author: Member? = null,
     /** True when this member may edit or delete it (the event view then shows "Modifier"). */
     val canManage: Boolean,
     /** "Qui vient": members of the family who answered yes, and maybe. */

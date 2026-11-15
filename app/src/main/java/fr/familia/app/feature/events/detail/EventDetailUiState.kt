@@ -25,6 +25,8 @@ sealed interface EventDetailUiState {
         val coming: List<String>,
         val maybe: List<String>,
         val notComing: List<String>,
+        /** Those who come, for the avatars of « N viennent » (DESIGN-5). */
+        val comingMembers: List<Member> = emptyList(),
         /** The last answer could not be sent (refused, or an error other than being offline). */
         val sendFailed: Boolean = false,
     ) : EventDetailUiState

@@ -12,7 +12,8 @@
     <string name="planning_error_body">L\'appli n\'a pas pu lire le planning. Réessaie, et si ça continue, préviens un chef de famille.</string>
     <string name="planning_add">Ajouter</string>
     <string name="planning_all_day">Journée</string>
-    <string name="planning_for_by">Pour %1$s · par %2$s</string>
+    <string name="planning_for">Pour %1$s</string>
+    <string name="planning_by">Ajouté par %1$s</string>
     <string name="planning_birthday_of">Anniversaire de %1$s</string>
     <string name="planning_open_action">voir</string>
     <string name="planning_mode_list">Liste</string>
@@ -34,6 +35,10 @@
     <string name="rsvp_summary_maybe">Peut-être (%1$d)</string>
     <string name="rsvp_summary_not_coming">Ne viennent pas (%1$d)</string>
     <string name="rsvp_summary_nobody">Personne pour l\'instant</string>
+    <string name="rsvp_nobody_yet">Personne n\'a encore répondu</string>
+    <string name="rsvp_answers_title">Les réponses</string>
+    <string name="rsvp_answers_open">voir les réponses</string>
+    <string name="event_detail_for_by">Pour %1$s · ajouté par %2$s</string>
     <string name="planning_mode_month">Mois</string>
     <string name="planning_scope_family">Toute la famille</string>
     <string name="planning_scope_household">Mon foyer</string>
