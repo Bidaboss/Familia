@@ -175,7 +175,7 @@ private fun ScopeSwitch(scope: PlanningScope, onScopeChange: (PlanningScope) -> 
                 selected = scope == value,
                 onClick = { onScopeChange(value) },
                 shape = SegmentedButtonDefaults.itemShape(index, labels.size),
-                modifier = Modifier.heightIn(min = 48.dp),
+                modifier = Modifier.heightIn(min = 56.dp),
             ) {
                 Text(stringResource(label), style = MaterialTheme.typography.labelLarge)
             }

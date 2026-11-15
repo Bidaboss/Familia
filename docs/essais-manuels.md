@@ -37,7 +37,7 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 8. Sur B, bloque les notifications de Familia dans les réglages Android, puis rouvre Famille et Notifications. **Attendu :** un encadré dit que les notifications sont bloquées, avec un bouton pour les autoriser.
 9. Avec A et B dans deux foyers différents : sur A, ajoute un événement pour son foyer seulement. **Attendu :** B ne reçoit rien, mais le voit dans le planning avec « Toute la famille ». Sur B, choisis « Mon foyer » en haut du planning. **Attendu :** l'événement disparaît, les anniversaires restent. Ferme et rouvre l'appli : « Mon foyer » est toujours choisi.
 10. Sur B, ajoute-toi en « Je viens » sur l'événement du foyer de A (repasse sur « Toute la famille »), puis sur A, change son heure. **Attendu :** B reçoit « Événement modifié ».
-11. Sur B, ouvre Famille, Notifications, puis « Réglages Android des notifications ». **Attendu :** les catégories Planning, Rappels, Cadeaux, Bonnes nouvelles, Commentaires et réactions, Entraide, Voyages et Rendez-vous de la semaine apparaissent, chacune avec son interrupteur.
+11. Sur B, ouvre Famille, Notifications, puis « Réglages Android des notifications ». **Attendu :** les catégories Planning, Rappels, Cadeaux, Bonnes nouvelles, Entraide et Voyages apparaissent, chacune avec son interrupteur.
 
 ## Sauvegarde (lot 9)
 

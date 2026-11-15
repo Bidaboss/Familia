@@ -10,17 +10,17 @@ import fr.familia.app.R
  * One channel per kind of notification (PRD, récit 6 quinquies), so each can be turned off in the
  * Android settings. Their ids match the `channel` sent by the Cloud Functions (Channel in
  * firebase/functions/src/logic.ts). An id never changes once created: Android keeps the member's
- * choice under it. `events` is the « Planning » channel.
+ * choice under it. `events` is the « Planning » channel. A channel is created with its module only:
+ * an empty category in the settings would puzzle the family (« Commentaires » and « Rendez-vous de
+ * la semaine » come later, PRD récit 6 quinquies).
  */
 object NotificationChannels {
     const val EVENTS = "events"
     const val REMINDERS = "reminders"
     const val GIFTS = "gifts"
     const val GOOD_NEWS = "goodNews"
-    const val COMMENTS = "comments"
     const val HELP_REQUESTS = "helpRequests"
     const val TRIPS = "trips"
-    const val WEEKLY = "weekly"
 
     private data class Spec(val id: String, val name: Int, val description: Int, val importance: Int)
 
@@ -29,10 +29,8 @@ object NotificationChannels {
         Spec(REMINDERS, R.string.channel_reminders, R.string.channel_reminders_description, NotificationManager.IMPORTANCE_HIGH),
         Spec(GIFTS, R.string.channel_gifts, R.string.channel_gifts_description, NotificationManager.IMPORTANCE_DEFAULT),
         Spec(GOOD_NEWS, R.string.channel_good_news, R.string.channel_good_news_description, NotificationManager.IMPORTANCE_DEFAULT),
-        Spec(COMMENTS, R.string.channel_comments, R.string.channel_comments_description, NotificationManager.IMPORTANCE_DEFAULT),
         Spec(HELP_REQUESTS, R.string.channel_help_requests, R.string.channel_help_requests_description, NotificationManager.IMPORTANCE_HIGH),
         Spec(TRIPS, R.string.channel_trips, R.string.channel_trips_description, NotificationManager.IMPORTANCE_DEFAULT),
-        Spec(WEEKLY, R.string.channel_weekly, R.string.channel_weekly_description, NotificationManager.IMPORTANCE_LOW),
     )
 
     /** Every id the app knows: a notice for another channel falls back on [EVENTS]. */

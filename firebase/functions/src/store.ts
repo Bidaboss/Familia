@@ -50,9 +50,9 @@ export async function notify(db: Firestore, send: Sender, memberIds: string[], n
  */
 export async function notifyChange(
   db: Firestore, send: Sender, kind: ChangeKind, eventId: string, event: EventData, actorUid: string | undefined, now: Date,
-  answered: Set<string> = new Set(),
+  answered: Set<string> = new Set(), loaded?: Member[],
 ): Promise<number> {
-  const members = await loadMembers(db);
+  const members = loaded ?? await loadMembers(db);
   const actor = memberForUid(members, actorUid);
   const recipients = changeRecipients(members, actor?.id ?? null, event, parisDay(now), answered);
   if (recipients.length === 0) return 0;

@@ -15,7 +15,7 @@ import {
   sendBirthdayGiftReminders,
 } from './gifts';
 import { EventData, hasVisibleChange, Notice } from './logic';
-import { comingMembers, deleteEventAnswers, deleteMemberData, notifyChange, Sender, sendDayBeforeReminders } from './store';
+import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, notifyChange, Sender, sendDayBeforeReminders } from './store';
 
 initializeApp();
 
@@ -58,17 +58,19 @@ export const onEventUpdated = onDocumentUpdatedWithAuthContext('events/{eventId}
   const after = event.data?.after.data() as EventData | undefined;
   if (!before || !after || !hasVisibleChange(before, after)) return;
   const db = getFirestore();
-  const answered = await comingMembers(db, event.params.eventId);
-  await notifyChange(db, send, 'edited', event.params.eventId, after, actorUid(event), new Date(), answered);
+  const members = await loadMembers(db);
+  const answered = await comingMembers(db, event.params.eventId, members);
+  await notifyChange(db, send, 'edited', event.params.eventId, after, actorUid(event), new Date(), answered, members);
 });
 
 export const onEventDeleted = onDocumentDeletedWithAuthContext('events/{eventId}', async (event) => {
   const db = getFirestore();
   const data = event.data?.data() as EventData | undefined;
   // The answers are read first: those who were coming are told, then the answers go.
-  const answered = await comingMembers(db, event.params.eventId);
   try {
-    if (data) await notifyChange(db, send, 'deleted', event.params.eventId, data, actorUid(event), new Date(), answered);
+    const members = await loadMembers(db);
+    const answered = await comingMembers(db, event.params.eventId, members);
+    if (data) await notifyChange(db, send, 'deleted', event.params.eventId, data, actorUid(event), new Date(), answered, members);
   } finally {
     await deleteEventAnswers(db, event.params.eventId);
   }
