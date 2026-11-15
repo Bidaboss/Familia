@@ -149,7 +149,8 @@ class GiftsTest {
         val holder = GiftListViewModel(gifts, FakeMembers(), "admin1", "l", today = flowOf(today))
         val held = holder.uiState.first { it is GiftListUiState.Success && it.items.isNotEmpty() } as GiftListUiState.Success
         assertEquals(2, held.items.single().claim!!.shares.size)
-        assertEquals(listOf(false), gifts.itemQueries)
+        // One query per screen, and neither hides the surprise ideas.
+        assertEquals(listOf(false, false), gifts.itemQueries)
     }
 
     @Test
