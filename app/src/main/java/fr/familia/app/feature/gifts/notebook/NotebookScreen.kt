@@ -72,6 +72,7 @@ import fr.familia.app.feature.gifts.occasionLabel
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpLink
 import fr.familia.app.feature.help.ScreenHelp
+import java.time.LocalDate
 
 /** What the notebook screen can ask for. */
 data class NotebookActions(
@@ -79,6 +80,7 @@ data class NotebookActions(
     val onRetry: () -> Unit = {},
     val onSelect: (NotebookOccasion) -> Unit = {},
     val onSetStatus: (NotebookEntry, GiftStatus) -> Unit = { _, _ -> },
+    val onSetOccasion: (NotebookEntry, NotebookOccasion) -> Unit = { _, _ -> },
     val onOpenList: (listId: String) -> Unit = {},
     /** A new private idea, at the occasion shown. */
     val onAddIdea: (at: NotebookOccasion?) -> Unit = {},
@@ -279,6 +281,7 @@ private fun StatusSheet(entry: NotebookEntry, actions: NotebookActions, onDismis
                 actions.onSetStatus(entry, status)
                 onDismiss()
             },
+            onSetOccasion = { occasion -> actions.onSetOccasion(entry, occasion) },
             onOpenList = { listId ->
                 onDismiss()
                 actions.onOpenList(listId)
@@ -293,7 +296,15 @@ private fun StatusSheet(entry: NotebookEntry, actions: NotebookActions, onDismis
 
 /** Where a gift stands, chosen in one touch. Apart for screenshots. */
 @Composable
-internal fun StatusSheetContent(entry: NotebookEntry, onSetStatus: (GiftStatus) -> Unit, onOpenList: (String) -> Unit, onEdit: () -> Unit = {}) {
+@OptIn(ExperimentalLayoutApi::class)
+internal fun StatusSheetContent(
+    entry: NotebookEntry,
+    onSetStatus: (GiftStatus) -> Unit,
+    onOpenList: (String) -> Unit,
+    onEdit: () -> Unit = {},
+    onSetOccasion: (NotebookOccasion) -> Unit = {},
+    thisYear: Int = LocalDate.now().year,
+) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).navigationBarsPadding()) {
         Text(entry.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         Text(
@@ -316,6 +327,25 @@ internal fun StatusSheetContent(entry: NotebookEntry, onSetStatus: (GiftStatus) 
                 }
             }
         }
+        // « Mes envies » has no occasion: the member says which one the gift is for.
+        if (entry.listId?.startsWith(WISHES_PREFIX) == true) {
+            Text(
+                stringResource(R.string.notebook_idea_occasion),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp).semantics { heading() },
+            )
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                GiftOccasion.entries.forEach { occasion ->
+                    val choice = NotebookOccasion(occasion, thisYear)
+                    FilterChip(
+                        selected = entry.occasion.occasion == occasion,
+                        onClick = { onSetOccasion(choice) },
+                        label = { Text(occasionName(choice)) },
+                        modifier = Modifier.heightIn(min = 56.dp),
+                    )
+                }
+            }
+        }
         entry.listId?.let { listId ->
             OutlinedButton(onClick = { onOpenList(listId) }, modifier = Modifier.padding(top = 8.dp).heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.notebook_open_list))
@@ -329,6 +359,8 @@ internal fun StatusSheetContent(entry: NotebookEntry, onSetStatus: (GiftStatus) 
         Spacer(Modifier.height(16.dp))
     }
 }
+
+private const val WISHES_PREFIX = "wishes-"
 
 /** Fictional notebook for previews and screenshots. */
 internal fun previewNotebook(): NotebookUiState.Success {

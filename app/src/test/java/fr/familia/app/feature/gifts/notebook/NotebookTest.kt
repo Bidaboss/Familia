@@ -84,6 +84,17 @@ class NotebookTest {
         assertTrue(after is NotebookUiState.Success)
         assertEquals(setOf("adult1"), notebook.askedFor)
     }
+
+    @Test
+    fun `a gift of « Mes envies » gets the occasion the member chooses`() = runTest {
+        val wish = NotebookEntry("gift_w", NotebookSource.Claim, "adult2", "Adult2", none, "Un livre", null, 15.0, null, GiftStatus.Idea, listId = "wishes-adult2", itemId = "i")
+        val notebook = FakeNotebook(listOf(wish))
+        val vm = NotebookViewModel(notebook, "adult1", today = flowOf(today))
+        vm.uiState.first { it is NotebookUiState.Success }
+        vm.setOccasion(wish, christmas)
+        val state = vm.uiState.first { (it as? NotebookUiState.Success)?.selected == christmas } as NotebookUiState.Success
+        assertEquals(listOf("gift_w"), state.people.single().entries.map { it.id })
+    }
 }
 
 class FakeNotebook(entries: List<NotebookEntry> = emptyList()) : NotebookRepository {
