@@ -59,6 +59,9 @@
     <string name="event_place">Lieu (facultatif)</string>
     <string name="event_note">Note (facultative)</string>
     <string name="event_for_whom">Pour qui</string>
+    <string name="event_for_whom_none">À choisir</string>
+    <string name="event_for_whom_change">Changer</string>
+    <string name="event_note_add">Ajouter une note</string>
     <string name="event_for_family">Toute la famille</string>
     <string name="event_for_household">Un foyer</string>
     <string name="event_for_me">Moi</string>

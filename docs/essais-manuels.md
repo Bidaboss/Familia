@@ -71,3 +71,10 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 2. Ouvre cet événement, « Modifier », puis « Supprimer ». **Attendu :** le planning revient directement (pas la fiche de l'événement), avec « Événement supprimé. ».
 3. Active le mode avion, modifie une fiche de la famille et enregistre. **Attendu :** après 5 secondes environ, la fiche se ferme avec « Enregistré, envoi au retour du réseau. ». Coupe le mode avion : la modification arrive chez les autres.
 4. Touche la flèche retour d'un formulaire sans rien changer. **Attendu :** aucun message.
+
+## Formulaire d'événement allégé (audit DESIGN du 15/11)
+
+1. Touche « Ajouter » sur le planning. **Attendu :** « Pour qui » tient sur une ligne avec « Toute la famille », et la note est remplacée par « Ajouter une note ».
+2. Touche la ligne « Pour qui ». **Attendu :** la liste s'ouvre ; choisis ton foyer, elle se ferme et la ligne affiche ton foyer.
+3. Touche « Ajouter une note ». **Attendu :** le champ de note apparaît. Une fois enregistré, rouvre l'événement avec « Modifier » : la note est dépliée.
+4. Avec un compte enfant, **attendu :** la ligne « Pour qui » affiche le prénom de l'enfant, sans « Changer ».
