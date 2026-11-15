@@ -767,10 +767,24 @@
     <string name="album_photo_remove_title">Retirer cette photo ?</string>
     <string name="album_photo_remove_body">Elle disparaît de l\'album pour tout le monde.</string>
     <string name="album_photo_keep">Garder</string>
+    <string name="album_film_make">Faire le film</string>
+    <string name="album_film_help">Toutes les photos, des plus anciennes aux plus récentes, en une minute environ. Le film se fait sur ton téléphone.</string>
+    <string name="album_film_need_photos">Il faut au moins 2 photos pour faire le film.</string>
+    <string name="album_film_making">Le film se prépare sur ton téléphone… Reste sur cet écran.</string>
+    <string name="album_film_cancel">Annuler</string>
+    <string name="album_film_failed">Le film n\'a pas pu être fait. Vérifie la connexion et réessaie.</string>
+    <string name="album_film_ready">Le film est prêt.</string>
+    <string name="album_film_watch">Regarder</string>
+    <string name="album_film_share">Partager</string>
+    <string name="album_film_no_player">Aucune appli de ce téléphone ne lit les vidéos.</string>
+    <!-- Before a video leaves the app (carte EXPERT-6): the film, the album and the slideshow. -->
+    <string name="share_consent_title">Avant de partager</string>
+    <string name="share_consent_body">Des enfants apparaissent peut-être sur ces photos. Pense à demander l\'accord de leurs parents avant d\'envoyer la vidéo hors de Familia.</string>
+    <string name="share_consent_continue">Continuer</string>
     <plurals name="album_photos_see_all">
-        <item quantity="one">Voir la photo</item>
-        <item quantity="many">Voir les %1$d photos</item>
-        <item quantity="other">Voir les %1$d photos</item>
+        <item quantity="one">Voir la photo et le film</item>
+        <item quantity="many">Voir les %1$d photos et le film</item>
+        <item quantity="other">Voir les %1$d photos et le film</item>
     </plurals>
     <plurals name="album_photos_sending">
         <item quantity="one">Envoi de %1$d photo… Reste sur cet écran.</item>
@@ -844,7 +858,7 @@
     <string name="help_screen_trips_title">Les voyages</string>
     <string name="help_screen_trips_body">Ici, les voyages que tu suis : en cours, à venir et passés. Touche un voyage pour voir ses étapes. Un adulte touche « Nouveau voyage » pour en préparer un.</string>
     <string name="help_screen_trip_detail_title">Le voyage</string>
-    <string name="help_screen_trip_detail_body">Les étapes du voyage, dans l\'ordre. Si tu pars, touche « Bien arrivé » à l\'arrivée : un seul geste suffit pour tout le monde, et la famille est prévenue. Aucune position n\'est envoyée. Dans « À prévoir », ceux qui partent notent ce qu\'il ne faut pas oublier, qui s\'en occupe, et cochent ce qui est fait. Chacun ajoute jusqu\'à 30 photos, vues par ceux qui suivent le voyage. Seul celui qui a préparé le voyage peut le modifier.</string>
+    <string name="help_screen_trip_detail_body">Les étapes du voyage, dans l\'ordre. Si tu pars, touche « Bien arrivé » à l\'arrivée : un seul geste suffit pour tout le monde, et la famille est prévenue. Aucune position n\'est envoyée. Dans « À prévoir », ceux qui partent notent ce qu\'il ne faut pas oublier, qui s\'en occupe, et cochent ce qui est fait. Chacun ajoute jusqu\'à 30 photos, vues par ceux qui suivent le voyage. Avec les photos, « Faire le film » prépare une vidéo sur ton téléphone, à regarder ou à partager. Seul celui qui a préparé le voyage peut le modifier.</string>
     <string name="help_screen_trip_edit_title">Préparer un voyage</string>
     <string name="help_screen_trip_edit_body">Donne un nom et des dates, puis coche qui part, dans tous les foyers. Toute la famille suit le voyage par défaut : décoche ceux qui ne doivent pas le voir. Ceux qui partent le suivent toujours.</string>
     <string name="help_screen_trip_step_title">Une étape</string>
