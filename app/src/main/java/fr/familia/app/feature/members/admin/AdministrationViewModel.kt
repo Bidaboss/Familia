@@ -2,7 +2,9 @@ package fr.familia.app.feature.members.admin
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.familia.app.core.data.AppConfigRepository
 import fr.familia.app.core.data.MemberRepository
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
@@ -32,6 +34,7 @@ import kotlinx.coroutines.launch
 class AdministrationViewModel(
     private val members: MemberRepository?,
     private val currentMemberId: String,
+    private val appConfig: AppConfigRepository? = null,
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
@@ -58,6 +61,25 @@ class AdministrationViewModel(
 
     /** True when the server refused a change: the screen says so once. */
     val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+
+    /** The module switches of config/app, live (PRD rév. 120: hidden until ready). */
+    val features: StateFlow<Map<String, Boolean>> = (appConfig?.observeAppConfig()?.map { it.features } ?: emptyFlow())
+        .catch { e -> if (e is CancellationException) throw e }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
+
+    /** Switches [feature] on or off for the family; the admin principal always sees it. */
+    fun setFeature(feature: Feature, on: Boolean) {
+        val repo = appConfig ?: return
+        viewModelScope.launch {
+            try {
+                repo.setFeature(feature.key, on)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _actionFailed.value = true
+            }
+        }
+    }
 
     fun retry() {
         attempt.update { it + 1 }

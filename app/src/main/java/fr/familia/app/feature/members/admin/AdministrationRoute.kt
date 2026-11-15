@@ -14,11 +14,12 @@ import fr.familia.app.core.model.Member
 fun AdministrationRoute(container: AppContainer?, currentMember: Member, onOpenExport: () -> Unit, onBack: () -> Unit) {
     val viewModel: AdministrationViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { AdministrationViewModel(container?.memberRepository, currentMember.id) }
+            initializer { AdministrationViewModel(container?.memberRepository, currentMember.id, container?.appConfigRepository) }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val failed by viewModel.actionFailed.collectAsStateWithLifecycle()
+    val features by viewModel.features.collectAsStateWithLifecycle()
     AdministrationScreen(
         state = state,
         onBack = onBack,
@@ -29,5 +30,7 @@ fun AdministrationRoute(container: AppContainer?, currentMember: Member, onOpenE
         onOpenExport = onOpenExport,
         actionFailed = failed,
         onFailureShown = viewModel::failureShown,
+        features = features,
+        onSetFeature = viewModel::setFeature,
     )
 }
