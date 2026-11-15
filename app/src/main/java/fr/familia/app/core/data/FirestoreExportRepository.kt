@@ -32,7 +32,8 @@ class FirestoreExportRepository(private val db: FirebaseFirestore) : ExportRepos
                 ExportAnswer(eventId, doc.id, plain(doc.data.orEmpty()))
             }
         }
-        FamilyData(households.await(), members.await(), events.await(), answers.await())
+        val helpRequests = async { db.collection("helpRequests").get(Source.SERVER).await().documents.map(::toExport) }
+        FamilyData(households.await(), members.await(), events.await(), answers.await(), helpRequests.await())
     }
 
     private fun toExport(doc: DocumentSnapshot) = ExportDocument(doc.id, plain(doc.data.orEmpty()))

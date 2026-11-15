@@ -21,12 +21,16 @@ class MainActivity : ComponentActivity() {
     /** The gift list of a tapped notification (V2). */
     private val openListId = mutableStateOf<String?>(null)
 
+    /** The « coup de main » of a tapped notification, opened the same way. */
+    private val openHelpRequestId = mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         if (savedInstanceState == null) {
             openEventId.value = intent.eventId()
             openListId.value = intent.listId()
+            openHelpRequestId.value = intent.helpRequestId()
         }
         val app = application as FamiliaApplication
         val container = app.container
@@ -34,6 +38,7 @@ class MainActivity : ComponentActivity() {
             val isOnline by app.networkMonitor.isOnline.collectAsStateWithLifecycle(initialValue = true)
             val eventToOpen by openEventId
             val listToOpen by openListId
+            val helpRequestToOpen by openHelpRequestId
             FamiliaTheme {
                 SessionRoute(container = container) { member ->
                     FamiliaApp(
@@ -44,6 +49,8 @@ class MainActivity : ComponentActivity() {
                         onEventOpened = { openEventId.value = null },
                         openListId = listToOpen,
                         onListOpened = { openListId.value = null },
+                        openHelpRequestId = helpRequestToOpen,
+                        onHelpRequestOpened = { openHelpRequestId.value = null },
                     )
                 }
             }
@@ -55,9 +62,12 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         intent.eventId()?.let { openEventId.value = it }
         intent.listId()?.let { openListId.value = it }
+        intent.helpRequestId()?.let { openHelpRequestId.value = it }
     }
 
     private fun Intent.eventId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_EVENT_ID)
 
     private fun Intent.listId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_LIST_ID)
+
+    private fun Intent.helpRequestId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_HELP_REQUEST_ID)
 }
