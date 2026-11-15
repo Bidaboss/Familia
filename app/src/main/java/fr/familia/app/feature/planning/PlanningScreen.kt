@@ -39,6 +39,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Cake
+import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -68,7 +69,11 @@ import androidx.compose.ui.semantics.contentDescription
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.dayTitle
+import fr.familia.app.core.ui.formatDay
 import fr.familia.app.core.ui.formatTime
+import fr.familia.app.core.model.Trip
+import fr.familia.app.feature.trips.joinNames
+import fr.familia.app.feature.trips.tripDatesLabel
 import fr.familia.app.feature.events.edit.TargetChoice
 import fr.familia.app.feature.events.edit.targetLabel
 import java.time.LocalDate
@@ -85,6 +90,7 @@ fun PlanningScreen(
     initialMode: PlanningMode = PlanningMode.List,
     /** « Toute la famille » / « Mon foyer » (carte AVIS-8); hidden when null. */
     onScopeChange: ((PlanningScope) -> Unit)? = null,
+    onOpenTrip: (tripId: String) -> Unit = {},
 ) {
     var mode by rememberSaveable { mutableStateOf(initialMode) }
     Box(modifier.fillMaxSize()) {
@@ -118,10 +124,10 @@ fun PlanningScreen(
                             // Room at the bottom so the add button never hides the last event.
                             contentPadding = PaddingValues(bottom = 96.dp),
                         ) {
-                            dayItems(state.days, state.today, onOpenEvent)
+                            dayItems(state.days, state.today, onOpenEvent, onOpenTrip)
                         }
                     }
-                    PlanningMode.Month -> MonthView(state, onOpenEvent)
+                    PlanningMode.Month -> MonthView(state, onOpenEvent, onOpenTrip)
                 }
             }
         }
@@ -186,10 +192,18 @@ private fun ScopeSwitch(scope: PlanningScope, onScopeChange: (PlanningScope) -> 
 }
 
 /** The headers and rows of the given days, shared by the list and the month view. */
-private fun LazyListScope.dayItems(days: List<PlanningDay>, today: LocalDate, onOpenEvent: (String) -> Unit) {
+private fun LazyListScope.dayItems(
+    days: List<PlanningDay>,
+    today: LocalDate,
+    onOpenEvent: (String) -> Unit,
+    onOpenTrip: (String) -> Unit = {},
+) {
     days.forEach { day ->
         item(key = "day-${day.date}") { DayHeader(day.date, today) }
         items(day.birthdays, key = { "birthday-${day.date}-${it.member.id}" }) { BirthdayRow(it) }
+        items(day.trips, key = { "trip-${day.date}-${it.trip.id}" }) { trip ->
+            TripRow(trip, today, onClick = { onOpenTrip(trip.trip.id) })
+        }
         items(day.items, key = { "event-${it.event.id}" }) { item ->
             EventRow(item, onClick = { onOpenEvent(item.event.id) })
         }
@@ -203,11 +217,12 @@ private fun LazyListScope.dayItems(days: List<PlanningDay>, today: LocalDate, on
  * Only the current month and the next twelve: the planning shows what is to come.
  */
 @Composable
-private fun MonthView(state: PlanningUiState.Success, onOpenEvent: (String) -> Unit) {
+private fun MonthView(state: PlanningUiState.Success, onOpenEvent: (String) -> Unit, onOpenTrip: (String) -> Unit = {}) {
     var offset by rememberSaveable { mutableIntStateOf(0) }
     val month = YearMonth.from(state.today).plusMonths(offset.toLong())
     val monthDays = state.days.filter { YearMonth.from(it.date) == month }
-    val busy = monthDays.map { it.date }.toSet()
+    // A trip marks every one of its days (PRD, récit 11), not only the day it is listed on.
+    val busy = monthDays.map { it.date }.toSet() + state.tripDays.filter { YearMonth.from(it) == month }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
         item(key = "month-nav") {
             MonthNavigation(
@@ -229,7 +244,7 @@ private fun MonthView(state: PlanningUiState.Success, onOpenEvent: (String) -> U
                 )
             }
         } else {
-            dayItems(monthDays, state.today, onOpenEvent)
+            dayItems(monthDays, state.today, onOpenEvent, onOpenTrip)
         }
     }
 }
@@ -383,6 +398,47 @@ private fun answersLabel(item: PlanningItem): String? {
     return parts.takeIf { it.isNotEmpty() }?.joinToString(" · ")
 }
 
+/** A trip the member follows (PRD, récit 11): « Voyage : Corse », its dates and who takes part. */
+@Composable
+private fun TripRow(item: PlanningTrip, today: LocalDate, onClick: () -> Unit) {
+    val trip = item.trip
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClickLabel = stringResource(R.string.trips_open_action), onClick = onClick)
+                .heightIn(min = 56.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Box(Modifier.widthIn(min = 72.dp)) {
+                Icon(Icons.Outlined.CardTravel, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(stringResource(R.string.planning_trip, trip.title), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    if (item.ongoing) {
+                        stringResource(R.string.planning_trip_ongoing, formatDay(trip.endDate, today).lowercase(Locale.FRANCE))
+                    } else {
+                        tripDatesLabel(trip, today)
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (item.participants.isNotEmpty()) {
+                    Text(
+                        stringResource(R.string.trip_with, joinNames(item.participants)),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+        HorizontalDivider(Modifier.padding(start = 100.dp))
+    }
+}
+
 /** A birthday in the planning: read only, it comes from the member's birth date. */
 @Composable
 private fun BirthdayRow(birthday: Birthday) {
@@ -427,6 +483,7 @@ internal fun previewPlanning(): PlanningUiState.Success {
     val noe = Member("c", "Noé", null, LocalDate.of(2016, 12, 20), "h1", MemberProfile.ChildWithoutApp, false, listOf("a"), null)
     return PlanningUiState.Success(
         today = today,
+        tripDays = setOf(LocalDate.of(2026, 12, 22), LocalDate.of(2026, 12, 23)),
         days = listOf(
             PlanningDay(
                 today,
@@ -438,6 +495,17 @@ internal fun previewPlanning(): PlanningUiState.Success {
                 items = listOf(
                     item("1", "Piscine", day1, LocalTime.of(10, 0), "Centre aquatique", TargetChoice(EventTarget.ForChild("c"), "Noé"), "Camille", true),
                     item("2", "Marché de Noël", day1, null, null, TargetChoice(EventTarget.ForHousehold("h2"), "Foyer Bernard"), "Inès", false),
+                ),
+            ),
+            PlanningDay(
+                LocalDate.of(2026, 12, 22),
+                items = emptyList(),
+                trips = listOf(
+                    PlanningTrip(
+                        Trip("t1", "Ski à Morzine", LocalDate.of(2026, 12, 22), LocalDate.of(2026, 12, 23), listOf("a"), listOf("a"), "a", "Camille"),
+                        listOf("Camille", "Inès"),
+                        ongoing = false,
+                    ),
                 ),
             ),
             PlanningDay(

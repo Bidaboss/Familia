@@ -879,6 +879,125 @@ service cloud.firestore {
       allow delete: if canChangePhoto(memberId) || (isMember() && !existsAfter(memberPath(memberId)));
     }
 
+    // --- Trips (V3, récits 11, 12 et 14) ----------------------------------------------------------
+
+    function tripPath(tripId) {
+      return /databases/$(database)/documents/trips/$(tripId);
+    }
+
+    function tripOf(tripId) {
+      return get(tripPath(tripId)).data;
+    }
+
+    function isClockTime(value) {
+      return value is string && value.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+    }
+
+    // A list of member ids without duplicates.
+    function isIdList(ids, min, max) {
+      return ids is list && ids.size() >= min && ids.size() <= max && ids.toSet().size() == ids.size();
+    }
+
+    // A trip stores who takes part (participantIds) and who follows it (readerIds), so the rules of
+    // its steps read one document. Participants always follow it (récit 12). An adult adds only the
+    // children of their household (récit 11): the app checks it, since checking each participant
+    // here would cost one read each, over the limit of 10 per write.
+    function isValidTrip(t) {
+      return t.keys().hasAll(['title', 'startDate', 'endDate', 'participantIds', 'readerIds', 'creatorId',
+                              'creatorName', 'createdAt', 'updatedAt'])
+        && t.keys().hasOnly(['title', 'startDate', 'endDate', 'participantIds', 'readerIds', 'creatorId',
+                             'creatorName', 'createdAt', 'updatedAt'])
+        && t.title is string && t.title.size() > 0 && t.title.size() <= 80
+        && isDay(t.startDate) && isDay(t.endDate) && t.endDate >= t.startDate
+        && isIdList(t.participantIds, 1, 13)
+        && isIdList(t.readerIds, 1, 40)
+        && t.readerIds.hasAll(t.participantIds)
+        && t.creatorId in t.participantIds
+        && t.creatorName is string && t.creatorName.size() > 0 && t.creatorName.size() <= 40
+        && t.updatedAt == request.time;
+    }
+
+    function canManageTrip(t) {
+      return t.creatorId == myMemberId() || isOwner();
+    }
+
+    // trips/{tripId}. Only an adult creates a trip (PRD rév. 131); a child takes part once an adult
+    // adds them, says « bien arrivé » and fills the steps, but never edits the trip or its followers.
+    // A member reads a trip only if they follow it: an unticked member sees nothing
+    // of it, not even its steps (récit 12). The creator, or the admin principal, edits and deletes it.
+    // Deleting a trip deletes its steps on the server.
+    match /trips/{tripId} {
+      allow read: if isMember() && myMemberId() in resource.data.readerIds;
+
+      allow create: if isMember()
+        && isValidTrip(request.resource.data)
+        && request.resource.data.creatorId == myMemberId()
+        && request.resource.data.creatorName == me().firstName
+        && me().profile == 'adult'
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if isMember()
+        && canManageTrip(resource.data)
+        && isValidTrip(request.resource.data)
+        && request.resource.data.creatorId == resource.data.creatorId
+        && request.resource.data.creatorName == resource.data.creatorName
+        && request.resource.data.createdAt == resource.data.createdAt;
+
+      allow delete: if isMember() && canManageTrip(resource.data);
+    }
+
+    // Shape of a step (récit 11). remindAt is the planned arrival plus 3 hours: the server reminds
+    // the participants then, and clears it (récit 14). Once someone said « bien arrivé », there is
+    // nothing left to remind.
+    function isValidStep(s) {
+      return s.keys().hasAll(['type', 'place', 'departDate', 'departTime', 'arriveDate', 'arriveTime', 'note',
+                              'remindAt', 'arrivedAt', 'arrivedBy', 'arrivedByName', 'updatedAt'])
+        && s.keys().hasOnly(['type', 'place', 'departDate', 'departTime', 'arriveDate', 'arriveTime', 'note',
+                             'remindAt', 'arrivedAt', 'arrivedBy', 'arrivedByName', 'updatedAt'])
+        && s.type in ['flight', 'train', 'car', 'lodging', 'activity']
+        && s.place is string && s.place.size() > 0 && s.place.size() <= 120
+        && isDay(s.departDate)
+        && (s.departTime == null || isClockTime(s.departTime))
+        && (s.arriveDate == null || (isDay(s.arriveDate) && s.arriveDate >= s.departDate))
+        && (s.arriveTime == null || isClockTime(s.arriveTime))
+        && (s.note == null || (s.note is string && s.note.size() <= 1000))
+        && (s.remindAt == null || s.remindAt is timestamp)
+        && s.updatedAt == request.time
+        && ((s.arrivedAt == null && s.arrivedBy == null && s.arrivedByName == null)
+            || (s.arrivedAt is timestamp && s.arrivedBy is string && s.arrivedByName is string && s.remindAt == null));
+    }
+
+    // « Bien arrivé » is signed with the caller's own name, at the time of the server.
+    function isMyArrivalNow(s) {
+      return s.arrivedAt == request.time && s.arrivedBy == myMemberId() && s.arrivedByName == me().firstName;
+    }
+
+    function isParticipantOf(tripId) {
+      return myMemberId() in tripOf(tripId).participantIds;
+    }
+
+    // trips/{tripId}/steps/{stepId}. The followers of the trip read the steps; each participant adds,
+    // edits and deletes them, and says « bien arrivé » (or takes it back) for everyone of the trip.
+    match /trips/{tripId}/steps/{stepId} {
+      allow read: if isMember() && myMemberId() in tripOf(tripId).readerIds;
+
+      allow create: if isMember()
+        && isParticipantOf(tripId)
+        && isValidStep(request.resource.data)
+        && (request.resource.data.arrivedAt == null || isMyArrivalNow(request.resource.data));
+
+      allow update: if isMember()
+        && isParticipantOf(tripId)
+        && isValidStep(request.resource.data)
+        && (request.resource.data.arrivedAt == null
+            || isMyArrivalNow(request.resource.data)
+            || (request.resource.data.arrivedAt == resource.data.arrivedAt
+                && request.resource.data.arrivedBy == resource.data.arrivedBy
+                && request.resource.data.arrivedByName == resource.data.arrivedByName));
+
+      allow delete: if isMember() && (isParticipantOf(tripId) || isOwner());
+    }
+
     // --- App updates (lot 10) ---------------------------------------------------------------------
 
     // config/app: the latest version and the HTTPS link of its APK (docs/mise-a-jour.md), and

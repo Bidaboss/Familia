@@ -24,6 +24,9 @@ class MainActivity : ComponentActivity() {
     /** The « coup de main » of a tapped notification, opened the same way. */
     private val openHelpRequestId = mutableStateOf<String?>(null)
 
+    /** The trip of a tapped « bien arrivé » notification (V3). */
+    private val openTripId = mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -31,6 +34,7 @@ class MainActivity : ComponentActivity() {
             openEventId.value = intent.eventId()
             openListId.value = intent.listId()
             openHelpRequestId.value = intent.helpRequestId()
+            openTripId.value = intent.tripId()
         }
         val app = application as FamiliaApplication
         val container = app.container
@@ -39,6 +43,7 @@ class MainActivity : ComponentActivity() {
             val eventToOpen by openEventId
             val listToOpen by openListId
             val helpRequestToOpen by openHelpRequestId
+            val tripToOpen by openTripId
             FamiliaTheme {
                 SessionRoute(container = container) { member ->
                     FamiliaApp(
@@ -51,6 +56,8 @@ class MainActivity : ComponentActivity() {
                         onListOpened = { openListId.value = null },
                         openHelpRequestId = helpRequestToOpen,
                         onHelpRequestOpened = { openHelpRequestId.value = null },
+                        openTripId = tripToOpen,
+                        onTripOpened = { openTripId.value = null },
                     )
                 }
             }
@@ -63,6 +70,7 @@ class MainActivity : ComponentActivity() {
         intent.eventId()?.let { openEventId.value = it }
         intent.listId()?.let { openListId.value = it }
         intent.helpRequestId()?.let { openHelpRequestId.value = it }
+        intent.tripId()?.let { openTripId.value = it }
     }
 
     private fun Intent.eventId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_EVENT_ID)
@@ -70,4 +78,6 @@ class MainActivity : ComponentActivity() {
     private fun Intent.listId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_LIST_ID)
 
     private fun Intent.helpRequestId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_HELP_REQUEST_ID)
+
+    private fun Intent.tripId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_TRIP_ID)
 }
