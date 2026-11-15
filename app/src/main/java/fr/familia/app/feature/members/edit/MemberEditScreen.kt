@@ -66,6 +66,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.clickable
+import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.R
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.model.Household
@@ -171,6 +173,7 @@ private fun MemberFormContent(
 ) {
     val form = state.form
     val errors = state.errors
+    var pickColor by rememberSaveable { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -179,6 +182,16 @@ private fun MemberFormContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        // The color is chosen by touching the avatar (DESIGN-5); a new member gets a free one.
+        AvatarHeader(form, onClick = { pickColor = true })
+        // One sentence for every field this member cannot change, instead of one per field.
+        if (!state.canEditEmail && form.needsEmail || !state.canEditParents && form.needsParents) {
+            Text(
+                stringResource(R.string.member_locked_fields),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         OutlinedTextField(
             value = form.firstName,
             onValueChange = { value -> onChange { it.copy(firstName = value) } },
@@ -209,9 +222,7 @@ private fun MemberFormContent(
                 label = { Text(stringResource(R.string.member_email)) },
                 isError = FormError.EmailInvalid in errors || FormError.EmailTaken in errors,
                 supportingText = errorText(errors, FormError.EmailInvalid, FormError.EmailTaken)
-                    ?: helpText(
-                        stringResource(if (state.canEditEmail) R.string.member_email_help else R.string.member_email_owner_only),
-                    ),
+                    ?: if (state.canEditEmail) helpText(stringResource(R.string.member_email_help)) else null,
                 enabled = state.canEditEmail,
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -238,13 +249,6 @@ private fun MemberFormContent(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                if (!state.canEditParents) {
-                    Text(
-                        stringResource(R.string.member_parents_owner_only),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
                 state.adults.forEach { adult ->
                     val checked = adult.id in form.parentIds
                     Row(
@@ -265,7 +269,6 @@ private fun MemberFormContent(
             }
         }
 
-        ColorSection(form.colorIndex) { index -> onChange { it.copy(colorIndex = index) } }
 
         if (state.saveFailed) {
             Text(
@@ -303,6 +306,41 @@ private fun MemberFormContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+    }
+    if (pickColor) {
+        AlertDialog(
+            onDismissRequest = { pickColor = false },
+            title = { Text(stringResource(R.string.member_color)) },
+            text = {
+                ColorChoices(form.colorIndex) { index ->
+                    onChange { it.copy(colorIndex = index) }
+                    pickColor = false
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { pickColor = false }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.action_ok))
+                }
+            },
+        )
+    }
+}
+
+/** The avatar as it will look, 72 dp; a tap opens the colors. */
+@Composable
+private fun AvatarHeader(form: MemberForm, onClick: () -> Unit) {
+    val preview = form.toMember(id = "preview", uid = null).copy(firstName = form.firstName.ifBlank { "?" })
+    val label = stringResource(R.string.member_color_change)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClickLabel = label, role = Role.Button, onClick = onClick)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        MemberAvatar(preview, size = 72.dp)
+        Spacer(Modifier.width(16.dp))
+        Text(label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
     }
 }
 
@@ -490,30 +528,28 @@ private fun BirthDateField(date: LocalDate?, inFuture: Boolean, today: LocalDate
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun ColorSection(selected: Int?, onPick: (Int) -> Unit) {
-    Section(stringResource(R.string.member_color)) {
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.selectableGroup(),
-        ) {
-            MemberColors.forEachIndexed { index, color ->
-                val isSelected = index == selected
-                val label = stringResource(R.string.member_color_n, index + 1)
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .background(color)
-                        .then(
-                            if (isSelected) Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, CircleShape) else Modifier,
-                        )
-                        .selectable(selected = isSelected, role = Role.RadioButton) { onPick(index) }
-                        .semantics { contentDescription = label },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (isSelected) Icon(Icons.Filled.Check, contentDescription = null, tint = OnMemberColor)
-                }
+private fun ColorChoices(selected: Int?, onPick: (Int) -> Unit) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.selectableGroup(),
+    ) {
+        MemberColors.forEachIndexed { index, color ->
+            val isSelected = index == selected
+            val label = stringResource(R.string.member_color_n, index + 1)
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(color)
+                    .then(
+                        if (isSelected) Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, CircleShape) else Modifier,
+                    )
+                    .selectable(selected = isSelected, role = Role.RadioButton) { onPick(index) }
+                    .semantics { contentDescription = label },
+                contentAlignment = Alignment.Center,
+            ) {
+                if (isSelected) Icon(Icons.Filled.Check, contentDescription = null, tint = OnMemberColor)
             }
         }
     }
