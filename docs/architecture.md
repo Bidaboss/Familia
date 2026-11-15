@@ -15,6 +15,7 @@ app/src/main/java/fr/familia/app/
 │   └── ui/                  composants partagés (EmptyState, annotation d'aperçus FamiliaPreviews)
 └── feature/
     ├── planning/            onglet Planning
+    ├── trips/               voyages (V3), sans onglet : ouverts depuis le planning
     ├── birthdays/           onglet Anniversaires
     └── members/             onglet Famille (membres, réglages, version)
 ```

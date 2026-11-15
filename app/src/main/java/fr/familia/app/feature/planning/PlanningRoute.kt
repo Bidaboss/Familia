@@ -9,14 +9,25 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.ui.LocalFeatureFlags
 
 /** Connects the Planning tab to its ViewModel. */
 @Composable
-fun PlanningRoute(container: AppContainer?, currentMember: Member, onAddEvent: () -> Unit, onOpenEvent: (eventId: String) -> Unit) {
+fun PlanningRoute(
+    container: AppContainer?,
+    currentMember: Member,
+    onAddEvent: () -> Unit,
+    onOpenEvent: (eventId: String) -> Unit,
+    onOpenTrip: (tripId: String) -> Unit = {},
+) {
     val context = LocalContext.current.applicationContext
     val prefs = remember(context) { PlanningScopePreferences(context) }
+    // Trips show in the planning once their module is switched on (PRD rév. 120).
+    val tripsOn = LocalFeatureFlags.current.isOn(Feature.Trips)
     val viewModel: PlanningViewModel = viewModel(
+        key = "planning-trips-$tripsOn",
         factory = viewModelFactory {
             initializer { PlanningViewModel(
                     container?.eventRepository,
@@ -25,6 +36,7 @@ fun PlanningRoute(container: AppContainer?, currentMember: Member, onAddEvent: (
                     rsvps = container?.rsvpRepository,
                     initialScope = prefs.scope,
                     saveScope = { prefs.scope = it },
+                    trips = if (tripsOn) container?.tripRepository else null,
                 ) }
         },
     )
@@ -35,5 +47,6 @@ fun PlanningRoute(container: AppContainer?, currentMember: Member, onAddEvent: (
         onAddEvent = onAddEvent,
         onOpenEvent = onOpenEvent,
         onScopeChange = viewModel::setScope,
+        onOpenTrip = onOpenTrip,
     )
 }

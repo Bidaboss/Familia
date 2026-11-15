@@ -23,6 +23,7 @@ import {
 } from './helpRequests';
 import { EventData, hasVisibleChange, Notice } from './logic';
 import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, notifyChange, Sender, sendDayBeforeReminders } from './store';
+import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
 
 initializeApp();
 
@@ -39,6 +40,7 @@ const send: Sender = async (token: string, notice: Notice) => {
       data: {
         ...(notice.eventId ? { eventId: notice.eventId } : {}),
         ...(notice.listId ? { listId: notice.listId } : {}),
+        ...(notice.tripId ? { tripId: notice.tripId } : {}),
       },
       android: { notification: { channelId: notice.channel } },
     });
@@ -193,4 +195,21 @@ export const onGoodNewsUpdated = onDocumentUpdated('goodNews/{postId}', async (e
 export const onGoodNewsDeleted = onDocumentDeleted('goodNews/{postId}', async (event) => {
   const data = event.data?.data() as GoodNewsData | undefined;
   if (data) await onGoodNewsRemoved(removeFiles, event.params.postId, data);
+});
+
+// --- Trips (V3, récit 14) ---------------------------------------------------------------------
+
+export const onTripStepUpdated = onDocumentUpdatedWithAuthContext('trips/{tripId}/steps/{stepId}', async (event) => {
+  const before = event.data?.before.data() as StepData | undefined;
+  const after = event.data?.after.data() as StepData | undefined;
+  if (!before || !after || !isNewArrival(before, after)) return;
+  await notifyArrival(getFirestore(), send, event.params.tripId, after, actorUid(event));
+});
+
+export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) => {
+  await deleteTripContents(getFirestore(), event.params.tripId);
+});
+
+export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/Paris' }, async () => {
+  await sendArrivalReminders(getFirestore(), send, new Date());
 });

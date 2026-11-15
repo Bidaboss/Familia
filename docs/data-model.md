@@ -162,7 +162,7 @@ Un événement déjà passé ne prévient personne. L'auteur d'un changement est
 
 **Qui un événement concerne** (cartes AVIS-7 et AVIS-8) : une seule fonction le dit, `concerns` dans `functions/src/logic.ts`, et la même règle dans l'appli (`core/model/Audience.kt`), qui sert au filtre « Mon foyer » du planning. Un événement concerne un membre s'il est pour toute la famille, ou si sa cible est lui-même, son foyer, un membre ou un enfant de son foyer, ou un enfant dont il est adulte responsable (même dans un autre foyer). Un futur « cercle » ne changera que cette fonction.
 
-**Canaux Android** (récit 6 quinquies) : chaque notification part sur un canal, que chacun peut couper dans les réglages Android : `events` (affiché « Planning »), `reminders`, `gifts`, `helpRequests` (Entraide ; le rappel de la veille d'un coup de main reste sur `reminders`), `goodNews` (Bonnes nouvelles). Chaque module ajoute le sien en même temps que lui : `trips` (Voyages), `comments` (Commentaires et réactions), `weekly` (Rendez-vous de la semaine). Les identifiants ne changent jamais, car Android y garde le choix du membre. Un canal inconnu de l'appli retombe sur « Planning ».
+**Canaux Android** (récit 6 quinquies) : chaque notification part sur un canal, que chacun peut couper dans les réglages Android : `events` (affiché « Planning »), `reminders`, `gifts`, `helpRequests` (Entraide ; le rappel de la veille d'un coup de main reste sur `reminders`), `goodNews` (Bonnes nouvelles), `trips` (Voyages : « bien arrivé » et son rappel). Chaque module ajoute le sien en même temps que lui : `comments` (Commentaires et réactions), `weekly` (Rendez-vous de la semaine). Les identifiants ne changent jamais, car Android y garde le choix du membre. Un canal inconnu de l'appli retombe sur « Planning ».
 
 Tests : `cd firebase && npm run test:functions` (la logique, et les fonctions contre l'émulateur Firestore, avec un faux envoi de notifications).
 
@@ -390,3 +390,41 @@ Cloud Functions (`functions/src/helpRequests.ts`), qui ne préviennent que les p
 | `onMemberDeletedHelp` | Un membre est retiré | Ses demandes à venir redeviennent ouvertes, ce qui prévient le demandeur |
 
 Une demande passée ne prévient personne, sauf pour le « Merci ». La sauvegarde de l'admin principal inclut les demandes (`helpRequests`).
+
+## Voyages (V3, récits 11, 12 et 14)
+
+### `trips/{tripId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `title` | texte | Le nom du voyage, de 1 à 80 caractères |
+| `startDate`, `endDate` | texte | Le départ et le retour, `AAAA-MM-JJ`, le retour au plus tôt le jour du départ |
+| `participantIds` | liste de textes | Les membres qui partent (1 à 13, sans doublon), dont toujours le créateur |
+| `readerIds` | liste de textes | Les membres qui suivent le voyage (1 à 40). Ils comprennent toujours les participants |
+| `creatorId`, `creatorName` | texte | Le créateur et son prénom à la création, qui ne changent jamais |
+| `createdAt`, `updatedAt` | horodatage | Heure du serveur |
+
+Droits : seul un membre de `readerIds` lit le voyage. L'appli le cherche avec `readerIds array-contains <son id>`, car les règles refusent toute requête plus large. Par défaut, tous les membres proposés par `tripAudience()` sont cochés, et le créateur décoche qui ne doit pas le voir (récit 12). La liste est figée au moment où elle est enregistrée : un membre ajouté plus tard à la famille ne voit pas les anciens voyages, sauf si le créateur le coche. Seul un adulte crée un voyage (PRD rév. 131) : un enfant y participe quand un adulte l'ajoute, et il dit alors « bien arrivé » et remplit les étapes. Le créateur et l'admin principal le modifient et le suppriment. Un adulte n'ajoute comme participants que les enfants de son foyer : seule l'appli le vérifie, car contrôler chaque participant dans les règles coûterait une lecture par personne, au-delà des 10 lectures permises par écriture.
+
+### `trips/{tripId}/steps/{stepId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `type` | texte | `flight`, `train`, `car`, `lodging` ou `activity` |
+| `place` | texte | Le lieu, de 1 à 120 caractères |
+| `departDate`, `departTime` | texte | Le départ, `AAAA-MM-JJ`, et son heure `HH:MM` ou `null` |
+| `arriveDate`, `arriveTime` | texte ou `null` | L'arrivée prévue, au plus tôt le jour du départ |
+| `note` | texte ou `null` | 1 000 caractères au plus |
+| `remindAt` | horodatage ou `null` | L'arrivée prévue plus 3 heures, calculée sur le téléphone avec son fuseau horaire. `null` sans heure d'arrivée |
+| `arrivedAt`, `arrivedBy`, `arrivedByName` | horodatage, textes ou `null` | « Bien arrivé » : l'heure du serveur, le membre et son prénom |
+| `updatedAt` | horodatage | Heure du serveur |
+
+Droits : les lecteurs du voyage lisent ses étapes. Chaque participant les ajoute, les modifie et les supprime, et l'admin principal peut en supprimer une. « Bien arrivé » est signé du membre qui le touche, à l'heure du serveur, et efface `remindAt`. Un participant peut l'annuler. Aucune position n'est enregistrée : les règles refusent tout champ en plus.
+
+### Cloud Functions des voyages
+
+- `onTripStepUpdated` : au premier « bien arrivé » d'une étape, chaque lecteur qui a l'appli reçoit « Arrivée à Ajaccio », sauf celui qui l'a touché. Le texte nomme tous les participants, sans accorder « arrivé » à un prénom.
+- `arrivalReminder`, toutes les 30 minutes : les étapes dont `remindAt` est passé et qui n'ont pas de « bien arrivé ». Les participants qui ont l'appli reçoivent un rappel, puis `remindAt` est effacé pour qu'il ne parte qu'une fois. La famille n'est pas alertée. La requête porte sur tous les `steps` (index de groupe de collections dans `firestore.indexes.json`).
+- `onTripDeleted` : un voyage supprimé emporte ses étapes.
+
+Les notifications des voyages portent `tripId` au lieu de `eventId` : un appui ouvre le voyage.
