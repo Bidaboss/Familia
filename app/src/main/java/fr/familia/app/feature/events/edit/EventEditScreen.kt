@@ -300,7 +300,7 @@ private fun NoteField(
 ) {
     var open by rememberSaveable { mutableStateOf(false) }
     if (!open && form.note.isEmpty()) {
-        TextButton(onClick = { open = true }, modifier = Modifier.heightIn(min = 48.dp)) {
+        TextButton(onClick = { open = true }, modifier = Modifier.heightIn(min = 56.dp)) {
             Icon(Icons.Outlined.Add, contentDescription = null)
             Spacer(Modifier.width(8.dp))
             Text(stringResource(R.string.event_note_add))
