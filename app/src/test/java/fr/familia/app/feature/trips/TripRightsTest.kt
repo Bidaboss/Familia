@@ -42,6 +42,13 @@ class TripRightsTest {
     }
 
     @Test
+    fun `only an adult creates a trip`() {
+        assertTrue(canCreateTrip(TestFamily.adult))
+        assertTrue(canCreateTrip(TestFamily.admin))
+        assertFalse(canCreateTrip(TestFamily.kid))
+    }
+
+    @Test
     fun `a trip is upcoming, ongoing then past`() {
         val trip = TestTrips.trip()
         assertEquals(TripPhase.Upcoming, tripPhase(trip, LocalDate.of(2027, 7, 9)))

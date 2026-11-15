@@ -8,6 +8,7 @@ import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Trip
 import fr.familia.app.feature.trips.TripPhase
+import fr.familia.app.feature.trips.canCreateTrip
 import fr.familia.app.feature.trips.firstNames
 import fr.familia.app.feature.trips.tripPhase
 import kotlinx.coroutines.CancellationException
@@ -38,6 +39,8 @@ sealed interface TripsUiState {
         val upcoming: List<TripSummary>,
         val past: List<TripSummary>,
         val today: LocalDate,
+        /** Adults only: a child never creates a trip (PRD rév. 131). */
+        val canCreate: Boolean = true,
     ) : TripsUiState {
         val isEmpty: Boolean get() = ongoing.isEmpty() && upcoming.isEmpty() && past.isEmpty()
     }
@@ -83,6 +86,7 @@ class TripsViewModel(
             upcoming = byPhase[TripPhase.Upcoming].orEmpty(),
             past = byPhase[TripPhase.Past].orEmpty().reversed(),
             today = day,
+            canCreate = family.members.firstOrNull { it.id == currentMemberId }?.let(::canCreateTrip) == true,
         )
     }
 }

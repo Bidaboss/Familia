@@ -7,6 +7,7 @@ import fr.familia.app.core.data.TripRepository
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Trip
+import fr.familia.app.feature.trips.canCreateTrip
 import fr.familia.app.feature.trips.canManageTrip
 import fr.familia.app.feature.trips.participantChoices
 import fr.familia.app.feature.trips.tripAudience
@@ -85,6 +86,7 @@ class TripEditViewModel(
         val existing = loaded.second
         val current = family.members.firstOrNull { it.id == currentMemberId } ?: return unavailable()
         if (tripId != null && (existing == null || !canManageTrip(existing, current, family))) return unavailable()
+        if (tripId == null && !canCreateTrip(current)) return unavailable()
 
         me = current
         original = existing

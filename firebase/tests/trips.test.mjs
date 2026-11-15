@@ -81,9 +81,17 @@ async function storedStep(tripId, id, overrides = {}) {
 const arrival = (m) => ({ arrivedAt: serverTimestamp(), arrivedBy: m.memberId, arrivedByName: m.memberId, remindAt: null });
 
 describe('creating a trip', () => {
-  test('any member creates a trip with participants of any household', async () => {
+  test('an adult creates a trip with participants of any household', async () => {
     await assertSucceeds(setDoc(doc(as(env, ADULT), 'trips/t1'), trip(ADULT)));
-    await assertSucceeds(setDoc(doc(as(env, KID), 'trips/t2'), trip(KID)));
+  });
+
+  test('a child never creates a trip, but takes part and says bien arrive once added', async () => {
+    await assertFails(setDoc(doc(as(env, KID), 'trips/t2'), trip(KID)));
+    await storedTrip('t3', ADULT, { participantIds: ['adult1', 'kid1'] });
+    const db = as(env, KID);
+    await assertSucceeds(setDoc(doc(db, 'trips/t3/steps/s1'), step()));
+    await assertSucceeds(updateDoc(doc(db, 'trips/t3/steps/s1'), { ...arrival(KID), updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db, 'trips/t3'), { readerIds: ['adult1', 'kid1'], updatedAt: serverTimestamp() }));
   });
 
   test('nobody creates a trip in someone else\'s name, and a stranger creates nothing', async () => {

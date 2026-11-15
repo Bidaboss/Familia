@@ -58,6 +58,7 @@ class TripViewModelsTest {
         assertEquals(listOf("later"), state.upcoming.map { it.trip.id })
         assertEquals(listOf("before"), state.past.map { it.trip.id })
         assertEquals(listOf("Adult1", "Adult2"), state.ongoing.single().participants)
+        assertFalse(state.canCreate) // kid1 is a child: no « Nouveau voyage »
     }
 
     @Test
@@ -147,6 +148,11 @@ class TripViewModelsTest {
         assertEquals(setOf("admin1", "adult1", "adult2", "kid1"), trip.readerIds.toSet())
         assertEquals("adult1", trip.creatorId)
         assertEquals("Adult1", trip.creatorName)
+    }
+
+    @Test
+    fun `a child cannot open the form of a new trip`() {
+        assertEquals(TripEditUiState.Unavailable, TripEditViewModel(FakeTrips(), FakeMembers(), "kid1", null).uiState.value)
     }
 
     @Test

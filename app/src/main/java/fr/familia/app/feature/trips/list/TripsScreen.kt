@@ -63,7 +63,7 @@ fun TripsScreen(
             )
         },
         floatingActionButton = {
-            if (state !is TripsUiState.Loading) {
+            if (state is TripsUiState.Success && state.canCreate) {
                 ExtendedFloatingActionButton(
                     onClick = onAddTrip,
                     icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
@@ -89,7 +89,7 @@ fun TripsScreen(
                     EmptyState(
                         icon = Icons.Outlined.CardTravel,
                         title = stringResource(R.string.trips_empty_title),
-                        body = stringResource(R.string.trips_empty_body),
+                        body = stringResource(if (state.canCreate) R.string.trips_empty_body else R.string.trips_empty_body_child),
                     )
                 } else {
                     LazyColumn(

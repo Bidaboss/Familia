@@ -294,6 +294,7 @@
     <string name="trips_past">Passés</string>
     <string name="trips_empty_title">Aucun voyage pour l\'instant</string>
     <string name="trips_empty_body">Touche « Nouveau voyage » pour préparer un départ et rassurer la famille avec « Bien arrivé ».</string>
+    <string name="trips_empty_body_child">Quand un adulte t\'ajoute à un voyage, il apparaît ici.</string>
     <string name="trips_error_title">Les voyages ne s\'affichent pas</string>
     <string name="trips_error_body">Vérifie ta connexion, puis réessaie.</string>
     <string name="trip_title">Voyage</string>
@@ -368,7 +369,7 @@
     <string name="planning_trip">Voyage : %1$s</string>
     <string name="planning_trip_ongoing">En cours jusqu\'au %1$s</string>
     <string name="help_screen_trips_title">Les voyages</string>
-    <string name="help_screen_trips_body">Ici, les voyages que tu suis : en cours, à venir et passés. Touche un voyage pour voir ses étapes. Touche « Nouveau voyage » pour en préparer un.</string>
+    <string name="help_screen_trips_body">Ici, les voyages que tu suis : en cours, à venir et passés. Touche un voyage pour voir ses étapes. Un adulte touche « Nouveau voyage » pour en préparer un.</string>
     <string name="help_screen_trip_detail_title">Le voyage</string>
     <string name="help_screen_trip_detail_body">Les étapes du voyage, dans l\'ordre. Si tu pars, touche « Bien arrivé » à l\'arrivée : un seul geste suffit pour tout le monde, et la famille est prévenue. Aucune position n\'est envoyée. Seul celui qui a préparé le voyage peut le modifier.</string>
     <string name="help_screen_trip_edit_title">Préparer un voyage</string>

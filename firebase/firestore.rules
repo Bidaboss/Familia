@@ -791,7 +791,9 @@ service cloud.firestore {
       return t.creatorId == myMemberId() || isOwner();
     }
 
-    // trips/{tripId}. A member reads a trip only if they follow it: an unticked member sees nothing
+    // trips/{tripId}. Only an adult creates a trip (PRD rév. 131); a child takes part once an adult
+    // adds them, says « bien arrivé » and fills the steps, but never edits the trip or its followers.
+    // A member reads a trip only if they follow it: an unticked member sees nothing
     // of it, not even its steps (récit 12). The creator, or the admin principal, edits and deletes it.
     // Deleting a trip deletes its steps on the server.
     match /trips/{tripId} {
@@ -801,6 +803,7 @@ service cloud.firestore {
         && isValidTrip(request.resource.data)
         && request.resource.data.creatorId == myMemberId()
         && request.resource.data.creatorName == me().firstName
+        && me().profile == 'adult'
         && request.resource.data.createdAt == request.time;
 
       allow update: if isMember()
