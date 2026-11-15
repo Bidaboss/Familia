@@ -241,7 +241,7 @@ private fun GiftRow(entry: NotebookEntry, variant: Color, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 56.dp)
-            .clickable(onClick = onClick)
+            .clickable(role = Role.Button, onClick = onClick)
             .padding(vertical = 6.dp),
         verticalArrangement = Arrangement.Center,
     ) {
