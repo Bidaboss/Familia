@@ -4,7 +4,8 @@ import { after, before, beforeEach, describe, test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import { assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
 import { deleteObject, getBytes, ref, uploadString } from 'firebase/storage';
-import { ADULT, OTHER_ADULT, seed, STRANGER } from './helpers.mjs';
+import { doc, setDoc, Timestamp } from 'firebase/firestore';
+import { ADULT, NEIGHBOUR, OTHER_ADULT, seed, STRANGER } from './helpers.mjs';
 
 const rules = (name) => readFileSync(new URL(`../${name}`, import.meta.url), 'utf8');
 let env;
@@ -83,5 +84,55 @@ describe('goodNews folder (récit 32)', () => {
     await assertSucceeds(uploadString(ref(storageAs(ADULT), photo('adult1')), 'x', 'raw', jpeg));
     await assertFails(getBytes(ref(storageAs(STRANGER), photo('adult1'))));
     await assertFails(getBytes(ref(env.unauthenticatedContext().storage(), photo('adult1'))));
+  });
+});
+
+describe('trips folder (récit 15)', () => {
+  // ADULT created the trip and takes part with adult3; adult2 does not follow it.
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'trips/t1'), {
+        title: 'Corse', startDate: '2027-07-10', endDate: '2027-07-20',
+        participantIds: ['adult1', 'adult3'], readerIds: ['admin1', 'adult1', 'adult3'],
+        creatorId: 'adult1', creatorName: 'adult1', createdAt: Timestamp.fromMillis(0), updatedAt: Timestamp.fromMillis(0),
+      });
+    });
+  });
+  const file = (author, name = '1.jpg') => `trips/t1/${author}/${name}`;
+  const bytes = (n) => 'x'.repeat(n);
+
+  test('a participant sends a photo and its thumbnail in their folder, and the followers see them', async () => {
+    const storage = storageAs(NEIGHBOUR);
+    await assertSucceeds(uploadString(ref(storage, file('adult3')), bytes(300 * 1024), 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storage, file('adult3', '1-thumb.jpg')), bytes(30 * 1024), 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storage, file('adult3', '30.jpg')), 'x', 'raw', jpeg));
+    await assertSucceeds(getBytes(ref(storageAs(ADULT), file('adult3'))));
+  });
+
+  test('nobody outside the followers reads them', async () => {
+    await uploadString(ref(storageAs(NEIGHBOUR), file('adult3')), 'x', 'raw', jpeg);
+    await assertFails(getBytes(ref(storageAs(OTHER_ADULT), file('adult3'))));
+    await assertFails(getBytes(ref(storageAs(STRANGER), file('adult3'))));
+    await assertFails(getBytes(ref(env.unauthenticatedContext().storage(), file('adult3'))));
+  });
+
+  test('only a participant, in their own folder, with one of the 30 places and a small JPEG', async () => {
+    await assertFails(uploadString(ref(storageAs(OTHER_ADULT), file('adult2')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storageAs(NEIGHBOUR), file('adult1')), 'x', 'raw', jpeg));
+    const storage = storageAs(NEIGHBOUR);
+    await assertFails(uploadString(ref(storage, file('adult3', '31.jpg')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, file('adult3', '0.jpg')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, file('adult3', 'a.jpg')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, file('adult3', '1.png')), 'x', 'raw', { contentType: 'image/png' }));
+    await assertFails(uploadString(ref(storage, file('adult3')), bytes(513 * 1024), 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, file('adult3', '1-thumb.jpg')), bytes(65 * 1024), 'raw', jpeg));
+  });
+
+  test('the author or the creator of the trip removes a photo, nobody else', async () => {
+    await uploadString(ref(storageAs(NEIGHBOUR), file('adult3')), 'x', 'raw', jpeg);
+    await uploadString(ref(storageAs(NEIGHBOUR), file('adult3', '2.jpg')), 'x', 'raw', jpeg);
+    await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), file('adult3'))));
+    await assertSucceeds(deleteObject(ref(storageAs(NEIGHBOUR), file('adult3'))));
+    await assertSucceeds(deleteObject(ref(storageAs(ADULT), file('adult3', '2.jpg'))));
   });
 });

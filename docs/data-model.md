@@ -420,7 +420,7 @@ Cloud Functions (`functions/src/helpRequests.ts`), qui ne préviennent que les p
 
 Une demande passée ne prévient personne, sauf pour le « Merci ». La sauvegarde de l'admin principal inclut les demandes (`helpRequests`).
 
-## Voyages (V3, récits 11 à 14)
+## Voyages (V3, récits 11 à 15)
 
 ### `trips/{tripId}`
 
@@ -464,10 +464,24 @@ La liste « À prévoir » du voyage (récit 13) : ce qu'il faut apporter ou ré
 
 Droits : les lecteurs du voyage lisent la liste. Les participants, enfants compris, ajoutent, cochent, modifient et retirent les lignes. L'admin principal peut retirer une ligne. La personne en charge est forcément un participant. La suppression du voyage supprime sa liste sur le serveur. Tests : `firebase/tests/trips.test.mjs`.
 
+### `trips/{tripId}/photos/{authorId}_{slot}`
+
+Les photos du voyage (récit 15). Chaque participant a 30 places, numérotées de 1 à 30. L'identifiant du document est l'auteur suivi de la place, par exemple `m1_7`. Ainsi, les règles limitent les photos à 30 par personne sans avoir à les compter.
+
+| Champ | Type | Description |
+|---|---|---|
+| `authorId`, `authorName` | texte | L'auteur et son prénom, gardé s'il quitte le voyage |
+| `slot` | entier de 1 à 30 | La place, la même que dans l'identifiant |
+| `createdAt` | horodatage serveur | Les photos s'affichent de la plus récente à la plus ancienne |
+
+Photos dans Storage : `trips/{tripId}/{authorId}/{slot}.jpg` (1600 px au plus, environ 300 Ko, 512 Ko au plus) et `{slot}-thumb.jpg` (400 px, environ 30 Ko, 64 Ko au plus), sans données EXIF, donc sans lieu. L'appli envoie les deux fichiers avant d'écrire le document. Si un envoi a été coupé, l'auteur peut renvoyer une place dont le document n'existe pas.
+
+Droits : les lecteurs du voyage voient les photos, dans Firestore comme dans Storage. Chaque participant, enfant compris, ajoute les siennes. L'auteur et le créateur du voyage les retirent, les fichiers d'abord, puis le document. L'admin principal peut aussi retirer le document. Une photo n'est jamais modifiée. Tests : `firebase/tests/trips.test.mjs` et `firebase/tests/storage.test.mjs`.
+
 ### Cloud Functions des voyages
 
 - `onTripStepUpdated` : au premier « bien arrivé » d'une étape, chaque lecteur qui a l'appli reçoit « Arrivée à Ajaccio », sauf celui qui l'a touché. Le texte nomme tous les participants, sans accorder « arrivé » à un prénom.
 - `arrivalReminder`, toutes les 30 minutes : les étapes dont `remindAt` est passé et qui n'ont pas de « bien arrivé ». Les participants qui ont l'appli reçoivent un rappel, puis `remindAt` est effacé pour qu'il ne parte qu'une fois. La famille n'est pas alertée. La requête porte sur tous les `steps` (index de groupe de collections dans `firestore.indexes.json`).
-- `onTripDeleted` : un voyage supprimé emporte ses étapes.
+- `onTripDeleted` : un voyage supprimé emporte ses étapes, sa liste, ses photos et leurs fichiers dans Storage (tout le dossier `trips/{tripId}/`).
 
 Les notifications des voyages portent `tripId` au lieu de `eventId` : un appui ouvre le voyage.

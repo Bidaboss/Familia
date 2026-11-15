@@ -9,6 +9,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import fr.familia.app.feature.trips.photos.rememberPhotoActions
+import fr.familia.app.feature.trips.photos.rememberTripAlbum
 
 /** Connects the trip view to its ViewModel. */
 @Composable
@@ -19,6 +21,7 @@ fun TripDetailRoute(
     onEditTrip: () -> Unit,
     onAddStep: () -> Unit,
     onEditStep: (stepId: String) -> Unit,
+    onSeePhotos: () -> Unit,
     onBack: () -> Unit,
 ) {
     val viewModel: TripDetailViewModel = viewModel(
@@ -36,6 +39,9 @@ fun TripDetailRoute(
             onDelete = viewModel::deleteItem,
         )
     }
+    val album = rememberTripAlbum(container, currentMember, tripId)
+    val photos by album.uiState.collectAsStateWithLifecycle()
+    val photoActions = rememberPhotoActions(album, onSeePhotos)
     TripDetailScreen(
         state = state,
         onRetry = viewModel::retry,
@@ -46,5 +52,7 @@ fun TripDetailRoute(
         onClearArrival = viewModel::clearArrival,
         onBack = onBack,
         checklist = checklist,
+        photos = photos,
+        photoActions = photoActions,
     )
 }

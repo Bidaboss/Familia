@@ -234,6 +234,8 @@ export const onTripStepUpdated = onDocumentUpdatedWithAuthContext('trips/{tripId
 
 export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) => {
   await deleteTripContents(getFirestore(), event.params.tripId);
+  // The photos of the trip and their thumbnails (récit 15), all under trips/{tripId}/.
+  await getStorage().bucket().deleteFiles({ prefix: `trips/${event.params.tripId}/` });
 });
 
 export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/Paris' }, async () => {
