@@ -35,6 +35,9 @@
     <string name="rsvp_summary_not_coming">Ne viennent pas (%1$d)</string>
     <string name="rsvp_summary_nobody">Personne pour l\'instant</string>
     <string name="planning_mode_month">Mois</string>
+    <string name="planning_scope_family">Toute la famille</string>
+    <string name="planning_scope_household">Mon foyer</string>
+    <string name="planning_scope_empty_body">Rien de prévu pour ton foyer. « Toute la famille » montre aussi les événements des autres foyers.</string>
     <string name="planning_month_previous">Mois précédent</string>
     <string name="planning_month_next">Mois suivant</string>
     <string name="planning_month_empty">Rien de prévu ce mois-ci.</string>
