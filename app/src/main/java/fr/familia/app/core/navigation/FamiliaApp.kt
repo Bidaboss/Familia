@@ -66,6 +66,7 @@ import fr.familia.app.feature.events.detail.EventDetailRoute
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.photo.LocalPhotoStorage
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.wishesListId
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.OfflineBanner
 import fr.familia.app.core.ui.rememberMemberPhotos
@@ -92,6 +93,19 @@ import fr.familia.app.feature.helprequests.list.HelpRequestsRoute
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import kotlinx.coroutines.flow.combine
+import fr.familia.app.feature.trips.TripDetailDestination
+import fr.familia.app.feature.trips.TripEditDestination
+import fr.familia.app.feature.trips.TripStepEditDestination
+import fr.familia.app.feature.trips.TripsDestination
+import fr.familia.app.feature.trips.detail.TripDetailRoute
+import fr.familia.app.feature.trips.edit.TripEditRoute
+import fr.familia.app.feature.trips.list.TripsRoute
+import fr.familia.app.feature.trips.step.StepEditRoute
+import androidx.compose.material.icons.outlined.CardTravel
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
 @Composable
@@ -111,6 +125,9 @@ fun FamiliaApp(
     /** The good news of a tapped notification, to open once. */
     openGoodNewsId: String? = null,
     onGoodNewsOpened: () -> Unit = {},
+    /** The trip of a tapped « bien arrivé » notification, to open once (V3). */
+    openTripId: String? = null,
+    onTripOpened: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
     // Each time the app opens, this phone is (re)registered for the notifications of this member.
@@ -151,6 +168,12 @@ fun FamiliaApp(
             onEventOpened()
         }
     }
+    LaunchedEffect(openTripId) {
+        if (openTripId != null) {
+            navController.navigate(TripDetailDestination(openTripId))
+            onTripOpened()
+        }
+    }
 
     // Lot 10: a newer version in config/app is offered above the tabs. The check runs each time the
     // app comes back on screen, even if it stayed open in the background: collection stops in the
@@ -176,7 +199,7 @@ fun FamiliaApp(
 
     // The Entraide tab and its entry points stay hidden while the module is off (PRD rév. 120).
     val helpRequestsOn = features.isOn(Feature.HelpRequests)
-    val tabs = TopLevelDestination.entries.filter { it != TopLevelDestination.HelpRequests || helpRequestsOn }
+    val tabs = TopLevelDestination.visible(features)
     // A notification of a coup de main opens it only once the module shows; otherwise it is dropped.
     LaunchedEffect(openHelpRequestId, helpRequestsOn) {
         if (openHelpRequestId != null && helpRequestsOn) {
@@ -225,9 +248,16 @@ fun FamiliaApp(
             topBar = {
                 // The tabs get a title bar, with the « ? » of their screen (spec « tuto et aide », récit 26).
                 val tab = TopLevelDestination.entries.firstOrNull { currentDestination.isOn(it) }
-                // Until the Accueil arrives, the Bonnes nouvelles open from the Planning bar (behind their module).
+                // Until the Accueil arrives, the Bonnes nouvelles and the trips open from the Planning bar,
+                // each behind its module.
                 val onGoodNews = if (goodNewsOn) ({ navController.navigate(GoodNewsFeedDestination) }) else null
-                if (tab != null) TabTopBar(tab, currentMember, onGoodNews)
+                if (tab != null) {
+                    TabTopBar(
+                        tab, currentMember,
+                        onOpenTrips = { navController.navigate(TripsDestination) { launchSingleTop = true } },
+                        onGoodNews = onGoodNews,
+                    )
+                }
             },
             bottomBar = {
                 if (onTab) NavigationBar {
@@ -272,6 +302,60 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             onAddEvent = { navController.navigate(EventEditDestination()) },
                             onOpenEvent = { id -> navController.navigate(EventDetailDestination(id)) },
+                            onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
+                        )
+                    }
+                    // Trips (V3): no tab (carte DESIGN-4), they open from the planning.
+                    composable<TripsDestination> {
+                        TripsRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
+                            onAddTrip = { navController.navigate(TripEditDestination()) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<TripDetailDestination> { entry ->
+                        val tripId = entry.toRoute<TripDetailDestination>().tripId
+                        TripDetailRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            tripId = tripId,
+                            onEditTrip = { navController.navigate(TripEditDestination(tripId)) },
+                            onAddStep = { navController.navigate(TripStepEditDestination(tripId)) },
+                            onEditStep = { stepId -> navController.navigate(TripStepEditDestination(tripId, stepId)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<TripEditDestination> { entry ->
+                        val tripId = entry.toRoute<TripEditDestination>().tripId
+                        TripEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            tripId = tripId,
+                            onSaved = { savedId ->
+                                if (tripId == null) {
+                                    // A new trip opens at once, in place of its form.
+                                    navController.navigate(TripDetailDestination(savedId)) {
+                                        popUpTo<TripEditDestination> { inclusive = true }
+                                    }
+                                } else {
+                                    navController.popBackStack()
+                                }
+                            },
+                            // The trip is gone: back past its view too.
+                            onDeleted = { navController.popBackStack<TripDetailDestination>(inclusive = true) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<TripStepEditDestination> { entry ->
+                        val route = entry.toRoute<TripStepEditDestination>()
+                        StepEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            tripId = route.tripId,
+                            stepId = route.stepId,
+                            onDone = { navController.popBackStack() },
                         )
                     }
                     composable<EventDetailDestination> { entry ->
@@ -410,6 +494,11 @@ fun FamiliaApp(
                             onOpenAdministration = { navController.navigate(AdministrationDestination) },
                             onOpenUpdates = { navController.navigate(UpdateCheckDestination) },
                             onOpenHelp = { navController.navigate(HelpDestination) },
+                            onOpenWishes = if (features.isOn(Feature.Gifts)) {
+                                { id -> navController.navigate(GiftListDestination(wishesListId(id))) }
+                            } else {
+                                null
+                            },
                         )
                     }
                     composable<HelpDestination> {
@@ -458,7 +547,7 @@ fun FamiliaApp(
 /** Title bar of a tab, with its « ? » where the spec has one. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TabTopBar(tab: TopLevelDestination, member: Member, onGoodNews: (() -> Unit)? = null) {
+private fun TabTopBar(tab: TopLevelDestination, member: Member, onOpenTrips: () -> Unit = {}, onGoodNews: (() -> Unit)? = null) {
     TopAppBar(
         // The Entraide tab keeps the full name « Coups de main » as its title (DESIGN-4).
         title = { Text(stringResource(if (tab == TopLevelDestination.HelpRequests) R.string.helprequest_screen_title else tab.labelFor(member))) },
@@ -468,6 +557,15 @@ private fun TabTopBar(tab: TopLevelDestination, member: Member, onGoodNews: (() 
                     if (onGoodNews != null) {
                         IconButton(onClick = onGoodNews, modifier = Modifier.size(56.dp)) {
                             Icon(Icons.Outlined.Celebration, contentDescription = stringResource(R.string.goodnews_open_feed))
+                        }
+                    }
+                    // Trips have no tab (carte DESIGN-4): until the Accueil tab, they open from here,
+                    // once the module is switched on in Administration.
+                    if (LocalFeatureFlags.current.isOn(Feature.Trips)) {
+                        TextButton(onClick = onOpenTrips, modifier = Modifier.heightIn(min = 56.dp)) {
+                            Icon(Icons.Outlined.CardTravel, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.trips_title))
                         }
                     }
                     HelpButton(ScreenHelp.Planning)

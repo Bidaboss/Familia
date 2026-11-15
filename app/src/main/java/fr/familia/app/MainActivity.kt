@@ -26,6 +26,8 @@ class MainActivity : ComponentActivity() {
 
     /** The good news of a tapped notification. */
     private val openGoodNewsId = mutableStateOf<String?>(null)
+    /** The trip of a tapped « bien arrivé » notification (V3). */
+    private val openTripId = mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +37,7 @@ class MainActivity : ComponentActivity() {
             openListId.value = intent.listId()
             openHelpRequestId.value = intent.helpRequestId()
             openGoodNewsId.value = intent.goodNewsId()
+            openTripId.value = intent.tripId()
         }
         val app = application as FamiliaApplication
         val container = app.container
@@ -44,6 +47,7 @@ class MainActivity : ComponentActivity() {
             val listToOpen by openListId
             val helpRequestToOpen by openHelpRequestId
             val goodNewsToOpen by openGoodNewsId
+            val tripToOpen by openTripId
             FamiliaTheme {
                 SessionRoute(container = container) { member ->
                     FamiliaApp(
@@ -58,6 +62,8 @@ class MainActivity : ComponentActivity() {
                         onHelpRequestOpened = { openHelpRequestId.value = null },
                         openGoodNewsId = goodNewsToOpen,
                         onGoodNewsOpened = { openGoodNewsId.value = null },
+                        openTripId = tripToOpen,
+                        onTripOpened = { openTripId.value = null },
                     )
                 }
             }
@@ -71,6 +77,7 @@ class MainActivity : ComponentActivity() {
         intent.listId()?.let { openListId.value = it }
         intent.helpRequestId()?.let { openHelpRequestId.value = it }
         intent.goodNewsId()?.let { openGoodNewsId.value = it }
+        intent.tripId()?.let { openTripId.value = it }
     }
 
     private fun Intent.eventId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_EVENT_ID)
@@ -80,4 +87,5 @@ class MainActivity : ComponentActivity() {
     private fun Intent.helpRequestId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_HELP_REQUEST_ID)
 
     private fun Intent.goodNewsId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_GOOD_NEWS_ID)
+    private fun Intent.tripId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_TRIP_ID)
 }

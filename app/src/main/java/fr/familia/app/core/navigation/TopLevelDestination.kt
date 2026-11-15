@@ -15,6 +15,8 @@ import fr.familia.app.R
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import kotlinx.serialization.Serializable
+import fr.familia.app.core.model.FeatureFlags
+import fr.familia.app.core.model.Feature
 
 /** Type-safe routes of the three tabs. */
 @Serializable
@@ -108,10 +110,12 @@ enum class TopLevelDestination(
     @StringRes val labelRes: Int,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
+    /** The module that hides the tab while it is switched off (null: always shown). */
+    val feature: Feature? = null,
 ) {
     Planning(PlanningRoute, R.string.nav_planning, Icons.Filled.CalendarMonth, Icons.Outlined.CalendarMonth),
-    Gifts(GiftsRoute, R.string.nav_gifts, Icons.Filled.CardGiftcard, Icons.Outlined.CardGiftcard),
-    HelpRequests(HelpRequestsRoute, R.string.nav_help_requests, Icons.Filled.VolunteerActivism, Icons.Outlined.VolunteerActivism),
+    Gifts(GiftsRoute, R.string.nav_gifts, Icons.Filled.CardGiftcard, Icons.Outlined.CardGiftcard, Feature.Gifts),
+    HelpRequests(HelpRequestsRoute, R.string.nav_help_requests, Icons.Filled.VolunteerActivism, Icons.Outlined.VolunteerActivism, Feature.HelpRequests),
     Members(MembersRoute, R.string.nav_members, Icons.Filled.Groups, Icons.Outlined.Groups),
     ;
 
@@ -123,5 +127,8 @@ enum class TopLevelDestination(
     companion object {
         /** The app always opens on the planning. */
         val start: TopLevelDestination = Planning
+
+        /** The tabs of the bar: those of the modules switched off stay hidden. */
+        fun visible(flags: FeatureFlags): List<TopLevelDestination> = entries.filter { it.feature?.let(flags::isOn) ?: true }
     }
 }
