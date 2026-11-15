@@ -52,6 +52,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
@@ -76,6 +77,9 @@ fun AdministrationScreen(
     modifier: Modifier = Modifier,
     actionFailed: Boolean = false,
     onFailureShown: () -> Unit = {},
+    /** Modules switched on for the family (config/app.features); the others stay in test. */
+    features: Map<String, Boolean> = emptyMap(),
+    onSetFeature: ((Feature, Boolean) -> Unit)? = null,
 ) {
     Scaffold(
         modifier = modifier,
@@ -104,7 +108,8 @@ fun AdministrationScreen(
                     title = stringResource(R.string.administration_not_allowed_title),
                     body = stringResource(R.string.administration_not_allowed_body),
                 )
-                is AdministrationUiState.Ready -> ReadyContent(state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport)
+                is AdministrationUiState.Ready ->
+                    ReadyContent(state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport, features, onSetFeature)
             }
         }
     }
@@ -129,6 +134,8 @@ private fun ReadyContent(
     onAddHousehold: (String) -> Unit,
     onDeleteHousehold: (Household) -> Unit,
     onOpenExport: () -> Unit,
+    features: Map<String, Boolean>,
+    onSetFeature: ((Feature, Boolean) -> Unit)?,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
     var deleting by rememberSaveable { mutableStateOf<String?>(null) }
@@ -149,6 +156,15 @@ private fun ReadyContent(
                 onClick = { adding = true },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).heightIn(min = 56.dp),
             ) { Text(stringResource(R.string.administration_household_add)) }
+        }
+        if (onSetFeature != null) {
+            item(key = "features-title") {
+                HorizontalDivider(Modifier.padding(top = 8.dp))
+                SectionTitle(R.string.administration_features_title, R.string.administration_features_help)
+            }
+            items(Feature.entries, key = { "feature-${it.key}" }) { feature ->
+                FeatureSwitchRow(feature, on = features[feature.key] == true, onSetFeature = onSetFeature)
+            }
         }
         item(key = "backup") {
             HorizontalDivider(Modifier.padding(top = 8.dp))
@@ -238,6 +254,29 @@ private fun AdultSwitchRow(row: AdultRow, onSetChef: (Member, Boolean) -> Unit) 
             )
         }
         if (!row.isOwner) Switch(checked = member.isAdmin, onCheckedChange = null)
+    }
+}
+
+/** One module: on, the whole family sees it; off, only the admin principal does, to try it. */
+@Composable
+private fun FeatureSwitchRow(feature: Feature, on: Boolean, onSetFeature: (Feature, Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(on, role = Role.Switch) { onSetFeature(feature, it) }
+            .heightIn(min = 56.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(stringResource(feature.labelRes), style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(if (on) R.string.administration_feature_on else R.string.administration_feature_off),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Switch(checked = on, onCheckedChange = null)
     }
 }
 
@@ -331,6 +370,8 @@ private fun AdministrationScreenPreview() {
                 onAddHousehold = {},
                 onDeleteHousehold = {},
                 onOpenExport = {},
+                features = mapOf("gifts" to true),
+                onSetFeature = { _, _ -> },
             )
         }
     }
