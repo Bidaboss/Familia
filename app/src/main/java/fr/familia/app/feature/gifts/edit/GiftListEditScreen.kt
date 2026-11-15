@@ -65,6 +65,8 @@ import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.feature.gifts.occasionLabel
+import fr.familia.app.feature.help.HelpButton
+import fr.familia.app.feature.help.ScreenHelp
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -107,6 +109,7 @@ fun GiftListEditScreen(
                     )
                 },
                 navigationIcon = { BackButton(onClick = { if (hasChanges) confirmLeave = true else onBack() }) },
+                actions = { HelpButton(ScreenHelp.GiftListEdit) },
             )
         },
     ) { padding ->
