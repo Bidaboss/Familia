@@ -4,7 +4,7 @@
   "description": "Security rules tests and Cloud Functions tests for Familia, run against the Firestore emulator",
   "scripts": {
     "test": "node --test --test-concurrency=1 tests/*.test.mjs",
-    "test:emulator": "firebase emulators:exec --only firestore,storage --project demo-familia \"npm test\"",
+    "test:emulator": "firebase emulators:exec --only firestore --project demo-familia \"npm test\"",
     "test:functions": "npm --prefix functions run build && firebase emulators:exec --only firestore --project demo-familia \"npm --prefix functions test\""
   },
   "devDependencies": {

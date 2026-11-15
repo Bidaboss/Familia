@@ -56,5 +56,5 @@ jobs:
           trap 'rm -f "$key"' EXIT
           printf '%s' "$FIREBASE_SECRET_ACCOUNT" > "$key"
           GOOGLE_APPLICATION_CREDENTIALS="$key" npx firebase deploy \
-            --only firestore:rules,firestore:indexes,storage,functions \
+            --only firestore:rules,firestore:indexes,functions \
             --non-interactive

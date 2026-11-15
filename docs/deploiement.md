@@ -33,7 +33,6 @@ Ces étapes ont été faites pour le projet `familia-93286` le 14/11/2026. Il fa
 2. Dans GitHub, ouvre l'onglet **Actions**, puis **Publier Firebase**, puis **Run workflow** sur la branche `main`.
 3. Attends la coche verte, environ 5 minutes la première fois.
 
-- Les règles de Storage (`storage.rules`) partent avec le reste. Storage doit avoir été activé une fois dans la console (voir `firebase-setup.md`, étape 6), sinon la publication échoue avec « Firebase Storage has not been set up ».
 - Les fonctions tournent en **Europe (europe-west1)**. C'est réglé dans le code (`functions/src/index.ts`).
 - Au premier déploiement, Firebase active lui-même les services nécessaires (Cloud Functions, Cloud Build, Cloud Scheduler pour le rappel de 18 h). S'il échoue en signalant une API pas encore activée, attends 2 minutes et relance.
 
