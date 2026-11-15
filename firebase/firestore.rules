@@ -362,6 +362,160 @@ service cloud.firestore {
         && request.resource.data.dayBeforeReminder is bool;
     }
 
+    // --- Coups de main (PRD, récits 13 à 18) ---------------------------------------------------------
+
+    // A day AAAA-MM-JJ as a timestamp at midnight UTC.
+    function helpDay(d) {
+      return timestamp.date(int(d[0:4]), int(d[5:7]), int(d[8:10]));
+    }
+
+    // Not in the past. One day of slack covers the gap between Paris and UTC.
+    function isHelpDayAhead(d) {
+      return helpDay(d) > request.time - duration.value(1, 'd');
+    }
+
+    function isHelpTime(t) {
+      return t == null || (t is string && t.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$'));
+    }
+
+    // Who the request is for: the author, or one of their children for an adult. The admin
+    // principal asks for anyone.
+    function canAskFor(memberId) {
+      return memberId == myMemberId()
+        || isOwner()
+        || (me().profile == 'adult' && isParentOf(memberId));
+    }
+
+    // Only the author, the people warned and the responsible adults of a helped child see a
+    // request (carte PRODUIT-8). viewerIds is the author followed by notifyIds, so the app can
+    // query it with array-contains. The responsible adults of a child are always in notifyIds (récit 14), except
+    // the author.
+    function hasValidAudience(r) {
+      return r.notifyIds is list
+        && r.notifyIds.size() > 0 && r.notifyIds.size() <= 30
+        && !(r.authorId in r.notifyIds)
+        && r.viewerIds == [r.authorId].concat(r.notifyIds)
+        && (get(memberPath(r.forMemberId)).data.profile == 'adult'
+            || r.viewerIds.hasAll(get(memberPath(r.forMemberId)).data.parentIds));
+    }
+
+    // The 19 fields exactly: hasAll plus the size, cheaper than hasAll plus hasOnly against the
+    // limit of 1000 expressions per request.
+    function isValidHelpRequest(r) {
+      return r.keys().hasAll(['kind', 'title', 'date', 'startTime', 'endTime', 'place', 'note', 'authorId',
+                              'authorName', 'forMemberId', 'notifyIds', 'viewerIds', 'status', 'volunteerId',
+                              'volunteerName', 'declinedBy', 'thankedAt', 'createdAt', 'updatedAt'])
+        && r.keys().size() == 19
+        && r.kind in ['childcare', 'ride', 'other']
+        && r.title is string && r.title.size() > 0 && r.title.size() <= 80
+        && isDay(r.date)
+        && isHelpTime(r.startTime) && isHelpTime(r.endTime)
+        && (r.startTime == null || r.endTime == null || r.startTime < r.endTime)
+        && (r.place == null || (r.place is string && r.place.size() <= 120))
+        && (r.note == null || (r.note is string && r.note.size() <= 1000))
+        && r.authorName is string && r.authorName.size() > 0 && r.authorName.size() <= 40
+        && r.forMemberId is string && exists(memberPath(r.forMemberId))
+        && r.status in ['open', 'taken', 'cancelled']
+        && (r.declinedBy == null || r.declinedBy is string)
+        && r.updatedAt == request.time
+        && hasValidAudience(r);
+    }
+
+    // Modify or cancel (Règles et droits): the admin principal all requests, anyone their own, an
+    // adult those for or by their children.
+    function canManageHelp(r) {
+      return isOwner()
+        || r.authorId == myMemberId()
+        || (me().profile == 'adult' && (isParentOf(r.authorId) || isParentOf(r.forMemberId)));
+    }
+
+    function helpChanges(fields) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields.concat(['updatedAt']))
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    // « Je m'en occupe »: an adult who was warned takes an open request, never their own. The app
+    // writes it in a transaction, so of two volunteers at once only the first one wins.
+    function isHelpTake() {
+      return resource.data.status == 'open'
+        && request.resource.data.status == 'taken'
+        && helpChanges(['status', 'volunteerId', 'volunteerName'])
+        && request.resource.data.volunteerId == myMemberId()
+        && myMemberId() in resource.data.notifyIds
+        && me().profile == 'adult'
+        && request.resource.data.volunteerName == me().firstName;
+    }
+
+    // The volunteer withdraws: the request is open again.
+    function isHelpWithdraw() {
+      return resource.data.status == 'taken'
+        && request.resource.data.status == 'open'
+        && helpChanges(['status', 'volunteerId', 'volunteerName'])
+        && resource.data.volunteerId == myMemberId()
+        && request.resource.data.volunteerId == null
+        && request.resource.data.volunteerName == null;
+    }
+
+    // « Je ne peux pas » (carte PRODUIT-22): only when the request was sent to one person.
+    function isHelpDecline() {
+      return resource.data.status == 'open'
+        && resource.data.declinedBy == null
+        && resource.data.notifyIds.size() == 1
+        && helpChanges(['declinedBy'])
+        && resource.data.notifyIds[0] == myMemberId()
+        && request.resource.data.declinedBy == myMemberId();
+    }
+
+    // « Merci », once, by whoever manages a request that was taken.
+    function isHelpThanks() {
+      return resource.data.status == 'taken'
+        && resource.data.thankedAt == null
+        && helpChanges(['thankedAt'])
+        && request.resource.data.thankedAt == request.time
+        && canManageHelp(resource.data);
+    }
+
+    // Modify, widen to other people or cancel. The author, the person helped, the volunteer and
+    // the creation time never change; the volunteer stays among the people warned; a new date is
+    // not in the past; widening clears a « Je ne peux pas ». A cancelled request stays cancelled.
+    function isHelpEdit() {
+      return resource.data.status != 'cancelled'
+        && request.resource.data.status in [resource.data.status, 'cancelled']
+        && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['authorId', 'authorName', 'forMemberId', 'volunteerId', 'volunteerName', 'thankedAt', 'createdAt'])
+        && request.resource.data.declinedBy in [resource.data.declinedBy, null]
+        && (resource.data.volunteerId == null || resource.data.volunteerId in request.resource.data.notifyIds)
+        && (request.resource.data.date == resource.data.date || isHelpDayAhead(request.resource.data.date))
+        && canManageHelp(resource.data)
+        && isValidHelpRequest(request.resource.data);
+    }
+
+    // helpRequests/{requestId}. One update rule; each case starts with the cheap checks that tell
+    // the cases apart, which keeps a write far from the limit of 1000 expressions per request.
+    match /helpRequests/{requestId} {
+      // The admin principal reads them all (backup, and « Modifier : toutes »); the tab only lists
+      // the requests where one is in viewerIds.
+      allow read: if isMember() && (myMemberId() in resource.data.viewerIds || isOwner());
+
+      allow create: if isMember()
+        && isValidHelpRequest(request.resource.data)
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && canAskFor(request.resource.data.forMemberId)
+        && isHelpDayAhead(request.resource.data.date)
+        && request.resource.data.status == 'open'
+        && request.resource.data.volunteerId == null
+        && request.resource.data.volunteerName == null
+        && request.resource.data.declinedBy == null
+        && request.resource.data.thankedAt == null
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if isMember()
+        && (isHelpTake() || isHelpWithdraw() || isHelpDecline() || isHelpThanks() || isHelpEdit());
+
+      allow delete: if isMember() && canManageHelp(resource.data);
+    }
+
     // --- Listes et cadeaux (V2) -------------------------------------------------------------------
     //
     // PRD, récits 7 à 10 bis. The surprise is kept by the server, not by the app: the beneficiary
