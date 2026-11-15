@@ -18,7 +18,7 @@ import {
   HelpNotice, HelpRequestData, HelpSender, onHelpRequestWritten, reopenRequestsOf, sendStillOpenReminders,
 } from './helpRequests';
 import { EventData, hasVisibleChange, Notice } from './logic';
-import { deleteEventAnswers, deleteMemberData, notifyChange, Sender, sendDayBeforeReminders } from './store';
+import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, notifyChange, Sender, sendDayBeforeReminders } from './store';
 
 initializeApp();
 
@@ -60,14 +60,23 @@ export const onEventUpdated = onDocumentUpdatedWithAuthContext('events/{eventId}
   const before = event.data?.before.data() as EventData | undefined;
   const after = event.data?.after.data() as EventData | undefined;
   if (!before || !after || !hasVisibleChange(before, after)) return;
-  await notifyChange(getFirestore(), send, 'edited', event.params.eventId, after, actorUid(event), new Date());
+  const db = getFirestore();
+  const members = await loadMembers(db);
+  const answered = await comingMembers(db, event.params.eventId, members);
+  await notifyChange(db, send, 'edited', event.params.eventId, after, actorUid(event), new Date(), answered, members);
 });
 
 export const onEventDeleted = onDocumentDeletedWithAuthContext('events/{eventId}', async (event) => {
   const db = getFirestore();
-  await deleteEventAnswers(db, event.params.eventId);
   const data = event.data?.data() as EventData | undefined;
-  if (data) await notifyChange(db, send, 'deleted', event.params.eventId, data, actorUid(event), new Date());
+  // The answers are read first: those who were coming are told, then the answers go.
+  try {
+    const members = await loadMembers(db);
+    const answered = await comingMembers(db, event.params.eventId, members);
+    if (data) await notifyChange(db, send, 'deleted', event.params.eventId, data, actorUid(event), new Date(), answered, members);
+  } finally {
+    await deleteEventAnswers(db, event.params.eventId);
+  }
 });
 
 export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (event) => {

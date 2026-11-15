@@ -3,7 +3,7 @@
 // concerned are told (AVIS-7): never the whole family.
 
 import type { Firestore } from 'firebase-admin/firestore';
-import { addDays, formatDay, formatTime, parisDay } from './logic';
+import { addDays, formatDay, formatTime, parisDay, type Channel } from './logic';
 
 export interface HelpRequestData {
   kind: 'childcare' | 'ride' | 'other';
@@ -31,7 +31,8 @@ export interface HelpMember {
 }
 
 export interface HelpNotice {
-  channel: 'events' | 'reminders';
+  /** `helpRequests` (Entraide); the reminder of the evening before stays on `reminders`. */
+  channel: Channel;
   title: string;
   body: string;
   helpRequestId: string;
@@ -65,7 +66,7 @@ function unique(ids: string[], except: (string | null | undefined)[], members: H
 }
 
 function message(id: string, recipientIds: string[], title: string, body: string): HelpMessage[] {
-  return recipientIds.length === 0 ? [] : [{ recipientIds, notice: { channel: 'events', title, body, helpRequestId: id } }];
+  return recipientIds.length === 0 ? [] : [{ recipientIds, notice: { channel: 'helpRequests', title, body, helpRequestId: id } }];
 }
 
 function askedNotice(id: string, r: HelpRequestData, recipients: string[], members: HelpMember[]): HelpMessage[] {
