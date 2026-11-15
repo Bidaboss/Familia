@@ -30,8 +30,12 @@ android {
         applicationId = "fr.familia.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        // The workflow « APK de publication » numbers each release by itself (docs/mise-a-jour.md):
+        // versionCode is the number of commits on main, so it always goes up, and versionName adds
+        // it to the base below (« 0.2.57 »). Change the base only to mark a milestone.
+        val releaseCode = (findProperty("familiaVersionCode") as String?)?.toInt()
+        versionCode = releaseCode ?: 1
+        versionName = if (releaseCode != null) "0.2.$releaseCode" else "0.2.0-dev"
         // The Drive folder where Kévin puts each new APK (DEV-6). It is in the invitation and behind
         // the "Mettre à jour" button. Not a secret: the APK holds no family data.
         buildConfigField("String", "DOWNLOAD_URL", "\"https://drive.google.com/drive/folders/1oKY86bvVPm4xd4mZVhHlsoG8DLSjdxLY\"")

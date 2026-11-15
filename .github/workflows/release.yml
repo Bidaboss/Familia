@@ -1,8 +1,9 @@
 name: APK de publication
 
-# Run by hand from the Actions tab ("Run workflow"), once the version number has been raised in
-# app/build.gradle.kts and merged into main (docs/mise-a-jour.md). Only this workflow sees the
-# release key; pull requests never do.
+# Run by hand from the Actions tab ("Run workflow"), from main (docs/mise-a-jour.md). It numbers
+# the version by itself, builds and signs the APK, replaces the APK of the family's Drive folder,
+# then announces the version in config/app: everyone sees « Nouvelle version disponible ».
+# Only this workflow sees the release key; pull requests never do.
 on:
   workflow_dispatch:
 
@@ -28,6 +29,16 @@ jobs:
           exit 1
 
       - uses: actions/checkout@v4
+        with:
+          # The whole history of main, to count its commits.
+          fetch-depth: 0
+
+      # One more commit on main, one more version: never twice the same number, nothing to edit.
+      - name: Number the version
+        run: |
+          code=$(git rev-list --count HEAD)
+          echo "VERSION_CODE=$code" >> "$GITHUB_ENV"
+          echo "Version numéro $code"
 
       - name: Check that everything needed is there
         env:
@@ -35,9 +46,10 @@ jobs:
           FAMILIA_KEYSTORE_PASSWORD: ${{ secrets.FAMILIA_KEYSTORE_PASSWORD }}
           FAMILIA_KEY_ALIAS: ${{ secrets.FAMILIA_KEY_ALIAS }}
           FAMILIA_KEY_PASSWORD: ${{ secrets.FAMILIA_KEY_PASSWORD }}
+          FIREBASE_SECRET_ACCOUNT: ${{ secrets.FIREBASE_SECRET_ACCOUNT }}
         run: |
           missing=0
-          for name in FAMILIA_KEYSTORE_BASE64 FAMILIA_KEYSTORE_PASSWORD FAMILIA_KEY_ALIAS FAMILIA_KEY_PASSWORD; do
+          for name in FAMILIA_KEYSTORE_BASE64 FAMILIA_KEYSTORE_PASSWORD FAMILIA_KEY_ALIAS FAMILIA_KEY_PASSWORD FIREBASE_SECRET_ACCOUNT; do
             if [ -z "${!name}" ]; then
               echo "::error::Le secret GitHub $name manque (Settings, Secrets and variables, Actions)."
               missing=1
@@ -68,7 +80,7 @@ jobs:
           FAMILIA_KEYSTORE_PASSWORD: ${{ secrets.FAMILIA_KEYSTORE_PASSWORD }}
           FAMILIA_KEY_ALIAS: ${{ secrets.FAMILIA_KEY_ALIAS }}
           FAMILIA_KEY_PASSWORD: ${{ secrets.FAMILIA_KEY_PASSWORD }}
-        run: ./gradlew --no-daemon assembleRelease
+        run: ./gradlew --no-daemon assembleRelease -PfamiliaVersionCode="$VERSION_CODE"
 
       - name: Check the signature and name the file
         run: |
@@ -79,7 +91,10 @@ jobs:
           fi
           apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)
           "$apksigner" verify --print-certs "$apk" | tee signature.txt
-          version=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
+          aapt=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -n 1)
+          version=$("$aapt" dump badging "$apk" | grep -oP "versionName='\K[^']+")
+          echo "VERSION_NAME=$version" >> "$GITHUB_ENV"
+          echo "APK_PATH=$PWD/out/familia-$version.apk" >> "$GITHUB_ENV"
           mkdir -p out
           cp "$apk" "out/familia-$version.apk"
           {
@@ -88,7 +103,8 @@ jobs:
             echo '```'
             grep "SHA-256" signature.txt
             echo '```'
-            echo "Télécharge l'artefact **familia-apk** ci-dessous, puis dépose familia-$version.apk dans le dossier Drive."
+            echo "L'APK est déposé dans le dossier Drive et annoncé à la famille (étape « Publish to the family »)."
+            echo "Il reste aussi téléchargeable dans l'artefact **familia-apk** ci-dessous."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove the key from the runner
@@ -101,3 +117,26 @@ jobs:
           name: familia-apk
           path: out/*.apk
           retention-days: 30
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: firebase/functions/package-lock.json
+
+      - run: npm ci
+        working-directory: firebase/functions
+
+      # The Drive folder comes from DOWNLOAD_URL, the link already in the app and the invitation.
+      - name: Publish to the family
+        working-directory: firebase/functions
+        env:
+          FIREBASE_SECRET_ACCOUNT: ${{ secrets.FIREBASE_SECRET_ACCOUNT }}
+        run: |
+          key="$RUNNER_TEMP/firebase-key.json"
+          trap 'rm -f "$key"' EXIT
+          printf '%s' "$FIREBASE_SECRET_ACCOUNT" > "$key"
+          FOLDER_ID=$(grep -oP 'drive/folders/\K[A-Za-z0-9_-]+' ../../app/build.gradle.kts)
+          PROJECT_ID=$(node -p "JSON.parse(require('fs').readFileSync('../.firebaserc', 'utf8')).projects.default")
+          FOLDER_ID="$FOLDER_ID" PROJECT_ID="$PROJECT_ID" GOOGLE_APPLICATION_CREDENTIALS="$key" \
+            node scripts/publish-release.mjs
