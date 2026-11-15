@@ -221,7 +221,7 @@ Requêtes de l'appli, toutes acceptées par les règles : `viewerIds array-conta
 
 - **Lire** : ceux qui voient la liste. Le bénéficiaire ne lit que `visibleToBeneficiary == true` (l'appli filtre sa requête ainsi) jusqu'à la révélation.
 - **Ajouter** : ceux qui voient la liste, tant qu'elle n'est pas révélée.
-- **Modifier, supprimer** : l'auteur, tant que l'article n'est pas réservé. Exception : le côté du bénéficiaire peut toujours modifier ou retirer ses propres articles, car un refus lui apprendrait que l'article est réservé. La Cloud Function prévient alors le réservant (PR des fonctions).
+- **Modifier, supprimer** : l'auteur, tant que l'article n'est pas réservé et que la liste n'est pas révélée. Exception : le côté du bénéficiaire peut toujours modifier ou retirer ses propres articles, car un refus lui apprendrait que l'article est réservé. La Cloud Function prévient alors le réservant (PR des fonctions).
 
 ### `giftLists/{listId}/claims/{itemId}`
 
@@ -235,7 +235,7 @@ La réservation d'un article. Son identifiant est celui de l'article, donc un ar
 
 - **Lire** : ceux qui voient la liste, sauf le bénéficiaire avant la révélation.
 - **Réserver** : ceux qui voient la liste, sauf le bénéficiaire. Un enfant réserve seul, jamais en cadeau commun (carte PRODUIT-19).
-- **Relâcher** : le réservant seulement. Les parts d'un cadeau commun relâché sont effacées par une Cloud Function.
+- **Relâcher** : le réservant seulement, tant que la liste n'est pas révélée. Les parts d'un cadeau commun relâché sont effacées par une Cloud Function.
 
 ### `giftLists/{listId}/claims/{itemId}/shares/{memberId}`
 
@@ -252,5 +252,18 @@ Une part d'un cadeau commun, une par adulte. Aucun paiement ne passe par l'appli
 - **Rejoindre** : un adulte qui voit la liste, pour lui-même, sur un cadeau commun.
 - **Modifier** : le membre change son montant ; le responsable marque la part reçue ou non. Personne d'autre.
 - **Retirer** : le membre ou le responsable.
+
+### Cloud Functions des cadeaux (`firebase/functions/src/gifts.ts`)
+
+| Fonction | Quand | Ce qu'elle fait |
+|---|---|---|
+| `revealGifts` | Chaque jour à 7 h, heure de Paris | Passe `revealed` à vrai pour les listes dont l'occasion est passée (pas « Mes envies »), et prévient leur bénéficiaire s'il a l'appli (PRD, récit 10 bis) |
+| `birthdayGiftReminders` | Chaque jour à 10 h, heure de Paris | À J-21 d'un anniversaire, prévient tous les adultes sauf le fêté, avec ses envies. À J-14, recommence si aucun article de ses listes n'est réservé (récit 10) |
+| `onGiftItemWritten` | Un article est modifié ou supprimé | S'il était réservé, prévient le réservant et les participants (jamais le bénéficiaire). Une suppression efface aussi la réservation et ses parts |
+| `onGiftClaimDeleted` | Une réservation est relâchée | Efface les parts du cadeau commun |
+| `onGiftListDeleted` | Une liste est supprimée | Efface ses articles, réservations et parts |
+| `onMemberDeletedGifts` | Un membre est retiré | Efface les listes dont il est le bénéficiaire |
+
+Une notification des cadeaux porte `listId` dans ses données à la place de `eventId`. Le bénéficiaire ne reçoit jamais de notification sur ses cadeaux, sauf celle de la révélation.
 
 Limite connue : les règles ne vérifient pas que chaque identifiant de `viewerIds` est un membre (cela coûterait une lecture par personne). L'appli ne propose que des membres de la famille.

@@ -52,7 +52,7 @@ fun formatEuros(amount: Double): String {
 
 /** Reads « 29,90 », « 29.9 » or « 30 € » typed by a member; null when it is not an amount. */
 fun parseEuros(text: String): Double? {
-    val cleaned = text.replace("€", "").replace(' ', ' ').replace(" ", "").replace(',', '.').trim()
+    val cleaned = text.replace("€", "").replace('\u00A0', ' ').replace('\u202F', ' ').replace(" ", "").replace(',', '.').trim()
     if (cleaned.isEmpty()) return null
     return cleaned.toDoubleOrNull()?.takeIf { it >= 0 && !it.isNaN() && !it.isInfinite() }
 }

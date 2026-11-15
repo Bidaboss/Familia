@@ -125,8 +125,8 @@ class GiftListViewModel(
         val list = stored ?: emptyWishes(family, me) ?: return flowOf(GiftListUiState.Missing)
         val beneficiary = family.members.firstOrNull { it.id == list.beneficiaryId } ?: return flowOf(GiftListUiState.Missing)
         val kept = isKeptFrom(list, me)
-        val items = if (stored == null) flowOf(emptyList()) else repo.observeItems(list.id, hiddenFromMe = kept)
-        val claims = if (stored == null || kept) flowOf(emptyList()) else repo.observeClaims(list.id)
+        val items = if (stored == null) flowOf(emptyList<GiftItem>()) else repo.observeItems(list.id, hiddenFromMe = kept)
+        val claims = if (stored == null || kept) flowOf(emptyList<GiftClaim>()) else repo.observeClaims(list.id)
         val shares = claims
             .map { all -> all.filter { it.type == ClaimType.Shared }.map { it.itemId }.sorted() }
             .distinctUntilChanged()

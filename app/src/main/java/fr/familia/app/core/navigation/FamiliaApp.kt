@@ -77,6 +77,9 @@ fun FamiliaApp(
     /** The event of a tapped notification, to open once. */
     openEventId: String? = null,
     onEventOpened: () -> Unit = {},
+    /** The gift list of a tapped notification, to open once (V2). */
+    openListId: String? = null,
+    onListOpened: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
     // Each time the app opens, this phone is (re)registered for the notifications of this member.
@@ -104,6 +107,12 @@ fun FamiliaApp(
             showOnboarding = false
         }
         return
+    }
+    LaunchedEffect(openListId) {
+        if (openListId != null) {
+            navController.navigate(GiftListDestination(openListId))
+            onListOpened()
+        }
     }
     LaunchedEffect(openEventId) {
         if (openEventId != null) {

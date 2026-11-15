@@ -7,8 +7,13 @@ import { getMessaging } from 'firebase-admin/messaging';
 import { setGlobalOptions } from 'firebase-functions/v2';
 import {
   onDocumentCreatedWithAuthContext, onDocumentDeleted, onDocumentDeletedWithAuthContext, onDocumentUpdatedWithAuthContext,
+  onDocumentWritten,
 } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
+import {
+  deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
+  sendBirthdayGiftReminders,
+} from './gifts';
 import { EventData, hasVisibleChange, Notice } from './logic';
 import { deleteEventAnswers, deleteMemberData, notifyChange, Sender, sendDayBeforeReminders } from './store';
 
@@ -24,7 +29,10 @@ const send: Sender = async (token: string, notice: Notice) => {
     await getMessaging().send({
       token,
       notification: { title: notice.title, body: notice.body },
-      data: { eventId: notice.eventId },
+      data: {
+        ...(notice.eventId ? { eventId: notice.eventId } : {}),
+        ...(notice.listId ? { listId: notice.listId } : {}),
+      },
       android: { notification: { channelId: notice.channel } },
     });
     return 'ok';
@@ -65,4 +73,34 @@ export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (ev
 
 export const dayBeforeReminder = onSchedule({ schedule: '0 18 * * *', timeZone: 'Europe/Paris' }, async () => {
   await sendDayBeforeReminders(getFirestore(), send, new Date());
+});
+
+// --- Listes et cadeaux (V2) --------------------------------------------------------------------
+
+export const onGiftListDeleted = onDocumentDeleted('giftLists/{listId}', async (event) => {
+  await deleteGiftListContent(getFirestore(), event.params.listId);
+});
+
+export const onGiftClaimDeleted = onDocumentDeleted('giftLists/{listId}/claims/{itemId}', async (event) => {
+  await deleteClaimShares(getFirestore(), event.params.listId, event.params.itemId);
+});
+
+export const onGiftItemWritten = onDocumentWritten('giftLists/{listId}/items/{itemId}', async (event) => {
+  const before = event.data?.before.data() as GiftItemData | undefined;
+  const after = event.data?.after.data() as GiftItemData | undefined;
+  await onGiftItemChanged(getFirestore(), send, event.params.listId, event.params.itemId, before, after);
+});
+
+export const onMemberDeletedGifts = onDocumentDeleted('members/{memberId}', async (event) => {
+  await deleteMemberGiftLists(getFirestore(), event.params.memberId);
+});
+
+// The morning after an occasion, its lists are revealed (PRD, récit 10 bis).
+export const revealGifts = onSchedule({ schedule: '0 7 * * *', timeZone: 'Europe/Paris' }, async () => {
+  await revealGiftLists(getFirestore(), send, new Date());
+});
+
+// D-21 and D-14 before a birthday (PRD, récit 10).
+export const birthdayGiftReminders = onSchedule({ schedule: '0 10 * * *', timeZone: 'Europe/Paris' }, async () => {
+  await sendBirthdayGiftReminders(getFirestore(), send, new Date());
 });
