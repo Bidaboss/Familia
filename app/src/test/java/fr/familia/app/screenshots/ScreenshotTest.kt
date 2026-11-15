@@ -71,9 +71,11 @@ import fr.familia.app.feature.gifts.edit.previewGiftListForm
 import fr.familia.app.feature.gifts.item.GiftItemEditScreen
 import fr.familia.app.feature.gifts.item.previewGiftItemForm
 import fr.familia.app.feature.gifts.notebook.NotebookActions
+import fr.familia.app.feature.gifts.notebook.NotebookIdeaScreen
 import fr.familia.app.feature.gifts.notebook.NotebookScreen
 import fr.familia.app.feature.gifts.notebook.StatusSheetContent
 import fr.familia.app.feature.gifts.notebook.previewNotebook
+import fr.familia.app.feature.gifts.notebook.previewNotebookIdea
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.feature.members.photo.PhotoCropContent
 import fr.familia.app.feature.members.photo.previewPicture
@@ -562,6 +564,10 @@ class ScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun notebookFontScale200() = capture("carnet_cadeaux_police_200") { NotebookScreen(previewNotebook(), NotebookActions()) }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun notebookIdeaFontScale200() = capture("carnet_cadeaux_idee_police_200") { NotebookIdeaScreen(previewNotebookIdea(), {}, {}, {}, {}) }
 
     @Test
     fun giftListFormLight() = capture("liste_cadeaux_formulaire_clair") { GiftListEditScreen(previewGiftListForm(), {}, {}, {}, {}) }

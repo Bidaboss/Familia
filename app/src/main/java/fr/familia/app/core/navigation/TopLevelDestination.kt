@@ -107,6 +107,10 @@ data class GiftItemEditDestination(val listId: String, val itemId: String? = nul
 @Serializable
 data object NotebookDestination
 
+/** A private idea of the notebook: a new one when [entryId] is null, at the occasion chosen on the notebook. */
+@Serializable
+data class NotebookIdeaDestination(val entryId: String? = null, val occasion: String? = null, val year: Int? = null)
+
 /** "Vérifier les mises à jour", opened from the Famille tab (lot 10). */
 @Serializable
 data object UpdateCheckDestination
