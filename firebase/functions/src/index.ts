@@ -17,7 +17,8 @@ import {
 } from './gifts';
 import { deleteMemberNotebook, syncNotebookEntry, syncNotebookItem } from './notebook';
 import {
-  FileRemover, GoodNewsData, GoodNewsNotice, GoodNewsSender, onGoodNewsEdited, onGoodNewsPublished, onGoodNewsRemoved,
+  deleteReactionDigest, FileRemover, GoodNewsData, GoodNewsNotice, GoodNewsSender, onGoodNewsEdited, onGoodNewsPublished,
+  onGoodNewsReacted, onGoodNewsRemoved, sendReactionDigests,
 } from './goodNews';
 import {
   HelpNotice, HelpRequestData, HelpSender, onHelpRequestWritten, reopenRequestsOf, sendStillOpenReminders,
@@ -206,12 +207,20 @@ export const onGoodNewsCreated = onDocumentCreated('goodNews/{postId}', async (e
 export const onGoodNewsUpdated = onDocumentUpdated('goodNews/{postId}', async (event) => {
   const before = event.data?.before.data() as GoodNewsData | undefined;
   const after = event.data?.after.data() as GoodNewsData | undefined;
-  if (before && after) await onGoodNewsEdited(removeFiles, event.params.postId, before, after);
+  if (!before || !after) return;
+  await onGoodNewsEdited(removeFiles, event.params.postId, before, after);
+  await onGoodNewsReacted(getFirestore(), event.params.postId, before, after, new Date());
 });
 
 export const onGoodNewsDeleted = onDocumentDeleted('goodNews/{postId}', async (event) => {
   const data = event.data?.data() as GoodNewsData | undefined;
   if (data) await onGoodNewsRemoved(removeFiles, event.params.postId, data);
+  await deleteReactionDigest(getFirestore(), event.params.postId);
+});
+
+// Grouped reactions (PRD rév. 174): every 15 minutes, the notices due an hour after a first reaction.
+export const goodNewsReactionDigests = onSchedule({ schedule: '*/15 * * * *', timeZone: 'Europe/Paris' }, async () => {
+  await sendReactionDigests(getFirestore(), sendGoodNews, new Date());
 });
 
 // --- Trips (V3, récit 14) ---------------------------------------------------------------------

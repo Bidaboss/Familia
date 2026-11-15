@@ -2,7 +2,7 @@
 // news. The pure part decides the recipients and the French texts; the store part reads
 // Firestore, sends and deletes in Storage.
 
-import type { Firestore } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp, type Firestore } from 'firebase-admin/firestore';
 
 export interface GoodNewsData {
   text: string;
@@ -11,6 +11,8 @@ export interface GoodNewsData {
   authorName: string;
   forMemberId: string;
   mentionIds: string[];
+  /** memberId → reaction name (heart, clap…). */
+  reactions?: Record<string, string>;
 }
 
 export interface GoodNewsMember {
@@ -21,7 +23,8 @@ export interface GoodNewsMember {
 }
 
 export interface GoodNewsNotice {
-  channel: 'goodNews';
+  /** `goodNews` for a new one; `comments` for the grouped reactions (PRD rév. 174). */
+  channel: 'goodNews' | 'comments';
   title: string;
   body: string;
   goodNewsId: string;
@@ -79,6 +82,30 @@ export function goodNewsMessages(
   return messages;
 }
 
+// --- Grouped reactions (PRD rév. 174) ------------------------------------------------------------
+//
+// The author gets one notice per good news, an hour after the first reaction, for everyone who
+// reacted since the last one. goodNewsDigests/{postId} keeps when it is due and who was already
+// named; only the Cloud Functions read and write it (no rule opens it to the app).
+
+/** One hour after the first reaction. */
+export const DIGEST_DELAY_MS = 60 * 60 * 1000;
+
+/** Members who reacted between [before] and [after], the author left out. */
+export function newReactorIds(before: GoodNewsData, after: GoodNewsData): string[] {
+  const had = new Set(Object.keys(before.reactions ?? {}));
+  return Object.keys(after.reactions ?? {}).filter((id) => !had.has(id) && id !== after.authorId).sort();
+}
+
+/** « Inès a réagi », « Inès et Jules ont réagi », « Inès et 3 autres ont réagi » à ta Bonne nouvelle. */
+export function reactionsNotice(id: string, n: GoodNewsData, names: string[]): GoodNewsNotice | null {
+  if (names.length === 0) return null;
+  const who = names.length === 1 ? `${names[0]} a réagi`
+    : names.length === 2 ? `${names[0]} et ${names[1]} ont réagi`
+      : `${names[0]} et ${names.length - 1} autres ont réagi`;
+  return { channel: 'comments', title: `${who} à ta Bonne nouvelle`, body: preview(n.text), goodNewsId: id };
+}
+
 /** The two Storage files of each photo: the photo and its thumbnail. */
 export function photoPaths(postId: string, authorId: string, photoIds: string[]): string[] {
   return photoIds.flatMap((p) => [`goodNews/${authorId}/${postId}/${p}.jpg`, `goodNews/${authorId}/${postId}/${p}-thumb.jpg`]);
@@ -90,6 +117,8 @@ export type GoodNewsSender = (token: string, notice: GoodNewsNotice) => Promise<
 
 /** Deletes files in Storage; a file already gone is not an error. */
 export type FileRemover = (paths: string[]) => Promise<void>;
+
+const DIGESTS = 'goodNewsDigests';
 
 async function loadMembers(db: Firestore): Promise<GoodNewsMember[]> {
   const snapshot = await db.collection('members').get();
@@ -124,6 +153,51 @@ export async function onGoodNewsPublished(db: Firestore, send: GoodNewsSender, i
     }
   }
   return sent;
+}
+
+/** A new reaction: the grouped notice is due in an hour, unless one is already waiting. */
+export async function onGoodNewsReacted(db: Firestore, id: string, before: GoodNewsData, after: GoodNewsData, now: Date): Promise<void> {
+  if (newReactorIds(before, after).length === 0) return;
+  const ref = db.collection(DIGESTS).doc(id);
+  await db.runTransaction(async (tx) => {
+    const digest = await tx.get(ref);
+    if (digest.exists && digest.get('dueAt')) return;
+    tx.set(ref, { authorId: after.authorId, dueAt: Timestamp.fromMillis(now.getTime() + DIGEST_DELAY_MS) }, { merge: true });
+  });
+}
+
+/** Every 15 minutes: the grouped notices that are due go to their authors. */
+export async function sendReactionDigests(db: Firestore, send: GoodNewsSender, now: Date): Promise<number> {
+  const due = await db.collection(DIGESTS).where('dueAt', '<=', Timestamp.fromDate(now)).get();
+  let sent = 0;
+  for (const digest of due.docs) {
+    const post = await db.collection('goodNews').doc(digest.id).get();
+    if (!post.exists) {
+      await digest.ref.delete();
+      continue;
+    }
+    const n = post.data() as GoodNewsData;
+    const named = new Set((digest.get('notifiedIds') as string[] | undefined) ?? []);
+    const reactors = Object.keys(n.reactions ?? {}).filter((mid) => mid !== n.authorId && !named.has(mid)).sort();
+    const memberDocs = reactors.length === 0 ? [] : await db.getAll(...reactors.map((mid) => db.collection('members').doc(mid)));
+    const names = memberDocs.filter((d) => d.exists).map((d) => String(d.get('firstName') ?? '')).filter((name) => name);
+    const notice = reactionsNotice(digest.id, n, names);
+    if (notice) {
+      const devices = await db.collection('members').doc(n.authorId).collection('devices').get();
+      for (const device of devices.docs) {
+        const result = await send(device.id, notice);
+        if (result === 'ok') sent++;
+        if (result === 'unregistered') await device.ref.delete();
+      }
+    }
+    await digest.ref.update({ dueAt: FieldValue.delete(), notifiedIds: [...named, ...reactors].sort() });
+  }
+  return sent;
+}
+
+/** A removed good news takes its grouped notice with it. */
+export async function deleteReactionDigest(db: Firestore, id: string): Promise<void> {
+  await db.collection(DIGESTS).doc(id).delete();
 }
 
 /** The author took photos out: their files go. */
