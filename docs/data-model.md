@@ -161,7 +161,7 @@ Un événement déjà passé ne prévient personne. L'auteur d'un changement est
 
 **Qui un événement concerne** (cartes AVIS-7 et AVIS-8) : une seule fonction le dit, `concerns` dans `functions/src/logic.ts`, et la même règle dans l'appli (`core/model/Audience.kt`), qui sert au filtre « Mon foyer » du planning. Un événement concerne un membre s'il est pour toute la famille, ou si sa cible est lui-même, son foyer, un membre ou un enfant de son foyer, ou un enfant dont il est adulte responsable (même dans un autre foyer). Un futur « cercle » ne changera que cette fonction.
 
-**Canaux Android** (récit 6 quinquies) : chaque notification part sur un canal, que chacun peut couper dans les réglages Android : `events` (affiché « Planning »), `reminders`, `gifts`, `trips` (Voyages : « bien arrivé » et son rappel). Chaque module ajoute le sien en même temps que lui : `goodNews` (Bonnes nouvelles), `helpRequests` (Entraide), `comments` (Commentaires et réactions), `weekly` (Rendez-vous de la semaine). Les identifiants ne changent jamais, car Android y garde le choix du membre. Un canal inconnu de l'appli retombe sur « Planning ».
+**Canaux Android** (récit 6 quinquies) : chaque notification part sur un canal, que chacun peut couper dans les réglages Android : `events` (affiché « Planning »), `reminders`, `gifts`, `helpRequests` (Entraide ; le rappel de la veille d'un coup de main reste sur `reminders`), `trips` (Voyages : « bien arrivé » et son rappel). Chaque module ajoute le sien en même temps que lui : `goodNews` (Bonnes nouvelles), `comments` (Commentaires et réactions), `weekly` (Rendez-vous de la semaine). Les identifiants ne changent jamais, car Android y garde le choix du membre. Un canal inconnu de l'appli retombe sur « Planning ».
 
 Tests : `cd firebase && npm run test:functions` (la logique, et les fonctions contre l'émulateur Firestore, avec un faux envoi de notifications).
 
@@ -323,8 +323,27 @@ Droits :
 - **Se retirer** : le volontaire seulement ; la demande redevient ouverte.
 - **« Je ne peux pas »** : la seule personne prévenue, sur une demande ouverte.
 - **Modifier, élargir, annuler, « Merci », supprimer** : l'admin principal, le demandeur, et un adulte responsable du demandeur ou de l'enfant aidé. Le volontaire reste parmi les personnes prévenues ; le « Merci » n'existe que pour une demande prise.
-- Limite connue : les règles ne vérifient pas que chaque personne prévenue est un adulte (il faudrait lire jusqu'à 30 documents, au-delà de la limite de 10). L'appli ne propose que des adultes, et un enfant prévenu par erreur pourrait seulement lire la demande, pas la prendre.
+- Limite connue : les règles ne vérifient pas `notifyIds` identifiant par identifiant, ni que chaque membre existe, ni qu'il est adulte : il faudrait lire jusqu'à 30 documents, au-delà de la limite de 10. Elles vérifient seulement la taille, l'absence du demandeur et la présence des adultes responsables d'un enfant. L'appli ne propose que des adultes de la famille, et un enfant prévenu par erreur pourrait seulement lire la demande, pas la prendre.
 - Les règles de mise à jour sont regroupées en une seule, dont chaque cas commence par des vérifications légères, pour rester loin de la limite de 1 000 expressions par écriture.
+
+Écrans (onglet « Entraide », titre « Coups de main », DESIGN-4) : la liste des demandes où l'on est dans `viewerIds` (à prendre, puis déjà prises), le formulaire (type, titre, date, heures, lieu, note, pour qui, qui prévenir avec « Tout le monde » et un raccourci par foyer, dernières personnes recochées) et le détail avec « Je m'en occupe », « Je ne peux pas », « Me retirer », « Dire merci », « Dupliquer », « Modifier » et « Annuler ». Une demande passée quitte la liste le lendemain, sauf pour qui peut encore dire merci (7 jours). Le badge de l'onglet compte les demandes ouvertes que l'on peut prendre.
+
+Cloud Functions (`functions/src/helpRequests.ts`), qui ne préviennent que les personnes concernées (AVIS-7). Un toucher sur la notification ouvre la demande (`helpRequestId`).
+
+| Fonction | Quand | Qui est prévenu |
+|---|---|---|
+| `onHelpRequestWrite` | Création | Les personnes prévenues |
+| | « Je m'en occupe » | Le demandeur et les adultes responsables de l'enfant aidé, sauf le volontaire |
+| | Retrait du volontaire | Le demandeur, les adultes responsables et les personnes prévenues |
+| | « Je ne peux pas » | Le demandeur |
+| | Élargissement | Les nouvelles personnes prévenues seulement |
+| | Date, heure ou lieu changés sur une demande prise | Le volontaire |
+| | Annulation | Le volontaire, s'il y en a un |
+| | « Merci » | Le volontaire, même après la date |
+| `helpRequestStillOpen` | Chaque jour à 18 h, heure de Paris | Le demandeur d'une demande du lendemain toujours ouverte (récit 18) |
+| `onMemberDeletedHelp` | Un membre est retiré | Ses demandes à venir redeviennent ouvertes, ce qui prévient le demandeur |
+
+Une demande passée ne prévient personne, sauf pour le « Merci ». La sauvegarde de l'admin principal inclut les demandes (`helpRequests`).
 
 ## Voyages (V3, récits 11, 12 et 14)
 

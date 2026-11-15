@@ -29,6 +29,7 @@ class FamilyExportTest {
             ExportAnswer("e1", "m2", mapOf("status" to "yes", "answeredBy" to "m1")),
             ExportAnswer("e1", "m1", mapOf("status" to "maybe", "answeredBy" to "m1")),
         ),
+        helpRequests = listOf(ExportDocument("r1", mapOf("title" to "Garder Noé", "notifyIds" to listOf("m1")))),
     )
 
     private val json = Json.parseToJsonElement(familyExportJson(data, Instant.parse("2026-11-14T10:00:00Z"), "1.2.0")).jsonObject
@@ -48,6 +49,7 @@ class FamilyExportTest {
         val answers = json.getValue("rsvps").jsonArray.map { it.jsonObject }
         assertEquals(listOf("m1", "m2"), answers.map { it.getValue("memberId").jsonPrimitive.content })
         assertTrue(answers.all { it.getValue("eventId").jsonPrimitive.content == "e1" })
+        assertEquals("Garder Noé", json.getValue("helpRequests").jsonArray.single().jsonObject.getValue("title").jsonPrimitive.content)
     }
 
     @Test
