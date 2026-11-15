@@ -326,6 +326,7 @@
     <string name="gift_list_missing_body">Elle a été supprimée, ou tu ne fais pas partie des personnes qui la voient.</string>
     <string name="gift_list_unavailable_body">Seuls la personne qui a créé la liste, et pour ses propres listes le bénéficiaire, peuvent la modifier.</string>
     <string name="gift_list_empty">Aucun article pour l\'instant. Touche « Ajouter » pour proposer une idée.</string>
+    <string name="members_wishes_button">Envies</string>
     <string name="gift_wishes_empty_other">%1$s n\'a encore rien noté. Reviens plus tard, ou demande-lui ce qui lui ferait plaisir.</string>
     <string name="gift_list_empty_mine">Aucun article pour l\'instant. Touche « Ajouter » pour dire ce qui te ferait plaisir.</string>
     <string name="gift_list_hidden_mine">Les idées ajoutées par les autres et les réservations te restent cachées jusqu\'au lendemain de l\'occasion.</string>

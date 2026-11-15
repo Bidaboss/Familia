@@ -56,6 +56,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.OutlinedButton
 import fr.familia.app.BuildConfig
 import fr.familia.app.R
 import fr.familia.app.core.model.Household
@@ -355,8 +356,16 @@ private fun MemberRow(
             )
         }
         if (onWishesClick != null) {
-            IconButton(onClick = onWishesClick, modifier = Modifier.size(56.dp)) {
-                Icon(Icons.Outlined.CardGiftcard, contentDescription = stringResource(R.string.gift_wishes_of, member.firstName))
+            val wishesLabel = stringResource(R.string.gift_wishes_of, member.firstName)
+            Spacer(Modifier.width(8.dp))
+            OutlinedButton(
+                onClick = onWishesClick,
+                contentPadding = PaddingValues(horizontal = 12.dp),
+                modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = wishesLabel },
+            ) {
+                Icon(Icons.Outlined.CardGiftcard, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.members_wishes_button))
             }
         }
     }

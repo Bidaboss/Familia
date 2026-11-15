@@ -166,8 +166,9 @@ private fun Content(state: GiftListUiState.Success, actions: GiftListActions) {
                 Text(
                     when {
                         state.keptFromMe -> stringResource(R.string.gift_list_empty_mine)
-                        state.canAddItems -> stringResource(R.string.gift_list_empty)
-                        else -> stringResource(R.string.gift_wishes_empty_other, state.beneficiary.firstName)
+                        state.list.kind == GiftListKind.Wishes && !state.canAddItems ->
+                            stringResource(R.string.gift_wishes_empty_other, state.beneficiary.firstName)
+                        else -> stringResource(R.string.gift_list_empty)
                     },
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
