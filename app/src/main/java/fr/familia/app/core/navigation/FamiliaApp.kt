@@ -74,6 +74,7 @@ import fr.familia.app.feature.gifts.detail.GiftListRoute
 import fr.familia.app.feature.gifts.edit.GiftListEditRoute
 import fr.familia.app.feature.gifts.item.GiftItemEditRoute
 import fr.familia.app.feature.events.answerableMembers
+import fr.familia.app.core.model.Feature
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
 @Composable
@@ -176,7 +177,7 @@ fun FamiliaApp(
             },
             bottomBar = {
                 if (onTab) NavigationBar {
-                    TopLevelDestination.entries.forEach { destination ->
+                    TopLevelDestination.visible(features).forEach { destination ->
                         val selected = currentDestination.isOn(destination)
                         NavigationBarItem(
                             selected = selected,
@@ -293,7 +294,11 @@ fun FamiliaApp(
                             onOpenAdministration = { navController.navigate(AdministrationDestination) },
                             onOpenUpdates = { navController.navigate(UpdateCheckDestination) },
                             onOpenHelp = { navController.navigate(HelpDestination) },
-                            onOpenWishes = { id -> navController.navigate(GiftListDestination(wishesListId(id))) },
+                            onOpenWishes = if (features.isOn(Feature.Gifts)) {
+                                { id -> navController.navigate(GiftListDestination(wishesListId(id))) }
+                            } else {
+                                null
+                            },
                         )
                     }
                     composable<HelpDestination> {

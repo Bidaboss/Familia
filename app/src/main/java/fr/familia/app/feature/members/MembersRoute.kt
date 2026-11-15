@@ -19,7 +19,7 @@ fun MembersRoute(
     onOpenAdministration: () -> Unit,
     onOpenUpdates: () -> Unit,
     onOpenHelp: () -> Unit,
-    onOpenWishes: (memberId: String) -> Unit,
+    onOpenWishes: ((memberId: String) -> Unit)?,
 ) {
     val viewModel: MembersViewModel = viewModel(
         factory = viewModelFactory {

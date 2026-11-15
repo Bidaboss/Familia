@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.ui.LocalFeatureFlags
 
 /** Connects the help page to its ViewModel. */
 @Composable
@@ -16,5 +17,7 @@ fun HelpRoute(container: AppContainer?, currentMember: Member, onReplayOnboardin
         factory = viewModelFactory { initializer { HelpViewModel(container?.memberRepository, currentMember) } },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    HelpScreen(state = state, onReplayOnboarding = onReplayOnboarding, onBack = onBack)
+    val flags = LocalFeatureFlags.current
+    val shown = state.copy(topics = state.topics.filter { topic -> topic.feature?.let(flags::isOn) ?: true })
+    HelpScreen(state = shown, onReplayOnboarding = onReplayOnboarding, onBack = onBack)
 }
