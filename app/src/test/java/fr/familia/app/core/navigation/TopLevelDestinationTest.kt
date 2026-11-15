@@ -6,9 +6,9 @@ import org.junit.Test
 class TopLevelDestinationTest {
 
     @Test
-    fun `bottom bar shows planning, birthdays and family in that order`() {
+    fun `bottom bar shows planning, birthdays, entraide and family in that order`() {
         assertEquals(
-            listOf(TopLevelDestination.Planning, TopLevelDestination.Birthdays, TopLevelDestination.Members),
+            listOf(TopLevelDestination.Planning, TopLevelDestination.Birthdays, TopLevelDestination.HelpRequests, TopLevelDestination.Members),
             TopLevelDestination.entries.toList(),
         )
     }

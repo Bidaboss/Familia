@@ -37,6 +37,8 @@ class AppContainer(context: Context) {
 
     val rsvpRepository: RsvpRepository? by lazy { firestore?.let { FirestoreRsvpRepository(it) } }
 
+    val helpRequestRepository: HelpRequestRepository? by lazy { firestore?.let { FirestoreHelpRequestRepository(it) } }
+
     val appConfigRepository: AppConfigRepository? by lazy { firestore?.let { FirestoreAppConfigRepository(it) } }
 
     val exportRepository: ExportRepository? by lazy { firestore?.let { FirestoreExportRepository(it) } }
