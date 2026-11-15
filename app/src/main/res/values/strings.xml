@@ -137,10 +137,10 @@
     <string name="administration_failed_title">Ça n\'a pas marché</string>
     <string name="administration_failed_body">Le changement n\'a pas été accepté. Réessaie, et si ça recommence, vérifie que tu es toujours admin principal.</string>
     <string name="administration_chefs_title">Chefs de famille</string>
-    <string name="administration_chefs_help">Un chef de famille ajoute, modifie et retire les membres de son foyer, et corrige les événements écrits par son foyer. Un foyer peut avoir plusieurs chefs.</string>
+    <string name="administration_chefs_help">Un chef de famille gère les membres et les événements de son foyer.</string>
     <string name="administration_owner_row">Admin principal : tous les droits</string>
     <string name="administration_households_title">Foyers</string>
-    <string name="administration_households_help">Renomme un foyer avec le crayon. Un foyer se supprime quand il n\'a plus de membres.</string>
+    <string name="administration_households_help">Le crayon renomme un foyer ; un foyer sans membre peut être supprimé.</string>
     <plurals name="administration_household_members">
         <item quantity="one">%d membre</item>
         <item quantity="many">%d membres</item>
@@ -152,7 +152,7 @@
     <string name="administration_household_delete_body">Il n\'a plus de membres. Ses anciens événements restent dans le planning.</string>
     <string name="administration_household_delete_confirm">Supprimer</string>
     <string name="administration_features_title">Modules</string>
-    <string name="administration_features_help">Un module éteint reste caché pour la famille. Toi, tu le vois toujours, pour l\'essayer avant de l\'allumer.</string>
+    <string name="administration_features_help">Un module éteint est caché à la famille, mais toi tu le vois toujours.</string>
     <string name="administration_feature_on">Visible par la famille</string>
     <string name="administration_feature_off">Caché à la famille</string>
     <string name="feature_home">Accueil</string>
@@ -241,8 +241,7 @@
     <string name="channel_help_requests">Entraide</string>
     <string name="channel_help_requests_description">Coups de main demandés, proposés ou confirmés</string>
     <string name="export_title">Sauvegarde des données</string>
-    <string name="export_body">Crée un fichier avec tous les membres, les foyers, les événements et les réponses de la famille. Tu choisis où l\'enregistrer : sur ce téléphone ou dans ton Google Drive.</string>
-    <string name="export_privacy">Ce fichier contient les adresses et les dates de naissance de toute la famille. Garde-le pour toi et ne le partage pas.</string>
+    <string name="export_body">Un fichier avec toutes les données de la famille, à garder pour toi : sur ce téléphone ou dans ton Drive.</string>
     <string name="export_action">Créer la sauvegarde</string>
     <string name="export_in_progress">Sauvegarde en cours…</string>
     <string name="export_done">Sauvegarde enregistrée.</string>
@@ -275,9 +274,7 @@
     <string name="onboarding_allow_notifications">Autoriser les notifications</string>
     <string name="onboarding_not_now">Pas maintenant</string>
     <string name="onboarding_welcome_title">Bienvenue dans Familia</string>
-    <string name="onboarding_welcome_body">Ici, la famille partage ses dates sans les perdre dans WhatsApp. Tout le monde voit le même planning.</string>
-    <string name="onboarding_planning_title">Le planning</string>
-    <string name="onboarding_planning_body">Les événements à venir et les anniversaires de toute la famille. Touche un événement pour voir le détail.</string>
+    <string name="onboarding_welcome_body">Tout le monde voit le même planning : les événements et les anniversaires de la famille. Touche un événement pour voir le détail.</string>
     <string name="onboarding_add_title">Ajouter un événement</string>
     <string name="onboarding_add_body">Touche le bouton « Ajouter », donne un titre et une date. Toute la famille le voit aussitôt.</string>
     <string name="onboarding_answer_title">Dire si tu viens</string>
@@ -438,7 +435,7 @@
     <string name="photo_take">Prendre une photo</string>
     <string name="photo_remove">Retirer la photo</string>
     <string name="photo_crop_title">Cadrer la photo</string>
-    <string name="photo_crop_hint">Fais glisser pour déplacer la photo et pince pour zoomer. Le rond montre ce que la famille verra.</string>
+    <string name="photo_crop_hint">Glisse et pince pour cadrer la photo dans le rond.</string>
     <string name="photo_zoom_in">Zoomer</string>
     <string name="photo_zoom_out">Dézoomer</string>
     <string name="photo_crop_confirm">Valider</string>
