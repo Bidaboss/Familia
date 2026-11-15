@@ -77,11 +77,11 @@ class FirestoreHelpRequestRepository(private val db: FirebaseFirestore) : HelpRe
         }
     }
 
-    override suspend fun take(id: String, volunteerId: String, volunteerName: String) {
+    override suspend fun take(id: String, volunteerId: String, volunteerName: String, note: String?) {
         val ref = db.collection(REQUESTS).document(id)
         // A transaction only runs online: it reads the server, so two volunteers can never both win.
         try {
-            runTake(ref, volunteerId, volunteerName)
+            runTake(ref, volunteerId, volunteerName, note)
         } catch (e: Exception) {
             // Firestore may wrap the exception thrown inside the transaction.
             generateSequence<Throwable>(e) { it.cause }.filterIsInstance<AlreadyTakenException>().firstOrNull()?.let { throw it }
@@ -89,7 +89,12 @@ class FirestoreHelpRequestRepository(private val db: FirebaseFirestore) : HelpRe
         }
     }
 
-    private suspend fun runTake(ref: com.google.firebase.firestore.DocumentReference, volunteerId: String, volunteerName: String) {
+    private suspend fun runTake(
+        ref: com.google.firebase.firestore.DocumentReference,
+        volunteerId: String,
+        volunteerName: String,
+        note: String?,
+    ) {
         db.runTransaction { tx ->
             val snapshot = tx.get(ref)
             if (snapshot.getString("status") != HelpStatus.Open.firestoreValue) {
@@ -101,6 +106,7 @@ class FirestoreHelpRequestRepository(private val db: FirebaseFirestore) : HelpRe
                     "status" to HelpStatus.Taken.firestoreValue,
                     "volunteerId" to volunteerId,
                     "volunteerName" to volunteerName,
+                    "volunteerNote" to note,
                     "updatedAt" to FieldValue.serverTimestamp(),
                 ),
             )
@@ -112,7 +118,10 @@ class FirestoreHelpRequestRepository(private val db: FirebaseFirestore) : HelpRe
         "status" to HelpStatus.Open.firestoreValue,
         "volunteerId" to null,
         "volunteerName" to null,
+        "volunteerNote" to null,
     )
+
+    override suspend fun setVolunteerNote(id: String, note: String?) = update(id, "volunteerNote" to note)
 
     override suspend fun decline(id: String, memberId: String) = update(id, "declinedBy" to memberId)
 
@@ -146,6 +155,7 @@ class FirestoreHelpRequestRepository(private val db: FirebaseFirestore) : HelpRe
             status = HelpStatus.fromFirestore(getString("status")) ?: return null,
             volunteerId = getString("volunteerId"),
             volunteerName = getString("volunteerName"),
+            volunteerNote = getString("volunteerNote"),
             declinedBy = getString("declinedBy"),
             thankedAt = getTimestamp("thankedAt")?.toInstant(),
             createdAt = getTimestamp("createdAt")?.toInstant(),

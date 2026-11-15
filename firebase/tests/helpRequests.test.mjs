@@ -214,6 +214,39 @@ describe('« Je m’en occupe » (récit 16)', () => {
   });
 });
 
+describe('the volunteer\'s word (récit 16, spec rév. 8)', () => {
+  beforeEach(async () => { await stored(request(ADULT, ['adult2', 'admin1'])); });
+
+  const take = (by, note) => ({ status: 'taken', volunteerId: by.memberId, volunteerName: by.memberId, volunteerNote: note, ...now() });
+
+  test('the volunteer adds a word when taking it, then changes or clears it', async () => {
+    const db = as(env, OTHER_ADULT);
+    await assertSucceeds(updateDoc(ref(db), take(OTHER_ADULT, 'Je passe vers 17 h avec la voiture')));
+    await assertSucceeds(updateDoc(ref(db), { volunteerNote: 'Plutôt 17 h 30', ...now() }));
+    await assertSucceeds(updateDoc(ref(db), { volunteerNote: null, ...now() }));
+  });
+
+  test('200 characters at most, and only the volunteer writes it', async () => {
+    await assertFails(updateDoc(ref(as(env, OTHER_ADULT)), take(OTHER_ADULT, 'a'.repeat(201))));
+    await assertSucceeds(updateDoc(ref(as(env, OTHER_ADULT)), take(OTHER_ADULT, 'Ok')));
+    await assertFails(updateDoc(ref(as(env, ADULT)), { volunteerNote: 'Merci', ...now() }));
+    await assertFails(updateDoc(ref(as(env, ADMIN)), { volunteerNote: 'Moi aussi', ...now() }));
+    await assertFails(updateDoc(ref(as(env, OTHER_ADULT)), { volunteerNote: 'Et', title: 'Autre', ...now() }));
+  });
+
+  test('withdrawing clears the word, and the author never changes it', async () => {
+    const db = as(env, OTHER_ADULT);
+    await assertSucceeds(updateDoc(ref(db), take(OTHER_ADULT, 'Je passe vers 17 h')));
+    await assertFails(updateDoc(ref(db), { status: 'open', volunteerId: null, volunteerName: null, ...now() }));
+    await assertSucceeds(updateDoc(ref(db), { status: 'open', volunteerId: null, volunteerName: null, volunteerNote: null, ...now() }));
+    await assertFails(updateDoc(ref(as(env, ADULT)), { title: 'Autre', volunteerNote: 'x', ...now() }));
+  });
+
+  test('a new request has no word', async () => {
+    await assertFails(setDoc(ref(as(env, ADULT), 'r2'), request(ADULT, ['adult2'], { volunteerNote: 'x' })));
+  });
+});
+
 describe('« Je ne peux pas » (carte PRODUIT-22)', () => {
   const decline = (by) => ({ declinedBy: by.memberId, ...now() });
 

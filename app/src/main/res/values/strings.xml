@@ -510,6 +510,13 @@
     <string name="helprequest_back_to_list">Retour aux coups de main</string>
     <string name="helprequest_warned">Prévenus : %1$s</string>
     <string name="helprequest_take">Je m\'en occupe</string>
+    <string name="helprequest_take_title">Tu t\'en occupes ?</string>
+    <string name="helprequest_note_label">Un mot pour %1$s (facultatif)</string>
+    <string name="helprequest_note_hint">Par exemple : « Je passe vers 17 h. »</string>
+    <string name="helprequest_note_add">Ajouter un mot</string>
+    <string name="helprequest_note_edit">Modifier mon mot</string>
+    <string name="helprequest_note_save">Enregistrer</string>
+    <string name="helprequest_note_quote">« %1$s »</string>
     <string name="helprequest_decline">Je ne peux pas</string>
     <string name="helprequest_withdraw">Me retirer</string>
     <string name="helprequest_withdraw_title">Te retirer de cette demande ?</string>
@@ -607,7 +614,7 @@
     <string name="trips_title">Voyages</string>
     <string name="channel_trips">Voyages</string>
     <string name="channel_comments">Commentaires et réactions</string>
-    <string name="channel_comments_description">Quand la famille réagit à ce que tu as partagé</string>
+    <string name="channel_comments_description">Quand la famille réagit à ce que tu as partagé.</string>
     <string name="channel_trips_description">« Bien arrivé » des voyages que tu suis, et le rappel quand tu pars.</string>
     <string name="trips_add">Nouveau voyage</string>
     <string name="trips_open_action">ouvrir le voyage</string>

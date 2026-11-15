@@ -21,7 +21,10 @@ interface HelpRequestRepository {
      * « Je m'en occupe », in a transaction on the server: throws [AlreadyTakenException] when
      * someone was quicker. Needs the network, so that there are never two volunteers.
      */
-    suspend fun take(id: String, volunteerId: String, volunteerName: String)
+    suspend fun take(id: String, volunteerId: String, volunteerName: String, note: String? = null)
+
+    /** The volunteer writes, changes or clears ([note] null) their short word. */
+    suspend fun setVolunteerNote(id: String, note: String?)
 
     /** The volunteer withdraws; the request is open again. */
     suspend fun withdraw(id: String)
