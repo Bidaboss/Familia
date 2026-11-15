@@ -136,10 +136,12 @@ class GiftListViewModel(
         }
     }
 
-    /** A « Mes envies » nobody created yet, for the member who keeps it: shown empty, created with its first item. */
+    /**
+     * A « Mes envies » nobody created yet: shown empty to everyone. Only the member who keeps it can
+     * add to it, and its first item creates it.
+     */
     private fun emptyWishes(family: Family, me: Member): GiftList? {
         val owner = family.members.firstOrNull { wishesListId(it.id) == listId } ?: return null
-        if (!keepsListsOf(me, owner)) return null
         return GiftList(listId, GiftListKind.Wishes, "Mes envies", null, null, owner.id, emptyList(), me.id, me.firstName)
     }
 
@@ -182,7 +184,7 @@ class GiftListViewModel(
             keptFromMe = kept,
             isMine = beneficiary.id == me.id,
             canManage = exists && canManageList(list, me, family),
-            canAddItems = !list.revealed,
+            canAddItems = !list.revealed && (exists || keepsListsOf(me, beneficiary)),
             canReserve = exists && canReserve(list, me),
             canShare = exists && canShare(list, me),
             items = rows,

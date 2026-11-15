@@ -51,6 +51,7 @@ import fr.familia.app.feature.birthdays.BirthdaysRoute
 import fr.familia.app.feature.events.detail.EventDetailRoute
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.wishesListId
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.OfflineBanner
 import fr.familia.app.core.ui.rememberMemberPhotos
@@ -275,6 +276,7 @@ fun FamiliaApp(
                             onOpenAdministration = { navController.navigate(AdministrationDestination) },
                             onOpenUpdates = { navController.navigate(UpdateCheckDestination) },
                             onOpenHelp = { navController.navigate(HelpDestination) },
+                            onOpenWishes = { id -> navController.navigate(GiftListDestination(wishesListId(id))) },
                         )
                     }
                     composable<HelpDestination> {

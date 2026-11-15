@@ -19,6 +19,7 @@ fun MembersRoute(
     onOpenAdministration: () -> Unit,
     onOpenUpdates: () -> Unit,
     onOpenHelp: () -> Unit,
+    onOpenWishes: (memberId: String) -> Unit,
 ) {
     val viewModel: MembersViewModel = viewModel(
         factory = viewModelFactory {
@@ -44,5 +45,6 @@ fun MembersRoute(
         onRemovePhoto = viewModel::removePhoto,
         photoFailed = photoFailed,
         onPhotoFailureShown = viewModel::photoFailureShown,
+        onOpenWishes = onOpenWishes,
     )
 }

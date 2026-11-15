@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Notifications
@@ -90,6 +91,8 @@ fun MembersScreen(
     onRemovePhoto: (memberId: String) -> Unit = {},
     photoFailed: Boolean = false,
     onPhotoFailureShown: () -> Unit = {},
+    /** The gift button of each row opens the member's « Mes envies » (PRD, récit 7). */
+    onOpenWishes: ((memberId: String) -> Unit)? = null,
 ) {
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var photoOf by rememberSaveable { mutableStateOf<String?>(null) }
@@ -150,6 +153,7 @@ fun MembersScreen(
                             } else {
                                 null
                             },
+                            onWishesClick = onOpenWishes?.let { open -> { open(member.id) } },
                         )
                     }
                 }
@@ -321,6 +325,7 @@ private fun MemberRow(
     onClick: (() -> Unit)?,
     hasPhoto: Boolean = false,
     onPhotoClick: (() -> Unit)? = null,
+    onWishesClick: (() -> Unit)? = null,
 ) {
     val editLabel = stringResource(R.string.members_edit_action)
     Row(
@@ -338,7 +343,7 @@ private fun MemberRow(
             MemberAvatar(member)
             Spacer(Modifier.width(16.dp))
         }
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp), modifier = Modifier.weight(1f)) {
             Text(
                 text = if (isMe) stringResource(R.string.members_me, member.firstName) else member.firstName,
                 style = MaterialTheme.typography.titleMedium,
@@ -348,6 +353,11 @@ private fun MemberRow(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+        if (onWishesClick != null) {
+            IconButton(onClick = onWishesClick, modifier = Modifier.size(56.dp)) {
+                Icon(Icons.Outlined.CardGiftcard, contentDescription = stringResource(R.string.gift_wishes_of, member.firstName))
+            }
         }
     }
 }
