@@ -2,18 +2,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  addDays, changeNotice, changeRecipients, EventData, formatWhen, hasVisibleChange, Member, parisDay, reminders, RsvpStatus,
+  addDays, changeNotice, changeRecipients, concerns, EventData, formatWhen, hasVisibleChange, Member, parisDay, reminders, RsvpStatus,
 } from '../src/logic';
 
 const NBSP = ' ';
 
 const members: Member[] = [
-  { id: 'camille', firstName: 'Camille', profile: 'adult', parentIds: [], uid: 'uid-camille' },
-  { id: 'ines', firstName: 'Inès', profile: 'adult', parentIds: [], uid: 'uid-ines' },
-  { id: 'sam', firstName: 'Sam', profile: 'adult', parentIds: [], uid: null },
-  { id: 'noe', firstName: 'Noé', profile: 'childWithoutApp', parentIds: ['camille', 'sam'], uid: null },
-  { id: 'lina', firstName: 'Lina', profile: 'childWithoutApp', parentIds: ['camille'], uid: null },
-  { id: 'jade', firstName: 'Jade', profile: 'childWithApp', parentIds: ['ines'], uid: 'uid-jade' },
+  { id: 'camille', firstName: 'Camille', profile: 'adult', householdId: 'h1', parentIds: [], uid: 'uid-camille' },
+  { id: 'ines', firstName: 'Inès', profile: 'adult', householdId: 'h2', parentIds: [], uid: 'uid-ines' },
+  { id: 'sam', firstName: 'Sam', profile: 'adult', householdId: 'h1', parentIds: [], uid: null },
+  { id: 'noe', firstName: 'Noé', profile: 'childWithoutApp', householdId: 'h1', parentIds: ['camille', 'sam'], uid: null },
+  { id: 'lina', firstName: 'Lina', profile: 'childWithoutApp', householdId: 'h1', parentIds: ['camille'], uid: null },
+  { id: 'jade', firstName: 'Jade', profile: 'childWithApp', householdId: 'h2', parentIds: ['ines'], uid: 'uid-jade' },
 ];
 
 const event: EventData = {
@@ -38,6 +38,40 @@ test('everyone with the app is told of a change, except its author', () => {
   assert.deepEqual(changeRecipients(members, 'camille', event, '2026-12-01'), ['ines', 'sam', 'jade']);
   // Unknown author (a change from the console): everyone with the app.
   assert.deepEqual(changeRecipients(members, null, event, '2026-12-01'), ['camille', 'ines', 'sam', 'jade']);
+});
+
+test('an event of a household reaches that household only (AVIS-7)', () => {
+  const h1: EventData = { ...event, targetType: 'household', householdId: 'h1' };
+  assert.deepEqual(changeRecipients(members, 'ines', h1, '2026-12-01'), ['camille', 'sam']);
+  const h2: EventData = { ...event, targetType: 'household', householdId: 'h2' };
+  assert.deepEqual(changeRecipients(members, 'camille', h2, '2026-12-01'), ['ines', 'jade']);
+});
+
+test("a child's event reaches their household and the adults responsible for them", () => {
+  const forJade: EventData = { ...event, targetType: 'child', targetMemberId: 'jade' };
+  assert.deepEqual(changeRecipients(members, null, forJade, '2026-12-01'), ['ines', 'jade']);
+  // A step-parent in another household is responsible for Jade too.
+  const blended = members.map((m) => (m.id === 'jade' ? { ...m, parentIds: ['ines', 'camille'] } : m));
+  assert.deepEqual(changeRecipients(blended, null, forJade, '2026-12-01'), ['camille', 'ines', 'jade']);
+});
+
+test("a member's own event reaches their household", () => {
+  const forSam: EventData = { ...event, targetType: 'self', targetMemberId: 'sam' };
+  assert.deepEqual(changeRecipients(members, 'sam', forSam, '2026-12-01'), ['camille']);
+});
+
+test('an edit or a deletion also reaches whoever said they were coming', () => {
+  const h1: EventData = { ...event, targetType: 'household', householdId: 'h1' };
+  assert.deepEqual(changeRecipients(members, 'camille', h1, '2026-12-01', new Set(['ines'])), ['ines', 'sam']);
+  // Never the author, even when they were coming.
+  assert.deepEqual(changeRecipients(members, 'camille', h1, '2026-12-01', new Set(['camille'])), ['sam']);
+});
+
+test('the scope never includes a member who left, nor an unknown target', () => {
+  const me = members[0];
+  assert.equal(concerns({ targetType: 'self', targetMemberId: 'ghost', householdId: null }, me, members), false);
+  assert.equal(concerns({ targetType: 'other', targetMemberId: null, householdId: null }, me, members), false);
+  assert.equal(concerns({ targetType: 'household', targetMemberId: null, householdId: 'h1' }, { ...me, householdId: null }, members), false);
 });
 
 test('a past event notifies nobody', () => {

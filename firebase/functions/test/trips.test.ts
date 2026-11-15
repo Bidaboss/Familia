@@ -112,7 +112,7 @@ describe('store', () => {
     const { sent, send } = fakeSender();
     assert.equal(await sendArrivalReminders(db, send, now), 2);
     assert.deepEqual(sent.map((s) => s.token).sort(), ['token-lou', 'token-sam']);
-    assert.equal(sent[0].notice.channel, 'reminders');
+    assert.equal(sent[0].notice.channel, 'trips');
     assert.equal(sent[0].notice.body, 'Corse, Ajaccio : touche « Bien arrivé » pour rassurer la famille.');
     assert.equal((await db.doc('trips/t1/steps/due').get()).get('remindAt'), null);
     assert.ok((await db.doc('trips/t1/steps/later').get()).get('remindAt'));

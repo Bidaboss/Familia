@@ -13,6 +13,7 @@ import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Rsvp
 import fr.familia.app.core.model.RsvpStatus
 import fr.familia.app.core.model.Trip
+import fr.familia.app.core.model.concerns
 import fr.familia.app.core.model.upcomingBirthdays
 import fr.familia.app.feature.events.authorDisplayName
 import fr.familia.app.feature.events.canManage
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -46,24 +48,34 @@ class PlanningViewModel(
     private val currentMemberId: String,
     private val today: Flow<LocalDate> = currentDayFlow(),
     private val rsvps: RsvpRepository? = null,
+    initialScope: PlanningScope = PlanningScope.Family,
+    /** Keeps the filter on the phone (PlanningScopePreferences). */
+    private val saveScope: (PlanningScope) -> Unit = {},
     private val trips: TripRepository? = null,
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
+    private val scope = MutableStateFlow(initialScope)
 
     val uiState: StateFlow<PlanningUiState> = combine(attempt, today) { n, day -> n to day }
         .flatMapLatest { (n, day) ->
             if (events == null || members == null) {
-                flowOf(PlanningUiState.Success(emptyList(), day)) // Firebase not configured (previews).
+                scope.map { PlanningUiState.Success(emptyList(), day, it) } // Firebase not configured (previews).
             } else {
-                combine<List<Event>, Family, Map<String, List<Rsvp>>, List<Trip>, PlanningUiState>(
+                combine<List<Event>, Family, Map<String, List<Rsvp>>, PlanningScope, List<Trip>, PlanningUiState>(
                     events.observeUpcoming(day),
                     members.observeFamily(),
                     answers(),
+                    scope,
                     followedTrips(),
-                ) { list, family, answers, trips ->
+                ) { list, family, answers, scope, trips ->
                     val upcoming = trips.filter { it.endDate >= day }
-                    PlanningUiState.Success(days(list, family, answers, day, upcoming), day, tripDays(upcoming, day))
+                    PlanningUiState.Success(
+                        days = days(list, family, answers, day, scope, upcoming),
+                        today = day,
+                        scope = scope,
+                        tripDays = tripDays(upcoming, day),
+                    )
                 }
                     .onStart { if (n > 0) emit(PlanningUiState.Loading) }
                     .catch { e ->
@@ -76,6 +88,13 @@ class PlanningViewModel(
 
     fun retry() {
         attempt.update { it + 1 }
+    }
+
+    /** « Toute la famille » or « Mon foyer »; the choice is kept on the phone. */
+    fun setScope(value: PlanningScope) {
+        if (scope.value == value) return
+        scope.value = value
+        saveScope(value)
     }
 
     /** The counters are a bonus: if they cannot load, the planning still shows, without them. */
@@ -111,12 +130,15 @@ class PlanningViewModel(
         family: Family,
         answers: Map<String, List<Rsvp>>,
         today: LocalDate,
+        scope: PlanningScope,
         trips: List<Trip> = emptyList(),
     ): List<PlanningDay> {
         val me = family.members.firstOrNull { it.id == currentMemberId }
         // An answer from a member who has left the family no longer counts.
         val memberIds = family.members.map { it.id }.toSet()
-        val eventsByDay = list.groupBy { it.date }
+        // « Mon foyer » keeps what concerns me, and every birthday (PRD, carte AVIS-8).
+        val shown = if (scope == PlanningScope.Household && me != null) list.filter { concerns(it.target, me, family) } else list
+        val eventsByDay = shown.groupBy { it.date }
         val birthdaysByDay = upcomingBirthdays(family.members, today).groupBy { it.date }
         // A trip shows on its first day, or today while it is ongoing; the month view marks every day.
         val tripsByDay = trips.groupBy { maxOf(it.startDate, today) }

@@ -51,12 +51,12 @@ export function arrivalNotice(tripId: string, trip: TripData, step: StepData, ac
   const body = names.length <= 1
     ? `${trip.title} : ${who} a signalé son arrivée.`
     : `${trip.title} : arrivée de ${joinNames(names)}, signalée par ${who}.`;
-  return { channel: 'events', title: `Arrivée à ${step.place}`, body, tripId };
+  return { channel: 'trips', title: `Arrivée à ${step.place}`, body, tripId };
 }
 
 export function reminderNotice(tripId: string, trip: TripData, step: StepData): Notice {
   return {
-    channel: 'reminders',
+    channel: 'trips',
     title: 'Bien arrivé ?',
     body: `${trip.title}, ${step.place} : touche « Bien arrivé » pour rassurer la famille.`,
     tripId,

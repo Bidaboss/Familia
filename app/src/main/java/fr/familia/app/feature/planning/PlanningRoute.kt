@@ -2,6 +2,8 @@ package fr.familia.app.feature.planning
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -20,6 +22,8 @@ fun PlanningRoute(
     onOpenEvent: (eventId: String) -> Unit,
     onOpenTrip: (tripId: String) -> Unit = {},
 ) {
+    val context = LocalContext.current.applicationContext
+    val prefs = remember(context) { PlanningScopePreferences(context) }
     // Trips show in the planning once their module is switched on (PRD rév. 120).
     val tripsOn = LocalFeatureFlags.current.isOn(Feature.Trips)
     val viewModel: PlanningViewModel = viewModel(
@@ -30,6 +34,8 @@ fun PlanningRoute(
                     container?.memberRepository,
                     currentMember.id,
                     rsvps = container?.rsvpRepository,
+                    initialScope = prefs.scope,
+                    saveScope = { prefs.scope = it },
                     trips = if (tripsOn) container?.tripRepository else null,
                 ) }
         },
@@ -40,6 +46,7 @@ fun PlanningRoute(
         onRetry = viewModel::retry,
         onAddEvent = onAddEvent,
         onOpenEvent = onOpenEvent,
+        onScopeChange = viewModel::setScope,
         onOpenTrip = onOpenTrip,
     )
 }

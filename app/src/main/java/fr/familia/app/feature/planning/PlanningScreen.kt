@@ -86,6 +86,8 @@ fun PlanningScreen(
     onOpenEvent: (eventId: String) -> Unit,
     modifier: Modifier = Modifier,
     initialMode: PlanningMode = PlanningMode.List,
+    /** « Toute la famille » / « Mon foyer » (carte AVIS-8); hidden when null. */
+    onScopeChange: ((PlanningScope) -> Unit)? = null,
     onOpenTrip: (tripId: String) -> Unit = {},
 ) {
     var mode by rememberSaveable { mutableStateOf(initialMode) }
@@ -104,12 +106,15 @@ fun PlanningScreen(
             )
             is PlanningUiState.Success -> Column(Modifier.fillMaxSize()) {
                 ModeSwitch(mode, onModeChange = { mode = it })
+                if (onScopeChange != null) ScopeSwitch(state.scope, onScopeChange)
                 when (mode) {
                     PlanningMode.List -> if (state.days.isEmpty()) {
                         EmptyState(
                             icon = Icons.Outlined.Event,
                             title = stringResource(R.string.planning_empty_title),
-                            body = stringResource(R.string.planning_empty_body),
+                            body = stringResource(
+                                if (state.scope == PlanningScope.Household) R.string.planning_scope_empty_body else R.string.planning_empty_body,
+                            ),
                         )
                     } else {
                         LazyColumn(
@@ -149,6 +154,32 @@ private fun ModeSwitch(mode: PlanningMode, onModeChange: (PlanningMode) -> Unit)
             SegmentedButton(
                 selected = mode == value,
                 onClick = { onModeChange(value) },
+                shape = SegmentedButtonDefaults.itemShape(index, labels.size),
+                modifier = Modifier.heightIn(min = 56.dp),
+            ) {
+                Text(stringResource(label), style = MaterialTheme.typography.labelLarge)
+            }
+        }
+    }
+}
+
+/**
+ * « Toute la famille » or « Mon foyer »: Mon foyer keeps the events for the whole family, for my
+ * household, for its members and for the children I am responsible for, and every birthday.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ScopeSwitch(scope: PlanningScope, onScopeChange: (PlanningScope) -> Unit) {
+    val labels = listOf(PlanningScope.Family to R.string.planning_scope_family, PlanningScope.Household to R.string.planning_scope_household)
+    SingleChoiceSegmentedButtonRow(
+        Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+    ) {
+        labels.forEachIndexed { index, (value, label) ->
+            SegmentedButton(
+                selected = scope == value,
+                onClick = { onScopeChange(value) },
                 shape = SegmentedButtonDefaults.itemShape(index, labels.size),
                 modifier = Modifier.heightIn(min = 56.dp),
             ) {

@@ -36,6 +36,7 @@ sealed interface PlanningUiState {
     data class Success(
         val days: List<PlanningDay>,
         val today: LocalDate,
+        val scope: PlanningScope = PlanningScope.Family,
         /** Every day of the trips to come, marked in the month view (PRD, récit 11). */
         val tripDays: Set<LocalDate> = emptySet(),
     ) : PlanningUiState
