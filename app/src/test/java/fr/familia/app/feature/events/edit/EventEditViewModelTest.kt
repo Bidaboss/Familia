@@ -1,5 +1,6 @@
 package fr.familia.app.feature.events.edit
 
+import fr.familia.app.core.ui.Confirmation
 import fr.familia.app.core.model.EventTarget
 import fr.familia.app.feature.events.FakeEvents
 import fr.familia.app.feature.events.FakeMembers
@@ -56,7 +57,7 @@ class EventEditViewModelTest {
         val viewModel = vm(events)
         viewModel.update { it.copy(title = " Repas ", date = LocalDate.of(2026, 12, 24), time = LocalTime.of(19, 30), place = " ") }
         viewModel.save()
-        assertEquals(EventEditUiState.Done, viewModel.uiState.value)
+        assertEquals(EventEditUiState.Done(Confirmation.Saved), viewModel.uiState.value)
         val (event, isNew) = events.saved.single()
         assertTrue(isNew)
         assertEquals("e-new", event.id)
@@ -94,7 +95,7 @@ class EventEditViewModelTest {
         val viewModel = vm(events, eventId = "e1")
         viewModel.delete()
         assertEquals(listOf("e1"), events.deleted)
-        assertEquals(EventEditUiState.Done, viewModel.uiState.value)
+        assertEquals(EventEditUiState.Done(Confirmation.Deleted), viewModel.uiState.value)
     }
 
     @Test
@@ -112,7 +113,7 @@ class EventEditViewModelTest {
         viewModel.save()
         assertTrue(viewModel.editing().isSaving)
         advanceTimeBy(5_000)
-        assertEquals(EventEditUiState.Done, viewModel.uiState.value)
+        assertEquals(EventEditUiState.Done(Confirmation.Queued), viewModel.uiState.value)
     }
 
     @Test
@@ -122,5 +123,27 @@ class EventEditViewModelTest {
         assertTrue(viewModel.editing().hasChanges)
         viewModel.update { it.copy(title = "") }
         assertFalse(viewModel.editing().hasChanges)
+    }
+
+    @Test
+    fun `a draft comes back after Android closed the app in the background`() {
+        val handle = androidx.lifecycle.SavedStateHandle()
+        val first = EventEditViewModel(FakeEvents(), FakeMembers(), "adult1", null, savedState = handle)
+        first.update { it.copy(title = "Galette", date = LocalDate.of(2027, 1, 6), time = LocalTime.of(16, 0), target = EventTarget.ForHousehold("h1")) }
+
+        val again = EventEditViewModel(FakeEvents(), FakeMembers(), "adult1", null, savedState = handle)
+        val form = again.editing().form
+        assertEquals("Galette", form.title)
+        assertEquals(LocalDate.of(2027, 1, 6), form.date)
+        assertEquals(LocalTime.of(16, 0), form.time)
+        assertEquals(EventTarget.ForHousehold("h1"), form.target)
+        assertTrue(again.editing().hasChanges)
+    }
+
+    @Test
+    fun `every target survives its encoding`() {
+        listOf(EventTarget.ForFamily, EventTarget.ForHousehold("h1"), EventTarget.ForSelf("a"), EventTarget.ForChild("k"))
+            .forEach { assertEquals(it, decodeTarget(encodeTarget(it))) }
+        assertNull(decodeTarget("other:x"))
     }
 }

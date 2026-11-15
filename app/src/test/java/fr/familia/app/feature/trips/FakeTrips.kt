@@ -1,12 +1,14 @@
 package fr.familia.app.feature.trips
 
 import fr.familia.app.core.data.TripRepository
+import fr.familia.app.core.data.itemOrder
 import fr.familia.app.core.data.stepOrder
 import fr.familia.app.core.data.tripOrder
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.StepType
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripArrival
+import fr.familia.app.core.model.TripItem
 import fr.familia.app.core.model.TripStep
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +39,12 @@ class FakeTrips(
     initial: List<Trip> = listOf(TestTrips.trip()),
     steps: Map<String, List<TripStep>> = emptyMap(),
     private val failWith: Exception? = null,
+    items: Map<String, List<TripItem>> = emptyMap(),
 ) : TripRepository {
+    val items = MutableStateFlow(items)
+    val savedItems = mutableListOf<Pair<TripItem, Boolean>>()
+    val ticked = mutableListOf<Pair<String, Boolean>>()
+    val deletedItems = mutableListOf<String>()
     val trips = MutableStateFlow(initial)
     val steps = MutableStateFlow(steps)
     val savedTrips = mutableListOf<Pair<Trip, Boolean>>()
@@ -85,5 +92,23 @@ class FakeTrips(
     override suspend fun clearArrival(tripId: String, stepId: String) {
         failWith?.let { throw it }
         cleared += stepId
+    }
+
+    override fun observeItems(tripId: String): Flow<List<TripItem>> = items.map { it[tripId].orEmpty().sortedWith(itemOrder) }
+    override fun newItemId(tripId: String): String = "i-new"
+
+    override suspend fun saveItem(tripId: String, item: TripItem, isNew: Boolean) {
+        failWith?.let { throw it }
+        savedItems += item to isNew
+    }
+
+    override suspend fun setItemDone(tripId: String, itemId: String, done: Boolean) {
+        failWith?.let { throw it }
+        ticked += itemId to done
+    }
+
+    override suspend fun deleteItem(tripId: String, itemId: String) {
+        failWith?.let { throw it }
+        deletedItems += itemId
     }
 }

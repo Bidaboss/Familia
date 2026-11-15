@@ -1,6 +1,7 @@
 package fr.familia.app.feature.trips
 
 import fr.familia.app.core.model.TripArrival
+import fr.familia.app.core.model.TripItem
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.trips.detail.TripDetailUiState
@@ -105,6 +106,34 @@ class TripViewModelsTest {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         trips.trips.value = emptyList()
         assertEquals(TripDetailUiState.Missing, vm.uiState.value)
+    }
+
+    @Test
+    fun `the checklist shows what is left first, and a participant adds, ticks and removes lines`() = runTest {
+        val trips = FakeTrips(
+            items = mapOf(
+                "t1" to listOf(
+                    TripItem("i1", "Billets", "adult1", "Adult1", done = true),
+                    TripItem("i2", "Crème solaire", null, null, done = false),
+                ),
+            ),
+        )
+        val vm = TripDetailViewModel(trips, FakeMembers(), "adult2", "t1", today = flowOf(july))
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        val state = vm.uiState.value as TripDetailUiState.Success
+        assertEquals(listOf("i2", "i1"), state.items.map { it.id })
+        assertEquals(listOf("adult1", "adult2"), state.assignees.map { it.id })
+
+        vm.addItem("  Chargeur  ", "adult1")
+        assertEquals(TripItem("i-new", "Chargeur", "adult1", "Adult1", done = false) to true, trips.savedItems.single())
+        vm.addItem("   ", null) // a blank line is never sent
+        assertEquals(1, trips.savedItems.size)
+        vm.editItem(state.items.last(), "Billets d'avion", "kid1") // kid1 does not take part: nobody in charge
+        assertEquals(TripItem("i1", "Billets d'avion", null, null, done = true) to false, trips.savedItems.last())
+        vm.setItemDone("i2", true)
+        assertEquals(listOf("i2" to true), trips.ticked)
+        vm.deleteItem("i2")
+        assertEquals(listOf("i2"), trips.deletedItems)
     }
 
     // --- Trip form --------------------------------------------------------------------------------

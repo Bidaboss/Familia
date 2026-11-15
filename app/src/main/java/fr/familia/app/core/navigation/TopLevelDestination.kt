@@ -5,10 +5,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.VolunteerActivism
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.ui.graphics.vector.ImageVector
 import fr.familia.app.R
@@ -18,9 +20,13 @@ import kotlinx.serialization.Serializable
 import fr.familia.app.core.model.FeatureFlags
 import fr.familia.app.core.model.Feature
 
-/** Type-safe routes of the three tabs. */
+/** Type-safe routes of the tabs. */
 @Serializable
 data object PlanningRoute
+
+/** The Accueil tab (PRD, récit 29): first in the bar once its module is switched on. */
+@Serializable
+data object HomeRoute
 
 /** Every birthday, opened from the Cadeaux tab (carte DESIGN-4: no Anniversaires tab any more). */
 @Serializable
@@ -113,6 +119,7 @@ enum class TopLevelDestination(
     /** The module that hides the tab while it is switched off (null: always shown). */
     val feature: Feature? = null,
 ) {
+    Home(HomeRoute, R.string.nav_home, Icons.Filled.Home, Icons.Outlined.Home, Feature.Home),
     Planning(PlanningRoute, R.string.nav_planning, Icons.Filled.CalendarMonth, Icons.Outlined.CalendarMonth),
     Gifts(GiftsRoute, R.string.nav_gifts, Icons.Filled.CardGiftcard, Icons.Outlined.CardGiftcard, Feature.Gifts),
     HelpRequests(HelpRequestsRoute, R.string.nav_help_requests, Icons.Filled.VolunteerActivism, Icons.Outlined.VolunteerActivism, Feature.HelpRequests),
@@ -125,8 +132,8 @@ enum class TopLevelDestination(
         if (this == Gifts && member.profile != MemberProfile.Adult) R.string.nav_gifts_child else labelRes
 
     companion object {
-        /** The app always opens on the planning. */
-        val start: TopLevelDestination = Planning
+        /** The app opens on the Accueil once its module shows, on the planning before. */
+        fun startFor(homeOn: Boolean): TopLevelDestination = if (homeOn) Home else Planning
 
         /** The tabs of the bar: those of the modules switched off stay hidden. */
         fun visible(flags: FeatureFlags): List<TopLevelDestination> = entries.filter { it.feature?.let(flags::isOn) ?: true }

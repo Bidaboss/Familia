@@ -39,6 +39,9 @@ import fr.familia.app.feature.events.edit.previewEventState
 import fr.familia.app.feature.planning.PlanningMode
 import fr.familia.app.feature.planning.PlanningScope
 import fr.familia.app.feature.planning.PlanningScreen
+import fr.familia.app.feature.home.HomeActions
+import fr.familia.app.feature.home.HomeScreen
+import fr.familia.app.feature.home.previewHome
 import fr.familia.app.feature.planning.previewPlanning
 import fr.familia.app.feature.members.edit.FormError
 import fr.familia.app.feature.members.edit.MemberEditScreen
@@ -301,6 +304,23 @@ class ScreenshotTest {
     }
 
     @Test
+    fun homeLight() = capture("accueil_clair") {
+        Surface { HomeScreen(previewHome(), HomeActions(onOpenWishes = {})) }
+    }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun homeDark() = capture("accueil_sombre", darkTheme = true) {
+        Surface { HomeScreen(previewHome(), HomeActions(onOpenWishes = {})) }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun homeFontScale200() = capture("accueil_police_200") {
+        Surface { HomeScreen(previewHome(), HomeActions(onOpenWishes = {})) }
+    }
+
+    @Test
     fun planningMonthLight() = capture("planning_mois_clair") {
         Surface { PlanningScreen(previewPlanning(), {}, {}, {}, initialMode = PlanningMode.Month) }
     }
@@ -417,12 +437,12 @@ class ScreenshotTest {
 
     @Test
     @Config(qualifiers = "+night")
-    fun onboardingChildDark() = capture("tuto_enfant_sombre", darkTheme = true) { onboarding(answersForChildren = false, index = 3) }
+    fun onboardingChildDark() = capture("tuto_enfant_sombre", darkTheme = true) { onboarding(answersForChildren = false, index = 2) }
 
     @Test
     @Config(fontScale = 2f)
     fun onboardingNotificationsFontScale200() = capture("tuto_notifications_police_200") {
-        onboarding(answersForChildren = true, index = 4)
+        onboarding(answersForChildren = true, index = 3)
     }
 
     @Composable
