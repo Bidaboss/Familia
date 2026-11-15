@@ -21,7 +21,6 @@ import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -29,15 +28,17 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextDecoration
@@ -56,8 +57,8 @@ data class ChecklistActions(
     val onDelete: (itemId: String) -> Unit = {},
 )
 
-/** The line being added (item null) or edited in the dialog. */
-private data class ItemEdit(val item: TripItem?)
+/** In the dialog: a new line, or the id of the line being edited. Saved, so a rotation keeps it open. */
+private const val NEW_ITEM = ""
 
 /**
  * « À prévoir » (récit 13): what to bring or book, who takes care of it, ticked once done. A
@@ -70,7 +71,7 @@ internal fun TripChecklist(
     isParticipant: Boolean,
     actions: ChecklistActions,
 ) {
-    var editing by remember { mutableStateOf<ItemEdit?>(null) }
+    var editingId by rememberSaveable { mutableStateOf<String?>(null) }
     ClayCard(Modifier.fillMaxWidth(), tint = ClayTint.Plain) {
         if (items.isEmpty()) {
             Text(
@@ -80,11 +81,11 @@ internal fun TripChecklist(
             )
         }
         items.forEach { item ->
-            ItemRow(item, isParticipant, onDone = { actions.onDone(item.id, it) }, onEdit = { editing = ItemEdit(item) })
+            ItemRow(item, isParticipant, onDone = { actions.onDone(item.id, it) }, onEdit = { editingId = item.id })
         }
         if (isParticipant) {
             OutlinedButton(
-                onClick = { editing = ItemEdit(null) },
+                onClick = { editingId = NEW_ITEM },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp).heightIn(min = 56.dp),
             ) {
                 Icon(Icons.Outlined.Add, contentDescription = null)
@@ -93,17 +94,24 @@ internal fun TripChecklist(
             }
         }
     }
-    editing?.let { edit ->
-        ItemDialog(
-            item = edit.item,
-            assignees = assignees,
-            onSave = { label, assigneeId ->
-                if (edit.item == null) actions.onAdd(label, assigneeId) else actions.onEdit(edit.item, label, assigneeId)
-                editing = null
-            },
-            onDelete = edit.item?.let { item -> { actions.onDelete(item.id); editing = null } },
-            onDismiss = { editing = null },
-        )
+    val id = editingId
+    if (id != null) {
+        // A line removed meanwhile by someone else closes the dialog.
+        val item = items.firstOrNull { it.id == id }
+        if (id != NEW_ITEM && item == null) {
+            LaunchedEffect(id) { editingId = null }
+        } else {
+            ItemDialog(
+                item = item,
+                assignees = assignees,
+                onSave = { label, assigneeId ->
+                    if (item == null) actions.onAdd(label, assigneeId) else actions.onEdit(item, label, assigneeId)
+                    editingId = null
+                },
+                onDelete = item?.let { line -> { actions.onDelete(line.id); editingId = null } },
+                onDismiss = { editingId = null },
+            )
+        }
     }
 }
 
@@ -136,8 +144,15 @@ private fun ItemRow(item: TripItem, isParticipant: Boolean, onDone: (Boolean) ->
                 Spacer(Modifier.width(12.dp))
                 text()
             }
-            IconButton(onClick = onEdit) {
-                Icon(Icons.Outlined.Edit, contentDescription = stringResource(R.string.trip_checklist_edit_action, item.label))
+            Spacer(Modifier.width(8.dp))
+            val editLabel = stringResource(R.string.trip_checklist_edit_action, item.label)
+            TextButton(
+                onClick = onEdit,
+                modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = editLabel },
+            ) {
+                Icon(Icons.Outlined.Edit, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.trip_checklist_edit))
             }
         } else {
             Icon(
@@ -161,6 +176,25 @@ private fun ItemDialog(
     onDismiss: () -> Unit,
 ) {
     var label by rememberSaveable { mutableStateOf(item?.label.orEmpty()) }
+    var confirmDelete by rememberSaveable { mutableStateOf(false) }
+    if (confirmDelete && onDelete != null && item != null) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = { Text(stringResource(R.string.trip_checklist_delete_title, item.label)) },
+            text = { Text(stringResource(R.string.trip_checklist_delete_body)) },
+            confirmButton = {
+                TextButton(onClick = onDelete, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.trip_checklist_delete_confirm), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDelete = false }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.trip_checklist_delete_keep))
+                }
+            },
+        )
+        return
+    }
     var assigneeId by rememberSaveable { mutableStateOf(item?.assigneeId?.takeIf { id -> assignees.any { it.id == id } }) }
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -186,7 +220,7 @@ private fun ItemDialog(
                     assignees.forEach { a -> AssigneeRow(a.name, assigneeId == a.id) { assigneeId = a.id } }
                 }
                 if (onDelete != null) {
-                    TextButton(onClick = onDelete, modifier = Modifier.padding(top = 8.dp).heightIn(min = 56.dp)) {
+                    TextButton(onClick = { confirmDelete = true }, modifier = Modifier.padding(top = 8.dp).heightIn(min = 56.dp)) {
                         Text(stringResource(R.string.trip_checklist_delete), color = MaterialTheme.colorScheme.error)
                     }
                 }

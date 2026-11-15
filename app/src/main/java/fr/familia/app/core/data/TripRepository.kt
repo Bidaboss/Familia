@@ -51,7 +51,7 @@ interface TripRepository {
 
     fun newItemId(tripId: String): String
 
-    /** Creates or updates a line of the checklist: its label, who is in charge and whether it is done. */
+    /** Creates a line of the checklist, or updates its label and who is in charge (never whether it is done). */
     suspend fun saveItem(tripId: String, item: TripItem, isNew: Boolean)
 
     /** Ticks or unticks a line, without touching the rest. */

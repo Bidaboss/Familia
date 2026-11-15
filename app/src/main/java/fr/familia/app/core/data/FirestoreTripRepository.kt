@@ -178,7 +178,8 @@ class FirestoreTripRepository(private val db: FirebaseFirestore) : TripRepositor
             "updatedAt" to FieldValue.serverTimestamp(),
         )
         val ref = items(tripId).document(item.id)
-        if (isNew) ref.set(fields).await() else ref.update(fields).await()
+        // An edit never sends « done »: a tick made meanwhile by someone else stays.
+        if (isNew) ref.set(fields).await() else ref.update(fields - "done").await()
     }
 
     override suspend fun setItemDone(tripId: String, itemId: String, done: Boolean) {

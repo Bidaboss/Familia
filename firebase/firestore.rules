@@ -879,7 +879,7 @@ service cloud.firestore {
       allow delete: if canChangePhoto(memberId) || (isMember() && !existsAfter(memberPath(memberId)));
     }
 
-        // --- Trips (V3, récits 11 à 14) ------------------------------------------------------------------
+    // --- Trips (V3, récits 11 à 14) ----------------------------------------------------------------
 
     function tripPath(tripId) {
       return /databases/$(database)/documents/trips/$(tripId);

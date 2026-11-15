@@ -553,6 +553,11 @@
     <string name="trip_checklist_done">Fait</string>
     <string name="trip_checklist_todo">À faire</string>
     <string name="trip_checklist_delete">Retirer de la liste</string>
+    <string name="trip_checklist_edit">Modifier</string>
+    <string name="trip_checklist_delete_title">Retirer « %1$s » ?</string>
+    <string name="trip_checklist_delete_body">La ligne disparaît de la liste pour tout le voyage.</string>
+    <string name="trip_checklist_delete_confirm">Retirer</string>
+    <string name="trip_checklist_delete_keep">Garder</string>
     <string name="trip_checklist_save">Enregistrer</string>
     <string name="trip_no_steps">Aucune étape pour l\'instant.</string>
     <string name="trip_no_steps_participant">Aucune étape pour l\'instant. Touche « Ajouter une étape » : un vol, un train, la route, un hébergement ou une activité.</string>
