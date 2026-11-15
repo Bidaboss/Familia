@@ -31,7 +31,8 @@ export interface EventData {
 export type RsvpStatus = 'yes' | 'maybe' | 'no';
 
 /** The ids of NotificationChannels in the app. `events` is the « Planning » channel. */
-export type Channel = 'events' | 'reminders' | 'gifts' | 'goodNews' | 'helpRequests' | 'trips';
+// Each module adds its id here and its channel in the app, in the same pull request.
+export type Channel = 'events' | 'reminders' | 'gifts';
 
 export interface Notice {
   /**

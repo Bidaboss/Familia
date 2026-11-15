@@ -225,12 +225,6 @@
     <string name="channel_reminders_description">La veille, les événements où tu as dit que tu venais</string>
     <string name="channel_gifts">Cadeaux</string>
     <string name="channel_gifts_description">Anniversaires à préparer, réservations changées, cadeaux à découvrir</string>
-    <string name="channel_good_news">Bonnes nouvelles</string>
-    <string name="channel_good_news_description">Ce que la famille partage</string>
-    <string name="channel_help_requests">Entraide</string>
-    <string name="channel_help_requests_description">Un coup de main demandé, proposé ou pris</string>
-    <string name="channel_trips">Voyages</string>
-    <string name="channel_trips_description">Les étapes et les « bien arrivé » des voyages où tu es</string>
     <string name="export_title">Sauvegarde des données</string>
     <string name="export_body">Crée un fichier avec tous les membres, les foyers, les événements et les réponses de la famille. Tu choisis où l\'enregistrer : sur ce téléphone ou dans ton Google Drive.</string>
     <string name="export_privacy">Ce fichier contient les adresses et les dates de naissance de toute la famille. Garde-le pour toi et ne le partage pas.</string>
