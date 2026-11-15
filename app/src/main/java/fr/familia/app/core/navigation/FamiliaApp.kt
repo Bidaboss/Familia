@@ -5,11 +5,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import fr.familia.app.BuildConfig
+import fr.familia.app.R
 import fr.familia.app.feature.update.UpdateBanner
 import fr.familia.app.feature.update.availableUpdate
 import fr.familia.app.feature.update.InAppUpdateDialogs
 import fr.familia.app.feature.update.LocalInAppUpdater
 import fr.familia.app.feature.update.rememberInAppUpdater
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.FeatureFlags
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.update.UpdateCheckRoute
@@ -74,7 +76,14 @@ import fr.familia.app.feature.gifts.detail.GiftListRoute
 import fr.familia.app.feature.gifts.edit.GiftListEditRoute
 import fr.familia.app.feature.gifts.item.GiftItemEditRoute
 import fr.familia.app.feature.events.answerableMembers
-import fr.familia.app.core.model.Feature
+import fr.familia.app.core.data.currentDayFlow
+import fr.familia.app.feature.helprequests.badgeCount
+import fr.familia.app.feature.helprequests.detail.HelpRequestDetailRoute
+import fr.familia.app.feature.helprequests.edit.HelpRequestEditRoute
+import fr.familia.app.feature.helprequests.list.HelpRequestsRoute
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import kotlinx.coroutines.flow.combine
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
 @Composable
@@ -85,6 +94,9 @@ fun FamiliaApp(
     /** The event of a tapped notification, to open once. */
     openEventId: String? = null,
     onEventOpened: () -> Unit = {},
+    /** The « coup de main » of a tapped notification, to open once. */
+    openHelpRequestId: String? = null,
+    onHelpRequestOpened: () -> Unit = {},
     /** The gift list of a tapped notification, to open once (V2). */
     openListId: String? = null,
     onListOpened: () -> Unit = {},
@@ -151,8 +163,28 @@ fun FamiliaApp(
     val ownerId by ownerFlow.collectAsStateWithLifecycle(initialValue = null)
     val features = FeatureFlags(appConfig?.features.orEmpty(), isOwner = ownerId != null && ownerId == currentMember.id)
 
+    // The Entraide tab and its entry points stay hidden while the module is off (PRD rév. 120).
+    val helpRequestsOn = features.isOn(Feature.HelpRequests)
+    val tabs = TopLevelDestination.visible(features)
+    // A notification of a coup de main opens it only once the module shows; otherwise it is dropped.
+    LaunchedEffect(openHelpRequestId, helpRequestsOn) {
+        if (openHelpRequestId != null && helpRequestsOn) {
+            navController.navigate(HelpRequestDetailDestination(openHelpRequestId))
+            onHelpRequestOpened()
+        }
+    }
+
     var updateDismissed by rememberSaveable { mutableStateOf(false) }
     LifecycleEventEffect(Lifecycle.Event.ON_START) { updateDismissed = false }
+
+    // Récit 15: the Entraide tab counts the open requests where I was warned and can still help.
+    val helpBadges = remember(container, currentMember) {
+        container?.helpRequestRepository?.observeMine(currentMember.id)
+            ?.combine(currentDayFlow()) { requests, today -> badgeCount(requests, currentMember, today) }
+            ?.catch { emit(0) }
+            ?: flowOf(0)
+    }
+    val helpBadge by helpBadges.collectAsStateWithLifecycle(initialValue = 0)
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
@@ -177,16 +209,19 @@ fun FamiliaApp(
             },
             bottomBar = {
                 if (onTab) NavigationBar {
-                    TopLevelDestination.visible(features).forEach { destination ->
+                    tabs.forEach { destination ->
                         val selected = currentDestination.isOn(destination)
                         NavigationBarItem(
                             selected = selected,
                             onClick = { navController.navigateToTab(destination) },
                             icon = {
-                                Icon(
-                                    imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
-                                    contentDescription = null, // The label below already names the tab.
-                                )
+                                val badge = if (destination == TopLevelDestination.HelpRequests) helpBadge else 0
+                                BadgedBox(badge = { if (badge > 0) Badge { Text(badge.toString()) } }) {
+                                    Icon(
+                                        imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
+                                        contentDescription = null, // The label below already names the tab.
+                                    )
+                                }
                             },
                             label = { Text(stringResource(destination.labelFor(currentMember))) },
                         )
@@ -285,6 +320,36 @@ fun FamiliaApp(
                             onDone = { navController.popBackStack() },
                         )
                     }
+                    // --- Coups de main ---
+                    composable<HelpRequestsRoute> {
+                        HelpRequestsRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onAsk = { navController.navigate(HelpRequestEditDestination()) },
+                            onOpenRequest = { id -> navController.navigate(HelpRequestDetailDestination(id)) },
+                        )
+                    }
+                    composable<HelpRequestDetailDestination> { entry ->
+                        val requestId = entry.toRoute<HelpRequestDetailDestination>().requestId
+                        HelpRequestDetailRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            requestId = requestId,
+                            onEdit = { navController.navigate(HelpRequestEditDestination(requestId = requestId)) },
+                            onDuplicate = { navController.navigate(HelpRequestEditDestination(duplicateOf = requestId)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<HelpRequestEditDestination> { entry ->
+                        val destination = entry.toRoute<HelpRequestEditDestination>()
+                        HelpRequestEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            requestId = destination.requestId,
+                            duplicateOf = destination.duplicateOf,
+                            onDone = { navController.popBackStack() },
+                        )
+                    }
                     composable<MembersRoute> {
                         MembersRoute(
                             container = container,
@@ -349,11 +414,13 @@ fun FamiliaApp(
 @Composable
 private fun TabTopBar(tab: TopLevelDestination, member: Member) {
     TopAppBar(
-        title = { Text(stringResource(tab.labelFor(member))) },
+        // The Entraide tab keeps the full name « Coups de main » as its title (DESIGN-4).
+        title = { Text(stringResource(if (tab == TopLevelDestination.HelpRequests) R.string.helprequest_screen_title else tab.labelFor(member))) },
         actions = {
             when (tab) {
                 TopLevelDestination.Planning -> HelpButton(ScreenHelp.Planning)
                 TopLevelDestination.Members -> HelpButton(ScreenHelp.Family)
+                TopLevelDestination.HelpRequests -> HelpButton(ScreenHelp.HelpRequests)
                 TopLevelDestination.Gifts -> HelpButton(ScreenHelp.Gifts)
             }
         },

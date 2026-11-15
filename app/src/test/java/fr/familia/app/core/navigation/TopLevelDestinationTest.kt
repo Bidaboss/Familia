@@ -7,9 +7,9 @@ import org.junit.Test
 class TopLevelDestinationTest {
 
     @Test
-    fun `bottom bar shows planning, gifts and family in that order`() {
+    fun `bottom bar shows planning, gifts, entraide and family in that order`() {
         assertEquals(
-            listOf(TopLevelDestination.Planning, TopLevelDestination.Gifts, TopLevelDestination.Members),
+            listOf(TopLevelDestination.Planning, TopLevelDestination.Gifts, TopLevelDestination.HelpRequests, TopLevelDestination.Members),
             TopLevelDestination.entries.toList(),
         )
     }
@@ -26,10 +26,13 @@ class TopLevelDestinationTest {
     }
 
     @Test
-    fun `the gifts tab waits for its module, except for the admin principal`() {
+    fun `the gifts and entraide tabs wait for their module, except for the admin principal`() {
         val off = TopLevelDestination.visible(FeatureFlags())
         assertEquals(listOf(TopLevelDestination.Planning, TopLevelDestination.Members), off)
-        assertEquals(TopLevelDestination.entries.toList(), TopLevelDestination.visible(FeatureFlags(mapOf("gifts" to true))))
+        assertEquals(
+            listOf(TopLevelDestination.Planning, TopLevelDestination.Gifts, TopLevelDestination.Members),
+            TopLevelDestination.visible(FeatureFlags(mapOf("gifts" to true))),
+        )
         assertEquals(TopLevelDestination.entries.toList(), TopLevelDestination.visible(FeatureFlags(isOwner = true)))
     }
 }

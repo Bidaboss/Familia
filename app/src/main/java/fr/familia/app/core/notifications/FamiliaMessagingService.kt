@@ -36,13 +36,16 @@ class FamiliaMessagingService : FirebaseMessagingService() {
                 eventId?.let { putExtra(EXTRA_EVENT_ID, it) }
                 listId?.let { putExtra(EXTRA_LIST_ID, it) }
             }
+        // Coups de main: the request to open, when the notification is about one.
+        val helpRequestId = message.data[EXTRA_HELP_REQUEST_ID]
+        helpRequestId?.let { open.putExtra(EXTRA_HELP_REQUEST_ID, it) }
         val pending = PendingIntent.getActivity(
             this,
-            (eventId ?: listId).hashCode(),
+            (eventId ?: listId ?: helpRequestId).hashCode(),
             open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val built = NotificationCompat.Builder(this, notification.channelId ?: NotificationChannels.EVENTS)
+        val built = NotificationCompat.Builder(this, notification.channelId?.takeIf { it in NotificationChannels.ids } ?: NotificationChannels.EVENTS)
             .setSmallIcon(R.drawable.ic_notification)
             .setColor(ContextCompat.getColor(this, R.color.notification_accent))
             .setContentTitle(notification.title)
@@ -66,5 +69,8 @@ class FamiliaMessagingService : FirebaseMessagingService() {
 
         /** A gift list to open (V2), same key as the `data` of the Cloud Functions. */
         const val EXTRA_LIST_ID = "listId"
+
+        /** Same key as the `data` of functions/src/helpRequests.ts. */
+        const val EXTRA_HELP_REQUEST_ID = "helpRequestId"
     }
 }

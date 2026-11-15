@@ -37,6 +37,7 @@ import fr.familia.app.feature.events.edit.EventEditScreen
 import fr.familia.app.feature.events.edit.EventFormError
 import fr.familia.app.feature.events.edit.previewEventState
 import fr.familia.app.feature.planning.PlanningMode
+import fr.familia.app.feature.planning.PlanningScope
 import fr.familia.app.feature.planning.PlanningScreen
 import fr.familia.app.feature.planning.previewPlanning
 import fr.familia.app.feature.members.edit.FormError
@@ -48,6 +49,13 @@ import fr.familia.app.feature.members.edit.previewExistingState
 import fr.familia.app.feature.members.edit.MemberEditUiState
 import java.time.LocalDate
 import org.junit.Test
+import fr.familia.app.feature.helprequests.detail.HelpRequestDetailScreen
+import fr.familia.app.feature.helprequests.detail.previewHelpRequestDetail
+import fr.familia.app.feature.helprequests.edit.HelpFormError
+import fr.familia.app.feature.helprequests.edit.HelpRequestEditScreen
+import fr.familia.app.feature.helprequests.edit.previewHelpRequestEdit
+import fr.familia.app.feature.helprequests.list.HelpRequestsScreen
+import fr.familia.app.feature.helprequests.list.previewHelpRequests
 import fr.familia.app.core.ui.ClayCardSamples
 import fr.familia.app.feature.gifts.GiftsScreen
 import fr.familia.app.feature.gifts.previewGifts
@@ -239,6 +247,17 @@ class ScreenshotTest {
     @Test
     fun planningListLight() = capture("planning_liste_clair") {
         Surface { PlanningScreen(previewPlanning(), {}, {}, {}) }
+    }
+
+    @Test
+    fun planningHouseholdLight() = capture("planning_mon_foyer_clair") {
+        Surface { PlanningScreen(previewPlanning().copy(scope = PlanningScope.Household), {}, {}, {}, onScopeChange = {}) }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun planningHouseholdFontScale200() = capture("planning_mon_foyer_police_200") {
+        Surface { PlanningScreen(previewPlanning().copy(scope = PlanningScope.Household), {}, {}, {}, onScopeChange = {}) }
     }
 
     @Test
@@ -490,6 +509,57 @@ class ScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun giftItemFormFontScale200() = capture("article_formulaire_police_200") { GiftItemEditScreen(previewGiftItemForm(), {}, {}, {}, {}) }
+
+    // --- Coups de main (fil [DEV] coups de main) ---------------------------------------------------
+
+    @Test
+    fun helpRequestsLight() = capture("entraide_liste_clair") { Surface { HelpRequestsScreen(previewHelpRequests(), {}, {}, {}) } }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun helpRequestsDark() = capture("entraide_liste_sombre", darkTheme = true) {
+        Surface { HelpRequestsScreen(previewHelpRequests(), {}, {}, {}) }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun helpRequestsFontScale200() = capture("entraide_liste_police_200") {
+        Surface { HelpRequestsScreen(previewHelpRequests(), {}, {}, {}) }
+    }
+
+    @Test
+    fun helpRequestEditLight() = capture("entraide_demande_clair") {
+        HelpRequestEditScreen(previewHelpRequestEdit(), {}, {}, {}, {}, {})
+    }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun helpRequestEditDark() = capture("entraide_demande_sombre", darkTheme = true) {
+        HelpRequestEditScreen(previewHelpRequestEdit(errors = setOf(HelpFormError.TitleMissing)), {}, {}, {}, {}, {})
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun helpRequestEditFontScale200() = capture("entraide_demande_police_200") {
+        HelpRequestEditScreen(previewHelpRequestEdit(), {}, {}, {}, {}, {})
+    }
+
+    @Test
+    fun helpRequestDetailLight() = capture("entraide_detail_clair") {
+        HelpRequestDetailScreen(previewHelpRequestDetail(), {}, {}, {}, {}, {}, {}, {}, {}, {})
+    }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun helpRequestDetailDark() = capture("entraide_detail_sombre", darkTheme = true) {
+        HelpRequestDetailScreen(previewHelpRequestDetail(isMine = true), {}, {}, {}, {}, {}, {}, {}, {}, {})
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun helpRequestDetailFontScale200() = capture("entraide_detail_police_200") {
+        HelpRequestDetailScreen(previewHelpRequestDetail(), {}, {}, {}, {}, {}, {}, {}, {}, {})
+    }
 
     private val sampleMember = Member("a", "Camille", null, null, "h1", MemberProfile.Adult, true, emptyList(), null)
 

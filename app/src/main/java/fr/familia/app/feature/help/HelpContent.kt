@@ -14,6 +14,7 @@ enum class ScreenHelp(@StringRes val titleRes: Int, @StringRes val bodyRes: Int)
     GiftList(R.string.help_screen_gift_list_title, R.string.help_screen_gift_list_body),
     GiftListEdit(R.string.help_screen_gift_list_edit_title, R.string.help_screen_gift_list_edit_body),
     GiftItemEdit(R.string.help_screen_gift_item_edit_title, R.string.help_screen_gift_item_edit_body),
+    HelpRequests(R.string.help_screen_help_requests_title, R.string.help_screen_help_requests_body),
 }
 
 /** Who sees a topic of the help page: the functions they can use. */
@@ -32,6 +33,7 @@ enum class HelpTopic(
     EditEvent(R.string.help_topic_edit_title, R.string.help_topic_edit_body),
     Answers(R.string.help_topic_answers_title, R.string.help_topic_answers_body),
     Notifications(R.string.help_topic_notifications_title, R.string.help_topic_notifications_body),
+    HelpRequests(R.string.help_topic_help_requests_title, R.string.help_topic_help_requests_body, feature = Feature.HelpRequests),
     Family(R.string.help_topic_family_title, R.string.help_topic_family_body),
     Wishes(R.string.help_topic_wishes_title, R.string.help_topic_wishes_body, feature = Feature.Gifts),
     GiftLists(R.string.help_topic_gift_lists_title, R.string.help_topic_gift_lists_body, feature = Feature.Gifts),

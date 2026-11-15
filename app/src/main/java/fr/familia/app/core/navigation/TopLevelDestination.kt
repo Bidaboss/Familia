@@ -5,9 +5,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.VolunteerActivism
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.ui.graphics.vector.ImageVector
 import fr.familia.app.R
 import fr.familia.app.core.model.Member
@@ -30,6 +32,18 @@ data object GiftsRoute
 
 @Serializable
 data object MembersRoute
+
+/** The « Coups de main » tab, labelled « Entraide » in the bar (DESIGN-4). */
+@Serializable
+data object HelpRequestsRoute
+
+/** One « coup de main », opened from the Entraide tab. */
+@Serializable
+data class HelpRequestDetailDestination(val requestId: String)
+
+/** The request form: a new request when [requestId] is null, prefilled from [duplicateOf] for « Dupliquer ». */
+@Serializable
+data class HelpRequestEditDestination(val requestId: String? = null, val duplicateOf: String? = null)
 
 /** Read-only view of an event with "qui vient", opened from the Planning tab. */
 @Serializable
@@ -77,7 +91,7 @@ data object UpdateCheckDestination
 
 /**
  * The tabs of the bottom navigation bar, in display order (design principles, "Navigation et structure").
- * Settings and app updates live inside the Famille tab, so V1 keeps three tabs.
+ * Settings and app updates live inside the Famille tab, which stays last.
  */
 enum class TopLevelDestination(
     val route: Any,
@@ -89,6 +103,7 @@ enum class TopLevelDestination(
 ) {
     Planning(PlanningRoute, R.string.nav_planning, Icons.Filled.CalendarMonth, Icons.Outlined.CalendarMonth),
     Gifts(GiftsRoute, R.string.nav_gifts, Icons.Filled.CardGiftcard, Icons.Outlined.CardGiftcard, Feature.Gifts),
+    HelpRequests(HelpRequestsRoute, R.string.nav_help_requests, Icons.Filled.VolunteerActivism, Icons.Outlined.VolunteerActivism, Feature.HelpRequests),
     Members(MembersRoute, R.string.nav_members, Icons.Filled.Groups, Icons.Outlined.Groups),
     ;
 

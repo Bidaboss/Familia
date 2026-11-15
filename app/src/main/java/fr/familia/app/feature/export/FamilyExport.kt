@@ -33,6 +33,7 @@ fun familyExportJson(data: FamilyData, exportedAt: Instant, appVersion: String):
         put("households", documents(data.households))
         put("members", documents(data.members))
         put("events", documents(data.events))
+        put("helpRequests", documents(data.helpRequests))
         put(
             "rsvps",
             JsonArray(
