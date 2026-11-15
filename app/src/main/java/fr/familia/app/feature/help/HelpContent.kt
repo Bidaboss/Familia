@@ -6,6 +6,7 @@ import fr.familia.app.core.model.Feature
 
 /** The « ? » of a screen (spec « tuto et aide », récit 26): a few sentences on what it does. */
 enum class ScreenHelp(@StringRes val titleRes: Int, @StringRes val bodyRes: Int) {
+    Home(R.string.help_screen_home_title, R.string.help_screen_home_body),
     Planning(R.string.help_screen_planning_title, R.string.help_screen_planning_body),
     EventDetail(R.string.help_screen_event_detail_title, R.string.help_screen_event_detail_body),
     EventEdit(R.string.help_screen_event_edit_title, R.string.help_screen_event_edit_body),
@@ -32,6 +33,7 @@ enum class HelpTopic(
     /** The module whose topics stay hidden while it is switched off. */
     val feature: Feature? = null,
 ) {
+    Home(R.string.help_topic_home_title, R.string.help_topic_home_body, feature = Feature.Home),
     Planning(R.string.help_topic_planning_title, R.string.help_topic_planning_body),
     AddEvent(R.string.help_topic_add_title, R.string.help_topic_add_body),
     EditEvent(R.string.help_topic_edit_title, R.string.help_topic_edit_body),
