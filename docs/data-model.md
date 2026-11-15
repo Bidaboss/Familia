@@ -162,7 +162,7 @@ Un événement déjà passé ne prévient personne. L'auteur d'un changement est
 
 **Qui un événement concerne** (cartes AVIS-7 et AVIS-8) : une seule fonction le dit, `concerns` dans `functions/src/logic.ts`, et la même règle dans l'appli (`core/model/Audience.kt`), qui sert au filtre « Mon foyer » du planning. Un événement concerne un membre s'il est pour toute la famille, ou si sa cible est lui-même, son foyer, un membre ou un enfant de son foyer, ou un enfant dont il est adulte responsable (même dans un autre foyer). Un futur « cercle » ne changera que cette fonction.
 
-**Canaux Android** (récit 6 quinquies) : chaque notification part sur un canal, que chacun peut couper dans les réglages Android : `events` (affiché « Planning »), `reminders`, `gifts`, `helpRequests` (Entraide ; le rappel de la veille d'un coup de main reste sur `reminders`), `goodNews` (Bonnes nouvelles), `trips` (Voyages : « bien arrivé » et son rappel). Chaque module ajoute le sien en même temps que lui : `comments` (Commentaires et réactions), `weekly` (Rendez-vous de la semaine). Les identifiants ne changent jamais, car Android y garde le choix du membre. Un canal inconnu de l'appli retombe sur « Planning ».
+**Canaux Android** (récit 6 quinquies) : chaque notification part sur un canal, que chacun peut couper dans les réglages Android : `events` (affiché « Planning »), `reminders`, `gifts`, `helpRequests` (Entraide ; le rappel de la veille d'un coup de main reste sur `reminders`), `goodNews` (Bonnes nouvelles), `trips` (Voyages : « bien arrivé » et son rappel), `comments` (Commentaires et réactions : pour l'instant les réactions groupées aux Bonnes nouvelles). Chaque module ajoute le sien en même temps que lui : `weekly` (Rendez-vous de la semaine). Les identifiants ne changent jamais, car Android y garde le choix du membre. Le canal d'un module n'est créé qu'une fois le module visible (`Feature`), pour ne pas montrer de catégorie vide dans les réglages. Un canal inconnu de l'appli retombe sur « Planning ».
 
 Tests : `cd firebase && npm run test:functions` (la logique, et les fonctions contre l'émulateur Firestore, avec un faux envoi de notifications).
 
@@ -356,8 +356,11 @@ Cloud Functions (`functions/src/goodNews.ts`) :
 | Fonction | Déclencheur | Rôle |
 |---|---|---|
 | `onGoodNewsCreated` | création | Prévient toute la famille qui a l'appli, sauf l'auteur et ceux qui ont coupé `goodNews`. Quand un enfant publie, ses adultes responsables reçoivent « Léa a publié une Bonne nouvelle », même s'ils ont coupé les autres (carte AVIS-12). Canal `goodNews`, donnée `goodNewsId`. |
-| `onGoodNewsUpdated` | modification | Efface dans Storage les photos que l'auteur a retirées. |
-| `onGoodNewsDeleted` | suppression | Efface toutes les photos, quel que soit l'auteur du retrait. |
+| `onGoodNewsUpdated` | modification | Efface dans Storage les photos que l'auteur a retirées. À la première nouvelle réaction, note dans `goodNewsDigests/{postId}` l'envoi groupé prévu une heure plus tard. |
+| `goodNewsReactionDigests` | toutes les 15 min | Envoie à l'auteur les avis groupés arrivés à échéance : « Inès et 3 autres ont réagi à ta Bonne nouvelle » (PRD rév. 174). Chaque personne n'est nommée qu'une fois. Canal `comments`, hors résumé du jour. |
+| `onGoodNewsDeleted` | suppression | Efface toutes les photos, quel que soit l'auteur du retrait, et l'avis groupé en attente. |
+
+`goodNewsDigests/{postId}` (fonctions seules, aucune règle ne l'ouvre à l'appli) : `authorId`, `dueAt` (horodatage, absent quand rien n'attend) et `notifiedIds` (ceux déjà nommés).
 
 Le seul endroit où se décide l'audience est `goodNewsAudience` : c'est là que se branchera la fonction des cercles.
 

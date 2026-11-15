@@ -596,6 +596,8 @@
     <!-- Voyages (V3, récits 11, 12 et 14), fil [DEV] voyage -->
     <string name="trips_title">Voyages</string>
     <string name="channel_trips">Voyages</string>
+    <string name="channel_comments">Commentaires et réactions</string>
+    <string name="channel_comments_description">Quand la famille réagit à ce que tu as partagé</string>
     <string name="channel_trips_description">« Bien arrivé » des voyages que tu suis, et le rappel quand tu pars.</string>
     <string name="trips_add">Nouveau voyage</string>
     <string name="trips_open_action">ouvrir le voyage</string>

@@ -200,6 +200,16 @@ describe('remove', () => {
   });
 });
 
+describe('grouped reactions (PRD rév. 174)', () => {
+  test('goodNewsDigests stays closed to the app: only the Cloud Functions use it', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'goodNewsDigests/n1'), { authorId: 'adult1', notifiedIds: [] });
+    });
+    await assertFails(getDoc(doc(as(env, ADULT), 'goodNewsDigests/n1')));
+    await assertFails(setDoc(doc(as(env, ADULT), 'goodNewsDigests/n2'), { authorId: 'adult1' }));
+  });
+});
+
 describe('notification setting', () => {
   test('a member turns the good news notifications off, alone or with the reminder', async () => {
     const settings = doc(as(env, ADULT), 'members/adult1/settings/notifications');
