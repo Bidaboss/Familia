@@ -2,6 +2,7 @@ package fr.familia.app.feature.trips.detail
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -27,6 +28,14 @@ fun TripDetailRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val checklist = remember(viewModel) {
+        ChecklistActions(
+            onAdd = viewModel::addItem,
+            onEdit = viewModel::editItem,
+            onDone = viewModel::setItemDone,
+            onDelete = viewModel::deleteItem,
+        )
+    }
     TripDetailScreen(
         state = state,
         onRetry = viewModel::retry,
@@ -36,5 +45,6 @@ fun TripDetailRoute(
         onArrived = viewModel::markArrived,
         onClearArrival = viewModel::clearArrival,
         onBack = onBack,
+        checklist = checklist,
     )
 }

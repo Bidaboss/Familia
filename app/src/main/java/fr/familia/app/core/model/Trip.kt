@@ -52,3 +52,17 @@ data class TripStep(
     val note: String?,
     val arrival: TripArrival? = null,
 )
+
+/**
+ * One line of the trip checklist (récit 13): something to bring or to book, maybe in someone's
+ * charge, ticked once done. Only the participants change it; the followers read it.
+ */
+data class TripItem(
+    val id: String,
+    val label: String,
+    /** A participant in charge, or null when nobody has taken it yet. */
+    val assigneeId: String?,
+    /** Kept so the line stays readable once that member has left the trip. */
+    val assigneeName: String?,
+    val done: Boolean,
+)

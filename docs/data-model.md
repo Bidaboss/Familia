@@ -420,7 +420,7 @@ Cloud Functions (`functions/src/helpRequests.ts`), qui ne préviennent que les p
 
 Une demande passée ne prévient personne, sauf pour le « Merci ». La sauvegarde de l'admin principal inclut les demandes (`helpRequests`).
 
-## Voyages (V3, récits 11, 12 et 14)
+## Voyages (V3, récits 11 à 14)
 
 ### `trips/{tripId}`
 
@@ -449,6 +449,20 @@ Droits : seul un membre de `readerIds` lit le voyage. L'appli le cherche avec `r
 | `updatedAt` | horodatage | Heure du serveur |
 
 Droits : les lecteurs du voyage lisent ses étapes. Chaque participant les ajoute, les modifie et les supprime, et l'admin principal peut en supprimer une. « Bien arrivé » est signé du membre qui le touche, à l'heure du serveur, et efface `remindAt`. Un participant peut l'annuler. Aucune position n'est enregistrée : les règles refusent tout champ en plus.
+
+### `trips/{tripId}/items/{itemId}`
+
+La liste « À prévoir » du voyage (récit 13) : ce qu'il faut apporter ou réserver, et qui s'en occupe.
+
+| Champ | Type | Description |
+|---|---|---|
+| `label` | texte, 1 à 80 caractères | « Crème solaire », « Réserver la voiture » |
+| `assigneeId` | `memberId` ou null | Un participant qui s'en occupe, ou personne |
+| `assigneeName` | texte ou null | Son prénom, gardé pour que la ligne reste lisible s'il quitte le voyage. Null avec `assigneeId` |
+| `done` | booléen | Coché quand c'est fait |
+| `updatedAt` | horodatage serveur | |
+
+Droits : les lecteurs du voyage lisent la liste. Les participants, enfants compris, ajoutent, cochent, modifient et retirent les lignes. L'admin principal peut retirer une ligne. La personne en charge est forcément un participant. La suppression du voyage supprime sa liste sur le serveur. Tests : `firebase/tests/trips.test.mjs`.
 
 ### Cloud Functions des voyages
 
