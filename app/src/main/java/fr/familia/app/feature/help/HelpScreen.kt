@@ -126,7 +126,7 @@ private fun TopicRow(topic: HelpTopic, open: Boolean, onToggle: () -> Unit) {
 private fun HelpScreenPreview() {
     FamiliaTheme {
         Surface {
-            HelpScreen(HelpUiState(helpTopics(isAdmin = true), "Camille ou Inès"), {}, {}, initiallyOpen = HelpTopic.AddEvent)
+            HelpScreen(HelpUiState(helpTopics(isChef = true, isOwner = true), "Camille ou Inès"), {}, {}, initiallyOpen = HelpTopic.AddEvent)
         }
     }
 }
