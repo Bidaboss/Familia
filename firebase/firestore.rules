@@ -362,6 +362,236 @@ service cloud.firestore {
         && request.resource.data.dayBeforeReminder is bool;
     }
 
+    // --- Listes et cadeaux (V2) -------------------------------------------------------------------
+    //
+    // PRD, récits 7 à 10 bis. The surprise is kept by the server, not by the app: the beneficiary
+    // of a list never reads a surprise list made for them, the items others add to their own list,
+    // the reservations or the shares of a joint gift, until the list is revealed the day after the
+    // occasion (`revealed`, written only by the Cloud Function). Data model: docs/data-model.md.
+
+    function giftListPath(listId) {
+      return /databases/$(database)/documents/giftLists/$(listId);
+    }
+
+    // The caller keeps the lists of [memberId]: their own, or those of a child without the app
+    // they are a responsible adult of (PRD, récit 7).
+    function keepsListsOf(memberId) {
+      return memberId == myMemberId()
+        || (exists(memberPath(memberId))
+            && get(memberPath(memberId)).data.profile == 'childWithoutApp'
+            && myMemberId() in get(memberPath(memberId)).data.parentIds);
+    }
+
+    // Who sees a list. « Mes envies » is open to the whole family; any other list to the members
+    // checked in viewerIds. The beneficiary is never among the viewers of a surprise list, and
+    // only reads it once it is revealed. Written as a plain OR so the app's queries can be proven.
+    function canSeeList(l) {
+      return l.kind == 'wishes'
+        || myMemberId() in l.viewerIds
+        || (l.beneficiaryId == myMemberId() && l.revealed == true);
+    }
+
+    // The beneficiary does not see what the others do on their list before it is revealed.
+    function isKeptFromMe(l) {
+      return l.beneficiaryId == myMemberId() && l.revealed != true;
+    }
+
+    // The creator manages a list; the keeper of the beneficiary manages their own list and wishes.
+    function canManageList(l) {
+      return l.creatorId == myMemberId() || (l.kind != 'surprise' && keepsListsOf(l.beneficiaryId));
+    }
+
+    function isValidGiftList(l) {
+      return l.keys().hasAll(['kind', 'title', 'occasion', 'date', 'beneficiaryId', 'viewerIds',
+                              'creatorId', 'creatorName', 'revealed', 'createdAt', 'updatedAt'])
+        && l.keys().hasOnly(['kind', 'title', 'occasion', 'date', 'beneficiaryId', 'viewerIds',
+                             'creatorId', 'creatorName', 'revealed', 'createdAt', 'updatedAt'])
+        && l.kind in ['wishes', 'own', 'surprise']
+        && l.title is string && l.title.size() > 0 && l.title.size() <= 60
+        && l.beneficiaryId is string && exists(memberPath(l.beneficiaryId))
+        && l.viewerIds is list && l.viewerIds.size() <= 40
+        && l.creatorName is string && l.creatorName.size() > 0 && l.creatorName.size() <= 40
+        && l.revealed is bool
+        && l.updatedAt == request.time
+        && ((l.kind == 'wishes' && l.occasion == null && l.date == null && l.viewerIds.size() == 0)
+            || (l.kind != 'wishes'
+                && l.occasion in ['christmas', 'birthday', 'birth', 'other']
+                && isDay(l.date)
+                && myMemberId() in l.viewerIds
+                && (l.kind != 'own'
+                    || (l.beneficiaryId in l.viewerIds
+                        // The responsible adults of a child always see the child's own list.
+                        && l.viewerIds.hasAll(get(memberPath(l.beneficiaryId)).data.parentIds)))
+                && (l.kind != 'surprise'
+                    || (!(l.beneficiaryId in l.viewerIds) && l.beneficiaryId != myMemberId()))));
+    }
+
+    // giftLists/{listId}. « Mes envies » of a member has the id wishes-{memberId}, so there is one.
+    match /giftLists/{listId} {
+      allow read: if isMember() && canSeeList(resource.data);
+
+      allow create: if isMember()
+        && isValidGiftList(request.resource.data)
+        && request.resource.data.creatorId == myMemberId()
+        && request.resource.data.creatorName == me().firstName
+        && request.resource.data.revealed == false
+        && request.resource.data.createdAt == request.time
+        && (request.resource.data.kind == 'surprise'
+            || (keepsListsOf(request.resource.data.beneficiaryId)
+                && (request.resource.data.kind != 'wishes'
+                    || listId == 'wishes-' + request.resource.data.beneficiaryId)));
+
+      // The kind, the beneficiary, the creator and the reveal never change from the app, and a
+      // revealed list is archived: read-only.
+      allow update: if isMember()
+        && resource.data.revealed == false
+        && canManageList(resource.data)
+        && isValidGiftList(request.resource.data)
+        && request.resource.data.kind == resource.data.kind
+        && request.resource.data.beneficiaryId == resource.data.beneficiaryId
+        && request.resource.data.creatorId == resource.data.creatorId
+        && request.resource.data.creatorName == resource.data.creatorName
+        && request.resource.data.revealed == resource.data.revealed
+        && request.resource.data.createdAt == resource.data.createdAt;
+
+      // « Mes envies » is permanent. Items, reservations and shares are removed on the server.
+      allow delete: if isMember() && resource.data.kind != 'wishes' && canManageList(resource.data);
+    }
+
+    function isValidGiftItem(i) {
+      return i.keys().hasAll(['title', 'url', 'price', 'note', 'authorId', 'authorName',
+                              'visibleToBeneficiary', 'createdAt', 'updatedAt'])
+        && i.keys().hasOnly(['title', 'url', 'price', 'note', 'authorId', 'authorName',
+                             'visibleToBeneficiary', 'createdAt', 'updatedAt'])
+        && i.title is string && i.title.size() > 0 && i.title.size() <= 80
+        && (i.url == null || (i.url is string && i.url.size() <= 500 && i.url.matches('^https?://.+')))
+        && (i.price == null || (i.price is number && i.price >= 0 && i.price <= 100000))
+        && (i.note == null || (i.note is string && i.note.size() <= 500))
+        && i.authorName is string && i.authorName.size() > 0 && i.authorName.size() <= 40
+        && i.visibleToBeneficiary is bool
+        && i.updatedAt == request.time;
+    }
+
+    // giftLists/{listId}/items/{itemId}. An item added by someone other than the keeper of the
+    // beneficiary is a surprise idea: visibleToBeneficiary is false, and the beneficiary never
+    // reads it before the reveal (PRD, récit 8).
+    match /giftLists/{listId}/items/{itemId} {
+      function list() {
+        return get(giftListPath(listId)).data;
+      }
+
+      function claimPath() {
+        return /databases/$(database)/documents/giftLists/$(listId)/claims/$(itemId);
+      }
+
+      allow read: if isMember()
+        && canSeeList(list())
+        && (!isKeptFromMe(list()) || resource.data.visibleToBeneficiary == true);
+
+      allow create: if isMember()
+        && exists(giftListPath(listId))
+        && canSeeList(list())
+        && list().revealed == false
+        && isValidGiftItem(request.resource.data)
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.visibleToBeneficiary
+             == (list().kind != 'surprise' && keepsListsOf(list().beneficiaryId));
+
+      // The author edits or removes their item until it is reserved. The beneficiary's side may
+      // always do it: refusing would tell them that the item is reserved. The Cloud Function then
+      // warns whoever had reserved it.
+      allow update: if isMember()
+        && resource.data.authorId == myMemberId()
+        && list().revealed == false
+        && (resource.data.visibleToBeneficiary == true || !exists(claimPath()))
+        && isValidGiftItem(request.resource.data)
+        && request.resource.data.authorId == resource.data.authorId
+        && request.resource.data.authorName == resource.data.authorName
+        && request.resource.data.visibleToBeneficiary == resource.data.visibleToBeneficiary
+        && request.resource.data.createdAt == resource.data.createdAt;
+
+      allow delete: if isMember()
+        && resource.data.authorId == myMemberId()
+        && (resource.data.visibleToBeneficiary == true || !exists(claimPath()));
+    }
+
+    // giftLists/{listId}/claims/{itemId}: the reservation of an item, one at most (PRD, récit 9).
+    // « Je le prends » (solo) or a joint gift (shared) opened by its responsible, the holder.
+    // A child with the app reserves alone, never a joint gift (carte PRODUIT-19).
+    match /giftLists/{listId}/claims/{itemId} {
+      function list() {
+        return get(giftListPath(listId)).data;
+      }
+
+      allow read: if isMember() && canSeeList(list()) && !isKeptFromMe(list());
+
+      allow create: if isMember()
+        && exists(giftListPath(listId))
+        && canSeeList(list())
+        && list().revealed == false
+        && list().beneficiaryId != myMemberId()
+        && exists(/databases/$(database)/documents/giftLists/$(listId)/items/$(itemId))
+        && request.resource.data.keys().hasAll(['type', 'holderId', 'holderName', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['type', 'holderId', 'holderName', 'createdAt'])
+        && request.resource.data.type in ['solo', 'shared']
+        && request.resource.data.holderId == myMemberId()
+        && request.resource.data.holderName == me().firstName
+        && request.resource.data.createdAt == request.time
+        && (request.resource.data.type == 'solo' || me().profile == 'adult');
+
+      allow update: if false;
+
+      // The holder releases the item; the shares of a joint gift are removed on the server.
+      allow delete: if isMember() && resource.data.holderId == myMemberId();
+    }
+
+    function isValidShare(s) {
+      return s.keys().hasAll(['amount', 'memberName', 'received', 'updatedAt'])
+        && s.keys().hasOnly(['amount', 'memberName', 'received', 'updatedAt'])
+        && s.amount is number && s.amount > 0 && s.amount <= 10000
+        && s.memberName is string && s.memberName.size() > 0 && s.memberName.size() <= 40
+        && s.received is bool
+        && s.updatedAt == request.time;
+    }
+
+    // giftLists/{listId}/claims/{itemId}/shares/{memberId}: a part of a joint gift. Each adult
+    // declares their own; the responsible (the holder) marks it received. No real payment.
+    match /giftLists/{listId}/claims/{itemId}/shares/{memberId} {
+      function list() {
+        return get(giftListPath(listId)).data;
+      }
+
+      function claim() {
+        return get(/databases/$(database)/documents/giftLists/$(listId)/claims/$(itemId)).data;
+      }
+
+      allow read: if isMember() && canSeeList(list()) && !isKeptFromMe(list());
+
+      allow create: if isMember()
+        && memberId == myMemberId()
+        && me().profile == 'adult'
+        && canSeeList(list())
+        && list().revealed == false
+        && list().beneficiaryId != myMemberId()
+        && claim().type == 'shared'
+        && isValidShare(request.resource.data)
+        && request.resource.data.memberName == me().firstName
+        && request.resource.data.received == false;
+
+      // The member changes their amount; the responsible marks the share received or not.
+      allow update: if isMember()
+        && list().revealed == false
+        && isValidShare(request.resource.data)
+        && ((memberId == myMemberId()
+             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['amount', 'updatedAt']))
+            || (claim().holderId == myMemberId()
+                && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['received', 'updatedAt'])));
+
+      allow delete: if isMember() && (memberId == myMemberId() || claim().holderId == myMemberId());
+    }
+
     // --- App updates (lot 10) ---------------------------------------------------------------------
 
     // config/app: the latest version and the HTTPS link of its APK (docs/mise-a-jour.md).
