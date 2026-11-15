@@ -25,6 +25,7 @@ object NotificationChannels {
     const val GOOD_NEWS = "goodNews"
     const val TRIPS = "trips"
     const val COMMENTS = "comments"
+    const val WEEKLY = "weekly"
 
     /** [feature]: the module that uses the channel; it is created only once that module shows. */
     private data class Spec(val id: String, val name: Int, val description: Int, val importance: Int, val feature: Feature? = null)
@@ -38,6 +39,8 @@ object NotificationChannels {
         Spec(TRIPS, R.string.channel_trips, R.string.channel_trips_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.Trips),
         // Grouped reactions to one's Bonnes nouvelles for now (PRD rév. 174); later the comments too.
         Spec(COMMENTS, R.string.channel_comments, R.string.channel_comments_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.GoodNews),
+        // The question of the week for now (récit 37); later the other weekly rendez-vous (AVIS-14).
+        Spec(WEEKLY, R.string.channel_weekly, R.string.channel_weekly_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.WeeklyQuestion),
     )
 
     /** Every id the app knows: a notice for another channel falls back on [EVENTS]. */

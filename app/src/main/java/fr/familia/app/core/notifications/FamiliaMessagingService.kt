@@ -44,9 +44,12 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         // Bonnes nouvelles: the good news to open.
         val goodNewsId = message.data[EXTRA_GOOD_NEWS_ID]
         goodNewsId?.let { open.putExtra(EXTRA_GOOD_NEWS_ID, it) }
+        // Question de la semaine: the question to open.
+        val weeklyQuestionId = message.data[EXTRA_WEEKLY_QUESTION_ID]
+        weeklyQuestionId?.let { open.putExtra(EXTRA_WEEKLY_QUESTION_ID, it) }
         val pending = PendingIntent.getActivity(
             this,
-            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId).hashCode(),
+            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId).hashCode(),
             open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -82,5 +85,8 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         const val EXTRA_GOOD_NEWS_ID = "goodNewsId"
         /** The trip of a « bien arrivé » or of its reminder (V3). */
         const val EXTRA_TRIP_ID = "tripId"
+
+        /** Same key as the `data` of functions/src/weeklyQuestion.ts. */
+        const val EXTRA_WEEKLY_QUESTION_ID = "weeklyQuestionId"
     }
 }
