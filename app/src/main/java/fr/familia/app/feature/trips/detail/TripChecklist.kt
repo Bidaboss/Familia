@@ -175,7 +175,9 @@ private fun ItemDialog(
     onDelete: (() -> Unit)?,
     onDismiss: () -> Unit,
 ) {
+    // Declared before the confirmation, so « Garder » finds the choices not saved yet.
     var label by rememberSaveable { mutableStateOf(item?.label.orEmpty()) }
+    var assigneeId by rememberSaveable { mutableStateOf(item?.assigneeId?.takeIf { id -> assignees.any { it.id == id } }) }
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     if (confirmDelete && onDelete != null && item != null) {
         AlertDialog(
@@ -195,7 +197,6 @@ private fun ItemDialog(
         )
         return
     }
-    var assigneeId by rememberSaveable { mutableStateOf(item?.assigneeId?.takeIf { id -> assignees.any { it.id == id } }) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(if (item == null) R.string.trip_checklist_add else R.string.trip_checklist_edit_title)) },
