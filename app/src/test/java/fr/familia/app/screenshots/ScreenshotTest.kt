@@ -87,6 +87,10 @@ class ScreenshotTest {
     fun clayCardsDark() = capture("argile_cartes_sombre", darkTheme = true) { ClayCardSamples() }
 
     @Test
+    @Config(qualifiers = "+night")
+    fun clayCardsDarkInList() = capture("argile_cartes_sombre_liste", darkTheme = true) { ClayCardSamples(lazy = true) }
+
+    @Test
     @Config(fontScale = 2f)
     fun clayCardsFontScale200() = capture("argile_cartes_police_200") { ClayCardSamples() }
 
