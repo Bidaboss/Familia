@@ -119,18 +119,33 @@ export async function revealGiftLists(db: Firestore, send: Sender, now: Date): P
   const due = lists.docs.filter((doc) => isDueForReveal(doc.data(), today));
   if (due.length === 0) return 0;
   const members = await loadGiftMembers(db);
+  const audience = await giftAudience(db);
   for (const list of due) {
     await list.ref.update({ revealed: true });
     const beneficiary = members.find((m) => m.id === list.get('beneficiaryId'));
-    if (beneficiary && beneficiary.profile !== 'childWithoutApp') {
+    if (beneficiary && beneficiary.profile !== 'childWithoutApp' && audience([beneficiary.id]).length > 0) {
       await notify(db, send, [beneficiary.id], revealNotice(list.id, String(list.get('title') ?? '')));
     }
   }
   return due.length;
 }
 
+/**
+ * Who may get a gift notification. Once the module is switched on for the family in Administration
+ * (config/app.features.gifts), everyone; before that, the admin principal only, the one member the
+ * app already shows the module to (config/family.ownerMemberId).
+ */
+export async function giftAudience(db: Firestore): Promise<(ids: string[]) => string[]> {
+  const config = await db.doc('config/app').get();
+  if (config.get('features.gifts') === true) return (ids) => ids;
+  const family = await db.doc('config/family').get();
+  const owner = family.get('ownerMemberId');
+  return (ids) => ids.filter((id) => typeof owner === 'string' && id === owner);
+}
+
 /** PRD, récit 10: at D-21 every adult but the birthday member is reminded; at D-14 again if nothing is reserved. */
 export async function sendBirthdayGiftReminders(db: Firestore, send: Sender, now: Date): Promise<number> {
+  const audience = await giftAudience(db);
   const today = parisDay(now);
   const members = await loadGiftMembers(db);
   let sent = 0;
@@ -139,7 +154,8 @@ export async function sendBirthdayGiftReminders(db: Firestore, send: Sender, now
       if (second && (await hasReservation(db, member.id))) continue;
       const wishes = await db.doc(`giftLists/wishes-${member.id}`).get();
       const notice = birthdayNotice(member, addDays(today, days), second, wishes.exists ? wishes.id : null);
-      sent += await notify(db, send, birthdayRecipients(members, member.id), notice);
+      const recipients = audience(birthdayRecipients(members, member.id));
+      if (recipients.length > 0) sent += await notify(db, send, recipients, notice);
     }
   }
   return sent;
@@ -194,7 +210,8 @@ export async function onGiftItemChanged(
     const members = await loadGiftMembers(db);
     const name = members.find((m) => m.id === beneficiaryId)?.firstName ?? 'Le bénéficiaire';
     // Only the reservers learn it, never the beneficiary, nor the author of the change.
-    const recipients = ids.filter((id) => id !== beneficiaryId && id !== before.authorId);
+    const audience = await giftAudience(db);
+    const recipients = audience(ids.filter((id) => id !== beneficiaryId && id !== before.authorId));
     const title = (after ?? before).title;
     if (recipients.length > 0) sent = await notify(db, send, recipients, itemNotice(after ? 'edited' : 'deleted', listId, name, title));
   }
