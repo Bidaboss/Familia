@@ -1,5 +1,7 @@
 package fr.familia.app.core.album
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.model.Member
@@ -152,3 +154,15 @@ class AlbumPhotosViewModel(
         problem.value = null
     }
 }
+
+/** The actions of the photo views for [viewModel], given once per ViewModel. */
+@Composable
+fun rememberPhotoActions(viewModel: AlbumPhotosViewModel, onSeeAll: () -> Unit = {}): PhotoActions =
+    remember(viewModel, onSeeAll) {
+        PhotoActions(
+            onAdd = viewModel::addPhotos,
+            onRemove = viewModel::removePhoto,
+            onSeeAll = onSeeAll,
+            onDismissProblem = viewModel::dismissProblem,
+        )
+    }

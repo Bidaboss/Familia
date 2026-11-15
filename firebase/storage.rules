@@ -100,6 +100,30 @@ service firebase.storage {
         && (authorId == myMemberId() || tripData(tripId).creatorId == myMemberId() || isOwner());
     }
 
+    // Album of an event (PRD, récit 41): events/{eventId}/{authorId}/{slot}.jpg and {slot}-thumb.jpg,
+    // like the trips. Every member sees them; a member who said « je viens » sends their own from
+    // the day of the event. The author or the author of the event removes them.
+    function eventData(eventId) {
+      return firestore.get(docPath('events/' + eventId)).data;
+    }
+
+    function eventAlbumIsOpen(eventId) {
+      let day = eventData(eventId).date.split('-');
+      return request.time >= timestamp.date(int(day[0]), int(day[1]), int(day[2])) - duration.value(2, 'h');
+    }
+
+    match /events/{eventId}/{authorId}/{fileName} {
+      allow read: if isMember();
+      allow create, update: if isMember()
+        && authorId == myMemberId()
+        && firestore.get(docPath('events/' + eventId + '/rsvps/' + myMemberId())).data.status == 'yes'
+        && eventAlbumIsOpen(eventId)
+        && ((fileName.matches('^([1-9]|[12][0-9]|30)[.]jpg$') && isJpegUnder(512 * 1024))
+            || (fileName.matches('^([1-9]|[12][0-9]|30)-thumb[.]jpg$') && isJpegUnder(64 * 1024)));
+      allow delete: if isMember()
+        && (authorId == myMemberId() || eventData(eventId).authorId == myMemberId());
+    }
+
     // --- Everything else is closed --------------------------------------------------------------
     match /{allPaths=**} {
       allow read, write: if false;

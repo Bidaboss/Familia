@@ -76,6 +76,7 @@ fun EventDetailScreen(
     onEdit: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    album: @Composable () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier,
@@ -114,14 +115,19 @@ fun EventDetailScreen(
                         }
                     },
                 )
-                is EventDetailUiState.Success -> Content(state, onAnswer, onEdit)
+                is EventDetailUiState.Success -> Content(state, onAnswer, onEdit, album)
             }
         }
     }
 }
 
 @Composable
-private fun Content(state: EventDetailUiState.Success, onAnswer: (String, RsvpStatus) -> Unit, onEdit: () -> Unit) {
+private fun Content(
+    state: EventDetailUiState.Success,
+    onAnswer: (String, RsvpStatus) -> Unit,
+    onEdit: () -> Unit,
+    album: @Composable () -> Unit,
+) {
     val event = state.event
     var showAnswers by rememberSaveable { mutableStateOf(false) }
     Column(
@@ -170,6 +176,8 @@ private fun Content(state: EventDetailUiState.Success, onAnswer: (String, RsvpSt
         // « N viennent » with their avatars; a tap shows every answer (DESIGN-5).
         ComingLine(state, onClick = { showAnswers = true })
 
+        // The album of the event (récit 41), when its module is on.
+        album()
         if (state.canManage) {
             OutlinedButton(
                 onClick = onEdit,

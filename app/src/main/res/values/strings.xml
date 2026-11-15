@@ -200,6 +200,7 @@
     <string name="usage_screen_trips">Voyages</string>
     <string name="usage_screen_other">Autres écrans</string>
     <string name="feature_weekly_question">Question de la semaine</string>
+    <string name="feature_event_albums">Albums des événements</string>
     <string name="household_rename_action">Renommer le foyer %1$s</string>
     <string name="household_rename_title">Renommer le foyer</string>
     <string name="household_rename_failed_title">Le nom n\'a pas changé</string>
@@ -779,6 +780,11 @@
     <string name="album_film_watch">Regarder</string>
     <string name="album_film_share">Partager</string>
     <string name="album_film_no_player">Aucune appli de ce téléphone ne lit les vidéos.</string>
+    <!-- Album of an event (récit 41). -->
+    <string name="event_album_title">Photos</string>
+    <string name="event_album_not_open">L\'album s\'ouvre le jour de l\'événement. Ceux qui ont dit « Je viens » pourront y mettre leurs photos.</string>
+    <string name="event_album_empty_coming">Ajoute tes photos du moment : tous ceux qui voient l\'événement les verront.</string>
+    <string name="event_album_empty">Pas encore de photo. Ceux qui ont dit « Je viens » peuvent en ajouter.</string>
     <!-- Before a video leaves the app (carte EXPERT-6): the film, the album and the slideshow. -->
     <string name="share_consent_title">Avant de partager</string>
     <string name="share_consent_body">Des enfants apparaissent peut-être sur ces photos. Pense à demander l\'accord de leurs parents avant d\'envoyer la vidéo hors de Familia.</string>
