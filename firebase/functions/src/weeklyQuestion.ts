@@ -16,6 +16,8 @@ export const FIRST_QUESTION = 'q01';
 export const REVEAL_AFTER_MS = 48 * 3600 * 1000;
 /** A question of the bank comes back once it has not been asked for this long. */
 const REUSE_AFTER_DAYS = 330;
+/** The gRPC code Firestore gives when create() meets an existing document. */
+const ALREADY_EXISTS = 6;
 
 /** A small stable hash, so a given Monday always draws the same question (the tests rely on it). */
 export function daySeed(day: string): number {
@@ -97,7 +99,8 @@ export async function publishWeeklyQuestion(db: Firestore, send: Sender, now: Da
   const question = pickQuestion(QUESTION_BANK, recent, weekId);
   if (!question) return null;
 
-  await ref.set({
+  // create() fails if the question exists: two close runs never tell the family twice.
+  const created = await ref.create({
     weekId,
     text: question.text,
     bankId: question.id,
@@ -105,7 +108,11 @@ export async function publishWeeklyQuestion(db: Firestore, send: Sender, now: Da
     publishedAt: now,
     revealAt: new Date(now.getTime() + REVEAL_AFTER_MS),
     answerCount: 0,
+  }).then(() => true, (e: { code?: number }) => {
+    if (e.code === ALREADY_EXISTS) return false;
+    throw e;
   });
+  if (!created) return null;
   await notify(db, send, await audience(db), questionNotice(weekId, question.text));
   return weekId;
 }

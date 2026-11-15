@@ -105,6 +105,13 @@ describe('against the emulator', () => {
     assert.equal(sent.length, 2);
   });
 
+  test('two runs at the same time tell the family once', async () => {
+    const { sent, send } = fakeSender();
+    const results = await Promise.all([publishWeeklyQuestion(db, send, monday), publishWeeklyQuestion(db, send, monday)]);
+    assert.deepEqual(results.filter((r) => r !== null), ['2026-11-30']);
+    assert.equal(sent.length, 2);
+  });
+
   test('the next Monday brings another question', async () => {
     const { send } = fakeSender();
     await publishWeeklyQuestion(db, send, monday);
