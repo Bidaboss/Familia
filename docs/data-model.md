@@ -178,3 +178,79 @@ Droits : tous les membres le lisent, et personne ne l'écrit depuis l'appli. Ké
 | `ownerMemberId` | texte | Le membre qui est admin principal |
 
 Droits : tous les membres le lisent, et personne ne l'écrit depuis l'appli. Le workflow « Créer le premier admin » l'écrit avec le compte de service. Si le document manque ou ne peut pas être lu, personne n'est admin principal : l'appli reste utilisable, et les chefs gardent leurs droits sur leur foyer.
+
+## Listes et cadeaux (V2)
+
+PRD, récits 7 à 10 bis. **La surprise est gardée par le serveur** : les règles refusent au bénéficiaire, même en dehors de l'appli, la lecture des listes surprises faites pour lui, des articles que d'autres ajoutent à ses listes, des réservations et des parts. Ce qui est caché vit donc dans des documents à part, jamais dans un champ d'un document qu'il peut lire. Tests : `firebase/tests/gifts.test.mjs`.
+
+### `giftLists/{listId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `kind` | `wishes` \| `own` \| `surprise` | « Mes envies », ma liste d'occasion, ou une liste surprise pour un autre membre |
+| `title` | texte, 1 à 60 caractères | « Noël 2026 », « Anniversaire de … » |
+| `occasion` | `christmas` \| `birthday` \| `birth` \| `other`, ou null | Null pour « Mes envies » |
+| `date` | texte `AAAA-MM-JJ` ou null | Date de l'occasion. Null pour « Mes envies » |
+| `beneficiaryId` | `memberId` | Celui qui reçoit les cadeaux |
+| `viewerIds` | liste de `memberId` (40 au plus) | Ceux qui voient la liste. Vide pour « Mes envies », que toute la famille voit |
+| `creatorId`, `creatorName` | `memberId`, texte | Qui a créé la liste, jamais modifiés |
+| `revealed` | booléen | Faux à la création. Passé à vrai par la Cloud Function le lendemain de l'occasion : la liste est alors archivée et le bénéficiaire découvre tout |
+| `createdAt`, `updatedAt` | horodatage serveur | |
+
+- « Mes envies » d'un membre a l'identifiant `wishes-{memberId}`, il n'y en a donc qu'une. Elle est créée à la première envie ajoutée, et ne se supprime pas.
+- Une liste `own` liste toujours son bénéficiaire et les adultes responsables d'un enfant parmi les `viewerIds`. Une liste `surprise` ne liste jamais son bénéficiaire, et son créateur n'en est pas le bénéficiaire.
+- **Qui tient les listes d'un membre** : le membre lui-même, ou les adultes responsables d'un enfant sans l'appli (PRD, récit 7). Un enfant sans l'appli ne se connecte jamais, donc rien ne lui est caché côté serveur.
+- **Lire** : toute la famille pour « Mes envies » ; les `viewerIds` pour les autres ; le bénéficiaire d'une liste surprise une fois `revealed` vrai.
+- **Créer** : une liste `own` ou « Mes envies » pour un membre dont on tient les listes ; une liste `surprise` pour n'importe quel autre membre.
+- **Modifier** (titre, occasion, date, `viewerIds`) et **supprimer** : le créateur, et pour une liste `own` ou « Mes envies », celui qui tient les listes du bénéficiaire. Une liste révélée ne se modifie plus.
+
+Requêtes de l'appli, toutes acceptées par les règles : `viewerIds array-contains moi`, `kind == 'wishes'`, et `beneficiaryId == moi` avec `revealed == true` pour retrouver les surprises révélées.
+
+### `giftLists/{listId}/items/{itemId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `title` | texte, 1 à 80 caractères | |
+| `url` | texte `http(s)://` (500 au plus) ou null | Lien facultatif |
+| `price` | nombre de 0 à 100 000 ou null | Prix indicatif, en euros |
+| `note` | texte (500 au plus) ou null | Taille, couleur… |
+| `imageUrl` | texte `https://` (1 000 au plus), null ou absent | Facultatif : image lue dans l'aperçu d'un lien partagé (carte PRODUIT-34). Familia ne stocke aucune image |
+| `authorId`, `authorName` | `memberId`, texte | Qui l'a ajouté, jamais modifiés |
+| `visibleToBeneficiary` | booléen | Vrai seulement si l'auteur tient les listes du bénéficiaire et que la liste n'est pas une surprise. Les règles l'imposent |
+| `createdAt`, `updatedAt` | horodatage serveur | |
+
+- **Lire** : ceux qui voient la liste. Le bénéficiaire ne lit que `visibleToBeneficiary == true` (l'appli filtre sa requête ainsi) jusqu'à la révélation.
+- **Ajouter** : ceux qui voient la liste, tant qu'elle n'est pas révélée.
+- **Modifier, supprimer** : l'auteur, tant que l'article n'est pas réservé. Exception : le côté du bénéficiaire peut toujours modifier ou retirer ses propres articles, car un refus lui apprendrait que l'article est réservé. La Cloud Function prévient alors le réservant (PR des fonctions).
+
+### `giftLists/{listId}/claims/{itemId}`
+
+La réservation d'un article. Son identifiant est celui de l'article, donc un article n'est réservé qu'une fois.
+
+| Champ | Type | Description |
+|---|---|---|
+| `type` | `solo` \| `shared` | « Je le prends » ou cadeau commun |
+| `holderId`, `holderName` | `memberId`, texte | Le réservant, ou le responsable du cadeau commun |
+| `createdAt` | horodatage serveur | |
+
+- **Lire** : ceux qui voient la liste, sauf le bénéficiaire avant la révélation.
+- **Réserver** : ceux qui voient la liste, sauf le bénéficiaire. Un enfant réserve seul, jamais en cadeau commun (carte PRODUIT-19).
+- **Relâcher** : le réservant seulement. Les parts d'un cadeau commun relâché sont effacées par une Cloud Function.
+
+### `giftLists/{listId}/claims/{itemId}/shares/{memberId}`
+
+Une part d'un cadeau commun, une par adulte. Aucun paiement ne passe par l'appli.
+
+| Champ | Type | Description |
+|---|---|---|
+| `amount` | nombre de 0 (exclu) à 10 000 | Part déclarée, en euros |
+| `memberName` | texte | Prénom de celui qui participe |
+| `received` | booléen | Faux à la création. Le responsable le passe à vrai quand il a reçu la part |
+| `updatedAt` | horodatage serveur | |
+
+- **Lire** : comme les réservations.
+- **Rejoindre** : un adulte qui voit la liste, pour lui-même, sur un cadeau commun.
+- **Modifier** : le membre change son montant ; le responsable marque la part reçue ou non. Personne d'autre.
+- **Retirer** : le membre ou le responsable.
+
+Limite connue : les règles ne vérifient pas que chaque identifiant de `viewerIds` est un membre (cela coûterait une lecture par personne). L'appli ne propose que des membres de la famille.
