@@ -5,17 +5,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,11 +48,11 @@ fun UpdateBanner(update: AppUpdate, onUpdate: () -> Unit, onLater: () -> Unit, m
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.weight(1f),
             )
-            Button(onClick = onUpdate, modifier = Modifier.heightIn(min = 48.dp)) {
-                Text(stringResource(R.string.update_action))
+            TextButton(onClick = onLater, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.update_later))
             }
-            IconButton(onClick = onLater, modifier = Modifier.size(48.dp)) {
-                Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.update_later))
+            Button(onClick = onUpdate, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.update_action))
             }
         }
     }

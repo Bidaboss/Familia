@@ -318,7 +318,7 @@ private fun MemberFormContent(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { pickColor = false }, modifier = Modifier.heightIn(min = 48.dp)) {
+                TextButton(onClick = { pickColor = false }, modifier = Modifier.heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.action_ok))
                 }
             },
@@ -529,29 +529,27 @@ private fun BirthDateField(date: LocalDate?, inFuture: Boolean, today: LocalDate
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ColorChoices(selected: Int?, onPick: (Int) -> Unit) {
-    run {
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.selectableGroup(),
-        ) {
-            MemberColors.forEachIndexed { index, color ->
-                val isSelected = index == selected
-                val label = stringResource(R.string.member_color_n, index + 1)
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .background(color)
-                        .then(
-                            if (isSelected) Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, CircleShape) else Modifier,
-                        )
-                        .selectable(selected = isSelected, role = Role.RadioButton) { onPick(index) }
-                        .semantics { contentDescription = label },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (isSelected) Icon(Icons.Filled.Check, contentDescription = null, tint = OnMemberColor)
-                }
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.selectableGroup(),
+    ) {
+        MemberColors.forEachIndexed { index, color ->
+            val isSelected = index == selected
+            val label = stringResource(R.string.member_color_n, index + 1)
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(CircleShape)
+                    .background(color)
+                    .then(
+                        if (isSelected) Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, CircleShape) else Modifier,
+                    )
+                    .selectable(selected = isSelected, role = Role.RadioButton) { onPick(index) }
+                    .semantics { contentDescription = label },
+                contentAlignment = Alignment.Center,
+            ) {
+                if (isSelected) Icon(Icons.Filled.Check, contentDescription = null, tint = OnMemberColor)
             }
         }
     }

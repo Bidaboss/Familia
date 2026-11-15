@@ -191,7 +191,7 @@ private fun Content(state: EventDetailUiState.Success, onAnswer: (String, RsvpSt
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showAnswers = false }, modifier = Modifier.heightIn(min = 48.dp)) {
+                TextButton(onClick = { showAnswers = false }, modifier = Modifier.heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.action_ok))
                 }
             },
