@@ -8,7 +8,7 @@ Les règles de sécurité sont dans `firebase/firestore.rules` et leurs tests da
 
 Un membre invité n'a pas encore de compte Firebase (pas d'UID) tant qu'il ne s'est pas connecté. Les règles le reconnaissent donc par **son adresse Google vérifiée** :
 
-1. L'admin crée le membre dans `members/{memberId}` et l'entrée d'index `memberEmails/{email}` → `{ memberId }`.
+1. L'admin principal ou un chef de famille crée le membre dans `members/{memberId}` et l'entrée d'index `memberEmails/{email}` → `{ memberId }`.
 2. À la connexion, Firebase fournit `request.auth.token.email` et `email_verified`. Les règles mettent l'adresse en minuscules et vérifient que `memberEmails/{email}` existe : c'est la fonction `isMember()`.
 3. À la première connexion, l'appli écrit l'UID dans le champ `uid` du membre. C'est la seule écriture permise au membre sur son propre document, une seule fois, sans toucher aux autres champs.
 
@@ -27,7 +27,7 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 | `birthDate` | texte `AAAA-MM-JJ` ou null | Sert à calculer les anniversaires (lot 5) |
 | `householdId` | texte | Foyer du membre |
 | `profile` | `adult` \| `childWithApp` \| `childWithoutApp` | Droits du membre |
-| `isAdmin` | booléen | Deux admins au plus, toujours adultes |
+| `isAdmin` | booléen | Chef de famille de son foyer (ancien « admin »), toujours adulte. Plusieurs par foyer possibles |
 | `colorIndex` | entier 0 à 12, facultatif | Couleur du membre parmi les 13 de l'appli. Sans valeur, l'appli en déduit une de l'identifiant |
 | `parentIds` | liste de `memberId` | Pour un enfant : de 1 à 4 adultes responsables, qui doivent exister et être adultes (un beau-parent a les mêmes droits qu'un parent). Toujours vide pour un adulte (audit du lot 7) |
 | `uid` | texte ou null | UID Firebase, écrit à la première connexion |
@@ -38,21 +38,25 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 |---|---|---|
 | `memberId` | texte | Le membre qui a cette adresse |
 
-Écrit uniquement par les admins, **dans la même écriture groupée** (batch) que le membre :
+Écrit uniquement par l'admin principal ou un chef de famille du foyer du membre, **dans la même écriture groupée** (batch) que le membre :
 
 - ajouter un membre : créer `members/{id}` et `memberEmails/{email}` ensemble ;
 - changer son adresse : mettre à jour le membre, supprimer l'ancienne entrée et créer la nouvelle ;
 - retirer un membre : supprimer `members/{id}` et son entrée ensemble. Sinon la personne garderait l'accès, et les règles refusent l'écriture.
 
-## Droits des admins (lot 3)
+## Admin principal et chefs de famille (lot 3, carte DEV-8)
 
-- Deux admins au plus : Kévin et un second adulte. Un admin nomme ou retire l'autre, mais **ne peut pas changer son propre rôle ni se retirer lui-même** : il reste donc toujours au moins un admin. La limite de deux est vérifiée par l'appli.
-- Un admin ajoute, modifie et retire les membres, et crée ou renomme les foyers. Un foyer n'est jamais supprimé.
-- La fiche membre de l'appli (lot 3c) vérifie en plus ce que les règles ne peuvent pas vérifier : une adresse qui n'appartient à aucun autre membre, deux admins au plus, des adultes responsables qui sont bien des adultes, une date de naissance qui n'est pas dans le futur. Hors ligne, la fiche se ferme au bout de 4 secondes et l'écriture part au retour du réseau. Limite connue : si les règles la refusent à ce moment-là, le refus passe inaperçu (le cache revient simplement à l'état du serveur). Le risque est faible, puisque la fiche vérifie les mêmes contraintes avant d'écrire.
-- Retirer un membre retire aussi son identifiant des `parentIds` des enfants qui le listaient, dans le même batch. L'appli refuse de retirer le seul adulte responsable d'un enfant.
-- Le rôle admin est lu en direct : un admin dont le rôle est retiré perd les boutons d'ajout et de modification tout de suite.
-- Un admin ne peut jamais modifier le champ `uid` : seul le membre le lie, à sa première connexion.
-- Les règles vérifient la forme d'un membre : prénom de 1 à 40 caractères, adresse en minuscules, date au format `AAAA-MM-JJ`, foyer existant, un enfant a au moins un adulte responsable, un enfant sans l'appli n'a pas d'adresse, un admin est forcément adulte.
+- **L'admin principal** (Kévin) est nommé dans `config/family`, que seul le workflow GitHub « Créer le premier admin » écrit. Personne ne peut lui retirer ce rôle depuis l'appli. S'il perd l'accès, relancer ce workflow avec son adresse lui rend le rôle. Il a tous les droits sur toute la famille, y compris pour un foyer sans chef, et lui seul voit le menu « Administration » : nommer ou retirer les chefs, créer ou supprimer un foyer, sauvegarder les données (PRD, récit 1 ter).
+- **Un chef de famille** (`isAdmin` à vrai) a les droits d'un adulte, plus ceux-ci, limités à son foyer (PRD, « Périmètre d'un chef de famille ») : ajouter, inviter, modifier ou retirer les membres de son foyer et changer leur profil ; choisir les adultes responsables des enfants de son foyer parmi les adultes de ce foyer ; renommer son foyer ; modifier ou supprimer les événements dont l'auteur est de son foyer.
+- Un chef ne peut pas : agir sur un autre foyer, déplacer un membre vers un autre foyer, créer ou supprimer un foyer, nommer ou retirer un chef (ni retirer un membre qui est chef), toucher à l'admin principal ou à son propre rôle, sauvegarder les données.
+- Si l'admin principal a choisi pour un enfant un adulte responsable d'un autre foyer, un chef peut modifier le reste de la fiche, mais plus les adultes responsables : les règles le refusent, et l'appli grise la liste.
+- Un foyer n'est supprimé que par l'admin principal, et l'appli ne le propose que pour un foyer sans membres. Ses anciens événements restent dans le planning.
+- La fiche membre de l'appli (lot 3c) vérifie en plus ce que les règles ne peuvent pas vérifier : une adresse qui n'appartient à aucun autre membre, des adultes responsables qui sont bien des adultes, une date de naissance qui n'est pas dans le futur. Hors ligne, la fiche se ferme au bout de 4 secondes et l'écriture part au retour du réseau. Limite connue : si les règles la refusent à ce moment-là, le refus passe inaperçu (le cache revient simplement à l'état du serveur). Le risque est faible, puisque la fiche vérifie les mêmes contraintes avant d'écrire.
+- Retirer un membre retire aussi son identifiant des `parentIds` des enfants qui le listaient, dans le même batch. L'appli refuse de retirer le seul adulte responsable d'un enfant, et réserve à l'admin principal le retrait d'un adulte responsable d'un enfant d'un autre foyer.
+- Les rôles sont lus en direct : un chef dont le rôle est retiré perd les boutons d'ajout et de modification tout de suite.
+- Personne ne peut modifier le champ `uid` : seul le membre le lie, à sa première connexion.
+- Les règles vérifient la forme d'un membre : prénom de 1 à 40 caractères, adresse en minuscules, date au format `AAAA-MM-JJ`, foyer existant, un enfant a au moins un adulte responsable, un enfant sans l'appli n'a pas d'adresse, un chef est forcément adulte.
+- Limite de Firestore : une écriture lit au plus 10 documents dans les règles. Chaque adulte responsable coûte une lecture, d'où un seul `getAfter` par adulte.
 
 ### `households/{householdId}`
 
@@ -82,15 +86,16 @@ Droits (PRD, « Droits par profil ») :
 
 - **Lire** : tous les membres.
 - **Créer** :
-  - un admin, pour qui il veut ;
-  - un adulte, pour lui, pour un enfant dont il est adulte responsable, pour son foyer ou pour toute la famille ;
+  - l'admin principal, pour qui il veut ;
+  - un adulte (chef de famille compris), pour lui, pour un enfant dont il est adulte responsable, pour son foyer ou pour toute la famille ;
   - un enfant avec l'appli, pour lui seulement.
 - **Modifier, supprimer** :
-  - un admin, tous les événements ;
+  - l'admin principal, tous les événements ;
   - chacun, les siens ;
+  - un chef de famille, ceux dont l'auteur est un membre de son foyer, même pour toute la famille ;
   - un adulte, aussi ceux de ses enfants, écrits par eux ou pour eux.
   - Un nouveau destinataire doit être un de ceux que la personne a le droit de choisir.
-- Un membre retiré : ses événements restent visibles, et seul un admin peut encore les modifier ou les supprimer.
+- Un membre retiré : ses événements restent visibles, et seul l'admin principal peut encore les modifier ou les supprimer.
 
 ### `events/{eventId}/rsvps/{memberId}` (lot 6)
 
@@ -105,7 +110,7 @@ Une réponse par membre et par événement (PRD, récit 4). L'identifiant du doc
 Droits :
 
 - **Lire** : tous les membres.
-- **Répondre, changer ou retirer sa réponse** : le membre lui-même, ou un adulte responsable s'il s'agit d'un enfant. Personne d'autre, pas même un admin, ne répond à la place de quelqu'un.
+- **Répondre, changer ou retirer sa réponse** : le membre lui-même, ou un adulte responsable s'il s'agit d'un enfant. Personne d'autre, pas même l'admin principal, ne répond à la place de quelqu'un.
 - L'événement et le membre doivent exister.
 - Quand un événement est supprimé, la Cloud Function `onEventDeleted` efface ses réponses et prévient la famille. Quand un membre est retiré, `onMemberDeleted` efface ses réponses à tous les événements.
 
@@ -145,7 +150,7 @@ Tests : `cd firebase && npm run test:functions` (la logique, et les fonctions co
 
 ## Export JSON (lot 9)
 
-Un admin crée une sauvegarde depuis Famille, puis « Sauvegarde des données » (PRD, récit 6 ter). Le sélecteur de fichiers d'Android lui laisse choisir le téléphone ou Google Drive. Le fichier `familia-sauvegarde-AAAA-MM-JJ.json` contient :
+L'admin principal crée une sauvegarde depuis Famille, puis « Administration » et « Sauvegarde des données » (PRD, récit 6 ter). Le sélecteur de fichiers d'Android lui laisse choisir le téléphone ou Google Drive. Le fichier `familia-sauvegarde-AAAA-MM-JJ.json` contient :
 
 | Clé | Contenu |
 |---|---|
@@ -165,3 +170,11 @@ Les données sont lues sur le serveur, jamais dans le cache du téléphone. Hors
 Le lien de téléchargement n'est pas dans ce document : il est fixé dans l'appli (`BuildConfig.DOWNLOAD_URL`, le dossier Drive).
 
 Droits : tous les membres le lisent, et personne ne l'écrit depuis l'appli. Kévin le modifie dans la console Firebase (voir [mise-a-jour.md](mise-a-jour.md)).
+
+### `config/family` (carte DEV-8)
+
+| Champ | Type | Description |
+|---|---|---|
+| `ownerMemberId` | texte | Le membre qui est admin principal |
+
+Droits : tous les membres le lisent, et personne ne l'écrit depuis l'appli. Le workflow « Créer le premier admin » l'écrit avec le compte de service. Si le document manque ou ne peut pas être lu, personne n'est admin principal : l'appli reste utilisable, et les chefs gardent leurs droits sur leur foyer.

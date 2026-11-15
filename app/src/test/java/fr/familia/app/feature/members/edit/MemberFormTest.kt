@@ -93,12 +93,9 @@ class MemberFormTest {
     }
 
     @Test
-    fun `the family has two admins at most`() {
-        val twoAdmins = family.copy(members = family.members + m("admin2", admin = true))
-        assertTrue(FormError.TooManyAdmins in validate(validAdult.copy(isAdmin = true), twoAdmins, "new", today))
-        assertEquals(emptySet<FormError>(), validate(validAdult.copy(isAdmin = true), family, "new", today))
-        // An admin editing themselves is not counted twice.
-        assertEquals(emptySet<FormError>(), validate(validAdult.copy(isAdmin = true), twoAdmins, "admin2", today))
+    fun `a household may have several chefs de famille`() {
+        val twoChefs = family.copy(members = family.members + m("admin2", admin = true))
+        assertEquals(emptySet<FormError>(), validate(validAdult.copy(isAdmin = true), twoChefs, "new", today))
     }
 
     @Test

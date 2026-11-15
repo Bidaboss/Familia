@@ -37,9 +37,33 @@ service cloud.firestore {
       return /databases/$(database)/documents/members/$(memberId);
     }
 
-    // One of the (at most two) admins: Kévin and a second adult of his choice.
-    function isAdmin() {
-      return isMember() && get(memberPath(myMemberId())).data.isAdmin == true;
+    // The admin principal (PRD, récit 1 ter): named in config/family, which only the GitHub
+    // workflow « Créer le premier admin » writes. Nobody can remove this role from the app.
+    function familyConfigPath() {
+      return /databases/$(database)/documents/config/family;
+    }
+
+    function ownerId() {
+      return exists(familyConfigPath()) ? get(familyConfigPath()).data.ownerMemberId : null;
+    }
+
+    // Without config/family the get fails: nobody is admin principal, and an "isOwner() || …"
+    // falls back on the other rights.
+    function isOwner() {
+      return isMember() && get(familyConfigPath()).data.ownerMemberId == myMemberId();
+    }
+
+    // A chef de famille (the member flag isAdmin) manages the members and events of their own
+    // household only (PRD, « Périmètre d'un chef de famille », carte DEV-8).
+    function isChefOf(householdId) {
+      return isMember()
+        && get(memberPath(myMemberId())).data.isAdmin == true
+        && get(memberPath(myMemberId())).data.householdId == householdId;
+    }
+
+    // The admin principal, or a chef de famille of [householdId].
+    function managesHousehold(householdId) {
+      return isOwner() || isChefOf(householdId);
     }
 
     // A real calendar day as AAAA-MM-JJ (month 01 to 12, day 01 to 31).
@@ -47,9 +71,10 @@ service cloud.firestore {
       return value is string && value.matches('^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$');
     }
 
+    // A missing member makes getAfter fail, which refuses the write. One call per parent keeps
+    // the rules under the limit of 10 document reads of a single write.
     function isAdultMember(memberId) {
       return memberId is string
-        && existsAfter(memberPath(memberId))
         && getAfter(memberPath(memberId)).data.profile == 'adult';
     }
 
@@ -65,7 +90,20 @@ service cloud.firestore {
         && (m.parentIds.size() < 4 || isAdultMember(m.parentIds[3]));
     }
 
-    // Shape of a member document written by an admin. Profiles and parents follow docs/data-model.md.
+    // A chef de famille chooses responsible adults in the child's household only.
+    function isAdultOf(memberId, householdId) {
+      return isAdultMember(memberId) && getAfter(memberPath(memberId)).data.householdId == householdId;
+    }
+
+    function parentsInHousehold(m) {
+      return (m.parentIds.size() < 1 || isAdultOf(m.parentIds[0], m.householdId))
+        && (m.parentIds.size() < 2 || isAdultOf(m.parentIds[1], m.householdId))
+        && (m.parentIds.size() < 3 || isAdultOf(m.parentIds[2], m.householdId))
+        && (m.parentIds.size() < 4 || isAdultOf(m.parentIds[3], m.householdId));
+    }
+
+    // Shape of a member document written by the admin principal or a chef de famille. Profiles
+    // and parents follow docs/data-model.md.
     // colorIndex is optional: one of the 13 member colors of the app.
     function isValidMember(m) {
       return m.keys().hasAll(['firstName', 'email', 'birthDate', 'householdId', 'profile', 'isAdmin', 'parentIds', 'uid'])
@@ -89,19 +127,24 @@ service cloud.firestore {
 
     // --- Collections ----------------------------------------------------------------------------
 
-    // memberEmails/{email} -> { memberId }. Written by admins only, always in the same batch as
+    // memberEmails/{email} -> { memberId }. Written by whoever manages the member's household,
+    // always in the same batch as
     // the member document it points to. Anyone signed in may read the entry for their own address,
     // so the app can tell "not in the family" apart from a permission error.
     match /memberEmails/{email} {
       allow read: if hasVerifiedEmail() && (email == myEmail() || isMember());
-      allow create: if isAdmin()
+      allow create: if isMember()
         && request.resource.data.keys().hasOnly(['memberId'])
-        && getAfter(memberPath(request.resource.data.memberId)).data.email == email;
+        && getAfter(memberPath(request.resource.data.memberId)).data.email == email
+        && managesHousehold(getAfter(memberPath(request.resource.data.memberId)).data.householdId);
       // Removing a member or changing their address must drop the old entry, otherwise the
       // person would keep access.
-      allow delete: if isAdmin()
+      allow delete: if isMember()
         && (!existsAfter(memberPath(resource.data.memberId))
-            || getAfter(memberPath(resource.data.memberId)).data.email != email);
+            || getAfter(memberPath(resource.data.memberId)).data.email != email)
+        && (isOwner()
+            || (exists(memberPath(resource.data.memberId))
+                && isChefOf(get(memberPath(resource.data.memberId)).data.householdId)));
       allow update: if false;
     }
 
@@ -116,37 +159,59 @@ service cloud.firestore {
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uid']);
 
-      // Admins add members. A new member has no linked account yet.
-      allow create: if isAdmin()
+      // The admin principal adds anyone; a chef de famille adds members to their own household,
+      // never another chef, with responsible adults of that household. No linked account yet.
+      allow create: if isMember()
         && isValidMember(request.resource.data)
         && request.resource.data.uid == null
-        && emailIndexMatches(memberId, request.resource.data.email);
+        && emailIndexMatches(memberId, request.resource.data.email)
+        && (isOwner()
+            || (isChefOf(request.resource.data.householdId)
+                && request.resource.data.isAdmin == false
+                && parentsInHousehold(request.resource.data)));
 
-      // Admins edit members, but never the linked account, and never their own admin flag:
-      // an admin can name or remove the other admin, so the last admin can never be removed.
-      allow update: if isAdmin()
+      // The admin principal edits anyone and names the chefs. A chef de famille edits the members
+      // of their household, never the chef flag, never the admin principal, and keeps the member
+      // in that household. Nobody changes the linked account.
+      allow update: if isMember()
         && isValidMember(request.resource.data)
         && request.resource.data.uid == resource.data.uid
-        && (memberId != myMemberId() || request.resource.data.isAdmin == resource.data.isAdmin)
         && emailIndexMatches(memberId, request.resource.data.email)
         && (resource.data.email == null || resource.data.email == request.resource.data.email
-            || !existsAfter(emailIndexPath(resource.data.email)));
+            || !existsAfter(emailIndexPath(resource.data.email)))
+        && (isOwner()
+            || (isChefOf(resource.data.householdId)
+                && request.resource.data.householdId == resource.data.householdId
+                && request.resource.data.isAdmin == resource.data.isAdmin
+                && memberId != ownerId()
+                && (request.resource.data.parentIds == resource.data.parentIds
+                    || parentsInHousehold(request.resource.data))));
 
-      // Admins remove members (a separation, for example), but not themselves, and the email
-      // entry goes in the same batch.
-      allow delete: if isAdmin()
+      // The admin principal or a chef of the household removes a member (a separation, for
+      // example), never themselves; a chef never removes another chef or the admin principal.
+      // The email entry goes in the same batch.
+      allow delete: if isMember()
         && memberId != myMemberId()
-        && (resource.data.email == null || !existsAfter(emailIndexPath(resource.data.email)));
+        && (resource.data.email == null || !existsAfter(emailIndexPath(resource.data.email)))
+        && (isOwner()
+            || (isChefOf(resource.data.householdId)
+                && resource.data.isAdmin == false
+                && memberId != ownerId()));
     }
 
-    // households/{householdId}. Readable by the whole family, written by admins.
+    function isValidHousehold(h) {
+      return h.keys().hasOnly(['name'])
+        && h.name is string
+        && h.name.size() > 0 && h.name.size() <= 40;
+    }
+
+    // households/{householdId}. Readable by the whole family. The admin principal creates and
+    // deletes them (the app only offers to delete an empty one); a chef renames their own.
     match /households/{householdId} {
       allow read: if isMember();
-      allow create, update: if isAdmin()
-        && request.resource.data.keys().hasOnly(['name'])
-        && request.resource.data.name is string
-        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 40;
-      allow delete: if false; // A household is never deleted, its members may still point to it.
+      allow create: if isOwner() && isValidHousehold(request.resource.data);
+      allow update: if managesHousehold(householdId) && isValidHousehold(request.resource.data);
+      allow delete: if isOwner();
     }
 
     // --- Events (lot 4) ---------------------------------------------------------------------------
@@ -185,10 +250,11 @@ service cloud.firestore {
             || (e.targetType == 'family' && e.targetMemberId == null && e.householdId == null));
     }
 
-    // PRD "Droits par profil", creation: an admin for anyone; an adult for themselves, one of their
-    // children, their household or the whole family; a child with the app for themselves only.
+    // PRD "Droits par profil", creation: the admin principal for anyone; an adult (chefs included)
+    // for themselves, one of their children, their household or the whole family; a child with the
+    // app for themselves only.
     function canTarget(e) {
-      return isAdmin()
+      return isOwner()
         || e.targetType == 'self'
         || (me().profile == 'adult'
             && (e.targetType == 'family'
@@ -196,11 +262,13 @@ service cloud.firestore {
                 || (e.targetType == 'child' && isParentOf(e.targetMemberId))));
     }
 
-    // PRD "Droits par profil", edit and delete: an admin all events; anyone their own; an adult also
-    // the events of their children (written by them or for them).
+    // PRD "Droits par profil" and récit 5, edit and delete: the admin principal all events; anyone
+    // their own; a chef de famille those written by a member of their household; an adult also the
+    // events of their children (written by them or for them).
     function canManage(e) {
-      return isAdmin()
+      return isOwner()
         || e.authorId == myMemberId()
+        || (exists(memberPath(e.authorId)) && isChefOf(get(memberPath(e.authorId)).data.householdId))
         || (me().profile == 'adult'
             && (isParentOf(e.authorId) || (e.targetType == 'child' && isParentOf(e.targetMemberId))));
     }
@@ -292,11 +360,12 @@ service cloud.firestore {
 
     // --- App updates (lot 10) ---------------------------------------------------------------------
 
-    // config/app: the latest version and the HTTPS link of its APK (docs/mise-a-jour.md). Every
-    // member reads it at each opening. Nobody writes it from the app: Kévin edits it in the
-    // Firebase console, which is not bound by these rules.
+    // config/app: the latest version and the HTTPS link of its APK (docs/mise-a-jour.md).
+    // config/family: { ownerMemberId }, the admin principal. Every member reads them. Nobody
+    // writes them from the app: Kévin edits config/app in the Firebase console, and the workflow
+    // « Créer le premier admin » writes config/family, neither bound by these rules.
     match /config/{docId} {
-      allow read: if isMember() && docId == 'app';
+      allow read: if isMember() && docId in ['app', 'family'];
       allow write: if false;
     }
 

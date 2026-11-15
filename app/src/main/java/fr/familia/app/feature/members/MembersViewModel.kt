@@ -7,6 +7,10 @@ import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
+import fr.familia.app.core.model.canAddMembers
+import fr.familia.app.core.model.canEditMember
+import fr.familia.app.core.model.isOwner
+import fr.familia.app.core.model.managesHousehold
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,10 +40,23 @@ class MembersViewModel(
         .flatMapLatest { n ->
             (members?.observeFamily() ?: emptyFlow())
                 .map<Family, MembersUiState> { family ->
+                    val me = family.members.firstOrNull { it.id == currentMemberId }
                     MembersUiState.Success(
                         groups = group(family),
                         currentMemberId = currentMemberId,
-                        isAdmin = family.members.any { it.id == currentMemberId && it.isAdmin },
+                        ownerId = family.ownerId,
+                        isOwner = me != null && family.isOwner(me),
+                        canAddMembers = me != null && family.canAddMembers(me),
+                        editableMemberIds = if (me == null) {
+                            emptySet()
+                        } else {
+                            family.members.filter { family.canEditMember(me, it) }.map { it.id }.toSet()
+                        },
+                        renamableHouseholdIds = if (me == null) {
+                            emptySet()
+                        } else {
+                            family.households.filter { family.managesHousehold(me, it.id) }.map { it.id }.toSet()
+                        },
                     )
                 }
                 .onStart { if (n > 0) emit(MembersUiState.Loading) }
@@ -60,8 +77,8 @@ class MembersViewModel(
     val renameFailed: StateFlow<Boolean> = _renameFailed.asStateFlow()
 
     /**
-     * Gives [household] a new name, trimmed to 1..[MAX_HOUSEHOLD_NAME] characters (admins only, the
-     * rules check it too). Offline, the list shows the new name at once and Firestore sends it later.
+     * Gives [household] a new name, trimmed to 1..[MAX_HOUSEHOLD_NAME] characters (the admin principal, or a
+     * chef de famille for their own household; the rules check it too). Offline, the list shows the new name at once and Firestore sends it later.
      */
     fun renameHousehold(household: Household, name: String) {
         val repo = members ?: return

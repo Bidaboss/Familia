@@ -41,6 +41,8 @@ import fr.familia.app.feature.planning.previewPlanning
 import fr.familia.app.feature.members.edit.FormError
 import fr.familia.app.feature.members.edit.MemberEditScreen
 import fr.familia.app.feature.members.edit.previewEditState
+import fr.familia.app.feature.members.admin.AdministrationScreen
+import fr.familia.app.feature.members.admin.previewAdministrationState
 import fr.familia.app.feature.members.edit.previewExistingState
 import fr.familia.app.feature.members.edit.MemberEditUiState
 import java.time.LocalDate
@@ -237,14 +239,54 @@ class ScreenshotTest {
     fun membersAdminLight() = capture("famille_admin_clair") {
         Surface {
             MembersScreen(
-                MembersUiState.Success(previewGroups(), "a", isAdmin = true),
+                MembersUiState.Success(
+                    previewGroups(),
+                    "a",
+                    ownerId = "a",
+                    isOwner = true,
+                    canAddMembers = true,
+                    editableMemberIds = setOf("a", "b", "c", "d", "e", "f"),
+                    renamableHouseholdIds = setOf("h1", "h2"),
+                ),
                 onRetry = {},
                 versionName = "0.1.0",
                 onEditMember = {},
                 onOpenNotifications = {},
-                onOpenExport = {},
+                onOpenAdministration = {},
             )
         }
+    }
+
+    @Test
+    fun membersChefLight() = capture("famille_chef_clair") {
+        Surface {
+            MembersScreen(
+                MembersUiState.Success(
+                    previewGroups(),
+                    "b",
+                    ownerId = "a",
+                    canAddMembers = true,
+                    editableMemberIds = setOf("b", "c"),
+                    renamableHouseholdIds = setOf("h1"),
+                ),
+                onRetry = {},
+                versionName = "0.1.0",
+                onEditMember = {},
+                onOpenNotifications = {},
+                onOpenAdministration = {},
+            )
+        }
+    }
+
+    @Test
+    fun administrationLight() = capture("administration_clair") {
+        Surface { AdministrationScreen(previewAdministrationState(), {}, {}, { _, _ -> }, {}, {}, {}) }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun administrationFontScale200() = capture("administration_police_200") {
+        Surface { AdministrationScreen(previewAdministrationState(), {}, {}, { _, _ -> }, {}, {}, {}) }
     }
 
     @Test
@@ -294,7 +336,7 @@ class ScreenshotTest {
 
     @Test
     fun helpLight() = capture("aide_clair") {
-        Surface { HelpScreen(HelpUiState(helpTopics(isAdmin = true), "Camille ou Inès"), {}, {}, initiallyOpen = HelpTopic.AddEvent) }
+        Surface { HelpScreen(HelpUiState(helpTopics(isChef = true, isOwner = true), "Camille ou Inès"), {}, {}, initiallyOpen = HelpTopic.AddEvent) }
     }
 
     @Test
@@ -306,7 +348,7 @@ class ScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun helpFontScale200() = capture("aide_police_200") {
-        Surface { HelpScreen(HelpUiState(helpTopics(isAdmin = false), null), {}, {}, initiallyOpen = HelpTopic.Notifications) }
+        Surface { HelpScreen(HelpUiState(helpTopics(isChef = false), null), {}, {}, initiallyOpen = HelpTopic.Notifications) }
     }
 
     @Test

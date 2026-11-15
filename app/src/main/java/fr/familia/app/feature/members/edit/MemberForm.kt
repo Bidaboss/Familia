@@ -6,7 +6,7 @@ import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.normalizeEmail
 import java.time.LocalDate
 
-/** What the admin is typing in the member form. */
+/** What the admin principal or a chef de famille is typing in the member form. */
 data class MemberForm(
     val firstName: String = "",
     val profile: MemberProfile = MemberProfile.Adult,
@@ -59,19 +59,17 @@ enum class FormError {
     TooManyParents,
     /** An adult who is a child's only responsible adult cannot become a child (lot 7 audit). */
     SoleParentOfChild,
-    TooManyAdmins,
     BirthDateInFuture,
 }
 
 const val MAX_FIRST_NAME = 40
-const val MAX_ADMINS = 2
 
 /** The security rules accept four responsible adults at most (lot 7 audit). */
 const val MAX_PARENTS = 4
 
 /**
  * The same checks as the security rules, plus the ones only the app can make (unique address,
- * two admins at most, responsible adults that really are adults).
+ * responsible adults that really are adults).
  */
 fun validate(form: MemberForm, family: Family, editedId: String, today: LocalDate): Set<FormError> = buildSet {
     val name = form.firstName.trim()
@@ -100,12 +98,6 @@ fun validate(form: MemberForm, family: Family, editedId: String, today: LocalDat
             editedId in child.parentIds && child.parentIds.none { id -> id != editedId && family.members.any { it.id == id } }
         }
         if (soleParent) add(FormError.SoleParentOfChild)
-    }
-
-    if (form.isAdmin && form.profile == MemberProfile.Adult &&
-        family.members.count { it.isAdmin && it.id != editedId } >= MAX_ADMINS
-    ) {
-        add(FormError.TooManyAdmins)
     }
 
     if (form.birthDate != null && form.birthDate.isAfter(today)) add(FormError.BirthDateInFuture)

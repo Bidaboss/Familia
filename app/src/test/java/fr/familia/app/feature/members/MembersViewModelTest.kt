@@ -65,15 +65,38 @@ class MembersViewModelTest {
     }
 
     @Test
-    fun `the admin role is read live from the family`() = runTest {
+    fun `the chef role is read live from the family`() = runTest {
         val me = m("1", "Alice", "h1")
-        val source = MutableStateFlow(Family(listOf(Household("h1", "Foyer")), listOf(me.copy(isAdmin = true))))
+        val neighbour = m("2", "Bruno", "h2")
+        val households = listOf(Household("h1", "Foyer"), Household("h2", "Autre"))
+        val source = MutableStateFlow(Family(households, listOf(me.copy(isAdmin = true), neighbour)))
         val vm = MembersViewModel(FakeMembers(source), currentMemberId = "1")
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
-        assertTrue((vm.uiState.value as MembersUiState.Success).isAdmin)
+        val chef = vm.uiState.value as MembersUiState.Success
+        assertTrue(chef.canAddMembers)
+        assertFalse(chef.isOwner)
+        assertEquals(setOf("1"), chef.editableMemberIds)
+        assertEquals(setOf("h1"), chef.renamableHouseholdIds)
 
-        source.value = source.value.copy(members = listOf(me))
-        assertFalse((vm.uiState.value as MembersUiState.Success).isAdmin)
+        source.value = source.value.copy(members = listOf(me, neighbour))
+        val plain = vm.uiState.value as MembersUiState.Success
+        assertFalse(plain.canAddMembers)
+        assertEquals(emptySet<String>(), plain.editableMemberIds)
+    }
+
+    @Test
+    fun `the admin principal manages every member and household`() = runTest {
+        val me = m("1", "Alice", "h1")
+        val neighbour = m("2", "Bruno", "h2")
+        val households = listOf(Household("h1", "Foyer"), Household("h2", "Autre"))
+        val source = MutableStateFlow(Family(households, listOf(me, neighbour), ownerId = "1"))
+        val vm = MembersViewModel(FakeMembers(source), currentMemberId = "1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        val state = vm.uiState.value as MembersUiState.Success
+        assertTrue(state.isOwner)
+        assertEquals("1", state.ownerId)
+        assertEquals(setOf("1", "2"), state.editableMemberIds)
+        assertEquals(setOf("h1", "h2"), state.renamableHouseholdIds)
     }
 
     @Test
@@ -169,5 +192,6 @@ class MembersViewModelTest {
         override suspend fun removeMember(member: Member, updatedChildren: List<Member>) = Unit
         override fun newHouseholdId(): String = "h-new"
         override suspend fun saveHousehold(household: Household) = Unit
+        override suspend fun deleteHousehold(householdId: String) = Unit
     }
 }

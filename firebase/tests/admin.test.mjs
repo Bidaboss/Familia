@@ -87,8 +87,10 @@ describe('admins', () => {
     await assertSucceeds(updateDoc(doc(as(env, ADMIN), 'members/admin2'), { isAdmin: false }));
   });
 
-  test('an admin cannot remove their own admin role, so the last admin always stays', async () => {
-    await assertFails(updateDoc(doc(as(env, ADMIN), 'members/admin1'), { isAdmin: false }));
+  test('a chef cannot change their own chef flag, and nobody names the admin principal from the app', async () => {
+    await assertFails(updateDoc(doc(as(env, SECOND_ADMIN), 'members/admin2'), { isAdmin: false }));
+    await assertFails(setDoc(doc(as(env, ADMIN), 'config/family'), { ownerMemberId: 'adult1' }));
+    await assertFails(setDoc(doc(as(env, SECOND_ADMIN), 'config/family'), { ownerMemberId: 'admin2' }));
   });
 
   test('an admin edits a member but cannot change their linked account', async () => {
@@ -149,15 +151,17 @@ describe('changing an address', () => {
 });
 
 describe('households', () => {
-  test('an admin creates and renames a household', async () => {
+  test('the admin principal creates, renames and deletes a household', async () => {
     const db = as(env, ADMIN);
-    await assertSucceeds(setDoc(doc(db, 'households/h2'), { name: 'Foyer 2' }));
-    await assertSucceeds(updateDoc(doc(db, 'households/h2'), { name: 'Foyer deux' }));
+    await assertSucceeds(setDoc(doc(db, 'households/h3'), { name: 'Foyer 3' }));
+    await assertSucceeds(updateDoc(doc(db, 'households/h3'), { name: 'Foyer trois' }));
+    await assertSucceeds(deleteDoc(doc(db, 'households/h3')));
   });
 
-  test('a member who is not admin cannot create a household, and nobody deletes one', async () => {
-    await assertFails(setDoc(doc(as(env, ADULT), 'households/h2'), { name: 'Foyer 2' }));
-    await assertFails(deleteDoc(doc(as(env, ADMIN), 'households/h1')));
+  test('a member who is not chef cannot create, rename or delete a household', async () => {
+    await assertFails(setDoc(doc(as(env, ADULT), 'households/h3'), { name: 'Foyer 3' }));
+    await assertFails(updateDoc(doc(as(env, ADULT), 'households/h1'), { name: 'Autre' }));
+    await assertFails(deleteDoc(doc(as(env, ADULT), 'households/h1')));
   });
 });
 

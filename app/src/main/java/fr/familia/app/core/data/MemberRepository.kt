@@ -20,13 +20,13 @@ interface MemberRepository {
     fun newMemberId(): String
 
     /**
-     * Admins only. Writes [member] and its email entry in one batch; [previousEmail] is the address
+     * The admin principal, or a chef de famille for their household. Writes [member] and its email entry in one batch; [previousEmail] is the address
      * before the edit (null for a new member), whose entry is removed if it changed.
      */
     suspend fun saveMember(member: Member, previousEmail: String?)
 
     /**
-     * Admins only. Removes [member] and its email entry in one batch, so they lose access at once.
+     * The admin principal, or a chef de famille for their household. Removes [member] and its email entry in one batch, so they lose access at once.
      * [updatedChildren] are the children who listed them as responsible adult, saved without them.
      */
     suspend fun removeMember(member: Member, updatedChildren: List<Member>)
@@ -34,6 +34,9 @@ interface MemberRepository {
     /** A fresh id for a household that is not saved yet. */
     fun newHouseholdId(): String
 
-    /** Admins only. Creates or renames a household. */
+    /** The admin principal creates or renames any household; a chef de famille renames their own. */
     suspend fun saveHousehold(household: Household)
+
+    /** The admin principal only, for a household nobody belongs to any more. */
+    suspend fun deleteHousehold(householdId: String)
 }

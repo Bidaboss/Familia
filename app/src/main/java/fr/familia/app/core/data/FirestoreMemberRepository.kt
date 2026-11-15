@@ -36,7 +36,19 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
         combine(
             snapshots(HOUSEHOLDS) { Household(id = it.id, name = it.getString("name").orEmpty()) },
             snapshots(MEMBERS) { it.toMember() },
-        ) { households, members -> Family(households, members) }
+            ownerId(),
+        ) { households, members, ownerId -> Family(households, members, ownerId) }
+
+    /**
+     * config/family names the admin principal; only the GitHub workflow writes it. If it cannot be
+     * read (rules not published yet), nobody is admin principal and the family list still shows.
+     */
+    private fun ownerId(): Flow<String?> = callbackFlow {
+        val registration = db.collection(CONFIG).document(FAMILY).addSnapshotListener { snapshot, error ->
+            trySend(if (error != null) null else snapshot?.getString("ownerMemberId"))
+        }
+        awaitClose { registration.remove() }
+    }
 
     override fun newMemberId(): String = db.collection(MEMBERS).document().id
 
@@ -65,6 +77,10 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
 
     override suspend fun saveHousehold(household: Household) {
         db.collection(HOUSEHOLDS).document(household.id).set(mapOf("name" to household.name)).await()
+    }
+
+    override suspend fun deleteHousehold(householdId: String) {
+        db.collection(HOUSEHOLDS).document(householdId).delete().await()
     }
 
     /** Live list of a whole collection; the listener is removed when the screen stops collecting. */
@@ -109,5 +125,7 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
         const val MEMBERS = "members"
         const val MEMBER_EMAILS = "memberEmails"
         const val HOUSEHOLDS = "households"
+        const val CONFIG = "config"
+        const val FAMILY = "family"
     }
 }

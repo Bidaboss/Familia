@@ -16,7 +16,7 @@ fun MembersRoute(
     currentMember: Member,
     onEditMember: (memberId: String?) -> Unit,
     onOpenNotifications: () -> Unit,
-    onOpenExport: () -> Unit,
+    onOpenAdministration: () -> Unit,
     onOpenUpdates: () -> Unit,
     onOpenHelp: () -> Unit,
 ) {
@@ -33,12 +33,10 @@ fun MembersRoute(
         onOpenNotifications = onOpenNotifications,
         onOpenUpdates = onOpenUpdates,
         onOpenHelp = onOpenHelp,
-        // The backup holds everyone's data: admins only (PRD, récit 6 ter).
-        onOpenExport = if ((state as? MembersUiState.Success)?.isAdmin == true) onOpenExport else null,
-        // Only admins add and edit members (the security rules check it too).
-        onEditMember = if ((state as? MembersUiState.Success)?.isAdmin == true) onEditMember else null,
-        // Any admin renames any household (data-model.md, « Droits des admins »).
-        onRenameHousehold = if ((state as? MembersUiState.Success)?.isAdmin == true) viewModel::renameHousehold else null,
+        // The screen shows each action only where the live rights allow it (the rules check it too).
+        onOpenAdministration = onOpenAdministration,
+        onEditMember = onEditMember,
+        onRenameHousehold = viewModel::renameHousehold,
         renameFailed = renameFailed,
         onRenameFailureShown = viewModel::renameFailureShown,
     )

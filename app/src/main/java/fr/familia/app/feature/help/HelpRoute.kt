@@ -13,7 +13,7 @@ import fr.familia.app.core.model.Member
 @Composable
 fun HelpRoute(container: AppContainer?, currentMember: Member, onReplayOnboarding: () -> Unit, onBack: () -> Unit) {
     val viewModel: HelpViewModel = viewModel(
-        factory = viewModelFactory { initializer { HelpViewModel(container?.memberRepository, currentMember.isAdmin) } },
+        factory = viewModelFactory { initializer { HelpViewModel(container?.memberRepository, currentMember) } },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     HelpScreen(state = state, onReplayOnboarding = onReplayOnboarding, onBack = onBack)
