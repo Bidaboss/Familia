@@ -37,10 +37,11 @@ class NotificationSettingsViewModel(
             if (notifications == null) {
                 flowOf(NotificationSettingsUiState.Ready(dayBeforeReminder = true)) // Previews, no Firebase.
             } else {
-                combine<Boolean, Boolean, NotificationSettingsUiState>(
+                combine<Boolean, Boolean, Boolean, NotificationSettingsUiState>(
                     notifications.observeDayBeforeReminder(memberId),
+                    notifications.observeGoodNews(memberId),
                     saveFailed,
-                ) { on, failed -> NotificationSettingsUiState.Ready(on, failed) }
+                ) { on, goodNews, failed -> NotificationSettingsUiState.Ready(on, failed, goodNews) }
                     .onStart { if (n > 0) emit(NotificationSettingsUiState.Loading) }
                     .catch { e ->
                         if (e is CancellationException) throw e
@@ -54,12 +55,17 @@ class NotificationSettingsViewModel(
         attempt.update { it + 1 }
     }
 
-    fun setDayBeforeReminder(enabled: Boolean) {
+    fun setDayBeforeReminder(enabled: Boolean) = save { it.setDayBeforeReminder(memberId, enabled) }
+
+    /** Bonnes nouvelles (récit 32). Never mutes the notice to the parents when a child publishes. */
+    fun setGoodNews(enabled: Boolean) = save { it.setGoodNews(memberId, enabled) }
+
+    private fun save(write: suspend (NotificationRepository) -> Unit) {
         val repo = notifications ?: return
         saveFailed.value = false
         viewModelScope.launch {
             try {
-                withTimeoutOrNull(writeTimeoutMillis) { repo.setDayBeforeReminder(memberId, enabled) }
+                withTimeoutOrNull(writeTimeoutMillis) { write(repo) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

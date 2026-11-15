@@ -5,8 +5,9 @@ import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import {
-  GoodNewsData, GoodNewsMember, goodNewsMessages, GoodNewsNotice, GoodNewsSender, onGoodNewsEdited, onGoodNewsPublished,
-  onGoodNewsRemoved, photoPaths, preview,
+  deleteReactionDigest, DIGEST_DELAY_MS, GoodNewsData, GoodNewsMember, goodNewsMessages, GoodNewsNotice, GoodNewsSender,
+  newReactorIds, onGoodNewsEdited, onGoodNewsPublished, onGoodNewsReacted, onGoodNewsRemoved, photoPaths, preview,
+  reactionsNotice, sendReactionDigests,
 } from '../src/goodNews';
 
 const members: GoodNewsMember[] = [
@@ -74,6 +75,25 @@ describe('who is told what', () => {
   });
 });
 
+describe('grouped reactions (PRD rév. 174)', () => {
+  test('only the members who just reacted count, never the author', () => {
+    const before = news({ reactions: { ines: 'heart' } });
+    const after = news({ reactions: { ines: 'party', jules: 'clap', camille: 'heart' } });
+    assert.deepEqual(newReactorIds(before, after), ['jules']);
+    assert.deepEqual(newReactorIds(after, news({ reactions: { jules: 'clap' } })), []);
+  });
+
+  test('one, two, then several names', () => {
+    assert.equal(reactionsNotice('n1', news(), ['Inès'])?.title, 'Inès a réagi à ta Bonne nouvelle');
+    assert.equal(reactionsNotice('n1', news(), ['Inès', 'Jules'])?.title, 'Inès et Jules ont réagi à ta Bonne nouvelle');
+    const many = reactionsNotice('n1', news(), ['Inès', 'Jules', 'Noé', 'Lou']);
+    assert.equal(many?.title, 'Inès et 3 autres ont réagi à ta Bonne nouvelle');
+    assert.equal(many?.channel, 'comments');
+    assert.equal(many?.goodNewsId, 'n1');
+    assert.equal(reactionsNotice('n1', news(), []), null);
+  });
+});
+
 describe('photos of a removed or edited good news', () => {
   test('removing deletes every photo, editing only those taken out', async () => {
     const removed: string[] = [];
@@ -112,5 +132,34 @@ describe('sending, against the emulator', () => {
     assert.deepEqual(sent.map(([t]) => t), ['phone-jules', 'phone-noe']);
     assert.equal(count, 1);
     assert.equal((await db.collection('members').doc('noe').collection('devices').get()).size, 0);
+  });
+
+  test('a grouped notice an hour after the first reaction, once per reactor, and gone with the post', async () => {
+    await db.recursiveDelete(db.collection('goodNews'));
+    await db.recursiveDelete(db.collection('goodNewsDigests'));
+    const t0 = new Date('2026-11-21T15:00:00Z');
+    const post = news({ reactions: { ines: 'heart', jules: 'clap' } });
+    await db.collection('goodNews').doc('n1').set(post);
+    await onGoodNewsReacted(db, 'n1', news({ reactions: {} }), news({ reactions: { ines: 'heart' } }), t0);
+    // A second reaction ten minutes later does not push the time back.
+    await onGoodNewsReacted(db, 'n1', news({ reactions: { ines: 'heart' } }), post, new Date(t0.getTime() + 600_000));
+
+    const sent: [string, GoodNewsNotice][] = [];
+    const send: GoodNewsSender = async (token, notice) => { sent.push([token, notice]); return 'ok'; };
+    assert.equal(await sendReactionDigests(db, send, new Date(t0.getTime() + DIGEST_DELAY_MS - 1)), 0);
+    assert.equal(await sendReactionDigests(db, send, new Date(t0.getTime() + DIGEST_DELAY_MS)), 1);
+    assert.deepEqual(sent.map(([t, n]) => [t, n.title]), [['phone-camille', 'Inès et Jules ont réagi à ta Bonne nouvelle']]);
+    assert.equal(await sendReactionDigests(db, send, new Date(t0.getTime() + 2 * DIGEST_DELAY_MS)), 0);
+
+    // Noé reacts the next day: only Noé is named.
+    const later = news({ reactions: { ines: 'heart', jules: 'clap', noe: 'wow' } });
+    await db.collection('goodNews').doc('n1').set(later);
+    const t1 = new Date(t0.getTime() + 86_400_000);
+    await onGoodNewsReacted(db, 'n1', post, later, t1);
+    await sendReactionDigests(db, send, new Date(t1.getTime() + DIGEST_DELAY_MS));
+    assert.equal(sent[1][1].title, 'Noé a réagi à ta Bonne nouvelle');
+
+    await deleteReactionDigest(db, 'n1');
+    assert.equal((await db.collection('goodNewsDigests').doc('n1').get()).exists, false);
   });
 });

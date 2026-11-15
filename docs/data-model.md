@@ -162,7 +162,7 @@ Un événement déjà passé ne prévient personne. L'auteur d'un changement est
 
 **Qui un événement concerne** (cartes AVIS-7 et AVIS-8) : une seule fonction le dit, `concerns` dans `functions/src/logic.ts`, et la même règle dans l'appli (`core/model/Audience.kt`), qui sert au filtre « Mon foyer » du planning. Un événement concerne un membre s'il est pour toute la famille, ou si sa cible est lui-même, son foyer, un membre ou un enfant de son foyer, ou un enfant dont il est adulte responsable (même dans un autre foyer). Un futur « cercle » ne changera que cette fonction.
 
-**Canaux Android** (récit 6 quinquies) : chaque notification part sur un canal, que chacun peut couper dans les réglages Android : `events` (affiché « Planning »), `reminders`, `gifts`, `helpRequests` (Entraide ; le rappel de la veille d'un coup de main reste sur `reminders`), `goodNews` (Bonnes nouvelles), `trips` (Voyages : « bien arrivé » et son rappel). Chaque module ajoute le sien en même temps que lui : `comments` (Commentaires et réactions), `weekly` (Rendez-vous de la semaine). Les identifiants ne changent jamais, car Android y garde le choix du membre. Un canal inconnu de l'appli retombe sur « Planning ».
+**Canaux Android** (récit 6 quinquies) : chaque notification part sur un canal, que chacun peut couper dans les réglages Android : `events` (affiché « Planning »), `reminders`, `gifts`, `helpRequests` (Entraide ; le rappel de la veille d'un coup de main reste sur `reminders`), `goodNews` (Bonnes nouvelles), `trips` (Voyages : « bien arrivé » et son rappel), `comments` (Commentaires et réactions : pour l'instant les réactions groupées aux Bonnes nouvelles). Chaque module ajoute le sien en même temps que lui : `weekly` (Rendez-vous de la semaine). Les identifiants ne changent jamais, car Android y garde le choix du membre. Le canal d'un module n'est créé qu'une fois le module visible (`Feature`), pour ne pas montrer de catégorie vide dans les réglages. Un canal inconnu de l'appli retombe sur « Planning ».
 
 Tests : `cd firebase && npm run test:functions` (la logique, et les fonctions contre l'émulateur Firestore, avec un faux envoi de notifications).
 
@@ -356,8 +356,11 @@ Cloud Functions (`functions/src/goodNews.ts`) :
 | Fonction | Déclencheur | Rôle |
 |---|---|---|
 | `onGoodNewsCreated` | création | Prévient toute la famille qui a l'appli, sauf l'auteur et ceux qui ont coupé `goodNews`. Quand un enfant publie, ses adultes responsables reçoivent « Léa a publié une Bonne nouvelle », même s'ils ont coupé les autres (carte AVIS-12). Canal `goodNews`, donnée `goodNewsId`. |
-| `onGoodNewsUpdated` | modification | Efface dans Storage les photos que l'auteur a retirées. |
-| `onGoodNewsDeleted` | suppression | Efface toutes les photos, quel que soit l'auteur du retrait. |
+| `onGoodNewsUpdated` | modification | Efface dans Storage les photos que l'auteur a retirées. À la première nouvelle réaction, note dans `goodNewsDigests/{postId}` l'envoi groupé prévu une heure plus tard. |
+| `goodNewsReactionDigests` | toutes les 15 min | Envoie à l'auteur les avis groupés arrivés à échéance : « Inès et 3 autres ont réagi à ta Bonne nouvelle » (PRD rév. 174). Chaque personne n'est nommée qu'une fois. Canal `comments`, hors résumé du jour. |
+| `onGoodNewsDeleted` | suppression | Efface toutes les photos, quel que soit l'auteur du retrait, et l'avis groupé en attente. |
+
+`goodNewsDigests/{postId}` (fonctions seules, aucune règle ne l'ouvre à l'appli) : `authorId`, `dueAt` (horodatage, absent quand rien n'attend) et `notifiedIds` (ceux déjà nommés).
 
 Le seul endroit où se décide l'audience est `goodNewsAudience` : c'est là que se branchera la fonction des cercles.
 
@@ -381,6 +384,7 @@ Spec : « Spec Familia : coups de main » (tenue par [PRODUIT]), avec les cartes
 | `viewerIds` | liste de `memberId` | Toujours `[authorId]` suivi de `notifyIds` : sert à la requête de l'onglet (`array-contains`) |
 | `status` | `open` \| `taken` \| `cancelled` | Ouverte, prise, annulée. Une demande annulée le reste |
 | `volunteerId`, `volunteerName` | `memberId` et texte, ou null | Le volontaire et son prénom |
+| `volunteerNote` | texte (200 max), ou null, facultatif | Le mot du volontaire à l'auteur, posé avec « Je m'en occupe » ou plus tard par lui seul, effacé quand il se retire |
 | `declinedBy` | `memberId` ou null | « Je ne peux pas » de la seule personne prévenue (carte PRODUIT-22). Remis à null quand le demandeur élargit |
 | `thankedAt` | horodatage serveur ou null | Le « Merci » du demandeur, une seule fois |
 | `createdAt`, `updatedAt` | horodatage serveur | `createdAt` jamais modifié, `updatedAt` à chaque écriture |
@@ -417,7 +421,7 @@ Cloud Functions (`functions/src/helpRequests.ts`), qui ne préviennent que les p
 
 Une demande passée ne prévient personne, sauf pour le « Merci ». La sauvegarde de l'admin principal inclut les demandes (`helpRequests`).
 
-## Voyages (V3, récits 11, 12 et 14)
+## Voyages (V3, récits 11 à 14)
 
 ### `trips/{tripId}`
 
@@ -446,6 +450,20 @@ Droits : seul un membre de `readerIds` lit le voyage. L'appli le cherche avec `r
 | `updatedAt` | horodatage | Heure du serveur |
 
 Droits : les lecteurs du voyage lisent ses étapes. Chaque participant les ajoute, les modifie et les supprime, et l'admin principal peut en supprimer une. « Bien arrivé » est signé du membre qui le touche, à l'heure du serveur, et efface `remindAt`. Un participant peut l'annuler. Aucune position n'est enregistrée : les règles refusent tout champ en plus.
+
+### `trips/{tripId}/items/{itemId}`
+
+La liste « À prévoir » du voyage (récit 13) : ce qu'il faut apporter ou réserver, et qui s'en occupe.
+
+| Champ | Type | Description |
+|---|---|---|
+| `label` | texte, 1 à 80 caractères | « Crème solaire », « Réserver la voiture » |
+| `assigneeId` | `memberId` ou null | Un participant qui s'en occupe, ou personne |
+| `assigneeName` | texte ou null | Son prénom, gardé pour que la ligne reste lisible s'il quitte le voyage. Null avec `assigneeId` |
+| `done` | booléen | Coché quand c'est fait |
+| `updatedAt` | horodatage serveur | |
+
+Droits : les lecteurs du voyage lisent la liste. Les participants, enfants compris, ajoutent, cochent, modifient et retirent les lignes. L'admin principal peut retirer une ligne. La personne en charge est forcément un participant. La suppression du voyage supprime sa liste sur le serveur. Tests : `firebase/tests/trips.test.mjs`.
 
 ### Cloud Functions des voyages
 

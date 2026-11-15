@@ -14,6 +14,7 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     GiftNotebook("giftNotebook", R.string.feature_gift_notebook),
     HelpRequests("helpRequests", R.string.feature_help_requests),
     Trips("trips", R.string.feature_trips),
+    GoodNews("goodNews", R.string.feature_good_news),
 }
 
 /**

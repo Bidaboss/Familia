@@ -2,6 +2,7 @@ package fr.familia.app.core.data
 
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -34,7 +35,19 @@ class FirestoreNotificationRepository(
     }
 
     override suspend fun setDayBeforeReminder(memberId: String, enabled: Boolean) {
-        settings(memberId).set(mapOf("dayBeforeReminder" to enabled)).await()
+        // Merge: the same document holds the other settings (goodNews, récit 32).
+        settings(memberId).set(mapOf("dayBeforeReminder" to enabled), SetOptions.merge()).await()
+    }
+
+    override fun observeGoodNews(memberId: String): Flow<Boolean> = callbackFlow {
+        val registration = settings(memberId).addSnapshotListener { snapshot, error ->
+            if (error != null) close(error) else trySend(snapshot?.getBoolean("goodNews") != false)
+        }
+        awaitClose { registration.remove() }
+    }
+
+    override suspend fun setGoodNews(memberId: String, enabled: Boolean) {
+        settings(memberId).set(mapOf("goodNews" to enabled), SetOptions.merge()).await()
     }
 
     private fun settings(memberId: String) =

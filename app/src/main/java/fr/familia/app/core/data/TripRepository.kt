@@ -2,6 +2,7 @@ package fr.familia.app.core.data
 
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Trip
+import fr.familia.app.core.model.TripItem
 import fr.familia.app.core.model.TripStep
 import kotlinx.coroutines.flow.Flow
 import java.time.Instant
@@ -44,7 +45,23 @@ interface TripRepository {
 
     /** Takes back a « bien arrivé » tapped by mistake. */
     suspend fun clearArrival(tripId: String, stepId: String)
+
+    /** The checklist of a trip (récit 13), in [itemOrder], updated live. */
+    fun observeItems(tripId: String): Flow<List<TripItem>>
+
+    fun newItemId(tripId: String): String
+
+    /** Creates a line of the checklist, or updates its label and who is in charge (never whether it is done). */
+    suspend fun saveItem(tripId: String, item: TripItem, isNew: Boolean)
+
+    /** Ticks or unticks a line, without touching the rest. */
+    suspend fun setItemDone(tripId: String, itemId: String, done: Boolean)
+
+    suspend fun deleteItem(tripId: String, itemId: String)
 }
+
+/** What is left to do first, then by label. */
+val itemOrder: Comparator<TripItem> = compareBy<TripItem>({ it.done }, { it.label.lowercase() })
 
 /** Steps by departure: day, then steps without a time first, then time, then place. */
 val stepOrder: Comparator<TripStep> =

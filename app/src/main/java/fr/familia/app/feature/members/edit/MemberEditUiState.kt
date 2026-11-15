@@ -1,5 +1,6 @@
 package fr.familia.app.feature.members.edit
 
+import fr.familia.app.core.ui.Confirmation
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 
@@ -38,7 +39,7 @@ sealed interface MemberEditUiState {
     ) : MemberEditUiState
 
     /** Saved or removed (or queued until the network is back): the screen closes. */
-    data object Saved : MemberEditUiState
+    data class Saved(val confirmation: Confirmation) : MemberEditUiState
 
     /** A new member was saved: the screen offers to send the invitation when they have an address. */
     data class Added(val firstName: String, val email: String?) : MemberEditUiState

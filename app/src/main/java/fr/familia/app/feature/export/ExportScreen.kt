@@ -58,11 +58,6 @@ fun ExportScreen(state: ExportUiState, onExport: () -> Unit, onBack: () -> Unit,
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(stringResource(R.string.export_body), style = MaterialTheme.typography.bodyLarge)
-            Text(
-                stringResource(R.string.export_privacy),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             val exporting = state == ExportUiState.Exporting
             Button(
                 onClick = onExport,

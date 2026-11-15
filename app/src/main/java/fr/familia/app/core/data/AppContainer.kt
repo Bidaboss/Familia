@@ -7,6 +7,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestoreSettings
 import com.google.firebase.firestore.persistentCacheSettings
 import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.storage.FirebaseStorage
+import fr.familia.app.core.photo.FirebasePhotoStorage
+import fr.familia.app.core.photo.PhotoEncoder
+import fr.familia.app.core.photo.PhotoStorage
+import fr.familia.app.core.photo.PhotoUploader
+import fr.familia.app.core.photo.StoragePhotoUploader
 import fr.familia.app.feature.auth.AuthRepository
 import fr.familia.app.feature.auth.FirebaseAuthRepository
 import fr.familia.app.feature.auth.GoogleCredentialProvider
@@ -16,6 +22,8 @@ import fr.familia.app.feature.auth.GoogleCredentialProvider
  * [fr.familia.app.FamiliaApplication]. Each field is null when Firebase is not configured yet.
  */
 class AppContainer(context: Context) {
+
+    private val appContext: Context = context.applicationContext
 
     private val firebaseReady: Boolean = FirebaseApp.getApps(context).isNotEmpty()
 
@@ -41,6 +49,17 @@ class AppContainer(context: Context) {
 
     val helpRequestRepository: HelpRequestRepository? by lazy { firestore?.let { FirestoreHelpRequestRepository(it) } }
     val tripRepository: TripRepository? by lazy { firestore?.let { FirestoreTripRepository(it) } }
+
+    val goodNewsRepository: GoodNewsRepository? by lazy { firestore?.let { FirestoreGoodNewsRepository(it) } }
+
+    /** Photos of the good news and the trips, in Cloud Storage (firebase/storage.rules). */
+    val photoStorage: PhotoStorage? by lazy {
+        if (firebaseReady) FirebasePhotoStorage(FirebaseStorage.getInstance()) else null
+    }
+
+    val photoUploader: PhotoUploader? by lazy {
+        photoStorage?.let { StoragePhotoUploader(PhotoEncoder(appContext), it) }
+    }
 
     val appConfigRepository: AppConfigRepository? by lazy { firestore?.let { FirestoreAppConfigRepository(it) } }
 

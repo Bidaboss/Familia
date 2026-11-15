@@ -1,6 +1,7 @@
 package fr.familia.app.feature.events.edit
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +20,7 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.EventBusy
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -27,6 +29,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -123,7 +126,7 @@ fun EventEditScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                EventEditUiState.Loading, EventEditUiState.Done ->
+                EventEditUiState.Loading, is EventEditUiState.Done ->
                     CircularProgressIndicator(Modifier.align(Alignment.Center))
                 EventEditUiState.Unavailable -> EmptyState(
                     icon = Icons.Outlined.EventBusy,
@@ -176,43 +179,9 @@ private fun EventFormContent(
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             modifier = Modifier.fillMaxWidth(),
         )
-        OutlinedTextField(
-            value = form.note,
-            onValueChange = { value -> onChange { it.copy(note = value) } },
-            label = { Text(stringResource(R.string.event_note)) },
-            isError = EventFormError.NoteTooLong in errors,
-            supportingText = errorText(errors, EventFormError.NoteTooLong),
-            minLines = 3,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
-        )
+        NoteField(form, errors, onChange)
 
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                stringResource(R.string.event_for_whom),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.semantics { heading() },
-            )
-            Column(Modifier.selectableGroup()) {
-                state.targets.forEach { choice ->
-                    val selected = form.target == choice.target
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 56.dp)
-                            .selectable(selected = selected, role = Role.RadioButton) {
-                                onChange { it.copy(target = choice.target) }
-                            },
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(selected = selected, onClick = null)
-                        Spacer(Modifier.width(16.dp))
-                        Text(targetLabel(choice), style = MaterialTheme.typography.bodyLarge)
-                    }
-                }
-            }
-            errorText(errors, EventFormError.TargetMissing)?.invoke()
-        }
+        TargetLine(state, onChange)
 
         if (state.saveFailed) {
             Text(
@@ -317,6 +286,94 @@ private fun DeleteButton(title: String, enabled: Boolean, onDelete: () -> Unit) 
             },
             dismissButton = {
                 TextButton(onClick = { confirm = false }) { Text(stringResource(R.string.action_keep)) }
+            },
+        )
+    }
+}
+
+/** The note stays folded behind « Ajouter une note » until it is used (audit DESIGN du 15/11). */
+@Composable
+private fun NoteField(
+    form: EventForm,
+    errors: Set<EventFormError>,
+    onChange: ((EventForm) -> EventForm) -> Unit,
+) {
+    var open by rememberSaveable { mutableStateOf(false) }
+    if (!open && form.note.isEmpty()) {
+        TextButton(onClick = { open = true }, modifier = Modifier.heightIn(min = 56.dp)) {
+            Icon(Icons.Outlined.Add, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.event_note_add))
+        }
+        return
+    }
+    OutlinedTextField(
+        value = form.note,
+        onValueChange = { value -> onChange { it.copy(note = value) } },
+        label = { Text(stringResource(R.string.event_note)) },
+        isError = EventFormError.NoteTooLong in errors,
+        supportingText = errorText(errors, EventFormError.NoteTooLong),
+        minLines = 3,
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+/**
+ * « Pour qui » on one line, « Toute la famille » by default; touching it opens the list
+ * (audit DESIGN du 15/11).
+ */
+@Composable
+private fun TargetLine(state: EventEditUiState.Editing, onChange: ((EventForm) -> EventForm) -> Unit) {
+    var picking by rememberSaveable { mutableStateOf(false) }
+    val chosen = state.targets.firstOrNull { it.target == state.form.target }
+    val forWhom = stringResource(R.string.event_for_whom)
+    val value = chosen?.let { targetLabel(it) } ?: stringResource(R.string.event_for_whom_none)
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .clickable(enabled = state.targets.size > 1, role = Role.Button) { picking = true },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(forWhom, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(value, style = MaterialTheme.typography.bodyLarge)
+            }
+            if (state.targets.size > 1) {
+                Text(stringResource(R.string.event_for_whom_change), color = MaterialTheme.colorScheme.primary)
+            }
+        }
+        errorText(state.errors, EventFormError.TargetMissing)?.invoke()
+    }
+    if (picking) {
+        AlertDialog(
+            onDismissRequest = { picking = false },
+            title = { Text(forWhom) },
+            text = {
+                Column(Modifier.selectableGroup().verticalScroll(rememberScrollState())) {
+                    state.targets.forEach { choice ->
+                        val selected = state.form.target == choice.target
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 56.dp)
+                                .selectable(selected = selected, role = Role.RadioButton) {
+                                    onChange { it.copy(target = choice.target) }
+                                    picking = false
+                                },
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(selected = selected, onClick = null)
+                            Spacer(Modifier.width(16.dp))
+                            Text(targetLabel(choice), style = MaterialTheme.typography.bodyLarge)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { picking = false }) { Text(stringResource(R.string.action_ok)) }
             },
         )
     }

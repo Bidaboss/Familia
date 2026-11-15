@@ -19,6 +19,8 @@ export interface HelpRequestData {
   status: 'open' | 'taken' | 'cancelled';
   volunteerId: string | null;
   volunteerName: string | null;
+  /** The volunteer's short word (récit 16, spec rév. 8), absent on older requests. */
+  volunteerNote?: string | null;
   declinedBy: string | null;
   thankedAt: unknown | null;
 }
@@ -106,7 +108,7 @@ export function helpMessages(
   if (before.status === 'open' && after.status === 'taken' && after.volunteerName) {
     return message(
       id, unique(askers(after, members), [after.volunteerId], members), `${after.volunteerName} s'occupe de « ${after.title} »`,
-      `C'est réglé pour ${helpWhen(after)}.`,
+      after.volunteerNote?.trim() ? `${after.volunteerName} : ${after.volunteerNote.trim()}` : `C'est réglé pour ${helpWhen(after)}.`,
     );
   }
   // Récit 16: the volunteer withdraws; the request is open again for everyone warned.
@@ -210,7 +212,7 @@ export async function reopenRequestsOf(db: Firestore, memberId: string, now: Dat
   const taken = await db.collection('helpRequests').where('volunteerId', '==', memberId).get();
   const upcoming = taken.docs.filter((doc) => doc.get('status') === 'taken' && String(doc.get('date')) >= today);
   for (const doc of upcoming) {
-    await doc.ref.update({ status: 'open', volunteerId: null, volunteerName: null, updatedAt: new Date() });
+    await doc.ref.update({ status: 'open', volunteerId: null, volunteerName: null, volunteerNote: null, updatedAt: new Date() });
   }
   return upcoming.length;
 }

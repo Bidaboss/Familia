@@ -401,13 +401,18 @@ service cloud.firestore {
             || r.viewerIds.hasAll(get(memberPath(r.forMemberId)).data.parentIds));
     }
 
-    // The 19 fields exactly: hasAll plus the size, cheaper than hasAll plus hasOnly against the
-    // limit of 1000 expressions per request.
+    // The volunteer's short word (récit 16, spec rév. 8): optional, 200 characters at most.
+    function isVolunteerNote(v) {
+      return v == null || (v is string && v.size() <= 200);
+    }
+
+    // The 19 fields, plus volunteerNote when there is one (requests made before it have 19):
+    // hasAll plus the size, cheaper than hasOnly against the limit of 1000 expressions.
     function isValidHelpRequest(r) {
       return r.keys().hasAll(['kind', 'title', 'date', 'startTime', 'endTime', 'place', 'note', 'authorId',
                               'authorName', 'forMemberId', 'notifyIds', 'viewerIds', 'status', 'volunteerId',
                               'volunteerName', 'declinedBy', 'thankedAt', 'createdAt', 'updatedAt'])
-        && r.keys().size() == 19
+        && (r.keys().size() == 19 || (r.keys().size() == 20 && 'volunteerNote' in r && isVolunteerNote(r.volunteerNote)))
         && r.kind in ['childcare', 'ride', 'other']
         && r.title is string && r.title.size() > 0 && r.title.size() <= 80
         && isDay(r.date)
@@ -441,21 +446,31 @@ service cloud.firestore {
     function isHelpTake() {
       return resource.data.status == 'open'
         && request.resource.data.status == 'taken'
-        && helpChanges(['status', 'volunteerId', 'volunteerName'])
+        && helpChanges(['status', 'volunteerId', 'volunteerName', 'volunteerNote'])
         && request.resource.data.volunteerId == myMemberId()
         && myMemberId() in resource.data.notifyIds
         && me().profile == 'adult'
-        && request.resource.data.volunteerName == me().firstName;
+        && request.resource.data.volunteerName == me().firstName
+        && isVolunteerNote(request.resource.data.get('volunteerNote', null));
     }
 
     // The volunteer withdraws: the request is open again.
     function isHelpWithdraw() {
       return resource.data.status == 'taken'
         && request.resource.data.status == 'open'
-        && helpChanges(['status', 'volunteerId', 'volunteerName'])
+        && helpChanges(['status', 'volunteerId', 'volunteerName', 'volunteerNote'])
         && resource.data.volunteerId == myMemberId()
         && request.resource.data.volunteerId == null
-        && request.resource.data.volunteerName == null;
+        && request.resource.data.volunteerName == null
+        && request.resource.data.get('volunteerNote', null) == null;
+    }
+
+    // The volunteer writes, changes or clears their word later, and nothing else.
+    function isHelpNote() {
+      return resource.data.status == 'taken'
+        && resource.data.volunteerId == myMemberId()
+        && helpChanges(['volunteerNote'])
+        && isVolunteerNote(request.resource.data.get('volunteerNote', null));
     }
 
     // « Je ne peux pas » (carte PRODUIT-22): only when the request was sent to one person.
@@ -484,7 +499,7 @@ service cloud.firestore {
       return resource.data.status != 'cancelled'
         && request.resource.data.status in [resource.data.status, 'cancelled']
         && !request.resource.data.diff(resource.data).affectedKeys()
-              .hasAny(['authorId', 'authorName', 'forMemberId', 'volunteerId', 'volunteerName', 'thankedAt', 'createdAt'])
+              .hasAny(['authorId', 'authorName', 'forMemberId', 'volunteerId', 'volunteerName', 'volunteerNote', 'thankedAt', 'createdAt'])
         && request.resource.data.declinedBy in [resource.data.declinedBy, null]
         && (resource.data.volunteerId == null || resource.data.volunteerId in request.resource.data.notifyIds)
         && (request.resource.data.date == resource.data.date || isHelpDayAhead(request.resource.data.date))
@@ -510,10 +525,11 @@ service cloud.firestore {
         && request.resource.data.volunteerName == null
         && request.resource.data.declinedBy == null
         && request.resource.data.thankedAt == null
+        && request.resource.data.get('volunteerNote', null) == null
         && request.resource.data.createdAt == request.time;
 
       allow update: if isMember()
-        && (isHelpTake() || isHelpWithdraw() || isHelpDecline() || isHelpThanks() || isHelpEdit());
+        && (isHelpTake() || isHelpWithdraw() || isHelpNote() || isHelpDecline() || isHelpThanks() || isHelpEdit());
 
       allow delete: if isMember() && canManageHelp(resource.data);
     }
@@ -959,7 +975,7 @@ service cloud.firestore {
       allow delete: if canChangePhoto(memberId) || (isMember() && !existsAfter(memberPath(memberId)));
     }
 
-    // --- Trips (V3, récits 11, 12 et 14) ----------------------------------------------------------
+    // --- Trips (V3, récits 11 à 14) ----------------------------------------------------------------
 
     function tripPath(tripId) {
       return /databases/$(database)/documents/trips/$(tripId);
@@ -1075,6 +1091,27 @@ service cloud.firestore {
                 && request.resource.data.arrivedBy == resource.data.arrivedBy
                 && request.resource.data.arrivedByName == resource.data.arrivedByName));
 
+      allow delete: if isMember() && (isParticipantOf(tripId) || isOwner());
+    }
+
+    // Shape of a line of the checklist (récit 13). The person in charge, if any, takes part in the
+    // trip; their first name is kept so the line stays readable if they leave it.
+    function isValidItem(i, tripId) {
+      return i.keys().hasAll(['label', 'assigneeId', 'assigneeName', 'done', 'updatedAt'])
+        && i.keys().hasOnly(['label', 'assigneeId', 'assigneeName', 'done', 'updatedAt'])
+        && i.label is string && i.label.size() > 0 && i.label.size() <= 80
+        && i.done is bool
+        && i.updatedAt == request.time
+        && ((i.assigneeId == null && i.assigneeName == null)
+            || (i.assigneeId in tripOf(tripId).participantIds
+                && i.assigneeName is string && i.assigneeName.size() > 0 && i.assigneeName.size() <= 40));
+    }
+
+    // trips/{tripId}/items/{itemId}. The followers read the checklist; the participants add, tick,
+    // edit and delete its lines, like the steps. Deleting the trip deletes them on the server.
+    match /trips/{tripId}/items/{itemId} {
+      allow read: if isMember() && myMemberId() in tripOf(tripId).readerIds;
+      allow create, update: if isMember() && isParticipantOf(tripId) && isValidItem(request.resource.data, tripId);
       allow delete: if isMember() && (isParticipantOf(tripId) || isOwner());
     }
 

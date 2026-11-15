@@ -31,5 +31,6 @@ fun NotificationSettingsRoute(container: AppContainer?, currentMember: Member, o
         onOpenSystemSettings = { openNotificationSettings(context) },
         onRetry = viewModel::retry,
         onBack = onBack,
+        onGoodNewsChange = viewModel::setGoodNews,
     )
 }
