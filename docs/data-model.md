@@ -142,8 +142,9 @@ Droits : seul le membre lui-même lit, ajoute ou supprime ses téléphones. Les 
 | Champ | Type | Description |
 |---|---|---|
 | `dayBeforeReminder` | booléen | `false` coupe le rappel de la veille (PRD, récit 6 bis). Sans document, le rappel est actif. |
+| `goodNews` | booléen, facultatif | `false` coupe les notifications des Bonnes nouvelles (récit 32). Sans valeur, elles sont actives. Ne coupe pas l'avis aux adultes responsables quand un enfant publie (carte AVIS-12). |
 
-Droits : seul le membre lui-même lit et modifie ses réglages.
+Droits : seul le membre lui-même lit et modifie ses réglages. L'appli écrit chaque réglage en fusion, pour ne pas effacer l'autre.
 
 ## Cloud Functions (lot 8)
 
@@ -161,7 +162,7 @@ Un événement déjà passé ne prévient personne. L'auteur d'un changement est
 
 **Qui un événement concerne** (cartes AVIS-7 et AVIS-8) : une seule fonction le dit, `concerns` dans `functions/src/logic.ts`, et la même règle dans l'appli (`core/model/Audience.kt`), qui sert au filtre « Mon foyer » du planning. Un événement concerne un membre s'il est pour toute la famille, ou si sa cible est lui-même, son foyer, un membre ou un enfant de son foyer, ou un enfant dont il est adulte responsable (même dans un autre foyer). Un futur « cercle » ne changera que cette fonction.
 
-**Canaux Android** (récit 6 quinquies) : chaque notification part sur un canal, que chacun peut couper dans les réglages Android : `events` (affiché « Planning »), `reminders`, `gifts`, `helpRequests` (Entraide ; le rappel de la veille d'un coup de main reste sur `reminders`). Chaque module ajoute le sien en même temps que lui : `goodNews` (Bonnes nouvelles), `trips` (Voyages), `comments` (Commentaires et réactions), `weekly` (Rendez-vous de la semaine). Les identifiants ne changent jamais, car Android y garde le choix du membre. Un canal inconnu de l'appli retombe sur « Planning ».
+**Canaux Android** (récit 6 quinquies) : chaque notification part sur un canal, que chacun peut couper dans les réglages Android : `events` (affiché « Planning »), `reminders`, `gifts`, `helpRequests` (Entraide ; le rappel de la veille d'un coup de main reste sur `reminders`), `goodNews` (Bonnes nouvelles). Chaque module ajoute le sien en même temps que lui : `trips` (Voyages), `comments` (Commentaires et réactions), `weekly` (Rendez-vous de la semaine). Les identifiants ne changent jamais, car Android y garde le choix du membre. Un canal inconnu de l'appli retombe sur « Planning ».
 
 Tests : `cd firebase && npm run test:functions` (la logique, et les fonctions contre l'émulateur Firestore, avec un faux envoi de notifications).
 
@@ -288,6 +289,49 @@ Une part d'un cadeau commun, une par adulte. Aucun paiement ne passe par l'appli
 Une notification des cadeaux porte `listId` dans ses données à la place de `eventId`. Le bénéficiaire ne reçoit jamais de notification sur ses cadeaux, sauf celle de la révélation.
 
 Limite connue : les règles ne vérifient pas que chaque identifiant de `viewerIds` est un membre (cela coûterait une lecture par personne). L'appli ne propose que des membres de la famille.
+
+## Bonnes nouvelles (PRD, récit 32)
+
+Une Bonne nouvelle a un texte court, une à trois photos et peut nommer des membres. Toute la famille la voit (quand les cercles de la rév. 124 arriveront, la vérification d'audience ira dans la règle de lecture et dans le dossier Storage).
+
+### `goodNews/{postId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `text` | texte, 1 à 500 caractères | Obligatoire, pas seulement des espaces |
+| `photoIds` | liste de 1 à 3 identifiants (`[A-Za-z0-9_]`, 40 au plus) | Le nom des photos dans Storage, dans l'ordre d'affichage |
+| `authorId`, `authorName` | `memberId`, texte | Qui a publié, et son prénom à ce moment-là (l'auteur peut quitter la famille) |
+| `forMemberId` | `memberId` | De qui c'est la nouvelle : l'auteur, ou pour un adulte un enfant de son foyer |
+| `householdId` | `householdId` | Le foyer de `forMemberId`, pour la modération des chefs de famille |
+| `mentionIds` | liste de `memberId` (20 au plus) | Les membres nommés |
+| `reactions` | table `memberId` → `heart` \| `clap` \| `party` \| `laugh` \| `wow` \| `thumbsUp` | Une réaction par membre (❤️ 👏 🎉 😂 😮 👍), rangée par nom |
+| `hiddenByIds` | liste de `memberId` (21 au plus) | Les membres concernés qui ont choisi « Masquer pour moi » (PRD rév. 158) : ils ne la voient plus dans le fil ni sur l'Accueil, les autres si |
+| `createdAt`, `updatedAt` | horodatage serveur | `updatedAt` change quand l'auteur modifie, pas pour une réaction |
+
+Le fil se lit par `orderBy('createdAt', 'desc')` et pages de 20 ; la carte d'accueil prend les 3 dernières des 14 derniers jours (même requête, filtrée par l'appli).
+
+Photos dans Storage : `goodNews/{authorId}/{postId}/{photoId}.jpg` (1600 px au plus, environ 300 Ko, 512 Ko au plus) et `{photoId}-thumb.jpg` (400 px, environ 30 Ko, 64 Ko au plus). L'appli envoie les photos avant d'écrire le document.
+
+Droits :
+
+- **Lire** : tous les membres, photos comprises.
+- **Publier** : un membre avec l'appli, pour lui (un enfant aussi, sans validation, carte AVIS-12) ; un adulte, pour un enfant de son foyer. Le document naît sans réaction.
+- **Réagir** : chacun pose, change ou retire sa propre réaction, rien d'autre.
+- **Masquer pour moi** : le membre concerné (`forMemberId`) ou un membre nommé, ado compris, ajoute ou retire son propre identifiant dans `hiddenByIds`, rien d'autre. Le document naît sans personne qui le masque.
+- **Modifier** : l'auteur seul, pour le texte, les photos et les membres nommés.
+- **Retirer** : l'auteur, les adultes responsables de l'auteur ou de l'enfant concerné (carte AVIS-12), un chef de famille de `householdId` et l'admin principal.
+- **Photos** : chacun envoie seulement dans son dossier, un JPEG de la bonne taille, jamais en remplacement d'une photo existante. L'auteur peut les supprimer ; pour un retrait par quelqu'un d'autre, c'est la Cloud Function qui efface les photos.
+- Limite connue : comme pour les coups de main, les identifiants de `mentionIds` ne sont pas vérifiés un par un ; l'appli ne propose que des membres.
+
+Cloud Functions (`functions/src/goodNews.ts`) :
+
+| Fonction | Déclencheur | Rôle |
+|---|---|---|
+| `onGoodNewsCreated` | création | Prévient toute la famille qui a l'appli, sauf l'auteur et ceux qui ont coupé `goodNews`. Quand un enfant publie, ses adultes responsables reçoivent « Léa a publié une Bonne nouvelle », même s'ils ont coupé les autres (carte AVIS-12). Canal `goodNews`, donnée `goodNewsId`. |
+| `onGoodNewsUpdated` | modification | Efface dans Storage les photos que l'auteur a retirées. |
+| `onGoodNewsDeleted` | suppression | Efface toutes les photos, quel que soit l'auteur du retrait. |
+
+Le seul endroit où se décide l'audience est `goodNewsAudience` : c'est là que se branchera la fonction des cercles.
 
 ## Coups de main (PRD, récits 13 à 18)
 
