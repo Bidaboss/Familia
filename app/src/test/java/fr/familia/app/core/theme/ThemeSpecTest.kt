@@ -48,6 +48,9 @@ class ThemeSpecTest {
                 "secondary text/household" to contrast(clay.onHouseholdVariant, clay.household),
                 "secondary text/family" to contrast(clay.onFamilyVariant, clay.family),
                 "button" to contrast(c.onPrimary, c.primary),
+                // Large texts (3:1 would do), held to 4,5:1 like the rest.
+                "title bar" to contrast(spec.style.titleColor ?: c.onSurface, c.background),
+                "day headers" to contrast(spec.style.dayColor ?: c.primary, c.background),
             )
             pairs.forEach { (what, ratio) -> assertTrue("$id $what: $ratio", ratio >= 4.5) }
         }
