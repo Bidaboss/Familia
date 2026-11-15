@@ -146,7 +146,7 @@ class MemberEditViewModel(
             hasChanges = true,
         )
         viewModelScope.launch {
-            if (!write { repo.saveHousehold(household) }) markFailed()
+            if (write { repo.saveHousehold(household) } == null) markFailed()
         }
     }
 
