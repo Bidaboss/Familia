@@ -233,14 +233,14 @@
     <string name="export_done">Sauvegarde enregistrée.</string>
     <string name="export_failed">La sauvegarde n\'a pas pu être créée. Aucun fichier n\'a été laissé. Réessaie dans un instant.</string>
     <string name="export_offline">Connecte-toi à Internet pour faire une sauvegarde complète.</string>
-    <string name="update_available">Nouvelle version %1$s disponible</string>
+    <string name="update_available">Version %1$s disponible</string>
     <string name="update_help">Touche « Mettre à jour » : l\'appli se télécharge et s\'installe par-dessus l\'actuelle. Tes données ne bougent pas.</string>
     <string name="update_permission_title">Une autorisation, une seule fois</string>
     <string name="update_permission_body">Pour se mettre à jour toute seule, Familia a besoin de l\'autorisation « Installer des applis inconnues ». Active-la sur l\'écran qui s\'ouvre, puis reviens ici : la mise à jour continue.</string>
     <string name="update_permission_open">Ouvrir le réglage</string>
     <string name="update_open_drive">Ouvrir le Drive</string>
     <string name="update_downloading_title">Mise à jour en cours</string>
-    <string name="update_downloading_body">Téléchargement : %1$d %%</string>
+    <string name="update_downloading_body">Téléchargement : %1$d %%. Ensuite, Android propose d\'installer la nouvelle version par-dessus l\'actuelle : tes données ne bougent pas.</string>
     <string name="update_failed_title">La mise à jour n\'a pas abouti</string>
     <string name="update_failed_body">Télécharge-la depuis le Drive, puis ouvre le fichier pour l\'installer.</string>
     <string name="update_action">Mettre à jour</string>
