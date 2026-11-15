@@ -29,6 +29,10 @@ class TripScreenshotTest {
     private val follower: @Composable () -> Unit = {
         Surface { TripDetailScreen(previewTripDetail(isParticipant = false), {}, {}, {}, {}, {}, {}, {}) }
     }
+    // Without steps, so the checklist (récit 13) shows on screen.
+    private val checklist: @Composable () -> Unit = {
+        Surface { TripDetailScreen(previewTripDetail().copy(steps = emptyList()), {}, {}, {}, {}, {}, {}, {}) }
+    }
     private val edit: @Composable () -> Unit = { Surface { TripEditScreen(previewTripEditState(isNew = false), {}, {}, {}, {}) } }
     private val step: @Composable () -> Unit = { Surface { StepEditScreen(previewStepEditState(), {}, {}, {}, {}) } }
 
@@ -56,6 +60,17 @@ class TripScreenshotTest {
 
     @Test
     fun tripFollowerLight() = capture("voyage_lecteur_clair", content = follower)
+
+    @Test
+    fun checklistLight() = capture("voyage_liste_clair", content = checklist)
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun checklistDark() = capture("voyage_liste_sombre", darkTheme = true, content = checklist)
+
+    @Test
+    @Config(fontScale = 2f)
+    fun checklistFontScale200() = capture("voyage_liste_police_200", content = checklist)
 
     @Test
     fun tripEditLight() = capture("voyage_modifier_clair", content = edit)

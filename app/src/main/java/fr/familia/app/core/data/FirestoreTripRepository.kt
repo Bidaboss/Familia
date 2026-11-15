@@ -9,6 +9,7 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.StepType
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripArrival
+import fr.familia.app.core.model.TripItem
 import fr.familia.app.core.model.TripStep
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -152,7 +153,56 @@ class FirestoreTripRepository(private val db: FirebaseFirestore) : TripRepositor
         ).await()
     }
 
+    override fun observeItems(tripId: String): Flow<List<TripItem>> = callbackFlow {
+        val registration = items(tripId).addSnapshotListener { snapshot, error ->
+            when {
+                error?.code == FirebaseFirestoreException.Code.PERMISSION_DENIED -> {
+                    trySend(emptyList())
+                    close()
+                }
+                error != null -> close(error)
+                snapshot != null -> trySend(snapshot.documents.mapNotNull { it.toItem() }.sortedWith(itemOrder))
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
+    override fun newItemId(tripId: String): String = items(tripId).document().id
+
+    override suspend fun saveItem(tripId: String, item: TripItem, isNew: Boolean) {
+        val fields = mapOf(
+            "label" to item.label,
+            "assigneeId" to item.assigneeId,
+            "assigneeName" to item.assigneeName,
+            "done" to item.done,
+            "updatedAt" to FieldValue.serverTimestamp(),
+        )
+        val ref = items(tripId).document(item.id)
+        if (isNew) ref.set(fields).await() else ref.update(fields).await()
+    }
+
+    override suspend fun setItemDone(tripId: String, itemId: String, done: Boolean) {
+        items(tripId).document(itemId).update(mapOf("done" to done, "updatedAt" to FieldValue.serverTimestamp())).await()
+    }
+
+    override suspend fun deleteItem(tripId: String, itemId: String) {
+        items(tripId).document(itemId).delete().await()
+    }
+
     private fun steps(tripId: String) = db.collection(TRIPS).document(tripId).collection(STEPS)
+
+    private fun items(tripId: String) = db.collection(TRIPS).document(tripId).collection(ITEMS)
+
+    private fun DocumentSnapshot.toItem(): TripItem? {
+        val label = getString("label") ?: return null
+        return TripItem(
+            id = id,
+            label = label,
+            assigneeId = getString("assigneeId"),
+            assigneeName = getString("assigneeName"),
+            done = getBoolean("done") == true,
+        )
+    }
 
     /** Null for a document that does not have the expected shape (never shown rather than crash). */
     private fun DocumentSnapshot.toTrip(): Trip? {
@@ -207,5 +257,6 @@ class FirestoreTripRepository(private val db: FirebaseFirestore) : TripRepositor
     private companion object {
         const val TRIPS = "trips"
         const val STEPS = "steps"
+        const val ITEMS = "items"
     }
 }

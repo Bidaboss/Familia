@@ -40,6 +40,7 @@ import fr.familia.app.R
 import fr.familia.app.core.model.StepType
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripArrival
+import fr.familia.app.core.model.TripItem
 import fr.familia.app.core.model.TripStep
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
@@ -75,6 +76,7 @@ fun TripDetailScreen(
     onArrived: (stepId: String) -> Unit,
     onClearArrival: (stepId: String) -> Unit,
     onBack: () -> Unit,
+    checklist: ChecklistActions = ChecklistActions(),
 ) {
     val success = state as? TripDetailUiState.Success
     Scaffold(
@@ -120,7 +122,7 @@ fun TripDetailScreen(
                         }
                     },
                 )
-                is TripDetailUiState.Success -> Content(state, onEditStep, onArrived, onClearArrival)
+                is TripDetailUiState.Success -> Content(state, onEditStep, onArrived, onClearArrival, checklist)
             }
         }
     }
@@ -132,6 +134,7 @@ private fun Content(
     onEditStep: (String) -> Unit,
     onArrived: (String) -> Unit,
     onClearArrival: (String) -> Unit,
+    checklist: ChecklistActions,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -140,7 +143,6 @@ private fun Content(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item(key = "summary") { Summary(state) }
-        item(key = "steps-title") { TripSectionTitle(stringResource(R.string.trip_steps)) }
         if (state.sendFailed) {
             item(key = "failed") {
                 Text(
@@ -150,6 +152,7 @@ private fun Content(
                 )
             }
         }
+        item(key = "steps-title") { TripSectionTitle(stringResource(R.string.trip_steps)) }
         if (state.steps.isEmpty()) {
             item(key = "no-steps") {
                 Text(
@@ -169,6 +172,9 @@ private fun Content(
                 onClearArrival = { onClearArrival(step.id) },
             )
         }
+        // The steps come first: on the way, « Bien arrivé » matters more than what to bring.
+        item(key = "checklist-title") { TripSectionTitle(stringResource(R.string.trip_checklist)) }
+        item(key = "checklist") { TripChecklist(state.items, state.assignees, state.isParticipant, checklist) }
     }
 }
 
@@ -294,6 +300,12 @@ internal fun previewTripDetail(isParticipant: Boolean = true): TripDetailUiState
         canManage = true,
         isParticipant = isParticipant,
         today = start,
+        items = listOf(
+            TripItem("i1", "Réserver la voiture", "b", "Inès", done = false),
+            TripItem("i2", "Crème solaire", null, null, done = false),
+            TripItem("i3", "Billets d'avion", "a", "Camille", done = true),
+        ),
+        assignees = listOf(ItemAssignee("a", "Camille"), ItemAssignee("b", "Inès"), ItemAssignee("c", "Noé")),
     )
 }
 
