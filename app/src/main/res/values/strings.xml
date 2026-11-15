@@ -267,6 +267,14 @@
     <string name="help_screen_event_edit_body">Le titre et la date sont obligatoires. L\'heure, le lieu et la note sont facultatifs. Choisis pour qui : toi, ton foyer, un de tes enfants ou toute la famille. La famille est prévenue dès que tu enregistres.</string>
     <string name="help_screen_family_title">La famille</string>
     <string name="help_screen_family_body">Les membres de la famille, rangés par foyer. Plus bas, règle tes notifications, vérifie les mises à jour et ouvre l\'aide. Seuls l\'admin principal et les chefs de famille, pour leur foyer, ajoutent ou modifient un membre.</string>
+    <string name="help_screen_gifts_title">Cadeaux</string>
+    <string name="help_screen_gifts_body">En haut, les prochains anniversaires. Plus bas, les listes de chacun : « Mes envies », que chacun remplit toute l\'année, et les listes d\'occasion, comme Noël. Touche une liste pour l\'ouvrir, ou « Nouvelle liste » pour en créer une.</string>
+    <string name="help_screen_gift_list_title">Une liste</string>
+    <string name="help_screen_gift_list_body">Sur ta propre liste, tu ajoutes, modifies ou retires tes idées. Tu ne vois jamais qui a réservé quoi : la surprise reste entière. Sur la liste d\'un autre, touche « Je le prends » pour réserver une idée. Les autres verront qu\'elle est prise, mais pas la personne qui la recevra.</string>
+    <string name="help_screen_gift_list_edit_title">Préparer une liste</string>
+    <string name="help_screen_gift_list_edit_body">Donne un titre, une occasion et une date. Coche les personnes qui verront la liste : tout ton foyer ou toute la famille en un geste. Pour une liste surprise, la personne qui recevra les cadeaux ne la voit jamais. Le lendemain de la date, elle découvre qui lui a offert quoi.</string>
+    <string name="help_screen_gift_item_edit_title">Une idée de cadeau</string>
+    <string name="help_screen_gift_item_edit_body">Seul le titre est obligatoire. Ajoute un lien vers le site, un prix pour donner une idée et une note, comme une taille ou une couleur. Une idée que tu ajoutes sur la liste d\'un autre reste cachée à la personne qui la recevra.</string>
     <string name="help_topic_planning_title">Le planning</string>
     <string name="help_topic_planning_body">Il montre les événements à venir en liste ou par mois, et les anniversaires de chacun, chaque année. Il reste lisible sans réseau, avec les dernières données reçues.</string>
     <string name="help_topic_add_title">Ajouter un événement</string>
@@ -279,6 +287,12 @@
     <string name="help_topic_notifications_body">Tu es prévenu quand quelqu\'un ajoute, modifie ou supprime un événement, mais jamais pour tes propres changements. La veille à 18\u00A0h, un rappel part si tu as répondu « Je viens » ou « Peut-être ». Tu peux couper ce rappel dans l\'onglet Famille, ligne « Notifications ».</string>
     <string name="help_topic_family_title">La famille</string>
     <string name="help_topic_family_body">La liste des membres, rangés par foyer. Les anniversaires de chacun sont dans l\'onglet Anniversaires.</string>
+    <string name="help_topic_wishes_title">Mes envies</string>
+    <string name="help_topic_wishes_body">Chacun a sa liste « Mes envies », à remplir toute l\'année. Toute la famille peut la voir pour trouver une idée. Un parent remplit celle d\'un enfant qui n\'a pas l\'appli. Pour l\'ouvrir : onglet Cadeaux, ta section, « Mes envies ».</string>
+    <string name="help_topic_gift_lists_title">Les listes d\'occasion</string>
+    <string name="help_topic_gift_lists_body">Pour Noël ou un anniversaire, crée une liste avec « Nouvelle liste » dans l\'onglet Cadeaux, et choisis qui la voit. Une liste surprise se prépare pour quelqu\'un d\'autre, sans qu\'il la voie. Le lendemain de l\'occasion, la liste passe dans les archives et la personne voit qui lui a offert quoi, pour remercier.</string>
+    <string name="help_topic_reserve_title">Réserver un cadeau</string>
+    <string name="help_topic_reserve_body">Sur la liste d\'un autre, touche « Je le prends » sous une idée. Les autres voient qu\'elle est prise, et personne n\'achète deux fois la même chose. La personne qui recevra le cadeau ne voit jamais les réservations. Si elle modifie ou retire l\'idée, tu reçois une notification.</string>
     <string name="help_topic_updates_title">Mettre à jour l\'appli</string>
     <string name="help_topic_updates_body">À l\'ouverture et chaque fois que tu reviens dans l\'appli, Familia vérifie s\'il existe une nouvelle version et propose de l\'installer depuis le dossier Drive. Tu peux aussi vérifier toi-même dans l\'onglet Famille, ligne « Vérifier les mises à jour ».</string>
     <string name="help_topic_invite_title">Réservé aux chefs de famille : inviter un membre</string>
