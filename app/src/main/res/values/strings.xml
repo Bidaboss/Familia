@@ -383,6 +383,7 @@
     <string name="gift_change_share">Changer ma part</string>
     <string name="gift_leave_share">Ne plus participer</string>
     <string name="gift_shares_title">Les parts</string>
+    <string name="gift_my_share_title">Ta part</string>
     <string name="gift_share_line">%1$s : %2$s</string>
     <string name="gift_share_received">%1$s, reçue</string>
     <string name="gift_share_received_label">%1$s (reçue si cochée)</string>

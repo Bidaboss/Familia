@@ -254,6 +254,7 @@ La réservation d'un article. Son identifiant est celui de l'article, donc un ar
 | `type` | `solo` \| `shared` | « Je le prends » ou cadeau commun |
 | `holderId`, `holderName` | `memberId`, texte | Le réservant, ou le responsable du cadeau commun |
 | `createdAt` | horodatage serveur | |
+| `sharesTotal`, `sharesCount` | nombre, entier | Cadeau commun : total et nombre des parts, tenus par une Cloud Function (absents tant qu'aucune part n'a changé) |
 
 - **Lire** : ceux qui voient la liste, sauf le bénéficiaire avant la révélation.
 - **Réserver** : ceux qui voient la liste, sauf le bénéficiaire. Un enfant réserve seul, jamais en cadeau commun (carte PRODUIT-19).
@@ -270,7 +271,7 @@ Une part d'un cadeau commun, une par adulte. Aucun paiement ne passe par l'appli
 | `received` | booléen | Faux à la création. Le responsable le passe à vrai quand il a reçu la part |
 | `updatedAt` | horodatage serveur | |
 
-- **Lire** : comme les réservations.
+- **Lire** : la part elle-même, par son auteur ; toutes les parts, par le responsable du cadeau commun. Personne d'autre, même après la révélation (PRD rév. 151) : les autres participants voient le total sur la réservation.
 - **Rejoindre** : un adulte qui voit la liste, pour lui-même, sur un cadeau commun.
 - **Modifier** : le membre change son montant ; le responsable marque la part reçue ou non. Personne d'autre.
 - **Retirer** : le membre ou le responsable.
@@ -282,6 +283,7 @@ Une part d'un cadeau commun, une par adulte. Aucun paiement ne passe par l'appli
 | `revealGifts` | Chaque jour à 7 h, heure de Paris | Passe `revealed` à vrai pour les listes dont l'occasion est passée (pas « Mes envies »), et prévient leur bénéficiaire s'il a l'appli (PRD, récit 10 bis) |
 | `birthdayGiftReminders` | Chaque jour à 10 h, heure de Paris | À J-21 d'un anniversaire, prévient tous les adultes sauf le fêté, avec ses envies. À J-14, recommence si aucun article de ses listes n'est réservé (récit 10) |
 | `onGiftItemWritten` | Un article est modifié ou supprimé | S'il était réservé, prévient le réservant et les participants (jamais le bénéficiaire). Une suppression efface aussi la réservation et ses parts |
+| `onGiftShareWritten` | Une part est ajoutée, modifiée ou retirée | Recalcule `sharesTotal` et `sharesCount` sur la réservation |
 | `onGiftClaimDeleted` | Une réservation est relâchée | Efface les parts du cadeau commun |
 | `onGiftListDeleted` | Une liste est supprimée | Efface ses articles, réservations et parts |
 | `onMemberDeletedGifts` | Un membre est retiré | Efface les listes dont il est le bénéficiaire |
