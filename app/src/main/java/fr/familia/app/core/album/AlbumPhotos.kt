@@ -24,7 +24,6 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -185,8 +184,10 @@ fun PhotoViewer(state: AlbumPhotosUiState, startId: String, onRemove: (AlbumPhot
             Column {
                 val current = photos.getOrNull(pager.currentPage)
                 Row(Modifier.padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onClose, modifier = Modifier.heightIn(min = 56.dp)) {
-                        Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.album_photo_close))
+                    TextButton(onClick = onClose, modifier = Modifier.heightIn(min = 56.dp)) {
+                        Icon(Icons.Outlined.Close, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.album_photo_close))
                     }
                     Text(
                         current?.let { stringResource(R.string.album_photo_by, it.authorName) }.orEmpty(),
@@ -220,13 +221,18 @@ fun PhotoViewer(state: AlbumPhotosUiState, startId: String, onRemove: (AlbumPhot
                         title = { Text(stringResource(R.string.album_photo_remove_title)) },
                         text = { Text(stringResource(R.string.album_photo_remove_body)) },
                         confirmButton = {
-                            TextButton(onClick = {
-                                confirmRemove = false
-                                onRemove(toRemove)
-                            }) { Text(stringResource(R.string.album_photo_remove)) }
+                            TextButton(
+                                onClick = {
+                                    confirmRemove = false
+                                    onRemove(toRemove)
+                                },
+                                modifier = Modifier.heightIn(min = 56.dp),
+                            ) { Text(stringResource(R.string.album_photo_remove)) }
                         },
                         dismissButton = {
-                            TextButton(onClick = { confirmRemove = false }) { Text(stringResource(R.string.album_photo_keep)) }
+                            TextButton(onClick = { confirmRemove = false }, modifier = Modifier.heightIn(min = 56.dp)) {
+                                Text(stringResource(R.string.album_photo_keep))
+                            }
                         },
                     )
                 }

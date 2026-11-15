@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { assertFails, assertSucceeds, initializeTestEnvironment } from '@firebase/rules-unit-testing';
 import { deleteObject, getBytes, ref, uploadString } from 'firebase/storage';
 import { doc, setDoc, Timestamp } from 'firebase/firestore';
-import { ADULT, NEIGHBOUR, OTHER_ADULT, seed, STRANGER } from './helpers.mjs';
+import { ADMIN, ADULT, NEIGHBOUR, OTHER_ADULT, seed, STRANGER } from './helpers.mjs';
 
 const rules = (name) => readFileSync(new URL(`../${name}`, import.meta.url), 'utf8');
 let env;
@@ -134,5 +134,22 @@ describe('trips folder (récit 15)', () => {
     await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), file('adult3'))));
     await assertSucceeds(deleteObject(ref(storageAs(NEIGHBOUR), file('adult3'))));
     await assertSucceeds(deleteObject(ref(storageAs(ADULT), file('adult3', '2.jpg'))));
+  });
+
+  test('the admin principal removes them too, so no file is left behind', async () => {
+    await uploadString(ref(storageAs(NEIGHBOUR), file('adult3', '3.jpg')), 'x', 'raw', jpeg);
+    await assertSucceeds(deleteObject(ref(storageAs(ADMIN), file('adult3', '3.jpg'))));
+  });
+
+  test('a place whose record exists is never sent again', async () => {
+    await assertSucceeds(uploadString(ref(storageAs(NEIGHBOUR), file('adult3', '4.jpg')), 'x', 'raw', jpeg));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'trips/t1/photos/adult3_4'), { authorId: 'adult3', authorName: 'adult3', slot: 4, createdAt: Timestamp.fromMillis(0) });
+    });
+    await assertFails(uploadString(ref(storageAs(NEIGHBOUR), file('adult3', '4.jpg')), 'y', 'raw', jpeg));
+    await assertFails(uploadString(ref(storageAs(NEIGHBOUR), file('adult3', '4-thumb.jpg')), 'y', 'raw', jpeg));
+    // Without a record (a send cut in the middle), the place can be sent again.
+    await assertSucceeds(uploadString(ref(storageAs(NEIGHBOUR), file('adult3', '5.jpg')), 'x', 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storageAs(NEIGHBOUR), file('adult3', '5.jpg')), 'y', 'raw', jpeg));
   });
 });
