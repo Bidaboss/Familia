@@ -69,6 +69,8 @@ import fr.familia.app.feature.gifts.formatEuros
 import fr.familia.app.feature.gifts.listSubtitle
 import fr.familia.app.feature.gifts.listTitle
 import fr.familia.app.feature.gifts.parseEuros
+import fr.familia.app.feature.help.HelpButton
+import fr.familia.app.feature.help.ScreenHelp
 import java.time.LocalDate
 
 /** What a gift list screen can ask for. Grouped so the screen stays readable. */
@@ -103,6 +105,7 @@ fun GiftListScreen(state: GiftListUiState, actions: GiftListActions, modifier: M
                 },
                 navigationIcon = { BackButton(onClick = actions.onBack) },
                 actions = {
+                    HelpButton(ScreenHelp.GiftList)
                     if (success?.canManage == true && success.list.kind != GiftListKind.Wishes) {
                         TextButton(onClick = actions.onEditList, modifier = Modifier.heightIn(min = 56.dp)) {
                             Text(stringResource(R.string.event_detail_edit), style = MaterialTheme.typography.labelLarge)
