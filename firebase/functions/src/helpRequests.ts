@@ -1,0 +1,215 @@
+// Coups de main (PRD, récits 13 à 18): who is told what, and when. The pure part decides the
+// recipients and the French texts; the store part reads Firestore and sends. Only the people
+// concerned are told (AVIS-7): never the whole family.
+
+import type { Firestore } from 'firebase-admin/firestore';
+import { addDays, formatDay, formatTime, parisDay } from './logic';
+
+export interface HelpRequestData {
+  kind: 'childcare' | 'ride' | 'other';
+  title: string;
+  date: string; // AAAA-MM-JJ
+  startTime: string | null; // HH:MM
+  endTime: string | null;
+  place: string | null;
+  authorId: string;
+  authorName: string;
+  forMemberId: string;
+  notifyIds: string[];
+  status: 'open' | 'taken' | 'cancelled';
+  volunteerId: string | null;
+  volunteerName: string | null;
+  declinedBy: string | null;
+  thankedAt: unknown | null;
+}
+
+export interface HelpMember {
+  id: string;
+  firstName: string;
+  profile: string;
+  parentIds: string[];
+}
+
+export interface HelpNotice {
+  channel: 'events' | 'reminders';
+  title: string;
+  body: string;
+  helpRequestId: string;
+}
+
+export interface HelpMessage {
+  recipientIds: string[];
+  notice: HelpNotice;
+}
+
+/** "mardi 2 décembre de 14 h 00 à 18 h 00", "mardi 2 décembre dès 9 h 00" or the day alone. */
+export function helpWhen(r: Pick<HelpRequestData, 'date' | 'startTime' | 'endTime'>): string {
+  const day = formatDay(r.date);
+  if (r.startTime && r.endTime) return `${day} de ${formatTime(r.startTime)} à ${formatTime(r.endTime)}`;
+  if (r.startTime) return `${day} dès ${formatTime(r.startTime)}`;
+  if (r.endTime) return `${day} jusqu'à ${formatTime(r.endTime)}`;
+  return day;
+}
+
+/** The author, plus the responsible adults of a helped child: those told when someone helps. */
+function askers(r: HelpRequestData, members: HelpMember[]): string[] {
+  const helped = members.find((m) => m.id === r.forMemberId);
+  const parents = helped && helped.profile !== 'adult' ? helped.parentIds : [];
+  return [r.authorId, ...parents];
+}
+
+function unique(ids: string[], except: (string | null | undefined)[], members: HelpMember[]): string[] {
+  const known = new Set(members.map((m) => m.id));
+  const skip = new Set(except.filter(Boolean));
+  return [...new Set(ids)].filter((id) => known.has(id) && !skip.has(id)).sort();
+}
+
+function message(id: string, recipientIds: string[], title: string, body: string): HelpMessage[] {
+  return recipientIds.length === 0 ? [] : [{ recipientIds, notice: { channel: 'events', title, body, helpRequestId: id } }];
+}
+
+function askedNotice(id: string, r: HelpRequestData, recipients: string[], members: HelpMember[]): HelpMessage[] {
+  const helped = r.forMemberId !== r.authorId ? members.find((m) => m.id === r.forMemberId)?.firstName : undefined;
+  const forWhom = helped ? ` pour ${helped}` : '';
+  return message(id, recipients, 'Coup de main demandé', `${r.authorName} demande de l'aide${forWhom} : « ${r.title} », ${helpWhen(r)}.`);
+}
+
+/**
+ * What a write of helpRequests/{id} tells whom. [actorId] is the member who wrote it, when known.
+ * A request already past tells nobody, except a « Merci ».
+ */
+export function helpMessages(
+  id: string,
+  before: HelpRequestData | undefined,
+  after: HelpRequestData | undefined,
+  actorId: string | null,
+  members: HelpMember[],
+  today: string,
+): HelpMessage[] {
+  if (!after) return [];
+  // Récit 17: « Merci » once the day has come, to the volunteer.
+  if (before && !before.thankedAt && after.thankedAt && after.volunteerId) {
+    return message(id, unique([after.volunteerId], [], members), `${after.authorName} te dit merci !`, `Merci pour « ${after.title} ».`);
+  }
+  if (after.date < today) return [];
+  if (!before) return askedNotice(id, after, unique(after.notifyIds, [after.authorId, actorId], members), members);
+
+  // Récit 17: a cancellation tells the volunteer, if there is one.
+  if (before.status !== 'cancelled' && after.status === 'cancelled') {
+    return message(
+      id, unique([before.volunteerId ?? ''], [actorId], members), 'Coup de main annulé',
+      `${after.authorName} a annulé « ${after.title} », ${helpWhen(after)}. Tu n'as plus à t'en occuper.`,
+    );
+  }
+  // Récit 16: « [prénom] s'occupe de [titre] » to the author, and the parents of a child.
+  if (before.status === 'open' && after.status === 'taken' && after.volunteerName) {
+    return message(
+      id, unique(askers(after, members), [after.volunteerId], members), `${after.volunteerName} s'occupe de « ${after.title} »`,
+      `C'est réglé pour ${helpWhen(after)}.`,
+    );
+  }
+  // Récit 16: the volunteer withdraws; the request is open again for everyone warned.
+  if (before.status === 'taken' && after.status === 'open') {
+    return message(
+      id, unique([...askers(after, members), ...after.notifyIds], [before.volunteerId, actorId], members),
+      'Coup de main de nouveau ouvert',
+      `${before.volunteerName ?? 'Le volontaire'} ne peut plus s'occuper de « ${after.title} », ${helpWhen(after)}.`,
+    );
+  }
+  // Carte PRODUIT-22: « Je ne peux pas » from the only person warned.
+  if (!before.declinedBy && after.declinedBy) {
+    const name = members.find((m) => m.id === after.declinedBy)?.firstName ?? 'La personne prévenue';
+    return message(
+      id, unique([after.authorId], [], members), `${name} ne peut pas`,
+      `Pour « ${after.title} », ${helpWhen(after)}. Ouvre la demande pour prévenir d'autres personnes.`,
+    );
+  }
+  const messages: HelpMessage[] = [];
+  // Widening (récit 18 or after « Je ne peux pas »): the new people are told, like at creation.
+  const added = after.notifyIds.filter((m) => !before.notifyIds.includes(m));
+  if (after.status === 'open') messages.push(...askedNotice(id, after, unique(added, [after.authorId, actorId], members), members));
+  // Récit 17: a taken request changes day or time; the volunteer keeps it and is told.
+  const moved = before.date !== after.date || before.startTime !== after.startTime || before.endTime !== after.endTime
+    || before.place !== after.place;
+  if (after.status === 'taken' && moved && after.volunteerId) {
+    messages.push(...message(
+      id, unique([after.volunteerId], [actorId], members), 'Coup de main modifié',
+      `« ${after.title} » est maintenant ${helpWhen(after)}${after.place ? `, ${after.place}` : ''}.`,
+    ));
+  }
+  return messages;
+}
+
+/** Récit 18: the evening before, the author of a request still open is reminded. */
+export function stillOpenReminder(id: string, r: HelpRequestData, members: HelpMember[]): HelpMessage[] {
+  if (r.status !== 'open') return [];
+  return message(
+    id, unique([r.authorId], [], members), `Personne pour « ${r.title} »`,
+    'Ta demande de demain est toujours ouverte. Ouvre-la pour prévenir d\'autres personnes.',
+  ).map((m) => ({ ...m, notice: { ...m.notice, channel: 'reminders' as const } }));
+}
+
+// --- Firestore -------------------------------------------------------------------------------------
+
+export type HelpSender = (token: string, notice: HelpNotice) => Promise<'ok' | 'unregistered' | 'error'>;
+
+export async function loadHelpMembers(db: Firestore): Promise<(HelpMember & { uid: string | null })[]> {
+  const snapshot = await db.collection('members').get();
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    firstName: String(doc.get('firstName') ?? ''),
+    profile: String(doc.get('profile') ?? ''),
+    parentIds: (doc.get('parentIds') as string[] | undefined) ?? [],
+    uid: (doc.get('uid') as string | null | undefined) ?? null,
+  }));
+}
+
+async function sendAll(db: Firestore, send: HelpSender, messages: HelpMessage[]): Promise<number> {
+  let sent = 0;
+  for (const { recipientIds, notice } of messages) {
+    for (const memberId of recipientIds) {
+      const devices = await db.collection('members').doc(memberId).collection('devices').get();
+      for (const device of devices.docs) {
+        const result = await send(device.id, notice);
+        if (result === 'ok') sent++;
+        if (result === 'unregistered') await device.ref.delete();
+      }
+    }
+  }
+  return sent;
+}
+
+/** A request was created, changed or deleted by the member behind [actorUid]. */
+export async function onHelpRequestWritten(
+  db: Firestore, send: HelpSender, id: string, before: HelpRequestData | undefined, after: HelpRequestData | undefined,
+  actorUid: string | undefined, now: Date,
+): Promise<number> {
+  if (!after) return 0;
+  const members = await loadHelpMembers(db);
+  const actorId = actorUid ? members.find((m) => m.uid === actorUid)?.id ?? null : null;
+  return sendAll(db, send, helpMessages(id, before, after, actorId, members, parisDay(now)));
+}
+
+/** Récit 18, every evening: tomorrow's requests still without a volunteer. */
+export async function sendStillOpenReminders(db: Firestore, send: HelpSender, now: Date): Promise<number> {
+  const tomorrow = addDays(parisDay(now), 1);
+  const requests = await db.collection('helpRequests').where('date', '==', tomorrow).where('status', '==', 'open').get();
+  if (requests.empty) return 0;
+  const members = await loadHelpMembers(db);
+  const messages = requests.docs.flatMap((doc) => stillOpenReminder(doc.id, doc.data() as HelpRequestData, members));
+  return sendAll(db, send, messages);
+}
+
+/**
+ * Spec, cas limites: a volunteer removed from the family. Their upcoming requests are open again,
+ * which tells the author through [onHelpRequestWritten].
+ */
+export async function reopenRequestsOf(db: Firestore, memberId: string, now: Date): Promise<number> {
+  const today = parisDay(now);
+  const taken = await db.collection('helpRequests').where('volunteerId', '==', memberId).get();
+  const upcoming = taken.docs.filter((doc) => doc.get('status') === 'taken' && String(doc.get('date')) >= today);
+  for (const doc of upcoming) {
+    await doc.ref.update({ status: 'open', volunteerId: null, volunteerName: null, updatedAt: new Date() });
+  }
+  return upcoming.length;
+}

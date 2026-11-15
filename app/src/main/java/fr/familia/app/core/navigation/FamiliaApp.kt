@@ -81,6 +81,9 @@ fun FamiliaApp(
     /** The event of a tapped notification, to open once. */
     openEventId: String? = null,
     onEventOpened: () -> Unit = {},
+    /** The « coup de main » of a tapped notification, to open once. */
+    openHelpRequestId: String? = null,
+    onHelpRequestOpened: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
     // Each time the app opens, this phone is (re)registered for the notifications of this member.
@@ -113,6 +116,12 @@ fun FamiliaApp(
         if (openEventId != null) {
             navController.navigate(EventDetailDestination(openEventId))
             onEventOpened()
+        }
+    }
+    LaunchedEffect(openHelpRequestId) {
+        if (openHelpRequestId != null) {
+            navController.navigate(HelpRequestDetailDestination(openHelpRequestId))
+            onHelpRequestOpened()
         }
     }
 

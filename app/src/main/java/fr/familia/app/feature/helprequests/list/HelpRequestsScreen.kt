@@ -111,8 +111,8 @@ private fun SectionTitle(text: String) {
 @Composable
 private fun RequestCard(row: HelpRequestRow, today: LocalDate, onOpenRequest: (String) -> Unit) {
     val request = row.request
-    // Plain for what concerns me as a helper, the household tint for my own requests.
-    val tint = if (row.isMine) ClayTint.Household else ClayTint.Plain
+    // Tints say who an event is for (charte, « Style Argile »): a request keeps the plain card.
+    val tint = ClayTint.Plain
     ClayCard(
         modifier = Modifier.fillMaxWidth(),
         tint = tint,

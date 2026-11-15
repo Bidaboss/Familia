@@ -32,9 +32,12 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         val open = Intent(this, MainActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
             .apply { eventId?.let { putExtra(EXTRA_EVENT_ID, it) } }
+        // Coups de main: the request to open, when the notification is about one.
+        val helpRequestId = message.data[EXTRA_HELP_REQUEST_ID]
+        helpRequestId?.let { open.putExtra(EXTRA_HELP_REQUEST_ID, it) }
         val pending = PendingIntent.getActivity(
             this,
-            eventId.hashCode(),
+            (eventId ?: helpRequestId).hashCode(),
             open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -59,5 +62,8 @@ class FamiliaMessagingService : FirebaseMessagingService() {
     companion object {
         /** Same key as the `data` of the Cloud Functions. */
         const val EXTRA_EVENT_ID = "eventId"
+
+        /** Same key as the `data` of functions/src/helpRequests.ts. */
+        const val EXTRA_HELP_REQUEST_ID = "helpRequestId"
     }
 }

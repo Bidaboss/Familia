@@ -196,10 +196,8 @@ private fun Content(
                 ConfirmedButton(
                     label = stringResource(R.string.helprequest_cancel),
                     title = stringResource(R.string.helprequest_cancel_title),
-                    body = stringResource(
-                        if (request.volunteerName != null) R.string.helprequest_cancel_body_taken else R.string.helprequest_cancel_body,
-                        request.volunteerName.orEmpty(),
-                    ),
+                    body = request.volunteerName?.let { stringResource(R.string.helprequest_cancel_body_taken, it) }
+                        ?: stringResource(R.string.helprequest_cancel_body),
                     confirm = stringResource(R.string.helprequest_cancel_confirm),
                     enabled = enabled,
                     destructive = true,
