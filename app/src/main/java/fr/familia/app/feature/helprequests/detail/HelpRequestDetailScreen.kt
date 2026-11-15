@@ -19,6 +19,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -41,6 +42,7 @@ import fr.familia.app.R
 import fr.familia.app.core.model.HelpKind
 import fr.familia.app.core.model.HelpRequest
 import fr.familia.app.core.model.HelpStatus
+import fr.familia.app.core.model.VOLUNTEER_NOTE_MAX
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
@@ -56,7 +58,7 @@ import java.time.LocalTime
 @Composable
 fun HelpRequestDetailScreen(
     state: HelpRequestDetailUiState,
-    onTake: () -> Unit,
+    onTake: (note: String) -> Unit,
     onDecline: () -> Unit,
     onWithdraw: () -> Unit,
     onThank: () -> Unit,
@@ -65,6 +67,7 @@ fun HelpRequestDetailScreen(
     onDuplicate: () -> Unit,
     onDismissError: () -> Unit,
     onBack: () -> Unit,
+    onSetNote: (note: String) -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -95,7 +98,7 @@ fun HelpRequestDetailScreen(
                     },
                 )
                 is HelpRequestDetailUiState.Success ->
-                    Content(state, onTake, onDecline, onWithdraw, onThank, onCancel, onEdit, onDuplicate)
+                    Content(state, onTake, onDecline, onWithdraw, onThank, onCancel, onEdit, onDuplicate, onSetNote)
             }
         }
     }
@@ -123,13 +126,14 @@ fun HelpRequestDetailScreen(
 @Composable
 private fun Content(
     state: HelpRequestDetailUiState.Success,
-    onTake: () -> Unit,
+    onTake: (String) -> Unit,
     onDecline: () -> Unit,
     onWithdraw: () -> Unit,
     onThank: () -> Unit,
     onCancel: () -> Unit,
     onEdit: () -> Unit,
     onDuplicate: () -> Unit,
+    onSetNote: (String) -> Unit,
 ) {
     val request = state.request
     Column(
@@ -164,8 +168,35 @@ private fun Content(
         if (state.isBusy) CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
         val enabled = !state.isBusy
         if (state.canVolunteer) {
-            Button(onClick = onTake, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+            var taking by rememberSaveable { mutableStateOf(false) }
+            Button(onClick = { taking = true }, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.helprequest_take))
+            }
+            if (taking) {
+                NoteDialog(
+                    title = stringResource(R.string.helprequest_take_title),
+                    label = stringResource(R.string.helprequest_note_label, request.authorName),
+                    initial = "",
+                    confirm = stringResource(R.string.helprequest_take),
+                    onConfirm = { taking = false; onTake(it) },
+                    onDismiss = { taking = false },
+                )
+            }
+        }
+        if (state.canWithdraw) {
+            var editing by rememberSaveable { mutableStateOf(false) }
+            OutlinedButton(onClick = { editing = true }, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text(stringResource(if (request.volunteerNote == null) R.string.helprequest_note_add else R.string.helprequest_note_edit))
+            }
+            if (editing) {
+                NoteDialog(
+                    title = stringResource(R.string.helprequest_note_edit),
+                    label = stringResource(R.string.helprequest_note_label, request.authorName),
+                    initial = request.volunteerNote.orEmpty(),
+                    confirm = stringResource(R.string.helprequest_note_save),
+                    onConfirm = { editing = false; onSetNote(it) },
+                    onDismiss = { editing = false },
+                )
             }
         }
         if (state.canDecline) {
@@ -224,6 +255,15 @@ private fun StatusCard(state: HelpRequestDetailUiState.Success, onEdit: () -> Un
             else -> stringResource(R.string.helprequest_status_open)
         }
         Text(text, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+        if (request.status == HelpStatus.Taken) {
+            request.volunteerNote?.let {
+                Text(
+                    stringResource(R.string.helprequest_note_quote, it),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+        }
         if (state.declinedName != null && state.canManage && request.status == HelpStatus.Open) {
             Text(
                 stringResource(R.string.helprequest_widen_hint),
@@ -235,6 +275,39 @@ private fun StatusCard(state: HelpRequestDetailUiState.Success, onEdit: () -> Un
             }
         }
     }
+}
+
+/** The volunteer's word, optional (spec récit 16 rév. 8). Empty means no word. */
+@Composable
+private fun NoteDialog(
+    title: String,
+    label: String,
+    initial: String,
+    confirm: String,
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var note by rememberSaveable { mutableStateOf(initial) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            OutlinedTextField(
+                value = note,
+                onValueChange = { note = it.take(VOLUNTEER_NOTE_MAX) },
+                label = { Text(label) },
+                supportingText = { Text(stringResource(R.string.helprequest_note_hint)) },
+                minLines = 2,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(note) }, modifier = Modifier.heightIn(min = 56.dp)) { Text(confirm) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
+        },
+    )
 }
 
 @Composable

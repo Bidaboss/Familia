@@ -159,11 +159,25 @@ class HelpRequestViewModelsTest {
     }
 
     @Test
+    fun `the volunteer's word goes with « Je m'en occupe », and can be changed or cleared`() = runTest {
+        val repo = FakeHelpRequests(listOf(helpRequest("r1", TestFamily.adult, listOf("adult2"))))
+        val viewModel = detail(repo, "adult2")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+        viewModel.take("  Je passe vers 17 h  ")
+        assertEquals("Je passe vers 17 h", repo.requests.value.single().volunteerNote)
+        viewModel.setNote("Plutôt 18 h")
+        assertEquals("Plutôt 18 h", repo.requests.value.single().volunteerNote)
+        viewModel.setNote("   ")
+        assertNull(repo.requests.value.single().volunteerNote)
+        assertEquals(200, cleanNote("x".repeat(300))!!.length)
+    }
+
+    @Test
     fun `the second volunteer is told who was quicker`() = runTest {
         val repo = FakeHelpRequests(listOf(helpRequest("r1", TestFamily.adult, listOf("adult2", "admin1"))))
         // The server already gave it to admin1, but this screen has not heard of it yet.
         val late = object : HelpRequestRepository by repo {
-            override suspend fun take(id: String, volunteerId: String, volunteerName: String) {
+            override suspend fun take(id: String, volunteerId: String, volunteerName: String, note: String?) {
                 throw AlreadyTakenException("Admin1")
             }
         }

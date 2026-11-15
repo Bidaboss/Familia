@@ -48,7 +48,12 @@ data class HelpRequest(
     val status: HelpStatus = HelpStatus.Open,
     val volunteerId: String? = null,
     val volunteerName: String? = null,
+    /** The volunteer's short word, 200 characters at most (récit 16, spec rév. 8). */
+    val volunteerNote: String? = null,
     val declinedBy: String? = null,
     val thankedAt: Instant? = null,
     val createdAt: Instant? = null,
 )
+
+/** The longest word a volunteer can leave (rules: isVolunteerNote). */
+const val VOLUNTEER_NOTE_MAX = 200

@@ -45,6 +45,13 @@ describe('who is told what', () => {
     assert.deepEqual(to(helpMessages('r1', request(), byInes, 'ines', members, today)), ['camille', 'jules']);
   });
 
+  test('the volunteer\'s word is the body of the notice (spec rév. 8)', () => {
+    const taken = request({ status: 'taken', volunteerId: 'jules', volunteerName: 'Jules', volunteerNote: ' Je passe vers 17 h ' });
+    assert.equal(helpMessages('r1', request(), taken, 'jules', members, today)[0].notice.body, 'Jules : Je passe vers 17 h');
+    const blank = request({ status: 'taken', volunteerId: 'jules', volunteerName: 'Jules', volunteerNote: '  ' });
+    assert.ok(helpMessages('r1', request(), blank, 'jules', members, today)[0].notice.body.startsWith('C\'est réglé'));
+  });
+
   test('a volunteer who withdraws tells everyone warned again', () => {
     const taken = request({ status: 'taken', volunteerId: 'ines', volunteerName: 'Inès' });
     assert.deepEqual(to(helpMessages('r1', taken, request(), 'ines', members, today)), ['camille', 'jules']);
