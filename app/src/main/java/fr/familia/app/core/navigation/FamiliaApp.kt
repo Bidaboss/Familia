@@ -466,7 +466,7 @@ private fun TabTopBar(tab: TopLevelDestination, member: Member, onGoodNews: (() 
             when (tab) {
                 TopLevelDestination.Planning -> {
                     if (onGoodNews != null) {
-                        IconButton(onClick = onGoodNews, modifier = Modifier.size(48.dp)) {
+                        IconButton(onClick = onGoodNews, modifier = Modifier.size(56.dp)) {
                             Icon(Icons.Outlined.Celebration, contentDescription = stringResource(R.string.goodnews_open_feed))
                         }
                     }

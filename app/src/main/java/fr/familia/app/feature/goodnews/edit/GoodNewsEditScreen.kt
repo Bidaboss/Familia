@@ -235,7 +235,7 @@ private fun NewPhotos(state: GoodNewsEditUiState.Editing, onAddPhotos: (List<Str
                     modifier = Modifier.matchParentSize().clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.surfaceVariant),
                 )
                 if (!state.isSaving) {
-                    FilledTonalIconButton(onClick = { onRemovePhoto(uri) }, modifier = Modifier.align(Alignment.TopEnd).size(48.dp)) {
+                    FilledTonalIconButton(onClick = { onRemovePhoto(uri) }, modifier = Modifier.align(Alignment.TopEnd).size(56.dp)) {
                         Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.goodnews_photo_remove, index + 1))
                     }
                 }
@@ -272,7 +272,7 @@ private fun MemberChips(
                 enabled = enabled,
                 label = { Text(label(member), style = MaterialTheme.typography.labelLarge) },
                 leadingIcon = if (selected) ({ Icon(Icons.Outlined.Check, contentDescription = null) }) else null,
-                modifier = Modifier.heightIn(min = 48.dp),
+                modifier = Modifier.heightIn(min = 56.dp),
             )
         }
     }

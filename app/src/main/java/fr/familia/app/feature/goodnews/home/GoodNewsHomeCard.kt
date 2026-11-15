@@ -87,7 +87,7 @@ fun GoodNewsHomeContent(
         } else {
             ready.items.forEach { item -> NewsRow(item, ready.now, tint) { onOpen(item.news.id) } }
         }
-        TextButton(onClick = onOpenFeed, modifier = Modifier.heightIn(min = 48.dp).align(Alignment.End)) {
+        TextButton(onClick = onOpenFeed, modifier = Modifier.heightIn(min = 56.dp).align(Alignment.End)) {
             Text(stringResource(R.string.goodnews_home_all))
         }
     }

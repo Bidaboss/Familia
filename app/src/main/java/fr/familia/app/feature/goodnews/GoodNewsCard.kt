@@ -13,13 +13,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -78,7 +81,8 @@ fun GoodNewsCard(
                     color = FamiliaClay.colors.onTintVariant(tint),
                 )
             }
-            if (item.canEdit || item.canRemove || item.canHide) PostMenu(item, onEdit, onRemove, onHide)
+            // In the feed the actions sit in the ⋮ menu; on the page of the post they are visible buttons.
+            if (!full && (item.canEdit || item.canRemove || item.canHide)) PostMenu(item, onEdit, onRemove, onHide)
         }
         Text(
             item.news.text,
@@ -94,8 +98,30 @@ fun GoodNewsCard(
                 color = FamiliaClay.colors.onTintVariant(tint),
             )
         }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             item.reactionCounts.forEach { (reaction, count) -> ReactionChip(reaction, count, item.myReaction == reaction, onReact) }
+        }
+        if (full && (item.canEdit || item.canRemove || item.canHide)) PostActions(item, onEdit, onRemove, onHide)
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun PostActions(item: GoodNewsItem, onEdit: () -> Unit, onRemove: () -> Unit, onHide: (Boolean) -> Unit) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (item.canEdit) {
+            OutlinedButton(onClick = onEdit, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.goodnews_edit)) }
+        }
+        if (item.canHide) {
+            val label = if (item.isHiddenForMe) R.string.goodnews_unhide else R.string.goodnews_hide
+            OutlinedButton(onClick = { onHide(!item.isHiddenForMe) }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(label)) }
+        }
+        if (item.canRemove) {
+            TextButton(
+                onClick = onRemove,
+                modifier = Modifier.heightIn(min = 56.dp),
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            ) { Text(stringResource(R.string.goodnews_remove)) }
         }
     }
 }
@@ -134,7 +160,7 @@ private fun ReactionChip(reaction: Reaction, count: Int, mine: Boolean, onReact:
         selected = mine,
         onClick = { onReact(reaction) },
         label = { Text(if (count > 0) "${reaction.emoji} $count" else reaction.emoji, style = MaterialTheme.typography.titleSmall) },
-        modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = description },
+        modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = description },
     )
 }
 
@@ -142,7 +168,7 @@ private fun ReactionChip(reaction: Reaction, count: Int, mine: Boolean, onReact:
 private fun PostMenu(item: GoodNewsItem, onEdit: () -> Unit, onRemove: () -> Unit, onHide: (Boolean) -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
-        IconButton(onClick = { open = true }, modifier = Modifier.size(48.dp)) {
+        IconButton(onClick = { open = true }, modifier = Modifier.size(56.dp)) {
             Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.goodnews_menu))
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
