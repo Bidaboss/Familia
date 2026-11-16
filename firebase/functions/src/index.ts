@@ -459,6 +459,11 @@ export const onCapsuleLeftoversUpdated = onDocumentUpdated('capsuleLeftovers/{me
   await deleteLeftovers(getFirestore(), event.params.memberId);
 });
 
+// La fiche membre (récit 7 bis) leaves with its member.
+export const onMemberDeletedCard = onDocumentDeleted('members/{memberId}', async (event) => {
+  await getFirestore().collection('memberCards').doc(event.params.memberId).delete();
+});
+
 // Arbre généalogique (récit 40): someone who leaves the tree takes their links with them.
 export const onMemberDeletedKin = onDocumentDeleted('members/{memberId}', async (event) => {
   await removeMemberFromTree(getFirestore(), event.params.memberId);

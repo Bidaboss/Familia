@@ -934,6 +934,11 @@ fun FamiliaApp(
                             } else {
                                 null
                             },
+                            onOpenBeneficiary = if (features.isOn(Feature.MemberCard)) {
+                                { id -> navController.navigate(MemberProfileDestination(id)) }
+                            } else {
+                                null
+                            },
                         )
                     }
                     composable<ReceivedGiftsDestination> {

@@ -68,6 +68,8 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     BirthdayWishes("birthdayWishes", R.string.feature_birthday_wishes),
     /** La bienvenue : la famille est prévenue de l'arrivée d'un membre (PRD, récit 43). */
     Welcome("welcome", R.string.feature_welcome),
+    /** Tailles, pointure, allergies et goûts sur la fiche d'un membre (PRD, récit 7 bis). */
+    MemberCard("memberCard", R.string.feature_member_card),
 }
 
 /**

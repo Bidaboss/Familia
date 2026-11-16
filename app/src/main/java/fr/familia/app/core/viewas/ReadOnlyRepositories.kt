@@ -19,6 +19,7 @@ import fr.familia.app.core.data.BirthdayCardRepository
 import fr.familia.app.core.data.GoodNewsRepository
 import fr.familia.app.core.data.HelpRequestRepository
 import fr.familia.app.core.data.JoinMeRepository
+import fr.familia.app.core.data.MemberCardRepository
 import fr.familia.app.core.data.MemberPhoto
 import fr.familia.app.core.data.MemberPhotoRepository
 import fr.familia.app.core.data.MemberRepository
@@ -38,6 +39,7 @@ import fr.familia.app.core.model.CapsuleLeftover
 import fr.familia.app.core.model.ChallengeRotation
 import fr.familia.app.core.model.DayUsage
 import fr.familia.app.core.model.Event
+import fr.familia.app.core.model.MemberCard
 import fr.familia.app.core.model.Expense
 import fr.familia.app.core.model.ExpenseBook
 import fr.familia.app.core.model.ExpenseContainer
@@ -131,6 +133,11 @@ class ReadOnlyMemberPhotoRepository(private val inner: MemberPhotoRepository, pr
     override fun observePhotos(): Flow<Map<String, MemberPhoto>> = inner.observePhotos()
     override suspend fun savePhoto(memberId: String, jpeg: ByteArray) = guard.refuse()
     override suspend fun removePhoto(memberId: String) = guard.refuse()
+}
+
+class ReadOnlyMemberCardRepository(private val inner: MemberCardRepository, private val guard: ViewAsGuard) : MemberCardRepository {
+    override fun observeCard(memberId: String): Flow<MemberCard?> = inner.observeCard(memberId)
+    override suspend fun saveCard(card: MemberCard, byId: String) = guard.refuse()
 }
 
 class ReadOnlyEventRepository(private val inner: EventRepository, private val guard: ViewAsGuard) : EventRepository {

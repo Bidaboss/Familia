@@ -37,6 +37,8 @@ interface AppContainer {
     val memberRepository: MemberRepository?
     val linkPreviewRepository: LinkPreviewRepository
     val memberPhotoRepository: MemberPhotoRepository?
+    /** La fiche de chaque membre (récit 7 bis). */
+    val memberCardRepository: MemberCardRepository?
     val eventRepository: EventRepository?
     val rsvpRepository: RsvpRepository?
     val bringRepository: BringRepository?
@@ -96,6 +98,8 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val linkPreviewRepository: LinkPreviewRepository by lazy { HttpLinkPreviewRepository() }
 
     override val memberPhotoRepository: MemberPhotoRepository? by lazy { firestore?.let { FirestoreMemberPhotoRepository(it) } }
+
+    override val memberCardRepository: MemberCardRepository? by lazy { firestore?.let { FirestoreMemberCardRepository(it) } }
 
     override val eventRepository: EventRepository? by lazy { firestore?.let { FirestoreEventRepository(it) } }
 

@@ -45,6 +45,7 @@ class ViewAsContainer(private val base: AppContainer, guard: ViewAsGuard, adminI
     override val memberRepository = base.memberRepository?.let { ReadOnlyMemberRepository(it, guard) }
     override val linkPreviewRepository = base.linkPreviewRepository
     override val memberPhotoRepository = base.memberPhotoRepository?.let { ReadOnlyMemberPhotoRepository(it, guard) }
+    override val memberCardRepository = base.memberCardRepository?.let { ReadOnlyMemberCardRepository(it, guard) }
     override val eventRepository = base.eventRepository?.let { ReadOnlyEventRepository(it, guard) }
     override val rsvpRepository = base.rsvpRepository?.let { ReadOnlyRsvpRepository(it, guard) }
     override val bringRepository = base.bringRepository?.let { ReadOnlyBringRepository(it, guard) }
