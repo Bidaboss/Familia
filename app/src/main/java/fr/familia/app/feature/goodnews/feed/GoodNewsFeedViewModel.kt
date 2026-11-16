@@ -33,6 +33,7 @@ class GoodNewsFeedViewModel(
     private val pages = MutableStateFlow(1)
     private val retries = MutableStateFlow(0)
     private val actionFailed = MutableStateFlow(false)
+    private val littleOnesOnly = MutableStateFlow(false)
 
     val uiState: StateFlow<GoodNewsFeedUiState> = combine(retries, pages) { _, p -> p }
         .flatMapLatest { load(it) }
@@ -42,20 +43,29 @@ class GoodNewsFeedViewModel(
         val newsRepo = goodNews ?: return flowOf(GoodNewsFeedUiState.Error)
         val memberRepo = members ?: return flowOf(GoodNewsFeedUiState.Error)
         val count = pageCount * GoodNews.PAGE_SIZE
-        return combine(newsRepo.observeLatest(count), memberRepo.observeFamily(), actionFailed) { list, family, failed ->
+        return combine(newsRepo.observeLatest(count), memberRepo.observeFamily(), actionFailed, littleOnesOnly) { list, family, failed, onlyLittle ->
             val me = family.members.firstOrNull { it.id == currentMemberId }
                 ?: return@combine GoodNewsFeedUiState.Error
             GoodNewsFeedUiState.Success(
-                items = list.filterNot { it.isHiddenFor(currentMemberId) }.map { goodNewsItem(it, me, family) },
+                items = list
+                    .filterNot { it.isHiddenFor(currentMemberId) }
+                    .filter { !onlyLittle || it.littleOnes }
+                    .map { goodNewsItem(it, me, family) },
+                // Counted before the filter: older pages may hold more of « Les petits ».
                 canLoadMore = list.size >= count,
                 now = clock(),
                 actionFailed = failed,
+                littleOnesOnly = onlyLittle,
             )
         }.catch { emit(GoodNewsFeedUiState.Error) }
     }
 
     fun loadMore() {
         pages.value++
+    }
+
+    fun showLittleOnesOnly(only: Boolean) {
+        littleOnesOnly.value = only
     }
 
     fun retry() {

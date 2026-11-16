@@ -72,7 +72,11 @@ class FirestoreGoodNewsRepository(private val db: FirebaseFirestore) : GoodNewsR
                 "hiddenByIds" to emptyList<String>(),
                 "createdAt" to FieldValue.serverTimestamp(),
                 "updatedAt" to FieldValue.serverTimestamp(),
-            ) + listOfNotNull(news.forChallenge?.let { "forChallenge" to it }),
+            ) + listOfNotNull(
+                news.forChallenge?.let { "forChallenge" to it },
+                // Only on a news for a child (the rules check it), and never written as false.
+                ("littleOnes" to true).takeIf { news.littleOnes && news.forMemberId != news.authorId },
+            ),
         ).await()
     }
 
@@ -131,5 +135,6 @@ private fun DocumentSnapshot.toGoodNews(): GoodNews? {
         challengeMonth = challengeMonth,
         forChallenge = getString("forChallenge"),
         birthdayOf = birthdayOf,
+        littleOnes = getBoolean("littleOnes") == true,
     )
 }

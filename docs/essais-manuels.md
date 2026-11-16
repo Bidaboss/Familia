@@ -344,3 +344,12 @@ Avec le module « La bienvenue » allumé, un membre ajouté qui ne s'est jamais
 2. Rejoignez-moi : une seule phrase sous « Envoyer » (« Ta position est prise une seule fois… ») ; le reste est dans le « ? ».
 3. Sauvegarde, Cadeaux reçus et « Une idée ? Un souci ? » : une seule phrase en tête.
 4. Accueil, « ? » : l'aide parle des blocs et des puces.
+
+## Le coin des petits (récit 43)
+
+Avec le module « Le coin des petits » allumé, un compte adulte qui a un enfant dans son foyer, et un autre compte.
+
+1. Publie une Bonne nouvelle « Pour moi ». **Attendu :** pas d'interrupteur « Les petits ».
+2. Publie-en une pour l'enfant, et allume « Dans « Les petits » ». **Attendu :** la carte porte l'étiquette « Les petits », dans le fil et sur sa page.
+3. Avec l'autre compte, ouvre les Bonnes nouvelles et touche le filtre « Les petits ». **Attendu :** seules celles des petits restent. Touche-le encore : tout revient.
+4. Éteins le module. **Attendu :** ni l'interrupteur, ni le filtre, ni l'étiquette pour les membres (l'admin principal voit toujours tout).

@@ -5,7 +5,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { Notice } from '../src/logic';
 import { Sender } from '../src/store';
 import { isTestMember } from '../src/testHousehold';
-import { isFirstSignIn, welcomeMember, welcomeNotice } from '../src/welcome';
+import { deleteWelcomeOf, isFirstSignIn, welcomeMember, welcomeNotice } from '../src/welcome';
 
 describe('la bienvenue, without the emulator', () => {
   test('only the first link of a Google account counts', () => {
@@ -84,6 +84,15 @@ describe('la bienvenue against the emulator', () => {
     const { sent, send } = fakeSender();
     assert.equal(await welcomeMember(db, send, 'noe', now), null);
     assert.equal(sent.length, 0);
+    assert.equal((await db.doc('welcomes/noe').get()).exists, false);
+  });
+
+  test('a member removed takes their welcome with them', async () => {
+    const { send } = fakeSender();
+    await welcomeMember(db, send, 'noe', now);
+    assert.equal((await db.doc('welcomes/noe').get()).exists, true);
+    await deleteWelcomeOf(db, 'noe');
+    await deleteWelcomeOf(db, 'noe');
     assert.equal((await db.doc('welcomes/noe').get()).exists, false);
   });
 });

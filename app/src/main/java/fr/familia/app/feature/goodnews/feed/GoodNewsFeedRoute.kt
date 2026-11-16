@@ -7,7 +7,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.ui.LocalFeatureFlags
 
 /** Connects the feed of the « Bonnes nouvelles » to its ViewModel. */
 @Composable
@@ -37,5 +39,7 @@ fun GoodNewsFeedRoute(
         onRetry = viewModel::retry,
         onDismissError = viewModel::dismissError,
         onBack = onBack,
+        littleOnesOn = LocalFeatureFlags.current.isOn(Feature.LittleOnes),
+        onLittleOnesOnly = viewModel::showLittleOnesOnly,
     )
 }

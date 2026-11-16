@@ -22,8 +22,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,6 +43,9 @@ import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClayLink
+import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.MemberAvatar
@@ -82,8 +83,8 @@ fun GiftsScreen(
             is GiftsUiState.Success -> LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 // Room at the bottom so the add button never hides the last list.
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 16.dp, bottom = 96.dp),
+                verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
             ) {
                 if (someListsHidden) {
                     item(key = "view-as-hidden") {
@@ -178,13 +179,19 @@ private fun LazyListScope.birthdaysSection(
             modifier = Modifier.padding(top = 8.dp).semantics { heading() },
         )
     }
+    // The next birthday is the main point of the tab: the only card in full relief (DESIGN-11).
     items(state.birthdays, key = { "birthday-${it.member.id}" }) { birthday ->
-        ClayCard(Modifier.fillMaxWidth(), tint = ClayTint.Birthday) {
+        ClayCard(
+            Modifier.fillMaxWidth(),
+            tint = ClayTint.Birthday,
+            contentPadding = ClaySpacing.card,
+            emphasis = birthday == state.birthdays.first(),
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 MemberAvatar(birthday.member)
                 Spacer(Modifier.width(12.dp))
                 Column {
-                    Text(
+                    ClayCardTitle(
                         stringResource(R.string.gifts_birthday_of, birthday.member.firstName),
                         style = MaterialTheme.typography.titleMedium,
                     )
@@ -200,17 +207,16 @@ private fun LazyListScope.birthdaysSection(
                 }
             }
             if (state.canPrepareSurprise && state.sections.none { it.isMe && it.member.id == birthday.member.id }) {
-                OutlinedButton(
+                ClayLink(
+                    stringResource(R.string.gifts_prepare_surprise),
                     onClick = { onPrepareSurprise(birthday.member.id) },
-                    modifier = Modifier.padding(top = 8.dp).heightIn(min = 56.dp),
-                ) { Text(stringResource(R.string.gifts_prepare_surprise)) }
+                    modifier = Modifier.padding(top = 4.dp),
+                )
             }
         }
     }
     item(key = "birthdays-all") {
-        TextButton(onClick = onAllBirthdays, modifier = Modifier.heightIn(min = 56.dp)) {
-            Text(stringResource(R.string.gifts_all_birthdays))
-        }
+        ClayLink(stringResource(R.string.gifts_all_birthdays), onClick = onAllBirthdays)
     }
 }
 
@@ -239,8 +245,9 @@ private fun ListCard(title: String, subtitle: String, tint: ClayTint, onClick: (
         tint = tint,
         onClick = onClick,
         onClickLabel = stringResource(R.string.gifts_open_list),
+        contentPadding = ClaySpacing.card,
     ) {
-        Text(title, style = MaterialTheme.typography.titleMedium)
+        ClayCardTitle(title, style = MaterialTheme.typography.titleMedium)
         if (subtitle.isNotEmpty()) {
             Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = FamiliaClay.colors.onTintVariant(tint))
         }
