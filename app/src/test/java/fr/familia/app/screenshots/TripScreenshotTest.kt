@@ -37,7 +37,7 @@ class TripScreenshotTest {
         Surface { TripDetailScreen(previewTripDetail().copy(steps = emptyList()), {}, {}, {}, {}, {}, {}, {}) }
     }
     // Grey boxes stand for the photos: Storage is not reached in a test.
-    private val photos: @Composable () -> Unit = { Surface { AlbumScreen("Photos", previewAlbumPhotos(sending = 2), PhotoActions(), {}) } }
+    private val photos: @Composable () -> Unit = { Surface { AlbumScreen("Photos", previewAlbumPhotos(), PhotoActions(), {}) } }
     private val edit: @Composable () -> Unit = { Surface { TripEditScreen(previewTripEditState(isNew = false), {}, {}, {}, {}) } }
     private val step: @Composable () -> Unit = { Surface { StepEditScreen(previewStepEditState(), {}, {}, {}, {}) } }
 
