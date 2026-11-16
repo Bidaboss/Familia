@@ -385,6 +385,8 @@ class ReadOnlyNotificationRepository(private val inner: NotificationRepository, 
     override suspend fun setSouvenirs(memberId: String, enabled: Boolean) = guard.refuse()
     override fun observeTree(memberId: String): Flow<Boolean> = inner.observeTree(memberId)
     override suspend fun setTree(memberId: String, enabled: Boolean) = guard.refuse()
+    override fun observeRecap(memberId: String): Flow<Boolean> = inner.observeRecap(memberId)
+    override suspend fun setRecap(memberId: String, enabled: Boolean) = guard.refuse()
 }
 
 class ReadOnlyExpenseRepository(private val inner: ExpenseRepository, private val guard: ViewAsGuard) : ExpenseRepository {

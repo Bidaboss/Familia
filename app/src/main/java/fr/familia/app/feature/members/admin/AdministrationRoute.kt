@@ -11,6 +11,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.share.hasInstallLink
 import fr.familia.app.core.share.shareApp
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.viewas.LocalViewAs
@@ -81,6 +82,6 @@ fun AdministrationRoute(
         viewAsMembers = viewAsMembers,
         onViewAs = startViewAs,
         // Only the admin principal opens Administration: the name in the message is their own.
-        onShareApp = { shareApp(context, currentMember.firstName) },
+        onShareApp = if (hasInstallLink()) { { shareApp(context, currentMember.firstName) } } else null,
     )
 }

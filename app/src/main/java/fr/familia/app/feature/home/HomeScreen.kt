@@ -16,6 +16,7 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Event
+import androidx.compose.material.icons.outlined.HowToVote
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -91,6 +92,7 @@ class HomeActions(
     val onNewTrip: () -> Unit = {},
     /** « Tous les voyages »: set while the trips module is on; the card then always shows. */
     val onOpenTrips: (() -> Unit)? = null,
+    val onOpenPoll: (String) -> Unit = {},
 )
 
 /** Connects the Accueil tab to its ViewModel; each module feeds its card only while it shows. */
@@ -114,8 +116,9 @@ fun HomeRoute(
     val giftsOn = flags.isOn(Feature.Gifts)
     val helpOn = flags.isOn(Feature.HelpRequests)
     val tripsOn = flags.isOn(Feature.Trips)
+    val pollsOn = flags.isOn(Feature.Polls)
     val viewModel: HomeViewModel = viewModel(
-        key = "home-$giftsOn-$helpOn-$tripsOn",
+        key = "home-$giftsOn-$helpOn-$tripsOn-$pollsOn",
         factory = viewModelFactory {
             initializer {
                 HomeViewModel(
@@ -126,6 +129,7 @@ fun HomeRoute(
                     helpRequests = if (helpOn) container?.helpRequestRepository else null,
                     gifts = if (giftsOn) container?.giftRepository else null,
                     trips = if (tripsOn) container?.tripRepository else null,
+                    polls = if (pollsOn) container?.pollRepository else null,
                 )
             }
         },
@@ -283,6 +287,12 @@ private fun TodoCard(todos: List<HomeTodo>, today: LocalDate, actions: HomeActio
                     onClick = { actions.onOpenHelpRequest(todo.request.id) },
                     onClickLabel = stringResource(R.string.home_open_help),
                 ) { RowIcon(Icons.Outlined.VolunteerActivism) }
+                is HomeTodo.Vote -> HomeRow(
+                    title = todo.poll.question,
+                    detail = stringResource(R.string.home_todo_vote, todo.poll.authorName),
+                    onClick = { actions.onOpenPoll(todo.poll.id) },
+                    onClickLabel = stringResource(R.string.home_open_poll),
+                ) { RowIcon(Icons.Outlined.HowToVote) }
             }
         }
     }
