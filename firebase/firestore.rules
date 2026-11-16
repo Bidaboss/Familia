@@ -349,10 +349,13 @@ service cloud.firestore {
         || (b.takerId == myMemberId() && b.takerName == me().firstName);
     }
 
+    // recipeId (optional): a recipe of the book joined when the line is added. It never changes after,
+    // since an update touches only the taker fields.
     function isValidBring(b) {
       return b.keys().hasAll(['label', 'authorId', 'takerId', 'takerName', 'createdAt', 'updatedAt'])
-        && b.keys().size() == 6
+        && b.keys().hasOnly(['label', 'authorId', 'takerId', 'takerName', 'createdAt', 'updatedAt', 'recipeId'])
         && b.label is string && b.label.trim().size() > 0 && b.label.size() <= 60
+        && (!('recipeId' in b) || (b.recipeId is string && b.recipeId.size() > 0 && b.recipeId.size() <= 64))
         && b.updatedAt == request.time;
     }
 

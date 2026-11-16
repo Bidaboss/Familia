@@ -14,6 +14,8 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
@@ -49,10 +51,20 @@ import fr.familia.app.core.model.BringItem
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.feature.recipes.RecipePickerDialog
 
-/** « Qui apporte quoi » inside an event (PRD, récit 4 bis), with its own ViewModel. */
+/**
+ * « Qui apporte quoi » inside an event (PRD, récit 4 bis), with its own ViewModel. Set
+ * [onOpenRecipe] while the Recettes module is on: a line may then join a recipe of the book.
+ */
 @Composable
-fun BringSection(container: AppContainer?, currentMember: Member, eventId: String, canManageEvent: Boolean) {
+fun BringSection(
+    container: AppContainer?,
+    currentMember: Member,
+    eventId: String,
+    canManageEvent: Boolean,
+    onOpenRecipe: ((recipeId: String) -> Unit)? = null,
+) {
     val viewModel: BringViewModel = viewModel(
         key = "bring-$eventId-$canManageEvent",
         factory = viewModelFactory {
@@ -67,24 +79,44 @@ fun BringSection(container: AppContainer?, currentMember: Member, eventId: Strin
         onRelease = viewModel::release,
         onDelete = viewModel::delete,
         onDismissError = viewModel::dismissError,
+        recipePicker = if (onOpenRecipe != null) recipePicker(container) else null,
+        onOpenRecipe = onOpenRecipe,
     )
+}
+
+private fun recipePicker(
+    container: AppContainer?,
+): @Composable (onPick: (id: String, title: String) -> Unit, onDismiss: () -> Unit) -> Unit = { onPick, onDismiss ->
+    RecipePickerDialog(container, onPick = { recipe -> onPick(recipe.id, recipe.title) }, onDismiss = onDismiss)
 }
 
 /** Stateless: every change goes through the callbacks. */
 @Composable
 fun BringContent(
     state: BringUiState,
-    onAdd: (label: String, take: Boolean) -> Boolean,
+    onAdd: (label: String, take: Boolean, recipeId: String?) -> Boolean,
     onTake: (String) -> Unit,
     onRelease: (String) -> Unit,
     onDelete: (String) -> Unit,
     onDismissError: () -> Unit,
+    /** « Joindre une recette »: shows the picker, which gives back the recipe's id and title. */
+    recipePicker: (@Composable (onPick: (id: String, title: String) -> Unit, onDismiss: () -> Unit) -> Unit)? = null,
+    /** « Voir la recette » on a line that has one. */
+    onOpenRecipe: ((recipeId: String) -> Unit)? = null,
 ) {
     var label by rememberSaveable { mutableStateOf("") }
     var takeIt by rememberSaveable { mutableStateOf(true) }
     var deleting by rememberSaveable { mutableStateOf<String?>(null) }
+    var recipeId by rememberSaveable { mutableStateOf<String?>(null) }
+    var recipeTitle by rememberSaveable { mutableStateOf("") }
+    var picking by rememberSaveable { mutableStateOf(false) }
     val tooLong = label.trim().length > BringItem.MAX_LABEL
-    val add: () -> Unit = { if (onAdd(label, takeIt)) { label = "" } }
+    val add: () -> Unit = {
+        if (onAdd(label, takeIt, recipeId)) {
+            label = ""
+            recipeId = null
+        }
+    }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(stringResource(R.string.bring_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         if (!state.isLoading && state.rows.isEmpty()) {
@@ -94,7 +126,9 @@ fun BringContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        state.rows.forEach { row -> BringLine(row, enabled = !state.isBusy, onTake, onRelease, onAskDelete = { deleting = row.item.id }) }
+        state.rows.forEach { row ->
+            BringLine(row, enabled = !state.isBusy, onTake, onRelease, onAskDelete = { deleting = row.item.id }, onOpenRecipe = onOpenRecipe)
+        }
 
         OutlinedTextField(
             value = label,
@@ -118,6 +152,41 @@ fun BringContent(
             Checkbox(checked = takeIt, onCheckedChange = null)
             Spacer(Modifier.width(16.dp))
             Text(stringResource(R.string.bring_add_take), style = MaterialTheme.typography.bodyLarge)
+        }
+        if (recipePicker != null) {
+            val joined = recipeId
+            if (joined == null) {
+                TextButton(onClick = { picking = true }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Icon(Icons.AutoMirrored.Outlined.MenuBook, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.bring_join_recipe))
+                }
+            } else {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.AutoMirrored.Outlined.MenuBook, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        stringResource(R.string.bring_recipe_joined, recipeTitle),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f),
+                    )
+                    IconButton(onClick = { recipeId = null }, modifier = Modifier.size(56.dp)) {
+                        Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.bring_recipe_remove))
+                    }
+                }
+            }
+            if (picking) {
+                recipePicker(
+                    { id, title ->
+                        recipeId = id
+                        recipeTitle = title
+                        // The recipe names the line when nothing is written yet.
+                        if (label.isBlank()) label = title.take(BringItem.MAX_LABEL)
+                        picking = false
+                    },
+                    { picking = false },
+                )
+            }
         }
         OutlinedButton(
             onClick = add,
@@ -147,7 +216,14 @@ fun BringContent(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun BringLine(row: BringRow, enabled: Boolean, onTake: (String) -> Unit, onRelease: (String) -> Unit, onAskDelete: () -> Unit) {
+private fun BringLine(
+    row: BringRow,
+    enabled: Boolean,
+    onTake: (String) -> Unit,
+    onRelease: (String) -> Unit,
+    onAskDelete: () -> Unit,
+    onOpenRecipe: ((recipeId: String) -> Unit)?,
+) {
     val item = row.item
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -175,6 +251,14 @@ private fun BringLine(row: BringRow, enabled: Boolean, onTake: (String) -> Unit,
                         Text(stringResource(R.string.bring_release))
                     }
                 }
+                val recipe = item.recipeId
+                if (recipe != null && onOpenRecipe != null) {
+                    TextButton(onClick = { onOpenRecipe(recipe) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                        Icon(Icons.AutoMirrored.Outlined.MenuBook, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.bring_open_recipe))
+                    }
+                }
             }
         }
         if (row.canDelete) {
@@ -189,7 +273,7 @@ private fun BringLine(row: BringRow, enabled: Boolean, onTake: (String) -> Unit,
 internal fun previewBring(): BringUiState = BringUiState(
     rows = listOf(
         BringRow(BringItem("b1", "L'entrée", "me", "me", "Camille"), isMine = true, canRelease = true, canDelete = true),
-        BringRow(BringItem("b2", "Le dessert", "ines", "ines", "Inès"), isMine = false, canRelease = false, canDelete = false),
+        BringRow(BringItem("b2", "Le dessert", "ines", "ines", "Inès", recipeId = "r1"), isMine = false, canRelease = false, canDelete = false),
         BringRow(BringItem("b3", "Le pain", "me", null, null), isMine = false, canRelease = false, canDelete = true),
     ),
     isLoading = false,
@@ -198,5 +282,5 @@ internal fun previewBring(): BringUiState = BringUiState(
 @FamiliaPreviews
 @Composable
 private fun BringContentPreview() {
-    FamiliaTheme { Surface { BringContent(previewBring(), { _, _ -> true }, {}, {}, {}, {}) } }
+    FamiliaTheme { Surface { BringContent(previewBring(), { _, _, _ -> true }, {}, {}, {}, {}, recipePicker = { _, _ -> }, onOpenRecipe = {}) } }
 }

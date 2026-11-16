@@ -819,6 +819,7 @@ fun FamiliaApp(
                             eventId = eventId,
                             onEdit = { navController.navigate(EventEditDestination(eventId)) },
                             onOpenAlbum = { navController.navigate(EventAlbumDestination(eventId)) },
+                            onOpenRecipe = if (features.isOn(Feature.Recipes)) ({ id -> navController.navigate(RecipeDetailDestination(id)) }) else null,
                             onBack = { navController.popBackStack() },
                         )
                     }

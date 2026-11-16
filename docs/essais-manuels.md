@@ -417,3 +417,10 @@ Avec l'interrupteur « Le petit geste du jour » allumé, et une Bonne nouvelle 
 5. Touche une ligne. **Attendu :** la feuille se ferme et l'écran s'ouvre.
 6. Onglet Famille : **Attendu :** « Nos trésors » puis les membres, et plus aucun réglage en bas.
 7. En « Voir comme » : **Attendu :** ni « Partager Familia » ni « Une idée ? Un souci ? » dans la feuille.
+
+## Joindre une recette dans « Qui apporte quoi »
+Avec les modules « Qui apporte quoi » et Recettes allumés, et au moins une recette dans le carnet.
+1. Un événement, « Qui apporte quoi » : touche « Joindre une recette ». **Attendu :** le choix d'une recette, avec la recherche par titre.
+2. Choisis-en une sans rien avoir écrit. **Attendu :** « Recette jointe : … » et le titre de la recette dans le champ. Le ✕ retire la recette.
+3. Ajoute la ligne. **Attendu :** la ligne montre « Voir la recette », qui ouvre la recette. Pareil sur un autre téléphone.
+4. Module Recettes éteint : **Attendu :** ni « Joindre une recette » ni « Voir la recette ».

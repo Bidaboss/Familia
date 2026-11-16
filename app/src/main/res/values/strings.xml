@@ -1642,8 +1642,12 @@
     <string name="bring_delete_title">Retirer « %1$s » de la liste ?</string>
     <string name="bring_delete_confirm">Retirer</string>
     <string name="bring_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
+    <string name="bring_join_recipe">Joindre une recette</string>
+    <string name="bring_recipe_joined">Recette jointe : %1$s</string>
+    <string name="bring_recipe_remove">Retirer la recette jointe</string>
+    <string name="bring_open_recipe">Voir la recette</string>
     <string name="help_topic_bring_title">Qui apporte quoi</string>
-    <string name="help_topic_bring_body">Dans un événement, ajoute ce qu\'il faut apporter et touche « Je m\'en charge » pour une ligne libre. Ton prénom s\'affiche : personne n\'apporte deux fois le dessert. « Je ne peux plus » la libère. La veille, le rappel te dit ce que tu apportes.</string>
+    <string name="help_topic_bring_body">Dans un événement, ajoute ce qu\'il faut apporter et touche « Je m\'en charge » pour une ligne libre. Ton prénom s\'affiche : personne n\'apporte deux fois le dessert. « Je ne peux plus » la libère. La veille, le rappel te dit ce que tu apportes. Avec le carnet de recettes, « Joindre une recette » montre à tous comment tu le prépares.</string>
 
     <!-- L'arbre de la famille et le défi du mois (récit 35) -->
     <string name="tree_title">L\'arbre de la famille</string>
