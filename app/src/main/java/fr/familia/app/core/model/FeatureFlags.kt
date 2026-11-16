@@ -58,6 +58,8 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     Comments("comments", R.string.feature_comments),
     /** Les comptes du voyage (PRD rév. 193, récit 16 bis), une brique commune reprise plus tard par les événements. */
     Expenses("expenses", R.string.feature_expenses),
+    /** « La semaine de la famille », le récap du dimanche à 18 h (PRD, récit 36). */
+    Recap("recap", R.string.feature_recap),
 }
 
 /**

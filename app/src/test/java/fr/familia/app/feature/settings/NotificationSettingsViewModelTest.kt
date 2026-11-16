@@ -34,6 +34,11 @@ private class FakeNotifications(
     override suspend fun setWeekly(memberId: String, enabled: Boolean) {
         weekly.value = enabled
     }
+    val recap = MutableStateFlow(true)
+    override fun observeRecap(memberId: String): Flow<Boolean> = recap
+    override suspend fun setRecap(memberId: String, enabled: Boolean) {
+        recap.value = enabled
+    }
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -67,6 +72,16 @@ class NotificationSettingsViewModelTest {
         val vm = NotificationSettingsViewModel(FakeNotifications(readFails = true), "adult1")
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         assertEquals(NotificationSettingsUiState.Error, vm.uiState.value)
+    }
+
+    @Test
+    fun `« La semaine de la famille » can be turned off (récit 36)`() = runTest {
+        val repo = FakeNotifications()
+        val vm = NotificationSettingsViewModel(repo, "adult1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        vm.setRecap(false)
+        assertEquals(NotificationSettingsUiState.Ready(dayBeforeReminder = true, recap = false), vm.uiState.value)
+        assertEquals(false, repo.recap.value)
     }
 
     @Test
