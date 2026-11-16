@@ -941,6 +941,8 @@
     <string name="album_photos_add">Ajouter des photos</string>
     <string name="album_photos_full">Tu as ajouté tes %1$d photos. Retire-en une pour en mettre une autre.</string>
     <string name="album_photos_send_failed">Une photo n\'a pas pu être envoyée. Vérifie la connexion et réessaie.</string>
+    <string name="album_photos_unreadable">Une photo n\'a pas pu être lue sur le téléphone. Essaie avec une autre.</string>
+    <string name="album_photos_refused">Le serveur a refusé une photo. Réessayer ne changera rien : signale-le dans « Une idée ? Un souci ? ».</string>
     <string name="album_photos_too_many">%1$d photos par personne au plus : seules les premières ont été gardées.</string>
     <string name="album_photos_remove_failed">La photo n\'a pas pu être retirée. Réessaie.</string>
     <string name="album_photos_ok">OK</string>
