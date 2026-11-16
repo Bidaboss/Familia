@@ -4,9 +4,7 @@ import fr.familia.app.core.model.EURO
 import fr.familia.app.core.model.Expense
 import fr.familia.app.core.model.ExpenseCategory
 import fr.familia.app.core.model.SplitMode
-import fr.familia.app.feature.gifts.parseEuros
 import java.time.LocalDate
-import kotlin.math.roundToLong
 
 /** The longest title of an expense, as the rules allow. */
 const val EXPENSE_TITLE_MAX = 80
@@ -34,9 +32,20 @@ data class ExpenseForm(
 
 enum class ExpenseFormError { Title, Amount, Currency, Rate, Date, Payer, Households, Amounts }
 
+/**
+ * Typed euros in whole cents, without going through a Double: « 12 », « 12,5 » or « 12.50 », at
+ * most two decimals. Null for anything else (« 1e3 », « 12,505 », a minus sign).
+ */
+internal fun centsOf(text: String): Long? {
+    val cleaned = text.replace("€", "").replace('\u00A0', ' ').replace('\u202F', ' ').replace(" ", "").trim()
+    val match = Regex("^(\\d{1,7})(?:[.,](\\d{1,2}))?$").matchEntire(cleaned) ?: return null
+    val euros = match.groupValues[1].toLong()
+    val cents = match.groupValues[2].padEnd(2, '0').toLong()
+    return euros * 100 + cents
+}
+
 /** Typed text in whole cents; null when it is not a positive amount under the cap. */
-internal fun parseCents(text: String): Long? =
-    parseEuros(text)?.let { (it * 100).roundToLong() }?.takeIf { it in 1..EXPENSE_MAX_CENTS }
+internal fun parseCents(text: String): Long? = centsOf(text)?.takeIf { it in 1..EXPENSE_MAX_CENTS }
 
 /** The rate typed for a currency: euros for one unit, « 0,92 » or « 0.92 ». */
 internal fun parseRate(text: String): Double? =
@@ -53,12 +62,14 @@ fun validate(form: ExpenseForm, payerHouseholds: Map<String, String>, bookHouseh
     // The rate is asked only once the currency is known.
     val rate = if (currency == EURO) 1.0 else parseRate(form.rate)
     if (rate == null && currencyOk) add(ExpenseFormError.Rate)
+    // A tiny rate would round the expense to nothing, which the rules refuse.
+    if (original != null && rate != null && toEuroCents(original, rate) !in 1..EXPENSE_MAX_CENTS) add(ExpenseFormError.Rate)
     if (form.date == null) add(ExpenseFormError.Date)
     if (form.payerId == null || form.payerId !in payerHouseholds) add(ExpenseFormError.Payer)
     if (form.householdIds.isEmpty() || !bookHouseholds.containsAll(form.householdIds)) add(ExpenseFormError.Households)
     if (form.mode == SplitMode.Amounts && original != null && rate != null) {
         val total = toEuroCents(original, rate)
-        val typed = form.householdIds.map { id -> form.amounts[id]?.let { text -> if (text.isBlank()) 0L else parseEuros(text)?.let { (it * 100).roundToLong() } } }
+        val typed = form.householdIds.map { id -> form.amounts[id].let { text -> if (text.isNullOrBlank()) 0L else centsOf(text) } }
         // Every household gets a whole amount, none below zero, and they add up to the expense.
         if (typed.any { it == null || it < 0 } || typed.sumOf { it ?: 0L } != total) add(ExpenseFormError.Amounts)
     }
@@ -81,7 +92,7 @@ fun expenseOf(id: String, form: ExpenseForm, payerHouseholds: Map<String, String
         mode = form.mode,
         householdIds = households,
         amounts = if (form.mode == SplitMode.Amounts) {
-            households.associateWith { id -> form.amounts[id]?.takeIf { it.isNotBlank() }?.let { (parseEuros(it)!! * 100).roundToLong() } ?: 0L }
+            households.associateWith { id -> form.amounts[id]?.takeIf { it.isNotBlank() }?.let { centsOf(it)!! } ?: 0L }
         } else {
             emptyMap()
         },

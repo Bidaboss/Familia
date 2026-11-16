@@ -226,11 +226,13 @@ private fun DeleteButton(title: String, enabled: Boolean, onDelete: () -> Unit) 
             title = { Text(stringResource(R.string.expense_delete_title, title.trim())) },
             text = { Text(stringResource(R.string.expense_delete_body)) },
             confirmButton = {
-                TextButton(onClick = { confirm = false; onDelete() }) {
+                TextButton(onClick = { confirm = false; onDelete() }, modifier = Modifier.heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.event_delete_confirm), color = MaterialTheme.colorScheme.error)
                 }
             },
-            dismissButton = { TextButton(onClick = { confirm = false }) { Text(stringResource(R.string.action_keep)) } },
+            dismissButton = {
+                TextButton(onClick = { confirm = false }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_keep)) }
+            },
         )
     }
 }
