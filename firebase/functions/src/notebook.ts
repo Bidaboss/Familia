@@ -6,6 +6,7 @@
 
 import type { Firestore } from 'firebase-admin/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
+import { wasRevealed } from './wishesReveal';
 
 export type NotebookSource = 'claim' | 'share';
 
@@ -89,7 +90,8 @@ export async function syncNotebookEntry(db: Firestore, listId: string, itemId: s
   const ref = db.collection('notebooks').doc(memberId).collection('entries').doc(notebookEntryId(listId, itemId));
   const [taken, current] = await Promise.all([takenUpBy(db, listId, itemId, memberId), ref.get()]);
   if (!taken) {
-    if (current.exists) await ref.delete();
+    // A revealed wish stays in the notebook of its givers: it was given, not released.
+    if (current.exists && !(await wasRevealed(db, listId, itemId))) await ref.delete();
     return;
   }
   const fields = takenUpFields(taken, current.exists ? current.data() : undefined);

@@ -13,6 +13,9 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     Gifts("gifts", R.string.feature_gifts),
     GiftNotebook("giftNotebook", R.string.feature_gift_notebook),
     ShareToWishes("shareToWishes", R.string.feature_share_to_wishes),
+
+    /** Les envies offertes passent dans « On m'a offert » le lendemain de l'occasion (PRD, récit 10 bis). */
+    WishesReveal("wishesReveal", R.string.feature_wishes_reveal),
     HelpRequests("helpRequests", R.string.feature_help_requests),
     Trips("trips", R.string.feature_trips),
     GoodNews("goodNews", R.string.feature_good_news),
