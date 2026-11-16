@@ -1,5 +1,6 @@
 package fr.familia.app.feature.trips.edit
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.MemberRepository
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import java.time.LocalDate
 
 /** A member offered in the form, with their household name to tell two namesakes apart. */
 data class MemberChoice(val id: String, val firstName: String, val householdName: String?, val locked: Boolean = false, val householdId: String? = null)
@@ -55,6 +57,8 @@ class TripEditViewModel(
     private val currentMemberId: String,
     private val tripId: String?,
     private val writeTimeoutMillis: Long = 4_000,
+    /** Keeps the draft when Android stops the app in the background (audit design n° 3). */
+    private val savedState: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<TripEditUiState>(TripEditUiState.Loading)
@@ -100,8 +104,10 @@ class TripEditViewModel(
         val kept = family.members.filter { it.id in existing?.participantIds.orEmpty() && offered.none { o -> o.id == it.id } }
         initialForm = existing?.let { TripForm.from(it) }
             ?: TripForm(participantIds = setOf(current.id), readerIds = familyIds)
+        val form = restoreDraft() ?: initialForm
         _uiState.value = TripEditUiState.Editing(
-            form = initialForm,
+            form = form,
+            hasChanges = form != initialForm,
             isNew = existing == null,
             participants = (offered + kept).map(::choice),
             readers = tripAudience(family).sortedBy { it.firstName.lowercase() }.map { choice(it).copy(locked = false) },
@@ -116,11 +122,32 @@ class TripEditViewModel(
     fun update(change: (TripForm) -> TripForm) {
         val state = _uiState.value as? TripEditUiState.Editing ?: return
         val form = change(state.form)
+        keepDraft(form)
         _uiState.value = state.copy(
             form = form,
             errors = if (showErrors) validate(form) else emptySet(),
             hasChanges = form != initialForm,
             saveFailed = false,
+        )
+    }
+
+    private fun keepDraft(form: TripForm) {
+        savedState[DRAFT_TITLE] = form.title
+        savedState[DRAFT_START] = form.startDate?.toString().orEmpty()
+        savedState[DRAFT_END] = form.endDate?.toString().orEmpty()
+        savedState[DRAFT_PARTICIPANTS] = ArrayList(form.participantIds)
+        savedState[DRAFT_READERS] = ArrayList(form.readerIds)
+    }
+
+    /** The draft kept before Android stopped the app, or null when there is none. */
+    private fun restoreDraft(): TripForm? {
+        val title = savedState.get<String>(DRAFT_TITLE) ?: return null
+        return TripForm(
+            title = title,
+            startDate = savedState.get<String>(DRAFT_START).toDate(),
+            endDate = savedState.get<String>(DRAFT_END).toDate(),
+            participantIds = savedState.get<ArrayList<String>>(DRAFT_PARTICIPANTS).orEmpty().toSet(),
+            readerIds = savedState.get<ArrayList<String>>(DRAFT_READERS).orEmpty().toSet(),
         )
     }
 
@@ -186,4 +213,15 @@ class TripEditViewModel(
     } catch (e: Exception) {
         false
     }
+
+    companion object {
+        const val DRAFT_TITLE = "trip_draft_title"
+        const val DRAFT_START = "trip_draft_start"
+        const val DRAFT_END = "trip_draft_end"
+        const val DRAFT_PARTICIPANTS = "trip_draft_participants"
+        const val DRAFT_READERS = "trip_draft_readers"
+    }
 }
+
+/** A date kept as text in the draft; empty or unreadable gives null. */
+internal fun String?.toDate(): LocalDate? = this?.takeIf { it.isNotEmpty() }?.let { runCatching { LocalDate.parse(it) }.getOrNull() }

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, beforeEach, describe, test } from 'node:test';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+import { Firestore, getFirestore } from 'firebase-admin/firestore';
 import { queueAlbumInvitations } from '../src/albumInvites';
 import { digestNotice } from '../src/digest';
 
@@ -55,5 +55,24 @@ describe('the invitation to yesterday\'s album against the emulator', () => {
     await db.doc('config/app').set({ features: { digest: false, eventAlbums: true } });
     assert.equal(await queueAlbumInvitations(db, morning), 0);
     assert.equal((await db.doc('albumInvites/2026-11-24').get()).exists, false);
+  });
+
+  test('a failure after the mark takes it off, so the next run tries again', async () => {
+    // The events cannot be read once (quota, network): the run fails, the mark of the day goes.
+    const failing = new Proxy(db, {
+      get(target, key) {
+        if (key === 'collection') {
+          return (name: string) => (name === 'events'
+            ? { where: () => ({ get: async () => { throw new Error('quota'); } }) }
+            : target.collection(name));
+        }
+        const value = Reflect.get(target, key);
+        return typeof value === 'function' ? value.bind(target) : value;
+      },
+    }) as Firestore;
+    await assert.rejects(queueAlbumInvitations(failing, morning), /quota/);
+    assert.equal((await db.doc('albumInvites/2026-11-24').get()).exists, false);
+    assert.equal(await queueAlbumInvitations(db, new Date('2026-11-24T08:30:00Z')), 1);
+    assert.deepEqual((await db.doc('engagementDigests/camille').get()).get('albums'), ['e1']);
   });
 });

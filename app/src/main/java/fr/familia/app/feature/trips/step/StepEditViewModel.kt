@@ -1,11 +1,14 @@
 package fr.familia.app.feature.trips.step
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.TripRepository
+import fr.familia.app.core.model.StepType
 import fr.familia.app.core.model.TripStep
 import fr.familia.app.feature.trips.canDeleteStep
+import fr.familia.app.feature.trips.edit.toDate
 import fr.familia.app.feature.trips.isParticipant
 import fr.familia.app.feature.trips.reminderTime
 import kotlinx.coroutines.CancellationException
@@ -16,6 +19,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import java.time.Instant
+import java.time.LocalTime
 import java.time.ZoneId
 
 sealed interface StepEditUiState {
@@ -50,6 +54,8 @@ class StepEditViewModel(
     private val writeTimeoutMillis: Long = 4_000,
     private val zone: () -> ZoneId = ZoneId::systemDefault,
     private val now: () -> Instant = Instant::now,
+    /** Keeps the draft when Android stops the app in the background (audit design n° 3). */
+    private val savedState: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<StepEditUiState>(StepEditUiState.Loading)
@@ -82,8 +88,10 @@ class StepEditViewModel(
         original = existing
         editedId = existing?.id ?: tripRepo.newStepId(tripId)
         initialForm = existing?.let { StepForm.from(it) } ?: StepForm(departDate = trip.startDate)
+        val form = restoreDraft() ?: initialForm
         _uiState.value = StepEditUiState.Editing(
-            form = initialForm,
+            form = form,
+            hasChanges = form != initialForm,
             isNew = existing == null,
             canDelete = existing != null && canDeleteStep(trip, me, family),
             errors = emptySet(),
@@ -97,11 +105,36 @@ class StepEditViewModel(
     fun update(change: (StepForm) -> StepForm) {
         val state = _uiState.value as? StepEditUiState.Editing ?: return
         val form = change(state.form)
+        keepDraft(form)
         _uiState.value = state.copy(
             form = form,
             errors = if (showErrors) validate(form) else emptySet(),
             hasChanges = form != initialForm,
             saveFailed = false,
+        )
+    }
+
+    private fun keepDraft(form: StepForm) {
+        savedState[DRAFT_TYPE] = form.type.name
+        savedState[DRAFT_PLACE] = form.place
+        savedState[DRAFT_DEPART_DATE] = form.departDate?.toString().orEmpty()
+        savedState[DRAFT_DEPART_TIME] = form.departTime?.toString().orEmpty()
+        savedState[DRAFT_ARRIVE_DATE] = form.arriveDate?.toString().orEmpty()
+        savedState[DRAFT_ARRIVE_TIME] = form.arriveTime?.toString().orEmpty()
+        savedState[DRAFT_NOTE] = form.note
+    }
+
+    /** The draft kept before Android stopped the app, or null when there is none. */
+    private fun restoreDraft(): StepForm? {
+        val place = savedState.get<String>(DRAFT_PLACE) ?: return null
+        return StepForm(
+            type = StepType.entries.firstOrNull { it.name == savedState.get<String>(DRAFT_TYPE) } ?: StepForm().type,
+            place = place,
+            departDate = savedState.get<String>(DRAFT_DEPART_DATE).toDate(),
+            departTime = savedState.get<String>(DRAFT_DEPART_TIME).toTime(),
+            arriveDate = savedState.get<String>(DRAFT_ARRIVE_DATE).toDate(),
+            arriveTime = savedState.get<String>(DRAFT_ARRIVE_TIME).toTime(),
+            note = savedState.get<String>(DRAFT_NOTE).orEmpty(),
         )
     }
 
@@ -152,4 +185,16 @@ class StepEditViewModel(
     } catch (e: Exception) {
         false
     }
+
+    companion object {
+        const val DRAFT_TYPE = "step_draft_type"
+        const val DRAFT_PLACE = "step_draft_place"
+        const val DRAFT_DEPART_DATE = "step_draft_depart_date"
+        const val DRAFT_DEPART_TIME = "step_draft_depart_time"
+        const val DRAFT_ARRIVE_DATE = "step_draft_arrive_date"
+        const val DRAFT_ARRIVE_TIME = "step_draft_arrive_time"
+        const val DRAFT_NOTE = "step_draft_note"
+    }
 }
+
+private fun String?.toTime(): LocalTime? = this?.takeIf { it.isNotEmpty() }?.let { runCatching { LocalTime.parse(it) }.getOrNull() }
