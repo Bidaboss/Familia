@@ -49,7 +49,7 @@ fun rememberDiscoverHome(currentMember: Member, onOpen: (DiscoverModule) -> Unit
         inTutorial = Discover.inTutorial(flags::isOn),
         dismissed = dismissed,
     ) ?: return null
-    val hide = {
+    val hide: () -> Unit = {
         if (!viewingAs) {
             dismissed = dismissed + module.key
             store.save(currentMember.id, dismissed)
