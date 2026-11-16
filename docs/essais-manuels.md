@@ -92,6 +92,26 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 2. Active « Mon foyer ». **Attendu :** l'interrupteur s'allume et seuls les événements de ton foyer restent. Éteins-le : toute la famille revient.
 3. En police à 200 %, **attendu :** rien n'est coupé, et les boutons gardent au moins la hauteur d'un doigt.
 
+## Un enfant suivi par Family Link se connecte (avant le 21)
+
+À faire une fois avant le repas, avec le téléphone d'un enfant suivi par Family Link et le téléphone du parent qui le suit. Si ça bloque, il reste une solution simple pour le jour J (voir le repli à la fin).
+
+Avant de commencer :
+- Dans Familia, sur ton téléphone : onglet Famille, fiche de l'enfant. **Attendu :** son profil est « Enfant, avec l'appli », et son adresse Google est notée exactement comme sur son téléphone (Réglages Android > Google > le nom en haut).
+- Le parent a l'appli Family Link ouverte et connectée.
+
+1. Sur le téléphone de l'enfant, ouvre le lien de téléchargement et touche le fichier de Familia. **Attendu :** Android propose d'installer. S'il dit que l'installation est bloquée ou demande l'accord d'un parent, passe au repli A.
+2. Ouvre Familia et touche « Se connecter avec Google », puis choisis le compte de l'enfant. **Attendu :** Google dit qu'il faut l'accord d'un parent. Selon la version, c'est le parent qui tape son mot de passe sur le téléphone de l'enfant, ou une demande qui arrive dans Family Link sur le téléphone du parent.
+3. Le parent accepte, avec son mot de passe ou dans Family Link (la demande est en général dans les notifications de Family Link, ou sur la fiche de l'enfant). **Attendu :** l'enfant revient dans Familia et voit le tuto.
+4. Fin du tuto. **Attendu :** l'enfant arrive sur l'appli avec son prénom, et rien de ce qui est réservé aux adultes.
+5. Si l'écran dit « Le compte … ne fait pas partie de la famille », compare l'adresse affichée avec celle de la fiche, corrige-la dans Familia, puis touche « Essayer un autre compte » et recommence.
+6. Si Google refuse sans proposer l'accord d'un parent, le parent regarde dans Family Link, sur la fiche de l'enfant, les réglages du compte et ceux des applis et services tiers liés au compte Google. Il autorise la connexion, puis recommence l'étape 2.
+
+Repli si ça bloque :
+- **A. L'installation est bloquée** (Family Link bloque souvent les applis qui ne viennent pas du Play Store) : sur ce téléphone, l'enfant n'aura pas l'appli pour le 21. Sur ta fiche de l'enfant, passe son profil à « Enfant, sans l'appli » (retire l'adresse Google). Ses parents répondent pour lui à « Je viens », et il est montré aux autres comme tous les enfants sans téléphone.
+- **B. La connexion ne passe pas avant le repas** : même chose, profil « Enfant, sans l'appli » pour le 21, et on retente après, au calme, avec le parent.
+- **Pendant la démo** : ne tente pas la connexion d'un enfant Family Link devant tout le monde. Fais-la avant, ou garde-la pour après.
+
 ## Tuto : écrans Cadeaux et Entraide (AVIS-18)
 
 1. Dans Administration > Modules, allume Cadeaux et Entraide. Sur un autre téléphone, avec un compte qui n'est pas admin, ouvre l'appli pour la première fois. **Attendu :** après « Dire si tu viens », les écrans « Les cadeaux » puis « L'entraide » s'affichent, et « Rester prévenu » reste le dernier (6 sur 6).
