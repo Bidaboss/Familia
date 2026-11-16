@@ -73,6 +73,7 @@ import fr.familia.app.core.model.Rsvp
 import fr.familia.app.core.model.RsvpStatus
 import fr.familia.app.core.model.Souvenir
 import fr.familia.app.core.model.SouvenirCounters
+import fr.familia.app.core.model.Transfer
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripItem
 import fr.familia.app.core.model.TripStep
@@ -409,6 +410,9 @@ class ReadOnlyExpenseRepository(private val inner: ExpenseRepository, private va
     override fun newExpenseId(bookId: String): String = inner.newExpenseId(bookId)
     override suspend fun saveExpense(bookId: String, expense: Expense, me: Member, isNew: Boolean) = guard.refuse()
     override suspend fun deleteExpense(bookId: String, expenseId: String) = guard.refuse()
+    override suspend fun setClosed(bookId: String, closed: Boolean) = guard.refuse()
+    override suspend fun settle(bookId: String, transfer: Transfer, me: Member) = guard.refuse()
+    override suspend fun unsettle(bookId: String, settlementId: String) = guard.refuse()
 }
 
 /** The lists of [lists] that [memberId] sees, by the rule of canSeeList (firebase/firestore.rules). */
