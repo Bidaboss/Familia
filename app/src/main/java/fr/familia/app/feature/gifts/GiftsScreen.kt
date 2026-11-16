@@ -173,14 +173,10 @@ private fun LazyListScope.personSection(
     if (singleList && !section.isMe) {
         item(key = "ideas-${section.member.id}") {
             val ideas = section.ideas
-            val preview = ideas?.let { previews[it.id] }
+            // Never how many: the tab may be shown in front of the person (demo of the 21st).
             ListCard(
                 title = stringResource(R.string.gift_ideas_title),
-                subtitle = if (preview == null || preview.count == 0) {
-                    stringResource(R.string.gift_ideas_subtitle, section.member.firstName)
-                } else {
-                    pluralStringResource(R.plurals.gift_ideas_count, preview.count, preview.count)
-                },
+                subtitle = stringResource(R.string.gift_ideas_subtitle, section.member.firstName),
                 tint = ClayTint.Birthday,
                 onClick = { onOpenList(ideas?.id ?: ideasListId(section.member.id)) },
             )

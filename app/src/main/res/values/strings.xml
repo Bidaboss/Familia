@@ -589,11 +589,6 @@
     <string name="gift_ideas_notice">%1$s ne voit jamais ces idées, ni qui les a prises.</string>
     <string name="gift_ideas_empty">Aucune idée pour l\'instant : ajoute la première.</string>
     <string name="gift_add_idea">Ajouter une idée</string>
-    <plurals name="gift_ideas_count">
-        <item quantity="one">%1$d idée de la famille</item>
-        <item quantity="many">%1$d idées de la famille</item>
-        <item quantity="other">%1$d idées de la famille</item>
-    </plurals>
     <string name="gift_occasion_christmas">Noël</string>
     <string name="gift_occasion_birthday">Anniversaire</string>
     <string name="gift_occasion_birth">Naissance</string>

@@ -165,7 +165,8 @@ class GiftsTest {
         assertTrue(all.occasions.first() is GiftMoment.Christmas)
         val christmas = forMoment(base, all.occasions.first()) as GiftsUiState.Success
         assertEquals(listOf("libre", "noel"), christmas.wishPreviews.getValue("wishes-adult1").titles)
-        assertEquals(1, christmas.wishPreviews.getValue("ideas-adult1").count)
+        // The ideas of the family get no preview: their card never says how many.
+        assertTrue("ideas-adult1" !in christmas.wishPreviews)
         assertEquals(family.members.size, christmas.sections.size)
         val adult1 = family.members.first { it.id == "adult1" }
         val birthday = forMoment(base, GiftMoment.BirthdayOf(adult1, LocalDate.of(2027, 1, 1))) as GiftsUiState.Success

@@ -126,12 +126,12 @@ class GiftsViewModel(
      */
     private fun withPreviews(repo: GiftRepository, state: GiftsUiState): Flow<GiftsUiState> {
         if (state !is GiftsUiState.Success) return flowOf(state)
-        val wishes = state.sections.flatMap { listOfNotNull(it.wishes, it.ideas) }
+        // Only « Mes envies »: the card of the ideas of the family says nothing of what they hold, not
+        // even how many, since the tab may be shown in front of their person.
+        val wishes = state.sections.mapNotNull { it.wishes }
         if (wishes.isEmpty()) return flowOf(state)
         val previews = wishes.map { list ->
-            // The ideas of the family are all hidden from their person, and never on the tab of that
-            // person: they count all, and their card shows no title (GiftsScreen).
-            repo.observeItems(list.id, hiddenFromMe = list.kind != GiftListKind.Ideas)
+            repo.observeItems(list.id, hiddenFromMe = true)
                 .map<List<GiftItem>, Pair<String, List<GiftItem>>?> { items -> list.id to items }
                 .onStart { emit(null) }
                 .catch { e ->
@@ -146,7 +146,7 @@ class GiftsViewModel(
 /**
  * An occasion to prepare in the Cadeaux tab (récit 9 ter): it replaces the lists for an occasion.
  * Christmas shows everyone; a birthday shows its person. A wish counts for it when it says so, or
- * when it says nothing (« Quand tu veux »); the ideas of the family always count.
+ * when it says nothing (« Quand tu veux »).
  */
 sealed interface GiftMoment {
     data class Christmas(val year: Int) : GiftMoment
@@ -168,10 +168,9 @@ internal fun forMoment(state: GiftsUiState, chosen: GiftMoment?): GiftsUiState {
         is GiftMoment.BirthdayOf -> state.sections.filter { it.member.id == moment.member.id }
         else -> state.sections
     }
-    val wishesIds = state.sections.mapNotNull { it.wishes?.id }.toSet()
     val previews = state.listItems.mapValues { (listId, items) ->
         // A wish: only what its person sees, for the occasion. An idea of the family: all of them.
-        if (listId in wishesIds) wishPreview(items.filter { counts(it, moment) }) else wishPreview(items, onlyVisible = false)
+        wishPreview(items.filter { counts(it, moment) })
     }
     return state.copy(sections = kept, wishPreviews = previews, occasions = occasions, moment = moment)
 }
@@ -186,8 +185,8 @@ private fun counts(item: GiftItem, moment: GiftMoment?): Boolean = when (moment)
 data class WishPreview(val count: Int, val titles: List<String>)
 
 /** The preview of [items]: their number, and the first [WISH_PREVIEW_TITLES] titles in alphabetical order. */
-internal fun wishPreview(items: List<GiftItem>, onlyVisible: Boolean = true): WishPreview =
-    items.filter { !onlyVisible || it.visibleToBeneficiary }.let { shown ->
+internal fun wishPreview(items: List<GiftItem>): WishPreview =
+    items.filter { it.visibleToBeneficiary }.let { shown ->
         WishPreview(shown.size, shown.map { it.title.trim() }.sortedBy { it.lowercase() }.take(WISH_PREVIEW_TITLES))
     }
 
