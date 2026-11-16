@@ -450,7 +450,13 @@ Une demande passée ne prévient personne, sauf pour le « Merci ». La sauvegar
 | `authorId`, `authorName` | texte | Le membre qui l'a écrite et son prénom, qui ne changent jamais |
 | `createdAt`, `updatedAt` | horodatage | Heure du serveur |
 
-Droits : tous les membres lisent toutes les recettes, et chacun écrit les siennes. L'auteur et l'admin principal les modifient et les retirent. Le module se montre avec l'interrupteur « Carnet de recettes ». Photos, commentaires et partage viendront dans une seconde partie.
+Droits : tous les membres lisent toutes les recettes, et chacun écrit les siennes. L'auteur et l'admin principal les modifient et les retirent. Le module se montre avec l'interrupteur « Carnet de recettes ». Les commentaires et le partage viendront ensuite. Une étiquette est un texte de 1 à 24 caractères. Si le membre nommé dans `originMemberId` quitte la famille, la recette garde son id et reste modifiable.
+
+### `recipes/{recipeId}/photos/{authorId}_{slot}`
+
+Les photos du plat, sur le modèle des photos d'un voyage (`authorId`, `authorName`, `slot`, `createdAt`), avec 3 places par personne (`slot` de 1 à 3). Les fichiers sont dans Storage, à `recipes/{recipeId}/{authorId}/{slot}.jpg` (512 Ko au plus) et `{slot}-thumb.jpg` (64 Ko au plus), envoyés avant la fiche.
+
+Droits : tous les membres les voient. L'auteur de la recette et l'admin principal les ajoutent et les retirent. Quand la recette est supprimée, la fonction `onRecipeDeleted` efface ses photos, les fiches comme les fichiers.
 
 ## Voyages (V3, récits 11 à 15)
 

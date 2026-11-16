@@ -1,5 +1,6 @@
 package fr.familia.app.feature.recipes
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.MemberRepository
@@ -80,6 +81,8 @@ class RecipeEditViewModel(
     private val currentMemberId: String,
     private val recipeId: String?,
     private val writeTimeoutMillis: Long = 4_000,
+    /** Keeps the draft when Android stops the app in the background (relecture #82, C3). */
+    private val savedState: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<RecipeEditUiState>(RecipeEditUiState.Loading)
@@ -113,8 +116,10 @@ class RecipeEditViewModel(
         original = existing
         editedId = existing?.id ?: recipeRepo.newRecipeId()
         initialForm = existing?.let { RecipeForm.from(it) } ?: RecipeForm()
+        val form = restoreDraft() ?: initialForm
         _uiState.value = RecipeEditUiState.Editing(
-            form = initialForm,
+            form = form,
+            hasChanges = form != initialForm,
             isNew = existing == null,
             members = family.members.sortedBy { it.firstName.lowercase() }.map { OriginChoice(it.id, it.firstName) },
             errors = emptySet(),
@@ -128,11 +133,35 @@ class RecipeEditViewModel(
     fun update(change: (RecipeForm) -> RecipeForm) {
         val state = _uiState.value as? RecipeEditUiState.Editing ?: return
         val form = change(state.form)
+        keepDraft(form)
         _uiState.value = state.copy(
             form = form,
             errors = if (showErrors) validate(form) else emptySet(),
             hasChanges = form != initialForm,
             saveFailed = false,
+        )
+    }
+
+    private fun keepDraft(form: RecipeForm) {
+        savedState[DRAFT_TITLE] = form.title
+        savedState[DRAFT_ORIGIN_MEMBER] = form.originMemberId.orEmpty()
+        savedState[DRAFT_ORIGIN] = form.origin
+        savedState[DRAFT_SERVINGS] = form.servings
+        savedState[DRAFT_INGREDIENTS] = form.ingredients
+        savedState[DRAFT_STEPS] = form.steps
+        savedState[DRAFT_TAGS] = form.tags
+    }
+
+    private fun restoreDraft(): RecipeForm? {
+        val title = savedState.get<String>(DRAFT_TITLE) ?: return null
+        return RecipeForm(
+            title = title,
+            originMemberId = savedState.get<String>(DRAFT_ORIGIN_MEMBER)?.takeIf { it.isNotEmpty() },
+            origin = savedState.get<String>(DRAFT_ORIGIN).orEmpty(),
+            servings = savedState.get<String>(DRAFT_SERVINGS).orEmpty(),
+            ingredients = savedState.get<String>(DRAFT_INGREDIENTS).orEmpty(),
+            steps = savedState.get<String>(DRAFT_STEPS).orEmpty(),
+            tags = savedState.get<String>(DRAFT_TAGS).orEmpty(),
         )
     }
 
@@ -178,5 +207,15 @@ class RecipeEditViewModel(
                 (_uiState.value as? RecipeEditUiState.Editing)?.let { _uiState.value = it.copy(isSaving = false, saveFailed = true) }
             }
         }
+    }
+
+    private companion object {
+        const val DRAFT_TITLE = "recipe_draft_title"
+        const val DRAFT_ORIGIN_MEMBER = "recipe_draft_origin_member"
+        const val DRAFT_ORIGIN = "recipe_draft_origin"
+        const val DRAFT_SERVINGS = "recipe_draft_servings"
+        const val DRAFT_INGREDIENTS = "recipe_draft_ingredients"
+        const val DRAFT_STEPS = "recipe_draft_steps"
+        const val DRAFT_TAGS = "recipe_draft_tags"
     }
 }

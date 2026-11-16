@@ -299,6 +299,13 @@ export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) =
   await getStorage().bucket().deleteFiles({ prefix: `trips/${event.params.tripId}/` });
 });
 
+// Carnet de recettes (récit 38): a removed recipe takes its photos with it, records and files.
+export const onRecipeDeleted = onDocumentDeleted('recipes/{recipeId}', async (event) => {
+  const recipe = getFirestore().collection('recipes').doc(event.params.recipeId);
+  await getFirestore().recursiveDelete(recipe.collection('photos'));
+  await getStorage().bucket().deleteFiles({ prefix: `recipes/${event.params.recipeId}/` });
+});
+
 export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/Paris' }, async () => {
   await sendArrivalReminders(getFirestore(), send, new Date());
   // Also the question of the week, on Monday from 9 h (récit 37): one task less to pay for.

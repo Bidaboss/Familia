@@ -2,7 +2,7 @@
 // adult2 in h1, adult3 in h2.
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, Timestamp, updateDoc } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc, Timestamp, updateDoc } from 'firebase/firestore';
 import { ADMIN, ADULT, NEIGHBOUR, OTHER_ADULT, STRANGER, as, createEnv, seed } from './helpers.mjs';
 
 let env;
@@ -73,5 +73,39 @@ describe('recipes (récit 38)', () => {
     await assertFails(updateDoc(doc(as(env, ADULT), 'recipes/r1'), { authorId: 'adult2', updatedAt: serverTimestamp() }));
     await assertFails(deleteDoc(doc(as(env, NEIGHBOUR), 'recipes/r1')));
     await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'recipes/r1')));
+  });
+
+  test('every tag is a short text', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(doc(db, 'recipes/r1'), recipe(ADULT, { tags: ['dessert', 'Noël', 'x'.repeat(24)] })));
+    await assertFails(setDoc(doc(db, 'recipes/r2'), recipe(ADULT, { tags: ['dessert', 42] })));
+    await assertFails(setDoc(doc(db, 'recipes/r3'), recipe(ADULT, { tags: [''] })));
+    await assertFails(setDoc(doc(db, 'recipes/r4'), recipe(ADULT, { tags: ['a', 'b', 'c', 'd', 'e', 'x'.repeat(25)] })));
+  });
+
+  test('a recipe whose origin left the family can still be changed, but not pointed at someone unknown', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'recipes/r1'), {
+        ...recipe(ADULT, { originMemberId: 'gone', origin: '' }),
+        createdAt: Timestamp.fromMillis(0),
+        updatedAt: Timestamp.fromMillis(0),
+      });
+    });
+    const db = as(env, ADULT);
+    await assertSucceeds(updateDoc(doc(db, 'recipes/r1'), { title: 'Gâteau de Mamie', updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db, 'recipes/r1'), { originMemberId: 'nobody', updatedAt: serverTimestamp() }));
+  });
+
+  test('the author or the admin principal adds up to 3 photos, and the family sees them', async () => {
+    await stored('r1', ADULT);
+    const photo = (author, slot) => ({ authorId: author.memberId, authorName: author.memberId, slot, createdAt: serverTimestamp() });
+    await assertSucceeds(setDoc(doc(as(env, ADULT), 'recipes/r1/photos/adult1_1'), photo(ADULT, 1)));
+    await assertSucceeds(setDoc(doc(as(env, ADMIN), 'recipes/r1/photos/admin1_3'), photo(ADMIN, 3)));
+    await assertFails(setDoc(doc(as(env, ADULT), 'recipes/r1/photos/adult1_4'), photo(ADULT, 4)));
+    await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'recipes/r1/photos/adult2_1'), photo(OTHER_ADULT, 1)));
+    await assertSucceeds(getDocs(collection(as(env, NEIGHBOUR), 'recipes/r1/photos')));
+    await assertFails(getDocs(collection(as(env, STRANGER), 'recipes/r1/photos')));
+    await assertFails(deleteDoc(doc(as(env, OTHER_ADULT), 'recipes/r1/photos/adult1_1')));
+    await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'recipes/r1/photos/adult1_1')));
   });
 });

@@ -51,7 +51,14 @@ import fr.familia.app.feature.help.ScreenHelp
 /** One recipe: its ingredients, then its steps, numbered. Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecipeDetailScreen(state: RecipeDetailUiState, onEdit: () -> Unit, onRemove: () -> Unit, onBack: () -> Unit) {
+fun RecipeDetailScreen(
+    state: RecipeDetailUiState,
+    onEdit: () -> Unit,
+    onRemove: () -> Unit,
+    onBack: () -> Unit,
+    /** The photos of the dish, given by the route (none in previews). */
+    photos: @Composable () -> Unit = {},
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -69,14 +76,14 @@ fun RecipeDetailScreen(state: RecipeDetailUiState, onEdit: () -> Unit, onRemove:
                     title = stringResource(R.string.recipe_missing_title),
                     body = stringResource(R.string.recipe_missing_body),
                 )
-                is RecipeDetailUiState.Ready -> Content(state, onEdit, onRemove)
+                is RecipeDetailUiState.Ready -> Content(state, onEdit, onRemove, photos)
             }
         }
     }
 }
 
 @Composable
-private fun Content(state: RecipeDetailUiState.Ready, onEdit: () -> Unit, onRemove: () -> Unit) {
+private fun Content(state: RecipeDetailUiState.Ready, onEdit: () -> Unit, onRemove: () -> Unit, photos: @Composable () -> Unit) {
     val recipe = state.recipe
     val muted = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
     Column(
@@ -90,6 +97,10 @@ private fun Content(state: RecipeDetailUiState.Ready, onEdit: () -> Unit, onRemo
                 Text(pluralStringResource(R.plurals.recipe_servings, it, it), style = MaterialTheme.typography.bodyLarge, color = muted)
             }
             if (recipe.tags.isNotEmpty()) Text(recipe.tags.joinToString(" · "), style = MaterialTheme.typography.bodyMedium, color = muted)
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            SectionTitle(stringResource(R.string.recipe_photos_title))
+            photos()
         }
         ClayCard(modifier = Modifier.fillMaxWidth()) {
             SectionTitle(stringResource(R.string.recipe_ingredients))
