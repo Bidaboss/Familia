@@ -30,6 +30,8 @@ data class ViewAsControl(
     /** Null when « Voir comme » cannot start here (not the admin principal, or already in it). */
     val start: ((Member) -> Unit)? = null,
     val stop: () -> Unit = {},
+    /** In « Voir comme », the admin principal, who still reads with their own account; null outside. */
+    val readerId: String? = null,
 )
 
 val LocalViewAs = staticCompositionLocalOf { ViewAsControl() }

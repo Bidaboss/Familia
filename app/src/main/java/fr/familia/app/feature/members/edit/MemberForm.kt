@@ -17,6 +17,7 @@ data class MemberForm(
     val colorIndex: Int? = null,
     val isAdmin: Boolean = false,
 ) {
+    /** The profile can sign in, so it may have a Google address. It can be left empty and added later. */
     val needsEmail: Boolean get() = profile != MemberProfile.ChildWithoutApp
     val needsParents: Boolean get() = profile != MemberProfile.Adult
 
@@ -24,7 +25,7 @@ data class MemberForm(
     fun toMember(id: String, uid: String?): Member = Member(
         id = id,
         firstName = firstName.trim(),
-        email = if (needsEmail) normalizeEmail(email) else null,
+        email = if (needsEmail) normalizeEmail(email).ifEmpty { null } else null,
         birthDate = birthDate,
         householdId = householdId.orEmpty(),
         profile = profile,
@@ -71,14 +72,24 @@ const val MAX_PARENTS = 4
  * The same checks as the security rules, plus the ones only the app can make (unique address,
  * responsible adults that really are adults).
  */
-fun validate(form: MemberForm, family: Family, editedId: String, today: LocalDate): Set<FormError> = buildSet {
+fun validate(
+    form: MemberForm,
+    family: Family,
+    editedId: String,
+    today: LocalDate,
+    /** The member already signed in: removing the address would lock them out. */
+    emailRequired: Boolean = false,
+): Set<FormError> = buildSet {
     val name = form.firstName.trim()
     if (name.isEmpty()) add(FormError.FirstNameMissing)
     if (name.length > MAX_FIRST_NAME) add(FormError.FirstNameTooLong)
 
     if (form.needsEmail) {
         val email = normalizeEmail(form.email)
-        if (!EMAIL.matches(email)) {
+        if (email.isEmpty()) {
+            // The names are prepared first; the address is added when the person is invited.
+            if (emailRequired) add(FormError.EmailInvalid)
+        } else if (!EMAIL.matches(email)) {
             add(FormError.EmailInvalid)
         } else if (family.members.any { it.id != editedId && it.email == email }) {
             add(FormError.EmailTaken)

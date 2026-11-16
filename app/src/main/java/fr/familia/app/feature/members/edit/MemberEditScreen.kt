@@ -223,7 +223,7 @@ private fun MemberFormContent(
                 label = { Text(stringResource(R.string.member_email)) },
                 isError = FormError.EmailInvalid in errors || FormError.EmailTaken in errors,
                 supportingText = errorText(errors, FormError.EmailInvalid, FormError.EmailTaken)
-                    ?: if (state.canEditEmail) helpText(stringResource(R.string.member_email_help)) else null,
+                    ?: if (state.canEditEmail) helpText(stringResource(R.string.member_email_help_optional)) else null,
                 enabled = state.canEditEmail,
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -389,10 +389,10 @@ private fun AddedContent(
     EmptyState(
         icon = Icons.Outlined.CheckCircle,
         title = stringResource(R.string.member_added_body_title, state.firstName),
-        body = if (state.email != null) {
-            stringResource(R.string.member_added_body_invite)
-        } else {
-            stringResource(R.string.member_added_body_no_app, state.firstName)
+        body = when {
+            state.email != null -> stringResource(R.string.member_added_body_invite)
+            state.hasApp -> stringResource(R.string.member_added_body_no_email, state.firstName)
+            else -> stringResource(R.string.member_added_body_no_app, state.firstName)
         },
         action = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {

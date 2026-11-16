@@ -7,6 +7,7 @@ import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.core.model.Birthday
 import fr.familia.app.core.model.Family
+import fr.familia.app.core.model.GiftItem
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.Member
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -51,6 +53,8 @@ sealed interface GiftsUiState {
         val sections: List<GiftPersonSection>,
         /** Revealed lists, newest first, with the first name of their beneficiary. */
         val archived: List<Pair<GiftList, String>>,
+        /** What each « Envies » holds, by list id, as this member may see it; missing while it loads. */
+        val wishPreviews: Map<String, WishPreview> = emptyMap(),
     ) : GiftsUiState
 
     data object Error : GiftsUiState
@@ -79,6 +83,7 @@ class GiftsViewModel(
                 combine(members.observeFamily(), gifts.observeVisibleLists(currentMemberId), today) { family, lists, day ->
                     giftsState(family, lists, currentMemberId, day)
                 }
+                    .flatMapLatest { state -> withPreviews(gifts, state) }
                     .onStart { if (n > 0) emit(GiftsUiState.Loading) }
                     .catch { e ->
                         if (e is CancellationException) throw e
@@ -91,7 +96,40 @@ class GiftsViewModel(
     fun retry() {
         attempt.update { it + 1 }
     }
+
+    /**
+     * Adds what each « Envies » holds: one live read of its items, never more than the list screen
+     * itself reads, but only the wishes their beneficiary wrote or sees: a surprise idea added by
+     * someone else never shows on the overview (the tab is shown to the whole family, beneficiary
+     * included). A read that fails leaves the card as it was, without the preview.
+     */
+    private fun withPreviews(repo: GiftRepository, state: GiftsUiState): Flow<GiftsUiState> {
+        if (state !is GiftsUiState.Success) return flowOf(state)
+        val wishes = state.sections.mapNotNull { it.wishes }
+        if (wishes.isEmpty()) return flowOf(state)
+        val previews = wishes.map { list ->
+            repo.observeItems(list.id, hiddenFromMe = true)
+                .map<List<GiftItem>, Pair<String, WishPreview>?> { items -> list.id to wishPreview(items) }
+                .onStart { emit(null) }
+                .catch { e ->
+                    if (e is CancellationException) throw e
+                    emit(null)
+                }
+        }
+        return combine(previews) { all -> state.copy(wishPreviews = all.filterNotNull().toMap()) }
+    }
 }
+
+/** What a list of wishes holds: how many, and the first titles for the card. */
+data class WishPreview(val count: Int, val titles: List<String>)
+
+/** The preview of [items]: their number, and the first [WISH_PREVIEW_TITLES] titles in alphabetical order. */
+internal fun wishPreview(items: List<GiftItem>): WishPreview =
+    items.filter { it.visibleToBeneficiary }.let { shown ->
+        WishPreview(shown.size, shown.map { it.title.trim() }.sortedBy { it.lowercase() }.take(WISH_PREVIEW_TITLES))
+    }
+
+private const val WISH_PREVIEW_TITLES = 3
 
 /** Groups the visible lists by beneficiary. Pure, so the tests check it without Firestore. */
 internal fun giftsState(family: Family, lists: List<GiftList>, meId: String, today: LocalDate): GiftsUiState {

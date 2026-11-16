@@ -539,10 +539,16 @@ private fun profileLabel(member: Member, isOwner: Boolean): String {
             MemberProfile.ChildWithoutApp -> R.string.profile_child_without_app
         },
     )
-    return when {
+    val label = when {
         isOwner -> stringResource(R.string.profile_with_owner, profile)
         member.isAdmin -> stringResource(R.string.profile_with_admin, profile)
         else -> profile
+    }
+    // A member prepared ahead: whoever manages the household sees that the invitation is still to come.
+    return if (member.email == null && member.profile != MemberProfile.ChildWithoutApp) {
+        stringResource(R.string.profile_without_email, label)
+    } else {
+        label
     }
 }
 

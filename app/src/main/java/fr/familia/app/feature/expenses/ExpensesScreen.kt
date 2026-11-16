@@ -48,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -259,7 +260,7 @@ private fun Content(
         }
     }
     if (actions != null && editShares && !state.closed) {
-        SharesDialog(state.shareGroups, onSave = actions.onSaveShares, onDismiss = { editShares = false })
+        SharesDialog(state.shareGroups, state.sharesByHousehold, onSave = actions.onSaveShares, onDismiss = { editShares = false })
     }
     if (actions != null && confirmClose) {
         AlertDialog(
@@ -285,7 +286,7 @@ private fun Content(
  * by halves, 1 by default. Each household shows the sum of its people, which the balance uses.
  */
 @Composable
-private fun SharesDialog(groups: List<ShareGroup>, onSave: (Map<String, String>) -> Boolean, onDismiss: () -> Unit) {
+private fun SharesDialog(groups: List<ShareGroup>, byHousehold: Boolean, onSave: (Map<String, String>) -> Boolean, onDismiss: () -> Unit) {
     var typed by rememberSaveable { mutableStateOf(groups.flatMap { it.people }.associate { it.id to shareText(it.shares) }) }
     val sums = groups.associate { g -> g.householdId to g.people.map { parsePersonShare(typed[it.id].orEmpty()) } }
     val allValid = sums.values.all { values -> values.all { it != null } && values.sumOf { it ?: 0.0 } >= SHARE_MIN }
@@ -295,11 +296,16 @@ private fun SharesDialog(groups: List<ShareGroup>, onSave: (Map<String, String>)
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.expenses_shares_body), style = MaterialTheme.typography.bodyMedium)
+                if (byHousehold) {
+                    // A book opened before the shares by person: saving replaces the shares of each household.
+                    Text(stringResource(R.string.expenses_shares_legacy), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                }
                 groups.forEach { g ->
                     val values = sums[g.householdId].orEmpty()
                     val total = values.sumOf { it ?: 0.0 }
                     Text(
-                        stringResource(R.string.expenses_shares_household, g.name, shareText(total)),
+                        // French: « 0,5 part », « 1 part », « 1,5 parts ».
+                        pluralStringResource(R.plurals.expenses_shares_household, if (total < 2.0) 1 else 2, g.name, shareText(total)),
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.padding(top = 8.dp),
                     )
