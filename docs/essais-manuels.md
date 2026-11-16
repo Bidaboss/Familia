@@ -318,3 +318,12 @@ Avec le module « La bienvenue » allumé, un membre ajouté qui ne s'est jamais
 2. Touche la notification. **Attendu :** la fiche du nouveau membre s'ouvre.
 3. Déconnecte-toi, puis reconnecte-toi avec ce compte. **Attendu :** aucune nouvelle notification.
 4. Fais de même avec un membre du foyer de test. **Attendu :** aucune notification.
+
+## Le coin des petits (récit 43)
+
+Avec le module « Le coin des petits » allumé, un compte adulte qui a un enfant dans son foyer, et un autre compte.
+
+1. Publie une Bonne nouvelle « Pour moi ». **Attendu :** pas d'interrupteur « Les petits ».
+2. Publie-en une pour l'enfant, et allume « Dans « Les petits » ». **Attendu :** la carte porte l'étiquette « Les petits », dans le fil et sur sa page.
+3. Avec l'autre compte, ouvre les Bonnes nouvelles et touche le filtre « Les petits ». **Attendu :** seules celles des petits restent. Touche-le encore : tout revient.
+4. Éteins le module. **Attendu :** ni l'interrupteur, ni le filtre, ni l'étiquette pour les membres (l'admin principal voit toujours tout).

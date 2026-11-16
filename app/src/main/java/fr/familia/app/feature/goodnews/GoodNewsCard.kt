@@ -40,12 +40,14 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Reaction
 import fr.familia.app.core.photo.StorageImage
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayLink
+import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.feature.souvenirs.SouvenirFamily
 import java.time.Instant
@@ -89,6 +91,13 @@ fun GoodNewsCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = FamiliaClay.colors.onTintVariant(tint),
                 )
+                if (item.news.littleOnes && LocalFeatureFlags.current.isOn(Feature.LittleOnes)) {
+                    Text(
+                        stringResource(R.string.goodnews_little_ones_label),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
             // In the feed the actions sit in the ⋮ menu; on the page of the post they are visible buttons.
             if (!full && (item.canEdit || item.canRemove || item.canHide)) PostMenu(item, onEdit, onRemove, onHide)

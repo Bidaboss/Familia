@@ -43,3 +43,8 @@ export async function welcomeMember(db: Firestore, send: Sender, memberId: strin
   const others = members.docs.filter((m) => m.id !== memberId && m.get('profile') !== 'childWithoutApp').map((m) => m.id).sort();
   return notify(db, send, others, welcomeNotice(firstName, memberId));
 }
+
+/** A member removed takes their welcome with them (RELECTURE on #145). */
+export async function deleteWelcomeOf(db: Firestore, memberId: string): Promise<void> {
+  await db.collection('welcomes').doc(memberId).delete();
+}

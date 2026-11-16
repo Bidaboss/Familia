@@ -93,6 +93,24 @@ describe('publish', () => {
     await assertFails(setDoc(ref(db), news(ADULT, { forChallenge: true })));
     await assertSucceeds(setDoc(ref(db), news(ADULT, { forChallenge: '2026-12' })));
   });
+
+  test('« Les petits » only on a news an adult publishes for a child (récit 43)', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(ref(db), news(ADULT, { forMemberId: 'kid2', littleOnes: true })));
+    await assertFails(setDoc(ref(db, 'n2'), news(ADULT, { littleOnes: true })));
+    await assertFails(setDoc(ref(db, 'n3'), news(ADULT, { forMemberId: 'kid2', littleOnes: false })));
+    await assertFails(setDoc(ref(db, 'n4'), news(ADULT, { forMemberId: 'kid2', littleOnes: 'oui' })));
+    await assertFails(setDoc(ref(as(env, KID), 'n5'), news(KID, { littleOnes: true })));
+  });
+
+  test('the author never adds or takes off « Les petits » afterwards', async () => {
+    await stored(news(ADULT, { forMemberId: 'kid2' }));
+    await stored(news(ADULT, { forMemberId: 'kid2', littleOnes: true }), 'n2');
+    const db = as(env, ADULT);
+    await assertFails(updateDoc(ref(db), { littleOnes: true, updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(ref(db, 'n2'), { littleOnes: deleteField(), updatedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(ref(db, 'n2'), { text: 'Et sans tomber', updatedAt: serverTimestamp() }));
+  });
 });
 
 describe('read', () => {
