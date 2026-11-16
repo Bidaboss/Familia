@@ -406,11 +406,26 @@ service cloud.firestore {
       allow create, update: if isMember()
         && myMemberId() == memberId
         && settingId == 'notifications'
-        && request.resource.data.keys().hasOnly(['dayBeforeReminder', 'goodNews', 'weekly', 'souvenirs'])
+        && request.resource.data.keys().hasOnly(['dayBeforeReminder', 'goodNews', 'weekly', 'souvenirs', 'tree'])
         && (!('dayBeforeReminder' in request.resource.data) || request.resource.data.dayBeforeReminder is bool)
         && (!('goodNews' in request.resource.data) || request.resource.data.goodNews is bool)
         && (!('weekly' in request.resource.data) || request.resource.data.weekly is bool)
-        && (!('souvenirs' in request.resource.data) || request.resource.data.souvenirs is bool);
+        && (!('souvenirs' in request.resource.data) || request.resource.data.souvenirs is bool)
+        && (!('tree' in request.resource.data) || request.resource.data.tree is bool);
+    }
+
+    // L'arbre de la famille et le défi du mois (PRD, récit 35): familyTree/current and
+    // challenges/{AAAA-MM}, written by the Cloud Functions only, read by the whole family. They
+    // hold no name: nobody sees who gave the most (carte EXPERT-3). treeMarks and treeDays stay
+    // closed: only the functions use them, for the cap of 5 leaves a day.
+    match /familyTree/{treeId} {
+      allow read: if isMember();
+      allow write: if false;
+    }
+
+    match /challenges/{month} {
+      allow read: if isMember();
+      allow write: if false;
     }
 
     // --- Coups de main (PRD, récits 13 à 18) ---------------------------------------------------------
