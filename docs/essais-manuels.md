@@ -458,3 +458,8 @@ Avec le module Partager allumé.
 2. Touche-le. **Attendu :** la feuille d'Android, avec l'image, « Anniversaire de … : … ans le … » et le lien. Rien sur les listes ni les cadeaux.
 3. Module éteint : **Attendu :** pas de bouton.
 
+
+## Une surprise reste cachée en « Voir comme »
+1. Avec l'admin, prépare une liste surprise pour un membre A, dont l'admin est lecteur.
+2. « Voir comme » A, puis ouvre le lien partagé de cette liste (ou une notification qui y mène). **Attendu :** « Liste introuvable », comme pour A sur son téléphone. La liste ne s'affiche pas.
+3. « Voir comme » un autre lecteur de la liste. **Attendu :** la liste s'ouvre.
