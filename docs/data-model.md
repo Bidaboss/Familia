@@ -726,6 +726,8 @@ La position est lue une seule fois, quand le membre touche « Prendre ma positio
 
 Droits : tout membre avec l'appli l'envoie, en son nom. Seuls l'auteur et les destinataires le lisent, pas même l'admin principal. Personne ne le modifie. Seul l'auteur le retire (« Ne plus partager »).
 
+À savoir : Firestore efface les documents expirés avec un retard qui peut aller jusqu'à environ 24 h. Pendant ce temps, un partage expiré reste lisible par l'auteur et les destinataires (les règles ne regardent pas `expireAt` à la lecture). L'appli le cache, mais quelqu'un qui lirait la base directement pourrait encore voir la position.
+
 Cloud Functions (`functions/src/joinMe.ts`) :
 
 | Fonction | Déclencheur | Rôle |
