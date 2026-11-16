@@ -49,6 +49,14 @@ class TreeTest {
     }
 
     @Test
+    fun `levels 1 to 3 fill the inner row of tufts, then the outer row grows (DESIGN)`() {
+        assertEquals(1 to 0, tuftRows(0))
+        assertEquals(4 to 0, tuftRows(3))
+        assertEquals(4 to 2, tuftRows(4))
+        assertEquals(4 to 6, tuftRows(6))
+    }
+
+    @Test
     fun `the gauge never goes past its target`() {
         assertEquals(0.35f, MonthChallenge(december, "20 photos de Noël", "🎄", 20, 7, false).fraction, 0.001f)
         assertEquals(1f, MonthChallenge(december, "x", "", 20, 25, true).fraction, 0.001f)

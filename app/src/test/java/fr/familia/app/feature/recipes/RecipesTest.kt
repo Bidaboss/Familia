@@ -5,7 +5,9 @@ import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.AlbumPhotosUiState
 import fr.familia.app.core.data.RecipeRepository
 import fr.familia.app.core.data.recipeOrder
+import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Recipe
+import fr.familia.app.core.model.RecipeComment
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.testing.MainDispatcherRule
@@ -36,6 +38,15 @@ class FakeRecipes(initial: List<Recipe> = emptyList()) : RecipeRepository {
     }
     override suspend fun deleteRecipe(id: String) {
         recipes.value = recipes.value.filterNot { it.id == id }
+    }
+
+    val comments = MutableStateFlow<List<RecipeComment>>(emptyList())
+    override fun observeComments(recipeId: String): Flow<List<RecipeComment>> = comments
+    override suspend fun addComment(recipeId: String, text: String, me: Member) {
+        comments.value = comments.value + RecipeComment("c${comments.value.size + 1}", text, me.id, me.firstName, null)
+    }
+    override suspend fun deleteComment(recipeId: String, commentId: String) {
+        comments.value = comments.value.filterNot { it.id == commentId }
     }
 }
 
@@ -170,5 +181,62 @@ class RecipesTest {
         val one = AlbumPhoto(recipePhotoFolder("r1"), "adult1", "Adult1", 1, null)
         assertEquals(2, AlbumPhotosUiState(listOf(one), "adult1", canAdd = true, maxPerMember = RECIPE_PHOTOS).placesLeft)
         assertEquals(listOf(2, 3), AlbumPhoto.freeSlots(listOf(1), RECIPE_PHOTOS))
+    }
+
+    @Test
+    fun `a member comments, and only the right people may remove a comment`() = runTest {
+        val repo = FakeRecipes(listOf(apple))
+        val saved = SavedStateHandle()
+        val vm = RecipeCommentsViewModel(repo, FakeMembers(), "adult2", "r1", savedState = saved)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+
+        vm.type("  Avec des poires aussi  ")
+        assertEquals("  Avec des poires aussi  ", saved.get<String>("recipe_comment_draft"))
+        vm.send()
+
+        val mine = vm.uiState.value.comments.single()
+        assertEquals("Avec des poires aussi" to "adult2", mine.comment.text to mine.comment.authorId)
+        assertTrue(mine.canRemove)
+        assertEquals("", vm.uiState.value.draft)
+
+        // adult1 wrote the recipe, so may remove it; kid1 may not.
+        val author = RecipeCommentsViewModel(repo, FakeMembers(), "adult1", "r1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { author.uiState.collect {} }
+        assertTrue(author.uiState.value.comments.single().canRemove)
+        val kid = RecipeCommentsViewModel(repo, FakeMembers(), "kid1", "r1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { kid.uiState.collect {} }
+        assertFalse(kid.uiState.value.comments.single().canRemove)
+
+        author.remove(author.uiState.value.comments.single())
+        assertTrue(repo.comments.value.isEmpty())
+    }
+
+    @Test
+    fun `an empty comment is never sent`() = runTest {
+        val repo = FakeRecipes(listOf(apple))
+        val vm = RecipeCommentsViewModel(repo, FakeMembers(), "adult2", "r1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        vm.type("   ")
+        vm.send()
+        assertTrue(repo.comments.value.isEmpty())
+    }
+
+    @Test
+    fun `the list from a profile keeps only the recipes of that member`() = runTest {
+        val vm = RecipesViewModel(FakeRecipes(listOf(soup, apple)), FakeMembers(), originMemberId = "adult2")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        val ready = vm.uiState.value as RecipesUiState.Ready
+        assertEquals(listOf("r2"), ready.rows.map { it.recipe.id })
+        assertEquals("Adult2" to 1, ready.originName to ready.total)
+    }
+
+    @Test
+    fun `the shared text has the title, the origin, the ingredients and the numbered steps, no photo`() {
+        val labels = RecipeShareLabels("Ingrédients", "Étapes", from = { "De $it" }, servings = { "Pour $it personnes" })
+        val text = recipeShareText(apple.copy(servings = 6, steps = "Couper.\nCuire."), "Mamie Jeanne", labels)
+        assertEquals(
+            "Gâteau aux pommes\nDe Mamie Jeanne\nPour 6 personnes\n\nIngrédients\n• 4 pommes\n• farine\n\nÉtapes\n1. Couper.\n2. Cuire.",
+            text,
+        )
     }
 }

@@ -11,6 +11,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.familia.app.core.navigation.FamiliaApp
 import fr.familia.app.core.notifications.FamiliaMessagingService
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.feature.gifts.share.SharedWish
+import fr.familia.app.feature.gifts.share.sharedWish
 import fr.familia.app.feature.auth.SessionRoute
 
 class MainActivity : ComponentActivity() {
@@ -40,6 +42,8 @@ class MainActivity : ComponentActivity() {
 
     /** A « Rejoignez-moi » was tapped: the Accueil shows it (récit 33). */
     private val openJoinMe = mutableStateOf(false)
+    /** A link shared from another app, for « Mes envies » (récit 8 bis). */
+    private val sharedWish = mutableStateOf<SharedWish?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +58,7 @@ class MainActivity : ComponentActivity() {
             openSouvenir.value = intent.hasSouvenir()
             openPollId.value = intent.pollId()
             openJoinMe.value = intent.hasJoinMe()
+            sharedWish.value = intent.sharedWish()
         }
         val app = application as FamiliaApplication
         val container = app.container
@@ -68,6 +73,7 @@ class MainActivity : ComponentActivity() {
             val souvenirToOpen by openSouvenir
             val pollToOpen by openPollId
             val joinMeToOpen by openJoinMe
+            val wishToAdd by sharedWish
             FamiliaTheme {
                 SessionRoute(container = container) { member ->
                     FamiliaApp(
@@ -92,6 +98,8 @@ class MainActivity : ComponentActivity() {
                         onPollOpened = { openPollId.value = null },
                         openJoinMe = joinMeToOpen,
                         onJoinMeOpened = { openJoinMe.value = false },
+                        sharedWish = wishToAdd,
+                        onSharedWishOpened = { sharedWish.value = null },
                     )
                 }
             }
@@ -110,6 +118,7 @@ class MainActivity : ComponentActivity() {
         if (intent.hasSouvenir()) openSouvenir.value = true
         intent.pollId()?.let { openPollId.value = it }
         if (intent.hasJoinMe()) openJoinMe.value = true
+        intent.sharedWish()?.let { sharedWish.value = it }
     }
 
     private fun Intent.eventId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_EVENT_ID)

@@ -86,6 +86,12 @@ class ProposeIdeaViewModel(
     /** The member as the family knows them, once loaded: the author of the item. */
     private var author: Member? = null
 
+    /** The item of a first attempt, by list: a new attempt writes it again, never a second one. */
+    private val itemIds = mutableMapOf<String, String>()
+
+    /** The lists where the item is already written: a new attempt only retries the rest. */
+    private val written = mutableSetOf<String>()
+
     /** Starts [block] now, up to its first suspension, so that Firestore queues the write in order. */
     private fun write(block: suspend () -> Unit): Deferred<Unit> = viewModelScope.async(start = CoroutineStart.UNDISPATCHED) { block() }
 
@@ -140,7 +146,7 @@ class ProposeIdeaViewModel(
         val me = author ?: return
         choice.value = choice.value.copy(listId = listId, isSaving = true, saveFailed = false)
         viewModelScope.launch {
-            val itemId = giftRepo.newItemId(listId)
+            val itemId = itemIds.getOrPut(listId) { giftRepo.newItemId(listId) }
             // The private note stays in the notebook: it may say where the gift is hidden.
             val item = GiftItem(
                 id = itemId, title = entry.title, url = entry.url, price = entry.price, note = null,
@@ -149,7 +155,9 @@ class ProposeIdeaViewModel(
             // The item and the reservation are queued at once, in this order, so that they reach the
             // server even offline: waiting for one before the next would hold the other back.
             val writes = buildList {
-                add(write { giftRepo.saveItem(listId, item, isNew = true) })
+                if (listId !in written) {
+                    add(write { giftRepo.saveItem(listId, item, isNew = true); written += listId })
+                }
                 if (state.takeIt) add(write { giftRepo.claim(listId, GiftClaim(itemId, ClaimType.Solo, me.id, me.firstName)) })
             }
             val ok = try {

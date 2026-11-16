@@ -50,6 +50,15 @@ private fun videoIntent(context: Context, file: File, action: String): Intent {
     }
 }
 
+/** Opens the share sheet of Android for a plain text (a recipe): no photo, so no reminder needed. */
+fun shareText(context: Context, text: String, chooserTitle: String) {
+    val send = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_TEXT, text)
+    }
+    context.startActivity(Intent.createChooser(send, chooserTitle))
+}
+
 /** Opens the share sheet of Android for [file]. Call it only after [ShareConsentReminder]. */
 fun shareVideo(context: Context, file: File, chooserTitle: String) {
     context.startActivity(Intent.createChooser(videoIntent(context, file, Intent.ACTION_SEND), chooserTitle))

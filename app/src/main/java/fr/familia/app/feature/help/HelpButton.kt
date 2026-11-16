@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import fr.familia.app.core.ui.LocalFeatureFlags
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 
@@ -82,6 +83,10 @@ fun HelpSheetContent(help: ScreenHelp, onOpenAllHelp: () -> Unit) {
     ) {
         Text(stringResource(help.titleRes), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         Text(stringResource(help.bodyRes), style = MaterialTheme.typography.bodyLarge)
+        val flags = LocalFeatureFlags.current
+        help.extras.filter { (feature, _) -> flags.isOn(feature) }.forEach { (_, line) ->
+            Text(stringResource(line), style = MaterialTheme.typography.bodyLarge)
+        }
         TextButton(onClick = onOpenAllHelp, modifier = Modifier.heightIn(min = 56.dp).padding(bottom = 8.dp)) {
             Text(stringResource(R.string.help_all))
         }

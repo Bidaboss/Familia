@@ -303,11 +303,17 @@ export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) =
   await getStorage().bucket().deleteFiles({ prefix: `trips/${event.params.tripId}/` });
 });
 
-// Carnet de recettes (récit 38): a removed recipe takes its photos with it, records and files.
+// Carnet de recettes (récit 38): a removed recipe takes its photos and comments with it, records
+// and files. Each part is tried even if another fails, then the first failure is raised.
 export const onRecipeDeleted = onDocumentDeleted('recipes/{recipeId}', async (event) => {
   const recipe = getFirestore().collection('recipes').doc(event.params.recipeId);
-  await getFirestore().recursiveDelete(recipe.collection('photos'));
-  await getStorage().bucket().deleteFiles({ prefix: `recipes/${event.params.recipeId}/` });
+  const results = await Promise.allSettled([
+    getFirestore().recursiveDelete(recipe.collection('photos')),
+    getFirestore().recursiveDelete(recipe.collection('comments')),
+    getStorage().bucket().deleteFiles({ prefix: `recipes/${event.params.recipeId}/` }),
+  ]);
+  const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
+  if (failed) throw failed.reason;
 });
 
 export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/Paris' }, async () => {

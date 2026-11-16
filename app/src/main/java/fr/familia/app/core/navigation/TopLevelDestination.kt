@@ -138,9 +138,14 @@ data class GiftListDestination(val listId: String)
 @Serializable
 data class GiftListEditDestination(val listId: String? = null, val forMemberId: String? = null)
 
-/** Item form of a gift list: a new item when [itemId] is null. */
+/** Item form of a gift list: a new item when [itemId] is null, filled with a shared link if any. */
 @Serializable
-data class GiftItemEditDestination(val listId: String, val itemId: String? = null)
+data class GiftItemEditDestination(
+    val listId: String,
+    val itemId: String? = null,
+    val sharedUrl: String? = null,
+    val sharedTitle: String? = null,
+)
 
 /** « Mes cadeaux à offrir », the member's private gift notebook (PRD, récit 9 bis). */
 @Serializable

@@ -4,9 +4,16 @@ import androidx.annotation.StringRes
 import fr.familia.app.R
 import fr.familia.app.core.model.Feature
 
-/** The « ? » of a screen (spec « tuto et aide », récit 26): a few sentences on what it does. */
-enum class ScreenHelp(@StringRes val titleRes: Int, @StringRes val bodyRes: Int) {
-    Home(R.string.help_screen_home_title, R.string.help_screen_home_body),
+/**
+ * The « ? » of a screen (spec « tuto et aide », récit 26): a few sentences on what it does, and a
+ * line for each module of the screen that is switched on ([extras]).
+ */
+enum class ScreenHelp(
+    @StringRes val titleRes: Int,
+    @StringRes val bodyRes: Int,
+    val extras: List<Pair<Feature, Int>> = emptyList(),
+) {
+    Home(R.string.help_screen_home_title, R.string.help_screen_home_body, listOf(Feature.Tree to R.string.tree_how)),
     Planning(R.string.help_screen_planning_title, R.string.help_screen_planning_body),
     EventDetail(R.string.help_screen_event_detail_title, R.string.help_screen_event_detail_body),
     EventEdit(R.string.help_screen_event_edit_title, R.string.help_screen_event_edit_body),

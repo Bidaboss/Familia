@@ -43,7 +43,8 @@ class ProposeIdeaTest {
         GiftList(id, kind, title, GiftOccasion.Christmas, LocalDate.of(2026, 12, 25), beneficiary, listOf("adult1", "adult2"), "adult1", "Adult1", revealed)
 
     /** Several lists, and the writes made, in order. */
-    private class Gifts(lists: List<GiftList>, private val failItem: Boolean = false) : GiftRepository by FakeGifts(null) {
+    private class Gifts(lists: List<GiftList>, private val failItem: Boolean = false, var failClaim: Boolean = false) :
+        GiftRepository by FakeGifts(null) {
         val lists = MutableStateFlow(lists)
         val writes = mutableListOf<String>()
         val items = mutableListOf<Pair<String, GiftItem>>()
@@ -55,7 +56,10 @@ class ProposeIdeaTest {
             writes += "item"
             items += listId to item
         }
+        private var nextId = 0
+        override fun newItemId(listId: String): String = "item-${nextId++}"
         override suspend fun claim(listId: String, claim: GiftClaim) {
+            if (failClaim) error("refused")
             writes += "claim"
             claims += claim
         }
@@ -104,6 +108,23 @@ class ProposeIdeaTest {
         val state = vm.uiState.first { it is ProposeIdeaUiState.Choosing && it.saveFailed } as ProposeIdeaUiState.Choosing
         assertFalse(state.isSaving)
         assertEquals(1, notebook.entries.value.size)
+    }
+
+    @Test
+    fun `a new attempt after a refused reservation writes no second item`() = runTest {
+        val gifts = Gifts(listOf(list("s1", GiftListKind.Surprise, "adult2")), failClaim = true)
+        val notebook = FakeNotebook(listOf(idea()))
+        val vm = ProposeIdeaViewModel(notebook, gifts, FakeMembers(), "adult1", "e1")
+        vm.settled()
+        vm.setTakeIt(true)
+        vm.propose()
+        vm.uiState.first { it is ProposeIdeaUiState.Choosing && it.saveFailed }
+        gifts.failClaim = false
+        vm.propose()
+        vm.uiState.first { it is ProposeIdeaUiState.Done }
+        assertEquals(listOf("item", "claim"), gifts.writes)
+        assertEquals("item-0", gifts.claims.single().itemId)
+        assertTrue(notebook.entries.value.isEmpty())
     }
 
     @Test
