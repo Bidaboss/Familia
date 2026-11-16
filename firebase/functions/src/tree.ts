@@ -18,7 +18,8 @@ export function treeLevel(leaves: number): number {
   return TREE_LEVELS.filter((n) => leaves >= n).length - 1;
 }
 
-export type Measure = 'photos' | 'goodNews';
+/** What moves the gauge: photos, Bonnes nouvelles, or Bonnes nouvelles linked to the challenge of a foyer (récit 35 bis). */
+export type Measure = 'photos' | 'goodNews' | 'linked';
 
 export interface Challenge {
   title: string;
@@ -111,13 +112,31 @@ async function pickedId(db: Firestore, month: string): Promise<string | null> {
   return typeof id === 'string' && CATALOG[id] ? id : null;
 }
 
-/** The challenge of [month], created the first time it is needed: the one picked, or the default. */
+/** The challenge a foyer published for [month] (householdChallenges, récit 35 bis), or null. */
+export async function hostedChallenge(db: Firestore, month: string): Promise<(Challenge & { householdId: string }) | null> {
+  const doc = await db.collection('householdChallenges').doc(month).get();
+  if (doc.get('status') !== 'published') return null;
+  return {
+    title: String(doc.get('title')), emoji: String(doc.get('emoji')), measure: 'linked',
+    target: Number(doc.get('target')), householdId: String(doc.get('householdId')),
+  };
+}
+
+/**
+ * The challenge of [month], created the first time it is needed: the one the admin principal
+ * picked, else the one a foyer published (récit 35 bis), else the default of the month.
+ */
 export async function ensureChallenge(db: Firestore, month: string, now: Date): Promise<void> {
   const ref = db.collection('challenges').doc(month);
   if ((await ref.get()).exists) return;
   const picked = await pickedId(db, month);
+  const hosted = picked ? null : await hostedChallenge(db, month);
   const choiceId = picked ?? defaultChallengeId(month);
   try {
+    if (hosted) {
+      await ref.create({ ...hosted, choiceId: null, month, progress: 0, achievedAt: null, source: 'household', createdAt: now });
+      return;
+    }
     await ref.create({ ...CATALOG[choiceId], choiceId, month, progress: 0, achievedAt: null, source: picked ? 'admin' : 'default', createdAt: now });
   } catch (e) {
     if ((e as { code?: number }).code !== 6) throw e; // ALREADY_EXISTS: it is there.
@@ -153,7 +172,7 @@ export async function applyChallengePick(db: Firestore, month: string, now: Date
  * Returns the challenge that was just achieved, or null.
  */
 export async function countForChallenge(
-  db: Firestore, postId: string, photoCount: number, now: Date,
+  db: Firestore, postId: string, photoCount: number, now: Date, forChallenge: string | null = null,
 ): Promise<(Challenge & { month: string }) | null> {
   const month = parisMonth(now);
   await ensureChallenge(db, month, now);
@@ -164,7 +183,9 @@ export async function countForChallenge(
     const [doc, seen] = await Promise.all([t.get(ref), t.get(mark)]);
     if (seen.exists || doc.get('achievedAt')) return null;
     const c = doc.data() as Challenge & { progress: number };
-    const amount = c.measure === 'photos' ? photoCount : 1;
+    // A challenge of a foyer counts the Bonnes nouvelles linked to it, each with a photo.
+    const amount = c.measure === 'linked' ? (forChallenge === month && photoCount > 0 ? 1 : 0)
+      : c.measure === 'photos' ? photoCount : 1;
     t.create(mark, { memberId: null, day: parisDay(now), expireAt: expireAt(parisDay(now)) });
     if (amount <= 0) return null;
     const progress = Math.min(c.target, c.progress + amount);

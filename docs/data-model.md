@@ -385,6 +385,7 @@ Une Bonne nouvelle a un texte court, une à trois photos et peut nommer des memb
 | `reactions` | table `memberId` → `heart` \| `clap` \| `party` \| `laugh` \| `wow` \| `thumbsUp` | Une réaction par membre (❤️ 👏 🎉 😂 😮 👍), rangée par nom |
 | `hiddenByIds` | liste de `memberId` (21 au plus) | Les membres concernés qui ont choisi « Masquer pour moi » (PRD rév. 158) : ils ne la voient plus dans le fil ni sur l'Accueil, les autres si |
 | `createdAt`, `updatedAt` | horodatage serveur | `updatedAt` change quand l'auteur modifie, pas pour une réaction |
+| `forChallenge` | `AAAA-MM`, facultatif | Compte pour le défi lancé par un foyer ce mois-là (récit 35 bis). Fixé à la publication, l'auteur ne le change pas en modifiant |
 
 Le fil se lit par `orderBy('createdAt', 'desc')` et pages de 20 ; la carte d'accueil prend les 3 dernières des 14 derniers jours (même requête, filtrée par l'appli).
 
@@ -669,18 +670,40 @@ Chaque geste compte une seule fois, et chaque personne apporte au plus 5 feuille
 | Champ | Type | Sens |
 |---|---|---|
 | `title`, `emoji` | texte | Par exemple « 20 photos de Noël », 🎄. |
-| `measure` | `photos` \| `goodNews` | Ce qui fait avancer la jauge : les photos des Bonnes nouvelles du mois, ou le nombre de Bonnes nouvelles. |
+| `measure` | `photos` \| `goodNews` \| `linked` | Ce qui fait avancer la jauge : les photos des Bonnes nouvelles du mois, le nombre de Bonnes nouvelles, ou (défi d'un foyer) les Bonnes nouvelles avec photo liées au défi par `forChallenge`. |
 | `target`, `progress` | int | L'objectif et la jauge, qui s'arrête à l'objectif. |
 | `achievedAt` | horodatage ou `null` | Le moment où le défi a été réussi. |
 | `choiceId` | texte | L'entrée de la liste des défis (`CATALOG` dans `tree.ts`, `ChallengeCatalog.kt` dans l'appli : 16 défis). |
-| `source` | `default` \| `admin` | Le défi par défaut du mois, ou celui choisi par l'admin principal. Le défi d'un foyer (récit 35 bis) viendra ensuite. |
+| `source` | `default` \| `admin` \| `household` | Le défi par défaut du mois, celui choisi par l'admin principal, ou celui publié par un foyer (récit 35 bis ; `choiceId` vaut alors `null` et `householdId` nomme le foyer). |
 | `month`, `createdAt` | texte, horodatage | Le mois, et la création. |
 
-Le défi est créé la première fois qu'il sert, à partir du choix de l'admin principal s'il y en a un, sinon du défi par défaut du mois. La tâche de 18 h le crée aussi, pour qu'il soit là dès le 1er du mois.
+Le défi est créé la première fois qu'il sert, à partir du choix de l'admin principal s'il y en a un, sinon du défi publié par le foyer du mois, sinon du défi par défaut du mois. La tâche de 18 h le crée aussi, pour qu'il soit là dès le 1er du mois.
 
 ### `challengePicks/{AAAA-MM}`
 
 Le choix de l'admin principal dans Administration, pour ce mois ou le suivant : `choiceId` (une entrée de la liste) et `pickedAt` (l'heure du serveur). Seul l'admin principal le lit et l'écrit, et personne ne l'efface. La fonction `onChallengePicked` l'applique à `challenges/{mois}` : elle crée le défi s'il n'existe pas encore, ou le remplace tant que personne n'a fait avancer la jauge. Une fois la jauge partie, le défi reste jusqu'à la fin du mois, pour qu'aucune photo ne compte pour rien, et l'appli l'indique.
+
+### `challengeRotation/current` (récit 35 bis)
+
+L'ordre dans lequel les foyers lancent le défi, un mois chacun : `householdIds` (1 à 20 foyers, dans l'ordre), `startMonth` (`AAAA-MM`, le mois du premier) et `updatedAt` (l'heure du serveur). Le foyer d'un mois est `householdIds[(mois - startMonth) % taille]`. La famille le lit, seul l'admin principal l'écrit depuis Administration. Sans ordre, aucun foyer ne prépare de défi.
+
+### `householdChallenges/{AAAA-MM}` (récit 35 bis)
+
+| Champ | Type | Sens |
+|---|---|---|
+| `householdId` | `householdId` | Le foyer dont c'est le tour ce mois-là. |
+| `status` | `draft` \| `published` \| `skipped` | En préparation, publié, ou « Passer notre tour ». |
+| `kind` | `photo` \| `outing` \| `cooking` \| `kindness` \| `creative` | Le genre de défi choisi à l'étape 1. |
+| `title`, `emoji` | texte (60 au plus), emoji | Par exemple « 15 photos de nos balades », 📸. |
+| `illustration` | `sun` \| `heart` \| `leaf` \| `star` \| `camera` \| `pot` | Le dessin de la carte. |
+| `target` | int, 3 à 50 | L'objectif : le nombre de Bonnes nouvelles avec photo liées au défi. |
+| `updatedBy`, `updatedAt` | `memberId`, horodatage serveur | Le dernier qui l'a touché. |
+
+Tout le foyer du mois le prépare, enfants compris, pour le mois en cours ou le suivant. Seul un adulte du foyer le publie ou passe le tour. Une fois publié ou passé, il ne change plus depuis l'appli et personne ne l'efface ; l'admin principal peut toujours imposer un autre défi par `challengePicks`. Toute la famille le lit.
+
+La fonction `onHouseholdChallengeWritten` l'applique quand il passe à `published` : pour le mois en cours, il remplace le défi tant que personne n'a fait avancer la jauge et que l'admin principal n'a rien choisi ; pour le mois suivant, il servira à créer le défi le 1er. Rien de publié le 1er : le défi par défaut prend le relais, sans prévenir la famille.
+
+Sept jours avant son mois, la tâche de 18 h prévient le foyer (ses membres avec l'appli, sauf ceux qui ont coupé `tree`) : « C'est à vous de lancer le défi de janvier ! Préparez-le ensemble dans l'appli, ou passez votre tour. » Une seule fois (`treeMarks/hostReminder-{AAAA-MM}`), pas si le foyer a déjà publié ou passé, ni quand le module `tree` est éteint.
 
 Quand l'objectif est atteint :
 
@@ -690,7 +713,7 @@ Quand l'objectif est atteint :
 
 Module éteint, l'arbre et la jauge avancent quand même, mais rien n'est envoyé ni publié.
 
-Droits : la famille lit `familyTree` et `challenges`. Personne n'y écrit depuis l'appli : seul `challengePicks` est ouvert, et à l'admin principal uniquement.
+Droits : la famille lit `familyTree`, `challenges`, `challengeRotation` et `householdChallenges`. Personne n'écrit `familyTree` ni `challenges` depuis l'appli : `challengePicks` et `challengeRotation` sont ouverts à l'admin principal seul, `householdChallenges` au foyer du mois.
 
 `treeMarks/{markId}` (`goodNews-{postId}`, `reaction-{postId}-{memberId}`, `rsvp-{eventId}-{memberId}`, `help-{requestId}`, `arrival-{tripId}-{stepId}`, `challenge-{postId}`) et `treeDays/{memberId}_{AAAA-MM-JJ}` (`count`) servent aux fonctions seules. Aucune règle ne les ouvre. Un TTL sur `expireAt` les efface 40 jours après. Quand un membre part, ses marques et ses jours sont effacés (carte EXPERT-1), mais ses feuilles restent à la famille.
 
