@@ -2,6 +2,8 @@ package fr.familia.app.core.viewas
 
 import fr.familia.app.core.data.GenealogyRepository
 import fr.familia.app.core.data.NotificationRepository
+import fr.familia.app.core.model.GiftList
+import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.Kin
 import fr.familia.app.core.model.KinLink
 import fr.familia.app.core.model.RsvpStatus
@@ -82,6 +84,21 @@ class ReadOnlyRepositoriesTest {
         assertFalse(notifications.observeDayBeforeReminder("adult1").first())
         assertRefused { notifications.setDayBeforeReminder("adult1", true) }
         assertEquals(1, refused)
+    }
+
+    @Test
+    fun `the member's lists are those the admin may also read, by the same rule`() {
+        fun list(id: String, kind: GiftListKind, beneficiary: String, viewers: List<String>, revealed: Boolean = false) =
+            GiftList(id, kind, "Liste $id", null, null, beneficiary, viewers, "adult2", "Adult2", revealed)
+        // The admin reads these (their own query); the member looked at is adult1.
+        val adminLists = listOf(
+            list("wishes-adult2", GiftListKind.Wishes, "adult2", emptyList()),
+            list("noel", GiftListKind.Own, "kid1", listOf("admin1", "adult1")),
+            list("admin-only", GiftListKind.Own, "kid2", listOf("admin1")),
+            list("revealed", GiftListKind.Surprise, "adult1", listOf("admin1"), revealed = true),
+            list("not-yet", GiftListKind.Surprise, "adult1", listOf("admin1")),
+        )
+        assertEquals(listOf("wishes-adult2", "noel", "revealed"), listsSeenBy(adminLists, "adult1").map { it.id })
     }
 
     @Test
