@@ -1893,17 +1893,20 @@
     <string name="discover_try">Essayer</string>
     <string name="discover_later">Plus tard</string>
     <string name="discover_weekly_question_title">La question de la semaine</string>
-    <string name="discover_weekly_question_body">Chaque lundi, une petite question pour toute la famille. Réponds si tu en as envie, et découvre ce que les autres ont dit.</string>
+    <string name="discover_weekly_question_body">Chaque lundi, une question pour toute la famille. Réponds, puis découvre ce que les autres ont raconté.</string>
     <string name="discover_help_requests_title">L\'entraide</string>
     <string name="discover_help_requests_body">Demande un coup de main à la famille, ou donne le tien.</string>
     <string name="discover_polls_title">Sondages et « Qui apporte quoi »</string>
     <string name="discover_polls_body">Trouve une date qui va à tout le monde, et répartis ce que chacun apporte au repas.</string>
     <string name="discover_recipes_title">Les recettes</string>
-    <string name="discover_recipes_body">Garde les recettes de la famille au même endroit, avec leurs petits secrets.</string>
+    <string name="discover_recipes_body">Garde les recettes de la famille, avec leurs photos, pour les transmettre.</string>
     <string name="discover_trips_title">Voyages et comptes</string>
-    <string name="discover_trips_body">Prépare un voyage ensemble, puis partage les dépenses sans faire de calculs.</string>
+    <string name="discover_trips_body">Prépare un voyage ensemble, note qui a payé quoi, et l\'appli calcule qui doit combien à qui.</string>
     <string name="discover_capsules_title">La capsule temporelle</string>
-    <string name="discover_capsules_body">Écris un message qui ne s\'ouvrira que dans quelques années.</string>
+    <string name="discover_capsules_body">Écris un message qui ne s\'ouvrira qu\'à la date que tu choisis, jusqu\'à 5 ans plus tard.</string>
+    <string name="discover_help_requests_body_child">Demande un coup de main à la famille quand tu en as besoin.</string>
+    <string name="discover_trips_title_child">Les voyages</string>
+    <string name="discover_trips_body_child">Suis les voyages de la famille, étape par étape, avec leurs photos.</string>
     <string name="discover_genealogy_title">L\'arbre généalogique</string>
     <string name="discover_genealogy_body">Retrouve qui est qui dans la famille, génération après génération.</string>
     <!-- « Qui est-ce ? » (récit 43). -->
