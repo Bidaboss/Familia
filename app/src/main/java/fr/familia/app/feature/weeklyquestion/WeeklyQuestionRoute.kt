@@ -11,7 +11,7 @@ import fr.familia.app.core.model.Member
 
 /** Connects the question of the week to its ViewModel; [questionId] null is this week's. */
 @Composable
-fun WeeklyQuestionRoute(container: AppContainer?, currentMember: Member, questionId: String?, onBack: () -> Unit) {
+fun WeeklyQuestionRoute(container: AppContainer?, currentMember: Member, questionId: String?, onBack: () -> Unit, onArchive: () -> Unit = {}) {
     val viewModel: WeeklyQuestionViewModel = viewModel(
         key = "weeklyQuestion-${questionId.orEmpty()}",
         factory = viewModelFactory {
@@ -28,5 +28,6 @@ fun WeeklyQuestionRoute(container: AppContainer?, currentMember: Member, questio
         onRemove = viewModel::removeAnswer,
         onDismissError = viewModel::dismissError,
         onBack = onBack,
+        onArchive = onArchive,
     )
 }

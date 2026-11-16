@@ -856,6 +856,9 @@
     <string name="weekly_edit">Modifier</string>
     <string name="weekly_answer_after_all">Répondre quand même</string>
     <string name="weekly_remove">Retirer</string>
+    <string name="weekly_archive_title">Nos réponses</string>
+    <string name="weekly_archive_error_title">Impossible d\'ouvrir les questions</string>
+    <string name="weekly_archive_error_body">Vérifie ta connexion, puis reviens sur cet écran.</string>
     <plurals name="weekly_answer_count">
         <item quantity="one">%d réponse</item>
         <item quantity="many">%d réponses</item>
