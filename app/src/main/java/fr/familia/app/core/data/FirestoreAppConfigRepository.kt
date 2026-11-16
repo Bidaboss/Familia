@@ -36,6 +36,10 @@ class FirestoreAppConfigRepository(private val db: FirebaseFirestore) : AppConfi
             .await()
     }
 
+    override suspend fun setDiscoverOrder(keys: List<String>) {
+        db.collection("config").document("app").set(mapOf("discoverOrder" to keys), SetOptions.merge()).await()
+    }
+
     private fun toConfig(snapshot: DocumentSnapshot?) = AppConfig(
         latestVersionCode = snapshot?.getLong("latestVersionCode"),
         latestVersionName = snapshot?.getString("latestVersionName"),
@@ -46,5 +50,6 @@ class FirestoreAppConfigRepository(private val db: FirebaseFirestore) : AppConfi
             .mapNotNull { (k, v) -> (k as? String)?.let { key -> (v as? Boolean)?.let { key to it } } }
             .toMap(),
         whatsNew = WhatsNew.parse(snapshot?.get("whatsNew")),
+        discoverOrder = (snapshot?.get("discoverOrder") as? List<*>).orEmpty().filterIsInstance<String>(),
     )
 }

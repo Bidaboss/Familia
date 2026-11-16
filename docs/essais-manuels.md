@@ -112,7 +112,7 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 ## Thèmes au choix (DESIGN-7)
 
 1. Dans Administration > Modules, allume « Thèmes au choix ». Dans l'onglet Famille, **attendu :** une ligne « Apparence » apparaît sous les réglages.
-2. Ouvre « Apparence ». **Attendu :** les 9 thèmes, chacun montré dans ses couleurs et sa police. Touche « Espagne ». **Attendu :** l'appli change tout de suite : fond sable avec azulejos, titres en Abril Fatface, cartes à bordure bleue et ombre dorée.
+2. Ouvre « Apparence ». **Attendu :** les 9 thèmes, chacun montré dans ses couleurs et sa police. Touche « Espagne ». **Attendu :** l'appli change tout de suite : fond crème avec une bande rouge, jaune, rouge en haut, titres en Abril Fatface, cartes à bordure rouge et ombre jaune.
 3. Ferme complètement l'appli et rouvre-la. **Attendu :** le thème choisi est gardé. Sur un autre téléphone, le thème reste Classique.
 4. Passe le téléphone en mode sombre. **Attendu :** Classique devient sombre comme avant. Arcade et Cosmos restent sombres, et les autres thèmes restent clairs.
 5. Dans chaque thème, ouvre Planning, Accueil et Famille. **Attendu :** les textes restent en Nunito et lisibles, les boutons gardent leur place et leur taille, et la couleur de chaque membre ne change pas.
@@ -445,6 +445,28 @@ Avec le module « Pensez à moi » allumé, un adulte parent d'un enfant de moin
 3. Avec le compte de l'ado, ouvre sa fiche. **Attendu :** « Noté par … » avec « Oui » et « Non merci ».
 4. Le jour J vers 10 h. **Attendu :** les autres reçoivent « Pensez à … aujourd'hui ». Sur la fiche, « Aujourd'hui : « … » » et un champ pour un mot. Le membre reçoit « … pense à toi. » à chaque mot. Rien le lendemain.
 5. En « Voir comme », ouvre une fiche. **Attendu :** ni champ ni bouton, la lecture seule.
+
+## L'ordre d'« À découvrir » (AVIS-19 partie 2)
+Avec le compte de l'admin principal et le module « À découvrir » allumé.
+1. Administration : **Attendu :** une section « Ordre d'« À découvrir » » avec les 7 modules, chacun avec sa semaine (« Semaine du 30 novembre »…). Entraide dit « Déjà dans le tuto, pas de semaine » tant que son module est allumé.
+2. Monte « Recettes » en premier. **Attendu :** les semaines se recalculent, et « Enregistrer l'ordre » apparaît. Touche-le.
+3. Dès le 30/11, sur un autre téléphone : **Attendu :** la carte de la première semaine est celle des recettes.
+
+## Partager un anniversaire depuis la liste
+Avec le module Partager allumé.
+1. Cadeaux, « Tous les anniversaires » : **Attendu :** sur chaque ligne, un bouton Partager après « Ajouter à mon agenda ». TalkBack lit « Partager l'anniversaire de … ».
+2. Touche-le. **Attendu :** la feuille d'Android, avec l'image, « Anniversaire de … : … ans le … » et le lien. Rien sur les listes ni les cadeaux.
+3. Module éteint : **Attendu :** pas de bouton.
+
+
+## Une surprise reste cachée en « Voir comme »
+1. Avec l'admin, prépare une liste surprise pour un membre A, dont l'admin est lecteur.
+2. « Voir comme » A, puis ouvre le lien partagé de cette liste (ou une notification qui y mène). **Attendu :** « Liste introuvable », comme pour A sur son téléphone. La liste ne s'affiche pas.
+3. « Voir comme » un autre lecteur de la liste. **Attendu :** la liste s'ouvre.
+
+## Le Planning à 200 %
+1. Réglages Android, taille de police au maximum. Planning : **Attendu :** « Sondages » devient son icône seule, avec la pastille du nombre. Le titre « Planning », le « ? » et ta photo tiennent sur la barre. TalkBack lit « Sondages » et le nombre en attente.
+2. Taille normale : **Attendu :** le bouton « Sondages » écrit, comme avant.
 
 ## Partager une bonne nouvelle ou un coup de main (récit 31)
 Avec l'interrupteur « Partager » allumé :

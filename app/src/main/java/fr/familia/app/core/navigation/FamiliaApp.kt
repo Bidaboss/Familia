@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import fr.familia.app.BuildConfig
 import fr.familia.app.R
 import fr.familia.app.core.viewas.LocalViewAs
@@ -139,11 +140,14 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.ui.graphics.Color
 import fr.familia.app.feature.home.HomeRoute as HomeTab
+import fr.familia.app.feature.discover.Discover
 import fr.familia.app.feature.discover.DiscoverModule
+import fr.familia.app.feature.discover.LocalDiscoverOrder
 import fr.familia.app.feature.polls.rememberPollsToVote
 import fr.familia.app.core.share.canShareApp
 import fr.familia.app.core.share.shareApp
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.pluralStringResource
@@ -526,6 +530,7 @@ fun FamiliaApp(
         LocalOpenHelp provides { navController.navigate(HelpDestination) { launchSingleTop = true } },
         LocalMemberPhotos provides photos,
         LocalFeatureFlags provides features,
+        LocalDiscoverOrder provides remember(appConfig?.discoverOrder) { Discover.order(appConfig?.discoverOrder.orEmpty()) },
         LocalInAppUpdater provides updater,
         LocalSnackbarHost provides snackbar,
         LocalPhotoStorage provides container?.photoStorage,
@@ -1272,6 +1277,9 @@ fun FamiliaApp(
 /** 26 sp instead of the 22 sp of titleLarge. */
 private const val TAB_TITLE_SCALE = 26f / 22f
 
+/** From this font scale on, the Planning bar shows « Sondages » as its icon and badge only. */
+private const val LARGE_FONT_SCALE = 1.5f
+
 /** Title bar of a tab, with its « ? » where the spec has one. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1320,7 +1328,24 @@ private fun TabTopBar(
                         }
                     }
                     // Named, with the number that waits for my vote, so it is found (BUG-1).
-                    if (onPolls != null) {
+                    // At a large font size the named button would leave no room for the title: the
+                    // icon and its badge stay, with the name and the count read by TalkBack.
+                    val largeFont = LocalDensity.current.fontScale >= LARGE_FONT_SCALE
+                    if (onPolls != null && largeFont) {
+                        val waiting = if (pollsToVote > 0) pluralStringResource(R.plurals.polls_to_vote, pollsToVote, pollsToVote) else null
+                        val name = stringResource(R.string.polls_title)
+                        IconButton(
+                            onClick = onPolls,
+                            modifier = Modifier.size(56.dp).semantics {
+                                contentDescription = name
+                                if (waiting != null) stateDescription = waiting
+                            },
+                        ) {
+                            BadgedBox(badge = { if (pollsToVote > 0) Badge { Text(pollsToVote.toString()) } }, modifier = Modifier.clearAndSetSemantics { }) {
+                                Icon(Icons.Outlined.Poll, contentDescription = null)
+                            }
+                        }
+                    } else if (onPolls != null) {
                         val waiting = if (pollsToVote > 0) pluralStringResource(R.plurals.polls_to_vote, pollsToVote, pollsToVote) else null
                         TextButton(
                             onClick = onPolls,

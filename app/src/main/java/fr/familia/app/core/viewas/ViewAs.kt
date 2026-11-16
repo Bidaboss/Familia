@@ -42,7 +42,7 @@ val LocalViewAs = staticCompositionLocalOf { ViewAsControl() }
  * with their own account: the help requests of the member show (the rules let the admin principal
  * read them all), the lists kept from the admin do not.
  */
-class ViewAsContainer(private val base: AppContainer, guard: ViewAsGuard, adminId: String) : AppContainer {
+class ViewAsContainer(private val base: AppContainer, guard: ViewAsGuard, adminId: String, viewedId: String) : AppContainer {
     override val authRepository = base.authRepository?.let { ReadOnlyAuthRepository(it, guard) }
     override val memberRepository = base.memberRepository?.let { ReadOnlyMemberRepository(it, guard) }
     override val linkPreviewRepository = base.linkPreviewRepository
@@ -70,7 +70,7 @@ class ViewAsContainer(private val base: AppContainer, guard: ViewAsGuard, adminI
     override val albumPhotoRepository = base.albumPhotoRepository?.let { ReadOnlyAlbumPhotoRepository(it, guard) }
     override val filmMaker = base.filmMaker
     override val appConfigRepository = base.appConfigRepository?.let { ReadOnlyAppConfigRepository(it, guard) }
-    override val giftRepository = base.giftRepository?.let { ReadOnlyGiftRepository(it, guard, adminId) }
+    override val giftRepository = base.giftRepository?.let { ReadOnlyGiftRepository(it, guard, adminId, viewedId) }
     override val notebookRepository = base.notebookRepository?.let { ReadOnlyNotebookRepository(it, guard) }
     override val usageRepository = base.usageRepository?.let { ReadOnlyUsageRepository(it, guard) }
     override val usageTracker: UsageTracker? = null
