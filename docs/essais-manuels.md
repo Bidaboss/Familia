@@ -463,3 +463,7 @@ Avec le module Partager allumé.
 1. Avec l'admin, prépare une liste surprise pour un membre A, dont l'admin est lecteur.
 2. « Voir comme » A, puis ouvre le lien partagé de cette liste (ou une notification qui y mène). **Attendu :** « Liste introuvable », comme pour A sur son téléphone. La liste ne s'affiche pas.
 3. « Voir comme » un autre lecteur de la liste. **Attendu :** la liste s'ouvre.
+
+## Le Planning à 200 %
+1. Réglages Android, taille de police au maximum. Planning : **Attendu :** « Sondages » devient son icône seule, avec la pastille du nombre. Le titre « Planning », le « ? » et ta photo tiennent sur la barre. TalkBack lit « Sondages » et le nombre en attente.
+2. Taille normale : **Attendu :** le bouton « Sondages » écrit, comme avant.
