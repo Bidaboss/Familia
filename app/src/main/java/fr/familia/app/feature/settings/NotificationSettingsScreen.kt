@@ -1,5 +1,6 @@
 package fr.familia.app.feature.settings
 
+import androidx.compose.ui.text.style.TextOverflow
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.ui.LocalFeatureFlags
 import androidx.compose.foundation.layout.Arrangement
@@ -78,7 +79,7 @@ fun NotificationSettingsScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.notifications_title)) },
+                title = { Text(stringResource(R.string.notifications_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
             )
         },

@@ -1,5 +1,6 @@
 package fr.familia.app.feature.weeklyquestion
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -81,7 +82,7 @@ fun WeeklyQuestionScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.weekly_title)) },
+                title = { Text(stringResource(R.string.weekly_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = {
                     TextButton(onClick = onArchive, modifier = Modifier.heightIn(min = 56.dp)) {

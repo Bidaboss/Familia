@@ -1,5 +1,6 @@
 package fr.familia.app.feature.goodnews.feed
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -67,7 +68,7 @@ fun GoodNewsFeedScreen(
     var removing by rememberSaveable { mutableStateOf<String?>(null) }
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.goodnews_title)) }, navigationIcon = { BackButton(onClick = onBack) })
+            TopAppBar(title = { Text(stringResource(R.string.goodnews_title), maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) })
         },
         floatingActionButton = {
             if (state is GoodNewsFeedUiState.Success) {

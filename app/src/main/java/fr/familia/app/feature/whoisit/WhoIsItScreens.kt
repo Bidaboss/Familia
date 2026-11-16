@@ -159,7 +159,7 @@ private fun guessLine(guess: WhoIsItGuess): String = when {
 @Composable
 fun WhoIsItPostScreen(state: WhoIsItPostUiState, actions: WhoIsItActions, onDelete: () -> Unit, onBack: () -> Unit) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.feature_who_is_it)) }, navigationIcon = { BackButton(onClick = onBack) }) },
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.feature_who_is_it), maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) }) },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
@@ -211,7 +211,7 @@ private fun RemoveButton(onDelete: () -> Unit) {
 @Composable
 fun WhoIsItListScreen(state: WhoIsItListUiState, onOpen: (String) -> Unit, onAdd: (() -> Unit)?, onBack: () -> Unit) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.feature_who_is_it)) }, navigationIcon = { BackButton(onClick = onBack) }) },
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.feature_who_is_it), maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) }) },
         floatingActionButton = {
             if (onAdd != null) {
                 ExtendedFloatingActionButton(
@@ -287,7 +287,7 @@ data class WhoIsItEditActions(
 fun WhoIsItEditScreen(state: WhoIsItEditUiState.Editing, actions: WhoIsItEditActions, onBack: () -> Unit) {
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> uri?.let { actions.onPhoto(it.toString()) } }
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.who_is_it_add)) }, navigationIcon = { BackButton(onClick = onBack) }) },
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.who_is_it_add), maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) }) },
     ) { padding ->
         Column(
             Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = ClaySpacing.screen, vertical = 16.dp),

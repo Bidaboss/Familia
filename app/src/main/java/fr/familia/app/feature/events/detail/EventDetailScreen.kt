@@ -1,5 +1,6 @@
 package fr.familia.app.feature.events.detail
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
@@ -103,7 +104,7 @@ fun EventDetailScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.event_detail_title)) },
+                title = { Text(stringResource(R.string.event_detail_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
                     BackButton(onClick = onBack)
                 },
