@@ -31,12 +31,14 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
 
     override fun observeVisibleLists(memberId: String): Flow<List<GiftList>> {
         val lists = db.collection(LISTS)
-        // Three queries the rules can prove, merged: Firestore has no OR across these fields.
+        // Four queries the rules can prove, merged: Firestore has no OR across these fields. The ideas
+        // of the family (récit 9 ter) are read for everyone but oneself (index kind + beneficiaryId).
         return combine(
             lists.whereArrayContains("viewerIds", memberId).observe { it.toGiftList() },
             lists.whereEqualTo("kind", GiftListKind.Wishes.firestoreValue).observe { it.toGiftList() },
             lists.whereEqualTo("beneficiaryId", memberId).whereEqualTo("revealed", true).observe { it.toGiftList() },
-        ) { seen, wishes, revealed -> (seen + wishes + revealed).distinctBy { it.id } }
+            lists.whereEqualTo("kind", GiftListKind.Ideas.firestoreValue).whereNotEqualTo("beneficiaryId", memberId).observe { it.toGiftList() },
+        ) { seen, wishes, revealed, ideas -> (seen + wishes + revealed + ideas).distinctBy { it.id } }
     }
 
     override fun observeList(listId: String): Flow<GiftList?> = callbackFlow {
@@ -118,6 +120,7 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
             "price" to item.price,
             "note" to item.note,
             "imageUrl" to item.imageUrl,
+            "occasion" to item.occasion?.takeIf { it == GiftOccasion.Christmas || it == GiftOccasion.Birthday }?.firestoreValue,
             "updatedAt" to FieldValue.serverTimestamp(),
         )
         if (isNew) {
@@ -269,6 +272,7 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
             authorName = getString("authorName").orEmpty(),
             visibleToBeneficiary = getBoolean("visibleToBeneficiary") == true,
             imageUrl = getString("imageUrl"),
+            occasion = GiftOccasion.fromFirestore(getString("occasion")),
         )
     }
 

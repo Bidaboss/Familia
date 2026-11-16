@@ -277,7 +277,7 @@ PRD, récits 7 à 10 bis. **La surprise est gardée par le serveur** : les règl
 
 | Champ | Type | Description |
 |---|---|---|
-| `kind` | `wishes` \| `own` \| `surprise` | « Mes envies », ma liste d'occasion, ou une liste surprise pour un autre membre |
+| `kind` | `wishes` \| `own` \| `surprise` \| `ideas` | « Mes envies », ma liste d'occasion, une liste surprise pour un autre membre, ou « Idées de la famille » (récit 9 ter) |
 | `title` | texte, 1 à 60 caractères | « Noël 2026 », « Anniversaire de … » |
 | `occasion` | `christmas` \| `birthday` \| `birth` \| `other`, ou null | Null pour « Mes envies » |
 | `date` | texte `AAAA-MM-JJ` ou null | Date de l'occasion. Null pour « Mes envies » |
@@ -294,7 +294,9 @@ PRD, récits 7 à 10 bis. **La surprise est gardée par le serveur** : les règl
 - **Créer** : une liste `own` ou « Mes envies » pour un membre dont on tient les listes ; une liste `surprise` pour n'importe quel autre membre.
 - **Modifier** (titre, occasion, date, `viewerIds`) et **supprimer** : le créateur, et pour une liste `own` ou « Mes envies », celui qui tient les listes du bénéficiaire. Une liste révélée ne se modifie plus.
 
-Requêtes de l'appli, toutes acceptées par les règles : `viewerIds array-contains moi`, `kind == 'wishes'`, et `beneficiaryId == moi` avec `revealed == true` pour retrouver les surprises révélées.
+- **« Idées de la famille »** (récit 9 ter, PRD rév. 209) : `ideas-{memberId}`, une par membre, permanente comme « Mes envies » (`occasion`, `date` null, `viewerIds` vide). Toute la famille la lit et y ajoute des idées, **sauf la personne**, qui ne la lit jamais, même en « Voir comme ». N'importe qui d'autre la crée à la première idée. Ses idées ont toujours `visibleToBeneficiary` faux. Elle remplace les listes surprises derrière l'interrupteur « Liste unique ».
+
+Requêtes de l'appli, toutes acceptées par les règles : `viewerIds array-contains moi`, `kind == 'wishes'`, `beneficiaryId == moi` avec `revealed == true` pour retrouver les surprises révélées, et `kind == 'ideas'` avec `beneficiaryId != moi` (index composé `kind` + `beneficiaryId`).
 
 ### `giftLists/{listId}/items/{itemId}`
 
@@ -306,7 +308,8 @@ Requêtes de l'appli, toutes acceptées par les règles : `viewerIds array-conta
 | `note` | texte (500 au plus) ou null | Taille, couleur… |
 | `imageUrl` | texte `https://` (1 000 au plus), null ou absent | Facultatif : image lue dans l'aperçu d'un lien partagé (carte PRODUIT-34). Familia ne stocke aucune image |
 | `authorId`, `authorName` | `memberId`, texte | Qui l'a ajouté, jamais modifiés |
-| `visibleToBeneficiary` | booléen | Vrai seulement si l'auteur tient les listes du bénéficiaire et que la liste n'est pas une surprise. Les règles l'imposent |
+| `visibleToBeneficiary` | booléen | Vrai seulement si l'auteur tient les listes du bénéficiaire et que la liste n'est ni une surprise ni « Idées de la famille ». Les règles l'imposent |
+| `occasion` | `christmas` \| `birthday`, null ou absent | Récit 9 ter : l'occasion pour laquelle une envie est notée. Null ou absent : « Quand vous voulez » |
 | `createdAt`, `updatedAt` | horodatage serveur | |
 
 - **Lire** : ceux qui voient la liste. Le bénéficiaire ne lit que `visibleToBeneficiary == true` (l'appli filtre sa requête ainsi) jusqu'à la révélation.

@@ -97,8 +97,11 @@ class ReadOnlyRepositoriesTest {
             list("admin-only", GiftListKind.Own, "kid2", listOf("admin1")),
             list("revealed", GiftListKind.Surprise, "adult1", listOf("admin1"), revealed = true),
             list("not-yet", GiftListKind.Surprise, "adult1", listOf("admin1")),
+            // The ideas of the family (récit 9 ter): those for someone else, never those for the member.
+            list("ideas-adult2", GiftListKind.Ideas, "adult2", emptyList()),
+            list("ideas-adult1", GiftListKind.Ideas, "adult1", emptyList()),
         )
-        assertEquals(listOf("wishes-adult2", "noel", "revealed"), listsSeenBy(adminLists, "adult1").map { it.id })
+        assertEquals(listOf("wishes-adult2", "noel", "revealed", "ideas-adult2"), listsSeenBy(adminLists, "adult1").map { it.id })
     }
 
     @Test

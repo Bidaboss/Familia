@@ -458,5 +458,8 @@ class ReadOnlyExpenseRepository(private val inner: ExpenseRepository, private va
 
 /** The lists of [lists] that [memberId] sees, by the rule of canSeeList (firebase/firestore.rules). */
 fun listsSeenBy(lists: List<GiftList>, memberId: String): List<GiftList> = lists.filter { list ->
-    list.kind == GiftListKind.Wishes || memberId in list.viewerIds || (list.beneficiaryId == memberId && list.revealed)
+    list.kind == GiftListKind.Wishes
+        // The ideas of the family stay hidden from their person, « Voir comme » included (récit 9 ter).
+        || (list.kind == GiftListKind.Ideas && list.beneficiaryId != memberId)
+        || memberId in list.viewerIds || (list.beneficiaryId == memberId && list.revealed)
 }

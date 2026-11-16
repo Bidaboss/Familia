@@ -12,6 +12,12 @@ enum class GiftListKind(val firestoreValue: String) {
 
     /** A list made for another member, who never sees it before the reveal. */
     Surprise("surprise"),
+
+    /**
+     * « Idées de la famille » (récit 9 ter): one permanent list per member, ideas-{memberId}, that the
+     * whole family but the person reads and adds to. Its ideas are never visible to the person.
+     */
+    Ideas("ideas"),
     ;
 
     companion object {
@@ -49,6 +55,12 @@ data class GiftList(
 /** The id of the « Mes envies » list of [memberId]: there is exactly one. */
 fun wishesListId(memberId: String): String = "wishes-$memberId"
 
+/** The id of the « Idées de la famille » of [memberId]: there is exactly one (récit 9 ter). */
+fun ideasListId(memberId: String): String = "ideas-$memberId"
+
+/** The two lists every member keeps all year (récit 9 ter). */
+val GiftListKind.isPermanent: Boolean get() = this == GiftListKind.Wishes || this == GiftListKind.Ideas
+
 /** An item of a list. [visibleToBeneficiary] is false for a surprise idea added by someone else. */
 data class GiftItem(
     val id: String,
@@ -61,6 +73,8 @@ data class GiftItem(
     val authorName: String,
     val visibleToBeneficiary: Boolean,
     val imageUrl: String? = null,
+    /** The occasion a wish is for (récit 9 ter): Christmas or a birthday; null for « Quand vous voulez ». */
+    val occasion: GiftOccasion? = null,
 )
 
 enum class ClaimType(val firestoreValue: String) {
