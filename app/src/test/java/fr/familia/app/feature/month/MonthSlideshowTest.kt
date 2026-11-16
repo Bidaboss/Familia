@@ -2,8 +2,11 @@ package fr.familia.app.feature.month
 
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.AlbumPhotoRepository
+import fr.familia.app.core.data.TreeRepository
+import fr.familia.app.core.model.FamilyTree
 import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.MonthChallenge
 import fr.familia.app.feature.events.FakeEvents
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
@@ -12,6 +15,7 @@ import fr.familia.app.feature.trips.TestTrips
 import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -19,6 +23,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -107,5 +112,33 @@ class MonthSlideshowTest {
         albums.photos.value = listOf(photo("trips/t1", 3, "2027-07-15T09:00:00Z"))
 
         assertEquals(1, vm.uiState.value.photos.size)
+    }
+
+    private class FakeTree(private val challenge: Flow<MonthChallenge?>) : TreeRepository {
+        override fun observeTree(): Flow<FamilyTree> = MutableStateFlow(FamilyTree())
+        override fun observeChallenge(month: YearMonth): Flow<MonthChallenge?> = challenge
+    }
+
+    private val summer = MonthChallenge(july, "15 photos de l'été", "☀️", target = 15, progress = 9, achieved = false)
+
+    @Test
+    fun `the challenge of the month shows with the photos when the tree is on`() = runTest {
+        val vm = MonthSlideshowViewModel(FakeTrips(), FakeEvents(), FakeAlbums(emptyList()), FakeMembers(), "adult1", july, ZoneOffset.UTC, tree = FakeTree(MutableStateFlow(summer)))
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        assertEquals(summer, vm.uiState.value.challenge)
+    }
+
+    @Test
+    fun `without the tree, or when the challenge cannot load, the slideshow still shows`() = runTest {
+        val off = MonthSlideshowViewModel(FakeTrips(), FakeEvents(), FakeAlbums(emptyList()), FakeMembers(), "adult1", july, ZoneOffset.UTC)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { off.uiState.collect {} }
+        assertNull(off.uiState.value.challenge)
+        assertFalse(off.uiState.value.loading)
+
+        val broken = FakeTree(flow { throw IllegalStateException("offline") })
+        val vm = MonthSlideshowViewModel(FakeTrips(), FakeEvents(), FakeAlbums(emptyList()), FakeMembers(), "adult1", july, ZoneOffset.UTC, tree = broken)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        assertNull(vm.uiState.value.challenge)
+        assertFalse(vm.uiState.value.loading)
     }
 }

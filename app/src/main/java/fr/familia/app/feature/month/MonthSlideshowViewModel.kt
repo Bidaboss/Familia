@@ -7,8 +7,10 @@ import fr.familia.app.core.album.AlbumPhotoRepository
 import fr.familia.app.core.album.albumPhotoOrder
 import fr.familia.app.core.data.EventRepository
 import fr.familia.app.core.data.MemberRepository
+import fr.familia.app.core.data.TreeRepository
 import fr.familia.app.core.data.TripRepository
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.MonthChallenge
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -30,11 +32,14 @@ data class MonthSlideshowUiState(
     /** Newest first, like an album. */
     val photos: List<AlbumPhoto> = emptyList(),
     val birthdays: List<Member> = emptyList(),
+    /** The challenge of the month (récits 35 and 35 bis), when the tree is on. */
+    val challenge: MonthChallenge? = null,
 )
 
 /**
  * The photos and birthdays of [month] for [currentMemberId], read live from the albums they can
- * see (see monthAlbums). Nothing is written here: each photo is removed from its own album.
+ * see (see monthAlbums), and the challenge of the month from [tree] (null when the tree is off).
+ * Nothing is written here: each photo is removed from its own album.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class MonthSlideshowViewModel(
@@ -45,6 +50,7 @@ class MonthSlideshowViewModel(
     currentMemberId: String,
     private val month: YearMonth,
     private val zone: ZoneId = ZoneId.systemDefault(),
+    tree: TreeRepository? = null,
 ) : ViewModel() {
 
     val uiState: StateFlow<MonthSlideshowUiState> =
@@ -61,11 +67,12 @@ class MonthSlideshowViewModel(
             }
                 .distinctUntilChanged()
                 .flatMapLatest { (folders, birthdays) ->
-                    photosOf(albums, folders).map { photos ->
+                    combine(photosOf(albums, folders), challengeOf(tree)) { photos, challenge ->
                         MonthSlideshowUiState(
                             loading = false,
                             photos = photos.filter { folders.keep(it, month, zone) }.sortedWith(albumPhotoOrder),
                             birthdays = birthdays,
+                            challenge = challenge,
                         )
                     }
                 }
@@ -73,6 +80,10 @@ class MonthSlideshowViewModel(
                 .catch { e -> if (e is CancellationException) throw e else emit(MonthSlideshowUiState(loading = false)) }
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MonthSlideshowUiState())
         }
+
+    /** A challenge that cannot be read is left out; the photos still show. */
+    private fun challengeOf(tree: TreeRepository?): Flow<MonthChallenge?> =
+        tree?.observeChallenge(month)?.catch { e -> if (e is CancellationException) throw e else emit(null) } ?: flowOf(null)
 
     private fun photosOf(albums: AlbumPhotoRepository, folders: MonthAlbums): Flow<List<AlbumPhoto>> =
         if (folders.all.isEmpty()) {

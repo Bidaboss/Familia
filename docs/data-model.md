@@ -166,6 +166,8 @@ Un document par dimanche, posé par la tâche de 18 h quand elle envoie « La se
 
 Le dimanche, si le module `recap` est allumé, chaque membre qui a l'appli et n'a pas coupé `recap` reçoit une notification (canal `recap`, discret, donnée `recapWeek`) qui résume la semaine : les photos des Bonnes nouvelles des 7 derniers jours, les anniversaires des 14 prochains jours, la jauge du défi (si le module `tree` est allumé) et les voyages en cours que ce membre peut voir (`readerIds` : un voyage surprise reste caché). Sans nouvelle, le texte reste simple : « Les nouvelles de la famille, en un coup d'œil. » Au toucher, l'écran « La semaine de la famille » (`feature/recap`) relit lui-même ce que le membre peut voir : les 3 photos de la semaine (les plus aimées d'abord, sans compte ni nom, sans les Bonnes nouvelles qu'il a masquées), les anniversaires des 14 prochains jours, la jauge du défi et les voyages en cours qu'il suit. Chaque partie suit son module (`goodNews`, `trips`, `tree`).
 
+Le dernier dimanche du mois, si le module `monthSlideshow` est allumé, la même notification annonce le diaporama du mois (récit 42) : « Le diaporama de novembre », « Les photos du mois et le défi, en un film à regarder. » Au toucher, de ce dimanche à la fin du mois, l'appli ouvre le diaporama au lieu de la semaine. Le diaporama montre aussi la jauge du défi du mois quand le module `tree` est allumé, qu'il vienne de Familia, de l'admin ou d'un foyer (récit 35 bis).
+
 ### `birthdayCards/{AAAA}-{forMemberId}-{authorId}` (récit 36, vœux d'anniversaire)
 
 Une carte de vœux par membre et par anniversaire, derrière le module `birthdayWishes`.

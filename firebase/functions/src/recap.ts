@@ -4,6 +4,9 @@
 // (settings/notifications.recap). The screen reads the family's data itself: the notice only says
 // what is in it.
 //
+// The last Sunday of the month, with the module `monthSlideshow` on, the notice becomes the one of
+// the slideshow of the month (récit 42): the app then opens the slideshow instead of the week.
+//
 // weeklyRecaps/{AAAA-MM-JJ} (the Sunday) marks a week as told; only the functions use it.
 
 import type { Firestore } from 'firebase-admin/firestore';
@@ -19,6 +22,20 @@ export interface WeekNews {
   challengePercent: number | null;
   challengeDone: boolean;
   trips: number;
+}
+
+const MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+/** True when [sunday] (AAAA-MM-JJ) is the last Sunday of its month. */
+export function isLastSunday(sunday: string): boolean {
+  return addDays(sunday, 7).slice(0, 7) !== sunday.slice(0, 7);
+}
+
+/** The notice of the last Sunday of the month (récit 42), in place of the week. */
+export function slideshowNotice(sunday: string, news: WeekNews): Notice {
+  const month = MONTHS[Number(sunday.slice(5, 7)) - 1];
+  const challenge = news.challengeDone ? ' et le défi réussi' : news.challengePercent !== null ? ' et le défi' : '';
+  return { channel: 'recap', title: `Le diaporama de ${month}`, body: `Les photos du mois${challenge}, en un film à regarder.`, recapWeek: sunday };
 }
 
 export function recapNotice(sunday: string, news: WeekNews): Notice {
@@ -104,9 +121,10 @@ export async function sendWeeklyRecap(db: Firestore, send: Sender, now: Date): P
   const told = withApp.filter((id) => !muted.has(id));
   // One notice per member, sent in groups of members who are told the same thing.
   const week = await loadWeek(db, now);
+  const slideshow = isLastSunday(sunday) && (await featureOn(db, 'monthSlideshow'));
   const groups = new Map<string, { notice: Notice; ids: string[] }>();
   for (const id of told) {
-    const notice = recapNotice(sunday, newsFor(week, id));
+    const notice = (slideshow ? slideshowNotice : recapNotice)(sunday, newsFor(week, id));
     const group = groups.get(notice.body) ?? { notice, ids: [] };
     group.ids.push(id);
     groups.set(notice.body, group);

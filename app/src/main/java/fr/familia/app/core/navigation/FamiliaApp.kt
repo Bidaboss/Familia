@@ -152,6 +152,7 @@ import fr.familia.app.feature.events.album.EventAlbumDestination
 import fr.familia.app.feature.events.album.EventAlbumRoute
 import fr.familia.app.feature.month.MonthSlideshowDestination
 import fr.familia.app.feature.month.MonthSlideshowRoute
+import fr.familia.app.feature.month.isSlideshowTime
 import fr.familia.app.feature.recipes.RecipeDetailDestination
 import fr.familia.app.feature.recipes.RecipeDetailRoute
 import fr.familia.app.feature.recipes.RecipeEditDestination
@@ -177,7 +178,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
+import java.time.LocalDate
 import java.time.YearMonth
+import java.time.ZoneId
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -412,11 +415,18 @@ fun FamiliaApp(
         }
     }
 
-    // And for « La semaine de la famille » (récit 36).
+    // And for « La semaine de la famille » (récit 36). From the last Sunday of the month, with the
+    // slideshow on, the same notice opens the slideshow of the month instead (récit 42).
     val recapOn = features.isOn(Feature.Recap)
-    LaunchedEffect(openRecap, recapOn) {
+    val slideshowOn = features.isOn(Feature.MonthSlideshow)
+    LaunchedEffect(openRecap, recapOn, slideshowOn) {
         if (openRecap && recapOn) {
-            navController.navigate(RecapDestination) { launchSingleTop = true }
+            val today = LocalDate.now(ZoneId.of("Europe/Paris"))
+            if (slideshowOn && isSlideshowTime(today)) {
+                navController.navigate(MonthSlideshowDestination(today.year, today.monthValue)) { launchSingleTop = true }
+            } else {
+                navController.navigate(RecapDestination) { launchSingleTop = true }
+            }
             onRecapOpened()
         }
     }

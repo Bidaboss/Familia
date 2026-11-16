@@ -453,8 +453,13 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
   await checkConsumptionIfDue(getFirestore(), cloudMonitoring, send, new Date());
   // And the time capsules whose day has come (récit 39).
   await openDueCapsules(getFirestore(), send, new Date());
-  // And, before it, the invitations to yesterday's albums (récit 41), once a day.
-  await queueAlbumInvitations(getFirestore(), new Date());
+  // And, before it, the invitations to yesterday's albums (récit 41), once a day. A failure is
+  // logged and tried again next time: it never stops the résumé or the polls.
+  try {
+    await queueAlbumInvitations(getFirestore(), new Date());
+  } catch (e) {
+    console.error('albumInvites', e);
+  }
   // And the résumé of the day, once from 18 h (AVIS-14).
   await sendDigests(getFirestore(), send, new Date());
   // And the polls whose end date has passed (récits 2 bis et 2 ter).
