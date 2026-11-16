@@ -159,7 +159,7 @@ class GenealogyTest {
     }
 
     @Test
-    fun `a chef never gives a new parent to a child of another household (PRD rév. 195)`() = runTest {
+    fun `a chef never gives a new parent to a child of another household (PRD rev 195)`() = runTest {
         val repo = FakeGenealogy()
         val chef = TestFamily.family.copy(ownerId = "someone-else")
         val vm = GenealogyViewModel(repo, FakeMembers(chef), "admin1")
