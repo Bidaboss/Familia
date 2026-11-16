@@ -44,6 +44,7 @@ import fr.familia.app.core.model.NotebookEntry
 import fr.familia.app.core.model.NotebookOccasion
 import fr.familia.app.core.model.NotebookSource
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
@@ -96,8 +97,8 @@ private fun ChoosingContent(state: ProposeIdeaUiState.Choosing, actions: Propose
     val entry = state.entry
     val name = entry.personName
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
         Text(entry.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         entry.price?.let { Text(formatEuros(it), style = MaterialTheme.typography.bodyLarge) }

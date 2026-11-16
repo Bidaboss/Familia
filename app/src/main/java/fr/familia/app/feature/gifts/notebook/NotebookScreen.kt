@@ -68,6 +68,9 @@ import fr.familia.app.core.model.NotebookSource
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClayLink
+import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.EmptyState
@@ -146,8 +149,8 @@ private fun Content(state: NotebookUiState.Success, actions: NotebookActions) {
     var openEntryId by rememberSaveable { mutableStateOf<String?>(null) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 16.dp, bottom = 96.dp),
+        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
         item(key = "private") {
             Column {
@@ -240,9 +243,9 @@ private fun PersonCard(person: NotebookPerson, onOpen: (NotebookEntry) -> Unit, 
     val tint = if (person.bought == person.entries.size) ClayTint.Household else ClayTint.Plain
     val variant = FamiliaClay.colors.onTintVariant(tint)
     var budgetDialog by rememberSaveable(person.key) { mutableStateOf(false) }
-    ClayCard(modifier = Modifier.fillMaxWidth(), tint = tint) {
+    ClayCard(modifier = Modifier.fillMaxWidth(), tint = tint, contentPadding = ClaySpacing.card) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(person.name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+            ClayCardTitle(person.name, style = MaterialTheme.typography.titleMedium)
             val budget = person.budget
             Text(
                 listOf(
@@ -265,9 +268,10 @@ private fun PersonCard(person: NotebookPerson, onOpen: (NotebookEntry) -> Unit, 
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
             )
             person.entries.forEach { entry -> GiftRow(entry, variant) { onOpen(entry) } }
-            TextButton(onClick = { budgetDialog = true }, modifier = Modifier.heightIn(min = 56.dp)) {
-                Text(stringResource(if (budget == null) R.string.notebook_set_budget else R.string.notebook_change_budget))
-            }
+            ClayLink(
+                stringResource(if (budget == null) R.string.notebook_set_budget else R.string.notebook_change_budget),
+                onClick = { budgetDialog = true },
+            )
         }
     }
     if (budgetDialog) {
@@ -452,19 +456,13 @@ internal fun StatusSheetContent(
             }
         }
         entry.listId?.let { listId ->
-            OutlinedButton(onClick = { onOpenList(listId) }, modifier = Modifier.padding(top = 8.dp).heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.notebook_open_list))
-            }
+            ClayLink(stringResource(R.string.notebook_open_list), onClick = { onOpenList(listId) })
         }
         if (entry.source == NotebookSource.Idea) {
-            OutlinedButton(onClick = onEdit, modifier = Modifier.padding(top = 8.dp).heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.notebook_edit_idea))
-            }
+            ClayLink(stringResource(R.string.notebook_edit_idea), onClick = onEdit)
         }
         if (canPropose(entry)) {
-            OutlinedButton(onClick = onPropose, modifier = Modifier.padding(top = 8.dp).heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.notebook_propose))
-            }
+            ClayLink(stringResource(R.string.notebook_propose), onClick = onPropose)
         }
         Spacer(Modifier.height(16.dp))
     }

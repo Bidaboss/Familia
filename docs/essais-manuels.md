@@ -330,6 +330,15 @@ Avec le module « La bienvenue » allumé, un membre ajouté qui ne s'est jamais
 3. Sur l'Accueil de A (lecteur de la liste de B), la puce montre le titre de la liste et le délai.
 4. Sans voyage en cours ni à venir, la puce « Voyages » n'apparaît pas ; « Dire où je suis » reste la dernière puce.
 
+## Famille : « Nos trésors » (DESIGN-11)
+1. Onglet Famille, avec Recettes, Capsules et Arbre généalogique allumés : une seule ligne « Nos trésors » sous les membres. La toucher montre les trois entrées en retrait ; la toucher encore les cache. TalkBack lit « ouvert » ou « fermé ».
+2. Éteindre les trois modules dans Administration : la ligne « Nos trésors » disparaît.
+3. Les marges sur les côtés passent à 20 dp.
+
+## Administration (DESIGN-11)
+1. Administration : les marges sur les côtés passent à 20 dp, dans toutes les sections.
+2. Les cartes « Consommation » et « Capsules restantes » ont leur titre avec la pastille en thème clair.
+
 ## Le coin des petits (récit 43)
 
 Avec le module « Le coin des petits » allumé, un compte adulte qui a un enfant dans son foyer, et un autre compte.

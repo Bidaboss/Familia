@@ -3,6 +3,7 @@ package fr.familia.app.feature.trips.detail
 import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
+import fr.familia.app.core.share.ShareButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -88,6 +89,8 @@ fun TripDetailScreen(
     photoActions: PhotoActions = PhotoActions(),
     /** « Comptes du voyage » (récit 16 bis), shown to the participants only; null while it is off. */
     onOpenExpenses: (() -> Unit)? = null,
+    /** « Partager » (récit 31): null while the switch is off. */
+    onShare: (() -> Unit)? = null,
 ) {
     val success = state as? TripDetailUiState.Success
     Scaffold(
@@ -101,6 +104,7 @@ fun TripDetailScreen(
                             Text(stringResource(R.string.trip_edit))
                         }
                     }
+                    if (onShare != null && success != null) ShareButton(onClick = onShare)
                     HelpButton(ScreenHelp.TripDetail)
                 },
             )

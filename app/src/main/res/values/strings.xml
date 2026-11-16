@@ -131,6 +131,9 @@
     <string name="member_remove_owner_only">Seul l\'admin principal peut retirer %1$s.</string>
     <string name="administration_title">Administration</string>
     <string name="members_settings_title">Réglages</string>
+    <string name="members_treasures">Nos trésors</string>
+    <string name="members_treasures_open">ouvert</string>
+    <string name="members_treasures_closed">fermé</string>
     <string name="administration_error_body">L\'appli n\'a pas pu lire la famille. Réessaie dans un moment.</string>
     <string name="administration_not_allowed_title">Réservé à l\'admin principal</string>
     <string name="administration_not_allowed_body">Ce menu sert à nommer les chefs de famille, gérer les foyers et sauvegarder les données.</string>
@@ -1052,6 +1055,7 @@
     <string name="share_event_text_place">%1$s, %2$s, %3$s. Les détails sont dans Familia :</string>
     <string name="share_poll_line">Sondage de la famille</string>
     <string name="share_poll_text">Sondage dans Familia : %1$s Réponds ici :</string>
+    <string name="share_trip_text">%1$s, %2$s. Le carnet de voyage est dans Familia :</string>
     <string name="share_birthday_text">Anniversaire de %1$s : %2$s le %3$s. On se retrouve dans Familia :</string>
     <string name="feature_share">Partager vers une messagerie</string>
     <string name="help_topic_view_as_title">Si tu as besoin d\'aide</string>
