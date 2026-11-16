@@ -18,6 +18,9 @@ class WhatsNewTest {
         val seen = mutableMapOf<String, Set<String>>()
         val started = mutableSetOf<String>()
         val fresh = mutableSetOf<String>()
+        val later = mutableMapOf<String, Set<String>>()
+        override fun postponed(memberId: String) = later[memberId].orEmpty()
+        override fun addPostponed(memberId: String, ids: Set<String>) { later[memberId] = postponed(memberId) + ids }
         override fun seen(memberId: String) = seen[memberId].orEmpty()
         override fun addSeen(memberId: String, ids: Set<String>) { seen[memberId] = seen(memberId) + ids }
         override fun started(memberId: String) = memberId in started
@@ -82,6 +85,17 @@ class WhatsNewTest {
         val shown = decider.cardsToShow("m1", releases, 10, false, allOn)
         assertEquals(listOf("a"), shown.map { it.card.id })
         decider.markSeen("m1", shown)
+        assertTrue(decider.cardsToShow("m1", releases, 10, false, allOn).isEmpty())
+    }
+
+    @Test
+    fun `plus tard shows the cards once more, at the next opening only`() {
+        val decider = WhatsNewDecider(FakeStore())
+        val releases = listOf(release(10, card("a")))
+        decider.postpone("m1", decider.cardsToShow("m1", releases, 10, false, allOn))
+        val again = decider.cardsToShow("m1", releases, 10, false, allOn)
+        assertEquals(listOf("a"), again.map { it.card.id })
+        decider.postpone("m1", again)
         assertTrue(decider.cardsToShow("m1", releases, 10, false, allOn).isEmpty())
     }
 

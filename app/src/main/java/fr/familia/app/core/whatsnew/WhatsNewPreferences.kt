@@ -9,6 +9,10 @@ interface WhatsNewStore {
     fun seen(memberId: String): Set<String>
     fun addSeen(memberId: String, ids: Set<String>)
 
+    /** The ids of the cards put off once with « Plus tard ». */
+    fun postponed(memberId: String): Set<String>
+    fun addPostponed(memberId: String, ids: Set<String>)
+
     /** False until the first decision on this phone: a new install or an update. */
     fun started(memberId: String): Boolean
 
@@ -23,6 +27,8 @@ class WhatsNewPreferences(context: Context) : WhatsNewStore {
 
     override fun seen(memberId: String): Set<String> = prefs.getStringSet("whatsNewSeen-$memberId", emptySet()).orEmpty().toSet()
     override fun addSeen(memberId: String, ids: Set<String>) = prefs.edit { putStringSet("whatsNewSeen-$memberId", seen(memberId) + ids) }
+    override fun postponed(memberId: String): Set<String> = prefs.getStringSet("whatsNewLater-$memberId", emptySet()).orEmpty().toSet()
+    override fun addPostponed(memberId: String, ids: Set<String>) = prefs.edit { putStringSet("whatsNewLater-$memberId", postponed(memberId) + ids) }
     override fun started(memberId: String): Boolean = prefs.getBoolean("whatsNewStarted-$memberId", false)
     override fun freshInstall(memberId: String): Boolean = prefs.getBoolean("whatsNewFresh-$memberId", false)
     override fun setFreshInstall(memberId: String) = prefs.edit { putBoolean("whatsNewFresh-$memberId", true) }
@@ -61,9 +67,16 @@ class WhatsNewDecider(private val store: WhatsNewStore) {
             }
             store.setStarted(memberId)
         }
-        return WhatsNew.pending(releases, installedVersion, store.seen(memberId), child, isOnForFamily)
+        val cards = WhatsNew.pending(releases, installedVersion, store.seen(memberId), child, isOnForFamily)
+        // A card put off once shows this time for the last time, whatever is touched.
+        val lastTime = cards.map { it.card.id }.toSet() intersect store.postponed(memberId)
+        if (lastTime.isNotEmpty()) store.addSeen(memberId, lastTime)
+        return cards
     }
 
-    /** « C'est parti », « Plus tard » or « Essayer »: these cards do not come back by themselves. */
+    /** « C'est parti » or « Essayer »: these cards do not come back by themselves. */
     fun markSeen(memberId: String, cards: List<ShownCard>) = store.addSeen(memberId, cards.map { it.card.id }.toSet())
+
+    /** « Plus tard », or the sheet swiped away: the cards come back once, at the next opening ([PRODUIT]). */
+    fun postpone(memberId: String, cards: List<ShownCard>) = store.addPostponed(memberId, cards.map { it.card.id }.toSet())
 }

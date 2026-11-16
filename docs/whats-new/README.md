@@ -45,6 +45,7 @@ Chaque fichier contient de 1 à 3 cartes. Les champs :
 
 - Il voit 3 cartes au plus pour une version, et 5 au plus s'il a sauté des versions, les plus récentes d'abord.
 - Rien ne s'affiche à la première installation, où le tuto prend la place, ni en « Voir comme ». Aucune notification n'est envoyée.
-- « C'est parti », « Plus tard » et « Essayer » ferment la feuille. Les cartes vues ne reviennent pas d'elles-mêmes, mais tout l'historique se revoit depuis l'aide et le menu de l'avatar.
+- « C'est parti » et « Essayer » ferment la feuille pour de bon. « Plus tard », ou la feuille glissée vers le bas, la fait revenir une seule fois, à l'ouverture suivante. Tout l'historique se revoit depuis l'aide et le menu de l'avatar.
+- Tous les modules sont allumés le 21/11 (DESIGN-10) : « feature » sert surtout pour un module ajouté plus tard.
 
 Un test vérifie chaque fichier à chaque PR (`firebase/tests/whatsNew.test.mjs`). Le workflow refuse aussi de publier si un fichier a un problème, avant de toucher au Drive.

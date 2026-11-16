@@ -413,8 +413,9 @@ Avec l'interrupteur « Le petit geste du jour » allumé, et une Bonne nouvelle 
 Il faut une version publiée avec un fichier dans `docs/whats-new`, et un téléphone qui avait déjà l'appli.
 1. Installe la mise à jour, puis ouvre l'appli. **Attendu :** la feuille « Quoi de neuf ? » montre les cartes de la version, les plus récentes d'abord, et on passe de l'une à l'autre en glissant.
 2. « Essayer » : **Attendu :** l'écran de la carte s'ouvre, et la feuille ne revient pas à l'ouverture suivante.
-3. Sur un téléphone neuf : **Attendu :** le tuto, puis rien. La feuille ne s'ouvre pas.
-4. Une carte d'un module éteint : **Attendu :** absente. Allume le module dans Administration, ferme et rouvre l'appli : **Attendu :** la carte apparaît.
-5. Avec un compte enfant : **Attendu :** le texte pour enfant, et aucune carte réservée aux adultes.
-6. En Voir comme : **Attendu :** aucune feuille.
-7. Aide, ou menu de l'avatar, puis « Quoi de neuf ? » : **Attendu :** toutes les versions, la plus récente en haut.
+3. « Plus tard » : **Attendu :** la feuille revient à l'ouverture suivante, puis plus jamais.
+4. Sur un téléphone neuf : **Attendu :** le tuto, puis rien. La feuille ne s'ouvre pas.
+5. Une carte d'un module éteint : **Attendu :** absente. Allume le module dans Administration, ferme et rouvre l'appli : **Attendu :** la carte apparaît.
+6. Avec un compte enfant : **Attendu :** le texte pour enfant, et aucune carte réservée aux adultes.
+7. En Voir comme : **Attendu :** aucune feuille.
+8. Aide, ou menu de l'avatar, puis « Quoi de neuf ? » : **Attendu :** toutes les versions, la plus récente en haut.

@@ -75,29 +75,29 @@ fun WhatsNewHost(
         cards = decider.cardsToShow(currentMember.id, appConfig.whatsNew, installedVersion, child) { appConfig.features[it] == true }
     }
     if (cards.isEmpty()) return
-    val close = {
-        decider.markSeen(currentMember.id, cards)
+    val close = { later: Boolean ->
+        if (later) decider.postpone(currentMember.id, cards) else decider.markSeen(currentMember.id, cards)
         val modules = DiscoverModule.entries.filter { m -> cards.any { it.card.feature == m.feature.key } }.map { it.key }
         if (modules.isNotEmpty()) discover.save(currentMember.id, discover.load(currentMember.id) + modules)
         cards = emptyList()
     }
-    WhatsNewSheet(cards, child, onClose = close, onTry = { target ->
-        close()
+    WhatsNewSheet(cards, child, onGo = { close(false) }, onLater = { close(true) }, onTry = { target ->
+        close(false)
         onOpen(target)
     })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WhatsNewSheet(cards: List<ShownCard>, child: Boolean, onClose: () -> Unit, onTry: (WhatsNewTarget) -> Unit) {
-    ModalBottomSheet(onDismissRequest = onClose) {
-        WhatsNewSheetContent(cards, child, onClose, onTry)
+fun WhatsNewSheet(cards: List<ShownCard>, child: Boolean, onGo: () -> Unit, onLater: () -> Unit, onTry: (WhatsNewTarget) -> Unit) {
+    ModalBottomSheet(onDismissRequest = onLater) {
+        WhatsNewSheetContent(cards, child, onGo, onLater, onTry)
     }
 }
 
 /** The content of the sheet, apart for previews and screenshots: one card per page, swiped. */
 @Composable
-fun WhatsNewSheetContent(cards: List<ShownCard>, child: Boolean, onClose: () -> Unit, onTry: (WhatsNewTarget) -> Unit) {
+fun WhatsNewSheetContent(cards: List<ShownCard>, child: Boolean, onGo: () -> Unit, onLater: () -> Unit, onTry: (WhatsNewTarget) -> Unit) {
     val pager = rememberPagerState { cards.size }
     Column(
         Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).navigationBarsPadding(),
@@ -120,10 +120,10 @@ fun WhatsNewSheetContent(cards: List<ShownCard>, child: Boolean, onClose: () -> 
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-        Button(onClick = onClose, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+        Button(onClick = onGo, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Text(stringResource(R.string.whats_new_go))
         }
-        TextButton(onClick = onClose, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+        TextButton(onClick = onLater, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Text(stringResource(R.string.whats_new_later))
         }
     }
@@ -180,7 +180,7 @@ internal val previewWhatsNew = WhatsNewRelease(
 private fun WhatsNewSheetPreview() {
     FamiliaTheme {
         Surface {
-            WhatsNewSheetContent(previewWhatsNew.cards.map { ShownCard(it, previewWhatsNew) }, child = false, onClose = {}, onTry = {})
+            WhatsNewSheetContent(previewWhatsNew.cards.map { ShownCard(it, previewWhatsNew) }, child = false, onGo = {}, onLater = {}, onTry = {})
         }
     }
 }
