@@ -68,6 +68,8 @@ fun ExpenseEditScreen(
     onSave: () -> Unit,
     onDelete: () -> Unit,
     onDone: () -> Unit,
+    /** The history of the expense being changed; null for a new one. */
+    onHistory: (() -> Unit)? = null,
 ) {
     LaunchedEffect(state) { if (state == ExpenseEditUiState.Done) onDone() }
     val editing = state as? ExpenseEditUiState.Editing
@@ -87,7 +89,7 @@ fun ExpenseEditScreen(
                     title = stringResource(R.string.expense_unavailable_title),
                     body = stringResource(R.string.expense_unavailable_body),
                 )
-                is ExpenseEditUiState.Editing -> Form(state, onChange, onSave, onDelete)
+                is ExpenseEditUiState.Editing -> Form(state, onChange, onSave, onDelete, onHistory)
             }
         }
     }
@@ -100,6 +102,7 @@ private fun Form(
     onChange: ((ExpenseForm) -> ExpenseForm) -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
+    onHistory: (() -> Unit)?,
 ) {
     val form = state.form
     val errors = state.errors
@@ -188,6 +191,11 @@ private fun Form(
                 CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
             } else {
                 Text(stringResource(R.string.member_save))
+            }
+        }
+        if (!state.isNew && onHistory != null) {
+            OutlinedButton(onClick = onHistory, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.expense_history_open))
             }
         }
         if (!state.isNew) DeleteButton(form.title, enabled = !state.isSaving, onDelete)
