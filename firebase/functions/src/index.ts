@@ -144,6 +144,14 @@ export const onRsvpWritten = onDocumentWritten('events/{eventId}/rsvps/{memberId
   await grow('rsvp', () => addLeaf(getFirestore(), memberId, treeMark.rsvp(eventId, memberId), new Date()));
 });
 
+// Album d'un événement (récit 41): each photo adds a leaf for its author, once per slot, so taking
+// a photo off and putting it back counts once.
+export const onEventPhotoCreated = onDocumentCreated('events/{eventId}/photos/{photoId}', async (event) => {
+  const authorId = event.data?.get('authorId');
+  if (typeof authorId !== 'string' || authorId === '') return;
+  await grow('albumPhoto', () => addLeaf(getFirestore(), authorId, treeMark.albumPhoto(event.params.eventId, event.params.photoId), new Date()));
+});
+
 export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (event) => {
   await deleteMemberData(getFirestore(), event.params.memberId);
   // « Qui apporte quoi » (récit 4 bis): what they had taken is free again.
@@ -467,8 +475,13 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
   await checkConsumptionIfDue(getFirestore(), cloudMonitoring, send, new Date());
   // And the time capsules whose day has come (récit 39).
   await openDueCapsules(getFirestore(), send, new Date());
-  // And, before it, the invitations to yesterday's albums (récit 41), once a day.
-  await queueAlbumInvitations(getFirestore(), new Date());
+  // And, before it, the invitations to yesterday's albums (récit 41), once a day. A failure is
+  // logged and tried again next time: it never stops the résumé or the polls.
+  try {
+    await queueAlbumInvitations(getFirestore(), new Date());
+  } catch (e) {
+    console.error('albumInvites', e);
+  }
   // And the résumé of the day, once from 18 h (AVIS-14).
   await sendDigests(getFirestore(), send, new Date());
   // And the polls whose end date has passed (récits 2 bis et 2 ter).

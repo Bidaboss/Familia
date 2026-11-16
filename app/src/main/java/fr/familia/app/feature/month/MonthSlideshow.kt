@@ -29,6 +29,16 @@ fun lastSundayOf(month: YearMonth): LocalDate =
 /** True from the last Sunday of the month to its last day. */
 fun isSlideshowTime(today: LocalDate): Boolean = !today.isBefore(lastSundayOf(YearMonth.from(today)))
 
+/**
+ * The month whose slideshow a recap notice opens: the one of [recapWeek] (AAAA-MM-JJ) when it is
+ * the last Sunday of its month, as the server tells it; null for an ordinary week.
+ */
+fun slideshowMonthOf(recapWeek: String): YearMonth? {
+    val sunday = runCatching { LocalDate.parse(recapWeek) }.getOrNull() ?: return null
+    val month = YearMonth.from(sunday)
+    return month.takeIf { lastSundayOf(it) == sunday }
+}
+
 /** The members born in [month], by day. */
 fun birthdaysOf(family: Family, month: YearMonth): List<Member> = family.members
     .filter { it.birthDate?.month == month.month }

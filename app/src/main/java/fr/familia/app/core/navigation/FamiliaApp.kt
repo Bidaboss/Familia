@@ -159,6 +159,7 @@ import fr.familia.app.feature.events.album.EventAlbumDestination
 import fr.familia.app.feature.events.album.EventAlbumRoute
 import fr.familia.app.feature.month.MonthSlideshowDestination
 import fr.familia.app.feature.month.MonthSlideshowRoute
+import fr.familia.app.feature.month.slideshowMonthOf
 import fr.familia.app.feature.recipes.RecipeDetailDestination
 import fr.familia.app.feature.recipes.RecipeDetailRoute
 import fr.familia.app.feature.recipes.RecipeEditDestination
@@ -224,7 +225,8 @@ fun FamiliaApp(
     openCapsuleId: String? = null,
     onCapsuleOpened: () -> Unit = {},
     /** « La semaine de la famille » of a tapped notification, to open once its module shows (récit 36). */
-    openRecap: Boolean = false,
+    /** The Sunday (AAAA-MM-JJ) of the recap notice that was touched, or null. */
+    openRecap: String? = null,
     onRecapOpened: () -> Unit = {},
     /** « Une idée ? Un souci ? » of a tapped notification: "list" (Retours) or "mine" (récit 6 sexies). */
     openFeedback: String? = null,
@@ -424,11 +426,18 @@ fun FamiliaApp(
         }
     }
 
-    // And for « La semaine de la famille » (récit 36).
+    // And for « La semaine de la famille » (récit 36). The notice of the last Sunday of the month,
+    // with the slideshow on, opens the slideshow of that month instead (récit 42), whenever touched.
     val recapOn = features.isOn(Feature.Recap)
-    LaunchedEffect(openRecap, recapOn) {
-        if (openRecap && recapOn) {
-            navController.navigate(RecapDestination) { launchSingleTop = true }
+    val slideshowOn = features.isOn(Feature.MonthSlideshow)
+    LaunchedEffect(openRecap, recapOn, slideshowOn) {
+        if (openRecap != null && recapOn) {
+            val month = if (slideshowOn) slideshowMonthOf(openRecap) else null
+            if (month != null) {
+                navController.navigate(MonthSlideshowDestination(month.year, month.monthValue)) { launchSingleTop = true }
+            } else {
+                navController.navigate(RecapDestination) { launchSingleTop = true }
+            }
             onRecapOpened()
         }
     }

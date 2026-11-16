@@ -33,15 +33,19 @@ import fr.familia.app.core.album.FilmState
 import fr.familia.app.core.album.PhotoActions
 import fr.familia.app.core.album.previewAlbumPhotos
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.MonthChallenge
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
+import fr.familia.app.feature.tree.ChallengeGauge
 import java.io.File
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -69,8 +73,9 @@ fun MonthSlideshowHomeCard(month: YearMonth, onOpen: () -> Unit) {
 /** The slideshow of [month]: its photos, its birthdays, and the video to watch or share. */
 @Composable
 fun MonthSlideshowRoute(container: AppContainer?, currentMember: Member, month: YearMonth, onBack: () -> Unit) {
+    val treeOn = LocalFeatureFlags.current.isOn(Feature.Tree)
     val viewModel: MonthSlideshowViewModel = viewModel(
-        key = "month-$month",
+        key = "month-$month-$treeOn",
         factory = viewModelFactory {
             initializer {
                 MonthSlideshowViewModel(
@@ -80,6 +85,7 @@ fun MonthSlideshowRoute(container: AppContainer?, currentMember: Member, month: 
                     members = container?.memberRepository,
                     currentMemberId = currentMember.id,
                     month = month,
+                    tree = if (treeOn) container?.treeRepository else null,
                 )
             }
         },
@@ -112,6 +118,7 @@ fun MonthSlideshowScreen(month: YearMonth, state: MonthSlideshowUiState, film: F
         top = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 if (state.birthdays.isNotEmpty()) MonthBirthdays(state.birthdays)
+                state.challenge?.let { ClayCard(Modifier.fillMaxWidth()) { ChallengeGauge(it) } }
                 if (!state.loading && state.photos.isEmpty()) {
                     Text(stringResource(R.string.month_empty), style = MaterialTheme.typography.bodyLarge)
                 } else {
@@ -150,8 +157,8 @@ private fun MonthBirthdays(birthdays: List<Member>) {
 }
 
 /** Fictional month for previews and screenshots. */
-fun previewMonthSlideshow(birthdays: List<Member> = emptyList()): MonthSlideshowUiState =
-    MonthSlideshowUiState(loading = false, photos = previewAlbumPhotos(count = 9).photos, birthdays = birthdays)
+fun previewMonthSlideshow(birthdays: List<Member> = emptyList(), challenge: MonthChallenge? = null): MonthSlideshowUiState =
+    MonthSlideshowUiState(loading = false, photos = previewAlbumPhotos(count = 9).photos, birthdays = birthdays, challenge = challenge)
 
 @FamiliaPreviews
 @Composable
