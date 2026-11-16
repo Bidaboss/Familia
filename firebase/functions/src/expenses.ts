@@ -53,9 +53,20 @@ export function historyEntry(
   };
 }
 
-/** Writes [entry] under the expense; never when its book is gone (the trip was deleted). */
+/** The collection of each kind of container: a trip today, an event later. */
+const CONTAINERS: Record<ExpenseContainerType, string> = { trip: 'trips' };
+
+/**
+ * Writes [entry] under the expense; never once its book or its container is gone. Deleting a trip
+ * removes the expenses before the book: their removal must leave nothing behind.
+ */
 export async function writeExpenseHistory(db: Firestore, bookId: string, expenseId: string, entry: HistoryEntry): Promise<void> {
   const book = db.collection('expenseBooks').doc(bookId);
-  if (!(await book.get()).exists) return;
+  const snapshot = await book.get();
+  if (!snapshot.exists) return;
+  const type = snapshot.get('containerType') as ExpenseContainerType | undefined;
+  const containerId = snapshot.get('containerId');
+  const collection = type ? CONTAINERS[type] : undefined;
+  if (!collection || typeof containerId !== 'string' || !(await db.collection(collection).doc(containerId).get()).exists) return;
   await book.collection('expenses').doc(expenseId).collection('history').add({ ...entry, at: FieldValue.serverTimestamp() });
 }

@@ -45,6 +45,7 @@ describe('the accounts of a trip', () => {
 
   test('the history is written under the expense, never once the book is gone', async () => {
     const entry = historyEntry(undefined, { title: 'Péage', amountCents: 1200 }, { id: 'm1', firstName: 'Camille' })!;
+    await db.doc('trips/tx3').set({ title: 'Voyage tx3' });
     await db.doc('expenseBooks/trip_tx3').set({ containerType: 'trip', containerId: 'tx3' });
     await writeExpenseHistory(db, 'trip_tx3', 'e1', entry);
     const lines = await db.collection('expenseBooks/trip_tx3/expenses/e1/history').get();
@@ -52,5 +53,21 @@ describe('the accounts of a trip', () => {
     assert.equal(lines.docs[0].get('title'), 'Péage');
     await writeExpenseHistory(db, 'trip_tx4', 'e1', entry);
     assert.equal((await db.collection('expenseBooks/trip_tx4/expenses/e1/history').get()).size, 0);
+  });
+
+  test('deleting a trip leaves nothing under its book, history included', async () => {
+    // The trip is deleted first; the removal of each expense then fires the history, which must write nothing.
+    const book = db.doc('expenseBooks/trip_tx5');
+    await book.set({ containerType: 'trip', containerId: 'tx5' });
+    await book.collection('expenses').doc('e1').set({ title: 'Courses', amountCents: 3000 });
+    const deleted = historyEntry({ title: 'Courses', amountCents: 3000 }, undefined, null)!;
+    await deleteExpenseBook(db, 'trip', 'tx5');
+    await writeExpenseHistory(db, 'trip_tx5', 'e1', deleted);
+    // Even while the book is still there, a book whose trip is gone takes no history.
+    await book.set({ containerType: 'trip', containerId: 'tx5' });
+    await writeExpenseHistory(db, 'trip_tx5', 'e1', deleted);
+    await deleteExpenseBook(db, 'trip', 'tx5');
+    assert.equal((await book.listCollections()).length, 0);
+    assert.equal((await db.collection('expenseBooks/trip_tx5/expenses/e1/history').get()).size, 0);
   });
 });
