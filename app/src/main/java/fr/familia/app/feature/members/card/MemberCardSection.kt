@@ -66,11 +66,8 @@ fun MemberCardContent(state: MemberCardUiState.Ready, onSave: (MemberCard) -> Bo
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             } else {
-                Line(R.string.member_card_top, card.top)
-                Line(R.string.member_card_bottom, card.bottom)
-                Line(R.string.member_card_shoes, card.shoes)
-                Line(R.string.member_card_allergies, card.allergies)
                 Line(R.string.member_card_tastes, card.tastes)
+                Line(R.string.member_card_hobbies, card.hobbies)
             }
             if (state.saveFailed) {
                 Text(stringResource(R.string.member_card_save_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
@@ -97,27 +94,21 @@ private fun Line(@StringRes label: Int, value: String) {
 
 @Composable
 private fun MemberCardDialog(card: MemberCard, onSave: (MemberCard) -> Boolean, onDismiss: () -> Unit) {
-    var top by rememberSaveable { mutableStateOf(card.top) }
-    var bottom by rememberSaveable { mutableStateOf(card.bottom) }
-    var shoes by rememberSaveable { mutableStateOf(card.shoes) }
-    var allergies by rememberSaveable { mutableStateOf(card.allergies) }
     var tastes by rememberSaveable { mutableStateOf(card.tastes) }
+    var hobbies by rememberSaveable { mutableStateOf(card.hobbies) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.member_card_title)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.member_card_help), style = MaterialTheme.typography.bodyMedium)
-                Field(R.string.member_card_top, top, MemberCard.SIZE_MAX) { top = it }
-                Field(R.string.member_card_bottom, bottom, MemberCard.SIZE_MAX) { bottom = it }
-                Field(R.string.member_card_shoes, shoes, MemberCard.SIZE_MAX) { shoes = it }
-                Field(R.string.member_card_allergies, allergies, MemberCard.TEXT_MAX, singleLine = false) { allergies = it }
-                Field(R.string.member_card_tastes, tastes, MemberCard.TEXT_MAX, singleLine = false) { tastes = it }
+                Field(R.string.member_card_tastes, tastes, MemberCard.TEXT_MAX) { tastes = it }
+                Field(R.string.member_card_hobbies, hobbies, MemberCard.TEXT_MAX) { hobbies = it }
             }
         },
         confirmButton = {
             TextButton(
-                onClick = { if (onSave(MemberCard(card.memberId, top, bottom, shoes, allergies, tastes))) onDismiss() },
+                onClick = { if (onSave(MemberCard(card.memberId, tastes, hobbies))) onDismiss() },
                 modifier = Modifier.heightIn(min = 56.dp),
             ) { Text(stringResource(R.string.member_save)) }
         },
@@ -129,13 +120,12 @@ private fun MemberCardDialog(card: MemberCard, onSave: (MemberCard) -> Boolean, 
 
 /** A field that stops at [max] characters, so a save is never refused for its length. */
 @Composable
-private fun Field(@StringRes label: Int, value: String, max: Int, singleLine: Boolean = true, onChange: (String) -> Unit) {
+private fun Field(@StringRes label: Int, value: String, max: Int, onChange: (String) -> Unit) {
     OutlinedTextField(
         value = value,
         onValueChange = { onChange(it.take(max)) },
         label = { Text(stringResource(label)) },
-        singleLine = singleLine,
-        minLines = if (singleLine) 1 else 2,
+        minLines = 2,
         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
         modifier = Modifier.fillMaxWidth(),
     )
@@ -148,7 +138,7 @@ private fun MemberCardPreview() {
         Surface {
             MemberCardContent(
                 MemberCardUiState.Ready(
-                    MemberCard("a", top = "M", bottom = "40", shoes = "39", allergies = "Arachides", tastes = "Le chocolat noir, les polars"),
+                    MemberCard("a", tastes = "Le chocolat noir, les polars", hobbies = "La randonnée, le jardin"),
                     firstName = "Camille",
                     isMe = true,
                     canEdit = true,
