@@ -31,6 +31,7 @@ object NotificationChannels {
     const val SOUVENIRS = "souvenirs"
     const val TREE = "tree"
     const val RECAP = "recap"
+    const val FEEDBACK = "feedback"
     const val JOIN_ME = "joinMe"
     const val CAPSULES = "capsules"
 
@@ -72,6 +73,8 @@ object NotificationChannels {
         Spec(CAPSULES, R.string.channel_capsules, R.string.channel_capsules_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.Capsules),
         // « La semaine de la famille » (récit 36): once a week, it does not ring.
         Spec(RECAP, R.string.channel_recap, R.string.channel_recap_description, NotificationManager.IMPORTANCE_LOW, Feature.Recap),
+        // « Une idée ? Un souci ? » (récit 6 sexies): the answer to one's own request. No module switch.
+        Spec(FEEDBACK, R.string.channel_feedback, R.string.channel_feedback_description, NotificationManager.IMPORTANCE_DEFAULT),
     )
 
     /**

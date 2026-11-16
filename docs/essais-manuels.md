@@ -270,3 +270,20 @@ Avec le module « Il y a un an » allumé, et une Bonne nouvelle (ou une photo d
 2. Touche-la. **Attendu :** la Bonne nouvelle, ou le voyage, s'ouvre.
 3. Avec un compte qui ne suit pas ce voyage, ouvre l'Accueil. **Attendu :** pas de carte pour cette photo.
 4. Touche « Ne plus me montrer ce souvenir ». **Attendu :** la carte disparaît (ou passe au souvenir suivant du même jour), et ne revient pas en rouvrant l'appli.
+
+## Une idée ? Un souci ? (récit 6 sexies)
+
+Avant ces essais : « Publier Firebase » a publié les règles (Firestore et Storage) et les fonctions `onFeedbackSent` et `onFeedbackAnswered`. Pas d'interrupteur.
+
+1. Avec un compte qui n'est pas admin principal, ouvre **Famille** et touche **Une idée ? Un souci ?**. Choisis « Un problème », écris une phrase et touche **Envoyer**. **Attendu :** « Merci ! C'est envoyé à l'admin de la famille. »
+2. Sur le téléphone de l'admin principal. **Attendu :** une notification « Souci signalé par … » avec le début du texte. La toucher ouvre **Retours**.
+3. Ouvre **Administration**. **Attendu :** la ligne **Retours** montre « 1 nouvelle(s) ».
+4. Touche **Retours**. **Attendu :** la demande est marquée « Un problème · Nouvelle », avec le prénom, la date, la version de l'appli, celle d'Android, le modèle du téléphone et « depuis Famille ».
+5. Touche **Répondre**, choisis **Prévue**, écris « Pour la prochaine version » et touche **Enregistrer**. **Attendu :** la carte montre « Prévue » et « Réponse : Pour la prochaine version » ; le compteur d'Administration a disparu.
+6. Sur le téléphone de l'auteur. **Attendu :** une notification « Ta demande est prévue » avec le mot. La toucher ouvre **Mes demandes**, qui montre la demande, son état et la réponse.
+7. Avec ce même compte, ouvre **Famille > Aide**, puis **Une idée ? Un souci ?** en bas de la page. Envoie une idée. **Attendu :** dans **Retours**, elle porte « depuis l'Aide ».
+8. Côté admin principal, supprime une demande. **Attendu :** elle disparaît de la liste, et de « Mes demandes » chez son auteur.
+9. En mode **Voir comme**. **Attendu :** pas de ligne « Une idée ? Un souci ? », ni dans Famille ni dans l'Aide.
+10. Avec un compte qui n'est pas admin principal, ouvre le formulaire, touche **Ajouter une capture d'écran** et choisis une capture. **Attendu :** elle s'affiche sous le texte, avec **Retirer la capture**. Envoie. **Attendu :** dans **Retours**, la capture s'affiche dans la carte ; elle n'est visible ni pour un autre membre ni dans un autre compte.
+11. Mode avion, avec une capture. **Attendu :** au bout d'un moment, « L'envoi n'a pas marché », et le texte et la capture restent là. Sans capture, l'envoi part plus tard tout seul.
+12. Dans **Retours**, touche **Copier pour Claude**, puis colle dans une note. **Attendu :** le type, la date, l'écran, le téléphone, l'état et le texte, sans le prénom de l'auteur.

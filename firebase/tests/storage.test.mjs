@@ -282,3 +282,28 @@ describe('capsules folder (récit 39)', () => {
     await assertSucceeds(deleteObject(ref(storageAs(ADULT), file('adult1', 'c2'))));
   });
 });
+
+describe('feedback folder (récit 6 sexies)', () => {
+  const file = (author, name = 'f1.jpg') => `feedback/${author}/${name}`;
+  const bytes = (n) => 'x'.repeat(n);
+
+  test('the author sends one screenshot of at most 150 KB in their own folder', async () => {
+    await assertSucceeds(uploadString(ref(storageAs(ADULT), file('adult1')), bytes(150 * 1024), 'raw', jpeg));
+    await assertFails(uploadString(ref(storageAs(ADULT), file('adult1', 'f2.jpg')), bytes(150 * 1024 + 1), 'raw', jpeg));
+    await assertFails(uploadString(ref(storageAs(ADULT), file('adult1', 'f3.png')), 'x', 'raw', { contentType: 'image/png' }));
+    await assertFails(uploadString(ref(storageAs(OTHER_ADULT), file('adult1', 'f4.jpg')), 'x', 'raw', jpeg));
+    // Never replaced.
+    await assertFails(uploadString(ref(storageAs(ADULT), file('adult1')), 'y', 'raw', jpeg));
+  });
+
+  test('only the author and the admin principal see it, and either removes it', async () => {
+    await uploadString(ref(storageAs(ADULT), file('adult1', 'g1.jpg')), 'x', 'raw', jpeg);
+    await uploadString(ref(storageAs(ADULT), file('adult1', 'g2.jpg')), 'x', 'raw', jpeg);
+    await assertSucceeds(getBytes(ref(storageAs(ADULT), file('adult1', 'g1.jpg'))));
+    await assertSucceeds(getBytes(ref(storageAs(ADMIN), file('adult1', 'g1.jpg'))));
+    await assertFails(getBytes(ref(storageAs(OTHER_ADULT), file('adult1', 'g1.jpg'))));
+    await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), file('adult1', 'g1.jpg'))));
+    await assertSucceeds(deleteObject(ref(storageAs(ADMIN), file('adult1', 'g1.jpg'))));
+    await assertSucceeds(deleteObject(ref(storageAs(ADULT), file('adult1', 'g2.jpg'))));
+  });
+});

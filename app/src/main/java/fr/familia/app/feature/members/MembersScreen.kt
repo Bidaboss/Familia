@@ -32,6 +32,7 @@ import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.SystemUpdate
+import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
@@ -113,6 +114,8 @@ fun MembersScreen(
     onOpenProfile: ((memberId: String) -> Unit)? = null,
     /** « Partager Familia » (récit 1 bis bis), shown to adults, given the admin principal's first name. */
     onShareApp: ((ownerFirstName: String?) -> Unit)? = null,
+    /** « Une idée ? Un souci ? » (récit 6 sexies), for every member. */
+    onOpenFeedback: (() -> Unit)? = null,
 ) {
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var photoOf by rememberSaveable { mutableStateOf<String?>(null) }
@@ -232,6 +235,9 @@ fun MembersScreen(
                 }
                 if (onOpenUpdates != null) {
                     item(key = "updates") { SettingsRow(Icons.Outlined.SystemUpdate, R.string.update_check_title, onOpenUpdates) }
+                }
+                if (onOpenFeedback != null) {
+                    item(key = "feedback") { SettingsRow(Icons.Outlined.Lightbulb, R.string.feedback_title, onOpenFeedback) }
                 }
                 if (onOpenHelp != null) {
                     item(key = "help") { SettingsRow(Icons.AutoMirrored.Outlined.HelpOutline, R.string.help_title, onOpenHelp) }

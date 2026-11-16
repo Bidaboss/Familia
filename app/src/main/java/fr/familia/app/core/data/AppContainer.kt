@@ -62,6 +62,7 @@ interface AppContainer {
     val usageTracker: UsageTracker?
     val consumptionRepository: ConsumptionRepository?
     val pollRepository: PollRepository?
+    val feedbackRepository: FeedbackRepository?
     val joinMeRepository: JoinMeRepository?
     val placeLocator: AndroidPlaceLocator
     val exportRepository: ExportRepository?
@@ -157,6 +158,9 @@ class FirebaseAppContainer(context: Context) : AppContainer {
 
     /** Sondages (PRD, récits 2 bis et 2 ter). */
     override val pollRepository: PollRepository? by lazy { firestore?.let { FirestorePollRepository(it) } }
+
+    /** « Une idée ? Un souci ? » (PRD, récit 6 sexies). */
+    override val feedbackRepository: FeedbackRepository? by lazy { firestore?.let { FirestoreFeedbackRepository(it, photoStorage) } }
 
     /** « Rejoignez-moi » (PRD, récit 33). */
     override val joinMeRepository: JoinMeRepository? by lazy { firestore?.let { FirestoreJoinMeRepository(it) } }

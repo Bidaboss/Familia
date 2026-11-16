@@ -19,6 +19,7 @@ import { countLeftovers, deleteLeftovers, openDueCapsules } from './capsules';
 import { CommentData, deleteCommentMutesOf, deleteEventComments, onCommentCreated } from './comments';
 import { deleteLinksOf, removeMemberFromTree } from './genealogy';
 import { checkConsumptionIfDue } from './consumption';
+import { FeedbackData, onFeedbackChanged, onFeedbackCreated } from './feedback';
 import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
 import { closeDuePolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
 import { cloudMonitoring } from './monitoring';
@@ -77,6 +78,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.pollId ? { pollId: notice.pollId } : {}),
         ...(notice.joinMeId ? { joinMeId: notice.joinMeId } : {}),
         ...(notice.capsuleId ? { capsuleId: notice.capsuleId } : {}),
+        ...(notice.feedback ? { feedback: notice.feedback } : {}),
         ...(notice.souvenirKey ? { souvenirKey: notice.souvenirKey } : {}),
         ...(notice.recapWeek ? { recapWeek: notice.recapWeek } : {}),
         ...(notice.birthdayOf ? { birthdayOf: notice.birthdayOf } : {}),
@@ -153,6 +155,19 @@ export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (ev
 export const onEventCommentCreated = onDocumentCreated('events/{eventId}/comments/{commentId}', async (event) => {
   const data = event.data?.data() as CommentData | undefined;
   if (data) await onCommentCreated(getFirestore(), send, event.params.eventId, event.params.commentId, data);
+});
+
+// « Une idée ? Un souci ? » (récit 6 sexies): the admin principal is told of each new one.
+export const onFeedbackSent = onDocumentCreated('feedback/{feedbackId}', async (event) => {
+  const data = event.data?.data() as FeedbackData | undefined;
+  if (data) await onFeedbackCreated(getFirestore(), send, data);
+});
+
+// … and its author of each new state given by the admin principal.
+export const onFeedbackAnswered = onDocumentUpdated('feedback/{feedbackId}', async (event) => {
+  const before = event.data?.before.data() as FeedbackData | undefined;
+  const after = event.data?.after.data() as FeedbackData | undefined;
+  if (before && after) await onFeedbackChanged(getFirestore(), send, before, after);
 });
 
 export const dayBeforeReminder = onSchedule({ schedule: '0 18 * * *', timeZone: 'Europe/Paris' }, async () => {

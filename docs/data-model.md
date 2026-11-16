@@ -960,6 +960,29 @@ Le document ne contient jamais ce que la personne a lu, écrit ou ouvert. Seul l
 
 ## Consommation (PRD, récit 1 sexies)
 
+### `feedback/{feedbackId}` (« Une idée ? Un souci ? », PRD, récit 6 sexies)
+
+| Champ | Type | Description |
+|---|---|---|
+| `kind` | `idea` ou `problem` | Une idée ou un problème |
+| `text` | texte (1 à 1000 caractères) | Ce que le membre a écrit |
+| `authorId`, `authorName` | `memberId`, texte | L'auteur et son prénom au moment d'écrire |
+| `appVersion`, `android`, `device` | textes (40, 20 et 80 caractères au plus) | Ajoutés tout seuls : la version de l'appli, celle d'Android et le modèle du téléphone |
+| `screen` | `family` ou `help` | L'écran d'où le formulaire a été ouvert |
+| `createdAt` | horodatage serveur | |
+| `status` | `new`, `planned`, `done` ou `declined` | Nouvelle à l'envoi, puis Prévue, Faite ou Pas retenue, choisi par l'admin principal |
+| `note` | texte (1 à 300 caractères) ou `null` | Le mot facultatif de l'admin principal pour l'auteur |
+| `statusAt` | horodatage serveur ou `null` | Le moment de la dernière réponse |
+| `screenshot` | chemin Storage, facultatif | `feedback/{authorId}/{feedbackId}.jpg` : une capture d'écran de 150 Ko au plus, envoyée juste avant la demande. Seuls l'auteur et l'admin principal la voient ; l'appli la supprime avec la demande |
+
+Droits : tout membre envoie en son nom, avec `status` à `new`, et jamais en mode Voir comme. Seuls l'auteur et l'admin principal lisent ; l'auteur retrouve les siens dans « Mes demandes ». L'admin principal ne change que `status`, `note` et `statusAt`. L'auteur ou l'admin principal supprime. Pas d'interrupteur : c'est prêt pour le 21/11.
+
+Cloud Functions (`functions/src/feedback.ts`) :
+- `onFeedbackSent` prévient l'admin principal, sauf s'il en est l'auteur, sur le canal `admin` (« Idée de Camille » ou « Souci signalé par Camille », puis le début du texte). Le toucher ouvre « Retours ».
+- `onFeedbackAnswered` prévient l'auteur quand l'état change, sauf s'il est l'admin principal, sur le canal `feedback` (« Ta demande est prévue », « faite » ou « n'est pas retenue », puis le mot ou le texte). Le toucher ouvre « Mes demandes ».
+
+Un retour reste quand son auteur quitte la famille.
+
 ### `consumption/{day}`
 
 L'usage de la base un jour donné, lu une fois chaque matin à partir de 8 h dans Cloud Monitoring par la tâche des 30 minutes `arrivalReminder` (`checkConsumptionIfDue` de `firebase/functions/src/consumption.ts`), seulement si le document de la veille n'existe pas encore. Seul le serveur l'écrit ; seul l'admin principal le lit, dans Administration › Consommation.

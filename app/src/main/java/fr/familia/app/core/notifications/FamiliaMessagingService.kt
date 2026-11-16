@@ -62,9 +62,12 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         // La semaine de la famille: its screen (récit 36).
         val recapWeek = message.data[EXTRA_RECAP_WEEK]
         recapWeek?.let { open.putExtra(EXTRA_RECAP_WEEK, it) }
+        // « Une idée ? Un souci ? » (récit 6 sexies): Retours or « Mes demandes ».
+        val feedback = message.data[EXTRA_FEEDBACK]
+        feedback?.let { open.putExtra(EXTRA_FEEDBACK, it) }
         val pending = PendingIntent.getActivity(
             this,
-            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId ?: joinMeId ?: capsuleId ?: recapWeek).hashCode(),
+            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId ?: joinMeId ?: capsuleId ?: recapWeek ?: feedback).hashCode(),
             open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -118,5 +121,8 @@ class FamiliaMessagingService : FirebaseMessagingService() {
 
         /** The Sunday of « La semaine de la famille », same key as functions/src/recap.ts. */
         const val EXTRA_RECAP_WEEK = "recapWeek"
+
+        /** "list" or "mine", same key as functions/src/feedback.ts. */
+        const val EXTRA_FEEDBACK = "feedback"
     }
 }
