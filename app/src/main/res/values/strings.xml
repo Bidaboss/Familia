@@ -356,9 +356,9 @@
     <string name="profile_with_admin">%1$s · chef de famille</string>
     <string name="app_version">Version %1$s</string>
 
-    <string name="sign_in_intro">Le planning et les anniversaires de la famille, au même endroit.</string>
+    <string name="sign_in_intro">Les nouvelles, le planning et les cadeaux de la famille, au même endroit.</string>
     <string name="sign_in_with_google">Se connecter avec Google</string>
-    <string name="sign_in_not_a_member">Le compte %1$s ne fait pas partie de la famille. Demande à un chef de famille de t\'ajouter, ou essaie un autre compte.</string>
+    <string name="sign_in_not_a_member">Le compte %1$s ne fait pas partie de la famille. Demande à l\'admin de la famille ou à un chef de famille de t\'ajouter, ou essaie un autre compte.</string>
     <string name="sign_in_in_progress">Connexion en cours</string>
     <string name="sign_in_use_another_account">Essayer un autre compte</string>
     <string name="sign_in_firebase_missing">L\'appli n\'est pas encore reliée à la famille. Réessaie avec la prochaine version.</string>
