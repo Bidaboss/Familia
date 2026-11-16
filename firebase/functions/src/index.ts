@@ -27,7 +27,7 @@ import {
   HelpNotice, HelpRequestData, HelpSender, onHelpRequestWritten, reopenRequestsOf, sendStillOpenReminders,
 } from './helpRequests';
 import { addDays, EventData, hasVisibleChange, Notice, parisDay } from './logic';
-import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, memberForUid, notifyChange, Sender, sendDayBeforeReminders } from './store';
+import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, memberForUid, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
 import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
 import {
@@ -123,6 +123,8 @@ export const onRsvpWritten = onDocumentWritten('events/{eventId}/rsvps/{memberId
 
 export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (event) => {
   await deleteMemberData(getFirestore(), event.params.memberId);
+  // « Qui apporte quoi » (récit 4 bis): what they had taken is free again.
+  await releaseBringOf(getFirestore(), event.params.memberId);
 });
 
 export const dayBeforeReminder = onSchedule({ schedule: '0 18 * * *', timeZone: 'Europe/Paris' }, async () => {
@@ -297,6 +299,13 @@ export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) =
   await deleteTripContents(getFirestore(), event.params.tripId);
   // The photos of the trip and their thumbnails (récit 15), all under trips/{tripId}/.
   await getStorage().bucket().deleteFiles({ prefix: `trips/${event.params.tripId}/` });
+});
+
+// Carnet de recettes (récit 38): a removed recipe takes its photos with it, records and files.
+export const onRecipeDeleted = onDocumentDeleted('recipes/{recipeId}', async (event) => {
+  const recipe = getFirestore().collection('recipes').doc(event.params.recipeId);
+  await getFirestore().recursiveDelete(recipe.collection('photos'));
+  await getStorage().bucket().deleteFiles({ prefix: `recipes/${event.params.recipeId}/` });
 });
 
 export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/Paris' }, async () => {

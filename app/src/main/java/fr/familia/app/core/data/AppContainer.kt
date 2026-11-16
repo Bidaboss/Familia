@@ -52,6 +52,9 @@ class AppContainer(context: Context) {
 
     val rsvpRepository: RsvpRepository? by lazy { firestore?.let { FirestoreRsvpRepository(it) } }
 
+    /** « Qui apporte quoi » of an event (PRD, récit 4 bis). */
+    val bringRepository: BringRepository? by lazy { firestore?.let { FirestoreBringRepository(it) } }
+
     val helpRequestRepository: HelpRequestRepository? by lazy { firestore?.let { FirestoreHelpRequestRepository(it) } }
     val tripRepository: TripRepository? by lazy { firestore?.let { FirestoreTripRepository(it) } }
 
@@ -62,6 +65,7 @@ class AppContainer(context: Context) {
 
     val weeklyQuestionRepository: WeeklyQuestionRepository? by lazy { firestore?.let { FirestoreWeeklyQuestionRepository(it) } }
     val souvenirRepository: SouvenirRepository? by lazy { firestore?.let { FirestoreSouvenirRepository(it) } }
+    val treeRepository: TreeRepository? by lazy { firestore?.let { FirestoreTreeRepository(it) } }
 
     /** Photos of the good news and the trips, in Cloud Storage (firebase/storage.rules). */
     val photoStorage: PhotoStorage? by lazy {

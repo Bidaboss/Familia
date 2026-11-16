@@ -89,7 +89,9 @@ class FirestoreGoodNewsRepository(private val db: FirebaseFirestore) : GoodNewsR
 /** Null when a field is missing or of the wrong type, so one bad document never breaks the feed. */
 private fun DocumentSnapshot.toGoodNews(): GoodNews? {
     val text = getString("text") ?: return null
-    val photoIds = (get("photoIds") as? List<*>)?.filterIsInstance<String>()?.takeIf { it.isNotEmpty() } ?: return null
+    // Only the « Défi réussi » of Familia (récit 35) comes without a photo.
+    val challengeMonth = getString("challengeMonth")
+    val photoIds = (get("photoIds") as? List<*>)?.filterIsInstance<String>()?.takeIf { it.isNotEmpty() || challengeMonth != null } ?: return null
     val reactions = (get("reactions") as? Map<*, *>).orEmpty().mapNotNull { (who, value) ->
         val reaction = Reaction.fromFirestore(value)
         if (who is String && reaction != null) who to reaction else null
@@ -108,5 +110,6 @@ private fun DocumentSnapshot.toGoodNews(): GoodNews? {
         // An estimate while the server time is pending, so a new good news shows at the top.
         createdAt = getTimestamp("createdAt", DocumentSnapshot.ServerTimestampBehavior.ESTIMATE)?.toInstant(),
         updatedAt = getTimestamp("updatedAt", DocumentSnapshot.ServerTimestampBehavior.ESTIMATE)?.toInstant(),
+        challengeMonth = challengeMonth,
     )
 }

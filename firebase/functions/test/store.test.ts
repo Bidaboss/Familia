@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { Notice } from '../src/logic';
-import { comingMembers, deleteEventAnswers, deleteMemberData, notify, notifyChange, Sender, sendDayBeforeReminders } from '../src/store';
+import { comingMembers, deleteEventAnswers, deleteMemberData, notify, releaseBringOf, notifyChange, Sender, sendDayBeforeReminders } from '../src/store';
 
 assert.ok(process.env.FIRESTORE_EMULATOR_HOST, 'Start these tests with the emulator: npm run test:functions');
 
@@ -139,4 +139,41 @@ test('the reminder can be turned off', async () => {
   const { sent, send } = fakeSender();
   await sendDayBeforeReminders(db, send, now);
   assert.deepEqual(sent.map((s) => s.token), ['token-camille']);
+});
+
+// --- Qui apporte quoi (récit 4 bis) ---------------------------------------------------------------
+
+function bring(label: string, takerId: string | null) {
+  return { label, authorId: 'camille', takerId, takerName: takerId, createdAt: new Date(), updatedAt: new Date() };
+}
+
+test('with the module on, the reminder says what each one brings', async () => {
+  await db.doc('events/meal/bring/b1').set(bring('Le pain', 'ines'));
+  await db.doc('events/meal/bring/b2').set(bring('Le dessert', null));
+  await db.doc('config/app').set({ features: { bring: true } });
+  try {
+    const { sent, send } = fakeSender();
+    await sendDayBeforeReminders(db, send, now);
+    const ines = sent.find((s) => s.token === 'token-ines');
+    assert.match(ines!.notice.body, /\nTu apportes : Le pain$/);
+    assert.doesNotMatch(sent.find((s) => s.token === 'token-camille')!.notice.body, /apportes/);
+    await db.doc('config/app').set({ features: { bring: false } });
+    const off = fakeSender();
+    await sendDayBeforeReminders(db, off.send, now);
+    assert.doesNotMatch(off.sent.find((s) => s.token === 'token-ines')!.notice.body, /apportes/);
+  } finally {
+    await db.doc('config/app').delete();
+  }
+});
+
+test('deleting an event deletes its list; removing a member frees what they took', async () => {
+  await db.doc('events/meal/bring/b1').set(bring('Le pain', 'ines'));
+  await db.doc('events/later/bring/b2').set(bring('La galette', 'ines'));
+  await db.doc('events/later/bring/b3').set(bring('Le cidre', 'camille'));
+  await releaseBringOf(db, 'ines');
+  assert.equal((await db.doc('events/later/bring/b2').get()).get('takerId'), null);
+  assert.equal((await db.doc('events/later/bring/b3').get()).get('takerId'), 'camille');
+  await deleteEventAnswers(db, 'meal');
+  assert.equal((await db.collection('events/meal/bring').get()).size, 0);
+  assert.equal((await db.collection('events/later/bring').get()).size, 2);
 });

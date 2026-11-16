@@ -45,6 +45,7 @@ enum class HelpTopic(
     Answers(R.string.help_topic_answers_title, R.string.help_topic_answers_body),
     Calendar(R.string.help_topic_calendar_title, R.string.help_topic_calendar_body, feature = Feature.Calendar),
     Polls(R.string.help_topic_polls_title, R.string.help_topic_polls_body, feature = Feature.Polls),
+    Bring(R.string.help_topic_bring_title, R.string.help_topic_bring_body, feature = Feature.Bring),
     Notifications(R.string.help_topic_notifications_title, R.string.help_topic_notifications_body),
     HelpRequests(R.string.help_topic_help_requests_title, R.string.help_topic_help_requests_body, feature = Feature.HelpRequests),
     Family(R.string.help_topic_family_title, R.string.help_topic_family_body),
@@ -58,6 +59,7 @@ enum class HelpTopic(
     Trips(R.string.help_topic_trips_title, R.string.help_topic_trips_body),
     WeeklyQuestion(R.string.help_topic_weekly_title, R.string.help_topic_weekly_body, feature = Feature.WeeklyQuestion),
     Souvenirs(R.string.help_topic_souvenirs_title, R.string.help_topic_souvenirs_body, feature = Feature.Souvenirs),
+    Tree(R.string.help_topic_tree_title, R.string.help_topic_tree_body, feature = Feature.Tree),
     Invite(R.string.help_topic_invite_title, R.string.help_topic_invite_body, HelpAudience.Chefs),
     Export(R.string.help_topic_export_title, R.string.help_topic_export_body, HelpAudience.Owner),
 }

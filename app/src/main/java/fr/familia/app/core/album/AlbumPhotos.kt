@@ -63,7 +63,7 @@ const val PHOTOS_SHOWN_IN_SECTION = 6
  * « Ajouter des photos » for a member who may add some. [emptyText] is said while there is none.
  */
 @Composable
-fun AlbumPhotosSection(state: AlbumPhotosUiState, actions: PhotoActions, emptyText: String) {
+fun AlbumPhotosSection(state: AlbumPhotosUiState, actions: PhotoActions, emptyText: String, showSeeAll: Boolean = true) {
     var openedId by rememberSaveable { mutableStateOf<String?>(null) }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (state.photos.isEmpty() && state.sending == 0) {
@@ -76,12 +76,12 @@ fun AlbumPhotosSection(state: AlbumPhotosUiState, actions: PhotoActions, emptyTe
         PhotoGrid(state.photos.take(PHOTOS_SHOWN_IN_SECTION), onOpen = { openedId = it.id })
         PhotoStatus(state, actions.onDismissProblem)
         // The full grid is where the film is made, so it opens from the first photo.
-        if (state.photos.isNotEmpty()) {
+        if (showSeeAll && state.photos.isNotEmpty()) {
             TextButton(onClick = actions.onSeeAll, modifier = Modifier.heightIn(min = 56.dp)) {
                 Text(pluralStringResource(R.plurals.album_photos_see_all, state.photos.size, state.photos.size))
             }
         }
-        if (state.canAdd) AddPhotosButton(state.placesLeft, actions.onAdd)
+        if (state.canAdd) AddPhotosButton(state.placesLeft, actions.onAdd, max = state.maxPerMember)
     }
     openedId?.let { id ->
         PhotoViewer(state, id, actions.onRemove, onClose = { openedId = null })
@@ -126,7 +126,7 @@ fun PhotoStatus(state: AlbumPhotosUiState, onDismiss: () -> Unit) {
         Text(
             when (problem) {
                 PhotoProblem.SendFailed -> stringResource(R.string.album_photos_send_failed)
-                PhotoProblem.TooMany -> stringResource(R.string.album_photos_too_many, AlbumPhoto.MAX_PER_MEMBER)
+                PhotoProblem.TooMany -> stringResource(R.string.album_photos_too_many, state.maxPerMember)
                 PhotoProblem.RemoveFailed -> stringResource(R.string.album_photos_remove_failed)
             },
             color = MaterialTheme.colorScheme.error,
@@ -141,7 +141,7 @@ fun PhotoStatus(state: AlbumPhotosUiState, onDismiss: () -> Unit) {
 
 /** Opens the photo picker of Android (no permission needed), up to the places left. */
 @Composable
-fun AddPhotosButton(placesLeft: Int, onAdd: (List<String>) -> Unit) {
+fun AddPhotosButton(placesLeft: Int, onAdd: (List<String>) -> Unit, max: Int = AlbumPhoto.MAX_PER_MEMBER) {
     // The picker needs a limit of 2 or more; the ViewModel keeps only what fits.
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(maxOf(2, placesLeft))) { uris ->
         onAdd(uris.map { it.toString() })
@@ -159,7 +159,7 @@ fun AddPhotosButton(placesLeft: Int, onAdd: (List<String>) -> Unit) {
         if (placesLeft > 0) {
             pluralStringResource(R.plurals.album_photos_places_left, placesLeft, placesLeft)
         } else {
-            stringResource(R.string.album_photos_full, AlbumPhoto.MAX_PER_MEMBER)
+            stringResource(R.string.album_photos_full, max)
         },
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
