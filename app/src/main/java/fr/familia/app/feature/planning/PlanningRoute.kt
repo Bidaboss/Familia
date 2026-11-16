@@ -11,7 +11,10 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.share.birthdayShare
+import fr.familia.app.core.share.share
 import fr.familia.app.core.ui.LocalFeatureFlags
+import java.time.LocalDate
 
 /** Connects the Planning tab to its ViewModel. */
 @Composable
@@ -41,6 +44,8 @@ fun PlanningRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val screenContext = LocalContext.current
+    val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)
     PlanningScreen(
         state = state,
         onRetry = viewModel::retry,
@@ -48,5 +53,6 @@ fun PlanningRoute(
         onOpenEvent = onOpenEvent,
         onScopeChange = viewModel::setScope,
         onOpenTrip = onOpenTrip,
+        onShareBirthday = if (shareOn) ({ birthday -> share(screenContext, birthdayShare(screenContext, birthday, LocalDate.now())) }) else null,
     )
 }

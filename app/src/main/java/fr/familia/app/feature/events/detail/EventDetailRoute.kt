@@ -21,6 +21,8 @@ import fr.familia.app.core.calendar.addToCalendar
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.share.eventShare
+import fr.familia.app.core.share.share
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.events.album.EventAlbumSection
 import fr.familia.app.feature.events.bring.BringSection
@@ -58,11 +60,15 @@ fun EventDetailRoute(
     }
     val context = LocalContext.current
     val calendarOn = LocalFeatureFlags.current.isOn(Feature.Calendar)
+    val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)
     val shown = state as? EventDetailUiState.Success
     EventDetailScreen(
         state = state,
         onAddToCalendar = shown?.takeIf { calendarOn }?.let { success ->
             { addToCalendar(context, CalendarEntry.forEvent(success.event, context.getString(R.string.calendar_created_from))) }
+        },
+        onShare = shown?.takeIf { shareOn }?.let { success ->
+            { share(context, eventShare(context, success.event, success.today)) }
         },
         onAnswer = viewModel::answer,
         onRetry = viewModel::retry,

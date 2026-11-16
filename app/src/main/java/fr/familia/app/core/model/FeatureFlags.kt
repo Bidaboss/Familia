@@ -47,6 +47,8 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     Bring("bring", R.string.feature_bring),
     /** The place component and « Rejoignez-moi » (PRD, récit 33). */
     Places("places", R.string.feature_places),
+    /** « Partager » vers une messagerie, et les liens qui ouvrent l'appli (PRD, récit 31). */
+    Share("share", R.string.feature_share),
 }
 
 /**

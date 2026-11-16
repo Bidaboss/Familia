@@ -200,6 +200,9 @@ fun FamiliaApp(
     /** A link shared from another app, to add to « Mes envies » once (récit 8 bis). */
     sharedWish: SharedWish? = null,
     onSharedWishOpened: () -> Unit = {},
+    /** The member of a shared birthday link (récit 31): their page opens once. */
+    openMemberId: String? = null,
+    onMemberOpened: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
     // Each time the app opens, this phone is (re)registered for the notifications of this member.
@@ -358,6 +361,12 @@ fun FamiliaApp(
 
     // And for a poll (récits 2 bis et 2 ter).
     val pollsOn = features.isOn(Feature.Polls)
+    LaunchedEffect(openMemberId) {
+        if (openMemberId != null) {
+            navController.navigate(MemberProfileDestination(openMemberId))
+            onMemberOpened()
+        }
+    }
     LaunchedEffect(openPollId, pollsOn) {
         if (openPollId != null && pollsOn) {
             navController.navigate(PollDetailDestination(openPollId))

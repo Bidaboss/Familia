@@ -47,6 +47,7 @@ jobs:
       - name: Publish
         env:
           FIREBASE_SECRET_ACCOUNT: ${{ secrets.FIREBASE_SECRET_ACCOUNT }}
+          FAMILIA_DOWNLOAD_URL: ${{ secrets.FAMILIA_DOWNLOAD_URL }}
         run: |
           if [ -z "$FIREBASE_SECRET_ACCOUNT" ]; then
             echo "::error::Le secret FIREBASE_SECRET_ACCOUNT est absent (voir docs/deploiement.md)."
@@ -55,6 +56,13 @@ jobs:
           key="$RUNNER_TEMP/firebase-key.json"
           trap 'rm -f "$key"' EXIT
           printf '%s' "$FIREBASE_SECRET_ACCOUNT" > "$key"
+          # The page of a shared link (récit 31) offers the installation with the Drive link, which
+          # stays out of the public repository: written here, in the runner's copy only.
+          if printf '%s' "$FAMILIA_DOWNLOAD_URL" | grep -qE '^https://drive\.google\.com/[A-Za-z0-9/?=_.-]+$'; then
+            sed -i "s|__DOWNLOAD_URL__|$FAMILIA_DOWNLOAD_URL|" hosting/open.html
+          else
+            echo "::warning::Le secret FAMILIA_DOWNLOAD_URL manque : la page des liens partagés dira de demander le lien d'installation."
+          fi
           GOOGLE_APPLICATION_CREDENTIALS="$key" npx firebase deploy \
-            --only firestore:rules,firestore:indexes,storage,functions \
+            --only firestore:rules,firestore:indexes,storage,functions,hosting \
             --non-interactive

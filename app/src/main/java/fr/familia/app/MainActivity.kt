@@ -10,6 +10,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.familia.app.core.navigation.FamiliaApp
 import fr.familia.app.core.notifications.FamiliaMessagingService
+import fr.familia.app.core.share.ShareKind
+import fr.familia.app.core.share.parseSharedLink
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.feature.gifts.share.SharedWish
 import fr.familia.app.feature.gifts.share.sharedWish
@@ -42,6 +44,9 @@ class MainActivity : ComponentActivity() {
 
     /** A « Rejoignez-moi » was tapped: the Accueil shows it (récit 33). */
     private val openJoinMe = mutableStateOf(false)
+    /** The birthday of a shared link: the member's page opens (récit 31). */
+    private val openMemberId = mutableStateOf<String?>(null)
+
     /** A link shared from another app, for « Mes envies » (récit 8 bis). */
     private val sharedWish = mutableStateOf<SharedWish?>(null)
 
@@ -59,6 +64,7 @@ class MainActivity : ComponentActivity() {
             openPollId.value = intent.pollId()
             openJoinMe.value = intent.hasJoinMe()
             sharedWish.value = intent.sharedWish()
+            openSharedLink(intent)
         }
         val app = application as FamiliaApplication
         val container = app.container
@@ -74,6 +80,7 @@ class MainActivity : ComponentActivity() {
             val pollToOpen by openPollId
             val joinMeToOpen by openJoinMe
             val wishToAdd by sharedWish
+            val memberToOpen by openMemberId
             FamiliaTheme {
                 SessionRoute(container = container) { member ->
                     FamiliaApp(
@@ -100,6 +107,8 @@ class MainActivity : ComponentActivity() {
                         onJoinMeOpened = { openJoinMe.value = false },
                         sharedWish = wishToAdd,
                         onSharedWishOpened = { sharedWish.value = null },
+                        openMemberId = memberToOpen,
+                        onMemberOpened = { openMemberId.value = null },
                     )
                 }
             }
@@ -119,6 +128,26 @@ class MainActivity : ComponentActivity() {
         intent.pollId()?.let { openPollId.value = it }
         if (intent.hasJoinMe()) openJoinMe.value = true
         intent.sharedWish()?.let { sharedWish.value = it }
+        openSharedLink(intent)
+    }
+
+    /**
+     * A link of a share (récit 31): the same doors as a tapped notification. The security rules
+     * still decide: an item the member cannot read shows « introuvable », as for a deleted one.
+     */
+    private fun openSharedLink(intent: Intent) {
+        if (intent.action != Intent.ACTION_VIEW) return
+        val uri = intent.data ?: return
+        val link = parseSharedLink(uri.scheme, uri.host, uri.path) ?: return
+        when (link.kind) {
+            ShareKind.Event -> openEventId.value = link.id
+            ShareKind.Poll -> openPollId.value = link.id
+            ShareKind.Birthday -> openMemberId.value = link.id
+            ShareKind.List -> openListId.value = link.id
+            ShareKind.GoodNews -> openGoodNewsId.value = link.id
+            ShareKind.Trip -> openTripId.value = link.id
+            ShareKind.HelpRequest -> openHelpRequestId.value = link.id
+        }
     }
 
     private fun Intent.eventId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_EVENT_ID)
