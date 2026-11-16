@@ -140,10 +140,8 @@
     <string name="administration_failed_title">Ça n\'a pas marché</string>
     <string name="administration_failed_body">Le changement n\'a pas été accepté. Réessaie, et si ça recommence, vérifie que tu es toujours admin principal.</string>
     <string name="administration_chefs_title">Chefs de famille</string>
-    <string name="administration_chefs_help">Un chef de famille gère les membres et les événements de son foyer.</string>
     <string name="administration_owner_row">Admin principal : tous les droits</string>
     <string name="administration_households_title">Foyers</string>
-    <string name="administration_households_help">Le crayon renomme un foyer ; un foyer sans membre peut être supprimé.</string>
     <plurals name="administration_household_members">
         <item quantity="one">%d membre</item>
         <item quantity="many">%d membres</item>
@@ -157,13 +155,11 @@
     <string name="administration_features_title">Modules</string>
     <string name="administration_features_help">Un module éteint est caché à la famille, mais toi tu le vois toujours.</string>
     <string name="administration_challenge_title">Défi du mois</string>
-    <string name="administration_challenge_help">Choisis le défi de la famille dans la liste. Le défi d\'un mois ne change plus dès que sa jauge a avancé.</string>
     <string name="administration_challenge_change">Changer le défi de %1$s</string>
     <string name="administration_challenge_locked">La jauge a commencé : ce défi reste jusqu\'à la fin du mois.</string>
     <string name="administration_challenge_dialog_title">Défi de %1$s</string>
     <string name="administration_challenge_confirm">Choisir ce défi</string>
     <string name="administration_rotation_title">Ordre des foyers</string>
-    <string name="administration_rotation_help">Chaque foyer lance le défi d\'un mois, à tour de rôle. Il est prévenu 7 jours avant et peut passer son tour. Monte ou descends un foyer, puis enregistre.</string>
     <string name="administration_rotation_up">Monter %1$s</string>
     <string name="administration_rotation_down">Descendre %1$s</string>
     <string name="administration_rotation_save">Enregistrer l\'ordre</string>
@@ -177,7 +173,7 @@
     <string name="feature_wishes_reveal">Dévoiler les envies offertes</string>
     <string name="received_title">On m\'a offert</string>
     <string name="received_open">On m\'a offert</string>
-    <string name="received_intro">Les envies que la famille t\'a offertes, avec les prénoms de ceux qui les ont prises. Les montants restent secrets.</string>
+    <string name="received_intro">Les envies que la famille t\'a offertes, avec les prénoms de ceux qui les ont prises ; les montants restent secrets.</string>
     <string name="received_empty_title">Rien pour l\'instant</string>
     <string name="received_empty_body">Le lendemain de ton anniversaire et de Noël, les envies que la famille a prises pour toi arrivent ici.</string>
     <string name="received_error_title">Impossible d\'afficher tes cadeaux</string>
@@ -325,7 +321,7 @@
     <string name="member_remove_body">La fiche de %1$s disparaît et cette adresse n\'ouvre plus l\'appli. Tu pourras l\'ajouter à nouveau plus tard.</string>
     <string name="member_remove_confirm">Retirer</string>
     <string name="feedback_title">Une idée ? Un souci ?</string>
-    <string name="feedback_intro">Dis-nous ce qui te plaît, ce qui manque ou ce qui ne marche pas. L\'admin de la famille le reçoit.</string>
+    <string name="feedback_intro">Dis-nous ce qui te plaît, ce qui manque ou ce qui ne marche pas : l\'admin de la famille le reçoit.</string>
     <string name="feedback_kind_idea">Une idée</string>
     <string name="feedback_kind_problem">Un problème</string>
     <string name="feedback_field_idea">Ton idée</string>
@@ -436,7 +432,7 @@
     <string name="channel_help_requests">Entraide</string>
     <string name="channel_help_requests_description">Coups de main demandés, proposés ou confirmés</string>
     <string name="export_title">Sauvegarde des données</string>
-    <string name="export_body">Un fichier avec toutes les données de la famille, à garder pour toi : sur ce téléphone ou dans ton Drive. Les capsules temporelles des autres restent scellées : seules les tiennes, et celles déjà ouvertes pour toi, y sont. Les voyages y sont aussi, ceux que tu suis, avec leurs étapes et leur liste.</string>
+    <string name="export_body">Un fichier avec toutes les données de la famille, à garder pour toi ; les capsules temporelles des autres y restent scellées.</string>
     <string name="export_action">Créer la sauvegarde</string>
     <string name="export_in_progress">Sauvegarde en cours…</string>
     <string name="export_done">Sauvegarde enregistrée.</string>
@@ -500,6 +496,8 @@
     <string name="help_screen_event_edit_title">Ajouter ou modifier un événement</string>
     <string name="help_screen_event_edit_body">Le titre et la date sont obligatoires. L\'heure, le lieu et la note sont facultatifs. Choisis pour qui : toi, ton foyer, un de tes enfants ou toute la famille. La famille est prévenue dès que tu enregistres.</string>
     <string name="help_screen_family_title">La famille</string>
+    <string name="help_screen_administration_title">L\'administration</string>
+    <string name="help_screen_administration_body">Un chef de famille gère les membres et les événements de son foyer.\n\nLe crayon renomme un foyer ; un foyer sans membre peut être supprimé.\n\nChoisis le défi de la famille dans la liste. Le défi d\'un mois ne change plus dès que sa jauge a avancé. Chaque foyer lance le défi d\'un mois, à tour de rôle. Il est prévenu 7 jours avant et peut passer son tour. Monte ou descends un foyer, puis enregistre.</string>
     <string name="help_screen_family_body">Les membres de la famille, rangés par foyer. Plus bas, règle tes notifications, vérifie les mises à jour et ouvre l\'aide. Seuls l\'admin principal et les chefs de famille, pour leur foyer, ajoutent ou modifient un membre.</string>
     <string name="help_screen_gifts_title">Cadeaux</string>
     <string name="help_screen_gifts_body">En haut, les prochains anniversaires. Plus bas, les listes de chacun : « Mes envies », que chacun remplit toute l\'année, et les listes d\'occasion, comme Noël. Touche une liste pour l\'ouvrir, ou « Nouvelle liste » pour en créer une.</string>
@@ -1327,7 +1325,7 @@
     <string name="home_trips_all">Tous les voyages</string>
     <string name="home_trip_ongoing">En cours</string>
     <string name="help_screen_home_title">L\'accueil</string>
-    <string name="help_screen_home_body">Ici, l\'essentiel du moment : ce que tu as à faire, les 7 prochains jours, les anniversaires, la prochaine occasion et les voyages. Une carte vide ne s\'affiche pas. Touche une ligne pour l\'ouvrir.</string>
+    <string name="help_screen_home_body">Ici, l\'essentiel du moment : ce que tu as à faire, cette semaine et les bonnes nouvelles. Dessous, les puces : anniversaires, question, arbre, diaporama, voyages, prochaine occasion. Une puce n\'apparaît que si elle a quelque chose à dire ; touche-la pour ouvrir sa carte ou son écran.</string>
     <string name="help_topic_home_title">L\'accueil</string>
     <string name="help_topic_home_body">Le premier onglet résume le moment : les événements où tu n\'as pas encore répondu, les coups de main pour toi, la semaine qui vient, les anniversaires du mois, la prochaine occasion de cadeaux et les voyages que tu suis. Il est le même pour tout le monde.</string>
     <!-- Thèmes au choix (DESIGN-7) -->
@@ -1713,7 +1711,6 @@
     <string name="joinme_where">Où ?</string>
     <string name="joinme_source_here">Ma position</string>
     <string name="joinme_source_elsewhere">Un autre endroit</string>
-    <string name="joinme_here_hint">Ta position est prise une seule fois, maintenant. Personne ne te suit.</string>
     <string name="joinme_locate">Prendre ma position</string>
     <string name="joinme_locating">Recherche de ta position…</string>
     <string name="joinme_locate_again">Reprendre ma position</string>
@@ -1731,13 +1728,12 @@
     <string name="joinme_note_hint">On est près du poste de secours</string>
     <string name="joinme_note_too_long">200 caractères au plus.</string>
     <string name="joinme_who">À qui ?</string>
-    <string name="joinme_who_hint">Personne n\'est coché : choisis à chaque fois qui le reçoit.</string>
     <string name="joinme_who_household">Mon foyer</string>
     <string name="joinme_who_family">Toute la famille</string>
     <string name="joinme_send">Envoyer</string>
-    <string name="joinme_send_hint">Ceux que tu as cochés sont prévenus et le voient sur l\'accueil pendant 24 h. Tu peux arrêter avant.</string>
+    <string name="joinme_send_hint">Ta position est prise une seule fois. Ceux que tu as cochés la voient 24 h, et tu peux arrêter avant.</string>
     <string name="help_topic_joinme_title">Rejoignez-moi</string>
-    <string name="help_topic_joinme_body">Sur l\'accueil, touche « Dire où je suis ». Prends ta position du moment, ou tape une adresse, ou colle un lien Google Maps. Coche ceux qui doivent te rejoindre, puis « Envoyer » : ils reçoivent une notification et une carte avec « Itinéraire », qui ouvre Google Maps ou Waze. Ta position n\'est prise qu\'au moment où tu touches le bouton, jamais en continu. Le partage s\'efface tout seul au bout de 24 h, ou dès que tu touches « Ne plus partager ».</string>
+    <string name="help_topic_joinme_body">Sur l\'accueil, touche la puce « Dire où je suis ». Prends ta position du moment, ou tape une adresse, ou colle un lien Google Maps. Coche ceux qui doivent te rejoindre (si personne n\'est coché, choisis à chaque fois qui le reçoit), puis « Envoyer » : ils reçoivent une notification et une carte avec « Itinéraire », qui ouvre Google Maps ou Waze. Ta position n\'est prise qu\'au moment où tu touches le bouton, jamais en continu. Le partage s\'efface tout seul au bout de 24 h, ou dès que tu touches « Ne plus partager ».</string>
     <string name="capsule_sealed_note">Encore scellée : les destinataires ne savent pas qu\'elle existe. Elle ne se modifie plus.</string>
     <string name="capsule_photo">Photo %1$d sur %2$d de la capsule</string>
     <string name="capsule_missing_title">Capsule introuvable</string>

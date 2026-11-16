@@ -67,6 +67,8 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
+import fr.familia.app.feature.help.HelpButton
+import fr.familia.app.feature.help.ScreenHelp
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.MemberAvatar
@@ -122,6 +124,8 @@ fun AdministrationScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.administration_title)) },
                 navigationIcon = { BackButton(onClick = onBack) },
+                // One help sentence on the screen at most (DESIGN-11): the others are in the « ? ».
+                actions = { HelpButton(ScreenHelp.Administration) },
             )
         },
     ) { padding ->
@@ -196,12 +200,12 @@ private fun ReadyContent(
     var deleting by rememberSaveable { mutableStateOf<String?>(null) }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 8.dp)) {
         item(key = "chefs-title") {
-            SectionTitle(R.string.administration_chefs_title, R.string.administration_chefs_help)
+            SectionTitle(R.string.administration_chefs_title)
         }
         items(state.adults, key = { "adult-${it.member.id}" }) { row -> AdultSwitchRow(row, onSetChef) }
         item(key = "households-title") {
             HorizontalDivider(Modifier.padding(top = 8.dp))
-            SectionTitle(R.string.administration_households_title, R.string.administration_households_help)
+            SectionTitle(R.string.administration_households_title)
         }
         items(state.households, key = { "household-${it.household.id}" }) { row ->
             HouseholdLine(
@@ -321,7 +325,7 @@ private fun ReadyContent(
         if (onPickChallenge != null && challenges.isNotEmpty()) {
             item(key = "challenge-title") {
                 HorizontalDivider(Modifier.padding(top = 8.dp))
-                SectionTitle(R.string.administration_challenge_title, R.string.administration_challenge_help)
+                SectionTitle(R.string.administration_challenge_title)
             }
             item(key = "challenge") { ChallengePickSection(challenges, onPickChallenge) }
         }
@@ -330,7 +334,7 @@ private fun ReadyContent(
         }
         if (onSaveRotation != null && rotation != null && rotation.households.isNotEmpty()) {
             item(key = "rotation-title") {
-                SectionTitle(R.string.administration_rotation_title, R.string.administration_rotation_help)
+                SectionTitle(R.string.administration_rotation_title)
             }
             item(key = "rotation") { ChallengeRotationSection(rotation, onSaveRotation) }
         }
@@ -393,7 +397,7 @@ private fun ReadyContent(
 }
 
 @Composable
-private fun SectionTitle(titleRes: Int, helpRes: Int) {
+private fun SectionTitle(titleRes: Int, helpRes: Int? = null) {
     Column(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             stringResource(titleRes),
@@ -401,11 +405,13 @@ private fun SectionTitle(titleRes: Int, helpRes: Int) {
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.semantics { heading() },
         )
-        Text(
-            stringResource(helpRes),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        if (helpRes != null) {
+            Text(
+                stringResource(helpRes),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
