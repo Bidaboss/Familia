@@ -10,6 +10,11 @@ interface CapsuleRepository {
 
     /** The capsules already opened for [memberId], updated live. The sealed ones never show. */
     fun observeOpenedFor(memberId: String): Flow<List<Capsule>>
+
+    /** One capsule; null once removed, or when it cannot be read (still sealed for someone else). */
+    fun observeCapsule(id: String): Flow<Capsule?>
+
+    suspend fun deleteCapsule(id: String)
 }
 
 /** The next to open first; then the last opened first. */

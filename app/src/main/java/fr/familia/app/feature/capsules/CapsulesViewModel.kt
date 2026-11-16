@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /** A capsule of a list, with its recipients by first name (« Noé et Lou »), and whether one wrote it. */
 data class CapsuleRow(val capsule: Capsule, val recipients: String, val isMine: Boolean)
@@ -53,4 +55,63 @@ class CapsulesViewModel(capsules: CapsuleRepository?, members: MemberRepository?
                 .catch { e -> if (e is CancellationException) throw e else emit(CapsulesUiState.Failed) }
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CapsulesUiState.Loading)
         }
+}
+
+sealed interface CapsuleDetailUiState {
+    data object Loading : CapsuleDetailUiState
+
+    /** Removed meanwhile, or not readable (still sealed for someone else). */
+    data object Missing : CapsuleDetailUiState
+
+    data class Ready(val row: CapsuleRow, val removeFailed: Boolean = false) : CapsuleDetailUiState
+
+    data object Removed : CapsuleDetailUiState
+}
+
+/** One capsule. Its author reads it at any time and may remove it; the recipients once opened. */
+class CapsuleDetailViewModel(
+    private val capsules: CapsuleRepository?,
+    members: MemberRepository?,
+    private val currentMemberId: String,
+    private val capsuleId: String,
+    private val writeTimeoutMillis: Long = 4_000,
+) : ViewModel() {
+
+    private val removal = MutableStateFlow<Boolean?>(null) // null: nothing asked; true: removed; false: failed.
+
+    val uiState: StateFlow<CapsuleDetailUiState> =
+        if (capsules == null || members == null) {
+            MutableStateFlow(CapsuleDetailUiState.Missing)
+        } else {
+            combine(capsules.observeCapsule(capsuleId), members.observeFamily(), removal) { capsule, family, removed ->
+                val state: CapsuleDetailUiState = when {
+                    removed == true -> CapsuleDetailUiState.Removed
+                    capsule == null -> CapsuleDetailUiState.Missing
+                    // The rules already hide it; this keeps a sealed one closed if a cache still holds it.
+                    capsule.authorId != currentMemberId && currentMemberId !in capsule.openedFor -> CapsuleDetailUiState.Missing
+                    else -> CapsuleDetailUiState.Ready(capsuleRow(capsule, family, currentMemberId), removed == false)
+                }
+                state
+            }
+                .catch { e -> if (e is CancellationException) throw e else emit(CapsuleDetailUiState.Missing) }
+                .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CapsuleDetailUiState.Loading)
+        }
+
+    /** Removes the capsule and its photos, after the screen asked for confirmation. Its author only. */
+    fun remove() {
+        val repo = capsules ?: return
+        val ready = uiState.value as? CapsuleDetailUiState.Ready ?: return
+        if (!ready.row.isMine) return
+        viewModelScope.launch {
+            removal.value = try {
+                // Offline, the removal waits in Firestore and is sent later.
+                withTimeoutOrNull(writeTimeoutMillis) { repo.deleteCapsule(capsuleId) }
+                true
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                false
+            }
+        }
+    }
 }
