@@ -47,6 +47,7 @@ interface AppContainer {
     val recipeRepository: RecipeRepository?
     val capsuleRepository: CapsuleRepository?
     val goodNewsRepository: GoodNewsRepository?
+    val genealogyRepository: GenealogyRepository?
     val weeklyQuestionRepository: WeeklyQuestionRepository?
     val souvenirRepository: SouvenirRepository?
     val treeRepository: TreeRepository?
@@ -117,6 +118,9 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val capsuleRepository: CapsuleRepository? by lazy { firestore?.let { FirestoreCapsuleRepository(it) } }
 
     override val goodNewsRepository: GoodNewsRepository? by lazy { firestore?.let { FirestoreGoodNewsRepository(it) } }
+
+    /** L'arbre généalogique (récit 40). */
+    override val genealogyRepository: GenealogyRepository? by lazy { firestore?.let { FirestoreGenealogyRepository(it) } }
 
     override val weeklyQuestionRepository: WeeklyQuestionRepository? by lazy { firestore?.let { FirestoreWeeklyQuestionRepository(it) } }
     override val souvenirRepository: SouvenirRepository? by lazy { firestore?.let { FirestoreSouvenirRepository(it) } }
