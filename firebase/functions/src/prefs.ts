@@ -1,9 +1,9 @@
 // Régler mes notifications (PRD, récit 6 quinquies). Each member chooses what reaches them, in
 // members/{id}/settings/notifications:
-// - `level`: 'all' (default), 'essential' (the planning, the reminders, what aims at me) or
-//   'minimal' (only what aims at me);
 // - one switch per family (`planning`, `reminders`, `gifts`, `goodNews`, `comments`,
-//   `helpRequests`, `trips`, `weekly`): `false` turns it off, whatever the level;
+//   `helpRequests`, `trips`, `weekly`): `false` turns it off. The three levels of the screen
+//   (« Tout », « L'essentiel », « Presque rien ») only set these switches at once, so a switch
+//   changed afterwards always counts;
 // - `quietHours`: `true` holds what comes between 22 h and 8 h (Paris) until 8 h, grouped.
 // What aims at the member directly never goes quiet: a « Rejoignez-moi », a coup de main they
 // took, the Bonne nouvelle of a child they are responsible for (AVIS-12), a capsule opened for
@@ -15,7 +15,6 @@ import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import type { Channel } from './logic';
 
 export type Family = 'planning' | 'reminders' | 'gifts' | 'goodNews' | 'comments' | 'helpRequests' | 'trips' | 'weekly';
-export type Level = 'all' | 'essential' | 'minimal';
 
 export const FAMILIES: readonly Family[] = ['planning', 'reminders', 'gifts', 'goodNews', 'comments', 'helpRequests', 'trips', 'weekly'];
 
@@ -48,28 +47,23 @@ export interface Filtered {
 }
 
 export interface Prefs {
-  level: Level;
   off: ReadonlySet<Family>;
   quietHours: boolean;
 }
 
-export const DEFAULT_PREFS: Prefs = { level: 'all', off: new Set(), quietHours: false };
+export const DEFAULT_PREFS: Prefs = { off: new Set(), quietHours: false };
 
 /** The settings document as the app writes it; anything unknown keeps the default. */
 export function prefsFrom(data: Record<string, unknown> | undefined): Prefs {
   if (!data) return DEFAULT_PREFS;
-  const level = data.level === 'essential' || data.level === 'minimal' ? data.level : 'all';
-  return { level, off: new Set(FAMILIES.filter((f) => data[f] === false)), quietHours: data.quietHours === true };
+  return { off: new Set(FAMILIES.filter((f) => data[f] === false)), quietHours: data.quietHours === true };
 }
 
 /** Whether [notice] may reach a member with [prefs] at all. */
 export function allows(prefs: Prefs, notice: Filtered): boolean {
   const family = FAMILY_OF[notice.channel];
   if (notice.direct || family === null) return true;
-  if (prefs.off.has(family)) return false;
-  if (prefs.level === 'minimal') return false;
-  if (prefs.level === 'essential') return family === 'planning' || family === 'reminders';
-  return true;
+  return !prefs.off.has(family);
 }
 
 /** From 22 h to 8 h in Paris. */

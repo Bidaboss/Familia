@@ -11,13 +11,13 @@ describe('my notification settings, without the emulator', () => {
   const news: Notice = { channel: 'goodNews', title: 'Bonne nouvelle', body: 'Code !' };
   const joinMe: Notice = { channel: 'joinMe', title: 'Noé : rejoins-moi', body: 'Au parc' };
 
-  test('everything by default; the levels keep the planning, the reminders, or only what aims at me', () => {
+  test('everything by default; « L\'essentiel » and « Presque rien » are switches set at once', () => {
     assert.equal(allows(prefsFrom(undefined), news), true);
-    const essential = prefsFrom({ level: 'essential' });
+    const essential = prefsFrom({ planning: true, reminders: true, gifts: false, goodNews: false, comments: false, helpRequests: false, trips: false, weekly: false });
     assert.equal(allows(essential, planning), true);
     assert.equal(allows(essential, { channel: 'reminders' }), true);
     assert.equal(allows(essential, news), false);
-    const minimal = prefsFrom({ level: 'minimal' });
+    const minimal = prefsFrom({ planning: false, reminders: false, gifts: false, goodNews: false, comments: false, helpRequests: false, trips: false, weekly: false });
     assert.equal(allows(minimal, planning), false);
     assert.equal(allows(minimal, joinMe), true);
     assert.equal(allows(minimal, { ...news, direct: true }), true);
@@ -29,7 +29,7 @@ describe('my notification settings, without the emulator', () => {
     assert.equal(allows(p, { channel: 'recap' }), false); // Rendez-vous de la semaine.
     assert.equal(allows(p, joinMe), true);
     assert.equal(allows(p, { channel: 'admin' }), true);
-    assert.equal(prefsFrom({ level: 'loud' }).level, 'all');
+    assert.equal(allows(prefsFrom({ trips: 'non' }), { channel: 'trips' }), true);
   });
 
   test('the quiet hours run from 22 h to 8 h in Paris, summer and winter', () => {
@@ -75,7 +75,7 @@ describe('my notification settings against the emulator', () => {
       batch.set(db.doc(`members/${id}`), { firstName: id, profile: 'adult', parentIds: [] });
       batch.set(db.doc(`members/${id}/devices/token-${id}`), { updatedAt: night });
     }
-    batch.set(db.doc('members/noe/settings/notifications'), { level: 'minimal' });
+    batch.set(db.doc('members/noe/settings/notifications'), { planning: false, reminders: false, gifts: false, goodNews: false, comments: false, helpRequests: false, trips: false, weekly: false });
     batch.set(db.doc('members/lou/settings/notifications'), { quietHours: true });
     await batch.commit();
   });

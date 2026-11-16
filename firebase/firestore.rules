@@ -501,9 +501,8 @@ service cloud.firestore {
         && myMemberId() == memberId
         && settingId == 'notifications'
         && request.resource.data.keys().hasOnly(['dayBeforeReminder', 'goodNews', 'weekly', 'souvenirs', 'tree', 'recap', 'birthdayWishes',
-          'level', 'planning', 'reminders', 'gifts', 'comments', 'helpRequests', 'trips', 'quietHours'])
-        // Récit 6 quinquies: three levels, one switch per family, the quiet hours.
-        && (!('level' in request.resource.data) || request.resource.data.level in ['all', 'essential', 'minimal'])
+          'planning', 'reminders', 'gifts', 'comments', 'helpRequests', 'trips', 'quietHours'])
+        // Récit 6 quinquies: one switch per family (the three levels set them at once), the quiet hours.
         && (!('planning' in request.resource.data) || request.resource.data.planning is bool)
         && (!('reminders' in request.resource.data) || request.resource.data.reminders is bool)
         && (!('gifts' in request.resource.data) || request.resource.data.gifts is bool)
