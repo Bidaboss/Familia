@@ -37,6 +37,10 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.album.AlbumPhotosSection
+import fr.familia.app.core.album.AlbumPhotosUiState
+import fr.familia.app.core.album.PhotoActions
+import fr.familia.app.core.album.previewAlbumPhotos
 import fr.familia.app.core.model.StepType
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripArrival
@@ -77,6 +81,8 @@ fun TripDetailScreen(
     onClearArrival: (stepId: String) -> Unit,
     onBack: () -> Unit,
     checklist: ChecklistActions = ChecklistActions(),
+    photos: AlbumPhotosUiState = AlbumPhotosUiState(),
+    photoActions: PhotoActions = PhotoActions(),
 ) {
     val success = state as? TripDetailUiState.Success
     Scaffold(
@@ -122,7 +128,7 @@ fun TripDetailScreen(
                         }
                     },
                 )
-                is TripDetailUiState.Success -> Content(state, onEditStep, onArrived, onClearArrival, checklist)
+                is TripDetailUiState.Success -> Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions)
             }
         }
     }
@@ -135,6 +141,8 @@ private fun Content(
     onArrived: (String) -> Unit,
     onClearArrival: (String) -> Unit,
     checklist: ChecklistActions,
+    photos: AlbumPhotosUiState,
+    photoActions: PhotoActions,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -172,7 +180,12 @@ private fun Content(
                 onClearArrival = { onClearArrival(step.id) },
             )
         }
-        // The steps come first: on the way, « Bien arrivé » matters more than what to bring.
+        // The steps come first: on the way, « Bien arrivé » matters more than the photos and what to bring.
+        item(key = "photos-title") { TripSectionTitle(stringResource(R.string.trip_photos)) }
+        item(key = "photos") {
+            val empty = if (photos.canAdd) R.string.trip_photos_empty_participant else R.string.trip_photos_empty
+            AlbumPhotosSection(photos, photoActions, stringResource(empty))
+        }
         item(key = "checklist-title") { TripSectionTitle(stringResource(R.string.trip_checklist)) }
         item(key = "checklist") { TripChecklist(state.items, state.assignees, state.isParticipant, checklist) }
     }
@@ -312,5 +325,5 @@ internal fun previewTripDetail(isParticipant: Boolean = true): TripDetailUiState
 @FamiliaPreviews
 @Composable
 private fun TripDetailScreenPreview() {
-    FamiliaTheme { Surface { TripDetailScreen(previewTripDetail(), {}, {}, {}, {}, {}, {}, {}) } }
+    FamiliaTheme { Surface { TripDetailScreen(previewTripDetail(), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos()) } }
 }

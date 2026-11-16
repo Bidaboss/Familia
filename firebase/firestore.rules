@@ -977,7 +977,7 @@ service cloud.firestore {
       allow delete: if canChangePhoto(memberId) || (isMember() && !existsAfter(memberPath(memberId)));
     }
 
-    // --- Trips (V3, récits 11 à 14) ----------------------------------------------------------------
+    // --- Trips (V3, récits 11 à 15) ----------------------------------------------------------------
 
     function tripPath(tripId) {
       return /databases/$(database)/documents/trips/$(tripId);
@@ -1115,6 +1115,30 @@ service cloud.firestore {
       allow read: if isMember() && myMemberId() in tripOf(tripId).readerIds;
       allow create, update: if isMember() && isParticipantOf(tripId) && isValidItem(request.resource.data, tripId);
       allow delete: if isMember() && (isParticipantOf(tripId) || isOwner());
+    }
+
+    // Shape of a photo of the trip (récit 15). Each participant has 30 places, numbered 1 to 30:
+    // the id of the document is the author and the place (« m1_7 »), so the rules cap the photos
+    // per person without counting them. The files are in Storage (firebase/storage.rules), at
+    // trips/{tripId}/{authorId}/{slot}.jpg and {slot}-thumb.jpg, sent before this document.
+    function isValidTripPhoto(p, photoId) {
+      return p.keys().hasAll(['authorId', 'authorName', 'slot', 'createdAt'])
+        && p.keys().hasOnly(['authorId', 'authorName', 'slot', 'createdAt'])
+        && p.authorId == myMemberId()
+        && p.authorName == me().firstName
+        && p.slot is int && p.slot >= 1 && p.slot <= 30
+        && photoId == p.authorId + '_' + string(p.slot)
+        && p.createdAt == request.time;
+    }
+
+    // trips/{tripId}/photos/{photoId}. The followers see the photos; each participant adds their own,
+    // and removes them. The creator of the trip, or the admin principal, can remove any photo. A
+    // photo is never edited. Deleting the trip deletes the photos and their files on the server.
+    match /trips/{tripId}/photos/{photoId} {
+      allow read: if isMember() && myMemberId() in tripOf(tripId).readerIds;
+      allow create: if isMember() && isParticipantOf(tripId) && isValidTripPhoto(request.resource.data, photoId);
+      allow delete: if isMember()
+        && (resource.data.authorId == myMemberId() || canManageTrip(tripOf(tripId)));
     }
 
     // --- App updates (lot 10) ---------------------------------------------------------------------
