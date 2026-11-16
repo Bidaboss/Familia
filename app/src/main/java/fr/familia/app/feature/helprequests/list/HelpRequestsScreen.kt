@@ -34,6 +34,8 @@ import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.feature.helprequests.kindLabel
@@ -89,12 +91,14 @@ fun HelpRequestsScreen(
 private fun RequestList(state: HelpRequestsUiState.Success, onOpenRequest: (String) -> Unit) {
     // The bottom padding keeps the last card above the « Demander » button.
     LazyColumn(
-        contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 96.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(start = ClaySpacing.screen, top = 16.dp, end = ClaySpacing.screen, bottom = 96.dp),
+        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
+        // One card in full relief (DESIGN-11): the first request someone else asks, the one to answer.
+        val first = state.open.firstOrNull { !it.isMine }?.request?.id
         if (state.open.isNotEmpty()) {
             item(key = "open") { SectionTitle(stringResource(R.string.helprequest_section_open)) }
-            items(state.open, key = { it.request.id }) { row -> RequestCard(row, state.today, onOpenRequest) }
+            items(state.open, key = { it.request.id }) { row -> RequestCard(row, state.today, onOpenRequest, emphasis = row.request.id == first) }
         }
         if (state.taken.isNotEmpty()) {
             item(key = "taken") { SectionTitle(stringResource(R.string.helprequest_section_taken)) }
@@ -109,7 +113,7 @@ private fun SectionTitle(text: String) {
 }
 
 @Composable
-private fun RequestCard(row: HelpRequestRow, today: LocalDate, onOpenRequest: (String) -> Unit) {
+private fun RequestCard(row: HelpRequestRow, today: LocalDate, onOpenRequest: (String) -> Unit, emphasis: Boolean = false) {
     val request = row.request
     // Tints say who an event is for (charte, « Style Argile »): a request keeps the plain card.
     val tint = ClayTint.Plain
@@ -118,13 +122,14 @@ private fun RequestCard(row: HelpRequestRow, today: LocalDate, onOpenRequest: (S
         tint = tint,
         onClick = { onOpenRequest(request.id) },
         onClickLabel = stringResource(R.string.helprequest_open),
+        emphasis = emphasis,
     ) {
         Text(
             stringResource(R.string.helprequest_card_kind, kindLabel(request.kind), whenLabel(request, today)),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary,
         )
-        Text(request.title, style = MaterialTheme.typography.titleMedium)
+        ClayCardTitle(request.title, style = MaterialTheme.typography.titleMedium)
         Text(
             whoLabel(row),
             style = MaterialTheme.typography.bodyMedium,
