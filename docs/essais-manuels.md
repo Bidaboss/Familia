@@ -392,3 +392,7 @@ Avec l'interrupteur « Le petit geste du jour » allumé, et une Bonne nouvelle 
 3. Sans aucun sondage à montrer : **Attendu :** pas de bloc Sondages.
 5. Avec 4 blocs (À faire, Cette semaine, Sondages, Bonnes nouvelles) et la carte « À découvrir » de la semaine (dès le 30/11) : **Attendu :** « À découvrir » devient la première puce, et la toucher ouvre sa carte sous la rangée.
 4. « À faire pour moi » ne liste plus les sondages.
+
+## Les recettes faciles à trouver
+1. Famille : en haut, « Nos trésors » avec trois tuiles (Recettes, Arbre, Capsules), chacune seulement si son module est allumé. **Attendu :** chaque tuile ouvre son écran. Avec un seul module allumé, la tuile prend toute la largeur.
+2. Avec un autre compte, ajoute une recette. **Attendu :** sur ton Accueil, la puce « Nouvelle recette : … » ouvre cette recette. Elle disparaît 7 jours après. L'auteur ne la voit pas.
