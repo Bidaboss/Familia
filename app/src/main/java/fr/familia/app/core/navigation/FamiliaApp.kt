@@ -7,6 +7,10 @@ import androidx.compose.ui.platform.LocalContext
 import fr.familia.app.BuildConfig
 import fr.familia.app.R
 import fr.familia.app.core.viewas.LocalViewAs
+import fr.familia.app.core.whatsnew.WhatsNewDestination
+import fr.familia.app.core.whatsnew.WhatsNewHost
+import fr.familia.app.core.whatsnew.WhatsNewRoute
+import fr.familia.app.core.whatsnew.WhatsNewTarget
 import fr.familia.app.feature.update.UpdateBanner
 import fr.familia.app.feature.update.availableUpdate
 import fr.familia.app.feature.update.InAppUpdateDialogs
@@ -276,6 +280,8 @@ fun FamiliaApp(
     var chosenTheme by remember { mutableStateOf(themePrefs.theme) }
     val iconSwitcher = remember(context) { AppIconSwitcher(context.applicationContext) }
     var showOnboarding by rememberSaveable { mutableStateOf(!onboarding.seen) }
+    // « Quoi de neuf ? » stays away on a new install: the tutorial shows everything (récit 6 septies).
+    val freshInstall = rememberSaveable { !onboarding.seen }
     if (showOnboarding) {
         // The 4th screen mentions answering for one's children only to those who have some.
         val familyFlow = remember(container) { container?.memberRepository?.observeFamily() ?: flowOf(null) }
@@ -338,6 +344,7 @@ fun FamiliaApp(
     val update = appConfig?.let { availableUpdate(it, BuildConfig.VERSION_CODE, BuildConfig.DOWNLOAD_URL) }
     val updater = rememberInAppUpdater()
     InAppUpdateDialogs(updater, update)
+    WhatsNewHost(appConfig, currentMember, BuildConfig.VERSION_CODE.toLong(), freshInstall, onOpen = navController::openWhatsNew)
 
     // Modules still in test are shown to the admin principal only, until switched on in
     // Administration (config/app.features). The owner is read from the live family.
@@ -1137,6 +1144,15 @@ fun FamiliaApp(
                             },
                         )
                     }
+                    composable<WhatsNewDestination> {
+                        WhatsNewRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            installedVersion = BuildConfig.VERSION_CODE.toLong(),
+                            onOpen = navController::openWhatsNew,
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
                     composable<HelpDestination> {
                         HelpRoute(
                             container = container,
@@ -1332,6 +1348,26 @@ private const val MIN_TAB_LABEL_SP = 9f
 
 private fun NavDestination?.isOn(destination: TopLevelDestination): Boolean =
     this?.hierarchy?.any { it.hasRoute(destination.route::class) } == true
+
+/** « Essayer » on a card of « Quoi de neuf ? ». */
+private fun NavHostController.openWhatsNew(target: WhatsNewTarget) {
+    when (target) {
+        WhatsNewTarget.Home -> navigateToTab(TopLevelDestination.Home)
+        WhatsNewTarget.Planning -> navigateToTab(TopLevelDestination.Planning)
+        WhatsNewTarget.Gifts -> navigateToTab(TopLevelDestination.Gifts)
+        WhatsNewTarget.HelpRequests -> navigateToTab(TopLevelDestination.HelpRequests)
+        WhatsNewTarget.Members -> navigateToTab(TopLevelDestination.Members)
+        WhatsNewTarget.Recipes -> navigate(RecipesDestination())
+        WhatsNewTarget.Trips -> navigate(TripsDestination) { launchSingleTop = true }
+        WhatsNewTarget.Polls -> navigate(PollsDestination) { launchSingleTop = true }
+        WhatsNewTarget.Capsules -> navigate(CapsulesDestination) { launchSingleTop = true }
+        WhatsNewTarget.Genealogy -> navigate(GenealogyDestination) { launchSingleTop = true }
+        WhatsNewTarget.WeeklyQuestion -> navigate(WeeklyQuestionDestination())
+        WhatsNewTarget.GoodNews -> navigate(GoodNewsFeedDestination) { launchSingleTop = true }
+        WhatsNewTarget.JoinMe -> navigate(JoinMeDestination) { launchSingleTop = true }
+        WhatsNewTarget.Appearance -> navigate(AppearanceDestination) { launchSingleTop = true }
+    }
+}
 
 private fun NavHostController.navigateToTab(destination: TopLevelDestination) {
     navigate(destination.route) {
