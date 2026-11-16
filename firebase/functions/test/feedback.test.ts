@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { Notice } from '../src/logic';
-import { FeedbackData, feedbackNotice, onFeedbackChanged, onFeedbackCreated, statusNotice } from '../src/feedback';
+import { FeedbackData, feedbackNotice, onFeedbackChanged, onFeedbackCreated, screenshotToDelete, statusNotice } from '../src/feedback';
 import { Sender } from '../src/store';
 
 function feedback(overrides: Partial<FeedbackData> = {}): FeedbackData {
@@ -89,5 +89,17 @@ describe('against the emulator', () => {
     const { sent, send } = fakeSender();
     await onFeedbackCreated(db, send, feedback({ authorId: 'noe', authorName: 'Noé' }));
     assert.equal(sent.length, 0);
+  });
+});
+
+describe('screenshot of a removed request', () => {
+  const base: FeedbackData = { kind: 'problem', text: 'x', authorId: 'adult1', authorName: 'Camille' };
+
+  test('only the file at the place of this request', () => {
+    assert.equal(screenshotToDelete('f1', { ...base, screenshot: 'feedback/adult1/f1.jpg' }), 'feedback/adult1/f1.jpg');
+    assert.equal(screenshotToDelete('f1', { ...base, screenshot: 'feedback/adult2/f1.jpg' }), null);
+    assert.equal(screenshotToDelete('f1', { ...base, screenshot: 'trips/t1/adult1/1.jpg' }), null);
+    assert.equal(screenshotToDelete('f1', base), null);
+    assert.equal(screenshotToDelete('f1', undefined), null);
   });
 });

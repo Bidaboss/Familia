@@ -19,7 +19,7 @@ import { countLeftovers, deleteLeftovers, openDueCapsules } from './capsules';
 import { CommentData, deleteCommentMutesOf, deleteEventComments, onCommentCreated } from './comments';
 import { deleteLinksOf, removeMemberFromTree } from './genealogy';
 import { checkConsumptionIfDue } from './consumption';
-import { FeedbackData, onFeedbackChanged, onFeedbackCreated } from './feedback';
+import { FeedbackData, onFeedbackChanged, onFeedbackCreated, screenshotToDelete } from './feedback';
 import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
 import { closeDuePolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
 import { cloudMonitoring } from './monitoring';
@@ -169,6 +169,13 @@ export const onFeedbackAnswered = onDocumentUpdated('feedback/{feedbackId}', asy
   const before = event.data?.before.data() as FeedbackData | undefined;
   const after = event.data?.after.data() as FeedbackData | undefined;
   if (before && after) await onFeedbackChanged(getFirestore(), send, before, after);
+});
+
+// A removed request takes its screenshot with it, even when the app could not delete it (offline,
+// or the request deleted from the console). Only the one file this request may name.
+export const onFeedbackRemoved = onDocumentDeleted('feedback/{feedbackId}', async (event) => {
+  const path = screenshotToDelete(event.params.feedbackId, event.data?.data() as FeedbackData | undefined);
+  if (path) await getStorage().bucket().file(path).delete({ ignoreNotFound: true });
 });
 
 export const dayBeforeReminder = onSchedule({ schedule: '0 18 * * *', timeZone: 'Europe/Paris' }, async () => {

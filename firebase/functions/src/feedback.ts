@@ -16,6 +16,7 @@ export interface FeedbackData {
   authorName: string;
   status?: FeedbackStatus;
   note?: string | null;
+  screenshot?: string | null;
 }
 
 const PREVIEW = 120;
@@ -62,4 +63,11 @@ export async function onFeedbackChanged(db: Firestore, send: Sender, before: Fee
   if (notice === null) return 0;
   if ((await ownerId(db)) === after.authorId) return 0;
   return notify(db, send, [after.authorId], notice);
+}
+
+/** The screenshot of a removed request, only at the one place its author could send it. */
+export function screenshotToDelete(feedbackId: string, feedback: FeedbackData | undefined): string | null {
+  if (!feedback || typeof feedback.screenshot !== 'string') return null;
+  const expected = `feedback/${feedback.authorId}/${feedbackId}.jpg`;
+  return feedback.screenshot === expected ? expected : null;
 }

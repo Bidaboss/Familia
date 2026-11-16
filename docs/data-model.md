@@ -987,7 +987,9 @@ Cloud Functions (`functions/src/feedback.ts`) :
 - `onFeedbackSent` prévient l'admin principal, sauf s'il en est l'auteur, sur le canal `admin` (« Idée de Camille » ou « Souci signalé par Camille », puis le début du texte). Le toucher ouvre « Retours ».
 - `onFeedbackAnswered` prévient l'auteur quand l'état change, sauf s'il est l'admin principal, sur le canal `feedback` (« Ta demande est prévue », « faite » ou « n'est pas retenue », puis le mot ou le texte). Le toucher ouvre « Mes demandes ».
 
-Un retour reste quand son auteur quitte la famille.
+- `onFeedbackRemoved` efface la capture d'une demande supprimée, au seul chemin `feedback/{authorId}/{feedbackId}.jpg`, même si l'appli n'a pas pu le faire (hors ligne, ou suppression depuis la console).
+
+Une demande reste quand son auteur quitte la famille : l'admin principal la voit toujours dans « Retours », avec le prénom écrit à l'envoi, et peut la supprimer avec sa capture. L'auteur parti ne la lit plus, car il n'est plus membre. Aucune notification ne part vers lui.
 
 ### `consumption/{day}`
 

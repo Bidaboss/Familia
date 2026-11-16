@@ -284,7 +284,7 @@ Avec le module « Vœux d'anniversaire » allumé, un membre dont c'est l'annive
 7. Réglages > Notifications : coupe « Vœux d'anniversaire ». **Attendu :** plus d'avis de vœux pour ce compte.
 ## Une idée ? Un souci ? (récit 6 sexies)
 
-Avant ces essais : « Publier Firebase » a publié les règles (Firestore et Storage) et les fonctions `onFeedbackSent` et `onFeedbackAnswered`. Pas d'interrupteur.
+Avant ces essais : « Publier Firebase » a publié les règles (Firestore et Storage) et les fonctions `onFeedbackSent`, `onFeedbackAnswered` et `onFeedbackRemoved`. Pas d'interrupteur.
 
 1. Avec un compte qui n'est pas admin principal, ouvre **Famille** et touche **Une idée ? Un souci ?**. Choisis « Un problème », écris une phrase et touche **Envoyer**. **Attendu :** « Merci ! C'est envoyé à l'admin de la famille. »
 2. Sur le téléphone de l'admin principal. **Attendu :** une notification « Souci signalé par … » avec le début du texte. La toucher ouvre **Retours**.
