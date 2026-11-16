@@ -10,7 +10,7 @@ import { Notice } from '../src/logic';
 import { notebookEntryId, syncNotebookEntry } from '../src/notebook';
 import { Sender } from '../src/store';
 import { Timestamp } from 'firebase-admin/firestore';
-import { claimOccasion, defaultWishOccasion, giverNames, occasionDay, revealWishes } from '../src/wishesReveal';
+import { claimOccasion, defaultWishOccasion, giverNames, occasionDay, revealWishes, thankGivers } from '../src/wishesReveal';
 
 const ines: GiftMember = { id: 'ines', firstName: 'Inès', profile: 'adult', parentIds: [], birthDate: '1990-03-14' };
 const camille: GiftMember = { id: 'camille', firstName: 'Camille', profile: 'adult', parentIds: [], birthDate: '1988-12-09' };
@@ -184,6 +184,25 @@ describe('wishes reveal', () => {
     assert.equal((await list().collection('received').get()).size, 2);
     await deleteGiftListContent(db, LIST);
     assert.equal((await list().collection('received').get()).size, 0);
+  });
+
+  test('« Merci » tells every giver once, never the beneficiary', async () => {
+    await revealWishes(db, fakeSender().send, DAY_AFTER);
+    const scarf = list().collection('received').doc('scarf');
+    assert.deepEqual((await scarf.get()).get('giverIds'), ['jules', 'camille']);
+    await db.doc('members/jules/devices/token-jules').set({});
+    await db.doc('members/camille/devices/token-camille').set({});
+    const before = (await scarf.get()).data();
+    await scarf.update({ thanked: true });
+    const after = (await scarf.get()).data();
+    const { sent, send } = fakeSender();
+    assert.equal(await thankGivers(db, send, LIST, before, after), 2);
+    assert.deepEqual(sent.map((s) => s.token).sort(), ['token-camille', 'token-jules']);
+    assert.equal(sent[0].notice.title, 'Inès te dit merci !');
+    assert.equal(sent[0].notice.body, 'Merci pour « Une écharpe ».');
+    // Already thanked: nothing more.
+    assert.equal(await thankGivers(db, send, LIST, after, after), 0);
+    assert.equal(sent.length, 2);
   });
 
   test('a child without the app has nothing revealed', async () => {
