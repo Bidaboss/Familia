@@ -19,6 +19,10 @@ data class TripExpensesDestination(val tripId: String)
 @Serializable
 data class TripExpenseEditDestination(val tripId: String, val expenseId: String? = null)
 
+/** The history of the expense [expenseId] of [tripId]. */
+@Serializable
+data class TripExpenseHistoryDestination(val tripId: String, val expenseId: String)
+
 /** Connects the accounts of a trip to their ViewModel. */
 @Composable
 fun ExpensesRoute(
@@ -27,6 +31,7 @@ fun ExpensesRoute(
     tripId: String,
     onAdd: () -> Unit,
     onEdit: (expenseId: String) -> Unit,
+    onHistory: (expenseId: String) -> Unit,
     onBack: () -> Unit,
 ) {
     val viewModel: ExpensesViewModel = viewModel(
@@ -47,7 +52,7 @@ fun ExpensesRoute(
             onDismissError = viewModel::dismissError,
         )
     }
-    ExpensesScreen(state = state, onRetry = viewModel::retry, onBack = onBack, onAdd = onAdd, onEdit = onEdit, actions = actions)
+    ExpensesScreen(state = state, onRetry = viewModel::retry, onBack = onBack, onAdd = onAdd, onEdit = onEdit, actions = actions, onHistory = onHistory)
 }
 
 /** Connects the expense form to its ViewModel. */
@@ -57,6 +62,7 @@ fun ExpenseEditRoute(
     currentMember: Member,
     tripId: String,
     expenseId: String?,
+    onHistory: (expenseId: String) -> Unit,
     onDone: () -> Unit,
 ) {
     val viewModel: ExpenseEditViewModel = viewModel(
@@ -71,5 +77,23 @@ fun ExpenseEditRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    ExpenseEditScreen(state = state, onChange = viewModel::update, onSave = viewModel::save, onDelete = viewModel::delete, onDone = onDone)
+    ExpenseEditScreen(
+        state = state,
+        onChange = viewModel::update,
+        onSave = viewModel::save,
+        onDelete = viewModel::delete,
+        onDone = onDone,
+        onHistory = expenseId?.let { id -> { onHistory(id) } },
+    )
+}
+
+/** Connects the history of an expense to its ViewModel. */
+@Composable
+fun ExpenseHistoryRoute(container: AppContainer?, tripId: String, expenseId: String, onBack: () -> Unit) {
+    val viewModel: ExpenseHistoryViewModel = viewModel(
+        key = "expense-history-$tripId-$expenseId",
+        factory = viewModelFactory { initializer { ExpenseHistoryViewModel(container?.expenseRepository, tripId, expenseId) } },
+    )
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    ExpenseHistoryScreen(state = state, onRetry = viewModel::retry, onBack = onBack)
 }

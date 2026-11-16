@@ -3,6 +3,7 @@ package fr.familia.app.core.data
 import fr.familia.app.core.model.Expense
 import fr.familia.app.core.model.ExpenseBook
 import fr.familia.app.core.model.ExpenseContainer
+import fr.familia.app.core.model.ExpenseHistoryEntry
 import fr.familia.app.core.model.ExpenseSettlement
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Transfer
@@ -30,6 +31,9 @@ interface ExpenseRepository {
     fun observeSettlements(bookId: String): Flow<List<ExpenseSettlement>>
 
     fun newExpenseId(bookId: String): String
+
+    /** The history of an expense, oldest first, as the server wrote it. */
+    fun observeHistory(bookId: String, expenseId: String): Flow<List<ExpenseHistoryEntry>>
 
     /** Creates the expense, or updates it when [isNew] is false (author and creation time never change). */
     suspend fun saveExpense(bookId: String, expense: Expense, me: Member, isNew: Boolean)
