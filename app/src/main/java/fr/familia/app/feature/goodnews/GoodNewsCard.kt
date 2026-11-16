@@ -1,5 +1,8 @@
 package fr.familia.app.feature.goodnews
 
+import androidx.compose.material.icons.rounded.EmojiEvents
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,6 +46,7 @@ import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.MemberAvatar
+import fr.familia.app.feature.souvenirs.SouvenirFamily
 import java.time.Instant
 
 /**
@@ -71,7 +75,10 @@ fun GoodNewsCard(
         onClickLabel = stringResource(R.string.goodnews_open),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            item.author?.let { MemberAvatar(it) }
+            when {
+                item.author != null -> MemberAvatar(item.author)
+                item.news.challengeMonth != null -> ChallengeAvatar()
+            }
             Column(Modifier.weight(1f)) {
                 Text(whoLabel(item), style = MaterialTheme.typography.titleMedium)
                 val posted = postedLabel(item.news.createdAt, now)
@@ -132,6 +139,7 @@ private fun Photos(item: GoodNewsItem, full: Boolean) {
     val description = stringResource(R.string.goodnews_photo_of, whoLabel(item))
     val shape = RoundedCornerShape(16.dp)
     when {
+        news.photoIds.isEmpty() -> Unit // « Défi réussi » (récit 35).
         full -> news.photoIds.forEach { id ->
             StorageImage(news.photoPath(id), description, Modifier.fillMaxWidth().aspectRatio(4f / 3f).clip(shape))
         }
@@ -193,4 +201,18 @@ fun reactionName(reaction: Reaction): Int = when (reaction) {
     Reaction.Laugh -> R.string.goodnews_reaction_laugh
     Reaction.Wow -> R.string.goodnews_reaction_wow
     Reaction.ThumbsUp -> R.string.goodnews_reaction_thumbs_up
+}
+
+/**
+ * The avatar of the « Défi réussi » published by Familia (récit 35), in the size of a member's
+ * avatar: the medal of the Fêtes souvenirs (DESIGN, 16/11), so the challenge has the same image everywhere.
+ */
+@Composable
+private fun ChallengeAvatar() {
+    Box(
+        Modifier.size(40.dp).clip(CircleShape).background(SouvenirFamily.Party.light),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(Icons.Rounded.EmojiEvents, contentDescription = null, tint = SouvenirFamily.Party.dark)
+    }
 }

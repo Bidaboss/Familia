@@ -97,6 +97,8 @@ import fr.familia.app.feature.polls.list.PollsRoute
 import fr.familia.app.feature.home.HomeActions
 import fr.familia.app.feature.home.HomePreferences
 import fr.familia.app.feature.settings.appearance.AppIconSwitcher
+import fr.familia.app.feature.gifts.share.SharedWish
+import fr.familia.app.feature.gifts.share.ShareTargetSwitch
 import fr.familia.app.feature.usage.UsageRoute
 import fr.familia.app.feature.settings.appearance.AppearanceScreen
 import fr.familia.app.feature.settings.appearance.ThemePreferences
@@ -190,6 +192,9 @@ fun FamiliaApp(
     /** The poll of a tapped notification, to open once its module shows. */
     openPollId: String? = null,
     onPollOpened: () -> Unit = {},
+    /** A link shared from another app, to add to « Mes envies » once (récit 8 bis). */
+    sharedWish: SharedWish? = null,
+    onSharedWishOpened: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
     // Each time the app opens, this phone is (re)registered for the notifications of this member.
@@ -281,6 +286,24 @@ fun FamiliaApp(
     }
     val ownerId by ownerFlow.collectAsStateWithLifecycle(initialValue = null)
     val features = FeatureFlags(appConfig?.features.orEmpty(), isOwner = ownerId != null && ownerId == currentMember.id)
+
+    // « Partager » to Familia (récit 8 bis): in the share menu only with its module, and a shared
+    // link opens a new wish once the modules are known. Module off: the link is dropped.
+    val shareOn = features.isOn(Feature.Gifts) && features.isOn(Feature.ShareToWishes)
+    val shareSwitch = remember(context) { ShareTargetSwitch(context.applicationContext) }
+    LaunchedEffect(appConfig, ownerId) {
+        if (appConfig != null && ownerId != null) shareSwitch.set(shareOn)
+    }
+    LaunchedEffect(sharedWish, appConfig, ownerId) {
+        if (sharedWish != null && appConfig != null && ownerId != null) {
+            if (shareOn) {
+                navController.navigate(
+                    GiftItemEditDestination(wishesListId(currentMember.id), sharedUrl = sharedWish.url, sharedTitle = sharedWish.title),
+                )
+            }
+            onSharedWishOpened()
+        }
+    }
 
     // The Accueil (récit 29) is the first tab and the start screen once its module shows. The start
     // is read from the phone at once, and kept for this opening even if the module changes.
@@ -744,6 +767,7 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             listId = route.listId,
                             itemId = route.itemId,
+                            shared = route.sharedUrl?.let { url -> SharedWish(url, route.sharedTitle.orEmpty()) },
                             onDone = { navController.popBackStack() },
                         )
                     }

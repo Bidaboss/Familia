@@ -18,6 +18,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -80,6 +81,14 @@ fun MemberProfileScreen(
             TopAppBar(
                 title = { Text((state as? MemberProfileUiState.Ready)?.member?.firstName.orEmpty()) },
                 navigationIcon = { BackButton(onClick = onBack) },
+                actions = {
+                    // « Modifier » up on the right, for those who may (DESIGN, 16/11): never from the list.
+                    if ((state as? MemberProfileUiState.Ready)?.canEdit == true) {
+                        TextButton(onClick = onEdit, modifier = Modifier.heightIn(min = 48.dp)) {
+                            Text(stringResource(R.string.profile_edit))
+                        }
+                    }
+                },
             )
         },
     ) { padding ->
@@ -91,7 +100,7 @@ fun MemberProfileScreen(
                     title = stringResource(R.string.member_not_found_title),
                     body = stringResource(R.string.profile_not_found_body),
                 )
-                is MemberProfileUiState.Ready -> Content(state, onEdit, onSetShown, onOpenRecipes)
+                is MemberProfileUiState.Ready -> Content(state, onSetShown, onOpenRecipes)
             }
         }
     }
@@ -99,7 +108,7 @@ fun MemberProfileScreen(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Content(state: MemberProfileUiState.Ready, onEdit: () -> Unit, onSetShown: (String, Boolean) -> Unit, onOpenRecipes: (() -> Unit)?) {
+private fun Content(state: MemberProfileUiState.Ready, onSetShown: (String, Boolean) -> Unit, onOpenRecipes: (() -> Unit)?) {
     val member = state.member
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -113,11 +122,6 @@ private fun Content(state: MemberProfileUiState.Ready, onEdit: () -> Unit, onSet
                 member.birthDate?.let {
                     Text(stringResource(R.string.profile_birthday, birthdayLabel(it)), style = MaterialTheme.typography.bodyLarge)
                 }
-            }
-        }
-        if (state.canEdit) {
-            OutlinedButton(onClick = onEdit, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.profile_edit))
             }
         }
         // The recipes that come from this member (récit 38).

@@ -25,6 +25,8 @@ enum class SouvenirFamily(val light: Color, val dark: Color) {
     Help(Color(0xFF8DB58A), Color(0xFF163A19)),
     Trips(Color(0xFF7FB6D6), Color(0xFF0F3B57)),
     Loyalty(Color(0xFFE79A6E), Color(0xFF6A2508)),
+    /** Fêtes: the challenges of the family (récit 35), the same image everywhere. */
+    Party(Color(0xFFC9A2D6), Color(0xFF4A1F5C)),
 }
 
 /** The souvenirs of the server (functions/src/souvenirs.ts), by key, in the order they show. */

@@ -101,6 +101,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity-alias>
+        <!-- « Partager » from a shop or a browser adds a wish (PRD, récit 8 bis). Off here: the app
+             switches it on with its module, so that the share menu shows Familia only then. -->
+        <activity-alias
+            android:name=".ShareToWishes"
+            android:enabled="false"
+            android:exported="true"
+            android:label="@string/share_to_wishes"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
     </application>
 
 </manifest>

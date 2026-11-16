@@ -4,6 +4,7 @@ import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.GoodNews
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
+import fr.familia.app.core.model.isOwner
 import fr.familia.app.core.model.managesHousehold
 
 /*
@@ -30,9 +31,12 @@ fun mentionCandidates(me: Member, family: Family): List<Member> =
 
 fun canEditGoodNews(news: GoodNews, me: Member): Boolean = news.authorId == me.id
 
-/** The author, the responsible adults of the author or of the child, a chef there, the admin principal. */
+/**
+ * The author, the responsible adults of the author or of the child, a chef there, the admin principal.
+ * The « Défi réussi » of Familia (récit 35) has no author nor household: the admin principal alone.
+ */
 fun canRemoveGoodNews(news: GoodNews, me: Member, family: Family): Boolean =
-    news.authorId == me.id ||
+    if (news.challengeMonth != null) family.isOwner(me) else news.authorId == me.id ||
         family.isParentOf(me, news.authorId) ||
         (news.forMemberId != news.authorId && family.isParentOf(me, news.forMemberId)) ||
         family.managesHousehold(me, news.householdId)

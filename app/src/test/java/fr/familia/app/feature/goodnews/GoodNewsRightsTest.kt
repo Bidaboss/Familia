@@ -43,6 +43,19 @@ class GoodNewsRightsTest {
     }
 
     @Test
+    fun `the « Défi réussi » of Familia, only the admin principal removes it, nobody edits it (récit 35)`() {
+        val defi = goodNews("challenge-2026-12", TestFamily.admin).copy(
+            authorId = "familia", authorName = "Familia", forMemberId = "familia", householdId = "", challengeMonth = "2026-12",
+        )
+        assertTrue(canRemoveGoodNews(defi, TestFamily.admin, family))
+        assertFalse(canRemoveGoodNews(defi, TestFamily.adult, family))
+        assertFalse(canEditGoodNews(defi, TestFamily.admin))
+        val item = goodNewsItem(defi, TestFamily.adult, family)
+        assertNull(item.author)
+        assertFalse(item.canHide)
+    }
+
+    @Test
     fun `the card counts the six reactions in order and knows mine`() {
         val news = goodNews("n1", TestFamily.adult, forMemberId = "kid1")
             .copy(reactions = mapOf("adult2" to Reaction.Heart, "admin1" to Reaction.Heart, "kid1" to Reaction.Party), mentionIds = listOf("kid2", "gone"))
