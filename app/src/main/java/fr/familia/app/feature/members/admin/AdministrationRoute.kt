@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Feature
+import fr.familia.app.feature.discover.Discover
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.newCount
 import fr.familia.app.core.share.hasInstallLink
@@ -51,6 +52,8 @@ fun AdministrationRoute(
     val challenges by viewModel.challenges.collectAsStateWithLifecycle()
     val leftovers by viewModel.capsuleLeftovers.collectAsStateWithLifecycle()
     val rotation by viewModel.rotation.collectAsStateWithLifecycle()
+    val discoverKeys by viewModel.discoverOrder.collectAsStateWithLifecycle()
+    val flags = LocalFeatureFlags.current
     // The card only shows when the tree is on for the admin principal (always, while in test).
     val treeOn = LocalFeatureFlags.current.isOn(Feature.Tree)
     // « Voir comme » (PRD, rôles): every other member, by first name.
@@ -90,5 +93,9 @@ fun AdministrationRoute(
         onShareApp = if (hasInstallLink()) { { shareApp(context, currentMember.firstName) } } else null,
         onOpenFeedback = onOpenFeedback,
         feedbackUnseen = newCount(feedback),
+        // Shown while « À découvrir » is on (always for the admin principal while in test).
+        discoverOrder = Discover.order(discoverKeys),
+        discoverInTutorial = Discover.inTutorial(flags::isOn),
+        onSaveDiscoverOrder = if (flags.isOn(Feature.Discover)) viewModel::saveDiscoverOrder else null,
     )
 }

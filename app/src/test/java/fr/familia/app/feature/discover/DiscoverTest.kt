@@ -39,6 +39,25 @@ class DiscoverTest {
     }
 
     @Test
+    fun `the order of the admin comes first, unknown keys are skipped, the rest follows`() {
+        val order = Discover.order(listOf("recipes", "nope", "polls", "recipes"))
+        assertEquals(listOf(DiscoverModule.Recipes, DiscoverModule.Polls), order.take(2))
+        assertEquals(DiscoverModule.entries.toSet(), order.toSet())
+        assertEquals(DiscoverModule.entries.size, order.size)
+        assertEquals(DiscoverModule.entries.toList(), Discover.order(emptyList()))
+        assertEquals(DiscoverModule.Recipes, Discover.moduleOfTheWeek(day(11, 30), allOn, order = order))
+    }
+
+    @Test
+    fun `each module of the order gets its Monday, except those of the tutorial`() {
+        val order = Discover.order(listOf("helpRequests", "recipes"))
+        val mondays = Discover.mondays(order, inTutorial = setOf(DiscoverModule.HelpRequests))
+        assertNull(mondays[DiscoverModule.HelpRequests])
+        assertEquals(day(11, 30), mondays[DiscoverModule.Recipes])
+        assertEquals(day(12, 7), mondays[order[2]])
+    }
+
+    @Test
     fun `Entraide is in the tutorial only while its module is on`() {
         assertEquals(emptySet<DiscoverModule>(), Discover.inTutorial { it != Feature.HelpRequests })
     }

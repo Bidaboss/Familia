@@ -10,6 +10,7 @@ import fr.familia.app.core.data.TreeRepository
 import fr.familia.app.core.model.CapsuleLeftover
 import fr.familia.app.core.model.ChallengeRotation
 import fr.familia.app.core.model.Feature
+import fr.familia.app.feature.discover.DiscoverModule
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
@@ -81,6 +82,11 @@ class AdministrationViewModel(
     val features: StateFlow<Map<String, Boolean>> = (appConfig?.observeAppConfig()?.map { it.features } ?: emptyFlow())
         .catch { e -> if (e is CancellationException) throw e }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
+
+    /** The order of « À découvrir » saved in config/app (AVIS-19 partie 2); empty: the default. */
+    val discoverOrder: StateFlow<List<String>> = (appConfig?.observeAppConfig()?.map { it.discoverOrder } ?: emptyFlow())
+        .catch { e -> if (e is CancellationException) throw e }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /**
      * The « Consommation » card (PRD, récit 1 sexies): [ConsumptionCard.Waiting] before the first
@@ -191,6 +197,20 @@ class AdministrationViewModel(
         viewModelScope.launch {
             try {
                 repo.setFeature(feature.key, on)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _actionFailed.value = true
+            }
+        }
+    }
+
+    /** Saves the order of « À découvrir » for the whole family. */
+    fun saveDiscoverOrder(order: List<DiscoverModule>) {
+        val repo = appConfig ?: return
+        viewModelScope.launch {
+            try {
+                repo.setDiscoverOrder(order.map { it.key })
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

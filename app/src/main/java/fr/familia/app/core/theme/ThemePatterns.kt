@@ -8,7 +8,6 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.dp
 
@@ -35,7 +34,14 @@ internal fun DrawScope.drawPattern(pattern: ThemePattern) {
             dots(Color.White, 2f, 38f, 42f)
             dots(Color.White.copy(alpha = 0.8f), 1.5f, 38f, 42f, startX = 19f, startY = 21f)
         }
-        ThemePattern.Azulejos -> azulejos(Color(0x141D4E89), 28f)
+        ThemePattern.FlagBand -> {
+            // Red 8 dp, yellow 16 dp, red 8 dp across the top, nothing else on the background.
+            val red = Color(0xFFAA151B)
+            val edge = 8.dp.toPx()
+            drawRect(red, topLeft = Offset.Zero, size = Size(size.width, edge))
+            drawRect(Color(0xFFF1BF00), topLeft = Offset(0f, edge), size = Size(size.width, 2 * edge))
+            drawRect(red, topLeft = Offset(0f, 3 * edge), size = Size(size.width, edge))
+        }
         ThemePattern.Leaves -> {
             val leaf = Color(0x2E3F6B2E)
             drawOval(leaf, topLeft = Offset(size.width * 0.92f - 60.dp.toPx(), size.height * 0.06f - 30.dp.toPx()), size = Size(120.dp.toPx(), 60.dp.toPx()))
@@ -73,23 +79,4 @@ private fun DrawScope.dots(color: Color, radiusDp: Float, stepXDp: Float, stepYD
         }
         y += stepY
     }
-}
-
-/** The azulejo tiles: in each square, the left and right triangles, like the conic pattern of the board. */
-private fun DrawScope.azulejos(color: Color, tileDp: Float) {
-    val tile = tileDp * density
-    val path = Path()
-    var y = 0f
-    while (y < size.height) {
-        var x = 0f
-        while (x < size.width) {
-            val cx = x + tile / 2
-            val cy = y + tile / 2
-            path.moveTo(cx, cy); path.lineTo(x + tile, y); path.lineTo(x + tile, y + tile); path.close()
-            path.moveTo(cx, cy); path.lineTo(x, y + tile); path.lineTo(x, y); path.close()
-            x += tile
-        }
-        y += tile
-    }
-    drawPath(path, color)
 }

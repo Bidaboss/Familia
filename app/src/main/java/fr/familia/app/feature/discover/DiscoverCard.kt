@@ -53,6 +53,7 @@ fun rememberDiscoverHome(currentMember: Member, onOpen: (DiscoverModule) -> Unit
         isOn = flags::isOn,
         inTutorial = Discover.inTutorial(flags::isOn),
         dismissed = dismissed,
+        order = LocalDiscoverOrder.current,
     ) ?: return null
     val hide: () -> Unit = {
         if (!viewingAs) {
