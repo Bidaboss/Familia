@@ -5,9 +5,11 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftStatus
+import fr.familia.app.core.model.NotebookBudget
 import fr.familia.app.core.model.NotebookEntry
 import fr.familia.app.core.model.NotebookOccasion
 import fr.familia.app.core.model.NotebookSource
+import fr.familia.app.core.model.notebookBudgetId
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -70,6 +72,46 @@ class FirestoreNotebookRepository(private val db: FirebaseFirestore) : NotebookR
         entries(memberId).document(entryId).delete().await()
     }
 
+    override fun observeBudgets(memberId: String): Flow<List<NotebookBudget>> = callbackFlow {
+        val registration = db.collection(NOTEBOOKS).document(memberId).collection(BUDGETS).addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+            } else if (snapshot != null) {
+                trySend(snapshot.documents.mapNotNull { it.toBudget() })
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
+    override suspend fun setBudget(memberId: String, budget: NotebookBudget, amount: Double?) {
+        val ref = db.collection(NOTEBOOKS).document(memberId).collection(BUDGETS)
+            .document(notebookBudgetId(budget.personId, budget.personName, budget.occasion))
+        if (amount == null) {
+            ref.delete().await()
+            return
+        }
+        ref.set(
+            mapOf(
+                "personId" to budget.personId,
+                "personName" to budget.personName,
+                "occasion" to budget.occasion.occasion?.firestoreValue,
+                "year" to budget.occasion.year?.toLong(),
+                "amount" to amount,
+                "updatedAt" to FieldValue.serverTimestamp(),
+            ),
+        ).await()
+    }
+
+    private fun DocumentSnapshot.toBudget(): NotebookBudget? {
+        val amount = getDouble("amount")?.takeIf { it > 0 } ?: return null
+        return NotebookBudget(
+            personId = getString("personId"),
+            personName = getString("personName").orEmpty(),
+            occasion = NotebookOccasion(GiftOccasion.fromFirestore(getString("occasion")), getLong("year")?.toInt()),
+            amount = amount,
+        )
+    }
+
     private fun DocumentSnapshot.toEntry(): NotebookEntry? {
         val source = NotebookSource.fromFirestore(getString("source")) ?: return null
         val title = getString("title")?.takeIf { it.isNotBlank() } ?: return null
@@ -92,5 +134,6 @@ class FirestoreNotebookRepository(private val db: FirebaseFirestore) : NotebookR
     private companion object {
         const val NOTEBOOKS = "notebooks"
         const val ENTRIES = "entries"
+        const val BUDGETS = "budgets"
     }
 }
