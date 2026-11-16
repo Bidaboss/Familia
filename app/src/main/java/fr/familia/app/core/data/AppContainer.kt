@@ -59,6 +59,9 @@ class AppContainer(context: Context) {
     /** « Qui apporte quoi » of an event (PRD, récit 4 bis). */
     val bringRepository: BringRepository? by lazy { firestore?.let { FirestoreBringRepository(it) } }
 
+    /** The comments of an event (PRD, récit 28). */
+    val eventCommentRepository: EventCommentRepository? by lazy { firestore?.let { FirestoreEventCommentRepository(it) } }
+
     val helpRequestRepository: HelpRequestRepository? by lazy { firestore?.let { FirestoreHelpRequestRepository(it) } }
     val tripRepository: TripRepository? by lazy { firestore?.let { FirestoreTripRepository(it) } }
 
