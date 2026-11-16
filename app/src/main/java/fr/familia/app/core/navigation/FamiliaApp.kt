@@ -12,6 +12,7 @@ import fr.familia.app.feature.update.InAppUpdateDialogs
 import fr.familia.app.feature.update.LocalInAppUpdater
 import fr.familia.app.feature.update.rememberInAppUpdater
 import fr.familia.app.core.model.Feature
+import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.notifications.NotificationChannels
 import fr.familia.app.core.model.FeatureFlags
 import fr.familia.app.core.model.UsageScreen
@@ -157,6 +158,8 @@ import fr.familia.app.feature.recipes.RecipeEditRoute
 import fr.familia.app.feature.recipes.RecipesDestination
 import fr.familia.app.feature.recipes.RecipesRoute
 import fr.familia.app.feature.trips.TripDetailDestination
+import fr.familia.app.feature.expenses.ExpensesRoute
+import fr.familia.app.feature.expenses.TripExpensesDestination
 import fr.familia.app.feature.trips.TripEditDestination
 import fr.familia.app.feature.trips.TripPhotosDestination
 import fr.familia.app.feature.trips.TripStepEditDestination
@@ -619,6 +622,20 @@ fun FamiliaApp(
                             onAddStep = { navController.navigate(TripStepEditDestination(tripId)) },
                             onEditStep = { stepId -> navController.navigate(TripStepEditDestination(tripId, stepId)) },
                             onSeePhotos = { navController.navigate(TripPhotosDestination(tripId)) },
+                            onBack = { navController.popBackStack() },
+                            // The accounts are for the adults who take part (récit 16 bis); the trip view checks the participant.
+                            onOpenExpenses = if (features.isOn(Feature.Expenses) && currentMember.profile == MemberProfile.Adult) {
+                                { navController.navigate(TripExpensesDestination(tripId)) }
+                            } else {
+                                null
+                            },
+                        )
+                    }
+                    composable<TripExpensesDestination> { entry ->
+                        ExpensesRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            tripId = entry.toRoute<TripExpensesDestination>().tripId,
                             onBack = { navController.popBackStack() },
                         )
                     }

@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,6 +26,7 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -83,6 +85,8 @@ fun TripDetailScreen(
     checklist: ChecklistActions = ChecklistActions(),
     photos: AlbumPhotosUiState = AlbumPhotosUiState(),
     photoActions: PhotoActions = PhotoActions(),
+    /** « Comptes du voyage » (récit 16 bis), shown to the participants only; null while it is off. */
+    onOpenExpenses: (() -> Unit)? = null,
 ) {
     val success = state as? TripDetailUiState.Success
     Scaffold(
@@ -128,7 +132,7 @@ fun TripDetailScreen(
                         }
                     },
                 )
-                is TripDetailUiState.Success -> Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions)
+                is TripDetailUiState.Success -> Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses)
             }
         }
     }
@@ -143,6 +147,7 @@ private fun Content(
     checklist: ChecklistActions,
     photos: AlbumPhotosUiState,
     photoActions: PhotoActions,
+    onOpenExpenses: (() -> Unit)?,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -188,6 +193,15 @@ private fun Content(
         }
         item(key = "checklist-title") { TripSectionTitle(stringResource(R.string.trip_checklist)) }
         item(key = "checklist") { TripChecklist(state.items, state.assignees, state.isParticipant, checklist) }
+        if (onOpenExpenses != null && state.isParticipant) {
+            item(key = "expenses") {
+                OutlinedButton(onClick = onOpenExpenses, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                    Icon(Icons.Outlined.Payments, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.expenses_open))
+                }
+            }
+        }
     }
 }
 
