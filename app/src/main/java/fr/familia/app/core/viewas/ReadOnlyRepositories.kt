@@ -1,5 +1,9 @@
 package fr.familia.app.core.viewas
 
+import fr.familia.app.core.model.WhoIsItPost
+import fr.familia.app.core.model.WhoIsItGuess
+import fr.familia.app.core.model.WhoIsItAnswer
+import fr.familia.app.core.data.WhoIsItRepository
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.AlbumPhotoRepository
 import fr.familia.app.core.data.AppConfig
@@ -227,6 +231,18 @@ class ReadOnlyCapsuleRepository(private val inner: CapsuleRepository, private va
     override suspend fun createCapsule(capsule: Capsule) = guard.refuse()
     override fun observeLeftovers(): Flow<List<CapsuleLeftover>> = inner.observeLeftovers()
     override suspend fun askDeleteLeftovers(memberId: String) = guard.refuse()
+}
+
+class ReadOnlyWhoIsItRepository(private val inner: WhoIsItRepository, private val guard: ViewAsGuard) : WhoIsItRepository {
+    override fun observeLatest(count: Int): Flow<List<WhoIsItPost>> = inner.observeLatest(count)
+    override fun observePost(id: String): Flow<WhoIsItPost?> = inner.observePost(id)
+    override fun observeAnswer(id: String): Flow<WhoIsItAnswer?> = inner.observeAnswer(id)
+    override fun observeGuesses(id: String): Flow<List<WhoIsItGuess>> = inner.observeGuesses(id)
+    override fun newPostId(): String = inner.newPostId()
+    override suspend fun publish(post: WhoIsItPost, answer: WhoIsItAnswer) = guard.refuse()
+    override suspend fun setAnswer(id: String, answer: WhoIsItAnswer) = guard.refuse()
+    override suspend fun guess(id: String, guess: WhoIsItGuess) = guard.refuse()
+    override suspend fun delete(id: String) = guard.refuse()
 }
 
 class ReadOnlyBirthdayCardRepository(private val inner: BirthdayCardRepository, private val guard: ViewAsGuard) : BirthdayCardRepository {
