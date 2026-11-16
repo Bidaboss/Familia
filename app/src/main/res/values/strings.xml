@@ -1242,7 +1242,7 @@
         <item quantity="other">Encore %d feuilles avant qu\'il grandisse</item>
     </plurals>
     <string name="tree_top">Il a atteint sa plus belle taille.</string>
-    <string name="tree_how">Chaque Bonne nouvelle, réaction, « Je viens », coup de main ou « bien arrivé » lui ajoute une feuille.</string>
+    <string name="tree_how">L\'arbre de la famille grandit avec vous : chaque Bonne nouvelle, réaction, « Je viens », coup de main ou « bien arrivé » lui ajoute une feuille.</string>
     <string name="tree_challenge">Défi du mois : %1$s %2$s</string>
     <string name="tree_challenge_progress">%1$d sur %2$d</string>
     <string name="tree_challenge_done">Défi réussi : l\'arbre est en fleurs !</string>

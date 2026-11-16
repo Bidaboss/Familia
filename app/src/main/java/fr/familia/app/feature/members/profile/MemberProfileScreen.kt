@@ -18,7 +18,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -79,6 +79,14 @@ fun MemberProfileScreen(
             TopAppBar(
                 title = { Text((state as? MemberProfileUiState.Ready)?.member?.firstName.orEmpty()) },
                 navigationIcon = { BackButton(onClick = onBack) },
+                actions = {
+                    // « Modifier » up on the right, for those who may (DESIGN, 16/11): never from the list.
+                    if ((state as? MemberProfileUiState.Ready)?.canEdit == true) {
+                        TextButton(onClick = onEdit, modifier = Modifier.heightIn(min = 48.dp)) {
+                            Text(stringResource(R.string.profile_edit))
+                        }
+                    }
+                },
             )
         },
     ) { padding ->
@@ -90,7 +98,7 @@ fun MemberProfileScreen(
                     title = stringResource(R.string.member_not_found_title),
                     body = stringResource(R.string.profile_not_found_body),
                 )
-                is MemberProfileUiState.Ready -> Content(state, onEdit, onSetShown)
+                is MemberProfileUiState.Ready -> Content(state, onSetShown)
             }
         }
     }
@@ -98,7 +106,7 @@ fun MemberProfileScreen(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Content(state: MemberProfileUiState.Ready, onEdit: () -> Unit, onSetShown: (String, Boolean) -> Unit) {
+private fun Content(state: MemberProfileUiState.Ready, onSetShown: (String, Boolean) -> Unit) {
     val member = state.member
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -114,12 +122,6 @@ private fun Content(state: MemberProfileUiState.Ready, onEdit: () -> Unit, onSet
                 }
             }
         }
-        if (state.canEdit) {
-            OutlinedButton(onClick = onEdit, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.profile_edit))
-            }
-        }
-
         Text(stringResource(R.string.souvenirs_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         val earned = state.souvenirs.mapNotNull { s -> SouvenirKind.of(s.key)?.let { it to s } }
         if (state.isMe) {

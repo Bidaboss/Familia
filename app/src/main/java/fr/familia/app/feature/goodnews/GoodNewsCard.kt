@@ -1,6 +1,6 @@
 package fr.familia.app.feature.goodnews
 
-import androidx.compose.material.icons.rounded.Park
+import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -46,6 +46,7 @@ import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.MemberAvatar
+import fr.familia.app.feature.souvenirs.SouvenirFamily
 import java.time.Instant
 
 /**
@@ -202,13 +203,16 @@ fun reactionName(reaction: Reaction): Int = when (reaction) {
     Reaction.ThumbsUp -> R.string.goodnews_reaction_thumbs_up
 }
 
-/** The avatar of the « Défi réussi » published by Familia (récit 35): the tree, in the size of a member's avatar. */
+/**
+ * The avatar of the « Défi réussi » published by Familia (récit 35), in the size of a member's
+ * avatar: the medal of the Fêtes souvenirs (DESIGN, 16/11), so the challenge has the same image everywhere.
+ */
 @Composable
 private fun ChallengeAvatar() {
     Box(
-        Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.secondaryContainer),
+        Modifier.size(40.dp).clip(CircleShape).background(SouvenirFamily.Party.light),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(Icons.Rounded.Park, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+        Icon(Icons.Rounded.EmojiEvents, contentDescription = null, tint = SouvenirFamily.Party.dark)
     }
 }
