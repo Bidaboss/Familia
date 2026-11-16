@@ -388,7 +388,7 @@ Droits : tous les membres lisent et écrivent les leurs. Seul l'auteur change le
 
 « Ne plus être prévenu des commentaires » de cet événement : un seul champ `mutedAt` (horodatage serveur). Seul ce membre le lit, le crée et le retire.
 
-Serveur (`firebase/functions/src/comments.ts`) : un nouveau commentaire prévient l'auteur de l'événement, ceux qui ont déjà commenté et ceux qui ont répondu « Je viens » ou « Peut-être » (les parents pour un enfant sans appli), jamais celui qui écrit ni ceux qui ont coupé, sur le canal `comments`. Tant que le module est éteint, seul l'admin principal est prévenu. Les commentaires et les « ne plus être prévenu » partent avec l'événement ; ceux d'un membre retiré partent aussi, ses commentaires restent jusqu'à leur expiration.
+Serveur (`firebase/functions/src/comments.ts`) : un nouveau commentaire prévient l'auteur de l'événement, ceux qui ont déjà commenté et ceux qui ont répondu « Je viens » ou « Peut-être » (les parents pour un enfant sans appli), jamais celui qui écrit ni ceux qui ont coupé, sur le canal `comments`. Tant que le module est éteint, seul l'admin principal est prévenu. Les commentaires et les « ne plus être prévenu » partent avec l'événement. Pour un membre retiré, ses « ne plus être prévenu » partent, ses commentaires restent jusqu'à leur expiration.
 
 ## Bonnes nouvelles (PRD, récit 32)
 
