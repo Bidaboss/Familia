@@ -23,6 +23,7 @@ enum class ScreenHelp(@StringRes val titleRes: Int, @StringRes val bodyRes: Int)
     TripStepEdit(R.string.help_screen_trip_step_title, R.string.help_screen_trip_step_body),
     EventAlbum(R.string.help_screen_event_album_title, R.string.help_screen_event_album_body),
     MonthSlideshow(R.string.help_screen_month_title, R.string.help_screen_month_body),
+    Polls(R.string.help_topic_polls_title, R.string.help_topic_polls_body),
     Recipes(R.string.help_screen_recipes_title, R.string.help_screen_recipes_body),
 }
 
@@ -43,9 +44,12 @@ enum class HelpTopic(
     EditEvent(R.string.help_topic_edit_title, R.string.help_topic_edit_body),
     Answers(R.string.help_topic_answers_title, R.string.help_topic_answers_body),
     Calendar(R.string.help_topic_calendar_title, R.string.help_topic_calendar_body, feature = Feature.Calendar),
+    Polls(R.string.help_topic_polls_title, R.string.help_topic_polls_body, feature = Feature.Polls),
     Notifications(R.string.help_topic_notifications_title, R.string.help_topic_notifications_body),
     HelpRequests(R.string.help_topic_help_requests_title, R.string.help_topic_help_requests_body, feature = Feature.HelpRequests),
     Family(R.string.help_topic_family_title, R.string.help_topic_family_body),
+    /** What the admin principal sees of the time in the app (choix EXPERT-5, audit DESIGN n°4). */
+    Usage(R.string.help_topic_usage_title, R.string.help_topic_usage_body, feature = Feature.Usage),
     Wishes(R.string.help_topic_wishes_title, R.string.help_topic_wishes_body, feature = Feature.Gifts),
     GiftLists(R.string.help_topic_gift_lists_title, R.string.help_topic_gift_lists_body, feature = Feature.Gifts),
     Reserve(R.string.help_topic_reserve_title, R.string.help_topic_reserve_body, feature = Feature.Gifts),

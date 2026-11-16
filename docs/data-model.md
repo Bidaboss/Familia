@@ -152,6 +152,7 @@ Droits : seul le membre lui-même lit, ajoute ou supprime ses téléphones. Les 
 | `goodNews` | booléen, facultatif | `false` coupe les notifications des Bonnes nouvelles (récit 32). Sans valeur, elles sont actives. Ne coupe pas l'avis aux adultes responsables quand un enfant publie (carte AVIS-12). |
 
 | `souvenirs` | booléen, facultatif | `false` coupe l'avis « Nouveau souvenir » (récit 34). Sans valeur, il est actif. |
+| `tree` | booléen, facultatif | `false` coupe l'avis « Défi réussi » (récit 35). Sans valeur, il est actif. |
 | `weekly` | booléen, facultatif | `false` coupe l'avis de la question de la semaine (récit 37), et plus tard les autres rendez-vous de la semaine. Sans valeur, il est actif. |
 
 Droits : seul le membre lui-même lit et modifie ses réglages. L'appli écrit chaque réglage en fusion, pour ne pas effacer l'autre.
@@ -544,6 +545,57 @@ Droits : le serveur seul crée et supprime. Le membre lit ses souvenirs et chang
 
 Les souvenirs sont donnés par les fonctions qui existent déjà, sans nouvelle tâche planifiée : `onGoodNewsCreated` (première Bonne nouvelle), `onGoodNewsUpdated` (réactions), `onTripStepUpdated` (premier « bien arrivé »), `onWeeklyAnswerWritten` (réponses), `helpRequestStillOpen` à 18 h (les coups de main pris de la veille, et un an après la création de la fiche du membre). Une notification « Nouveau souvenir » (canal `souvenirs`, donnée `souvenirKey`) part une fois, seulement si le module `souvenirs` est allumé, si le membre a l'appli et s'il n'a pas coupé `souvenirs` dans ses réglages. Module éteint, les souvenirs sont quand même gardés. `onMemberDeletedAnswers` retire aussi les souvenirs, le compteur et les marques d’un membre parti.
 
+## L'arbre de la famille et le défi du mois (PRD, récit 35)
+
+Un arbre commun grandit avec les gestes de tous, et un défi par mois a sa jauge (`functions/src/tree.ts`). Le serveur seul écrit. Rien ne dit qui a le plus contribué (carte EXPERT-3).
+
+### `familyTree/current`
+
+| Champ | Type | Sens |
+|---|---|---|
+| `leaves` | int | Les feuilles de l'arbre. Le nombre ne baisse jamais. |
+| `bloomedMonths` | liste de `AAAA-MM` | Les mois où le défi a été réussi : l'arbre fleurit. |
+| `updatedAt` | horodatage | Le dernier changement. |
+
+Les paliers visibles sont à 20, 60, 120, 250, 500 et 1000 feuilles (`TREE_LEVELS`). L'appli dessine l'arbre de son palier et l'habille selon la saison.
+
+Une feuille s'ajoute pour chacun de ces gestes :
+
+- une Bonne nouvelle, pour son auteur ;
+- une réaction, pour celui qui réagit ;
+- une réponse « Je viens » à un événement, pour la personne qui vient ;
+- un coup de main pris, pour le volontaire ;
+- un « bien arrivé », pour celui qui l'envoie.
+
+Chaque geste compte une seule fois, et chaque personne apporte au plus 5 feuilles par jour, pour éviter la triche. Les votes et les vœux du récit viendront avec leurs modules.
+
+### `challenges/{AAAA-MM}`
+
+| Champ | Type | Sens |
+|---|---|---|
+| `title`, `emoji` | texte | Par exemple « 20 photos de Noël », 🎄. |
+| `measure` | `photos` \| `goodNews` | Ce qui fait avancer la jauge : les photos des Bonnes nouvelles du mois, ou le nombre de Bonnes nouvelles. |
+| `target`, `progress` | int | L'objectif et la jauge, qui s'arrête à l'objectif. |
+| `achievedAt` | horodatage ou `null` | Le moment où le défi a été réussi. |
+| `source` | `default` | Le défi par défaut du mois. Le choix dans Administration et le défi d'un foyer (récit 35 bis) viendront ensuite. |
+| `month`, `createdAt` | texte, horodatage | Le mois, et la création. |
+
+Le défi est créé à partir du défi par défaut du mois, la première fois qu'il sert. La tâche de 18 h le crée aussi, pour qu'il soit là dès le 1er du mois.
+
+Quand l'objectif est atteint :
+
+- l'arbre fleurit (`bloomedMonths`) ;
+- si le module `tree` est allumé, toute la famille qui a l'appli reçoit « Défi réussi ! » (canal `tree`), sauf ceux qui ont coupé `tree` ;
+- Familia publie une Bonne nouvelle `goodNews/challenge-{AAAA-MM}`, une seule fois. Son auteur est `familia`, elle n'a pas de photo, elle porte `challengeMonth` et ne nomme personne.
+
+Module éteint, l'arbre et la jauge avancent quand même, mais rien n'est envoyé ni publié.
+
+Droits : la famille lit `familyTree` et `challenges`. Personne n'y écrit depuis l'appli.
+
+`treeMarks/{markId}` (`goodNews-{postId}`, `reaction-{postId}-{memberId}`, `rsvp-{eventId}-{memberId}`, `help-{requestId}`, `arrival-{tripId}-{stepId}`, `challenge-{postId}`) et `treeDays/{memberId}_{AAAA-MM-JJ}` (`count`) servent aux fonctions seules. Aucune règle ne les ouvre. Un TTL sur `expireAt` les efface 40 jours après. Quand un membre part, ses marques et ses jours sont effacés (carte EXPERT-1), mais ses feuilles restent à la famille.
+
+Fonctions : il n'y a pas de nouvelle tâche planifiée. Ces déclencheurs, qui existent déjà, ajoutent la feuille ou font avancer la jauge : `onGoodNewsCreated`, `onGoodNewsUpdated`, `onHelpRequestWrite`, `onTripStepUpdated` et `helpRequestStillOpen` (le défi du mois). Un seul déclencheur est nouveau : `onRsvpWritten` (`events/{eventId}/rsvps/{memberId}`), pour « Je viens ». Une erreur de l'arbre n'arrête jamais ce que faisait le déclencheur.
+
 ## Question de la semaine (PRD, récit 37)
 
 Chaque lundi à 9 h (heure de Paris), le serveur publie une question tirée de la banque de départ (`functions/src/questionBank.ts`, 60 questions validées par Kévin, [banque](https://claude.ai/artifact/SX2LFwekq2v8GzGeRJC8wF)). La première sort le lundi 30/11/2026, et c'est la première de la banque. Une question de saison sort d'abord pendant sa saison ; sinon le tirage se fait parmi les questions pas posées depuis 330 jours, toujours le même pour un lundi donné. Rien ne sort tant que le module `weeklyQuestion` est éteint dans `config/app.features`.
@@ -586,6 +638,57 @@ Cloud Functions (`functions/src/weeklyQuestion.ts`) :
 | `onMemberDeletedAnswers` | suppression d'un membre | Retire ses réponses (carte EXPERT-1). |
 
 Plus tard : le choix et l'ajout de questions dans Administration, les questions proposées par les membres, la feuille de l'arbre (récit 35) et le regroupement avec les autres rendez-vous en une notification par jour (carte AVIS-14).
+
+## Sondages (PRD, récits 2 bis et 2 ter)
+
+Un adulte pose une question à toute la famille ou aux membres qu'il coche : « Trouver une date » (2 à 5 dates, chacun répond oui, peut-être ou non à chaque date) ou « Choix libre » (2 à 6 réponses, une seule ou plusieurs). Les parents répondent pour leurs enfants. Les réponses sont nommées : tous ceux qui voient le sondage voient qui a répondu quoi. L'entrée est dans la barre du Planning, derrière le module `polls`.
+
+### `polls/{pollId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `kind` | `date` ou `choice` | Le type de sondage |
+| `question` | texte (1 à 120 caractères) | Ne change plus une fois posée |
+| `options` | liste (2 à 5 dates, 2 à 6 textes) | Une date s'écrit `AAAA-MM-JJ` ou `AAAA-MM-JJ HH:MM` ; un texte fait au plus 80 caractères. Ne change plus |
+| `multiple` | booléen | Plusieurs réponses permises (choix libre seulement) |
+| `askedIds` | liste de `memberId` (1 à 30) | Qui répond |
+| `viewerIds` | liste de `memberId` | L'auteur en premier, puis ceux qui répondent et les adultes responsables des enfants interrogés. L'appli lit ses sondages par `array-contains` |
+| `eventId` | `eventId` ou null | L'événement auquel le sondage est rattaché (plus tard) |
+| `closesAt` | horodatage ou null | Fin des réponses : minuit (heure de Paris) après le dernier jour choisi |
+| `closed` | booléen | Terminé par l'auteur, ou par le serveur à `closesAt` |
+| `chosen` | entier ou null | La date retenue (son rang dans `options`) |
+| `createdEventId` | `eventId` ou null | L'événement créé pour la date retenue, par le même membre |
+| `authorId`, `authorName` | `memberId`, texte | L'auteur et son prénom au moment de poser la question |
+| `createdAt`, `updatedAt` | horodatage serveur | |
+
+### `polls/{pollId}/votes/{memberId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `memberId` | `memberId` | Qui répond (identique à l'id) |
+| `answers` | liste de `yes`, `maybe`, `no` | Sondage de date : une réponse par date, dans l'ordre |
+| `choices` | liste d'entiers | Choix libre : les rangs choisis (un seul si `multiple` est faux) |
+| `votedBy` | `memberId` | Le membre lui-même, ou l'adulte qui répond pour son enfant |
+| `updatedAt` | horodatage serveur | |
+
+Droits :
+
+- **Poser** : un adulte (un enfant avec l'appli répond mais ne pose pas).
+- **Lire** : ceux de `viewerIds`, et l'admin principal.
+- **Répondre** : le membre interrogé ou un de ses adultes responsables, tant que le sondage est ouvert. On peut changer sa réponse.
+- **Terminer, choisir la date, supprimer** : l'auteur ou l'admin principal. Choisir la date le termine aussi. L'appli crée d'abord l'événement (au nom de celui qui choisit), puis écrit `chosen` et `createdEventId` ; la règle vérifie que cet événement existe et qu'il est bien de lui.
+
+Cloud Functions (`functions/src/polls.ts`) :
+
+| Fonction | Déclencheur | Rôle |
+|---|---|---|
+| `onPollCreatedNotify` | sondage créé | Prévient ceux qui répondent, sauf l'auteur : « Nouveau sondage ». Canal `events`, donnée `pollId`. |
+| `onPollUpdated` | sondage terminé | Date choisie : ceux qui ont dit oui sont inscrits « Je viens » à l'événement créé. Choix libre terminé : le résultat part à tous ceux qui voient le sondage, sauf celui qui l'a terminé. Sondage de date terminé par sa fin : l'auteur est invité à choisir la date. |
+| `closeDuePolls`, appelée par `arrivalReminder` | toutes les 30 minutes | Termine les sondages dont `closesAt` est passé. Pas de tâche planifiée à part : Cloud Scheduler n'en offre que 3 gratuites. |
+| `onPollDeleted` | sondage supprimé | Supprime ses réponses. |
+| `onMemberDeletedAnswers` | suppression d'un membre | Retire aussi ses réponses aux sondages (index `votes.memberId` en groupe de collections). |
+
+Plus tard : rattacher un sondage à un événement (`eventId`) et le rappel « À faire pour moi » sur l'Accueil.
 
 ## Utilisation (PRD, récit 1 nonies)
 
