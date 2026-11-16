@@ -97,4 +97,19 @@ describe('time capsules (récit 39)', () => {
     await assertFails(deleteDoc(doc(as(env, ADULT), 'capsules/c1')));
     await assertFails(deleteDoc(doc(as(env, OTHER_ADULT), 'capsules/c1')));
   });
+
+  test('the admin principal sees what a removed author left, and may only ask to delete it', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'capsuleLeftovers/gone'), { memberName: 'Jules', count: 2, deleteAsked: false, updatedAt: Timestamp.fromMillis(0) });
+    });
+    const admin = as(env, ADMIN);
+    await assertSucceeds(getDoc(doc(admin, 'capsuleLeftovers/gone')));
+    await assertFails(getDoc(doc(as(env, ADULT), 'capsuleLeftovers/gone')));
+    await assertFails(updateDoc(doc(as(env, ADULT), 'capsuleLeftovers/gone'), { deleteAsked: true }));
+    await assertFails(updateDoc(doc(admin, 'capsuleLeftovers/gone'), { count: 0 }));
+    await assertFails(updateDoc(doc(admin, 'capsuleLeftovers/gone'), { deleteAsked: false }));
+    await assertFails(setDoc(doc(admin, 'capsuleLeftovers/other'), { memberName: 'Lou', count: 1, deleteAsked: true }));
+    await assertFails(deleteDoc(doc(admin, 'capsuleLeftovers/gone')));
+    await assertSucceeds(updateDoc(doc(admin, 'capsuleLeftovers/gone'), { deleteAsked: true }));
+  });
 });

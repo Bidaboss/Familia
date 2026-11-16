@@ -513,6 +513,19 @@ Un message pour plus tard : un texte et jusqu'à 3 photos, pour des membres choi
 
 Droits : jusqu'au jour dit, seul l'auteur lit la capsule. Les destinataires ne savent même pas qu'elle existe, et l'admin principal ne la lit pas non plus. Le jour venu (heure de Paris), la tâche des 30 minutes (`openDueCapsules`, `functions/src/capsules.ts`) copie les destinataires dans `openedFor` et les prévient une fois (canal `capsules`), si le module « Capsules » est allumé. Ensuite, ils la lisent avec `openedFor array-contains <leur id>`, photos comprises. Une capsule ne se modifie jamais. Son auteur la supprime tant qu'elle est scellée (PRD rév. 187 : ouverte, elle devient un souvenir de ses destinataires), et `onCapsuleDeleted` efface alors ses photos. Si l'appli n'arrive pas à sceller la capsule après avoir envoyé des photos, elle les efface elle-même.
 
+### `capsuleLeftovers/{memberId}`
+
+Ce qu'un auteur retiré de la famille a laissé de scellé (PRD rév. 184). Écrit par le serveur (`onMemberDeletedCapsules`), seulement s'il reste au moins une capsule scellée.
+
+| Champ | Type | Description |
+|---|---|---|
+| `memberName` | texte | Le prénom du membre retiré |
+| `count` | entier | Ses capsules encore scellées. Il baisse à chaque ouverture, et la fiche disparaît à zéro |
+| `deleteAsked` | booléen | `false`, puis `true` quand l'admin principal confirme |
+| `updatedAt` | horodatage | Heure du serveur |
+
+Droits : l'admin principal lit la fiche, jamais les capsules, et ne peut que passer `deleteAsked` à `true`. Le serveur (`onCapsuleLeftoversUpdated`) supprime alors les capsules encore scellées de ce membre, photos comprises, puis la fiche. Si le membre est revenu entre-temps, rien n'est supprimé. Sans cette demande, les capsules s'ouvrent à leur date comme prévu. Un destinataire retiré ne reçoit rien.
+
 ## Carnet de recettes (PRD, récit 38)
 
 ### `recipes/{recipeId}`

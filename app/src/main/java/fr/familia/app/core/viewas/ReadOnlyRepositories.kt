@@ -30,6 +30,7 @@ import fr.familia.app.core.data.UsageRepository
 import fr.familia.app.core.data.WeeklyQuestionRepository
 import fr.familia.app.core.model.BringItem
 import fr.familia.app.core.model.Capsule
+import fr.familia.app.core.model.CapsuleLeftover
 import fr.familia.app.core.model.ChallengeRotation
 import fr.familia.app.core.model.DayUsage
 import fr.familia.app.core.model.Event
@@ -198,6 +199,8 @@ class ReadOnlyCapsuleRepository(private val inner: CapsuleRepository, private va
     override suspend fun deleteCapsule(id: String) = guard.refuse()
     override fun newCapsuleId(): String = inner.newCapsuleId()
     override suspend fun createCapsule(capsule: Capsule) = guard.refuse()
+    override fun observeLeftovers(): Flow<List<CapsuleLeftover>> = inner.observeLeftovers()
+    override suspend fun askDeleteLeftovers(memberId: String) = guard.refuse()
 }
 
 class ReadOnlyGoodNewsRepository(private val inner: GoodNewsRepository, private val guard: ViewAsGuard) : GoodNewsRepository {
