@@ -106,6 +106,7 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 | `authorId` | `memberId` | L'auteur, jamais modifié |
 | `authorName` | texte | Prénom de l'auteur au moment de la création : les événements d'un membre retiré restent lisibles (PRD, cas « séparation ») |
 | `createdAt`, `updatedAt` | horodatage serveur | `createdAt` jamais modifié, `updatedAt` à chaque écriture |
+| `coverPhoto` | texte ou null, facultatif | La photo de couverture (PRD, récit 44, module « Plus de photos ») : `events/{eventId}/cover/{memberId}/{photoId}`, sans « .jpg ». Les fichiers sont dans Storage à ce nom avec `.jpg` (1600 px) et `-thumb.jpg` (400 px). La personne qui l'ajoute ou la change ne peut désigner qu'une photo de son propre dossier |
 
 Le destinataire est écrit dans l'événement, pour que les règles vérifient les droits sans lire d'autres événements.
 
@@ -422,6 +423,7 @@ Une chose à apporter à l'événement. Visible dans l'événement une fois le m
 | `label` | texte (1 à 60 caractères) | Ce qu'il faut apporter. Ne change plus : une ligne fausse se retire |
 | `authorId` | `memberId` | Qui a ajouté la ligne |
 | `takerId`, `takerName` | `memberId` et texte, ou null | Qui s'en charge, et son prénom à ce moment-là ; null tant que la ligne est libre |
+| `recipeId` | texte (1 à 64), facultatif | Une recette du carnet jointe à l'ajout (« Joindre une recette », module `recipes`). Absent sans recette ; ne change plus ensuite |
 | `createdAt`, `updatedAt` | horodatage serveur | |
 
 Droits : tous les membres avec l'appli (enfants compris) lisent, ajoutent une ligne (libre ou prise par eux) et prennent une ligne libre. Une ligne prise se libère par celui qui l'a prise, l'auteur de la ligne, ou ceux qui gèrent l'événement (« Modifier »). La ligne se retire par son auteur ou ceux qui gèrent l'événement.

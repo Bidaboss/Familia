@@ -52,6 +52,25 @@ const take = (who) => ({ takerId: who.memberId, takerName: who.memberId, updated
 const release = () => ({ takerId: null, takerName: null, updatedAt: serverTimestamp() });
 
 describe('adding a line', () => {
+  test('a line may join a recipe of the book, a short id only, and never anything else', async () => {
+    await assertSucceeds(setDoc(item(as(env, ADULT), 'r1'), line(ADULT, 'La tarte', true, { recipeId: 'recipe1' })));
+    await assertFails(setDoc(item(as(env, ADULT), 'r2'), line(ADULT, 'La tarte', true, { recipeId: '' })));
+    await assertFails(setDoc(item(as(env, ADULT), 'r3'), line(ADULT, 'La tarte', true, { recipeId: 'x'.repeat(65) })));
+    await assertFails(setDoc(item(as(env, ADULT), 'r4'), line(ADULT, 'La tarte', true, { recipeId: 42 })));
+    await assertFails(setDoc(item(as(env, ADULT), 'r5'), line(ADULT, 'La tarte', true, { note: 'non' })));
+  });
+
+  test('the recipe of a line does not change when someone takes it', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(item(ctx.firestore()), {
+        label: 'La tarte', authorId: 'adult2', takerId: null, takerName: null, recipeId: 'recipe1',
+        createdAt: Timestamp.fromMillis(0), updatedAt: Timestamp.fromMillis(0),
+      });
+    });
+    await assertSucceeds(updateDoc(item(as(env, ADULT)), take(ADULT)));
+    await assertFails(updateDoc(item(as(env, ADULT)), { ...release(), recipeId: 'recipe2' }));
+  });
+
   test('a member adds a free line, or one they take at once; a child with the app too', async () => {
     await assertSucceeds(setDoc(item(as(env, ADULT), 'b1'), line(ADULT)));
     await assertSucceeds(setDoc(item(as(env, ADULT), 'b2'), line(ADULT, 'Le fromage', true)));

@@ -576,6 +576,19 @@
     <string name="gift_wishes_of">Envies de %1$s</string>
     <string name="gift_wishes_subtitle">Toute la famille la voit</string>
     <string name="gift_surprise_for">Surprise pour %1$s</string>
+    <string name="gift_item_occasion_label">C\'est pour quand ?</string>
+    <string name="gift_wish_anytime">Quand tu veux</string>
+    <string name="gift_wish_for_christmas">Pour Noël</string>
+    <string name="gift_wish_for_my_birthday">Pour mon anniversaire</string>
+    <string name="gift_wish_for_birthday">Pour son anniversaire</string>
+    <string name="gifts_moment_all">Tout le monde</string>
+    <string name="gifts_moment_christmas">Noël %1$d</string>
+    <string name="gift_ideas_title">Idées de la famille</string>
+    <string name="gift_ideas_of">Idées pour %1$s</string>
+    <string name="gift_ideas_subtitle">%1$s ne voit jamais cette partie</string>
+    <string name="gift_ideas_notice">%1$s ne voit jamais ces idées, ni qui les a prises.</string>
+    <string name="gift_ideas_empty">Aucune idée pour l\'instant : ajoute la première.</string>
+    <string name="gift_add_idea">Ajouter une idée</string>
     <string name="gift_occasion_christmas">Noël</string>
     <string name="gift_occasion_birthday">Anniversaire</string>
     <string name="gift_occasion_birth">Naissance</string>
@@ -731,6 +744,11 @@
     <string name="photo_unreadable_title">Impossible d\'ouvrir cette photo</string>
     <string name="photo_unreadable_body">Choisis-en une autre, ou prends une nouvelle photo.</string>
     <string name="photo_failed_title">La photo n\'a pas changé</string>
+    <string name="photo_add">Ajouter une photo</string>
+    <string name="photo_remove_confirm_title">Retirer la photo ?</string>
+    <string name="photo_remove_confirm_body">La photo disparaîtra quand tu enregistreras.</string>
+    <string name="photo_remove_confirm">Retirer</string>
+    <string name="photo_chosen">Photo choisie</string>
     <string name="photo_failed_body">Ça n\'a pas marché. Réessaie, et si ça recommence, demande à l\'admin principal.</string>
 
     <!-- Coups de main (PRD, récits 13 à 18) : fil [DEV] coups de main -->
@@ -1646,8 +1664,12 @@
     <string name="bring_delete_title">Retirer « %1$s » de la liste ?</string>
     <string name="bring_delete_confirm">Retirer</string>
     <string name="bring_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
+    <string name="bring_join_recipe">Joindre une recette</string>
+    <string name="bring_recipe_joined">Recette jointe : %1$s</string>
+    <string name="bring_recipe_remove">Retirer la recette</string>
+    <string name="bring_open_recipe">Voir la recette</string>
     <string name="help_topic_bring_title">Qui apporte quoi</string>
-    <string name="help_topic_bring_body">Dans un événement, ajoute ce qu\'il faut apporter et touche « Je m\'en charge » pour une ligne libre. Ton prénom s\'affiche : personne n\'apporte deux fois le dessert. « Je ne peux plus » la libère. La veille, le rappel te dit ce que tu apportes.</string>
+    <string name="help_topic_bring_body">Dans un événement, ajoute ce qu\'il faut apporter et touche « Je m\'en charge » pour une ligne libre. Ton prénom s\'affiche : personne n\'apporte deux fois le dessert. « Je ne peux plus » la libère. La veille, le rappel te dit ce que tu apportes. Avec le carnet de recettes, « Joindre une recette » montre à tous comment tu le prépares.</string>
 
     <!-- L'arbre de la famille et le défi du mois (récit 35) -->
     <string name="tree_title">L\'arbre de la famille</string>
@@ -1722,6 +1744,8 @@
     <string name="feature_member_card">Tailles et goûts sur la fiche</string>
     <string name="channel_birthdays">Vœux d\'anniversaire</string>
     <string name="feature_welcome">La bienvenue</string>
+    <string name="feature_single_list">Une seule liste d\'envies par personne</string>
+    <string name="feature_more_photos">Plus de photos</string>
     <string name="feature_who_is_it">Qui est-ce ?</string>
     <string name="channel_welcome">Bienvenue</string>
     <string name="channel_welcome_description">Quand un membre de la famille arrive dans Familia</string>
@@ -1922,17 +1946,20 @@
     <string name="discover_try">Essayer</string>
     <string name="discover_later">Plus tard</string>
     <string name="discover_weekly_question_title">La question de la semaine</string>
-    <string name="discover_weekly_question_body">Chaque lundi, une question pour toute la famille, et les réponses de chacun.</string>
+    <string name="discover_weekly_question_body">Chaque lundi, une question pour toute la famille. Réponds, puis découvre ce que les autres ont raconté.</string>
     <string name="discover_help_requests_title">L\'entraide</string>
-    <string name="discover_help_requests_body">Demande un coup de main à la famille, ou propose le tien.</string>
-    <string name="discover_polls_title">Sondages et Qui apporte quoi</string>
+    <string name="discover_help_requests_body">Demande un coup de main à la famille, ou donne le tien.</string>
+    <string name="discover_polls_title">Sondages et « Qui apporte quoi »</string>
     <string name="discover_polls_body">Trouve une date qui va à tout le monde, et répartis ce que chacun apporte au repas.</string>
     <string name="discover_recipes_title">Les recettes</string>
-    <string name="discover_recipes_body">Garde les recettes de la famille au même endroit.</string>
+    <string name="discover_recipes_body">Garde les recettes de la famille, avec leurs photos, pour les transmettre.</string>
     <string name="discover_trips_title">Voyages et comptes</string>
-    <string name="discover_trips_body">Prépare un voyage ensemble, puis partage les dépenses sans faire de calculs.</string>
+    <string name="discover_trips_body">Prépare un voyage ensemble, note qui a payé quoi, et l\'appli calcule qui doit combien à qui.</string>
     <string name="discover_capsules_title">La capsule temporelle</string>
-    <string name="discover_capsules_body">Écris un message qui ne s\'ouvrira que dans quelques années.</string>
+    <string name="discover_capsules_body">Écris un message qui ne s\'ouvrira qu\'à la date que tu choisis, jusqu\'à 5 ans plus tard.</string>
+    <string name="discover_help_requests_body_child">Demande un coup de main à la famille quand tu en as besoin.</string>
+    <string name="discover_trips_title_child">Les voyages</string>
+    <string name="discover_trips_body_child">Suis les voyages de la famille, étape par étape, avec leurs photos.</string>
     <string name="discover_genealogy_title">L\'arbre généalogique</string>
     <string name="discover_genealogy_body">Retrouve qui est qui dans la famille, génération après génération.</string>
     <!-- « Qui est-ce ? » (récit 43). -->

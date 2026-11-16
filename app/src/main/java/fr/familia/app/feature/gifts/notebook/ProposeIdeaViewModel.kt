@@ -15,6 +15,7 @@ import fr.familia.app.core.model.GiftStatus
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.NotebookEntry
 import fr.familia.app.core.model.NotebookSource
+import fr.familia.app.core.model.ideasListId
 import fr.familia.app.feature.gifts.addsVisibleItem
 import fr.familia.app.feature.gifts.canReserve
 import fr.familia.app.feature.gifts.keepsListsOf
@@ -59,6 +60,8 @@ sealed interface ProposeIdeaUiState {
         val canPrepareSurprise: Boolean = true,
         val isSaving: Boolean = false,
         val saveFailed: Boolean = false,
+        /** « Idées de la famille » nobody started yet (récit 9 ter): the idea creates it. */
+        val newList: GiftList? = null,
     ) : ProposeIdeaUiState
 
     /** The idea is now an item of [listId]. */
@@ -77,6 +80,8 @@ class ProposeIdeaViewModel(
     private val currentMemberId: String,
     private val entryId: String,
     private val writeTimeoutMillis: Long = 4_000,
+    /** Switch « Liste unique » (récit 9 ter): the idea goes to the « Idées de la famille » of the person, nowhere else. */
+    private val singleList: Boolean = false,
 ) : ViewModel() {
 
     private val choice = MutableStateFlow(ProposeChoice())
@@ -91,6 +96,9 @@ class ProposeIdeaViewModel(
 
     /** The lists where the item is already written: a new attempt only retries the rest. */
     private val written = mutableSetOf<String>()
+
+    /** The « Idées de la famille » this screen created: never created twice. */
+    private val created = mutableSetOf<String>()
 
     /** Starts [block] now, up to its first suspension, so that Firestore queues the write in order. */
     private fun write(block: suspend () -> Unit): Deferred<Unit> = viewModelScope.async(start = CoroutineStart.UNDISPATCHED) { block() }
@@ -113,6 +121,23 @@ class ProposeIdeaViewModel(
         when {
             pick.doneListId != null -> ProposeIdeaUiState.Done(pick.doneListId)
             ctx == null || gifts == null -> ProposeIdeaUiState.Unavailable
+            singleList -> {
+                val personId = ctx.entry.personId!!
+                val ideas = visible.firstOrNull { it.id == ideasListId(personId) }
+                val target = ideas ?: GiftList(
+                    ideasListId(personId), GiftListKind.Ideas, "Idées de la famille", null, null, personId, emptyList(), ctx.me.id, ctx.me.firstName,
+                )
+                ProposeIdeaUiState.Choosing(
+                    entry = ctx.entry,
+                    lists = listOf(target),
+                    selectedListId = target.id,
+                    takeIt = pick.takeIt,
+                    canPrepareSurprise = false,
+                    isSaving = pick.isSaving,
+                    saveFailed = pick.saveFailed,
+                    newList = target.takeIf { ideas == null },
+                )
+            }
             else -> {
                 val lists = proposableLists(visible, ctx.entry.personId!!, ctx.me, ctx.family)
                 ProposeIdeaUiState.Choosing(
@@ -155,6 +180,8 @@ class ProposeIdeaViewModel(
             // The item and the reservation are queued at once, in this order, so that they reach the
             // server even offline: waiting for one before the next would hold the other back.
             val writes = buildList {
+                val newList = state.newList?.takeIf { it.id == listId }
+                if (newList != null && listId !in created) add(write { giftRepo.saveList(newList, isNew = true); created += listId })
                 if (listId !in written) {
                     add(write { giftRepo.saveItem(listId, item, isNew = true); written += listId })
                 }

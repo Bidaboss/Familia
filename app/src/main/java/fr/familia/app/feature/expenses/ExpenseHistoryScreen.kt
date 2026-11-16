@@ -1,5 +1,6 @@
 package fr.familia.app.feature.expenses
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -49,6 +50,8 @@ fun ExpenseHistoryScreen(state: ExpenseHistoryUiState, onRetry: () -> Unit, onBa
                     Text(
                         success?.title?.takeIf { it.isNotBlank() }?.let { stringResource(R.string.expense_history_title_of, it) }
                             ?: stringResource(R.string.expense_history_title),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 },
                 navigationIcon = { BackButton(onClick = onBack) },

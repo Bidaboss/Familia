@@ -1,5 +1,6 @@
 package fr.familia.app.feature.capsules
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -90,7 +91,7 @@ fun CapsuleEditScreen(state: CapsuleEditUiState, actions: CapsuleEditActions, on
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.capsules_add)) },
+                title = { Text(stringResource(R.string.capsules_add), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = { HelpButton(ScreenHelp.Capsules) },
             )

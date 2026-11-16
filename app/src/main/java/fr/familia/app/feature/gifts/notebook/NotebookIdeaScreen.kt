@@ -1,5 +1,6 @@
 package fr.familia.app.feature.gifts.notebook
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -90,7 +91,7 @@ fun NotebookIdeaScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(stringResource(if (editing?.isNew == false) R.string.notebook_idea_edit_title else R.string.notebook_idea_new_title))
+                    Text(stringResource(if (editing?.isNew == false) R.string.notebook_idea_edit_title else R.string.notebook_idea_new_title), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 },
                 navigationIcon = { BackButton(onClick = { if (hasChanges) confirmLeave = true else onBack() }) },
                 actions = { HelpButton(ScreenHelp.Notebook) },

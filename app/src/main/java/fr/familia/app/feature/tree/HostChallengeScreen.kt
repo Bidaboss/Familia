@@ -1,5 +1,6 @@
 package fr.familia.app.feature.tree
 
+import androidx.compose.ui.text.style.TextOverflow
 import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -136,7 +137,7 @@ fun HostChallengeScreen(state: HostGuideState, onBack: () -> Unit, actions: Host
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.host_title, ofMonth(state.month))) },
+                title = { Text(stringResource(R.string.host_title, ofMonth(state.month)), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = {
                     if (state.canPublish) {

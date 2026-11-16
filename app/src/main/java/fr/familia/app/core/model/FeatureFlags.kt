@@ -80,6 +80,13 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     ThinkOfMe("thinkOfMe", R.string.feature_think_of_me),
     /** « Qui est-ce ? » : une vieille photo, la famille devine qui et en quelle année (PRD, récit 43). */
     WhoIsIt("whoIsIt", R.string.feature_who_is_it),
+    /**
+     * Une seule liste d'envies par personne et « Idées de la famille » à la place des listes d'occasion
+     * et des listes surprises (PRD rév. 209, récit 9 ter). Allumé, l'ancien écran des listes disparaît.
+     */
+    SingleList("singleList", R.string.feature_single_list),
+    /** Une photo de couverture sur un événement et une photo sur une envie (PRD, récit 44). */
+    MorePhotos("morePhotos", R.string.feature_more_photos),
 }
 
 /**

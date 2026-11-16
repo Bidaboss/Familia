@@ -21,9 +21,9 @@ private class FakeBring(initial: List<BringItem> = emptyList(), private val fail
     val items = MutableStateFlow(initial)
     private var next = 0
     override fun observe(eventId: String): Flow<List<BringItem>> = items
-    override suspend fun add(eventId: String, label: String, authorId: String, authorName: String, take: Boolean) {
+    override suspend fun add(eventId: String, label: String, authorId: String, authorName: String, take: Boolean, recipeId: String?) {
         failWith?.let { throw it }
-        items.value = items.value + BringItem("n${next++}", label, authorId, if (take) authorId else null, if (take) authorName else null)
+        items.value = items.value + BringItem("n${next++}", label, authorId, if (take) authorId else null, if (take) authorName else null, recipeId)
     }
     override suspend fun take(eventId: String, itemId: String, memberId: String, firstName: String) =
         change(itemId) { it.copy(takerId = memberId, takerName = firstName) }
@@ -58,6 +58,16 @@ class BringViewModelTest {
         assertEquals("Adult1", rows[0].item.takerName)
         assertTrue(rows[0].isMine)
         assertNull(rows[1].item.takerId)
+    }
+
+    @Test
+    fun `a line keeps the recipe joined to it, and one without stays without`() = runTest {
+        val repo = FakeBring()
+        val viewModel = BringViewModel(repo, FakeMembers(), "adult1", "e1", canManageEvent = false)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+        assertTrue(viewModel.add("La tarte aux pommes", take = true, recipeId = "r1"))
+        assertTrue(viewModel.add("Le pain", take = false))
+        assertEquals(listOf("r1", null), viewModel.uiState.value.rows.map { it.item.recipeId })
     }
 
     @Test

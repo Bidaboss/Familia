@@ -5,6 +5,10 @@
 // wish released before the day is not revealed; a wish nobody took stays as it is.
 //
 // Called by revealGifts (index.ts), after the lists. Behind the module switch config/app.features.wishesReveal, on top of the gifts module.
+//
+// « Idées de la famille » (récit 9 ter, behind config/app.features.singleList): the ideas taken
+// for a member are revealed the same way, into the same « On m'a offert » of their « Mes envies »,
+// as received/idea-{itemId}. The idea list itself stays: it is permanent, like « Mes envies ».
 
 import type { Firestore } from 'firebase-admin/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
@@ -75,7 +79,14 @@ export function wishesRevealNotice(listId: string, count: number): Notice {
  */
 export async function revealWishes(db: Firestore, send: Sender, now: Date): Promise<number> {
   const config = await db.doc('config/app').get();
-  if (config.get('features.gifts') !== true || config.get('features.wishesReveal') !== true) return 0;
+  if (config.get('features.gifts') !== true) return 0;
+  const singleList = config.get('features.singleList') === true;
+  // With the single list, the reveal is what tells the beneficiary: it goes with it.
+  const sources: RevealSource[] = [
+    ...(config.get('features.wishesReveal') === true || singleList ? ['wishes' as const] : []),
+    ...(singleList ? ['ideas' as const] : []),
+  ];
+  if (sources.length === 0) return 0;
   const today = parisDay(now);
   const members = await loadGiftMembers(db);
   const audience = await giftAudience(db);
@@ -83,17 +94,45 @@ export async function revealWishes(db: Firestore, send: Sender, now: Date): Prom
   for (const member of members) {
     // A child without the app: their adults already see everything.
     if (member.profile === 'childWithoutApp') continue;
-    const count = await revealWishesOf(db, member, members, today);
+    let count = 0;
+    for (const source of sources) count += await revealWishesOf(db, member, members, today, source);
     revealed += count;
     if (count > 0 && audience([member.id]).length > 0) await notify(db, send, [member.id], wishesRevealNotice(`wishes-${member.id}`, count));
   }
   return revealed;
 }
 
-/** Moves each taken wish of [member] whose occasion is past to the archive, then removes it with its reservation. */
-export async function revealWishesOf(db: Firestore, member: GiftMember, members: GiftMember[], today: string): Promise<number> {
-  const list = db.collection('giftLists').doc(`wishes-${member.id}`);
+/** The list a reveal reads: « Mes envies », or the « Idées de la famille » for the member (récit 9 ter). */
+export type RevealSource = 'wishes' | 'ideas';
+
+/** Where a revealed item of [listId] is archived: the « On m'a offert » of « Mes envies »; null for any other list. */
+export function receivedPath(listId: string, itemId: string): { listId: string; receivedId: string } | null {
+  if (listId.startsWith('wishes-')) return { listId, receivedId: itemId };
+  if (listId.startsWith('ideas-')) return { listId: `wishes-${listId.slice('ideas-'.length)}`, receivedId: `idea-${itemId}` };
+  return null;
+}
+
+/**
+ * Moves each taken wish (or idea, [source]) of [member] whose occasion is past to the archive of
+ * « Mes envies », then removes it with its reservation.
+ */
+export async function revealWishesOf(
+  db: Firestore, member: GiftMember, members: GiftMember[], today: string, source: RevealSource = 'wishes',
+): Promise<number> {
+  const list = db.collection('giftLists').doc(`${source}-${member.id}`);
+  const wishes = db.collection('giftLists').doc(`wishes-${member.id}`);
   const claims = await list.collection('claims').get();
+  // The archive lives under « Mes envies »: a member who never wrote a wish still gets one, empty.
+  if (source === 'ideas' && !claims.empty && !(await wishes.get()).exists) {
+    await wishes.create({
+      kind: 'wishes', title: 'Mes envies', occasion: null, date: null, beneficiaryId: member.id, viewerIds: [],
+      creatorId: member.id, creatorName: member.firstName, revealed: false,
+      createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(),
+    }).catch((e: { code?: number }) => {
+      // Written between the read and the create (6, ALREADY_EXISTS): nothing to do.
+      if (e?.code !== 6) throw e;
+    });
+  }
   let count = 0;
   for (const claim of claims.docs) {
     const meant = claimOccasion(claim.data(), member.birthDate, today);
@@ -111,7 +150,8 @@ export async function revealWishesOf(db: Firestore, member: GiftMember, members:
     // notebooks of the givers and to warn nobody (see gifts.ts and notebook.ts); the parts go
     // after it, for the same reason.
     const batch = db.batch();
-    batch.set(list.collection('received').doc(claim.id), {
+    const archive = receivedPath(list.id, claim.id)!;
+    batch.set(wishes.collection('received').doc(archive.receivedId), {
       title: String(item.get('title') ?? ''),
       url: (item.get('url') as string | null) ?? null,
       imageUrl: (item.get('imageUrl') as string | null) ?? null,
@@ -162,6 +202,7 @@ export async function thankGivers(
 
 /** True once the wish was revealed: its removal is not a cancelled reservation. */
 export async function wasRevealed(db: Firestore, listId: string, itemId: string): Promise<boolean> {
-  if (!listId.startsWith('wishes-')) return false;
-  return (await db.collection('giftLists').doc(listId).collection('received').doc(itemId).get()).exists;
+  const archive = receivedPath(listId, itemId);
+  if (!archive) return false;
+  return (await db.collection('giftLists').doc(archive.listId).collection('received').doc(archive.receivedId).get()).exists;
 }

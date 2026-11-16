@@ -1,5 +1,6 @@
 package fr.familia.app.feature.weeklyquestion
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,7 +40,7 @@ fun WeeklyArchiveScreen(state: WeeklyArchiveUiState, onOpen: (String) -> Unit, o
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.weekly_archive_title)) },
+                title = { Text(stringResource(R.string.weekly_archive_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
             )
         },

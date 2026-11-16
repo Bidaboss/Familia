@@ -100,6 +100,7 @@ import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.photo.LocalPhotoStorage
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.ideasListId
 import fr.familia.app.core.model.NotebookOccasion
 import fr.familia.app.core.model.wishesListId
 import fr.familia.app.core.ui.LocalMemberPhotos
@@ -827,6 +828,7 @@ fun FamiliaApp(
                             eventId = eventId,
                             onEdit = { navController.navigate(EventEditDestination(eventId)) },
                             onOpenAlbum = { navController.navigate(EventAlbumDestination(eventId)) },
+                            onOpenRecipe = if (features.isOn(Feature.Recipes)) ({ id -> navController.navigate(RecipeDetailDestination(id)) }) else null,
                             onBack = { navController.popBackStack() },
                         )
                     }
@@ -968,7 +970,12 @@ fun FamiliaApp(
                             onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
                             onNewList = { navController.navigate(GiftListEditDestination()) },
                             onAllBirthdays = { navController.navigate(BirthdaysRoute) },
-                            onPrepareSurprise = { id -> navController.navigate(GiftListEditDestination(forMemberId = id)) },
+                            // With the single list (récit 9 ter), a surprise is an idea of the family.
+                            onPrepareSurprise = if (features.isOn(Feature.SingleList)) {
+                                { id -> navController.navigate(GiftListDestination(ideasListId(id))) }
+                            } else {
+                                { id -> navController.navigate(GiftListEditDestination(forMemberId = id)) }
+                            },
                             onOpenNotebook = if (features.isOn(Feature.GiftNotebook)) {
                                 { navController.navigate(NotebookDestination) }
                             } else {
@@ -992,6 +999,7 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             entryId = entry.toRoute<ProposeIdeaDestination>().entryId,
+                            singleList = features.isOn(Feature.SingleList),
                             onBack = { navController.popBackStack() },
                             onNewSurprise = { id -> navController.navigate(GiftListEditDestination(forMemberId = id)) },
                             onDone = { listId ->

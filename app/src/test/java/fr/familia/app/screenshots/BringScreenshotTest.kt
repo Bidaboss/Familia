@@ -23,7 +23,7 @@ class BringScreenshotTest {
     private val event: @Composable () -> Unit = {
         Surface {
             EventDetailScreen(previewEventDetail(), { _, _ -> }, {}, {}, {}) {
-                BringContent(previewBring(), { _, _ -> true }, {}, {}, {}, {})
+                BringContent(previewBring(), { _, _, _ -> true }, {}, {}, {}, {}, recipePicker = { _, _ -> }, onOpenRecipe = {})
             }
         }
     }

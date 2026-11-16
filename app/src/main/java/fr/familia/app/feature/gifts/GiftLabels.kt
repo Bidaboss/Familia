@@ -21,9 +21,20 @@ fun occasionLabel(occasion: GiftOccasion): String = stringResource(
     },
 )
 
+/** What a wish is for (récit 9 ter): « Quand tu veux », « Pour Noël », « Pour mon/son anniversaire ». */
+@Composable
+fun wishOccasionLabel(occasion: GiftOccasion?, forMe: Boolean): String = stringResource(
+    when (occasion) {
+        GiftOccasion.Christmas -> R.string.gift_wish_for_christmas
+        GiftOccasion.Birthday -> if (forMe) R.string.gift_wish_for_my_birthday else R.string.gift_wish_for_birthday
+        else -> R.string.gift_wish_anytime
+    },
+)
+
 /** The title shown for a list: « Mes envies », « Envies de Camille », or its own title. */
 @Composable
 fun listTitle(list: GiftList, beneficiaryName: String, isMine: Boolean): String = when {
+    list.kind == GiftListKind.Ideas -> stringResource(R.string.gift_ideas_of, beneficiaryName)
     list.kind != GiftListKind.Wishes -> list.title
     isMine -> stringResource(R.string.gift_my_wishes)
     else -> stringResource(R.string.gift_wishes_of, beneficiaryName)
@@ -33,6 +44,7 @@ fun listTitle(list: GiftList, beneficiaryName: String, isMine: Boolean): String 
 @Composable
 fun listSubtitle(list: GiftList, beneficiaryName: String, today: LocalDate): String {
     if (list.kind == GiftListKind.Wishes) return stringResource(R.string.gift_wishes_subtitle)
+    if (list.kind == GiftListKind.Ideas) return stringResource(R.string.gift_ideas_subtitle, beneficiaryName)
     val occasion = list.occasion?.let { occasionLabel(it) }
     val day = list.date?.let { formatDay(it, today) }
     val base = listOfNotNull(occasion, day).joinToString(" · ")

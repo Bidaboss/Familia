@@ -240,7 +240,7 @@ service cloud.firestore {
       return e.keys().hasAll(['title', 'date', 'time', 'place', 'note', 'targetType', 'targetMemberId',
                               'householdId', 'authorId', 'authorName', 'createdAt', 'updatedAt'])
         && e.keys().hasOnly(['title', 'date', 'time', 'place', 'note', 'targetType', 'targetMemberId',
-                             'householdId', 'authorId', 'authorName', 'createdAt', 'updatedAt'])
+                             'householdId', 'authorId', 'authorName', 'createdAt', 'updatedAt', 'coverPhoto'])
         && e.title is string && e.title.size() > 0 && e.title.size() <= 80
         && isDay(e.date)
         && (e.time == null || (e.time is string && e.time.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')))
@@ -255,6 +255,17 @@ service cloud.firestore {
             || (e.targetType == 'household' && e.targetMemberId == null && e.householdId is string
                 && exists(/databases/$(database)/documents/households/$(e.householdId)))
             || (e.targetType == 'family' && e.targetMemberId == null && e.householdId == null));
+    }
+
+    // Plus de photos (PRD, récit 44): coverPhoto, optional, names the cover sent to Storage beforehand,
+    // events/{eventId}/cover/{memberId}/{photoId} (storage.rules). Whoever may change the event adds,
+    // changes or removes it (null or left out), but only names a photo of their own folder.
+    function isValidCover(eventId, e, before) {
+      return !('coverPhoto' in e) || e.coverPhoto == null
+        || (before != null && 'coverPhoto' in before && e.coverPhoto == before.coverPhoto)
+        || (e.coverPhoto is string
+            && e.coverPhoto.matches('^events/' + eventId + '/cover/[A-Za-z0-9]{1,40}/[A-Za-z0-9]{1,40}$')
+            && e.coverPhoto.split('/')[3] == myMemberId());
     }
 
     // PRD "Droits par profil", creation: the admin principal for anyone; an adult (chefs included)
@@ -286,6 +297,7 @@ service cloud.firestore {
 
       allow create: if isMember()
         && isValidEvent(request.resource.data)
+        && isValidCover(eventId, request.resource.data, null)
         && request.resource.data.authorId == myMemberId()
         && request.resource.data.authorName == me().firstName
         && request.resource.data.createdAt == request.time
@@ -295,6 +307,7 @@ service cloud.firestore {
       allow update: if isMember()
         && canManage(resource.data)
         && isValidEvent(request.resource.data)
+        && isValidCover(eventId, request.resource.data, resource.data)
         && request.resource.data.authorId == resource.data.authorId
         && request.resource.data.authorName == resource.data.authorName
         && request.resource.data.createdAt == resource.data.createdAt
@@ -349,10 +362,13 @@ service cloud.firestore {
         || (b.takerId == myMemberId() && b.takerName == me().firstName);
     }
 
+    // recipeId (optional): a recipe of the book joined when the line is added. It never changes after,
+    // since an update touches only the taker fields.
     function isValidBring(b) {
       return b.keys().hasAll(['label', 'authorId', 'takerId', 'takerName', 'createdAt', 'updatedAt'])
-        && b.keys().size() == 6
+        && b.keys().hasOnly(['label', 'authorId', 'takerId', 'takerName', 'createdAt', 'updatedAt', 'recipeId'])
         && b.label is string && b.label.trim().size() > 0 && b.label.size() <= 60
+        && (!('recipeId' in b) || (b.recipeId is string && b.recipeId.size() > 0 && b.recipeId.size() <= 64))
         && b.updatedAt == request.time;
     }
 
