@@ -290,8 +290,9 @@ private fun homeChips(
     } else {
         null
     }
-    // While the module is on, the chip always shows: it is the way to the trips (audit DESIGN n°4).
-    val trips = if (ready.trips.isNotEmpty() || actions.onOpenTrips != null) {
+    // Only while a trip is ongoing or coming: no chip stays for nothing (DESIGN); all the trips are
+    // reached from the Planning.
+    val trips = if (ready.trips.isNotEmpty()) {
         HomeExtra(
             "trips",
             chip = { selected, toggle ->
@@ -311,10 +312,22 @@ private fun homeChips(
         HomeExtra(
             "occasion",
             chip = { _, _ ->
-                HomeChip(
-                    stringResource(R.string.home_chip_detail, occasion.list.title, occasionWhen(occasion.daysLeft).replaceFirstChar { it.lowercase() }),
-                    onClick = { actions.onOpenList(occasion.list.id) },
-                )
+                val left = occasionWhen(occasion.daysLeft).replaceFirstChar { it.lowercase() }
+                if (occasion.isMine) {
+                    // My own occasion: never a list's title, only when it is, and my envies.
+                    val what = stringResource(
+                        if (occasion.list.occasion == GiftOccasion.Birthday) R.string.home_chip_my_birthday else R.string.home_chip_my_occasion,
+                    )
+                    HomeChip(
+                        stringResource(R.string.home_chip_detail, what, left),
+                        onClick = { actions.onOpenWishes?.invoke(occasion.list.beneficiaryId) ?: actions.onOpenList(occasion.list.id) },
+                    )
+                } else {
+                    HomeChip(
+                        stringResource(R.string.home_chip_detail, occasion.list.title, left),
+                        onClick = { actions.onOpenList(occasion.list.id) },
+                    )
+                }
             },
         )
     }

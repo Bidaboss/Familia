@@ -1,5 +1,6 @@
 package fr.familia.app.feature.trips.detail
 
+import fr.familia.app.core.ui.ClayLink
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +15,6 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
@@ -22,7 +22,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -84,14 +83,7 @@ internal fun TripChecklist(
             ItemRow(item, isParticipant, onDone = { actions.onDone(item.id, it) }, onEdit = { editingId = item.id })
         }
         if (isParticipant) {
-            OutlinedButton(
-                onClick = { editingId = NEW_ITEM },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).heightIn(min = 56.dp),
-            ) {
-                Icon(Icons.Outlined.Add, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.trip_checklist_add))
-            }
+            ClayLink(stringResource(R.string.trip_checklist_add), onClick = { editingId = NEW_ITEM }, modifier = Modifier.padding(top = 8.dp))
         }
     }
     val id = editingId

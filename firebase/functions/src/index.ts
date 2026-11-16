@@ -425,6 +425,11 @@ export const onTripDeletedAccounts = onDocumentDeleted('trips/{tripId}', async (
   await deleteExpenseBook(getFirestore(), 'trip', event.params.tripId);
 });
 
+// Les comptes d'un événement (PRODUIT-57) go with it too.
+export const onEventDeletedAccounts = onDocumentDeleted('events/{eventId}', async (event) => {
+  await deleteExpenseBook(getFirestore(), 'event', event.params.eventId);
+});
+
 // Each change of an expense goes in its history, with who made it (récit 16 bis).
 export const onExpenseWritten = onDocumentWrittenWithAuthContext('expenseBooks/{bookId}/expenses/{expenseId}', async (event) => {
   const before = event.data?.before.data() as ExpenseData | undefined;

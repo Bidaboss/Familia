@@ -1734,7 +1734,7 @@ service cloud.firestore {
 
     // --- Comptes (récit 16 bis) -------------------------------------------------------------------
     // The accounts of a trip (PRD rév. 193), a common brick: a book belongs to a container (a trip
-    // today, an event later, PRODUIT-57), at expenseBooks/{containerType}_{containerId}, out of
+    // today, an event of the planning since PRODUIT-57), at expenseBooks/{containerType}_{containerId}, out of
     // trips/ so the deletion of a trip never takes them by surprise. Only the adult participants of
     // the container see and change them: the readers of the trip and the children never do.
     // Amounts are whole euro cents. The sums of a split are checked by the app, which rules cannot
@@ -1744,11 +1744,30 @@ service cloud.firestore {
       return /databases/$(database)/documents/expenseBooks/$(bookId);
     }
 
+    // An event (PRODUIT-57): those who said « Je viens », and its author. « Peut-être » does not
+    // share costs with the others.
+    function comesToEvent(eventId, memberId) {
+      return (exists(eventPath(eventId)) && get(eventPath(eventId)).data.authorId == memberId)
+        || (exists(/databases/$(database)/documents/events/$(eventId)/rsvps/$(memberId))
+            && get(/databases/$(database)/documents/events/$(eventId)/rsvps/$(memberId)).data.status == 'yes');
+    }
+
+    // Who takes part in a container: the participants of a trip, those who come to an event.
+    function takesPart(containerType, containerId, memberId) {
+      return (containerType == 'trip' && memberId in tripOf(containerId).participantIds)
+        || (containerType == 'event' && comesToEvent(containerId, memberId));
+    }
+
+    // The creator of a book: the creator of the trip, the author of the event.
+    function containerCreator(containerType, containerId) {
+      return containerType == 'trip' ? tripOf(containerId).creatorId : get(eventPath(containerId)).data.authorId;
+    }
+
     function canUseAccounts(containerType, containerId) {
       return isMember()
         && me().profile == 'adult'
-        && containerType == 'trip'
-        && myMemberId() in tripOf(containerId).participantIds;
+        && containerType in ['trip', 'event']
+        && takesPart(containerType, containerId, myMemberId());
     }
 
     function bookOf(bookId) {
@@ -1762,7 +1781,7 @@ service cloud.firestore {
     function isValidBook(b, bookId) {
       return b.keys().hasAll(['containerType', 'containerId', 'creatorId', 'shares', 'closed', 'createdAt', 'updatedAt'])
         && b.keys().hasOnly(['containerType', 'containerId', 'creatorId', 'shares', 'closed', 'createdAt', 'updatedAt'])
-        && b.containerType == 'trip'
+        && b.containerType in ['trip', 'event']
         && b.containerId is string
         && bookId == b.containerType + '_' + b.containerId
         && b.shares is map && b.shares.size() >= 1 && b.shares.size() <= 13
@@ -1776,7 +1795,7 @@ service cloud.firestore {
       allow read: if isMember() && (resource == null || canUseBook(resource.data));
       allow create: if canUseAccounts(request.resource.data.containerType, request.resource.data.containerId)
         && isValidBook(request.resource.data, bookId)
-        && request.resource.data.creatorId == tripOf(request.resource.data.containerId).creatorId
+        && request.resource.data.creatorId == containerCreator(request.resource.data.containerType, request.resource.data.containerId)
         && request.resource.data.closed == false
         && request.resource.data.createdAt == request.time;
       allow update: if canUseBook(resource.data)
@@ -1794,7 +1813,7 @@ service cloud.firestore {
         && e.title is string && e.title.size() >= 1 && e.title.size() <= 80
         && e.amountCents is int && e.amountCents > 0 && e.amountCents <= 10000000
         && isDay(e.date)
-        && e.payerId in tripOf(book.containerId).participantIds
+        && takesPart(book.containerType, book.containerId, e.payerId)
         && get(memberPath(e.payerId)).data.householdId == e.payerHouseholdId
         && e.category in ['lodging', 'transport', 'groceries', 'restaurant', 'activity', 'other']
         && e.mode in ['shares', 'equal', 'amounts']

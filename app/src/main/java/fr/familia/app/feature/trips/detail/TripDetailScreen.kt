@@ -1,5 +1,8 @@
 package fr.familia.app.feature.trips.detail
 
+import fr.familia.app.core.ui.ClayLink
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,7 +28,6 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -152,8 +153,8 @@ private fun Content(
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         // Room at the bottom so the add button never hides the last step.
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 8.dp, bottom = 96.dp),
+        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
         item(key = "summary") { Summary(state) }
         if (state.sendFailed) {
@@ -195,11 +196,7 @@ private fun Content(
         item(key = "checklist") { TripChecklist(state.items, state.assignees, state.isParticipant, checklist) }
         if (onOpenExpenses != null && state.isParticipant) {
             item(key = "expenses") {
-                OutlinedButton(onClick = onOpenExpenses, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                    Icon(Icons.Outlined.Payments, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.expenses_open))
-                }
+                ClayLink(stringResource(R.string.expenses_open), onClick = onOpenExpenses)
             }
         }
     }
@@ -208,8 +205,9 @@ private fun Content(
 @Composable
 private fun Summary(state: TripDetailUiState.Success) {
     val variant = FamiliaClay.colors.onTintVariant(ClayTint.Family)
-    ClayCard(Modifier.fillMaxWidth(), tint = ClayTint.Family) {
-        Text(tripDatesLabel(state.trip, state.today), style = MaterialTheme.typography.titleMedium)
+    // The point of the screen: when and with whom (DESIGN-11).
+    ClayCard(Modifier.fillMaxWidth(), tint = ClayTint.Family, emphasis = true) {
+        ClayCardTitle(tripDatesLabel(state.trip, state.today), style = MaterialTheme.typography.titleMedium)
         Text(
             stringResource(R.string.trip_with, joinNames(state.participants)),
             style = MaterialTheme.typography.bodyLarge,

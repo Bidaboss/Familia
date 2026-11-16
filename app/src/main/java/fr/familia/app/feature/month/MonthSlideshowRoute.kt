@@ -1,12 +1,14 @@
 package fr.familia.app.feature.month
 
+import fr.familia.app.core.ui.ClayLink
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,8 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -60,13 +60,9 @@ fun monthName(month: YearMonth): String =
 fun MonthSlideshowHomeCard(month: YearMonth, onOpen: () -> Unit) {
     val tint = ClayTint.Plain
     ClayCard(modifier = Modifier.fillMaxWidth(), tint = tint) {
-        Text(
-            stringResource(R.string.month_title, monthName(month)),
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.semantics { heading() },
-        )
+        ClayCardTitle(stringResource(R.string.month_title, monthName(month)))
         Text(stringResource(R.string.month_home_body), style = MaterialTheme.typography.bodyLarge, color = FamiliaClay.colors.onTintVariant(tint))
-        OutlinedButton(onClick = onOpen, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.month_home_open)) }
+        ClayLink(stringResource(R.string.month_home_open), onClick = onOpen)
     }
 }
 
@@ -116,7 +112,7 @@ fun MonthSlideshowScreen(month: YearMonth, state: MonthSlideshowUiState, film: F
         onBack = onBack,
         actionsBar = { HelpButton(ScreenHelp.MonthSlideshow) },
         top = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(ClaySpacing.between)) {
                 if (state.birthdays.isNotEmpty()) MonthBirthdays(state.birthdays)
                 state.challenge?.let { ClayCard(Modifier.fillMaxWidth()) { ChallengeGauge(it) } }
                 if (!state.loading && state.photos.isEmpty()) {
@@ -133,7 +129,7 @@ fun MonthSlideshowScreen(month: YearMonth, state: MonthSlideshowUiState, film: F
 private fun MonthBirthdays(birthdays: List<Member>) {
     val tint = ClayTint.Birthday
     ClayCard(modifier = Modifier.fillMaxWidth(), tint = tint) {
-        Text(stringResource(R.string.month_birthdays), style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+        ClayCardTitle(stringResource(R.string.month_birthdays), style = MaterialTheme.typography.titleMedium)
         birthdays.forEach { member ->
             Row(
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),

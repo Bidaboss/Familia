@@ -44,6 +44,8 @@ import fr.familia.app.core.model.ExpenseContainer
 import fr.familia.app.core.model.ExpenseHistoryEntry
 import fr.familia.app.core.model.ExpenseSettlement
 import fr.familia.app.core.model.Family
+import fr.familia.app.core.model.NotificationFamily
+import fr.familia.app.core.model.NotificationPrefs
 import fr.familia.app.core.model.FamilyTree
 import fr.familia.app.core.model.Feedback
 import fr.familia.app.core.model.FeedbackContext
@@ -411,6 +413,9 @@ class ReadOnlyNotificationRepository(private val inner: NotificationRepository, 
     override suspend fun setRecap(memberId: String, enabled: Boolean) = guard.refuse()
     override fun observeBirthdayWishes(memberId: String): Flow<Boolean> = inner.observeBirthdayWishes(memberId)
     override suspend fun setBirthdayWishes(memberId: String, enabled: Boolean) = guard.refuse()
+    override fun observePrefs(memberId: String): Flow<NotificationPrefs> = inner.observePrefs(memberId)
+    override suspend fun setFamilies(memberId: String, families: Map<NotificationFamily, Boolean>) = guard.refuse()
+    override suspend fun setQuietHours(memberId: String, enabled: Boolean) = guard.refuse()
 }
 
 class ReadOnlyExpenseRepository(private val inner: ExpenseRepository, private val guard: ViewAsGuard) : ExpenseRepository {

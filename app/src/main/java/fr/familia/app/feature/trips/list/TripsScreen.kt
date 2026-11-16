@@ -1,5 +1,7 @@
 package fr.familia.app.feature.trips.list
 
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -95,12 +97,14 @@ fun TripsScreen(
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         // Room at the bottom so the add button never hides the last trip.
-                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 8.dp, bottom = 96.dp),
+                        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
                     ) {
-                        section(R.string.trips_ongoing, "ongoing", state.ongoing, state.today, onOpenTrip)
-                        section(R.string.trips_upcoming, "upcoming", state.upcoming, state.today, onOpenTrip)
-                        section(R.string.trips_past, "past", state.past, state.today, onOpenTrip)
+                        // The trip under way, or else the next one, is the point of the screen (DESIGN-11).
+                        val highlight = (state.ongoing.firstOrNull() ?: state.upcoming.firstOrNull())?.trip?.id
+                        section(R.string.trips_ongoing, "ongoing", state.ongoing, state.today, highlight, onOpenTrip)
+                        section(R.string.trips_upcoming, "upcoming", state.upcoming, state.today, highlight, onOpenTrip)
+                        section(R.string.trips_past, "past", state.past, state.today, highlight, onOpenTrip)
                     }
                 }
             }
@@ -113,21 +117,23 @@ private fun LazyListScope.section(
     key: String,
     trips: List<TripSummary>,
     today: LocalDate,
+    highlight: String?,
     onOpenTrip: (String) -> Unit,
 ) {
     if (trips.isEmpty()) return
     item(key = "title-$key") { TripSectionTitle(stringResource(titleRes)) }
-    items(trips, key = { "trip-${it.trip.id}" }) { summary -> TripCard(summary, today, onClick = { onOpenTrip(summary.trip.id) }) }
+    items(trips, key = { "trip-${it.trip.id}" }) { summary -> TripCard(summary, today, emphasis = summary.trip.id == highlight, onClick = { onOpenTrip(summary.trip.id) }) }
 }
 
 @Composable
-private fun TripCard(summary: TripSummary, today: LocalDate, onClick: () -> Unit) {
+private fun TripCard(summary: TripSummary, today: LocalDate, emphasis: Boolean, onClick: () -> Unit) {
     ClayCard(
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick,
         onClickLabel = stringResource(R.string.trips_open_action),
+        emphasis = emphasis,
     ) {
-        Text(summary.trip.title, style = MaterialTheme.typography.titleMedium)
+        ClayCardTitle(summary.trip.title, style = MaterialTheme.typography.titleMedium)
         Text(
             tripDatesLabel(summary.trip, today),
             style = MaterialTheme.typography.bodyMedium,

@@ -51,6 +51,8 @@ export function cardsNotice(memberId: string, year: number, authors: string[]): 
     body: authors.length <= 1 ? `${names} t'a envoyé une carte de vœux.` : `${names} t'ont envoyé une carte de vœux.`,
     birthdayOf: memberId,
     tag: `birthdayCards-${year}`,
+    // Cards written for me: they reach me even at « Presque rien » (récit 6 quinquies).
+    direct: true,
   };
 }
 
