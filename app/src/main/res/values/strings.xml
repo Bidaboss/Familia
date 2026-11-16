@@ -576,6 +576,19 @@
     <string name="gift_wishes_of">Envies de %1$s</string>
     <string name="gift_wishes_subtitle">Toute la famille la voit</string>
     <string name="gift_surprise_for">Surprise pour %1$s</string>
+    <string name="gift_item_occasion_label">C\'est pour quand ?</string>
+    <string name="gift_wish_anytime">Quand tu veux</string>
+    <string name="gift_wish_for_christmas">Pour Noël</string>
+    <string name="gift_wish_for_my_birthday">Pour mon anniversaire</string>
+    <string name="gift_wish_for_birthday">Pour son anniversaire</string>
+    <string name="gifts_moment_all">Tout le monde</string>
+    <string name="gifts_moment_christmas">Noël %1$d</string>
+    <string name="gift_ideas_title">Idées de la famille</string>
+    <string name="gift_ideas_of">Idées pour %1$s</string>
+    <string name="gift_ideas_subtitle">%1$s ne voit jamais cette partie</string>
+    <string name="gift_ideas_notice">%1$s ne voit jamais ces idées, ni qui les a prises.</string>
+    <string name="gift_ideas_empty">Aucune idée pour l\'instant : ajoute la première.</string>
+    <string name="gift_add_idea">Ajouter une idée</string>
     <string name="gift_occasion_christmas">Noël</string>
     <string name="gift_occasion_birthday">Anniversaire</string>
     <string name="gift_occasion_birth">Naissance</string>
@@ -1718,6 +1731,7 @@
     <string name="feature_member_card">Tailles et goûts sur la fiche</string>
     <string name="channel_birthdays">Vœux d\'anniversaire</string>
     <string name="feature_welcome">La bienvenue</string>
+    <string name="feature_single_list">Une seule liste d\'envies par personne</string>
     <string name="feature_who_is_it">Qui est-ce ?</string>
     <string name="channel_welcome">Bienvenue</string>
     <string name="channel_welcome_description">Quand un membre de la famille arrive dans Familia</string>

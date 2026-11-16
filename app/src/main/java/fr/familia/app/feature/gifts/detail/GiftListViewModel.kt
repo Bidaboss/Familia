@@ -12,6 +12,7 @@ import fr.familia.app.core.model.GiftItem
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.isPermanent
+import fr.familia.app.core.model.ideasListId
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftShare
 import fr.familia.app.core.model.Member
@@ -164,6 +165,11 @@ class GiftListViewModel(
      * add to it, and its first item creates it.
      */
     private fun emptyWishes(family: Family, me: Member): GiftList? {
+        // « Idées de la famille » nobody started yet (récit 9 ter): empty for everyone but the person.
+        family.members.firstOrNull { ideasListId(it.id) == listId }?.let { owner ->
+            if (owner.id == me.id) return null
+            return GiftList(listId, GiftListKind.Ideas, "Idées de la famille", null, null, owner.id, emptyList(), me.id, me.firstName)
+        }
         val owner = family.members.firstOrNull { wishesListId(it.id) == listId } ?: return null
         return GiftList(listId, GiftListKind.Wishes, "Mes envies", null, null, owner.id, emptyList(), me.id, me.firstName)
     }
@@ -219,7 +225,7 @@ class GiftListViewModel(
             keptFromReader = keptFromReader(list) && !isKeptFrom(list, me),
             isMine = beneficiary.id == me.id,
             canManage = exists && canManageList(list, me, family),
-            canAddItems = !list.revealed && (exists || keepsListsOf(me, beneficiary)),
+            canAddItems = !list.revealed && (exists || keepsListsOf(me, beneficiary) || list.kind == GiftListKind.Ideas),
             // Nothing to reserve on a list whose reservations the reader may not see.
             canReserve = exists && canReserve(list, me) && !kept,
             canShare = exists && canShare(list, me) && !kept,

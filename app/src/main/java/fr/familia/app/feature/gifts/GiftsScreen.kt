@@ -25,6 +25,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material3.FilterChip
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -38,6 +41,7 @@ import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
+import fr.familia.app.core.model.ideasListId
 import fr.familia.app.core.model.wishesListId
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
@@ -66,6 +70,8 @@ fun GiftsScreen(
     onOpenNotebook: (() -> Unit)? = null,
     /** « Voir comme » (PRD, rôles): some lists of this member are kept from the admin. */
     someListsHidden: Boolean = false,
+    /** The occasion chosen at the top of the tab (récit 9 ter), null for everyone. */
+    onSelectMoment: (GiftMoment?) -> Unit = {},
 ) {
     Box(modifier.fillMaxSize()) {
         when (state) {
@@ -105,12 +111,17 @@ fun GiftsScreen(
                         )
                     }
                 }
-                birthdaysSection(state, onAllBirthdays, onPrepareSurprise)
-                state.sections.forEach { section -> personSection(section, state.today, state.wishPreviews, onOpenList) }
+                if (state.occasions.isNotEmpty()) {
+                    item(key = "moments") { MomentChoice(state.occasions, state.moment, onSelectMoment) }
+                }
+                // Once an occasion is chosen, its people come first: the birthdays wait.
+                if (state.moment == null) birthdaysSection(state, onAllBirthdays, onPrepareSurprise)
+                state.sections.forEach { section -> personSection(section, state.today, state.wishPreviews, onOpenList, state.singleList) }
                 if (state.archived.isNotEmpty()) archivedSection(state.archived, state.today, onOpenList)
             }
         }
-        if (state is GiftsUiState.Success) {
+        // With the single list (récit 9 ter), nobody makes a list any more: each person has theirs.
+        if (state is GiftsUiState.Success && !state.singleList) {
             ExtendedFloatingActionButton(
                 onClick = onNewList,
                 icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
@@ -126,6 +137,7 @@ private fun LazyListScope.personSection(
     today: LocalDate,
     previews: Map<String, WishPreview>,
     onOpenList: (String) -> Unit,
+    singleList: Boolean = false,
 ) {
     item(key = "person-${section.member.id}") {
         Row(
@@ -154,6 +166,19 @@ private fun LazyListScope.personSection(
                 subtitle = wishesSubtitle(wishes?.let { previews[it.id] }, empty = wishes == null, keptByMe = section.keptByMe),
                 tint = ClayTint.Family,
                 onClick = { onOpenList(wishes?.id ?: wishesListId(section.member.id)) },
+            )
+        }
+    }
+    // « Idées de la famille » (récit 9 ter): for everyone but oneself, even before the first idea.
+    if (singleList && !section.isMe) {
+        item(key = "ideas-${section.member.id}") {
+            val ideas = section.ideas
+            // Never how many: the tab may be shown in front of the person (demo of the 21st).
+            ListCard(
+                title = stringResource(R.string.gift_ideas_title),
+                subtitle = stringResource(R.string.gift_ideas_subtitle, section.member.firstName),
+                tint = ClayTint.Birthday,
+                onClick = { onOpenList(ideas?.id ?: ideasListId(section.member.id)) },
             )
         }
     }
@@ -299,5 +324,26 @@ private fun wishesSubtitle(preview: WishPreview?, empty: Boolean, keptByMe: Bool
     else -> {
         val titles = preview.titles.joinToString(", ") + if (preview.count > preview.titles.size) "…" else ""
         pluralStringResource(R.plurals.gifts_wishes_preview, preview.count, preview.count, titles)
+    }
+}
+
+/** « Tout le monde », « Noël 2026 », « Anniversaire de … »: what the tab prepares (récit 9 ter). */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun MomentChoice(moments: List<GiftMoment>, selected: GiftMoment?, onSelect: (GiftMoment?) -> Unit) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        (listOf(null) + moments).forEach { moment ->
+            val label = when (moment) {
+                null -> stringResource(R.string.gifts_moment_all)
+                is GiftMoment.Christmas -> stringResource(R.string.gifts_moment_christmas, moment.year)
+                is GiftMoment.BirthdayOf -> stringResource(R.string.gifts_birthday_of, moment.member.firstName)
+            }
+            FilterChip(
+                selected = selected == moment,
+                onClick = { onSelect(moment) },
+                label = { Text(label) },
+                modifier = Modifier.heightIn(min = 48.dp),
+            )
+        }
     }
 }
