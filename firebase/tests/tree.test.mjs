@@ -50,6 +50,14 @@ describe('tree', () => {
     await assertFails(setDoc(settings, { tree: 'non' }));
   });
 
+  test('a member can turn off « La semaine de la famille » (récit 36), and the recaps stay closed', async () => {
+    const settings = doc(as(env, ADULT), `members/${ADULT.memberId}/settings/notifications`);
+    await assertSucceeds(setDoc(settings, { recap: false, tree: true }));
+    await assertFails(setDoc(settings, { recap: 'non' }));
+    await assertFails(getDoc(doc(as(env, ADMIN), 'weeklyRecaps/2026-11-22')));
+    await assertFails(setDoc(doc(as(env, ADMIN), 'weeklyRecaps/2026-11-22'), { sentAt: serverTimestamp() }));
+  });
+
   test('only the admin principal picks the challenge of a month, from the list', async () => {
     const pick = (who, month, data) => setDoc(doc(as(env, who), `challengePicks/${month}`), data);
     await assertSucceeds(pick(ADMIN, '2027-01', { choiceId: 'kitchen', pickedAt: serverTimestamp() }));

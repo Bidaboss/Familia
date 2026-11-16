@@ -40,6 +40,7 @@ import {
 } from './souvenirs';
 import { deleteDigestOf, sendDigests } from './digest';
 import { applyHostedChallenge, remindHost } from './hostChallenge';
+import { sendWeeklyRecap } from './recap';
 import { revealWishes, thankGivers } from './wishesReveal';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
@@ -76,6 +77,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.joinMeId ? { joinMeId: notice.joinMeId } : {}),
         ...(notice.capsuleId ? { capsuleId: notice.capsuleId } : {}),
         ...(notice.souvenirKey ? { souvenirKey: notice.souvenirKey } : {}),
+        ...(notice.recapWeek ? { recapWeek: notice.recapWeek } : {}),
       },
       // A surprise never shows on the lock screen (audit 2.2): only « Familia » and the channel.
       android: { notification: { channelId: notice.channel, ...(PRIVATE_CHANNELS.has(notice.channel) ? { visibility: 'private' as const } : {}) } },
@@ -191,6 +193,12 @@ export const helpRequestStillOpen = onSchedule({ schedule: '0 18 * * *', timeZon
   await grow('challenge', () => ensureChallenge(getFirestore(), parisMonth(now), now));
   // And, 7 days before a month, the foyer whose turn it is to launch its challenge (récit 35 bis).
   await grow('hostReminder', () => remindHost(getFirestore(), send, now));
+  // On Sunday, « La semaine de la famille » (récit 36).
+  try {
+    await sendWeeklyRecap(getFirestore(), send, now);
+  } catch (e) {
+    console.error('weekly recap', e);
+  }
 });
 
 // Spec, cas limites: a volunteer removed from the family frees their upcoming requests.

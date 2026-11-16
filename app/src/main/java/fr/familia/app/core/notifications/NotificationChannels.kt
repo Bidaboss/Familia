@@ -30,6 +30,7 @@ object NotificationChannels {
     const val ADMIN = "admin"
     const val SOUVENIRS = "souvenirs"
     const val TREE = "tree"
+    const val RECAP = "recap"
     const val JOIN_ME = "joinMe"
     const val CAPSULES = "capsules"
 
@@ -69,6 +70,8 @@ object NotificationChannels {
         // « Rejoignez-moi » (récit 33): someone waits for me, so it rings.
         Spec(JOIN_ME, R.string.channel_join_me, R.string.channel_join_me_description, NotificationManager.IMPORTANCE_HIGH, Feature.Places),
         Spec(CAPSULES, R.string.channel_capsules, R.string.channel_capsules_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.Capsules),
+        // « La semaine de la famille » (récit 36): once a week, it does not ring.
+        Spec(RECAP, R.string.channel_recap, R.string.channel_recap_description, NotificationManager.IMPORTANCE_LOW, Feature.Recap),
     )
 
     /**

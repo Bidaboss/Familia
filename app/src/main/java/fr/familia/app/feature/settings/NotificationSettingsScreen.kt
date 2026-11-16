@@ -62,6 +62,7 @@ fun NotificationSettingsScreen(
     onWeeklyChange: (Boolean) -> Unit = {},
     onSouvenirsChange: (Boolean) -> Unit = {},
     onTreeChange: (Boolean) -> Unit = {},
+    onRecapChange: (Boolean) -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier,
@@ -134,6 +135,14 @@ fun NotificationSettingsScreen(
                             help = stringResource(R.string.notifications_tree_help),
                             checked = state.tree,
                             onChange = onTreeChange,
+                        )
+                    }
+                    if (LocalFeatureFlags.current.isOn(Feature.Recap)) {
+                        SettingSwitch(
+                            title = stringResource(R.string.notifications_recap),
+                            help = stringResource(R.string.notifications_recap_help),
+                            checked = state.recap,
+                            onChange = onRecapChange,
                         )
                     }
                     if (state.saveFailed) {
