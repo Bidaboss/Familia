@@ -10,9 +10,9 @@
 
 ## Créer le premier admin
 
-Après la première publication des règles (« Publier Firebase »), lance le workflow GitHub **Créer le premier admin** (onglet Actions, branche `main`) avec ton prénom, ton adresse Google et le nom de ton foyer. Sur une famille vide, il crée le foyer, ta fiche (chef de famille de ton foyer), l'entrée `memberEmails` et `config/family`, qui fait de toi l'admin principal, en une seule écriture. Les suivants s'ajoutent depuis l'appli. Les valeurs saisies au lancement restent visibles sur la page du lancement dans GitHub. C'est acceptable, car le dépôt est privé. Le script, lui, ne les écrit jamais dans les journaux.
+Après la première publication des règles (« Publier Firebase »), lance le workflow GitHub **Créer le premier admin** (onglet Actions, branche `main`) avec ton prénom, ton adresse Google et le nom de ton foyer. Sur une famille vide, il crée le foyer, ta fiche (chef de famille de ton foyer), l'entrée `memberEmails` et `config/family`, qui fait de toi l'admin principal, en une seule écriture. Les suivants s'ajoutent depuis l'appli. Les valeurs saisies au lancement restent visibles sur la page du lancement dans GitHub, et le dépôt est public : une fois le lancement réussi, ouvre-le dans l'onglet Actions, touche les trois points en haut à droite, puis **Delete workflow run**. Le script, lui, ne les écrit jamais dans les journaux.
 
-Sur une famille qui a déjà des membres, le même workflow ne crée rien : il fait de l'adulte qui a cette adresse l'admin principal (seule l'adresse compte). Il sert si l'admin principal a perdu l'accès, et une fois au passage aux chefs de famille (carte DEV-8), pour nommer Kévin admin principal après la publication des nouvelles règles.
+Sur une famille qui a déjà des membres, le même workflow ne crée rien : il fait de l'adulte qui a cette adresse l'admin principal (seule l'adresse compte). Il sert si l'admin principal a perdu l'accès, et une fois au passage aux chefs de famille (carte DEV-8), pour nommer l'admin principal après la publication des nouvelles règles.
 
 En secours, la même chose à la main dans la console Firestore :
 

@@ -1,4 +1,4 @@
-// Banque de départ de la question de la semaine (PRD, récit 37), validée par Kévin le 15/11/2026 et
+// Banque de départ de la question de la semaine (PRD, récit 37), validée par l'admin principal le 15/11/2026 et
 // revue avec le psychologue familial : https://claude.ai/artifact/SX2LFwekq2v8GzGeRJC8wF.
 // Ids are stable: a published question keeps its bankId, so never renumber, only add at the end.
 
