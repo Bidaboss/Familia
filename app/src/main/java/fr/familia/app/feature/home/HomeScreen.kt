@@ -56,6 +56,9 @@ import fr.familia.app.feature.tree.TreeHomeChip
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionHomeChip
 import fr.familia.app.feature.yearago.YearAgoHomeChip
 import fr.familia.app.feature.discover.DiscoverCard
+import fr.familia.app.feature.dailynudge.DailyNudge
+import fr.familia.app.feature.dailynudge.DailyNudgeLine
+import fr.familia.app.feature.dailynudge.rememberDailyNudge
 import fr.familia.app.feature.discover.DiscoverHome
 import fr.familia.app.feature.discover.DiscoverModule
 import fr.familia.app.feature.discover.rememberDiscoverHome
@@ -157,6 +160,8 @@ fun HomeRoute(
     val placesOn = flags.isOn(Feature.Places)
     val joinMe = if (placesOn) rememberJoinMeHome(container, currentMember) else null
     val discover = if (flags.isOn(Feature.Discover)) rememberDiscoverHome(currentMember, onOpenDiscover) else null
+    // Null while its switch is off or there is nothing to suggest today.
+    val dailyNudge = rememberDailyNudge(container, currentMember)
     // The small modules stand in the row of chips, each only while it has something to say (rév. 205).
     val extras = buildList {
         if (flags.isOn(Feature.WeeklyQuestion)) {
@@ -201,6 +206,8 @@ fun HomeRoute(
         },
         onOpenMonth = if (flags.isOn(Feature.MonthSlideshow)) onOpenMonth else null,
         joinMe = joinMe,
+        dailyNudge = dailyNudge,
+        onOpenGoodNews = onOpenGoodNews,
         discover = discover,
         extras = extras,
     )
@@ -224,6 +231,8 @@ fun HomeScreen(
     goodNews: (@Composable () -> Unit)? = null,
     onOpenMonth: ((YearMonth) -> Unit)? = null,
     joinMe: JoinMeHome? = null,
+    dailyNudge: DailyNudge? = null,
+    onOpenGoodNews: (String) -> Unit = {},
     discover: DiscoverHome? = null,
     extras: List<HomeExtra> = emptyList(),
 ) {
@@ -234,7 +243,7 @@ fun HomeScreen(
     }
     val month = YearMonth.from(ready.today).takeIf { onOpenMonth != null && isSlideshowTime(ready.today) }
     val chips = homeChips(ready, actions, month, onOpenMonth, extras)
-    val toDo = ready.todos.isNotEmpty() || joinMe?.hasShares == true
+    val toDo = ready.todos.isNotEmpty() || joinMe?.hasShares == true || dailyNudge != null
     if (!toDo && ready.week.isEmpty() && goodNews == null && discover == null && chips.isEmpty()) {
         EmptyState(
             icon = Icons.Outlined.CalendarMonth,
@@ -254,7 +263,7 @@ fun HomeScreen(
         contentPadding = ClaySpacing.list,
         verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
-        if (toDo) card("todo") { TodoCard(ready.todos, ready.today, actions, joinMe?.takeIf { it.hasShares }) }
+        if (toDo) card("todo") { TodoCard(ready.todos, ready.today, actions, joinMe?.takeIf { it.hasShares }, dailyNudge, onOpenGoodNews) }
         if (ready.week.isNotEmpty()) card("week") { WeekCard(ready.week, ready.weekMore, ready.today, actions) }
         if (goodNews != null) card("goodNews") { goodNews() }
         if (discover != null) card("discover") { DiscoverCard(discover) }
@@ -396,13 +405,25 @@ private fun RowIcon(icon: androidx.compose.ui.graphics.vector.ImageVector) {
 }
 
 @Composable
-private fun TodoCard(todos: List<HomeTodo>, today: LocalDate, actions: HomeActions, joinMe: JoinMeHome?) {
+private fun TodoCard(
+    todos: List<HomeTodo>,
+    today: LocalDate,
+    actions: HomeActions,
+    joinMe: JoinMeHome?,
+    dailyNudge: DailyNudge? = null,
+    onOpenGoodNews: (String) -> Unit = {},
+) {
     // A place sent to me tints the block for my foyer, as the « Rejoignez-moi » card did (récit 33).
     val tint = if (joinMe?.state?.received?.isNotEmpty() == true) ClayTint.Household else ClayTint.Plain
     ClayCard(modifier = Modifier.fillMaxWidth(), tint = tint, emphasis = true) {
         ClayCardTitle(stringResource(R.string.home_todo_title))
         joinMe?.let {
             JoinMeHomeContent(it.state, it.stopFailed, it.onStop)
+            if (dailyNudge != null || todos.isNotEmpty()) HorizontalDivider(Modifier.padding(vertical = 8.dp))
+        }
+        // The small gesture of the day, under « Rejoignez-moi » (help-requests thread, #162).
+        dailyNudge?.let {
+            DailyNudgeLine(it, onOpenGoodNews = onOpenGoodNews)
             if (todos.isNotEmpty()) HorizontalDivider(Modifier.padding(vertical = 8.dp))
         }
         todos.forEach { todo ->

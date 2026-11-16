@@ -375,3 +375,9 @@ Avec l'interrupteur « À découvrir » allumé (l'admin principal le voit même
 4. Lundi 07/12 : **Attendu :** « Sondages et Qui apporte quoi ». L'Entraide est sautée, car le tuto la montre déjà.
 5. En Voir comme : **Attendu :** pas de « Plus tard », et « Essayer » ouvre le module sans cacher la carte du membre regardé.
 6. Avant le 30/11 ou interrupteur éteint : **Attendu :** pas de carte. Aucune notification n'est envoyée.
+
+## Le petit geste du jour dans « À faire pour moi »
+Avec l'interrupteur « Le petit geste du jour » allumé, et une Bonne nouvelle avec photo publiée par un autre membre, sans ta réaction.
+1. Accueil : **Attendu :** une ligne dans « À faire pour moi », sous ce que « Rejoignez-moi » t'a envoyé et au-dessus des réponses à donner, avec un trait entre chaque partie.
+2. Touche le lien. **Attendu :** la Bonne nouvelle s'ouvre.
+3. Sans rien d'autre à faire : **Attendu :** le bloc « À faire pour moi » s'affiche quand même, avec la ligne seule.
