@@ -308,3 +308,54 @@ describe('trip checklist', () => {
     await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'trips/t1/items/i1')));
   });
 });
+
+describe('trip photos (récit 15)', () => {
+  beforeEach(async () => {
+    // ADULT and adult3 take part; everyone but OTHER_ADULT follows.
+    await storedTrip('t1', ADULT, { readerIds: EVERYONE.filter((id) => id !== 'adult2') });
+  });
+
+  const photo = (author, slot, overrides = {}) => ({
+    authorId: author.memberId, authorName: author.memberId, slot, createdAt: serverTimestamp(), ...overrides,
+  });
+
+  test('a participant adds a photo in one of their 30 places, and the followers see it', async () => {
+    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult3_1'), photo(NEIGHBOUR, 1)));
+    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult3_30'), photo(NEIGHBOUR, 30)));
+    await assertSucceeds(getDocs(collection(as(env, KID), 'trips/t1/photos')));
+    await assertFails(getDocs(collection(as(env, OTHER_ADULT), 'trips/t1/photos')));
+    await assertFails(getDoc(doc(as(env, STRANGER), 'trips/t1/photos/adult3_1')));
+  });
+
+  test('no 31st photo: the place is part of the id and goes from 1 to 30', async () => {
+    const db = as(env, NEIGHBOUR);
+    await assertFails(setDoc(doc(db, 'trips/t1/photos/adult3_31'), photo(NEIGHBOUR, 31)));
+    await assertFails(setDoc(doc(db, 'trips/t1/photos/adult3_0'), photo(NEIGHBOUR, 0)));
+    await assertFails(setDoc(doc(db, 'trips/t1/photos/adult3_x'), photo(NEIGHBOUR, 2)));
+    await assertFails(setDoc(doc(db, 'trips/t1/photos/adult3_2'), photo(NEIGHBOUR, 2.5)));
+  });
+
+  test('a photo is signed by its author, never in the name of someone else, and never edited', async () => {
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult1_1'), photo(ADULT, 1)));
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult3_1'), photo(NEIGHBOUR, 1, { authorName: 'Lou' })));
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult3_1'), photo(NEIGHBOUR, 1, { place: 'Ajaccio' })));
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult3_1'), photo(NEIGHBOUR, 1, { createdAt: Timestamp.fromMillis(0) })));
+    await setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult3_1'), photo(NEIGHBOUR, 1));
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult3_1'), photo(NEIGHBOUR, 1)));
+  });
+
+  test('a follower who does not take part adds no photo', async () => {
+    await assertFails(setDoc(doc(as(env, KID), 'trips/t1/photos/kid1_1'), photo(KID, 1)));
+  });
+
+  test('the author or the creator of the trip removes a photo, nobody else', async () => {
+    await setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult3_1'), photo(NEIGHBOUR, 1));
+    await setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult3_2'), photo(NEIGHBOUR, 2));
+    await setDoc(doc(as(env, ADULT), 'trips/t1/photos/adult1_1'), photo(ADULT, 1));
+    await assertFails(deleteDoc(doc(as(env, KID), 'trips/t1/photos/adult3_1')));
+    await assertFails(deleteDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult1_1')));
+    await assertSucceeds(deleteDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult3_1')));
+    await assertSucceeds(deleteDoc(doc(as(env, ADULT), 'trips/t1/photos/adult3_2')));
+    await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'trips/t1/photos/adult1_1')));
+  });
+});

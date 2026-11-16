@@ -3,6 +3,12 @@ package fr.familia.app.screenshots
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import com.github.takahirom.roborazzi.captureRoboImage
+import fr.familia.app.core.album.AlbumFilmPart
+import fr.familia.app.core.album.AlbumScreen
+import fr.familia.app.core.album.FilmActions
+import fr.familia.app.core.album.FilmState
+import fr.familia.app.core.album.PhotoActions
+import fr.familia.app.core.album.previewAlbumPhotos
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.feature.trips.detail.TripDetailScreen
 import fr.familia.app.feature.trips.detail.previewTripDetail
@@ -32,6 +38,15 @@ class TripScreenshotTest {
     // Without steps, so the checklist (récit 13) shows on screen.
     private val checklist: @Composable () -> Unit = {
         Surface { TripDetailScreen(previewTripDetail().copy(steps = emptyList()), {}, {}, {}, {}, {}, {}, {}) }
+    }
+    // Grey boxes stand for the photos: Storage is not reached in a test.
+    private val photos: @Composable () -> Unit = { Surface { AlbumScreen("Photos", previewAlbumPhotos(), PhotoActions(), {}) } }
+    private val filmReady: @Composable () -> Unit = {
+        Surface {
+            AlbumScreen("Photos", previewAlbumPhotos(), PhotoActions(), {}) {
+                AlbumFilmPart(FilmState.Ready("films/voyage-1.mp4"), 8, FilmActions())
+            }
+        }
     }
     private val edit: @Composable () -> Unit = { Surface { TripEditScreen(previewTripEditState(isNew = false), {}, {}, {}, {}) } }
     private val step: @Composable () -> Unit = { Surface { StepEditScreen(previewStepEditState(), {}, {}, {}, {}) } }
@@ -71,6 +86,24 @@ class TripScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun checklistFontScale200() = capture("voyage_liste_police_200", content = checklist)
+
+    @Test
+    fun photosLight() = capture("voyage_photos_clair", content = photos)
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun photosDark() = capture("voyage_photos_sombre", darkTheme = true, content = photos)
+
+    @Test
+    @Config(fontScale = 2f)
+    fun photosFontScale200() = capture("voyage_photos_police_200", content = photos)
+
+    @Test
+    fun filmReadyLight() = capture("voyage_film_clair", content = filmReady)
+
+    @Test
+    @Config(fontScale = 2f)
+    fun filmReadyFontScale200() = capture("voyage_film_police_200", content = filmReady)
 
     @Test
     fun tripEditLight() = capture("voyage_modifier_clair", content = edit)

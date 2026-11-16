@@ -126,3 +126,24 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 3. Ouvre Familia depuis cette nouvelle icône, puis touche une notification. **Attendu :** les deux ouvrent l'appli normalement.
 4. Reviens dans « Apparence ». **Attendu :** « Terre » est cochée. Choisis « Or », puis « Olivier ». **Attendu :** à chaque fois, une seule icône dans la liste des applis.
 5. Avec un fond d'écran d'Android 13 ou plus et les « icônes à thème » activées, **attendu :** l'arbre prend la couleur du téléphone, quelle que soit l'icône choisie.
+
+## Utilisation (récit 1 nonies)
+
+1. Avec le module « Utilisation » éteint, utilise l'appli quelques minutes, puis ouvre Administration > Utilisation. **Attendu :** rien n'est compté, et chacun apparaît « Jamais connecté ».
+2. Allume « Utilisation (temps passé) » dans Administration > Modules. Passe 2 minutes sur Planning et 1 minute sur Cadeaux, mets l'appli en arrière-plan, puis rouvre-la. **Attendu :** dans Utilisation, tu es « Dernière visite : aujourd'hui », avec environ 2 min de Planning et 1 min de Cadeaux, et une ouverture aujourd'hui sur le graphique.
+3. Quitte l'appli 1 minute, puis reviens. **Attendu :** le nombre d'ouvertures ne bouge pas, car un retour en moins de 5 minutes ne compte pas.
+4. Sur le téléphone d'Alexandrine, si elle est adulte responsable d'un enfant qui a l'appli, **attendu :** une ligne « Temps de mes enfants » apparaît dans l'onglet Famille, avec le temps de cet enfant sur 7 et 30 jours, et rien d'autre. Un adulte sans enfant avec l'appli ne voit pas cette ligne.
+5. Dans la console Firebase, ouvre `usage/<ton id>/days/<aujourd'hui>`. **Attendu :** seulement `day`, `opens`, `seconds` et `expireAt`, sans aucun titre, texte ou identifiant d'élément.
+
+## Alerte de consommation (récit 1 sexies)
+
+1. Avant d'ajouter le rôle « Lecteur Monitoring », ouvre Administration le lendemain de la publication. **Attendu :** la carte « Consommation » dit « Familia n'a pas pu lire la consommation ». Avant le premier matin, elle dit « Le premier relevé arrive demain matin, vers 8 h ».
+2. Ajoute le rôle (docs/deploiement.md), puis attends le matin suivant. **Attendu :** la carte montre le relevé de la veille, avec les lectures, écritures et suppressions sur leurs parts gratuites, et un coût estimé du mois à 0,00 €.
+3. Sur un autre téléphone que celui de l'admin principal, ouvre les réglages Android de Familia, puis **Notifications**. **Attendu :** pas de catégorie « Administration ».
+## Ajouter à mon agenda (récit 30)
+
+1. Allume « Ajouter à mon agenda » dans Administration > Modules. Ouvre un événement avec une heure et un lieu, puis touche « Ajouter à mon agenda ». **Attendu :** l'agenda du téléphone s'ouvre avec le titre, le lieu, la bonne heure, une durée d'une heure et la note « Créé depuis Familia ». Valide.
+2. Fais la même chose avec un événement sans heure. **Attendu :** l'agenda propose un événement « toute la journée ».
+3. Dans Anniversaires, touche l'icône d'agenda au bout d'une ligne. **Attendu :** « Anniversaire de … », toute la journée, répété chaque année.
+4. Depuis un autre téléphone, modifie l'événement de l'étape 1. **Attendu :** la notification « Événement modifié » se termine par « Si tu l'as ajouté à ton agenda, mets-le à jour depuis Familia. »
+5. Éteins le module. **Attendu :** plus de bouton ni d'icône d'agenda pour les autres membres, et la notification de modification ne parle plus d'agenda.

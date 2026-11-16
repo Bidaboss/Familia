@@ -11,15 +11,27 @@ import fr.familia.app.core.model.Member
 
 /** Connects the Administration menu to its ViewModel. */
 @Composable
-fun AdministrationRoute(container: AppContainer?, currentMember: Member, onOpenExport: () -> Unit, onBack: () -> Unit) {
+fun AdministrationRoute(
+    container: AppContainer?,
+    currentMember: Member,
+    onOpenExport: () -> Unit,
+    onBack: () -> Unit,
+    onOpenUsage: (() -> Unit)? = null,
+) {
     val viewModel: AdministrationViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { AdministrationViewModel(container?.memberRepository, currentMember.id, container?.appConfigRepository) }
+            initializer { AdministrationViewModel(
+                    container?.memberRepository,
+                    currentMember.id,
+                    container?.appConfigRepository,
+                    container?.consumptionRepository,
+                ) }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val failed by viewModel.actionFailed.collectAsStateWithLifecycle()
     val features by viewModel.features.collectAsStateWithLifecycle()
+    val consumption by viewModel.consumption.collectAsStateWithLifecycle()
     AdministrationScreen(
         state = state,
         onBack = onBack,
@@ -28,10 +40,12 @@ fun AdministrationRoute(container: AppContainer?, currentMember: Member, onOpenE
         onAddHousehold = viewModel::addHousehold,
         onDeleteHousehold = viewModel::deleteHousehold,
         onOpenExport = onOpenExport,
+        onOpenUsage = onOpenUsage,
         actionFailed = failed,
         onFailureShown = viewModel::failureShown,
         features = features,
         onSetFeature = viewModel::setFeature,
         onRenameHousehold = viewModel::renameHousehold,
+        consumption = consumption,
     )
 }

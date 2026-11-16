@@ -64,6 +64,19 @@ test('a change reaches the phones of everyone but its author', async () => {
   assert.match(sent[0].notice.body, /^Camille a ajouté « Repas »/);
 });
 
+test('the calendar reminder follows the switch of config/app (récit 30)', async () => {
+  const data = (await db.doc('events/meal').get()).data() as never;
+  const off = fakeSender();
+  await db.doc('config/app').set({ features: { calendar: false } });
+  await notifyChange(db, off.send, 'edited', 'meal', data, 'uid-camille', now);
+  assert.doesNotMatch(off.sent[0].notice.body, /agenda/);
+  const on = fakeSender();
+  await db.doc('config/app').set({ features: { calendar: true } });
+  await notifyChange(db, on.send, 'edited', 'meal', data, 'uid-camille', now);
+  assert.match(on.sent[0].notice.body, /agenda/);
+  await db.doc('config/app').delete();
+});
+
 test('the token of an uninstalled app is forgotten', async () => {
   const { sent, send } = fakeSender(['token-old']);
   await notify(db, send, ['ines'], { channel: 'events', title: 't', body: 'b', eventId: 'meal' });
@@ -93,8 +106,10 @@ test('deleting an event deletes its answers, and only its answers', async () => 
   assert.equal((await db.collection('events/later/rsvps').get()).size, 1);
 });
 
-test('removing a member deletes their answers, phones and settings', async () => {
+test('removing a member deletes their answers, phones, settings and days of use', async () => {
   await db.doc('members/ines/settings/notifications').set({ dayBeforeReminder: false });
+  await db.doc('usage/ines/days/2026-11-20').set({ day: '2026-11-20', opens: 2, seconds: { home: 60 } });
+  await db.doc('usage/noe/days/2026-11-20').set({ day: '2026-11-20', opens: 1, seconds: { home: 30 } });
   await db.doc('members/ines').delete();
   await deleteMemberData(db, 'ines');
   assert.equal((await db.doc('events/meal/rsvps/ines').get()).exists, false);
@@ -102,6 +117,8 @@ test('removing a member deletes their answers, phones and settings', async () =>
   assert.equal((await db.doc('events/meal/rsvps/noe').get()).exists, true);
   assert.equal((await db.collection('members/ines/devices').get()).size, 0);
   assert.equal((await db.doc('members/ines/settings/notifications').get()).exists, false);
+  assert.equal((await db.collection('usage/ines/days').get()).size, 0);
+  assert.equal((await db.doc('usage/noe/days/2026-11-20').get()).exists, true);
 });
 
 test('at 18 h, those coming tomorrow are reminded, children without the app through their adults', async () => {

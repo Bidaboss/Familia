@@ -127,6 +127,13 @@ Droits :
 - L'événement et le membre doivent exister.
 - Quand un événement est supprimé, la Cloud Function `onEventDeleted` efface ses réponses et prévient la famille. Quand un membre est retiré, `onMemberDeleted` efface ses réponses à tous les événements.
 
+
+### `events/{eventId}/photos/{authorId}_{slot}` (récit 41)
+
+L'album d'un événement, caché derrière le module « Albums des événements » (`eventAlbums`). Il a la même forme que les photos d'un voyage (`authorId`, `authorName`, `slot` de 1 à 30, `createdAt`), et les fichiers vont dans Storage à `events/{eventId}/{authorId}/{slot}.jpg` et `{slot}-thumb.jpg`.
+
+Droits : tous les membres voient l'album, comme l'événement. Un membre qui a répondu « Je viens » ajoute ses photos à partir du jour de l'événement (minuit en France : 22 h UTC la veille en été, 23 h en hiver ; les règles ouvrent toujours à 22 h UTC, donc en hiver une heure avant l'appli, sans danger). L'auteur de la photo, l'auteur de l'événement et l'admin principal la retirent. La suppression de l'événement emporte l'album et ses fichiers (`onEventDeleted`). Tests : `firebase/tests/eventAlbum.test.mjs` et `firebase/tests/storage.test.mjs`.
+
 ### `members/{memberId}/devices/{token}` (lot 8)
 
 Les téléphones d'un membre, pour les notifications. L'identifiant du document est le jeton de notification (FCM) du téléphone, donc un même téléphone n'est enregistré qu'une fois.
@@ -144,6 +151,7 @@ Droits : seul le membre lui-même lit, ajoute ou supprime ses téléphones. Les 
 | `dayBeforeReminder` | booléen | `false` coupe le rappel de la veille (PRD, récit 6 bis). Sans document, le rappel est actif. |
 | `goodNews` | booléen, facultatif | `false` coupe les notifications des Bonnes nouvelles (récit 32). Sans valeur, elles sont actives. Ne coupe pas l'avis aux adultes responsables quand un enfant publie (carte AVIS-12). |
 
+| `souvenirs` | booléen, facultatif | `false` coupe l'avis « Nouveau souvenir » (récit 34). Sans valeur, il est actif. |
 | `weekly` | booléen, facultatif | `false` coupe l'avis de la question de la semaine (récit 37), et plus tard les autres rendez-vous de la semaine. Sans valeur, il est actif. |
 
 Droits : seul le membre lui-même lit et modifie ses réglages. L'appli écrit chaque réglage en fusion, pour ne pas effacer l'autre.
@@ -177,8 +185,10 @@ L'admin principal crée une sauvegarde depuis Famille, puis « Administration »
 | `app`, `formatVersion`, `appVersion`, `exportedAt` | « Familia », la version du format (1), la version de l'appli, l'heure de l'export (ISO 8601, UTC) |
 | `households`, `members`, `events` | Les documents tels qu'ils sont stockés, avec leur `id` |
 | `rsvps` | Les réponses, avec `eventId` et `memberId` |
+| `helpRequests` | Les demandes de coup de main, avec leur `id` |
+| `weeklyQuestions`, `weeklyAnswers` | Les questions de la semaine, et leurs réponses avec `questionId` et `memberId`. Les réponses d'une question n'y sont qu'à partir de son `revealAt` (48 h après sa publication), comme le veulent les règles |
 
-Les données sont lues sur le serveur, jamais dans le cache du téléphone. Hors ligne, aucune sauvegarde n'est faite et l'appli demande de se connecter : une sauvegarde est complète ou n'existe pas. L'appli lit les données avant d'ouvrir le sélecteur, et si l'écriture échoue, elle supprime le fichier créé. Les documents sont triés par identifiant, donc deux exports des mêmes données donnent le même fichier. Ne sont pas exportés : `memberEmails`, qui se reconstruit à partir des membres, et les téléphones et réglages de chacun, que seul le membre concerné peut lire. À partir de la V2, les cadeaux s'ajouteront au fichier, avec un `formatVersion` augmenté si sa forme change.
+Les données sont lues sur le serveur, jamais dans le cache du téléphone. Hors ligne, aucune sauvegarde n'est faite et l'appli demande de se connecter : une sauvegarde est complète ou n'existe pas. L'appli lit les données avant d'ouvrir le sélecteur, et si l'écriture échoue, elle supprime le fichier créé. Les documents sont triés par identifiant, donc deux exports des mêmes données donnent le même fichier. Ne sont pas exportés : `memberEmails`, qui se reconstruit à partir des membres, et les téléphones et réglages de chacun, que seul le membre concerné peut lire. À partir de la V2, les cadeaux s'ajouteront au fichier, avec un `formatVersion` augmenté si sa forme change. Ajouter une clé ne change pas la forme : `formatVersion` reste à 1.
 
 ### `config/app` (lot 10)
 
@@ -423,7 +433,7 @@ Cloud Functions (`functions/src/helpRequests.ts`), qui ne préviennent que les p
 
 Une demande passée ne prévient personne, sauf pour le « Merci ». La sauvegarde de l'admin principal inclut les demandes (`helpRequests`).
 
-## Voyages (V3, récits 11 à 14)
+## Voyages (V3, récits 11 à 15)
 
 ### `trips/{tripId}`
 
@@ -464,16 +474,51 @@ La liste « À prévoir » du voyage (récit 13) : ce qu'il faut apporter ou ré
 | `assigneeName` | texte ou null | Son prénom, gardé pour que la ligne reste lisible s'il quitte le voyage. Null avec `assigneeId` |
 | `done` | booléen | Coché quand c'est fait |
 | `updatedAt` | horodatage serveur | |
+| `photoId` | texte ou null, facultatif | La photo de la réponse, jamais pour « Passer ». Storage : `weeklyQuestions/{weekId}/{memberId}/{photoId}.jpg` (512 Ko au plus) et `{photoId}-thumb.jpg` (64 Ko au plus), envoyées par le membre avant la réponse. Tous les membres lisent les photos. |
 
 Droits : les lecteurs du voyage lisent la liste. Les participants, enfants compris, ajoutent, cochent, modifient et retirent les lignes. L'admin principal peut retirer une ligne. La personne en charge est forcément un participant. La suppression du voyage supprime sa liste sur le serveur. Tests : `firebase/tests/trips.test.mjs`.
+
+### `trips/{tripId}/photos/{authorId}_{slot}`
+
+Les photos du voyage (récit 15). Chaque participant a 30 places, numérotées de 1 à 30. L'identifiant du document est l'auteur suivi de la place, par exemple `m1_7`. Ainsi, les règles limitent les photos à 30 par personne sans avoir à les compter.
+
+| Champ | Type | Description |
+|---|---|---|
+| `authorId`, `authorName` | texte | L'auteur et son prénom, gardé s'il quitte le voyage |
+| `slot` | entier de 1 à 30 | La place, la même que dans l'identifiant |
+| `createdAt` | horodatage serveur | Les photos s'affichent de la plus récente à la plus ancienne |
+
+Photos dans Storage : `trips/{tripId}/{authorId}/{slot}.jpg` (1600 px au plus, environ 300 Ko, 512 Ko au plus) et `{slot}-thumb.jpg` (400 px, environ 30 Ko, 64 Ko au plus), sans données EXIF, donc sans lieu. L'appli envoie les deux fichiers avant d'écrire le document. Si un envoi a été coupé, l'auteur peut renvoyer une place dont le document n'existe pas.
+
+Droits : les lecteurs du voyage voient les photos, dans Firestore comme dans Storage. Chaque participant, enfant compris, ajoute les siennes. L'auteur, le créateur du voyage et l'admin principal les retirent, les fichiers d'abord, puis le document. Une photo n'est jamais modifiée : une fois son document écrit, ses fichiers ne peuvent plus être renvoyés. Tests : `firebase/tests/trips.test.mjs` et `firebase/tests/storage.test.mjs`.
 
 ### Cloud Functions des voyages
 
 - `onTripStepUpdated` : au premier « bien arrivé » d'une étape, chaque lecteur qui a l'appli reçoit « Arrivée à Ajaccio », sauf celui qui l'a touché. Le texte nomme tous les participants, sans accorder « arrivé » à un prénom.
 - `arrivalReminder`, toutes les 30 minutes : les étapes dont `remindAt` est passé et qui n'ont pas de « bien arrivé ». Les participants qui ont l'appli reçoivent un rappel, puis `remindAt` est effacé pour qu'il ne parte qu'une fois. La famille n'est pas alertée. La requête porte sur tous les `steps` (index de groupe de collections dans `firestore.indexes.json`).
-- `onTripDeleted` : un voyage supprimé emporte ses étapes.
+- `onTripDeleted` : un voyage supprimé emporte ses étapes, sa liste, ses photos et leurs fichiers dans Storage (tout le dossier `trips/{tripId}/`).
 
 Les notifications des voyages portent `tripId` au lieu de `eventId` : un appui ouvre le voyage.
+
+## Souvenirs (PRD, récit 34)
+
+Une liste fixe de souvenirs, gagnés par ses propres gestes (`functions/src/souvenirs.ts`) : première Bonne nouvelle, 10 réactions données, 5 coups de main rendus, premier « bien arrivé », première réponse et 10 réponses à la question de la semaine, un an dans Familia. Les clés ne changent jamais : l'appli dessine chaque souvenir à partir de sa clé (composant SouvenirMedal de [DESIGN]). Pas de score, pas de total, pas de classement (carte EXPERT-3). Aucun souvenir ne vient des réservations de cadeaux.
+
+### `members/{memberId}/souvenirs/{key}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `key` | texte | La clé du souvenir |
+| `earnedAt` | horodatage | Quand il a été gagné |
+| `shown` | booléen | `false` à l'arrivée. Le membre le passe à `true` pour le montrer sur sa fiche |
+
+Droits : le serveur seul crée et supprime. Le membre lit ses souvenirs et change `shown`, rien d'autre. La famille lit un souvenir seulement s'il est montré : une requête doit filtrer `shown == true`.
+
+### `souvenirCounters/{memberId}` et `souvenirMarks/{markId}`
+
+`souvenirCounters` garde les gestes comptés (`reactions`, `helpGiven`, `weeklyAnswers`), que seul le membre lit, pour afficher « Encore 5 coups de main ». `souvenirMarks` note chaque geste compté (`reaction-{postId}-{memberId}`, `weekly-{weekId}-{memberId}`, `help-{requestId}`), pour qu'un geste défait puis refait compte une fois. Personne ne les écrit depuis l'appli, et personne ne lit les marques. Quand un membre part, ses souvenirs, son compteur et ses marques sont effacés (carte EXPERT-1).
+
+Les souvenirs sont donnés par les fonctions qui existent déjà, sans nouvelle tâche planifiée : `onGoodNewsCreated` (première Bonne nouvelle), `onGoodNewsUpdated` (réactions), `onTripStepUpdated` (premier « bien arrivé »), `onWeeklyAnswerWritten` (réponses), `helpRequestStillOpen` à 18 h (les coups de main pris de la veille, et un an après la création de la fiche du membre). Une notification « Nouveau souvenir » (canal `souvenirs`, donnée `souvenirKey`) part une fois, seulement si le module `souvenirs` est allumé, si le membre a l'appli et s'il n'a pas coupé `souvenirs` dans ses réglages. Module éteint, les souvenirs sont quand même gardés. `onMemberDeletedAnswers` retire aussi les souvenirs, le compteur et les marques d’un membre parti.
 
 ## Question de la semaine (PRD, récit 37)
 
@@ -513,7 +558,40 @@ Cloud Functions (`functions/src/weeklyQuestion.ts`) :
 | Fonction | Déclencheur | Rôle |
 |---|---|---|
 | `publishWeeklyQuestion`, appelée par `arrivalReminder` | toutes les 30 minutes, agit le lundi à partir de 9 h | Publie la question de la semaine et prévient chaque membre qui a l'appli, sauf ceux qui ont coupé `weekly`. Canal `weekly`, donnée `weeklyQuestionId`. Ne fait rien deux fois le même lundi. Pas de tâche planifiée à part : Cloud Scheduler n'en offre que 3 gratuites. |
-| `onWeeklyAnswerWritten` | réponse écrite ou retirée | Recompte `answerCount`. |
+| `onWeeklyAnswerWritten` | réponse écrite ou retirée | Recompte `answerCount`, et supprime de Storage la photo qu'une réponse ne nomme plus (photo changée ou retirée, « Passer », réponse retirée ou membre parti). |
 | `onMemberDeletedAnswers` | suppression d'un membre | Retire ses réponses (carte EXPERT-1). |
 
-Plus tard : la photo facultative d'une réponse, la sauvegarde JSON des questions et réponses, le choix et l'ajout de questions dans Administration, les questions proposées par les membres, la feuille de l'arbre (récit 35) et le regroupement avec les autres rendez-vous en une notification par jour (carte AVIS-14).
+Plus tard : le choix et l'ajout de questions dans Administration, les questions proposées par les membres, la feuille de l'arbre (récit 35) et le regroupement avec les autres rendez-vous en une notification par jour (carte AVIS-14).
+
+## Utilisation (PRD, récit 1 nonies)
+
+### `usage/{memberId}/days/{day}`
+
+Le temps passé dans l'appli par un membre, un jour donné. Le téléphone le compte (appli au premier plan, partie par partie) et l'envoie lui-même : chaque jour terminé une fois, et le jour en cours au plus toutes les 3 heures. Rien n'est compté tant que le module « Utilisation » est éteint pour la famille.
+
+| Champ | Type | Sens |
+|---|---|---|
+| `day` | string `AAAA-MM-JJ` | Le jour, identique à l'id du document. |
+| `opens` | int (0 à 500) | Les ouvertures de l'appli. Un retour en moins de 5 minutes n'en compte pas une nouvelle. |
+| `seconds` | map | Les secondes par partie de l'appli : `home`, `planning`, `gifts`, `help`, `goodNews`, `weeklyQuestion`, `trips`, `family`, `other` (0 à 86 400 chacune). |
+| `expireAt` | timestamp | Le jour plus 13 mois. La règle TTL de `firestore.indexes.json` efface le document à cette date. |
+
+Le document ne contient jamais ce que la personne a lu, écrit ou ouvert. Seul le membre écrit ses propres jours. L'admin principal lit les jours de tout le monde, et les adultes responsables d'un enfant (ses `parentIds`) lisent ceux de cet enfant (carte EXPERT-5). Personne ne supprime un jour depuis l'appli : le TTL s'en charge, et la fonction qui suit le retrait d'un membre efface aussi tous ses jours.
+
+## Consommation (PRD, récit 1 sexies)
+
+### `consumption/{day}`
+
+L'usage de la base un jour donné, lu une fois chaque matin à partir de 8 h dans Cloud Monitoring par la tâche des 30 minutes `arrivalReminder` (`checkConsumptionIfDue` de `firebase/functions/src/consumption.ts`), seulement si le document de la veille n'existe pas encore. Seul le serveur l'écrit ; seul l'admin principal le lit, dans Administration › Consommation.
+
+| Champ | Type | Sens |
+|---|---|---|
+| `day` | string `AAAA-MM-JJ` | Le jour lu (la veille), identique à l'id. |
+| `reads`, `writes`, `deletes` | int | Les opérations de la journée, heure de Paris. |
+| `storageBytes` | int ou null | La taille de la base ce jour-là, si Monitoring la donne. |
+| `monthCost` | number | Le coût estimé du mois jusqu'à ce jour, en euros, au-delà des parts gratuites (prix volontairement hauts). |
+| `alerts` | liste | Les limites atteintes à 80 % (`reads`, `writes`, `deletes`, `storage`) et `cost` au-delà de 0,50 €. Une alerte n'est envoyée qu'une fois par jour. |
+| `checkedAt` | timestamp | L'heure du relevé. |
+| `error` | string | `monitoring` quand Monitoring n'a pas pu être lu (rôle « Lecteur Monitoring » manquant, docs/deploiement.md). Les autres champs manquent alors. |
+
+Ces documents sont petits (un par jour) et ne contiennent rien sur la famille.

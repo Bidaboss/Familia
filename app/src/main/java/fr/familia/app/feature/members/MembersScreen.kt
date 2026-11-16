@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.QueryStats
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.AdminPanelSettings
@@ -82,6 +83,11 @@ fun MembersScreen(
     onOpenHelp: (() -> Unit)? = null,
     /** Famille › Réglages › Apparence, while the Thèmes module is on (DESIGN-7). */
     onOpenAppearance: (() -> Unit)? = null,
+    /**
+     * « Temps de mes enfants » (carte EXPERT-5): shown to an adult responsible for a child with the
+     * app. The admin principal finds everyone's time in Administration instead.
+     */
+    onOpenChildrenUsage: (() -> Unit)? = null,
     /** The pencil shows on the households of [MembersUiState.Success.renamableHouseholdIds]. */
     onRenameHousehold: ((Household, String) -> Unit)? = null,
     renameFailed: Boolean = false,
@@ -93,6 +99,8 @@ fun MembersScreen(
     onPhotoFailureShown: () -> Unit = {},
     /** The gift button of each row opens the member's « Mes envies » (PRD, récit 7). */
     onOpenWishes: ((memberId: String) -> Unit)? = null,
+    /** Set: every row opens the member's page, whose Modifier keeps the rights of [onEditMember]. */
+    onOpenProfile: ((memberId: String) -> Unit)? = null,
 ) {
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var photoOf by rememberSaveable { mutableStateOf<String?>(null) }
@@ -149,7 +157,8 @@ fun MembersScreen(
                             member = member,
                             isMe = member.id == state.currentMemberId,
                             isOwner = member.id == state.ownerId,
-                            onClick = onEditMember?.takeIf { member.id in state.editableMemberIds }?.let { edit -> { edit(member.id) } },
+                            onClick = onOpenProfile?.let { open -> { open(member.id) } }
+                                ?: onEditMember?.takeIf { member.id in state.editableMemberIds }?.let { edit -> { edit(member.id) } },
                             hasPhoto = member.id in photos,
                             // A photo opens in full screen; without one, those who may add it choose one.
                             onPhotoClick = when {
@@ -181,6 +190,14 @@ fun MembersScreen(
                 }
                 if (onOpenAppearance != null) {
                     item(key = "appearance") { SettingsRow(Icons.Outlined.Palette, R.string.appearance_title, onOpenAppearance) }
+                }
+                val hasChildWithApp = state.groups.any { group ->
+                    group.members.any { it.profile == MemberProfile.ChildWithApp && state.currentMemberId in it.parentIds }
+                }
+                if (onOpenChildrenUsage != null && !state.isOwner && hasChildWithApp) {
+                    item(key = "children-usage") {
+                        SettingsRow(Icons.Outlined.QueryStats, R.string.usage_children_title, onOpenChildrenUsage)
+                    }
                 }
                 if (onOpenAdministration != null && state.isOwner) {
                     item(key = "administration") {

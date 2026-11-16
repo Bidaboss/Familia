@@ -44,6 +44,12 @@ export async function notify(db: Firestore, send: Sender, memberIds: string[], n
   return sent;
 }
 
+/** Whether « Ajouter à mon agenda » (récit 30) is switched on for the family in config/app. */
+async function calendarOn(db: Firestore): Promise<boolean> {
+  const features = (await db.collection('config').doc('app').get()).get('features') as Record<string, boolean> | undefined;
+  return features?.calendar === true;
+}
+
 /**
  * PRD, récit 6: an event was added, edited or deleted by [actor]. [answered] holds the members who
  * said « Je viens » or « Peut-être »: read before a deletion removes the answers.
@@ -56,7 +62,8 @@ export async function notifyChange(
   const actor = memberForUid(members, actorUid);
   const recipients = changeRecipients(members, actor?.id ?? null, event, parisDay(now), answered);
   if (recipients.length === 0) return 0;
-  return notify(db, send, recipients, changeNotice(kind, eventId, event, actor?.firstName ?? null));
+  const calendarHint = kind !== 'added' && await calendarOn(db);
+  return notify(db, send, recipients, changeNotice(kind, eventId, event, actor?.firstName ?? null, calendarHint));
 }
 
 /**
@@ -84,7 +91,8 @@ export async function deleteEventAnswers(db: Firestore, eventId: string): Promis
 }
 
 /**
- * A member was removed (a separation, for example): their answers, phones and settings go too.
+ * A member was removed (a separation, for example): their answers, phones, settings and days of
+ * use (PRD, récit 1 nonies) go too.
  * The family has a few hundred events at most, so going through them all stays cheap.
  */
 export async function deleteMemberData(db: Firestore, memberId: string): Promise<void> {
@@ -97,6 +105,7 @@ export async function deleteMemberData(db: Firestore, memberId: string): Promise
   const member = db.collection('members').doc(memberId);
   await db.recursiveDelete(member.collection('devices'));
   await db.recursiveDelete(member.collection('settings'));
+  await db.recursiveDelete(db.collection('usage').doc(memberId).collection('days'));
 }
 
 /** PRD, récit 6 bis: at 18 h, the members coming tomorrow are reminded. */

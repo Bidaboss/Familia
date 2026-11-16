@@ -32,7 +32,7 @@ export type RsvpStatus = 'yes' | 'maybe' | 'no';
 
 /** The ids of NotificationChannels in the app. `events` is the « Planning » channel. */
 // Each module adds its id here and its channel in the app, in the same pull request.
-export type Channel = 'events' | 'reminders' | 'gifts' | 'helpRequests' | 'goodNews' | 'trips' | 'comments' | 'weekly';
+export type Channel = 'events' | 'reminders' | 'gifts' | 'helpRequests' | 'goodNews' | 'trips' | 'comments' | 'weekly' | 'admin' | 'souvenirs';
 
 export interface Notice {
   /**
@@ -47,6 +47,8 @@ export interface Notice {
   listId?: string;
   tripId?: string;
   weeklyQuestionId?: string;
+  /** A new souvenir (récit 34): the app opens the member's own page. */
+  souvenirKey?: string;
 }
 
 export type ChangeKind = 'added' | 'edited' | 'deleted';
@@ -136,13 +138,23 @@ export function changeRecipients(
     .map((m) => m.id);
 }
 
-export function changeNotice(kind: ChangeKind, eventId: string, event: EventData, actorName: string | null): Notice {
+/** PRD, récit 30: « Ajouter à mon agenda » makes a copy, so a change reminds to update it. */
+export const CALENDAR_HINT = {
+  edited: ' Si tu l\'as ajouté à ton agenda, mets-le à jour depuis Familia.',
+  deleted: ' Si tu l\'avais ajouté à ton agenda, pense à l\'en retirer.',
+};
+
+/** [calendarHint]: the module « Ajouter à mon agenda » is on for the family (config/app). */
+export function changeNotice(
+  kind: ChangeKind, eventId: string, event: EventData, actorName: string | null, calendarHint = false,
+): Notice {
   const who = actorName ?? 'Un membre de la famille';
   const title = { added: 'Nouvel événement', edited: 'Événement modifié', deleted: 'Événement annulé' }[kind];
   const body = kind === 'deleted'
     ? `${who} a supprimé « ${event.title} » du ${formatDay(event.date)}.`
     : `${who} a ${kind === 'added' ? 'ajouté' : 'modifié'} « ${event.title} », ${formatWhen(event)}.`;
-  return { channel: 'events', title, body, eventId };
+  const hint = calendarHint && kind !== 'added' ? CALENDAR_HINT[kind] : '';
+  return { channel: 'events', title, body: body + hint, eventId };
 }
 
 export interface Reminder {

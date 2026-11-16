@@ -26,9 +26,21 @@ object NotificationChannels {
     const val TRIPS = "trips"
     const val COMMENTS = "comments"
     const val WEEKLY = "weekly"
+    const val ADMIN = "admin"
+    const val SOUVENIRS = "souvenirs"
 
-    /** [feature]: the module that uses the channel; it is created only once that module shows. */
-    private data class Spec(val id: String, val name: Int, val description: Int, val importance: Int, val feature: Feature? = null)
+    /**
+     * [feature]: the module that uses the channel; it is created only once that module shows.
+     * [ownerOnly]: a channel of the admin principal, never shown on the phones of the family.
+     */
+    private data class Spec(
+        val id: String,
+        val name: Int,
+        val description: Int,
+        val importance: Int,
+        val feature: Feature? = null,
+        val ownerOnly: Boolean = false,
+    )
 
     private val specs = listOf(
         Spec(EVENTS, R.string.channel_events, R.string.channel_events_description, NotificationManager.IMPORTANCE_DEFAULT),
@@ -41,6 +53,9 @@ object NotificationChannels {
         Spec(COMMENTS, R.string.channel_comments, R.string.channel_comments_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.GoodNews),
         // The question of the week for now (récit 37); later the other weekly rendez-vous (AVIS-14).
         Spec(WEEKLY, R.string.channel_weekly, R.string.channel_weekly_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.WeeklyQuestion),
+        // The consumption alert of the database (récit 1 sexies), for the admin principal only.
+        Spec(ADMIN, R.string.channel_admin, R.string.channel_admin_description, NotificationManager.IMPORTANCE_DEFAULT, ownerOnly = true),
+        Spec(SOUVENIRS, R.string.channel_souvenirs, R.string.channel_souvenirs_description, NotificationManager.IMPORTANCE_LOW, Feature.Souvenirs),
     )
 
     /** Every id the app knows: a notice for another channel falls back on [EVENTS]. */
@@ -56,7 +71,9 @@ object NotificationChannels {
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
         // Creating an existing channel only updates its name and description, never the member's choice.
         manager.createNotificationChannels(
-            specs.filter { spec -> spec.feature == null || features.isOn(spec.feature) }.map { spec ->
+            specs.filter { spec ->
+                (spec.feature == null || features.isOn(spec.feature)) && (!spec.ownerOnly || features.isOwner)
+            }.map { spec ->
                 NotificationChannel(spec.id, context.getString(spec.name), spec.importance)
                     .apply { description = context.getString(spec.description) }
             },

@@ -21,6 +21,8 @@ enum class ScreenHelp(@StringRes val titleRes: Int, @StringRes val bodyRes: Int)
     TripDetail(R.string.help_screen_trip_detail_title, R.string.help_screen_trip_detail_body),
     TripEdit(R.string.help_screen_trip_edit_title, R.string.help_screen_trip_edit_body),
     TripStepEdit(R.string.help_screen_trip_step_title, R.string.help_screen_trip_step_body),
+    EventAlbum(R.string.help_screen_event_album_title, R.string.help_screen_event_album_body),
+    MonthSlideshow(R.string.help_screen_month_title, R.string.help_screen_month_body),
 }
 
 /** Who sees a topic of the help page: the functions they can use. */
@@ -39,6 +41,7 @@ enum class HelpTopic(
     AddEvent(R.string.help_topic_add_title, R.string.help_topic_add_body),
     EditEvent(R.string.help_topic_edit_title, R.string.help_topic_edit_body),
     Answers(R.string.help_topic_answers_title, R.string.help_topic_answers_body),
+    Calendar(R.string.help_topic_calendar_title, R.string.help_topic_calendar_body, feature = Feature.Calendar),
     Notifications(R.string.help_topic_notifications_title, R.string.help_topic_notifications_body),
     HelpRequests(R.string.help_topic_help_requests_title, R.string.help_topic_help_requests_body, feature = Feature.HelpRequests),
     Family(R.string.help_topic_family_title, R.string.help_topic_family_body),
@@ -48,6 +51,7 @@ enum class HelpTopic(
     Updates(R.string.help_topic_updates_title, R.string.help_topic_updates_body),
     Appearance(R.string.help_topic_appearance_title, R.string.help_topic_appearance_body, feature = Feature.Themes),
     Trips(R.string.help_topic_trips_title, R.string.help_topic_trips_body),
+    WeeklyQuestion(R.string.help_topic_weekly_title, R.string.help_topic_weekly_body, feature = Feature.WeeklyQuestion),
     Invite(R.string.help_topic_invite_title, R.string.help_topic_invite_body, HelpAudience.Chefs),
     Export(R.string.help_topic_export_title, R.string.help_topic_export_body, HelpAudience.Owner),
 }

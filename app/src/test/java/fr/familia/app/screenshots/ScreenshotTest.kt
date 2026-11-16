@@ -9,6 +9,8 @@ import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.theme.FamiliaThemeId
 import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.feature.settings.appearance.AppIcon
+import fr.familia.app.feature.usage.UsageReportScreen
+import fr.familia.app.feature.usage.previewUsageState
 import fr.familia.app.feature.settings.appearance.AppearanceScreen
 import fr.familia.app.feature.settings.appearance.IconSection
 import androidx.compose.foundation.layout.Box
@@ -55,6 +57,10 @@ import fr.familia.app.feature.members.edit.MemberEditScreen
 import fr.familia.app.feature.members.edit.previewEditState
 import fr.familia.app.feature.members.admin.AdministrationScreen
 import fr.familia.app.feature.members.admin.previewAdministrationState
+import fr.familia.app.feature.members.admin.ConsumptionCard
+import fr.familia.app.feature.members.admin.ConsumptionSection
+import fr.familia.app.feature.members.admin.previewConsumption
+import fr.familia.app.core.model.Consumption
 import fr.familia.app.feature.members.edit.previewExistingState
 import fr.familia.app.feature.members.edit.MemberEditUiState
 import java.time.LocalDate
@@ -147,12 +153,12 @@ class ScreenshotTest {
     fun clayCardsFontScale200() = capture("argile_cartes_police_200") { ClayCardSamples() }
 
     @Test
-    fun birthdaysLight() = capture("anniversaires_clair") { Surface { BirthdaysScreen(previewBirthdays(), onRetry = {}) } }
+    fun birthdaysLight() = capture("anniversaires_clair") { Surface { BirthdaysScreen(previewBirthdays(), onRetry = {}, onAddToCalendar = {}) } }
 
     @Test
     @Config(qualifiers = "+night")
     fun birthdaysDark() = capture("anniversaires_sombre", darkTheme = true) {
-        Surface { BirthdaysScreen(previewBirthdays(), onRetry = {}) }
+        Surface { BirthdaysScreen(previewBirthdays(), onRetry = {}, onAddToCalendar = {}) }
     }
 
     @Test
@@ -304,13 +310,13 @@ class ScreenshotTest {
 
     @Test
     fun eventDetailLight() = capture("evenement_detail_clair") {
-        EventDetailScreen(previewEventDetail(), { _, _ -> }, {}, {}, {})
+        EventDetailScreen(previewEventDetail(), { _, _ -> }, {}, {}, {}, onAddToCalendar = {})
     }
 
     @Test
     @Config(qualifiers = "+night")
     fun eventDetailDark() = capture("evenement_detail_sombre", darkTheme = true) {
-        EventDetailScreen(previewEventDetail(canManage = false), { _, _ -> }, {}, {}, {})
+        EventDetailScreen(previewEventDetail(canManage = false), { _, _ -> }, {}, {}, {}, onAddToCalendar = {})
     }
 
     @Test
@@ -328,6 +334,13 @@ class ScreenshotTest {
     @Config(fontScale = 2f)
     fun appearanceFontScale200() = capture("apparence_police_200") {
         AppearanceScreen(FamiliaThemeId.Classic, {}, {})
+    }
+
+    /** « Utilisation » of the admin principal (PRD, récit 1 nonies), with a fictional family. */
+    @Test
+    fun usageReport() = capture("utilisation") {
+        val today = LocalDate.of(2026, 11, 30)
+        UsageReportScreen(previewUsageState(today), onRetry = {}, onBack = {}, today = today)
     }
 
     /** « Icône de l'appli », with the message shown once the icon changed. */
@@ -448,6 +461,15 @@ class ScreenshotTest {
     @Config(fontScale = 2f)
     fun administrationFontScale200() = capture("administration_police_200") {
         Surface { AdministrationScreen(previewAdministrationState(), {}, {}, { _, _ -> }, {}, {}, {}) }
+    }
+
+    @Test
+    fun consumptionLight() = capture("consommation_clair") { Surface { ConsumptionSection(previewConsumption()) } }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun consumptionFailedDark() = capture("consommation_erreur_sombre", darkTheme = true) {
+        Surface { ConsumptionSection(ConsumptionCard.Ready(Consumption(LocalDate.of(2026, 11, 20), failed = true))) }
     }
 
     @Test

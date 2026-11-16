@@ -33,5 +33,6 @@ fun NotificationSettingsRoute(container: AppContainer?, currentMember: Member, o
         onBack = onBack,
         onGoodNewsChange = viewModel::setGoodNews,
         onWeeklyChange = viewModel::setWeekly,
+        onSouvenirsChange = viewModel::setSouvenirs,
     )
 }

@@ -15,18 +15,23 @@ import {
   deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
   sendBirthdayGiftReminders, updateSharesTotal,
 } from './gifts';
+import { checkConsumptionIfDue } from './consumption';
+import { cloudMonitoring } from './monitoring';
 import { deleteMemberNotebook, syncNotebookEntry, syncNotebookItem } from './notebook';
 import {
   deleteReactionDigest, FileRemover, GoodNewsData, GoodNewsNotice, GoodNewsSender, onGoodNewsEdited, onGoodNewsPublished,
-  onGoodNewsReacted, onGoodNewsRemoved, sendReactionDigests,
+  newReactorIds, onGoodNewsReacted, onGoodNewsRemoved, sendReactionDigests,
 } from './goodNews';
 import {
   HelpNotice, HelpRequestData, HelpSender, onHelpRequestWritten, reopenRequestsOf, sendStillOpenReminders,
 } from './helpRequests';
-import { EventData, hasVisibleChange, Notice } from './logic';
+import { addDays, EventData, hasVisibleChange, Notice, parisDay } from './logic';
 import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, notifyChange, Sender, sendDayBeforeReminders } from './store';
 import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
-import { countAnswers, deleteAnswersOf, publishWeeklyQuestion } from './weeklyQuestion';
+import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
+import {
+  countGesture, countHelpGiven, deleteSouvenirsOf, giveSouvenir, giveYearSouvenirs, isNewWeeklyAnswer, souvenirMark,
+} from './souvenirs';
 
 initializeApp();
 
@@ -45,6 +50,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.listId ? { listId: notice.listId } : {}),
         ...(notice.tripId ? { tripId: notice.tripId } : {}),
         ...(notice.weeklyQuestionId ? { weeklyQuestionId: notice.weeklyQuestionId } : {}),
+        ...(notice.souvenirKey ? { souvenirKey: notice.souvenirKey } : {}),
       },
       android: { notification: { channelId: notice.channel } },
     });
@@ -85,7 +91,14 @@ export const onEventDeleted = onDocumentDeletedWithAuthContext('events/{eventId}
     const answered = await comingMembers(db, event.params.eventId, members);
     if (data) await notifyChange(db, send, 'deleted', event.params.eventId, data, actorUid(event), new Date(), answered, members);
   } finally {
-    await deleteEventAnswers(db, event.params.eventId);
+    // Each one is tried even if another fails: answers, then the album (récit 41), records and files.
+    const results = await Promise.allSettled([
+      deleteEventAnswers(db, event.params.eventId),
+      db.recursiveDelete(db.collection('events').doc(event.params.eventId).collection('photos')),
+      getStorage().bucket().deleteFiles({ prefix: `events/${event.params.eventId}/` }),
+    ]);
+    const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
+    if (failed) throw failed.reason;
   }
 });
 
@@ -122,8 +135,12 @@ export const onHelpRequestWrite = onDocumentWrittenWithAuthContext('helpRequests
 });
 
 // Récit 18: at 18 h, the requests of tomorrow still without a volunteer.
+// Also the souvenirs of the day (récit 34): yesterday's coups de main rendus, and a year in Familia.
 export const helpRequestStillOpen = onSchedule({ schedule: '0 18 * * *', timeZone: 'Europe/Paris' }, async () => {
-  await sendStillOpenReminders(getFirestore(), sendHelp, new Date());
+  const now = new Date();
+  await sendStillOpenReminders(getFirestore(), sendHelp, now);
+  await countHelpGiven(getFirestore(), send, addDays(parisDay(now), -1), now);
+  await giveYearSouvenirs(getFirestore(), send, now);
 });
 
 // Spec, cas limites: a volunteer removed from the family frees their upcoming requests.
@@ -203,7 +220,9 @@ const removeFiles: FileRemover = async (paths: string[]) => {
 
 export const onGoodNewsCreated = onDocumentCreated('goodNews/{postId}', async (event) => {
   const data = event.data?.data() as GoodNewsData | undefined;
-  if (data) await onGoodNewsPublished(getFirestore(), sendGoodNews, event.params.postId, data);
+  if (!data) return;
+  await onGoodNewsPublished(getFirestore(), sendGoodNews, event.params.postId, data);
+  await giveSouvenir(getFirestore(), send, data.authorId, 'firstGoodNews', new Date());
 });
 
 export const onGoodNewsUpdated = onDocumentUpdated('goodNews/{postId}', async (event) => {
@@ -212,6 +231,9 @@ export const onGoodNewsUpdated = onDocumentUpdated('goodNews/{postId}', async (e
   if (!before || !after) return;
   await onGoodNewsEdited(removeFiles, event.params.postId, before, after);
   await onGoodNewsReacted(getFirestore(), event.params.postId, before, after, new Date());
+  for (const reactor of newReactorIds(before, after)) {
+    await countGesture(getFirestore(), send, reactor, 'reactions', souvenirMark.reaction(event.params.postId, reactor), new Date());
+  }
 });
 
 export const onGoodNewsDeleted = onDocumentDeleted('goodNews/{postId}', async (event) => {
@@ -232,24 +254,35 @@ export const onTripStepUpdated = onDocumentUpdatedWithAuthContext('trips/{tripId
   const after = event.data?.after.data() as StepData | undefined;
   if (!before || !after || !isNewArrival(before, after)) return;
   await notifyArrival(getFirestore(), send, event.params.tripId, after, actorUid(event));
+  if (after.arrivedBy) await giveSouvenir(getFirestore(), send, after.arrivedBy, 'firstArrival', new Date());
 });
 
 export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) => {
   await deleteTripContents(getFirestore(), event.params.tripId);
+  // The photos of the trip and their thumbnails (récit 15), all under trips/{tripId}/.
+  await getStorage().bucket().deleteFiles({ prefix: `trips/${event.params.tripId}/` });
 });
 
 export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/Paris' }, async () => {
   await sendArrivalReminders(getFirestore(), send, new Date());
   // Also the question of the week, on Monday from 9 h (récit 37): one task less to pay for.
   await publishWeeklyQuestion(getFirestore(), send, new Date());
+  // And the consumption of the day before, once from 8 h (récit 1 sexies).
+  await checkConsumptionIfDue(getFirestore(), cloudMonitoring, send, new Date());
 });
 
 // --- Question de la semaine (récit 37) --------------------------------------------------------
 
 export const onWeeklyAnswerWritten = onDocumentWritten('weeklyQuestions/{weekId}/answers/{memberId}', async (event) => {
-  await countAnswers(getFirestore(), event.params.weekId);
+  const { weekId, memberId } = event.params;
+  await countAnswers(getFirestore(), weekId);
+  await removeOldAnswerPhoto(removeFiles, weekId, memberId, event.data?.before.data(), event.data?.after.data());
+  if (isNewWeeklyAnswer(event.data?.before.data(), event.data?.after.data())) {
+    await countGesture(getFirestore(), send, memberId, 'weeklyAnswers', souvenirMark.weeklyAnswer(weekId, memberId), new Date());
+  }
 });
 
 export const onMemberDeletedAnswers = onDocumentDeleted('members/{memberId}', async (event) => {
   await deleteAnswersOf(getFirestore(), event.params.memberId);
+  await deleteSouvenirsOf(getFirestore(), event.params.memberId);
 });

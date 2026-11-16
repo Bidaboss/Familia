@@ -67,6 +67,10 @@ data class GoodNewsEditDestination(val postId: String? = null)
 @Serializable
 data class WeeklyQuestionDestination(val questionId: String? = null)
 
+/** A member's page, read-only, opened from Famille while the Souvenirs module is on (récit 34). */
+@Serializable
+data class MemberProfileDestination(val memberId: String)
+
 /** « Nos réponses »: the questions of the week already asked (récit 37). */
 @Serializable
 data object WeeklyArchiveDestination
@@ -94,6 +98,13 @@ data object NotificationSettingsDestination
 /** Admin backup of the family's data, opened from the Famille tab (lot 9). */
 @Serializable
 data object ExportDestination
+
+/**
+ * « Utilisation » (PRD, récit 1 nonies): the whole family from Administration for the admin
+ * principal, the children's time from the Famille tab for a responsible adult (carte EXPERT-5).
+ */
+@Serializable
+data object UsageDestination
 
 /** The Administration menu of the admin principal (PRD, récit 1 ter). */
 @Serializable

@@ -1,21 +1,28 @@
 package fr.familia.app.feature.weeklyquestion
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AddAPhoto
 import androidx.compose.material.icons.outlined.QuestionAnswer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -31,6 +38,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -38,10 +47,14 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import fr.familia.app.R
 import fr.familia.app.core.model.WEEKLY_ANSWER_MAX
 import fr.familia.app.core.model.WeeklyAnswer
 import fr.familia.app.core.model.WeeklyQuestion
+import fr.familia.app.core.model.weeklyPhotoPath
+import fr.familia.app.core.model.weeklyThumbnailPath
+import fr.familia.app.core.photo.StorageImage
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
@@ -58,7 +71,7 @@ import java.util.Locale
 @Composable
 fun WeeklyQuestionScreen(
     state: WeeklyQuestionUiState,
-    onAnswer: (String) -> Unit,
+    onAnswer: (text: String, newPhoto: String?, keepPhoto: Boolean) -> Unit,
     onSkip: () -> Unit,
     onRemove: () -> Unit,
     onDismissError: () -> Unit,
@@ -105,7 +118,7 @@ fun WeeklyQuestionScreen(
 @Composable
 private fun Content(
     state: WeeklyQuestionUiState.Success,
-    onAnswer: (String) -> Unit,
+    onAnswer: (String, String?, Boolean) -> Unit,
     onSkip: () -> Unit,
     onRemove: () -> Unit,
 ) {
@@ -113,6 +126,9 @@ private fun Content(
     // Reopened with the current answer when « Modifier » is touched.
     var editing by rememberSaveable(question.id) { mutableStateOf(false) }
     var draft by rememberSaveable(question.id) { mutableStateOf("") }
+    // The photo chosen on the phone, not sent yet; keepPhoto says whether the one sent stays.
+    var newPhoto by rememberSaveable(question.id) { mutableStateOf<String?>(null) }
+    var keepPhoto by rememberSaveable(question.id) { mutableStateOf(true) }
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -137,8 +153,17 @@ private fun Content(
                 enabled = !state.isBusy,
                 modifier = Modifier.fillMaxWidth(),
             )
+            PhotoPicker(
+                questionId = question.id,
+                memberId = state.myAnswer?.memberId,
+                sentId = mine?.photoId?.takeIf { keepPhoto },
+                newPhoto = newPhoto,
+                enabled = !state.isBusy,
+                onPick = { newPhoto = it },
+                onRemove = { newPhoto = null; keepPhoto = false },
+            )
             Button(
-                onClick = { onAnswer(draft); editing = false },
+                onClick = { onAnswer(draft, newPhoto, keepPhoto); editing = false; newPhoto = null; keepPhoto = true },
                 enabled = !state.isBusy && draft.isNotBlank(),
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             ) { Text(stringResource(R.string.weekly_answer)) }
@@ -147,7 +172,7 @@ private fun Content(
                     Text(stringResource(R.string.weekly_skip))
                 }
             } else {
-                TextButton(onClick = { editing = false }, modifier = Modifier.heightIn(min = 56.dp)) {
+                TextButton(onClick = { editing = false; newPhoto = null; keepPhoto = true }, modifier = Modifier.heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.action_cancel))
                 }
             }
@@ -159,6 +184,7 @@ private fun Content(
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                 )
+                mine.photoId?.let { AnswerPhoto(question.id, mine.memberId, it) }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TextButton(
                         onClick = { draft = mine.text.orEmpty(); editing = true },
@@ -189,16 +215,67 @@ private fun Content(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            else -> state.answers.forEach { AnswerCard(it) }
+            else -> state.answers.forEach { AnswerCard(question.id, it) }
         }
     }
 }
 
 @Composable
-private fun AnswerCard(answer: WeeklyAnswer) {
+private fun AnswerCard(questionId: String, answer: WeeklyAnswer) {
     ClayCard(Modifier.fillMaxWidth()) {
         Text(answer.memberName, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
         Text(answer.text.orEmpty(), style = MaterialTheme.typography.bodyLarge)
+        answer.photoId?.let { AnswerPhoto(questionId, answer.memberId, it) }
+    }
+}
+
+/** The photo of an answer, in full width (the large file: it is read only once shown). */
+@Composable
+private fun AnswerPhoto(questionId: String, memberId: String, photoId: String) {
+    StorageImage(
+        path = weeklyPhotoPath(questionId, memberId, photoId),
+        contentDescription = stringResource(R.string.weekly_photo_description),
+        modifier = Modifier.fillMaxWidth().aspectRatio(4f / 3f).clip(MaterialTheme.shapes.medium),
+    )
+}
+
+/**
+ * One optional photo: the one already sent ([sentId], by [memberId]), or the one just chosen ([newPhoto]), with
+ * « Retirer la photo »; otherwise « Ajouter une photo », which opens Android's photo picker.
+ */
+@Composable
+private fun PhotoPicker(
+    questionId: String,
+    memberId: String?,
+    sentId: String?,
+    newPhoto: String?,
+    enabled: Boolean,
+    onPick: (String) -> Unit,
+    onRemove: () -> Unit,
+) {
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> uri?.let { onPick(it.toString()) } }
+    val description = stringResource(R.string.weekly_photo_description)
+    val thumb = Modifier.size(96.dp).clip(MaterialTheme.shapes.medium)
+    if (newPhoto != null || (sentId != null && memberId != null)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (newPhoto != null) {
+                AsyncImage(model = newPhoto, contentDescription = description, modifier = thumb, contentScale = ContentScale.Crop)
+            } else if (sentId != null && memberId != null) {
+                StorageImage(weeklyThumbnailPath(questionId, memberId, sentId), description, thumb)
+            }
+            TextButton(onClick = onRemove, enabled = enabled, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.weekly_photo_remove))
+            }
+        }
+    } else {
+        OutlinedButton(
+            onClick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+            enabled = enabled,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+        ) {
+            Icon(Icons.Outlined.AddAPhoto, contentDescription = null)
+            Text(stringResource(R.string.weekly_photo_add), modifier = Modifier.padding(start = 8.dp))
+        }
     }
 }
 
@@ -237,5 +314,5 @@ internal fun previewWeeklyQuestion(answered: Boolean = true): WeeklyQuestionUiSt
 @FamiliaPreviews
 @Composable
 private fun WeeklyQuestionScreenPreview() {
-    FamiliaTheme { Surface { WeeklyQuestionScreen(previewWeeklyQuestion(), {}, {}, {}, {}, {}) } }
+    FamiliaTheme { Surface { WeeklyQuestionScreen(previewWeeklyQuestion(), { _, _, _ -> }, {}, {}, {}, {}) } }
 }

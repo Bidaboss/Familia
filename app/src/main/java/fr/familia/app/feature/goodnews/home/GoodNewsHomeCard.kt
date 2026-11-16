@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -83,7 +83,11 @@ fun GoodNewsHomeContent(
                 style = MaterialTheme.typography.bodyLarge,
                 color = FamiliaClay.colors.onTintVariant(tint),
             )
-            Button(onClick = onPublish, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.goodnews_publish)) }
+            // Tonal: one filled button per screen, and on the Accueil it is « Répondre » of the
+            // question of the week, which has a deadline (relecture, note C).
+            FilledTonalButton(onClick = onPublish, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.goodnews_publish))
+            }
         } else {
             ready.items.forEach { item -> NewsRow(item, ready.now, tint) { onOpen(item.news.id) } }
         }

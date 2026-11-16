@@ -1,5 +1,6 @@
 package fr.familia.app.feature.members.admin
 
+import fr.familia.app.core.model.Consumption
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 
@@ -23,4 +24,12 @@ sealed interface AdministrationUiState {
         /** Households by name. */
         val households: List<HouseholdRow>,
     ) : AdministrationUiState
+}
+
+/** The « Consommation » card of Administration (PRD, récit 1 sexies). */
+sealed interface ConsumptionCard {
+    /** No day read yet: the first reading comes the next morning at 8 h. */
+    data object Waiting : ConsumptionCard
+
+    data class Ready(val consumption: Consumption) : ConsumptionCard
 }

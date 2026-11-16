@@ -16,7 +16,21 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     Trips("trips", R.string.feature_trips),
     GoodNews("goodNews", R.string.feature_good_news),
     Themes("themes", R.string.feature_themes),
+
+    /**
+     * Counting the time spent in the app (PRD, récit 1 nonies). Unlike the others, the switch
+     * also governs the admin principal: nothing is counted until it is on for the family, once
+     * Kévin has announced it.
+     */
+    Usage("usage", R.string.feature_usage),
     WeeklyQuestion("weeklyQuestion", R.string.feature_weekly_question),
+    EventAlbums("eventAlbums", R.string.feature_event_albums),
+
+    /** « Ajouter à mon agenda » on an event and a birthday (PRD, récit 30). */
+    Calendar("calendar", R.string.feature_calendar),
+
+    Souvenirs("souvenirs", R.string.feature_souvenirs),
+    MonthSlideshow("monthSlideshow", R.string.feature_month_slideshow),
 }
 
 /**

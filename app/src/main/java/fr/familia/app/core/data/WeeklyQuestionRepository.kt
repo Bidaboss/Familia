@@ -21,8 +21,14 @@ interface WeeklyQuestionRepository {
      */
     fun observeAnswers(questionId: String): Flow<List<WeeklyAnswer>>
 
-    /** Answers for [memberId], or « Passer » when [text] is null. Replaces an earlier answer. */
-    suspend fun answer(questionId: String, memberId: String, memberName: String, text: String?)
+    /**
+     * Answers for [memberId], or « Passer » when [text] is null. Replaces an earlier answer.
+     * [photoId] names a photo already sent to Storage.
+     */
+    suspend fun answer(questionId: String, memberId: String, memberName: String, text: String?, photoId: String? = null)
+
+    /** A fresh id for a photo (letters and digits, as the rules expect). */
+    fun newPhotoId(): String = java.util.UUID.randomUUID().toString().replace("-", "").take(20)
 
     suspend fun removeAnswer(questionId: String, memberId: String)
 }

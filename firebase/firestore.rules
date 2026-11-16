@@ -331,6 +331,33 @@ service cloud.firestore {
       allow delete: if isMember() && canAnswerFor(memberId);
     }
 
+    // The album of an event (récit 41) opens on its day: from 22:00 UTC the day before,
+    // midnight in France in summer, 23:00 in winter (an hour before the app, harmless).
+    // Its photos have the shape of the trip photos (isValidAlbumPhoto in the trips section): 30 places per person, files in Storage at events/{eventId}/{authorId}/.
+    function albumIsOpen(eventId) {
+      let day = get(/databases/$(database)/documents/events/$(eventId)).data.date.split('-');
+      return request.time >= timestamp.date(int(day[0]), int(day[1]), int(day[2])) - duration.value(2, 'h');
+    }
+
+    function saidComing(eventId) {
+      return get(/databases/$(database)/documents/events/$(eventId)/rsvps/$(myMemberId())).data.status == 'yes';
+    }
+
+    // events/{eventId}/photos/{photoId}. Everyone who sees the event sees its album; a member who
+    // said « je viens » adds photos of their own from the day of the event. The author removes
+    // them, as do the author of the event and the admin principal. Deleting the event deletes them.
+    match /events/{eventId}/photos/{photoId} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && albumIsOpen(eventId)
+        && saidComing(eventId)
+        && isValidAlbumPhoto(request.resource.data, photoId);
+      allow delete: if isMember()
+        && (resource.data.authorId == myMemberId()
+            || isOwner()
+            || get(/databases/$(database)/documents/events/$(eventId)).data.authorId == myMemberId());
+    }
+
     // The answers of all events at once, for the counters of the planning (collectionGroup query).
     // Read only: writes go through events/{eventId}/rsvps/{memberId} above.
     match /{path=**}/rsvps/{memberId} {
@@ -355,15 +382,35 @@ service cloud.firestore {
     // reminder the evening before can be turned off; récit 32: the good news too; récit 37: the
     // question of the week). Nobody else reads
     // or changes them.
+    // Souvenirs (PRD, récit 34): members/{memberId}/souvenirs/{key}, given by the server only. A
+    // souvenir is private (carte EXPERT-3): its member reads it, and the family reads it once the
+    // member shows it (`shown`), the only field the member changes. souvenirCounters/{memberId}
+    // holds the counted gestures, read by its member only for « Encore 5 coups de main ».
+    // souvenirMarks stays closed: only the Cloud Functions use it.
+    match /members/{memberId}/souvenirs/{key} {
+      allow read: if isMember() && (memberId == myMemberId() || resource.data.shown == true);
+      allow update: if isMember()
+        && memberId == myMemberId()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['shown'])
+        && request.resource.data.shown is bool;
+      allow create, delete: if false;
+    }
+
+    match /souvenirCounters/{memberId} {
+      allow read: if isMember() && memberId == myMemberId();
+      allow write: if false;
+    }
+
     match /members/{memberId}/settings/{settingId} {
       allow read: if isMember() && myMemberId() == memberId;
       allow create, update: if isMember()
         && myMemberId() == memberId
         && settingId == 'notifications'
-        && request.resource.data.keys().hasOnly(['dayBeforeReminder', 'goodNews', 'weekly'])
+        && request.resource.data.keys().hasOnly(['dayBeforeReminder', 'goodNews', 'weekly', 'souvenirs'])
         && (!('dayBeforeReminder' in request.resource.data) || request.resource.data.dayBeforeReminder is bool)
         && (!('goodNews' in request.resource.data) || request.resource.data.goodNews is bool)
-        && (!('weekly' in request.resource.data) || request.resource.data.weekly is bool);
+        && (!('weekly' in request.resource.data) || request.resource.data.weekly is bool)
+        && (!('souvenirs' in request.resource.data) || request.resource.data.souvenirs is bool);
     }
 
     // --- Coups de main (PRD, récits 13 à 18) ---------------------------------------------------------
@@ -977,7 +1024,7 @@ service cloud.firestore {
       allow delete: if canChangePhoto(memberId) || (isMember() && !existsAfter(memberPath(memberId)));
     }
 
-    // --- Trips (V3, récits 11 à 14) ----------------------------------------------------------------
+    // --- Trips (V3, récits 11 à 15) ----------------------------------------------------------------
 
     function tripPath(tripId) {
       return /databases/$(database)/documents/trips/$(tripId);
@@ -1117,6 +1164,30 @@ service cloud.firestore {
       allow delete: if isMember() && (isParticipantOf(tripId) || isOwner());
     }
 
+    // Shape of a photo of the trip (récit 15). Each participant has 30 places, numbered 1 to 30:
+    // the id of the document is the author and the place (« m1_7 »), so the rules cap the photos
+    // per person without counting them. The files are in Storage (firebase/storage.rules), at
+    // trips/{tripId}/{authorId}/{slot}.jpg and {slot}-thumb.jpg, sent before this document.
+    function isValidAlbumPhoto(p, photoId) {
+      return p.keys().hasAll(['authorId', 'authorName', 'slot', 'createdAt'])
+        && p.keys().hasOnly(['authorId', 'authorName', 'slot', 'createdAt'])
+        && p.authorId == myMemberId()
+        && p.authorName == me().firstName
+        && p.slot is int && p.slot >= 1 && p.slot <= 30
+        && photoId == p.authorId + '_' + string(p.slot)
+        && p.createdAt == request.time;
+    }
+
+    // trips/{tripId}/photos/{photoId}. The followers see the photos; each participant adds their own,
+    // and removes them. The creator of the trip, or the admin principal, can remove any photo. A
+    // photo is never edited. Deleting the trip deletes the photos and their files on the server.
+    match /trips/{tripId}/photos/{photoId} {
+      allow read: if isMember() && myMemberId() in tripOf(tripId).readerIds;
+      allow create: if isMember() && isParticipantOf(tripId) && isValidAlbumPhoto(request.resource.data, photoId);
+      allow delete: if isMember()
+        && (resource.data.authorId == myMemberId() || canManageTrip(tripOf(tripId)));
+    }
+
     // --- App updates (lot 10) ---------------------------------------------------------------------
 
     // --- Question de la semaine (récit 37) ------------------------------------------------------
@@ -1131,10 +1202,13 @@ service cloud.firestore {
       return /databases/$(database)/documents/weeklyQuestions/$(weekId);
     }
 
-    // The 5 fields exactly. « Passer » is skipped with no text; an answer is a short text.
+    // The 5 fields, and an optional photoId. « Passer » is skipped with no text and no photo; an
+    // answer is a short text, with at most one photo in Storage (weeklyQuestions/{weekId}/{memberId}/).
     function isValidAnswer(a, memberId) {
       return a.keys().hasAll(['memberId', 'memberName', 'text', 'skipped', 'updatedAt'])
-        && a.keys().size() == 5
+        && a.keys().hasOnly(['memberId', 'memberName', 'text', 'skipped', 'updatedAt', 'photoId'])
+        && (!('photoId' in a) || a.photoId == null
+            || (!a.skipped && a.photoId is string && a.photoId.matches('^[A-Za-z0-9]{1,40}$')))
         && a.memberId == memberId
         && a.memberName == me().firstName
         && a.skipped is bool
@@ -1159,6 +1233,47 @@ service cloud.firestore {
         && isValidAnswer(request.resource.data, memberId);
 
       allow delete: if isMember() && memberId == myMemberId();
+    }
+
+    // usage/{memberId}/days/{day}: the time spent in the app, counted on the phone and sent once
+    // a day (PRD, récit 1 nonies): the openings and the seconds per part of the app, never what
+    // was read or written. Each member writes their own days only. The admin principal reads
+    // everyone's, and the responsible adults of a child read that child's (carte EXPERT-5).
+    // Nobody deletes: the TTL policy on expireAt (firestore.indexes.json) erases them after 13 months.
+    function isUsageSeconds(seconds, key) {
+      return !(key in seconds) || (seconds[key] is int && seconds[key] >= 0 && seconds[key] <= 86400);
+    }
+
+    function isValidUsageDay(d, day) {
+      return d.keys().hasAll(['day', 'opens', 'seconds', 'expireAt'])
+        && d.keys().hasOnly(['day', 'opens', 'seconds', 'expireAt'])
+        && isDay(day) && d.day == day
+        && d.opens is int && d.opens >= 0 && d.opens <= 500
+        && d.seconds is map
+        && d.seconds.keys().hasOnly(['home', 'planning', 'gifts', 'help', 'goodNews', 'weeklyQuestion', 'trips', 'family', 'other'])
+        && isUsageSeconds(d.seconds, 'home') && isUsageSeconds(d.seconds, 'planning')
+        && isUsageSeconds(d.seconds, 'gifts') && isUsageSeconds(d.seconds, 'help')
+        && isUsageSeconds(d.seconds, 'goodNews') && isUsageSeconds(d.seconds, 'weeklyQuestion')
+        && isUsageSeconds(d.seconds, 'trips') && isUsageSeconds(d.seconds, 'family')
+        && isUsageSeconds(d.seconds, 'other')
+        && d.expireAt is timestamp;
+    }
+
+    match /usage/{memberId}/days/{day} {
+      allow read: if isMember()
+        && (isOwner() || myMemberId() in get(memberPath(memberId)).data.parentIds);
+      allow create, update: if isMember()
+        && memberId == myMemberId()
+        && isValidUsageDay(request.resource.data, day);
+      allow delete: if false;
+    }
+
+    // consumption/{day}: the use of the database each day, read from Cloud Monitoring by the
+    // 30-minute task, from 8 h (récit 1 sexies). Only the admin principal sees it, in
+    // Administration › Consommation; only the server writes it.
+    match /consumption/{day} {
+      allow read: if isOwner();
+      allow write: if false;
     }
 
     // config/app: the latest version and the HTTPS link of its APK (docs/mise-a-jour.md), and

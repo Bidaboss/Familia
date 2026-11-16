@@ -14,6 +14,7 @@ import fr.familia.app.feature.update.rememberInAppUpdater
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.notifications.NotificationChannels
 import fr.familia.app.core.model.FeatureFlags
+import fr.familia.app.core.model.UsageScreen
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.update.UpdateCheckRoute
 import kotlinx.coroutines.flow.catch
@@ -50,6 +51,7 @@ import fr.familia.app.feature.help.HelpRoute
 import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
 import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
+import fr.familia.app.feature.members.profile.MemberProfileRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyArchiveRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionRoute
 import fr.familia.app.feature.help.LocalOpenHelp
@@ -59,6 +61,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -90,6 +93,7 @@ import fr.familia.app.feature.planning.PlanningRoute
 import fr.familia.app.feature.home.HomeActions
 import fr.familia.app.feature.home.HomePreferences
 import fr.familia.app.feature.settings.appearance.AppIconSwitcher
+import fr.familia.app.feature.usage.UsageRoute
 import fr.familia.app.feature.settings.appearance.AppearanceScreen
 import fr.familia.app.feature.settings.appearance.ThemePreferences
 import fr.familia.app.core.theme.FamiliaClay
@@ -123,19 +127,26 @@ import fr.familia.app.feature.helprequests.list.HelpRequestsRoute
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import kotlinx.coroutines.flow.combine
+import fr.familia.app.feature.events.album.EventAlbumDestination
+import fr.familia.app.feature.events.album.EventAlbumRoute
+import fr.familia.app.feature.month.MonthSlideshowDestination
+import fr.familia.app.feature.month.MonthSlideshowRoute
 import fr.familia.app.feature.trips.TripDetailDestination
 import fr.familia.app.feature.trips.TripEditDestination
+import fr.familia.app.feature.trips.TripPhotosDestination
 import fr.familia.app.feature.trips.TripStepEditDestination
 import fr.familia.app.feature.trips.TripsDestination
 import fr.familia.app.feature.trips.detail.TripDetailRoute
 import fr.familia.app.feature.trips.edit.TripEditRoute
 import fr.familia.app.feature.trips.list.TripsRoute
+import fr.familia.app.feature.trips.photos.TripPhotosRoute
 import fr.familia.app.feature.trips.step.StepEditRoute
 import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
+import java.time.YearMonth
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
 @Composable
@@ -161,6 +172,8 @@ fun FamiliaApp(
     /** The question of the week of a tapped notification, to open once (récit 37). */
     openWeeklyQuestionId: String? = null,
     onWeeklyQuestionOpened: () -> Unit = {},
+    openSouvenir: Boolean = false,
+    onSouvenirOpened: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
     // Each time the app opens, this phone is (re)registered for the notifications of this member.
@@ -283,6 +296,13 @@ fun FamiliaApp(
     }
     // And for the question of the week (récit 37).
     val weeklyOn = features.isOn(Feature.WeeklyQuestion)
+    val souvenirsOn = features.isOn(Feature.Souvenirs)
+    LaunchedEffect(openSouvenir, souvenirsOn) {
+        if (openSouvenir && souvenirsOn) {
+            navController.navigate(MemberProfileDestination(currentMember.id))
+            onSouvenirOpened()
+        }
+    }
     LaunchedEffect(openWeeklyQuestionId, weeklyOn) {
         if (openWeeklyQuestionId != null && weeklyOn) {
             navController.navigate(WeeklyQuestionDestination(openWeeklyQuestionId))
@@ -316,6 +336,18 @@ fun FamiliaApp(
     val scope = rememberCoroutineScope()
     val confirm: (Confirmation) -> Unit = { confirmation ->
         scope.launch { snackbar.showConfirmation(context.getString(confirmation.textRes)) }
+    }
+
+    // Time spent in the app (PRD, récit 1 nonies): counted on this phone only once the module is on
+    // for the family, the admin principal included, then sent once a day.
+    val usageTracker = container?.usageTracker
+    if (usageTracker != null && features.isOnForFamily(Feature.Usage)) {
+        val usageScreen = UsageScreen.forRoute(currentDestination?.route)
+        LifecycleStartEffect(usageTracker, currentMember.id) {
+            usageTracker.start(currentMember.id)
+            onStopOrDispose { usageTracker.stop() }
+        }
+        LaunchedEffect(usageTracker, usageScreen) { usageTracker.show(usageScreen) }
     }
 
     // The theme chosen on this phone shows once the Thèmes module is on; before, Classique (DESIGN-7).
@@ -410,6 +442,7 @@ fun FamiliaApp(
                             onOpenGoodNews = { id -> navController.navigate(GoodNewsDetailDestination(id)) },
                             onPublishGoodNews = { navController.navigate(GoodNewsEditDestination()) },
                             onOpenWeeklyQuestion = { navController.navigate(WeeklyQuestionDestination()) },
+                            onOpenMonth = { month -> navController.navigate(MonthSlideshowDestination(month.year, month.monthValue)) },
                         )
                     }
                     composable<PlanningRoute> {
@@ -440,6 +473,15 @@ fun FamiliaApp(
                             onEditTrip = { navController.navigate(TripEditDestination(tripId)) },
                             onAddStep = { navController.navigate(TripStepEditDestination(tripId)) },
                             onEditStep = { stepId -> navController.navigate(TripStepEditDestination(tripId, stepId)) },
+                            onSeePhotos = { navController.navigate(TripPhotosDestination(tripId)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<TripPhotosDestination> { entry ->
+                        TripPhotosRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            tripId = entry.toRoute<TripPhotosDestination>().tripId,
                             onBack = { navController.popBackStack() },
                         )
                     }
@@ -481,6 +523,24 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             eventId = eventId,
                             onEdit = { navController.navigate(EventEditDestination(eventId)) },
+                            onOpenAlbum = { navController.navigate(EventAlbumDestination(eventId)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<MonthSlideshowDestination> { entry ->
+                        val route = entry.toRoute<MonthSlideshowDestination>()
+                        MonthSlideshowRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            month = YearMonth.of(route.year, route.month),
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<EventAlbumDestination> { entry ->
+                        EventAlbumRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            eventId = entry.toRoute<EventAlbumDestination>().eventId,
                             onBack = { navController.popBackStack() },
                         )
                     }
@@ -648,6 +708,16 @@ fun FamiliaApp(
                             onArchive = { navController.navigate(WeeklyArchiveDestination) { launchSingleTop = true } },
                         )
                     }
+                    composable<MemberProfileDestination> { entry ->
+                        val memberId = entry.toRoute<MemberProfileDestination>().memberId
+                        MemberProfileRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            memberId = memberId,
+                            onBack = { navController.popBackStack() },
+                            onEdit = { navController.navigate(MemberEditDestination(memberId)) },
+                        )
+                    }
                     composable<WeeklyArchiveDestination> {
                         WeeklyArchiveRoute(
                             container = container,
@@ -669,11 +739,13 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             onEditMember = { id -> navController.navigate(MemberEditDestination(id)) },
+                            onOpenProfile = if (souvenirsOn) ({ id -> navController.navigate(MemberProfileDestination(id)) }) else null,
                             onOpenNotifications = { navController.navigate(NotificationSettingsDestination) },
                             onOpenAdministration = { navController.navigate(AdministrationDestination) },
                             onOpenUpdates = { navController.navigate(UpdateCheckDestination) },
                             onOpenHelp = { navController.navigate(HelpDestination) },
                             onOpenAppearance = if (themesOn) ({ navController.navigate(AppearanceDestination) }) else null,
+                            onOpenChildrenUsage = if (features.isOn(Feature.Usage)) ({ navController.navigate(UsageDestination) }) else null,
                             onOpenWishes = if (features.isOn(Feature.Gifts)) {
                                 { id -> navController.navigate(GiftListDestination(wishesListId(id))) }
                             } else {
@@ -698,7 +770,11 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             onOpenExport = { navController.navigate(ExportDestination) },
                             onBack = { navController.popBackStack() },
+                            onOpenUsage = { navController.navigate(UsageDestination) },
                         )
+                    }
+                    composable<UsageDestination> {
+                        UsageRoute(container = container, currentMember = currentMember, onBack = { navController.popBackStack() })
                     }
                     composable<ExportDestination> {
                         ExportRoute(container = container, onBack = { navController.popBackStack() })

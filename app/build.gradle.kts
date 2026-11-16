@@ -118,6 +118,10 @@ dependencies {
     implementation(libs.googleid)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.androidx.exifinterface)
+    // The films of the albums (récit 16), made on the phone from their photos.
+    implementation(libs.media3.transformer)
+    implementation(libs.media3.effect)
+    implementation(libs.media3.common)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     testImplementation(libs.junit)
