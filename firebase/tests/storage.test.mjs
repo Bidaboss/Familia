@@ -217,6 +217,52 @@ describe('events folder (récit 41)', () => {
   });
 });
 
+describe('cover of an event (récit 44)', () => {
+  // Each test has an event of its own, written by adult1, whose cover is the photo c1 of adult1:
+  // a file left by another test never gets in the way.
+  let n = 0;
+  const cover = (author, name) => `events/c${n}/cover/${author}/${name}`;
+  beforeEach(async () => {
+    n += 1;
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `events/c${n}`), { title: 'Repas', authorId: 'adult1', coverPhoto: `events/c${n}/cover/adult1/c1` });
+    });
+  });
+
+  test('a member sends a cover and its thumbnail to their own folder, and the family sees it', async () => {
+    const storage = storageAs(ADULT);
+    await assertSucceeds(uploadString(ref(storage, cover('adult1', 'c1.jpg')), 'x'.repeat(300 * 1024), 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storage, cover('adult1', 'c1-thumb.jpg')), 'x'.repeat(30 * 1024), 'raw', jpeg));
+    await assertSucceeds(getBytes(ref(storageAs(OTHER_ADULT), cover('adult1', 'c1.jpg'))));
+    await assertFails(getBytes(ref(storageAs(STRANGER), cover('adult1', 'c1.jpg'))));
+  });
+
+  test('never to the folder of someone else, never replaced, only a small JPEG', async () => {
+    const storage = storageAs(ADULT);
+    await assertFails(uploadString(ref(storageAs(OTHER_ADULT), cover('adult1', 'c2.jpg')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storageAs(STRANGER), cover('adult1', 'c2.jpg')), 'x', 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storage, cover('adult1', 'c2.jpg')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, cover('adult1', 'c2.jpg')), 'y', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, cover('adult1', 'c3.jpg')), 'x'.repeat(513 * 1024), 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, cover('adult1', 'c3-thumb.jpg')), 'x'.repeat(65 * 1024), 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, cover('adult1', 'c3.png')), 'x', 'raw', { contentType: 'image/png' }));
+    await assertFails(uploadString(ref(storage, cover('adult1', 'c.3.jpg')), 'x', 'raw', jpeg));
+  });
+
+  test('its sender removes it; the others only a cover the event no longer names', async () => {
+    const storage = storageAs(ADULT);
+    for (const name of ['c1.jpg', 'c1-thumb.jpg', 'c0.jpg', 'c0-thumb.jpg']) {
+      await uploadString(ref(storage, cover('adult1', name)), 'x', 'raw', jpeg);
+    }
+    await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), cover('adult1', 'c1.jpg'))));
+    await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), cover('adult1', 'c1-thumb.jpg'))));
+    await assertSucceeds(deleteObject(ref(storageAs(OTHER_ADULT), cover('adult1', 'c0.jpg'))));
+    await assertSucceeds(deleteObject(ref(storageAs(OTHER_ADULT), cover('adult1', 'c0-thumb.jpg'))));
+    await assertSucceeds(deleteObject(ref(storage, cover('adult1', 'c1.jpg'))));
+    await assertFails(deleteObject(ref(storageAs(STRANGER), cover('adult1', 'c1-thumb.jpg'))));
+  });
+});
+
 describe('recipes folder (récit 38)', () => {
   // r1 is written by adult1.
   beforeEach(async () => {
