@@ -57,6 +57,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.share.ShareButton
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 import fr.familia.app.core.ui.BackButton
@@ -87,6 +88,8 @@ fun EventDetailScreen(
     modifier: Modifier = Modifier,
     /** « Ajouter à mon agenda » (PRD, récit 30); hidden when null. */
     onAddToCalendar: (() -> Unit)? = null,
+    /** « Partager » vers une messagerie (PRD, récit 31); hidden when null. */
+    onShare: (() -> Unit)? = null,
     album: @Composable () -> Unit = {},
 ) {
     Scaffold(
@@ -98,6 +101,7 @@ fun EventDetailScreen(
                     BackButton(onClick = onBack)
                 },
                 actions = {
+                    if (onShare != null && state is EventDetailUiState.Success) ShareButton(onClick = onShare)
                     HelpButton(ScreenHelp.EventDetail)
                 },
             )

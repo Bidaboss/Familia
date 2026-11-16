@@ -37,6 +37,14 @@ Ces étapes ont été faites pour le projet `familia-93286` le 14/11/2026. Il fa
 - Les fonctions tournent en **Europe (europe-west1)**. C'est réglé dans le code (`functions/src/index.ts`).
 - Au premier déploiement, Firebase active lui-même les services nécessaires (Cloud Functions, Cloud Build, Cloud Scheduler pour le rappel de 18 h). S'il échoue en signalant une API pas encore activée, attends 2 minutes et relance.
 
+## La page des liens partagés (récit 31)
+
+« Publier Firebase » publie aussi le dossier `firebase/hosting` sur Firebase Hosting, à l'adresse `https://familia-93286.web.app`. Cette page ne contient aucune donnée de la famille : elle lit seulement le type d'élément dans le lien (« Un événement de la famille ») et propose d'ouvrir l'appli. Hosting est gratuit jusqu'à 10 Go par mois, et la page pèse quelques ko.
+
+- **Le lien d'installation** n'est jamais sur la page : elle dit de le demander à la personne qui a envoyé le message. L'afficher serait une décision de Kévin.
+- **L'ouverture directe de l'appli** (App Links) passe par `firebase/hosting/.well-known/assetlinks.json`, qui donne l'empreinte SHA-256 de la clé de publication. Elle est publique par nature : c'est celle qu'affiche le résumé de « APK de publication ». Si la clé change un jour, remplace cette empreinte.
+- **Vérifier :** ouvre `https://familia-93286.web.app/.well-known/assetlinks.json` dans un navigateur. **Attendu :** le fichier s'affiche avec `fr.familia.app`.
+
 ## Publier depuis un ordinateur (secours)
 
 Depuis le dossier `firebase`, avec Node.js 22 :

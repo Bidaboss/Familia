@@ -64,7 +64,25 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop" />
+            android:launchMode="singleTop">
+            <!-- The link of a share (PRD, récit 31) opens the item in the app. autoVerify: Android
+                 checks firebase/hosting/.well-known/assetlinks.json, then opens the release app
+                 without asking. The page of the link opens the familia:// form, for the test app too. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" />
+                <data android:host="familia-93286.web.app" />
+                <data android:pathPrefix="/o/" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="familia" android:host="o" />
+            </intent-filter>
+        </activity>
 
         <!-- The 3 app icons, chosen in Famille › Réglages › Apparence (AppIcon). Only one is
              enabled at a time; Olivier is the default. -->

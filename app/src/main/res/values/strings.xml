@@ -916,6 +916,17 @@
     <string name="help_screen_capsules_body">Une capsule, c\'est un message pour plus tard : un texte et jusqu\'à 3 photos, pour les personnes de ton choix, qui s\'ouvre le jour que tu choisis, entre un mois et cinq ans plus tard. Jusqu\'à ce jour-là, toi seul peux la lire : les destinataires ne savent même pas qu\'elle existe, et l\'administrateur non plus. Le jour venu, ils reçoivent une notification et la trouvent ici. Tu peux supprimer une de tes capsules tant qu\'elle n\'est pas ouverte, mais jamais la modifier. Une fois ouverte, elle devient un souvenir de ceux qui l\'ont reçue.</string>
     <string name="month_empty">Pas de photo ce mois-ci. Celles des voyages et des événements apparaissent ici.</string>
     <!-- Before a video leaves the app (carte EXPERT-6): the film, the album and the slideshow. -->
+    <!-- Partager vers une messagerie (récit 31) -->
+    <string name="share_button">Partager</string>
+    <string name="share_chooser">Partager avec…</string>
+    <string name="share_no_app">Aucune appli de ce téléphone ne sait partager.</string>
+    <string name="share_when_time">%1$s à %2$s</string>
+    <string name="share_event_text">%1$s, %2$s. Les détails sont dans Familia :</string>
+    <string name="share_event_text_place">%1$s, %2$s, %3$s. Les détails sont dans Familia :</string>
+    <string name="share_poll_line">Sondage de la famille</string>
+    <string name="share_poll_text">Sondage dans Familia : %1$s Réponds ici :</string>
+    <string name="share_birthday_text">Anniversaire de %1$s : %2$s le %3$s. On se retrouve dans Familia :</string>
+    <string name="feature_share">Partager vers une messagerie</string>
     <string name="share_consent_title">Avant de partager</string>
     <string name="share_consent_body">Des enfants apparaissent peut-être sur ces photos. Pense à demander l\'accord de leurs parents avant d\'envoyer la vidéo hors de Familia.</string>
     <string name="share_consent_continue">Continuer</string>
