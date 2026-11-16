@@ -53,8 +53,8 @@ fun formatCents(cents: Long): String = formatEuros(cents / 100.0)
 
 /**
  * The accounts of a trip (PRD rév. 193, récit 16 bis): the balance of each household, « Qui
- * rembourse qui » and the expenses, newest first. Stateless. [onAdd] and [onEdit] are null until
- * the expense form exists, and while the accounts are closed.
+ * rembourse qui » and the expenses, newest first. Stateless. Nothing is added or changed once the
+ * accounts are closed; an expense opens only for its author and the creator of the trip.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
