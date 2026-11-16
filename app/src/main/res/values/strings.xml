@@ -1280,13 +1280,21 @@
     <string name="home_todo_vote">Sondage de %1$s · à toi de répondre</string>
     <string name="home_open_poll">ouvrir le sondage</string>
     <string name="home_open_help">ouvrir le coup de main</string>
-    <string name="home_week_title">Les 7 prochains jours</string>
+    <string name="home_week_title">Cette semaine</string>
     <plurals name="home_week_more">
         <item quantity="one">Et %d autre événement</item>
         <item quantity="many">Et %d autres événements</item>
         <item quantity="other">Et %d autres événements</item>
     </plurals>
-    <string name="home_week_all">Voir le planning</string>
+    <string name="home_week_all">Tout le planning</string>
+    <!-- DESIGN-11, Accueil (PRD rév. 205): the row of chips under the blocks. -->
+    <string name="home_chip_detail">%1$s · %2$s</string>
+    <string name="home_chip_trips_ongoing">Voyages · en cours</string>
+    <plurals name="home_chip_birthdays">
+        <item quantity="one">Anniversaires · %d</item>
+        <item quantity="many">Anniversaires · %d</item>
+        <item quantity="other">Anniversaires · %d</item>
+    </plurals>
     <string name="home_birthdays_title">Anniversaires à venir</string>
     <string name="home_open_wishes">voir ses envies</string>
     <string name="home_occasion_title">Prochaine occasion</string>
@@ -1337,6 +1345,12 @@
 
     <!-- Question de la semaine (récit 37) -->
     <string name="weekly_title">Question de la semaine</string>
+    <string name="weekly_chip_to_answer">Question de la semaine · à toi !</string>
+    <plurals name="weekly_chip_answers">
+        <item quantity="one">Question de la semaine · %d réponse</item>
+        <item quantity="many">Question de la semaine · %d réponses</item>
+        <item quantity="other">Question de la semaine · %d réponses</item>
+    </plurals>
     <string name="weekly_none_title">Pas encore de question</string>
     <string name="weekly_none_body">Chaque lundi à 9 h, une nouvelle question arrive pour toute la famille.</string>
     <string name="weekly_week_of">Semaine du %1$s</string>
@@ -1557,6 +1571,8 @@
 
     <!-- L'arbre de la famille et le défi du mois (récit 35) -->
     <string name="tree_title">L\'arbre de la famille</string>
+    <string name="tree_chip">L\'arbre · %1$s</string>
+    <string name="tree_chip_host">L\'arbre · à vous de lancer le défi</string>
     <string name="tree_description">Arbre de la famille, palier %1$d sur 7</string>
     <plurals name="tree_leaves">
         <item quantity="one">%d feuille</item>

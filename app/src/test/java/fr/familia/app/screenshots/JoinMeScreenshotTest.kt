@@ -4,6 +4,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import com.github.takahirom.roborazzi.captureRoboImage
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.feature.joinme.JoinMeHomeContent
 import fr.familia.app.feature.joinme.JoinMeScreen
 import fr.familia.app.feature.joinme.previewJoinMe
@@ -28,7 +29,7 @@ class JoinMeScreenshotTest {
 
     private val card: @Composable () -> Unit = {
         Surface {
-            JoinMeHomeContent(previewJoinMe(Instant.parse("2026-11-21T16:00:00Z")), false, {}, {}, zone = ZoneId.of("Europe/Paris"))
+            ClayCard { JoinMeHomeContent(previewJoinMe(Instant.parse("2026-11-21T16:00:00Z")), false, {}, zone = ZoneId.of("Europe/Paris")) }
         }
     }
 

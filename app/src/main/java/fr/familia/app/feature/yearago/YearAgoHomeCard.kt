@@ -37,6 +37,7 @@ import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.viewas.LocalViewAs
+import fr.familia.app.feature.home.HomeChip
 import java.time.LocalDate
 
 /** The « Il y a un an » card of the Accueil (récit 36): shown only on a day that has a souvenir. */
@@ -48,6 +49,33 @@ fun YearAgoHomeCard(
     onOpenTrip: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val viewModel = yearAgoViewModel(container, currentMember)
+    val memory by viewModel.memory.collectAsStateWithLifecycle()
+    memory?.let { m ->
+        YearAgoContent(
+            memory = m,
+            onOpen = {
+                when (m) {
+                    is YearAgoMemory.News -> onOpenGoodNews(m.news.id)
+                    is YearAgoMemory.TripPhoto -> onOpenTrip(m.trip.id)
+                }
+            },
+            onDismiss = if (viewModel.canDismiss) ({ viewModel.dismiss(m) }) else null,
+            modifier = modifier,
+        )
+    }
+}
+
+/** The chip of « Il y a un an » on the Accueil (DESIGN-11): only on a day with a souvenir; it opens [YearAgoHomeCard]. */
+@Composable
+fun YearAgoHomeChip(container: AppContainer?, currentMember: Member, selected: Boolean, onToggle: () -> Unit) {
+    val memory by yearAgoViewModel(container, currentMember).memory.collectAsStateWithLifecycle()
+    if (memory == null) return
+    HomeChip(label = stringResource(R.string.year_ago_title), onClick = onToggle, selected = selected)
+}
+
+@Composable
+private fun yearAgoViewModel(container: AppContainer?, currentMember: Member): YearAgoViewModel {
     val context = LocalContext.current
     val store = remember(context) { YearAgoPreferences(context.applicationContext) }
     val viewingAs = LocalViewAs.current.viewed != null
@@ -56,7 +84,7 @@ fun YearAgoHomeCard(
     val flags = LocalFeatureFlags.current
     val newsOn = flags.isOn(Feature.GoodNews)
     val tripsOn = flags.isOn(Feature.Trips)
-    val viewModel: YearAgoViewModel = viewModel(
+    return viewModel(
         key = "yearAgo-$today-${currentMember.id}-$newsOn-$tripsOn",
         factory = viewModelFactory {
             initializer {
@@ -72,20 +100,6 @@ fun YearAgoHomeCard(
             }
         },
     )
-    val memory by viewModel.memory.collectAsStateWithLifecycle()
-    memory?.let { m ->
-        YearAgoContent(
-            memory = m,
-            onOpen = {
-                when (m) {
-                    is YearAgoMemory.News -> onOpenGoodNews(m.news.id)
-                    is YearAgoMemory.TripPhoto -> onOpenTrip(m.trip.id)
-                }
-            },
-            onDismiss = if (viewModel.canDismiss) ({ viewModel.dismiss(m) }) else null,
-            modifier = modifier,
-        )
-    }
 }
 
 @Composable

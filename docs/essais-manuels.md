@@ -301,6 +301,13 @@ Avant ces essais : « Publier Firebase » a publié les règles (Firestore et St
 11. Mode avion, avec une capture. **Attendu :** au bout d'un moment, « L'envoi n'a pas marché », et le texte et la capture restent là. Sans capture, l'envoi part plus tard tout seul.
 12. Dans **Retours**, touche **Copier pour Claude**, puis colle dans une note. **Attendu :** le type, la date, l'écran, le téléphone, l'état et le texte, sans le prénom de l'auteur.
 
+## Accueil plus calme (DESIGN-11, PRD rév. 205)
+1. Thème Classique clair : au plus 4 blocs, dans cet ordre : « À faire pour moi » (en relief), « Cette semaine » (3 lignes et « Tout le planning › »), « Bonnes nouvelles ». Les cartes sont blanches, avec une pastille de couleur devant le titre quand il y en a une.
+2. Sous les blocs, une rangée de puces : Anniversaires d'abord, puis la question, l'arbre, le diaporama (à partir du dernier dimanche du mois), les voyages, la prochaine occasion, « Il y a un an » et « Dire où je suis ». Une puce n'apparaît que si elle a quelque chose à dire.
+3. Toucher « Anniversaires », « L'arbre », « Voyages » ou « Il y a un an » ouvre sa carte sous la rangée ; la toucher encore la referme. Une seule carte est ouverte à la fois. Les autres puces ouvrent leur écran.
+4. Avec un deuxième téléphone, envoyer « Rejoignez-moi » : le lieu reçu apparaît en tête de « À faire pour moi », avec « Itinéraire ». Le bloc apparaît même sans autre chose à faire.
+5. Thème sombre puis Contraste fort : les cartes gardent leurs teintes, et Contraste fort ses bordures.
+
 ## La bienvenue (récit 43)
 
 **À garder éteint pour la démo du 21/11** : ce jour-là, toute la famille se connecte pour la première fois, et chacun recevrait une notification par nouvel arrivant. Ne l'allume qu'après, pour ceux qui arrivent plus tard.
