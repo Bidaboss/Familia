@@ -40,6 +40,7 @@ import fr.familia.app.core.model.FamilyTree
 import fr.familia.app.core.model.GiftClaim
 import fr.familia.app.core.model.GiftItem
 import fr.familia.app.core.model.GiftList
+import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftShare
 import fr.familia.app.core.model.GiftStatus
@@ -77,6 +78,7 @@ import fr.familia.app.core.place.Place
 import fr.familia.app.feature.auth.AuthRepository
 import fr.familia.app.feature.auth.AuthUser
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
@@ -279,8 +281,18 @@ class ReadOnlyAppConfigRepository(private val inner: AppConfigRepository, privat
     override suspend fun setFeature(key: String, enabled: Boolean) = guard.refuse()
 }
 
-class ReadOnlyGiftRepository(private val inner: GiftRepository, private val guard: ViewAsGuard) : GiftRepository {
-    override fun observeVisibleLists(memberId: String): Flow<List<GiftList>> = inner.observeVisibleLists(memberId)
+/**
+ * [adminId] reads, so a query for the lists of the member looked at would be refused as soon as one
+ * of them is kept from the admin (their own surprise): the admin's lists are read instead, and only
+ * those the member also sees are kept. The others stay hidden (« Masqué : c'est ta surprise »).
+ */
+class ReadOnlyGiftRepository(
+    private val inner: GiftRepository,
+    private val guard: ViewAsGuard,
+    private val adminId: String,
+) : GiftRepository {
+    override fun observeVisibleLists(memberId: String): Flow<List<GiftList>> =
+        inner.observeVisibleLists(adminId).map { lists -> listsSeenBy(lists, memberId) }
     override fun observeList(listId: String): Flow<GiftList?> = inner.observeList(listId)
     override fun observeItems(listId: String, hiddenFromMe: Boolean): Flow<List<GiftItem>> = inner.observeItems(listId, hiddenFromMe)
     override fun observeClaims(listId: String): Flow<List<GiftClaim>> = inner.observeClaims(listId)
@@ -368,4 +380,9 @@ class ReadOnlyNotificationRepository(private val inner: NotificationRepository, 
     override suspend fun setSouvenirs(memberId: String, enabled: Boolean) = guard.refuse()
     override fun observeTree(memberId: String): Flow<Boolean> = inner.observeTree(memberId)
     override suspend fun setTree(memberId: String, enabled: Boolean) = guard.refuse()
+}
+
+/** The lists of [lists] that [memberId] sees, by the rule of canSeeList (firebase/firestore.rules). */
+fun listsSeenBy(lists: List<GiftList>, memberId: String): List<GiftList> = lists.filter { list ->
+    list.kind == GiftListKind.Wishes || memberId in list.viewerIds || (list.beneficiaryId == memberId && list.revealed)
 }
