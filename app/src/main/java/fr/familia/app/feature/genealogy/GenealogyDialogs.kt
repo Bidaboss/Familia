@@ -258,3 +258,21 @@ internal fun RemoveKinDialog(kin: Kin, onConfirm: () -> Unit, onDismiss: () -> U
         },
     )
 }
+
+/** Asked before a link leaves the tree: it goes for the whole family (relecture #125). */
+@Composable
+internal fun RemoveLinkDialog(firstName: String, otherName: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.genealogy_link_remove_title, firstName, otherName)) },
+        text = { Text(stringResource(R.string.genealogy_link_remove_body)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.genealogy_link_remove), color = MaterialTheme.colorScheme.error)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
+        },
+    )
+}

@@ -52,6 +52,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -448,6 +449,8 @@ internal fun PersonCard(
         } else {
             // Each link on its own line, with « Retirer » where I may change it.
             val mine = tree.links.filter { it.aId == person.id || it.bId == person.id }
+            // Removing a link changes the tree for the whole family: asked once more.
+            var confirm by remember { mutableStateOf<KinLink?>(null) }
             mine.forEach { link ->
                 val otherId = if (link.aId == person.id) link.bId else link.aId
                 val other = tree.people[otherId] ?: return@forEach
@@ -456,14 +459,31 @@ internal fun PersonCard(
                     link.bId == person.id -> R.string.genealogy_role_parent
                     else -> R.string.genealogy_role_child
                 }
+                val label = stringResource(role, other.firstName)
+                val removeLabel = stringResource(R.string.genealogy_link_remove_described, label)
                 Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(stringResource(role, other.firstName), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                    Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
                     if (canEditLink(link)) {
-                        TextButton(onClick = { onRemoveLink(link) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                        TextButton(
+                            onClick = { confirm = link },
+                            modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = removeLabel },
+                        ) {
                             Text(stringResource(R.string.genealogy_link_remove))
                         }
                     }
                 }
+            }
+            confirm?.let { link ->
+                val otherId = if (link.aId == person.id) link.bId else link.aId
+                RemoveLinkDialog(
+                    firstName = person.firstName,
+                    otherName = tree.people[otherId]?.firstName.orEmpty(),
+                    onConfirm = {
+                        confirm = null
+                        onRemoveLink(link)
+                    },
+                    onDismiss = { confirm = null },
+                )
             }
         }
         if (onWord != null) {

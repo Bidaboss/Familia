@@ -276,6 +276,9 @@
     <string name="genealogy_link_new_kin">Un proche sans compte, à créer</string>
     <string name="genealogy_link_confirm">Relier</string>
     <string name="genealogy_link_remove">Retirer</string>
+    <string name="genealogy_link_remove_described">Retirer le lien %1$s</string>
+    <string name="genealogy_link_remove_title">Retirer le lien entre %1$s et %2$s ?</string>
+    <string name="genealogy_link_remove_body">Le lien disparaît de l\'arbre pour toute la famille. Tu pourras le refaire.</string>
     <string name="genealogy_relation_parent">Un parent de %1$s</string>
     <string name="genealogy_relation_child">Un enfant de %1$s</string>
     <string name="genealogy_relation_partner">Le conjoint ou la conjointe de %1$s</string>
