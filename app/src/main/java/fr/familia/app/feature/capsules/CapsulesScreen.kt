@@ -49,7 +49,7 @@ import java.util.Locale
 fun CapsulesScreen(
     state: CapsulesUiState,
     onBack: () -> Unit,
-    /** Opens a capsule, once its page exists. */
+    /** Opens a capsule (null in previews of the list alone). */
     onOpen: ((capsuleId: String) -> Unit)? = null,
     /** « Nouvelle capsule », once the form exists. */
     onAdd: (() -> Unit)? = null,
