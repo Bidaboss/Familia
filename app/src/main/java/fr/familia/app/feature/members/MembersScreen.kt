@@ -342,7 +342,14 @@ private class Treasure(
     @StringRes val labelRes: Int,
     @StringRes val openLabelRes: Int,
     val onClick: () -> Unit,
-)
+) {
+    /**
+     * The short form used before the tiles (« Qui est-ce ? », #173): a warm color, and its name read
+     * as is. Lets either PR land first without breaking main.
+     */
+    constructor(key: String, icon: ImageVector, @StringRes labelRes: Int, onClick: () -> Unit) :
+        this(key, icon, SouvenirFamily.Share, labelRes, labelRes, onClick)
+}
 
 /**
  * « Nos trésors » (DESIGN-12): a small title, then one tile per module on, of equal width. A tile
