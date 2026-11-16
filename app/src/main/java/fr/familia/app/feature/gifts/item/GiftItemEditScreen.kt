@@ -24,6 +24,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.FilterChip
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import fr.familia.app.core.model.GiftOccasion
+import fr.familia.app.feature.gifts.wishOccasionLabel
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -185,6 +190,9 @@ private fun FormContent(
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             modifier = Modifier.fillMaxWidth(),
         )
+        if (state.showOccasion) {
+            WishOccasionChoice(form.occasion, state.forMe) { value -> onChange { it.copy(occasion = value) } }
+        }
         if (state.saveFailed) {
             Text(stringResource(R.string.gift_save_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
         }
@@ -247,4 +255,23 @@ internal fun previewGiftItemForm(errors: Set<GiftItemFormError> = emptySet()) = 
 @Composable
 private fun GiftItemEditScreenPreview() {
     FamiliaTheme { Surface { GiftItemEditScreen(previewGiftItemForm(), {}, {}, {}, {}) } }
+}
+
+/** What a wish is for (récit 9 ter): « Quand tu veux » by default, Christmas or the birthday. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun WishOccasionChoice(selected: GiftOccasion?, forMe: Boolean, onSelect: (GiftOccasion?) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(stringResource(R.string.gift_item_occasion_label), style = MaterialTheme.typography.titleSmall)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(null, GiftOccasion.Christmas, GiftOccasion.Birthday).forEach { occasion ->
+                FilterChip(
+                    selected = selected == occasion,
+                    onClick = { onSelect(occasion) },
+                    label = { Text(wishOccasionLabel(occasion, forMe)) },
+                    modifier = Modifier.heightIn(min = 48.dp),
+                )
+            }
+        }
+    }
 }
