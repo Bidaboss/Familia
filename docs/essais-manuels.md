@@ -354,6 +354,10 @@ Avec le module « Le coin des petits » allumé, un compte adulte qui a un enfan
 3. Avec l'autre compte, ouvre les Bonnes nouvelles et touche le filtre « Les petits ». **Attendu :** seules celles des petits restent. Touche-le encore : tout revient.
 4. Éteins le module. **Attendu :** ni l'interrupteur, ni le filtre, ni l'étiquette pour les membres (l'admin principal voit toujours tout).
 
+## Voir comme : aucune écriture à l'ouverture
+1. Admin principal : Administration › Voir comme › un membre. Naviguer dans tous les onglets : aucun message « Lecture seule » n'apparaît tant qu'on ne touche aucun bouton d'action.
+2. Quitter Voir comme : les notifications arrivent toujours sur le téléphone de l'admin (il n'a pas été inscrit pour le membre regardé).
+
 ## Le petit geste du jour (récit 43)
 
 Avec le module « Le petit geste du jour » allumé, deux comptes adultes.

@@ -70,7 +70,7 @@ class ReadOnlyRepositoriesTest {
     }
 
     @Test
-    fun `the phone is never registered for the member looked at, and silently`() = runTest {
+    fun `the phone is never registered for the member looked at`() = runTest {
         var registered = false
         val real = object : NotificationRepository {
             override suspend fun registerThisDevice(memberId: String) { registered = true }
@@ -78,12 +78,12 @@ class ReadOnlyRepositoriesTest {
             override suspend fun setDayBeforeReminder(memberId: String, enabled: Boolean) = fail("written")
         }
         val notifications = ReadOnlyNotificationRepository(real, guard)
-        notifications.registerThisDevice("adult1")
+        // The app does not even try (FamiliaApp skips it in « Voir comme »); a call would be refused.
+        assertRefused { notifications.registerThisDevice("adult1") }
         assertFalse(registered)
-        assertEquals(0, refused)
         assertFalse(notifications.observeDayBeforeReminder("adult1").first())
         assertRefused { notifications.setDayBeforeReminder("adult1", true) }
-        assertEquals(1, refused)
+        assertEquals(2, refused)
     }
 
     @Test

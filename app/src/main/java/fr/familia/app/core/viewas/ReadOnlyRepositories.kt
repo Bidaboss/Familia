@@ -115,7 +115,7 @@ class ReadOnlyAuthRepository(private val inner: AuthRepository, private val guar
     override fun currentUser(): AuthUser? = inner.currentUser()
     override suspend fun signInWithGoogleIdToken(idToken: String): AuthUser = guard.refuse()
     override fun signOut() {
-        guard.refuseQuietly()
+        guard.refuse()
     }
 }
 
@@ -363,7 +363,7 @@ class ReadOnlyNotebookRepository(private val inner: NotebookRepository, private 
 
 /** Nothing is counted while the admin looks through someone else's eyes (PRD, récit 1 nonies). */
 class ReadOnlyUsageRepository(private val inner: UsageRepository, private val guard: ViewAsGuard) : UsageRepository {
-    override suspend fun saveDay(memberId: String, day: LocalDate, usage: DayUsage) = guard.refuseQuietly()
+    override suspend fun saveDay(memberId: String, day: LocalDate, usage: DayUsage) = guard.refuse()
     override suspend fun fetchDays(memberId: String, since: LocalDate): List<UsageDay> = inner.fetchDays(memberId, since)
     override suspend fun fetchLastDay(memberId: String): LocalDate? = inner.fetchLastDay(memberId)
 }
@@ -414,7 +414,7 @@ class ReadOnlyExportRepository(private val guard: ViewAsGuard) : ExportRepositor
  * member being looked at, and their settings are not changed.
  */
 class ReadOnlyNotificationRepository(private val inner: NotificationRepository, private val guard: ViewAsGuard) : NotificationRepository {
-    override suspend fun registerThisDevice(memberId: String) = guard.refuseQuietly()
+    override suspend fun registerThisDevice(memberId: String) = guard.refuse()
     override fun observeDayBeforeReminder(memberId: String): Flow<Boolean> = inner.observeDayBeforeReminder(memberId)
     override suspend fun setDayBeforeReminder(memberId: String, enabled: Boolean) = guard.refuse()
     override fun observeGoodNews(memberId: String): Flow<Boolean> = inner.observeGoodNews(memberId)
