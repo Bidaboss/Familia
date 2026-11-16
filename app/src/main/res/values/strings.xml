@@ -1126,7 +1126,12 @@
     <string name="expenses_shares_title">Parts de chacun</string>
     <string name="expenses_shares_body">Par défaut, chacun vaut 1 part, enfants compris. Le foyer compte la somme des parts de ses membres, et chaque dépense partagée « en parts » suit ces poids.</string>
     <string name="expenses_shares_error">De 0 à 10, par demi-part</string>
-    <string name="expenses_shares_household">%1$s : %2$s parts</string>
+    <string name="expenses_shares_legacy">Ces comptes ont été ouverts avec des parts par foyer. En enregistrant, chaque foyer prend la somme des parts de ses membres.</string>
+    <plurals name="expenses_shares_household">
+        <item quantity="one">%1$s : %2$s part</item>
+        <item quantity="many">%1$s : %2$s parts</item>
+        <item quantity="other">%1$s : %2$s parts</item>
+    </plurals>
     <string name="expenses_shares_household_empty">Un foyer compte au moins une demi-part.</string>
     <string name="expenses_export">Partager les comptes</string>
     <string name="expenses_export_csv">En tableau (pour un tableur)</string>

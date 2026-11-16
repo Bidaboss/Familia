@@ -95,6 +95,8 @@ sealed interface ExpensesUiState {
         val settlements: List<SettlementRow> = emptyList(),
         /** Everyone who shares the costs, by household: the form of the shares, one field per person. */
         val shareGroups: List<ShareGroup> = emptyList(),
+        /** A book opened before the shares by person: its households keep their own shares until saved. */
+        val sharesByHousehold: Boolean = false,
         /** The last change could not be saved: shown once, then dismissed. */
         val writeFailed: Boolean = false,
     ) : ExpensesUiState
@@ -294,6 +296,7 @@ class ExpensesViewModel(
                 )
             },
             shareGroups = peopleOf.map { (id, list) -> ShareGroup(id, name(id), list) }.sortedBy { it.name.lowercase() },
+            sharesByHousehold = book.memberShares.isEmpty(),
         )
     }
 }
