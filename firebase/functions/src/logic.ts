@@ -32,7 +32,7 @@ export type RsvpStatus = 'yes' | 'maybe' | 'no';
 
 /** The ids of NotificationChannels in the app. `events` is the « Planning » channel. */
 // Each module adds its id here and its channel in the app, in the same pull request.
-export type Channel = 'events' | 'reminders' | 'gifts' | 'helpRequests' | 'goodNews' | 'trips' | 'comments' | 'weekly' | 'admin' | 'souvenirs' | 'tree';
+export type Channel = 'events' | 'reminders' | 'gifts' | 'helpRequests' | 'goodNews' | 'trips' | 'comments' | 'weekly' | 'admin' | 'souvenirs' | 'tree' | 'capsules';
 
 export interface Notice {
   /**
@@ -51,6 +51,8 @@ export interface Notice {
   souvenirKey?: string;
   /** A poll to answer or its result (récits 2 bis et 2 ter). */
   pollId?: string;
+  /** A time capsule that just opened (récit 39). */
+  capsuleId?: string;
 }
 
 export type ChangeKind = 'added' | 'edited' | 'deleted';
