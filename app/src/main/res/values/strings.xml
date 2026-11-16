@@ -991,6 +991,13 @@
     <string name="month_birthday_first">Le 1er</string>
     <!-- Carnet de recettes (récit 38) -->
     <string name="recipes_title">Carnet de recettes</string>
+    <string name="recipe_picker_title">Choisir une recette</string>
+    <string name="recipe_picker_search">Chercher par titre</string>
+    <string name="recipe_picker_pick">Choisir cette recette</string>
+    <string name="recipe_picker_cancel">Annuler</string>
+    <string name="recipe_picker_empty">Le carnet est encore vide. Ajoute une recette depuis l\'onglet Famille.</string>
+    <string name="recipe_picker_no_match">Aucune recette ne porte ce titre.</string>
+    <string name="recipe_picker_failed">Les recettes n\'ont pas pu être lues. Réessaie dans un instant.</string>
     <string name="recipes_add">Nouvelle recette</string>
     <string name="recipes_search">Chercher une recette, un ingrédient</string>
     <string name="recipes_none_found">Aucune recette ne correspond.</string>
