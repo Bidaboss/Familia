@@ -3,6 +3,7 @@ package fr.familia.app.feature.helprequests.detail
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -18,7 +19,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -46,6 +47,7 @@ import fr.familia.app.core.model.VOLUNTEER_NOTE_MAX
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.feature.helprequests.kindLabel
@@ -140,7 +142,7 @@ private fun Content(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(kindLabel(request.kind), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
@@ -185,9 +187,11 @@ private fun Content(
         }
         if (state.canWithdraw) {
             var editing by rememberSaveable { mutableStateOf(false) }
-            OutlinedButton(onClick = { editing = true }, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(stringResource(if (request.volunteerNote == null) R.string.helprequest_note_add else R.string.helprequest_note_edit))
-            }
+            ActionLink(
+                stringResource(if (request.volunteerNote == null) R.string.helprequest_note_add else R.string.helprequest_note_edit),
+                enabled = enabled,
+                onClick = { editing = true },
+            )
             if (editing) {
                 NoteDialog(
                     title = stringResource(R.string.helprequest_note_edit),
@@ -200,9 +204,7 @@ private fun Content(
             }
         }
         if (state.canDecline) {
-            OutlinedButton(onClick = onDecline, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.helprequest_decline))
-            }
+            ActionLink(stringResource(R.string.helprequest_decline), enabled = enabled, onClick = onDecline)
         }
         if (state.canWithdraw) {
             ConfirmedButton(
@@ -220,9 +222,7 @@ private fun Content(
             }
         }
         if (state.canManage) {
-            OutlinedButton(onClick = onDuplicate, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.helprequest_duplicate))
-            }
+            ActionLink(stringResource(R.string.helprequest_duplicate), enabled = enabled, onClick = onDuplicate)
             if (request.status != HelpStatus.Cancelled && request.date >= state.today) {
                 ConfirmedButton(
                     label = stringResource(R.string.helprequest_cancel),
@@ -243,7 +243,8 @@ private fun Content(
 @Composable
 private fun StatusCard(state: HelpRequestDetailUiState.Success, onEdit: () -> Unit) {
     val request = state.request
-    ClayCard(Modifier.fillMaxWidth()) {
+    // The point of the screen: where the request stands, in full relief (DESIGN-11).
+    ClayCard(Modifier.fillMaxWidth(), emphasis = true) {
         val text = when {
             request.status == HelpStatus.Taken && request.volunteerId != null && !state.canWithdraw && request.thankedAt != null ->
                 stringResource(R.string.helprequest_status_thanked, request.volunteerName.orEmpty())
@@ -321,12 +322,7 @@ private fun ConfirmedButton(
     destructive: Boolean = false,
 ) {
     var asking by rememberSaveable { mutableStateOf(false) }
-    OutlinedButton(
-        onClick = { asking = true },
-        enabled = enabled,
-        colors = if (destructive) ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error) else ButtonDefaults.outlinedButtonColors(),
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-    ) { Text(label) }
+    ActionLink(label, enabled = enabled, destructive = destructive, onClick = { asking = true })
     if (asking) {
         AlertDialog(
             onDismissRequest = { asking = false },
@@ -339,6 +335,24 @@ private fun ConfirmedButton(
             },
             dismissButton = { TextButton(onClick = { asking = false }) { Text(stringResource(R.string.action_keep)) } },
         )
+    }
+}
+
+/**
+ * A secondary action as a text link of 56 dp, like ClayLink, that can be disabled while a write
+ * runs, or drawn in the error color for « Annuler la demande » (DESIGN-11).
+ */
+@Composable
+private fun ActionLink(text: String, enabled: Boolean, onClick: () -> Unit, destructive: Boolean = false) {
+    TextButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier.heightIn(min = 56.dp),
+        contentPadding = PaddingValues(horizontal = 4.dp),
+        colors = if (destructive) ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error) else ButtonDefaults.textButtonColors(),
+    ) {
+        Text(text, style = MaterialTheme.typography.labelLarge)
+        if (!destructive) Text(" ›", style = MaterialTheme.typography.labelLarge, modifier = Modifier.clearAndSetSemantics { })
     }
 }
 

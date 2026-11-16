@@ -12,15 +12,12 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -35,6 +32,8 @@ import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.feature.goodnews.GoodNewsItem
 import fr.familia.app.feature.goodnews.postedLabel
@@ -75,7 +74,7 @@ fun GoodNewsHomeContent(
 ) {
     val tint = ClayTint.Plain
     ClayCard(modifier = modifier.fillMaxWidth(), tint = tint) {
-        Text(stringResource(R.string.goodnews_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+        ClayCardTitle(stringResource(R.string.goodnews_title))
         val ready = state as? GoodNewsHomeUiState.Ready ?: return@ClayCard
         if (ready.items.isEmpty()) {
             Text(
@@ -91,9 +90,7 @@ fun GoodNewsHomeContent(
         } else {
             ready.items.forEach { item -> NewsRow(item, ready.now, tint) { onOpen(item.news.id) } }
         }
-        TextButton(onClick = onOpenFeed, modifier = Modifier.heightIn(min = 56.dp).align(Alignment.End)) {
-            Text(stringResource(R.string.goodnews_home_all))
-        }
+        ClayLink(stringResource(R.string.goodnews_home_all), onClick = onOpenFeed, modifier = Modifier.align(Alignment.End))
     }
 }
 
