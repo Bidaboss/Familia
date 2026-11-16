@@ -1160,6 +1160,9 @@ fun FamiliaApp(
     }
 }
 
+/** 26 sp instead of the 22 sp of titleLarge. */
+private const val TAB_TITLE_SCALE = 26f / 22f
+
 /** Title bar of a tab, with its « ? » where the spec has one. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1182,7 +1185,14 @@ private fun TabTopBar(
             titleContentColor = FamiliaClay.style.titleColor ?: MaterialTheme.colorScheme.onSurface,
         ),
         // The Entraide tab keeps the full name « Coups de main » as its title (DESIGN-4).
-        title = { Text(stringResource(if (tab == TopLevelDestination.HelpRequests) R.string.helprequest_screen_title else tab.labelFor(member))) },
+        title = {
+            // 26 sp for the titles of the 5 tabs (DESIGN-11), scaled like titleLarge for a wide font.
+            val base = MaterialTheme.typography.titleLarge
+            Text(
+                stringResource(if (tab == TopLevelDestination.HelpRequests) R.string.helprequest_screen_title else tab.labelFor(member)),
+                style = base.copy(fontSize = base.fontSize * TAB_TITLE_SCALE, lineHeight = base.lineHeight * TAB_TITLE_SCALE),
+            )
+        },
         actions = {
             when (tab) {
                 TopLevelDestination.Planning -> {

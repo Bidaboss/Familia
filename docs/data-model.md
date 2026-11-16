@@ -1055,3 +1055,11 @@ ne l'ouvre aux membres) : `day` (AAAA-MM-JJ à Paris) et `at`, l'heure de la der
 à partir de 20 h, `arrivalReminder` dit aux adultes participants ce que les autres ont ajouté
 depuis `at`, en une seule notification sur le canal `trips`, sans relance. Interrupteur éteint :
 seul l'admin principal la reçoit.
+
+## La bienvenue (PRD, récit 43)
+
+### `welcomes/{memberId}`
+
+`at` (date). Écrit seulement par les fonctions, illisible par l'appli. Il marque qu'une bienvenue a été donnée, pour qu'elle ne parte qu'une fois.
+
+À la première connexion d'un membre (son `uid` passe de vide à rempli, `onMemberSignedIn`), si le module `welcome` est allumé, la famille qui a l'appli reçoit « Camille vient d'arriver », « Dis-lui bonjour ! » (canal `welcome`, donnée `welcomeOf` : l'appli ouvre la fiche). Rien ne part pour un membre sans foyer, ni pour un membre du foyer de test (`households/{id}.isTest == true`, lu par `functions/src/testHousehold.ts`). Si le module est éteint, rien n'est marqué : la bienvenue n'est pas perdue, mais elle ne partira qu'à une nouvelle première connexion.
