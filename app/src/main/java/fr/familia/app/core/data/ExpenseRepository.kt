@@ -18,10 +18,10 @@ interface ExpenseRepository {
     fun observeBook(container: ExpenseContainer): Flow<ExpenseBook?>
 
     /** Opens the book with the default [shares]; its creator is the creator of the container. */
-    suspend fun openBook(container: ExpenseContainer, creatorId: String, shares: Map<String, Double>)
+    suspend fun openBook(container: ExpenseContainer, creatorId: String, shares: Map<String, Double>, memberShares: Map<String, Double>)
 
     /** Changes the shares of the households, by the creator of the container. */
-    suspend fun setShares(bookId: String, shares: Map<String, Double>)
+    suspend fun setShares(bookId: String, shares: Map<String, Double>, memberShares: Map<String, Double>)
 
     /** Closes the accounts, which freezes the balance, or opens them again: by the creator. */
     suspend fun setClosed(bookId: String, closed: Boolean)

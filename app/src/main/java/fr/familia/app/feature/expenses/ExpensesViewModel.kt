@@ -29,8 +29,25 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
-/** One household in the balance: what it paid, what it should have paid, and the difference. */
-data class HouseholdRow(val id: String, val name: String, val shares: Double, val paidCents: Long, val owedCents: Long, val netCents: Long)
+/** One person who shares the costs, and what they weigh in their household. */
+data class PersonShare(val id: String, val firstName: String, val shares: Double)
+
+/** The people of one household who share the costs, under its name in the form of the shares. */
+data class ShareGroup(val householdId: String, val name: String, val people: List<PersonShare>)
+
+/**
+ * One household in the balance: what it paid, what it should have paid, and the difference.
+ * [people]: its participants, with their own shares (empty for a household that only paid).
+ */
+data class HouseholdRow(
+    val id: String,
+    val name: String,
+    val shares: Double,
+    val paidCents: Long,
+    val owedCents: Long,
+    val netCents: Long,
+    val people: List<PersonShare> = emptyList(),
+)
 
 /**
  * One transfer of « Qui rembourse qui », with the names of the households. [canConfirm]: this
@@ -76,6 +93,8 @@ sealed interface ExpensesUiState {
         val transfers: List<TransferRow>,
         val expenses: List<ExpenseRow>,
         val settlements: List<SettlementRow> = emptyList(),
+        /** Everyone who shares the costs, by household: the form of the shares, one field per person. */
+        val shareGroups: List<ShareGroup> = emptyList(),
         /** The last change could not be saved: shown once, then dismissed. */
         val writeFailed: Boolean = false,
     ) : ExpensesUiState
@@ -84,7 +103,7 @@ sealed interface ExpensesUiState {
 /**
  * The accounts of a trip (PRD rév. 193, récit 16 bis) or of an event (PRODUIT-57): the balance of each household, « Qui
  * rembourse qui » and the expenses. The first adult participant to open them opens the book,
- * with one share per adult and a half per child. Who received a transfer ticks « C'est
+ * with one share per person, children too. Who received a transfer ticks « C'est
  * remboursé »; the creator of the trip (the author of the event) changes the shares and closes the accounts.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -104,6 +123,9 @@ class ExpensesViewModel(
 
     /** This member, once the family is known: the author of a « C'est remboursé ». */
     private var me: Member? = null
+
+    /** Who shares the costs, once known: the people whose shares the creator types. */
+    private var participants: List<Member> = emptyList()
 
     private val base: Flow<ExpensesUiState> = attempt
         .flatMapLatest { n ->
@@ -153,14 +175,17 @@ class ExpensesViewModel(
     }
 
     /**
-     * The shares typed by the creator, one per household. False when one is wrong (from 0,5 to
-     * 20, by halves): nothing is saved, and the form stays open.
+     * The shares typed by the creator, one per person ([typed] by member id); each household weighs
+     * the sum of its people. False when one is wrong (from 0 to 10, by halves) or a household would
+     * weigh nothing: nothing is saved, and the form stays open.
      */
     fun saveShares(typed: Map<String, String>): Boolean {
         val s = uiState.value as? ExpensesUiState.Success ?: return false
         if (!s.isCreator || s.closed) return false
-        val shares = parseShares(typed, s.households.map { it.id }) ?: return false
-        write { repo, current -> repo.setShares(current.bookId, shares) }
+        val people = participants
+        val current = s.households.associate { it.id to it.shares }
+        val shares = parsePersonShares(typed, people, current) ?: return false
+        write { repo, now -> repo.setShares(now.bookId, shares.households, shares.memberShares) }
         return true
     }
 
@@ -210,7 +235,9 @@ class ExpensesViewModel(
         val participants = family.members.filter { it.id in trip.participantIds }
         viewModelScope.launch {
             try {
-                withTimeoutOrNull(writeTimeoutMillis) { repo.openBook(container, trip.creatorId, defaultShares(participants)) }
+                withTimeoutOrNull(writeTimeoutMillis) {
+                    repo.openBook(container, trip.creatorId, defaultShares(participants), defaultMemberShares(participants))
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -232,6 +259,11 @@ class ExpensesViewModel(
         fun name(id: String) = names[id] ?: id
         val balances = balancesOf(book.shares.keys, list, settled, book.shares)
         val isCreator = book.creatorId == currentMemberId
+        val people = family.members.filter { it.id in trip.participantIds }
+        participants = people
+        val peopleOf = people.groupBy { it.householdId }.mapValues { (_, members) ->
+            members.sortedBy { it.firstName.lowercase() }.map { PersonShare(it.id, it.firstName, book.memberShares[it.id] ?: 1.0) }
+        }
         return ExpensesUiState.Success(
             title = trip.title,
             bookId = book.id,
@@ -239,7 +271,11 @@ class ExpensesViewModel(
             isCreator = isCreator,
             totalCents = list.sumOf { it.amountCents },
             households = balances.map {
-                HouseholdRow(it.householdId, name(it.householdId), book.shares[it.householdId] ?: 0.0, it.paidCents, it.owedCents, it.netCents)
+                HouseholdRow(
+                    it.householdId, name(it.householdId), book.shares[it.householdId] ?: 0.0, it.paidCents, it.owedCents, it.netCents,
+                    // A book opened before the shares by person shows its people once the creator saved them.
+                    people = if (book.memberShares.isEmpty()) emptyList() else peopleOf[it.householdId].orEmpty(),
+                )
             }.sortedBy { it.name.lowercase() },
             transfers = transfersOf(balances).map {
                 TransferRow(
@@ -257,6 +293,7 @@ class ExpensesViewModel(
                     canUndo = !book.closed && it.confirmedBy == currentMemberId,
                 )
             },
+            shareGroups = peopleOf.map { (id, list) -> ShareGroup(id, name(id), list) }.sortedBy { it.name.lowercase() },
         )
     }
 }

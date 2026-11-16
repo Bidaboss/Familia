@@ -540,6 +540,7 @@
     <string name="nav_gifts">Cadeaux</string>
     <string name="nav_gifts_child">Mes envies</string>
     <string name="gifts_error_title">Impossible d\'afficher les cadeaux</string>
+    <string name="gifts_error_body">L\'appli n\'a pas pu lire les cadeaux. Réessaie, et si ça continue, préviens un chef de famille.</string>
     <string name="gifts_new_list">Nouvelle liste</string>
     <string name="gifts_open_list">ouvrir la liste</string>
     <string name="gifts_section_me">Moi</string>
@@ -577,6 +578,7 @@
     <string name="gift_item_price">Environ %1$s</string>
     <string name="gift_item_idea_of">Idée de %1$s</string>
     <string name="gift_item_open_link">Voir le lien</string>
+    <string name="gift_item_open_link_on">Voir sur %1$s</string>
     <string name="gift_reserved_by">Réservé par %1$s</string>
     <string name="gift_reserved_by_me">Tu l\'as réservé</string>
     <string name="gift_joint_by">Cadeau commun, organisé par %1$s</string>
@@ -1118,9 +1120,11 @@
     <string name="expenses_reopen">Rouvrir les comptes</string>
     <string name="expenses_close_title">Clôturer les comptes ?</string>
     <string name="expenses_close_body">Le solde sera figé : plus personne ne pourra ajouter, modifier ou rembourser. Tu pourras les rouvrir.</string>
-    <string name="expenses_shares_title">Parts de chaque foyer</string>
-    <string name="expenses_shares_body">Par défaut, 1 part par adulte et 0,5 par enfant. Chaque dépense partagée « en parts » suit ces poids.</string>
-    <string name="expenses_shares_error">De 0,5 à 20, par demi-part</string>
+    <string name="expenses_shares_title">Parts de chacun</string>
+    <string name="expenses_shares_body">Par défaut, chacun vaut 1 part, enfants compris. Le foyer compte la somme des parts de ses membres, et chaque dépense partagée « en parts » suit ces poids.</string>
+    <string name="expenses_shares_error">De 0 à 10, par demi-part</string>
+    <string name="expenses_shares_household">%1$s : %2$s parts</string>
+    <string name="expenses_shares_household_empty">Un foyer compte au moins une demi-part.</string>
     <string name="expenses_export">Partager les comptes</string>
     <string name="expenses_export_csv">En tableau (pour un tableur)</string>
     <string name="expenses_export_image">En image</string>
@@ -1300,6 +1304,13 @@
     <string name="home_todo_help">Demandé par %1$s · %2$s</string>
     <string name="home_open_event">ouvrir l\'événement</string>
     <string name="home_todo_vote">Sondage de %1$s · à toi de répondre</string>
+    <string name="home_voted">Tu as voté</string>
+    <string name="home_voted_lead">Tu as voté · en tête : %1$s (%2$d voix)</string>
+    <string name="home_voted_tie">Tu as voté · plusieurs réponses à égalité</string>
+    <string name="home_voted_over">Terminé · voir le résultat</string>
+    <string name="home_voted_over_lead">Terminé · en tête : %1$s (%2$d voix)</string>
+    <string name="home_voted_over_tie">Terminé · plusieurs réponses à égalité</string>
+    <string name="home_voted_over_chosen">Terminé · retenu : %1$s</string>
     <string name="home_open_poll">ouvrir le sondage</string>
     <string name="home_open_help">ouvrir le coup de main</string>
     <string name="home_week_title">Cette semaine</string>

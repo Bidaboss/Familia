@@ -25,9 +25,10 @@ data class ExpenseContainer(val type: ExpenseContainerType, val id: String) {
 }
 
 /**
- * The accounts of one container. Each household taking part counts for a number of [shares]
- * (one per adult, a half per child by default, changed by [creatorId]). Once [closed], the
- * balance is frozen.
+ * The accounts of one container. Each household taking part counts for a number of [shares]:
+ * the sum of the [memberShares] of its people (one each by default, children too, changed person
+ * by person by [creatorId]). A book opened before the shares by person has no [memberShares]
+ * until its creator saves them. Once [closed], the balance is frozen.
  */
 data class ExpenseBook(
     val id: String,
@@ -35,6 +36,7 @@ data class ExpenseBook(
     val creatorId: String,
     val shares: Map<String, Double>,
     val closed: Boolean = false,
+    val memberShares: Map<String, Double> = emptyMap(),
 )
 
 enum class ExpenseCategory(val firestoreValue: String) {

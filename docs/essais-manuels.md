@@ -387,3 +387,13 @@ Avec l'interrupteur « À découvrir » allumé (l'admin principal le voit même
 3. « Je ne sais pas » : **Attendu :** la réponse s'affiche aussi.
 4. « Ne plus me montrer » : **Attendu :** la puce disparaît sur ce téléphone.
 5. En Voir comme : **Attendu :** on lit, mais on ne devine pas, on ne publie pas et on ne retire rien.
+
+## Le petit geste du jour dans « À faire pour moi »
+Avec l'interrupteur « Le petit geste du jour » allumé, et une Bonne nouvelle avec photo publiée par un autre membre, sans ta réaction.
+1. Accueil : **Attendu :** une ligne dans « À faire pour moi », sous ce que « Rejoignez-moi » t'a envoyé et au-dessus des réponses à donner, avec un trait entre chaque partie.
+2. Touche le lien. **Attendu :** la Bonne nouvelle s'ouvre.
+3. Sans rien d'autre à faire : **Attendu :** le bloc « À faire pour moi » s'affiche quand même, avec la ligne seule.
+
+## Un sondage voté reste sur l'Accueil
+1. Réponds à un sondage depuis « À faire pour moi ». **Attendu :** il reste dans le bloc, avec « Tu as voté · en tête : … (n voix) », et l'ouvrir montre les résultats.
+2. Un sondage dont la date de fin est passée depuis moins de 2 jours : **Attendu :** « Terminé · en tête : … » (ou « retenu : … » si l'auteur a choisi). Au-delà de 2 jours, il disparaît.

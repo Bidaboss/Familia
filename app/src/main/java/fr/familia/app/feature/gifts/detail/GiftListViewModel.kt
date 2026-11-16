@@ -138,7 +138,13 @@ class GiftListViewModel(
                 joint.map { it.itemId }.sorted() to joint.filter { it.holderId == me.id }.map { it.itemId }.toSet()
             }
             .distinctUntilChanged()
-            .flatMapLatest { (ids, mine) -> repo.observeShares(list.id, ids, me.id, mine) }
+            .flatMapLatest { (ids, mine) ->
+                // The parts never take the whole list down: without them, the joint gift shows no amount.
+                repo.observeShares(list.id, ids, me.id, mine).catch { e ->
+                    if (e is CancellationException) throw e
+                    emit(emptyMap())
+                }
+            }
         return combine(items, claims, shares, today, failed) { itemList, claimList, shareMap, day, didFail ->
             state(list, stored != null, beneficiary, me, family, itemList, claimList, shareMap, day, didFail)
         }

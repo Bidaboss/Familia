@@ -22,6 +22,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material3.AlertDialog
@@ -60,6 +61,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.ClaimType
@@ -163,7 +165,7 @@ fun GiftListScreen(state: GiftListUiState, actions: GiftListActions, modifier: M
                 GiftListUiState.Error -> EmptyState(
                     icon = Icons.Outlined.CardGiftcard,
                     title = stringResource(R.string.gifts_error_title),
-                    body = stringResource(R.string.planning_error_body),
+                    body = stringResource(R.string.gifts_error_body),
                     action = {
                         Button(onClick = actions.onRetry, modifier = Modifier.heightIn(min = 56.dp)) {
                             Text(stringResource(R.string.action_retry))
@@ -274,6 +276,8 @@ private fun ItemCard(row: ItemRow, state: GiftListUiState.Success, onOpen: () ->
                 Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null)
             }
             ItemDetails(row, tint)
+            // The shop link shows on the card itself, as a link, so nobody has to guess it is there.
+            item.url?.let { url -> ItemLink(url, prominent = false) }
             claim?.let { ClaimStatus(it, item, tint) }
             if (state.canReserve && claim == null) {
                 // Tonal: the screen keeps a single filled action, « Ajouter ».
@@ -284,6 +288,30 @@ private fun ItemCard(row: ItemRow, state: GiftListUiState.Success, onOpen: () ->
         }
     }
 }
+
+/** « Voir sur amazon.fr », with the icon of an outside page: a tonal button in the sheet, a link on the card. */
+@Composable
+private fun ItemLink(url: String, prominent: Boolean) {
+    val uriHandler = LocalUriHandler.current
+    val host = linkHost(url)
+    val label = if (host != null) stringResource(R.string.gift_item_open_link_on, host) else stringResource(R.string.gift_item_open_link)
+    val open = { runCatching { uriHandler.openUri(url) }; Unit }
+    if (prominent) {
+        FilledTonalButton(onClick = open, modifier = Modifier.heightIn(min = 56.dp)) {
+            Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+            Text(label)
+        }
+    } else {
+        TextButton(onClick = open, modifier = Modifier.heightIn(min = 56.dp), contentPadding = PaddingValues(horizontal = 4.dp)) {
+            Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+            Text(label, style = MaterialTheme.typography.labelLarge, textDecoration = TextDecoration.Underline)
+        }
+    }
+}
+
+/** The site of a link without « www. », or null when it cannot be read. */
+internal fun linkHost(url: String): String? =
+    runCatching { java.net.URI(url).host }.getOrNull()?.removePrefix("www.")?.takeIf { it.isNotBlank() }
 
 @Composable
 private fun ItemDetails(row: ItemRow, tint: ClayTint) {
@@ -312,7 +340,6 @@ private fun ItemSheet(row: ItemRow, state: GiftListUiState.Success, actions: Gif
 @Composable
 internal fun ItemSheetContent(row: ItemRow, state: GiftListUiState.Success, actions: GiftListActions, onEdit: () -> Unit) {
     val item = row.item
-    val uriHandler = LocalUriHandler.current
     Column(
         modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).navigationBarsPadding(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -337,11 +364,7 @@ internal fun ItemSheetContent(row: ItemRow, state: GiftListUiState.Success, acti
             modifier = Modifier.padding(top = 4.dp),
         ) {
             ReservationButtons(row, state, actions)
-            item.url?.let { url ->
-                OutlinedButton(onClick = { runCatching { uriHandler.openUri(url) } }, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.gift_item_open_link))
-                }
-            }
+            item.url?.let { url -> ItemLink(url, prominent = true) }
             if (row.canEdit) {
                 OutlinedButton(onClick = onEdit, modifier = Modifier.heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.event_detail_edit))
