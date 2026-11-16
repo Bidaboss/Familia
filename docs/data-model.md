@@ -331,6 +331,21 @@ Ce que le membre prévoit d'offrir. Seul ce membre lit et écrit son carnet : ni
 
 Ce que le membre compte dépenser pour une personne et une occasion : `personId` (ou null), `personName`, `occasion`, `year`, `amount` (de 0 exclu à 100 000 euros), `updatedAt`. Seul le membre le lit et l'écrit.
 
+### `events/{eventId}/bring/{itemId}` (« Qui apporte quoi », PRD, récit 4 bis)
+
+Une chose à apporter à l'événement. Visible dans l'événement une fois le module `bring` allumé.
+
+| Champ | Type | Description |
+|---|---|---|
+| `label` | texte (1 à 60 caractères) | Ce qu'il faut apporter. Ne change plus : une ligne fausse se retire |
+| `authorId` | `memberId` | Qui a ajouté la ligne |
+| `takerId`, `takerName` | `memberId` et texte, ou null | Qui s'en charge, et son prénom à ce moment-là ; null tant que la ligne est libre |
+| `createdAt`, `updatedAt` | horodatage serveur | |
+
+Droits : tous les membres avec l'appli (enfants compris) lisent, ajoutent une ligne (libre ou prise par eux) et prennent une ligne libre. Une ligne prise se libère par celui qui l'a prise, l'auteur de la ligne, ou ceux qui gèrent l'événement (« Modifier »). La ligne se retire par son auteur ou ceux qui gèrent l'événement.
+
+Serveur : le rappel de la veille (`dayBeforeReminder`) ajoute « Tu apportes : … » quand le module est allumé, et prévient aussi celui qui a pris une ligne sans avoir répondu « Je viens » (pas s'il a dit non). La liste part avec l'événement ; ce qu'un membre retiré avait pris redevient libre (`releaseBringOf`, index `bring.takerId` en groupe de collections).
+
 ## Bonnes nouvelles (PRD, récit 32)
 
 Une Bonne nouvelle a un texte court, une à trois photos et peut nommer des membres. Toute la famille la voit (quand les cercles de la rév. 124 arriveront, la vérification d'audience ira dans la règle de lecture et dans le dossier Storage).
@@ -469,13 +484,23 @@ Droits : jusqu'au jour dit, seul l'auteur lit la capsule. Les destinataires ne s
 | `authorId`, `authorName` | texte | Le membre qui l'a écrite et son prénom, qui ne changent jamais |
 | `createdAt`, `updatedAt` | horodatage | Heure du serveur |
 
-Droits : tous les membres lisent toutes les recettes, et chacun écrit les siennes. L'auteur et l'admin principal les modifient et les retirent. Le module se montre avec l'interrupteur « Carnet de recettes ». Les commentaires et le partage viendront ensuite. Une étiquette est un texte de 1 à 24 caractères. Si le membre nommé dans `originMemberId` quitte la famille, la recette garde son id et reste modifiable.
+Droits : tous les membres lisent toutes les recettes, et chacun écrit les siennes. L'auteur et l'admin principal les modifient et les retirent. Le module se montre avec l'interrupteur « Carnet de recettes ». Le partage envoie la recette en texte, sans photo. Depuis la fiche d'un membre, « Voir ses recettes » montre celles dont il est l'origine. Une étiquette est un texte de 1 à 24 caractères. Si le membre nommé dans `originMemberId` quitte la famille, la recette garde son id et reste modifiable.
 
 ### `recipes/{recipeId}/photos/{authorId}_{slot}`
 
 Les photos du plat, sur le modèle des photos d'un voyage (`authorId`, `authorName`, `slot`, `createdAt`), avec 3 places par personne (`slot` de 1 à 3). Les fichiers sont dans Storage, à `recipes/{recipeId}/{authorId}/{slot}.jpg` (512 Ko au plus) et `{slot}-thumb.jpg` (64 Ko au plus), envoyés avant la fiche.
 
-Droits : tous les membres les voient. L'auteur de la recette et l'admin principal les ajoutent et les retirent. Quand la recette est supprimée, la fonction `onRecipeDeleted` efface ses photos, les fiches comme les fichiers.
+Droits : tous les membres les voient. L'auteur de la recette et l'admin principal les ajoutent et les retirent. Quand la recette est supprimée, la fonction `onRecipeDeleted` efface ses photos et ses commentaires, les fiches comme les fichiers. Chaque partie est tentée même si une autre échoue.
+
+### `recipes/{recipeId}/comments/{commentId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `text` | texte | Le commentaire, de 1 à 500 caractères, jamais modifié |
+| `authorId`, `authorName` | texte | Le membre qui l'a écrit et son prénom |
+| `createdAt` | horodatage | Heure du serveur |
+
+Droits : tous les membres lisent les commentaires et en écrivent en leur nom. Son auteur, l'auteur de la recette ou l'admin principal retire un commentaire.
 
 ## Voyages (V3, récits 11 à 15)
 

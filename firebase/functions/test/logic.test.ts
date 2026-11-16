@@ -129,3 +129,12 @@ test('a member who turned the reminder off gets none', () => {
   const answers = new Map<string, RsvpStatus>([['ines', 'yes'], ['camille', 'yes']]);
   assert.deepEqual(reminders(members, 'e1', event, answers, new Set(['ines'])).map((r) => r.recipientId), ['camille']);
 });
+
+test('« Qui apporte quoi » (récit 4 bis): the reminder says what each one brings, even without « Je viens »', () => {
+  const answers = new Map<string, RsvpStatus>([['camille', 'yes'], ['sam', 'no']]);
+  const bringing = new Map([['camille', ['Le pain', 'Le fromage']], ['jade', ['Les boissons']], ['sam', ['Le dessert']], ['gone', ['X']]]);
+  const result = reminders(members, 'e1', event, answers, new Set(), bringing);
+  assert.deepEqual(result.map((r) => r.recipientId), ['camille', 'jade']); // Sam said no; a member who left gets nothing
+  assert.equal(result[0].notice.body, `10${NBSP}h${NBSP}00 · Centre aquatique\nTu apportes : Le pain, Le fromage`);
+  assert.equal(result[1].notice.body, `10${NBSP}h${NBSP}00 · Centre aquatique\nTu apportes : Les boissons`);
+});

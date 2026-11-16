@@ -158,6 +158,9 @@
     <string name="feature_gifts">Listes et cadeaux</string>
     <string name="feature_help_requests">Coups de main</string>
     <string name="feature_gift_notebook">Carnet de cadeaux</string>
+    <string name="feature_share_to_wishes">Partager vers « Mes envies »</string>
+    <string name="share_to_wishes">Mes envies Familia</string>
+    <string name="gift_item_preview_loading">Lecture de la page de la boutique…</string>
     <string name="feature_trips">Carnet de voyage</string>
     <string name="feature_good_news">Bonnes nouvelles</string>
     <string name="feature_themes">Thèmes au choix</string>
@@ -202,6 +205,7 @@
     <string name="feature_weekly_question">Question de la semaine</string>
     <string name="feature_calendar">Ajouter à mon agenda</string>
     <string name="feature_polls">Sondages</string>
+    <string name="feature_bring">Qui apporte quoi</string>
     <string name="feature_event_albums">Albums des événements</string>
     <string name="feature_souvenirs">Souvenirs</string>
     <string name="feature_tree">Arbre de la famille</string>
@@ -363,7 +367,7 @@
     <string name="help_screen_gift_item_edit_title">Une idée de cadeau</string>
     <string name="help_screen_gift_item_edit_body">Seul le titre est obligatoire. Ajoute un lien vers le site, un prix pour donner une idée et une note, comme une taille ou une couleur. Une idée que tu ajoutes sur la liste d\'un autre reste cachée à la personne qui la recevra.</string>
     <string name="help_screen_notebook_title">Mes cadeaux à offrir</string>
-    <string name="help_screen_notebook_body">Ton carnet est pour toi seul : personne d\'autre ne le voit, pas même la personne qui recevra ni l\'administrateur. Ce que tu réserves sur une liste et tes parts de cadeaux communs y arrivent tout seuls. Choisis l\'occasion en haut, puis touche un cadeau pour dire où il en est : idée, acheté, emballé ou offert. Une idée à toi peut être proposée à la famille : elle rejoint une liste de la personne, qui ne la voit pas.</string>
+    <string name="help_screen_notebook_body">Ton carnet est pour toi seul : personne d\'autre ne le voit, pas même la personne qui recevra ni l\'administrateur. Ce que tu réserves sur une liste et tes parts de cadeaux communs y arrivent tout seuls. Choisis l\'occasion en haut, puis touche un cadeau pour dire où il en est : idée, acheté, emballé ou offert. Une idée à toi peut être proposée à la famille : elle rejoint une liste de la personne, qui ne la voit pas. Sans réseau, elle part au retour de la connexion ; si la liste a disparu entre-temps, l\'idée est perdue, note-la ailleurs en cas de doute.</string>
     <string name="help_topic_planning_title">Le planning</string>
     <string name="help_topic_planning_body">Il montre les événements à venir en liste ou par mois, et les anniversaires de chacun, chaque année. Il reste lisible sans réseau, avec les dernières données reçues.</string>
     <string name="help_topic_add_title">Ajouter un événement</string>
@@ -480,6 +484,7 @@
     <string name="notebook_idea_unavailable_body">Elle a été retirée entre-temps.</string>
     <string name="notebook_edit_idea">Modifier</string>
     <string name="notebook_propose">Proposer à la famille</string>
+    <string name="notebook_archive">Archives (%1$d)</string>
     <string name="notebook_propose_body">L\'idée rejoint une liste de %1$s, sans que %1$s la voie : la famille peut la prendre ou lancer un cadeau commun. Elle quitte ton carnet ; si tu la prends, elle y revient comme réservation.</string>
     <string name="notebook_propose_where">Sur quelle liste ?</string>
     <string name="notebook_propose_no_list">%1$s n\'a aucune liste où cette idée resterait cachée.</string>
@@ -835,6 +840,19 @@
     <string name="recipe_photos_title">Photos du plat</string>
     <string name="recipe_photos_empty">Pas encore de photo du plat.</string>
     <string name="recipe_photos_empty_author">Ajoute jusqu\'à 3 photos du plat, pour donner envie.</string>
+    <string name="recipe_share">Partager la recette</string>
+    <string name="recipe_share_chooser">Envoyer la recette avec…</string>
+    <string name="recipe_comments_title">Commentaires</string>
+    <string name="recipe_comments_empty">Pas encore de commentaire. Dis ce que tu en penses, ou comment tu la fais.</string>
+    <string name="recipe_comment_field">Ton commentaire</string>
+    <string name="recipe_comment_count">%1$d sur %2$d caractères</string>
+    <string name="recipe_comment_send">Publier le commentaire</string>
+    <string name="recipe_comment_send_failed">Le commentaire n\'a pas pu être envoyé. Vérifie la connexion et réessaie.</string>
+    <string name="recipe_comment_remove">Retirer</string>
+    <string name="recipe_comment_remove_title">Retirer ce commentaire ?</string>
+    <string name="recipe_comment_remove_failed">Le commentaire n\'a pas pu être retiré. Réessaie.</string>
+    <string name="recipes_from_title">Recettes de %1$s</string>
+    <string name="profile_recipes">Voir ses recettes</string>
     <string name="recipe_ingredients">Ingrédients</string>
     <string name="recipe_steps">Étapes</string>
     <string name="recipe_written_by">Notée par %1$s</string>
@@ -866,7 +884,7 @@
     <string name="error_recipe_steps_missing">Écris au moins une étape.</string>
     <string name="error_recipe_too_long">Texte trop long : raccourcis-le un peu.</string>
     <string name="help_screen_recipes_title">Le carnet de recettes</string>
-    <string name="help_screen_recipes_body">Les recettes de la famille, par ordre alphabétique. Cherche par nom, ingrédient, étiquette ou personne. Touche « Nouvelle recette » pour en noter une : un ingrédient par ligne, une étape par ligne. Seule la personne qui l\'a notée, ou l\'administrateur, peut la modifier ou la retirer.</string>
+    <string name="help_screen_recipes_body">Les recettes de la famille, par ordre alphabétique. Cherche par nom, ingrédient, étiquette ou personne. Touche « Nouvelle recette » pour en noter une : un ingrédient par ligne, une étape par ligne. Seule la personne qui l\'a notée, ou l\'administrateur, peut la modifier, ajouter jusqu\'à 3 photos du plat ou la retirer. Chacun peut laisser un commentaire. Le bouton Partager envoie la recette en texte, sans les photos.</string>
     <string name="month_empty">Pas de photo ce mois-ci. Celles des voyages et des événements apparaissent ici.</string>
     <!-- Before a video leaves the app (carte EXPERT-6): the film, the album and the slideshow. -->
     <string name="share_consent_title">Avant de partager</string>
@@ -1227,6 +1245,26 @@
     <string name="poll_action_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
     <string name="help_topic_polls_title">Les sondages</string>
     <string name="help_topic_polls_body">Depuis le Planning, touche l\'icône des sondages. « Trouver une date » propose jusqu\'à 5 dates : chacun répond oui, peut-être ou non. « Choix libre » propose jusqu\'à 6 réponses. Les parents répondent pour leurs enfants qui n\'ont pas l\'appli. Celui qui a lancé le sondage le termine, et pour une date, l\'ajoute au planning : ceux qui ont dit oui y sont inscrits.</string>
+    <!-- Qui apporte quoi (récit 4 bis) -->
+    <string name="bring_title">Qui apporte quoi</string>
+    <string name="bring_empty">Ajoute ce qu\'il faut apporter : entrée, plat, dessert, boissons, pain… Chacun coche ce dont il se charge.</string>
+    <string name="bring_add_label">À apporter</string>
+    <string name="bring_add_hint">Le dessert</string>
+    <string name="bring_add_take">Je m\'en charge</string>
+    <string name="bring_add">Ajouter à la liste</string>
+    <string name="bring_too_long">60 caractères au plus.</string>
+    <string name="bring_free">Personne pour l\'instant</string>
+    <string name="bring_by">Apporté par %1$s</string>
+    <string name="bring_by_me">C\'est moi qui l\'apporte</string>
+    <string name="bring_take">Je m\'en charge</string>
+    <string name="bring_release_mine">Je ne peux plus</string>
+    <string name="bring_release">Libérer</string>
+    <string name="bring_delete">Retirer %1$s de la liste</string>
+    <string name="bring_delete_title">Retirer « %1$s » de la liste ?</string>
+    <string name="bring_delete_confirm">Retirer</string>
+    <string name="bring_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
+    <string name="help_topic_bring_title">Qui apporte quoi</string>
+    <string name="help_topic_bring_body">Dans un événement, ajoute ce qu\'il faut apporter et touche « Je m\'en charge » pour une ligne libre. Ton prénom s\'affiche : personne n\'apporte deux fois le dessert. « Je ne peux plus » la libère. La veille, le rappel te dit ce que tu apportes.</string>
 
     <!-- L'arbre de la famille et le défi du mois (récit 35) -->
     <string name="tree_title">L\'arbre de la famille</string>
@@ -1242,7 +1280,7 @@
         <item quantity="other">Encore %d feuilles avant qu\'il grandisse</item>
     </plurals>
     <string name="tree_top">Il a atteint sa plus belle taille.</string>
-    <string name="tree_how">Chaque Bonne nouvelle, réaction, « Je viens », coup de main ou « bien arrivé » lui ajoute une feuille.</string>
+    <string name="tree_how">L\'arbre de la famille grandit avec vous : chaque Bonne nouvelle, réaction, « Je viens », coup de main ou « bien arrivé » lui ajoute une feuille.</string>
     <string name="tree_challenge">Défi du mois : %1$s %2$s</string>
     <string name="tree_challenge_progress">%1$d sur %2$d</string>
     <string name="tree_challenge_done">Défi réussi : l\'arbre est en fleurs !</string>

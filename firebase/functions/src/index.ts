@@ -28,7 +28,7 @@ import {
   HelpNotice, HelpRequestData, HelpSender, onHelpRequestWritten, reopenRequestsOf, sendStillOpenReminders,
 } from './helpRequests';
 import { addDays, EventData, hasVisibleChange, Notice, parisDay } from './logic';
-import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, memberForUid, notifyChange, Sender, sendDayBeforeReminders } from './store';
+import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, memberForUid, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
 import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
 import {
@@ -125,6 +125,8 @@ export const onRsvpWritten = onDocumentWritten('events/{eventId}/rsvps/{memberId
 
 export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (event) => {
   await deleteMemberData(getFirestore(), event.params.memberId);
+  // « Qui apporte quoi » (récit 4 bis): what they had taken is free again.
+  await releaseBringOf(getFirestore(), event.params.memberId);
 });
 
 export const dayBeforeReminder = onSchedule({ schedule: '0 18 * * *', timeZone: 'Europe/Paris' }, async () => {
@@ -308,11 +310,17 @@ export const onCapsuleDeleted = onDocumentDeleted('capsules/{capsuleId}', async 
   await getStorage().bucket().deleteFiles({ prefix: `capsules/${authorId}/${event.params.capsuleId}/` });
 });
 
-// Carnet de recettes (récit 38): a removed recipe takes its photos with it, records and files.
+// Carnet de recettes (récit 38): a removed recipe takes its photos and comments with it, records
+// and files. Each part is tried even if another fails, then the first failure is raised.
 export const onRecipeDeleted = onDocumentDeleted('recipes/{recipeId}', async (event) => {
   const recipe = getFirestore().collection('recipes').doc(event.params.recipeId);
-  await getFirestore().recursiveDelete(recipe.collection('photos'));
-  await getStorage().bucket().deleteFiles({ prefix: `recipes/${event.params.recipeId}/` });
+  const results = await Promise.allSettled([
+    getFirestore().recursiveDelete(recipe.collection('photos')),
+    getFirestore().recursiveDelete(recipe.collection('comments')),
+    getStorage().bucket().deleteFiles({ prefix: `recipes/${event.params.recipeId}/` }),
+  ]);
+  const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
+  if (failed) throw failed.reason;
 });
 
 export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/Paris' }, async () => {

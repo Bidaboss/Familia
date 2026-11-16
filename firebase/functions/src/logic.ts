@@ -178,6 +178,8 @@ export function reminders(
   event: EventData,
   answers: Map<string, RsvpStatus>,
   remindersOff: Set<string>,
+  /** « Qui apporte quoi » (récit 4 bis): what each member took, by member id. */
+  bringing: Map<string, string[]> = new Map(),
 ): Reminder[] {
   const byId = new Map(members.map((m) => [m.id, m]));
   // recipient -> names of the children without the app they are reminded for
@@ -195,6 +197,10 @@ export function reminders(
       recipients.set(memberId, []);
     }
   }
+  // Whoever took something is reminded of it, even without answering « Je viens ».
+  for (const takerId of bringing.keys()) {
+    if (byId.has(takerId) && !recipients.has(takerId) && answers.get(takerId) !== 'no') recipients.set(takerId, []);
+  }
   const details = [event.time ? formatTime(event.time) : 'Journée', event.place].filter(Boolean).join(' · ');
   return [...recipients.entries()]
     .filter(([id]) => !remindersOff.has(id))
@@ -203,9 +209,11 @@ export function reminders(
       const selfComing = answers.has(recipientId) && answers.get(recipientId) !== 'no';
       const forChildren = children.length > 0 && !selfComing ? ` (pour ${joinNames(children)})` : '';
       const withChildren = children.length > 0 && selfComing ? ` (avec ${joinNames(children)})` : '';
+      const items = bringing.get(recipientId) ?? [];
+      const body = items.length > 0 ? `${details}\nTu apportes : ${items.join(', ')}` : details;
       return {
         recipientId,
-        notice: { channel: 'reminders', title: `Demain : ${event.title}${forChildren}${withChildren}`, body: details, eventId },
+        notice: { channel: 'reminders', title: `Demain : ${event.title}${forChildren}${withChildren}`, body, eventId },
       };
     });
 }

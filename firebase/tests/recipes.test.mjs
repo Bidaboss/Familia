@@ -108,4 +108,25 @@ describe('recipes (récit 38)', () => {
     await assertFails(deleteDoc(doc(as(env, OTHER_ADULT), 'recipes/r1/photos/adult1_1')));
     await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'recipes/r1/photos/adult1_1')));
   });
+
+  test('every member comments in their own name; the author, the recipe author or the admin removes it', async () => {
+    await stored('r1', ADULT);
+    const comment = (author, text = 'Avec moins de sucre, parfait.') => ({
+      text, authorId: author.memberId, authorName: author.memberId, createdAt: serverTimestamp(),
+    });
+    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'recipes/r1/comments/c1'), comment(NEIGHBOUR)));
+    await assertSucceeds(setDoc(doc(as(env, OTHER_ADULT), 'recipes/r1/comments/c2'), comment(OTHER_ADULT)));
+    await assertSucceeds(setDoc(doc(as(env, OTHER_ADULT), 'recipes/r1/comments/c3'), comment(OTHER_ADULT)));
+    await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'recipes/r1/comments/c4'), comment(NEIGHBOUR)));
+    await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'recipes/r1/comments/c5'), comment(OTHER_ADULT, '')));
+    await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'recipes/r1/comments/c6'), comment(OTHER_ADULT, 'x'.repeat(501))));
+    await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'recipes/nope/comments/c7'), comment(OTHER_ADULT)));
+    await assertFails(setDoc(doc(as(env, STRANGER), 'recipes/r1/comments/c8'), { ...comment(OTHER_ADULT), authorId: 'stranger' }));
+    await assertSucceeds(getDocs(collection(as(env, NEIGHBOUR), 'recipes/r1/comments')));
+    await assertFails(updateDoc(doc(as(env, NEIGHBOUR), 'recipes/r1/comments/c1'), { text: 'Changé' }));
+    await assertFails(deleteDoc(doc(as(env, NEIGHBOUR), 'recipes/r1/comments/c2')));
+    await assertSucceeds(deleteDoc(doc(as(env, NEIGHBOUR), 'recipes/r1/comments/c1')));
+    await assertSucceeds(deleteDoc(doc(as(env, ADULT), 'recipes/r1/comments/c2')));
+    await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'recipes/r1/comments/c3')));
+  });
 });

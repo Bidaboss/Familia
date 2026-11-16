@@ -51,10 +51,11 @@ fun RecipesScreen(
     onAdd: () -> Unit,
     onBack: () -> Unit,
 ) {
+    val origin = (state as? RecipesUiState.Ready)?.originName
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.recipes_title)) },
+                title = { Text(if (origin != null) stringResource(R.string.recipes_from_title, origin) else stringResource(R.string.recipes_title)) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = { HelpButton(ScreenHelp.Recipes) },
             )

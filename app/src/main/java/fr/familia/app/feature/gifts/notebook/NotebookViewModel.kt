@@ -46,11 +46,14 @@ sealed interface NotebookUiState {
     data object Error : NotebookUiState
 
     data class Success(
-        /** Every occasion of the notebook, the next ones first; « no occasion yet » last. */
+        /** The occasions shown, the next ones first, « no occasion yet », then the archive when open. */
         val occasions: List<NotebookOccasion>,
         val selected: NotebookOccasion?,
         val people: List<NotebookPerson>,
         val actionFailed: Boolean = false,
+        /** How many occasions are past: they wait in the archive, out of the way. */
+        val archivedCount: Int = 0,
+        val showArchive: Boolean = false,
     ) : NotebookUiState
 }
 
@@ -66,7 +69,10 @@ class NotebookViewModel(
     private val writeTimeoutMillis: Long = 4_000,
 ) : ViewModel() {
 
-    private val chosen = MutableStateFlow<NotebookOccasion?>(null)
+    /** The occasion the member chose, and whether the archive is open. */
+    private data class Pick(val occasion: NotebookOccasion? = null, val archive: Boolean = false)
+
+    private val chosen = MutableStateFlow(Pick())
     private val failed = MutableStateFlow(false)
     private val reload = MutableStateFlow(0)
 
@@ -80,7 +86,12 @@ class NotebookViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), NotebookUiState.Loading)
 
     fun select(occasion: NotebookOccasion) {
-        chosen.value = occasion
+        chosen.value = chosen.value.copy(occasion = occasion)
+    }
+
+    /** Opens or closes the archive: the occasions of the past years. */
+    fun toggleArchive() {
+        chosen.value = chosen.value.copy(archive = !chosen.value.archive)
     }
 
     fun retry() {
@@ -134,12 +145,15 @@ class NotebookViewModel(
     private fun state(
         entries: List<NotebookEntry>,
         budgets: List<NotebookBudget>,
-        pick: NotebookOccasion?,
+        pick: Pick,
         today: LocalDate,
         didFail: Boolean,
     ): NotebookUiState.Success {
-        val occasions = sortedOccasions(entries.map { it.occasion }.toSet(), today)
-        val selected = pick?.takeIf { it in occasions } ?: defaultOccasion(occasions, today)
+        val all = sortedOccasions(entries.map { it.occasion }.toSet(), today)
+        val selected = pick.occasion?.takeIf { it in all } ?: defaultOccasion(all, today)
+        val past = all.filter { isPast(it, today) }
+        // The occasion shown stays in the row, even from the archive closed again.
+        val occasions = if (pick.archive) all else all.filter { it !in past || it == selected }
         val people = entries
             .filter { it.occasion == selected }
             .groupBy { personKey(it) }
@@ -155,7 +169,7 @@ class NotebookViewModel(
                 )
             }
             .sortedBy { it.name.lowercase() }
-        return NotebookUiState.Success(occasions, selected, people, didFail)
+        return NotebookUiState.Success(occasions, selected, people, didFail, archivedCount = past.size, showArchive = pick.archive)
     }
 }
 
@@ -169,6 +183,9 @@ internal fun sortedOccasions(occasions: Set<NotebookOccasion>, today: LocalDate)
     val order = compareBy<NotebookOccasion> { it.year }.thenBy { it.occasion?.ordinal ?: GiftOccasion.entries.size }
     return coming.sortedWith(order) + past.sortedWith(order.reversed()) + undated
 }
+
+/** An occasion of a past year goes to the archive; one with no year never does. */
+internal fun isPast(occasion: NotebookOccasion, today: LocalDate): Boolean = (occasion.year ?: Int.MAX_VALUE) < today.year
 
 /** Christmas of this year when there is one, else the first occasion still to come. */
 internal fun defaultOccasion(occasions: List<NotebookOccasion>, today: LocalDate): NotebookOccasion? =

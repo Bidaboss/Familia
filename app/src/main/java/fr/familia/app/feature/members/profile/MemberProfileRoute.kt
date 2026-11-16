@@ -13,7 +13,15 @@ import fr.familia.app.feature.souvenirs.SouvenirCelebrationPreferences
 
 /** Connects a member's page to its ViewModel. */
 @Composable
-fun MemberProfileRoute(container: AppContainer?, currentMember: Member, memberId: String, onBack: () -> Unit, onEdit: () -> Unit) {
+fun MemberProfileRoute(
+    container: AppContainer?,
+    currentMember: Member,
+    memberId: String,
+    onBack: () -> Unit,
+    onEdit: () -> Unit,
+    /** « Voir ses recettes » (récit 38), when the recipe book is on. */
+    onOpenRecipes: (() -> Unit)? = null,
+) {
     val context = LocalContext.current.applicationContext
     val viewModel: MemberProfileViewModel = viewModel(
         key = "profile-$memberId",
@@ -27,5 +35,5 @@ fun MemberProfileRoute(container: AppContainer?, currentMember: Member, memberId
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    MemberProfileScreen(state = state, onBack = onBack, onEdit = onEdit, onSetShown = viewModel::setShown, onDismissBravo = viewModel::dismissBravo)
+    MemberProfileScreen(state = state, onBack = onBack, onEdit = onEdit, onSetShown = viewModel::setShown, onDismissBravo = viewModel::dismissBravo, onOpenRecipes = onOpenRecipes)
 }

@@ -85,6 +85,7 @@ data class NotebookActions(
     val onBack: () -> Unit = {},
     val onRetry: () -> Unit = {},
     val onSelect: (NotebookOccasion) -> Unit = {},
+    val onToggleArchive: () -> Unit = {},
     val onSetStatus: (NotebookEntry, GiftStatus) -> Unit = { _, _ -> },
     val onSetOccasion: (NotebookEntry, NotebookOccasion) -> Unit = { _, _ -> },
     /** Sets the budget of a person at an occasion; null removes it. */
@@ -178,7 +179,7 @@ private fun Content(state: NotebookUiState.Success, actions: NotebookActions) {
                 )
             }
         } else {
-            item(key = "occasions") { OccasionPicker(state, actions.onSelect) }
+            item(key = "occasions") { OccasionPicker(state, actions.onSelect, actions.onToggleArchive) }
             items(state.people, key = { it.key }) { person ->
                 PersonCard(
                     person = person,
@@ -194,7 +195,7 @@ private fun Content(state: NotebookUiState.Success, actions: NotebookActions) {
 }
 
 @Composable
-private fun OccasionPicker(state: NotebookUiState.Success, onSelect: (NotebookOccasion) -> Unit) {
+private fun OccasionPicker(state: NotebookUiState.Success, onSelect: (NotebookOccasion) -> Unit, onToggleArchive: () -> Unit) {
     val label = stringResource(R.string.notebook_occasions)
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -207,6 +208,16 @@ private fun OccasionPicker(state: NotebookUiState.Success, onSelect: (NotebookOc
                 label = { Text(occasionName(occasion)) },
                 modifier = Modifier.heightIn(min = 56.dp),
             )
+        }
+        if (state.archivedCount > 0) {
+            item(key = "archive") {
+                FilterChip(
+                    selected = state.showArchive,
+                    onClick = onToggleArchive,
+                    label = { Text(stringResource(R.string.notebook_archive, state.archivedCount)) },
+                    modifier = Modifier.heightIn(min = 56.dp),
+                )
+            }
         }
     }
 }

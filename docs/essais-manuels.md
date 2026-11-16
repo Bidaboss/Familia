@@ -158,3 +158,12 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 6. Fais un « Choix libre » avec 3 réponses, sans plusieurs réponses. Réponds sur deux téléphones, puis « Terminer le sondage ». **Attendu :** une seule réponse cochable à la fois ; « Résultat du sondage » arrive aux autres ; plus personne ne peut répondre.
 7. Sur le téléphone d'un enfant avec l'appli, ouvre « Sondages ». **Attendu :** il répond, mais ne voit pas « Nouveau sondage ».
 8. Supprime un sondage. **Attendu :** il disparaît partout, sans notification.
+
+## Qui apporte quoi (récit 4 bis)
+
+1. Allume « Qui apporte quoi » dans Administration > Modules. Ouvre un événement. **Attendu :** une partie « Qui apporte quoi » sous « qui vient », vide, avec une phrase d'exemple.
+2. Écris « Le dessert », laisse « Je m'en charge » coché et touche « Ajouter à la liste ». Ajoute « Le pain » en décochant. **Attendu :** « Le dessert » montre « C'est moi qui l'apporte », « Le pain » montre « Personne pour l'instant » et un bouton « Je m'en charge ».
+3. Sur un autre téléphone, ouvre le même événement. **Attendu :** les deux lignes, avec ton prénom sur le dessert ; il peut prendre le pain, pas le dessert, et ne voit pas la corbeille sur tes lignes.
+4. Touche « Je ne peux plus » sur le dessert. **Attendu :** la ligne redevient libre partout.
+5. La veille de l'événement, à 18 h. **Attendu :** le rappel finit par « Tu apportes : … » pour chacun ; celui qui a pris une ligne sans répondre « Je viens » le reçoit aussi.
+6. Éteins le module. **Attendu :** la partie disparaît pour les autres membres, et le rappel ne parle plus de ce qu'on apporte.

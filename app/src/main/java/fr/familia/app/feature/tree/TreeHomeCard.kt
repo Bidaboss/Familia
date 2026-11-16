@@ -17,10 +17,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -72,7 +72,6 @@ fun TreeHomeContent(state: TreeUiState, modifier: Modifier = Modifier) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Text(stringResource(R.string.tree_how), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         state.challenge?.let { ChallengeGauge(it) }
@@ -101,43 +100,74 @@ private fun ChallengeGauge(challenge: MonthChallenge) {
 }
 
 private val trunk = Color(0xFF8A5A3B)
+private val ground = Color(0xFFE8D9C8).copy(alpha = 0.6f)
 private fun leafColor(season: TreeSeason) = when (season) {
     TreeSeason.Spring -> Color(0xFF8DB58A)
     TreeSeason.Summer -> Color(0xFF4F8F4A)
     TreeSeason.Autumn -> Color(0xFFE79A6E)
-    TreeSeason.Winter -> Color(0xFFB9CBD6)
+    TreeSeason.Winter -> Color(0xFF6F8F86)
 }
-private val blossom = Color(0xFFF2A7C3)
+private val blossom = Color(0xFFE87FA6)
+private val highlight = Color.White.copy(alpha = 0.3f)
+private val shadow = Color.Black.copy(alpha = 0.12f)
+
+/** How many tufts each row of the crown has: levels 1 to 3 fill the inner row, then the outer one. */
+internal fun tuftRows(level: Int): Pair<Int, Int> = (1 + level.coerceIn(0, 3)) to (2 * (level - 3).coerceAtLeast(0))
 
 /**
- * A clay tree: a trunk and round tufts, one more tuft for each level, dressed for the season. It
- * blooms (pink dots) the month the challenge is achieved. To be refined with [DESIGN].
+ * A clay tree (DESIGN, 16/11): a flared trunk with two roots on a patch of ground, a big central
+ * tuft and two rows of tufts that fill up with the levels, dressed for the season. Each tuft has a
+ * light on its top left and a shadow below, without blur. It blooms the month the challenge is achieved.
  */
 @Composable
 fun TreeDrawing(tree: FamilyTree, season: TreeSeason, bloomed: Boolean, modifier: Modifier = Modifier) {
     val leaves = leafColor(season)
+    val winter = season == TreeSeason.Winter
     Canvas(modifier) {
         val w = size.width
         val h = size.height
-        val trunkWidth = w * 0.12f
+        val cx = w / 2
+        val base = h * 0.92f
+        drawOval(ground, topLeft = Offset(cx - w * 0.35f, base - h * 0.04f), size = Size(w * 0.7f, h * 0.08f))
         val grow = 0.45f + 0.09f * tree.level
-        val trunkHeight = h * 0.45f * grow
-        drawRoundRect(
-            color = trunk,
-            topLeft = Offset(w / 2 - trunkWidth / 2, h - trunkHeight),
-            size = Size(trunkWidth, trunkHeight),
-            cornerRadius = CornerRadius(trunkWidth / 2),
-        )
-        val crownY = h - trunkHeight
-        val radius = w * 0.16f * grow
-        val tufts = 1 + tree.level
-        drawCircle(leaves, radius * 1.3f, Offset(w / 2, crownY))
-        for (i in 0 until tufts) {
-            val angle = Math.PI * (i + 0.5) / tufts
-            val center = Offset(w / 2 + (cos(angle) * radius * 1.4f).toFloat(), crownY - (sin(angle) * radius * 0.9f).toFloat())
-            drawCircle(leaves, radius, center)
-            if (bloomed) drawCircle(blossom, radius * 0.25f, center)
+        val trunkWidth = w * 0.12f
+        val crownY = base - h * 0.42f * grow
+        val trunkPath = Path().apply {
+            moveTo(cx - trunkWidth / 2, crownY)
+            lineTo(cx - trunkWidth / 2, base - trunkWidth * 0.7f)
+            quadraticTo(cx - trunkWidth * 0.6f, base, cx - trunkWidth * 1.3f, base)
+            lineTo(cx - trunkWidth * 0.35f, base)
+            lineTo(cx, base - trunkWidth * 0.25f)
+            lineTo(cx + trunkWidth * 0.35f, base)
+            lineTo(cx + trunkWidth * 1.3f, base)
+            quadraticTo(cx + trunkWidth * 0.6f, base, cx + trunkWidth / 2, base - trunkWidth * 0.7f)
+            lineTo(cx + trunkWidth / 2, crownY)
+            close()
         }
+        drawPath(trunkPath, trunk)
+        val radius = w * 0.15f * grow
+        fun tuft(center: Offset, r: Float) {
+            drawCircle(leaves, r, center)
+            drawArc(shadow, startAngle = 20f, sweepAngle = 140f, useCenter = false, topLeft = center - Offset(r * 0.9f, r * 0.9f), size = Size(r * 1.8f, r * 1.8f))
+            if (winter) drawArc(Color.White, startAngle = 205f, sweepAngle = 130f, useCenter = false, topLeft = center - Offset(r, r), size = Size(r * 2, r * 2))
+            drawCircle(highlight, r * 0.55f, center + Offset(-r * 0.25f, -r * 0.25f))
+            if (bloomed) {
+                for (k in 0 until 3) {
+                    val a = Math.toRadians(-90.0 + 120.0 * k + 30.0)
+                    drawCircle(blossom, r * 0.15f, center + Offset((cos(a) * r * 0.55f).toFloat(), (sin(a) * r * 0.55f).toFloat()))
+                }
+            }
+        }
+        fun row(count: Int, spread: Float) {
+            for (i in 0 until count) {
+                val angle = Math.PI * (i + 0.5) / count
+                tuft(Offset(cx + (cos(angle) * radius * spread).toFloat(), crownY - (sin(angle) * radius * spread * 0.8f).toFloat()), radius)
+            }
+        }
+        val (inner, outer) = tuftRows(tree.level)
+        row(outer, 1.8f)
+        tuft(Offset(cx, crownY), radius * 1.3f)
+        row(inner, 1.1f)
     }
 }
 

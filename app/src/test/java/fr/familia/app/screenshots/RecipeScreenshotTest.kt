@@ -7,9 +7,11 @@ import fr.familia.app.core.album.AlbumPhotosSection
 import fr.familia.app.core.album.PhotoActions
 import fr.familia.app.core.album.previewAlbumPhotos
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.feature.recipes.RecipeCommentsSection
 import fr.familia.app.feature.recipes.RecipeDetailScreen
 import fr.familia.app.feature.recipes.RecipeEditScreen
 import fr.familia.app.feature.recipes.RecipesScreen
+import fr.familia.app.feature.recipes.previewRecipeComments
 import fr.familia.app.feature.recipes.previewRecipeDetail
 import fr.familia.app.feature.recipes.previewRecipeEdit
 import fr.familia.app.feature.recipes.previewRecipesState
@@ -28,10 +30,15 @@ class RecipeScreenshotTest {
     private val list: @Composable () -> Unit = { Surface { RecipesScreen(previewRecipesState(), {}, {}, {}, {}) } }
     private val detail: @Composable () -> Unit = {
         Surface {
-            RecipeDetailScreen(previewRecipeDetail(), {}, {}, {}) {
+            RecipeDetailScreen(
+                previewRecipeDetail(),
+                {},
+                {},
+                {},
                 // Two photos of the dish, one place left: no photo being sent, so no moving bar.
-                AlbumPhotosSection(previewAlbumPhotos("recipes/1", count = 2).copy(maxPerMember = 3), PhotoActions(), "", showSeeAll = false)
-            }
+                photos = { AlbumPhotosSection(previewAlbumPhotos("recipes/1", count = 2).copy(maxPerMember = 3), PhotoActions(), "", showSeeAll = false) },
+                comments = { RecipeCommentsSection(previewRecipeComments(), {}, {}, {}) },
+            )
         }
     }
     private val edit: @Composable () -> Unit = { Surface { RecipeEditScreen(previewRecipeEdit(), {}, {}, {}) } }
