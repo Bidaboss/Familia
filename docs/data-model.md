@@ -433,6 +433,24 @@ Cloud Functions (`functions/src/helpRequests.ts`), qui ne préviennent que les p
 
 Une demande passée ne prévient personne, sauf pour le « Merci ». La sauvegarde de l'admin principal inclut les demandes (`helpRequests`).
 
+## Carnet de recettes (PRD, récit 38)
+
+### `recipes/{recipeId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `title` | texte | Le nom de la recette, de 1 à 80 caractères |
+| `originMemberId` | `memberId` ou `null` | De qui vient la recette, quand c'est un membre de la famille |
+| `origin` | texte | Sinon, qui l'a transmise, librement (« Mamie Jeanne »), 80 caractères au plus. Vide avec `originMemberId` |
+| `servings` | entier ou `null` | Le nombre de parts, de 1 à 50 |
+| `ingredients` | texte | Un ingrédient par ligne, de 1 à 3 000 caractères |
+| `steps` | texte | Une étape par ligne, de 1 à 6 000 caractères |
+| `tags` | liste de textes | 6 au plus (« dessert », « Noël ») |
+| `authorId`, `authorName` | texte | Le membre qui l'a écrite et son prénom, qui ne changent jamais |
+| `createdAt`, `updatedAt` | horodatage | Heure du serveur |
+
+Droits : tous les membres lisent toutes les recettes, et chacun écrit les siennes. L'auteur et l'admin principal les modifient et les retirent. Le module se montre avec l'interrupteur « Carnet de recettes ». Photos, commentaires et partage viendront dans une seconde partie.
+
 ## Voyages (V3, récits 11 à 15)
 
 ### `trips/{tripId}`

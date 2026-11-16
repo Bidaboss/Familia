@@ -25,6 +25,7 @@ import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.QueryStats
+import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.AdminPanelSettings
@@ -88,6 +89,8 @@ fun MembersScreen(
      * app. The admin principal finds everyone's time in Administration instead.
      */
     onOpenChildrenUsage: (() -> Unit)? = null,
+    /** « Carnet de recettes », while its module is on (récit 38). */
+    onOpenRecipes: (() -> Unit)? = null,
     /** The pencil shows on the households of [MembersUiState.Success.renamableHouseholdIds]. */
     onRenameHousehold: ((Household, String) -> Unit)? = null,
     renameFailed: Boolean = false,
@@ -169,6 +172,9 @@ fun MembersScreen(
                             onWishesClick = onOpenWishes?.let { open -> { open(member.id) } },
                         )
                     }
+                }
+                if (onOpenRecipes != null) {
+                    item(key = "recipes") { SettingsRow(Icons.Outlined.Restaurant, R.string.recipes_title, onOpenRecipes) }
                 }
                 item(key = "settings-title") {
                     Column {

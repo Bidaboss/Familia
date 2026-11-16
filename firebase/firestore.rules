@@ -1154,6 +1154,51 @@ service cloud.firestore {
       allow delete: if canChangePhoto(memberId) || (isMember() && !existsAfter(memberPath(memberId)));
     }
 
+    // --- Carnet de recettes (récit 38) -------------------------------------------------------------
+    //
+    // recipes/{recipeId}: a family recipe, seen by every member. Ingredients and steps are kept as
+    // texts, one per line, so the rules can bound them. Any member writes one in their own name;
+    // the author, or the admin principal, edits and removes it. originMemberId says whose recipe
+    // it is (a member of the family, or null with a free origin such as « Mamie Jeanne »).
+    function isValidRecipe(r) {
+      return r.keys().hasAll(['title', 'origin', 'originMemberId', 'servings', 'ingredients', 'steps', 'tags',
+                              'authorId', 'authorName', 'createdAt', 'updatedAt'])
+        && r.keys().hasOnly(['title', 'origin', 'originMemberId', 'servings', 'ingredients', 'steps', 'tags',
+                             'authorId', 'authorName', 'createdAt', 'updatedAt'])
+        && r.title is string && r.title.size() > 0 && r.title.size() <= 80
+        && r.origin is string && r.origin.size() <= 80
+        && (r.originMemberId == null || (r.originMemberId is string && exists(memberPath(r.originMemberId))))
+        && (r.servings == null || (r.servings is int && r.servings >= 1 && r.servings <= 50))
+        && r.ingredients is string && r.ingredients.size() > 0 && r.ingredients.size() <= 3000
+        && r.steps is string && r.steps.size() > 0 && r.steps.size() <= 6000
+        && r.tags is list && r.tags.size() <= 6
+        && r.authorName is string && r.authorName.size() > 0 && r.authorName.size() <= 40
+        && r.updatedAt == request.time;
+    }
+
+    function canManageRecipe(r) {
+      return r.authorId == myMemberId() || isOwner();
+    }
+
+    match /recipes/{recipeId} {
+      allow read: if isMember();
+
+      allow create: if isMember()
+        && isValidRecipe(request.resource.data)
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if isMember()
+        && canManageRecipe(resource.data)
+        && isValidRecipe(request.resource.data)
+        && request.resource.data.authorId == resource.data.authorId
+        && request.resource.data.authorName == resource.data.authorName
+        && request.resource.data.createdAt == resource.data.createdAt;
+
+      allow delete: if isMember() && canManageRecipe(resource.data);
+    }
+
     // --- Trips (V3, récits 11 à 15) ----------------------------------------------------------------
 
     function tripPath(tripId) {
