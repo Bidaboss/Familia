@@ -56,11 +56,9 @@ class FirestoreBringRepository(private val db: FirebaseFirestore) : BringReposit
         lines(eventId).document(itemId).delete().await()
     }
 
-    private fun DocumentSnapshot.toItem(): BringItem? = BringItem(
-        id = id,
-        label = getString("label") ?: return null,
-        authorId = getString("authorId") ?: return null,
-        takerId = getString("takerId"),
-        takerName = getString("takerName"),
-    )
+    private fun DocumentSnapshot.toItem(): BringItem? {
+        val label = getString("label") ?: return null
+        val authorId = getString("authorId") ?: return null
+        return BringItem(id = id, label = label, authorId = authorId, takerId = getString("takerId"), takerName = getString("takerName"))
+    }
 }
