@@ -190,6 +190,12 @@ import fr.familia.app.feature.trips.TripDetailDestination
 import fr.familia.app.feature.expenses.ExpenseEditRoute
 import fr.familia.app.feature.expenses.ExpenseHistoryRoute
 import fr.familia.app.feature.expenses.ExpensesRoute
+import fr.familia.app.feature.expenses.EventExpenseEditDestination
+import fr.familia.app.feature.expenses.EventExpenseEditRoute
+import fr.familia.app.feature.expenses.EventExpenseHistoryDestination
+import fr.familia.app.feature.expenses.EventExpenseHistoryRoute
+import fr.familia.app.feature.expenses.EventExpensesDestination
+import fr.familia.app.feature.expenses.EventExpensesRoute
 import fr.familia.app.feature.expenses.TripExpenseEditDestination
 import fr.familia.app.feature.expenses.TripExpenseHistoryDestination
 import fr.familia.app.feature.expenses.TripExpensesDestination
@@ -835,7 +841,37 @@ fun FamiliaApp(
                             onOpenAlbum = { navController.navigate(EventAlbumDestination(eventId)) },
                             onOpenRecipe = if (features.isOn(Feature.Recipes)) ({ id -> navController.navigate(RecipeDetailDestination(id)) }) else null,
                             onBack = { navController.popBackStack() },
+                            // Shown only with the switch on, to an adult who comes or to the author (canOpenExpenses).
+                            onOpenExpenses = { navController.navigate(EventExpensesDestination(eventId)) },
                         )
+                    }
+                    // Les comptes d'un week-end ou d'un repas (PRODUIT-57).
+                    composable<EventExpensesDestination> { entry ->
+                        val eventId = entry.toRoute<EventExpensesDestination>().eventId
+                        EventExpensesRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            eventId = eventId,
+                            onAdd = { navController.navigate(EventExpenseEditDestination(eventId)) },
+                            onEdit = { id -> navController.navigate(EventExpenseEditDestination(eventId, id)) },
+                            onHistory = { id -> navController.navigate(EventExpenseHistoryDestination(eventId, id)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<EventExpenseEditDestination> { entry ->
+                        val route = entry.toRoute<EventExpenseEditDestination>()
+                        EventExpenseEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            eventId = route.eventId,
+                            expenseId = route.expenseId,
+                            onHistory = { id -> navController.navigate(EventExpenseHistoryDestination(route.eventId, id)) },
+                            onDone = { navController.popBackStack() },
+                        )
+                    }
+                    composable<EventExpenseHistoryDestination> { entry ->
+                        val route = entry.toRoute<EventExpenseHistoryDestination>()
+                        EventExpenseHistoryRoute(container = container, eventId = route.eventId, expenseId = route.expenseId, onBack = { navController.popBackStack() })
                     }
                     composable<RecipesDestination> { entry ->
                         RecipesRoute(
