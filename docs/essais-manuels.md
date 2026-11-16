@@ -282,3 +282,4 @@ Avec le module « Vœux d'anniversaire » allumé, un membre dont c'est l'annive
 5. Change ta carte, puis retire-la. **Attendu :** le texte change, puis la carte disparaît.
 6. Le lendemain, rouvre la fiche. **Attendu :** les cartes sont toujours là, mais plus de champ pour écrire.
 7. Réglages > Notifications : coupe « Vœux d'anniversaire ». **Attendu :** plus d'avis de vœux pour ce compte.
+8. Ouvre les Bonnes nouvelles. **Attendu :** « 🎂 Joyeux anniversaire … ! » de Familia, avec un gâteau à la place de la photo de profil. Touche-la : les mêmes cartes de vœux s'affichent sous la nouvelle, avec le champ pour écrire le jour même.

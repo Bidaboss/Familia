@@ -1,6 +1,8 @@
 package fr.familia.app.feature.goodnews.detail
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -25,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Reaction
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
@@ -36,7 +39,7 @@ import fr.familia.app.feature.goodnews.RemoveGoodNewsDialog
 import fr.familia.app.feature.goodnews.previewGoodNewsItems
 import java.time.Instant
 
-/** One good news with its photos at full size. Stateless. */
+/** One good news with its photos at full size, and the cards of a birthday under it ([wishes], récit 36). Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GoodNewsDetailScreen(
@@ -47,6 +50,7 @@ fun GoodNewsDetailScreen(
     onHide: (Boolean) -> Unit,
     onDismissError: () -> Unit,
     onBack: () -> Unit,
+    wishes: (@Composable (Member) -> Unit)? = null,
 ) {
     var removing by rememberSaveable { mutableStateOf(false) }
     Scaffold(
@@ -65,7 +69,10 @@ fun GoodNewsDetailScreen(
                         Button(onClick = onBack, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_back)) }
                     },
                 )
-                is GoodNewsDetailUiState.Success -> Box(Modifier.verticalScroll(rememberScrollState()).padding(16.dp)) {
+                is GoodNewsDetailUiState.Success -> Column(
+                    Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp),
+                ) {
                     GoodNewsCard(
                         item = state.item,
                         now = state.now,
@@ -75,6 +82,8 @@ fun GoodNewsDetailScreen(
                         onRemove = { removing = true },
                         onHide = onHide,
                     )
+                    val person = state.birthdayPerson
+                    if (person != null && wishes != null) wishes(person)
                 }
             }
         }
