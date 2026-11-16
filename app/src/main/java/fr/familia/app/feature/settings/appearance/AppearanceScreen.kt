@@ -1,5 +1,6 @@
 package fr.familia.app.feature.settings.appearance
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -72,7 +73,7 @@ fun AppearanceScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.appearance_title)) },
+                title = { Text(stringResource(R.string.appearance_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
             )
         },

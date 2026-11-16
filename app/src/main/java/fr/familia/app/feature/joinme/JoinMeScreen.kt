@@ -1,5 +1,6 @@
 package fr.familia.app.feature.joinme
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -80,7 +81,7 @@ fun JoinMeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.joinme_title)) },
+                title = { Text(stringResource(R.string.joinme_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = { HelpButton(ScreenHelp.JoinMe) },
             )

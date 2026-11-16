@@ -40,6 +40,8 @@ fun EventDetailRoute(
     onOpenAlbum: () -> Unit = {},
     /** « Comptes de l'événement » (PRODUIT-57), wired once the expenses screens exist. */
     onOpenExpenses: (() -> Unit)? = null,
+    /** Opens a recipe joined to a line of « Qui apporte quoi », while the Recettes module is on. */
+    onOpenRecipe: ((recipeId: String) -> Unit)? = null,
 ) {
     val viewModel: EventDetailViewModel = viewModel(
         factory = viewModelFactory {
@@ -84,7 +86,7 @@ fun EventDetailRoute(
             // « Qui apporte quoi » (récit 4 bis), before the album.
             if (success != null && LocalFeatureFlags.current.isOn(Feature.Bring)) {
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                BringSection(container, currentMember, eventId, success.canManage)
+                BringSection(container, currentMember, eventId, success.canManage, onOpenRecipe = onOpenRecipe)
             }
             if (success != null && LocalFeatureFlags.current.isOn(Feature.EventAlbums)) {
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))

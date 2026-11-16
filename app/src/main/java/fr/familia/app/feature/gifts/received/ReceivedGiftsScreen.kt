@@ -1,5 +1,6 @@
 package fr.familia.app.feature.gifts.received
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -54,7 +55,7 @@ fun ReceivedGiftsScreen(state: ReceivedGiftsUiState, onBack: () -> Unit = {}, on
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.received_title)) },
+                title = { Text(stringResource(R.string.received_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
             )
         },

@@ -1,5 +1,6 @@
 package fr.familia.app.feature.polls.detail
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -91,7 +92,7 @@ fun PollDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.polls_title)) },
+                title = { Text(stringResource(R.string.polls_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = {
                     if (onShare != null && state is PollDetailUiState.Success) ShareButton(onClick = onShare)

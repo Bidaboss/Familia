@@ -1,5 +1,6 @@
 package fr.familia.app.feature.expenses
 
+import androidx.compose.ui.text.style.TextOverflow
 import android.content.Context
 import android.widget.Toast
 import androidx.annotation.StringRes
@@ -122,7 +123,7 @@ fun ExpensesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(success?.let { stringResource(R.string.expenses_title_of, it.title) } ?: stringResource(if (isEvent) R.string.expenses_title_event else R.string.expenses_title)) },
+                title = { Text(success?.let { stringResource(R.string.expenses_title_of, it.title) } ?: stringResource(if (isEvent) R.string.expenses_title_event else R.string.expenses_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = { if (success != null) ExportMenu(success) },
             )

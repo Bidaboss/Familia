@@ -8,8 +8,8 @@ interface BringRepository {
     /** The lines of an event, in the order they were added, updated live. */
     fun observe(eventId: String): Flow<List<BringItem>>
 
-    /** Adds a line, taken at once by [authorId] when [take] is set. */
-    suspend fun add(eventId: String, label: String, authorId: String, authorName: String, take: Boolean)
+    /** Adds a line, taken at once by [authorId] when [take] is set, with the recipe [recipeId] if any. */
+    suspend fun add(eventId: String, label: String, authorId: String, authorName: String, take: Boolean, recipeId: String? = null)
 
     suspend fun take(eventId: String, itemId: String, memberId: String, firstName: String)
 

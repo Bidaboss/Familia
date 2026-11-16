@@ -10,6 +10,8 @@ data class BringItem(
     val authorId: String,
     val takerId: String?,
     val takerName: String?,
+    /** A recipe of the book joined when the line was added (« Joindre une recette »), or null. */
+    val recipeId: String? = null,
 ) {
     companion object {
         const val MAX_LABEL = 60

@@ -42,4 +42,14 @@ class DiscoverTest {
     fun `Entraide is in the tutorial only while its module is on`() {
         assertEquals(emptySet<DiscoverModule>(), Discover.inTutorial { it != Feature.HelpRequests })
     }
+
+    @Test
+    fun `a child reads its own words for the trips and the help, the same elsewhere`() {
+        val trips = DiscoverHome(DiscoverModule.Trips, onTry = {}, onLater = null, forChild = true)
+        assertEquals(fr.familia.app.R.string.discover_trips_title_child, trips.titleRes)
+        assertEquals(fr.familia.app.R.string.discover_trips_body_child, trips.bodyRes)
+        assertEquals(fr.familia.app.R.string.discover_help_requests_body_child, DiscoverModule.HelpRequests.childBodyRes)
+        assertEquals(DiscoverModule.Recipes.bodyRes, DiscoverHome(DiscoverModule.Recipes, {}, null, forChild = true).bodyRes)
+        assertEquals(DiscoverModule.Trips.bodyRes, DiscoverHome(DiscoverModule.Trips, {}, null).bodyRes)
+    }
 }

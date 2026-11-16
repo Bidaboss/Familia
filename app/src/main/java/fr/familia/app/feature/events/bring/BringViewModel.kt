@@ -79,12 +79,15 @@ class BringViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BringUiState())
 
-    /** Adds [label], taken by me at once when [take] is set. False when the label is empty or too long. */
-    fun add(label: String, take: Boolean): Boolean {
+    /**
+     * Adds [label], taken by me at once when [take] is set, with the recipe [recipeId] if one is joined.
+     * False when the label is empty or too long.
+     */
+    fun add(label: String, take: Boolean, recipeId: String? = null): Boolean {
         val clean = label.trim()
         val repo = bring ?: return false
         if (clean.isEmpty() || clean.length > BringItem.MAX_LABEL || myName.isEmpty()) return false
-        write { repo.add(eventId, clean, currentMemberId, myName, take) }
+        write { repo.add(eventId, clean, currentMemberId, myName, take, recipeId) }
         return true
     }
 

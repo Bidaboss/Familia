@@ -1,5 +1,6 @@
 package fr.familia.app.feature.export
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,7 +49,7 @@ fun ExportScreen(state: ExportUiState, onExport: () -> Unit, onBack: () -> Unit,
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.export_title)) },
+                title = { Text(stringResource(R.string.export_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
             )
         },

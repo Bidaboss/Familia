@@ -1,5 +1,6 @@
 package fr.familia.app.feature.events.edit
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -115,6 +116,8 @@ fun EventEditScreen(
                         stringResource(
                             if ((state as? EventEditUiState.Editing)?.isNew == false) R.string.event_edit_title else R.string.event_add_title,
                         ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 },
                 navigationIcon = {

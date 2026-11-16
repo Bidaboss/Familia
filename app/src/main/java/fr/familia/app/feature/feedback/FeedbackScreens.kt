@@ -1,5 +1,6 @@
 package fr.familia.app.feature.feedback
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -96,7 +97,7 @@ fun FeedbackFormScreen(
     }
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.feedback_title)) }, navigationIcon = { BackButton(onClick = onBack) })
+            TopAppBar(title = { Text(stringResource(R.string.feedback_title), maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) })
         },
     ) { padding ->
         Column(
@@ -218,7 +219,7 @@ fun FeedbackListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(if (forAdmin) R.string.feedback_list_title else R.string.feedback_mine_title)) },
+                title = { Text(stringResource(if (forAdmin) R.string.feedback_list_title else R.string.feedback_mine_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
             )
         },

@@ -27,9 +27,10 @@ class FirestoreBringRepository(private val db: FirebaseFirestore) : BringReposit
         awaitClose { registration.remove() }
     }
 
-    override suspend fun add(eventId: String, label: String, authorId: String, authorName: String, take: Boolean) {
+    override suspend fun add(eventId: String, label: String, authorId: String, authorName: String, take: Boolean, recipeId: String?) {
         lines(eventId).document().set(
-            mapOf(
+            // recipeId only when a recipe is joined: a line without one keeps its 6 fields.
+            recipeField(recipeId) + mapOf(
                 "label" to label,
                 "authorId" to authorId,
                 "takerId" to if (take) authorId else null,
@@ -39,6 +40,8 @@ class FirestoreBringRepository(private val db: FirebaseFirestore) : BringReposit
             ),
         ).await()
     }
+
+    private fun recipeField(recipeId: String?): Map<String, Any?> = if (recipeId != null) mapOf("recipeId" to recipeId) else emptyMap()
 
     override suspend fun take(eventId: String, itemId: String, memberId: String, firstName: String) {
         lines(eventId).document(itemId)
@@ -59,6 +62,6 @@ class FirestoreBringRepository(private val db: FirebaseFirestore) : BringReposit
     private fun DocumentSnapshot.toItem(): BringItem? {
         val label = getString("label") ?: return null
         val authorId = getString("authorId") ?: return null
-        return BringItem(id = id, label = label, authorId = authorId, takerId = getString("takerId"), takerName = getString("takerName"))
+        return BringItem(id = id, label = label, authorId = authorId, takerId = getString("takerId"), takerName = getString("takerName"), recipeId = getString("recipeId"))
     }
 }
