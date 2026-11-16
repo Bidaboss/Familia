@@ -26,7 +26,11 @@ private class FakeMoments(initial: List<Moment> = emptyList()) : MomentRepositor
     val cheers = MutableStateFlow<List<MomentCheer>>(emptyList())
     val added = mutableListOf<Moment>()
 
-    override fun observeFor(memberId: String): Flow<List<Moment>> = moments.map { l -> l.filter { it.forMemberId == memberId } }
+    var askedPending: Boolean? = null
+    override fun observeFor(memberId: String, withPending: Boolean): Flow<List<Moment>> {
+        askedPending = withPending
+        return moments.map { l -> l.filter { it.forMemberId == memberId && (withPending || !it.pending) } }
+    }
     override fun observeCheers(momentId: String): Flow<List<MomentCheer>> = cheers.map { l -> l.filter { it.momentId == momentId } }
     override suspend fun add(moment: Moment) {
         added += moment
@@ -106,6 +110,25 @@ class ThinkOfMeTest {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { self.uiState.collect {} }
         assertFalse(self.uiState.value.canCheer)
         assertEquals(1, self.uiState.value.cheers.size)
+    }
+
+    @Test
+    fun `the others never ask for a moment waiting for the teenager`() = runTest {
+        val repo = FakeMoments()
+        val vm = ThinkOfMeViewModel(repo, TestFamily.otherAdult, teen, today) { now }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        assertEquals(false, repo.askedPending)
+        val parent = ThinkOfMeViewModel(repo, TestFamily.adult, teen, today) { now }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { parent.uiState.collect {} }
+        assertEquals(true, repo.askedPending)
+    }
+
+    @Test
+    fun `born a 29 February, 15 years old on 1 March`() {
+        val leap = TestFamily.kid.copy(birthDate = LocalDate.of(2008, 2, 29))
+        assertFalse(Moment.isTeenOrOlder(leap, LocalDate.of(2023, 2, 28)))
+        assertTrue(Moment.isTeenOrOlder(leap, LocalDate.of(2023, 3, 1)))
+        assertFalse(Moment.isTeenOrOlder(TestFamily.kid, today))
     }
 
     @Test

@@ -6,8 +6,11 @@ import kotlinx.coroutines.flow.Flow
 
 /** « Pensez à moi » (récit 43). Screens never talk to Firestore directly. */
 interface MomentRepository {
-    /** The moments of [memberId], soonest first, updated live. */
-    fun observeFor(memberId: String): Flow<List<Moment>>
+    /**
+     * The moments of [memberId], soonest first, updated live. [withPending] for the member, the
+     * author or a responsible adult only: the rules let nobody else read a moment waiting for a teenager.
+     */
+    fun observeFor(memberId: String, withPending: Boolean): Flow<List<Moment>>
 
     /** The encouragements of a moment, oldest first, updated live. */
     fun observeCheers(momentId: String): Flow<List<MomentCheer>>

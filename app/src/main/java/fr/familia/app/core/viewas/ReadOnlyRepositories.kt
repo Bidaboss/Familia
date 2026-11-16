@@ -255,7 +255,7 @@ class ReadOnlyBirthdayCardRepository(private val inner: BirthdayCardRepository, 
 }
 
 class ReadOnlyMomentRepository(private val inner: MomentRepository, private val guard: ViewAsGuard) : MomentRepository {
-    override fun observeFor(memberId: String): Flow<List<Moment>> = inner.observeFor(memberId)
+    override fun observeFor(memberId: String, withPending: Boolean): Flow<List<Moment>> = inner.observeFor(memberId, withPending)
     override fun observeCheers(momentId: String): Flow<List<MomentCheer>> = inner.observeCheers(momentId)
     override suspend fun add(moment: Moment) = guard.refuse()
     override suspend fun accept(momentId: String) = guard.refuse()

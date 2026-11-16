@@ -25,10 +25,15 @@ data class Moment(
     companion object {
         const val TITLE_MAX = 80
 
-        /** From 15 years old, a teenager notes or accepts their moments themselves. */
+        /**
+         * From 15 years old, a teenager notes or accepts their moments themselves. Born a 29
+         * February: on 1 March, as in the rules. Without a birth date: younger.
+         */
         fun isTeenOrOlder(member: Member, today: LocalDate): Boolean {
             val birth = member.birthDate ?: return false
-            return !birth.plusYears(15).isAfter(today)
+            val leapDay = birth.monthValue == 2 && birth.dayOfMonth == 29
+            val fifteen = if (leapDay) LocalDate.of(birth.year + 15, 3, 1) else birth.plusYears(15)
+            return !fifteen.isAfter(today)
         }
     }
 }

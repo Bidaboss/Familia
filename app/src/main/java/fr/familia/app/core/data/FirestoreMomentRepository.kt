@@ -17,8 +17,9 @@ class FirestoreMomentRepository(private val db: FirebaseFirestore) : MomentRepos
     private val moments = db.collection("moments")
     private val cheers = db.collection("momentCheers")
 
-    override fun observeFor(memberId: String): Flow<List<Moment>> = callbackFlow {
-        val registration = moments.whereEqualTo("forMemberId", memberId).addSnapshotListener { snapshot, error ->
+    override fun observeFor(memberId: String, withPending: Boolean): Flow<List<Moment>> = callbackFlow {
+        val query = moments.whereEqualTo("forMemberId", memberId)
+        val registration = (if (withPending) query else query.whereEqualTo("status", "accepted")).addSnapshotListener { snapshot, error ->
             if (error != null) {
                 close(error)
             } else if (snapshot != null) {

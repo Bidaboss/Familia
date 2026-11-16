@@ -58,11 +58,12 @@ class ThinkOfMeViewModel(
     private val saving = MutableStateFlow(false)
     private val failed = MutableStateFlow(false)
     private val isSelf = me.id == person.id
-    private val canManage = mayWrite && (isSelf || me.id in person.parentIds)
+    private val isResponsible = isSelf || me.id in person.parentIds
+    private val canManage = mayWrite && isResponsible
 
     private fun <T> Flow<T>.orElse(value: T): Flow<T> = catch { e -> if (e is CancellationException) throw e else emit(value) }
 
-    private val list: Flow<List<Moment>> = moments?.observeFor(person.id)?.orElse(emptyList()) ?: flowOf(emptyList())
+    private val list: Flow<List<Moment>> = moments?.observeFor(person.id, withPending = isResponsible)?.orElse(emptyList()) ?: flowOf(emptyList())
 
     private val openMoment: Flow<Moment?> = list.map { all -> all.firstOrNull { it.isOpen(clock()) } }
 
