@@ -22,6 +22,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.CloudOff
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -57,6 +59,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.GenealogyTree
+import fr.familia.app.core.model.Kin
+import fr.familia.app.core.model.KinLink
 import fr.familia.app.core.model.KinLinkKind
 import fr.familia.app.core.model.TreePerson
 import fr.familia.app.core.ui.BackButton
@@ -82,6 +86,10 @@ fun GenealogyScreen(
     modifier: Modifier = Modifier,
     /** A member's page (récit 34), when the Souvenirs module is on. */
     onOpenProfile: ((String) -> Unit)? = null,
+    /** Changing the tree and one's words (récit 40c); read only when null. */
+    actions: GenealogyActions? = null,
+    actionFailed: Boolean = false,
+    onFailureShown: () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier,
@@ -101,32 +109,72 @@ fun GenealogyScreen(
                     title = stringResource(R.string.genealogy_failed_title),
                     body = stringResource(R.string.genealogy_failed_body),
                 )
-                is GenealogyUiState.Ready ->
-                    if (state.isEmpty) {
-                        EmptyState(
-                            icon = Icons.Outlined.AccountTree,
-                            title = stringResource(R.string.genealogy_empty_title),
-                            body = stringResource(R.string.genealogy_empty_body),
-                        )
-                    } else {
-                        ReadyTree(state, onOpenProfile)
-                    }
+                is GenealogyUiState.Ready -> ReadyTree(state, onOpenProfile, actions)
             }
         }
     }
+    if (actionFailed) {
+        AlertDialog(
+            onDismissRequest = onFailureShown,
+            title = { Text(stringResource(R.string.genealogy_failed_change_title)) },
+            text = { Text(stringResource(R.string.genealogy_failed_change_body)) },
+            confirmButton = {
+                TextButton(onClick = onFailureShown, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_ok)) }
+            },
+        )
+    }
 }
+
+/** What one can do on the tree; each is checked again by the ViewModel and the rules. */
+data class GenealogyActions(
+    val onAddLink: (personId: String, relation: Relation, otherId: String) -> Unit,
+    val onRemoveLink: (KinLink) -> Unit,
+    val onSaveKin: (kin: Kin, joinTo: Pair<String, Relation>?) -> Unit,
+    val onDeleteKin: (String) -> Unit,
+    val onSetWord: (personId: String, word: String) -> Unit,
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ReadyTree(state: GenealogyUiState.Ready, onOpenProfile: ((String) -> Unit)?) {
+private fun ReadyTree(state: GenealogyUiState.Ready, onOpenProfile: ((String) -> Unit)?, actions: GenealogyActions?) {
     var zoom by remember { mutableFloatStateOf(1f) }
     var pan by remember { mutableStateOf(Offset.Zero) }
     var open by rememberSaveable { mutableStateOf<String?>(null) }
+    // The dialogs: one at a time, each named by the person it is about.
+    var wordFor by rememberSaveable { mutableStateOf<String?>(null) }
+    var linkFor by rememberSaveable { mutableStateOf<String?>(null) }
+    var editKin by rememberSaveable { mutableStateOf<String?>(null) }
+    var joinPerson by rememberSaveable { mutableStateOf<String?>(null) }
+    var joinRelation by rememberSaveable { mutableStateOf<Relation?>(null) }
+    var removeKin by rememberSaveable { mutableStateOf<String?>(null) }
+    val editing = actions?.takeIf { state.canEdit }
     val transform = rememberTransformableState { zoomChange, panChange, _ ->
         zoom = (zoom * zoomChange).coerceIn(MIN_ZOOM, MAX_ZOOM)
         pan += panChange
     }
-    Column(Modifier.fillMaxSize()) {
+    val addFirst: (@Composable () -> Unit)? = if (editing == null) {
+        null
+    } else {
+        {
+            Button(onClick = { editKin = NEW_KIN }, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.genealogy_kin_add))
+            }
+        }
+    }
+    if (state.isEmpty) {
+        EmptyState(
+            icon = Icons.Outlined.AccountTree,
+            title = stringResource(R.string.genealogy_empty_title),
+            body = stringResource(R.string.genealogy_empty_body),
+            action = addFirst,
+        )
+    } else Column(Modifier.fillMaxSize()) {
+        if (editing != null) {
+            OutlinedButton(
+                onClick = { editKin = NEW_KIN },
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp).heightIn(min = 56.dp),
+            ) { Text(stringResource(R.string.genealogy_kin_add)) }
+        }
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -141,6 +189,15 @@ private fun ReadyTree(state: GenealogyUiState.Ready, onOpenProfile: ((String) ->
                 enabled = zoom < MAX_ZOOM,
                 modifier = Modifier.weight(1f).heightIn(min = 56.dp),
             ) { Text(stringResource(R.string.genealogy_zoom_in)) }
+            // Moved too far, or lost: back to the start (relecture #122).
+            OutlinedButton(
+                onClick = {
+                    zoom = 1f
+                    pan = Offset.Zero
+                },
+                enabled = zoom != 1f || pan != Offset.Zero,
+                modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+            ) { Text(stringResource(R.string.genealogy_recenter)) }
         }
         Box(
             Modifier
@@ -177,8 +234,55 @@ private fun ReadyTree(state: GenealogyUiState.Ready, onOpenProfile: ((String) ->
                     }
                 },
                 onClose = { open = null },
+                onWord = actions?.takeIf { person.id != state.me }?.let { { wordFor = person.id } },
+                onAddLink = editing?.takeIf { state.canEditPerson(person.id) }?.let { { linkFor = person.id } },
+                onRemoveLink = editing?.let { a -> { link: KinLink -> a.onRemoveLink(link) } },
+                canEditLink = state::canEditLink,
+                onEditKin = editing?.takeIf { person is TreePerson.OfKin && state.canEditPerson(person.id) }?.let { { editKin = person.id } },
+                onRemoveKin = editing?.takeIf { person is TreePerson.OfKin && state.canEditPerson(person.id) }?.let { { removeKin = person.id } },
             )
         }
+    }
+    val people = state.tree.people
+    wordFor?.let { people[it] }?.let { person ->
+        WordDialog(person, state.words[person.id], onSave = { word ->
+            actions?.onSetWord(person.id, word)
+            wordFor = null
+        }, onDismiss = { wordFor = null })
+    }
+    linkFor?.let { people[it] }?.let { person ->
+        LinkDialog(person, state.tree, onPick = { relation, other ->
+            linkFor = null
+            if (other == NEW_KIN) {
+                joinPerson = person.id
+                joinRelation = relation
+                editKin = NEW_KIN
+            } else {
+                editing?.onAddLink(person.id, relation, other)
+            }
+        }, onDismiss = { linkFor = null }, canJoin = { relation, other -> state.canJoin(person.id, relation, other) })
+    }
+    editKin?.let { id ->
+        val kin = (people[id] as? TreePerson.OfKin)?.kin
+        if (id == NEW_KIN || kin != null) {
+            val close = {
+                editKin = null
+                joinPerson = null
+                joinRelation = null
+            }
+            KinDialog(kin, onSave = { saved ->
+                val join = joinPerson?.let { p -> joinRelation?.let { r -> p to r } }
+                editing?.onSaveKin(saved, join)
+                close()
+            }, onDismiss = close)
+        }
+    }
+    removeKin?.let { (people[it] as? TreePerson.OfKin)?.kin }?.let { kin ->
+        RemoveKinDialog(kin, onConfirm = {
+            editing?.onDeleteKin(kin.id)
+            removeKin = null
+            open = null
+        }, onDismiss = { removeKin = null })
     }
 }
 
@@ -305,6 +409,12 @@ internal fun PersonCard(
     words: Map<String, String>,
     onOpenProfile: (() -> Unit)?,
     onClose: () -> Unit,
+    onWord: (() -> Unit)? = null,
+    onAddLink: (() -> Unit)? = null,
+    onRemoveLink: ((KinLink) -> Unit)? = null,
+    canEditLink: (KinLink) -> Boolean = { false },
+    onEditKin: (() -> Unit)? = null,
+    onRemoveKin: (() -> Unit)? = null,
 ) {
     val names = { ids: List<String> ->
         ids.mapNotNull { tree.people[it] }.sortedBy { it.firstName.lowercase() }.joinToString(", ") { p ->
@@ -331,9 +441,51 @@ internal fun PersonCard(
             lifeLine(person)?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
             kin.note?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
         }
-        Relation(R.string.genealogy_parents, names(tree.parentsOf(person.id)))
-        Relation(R.string.genealogy_partners, names(tree.partnersOf(person.id)))
-        Relation(R.string.genealogy_children, names(tree.childrenOf(person.id)))
+        if (onRemoveLink == null) {
+            Relatives(R.string.genealogy_parents, names(tree.parentsOf(person.id)))
+            Relatives(R.string.genealogy_partners, names(tree.partnersOf(person.id)))
+            Relatives(R.string.genealogy_children, names(tree.childrenOf(person.id)))
+        } else {
+            // Each link on its own line, with « Retirer » where I may change it.
+            val mine = tree.links.filter { it.aId == person.id || it.bId == person.id }
+            mine.forEach { link ->
+                val otherId = if (link.aId == person.id) link.bId else link.aId
+                val other = tree.people[otherId] ?: return@forEach
+                val role = when {
+                    link.kind == KinLinkKind.Partner -> R.string.genealogy_role_partner
+                    link.bId == person.id -> R.string.genealogy_role_parent
+                    else -> R.string.genealogy_role_child
+                }
+                Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(role, other.firstName), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                    if (canEditLink(link)) {
+                        TextButton(onClick = { onRemoveLink(link) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                            Text(stringResource(R.string.genealogy_link_remove))
+                        }
+                    }
+                }
+            }
+        }
+        if (onWord != null) {
+            OutlinedButton(onClick = onWord, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.genealogy_word_action, person.firstName))
+            }
+        }
+        if (onAddLink != null) {
+            OutlinedButton(onClick = onAddLink, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.genealogy_link_add))
+            }
+        }
+        if (onEditKin != null) {
+            OutlinedButton(onClick = onEditKin, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.genealogy_kin_edit))
+            }
+        }
+        if (onRemoveKin != null) {
+            TextButton(onClick = onRemoveKin, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.genealogy_kin_remove), color = MaterialTheme.colorScheme.error)
+            }
+        }
         if (onOpenProfile != null) {
             OutlinedButton(onClick = onOpenProfile, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.genealogy_open_profile))
@@ -346,7 +498,7 @@ internal fun PersonCard(
 }
 
 @Composable
-private fun Relation(@StringRes label: Int, names: String) {
+private fun Relatives(@StringRes label: Int, names: String) {
     if (names.isEmpty()) return
     Column {
         Text(stringResource(label), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
