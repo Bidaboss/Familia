@@ -936,6 +936,7 @@
     <string name="share_birthday_text">Anniversaire de %1$s : %2$s le %3$s. On se retrouve dans Familia :</string>
     <string name="feature_share">Partager vers une messagerie</string>
     <string name="feature_comments">Commentaires sous les événements</string>
+    <string name="feature_expenses">Comptes du voyage</string>
     <string name="event_comments_title">Commentaires</string>
     <string name="event_comments_more">Voir les commentaires plus anciens</string>
     <string name="event_comments_empty">Pas encore de commentaire. Une question, une idée, un « j\'ai hâte » ?</string>
