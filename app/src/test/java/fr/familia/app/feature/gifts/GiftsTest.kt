@@ -141,6 +141,23 @@ class GiftsTest {
     }
 
     @Test
+    fun `in « Voir comme », a list for the admin reads as theirs, without reservations, and says why`() = runTest {
+        val gifts = FakeGifts(list("l", "adult1", viewers = listOf("adult1", "adult2")))
+        // adult1 is the admin principal looking as adult2: adult1 still reads, and is the beneficiary.
+        val vm = GiftListViewModel(gifts, FakeMembers(), "adult2", "l", today = flowOf(today), readerId = "adult1")
+        val state = vm.uiState.first { it is GiftListUiState.Success } as GiftListUiState.Success
+        assertTrue(state.keptFromReader)
+        assertFalse(state.keptFromMe)
+        assertFalse(state.canReserve)
+        assertEquals(listOf(true), gifts.itemQueries)
+        assertEquals(0, gifts.claimQueries)
+        // Someone else's list reads as usual.
+        val other = FakeGifts(list("m", "adult2", viewers = listOf("adult1", "adult2")))
+        val usual = GiftListViewModel(other, FakeMembers(), "adult1", "m", today = flowOf(today), readerId = "adult1")
+        assertFalse((usual.uiState.first { it is GiftListUiState.Success } as GiftListUiState.Success).keptFromReader)
+    }
+
+    @Test
     fun `a viewer sees who reserved and the parts of a joint gift`() = runTest {
         val gifts = FakeGifts(list("l", "adult1", viewers = listOf("adult1", "adult2")))
         gifts.claims.value = listOf(GiftClaim("i1", ClaimType.Shared, "admin1", "Admin1", sharesTotal = 45.0, sharesCount = 2))
