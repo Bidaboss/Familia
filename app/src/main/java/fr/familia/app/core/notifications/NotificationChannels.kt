@@ -1,5 +1,6 @@
 package fr.familia.app.core.notifications
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -70,6 +71,12 @@ object NotificationChannels {
         Spec(CAPSULES, R.string.channel_capsules, R.string.channel_capsules_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.Capsules),
     )
 
+    /**
+     * Channels that may hold a surprise (a gift, a time capsule): the lock screen shows only that a
+     * notification came, never its text (audit 2.2). Same list as PRIVATE_CHANNELS in index.ts.
+     */
+    val privateIds: Set<String> = setOf(GIFTS, CAPSULES)
+
     /** Every id the app knows: a notice for another channel falls back on [EVENTS]. */
     val ids: Set<String> = specs.map { it.id }.toSet()
 
@@ -88,7 +95,10 @@ object NotificationChannels {
                     (!spec.ownerOnly || features.isOwner)
             }.map { spec ->
                 NotificationChannel(spec.id, context.getString(spec.name), spec.importance)
-                    .apply { description = context.getString(spec.description) }
+                    .apply {
+                        description = context.getString(spec.description)
+                        if (spec.id in privateIds) lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+                    }
             },
         )
     }

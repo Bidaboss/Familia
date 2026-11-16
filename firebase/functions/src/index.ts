@@ -59,6 +59,9 @@ setGlobalOptions({ region: 'europe-west1', maxInstances: 1 });
 
 const UNREGISTERED = new Set(['messaging/registration-token-not-registered', 'messaging/invalid-registration-token']);
 
+/** Channels whose notifications may hold a surprise (gifts, time capsules). Same list in NotificationChannels.kt. */
+const PRIVATE_CHANNELS: ReadonlySet<string> = new Set(['gifts', 'capsules']);
+
 const send: Sender = async (token: string, notice: Notice) => {
   try {
     await getMessaging().send({
@@ -74,7 +77,8 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.capsuleId ? { capsuleId: notice.capsuleId } : {}),
         ...(notice.souvenirKey ? { souvenirKey: notice.souvenirKey } : {}),
       },
-      android: { notification: { channelId: notice.channel } },
+      // A surprise never shows on the lock screen (audit 2.2): only « Familia » and the channel.
+      android: { notification: { channelId: notice.channel, ...(PRIVATE_CHANNELS.has(notice.channel) ? { visibility: 'private' as const } : {}) } },
     });
     return 'ok';
   } catch (e) {
