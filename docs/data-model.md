@@ -517,3 +517,18 @@ Cloud Functions (`functions/src/weeklyQuestion.ts`) :
 | `onMemberDeletedAnswers` | suppression d'un membre | Retire ses réponses (carte EXPERT-1). |
 
 Plus tard : la photo facultative d'une réponse, la sauvegarde JSON des questions et réponses, le choix et l'ajout de questions dans Administration, les questions proposées par les membres, la feuille de l'arbre (récit 35) et le regroupement avec les autres rendez-vous en une notification par jour (carte AVIS-14).
+
+## Utilisation (PRD, récit 1 nonies)
+
+### `usage/{memberId}/days/{day}`
+
+Le temps passé dans l'appli par un membre, un jour donné. Le téléphone le compte (appli au premier plan, partie par partie) et l'envoie lui-même : chaque jour terminé une fois, et le jour en cours au plus toutes les 3 heures. Rien n'est compté tant que le module « Utilisation » est éteint pour la famille.
+
+| Champ | Type | Sens |
+|---|---|---|
+| `day` | string `AAAA-MM-JJ` | Le jour, identique à l'id du document. |
+| `opens` | int (0 à 500) | Les ouvertures de l'appli. Un retour en moins de 5 minutes n'en compte pas une nouvelle. |
+| `seconds` | map | Les secondes par partie de l'appli : `home`, `planning`, `gifts`, `help`, `goodNews`, `weeklyQuestion`, `trips`, `family`, `other` (0 à 86 400 chacune). |
+| `expireAt` | timestamp | Le jour plus 13 mois. La règle TTL de `firestore.indexes.json` efface le document à cette date. |
+
+Le document ne contient jamais ce que la personne a lu, écrit ou ouvert. Seul le membre écrit ses propres jours. L'admin principal lit les jours de tout le monde, et les adultes responsables d'un enfant (ses `parentIds`) lisent ceux de cet enfant (carte EXPERT-5). Personne ne supprime un jour : c'est le TTL qui s'en charge.

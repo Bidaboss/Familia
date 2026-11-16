@@ -1159,6 +1159,39 @@ service cloud.firestore {
       allow delete: if isMember() && memberId == myMemberId();
     }
 
+    // usage/{memberId}/days/{day}: the time spent in the app, counted on the phone and sent once
+    // a day (PRD, récit 1 nonies): the openings and the seconds per part of the app, never what
+    // was read or written. Each member writes their own days only. The admin principal reads
+    // everyone's, and the responsible adults of a child read that child's (carte EXPERT-5).
+    // Nobody deletes: the TTL policy on expireAt (firestore.indexes.json) erases them after 13 months.
+    function isUsageSeconds(seconds, key) {
+      return !(key in seconds) || (seconds[key] is int && seconds[key] >= 0 && seconds[key] <= 86400);
+    }
+
+    function isValidUsageDay(d, day) {
+      return d.keys().hasAll(['day', 'opens', 'seconds', 'expireAt'])
+        && d.keys().hasOnly(['day', 'opens', 'seconds', 'expireAt'])
+        && isDay(day) && d.day == day
+        && d.opens is int && d.opens >= 0 && d.opens <= 500
+        && d.seconds is map
+        && d.seconds.keys().hasOnly(['home', 'planning', 'gifts', 'help', 'goodNews', 'weeklyQuestion', 'trips', 'family', 'other'])
+        && isUsageSeconds(d.seconds, 'home') && isUsageSeconds(d.seconds, 'planning')
+        && isUsageSeconds(d.seconds, 'gifts') && isUsageSeconds(d.seconds, 'help')
+        && isUsageSeconds(d.seconds, 'goodNews') && isUsageSeconds(d.seconds, 'weeklyQuestion')
+        && isUsageSeconds(d.seconds, 'trips') && isUsageSeconds(d.seconds, 'family')
+        && isUsageSeconds(d.seconds, 'other')
+        && d.expireAt is timestamp;
+    }
+
+    match /usage/{memberId}/days/{day} {
+      allow read: if isMember()
+        && (isOwner() || myMemberId() in get(memberPath(memberId)).data.parentIds);
+      allow create, update: if isMember()
+        && memberId == myMemberId()
+        && isValidUsageDay(request.resource.data, day);
+      allow delete: if false;
+    }
+
     // config/app: the latest version and the HTTPS link of its APK (docs/mise-a-jour.md), and
     // the module switches `features` (PRD rév. 120). config/family: { ownerMemberId }, the admin
     // principal. Every member reads them. The workflow « APK de publication » writes the version

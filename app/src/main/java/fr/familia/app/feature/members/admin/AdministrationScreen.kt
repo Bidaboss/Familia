@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.QueryStats
 import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -76,6 +77,8 @@ fun AdministrationScreen(
     onAddHousehold: (String) -> Unit,
     onDeleteHousehold: (Household) -> Unit,
     onOpenExport: () -> Unit,
+    /** « Utilisation » (PRD, récit 1 nonies). */
+    onOpenUsage: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     actionFailed: Boolean = false,
     onFailureShown: () -> Unit = {},
@@ -113,7 +116,7 @@ fun AdministrationScreen(
                     body = stringResource(R.string.administration_not_allowed_body),
                 )
                 is AdministrationUiState.Ready ->
-                    ReadyContent(state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport, features, onSetFeature, onRenameHousehold)
+                    ReadyContent(state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport, features, onSetFeature, onRenameHousehold, onOpenUsage)
             }
         }
     }
@@ -141,6 +144,7 @@ private fun ReadyContent(
     features: Map<String, Boolean>,
     onSetFeature: ((Feature, Boolean) -> Unit)?,
     onRenameHousehold: ((Household, String) -> Unit)?,
+    onOpenUsage: (() -> Unit)?,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
@@ -174,6 +178,23 @@ private fun ReadyContent(
             }
             items(Feature.entries, key = { "feature-${it.key}" }) { feature ->
                 FeatureSwitchRow(feature, on = features[feature.key] == true, onSetFeature = onSetFeature)
+            }
+        }
+        if (onOpenUsage != null) {
+            item(key = "usage") {
+                HorizontalDivider(Modifier.padding(top = 8.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onOpenUsage)
+                        .heightIn(min = 56.dp)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Outlined.QueryStats, contentDescription = null)
+                    Spacer(Modifier.width(16.dp))
+                    Text(stringResource(R.string.usage_title), style = MaterialTheme.typography.titleMedium)
+                }
             }
         }
         item(key = "backup") {
