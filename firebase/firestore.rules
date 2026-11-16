@@ -177,6 +177,8 @@ service cloud.firestore {
       allow update: if isMember()
         && isValidMember(request.resource.data)
         && request.resource.data.uid == resource.data.uid
+        // A member who already signed in keeps an address: removing it would lock them out.
+        && (resource.data.uid == null || request.resource.data.email != null)
         && emailIndexMatches(memberId, request.resource.data.email)
         && (resource.data.email == null || resource.data.email == request.resource.data.email
             || !existsAfter(emailIndexPath(resource.data.email)))

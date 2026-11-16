@@ -371,6 +371,8 @@
     <string name="feedback_screenshot_remove">Retirer la capture</string>
     <string name="feedback_copy_for_claude">Copier pour Claude</string>
     <string name="feedback_copied">Copié</string>
+    <string name="feedback_share_for_claude">Partager pour Claude</string>
+    <string name="feedback_share_chooser">Envoyer la demande et sa capture avec</string>
     <string name="share_app_title">Partager Familia</string>
     <string name="share_app_help">Envoie le lien d\'installation à toute la famille, par WhatsApp ou SMS.</string>
     <string name="share_app_chooser">Partager Familia avec</string>
