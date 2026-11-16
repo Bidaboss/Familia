@@ -1,8 +1,11 @@
 package fr.familia.app.core.viewas
 
+import fr.familia.app.core.data.GenealogyRepository
 import fr.familia.app.core.data.NotificationRepository
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
+import fr.familia.app.core.model.Kin
+import fr.familia.app.core.model.KinLink
 import fr.familia.app.core.model.RsvpStatus
 import fr.familia.app.feature.events.FakeEvents
 import fr.familia.app.feature.events.FakeMembers
@@ -96,5 +99,29 @@ class ReadOnlyRepositoriesTest {
             list("not-yet", GiftListKind.Surprise, "adult1", listOf("admin1")),
         )
         assertEquals(listOf("wishes-adult2", "noel", "revealed"), listsSeenBy(adminLists, "adult1").map { it.id })
+    }
+
+    @Test
+    fun `the family tree is read, nobody is added, joined or renamed`() = runTest {
+        val jeanne = Kin("k1", "Jeanne", living = false, householdId = "h1")
+        val inner = object : GenealogyRepository {
+            override fun observeKin(): Flow<List<Kin>> = flowOf(listOf(jeanne))
+            override fun observeLinks(): Flow<List<KinLink>> = flowOf(emptyList())
+            override fun observeWords(memberId: String): Flow<Map<String, String>> = flowOf(emptyMap())
+            override fun newKinId(): String = "k2"
+            override suspend fun saveKin(kin: Kin, byMemberId: String, firstLink: KinLink?) = fail("written")
+            override suspend fun deleteKin(id: String) = fail("written")
+            override suspend fun addLink(link: KinLink, byMemberId: String) = fail("written")
+            override suspend fun removeLink(link: KinLink) = fail("written")
+            override suspend fun saveWords(memberId: String, words: Map<String, String>) = fail("written")
+        }
+        val tree = ReadOnlyGenealogyRepository(inner, guard)
+        assertEquals(listOf(jeanne), tree.observeKin().first())
+        assertRefused { tree.saveKin(jeanne, "admin1") }
+        assertRefused { tree.deleteKin("k1") }
+        assertRefused { tree.addLink(KinLink.parent("k1", "adult1"), "admin1") }
+        assertRefused { tree.removeLink(KinLink.parent("k1", "adult1")) }
+        assertRefused { tree.saveWords("adult1", mapOf("k1" to "Mamie")) }
+        assertEquals(5, refused)
     }
 }
