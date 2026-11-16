@@ -65,6 +65,8 @@ import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.feature.members.MembersViewModel.Companion.MAX_HOUSEHOLD_NAME
+import fr.familia.app.feature.tree.MonthPick
+import java.time.YearMonth
 
 /** The Administration menu of the admin principal (PRD, récit 1 ter). Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,6 +91,9 @@ fun AdministrationScreen(
     onRenameHousehold: ((Household, String) -> Unit)? = null,
     /** « Consommation » (PRD, récit 1 sexies); hidden when null. */
     consumption: ConsumptionCard? = null,
+    /** « Défi du mois » (récit 35): this month and the next; hidden when [onPickChallenge] is null. */
+    challenges: List<MonthPick> = emptyList(),
+    onPickChallenge: ((YearMonth, String) -> Unit)? = null,
 ) {
     Scaffold(
         modifier = modifier,
@@ -120,7 +125,7 @@ fun AdministrationScreen(
                 is AdministrationUiState.Ready ->
                     ReadyContent(
                         state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport, features, onSetFeature, onRenameHousehold,
-                        onOpenUsage, consumption,
+                        onOpenUsage, consumption, challenges, onPickChallenge,
                     )
             }
         }
@@ -151,6 +156,8 @@ private fun ReadyContent(
     onRenameHousehold: ((Household, String) -> Unit)?,
     onOpenUsage: (() -> Unit)?,
     consumption: ConsumptionCard?,
+    challenges: List<MonthPick>,
+    onPickChallenge: ((YearMonth, String) -> Unit)?,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
@@ -202,6 +209,13 @@ private fun ReadyContent(
                     Text(stringResource(R.string.usage_title), style = MaterialTheme.typography.titleMedium)
                 }
             }
+        }
+        if (onPickChallenge != null && challenges.isNotEmpty()) {
+            item(key = "challenge-title") {
+                HorizontalDivider(Modifier.padding(top = 8.dp))
+                SectionTitle(R.string.administration_challenge_title, R.string.administration_challenge_help)
+            }
+            item(key = "challenge") { ChallengePickSection(challenges, onPickChallenge) }
         }
         if (consumption != null) {
             item(key = "consumption") { ConsumptionSection(consumption) }

@@ -2,15 +2,19 @@ package fr.familia.app.feature.members.admin
 
 import fr.familia.app.core.data.ConsumptionRepository
 import fr.familia.app.core.data.MemberRepository
+import fr.familia.app.core.data.TreeRepository
 import fr.familia.app.core.model.Consumption
 import fr.familia.app.core.model.Family
+import fr.familia.app.core.model.FamilyTree
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
+import fr.familia.app.core.model.MonthChallenge
 import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -22,6 +26,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.io.IOException
 import java.time.LocalDate
+import java.time.YearMonth
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AdministrationViewModelTest {
@@ -54,6 +59,28 @@ class AdministrationViewModelTest {
         val day = Consumption(LocalDate.of(2026, 11, 20), reads = 3_000)
         latest.value = day
         assertEquals(ConsumptionCard.Ready(day), vm.consumption.value)
+    }
+
+    @Test
+    fun `the admin principal picks the challenge of this month and the next, from the list only (récit 35)`() = runTest {
+        val picks = mutableListOf<Pair<YearMonth, String>>()
+        val picked = MutableStateFlow<String?>(null)
+        val tree = object : TreeRepository {
+            override fun observeTree(): Flow<FamilyTree> = flowOf(FamilyTree())
+            override fun observeChallenge(month: YearMonth): Flow<MonthChallenge?> = flowOf(null)
+            override fun observePick(month: YearMonth): Flow<String?> = if (month == YearMonth.of(2027, 1)) picked else flowOf(null)
+            override suspend fun pick(month: YearMonth, choiceId: String) {
+                picks += month to choiceId
+                picked.value = choiceId
+            }
+        }
+        val vm = AdministrationViewModel(FakeMembers(family), "o", tree = tree, month = YearMonth.of(2026, 12))
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.challenges.collect {} }
+        assertEquals(listOf("christmasPhotos", "goodNewsStart"), vm.challenges.value.map { it.choice.id })
+        vm.pickChallenge(YearMonth.of(2027, 1), "pets")
+        vm.pickChallenge(YearMonth.of(2027, 1), "1000 photos")
+        assertEquals(listOf(YearMonth.of(2027, 1) to "pets"), picks)
+        assertEquals("pets", vm.challenges.value[1].choice.id)
     }
 
     @Test

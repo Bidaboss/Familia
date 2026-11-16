@@ -5,6 +5,9 @@ import androidx.compose.runtime.Composable
 import com.github.takahirom.roborazzi.captureRoboImage
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.model.FamilyTree
+import fr.familia.app.feature.members.admin.ChallengePickSection
+import fr.familia.app.feature.tree.ChallengeCatalog
+import fr.familia.app.feature.tree.MonthPick
 import fr.familia.app.feature.tree.TreeHomeContent
 import fr.familia.app.feature.tree.TreeUiState
 import fr.familia.app.feature.tree.previewTreeState
@@ -39,6 +42,20 @@ class TreeScreenshotTest {
     @Test
     fun treeTallSummer() = capture("arbre_grand_ete") {
         Surface { TreeHomeContent(TreeUiState(FamilyTree(1000), challenge = null, month = YearMonth.of(2027, 7))) }
+    }
+
+    /** « Défi du mois » in Administration: December has started, January can still change. */
+    @Test
+    fun challengePickLight() = capture("defi_administration_clair") {
+        Surface {
+            ChallengePickSection(
+                listOf(
+                    MonthPick(YearMonth.of(2026, 12), ChallengeCatalog.defaultFor(YearMonth.of(2026, 12)), locked = true),
+                    MonthPick(YearMonth.of(2027, 1), ChallengeCatalog.of("pets")!!, locked = false),
+                ),
+                onPick = { _, _ -> },
+            )
+        }
     }
 
     @Test
