@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.HourglassEmpty
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.QueryStats
@@ -91,6 +92,8 @@ fun MembersScreen(
     onOpenChildrenUsage: (() -> Unit)? = null,
     /** « Carnet de recettes », while its module is on (récit 38). */
     onOpenRecipes: (() -> Unit)? = null,
+    /** « Capsules temporelles », while their module is on (récit 39). */
+    onOpenCapsules: (() -> Unit)? = null,
     /** The pencil shows on the households of [MembersUiState.Success.renamableHouseholdIds]. */
     onRenameHousehold: ((Household, String) -> Unit)? = null,
     renameFailed: Boolean = false,
@@ -175,6 +178,9 @@ fun MembersScreen(
                 }
                 if (onOpenRecipes != null) {
                     item(key = "recipes") { SettingsRow(Icons.Outlined.Restaurant, R.string.recipes_title, onOpenRecipes) }
+                }
+                if (onOpenCapsules != null) {
+                    item(key = "capsules") { SettingsRow(Icons.Outlined.HourglassEmpty, R.string.capsules_title, onOpenCapsules) }
                 }
                 item(key = "settings-title") {
                     Column {

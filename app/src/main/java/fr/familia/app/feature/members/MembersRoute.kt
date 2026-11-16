@@ -28,6 +28,8 @@ fun MembersRoute(
     onOpenChildrenUsage: (() -> Unit)? = null,
     /** The recipe book, while its module is on (récit 38). */
     onOpenRecipes: (() -> Unit)? = null,
+    /** The time capsules, while their module is on (récit 39). */
+    onOpenCapsules: (() -> Unit)? = null,
 ) {
     val viewModel: MembersViewModel = viewModel(
         factory = viewModelFactory {
@@ -46,6 +48,7 @@ fun MembersRoute(
         onOpenAppearance = onOpenAppearance,
         onOpenChildrenUsage = onOpenChildrenUsage,
         onOpenRecipes = onOpenRecipes,
+        onOpenCapsules = onOpenCapsules,
         // The screen shows each action only where the live rights allow it (the rules check it too).
         onOpenAdministration = onOpenAdministration,
         onEditMember = onEditMember,

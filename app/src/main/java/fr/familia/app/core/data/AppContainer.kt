@@ -64,6 +64,9 @@ class AppContainer(context: Context) {
     /** The recipe book (récit 38). */
     val recipeRepository: RecipeRepository? by lazy { firestore?.let { FirestoreRecipeRepository(it) } }
 
+    /** The time capsules (récit 39). */
+    val capsuleRepository: CapsuleRepository? by lazy { firestore?.let { FirestoreCapsuleRepository(it) } }
+
     val goodNewsRepository: GoodNewsRepository? by lazy { firestore?.let { FirestoreGoodNewsRepository(it) } }
 
     val weeklyQuestionRepository: WeeklyQuestionRepository? by lazy { firestore?.let { FirestoreWeeklyQuestionRepository(it) } }
