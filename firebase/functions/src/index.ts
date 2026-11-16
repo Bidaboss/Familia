@@ -22,7 +22,7 @@ import { checkConsumptionIfDue } from './consumption';
 import { CrashData, onCrashReported } from './crashes';
 import { FeedbackData, onFeedbackChanged, onFeedbackCreated, screenshotToDelete } from './feedback';
 import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
-import { closeDuePolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
+import { closeDuePolls, closeEventPolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
 import { cloudMonitoring } from './monitoring';
 import { deleteMemberNotebook, syncNotebookEntry, syncNotebookItem } from './notebook';
 import {
@@ -132,12 +132,14 @@ export const onEventDeleted = onDocumentDeletedWithAuthContext('events/{eventId}
     const answered = await comingMembers(db, event.params.eventId, members);
     if (data) await notifyChange(db, send, 'deleted', event.params.eventId, data, actorUid(event), new Date(), answered, members);
   } finally {
-    // Each one is tried even if another fails: answers, the album (récit 41), records and files, comments (récit 28).
+    // Each one is tried even if another fails: answers, the album (récit 41), records and files, comments (récit 28),
+    // and its polls closed (récit 2 quater).
     const results = await Promise.allSettled([
       deleteEventAnswers(db, event.params.eventId),
       db.recursiveDelete(db.collection('events').doc(event.params.eventId).collection('photos')),
       deleteEventComments(db, event.params.eventId),
       getStorage().bucket().deleteFiles({ prefix: `events/${event.params.eventId}/` }),
+      closeEventPolls(db, event.params.eventId),
     ]);
     const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
     if (failed) throw failed.reason;
