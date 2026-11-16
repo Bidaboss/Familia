@@ -1,0 +1,125 @@
+package fr.familia.app.feature.gifts.notebook
+
+import fr.familia.app.core.data.GiftRepository
+import fr.familia.app.core.model.ClaimType
+import fr.familia.app.core.model.GiftClaim
+import fr.familia.app.core.model.GiftItem
+import fr.familia.app.core.model.GiftList
+import fr.familia.app.core.model.GiftListKind
+import fr.familia.app.core.model.GiftOccasion
+import fr.familia.app.core.model.GiftStatus
+import fr.familia.app.core.model.NotebookEntry
+import fr.familia.app.core.model.NotebookOccasion
+import fr.familia.app.core.model.NotebookSource
+import fr.familia.app.feature.events.FakeMembers
+import fr.familia.app.feature.gifts.FakeGifts
+import fr.familia.app.testing.MainDispatcherRule
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+import java.time.LocalDate
+
+/** « Proposer à la famille », in the fictional family of TestFamily. */
+class ProposeIdeaTest {
+
+    @get:Rule
+    val mainDispatcherRule = MainDispatcherRule()
+
+    private val christmas = NotebookOccasion(GiftOccasion.Christmas, 2026)
+
+    private fun idea(personId: String? = "adult2", status: GiftStatus = GiftStatus.Idea) = NotebookEntry(
+        "e1", NotebookSource.Idea, personId, personId ?: "Mamie Jo", christmas, "Une écharpe", "https://example.com/echarpe", 25.0,
+        "Cachée dans le placard", status,
+    )
+
+    private fun list(id: String, kind: GiftListKind, beneficiary: String, title: String = id, revealed: Boolean = false) =
+        GiftList(id, kind, title, GiftOccasion.Christmas, LocalDate.of(2026, 12, 25), beneficiary, listOf("adult1", "adult2"), "adult1", "Adult1", revealed)
+
+    /** Several lists, and the writes made, in order. */
+    private class Gifts(lists: List<GiftList>, private val failItem: Boolean = false) : GiftRepository by FakeGifts(null) {
+        val lists = MutableStateFlow(lists)
+        val writes = mutableListOf<String>()
+        val items = mutableListOf<Pair<String, GiftItem>>()
+        val claims = mutableListOf<GiftClaim>()
+
+        override fun observeVisibleLists(memberId: String): Flow<List<GiftList>> = lists
+        override suspend fun saveItem(listId: String, item: GiftItem, isNew: Boolean) {
+            if (failItem) error("refused")
+            writes += "item"
+            items += listId to item
+        }
+        override suspend fun claim(listId: String, claim: GiftClaim) {
+            writes += "claim"
+            claims += claim
+        }
+    }
+
+    private suspend fun ProposeIdeaViewModel.settled() = uiState.first { it !is ProposeIdeaUiState.Loading }
+
+    @Test
+    fun `the idea goes hidden to a list of the person, and leaves the notebook`() = runTest {
+        val gifts = Gifts(
+            listOf(
+                list("s1", GiftListKind.Surprise, "adult2", title = "Noël d'Adult2"),
+                list("wishes-adult2", GiftListKind.Wishes, "adult2"),
+                list("old", GiftListKind.Surprise, "adult2", revealed = true),
+                list("s2", GiftListKind.Surprise, "adult3"),
+            ),
+        )
+        val notebook = FakeNotebook(listOf(idea()))
+        val vm = ProposeIdeaViewModel(notebook, gifts, FakeMembers(), "adult1", "e1")
+        val state = vm.settled() as ProposeIdeaUiState.Choosing
+        assertEquals(listOf("wishes-adult2", "s1"), state.lists.map { it.id })
+        assertNull(state.selectedListId)
+
+        vm.selectList("s1")
+        vm.setTakeIt(true)
+        vm.propose()
+        assertEquals(ProposeIdeaUiState.Done("s1"), vm.uiState.first { it is ProposeIdeaUiState.Done })
+        val (listId, item) = gifts.items.single()
+        assertEquals("s1", listId)
+        assertEquals("Une écharpe", item.title)
+        assertEquals("https://example.com/echarpe", item.url)
+        assertFalse(item.visibleToBeneficiary)
+        assertNull("the private note stays private", item.note)
+        assertEquals(listOf("item", "claim"), gifts.writes)
+        assertEquals(ClaimType.Solo, gifts.claims.single().type)
+        assertEquals("adult1", gifts.claims.single().holderId)
+        assertTrue(notebook.entries.value.isEmpty())
+    }
+
+    @Test
+    fun `a refused item keeps the idea in the notebook`() = runTest {
+        val notebook = FakeNotebook(listOf(idea()))
+        val vm = ProposeIdeaViewModel(notebook, Gifts(listOf(list("s1", GiftListKind.Surprise, "adult2")), failItem = true), FakeMembers(), "adult1", "e1")
+        assertEquals("s1", (vm.settled() as ProposeIdeaUiState.Choosing).selectedListId)
+        vm.propose()
+        val state = vm.uiState.first { it is ProposeIdeaUiState.Choosing && it.saveFailed } as ProposeIdeaUiState.Choosing
+        assertFalse(state.isSaving)
+        assertEquals(1, notebook.entries.value.size)
+    }
+
+    @Test
+    fun `only an idea still to buy, for a member, is proposed`() = runTest {
+        for (entry in listOf(idea(status = GiftStatus.Bought), idea(personId = null))) {
+            val vm = ProposeIdeaViewModel(FakeNotebook(listOf(entry)), Gifts(emptyList()), FakeMembers(), "adult1", "e1")
+            assertEquals(ProposeIdeaUiState.Unavailable, vm.settled())
+        }
+    }
+
+    @Test
+    fun `a parent cannot hide a gift on the lists of their child without the app`() = runTest {
+        val gifts = Gifts(listOf(list("own-kid2", GiftListKind.Own, "kid2"), list("wishes-kid2", GiftListKind.Wishes, "kid2")))
+        val vm = ProposeIdeaViewModel(FakeNotebook(listOf(idea(personId = "kid2"))), gifts, FakeMembers(), "adult2", "e1")
+        val state = vm.settled() as ProposeIdeaUiState.Choosing
+        assertTrue(state.lists.isEmpty())
+        assertFalse(state.canPrepareSurprise)
+    }
+}

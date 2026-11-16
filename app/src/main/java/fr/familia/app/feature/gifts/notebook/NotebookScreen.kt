@@ -93,6 +93,8 @@ data class NotebookActions(
     /** A new private idea, at the occasion shown. */
     val onAddIdea: (at: NotebookOccasion?) -> Unit = {},
     val onEditIdea: (entryId: String) -> Unit = {},
+    /** « Proposer à la famille »: the idea becomes a surprise item of a list. */
+    val onProposeIdea: (entryId: String) -> Unit = {},
 )
 
 /** « Mes cadeaux à offrir »: one card per person for the chosen occasion. Stateless. */
@@ -296,7 +298,14 @@ private fun BudgetDialog(name: String, initial: Double?, onConfirm: (Double?) ->
             ) { Text(stringResource(R.string.action_ok)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
+            Row {
+                if (initial != null) {
+                    TextButton(onClick = { onConfirm(null) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                        Text(stringResource(R.string.notebook_remove_budget))
+                    }
+                }
+                TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
+            }
         },
     )
 }
@@ -359,6 +368,10 @@ private fun StatusSheet(entry: NotebookEntry, actions: NotebookActions, onDismis
                 onDismiss()
                 actions.onEditIdea(entry.id)
             },
+            onPropose = {
+                onDismiss()
+                actions.onProposeIdea(entry.id)
+            },
         )
     }
 }
@@ -371,6 +384,7 @@ internal fun StatusSheetContent(
     onSetStatus: (GiftStatus) -> Unit,
     onOpenList: (String) -> Unit,
     onEdit: () -> Unit = {},
+    onPropose: () -> Unit = {},
     onSetOccasion: (NotebookOccasion) -> Unit = {},
     thisYear: Int = LocalDate.now().year,
 ) {
@@ -423,6 +437,11 @@ internal fun StatusSheetContent(
         if (entry.source == NotebookSource.Idea) {
             OutlinedButton(onClick = onEdit, modifier = Modifier.padding(top = 8.dp).heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.notebook_edit_idea))
+            }
+        }
+        if (canPropose(entry)) {
+            OutlinedButton(onClick = onPropose, modifier = Modifier.padding(top = 8.dp).heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.notebook_propose))
             }
         }
         Spacer(Modifier.height(16.dp))
