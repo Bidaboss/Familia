@@ -32,8 +32,18 @@ import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPh
 import {
   countGesture, countHelpGiven, deleteSouvenirsOf, giveSouvenir, giveYearSouvenirs, isNewWeeklyAnswer, souvenirMark,
 } from './souvenirs';
+import { addLeaf, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
 initializeApp();
+
+// L'arbre (récit 35) never stops what a trigger was doing: a failure is logged and the leaf lost.
+async function grow(what: string, work: () => Promise<unknown>): Promise<void> {
+  try {
+    await work();
+  } catch (e) {
+    console.error(`tree: ${what}`, e);
+  }
+}
 
 // A family of 13: one instance is plenty, and caps the cost if something loops.
 setGlobalOptions({ region: 'europe-west1', maxInstances: 1 });
@@ -102,6 +112,13 @@ export const onEventDeleted = onDocumentDeletedWithAuthContext('events/{eventId}
   }
 });
 
+// L'arbre (récit 35): « Je viens » adds a leaf for the member who comes, once per event.
+export const onRsvpWritten = onDocumentWritten('events/{eventId}/rsvps/{memberId}', async (event) => {
+  const { eventId, memberId } = event.params;
+  if (event.data?.after.get('status') !== 'yes' || event.data?.before.get('status') === 'yes') return;
+  await grow('rsvp', () => addLeaf(getFirestore(), memberId, treeMark.rsvp(eventId, memberId), new Date()));
+});
+
 export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (event) => {
   await deleteMemberData(getFirestore(), event.params.memberId);
 });
@@ -132,6 +149,10 @@ export const onHelpRequestWrite = onDocumentWrittenWithAuthContext('helpRequests
   const before = event.data?.before.data() as HelpRequestData | undefined;
   const after = event.data?.after.data() as HelpRequestData | undefined;
   await onHelpRequestWritten(getFirestore(), sendHelp, event.params.requestId, before, after, actorUid(event), new Date());
+  if (after?.status === 'taken' && before?.status !== 'taken' && after.volunteerId) {
+    const volunteerId = after.volunteerId;
+    await grow('help', () => addLeaf(getFirestore(), volunteerId, treeMark.help(event.params.requestId), new Date()));
+  }
 });
 
 // Récit 18: at 18 h, the requests of tomorrow still without a volunteer.
@@ -141,6 +162,7 @@ export const helpRequestStillOpen = onSchedule({ schedule: '0 18 * * *', timeZon
   await sendStillOpenReminders(getFirestore(), sendHelp, now);
   await countHelpGiven(getFirestore(), send, addDays(parisDay(now), -1), now);
   await giveYearSouvenirs(getFirestore(), send, now);
+  await grow('challenge', () => ensureChallenge(getFirestore(), parisMonth(now), now));
 });
 
 // Spec, cas limites: a volunteer removed from the family frees their upcoming requests.
@@ -219,10 +241,17 @@ const removeFiles: FileRemover = async (paths: string[]) => {
 };
 
 export const onGoodNewsCreated = onDocumentCreated('goodNews/{postId}', async (event) => {
-  const data = event.data?.data() as GoodNewsData | undefined;
-  if (!data) return;
+  const data = event.data?.data() as (GoodNewsData & { challengeMonth?: string }) | undefined;
+  if (!data || data.challengeMonth) return; // « Défi réussi », published by Familia: already told.
   await onGoodNewsPublished(getFirestore(), sendGoodNews, event.params.postId, data);
   await giveSouvenir(getFirestore(), send, data.authorId, 'firstGoodNews', new Date());
+  const { postId } = event.params;
+  await grow('goodNews', async () => {
+    const now = new Date();
+    await addLeaf(getFirestore(), data.authorId, treeMark.goodNews(postId), now);
+    const achieved = await countForChallenge(getFirestore(), postId, data.photoIds?.length ?? 0, now);
+    if (achieved) await celebrateChallenge(getFirestore(), send, achieved, now);
+  });
 });
 
 export const onGoodNewsUpdated = onDocumentUpdated('goodNews/{postId}', async (event) => {
@@ -233,6 +262,7 @@ export const onGoodNewsUpdated = onDocumentUpdated('goodNews/{postId}', async (e
   await onGoodNewsReacted(getFirestore(), event.params.postId, before, after, new Date());
   for (const reactor of newReactorIds(before, after)) {
     await countGesture(getFirestore(), send, reactor, 'reactions', souvenirMark.reaction(event.params.postId, reactor), new Date());
+    await grow('reaction', () => addLeaf(getFirestore(), reactor, treeMark.reaction(event.params.postId, reactor), new Date()));
   }
 });
 
@@ -254,7 +284,11 @@ export const onTripStepUpdated = onDocumentUpdatedWithAuthContext('trips/{tripId
   const after = event.data?.after.data() as StepData | undefined;
   if (!before || !after || !isNewArrival(before, after)) return;
   await notifyArrival(getFirestore(), send, event.params.tripId, after, actorUid(event));
-  if (after.arrivedBy) await giveSouvenir(getFirestore(), send, after.arrivedBy, 'firstArrival', new Date());
+  if (after.arrivedBy) {
+    const by = after.arrivedBy;
+    await giveSouvenir(getFirestore(), send, by, 'firstArrival', new Date());
+    await grow('arrival', () => addLeaf(getFirestore(), by, treeMark.arrival(event.params.tripId, event.params.stepId), new Date()));
+  }
 });
 
 export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) => {
@@ -285,4 +319,5 @@ export const onWeeklyAnswerWritten = onDocumentWritten('weeklyQuestions/{weekId}
 export const onMemberDeletedAnswers = onDocumentDeleted('members/{memberId}', async (event) => {
   await deleteAnswersOf(getFirestore(), event.params.memberId);
   await deleteSouvenirsOf(getFirestore(), event.params.memberId);
+  await deleteTreeDataOf(getFirestore(), event.params.memberId);
 });
