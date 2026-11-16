@@ -213,14 +213,12 @@ export const onMemberDeletedGifts = onDocumentDeleted('members/{memberId}', asyn
   await deleteMemberNotebook(getFirestore(), event.params.memberId);
 });
 
-// The morning after an occasion, its lists are revealed (PRD, récit 10 bis).
+// The morning after an occasion, its lists are revealed, then the taken wishes of whoever had a
+// birthday or Christmas yesterday (PRD, récit 10 bis).
 export const revealGifts = onSchedule({ schedule: '0 7 * * *', timeZone: 'Europe/Paris' }, async () => {
-  await revealGiftLists(getFirestore(), send, new Date());
-});
-
-// The morning after a birthday or Christmas, the taken wishes are revealed (récit 10 bis).
-export const revealWishesDaily = onSchedule({ schedule: '0 8 * * *', timeZone: 'Europe/Paris' }, async () => {
-  await revealWishes(getFirestore(), send, new Date());
+  const now = new Date();
+  await revealGiftLists(getFirestore(), send, now);
+  await revealWishes(getFirestore(), send, now);
 });
 
 // D-21 and D-14 before a birthday (PRD, récit 10).

@@ -5,7 +5,7 @@ import { after, beforeEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { GiftMember, onGiftItemChanged } from '../src/gifts';
+import { deleteGiftListContent, GiftMember, onGiftItemChanged } from '../src/gifts';
 import { Notice } from '../src/logic';
 import { notebookEntryId, syncNotebookEntry } from '../src/notebook';
 import { Sender } from '../src/store';
@@ -59,7 +59,7 @@ function member(m: GiftMember) {
 
 const LIST = 'wishes-ines';
 const list = () => db.collection('giftLists').doc(LIST);
-// Inès's birthday is 14 March: the reveal runs on the 15th, at 8 a.m. in Paris.
+// Inès's birthday is 14 March: the reveal runs on the 15th, at 7 a.m. in Paris.
 const DAY_AFTER = new Date('2027-03-15T07:00:00Z');
 
 describe('wishes reveal', () => {
@@ -129,6 +129,13 @@ describe('wishes reveal', () => {
     await db.doc('members/camille/devices/token-camille').set({});
     assert.equal(await onGiftItemChanged(db, send, LIST, 'book', before, undefined), 0);
     assert.equal(sent.length, 0);
+  });
+
+  test('a removed list takes its « On m\'a offert » with it', async () => {
+    await revealWishes(db, fakeSender().send, DAY_AFTER);
+    assert.equal((await list().collection('received').get()).size, 2);
+    await deleteGiftListContent(db, LIST);
+    assert.equal((await list().collection('received').get()).size, 0);
   });
 
   test('a child without the app has nothing revealed', async () => {

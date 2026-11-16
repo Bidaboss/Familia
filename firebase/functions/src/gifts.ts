@@ -177,6 +177,7 @@ export async function deleteGiftListContent(db: Firestore, listId: string): Prom
   const list = db.collection('giftLists').doc(listId);
   await db.recursiveDelete(list.collection('items'));
   await db.recursiveDelete(list.collection('claims'));
+  await db.recursiveDelete(list.collection('received'));
 }
 
 /**

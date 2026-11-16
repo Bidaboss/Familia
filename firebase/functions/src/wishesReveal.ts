@@ -1,10 +1,10 @@
 // « Mes envies » révélées (PRD, récit 10 bis, carte PRODUIT-20, rév. 183). « Mes envies » has no
-// date: the day after the next occasion of its owner (their birthday, or Christmas), at 8 a.m.,
+// date: the day after the next occasion of its owner (their birthday, or Christmas), at 7 a.m.,
 // each wish someone took is revealed. It leaves the list for giftLists/{listId}/received/{itemId},
 // the archive « On m'a offert », with the first names of the givers and never their amounts. A
 // wish released before the day is not revealed; a wish nobody took stays as it is.
 //
-// Behind the module switch config/app.features.wishesReveal, on top of the gifts module.
+// Called by revealGifts (index.ts), after the lists. Behind the module switch config/app.features.wishesReveal, on top of the gifts module.
 
 import type { Firestore } from 'firebase-admin/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
@@ -72,9 +72,12 @@ export async function revealWishesOf(
     }
     const shares = await claim.ref.collection('shares').get();
     const joint = claim.get('type') === 'shared';
-    // The archive first: the triggers of the removal below read it to keep the notebooks of the
-    // givers and to warn nobody (see gifts.ts and notebook.ts).
-    await list.collection('received').doc(claim.id).set({
+    // The archive, the reservation and the item in one batch: a failure leaves the wish as it
+    // was, never in both places. The triggers of the removal read the archive to keep the
+    // notebooks of the givers and to warn nobody (see gifts.ts and notebook.ts); the parts go
+    // after it, for the same reason.
+    const batch = db.batch();
+    batch.set(list.collection('received').doc(claim.id), {
       title: String(item.get('title') ?? ''),
       url: (item.get('url') as string | null) ?? null,
       imageUrl: (item.get('imageUrl') as string | null) ?? null,
@@ -85,8 +88,10 @@ export async function revealWishesOf(
       thanked: false,
       revealedAt: FieldValue.serverTimestamp(),
     });
-    await db.recursiveDelete(claim.ref);
-    await item.ref.delete();
+    batch.delete(claim.ref);
+    batch.delete(item.ref);
+    await batch.commit();
+    await db.recursiveDelete(claim.ref.collection('shares'));
     count++;
   }
   return count;

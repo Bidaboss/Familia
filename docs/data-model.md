@@ -313,13 +313,13 @@ Une envie offerte, sortie de « Mes envies » le lendemain de l'occasion de son 
 | Fonction | Quand | Ce qu'elle fait |
 |---|---|---|
 | `revealGifts` | Chaque jour à 7 h, heure de Paris | Passe `revealed` à vrai pour les listes dont l'occasion est passée (pas « Mes envies »), et prévient leur bénéficiaire s'il a l'appli (PRD, récit 10 bis) |
-| `revealWishesDaily` (`wishesReveal.ts`) | Chaque jour à 8 h, heure de Paris | Le lendemain d'un anniversaire ou de Noël, passe chaque envie réservée dans `received`, efface l'article et sa réservation, et prévient le bénéficiaire. Le carnet des donateurs garde le cadeau, et personne ne reçoit « Réservation annulée ». Une envie non réservée reste |
+| `revealGifts`, ensuite (`wishesReveal.ts`) | Chaque jour à 7 h, heure de Paris, après les listes | Le lendemain d'un anniversaire ou de Noël, passe chaque envie réservée dans `received`, efface l'article et sa réservation, et prévient le bénéficiaire. Le carnet des donateurs garde le cadeau, et personne ne reçoit « Réservation annulée ». Une envie non réservée reste |
 | `birthdayGiftReminders` | Chaque jour à 10 h, heure de Paris | À J-21 d'un anniversaire, prévient tous les adultes sauf le fêté, avec ses envies. À J-14, recommence si aucun article de ses listes n'est réservé (récit 10) |
 | `onGiftItemWritten` | Un article est modifié ou supprimé | S'il était réservé, prévient le réservant et les participants (jamais le bénéficiaire), et met à jour leur carnet. Une suppression efface aussi la réservation et ses parts |
 | `onGiftShareWritten` | Une part est ajoutée, modifiée ou retirée | Recalcule `sharesTotal` et `sharesCount` sur la réservation, et met à jour le carnet du participant |
 | `onGiftClaimCreated` | Une réservation est faite | La reprend dans le carnet de son auteur |
 | `onGiftClaimDeleted` | Une réservation est relâchée | Efface les parts du cadeau commun, et la retire du carnet de son auteur |
-| `onGiftListDeleted` | Une liste est supprimée | Efface ses articles, réservations et parts |
+| `onGiftListDeleted` | Une liste est supprimée | Efface ses articles, réservations, parts et cadeaux reçus |
 | `onMemberDeletedGifts` | Un membre est retiré | Efface les listes dont il est le bénéficiaire, et son carnet |
 
 Une notification des cadeaux porte `listId` dans ses données à la place de `eventId`. Le bénéficiaire ne reçoit jamais de notification sur ses cadeaux, sauf celle de la révélation.
