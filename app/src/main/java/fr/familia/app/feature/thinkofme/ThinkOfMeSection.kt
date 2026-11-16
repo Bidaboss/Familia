@@ -47,11 +47,17 @@ private val dayLabel = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
 @Composable
 fun ThinkOfMeSection(container: AppContainer?, currentMember: Member, person: Member) {
     val today = LocalDate.now(ZoneId.of("Europe/Paris"))
-    val viewingAs = LocalViewAs.current.viewed != null
+    val viewAs = LocalViewAs.current
+    val viewingAs = viewAs.viewed != null
     val viewModel: ThinkOfMeViewModel = viewModel(
         key = "thinkOfMe-${person.id}-$today-$viewingAs",
         factory = viewModelFactory {
-            initializer { ThinkOfMeViewModel(container?.momentRepository, currentMember, person, today, mayWrite = !viewingAs) }
+            initializer {
+                ThinkOfMeViewModel(
+                    container?.momentRepository, currentMember, person, today,
+                    mayWrite = !viewingAs, readerId = viewAs.readerId ?: currentMember.id,
+                )
+            }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()

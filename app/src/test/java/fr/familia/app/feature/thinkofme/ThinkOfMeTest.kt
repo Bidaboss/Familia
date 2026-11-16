@@ -113,6 +113,15 @@ class ThinkOfMeTest {
     }
 
     @Test
+    fun `in Voir comme the account that reads decides, not the member looked at`() = runTest {
+        val repo = FakeMoments()
+        // The admin, who is not the teenager's parent, looks at the app as the teenager.
+        val vm = ThinkOfMeViewModel(repo, teen, teen, today, mayWrite = false, readerId = TestFamily.admin.id) { now }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        assertEquals(false, repo.askedPending)
+    }
+
+    @Test
     fun `the others never ask for a moment waiting for the teenager`() = runTest {
         val repo = FakeMoments()
         val vm = ThinkOfMeViewModel(repo, TestFamily.otherAdult, teen, today) { now }

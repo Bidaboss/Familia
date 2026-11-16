@@ -53,6 +53,8 @@ class ThinkOfMeViewModel(
     private val today: LocalDate,
     /** False in « Voir comme ». */
     private val mayWrite: Boolean = true,
+    /** Who reads with their own account: [me], or the admin principal in « Voir comme ». */
+    readerId: String = me.id,
     private val clock: () -> Instant = Instant::now,
 ) : ViewModel() {
     private val saving = MutableStateFlow(false)
@@ -63,7 +65,11 @@ class ThinkOfMeViewModel(
 
     private fun <T> Flow<T>.orElse(value: T): Flow<T> = catch { e -> if (e is CancellationException) throw e else emit(value) }
 
-    private val list: Flow<List<Moment>> = moments?.observeFor(person.id, withPending = isResponsible)?.orElse(emptyList()) ?: flowOf(emptyList())
+    // The rules let only the person and their parents read a pending moment: ask for them only
+    // when the account that reads may, or the whole list would be refused.
+    private val readerMaySeePending = readerId == person.id || readerId in person.parentIds
+
+    private val list: Flow<List<Moment>> = moments?.observeFor(person.id, withPending = readerMaySeePending)?.orElse(emptyList()) ?: flowOf(emptyList())
 
     private val openMoment: Flow<Moment?> = list.map { all -> all.firstOrNull { it.isOpen(clock()) } }
 
