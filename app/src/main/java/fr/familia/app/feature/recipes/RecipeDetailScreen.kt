@@ -1,5 +1,6 @@
 package fr.familia.app.feature.recipes
 
+import androidx.compose.ui.text.style.TextOverflow
 import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
@@ -68,7 +69,7 @@ fun RecipeDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.recipe_title)) },
+                title = { Text(stringResource(R.string.recipe_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = { HelpButton(ScreenHelp.Recipes) },
             )

@@ -1,5 +1,6 @@
 package fr.familia.app.feature.trips.edit
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -78,7 +79,7 @@ fun TripEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(if (editing?.isNew == false) R.string.trip_edit_title else R.string.trip_add_title)) },
+                title = { Text(stringResource(if (editing?.isNew == false) R.string.trip_edit_title else R.string.trip_add_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = { if (hasChanges) confirmLeave = true else onBack() }) },
                 actions = { HelpButton(ScreenHelp.TripEdit) },
             )

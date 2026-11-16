@@ -96,7 +96,7 @@ fun GenealogyScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.genealogy_title)) },
+                title = { Text(stringResource(R.string.genealogy_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = { HelpButton(ScreenHelp.Genealogy) },
             )
