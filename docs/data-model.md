@@ -404,10 +404,15 @@ Ce que le membre prévoit d'offrir. Seul ce membre lit et écrit son carnet : ni
 | `title`, `url`, `price` | comme un article | Le prix d'une réservation est celui de l'article ; celui d'une part, le montant du membre |
 | `note` | texte de 500 caractères au plus, ou null | Pour soi |
 | `status` | `idea`, `bought`, `wrapped` ou `given` | Idée, Acheté, Emballé, Offert |
+| `movedTo` | texte, facultatif | Écrit par la copie « Liste unique » : l'identifiant de l'entrée du cadeau copié. L'appli ne montre que l'une des deux |
 | `createdAt`, `updatedAt` | horodatage serveur | |
 
 - **Idée privée** : le membre la crée, la modifie et la retire. Elle ne réserve rien.
 - **Réservation ou part reprise** : écrite par la fonction, qui garde le titre, le lien, le prix et la personne à jour. Le membre ne change que `status`, `occasion`, `year` et `note`, et ne la retire pas : elle part quand la réservation ou la part est retirée.
+
+### `migrations/singleList/items/{listId}_{itemId}` (récit 9 ter, « Liste unique »)
+
+Écrit par la fonction seule, jamais lu par l'appli. Quand l'interrupteur `singleList` s'allume, chaque article d'une liste d'occasion non révélée est copié, sans rien effacer : dans « Mes envies » s'il est visible par la personne (avec l'occasion de sa liste si c'est Noël ou un anniversaire), sinon dans ses « Idées de la famille ». La copie a l'identifiant `from-{listId}-{itemId}` ; sa réservation, ses parts et les entrées de carnet des offrants suivent. Cette marque, écrite dans le même lot, empêche toute seconde copie : rallumer l'interrupteur ne copie que les nouveaux articles. Champs : `listId`, `itemId`, `target`, `copiedId`, `copiedAt`.
 
 ### `notebooks/{memberId}/budgets/{budgetId}`
 
