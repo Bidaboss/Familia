@@ -1479,9 +1479,9 @@ service cloud.firestore {
     }
 
     // A trip stores who takes part (participantIds) and who follows it (readerIds), so the rules of
-    // its steps read one document. Participants always follow it (récit 12). An adult adds only the
-    // children of their household (récit 11): the app checks it, since checking each participant
-    // here would cost one read each, over the limit of 10 per write.
+    // its steps read one document. Participants always follow it (récit 12). Any member of the
+    // family may be a participant, since several households often travel together (#114). Each
+    // participant is not checked here: it would cost one read each, over the limit of 10 per write.
     function isValidTrip(t) {
       return t.keys().hasAll(['title', 'startDate', 'endDate', 'participantIds', 'readerIds', 'creatorId',
                               'creatorName', 'createdAt', 'updatedAt'])
@@ -1796,6 +1796,91 @@ service cloud.firestore {
       allow delete: if canUseBook(bookOf(bookId))
         && bookOf(bookId).closed == false
         && resource.data.confirmedBy == myMemberId();
+    }
+
+    // --- Arbre généalogique (PRD, récit 40) ------------------------------------------------------
+    //
+    // The tree is drawn from the members and from kin/{kinId}, the relatives without an account
+    // (great-grandparents, someone who passed away, or a living parent who is not in the app). They
+    // receive nothing and are not members. kinLinks/{linkId} joins two people, members or kin: a
+    // parent and their child, or two partners. The admin principal edits the whole tree; a chef de
+    // famille edits the kin of their household and the links that touch it. Everyone reads it.
+    // kinWords/{memberId}: the words a member chose for the people of the tree, for them alone.
+    // Data model: docs/data-model.md.
+
+    function kinPath(kinId) {
+      return /databases/$(database)/documents/kin/$(kinId);
+    }
+
+    // The household a person of the tree belongs to: a member's, or the one a relative was added to.
+    // getAfter for the kin, so a relative and their first link go in one batch.
+    function personHousehold(personId) {
+      return exists(memberPath(personId)) ? get(memberPath(personId)).data.householdId
+        : (existsAfter(kinPath(personId)) ? getAfter(kinPath(personId)).data.householdId : null);
+    }
+
+    // A year (AAAA) or a day (AAAA-MM-JJ): an old date is often known only by its year.
+    function isKinDate(d) {
+      return d is string && d.matches('^[0-9]{4}(-[0-9]{2}-[0-9]{2})?$');
+    }
+
+    function isValidKin(k) {
+      return k.keys().hasAll(['firstName', 'living', 'householdId', 'updatedBy', 'updatedAt'])
+        && k.keys().hasOnly(['firstName', 'lastName', 'living', 'born', 'died', 'note', 'householdId', 'updatedBy', 'updatedAt'])
+        && k.firstName is string && k.firstName.trim().size() > 0 && k.firstName.size() <= 40
+        && (!('lastName' in k) || (k.lastName is string && k.lastName.size() <= 40))
+        && k.living is bool
+        && (!('born' in k) || isKinDate(k.born))
+        && (!('died' in k) || (!k.living && isKinDate(k.died)))
+        && (!('note' in k) || (k.note is string && k.note.size() <= 500))
+        && k.householdId is string && exists(/databases/$(database)/documents/households/$(k.householdId))
+        && k.updatedBy == myMemberId()
+        && k.updatedAt == request.time;
+    }
+
+    match /kin/{kinId} {
+      allow read: if isMember();
+      allow create: if isMember() && isValidKin(request.resource.data)
+        && managesHousehold(request.resource.data.householdId);
+      allow update: if isMember() && isValidKin(request.resource.data)
+        && managesHousehold(resource.data.householdId)
+        && managesHousehold(request.resource.data.householdId);
+      allow delete: if isMember() && managesHousehold(resource.data.householdId);
+    }
+
+    // One document per link, named after it, so the same link is never there twice. Two partners
+    // are written in alphabetical order. A link never changes: it is removed, then made again.
+    function isValidKinLink(l, linkId) {
+      return l.keys().hasOnly(['kind', 'aId', 'bId', 'updatedBy', 'updatedAt'])
+        && l.keys().hasAll(['kind', 'aId', 'bId', 'updatedBy', 'updatedAt'])
+        && l.kind in ['parent', 'partner']
+        && l.aId is string && l.aId.matches('^[A-Za-z0-9]{1,40}$')
+        && l.bId is string && l.bId.matches('^[A-Za-z0-9]{1,40}$')
+        && l.aId != l.bId
+        && (l.kind == 'parent' || l.aId < l.bId)
+        && linkId == l.kind + '_' + l.aId + '_' + l.bId
+        && personHousehold(l.aId) != null
+        && personHousehold(l.bId) != null
+        && l.updatedBy == myMemberId()
+        && l.updatedAt == request.time;
+    }
+
+    function managesLink(l) {
+      return isOwner() || isChefOf(personHousehold(l.aId)) || isChefOf(personHousehold(l.bId));
+    }
+
+    match /kinLinks/{linkId} {
+      allow read: if isMember();
+      allow create: if isMember() && isValidKinLink(request.resource.data, linkId) && managesLink(request.resource.data);
+      allow delete: if isMember() && managesLink(resource.data);
+    }
+
+    match /kinWords/{memberId} {
+      allow read, delete: if isMember() && memberId == myMemberId();
+      allow create, update: if isMember() && memberId == myMemberId()
+        && request.resource.data.keys().hasOnly(['words', 'updatedAt'])
+        && request.resource.data.words is map && request.resource.data.words.size() <= 60
+        && request.resource.data.updatedAt == request.time;
     }
 
     // --- App updates (lot 10) ---------------------------------------------------------------------

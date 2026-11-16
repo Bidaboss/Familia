@@ -238,6 +238,7 @@
     <string name="feature_month_slideshow">Diaporama du mois</string>
     <string name="feature_recipes">Carnet de recettes</string>
     <string name="feature_capsules">Capsule temporelle</string>
+    <string name="feature_genealogy">Arbre généalogique</string>
     <string name="household_rename_action">Renommer le foyer %1$s</string>
     <string name="household_rename_title">Renommer le foyer</string>
     <string name="household_rename_failed_title">Le nom n\'a pas changé</string>
