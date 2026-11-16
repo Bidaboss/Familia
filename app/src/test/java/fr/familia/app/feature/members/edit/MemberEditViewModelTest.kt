@@ -200,8 +200,8 @@ class MemberEditViewModelTest {
         assertEquals(listOf("h2"), state.households.map { it.id })
         assertEquals("h2", state.form.householdId)
         assertFalse(state.canAddHousehold)
-        // Responsible adults come from the chef's household.
-        assertEquals(listOf("Inès", "Lou"), state.adults.map { it.firstName })
+        // Responsible adults come from the chef's household, without the edited member.
+        assertEquals(listOf("Inès"), state.adults.map { it.firstName })
     }
 
     @Test
