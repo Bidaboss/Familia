@@ -30,7 +30,12 @@ data class MonthChallenge(
     val achieved: Boolean,
     /** The entry of the list it comes from (ChallengeCatalog); null for an older challenge. */
     val choiceId: String? = null,
+    /** The foyer that launched it (récit 35 bis); null for a challenge of Familia or of the admin. */
+    val hostHouseholdId: String? = null,
 ) {
+    /** A challenge of a foyer counts the Bonnes nouvelles linked to it, each with a photo. */
+    val countsLinkedNews: Boolean get() = hostHouseholdId != null
+
     val fraction: Float get() = if (target <= 0) 0f else (progress.toFloat() / target).coerceIn(0f, 1f)
 }
 

@@ -107,6 +107,8 @@ fun HomeRoute(
     onJoinMe: () -> Unit = {},
     /** The guide of the challenge of the foyer (récit 35 bis). */
     onPrepareChallenge: (YearMonth) -> Unit = {},
+    /** A Bonne nouvelle linked to the challenge of a foyer (récit 35 bis). */
+    onJoinChallenge: () -> Unit = {},
 ) {
     val flags = LocalFeatureFlags.current
     val giftsOn = flags.isOn(Feature.Gifts)
@@ -144,7 +146,14 @@ fun HomeRoute(
         },
         onOpenMonth = if (flags.isOn(Feature.MonthSlideshow)) onOpenMonth else null,
         tree = if (flags.isOn(Feature.Tree)) {
-            { TreeHomeCard(container, currentMember = currentMember, onPrepareChallenge = onPrepareChallenge) }
+            {
+                TreeHomeCard(
+                    container,
+                    currentMember = currentMember,
+                    onPrepareChallenge = onPrepareChallenge,
+                    onJoinChallenge = onJoinChallenge,
+                )
+            }
         } else {
             null
         },

@@ -55,7 +55,7 @@ class FirestoreGoodNewsRepository(private val db: FirebaseFirestore) : GoodNewsR
                 "hiddenByIds" to emptyList<String>(),
                 "createdAt" to FieldValue.serverTimestamp(),
                 "updatedAt" to FieldValue.serverTimestamp(),
-            ),
+            ) + listOfNotNull(news.forChallenge?.let { "forChallenge" to it }),
         ).await()
     }
 
@@ -111,5 +111,6 @@ private fun DocumentSnapshot.toGoodNews(): GoodNews? {
         createdAt = getTimestamp("createdAt", DocumentSnapshot.ServerTimestampBehavior.ESTIMATE)?.toInstant(),
         updatedAt = getTimestamp("updatedAt", DocumentSnapshot.ServerTimestampBehavior.ESTIMATE)?.toInstant(),
         challengeMonth = challengeMonth,
+        forChallenge = getString("forChallenge"),
     )
 }

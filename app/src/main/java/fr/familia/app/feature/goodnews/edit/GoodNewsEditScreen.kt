@@ -44,6 +44,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.semantics.Role
+import androidx.compose.material3.Switch
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -81,6 +84,8 @@ fun GoodNewsEditScreen(
     onSave: () -> Unit,
     onDismissFailure: () -> Unit,
     onBack: () -> Unit,
+    /** Links the good news to the challenge of a foyer (récit 35 bis). */
+    onForChallenge: (Boolean) -> Unit = {},
 ) {
     val editing = state as? GoodNewsEditUiState.Editing
     val hasContent = editing != null && (editing.form.text.isNotBlank() || editing.form.photos.isNotEmpty())
@@ -104,7 +109,7 @@ fun GoodNewsEditScreen(
                     title = stringResource(R.string.goodnews_missing_title),
                     body = stringResource(R.string.goodnews_missing_body),
                 )
-                is GoodNewsEditUiState.Editing -> Form(state, onText, onAddPhotos, onRemovePhoto, onFor, onToggleMention, onSave)
+                is GoodNewsEditUiState.Editing -> Form(state, onText, onAddPhotos, onRemovePhoto, onFor, onToggleMention, onSave, onForChallenge)
             }
         }
     }
@@ -146,6 +151,7 @@ private fun Form(
     onFor: (String) -> Unit,
     onToggleMention: (String) -> Unit,
     onSave: () -> Unit,
+    onForChallenge: (Boolean) -> Unit,
 ) {
     val form = state.form
     val errors = state.errors
@@ -199,6 +205,24 @@ private fun Form(
         if (state.candidates.isNotEmpty()) {
             SectionTitle(stringResource(R.string.goodnews_mentions))
             MemberChips(state.candidates, form.mentionIds, enabled = !state.isSaving, onClick = onToggleMention) { it.firstName }
+        }
+
+        val challenge = state.challenge
+        if (state.isNew && challenge != null) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 56.dp)
+                    .toggleable(value = form.forChallenge, enabled = !state.isSaving, role = Role.Switch, onValueChange = onForChallenge),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    stringResource(R.string.goodnews_for_challenge, challenge.emoji, challenge.title),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f),
+                )
+                Switch(checked = form.forChallenge, onCheckedChange = null, enabled = !state.isSaving)
+            }
         }
 
         Button(onClick = onSave, enabled = !state.isSaving, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
