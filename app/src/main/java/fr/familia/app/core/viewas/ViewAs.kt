@@ -36,9 +36,11 @@ val LocalViewAs = staticCompositionLocalOf { ViewAsControl() }
 
 /**
  * The container of « Voir comme »: the same reads as [base], every write refused. The member's
- * own time is not counted (no [usageTracker]).
+ * own time is not counted (no [usageTracker]). [adminId] is the admin principal, who still reads
+ * with their own account: the help requests of the member show (the rules let the admin principal
+ * read them all), the lists kept from the admin do not.
  */
-class ViewAsContainer(private val base: AppContainer, guard: ViewAsGuard) : AppContainer {
+class ViewAsContainer(private val base: AppContainer, guard: ViewAsGuard, adminId: String) : AppContainer {
     override val authRepository = base.authRepository?.let { ReadOnlyAuthRepository(it, guard) }
     override val memberRepository = base.memberRepository?.let { ReadOnlyMemberRepository(it, guard) }
     override val linkPreviewRepository = base.linkPreviewRepository
@@ -49,6 +51,7 @@ class ViewAsContainer(private val base: AppContainer, guard: ViewAsGuard) : AppC
     override val eventCommentRepository = base.eventCommentRepository?.let { ReadOnlyEventCommentRepository(it, guard) }
     override val helpRequestRepository = base.helpRequestRepository?.let { ReadOnlyHelpRequestRepository(it, guard) }
     override val tripRepository = base.tripRepository?.let { ReadOnlyTripRepository(it, guard) }
+    override val expenseRepository = base.expenseRepository?.let { ReadOnlyExpenseRepository(it, guard) }
     override val recipeRepository = base.recipeRepository?.let { ReadOnlyRecipeRepository(it, guard) }
     override val capsuleRepository = base.capsuleRepository?.let { ReadOnlyCapsuleRepository(it, guard) }
     override val goodNewsRepository = base.goodNewsRepository?.let { ReadOnlyGoodNewsRepository(it, guard) }
@@ -61,7 +64,7 @@ class ViewAsContainer(private val base: AppContainer, guard: ViewAsGuard) : AppC
     override val albumPhotoRepository = base.albumPhotoRepository?.let { ReadOnlyAlbumPhotoRepository(it, guard) }
     override val filmMaker = base.filmMaker
     override val appConfigRepository = base.appConfigRepository?.let { ReadOnlyAppConfigRepository(it, guard) }
-    override val giftRepository = base.giftRepository?.let { ReadOnlyGiftRepository(it, guard) }
+    override val giftRepository = base.giftRepository?.let { ReadOnlyGiftRepository(it, guard, adminId) }
     override val notebookRepository = base.notebookRepository?.let { ReadOnlyNotebookRepository(it, guard) }
     override val usageRepository = base.usageRepository?.let { ReadOnlyUsageRepository(it, guard) }
     override val usageTracker: UsageTracker? = null

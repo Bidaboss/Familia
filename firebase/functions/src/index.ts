@@ -32,7 +32,7 @@ import {
 } from './helpRequests';
 import { addDays, EventData, hasVisibleChange, Notice, parisDay } from './logic';
 import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, memberForUid, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
-import { deleteExpenseBook } from './expenses';
+import { deleteExpenseBook, ExpenseData, historyEntry, writeExpenseHistory } from './expenses';
 import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
 import {
@@ -364,6 +364,17 @@ export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) =
 // Les comptes du voyage (récit 16 bis) live out of the trip: they go with it.
 export const onTripDeletedAccounts = onDocumentDeleted('trips/{tripId}', async (event) => {
   await deleteExpenseBook(getFirestore(), 'trip', event.params.tripId);
+});
+
+// Each change of an expense goes in its history, with who made it (récit 16 bis).
+export const onExpenseWritten = onDocumentWrittenWithAuthContext('expenseBooks/{bookId}/expenses/{expenseId}', async (event) => {
+  const before = event.data?.before.data() as ExpenseData | undefined;
+  const after = event.data?.after.data() as ExpenseData | undefined;
+  const db = getFirestore();
+  const uid = actorUid(event);
+  const actor = uid ? memberForUid(await loadMembers(db), uid) : null;
+  const entry = historyEntry(before, after, actor);
+  if (entry) await writeExpenseHistory(db, event.params.bookId, event.params.expenseId, entry);
 });
 
 // Capsule temporelle (récit 39): a removed capsule takes its photos with it.

@@ -503,7 +503,7 @@ Une demande passée ne prévient personne, sauf pour le « Merci ». La sauvegar
 
 ## Arbre généalogique (PRD, récit 40)
 
-L'arbre se dessine à partir des membres, des proches sans compte (`kin`) et de leurs liens (`kinLinks`). Tout membre le lit. L'admin principal le modifie en entier, et un chef de famille modifie les proches de son foyer et les liens qui touchent son foyer. Il est derrière le module « Arbre généalogique » (`genealogy`), à ne pas confondre avec l'arbre des feuilles du récit 35.
+L'arbre se dessine à partir des membres, des proches sans compte (`kin`) et de leurs liens (`kinLinks`). Tout membre le lit. L'admin principal le modifie en entier, et un chef de famille modifie les proches de son foyer et les liens qui touchent son foyer : un conjoint d'un côté ou de l'autre, mais un parent seulement pour un enfant de son foyer (PRD rév. 195). Il est derrière le module « Arbre généalogique » (`genealogy`), à ne pas confondre avec l'arbre des feuilles du récit 35.
 
 ### `kin/{kinId}`
 
@@ -956,3 +956,33 @@ L'usage de la base un jour donné, lu une fois chaque matin à partir de 8 h dan
 | `error` | string | `monitoring` quand Monitoring n'a pas pu être lu (rôle « Lecteur Monitoring » manquant, docs/deploiement.md). Les autres champs manquent alors. |
 
 Ces documents sont petits (un par jour) et ne contiennent rien sur la famille.
+
+## Comptes du voyage (PRD rév. 193, récit 16 bis)
+
+Une brique commune : un carnet appartient à un contexte (un voyage aujourd'hui, un événement plus
+tard). Il est rangé hors de `trips/` et supprimé avec son voyage (`onTripDeletedAccounts`). Seuls
+les adultes participants le lisent et l'écrivent. Les montants sont en centimes d'euro entiers.
+
+### `expenseBooks/{containerType}_{containerId}`
+
+`containerType` (`trip`), `containerId`, `creatorId` (le créateur du voyage, qui change les parts,
+corrige tout et clôture), `shares` (foyer → nombre de parts : 1 par adulte et 0,5 par enfant par
+défaut), `closed`, `createdAt`, `updatedAt`. Ouvert par le premier adulte participant qui affiche les comptes.
+
+### `expenseBooks/{bookId}/expenses/{expenseId}`
+
+`title`, `amountCents` (en euros), `date` (`AAAA-MM-JJ`), `payerId`, `payerHouseholdId`, `category`
+(`lodging`, `transport`, `groceries`, `restaurant`, `activity`, `other`), `mode` (`shares`, `equal`,
+`amounts`), `householdIds`, `amounts` (foyer → centimes, en mode `amounts` seulement), `currency`,
+`originalCents`, `rate` (euros pour une unité, tapé à la main ; 1 en euros), `authorId`,
+`authorName`, `createdAt`, `updatedAt`.
+
+### `expenseBooks/{bookId}/expenses/{expenseId}/history/{entryId}`
+
+Écrit par le serveur seul à chaque changement (`onExpenseWritten`) : `action` (`created`, `edited`,
+`deleted`), `byId`, `byName`, `title`, `amountCents`, `changed` (les champs modifiés), `at`.
+
+### `expenseBooks/{bookId}/settlements/{settlementId}`
+
+« C'est remboursé », coché par un adulte du foyer qui reçoit : `fromHouseholdId`, `toHouseholdId`,
+`amountCents`, `confirmedBy`, `confirmedByName`, `createdAt`.

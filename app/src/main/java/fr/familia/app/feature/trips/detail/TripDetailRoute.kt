@@ -23,6 +23,8 @@ fun TripDetailRoute(
     onEditStep: (stepId: String) -> Unit,
     onSeePhotos: () -> Unit,
     onBack: () -> Unit,
+    /** « Comptes du voyage » (récit 16 bis): null while the switch is off or for a child. */
+    onOpenExpenses: (() -> Unit)? = null,
 ) {
     val viewModel: TripDetailViewModel = viewModel(
         key = "trip-$tripId",
@@ -54,5 +56,6 @@ fun TripDetailRoute(
         checklist = checklist,
         photos = photos,
         photoActions = photoActions,
+        onOpenExpenses = onOpenExpenses,
     )
 }

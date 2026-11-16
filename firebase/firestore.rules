@@ -1866,8 +1866,12 @@ service cloud.firestore {
         && l.updatedAt == request.time;
     }
 
+    // Partners: the chef of either side (families mix: a son-in-law, a mother-in-law). A parent and
+    // their child: only the chef of the child's household, since with shared custody this link is
+    // sensitive and a chef never declares themselves parent of another household's child (PRD rév. 195).
     function managesLink(l) {
-      return isOwner() || isChefOf(personHousehold(l.aId)) || isChefOf(personHousehold(l.bId));
+      return isOwner() || isChefOf(personHousehold(l.bId))
+        || (l.kind == 'partner' && isChefOf(personHousehold(l.aId)));
     }
 
     match /kinLinks/{linkId} {
