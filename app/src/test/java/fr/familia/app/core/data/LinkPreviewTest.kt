@@ -24,7 +24,7 @@ class LinkPreviewTest {
     }
 
     @Test
-    fun `without open graph, the page title; a relative picture is made whole`() {
+    fun `without open graph, the page title, and a relative picture is made whole`() {
         val html = """<head><title> Un livre </title><meta name="twitter:image" content="/img/livre.png"></head>"""
         assertEquals(
             LinkPreview("Un livre", "https://livres.example/img/livre.png", null),
