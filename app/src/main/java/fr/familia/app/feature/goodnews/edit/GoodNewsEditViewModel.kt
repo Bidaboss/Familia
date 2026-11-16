@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.GoodNewsRepository
 import fr.familia.app.core.data.MemberRepository
+import fr.familia.app.core.data.TreeRepository
 import fr.familia.app.core.model.GoodNews
+import fr.familia.app.core.model.MonthChallenge
 import fr.familia.app.core.photo.PhotoUploader
 import fr.familia.app.feature.goodnews.goodNewsTargets
 import fr.familia.app.feature.goodnews.mentionCandidates
@@ -19,6 +21,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
+import java.time.YearMonth
+import java.time.ZoneId
 
 /**
  * « Publier une Bonne nouvelle », or change one's own ([postId]). The photos go to Storage first,
@@ -31,6 +35,11 @@ class GoodNewsEditViewModel(
     private val currentMemberId: String,
     private val postId: String?,
     private val isOnline: Flow<Boolean> = flowOf(true),
+    /** The challenge of the month: a foyer's one lets the good news count for it (récit 35 bis). */
+    private val tree: TreeRepository? = null,
+    private val month: YearMonth = YearMonth.now(ZoneId.of("Europe/Paris")),
+    /** Opened from « Participer au défi »: linked from the start. */
+    private val linkToChallenge: Boolean = false,
 ) : ViewModel() {
 
     private val state = MutableStateFlow<GoodNewsEditUiState>(GoodNewsEditUiState.Loading)
@@ -45,11 +54,24 @@ class GoodNewsEditViewModel(
         val me = family.members.firstOrNull { it.id == currentMemberId } ?: return GoodNewsEditUiState.Unavailable
         val targets = goodNewsTargets(me, family)
         val candidates = mentionCandidates(me, family)
-        if (postId == null) return GoodNewsEditUiState.Editing(GoodNewsForm(forMemberId = me.id), null, targets, candidates)
+        if (postId == null) {
+            val challenge = linkableChallenge()
+            val form = GoodNewsForm(forMemberId = me.id, forChallenge = linkToChallenge && challenge != null)
+            return GoodNewsEditUiState.Editing(form, null, targets, candidates, challenge = challenge)
+        }
         val news = goodNews?.observePost(postId)?.first()
         if (news == null || news.authorId != me.id) return GoodNewsEditUiState.Unavailable
         val form = GoodNewsForm(text = news.text, forMemberId = news.forMemberId, mentionIds = news.mentionIds.toSet())
         return GoodNewsEditUiState.Editing(form, news, targets, candidates)
+    }
+
+    private suspend fun linkableChallenge(): MonthChallenge? = try {
+        withTimeoutOrNull(3_000) { tree?.observeChallenge(month)?.first() }
+            ?.takeIf { it.countsLinkedNews && !it.achieved }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        null
     }
 
     private fun edit(change: (GoodNewsEditUiState.Editing) -> GoodNewsEditUiState.Editing) {
@@ -71,6 +93,10 @@ class GoodNewsEditViewModel(
     fun toggleMention(memberId: String) = edit {
         val ids = it.form.mentionIds
         it.copy(form = it.form.copy(mentionIds = if (memberId in ids) ids - memberId else ids + memberId))
+    }
+
+    fun setForChallenge(linked: Boolean) = edit {
+        if (!it.isNew || it.challenge == null) it else it.copy(form = it.form.copy(forChallenge = linked))
     }
 
     fun dismissFailure() = edit { it.copy(failure = null) }
@@ -106,6 +132,7 @@ class GoodNewsEditViewModel(
             forMemberId = forMember.id,
             householdId = forMember.householdId,
             mentionIds = s.form.mentionIds.filter { id -> s.candidates.any { it.id == id } }.sorted(),
+            forChallenge = if (s.form.forChallenge && s.challenge != null) s.challenge.month.toString() else null,
         )
         return try {
             s.form.photos.zip(draft.photoIds).forEachIndexed { index, (uri, photoId) ->

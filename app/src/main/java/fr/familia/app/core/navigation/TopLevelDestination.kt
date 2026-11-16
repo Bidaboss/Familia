@@ -61,7 +61,7 @@ data class GoodNewsDetailDestination(val postId: String)
 
 /** Publish a good news, or change one's own when [postId] is set. */
 @Serializable
-data class GoodNewsEditDestination(val postId: String? = null)
+data class GoodNewsEditDestination(val postId: String? = null, val forChallenge: Boolean = false)
 
 /** The question of the week (récit 37): this week's, or an older one when [questionId] is set. */
 @Serializable

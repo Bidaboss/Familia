@@ -49,6 +49,7 @@ class FirestoreTreeRepository(private val db: FirebaseFirestore) : TreeRepositor
                         progress = snapshot.getLong("progress")?.toInt() ?: 0,
                         achieved = snapshot.get("achievedAt") != null,
                         choiceId = snapshot.getString("choiceId"),
+                        hostHouseholdId = snapshot.getString("householdId")?.takeIf { snapshot.getString("measure") == "linked" },
                     )
                 },
             )

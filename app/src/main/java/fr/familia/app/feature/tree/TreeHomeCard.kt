@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -56,6 +56,8 @@ fun TreeHomeCard(
     currentMember: Member? = null,
     /** Opens the guide of the challenge of the foyer (récit 35 bis) for that month. */
     onPrepareChallenge: (YearMonth) -> Unit = {},
+    /** « Participer au défi »: a Bonne nouvelle linked to the challenge of a foyer. */
+    onJoinChallenge: () -> Unit = {},
 ) {
     val today = LocalDate.now(ZoneId.of("Europe/Paris"))
     val viewModel: TreeViewModel = viewModel(
@@ -63,11 +65,16 @@ fun TreeHomeCard(
         factory = viewModelFactory { initializer { TreeViewModel(container?.treeRepository, today, currentMember?.householdId) } },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    state?.let { TreeHomeContent(it, modifier, onPrepareChallenge) }
+    state?.let { TreeHomeContent(it, modifier, onPrepareChallenge, onJoinChallenge) }
 }
 
 @Composable
-fun TreeHomeContent(state: TreeUiState, modifier: Modifier = Modifier, onPrepareChallenge: (YearMonth) -> Unit = {}) {
+fun TreeHomeContent(
+    state: TreeUiState,
+    modifier: Modifier = Modifier,
+    onPrepareChallenge: (YearMonth) -> Unit = {},
+    onJoinChallenge: () -> Unit = {},
+) {
     val tree = state.tree
     ClayCard(modifier = modifier.fillMaxWidth()) {
         Text(stringResource(R.string.tree_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
@@ -84,7 +91,15 @@ fun TreeHomeContent(state: TreeUiState, modifier: Modifier = Modifier, onPrepare
                 )
             }
         }
-        state.challenge?.let { ChallengeGauge(it) }
+        state.challenge?.let { challenge ->
+            ChallengeGauge(challenge)
+            if (challenge.countsLinkedNews && !challenge.achieved) {
+                // Tonal: the Accueil keeps one filled button at most (relecture of #111).
+                FilledTonalButton(onClick = onJoinChallenge, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.tree_join_challenge))
+                }
+            }
+        }
         state.hostTurn?.let { month -> HostTurn(month, onPrepareChallenge) }
     }
 }
@@ -99,7 +114,7 @@ private fun HostTurn(month: YearMonth, onPrepare: (YearMonth) -> Unit) {
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Button(onClick = { onPrepare(month) }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+        FilledTonalButton(onClick = { onPrepare(month) }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Text(stringResource(R.string.tree_host_prepare))
         }
     }
