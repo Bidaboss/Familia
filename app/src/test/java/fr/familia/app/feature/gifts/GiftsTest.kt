@@ -148,6 +148,34 @@ class GiftsTest {
     }
 
     @Test
+    fun `choosing an occasion keeps its people and counts the wishes said for it, or for whenever`() {
+        val lists = listOf(
+            list("wishes-adult1", "adult1", GiftListKind.Wishes, viewers = emptyList()),
+            list("ideas-adult1", "adult1", GiftListKind.Ideas, viewers = emptyList(), creator = "admin1"),
+        )
+        fun item(id: String, occasion: GiftOccasion?) = GiftItem(id, id, null, null, null, "adult1", "Adult1", true, occasion = occasion)
+        val base = (giftsState(family, lists, "adult2", today, singleList = true) as GiftsUiState.Success).copy(
+            listItems = mapOf(
+                "wishes-adult1" to listOf(item("noel", GiftOccasion.Christmas), item("anniv", GiftOccasion.Birthday), item("libre", null)),
+                "ideas-adult1" to listOf(item("idee", null)),
+            ),
+        )
+        val all = forMoment(base, null) as GiftsUiState.Success
+        assertEquals(3, all.wishPreviews.getValue("wishes-adult1").count)
+        assertTrue(all.occasions.first() is GiftMoment.Christmas)
+        val christmas = forMoment(base, all.occasions.first()) as GiftsUiState.Success
+        assertEquals(listOf("libre", "noel"), christmas.wishPreviews.getValue("wishes-adult1").titles)
+        assertEquals(1, christmas.wishPreviews.getValue("ideas-adult1").count)
+        assertEquals(family.members.size, christmas.sections.size)
+        val adult1 = family.members.first { it.id == "adult1" }
+        val birthday = forMoment(base, GiftMoment.BirthdayOf(adult1, LocalDate.of(2027, 1, 1))) as GiftsUiState.Success
+        // A birthday that is not among the next ones is not an occasion of the tab: everyone shows.
+        assertEquals(null, birthday.moment)
+        // Switch off: no occasion to choose.
+        assertTrue((forMoment(base.copy(singleList = false), null) as GiftsUiState.Success).occasions.isEmpty())
+    }
+
+    @Test
     fun `amounts and links typed by a member are understood`() {
         assertEquals(19.9, parseEuros("19,90 €")!!, 0.001)
         assertEquals(30.0, parseEuros(" 30 ")!!, 0.001)

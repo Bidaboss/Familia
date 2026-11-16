@@ -21,6 +21,16 @@ fun occasionLabel(occasion: GiftOccasion): String = stringResource(
     },
 )
 
+/** What a wish is for (récit 9 ter): « Quand vous voulez », « Pour Noël », « Pour mon/son anniversaire ». */
+@Composable
+fun wishOccasionLabel(occasion: GiftOccasion?, forMe: Boolean): String = stringResource(
+    when (occasion) {
+        GiftOccasion.Christmas -> R.string.gift_wish_for_christmas
+        GiftOccasion.Birthday -> if (forMe) R.string.gift_wish_for_my_birthday else R.string.gift_wish_for_birthday
+        else -> R.string.gift_wish_anytime
+    },
+)
+
 /** The title shown for a list: « Mes envies », « Envies de Camille », or its own title. */
 @Composable
 fun listTitle(list: GiftList, beneficiaryName: String, isMine: Boolean): String = when {

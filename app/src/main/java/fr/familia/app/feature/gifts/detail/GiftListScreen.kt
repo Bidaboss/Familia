@@ -87,6 +87,7 @@ import fr.familia.app.feature.gifts.formatEuros
 import fr.familia.app.feature.gifts.occasionLabel
 import fr.familia.app.feature.gifts.listSubtitle
 import fr.familia.app.feature.gifts.listTitle
+import fr.familia.app.feature.gifts.wishOccasionLabel
 import fr.familia.app.feature.gifts.parseEuros
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpLink
@@ -289,7 +290,7 @@ private fun ItemCard(row: ItemRow, state: GiftListUiState.Success, onOpen: () ->
                 // Says to the eye what the click label says to TalkBack: the card opens.
                 Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null)
             }
-            ItemDetails(row, tint)
+            ItemDetails(row, tint, state.isMine)
             // The shop link shows on the card itself, as a link, so nobody has to guess it is there.
             item.url?.let { url -> ItemLink(url, prominent = false) }
             claim?.let { ClaimStatus(it, item, tint) }
@@ -328,9 +329,11 @@ internal fun linkHost(url: String): String? =
     runCatching { java.net.URI(url).host }.getOrNull()?.removePrefix("www.")?.takeIf { it.isNotBlank() }
 
 @Composable
-private fun ItemDetails(row: ItemRow, tint: ClayTint) {
+private fun ItemDetails(row: ItemRow, tint: ClayTint, forMe: Boolean = false) {
     val details = listOfNotNull(
         row.item.price?.let { stringResource(R.string.gift_item_price, formatEuros(it)) },
+        // What a wish is for (récit 9 ter), when it says so.
+        row.item.occasion?.let { wishOccasionLabel(it, forMe) },
         if (row.isSurpriseIdea) stringResource(R.string.gift_item_idea_of, row.item.authorName) else null,
     ).joinToString(" · ")
     if (details.isNotEmpty()) {

@@ -573,6 +573,13 @@
     <string name="gift_wishes_of">Envies de %1$s</string>
     <string name="gift_wishes_subtitle">Toute la famille la voit</string>
     <string name="gift_surprise_for">Surprise pour %1$s</string>
+    <string name="gift_item_occasion_label">C\'est pour quand ?</string>
+    <string name="gift_wish_anytime">Quand vous voulez</string>
+    <string name="gift_wish_for_christmas">Pour Noël</string>
+    <string name="gift_wish_for_my_birthday">Pour mon anniversaire</string>
+    <string name="gift_wish_for_birthday">Pour son anniversaire</string>
+    <string name="gifts_moment_all">Tout le monde</string>
+    <string name="gifts_moment_christmas">Noël %1$d</string>
     <string name="gift_ideas_title">Idées de la famille</string>
     <string name="gift_ideas_of">Idées pour %1$s</string>
     <string name="gift_ideas_subtitle">%1$s ne voit jamais cette partie</string>

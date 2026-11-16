@@ -25,6 +25,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.material3.FilterChip
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -67,6 +70,8 @@ fun GiftsScreen(
     onOpenNotebook: (() -> Unit)? = null,
     /** « Voir comme » (PRD, rôles): some lists of this member are kept from the admin. */
     someListsHidden: Boolean = false,
+    /** The occasion chosen at the top of the tab (récit 9 ter), null for everyone. */
+    onSelectMoment: (GiftMoment?) -> Unit = {},
 ) {
     Box(modifier.fillMaxSize()) {
         when (state) {
@@ -106,7 +111,11 @@ fun GiftsScreen(
                         )
                     }
                 }
-                birthdaysSection(state, onAllBirthdays, onPrepareSurprise)
+                if (state.occasions.isNotEmpty()) {
+                    item(key = "moments") { MomentChoice(state.occasions, state.moment, onSelectMoment) }
+                }
+                // Once an occasion is chosen, its people come first: the birthdays wait.
+                if (state.moment == null) birthdaysSection(state, onAllBirthdays, onPrepareSurprise)
                 state.sections.forEach { section -> personSection(section, state.today, state.wishPreviews, onOpenList, state.singleList) }
                 if (state.archived.isNotEmpty()) archivedSection(state.archived, state.today, onOpenList)
             }
@@ -319,5 +328,26 @@ private fun wishesSubtitle(preview: WishPreview?, empty: Boolean, keptByMe: Bool
     else -> {
         val titles = preview.titles.joinToString(", ") + if (preview.count > preview.titles.size) "…" else ""
         pluralStringResource(R.plurals.gifts_wishes_preview, preview.count, preview.count, titles)
+    }
+}
+
+/** « Tout le monde », « Noël 2026 », « Anniversaire de … »: what the tab prepares (récit 9 ter). */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun MomentChoice(moments: List<GiftMoment>, selected: GiftMoment?, onSelect: (GiftMoment?) -> Unit) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        (listOf(null) + moments).forEach { moment ->
+            val label = when (moment) {
+                null -> stringResource(R.string.gifts_moment_all)
+                is GiftMoment.Christmas -> stringResource(R.string.gifts_moment_christmas, moment.year)
+                is GiftMoment.BirthdayOf -> stringResource(R.string.gifts_birthday_of, moment.member.firstName)
+            }
+            FilterChip(
+                selected = selected == moment,
+                onClick = { onSelect(moment) },
+                label = { Text(label) },
+                modifier = Modifier.heightIn(min = 48.dp),
+            )
+        }
     }
 }

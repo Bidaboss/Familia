@@ -9,6 +9,7 @@ import fr.familia.app.core.model.Birthday
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.GiftItem
 import fr.familia.app.core.model.GiftList
+import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
@@ -58,8 +59,14 @@ sealed interface GiftsUiState {
         val archived: List<Pair<GiftList, String>>,
         /** What each « Envies » and « Idées de la famille » holds, by list id, as this member may see it; missing while it loads. */
         val wishPreviews: Map<String, WishPreview> = emptyMap(),
+        /** The items read for the cards, by list id: what [wishPreviews] counts from. */
+        val listItems: Map<String, List<GiftItem>> = emptyMap(),
         /** One list of wishes per person, and the ideas of the family (récit 9 ter): no list for an occasion. */
         val singleList: Boolean = false,
+        /** The occasions to prepare (récit 9 ter): the next Christmas, then the next birthdays. */
+        val occasions: List<GiftMoment> = emptyList(),
+        /** The occasion chosen, or null for everything. */
+        val moment: GiftMoment? = null,
     ) : GiftsUiState
 
     data object Error : GiftsUiState
@@ -81,6 +88,7 @@ class GiftsViewModel(
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
+    private val moment = MutableStateFlow<GiftMoment?>(null)
 
     val uiState: StateFlow<GiftsUiState> = attempt
         .flatMapLatest { n ->
@@ -91,6 +99,7 @@ class GiftsViewModel(
                     giftsState(family, lists, currentMemberId, day, singleList)
                 }
                     .flatMapLatest { state -> withPreviews(gifts, state) }
+                    .let { states -> combine(states, moment) { state, chosen -> forMoment(state, chosen) } }
                     .onStart { if (n > 0) emit(GiftsUiState.Loading) }
                     .catch { e ->
                         if (e is CancellationException) throw e
@@ -102,6 +111,11 @@ class GiftsViewModel(
 
     fun retry() {
         attempt.update { it + 1 }
+    }
+
+    /** « Noël 2026 », « Anniversaire de … », or null to see everyone (récit 9 ter). */
+    fun selectMoment(chosen: GiftMoment?) {
+        moment.value = chosen
     }
 
     /**
@@ -117,17 +131,55 @@ class GiftsViewModel(
         val previews = wishes.map { list ->
             // The ideas of the family are all hidden from their person, and never on the tab of that
             // person: they count all, and their card shows no title (GiftsScreen).
-            val ideas = list.kind == GiftListKind.Ideas
-            repo.observeItems(list.id, hiddenFromMe = !ideas)
-                .map<List<GiftItem>, Pair<String, WishPreview>?> { items -> list.id to wishPreview(items, onlyVisible = !ideas) }
+            repo.observeItems(list.id, hiddenFromMe = list.kind != GiftListKind.Ideas)
+                .map<List<GiftItem>, Pair<String, List<GiftItem>>?> { items -> list.id to items }
                 .onStart { emit(null) }
                 .catch { e ->
                     if (e is CancellationException) throw e
                     emit(null)
                 }
         }
-        return combine(previews) { all -> state.copy(wishPreviews = all.filterNotNull().toMap()) }
+        return combine(previews) { all -> state.copy(listItems = all.filterNotNull().toMap()) }
     }
+}
+
+/**
+ * An occasion to prepare in the Cadeaux tab (récit 9 ter): it replaces the lists for an occasion.
+ * Christmas shows everyone; a birthday shows its person. A wish counts for it when it says so, or
+ * when it says nothing (« Quand vous voulez »); the ideas of the family always count.
+ */
+sealed interface GiftMoment {
+    data class Christmas(val year: Int) : GiftMoment
+    data class BirthdayOf(val member: Member, val date: LocalDate) : GiftMoment
+}
+
+/** The next Christmas, then the next birthdays shown at the top of the tab. */
+internal fun giftMoments(today: LocalDate, birthdays: List<Birthday>): List<GiftMoment> {
+    val christmasYear = if (today > LocalDate.of(today.year, 12, 25)) today.year + 1 else today.year
+    return listOf(GiftMoment.Christmas(christmasYear)) + birthdays.map { GiftMoment.BirthdayOf(it.member, it.date) }
+}
+
+/** The tab for [chosen]: the people it is for, and what counts for it on their cards. */
+internal fun forMoment(state: GiftsUiState, chosen: GiftMoment?): GiftsUiState {
+    if (state !is GiftsUiState.Success) return state
+    val occasions = if (state.singleList) giftMoments(state.today, state.birthdays) else emptyList()
+    val moment = chosen?.takeIf { state.singleList && it in occasions }
+    val kept = when (moment) {
+        is GiftMoment.BirthdayOf -> state.sections.filter { it.member.id == moment.member.id }
+        else -> state.sections
+    }
+    val wishesIds = state.sections.mapNotNull { it.wishes?.id }.toSet()
+    val previews = state.listItems.mapValues { (listId, items) ->
+        // A wish: only what its person sees, for the occasion. An idea of the family: all of them.
+        if (listId in wishesIds) wishPreview(items.filter { counts(it, moment) }) else wishPreview(items, onlyVisible = false)
+    }
+    return state.copy(sections = kept, wishPreviews = previews, occasions = occasions, moment = moment)
+}
+
+private fun counts(item: GiftItem, moment: GiftMoment?): Boolean = when (moment) {
+    null -> true
+    is GiftMoment.Christmas -> item.occasion == null || item.occasion == GiftOccasion.Christmas
+    is GiftMoment.BirthdayOf -> item.occasion == null || item.occasion == GiftOccasion.Birthday
 }
 
 /** What a list of wishes holds: how many, and the first titles for the card. */
