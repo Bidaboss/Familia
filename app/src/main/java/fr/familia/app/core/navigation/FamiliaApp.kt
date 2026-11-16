@@ -132,6 +132,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.ui.graphics.Color
 import fr.familia.app.feature.home.HomeRoute as HomeTab
+import fr.familia.app.feature.discover.DiscoverModule
 import fr.familia.app.feature.settings.NotificationSettingsRoute
 import fr.familia.app.feature.export.ExportRoute
 import fr.familia.app.feature.members.admin.AdministrationRoute
@@ -606,6 +607,17 @@ fun FamiliaApp(
                             onJoinChallenge = { navController.navigate(GoodNewsEditDestination(forChallenge = true)) },
                             onPrepareChallenge = { month ->
                                 navController.navigate(HostChallengeDestination(month.year, month.monthValue)) { launchSingleTop = true }
+                            },
+                            onOpenDiscover = { module ->
+                                when (module) {
+                                    DiscoverModule.WeeklyQuestion -> navController.navigate(WeeklyQuestionDestination())
+                                    DiscoverModule.HelpRequests -> navController.navigateToTab(TopLevelDestination.HelpRequests)
+                                    DiscoverModule.Polls -> navController.navigate(PollsDestination) { launchSingleTop = true }
+                                    DiscoverModule.Recipes -> navController.navigate(RecipesDestination())
+                                    DiscoverModule.Trips -> navController.navigate(TripsDestination) { launchSingleTop = true }
+                                    DiscoverModule.Capsules -> navController.navigate(CapsulesDestination) { launchSingleTop = true }
+                                    DiscoverModule.Genealogy -> navController.navigate(GenealogyDestination) { launchSingleTop = true }
+                                }
                             },
                         )
                     }
