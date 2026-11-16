@@ -998,6 +998,7 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             entryId = entry.toRoute<ProposeIdeaDestination>().entryId,
+                            singleList = features.isOn(Feature.SingleList),
                             onBack = { navController.popBackStack() },
                             onNewSurprise = { id -> navController.navigate(GiftListEditDestination(forMemberId = id)) },
                             onDone = { listId ->
