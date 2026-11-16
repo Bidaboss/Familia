@@ -256,3 +256,12 @@ Avec le module « Récap du dimanche » allumé, et deux comptes : un qui suit u
 3. Touche la notification. **Attendu :** l'écran « La semaine de la famille » s'ouvre, avec au plus 3 photos, les anniversaires des 14 prochains jours, la jauge du défi et les voyages en cours. Aucun nombre de réactions, aucun nom sous les photos.
 4. Touche une photo, puis reviens, puis touche un voyage. **Attendu :** la Bonne nouvelle, puis le voyage, s'ouvrent.
 5. Réglages > Notifications : coupe « La semaine de la famille ». **Attendu :** le dimanche suivant, plus de notification pour ce compte.
+
+## Il y a un an (récit 36)
+
+Avec le module « Il y a un an » allumé, et une Bonne nouvelle (ou une photo dans l'album d'un voyage) publiée le même jour, un an plus tôt. Pour l'essai, change la date du téléphone d'un an en avant.
+
+1. Ouvre l'Accueil. **Attendu :** la carte « Il y a un an » montre la Bonne nouvelle (ou la photo de voyage), sans notification.
+2. Touche-la. **Attendu :** la Bonne nouvelle, ou le voyage, s'ouvre.
+3. Avec un compte qui ne suit pas ce voyage, ouvre l'Accueil. **Attendu :** pas de carte pour cette photo.
+4. Touche « Ne plus me montrer ce souvenir ». **Attendu :** la carte disparaît (ou passe au souvenir suivant du même jour), et ne revient pas en rouvrant l'appli.

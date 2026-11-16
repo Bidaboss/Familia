@@ -1,5 +1,6 @@
 package fr.familia.app.core.data
 
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -10,6 +11,8 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.time.Instant
+import java.util.Date
 
 /** Good news live in `goodNews/{id}`. See docs/data-model.md for the fields and the rights. */
 class FirestoreGoodNewsRepository(private val db: FirebaseFirestore) : GoodNewsRepository {
@@ -18,6 +21,20 @@ class FirestoreGoodNewsRepository(private val db: FirebaseFirestore) : GoodNewsR
         val registration = db.collection(GOOD_NEWS)
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .limit(count.toLong())
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                } else if (snapshot != null) {
+                    trySend(snapshot.documents.mapNotNull { it.toGoodNews() })
+                }
+            }
+        awaitClose { registration.remove() }
+    }
+
+    override fun observeBetween(from: Instant, to: Instant): Flow<List<GoodNews>> = callbackFlow {
+        val registration = db.collection(GOOD_NEWS)
+            .whereGreaterThanOrEqualTo("createdAt", Timestamp(Date.from(from)))
+            .whereLessThan("createdAt", Timestamp(Date.from(to)))
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(error)

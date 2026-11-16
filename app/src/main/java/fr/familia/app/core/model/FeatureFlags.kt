@@ -62,6 +62,8 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     Expenses("expenses", R.string.feature_expenses),
     /** « La semaine de la famille », le récap du dimanche à 18 h (PRD, récit 36). */
     Recap("recap", R.string.feature_recap),
+    /** « Il y a un an », la carte souvenir de l'Accueil (PRD, récit 36). */
+    YearAgo("yearAgo", R.string.feature_year_ago),
 }
 
 /**
