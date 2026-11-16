@@ -73,6 +73,7 @@ import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.feature.members.MembersViewModel.Companion.MAX_HOUSEHOLD_NAME
 import fr.familia.app.feature.tree.MonthPick
 import java.time.YearMonth
+import fr.familia.app.core.ui.ClaySpacing
 
 /** The Administration menu of the admin principal (PRD, récit 1 ter). Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -212,7 +213,7 @@ private fun ReadyContent(
         item(key = "household-add") {
             OutlinedButton(
                 onClick = { adding = true },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).heightIn(min = 56.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = ClaySpacing.screen, vertical = 8.dp).heightIn(min = 56.dp),
             ) { Text(stringResource(R.string.administration_household_add)) }
         }
         if (onSetFeature != null) {
@@ -232,7 +233,7 @@ private fun ReadyContent(
                         .fillMaxWidth()
                         .clickable(onClick = onOpenUsage)
                         .heightIn(min = 56.dp)
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(Icons.Outlined.QueryStats, contentDescription = null)
@@ -249,7 +250,7 @@ private fun ReadyContent(
                         .fillMaxWidth()
                         .clickable(onClick = { choosingViewAs = true })
                         .heightIn(min = 56.dp)
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(Icons.Outlined.Visibility, contentDescription = null)
@@ -273,7 +274,7 @@ private fun ReadyContent(
                         .fillMaxWidth()
                         .clickable(onClick = onOpenFeedback)
                         .heightIn(min = 56.dp)
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(Icons.Outlined.Lightbulb, contentDescription = null)
@@ -301,7 +302,7 @@ private fun ReadyContent(
                         .fillMaxWidth()
                         .clickable(onClick = onShareApp)
                         .heightIn(min = 56.dp)
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(Icons.Outlined.Share, contentDescription = null)
@@ -343,7 +344,7 @@ private fun ReadyContent(
                     .fillMaxWidth()
                     .clickable(onClick = onOpenExport)
                     .heightIn(min = 56.dp)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(Icons.Outlined.SaveAlt, contentDescription = null)
@@ -393,7 +394,7 @@ private fun ReadyContent(
 
 @Composable
 private fun SectionTitle(titleRes: Int, helpRes: Int) {
-    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             stringResource(titleRes),
             style = MaterialTheme.typography.titleLarge,
@@ -422,7 +423,7 @@ private fun AdultSwitchRow(row: AdultRow, onSetChef: (Member, Boolean) -> Unit) 
             .fillMaxWidth()
             .then(toggle)
             .heightIn(min = 56.dp)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         MemberAvatar(member)
@@ -450,7 +451,7 @@ private fun FeatureSwitchRow(feature: Feature, on: Boolean, onSetFeature: (Featu
             .fillMaxWidth()
             .toggleable(on, role = Role.Switch) { onSetFeature(feature, it) }
             .heightIn(min = 56.dp)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {

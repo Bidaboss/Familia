@@ -334,3 +334,7 @@ Avec le module « La bienvenue » allumé, un membre ajouté qui ne s'est jamais
 1. Onglet Famille, avec Recettes, Capsules et Arbre généalogique allumés : une seule ligne « Nos trésors » sous les membres. La toucher montre les trois entrées en retrait ; la toucher encore les cache. TalkBack lit « ouvert » ou « fermé ».
 2. Éteindre les trois modules dans Administration : la ligne « Nos trésors » disparaît.
 3. Les marges sur les côtés passent à 20 dp.
+
+## Administration (DESIGN-11)
+1. Administration : les marges sur les côtés passent à 20 dp, dans toutes les sections.
+2. Les cartes « Consommation » et « Capsules restantes » ont leur titre avec la pastille en thème clair.
