@@ -46,9 +46,10 @@ class FakePolls(initial: List<Poll> = emptyList(), private val failWith: Excepti
         closesAt: Instant?,
         authorId: String,
         authorName: String,
+        eventId: String?,
     ): String {
         failWith?.let { throw it }
-        val poll = Poll("p-new", kind, question, options, multiple, askedIds, viewerIds, null, closesAt, false, null, null, authorId, authorName, null)
+        val poll = Poll("p-new", kind, question, options, multiple, askedIds, viewerIds, eventId, closesAt, false, null, null, authorId, authorName, null)
         created += poll
         polls.value = polls.value + poll
         return poll.id

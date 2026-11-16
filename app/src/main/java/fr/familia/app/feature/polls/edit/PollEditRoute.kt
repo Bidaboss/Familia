@@ -10,12 +10,18 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
 
-/** Connects the « Nouveau sondage » form to its ViewModel, and closes it once sent. */
+/** Connects the « Nouveau sondage » form to its ViewModel, and closes it once sent; [eventId]: asked from that event (récit 2 quater). */
 @Composable
-fun PollEditRoute(container: AppContainer?, currentMember: Member, onDone: () -> Unit) {
+fun PollEditRoute(container: AppContainer?, currentMember: Member, onDone: () -> Unit, eventId: String? = null) {
     val viewModel: PollEditViewModel = viewModel(
+        key = "pollEdit-$eventId",
         factory = viewModelFactory {
-            initializer { PollEditViewModel(container?.pollRepository, container?.memberRepository, currentMember.id) }
+            initializer {
+                PollEditViewModel(
+                    container?.pollRepository, container?.memberRepository, currentMember.id,
+                    eventId = eventId, events = container?.eventRepository,
+                )
+            }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
