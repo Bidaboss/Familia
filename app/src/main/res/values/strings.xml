@@ -166,6 +166,18 @@
     <string name="feature_gift_notebook">Carnet de cadeaux</string>
     <string name="feature_share_to_wishes">Partager vers « Mes envies »</string>
     <string name="feature_wishes_reveal">Dévoiler les envies offertes</string>
+    <string name="received_title">On m\'a offert</string>
+    <string name="received_open">On m\'a offert</string>
+    <string name="received_intro">Les envies que la famille t\'a offertes, avec les prénoms de ceux qui les ont prises. Les montants restent secrets.</string>
+    <string name="received_empty_title">Rien pour l\'instant</string>
+    <string name="received_empty_body">Le lendemain de ton anniversaire et de Noël, les envies que la famille a prises pour toi arrivent ici.</string>
+    <string name="received_error_title">Impossible d\'afficher tes cadeaux</string>
+    <string name="received_error_body">Vérifie ta connexion, puis rouvre cette page.</string>
+    <string name="received_from">Offert par %1$s</string>
+    <string name="received_from_joint">Cadeau commun de %1$s</string>
+    <string name="received_thank">Merci</string>
+    <string name="received_thanked">Merci envoyé</string>
+    <string name="received_thank_failed">Le merci n\'est pas parti. Réessaie dans un instant.</string>
     <string name="share_to_wishes">Mes envies Familia</string>
     <string name="gift_item_preview_loading">Lecture de la page de la boutique…</string>
     <string name="feature_trips">Carnet de voyage</string>
@@ -1391,7 +1403,13 @@
     <string name="capsule_edit_pick_day">Choisir le jour</string>
     <string name="capsule_edit_when_hint">Entre le %1$s et le %2$s. Elle s\'ouvre ce jour-là.</string>
     <string name="capsule_edit_no_date">Choisis un jour entre un mois et cinq ans d\'ici.</string>
+    <string name="capsule_edit_add_photos">Ajouter des photos (encore %1$d)</string>
+    <string name="capsule_edit_photo_remove">Retirer la photo %1$d</string>
     <string name="capsule_edit_sealed_note">Une fois scellée, la capsule ne se modifie plus. Tu pourras la supprimer tant qu\'elle n\'est pas ouverte.</string>
+    <string name="capsule_edit_needs_network">Les photos ont besoin d\'Internet. Reconnecte-toi, puis réessaie.</string>
+    <string name="capsule_edit_photo_unreadable">Une photo n\'a pas pu être lue. Retire-la, puis réessaie.</string>
     <string name="capsule_edit_failed">La capsule n\'a pas été scellée. Réessaie dans un moment.</string>
+    <string name="capsule_edit_sending_photo">Envoi de la photo %1$d sur %2$d…</string>
+    <string name="capsule_edit_sealing">Scellement de la capsule…</string>
     <string name="capsule_edit_seal">Sceller la capsule</string>
 </resources>

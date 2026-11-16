@@ -19,6 +19,7 @@ fun GiftListRoute(
     onAddItem: () -> Unit,
     onEditItem: (itemId: String) -> Unit,
     onBack: () -> Unit,
+    onOpenReceived: (() -> Unit)? = null,
 ) {
     val viewModel: GiftListViewModel = viewModel(
         factory = viewModelFactory {
@@ -40,6 +41,7 @@ fun GiftListRoute(
             onSetShare = viewModel::setShare,
             onLeaveShare = viewModel::leaveShare,
             onMarkReceived = viewModel::markReceived,
+            onOpenReceived = onOpenReceived,
         ),
     )
 }

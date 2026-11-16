@@ -275,6 +275,9 @@ describe('capsules folder (récit 39)', () => {
     });
     await assertSucceeds(getBytes(ref(storageAs(OTHER_ADULT), file('adult1', 'c2'))));
     await assertFails(getBytes(ref(storageAs(NEIGHBOUR), file('adult1', 'c2'))));
+    // A folder of another author never borrows the opening of capsule c2.
+    await assertSucceeds(uploadString(ref(storageAs(NEIGHBOUR), file(NEIGHBOUR.memberId, 'c2')), 'x', 'raw', jpeg));
+    await assertFails(getBytes(ref(storageAs(OTHER_ADULT), file(NEIGHBOUR.memberId, 'c2'))));
     await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), file('adult1', 'c2'))));
     await assertSucceeds(deleteObject(ref(storageAs(ADULT), file('adult1', 'c2'))));
   });

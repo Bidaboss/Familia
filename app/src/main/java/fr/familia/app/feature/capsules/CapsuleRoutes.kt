@@ -3,13 +3,16 @@ package fr.familia.app.feature.capsules
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import fr.familia.app.FamiliaApplication
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.serialization.Serializable
 
 /*
@@ -53,14 +56,18 @@ fun CapsuleDetailRoute(container: AppContainer?, currentMember: Member, capsuleI
 /** A sealed capsule opens at once; it can never be changed afterwards. */
 @Composable
 fun CapsuleEditRoute(container: AppContainer?, currentMember: Member, onSealed: (String) -> Unit, onBack: () -> Unit) {
+    val online = (LocalContext.current.applicationContext as? FamiliaApplication)?.networkMonitor?.isOnline ?: flowOf(true)
     val viewModel: CapsuleEditViewModel = viewModel(
         factory = viewModelFactory {
             initializer {
                 CapsuleEditViewModel(
                     container?.capsuleRepository,
                     container?.memberRepository,
+                    container?.photoUploader,
                     currentMember.id,
                     savedState = createSavedStateHandle(),
+                    isOnline = online,
+                    storage = container?.photoStorage,
                 )
             }
         },
@@ -71,6 +78,8 @@ fun CapsuleEditRoute(container: AppContainer?, currentMember: Member, onSealed: 
         onText = viewModel::setText,
         onToggleRecipient = viewModel::toggleRecipient,
         onOpenAt = viewModel::setOpenAt,
+        onAddPhotos = viewModel::addPhotos,
+        onRemovePhoto = viewModel::removePhoto,
         onSeal = viewModel::seal,
     )
     CapsuleEditScreen(state, actions, onBack)

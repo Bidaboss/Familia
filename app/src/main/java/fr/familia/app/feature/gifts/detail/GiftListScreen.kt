@@ -98,6 +98,8 @@ data class GiftListActions(
     val onSetShare: (itemId: String, amount: Double) -> Unit = { _, _ -> },
     val onLeaveShare: (itemId: String) -> Unit = {},
     val onMarkReceived: (itemId: String, memberId: String, received: Boolean) -> Unit = { _, _, _ -> },
+    /** « On m'a offert », on one's own wishes; null while its module is off (récit 10 bis). */
+    val onOpenReceived: (() -> Unit)? = null,
 )
 
 /** One gift list: its items, and the reservations for everyone but the beneficiary. Stateless. */
@@ -173,7 +175,7 @@ private fun Content(state: GiftListUiState.Success, actions: GiftListActions) {
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item(key = "header") { Header(state) }
+        item(key = "header") { Header(state, actions.onOpenReceived) }
         if (state.items.isEmpty()) {
             item(key = "empty") {
                 Text(
@@ -210,7 +212,7 @@ private fun Content(state: GiftListUiState.Success, actions: GiftListActions) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Header(state: GiftListUiState.Success) {
+private fun Header(state: GiftListUiState.Success, onOpenReceived: (() -> Unit)?) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         val subtitle = listSubtitle(state.list, state.beneficiary.firstName, state.today)
         if (subtitle.isNotEmpty()) {
@@ -227,6 +229,12 @@ private fun Header(state: GiftListUiState.Success) {
         FlowRow(verticalArrangement = Arrangement.Center) {
             Text(notice, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             HelpLink(ScreenHelp.GiftList)
+        }
+        if (onOpenReceived != null && state.isMine && state.list.kind == GiftListKind.Wishes) {
+            OutlinedButton(onClick = onOpenReceived, modifier = Modifier.padding(top = 4.dp).heightIn(min = 56.dp)) {
+                Icon(Icons.Outlined.CardGiftcard, contentDescription = null)
+                Text(stringResource(R.string.received_open), modifier = Modifier.padding(start = 8.dp))
+            }
         }
         if (state.actionFailed) {
             Text(

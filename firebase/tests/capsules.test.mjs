@@ -85,10 +85,16 @@ describe('time capsules (récit 39)', () => {
     await assertSucceeds(getDocs(written));
   });
 
-  test('only the author removes it, sealed or opened', async () => {
+  test('only the author removes it, and only while sealed', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'capsules/c2'), { ...capsule(ADULT), createdAt: Timestamp.fromMillis(0) });
+    });
+    await assertFails(deleteDoc(doc(as(env, OTHER_ADULT), 'capsules/c2')));
+    await assertFails(deleteDoc(doc(as(env, ADMIN), 'capsules/c2')));
+    await assertSucceeds(deleteDoc(doc(as(env, ADULT), 'capsules/c2')));
+    // Opened, it is a keepsake of its recipients (PRD rév. 187).
     await opened('c1');
+    await assertFails(deleteDoc(doc(as(env, ADULT), 'capsules/c1')));
     await assertFails(deleteDoc(doc(as(env, OTHER_ADULT), 'capsules/c1')));
-    await assertFails(deleteDoc(doc(as(env, ADMIN), 'capsules/c1')));
-    await assertSucceeds(deleteDoc(doc(as(env, ADULT), 'capsules/c1')));
   });
 });
