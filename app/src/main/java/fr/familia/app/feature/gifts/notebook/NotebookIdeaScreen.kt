@@ -77,9 +77,11 @@ fun NotebookIdeaScreen(
             onDismissRequest = { confirmLeave = false },
             title = { Text(stringResource(R.string.event_leave_title)) },
             text = { Text(stringResource(R.string.event_leave_body)) },
-            confirmButton = { TextButton(onClick = { confirmLeave = false }) { Text(stringResource(R.string.member_leave_keep)) } },
+            confirmButton = { TextButton(onClick = { confirmLeave = false }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.member_leave_keep)) } },
             dismissButton = {
-                TextButton(onClick = { confirmLeave = false; onBack() }) { Text(stringResource(R.string.member_leave_discard)) }
+                TextButton(onClick = { confirmLeave = false; onBack() }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.member_leave_discard))
+                }
             },
         )
     }
@@ -263,11 +265,13 @@ private fun DeleteButton(title: String, enabled: Boolean, onDelete: () -> Unit) 
             onDismissRequest = { confirm = false },
             title = { Text(stringResource(R.string.notebook_idea_delete_title, title.trim())) },
             confirmButton = {
-                TextButton(onClick = { confirm = false; onDelete() }) {
+                TextButton(onClick = { confirm = false; onDelete() }, modifier = Modifier.heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.event_delete_confirm), color = MaterialTheme.colorScheme.error)
                 }
             },
-            dismissButton = { TextButton(onClick = { confirm = false }) { Text(stringResource(R.string.action_keep)) } },
+            dismissButton = {
+                TextButton(onClick = { confirm = false }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_keep)) }
+            },
         )
     }
 }
