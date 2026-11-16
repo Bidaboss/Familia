@@ -8,6 +8,7 @@ import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.helprequests.detail.HelpActionError
 import fr.familia.app.feature.helprequests.detail.HelpRequestDetailUiState
 import fr.familia.app.feature.helprequests.detail.HelpRequestDetailViewModel
+import fr.familia.app.feature.helprequests.detail.canShareHelpRequest
 import fr.familia.app.feature.helprequests.detail.cleanNote
 import fr.familia.app.feature.helprequests.edit.HelpFormError
 import fr.familia.app.feature.helprequests.edit.HelpRequestEditUiState
@@ -144,6 +145,24 @@ class HelpRequestViewModelsTest {
 
     private fun detail(repo: FakeHelpRequests, me: String) =
         HelpRequestDetailViewModel(repo, FakeMembers(), me, "r1", today = flowOf(today))
+
+    @Test
+    fun `Partager only for a request the whole family already reads`() = runTest {
+        val everyone = listOf("admin1", "adult2", "kid1", "kid2")
+        val repo = FakeHelpRequests(
+            listOf(helpRequest("r1", TestFamily.adult, everyone), helpRequest("r2", TestFamily.adult, listOf("adult2"))),
+        )
+        val wide = detail(repo, "adult1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { wide.uiState.collect {} }
+        assertTrue(canShareHelpRequest(wide.uiState.value as HelpRequestDetailUiState.Success))
+        val narrow = HelpRequestDetailViewModel(repo, FakeMembers(), "adult1", "r2", today = flowOf(today))
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { narrow.uiState.collect {} }
+        assertFalse(canShareHelpRequest(narrow.uiState.value as HelpRequestDetailUiState.Success))
+        // Not the author's to send out.
+        val other = detail(repo, "adult2")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { other.uiState.collect {} }
+        assertFalse(canShareHelpRequest(other.uiState.value as HelpRequestDetailUiState.Success))
+    }
 
     @Test
     fun `« Je m'en occupe » takes the request for me`() = runTest {

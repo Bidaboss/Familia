@@ -62,6 +62,10 @@ fun HelpRequestDetailRoute(
     )
 }
 
-/** Only whoever manages a request sends it out, and only while nobody has taken it yet. */
+/**
+ * Only whoever manages a request sends it out, while nobody has taken it yet, and only when the
+ * whole family already reads it: its title must not reach, through a family group, someone it
+ * was kept from.
+ */
 internal fun canShareHelpRequest(state: HelpRequestDetailUiState.Success): Boolean =
-    state.canManage && state.request.status == HelpStatus.Open
+    state.canManage && state.request.status == HelpStatus.Open && state.seenByWholeFamily
