@@ -44,6 +44,14 @@ class MemberFormTest {
     }
 
     @Test
+    fun `the address can wait, except for a member who already signed in`() {
+        val prepared = validAdult.copy(email = "  ")
+        assertEquals(emptySet<FormError>(), validate(prepared, family, "new", today))
+        assertNull(prepared.toMember("x", uid = null).email)
+        assertEquals(setOf(FormError.EmailInvalid), validate(prepared, family, "adult1", today, emailRequired = true))
+    }
+
+    @Test
     fun `a child without the app needs no email but at least one responsible adult`() {
         val child = MemberForm(firstName = "Noé", profile = MemberProfile.ChildWithoutApp, householdId = "h1")
         assertEquals(setOf(FormError.ParentsMissing), validate(child, family, "new", today))
