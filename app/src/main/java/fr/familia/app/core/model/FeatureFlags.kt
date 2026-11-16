@@ -11,9 +11,11 @@ import fr.familia.app.R
 enum class Feature(val key: String, @StringRes val labelRes: Int) {
     Home("home", R.string.feature_home),
     Gifts("gifts", R.string.feature_gifts),
+    GiftNotebook("giftNotebook", R.string.feature_gift_notebook),
     HelpRequests("helpRequests", R.string.feature_help_requests),
     Trips("trips", R.string.feature_trips),
     GoodNews("goodNews", R.string.feature_good_news),
+    Themes("themes", R.string.feature_themes),
 }
 
 /**

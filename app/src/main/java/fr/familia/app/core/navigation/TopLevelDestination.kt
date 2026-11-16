@@ -75,6 +75,10 @@ data class EventEditDestination(val eventId: String? = null)
 @Serializable
 data class MemberEditDestination(val memberId: String? = null)
 
+/** Famille › Réglages › Apparence: the theme of this phone (DESIGN-7). */
+@Serializable
+data object AppearanceDestination
+
 /** Notification settings, opened from the Famille tab (lot 8). */
 @Serializable
 data object NotificationSettingsDestination
@@ -102,6 +106,14 @@ data class GiftListEditDestination(val listId: String? = null, val forMemberId: 
 /** Item form of a gift list: a new item when [itemId] is null. */
 @Serializable
 data class GiftItemEditDestination(val listId: String, val itemId: String? = null)
+
+/** « Mes cadeaux à offrir », the member's private gift notebook (PRD, récit 9 bis). */
+@Serializable
+data object NotebookDestination
+
+/** A private idea of the notebook: a new one when [entryId] is null, at the occasion chosen on the notebook. */
+@Serializable
+data class NotebookIdeaDestination(val entryId: String? = null, val occasion: String? = null, val year: Int? = null)
 
 /** "Vérifier les mises à jour", opened from the Famille tab (lot 10). */
 @Serializable

@@ -6,6 +6,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import com.github.takahirom.roborazzi.captureRoboImage
 import fr.familia.app.core.navigation.FamiliaApp
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.theme.FamiliaThemeId
+import fr.familia.app.core.theme.themeBackground
+import fr.familia.app.feature.settings.appearance.AppearanceScreen
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Modifier
 import fr.familia.app.feature.auth.SessionUiState
 import fr.familia.app.feature.auth.SignInScreen
 import fr.familia.app.feature.birthdays.BirthdaysScreen
@@ -70,6 +75,12 @@ import fr.familia.app.feature.gifts.edit.GiftListEditScreen
 import fr.familia.app.feature.gifts.edit.previewGiftListForm
 import fr.familia.app.feature.gifts.item.GiftItemEditScreen
 import fr.familia.app.feature.gifts.item.previewGiftItemForm
+import fr.familia.app.feature.gifts.notebook.NotebookActions
+import fr.familia.app.feature.gifts.notebook.NotebookIdeaScreen
+import fr.familia.app.feature.gifts.notebook.NotebookScreen
+import fr.familia.app.feature.gifts.notebook.StatusSheetContent
+import fr.familia.app.feature.gifts.notebook.previewNotebook
+import fr.familia.app.feature.gifts.notebook.previewNotebookIdea
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.feature.members.photo.PhotoCropContent
 import fr.familia.app.feature.members.photo.previewPicture
@@ -301,6 +312,29 @@ class ScreenshotTest {
     @Config(fontScale = 2f)
     fun eventDetailFontScale200() = capture("evenement_detail_police_200") {
         EventDetailScreen(previewEventDetail(), { _, _ -> }, {}, {}, {})
+    }
+
+    @Test
+    fun appearanceLight() = capture("apparence_clair") {
+        AppearanceScreen(FamiliaThemeId.Spain, {}, {})
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun appearanceFontScale200() = capture("apparence_police_200") {
+        AppearanceScreen(FamiliaThemeId.Classic, {}, {})
+    }
+
+    /** The Accueil in each theme, as on the board of the themes (DESIGN-7). */
+    @Test
+    fun homeInEveryTheme() {
+        FamiliaThemeId.entries.drop(1).forEach { theme ->
+            captureRoboImage("build/outputs/roborazzi/accueil_theme_${theme.key}.png") {
+                FamiliaTheme(theme = theme) {
+                    Box(Modifier.themeBackground()) { HomeScreen(previewHome(), HomeActions(onOpenWishes = {})) }
+                }
+            }
+        }
     }
 
     @Test
@@ -547,6 +581,23 @@ class ScreenshotTest {
     }
 
     @Test
+    fun notebookLight() = capture("carnet_cadeaux_clair") { NotebookScreen(previewNotebook(), NotebookActions()) }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun notebookStatusDark() = capture("carnet_cadeaux_etat_sombre", darkTheme = true) {
+        Surface { StatusSheetContent(previewNotebook().people.first().entries[1], {}, {}) }
+    }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun notebookFontScale200() = capture("carnet_cadeaux_police_200") { NotebookScreen(previewNotebook(), NotebookActions()) }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun notebookIdeaFontScale200() = capture("carnet_cadeaux_idee_police_200") { NotebookIdeaScreen(previewNotebookIdea(), {}, {}, {}, {}) }
+
+    @Test
     fun giftListFormLight() = capture("liste_cadeaux_formulaire_clair") { GiftListEditScreen(previewGiftListForm(), {}, {}, {}, {}) }
 
     @Test
@@ -656,9 +707,14 @@ class ScreenshotTest {
 
     private val sampleMember = Member("a", "Camille", null, null, "h1", MemberProfile.Adult, true, emptyList(), null)
 
-    private fun capture(name: String, darkTheme: Boolean = false, content: @Composable () -> Unit) {
+    private fun capture(
+        name: String,
+        darkTheme: Boolean = false,
+        theme: FamiliaThemeId = FamiliaThemeId.Classic,
+        content: @Composable () -> Unit,
+    ) {
         captureRoboImage("build/outputs/roborazzi/$name.png") {
-            FamiliaTheme(darkTheme = darkTheme) { content() }
+            FamiliaTheme(darkTheme = darkTheme, theme = theme) { content() }
         }
     }
 }

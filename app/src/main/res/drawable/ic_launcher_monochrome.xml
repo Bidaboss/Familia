@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Themed-icon glyph (Android 13+), from design/icone/olivier-mono.svg: the launcher tints it. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:pathData="M54 70 Q42 72.8 30 84"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54 70 Q47 74 40 90"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54 70 Q54 74.4 54 92"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54 70 Q61 74 68 90"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54 70 Q66 72.8 78 84"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54 70 Q39 70.8 24 74"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54 70 Q69 70.8 84 74"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M49 72 Q51 64 50 56 L58 56 Q57 64 59 72 Z"
+        android:fillColor="#FF000000" />
+    <path
+        android:pathData="M54 57 Q43.48245903371273 61.472322293210695 38.964918067425465 55.472322293210695"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54 57 Q43.48245903371273 50.5276777067893 38.964918067425465 44.5276777067893"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54 57 Q46.41138850919163 42.89356729137613 44.82277701838326 36.89356729137613"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54 57 Q61.58861149080837 42.89356729137613 63.17722298161674 36.89356729137613"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54 57 Q64.51754096628727 50.5276777067893 69.03508193257454 44.5276777067893"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54 57 Q64.51754096628727 61.4723222932107 69.03508193257454 55.4723222932107"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="3"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M38.964918067425465 55.472322293210695 Q32.66635102119088 40.49794671174567 32.367783974956296 38.49794671174567"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="2.1"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M38.964918067425465 44.5276777067893 Q37.73143238958558 30.367783974956286 42.49794671174568 28.367783974956286"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="2.1"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M44.82277701838326 36.89356729137613 Q52.41138850919163 27.5 54 25.5"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="2.1"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M63.17722298161674 36.89356729137613 Q67.33963813493554 30.367783974956293 65.50205328825433 28.367783974956293"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="2.1"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M69.03508193257454 44.5276777067893 Q75.33364897880912 40.497946711745676 75.6322160250437 38.497946711745676"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="2.1"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M42.5,51a6,6 0,1 1,12,0a6,6 0,1 1,-12,0z"
+        android:fillColor="#FF000000" />
+    <path
+        android:pathData="M53.5,51a6,6 0,1 1,12,0a6,6 0,1 1,-12,0z"
+        android:fillColor="#FF000000" />
+    <path
+        android:pathData="M33.465,55.472a5.5,5.5 0,1 1,11,0a5.5,5.5 0,1 1,-11,0z"
+        android:fillColor="#FF000000" />
+    <path
+        android:pathData="M33.465,44.528a5.5,5.5 0,1 1,11,0a5.5,5.5 0,1 1,-11,0z"
+        android:fillColor="#FF000000" />
+    <path
+        android:pathData="M39.323,36.894a5.5,5.5 0,1 1,11,0a5.5,5.5 0,1 1,-11,0z"
+        android:fillColor="#FF000000" />
+    <path
+        android:pathData="M57.677,36.894a5.5,5.5 0,1 1,11,0a5.5,5.5 0,1 1,-11,0z"
+        android:fillColor="#FF000000" />
+    <path
+        android:pathData="M63.535,44.528a5.5,5.5 0,1 1,11,0a5.5,5.5 0,1 1,-11,0z"
+        android:fillColor="#FF000000" />
+    <path
+        android:pathData="M63.535,55.472a5.5,5.5 0,1 1,11,0a5.5,5.5 0,1 1,-11,0z"
+        android:fillColor="#FF000000" />
+    <path
+        android:pathData="M27.468,38.498a4.9,4.9 0,1 1,9.8,0a4.9,4.9 0,1 1,-9.8,0z"
+        android:fillColor="#FF000000" />
+    <path
+        android:pathData="M37.598,28.368a4.9,4.9 0,1 1,9.8,0a4.9,4.9 0,1 1,-9.8,0z"
+        android:fillColor="#FF000000" />
+    <path
+        android:pathData="M60.602,28.368a4.9,4.9 0,1 1,9.8,0a4.9,4.9 0,1 1,-9.8,0z"
+        android:fillColor="#FF000000" />
+    <path
+        android:pathData="M70.732,38.498a4.9,4.9 0,1 1,9.8,0a4.9,4.9 0,1 1,-9.8,0z"
+        android:fillColor="#FF000000" />
+    <path
+        android:pathData="M49.8,25.5a4.2,4.2 0,1 1,8.4,0a4.2,4.2 0,1 1,-8.4,0z"
+        android:fillColor="#FF000000" />
+</vector>
