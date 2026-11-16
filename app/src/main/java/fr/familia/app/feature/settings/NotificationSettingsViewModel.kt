@@ -37,13 +37,15 @@ class NotificationSettingsViewModel(
             if (notifications == null) {
                 flowOf(NotificationSettingsUiState.Ready(dayBeforeReminder = true)) // Previews, no Firebase.
             } else {
-                combine<Boolean, Boolean, Boolean, Boolean, Boolean, NotificationSettingsUiState>(
+                combine<Boolean, Boolean, Boolean, Pair<Boolean, Boolean>, Boolean, NotificationSettingsUiState>(
                     notifications.observeDayBeforeReminder(memberId),
                     notifications.observeGoodNews(memberId),
                     notifications.observeWeekly(memberId),
-                    notifications.observeSouvenirs(memberId),
+                    combine(notifications.observeSouvenirs(memberId), notifications.observeTree(memberId)) { s, t -> s to t },
                     saveFailed,
-                ) { on, goodNews, weekly, souvenirs, failed -> NotificationSettingsUiState.Ready(on, failed, goodNews, weekly, souvenirs) }
+                ) { on, goodNews, weekly, (souvenirs, tree), failed ->
+                    NotificationSettingsUiState.Ready(on, failed, goodNews, weekly, souvenirs, tree)
+                }
                     .onStart { if (n > 0) emit(NotificationSettingsUiState.Loading) }
                     .catch { e ->
                         if (e is CancellationException) throw e
@@ -67,6 +69,9 @@ class NotificationSettingsViewModel(
 
     /** Souvenirs (récit 34): only the « Nouveau souvenir » notice; the souvenirs are kept. */
     fun setSouvenirs(enabled: Boolean) = save { it.setSouvenirs(memberId, enabled) }
+
+    /** L'arbre (récit 35): only the « Défi réussi » notice; the tree keeps growing. */
+    fun setTree(enabled: Boolean) = save { it.setTree(memberId, enabled) }
 
     private fun save(write: suspend (NotificationRepository) -> Unit) {
         val repo = notifications ?: return

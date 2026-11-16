@@ -204,6 +204,7 @@
     <string name="feature_polls">Sondages</string>
     <string name="feature_event_albums">Albums des événements</string>
     <string name="feature_souvenirs">Souvenirs</string>
+    <string name="feature_tree">Arbre de la famille</string>
     <string name="feature_month_slideshow">Diaporama du mois</string>
     <string name="feature_recipes">Carnet de recettes</string>
     <string name="household_rename_action">Renommer le foyer %1$s</string>
@@ -729,6 +730,8 @@
     <string name="channel_admin_description">Quand Familia approche d\'une limite gratuite de Firebase. Seul l\'admin principal la reçoit.</string>
     <string name="channel_souvenirs">Souvenirs</string>
     <string name="channel_souvenirs_description">Quand tu gagnes un nouveau souvenir.</string>
+    <string name="channel_tree">Défi du mois</string>
+    <string name="channel_tree_description">Quand la famille réussit le défi du mois.</string>
     <string name="channel_trips_description">« Bien arrivé » des voyages que tu suis, et le rappel quand tu pars.</string>
     <string name="trips_add">Nouveau voyage</string>
     <string name="trips_open_action">ouvrir le voyage</string>
@@ -1224,4 +1227,27 @@
     <string name="poll_action_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
     <string name="help_topic_polls_title">Les sondages</string>
     <string name="help_topic_polls_body">Depuis le Planning, touche l\'icône des sondages. « Trouver une date » propose jusqu\'à 5 dates : chacun répond oui, peut-être ou non. « Choix libre » propose jusqu\'à 6 réponses. Les parents répondent pour leurs enfants qui n\'ont pas l\'appli. Celui qui a lancé le sondage le termine, et pour une date, l\'ajoute au planning : ceux qui ont dit oui y sont inscrits.</string>
+
+    <!-- L'arbre de la famille et le défi du mois (récit 35) -->
+    <string name="tree_title">L\'arbre de la famille</string>
+    <string name="tree_description">Arbre de la famille, palier %1$d sur 7</string>
+    <plurals name="tree_leaves">
+        <item quantity="one">%d feuille</item>
+        <item quantity="many">%d feuilles</item>
+        <item quantity="other">%d feuilles</item>
+    </plurals>
+    <plurals name="tree_next_level">
+        <item quantity="one">Encore %d feuille avant qu\'il grandisse</item>
+        <item quantity="many">Encore %d feuilles avant qu\'il grandisse</item>
+        <item quantity="other">Encore %d feuilles avant qu\'il grandisse</item>
+    </plurals>
+    <string name="tree_top">Il a atteint sa plus belle taille.</string>
+    <string name="tree_how">Chaque Bonne nouvelle, réaction, « Je viens », coup de main ou « bien arrivé » lui ajoute une feuille.</string>
+    <string name="tree_challenge">Défi du mois : %1$s %2$s</string>
+    <string name="tree_challenge_progress">%1$d sur %2$d</string>
+    <string name="tree_challenge_done">Défi réussi : l\'arbre est en fleurs !</string>
+    <string name="notifications_tree">Défi du mois</string>
+    <string name="notifications_tree_help">Quand la famille réussit le défi du mois.</string>
+    <string name="help_topic_tree_title">L\'arbre de la famille et le défi du mois</string>
+    <string name="help_topic_tree_body">L\'arbre, sur l\'Accueil, grandit avec les gestes de tous : une Bonne nouvelle, une réaction, un « Je viens », un coup de main ou un « bien arrivé » lui ajoutent chacun une feuille, 5 par jour au plus pour chaque personne. Il ne rétrécit jamais et change avec les saisons. Chaque mois a son défi, par exemple « 20 photos de Noël » : publie une Bonne nouvelle avec des photos et la jauge avance toute seule. Quand le défi est réussi, l\'arbre fleurit et toute la famille est prévenue. Personne ne voit qui a le plus aidé.</string>
 </resources>

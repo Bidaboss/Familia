@@ -27,4 +27,9 @@ interface NotificationRepository {
     fun observeSouvenirs(memberId: String): Flow<Boolean> = flowOf(true)
 
     suspend fun setSouvenirs(memberId: String, enabled: Boolean) = Unit
+
+    /** True unless the member turned the « Défi réussi » notice off (récit 35). */
+    fun observeTree(memberId: String): Flow<Boolean> = flowOf(true)
+
+    suspend fun setTree(memberId: String, enabled: Boolean) = Unit
 }

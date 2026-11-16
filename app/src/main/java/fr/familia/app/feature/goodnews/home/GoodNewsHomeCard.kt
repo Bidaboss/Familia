@@ -106,7 +106,7 @@ private fun NewsRow(item: GoodNewsItem, now: Instant, tint: ClayTint, onClick: (
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val news = item.news
-        StorageImage(news.thumbnailPath(news.photoIds.first()), null, Modifier.size(56.dp).clip(RoundedCornerShape(12.dp)))
+        news.photoIds.firstOrNull()?.let { StorageImage(news.thumbnailPath(it), null, Modifier.size(56.dp).clip(RoundedCornerShape(12.dp))) }
         Column(Modifier.weight(1f)) {
             Text(
                 stringResource(R.string.goodnews_home_row_title, whoLabel(item), postedLabel(news.createdAt, now)),
