@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Backgrounds of the 3 app icons (design/icone/*-bg.svg). -->
     <color name="ic_launcher_background">#A61E22</color>
+    <color name="ic_launcher_background_terre">#B5541C</color>
+    <color name="ic_launcher_background_or">#1F3B2D</color>
 </resources>
