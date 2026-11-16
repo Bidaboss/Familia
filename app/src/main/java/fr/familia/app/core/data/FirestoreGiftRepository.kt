@@ -197,22 +197,26 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
     private fun shareRef(listId: String, itemId: String, memberId: String) =
         db.collection(LISTS).document(listId).collection(CLAIMS).document(itemId).collection(SHARES).document(memberId)
 
-    /** One live document as a list of zero or one item: a part that does not exist yet is empty. */
     /**
      * The rules read the reservation to let the responsible read every part. Right after « Cadeau
-     * commun », the listener can reach the server before the reservation does, and is refused: it is
-     * tried again a few times, then the parts read empty rather than take the whole list down.
+     * commun », the listener can reach the server before the reservation does, and is refused. The
+     * parts then read empty at once, so the whole list stays on screen, and the listener is tried
+     * again, less and less often, for about two minutes. Any other error ends the parts, empty.
      */
     private fun Flow<List<GiftShare>>.retryRefused(): Flow<List<GiftShare>> =
         retryWhen { cause, attempt ->
-            val retry = cause is FirebaseFirestoreException && attempt < SHARE_RETRIES
-            if (retry) delay(SHARE_RETRY_DELAY_MILLIS * (attempt + 1))
-            retry
+            val refused = cause is FirebaseFirestoreException &&
+                cause.code == FirebaseFirestoreException.Code.PERMISSION_DENIED
+            if (!refused || attempt >= SHARE_RETRIES) return@retryWhen false
+            if (attempt == 0L) emit(emptyList())
+            delay(minOf(SHARE_RETRY_DELAY_MILLIS * (attempt + 1), SHARE_RETRY_MAX_DELAY_MILLIS))
+            true
         }.catch { e ->
             if (e is CancellationException) throw e
             emit(emptyList())
         }
 
+    /** One live document as a list of zero or one item: a part that does not exist yet is empty. */
     private fun DocumentReference.observeOne(): Flow<List<GiftShare>> = callbackFlow {
         val registration = addSnapshotListener { snapshot, error ->
             if (error != null) {
@@ -312,7 +316,8 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
         const val CLAIMS = "claims"
         const val SHARES = "shares"
         const val RECEIVED = "received"
-        const val SHARE_RETRIES = 4L
+        const val SHARE_RETRIES = 20L
         const val SHARE_RETRY_DELAY_MILLIS = 750L
+        const val SHARE_RETRY_MAX_DELAY_MILLIS = 10_000L
     }
 }
