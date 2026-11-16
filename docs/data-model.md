@@ -1042,8 +1042,9 @@ les adultes participants le lisent et l'écrivent. Les montants sont en centimes
 ### `expenseBooks/{containerType}_{containerId}`
 
 `containerType` (`trip` ou `event`), `containerId`, `creatorId` (le créateur du voyage ou l'auteur
-de l'événement, qui change les parts, corrige tout et clôture), `shares` (foyer → nombre de parts : 1 par adulte et 0,5 par enfant par
-défaut), `closed`, `createdAt`, `updatedAt`. Ouvert par le premier adulte participant qui affiche les comptes.
+de l'événement, qui change les parts, corrige tout et clôture), `shares` (foyer → nombre de parts : la somme des parts de ses membres), `memberShares`
+(membre → parts, de 0 à 10 par demi-part, 1 par personne par défaut, enfants compris ; absent d'un
+carnet ouvert avant les parts par personne tant que le créateur ne les a pas enregistrées), `closed`, `createdAt`, `updatedAt`. Ouvert par le premier adulte participant qui affiche les comptes.
 
 Les comptes d'un événement (PRODUIT-57, un week-end ou un repas) : partagés par ceux qui ont
 répondu « Je viens » (`rsvps/{memberId}.status == 'yes'`) et par l'auteur ; « Peut-être » ne compte

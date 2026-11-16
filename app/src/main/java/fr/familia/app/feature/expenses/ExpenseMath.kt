@@ -14,10 +14,19 @@ import kotlin.math.roundToLong
  * every split adds up exactly to the expense, so the balances always add up to zero.
  */
 
-/** One share per adult, a half per child, for each household of [participants]. */
-fun defaultShares(participants: List<Member>): Map<String, Double> =
+/** One share for each of [participants], children too. */
+fun defaultMemberShares(participants: List<Member>): Map<String, Double> = participants.associate { it.id to 1.0 }
+
+/**
+ * The shares of each household of [participants]: the sum of the [memberShares] of its people,
+ * one for a person who has none yet.
+ */
+fun householdShares(participants: List<Member>, memberShares: Map<String, Double>): Map<String, Double> =
     participants.groupBy { it.householdId }
-        .mapValues { (_, members) -> members.sumOf { if (it.profile == MemberProfile.Adult) 1.0 else 0.5 } }
+        .mapValues { (_, members) -> members.sumOf { memberShares[it.id] ?: 1.0 } }
+
+/** The shares of a new book: one per participant, added up by household. */
+fun defaultShares(participants: List<Member>): Map<String, Double> = householdShares(participants, defaultMemberShares(participants))
 
 /**
  * What each household of [expense] should pay, in cents. [shares] are the shares of the book;

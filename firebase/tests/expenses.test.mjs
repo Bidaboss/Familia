@@ -92,6 +92,21 @@ describe('the book of accounts', () => {
     await assertFails(updateDoc(doc(as(env, ADULT), `expenseBooks/${BOOK}`), { shares: { h1: 1, h2: 1 }, updatedAt: serverTimestamp() }));
     await assertFails(deleteDoc(doc(as(env, ADULT), `expenseBooks/${BOOK}`)));
   });
+
+  test('the creator sets the shares person by person, frozen once closed too', async () => {
+    await storedBook();
+    const people = { adult1: 1, adult3: 1, kid1: 0.5 };
+    await assertFails(updateDoc(doc(as(env, NEIGHBOUR), `expenseBooks/${BOOK}`), { memberShares: people, updatedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(as(env, ADULT), `expenseBooks/${BOOK}`), { shares: { h1: 1.5, h2: 1 }, memberShares: people, updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(as(env, ADULT), `expenseBooks/${BOOK}`), { memberShares: 'all', updatedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(as(env, ADULT), `expenseBooks/${BOOK}`), { closed: true, updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(as(env, ADULT), `expenseBooks/${BOOK}`), { memberShares: { adult1: 2 }, updatedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(as(env, ADULT), `expenseBooks/${BOOK}`), { closed: false, updatedAt: serverTimestamp() }));
+  });
+
+  test('a book opens with one share per person', async () => {
+    await assertSucceeds(setDoc(doc(as(env, ADULT), `expenseBooks/${BOOK}`), book({ memberShares: { adult1: 1, adult3: 1, kid1: 1 } })));
+  });
 });
 
 describe('the expenses', () => {

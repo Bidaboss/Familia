@@ -50,7 +50,7 @@ class ExpenseContextTest {
         val state = vm.uiState.first { it is ExpensesUiState.Success } as ExpensesUiState.Success
         assertEquals("Repas e1", state.title)
         assertEquals("adult2", repo.opened.single().first)
-        assertEquals(mapOf("h1" to 1.5, "h2" to 1.0), repo.opened.single().second)
+        assertEquals(mapOf("h1" to 2.0, "h2" to 1.0), repo.opened.single().second)
         assertEquals(ExpenseContainerType.Event, source().container.type)
         assertEquals("event_e1", source().container.bookId)
     }

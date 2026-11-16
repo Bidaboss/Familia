@@ -36,13 +36,14 @@ class FirestoreExpenseRepository(private val db: FirebaseFirestore) : ExpenseRep
         awaitClose { registration.remove() }
     }
 
-    override suspend fun openBook(container: ExpenseContainer, creatorId: String, shares: Map<String, Double>) {
+    override suspend fun openBook(container: ExpenseContainer, creatorId: String, shares: Map<String, Double>, memberShares: Map<String, Double>) {
         book(container.bookId).set(
             mapOf(
                 "containerType" to container.type.firestoreValue,
                 "containerId" to container.id,
                 "creatorId" to creatorId,
                 "shares" to shares,
+                "memberShares" to memberShares,
                 "closed" to false,
                 "createdAt" to FieldValue.serverTimestamp(),
                 "updatedAt" to FieldValue.serverTimestamp(),
@@ -50,8 +51,8 @@ class FirestoreExpenseRepository(private val db: FirebaseFirestore) : ExpenseRep
         ).await()
     }
 
-    override suspend fun setShares(bookId: String, shares: Map<String, Double>) {
-        book(bookId).update(mapOf("shares" to shares, "updatedAt" to FieldValue.serverTimestamp())).await()
+    override suspend fun setShares(bookId: String, shares: Map<String, Double>, memberShares: Map<String, Double>) {
+        book(bookId).update(mapOf("shares" to shares, "memberShares" to memberShares, "updatedAt" to FieldValue.serverTimestamp())).await()
     }
 
     override suspend fun setClosed(bookId: String, closed: Boolean) {
@@ -124,10 +125,13 @@ class FirestoreExpenseRepository(private val db: FirebaseFirestore) : ExpenseRep
     private fun DocumentSnapshot.toBook(): ExpenseBook? {
         val type = ExpenseContainerType.fromFirestore(getString("containerType")) ?: return null
         val containerId = getString("containerId") ?: return null
-        val shares = (get("shares") as? Map<*, *>).orEmpty()
+        fun weights(field: String) = (get(field) as? Map<*, *>).orEmpty()
             .mapNotNull { (k, v) -> (k as? String)?.let { key -> (v as? Number)?.toDouble()?.let { key to it } } }
             .toMap()
-        return ExpenseBook(id, ExpenseContainer(type, containerId), getString("creatorId").orEmpty(), shares, getBoolean("closed") == true)
+        return ExpenseBook(
+            id, ExpenseContainer(type, containerId), getString("creatorId").orEmpty(), weights("shares"), getBoolean("closed") == true,
+            memberShares = weights("memberShares"),
+        )
     }
 
     private fun DocumentSnapshot.toExpense(): Expense? {

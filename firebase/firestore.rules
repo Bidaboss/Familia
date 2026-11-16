@@ -1810,11 +1810,13 @@ service cloud.firestore {
 
     function isValidBook(b, bookId) {
       return b.keys().hasAll(['containerType', 'containerId', 'creatorId', 'shares', 'closed', 'createdAt', 'updatedAt'])
-        && b.keys().hasOnly(['containerType', 'containerId', 'creatorId', 'shares', 'closed', 'createdAt', 'updatedAt'])
+        && b.keys().hasOnly(['containerType', 'containerId', 'creatorId', 'shares', 'memberShares', 'closed', 'createdAt', 'updatedAt'])
         && b.containerType in ['trip', 'event']
         && b.containerId is string
         && bookId == b.containerType + '_' + b.containerId
         && b.shares is map && b.shares.size() >= 1 && b.shares.size() <= 13
+        // The shares of each person, optional: a book opened before has none.
+        && (!('memberShares' in b) || (b.memberShares is map && b.memberShares.size() <= 40))
         && b.closed is bool
         && b.updatedAt == request.time;
     }
@@ -1831,8 +1833,9 @@ service cloud.firestore {
       allow update: if canUseBook(resource.data)
         && (resource.data.creatorId == myMemberId() || isOwner())
         && isValidBook(request.resource.data, bookId)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['shares', 'closed', 'updatedAt'])
-        && (resource.data.closed == false || request.resource.data.shares == resource.data.shares);
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['shares', 'memberShares', 'closed', 'updatedAt'])
+        && (resource.data.closed == false
+          || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['closed', 'updatedAt']));
     }
 
     function isValidExpense(e, book) {
