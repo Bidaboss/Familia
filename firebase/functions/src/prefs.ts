@@ -100,16 +100,23 @@ export type AnySender<N> = (token: string, notice: N) => Promise<'ok' | 'unregis
 
 /** Sends [notice] to every phone of [memberIds], forgetting the phones that are gone. */
 export async function sendToDevices<N>(db: Firestore, send: AnySender<N>, memberIds: string[], notice: N): Promise<number> {
+  return (await sendCounting(db, send, memberIds, notice)).sent;
+}
+
+/** As [sendToDevices], also counting the phones that could not be reached this time. */
+async function sendCounting<N>(db: Firestore, send: AnySender<N>, memberIds: string[], notice: N): Promise<{ sent: number; failed: number }> {
   let sent = 0;
+  let failed = 0;
   for (const memberId of memberIds) {
     const devices = await db.collection('members').doc(memberId).collection('devices').get();
     for (const device of devices.docs) {
       const result = await send(device.id, notice);
       if (result === 'ok') sent++;
+      if (result === 'error') failed++;
       if (result === 'unregistered') await device.ref.delete();
     }
   }
-  return sent;
+  return { sent, failed };
 }
 
 /** The single way out for a notice: filtered by each member's settings, held during quiet hours. */
@@ -142,7 +149,14 @@ export function morningNotices<N extends Filtered & { title: string; body: strin
   });
 }
 
-/** From 8 h, what was held during the night goes out, once. Returns how many phones got something. */
+/** A notice of the night that still cannot go out after a day is dropped: it is no longer news. */
+const MAX_HELD_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * From 8 h, what was held during the night goes out, once. Returns how many phones got something.
+ * A channel that reached none of the member's phones (an error, the network) goes back to the
+ * queue and is tried again by the next run, for a day at most.
+ */
 export async function sendHeldNotices<N extends Filtered & { title: string; body: string }>(db: Firestore, send: AnySender<N>, now: Date): Promise<number> {
   if (isQuietHour(now)) return 0;
   const queues = await db.collection('quietQueue').get();
@@ -154,8 +168,24 @@ export async function sendHeldNotices<N extends Filtered & { title: string; body
       tx.delete(queue.ref);
       return ((doc.get('items') as (N & { heldAt?: string })[] | undefined) ?? []);
     });
-    const notices = morningNotices(items.map(({ heldAt: _heldAt, ...n }) => n as unknown as N));
-    for (const notice of notices) sent += await sendToDevices(db, send, [queue.id], notice);
+    const byChannel = new Map<Channel, (N & { heldAt?: string })[]>();
+    for (const item of items) byChannel.set(item.channel, [...(byChannel.get(item.channel) ?? []), item]);
+    const again: (N & { heldAt?: string })[] = [];
+    for (const group of byChannel.values()) {
+      const [notice] = morningNotices(group.map(({ heldAt: _heldAt, ...n }) => n as unknown as N));
+      let result = { sent: 0, failed: 0 };
+      try {
+        result = await sendCounting(db, send, [queue.id], notice);
+      } catch (e) {
+        console.error('quietQueue: send failed', queue.id, e);
+        result = { sent: 0, failed: 1 };
+      }
+      sent += result.sent;
+      if (result.sent === 0 && result.failed > 0) {
+        again.push(...group.filter((n) => !n.heldAt || now.getTime() - Date.parse(n.heldAt) < MAX_HELD_MS));
+      }
+    }
+    if (again.length > 0) await queue.ref.set({ items: FieldValue.arrayUnion(...again) }, { merge: true });
   }
   return sent;
 }
