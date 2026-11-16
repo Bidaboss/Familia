@@ -106,6 +106,7 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 | `authorId` | `memberId` | L'auteur, jamais modifié |
 | `authorName` | texte | Prénom de l'auteur au moment de la création : les événements d'un membre retiré restent lisibles (PRD, cas « séparation ») |
 | `createdAt`, `updatedAt` | horodatage serveur | `createdAt` jamais modifié, `updatedAt` à chaque écriture |
+| `coverPhoto` | texte ou null, facultatif | La photo de couverture (PRD, récit 44, module « Plus de photos ») : `events/{eventId}/cover/{memberId}/{photoId}`, sans « .jpg ». Les fichiers sont dans Storage à ce nom avec `.jpg` (1600 px) et `-thumb.jpg` (400 px). La personne qui l'ajoute ou la change ne peut désigner qu'une photo de son propre dossier |
 
 Le destinataire est écrit dans l'événement, pour que les règles vérifient les droits sans lire d'autres événements.
 
