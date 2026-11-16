@@ -3,7 +3,7 @@ import { after, beforeEach, describe, test } from 'node:test';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { Notice } from '../src/logic';
-import { isSunday, recapNotice, sendWeeklyRecap, weekNews } from '../src/recap';
+import { isLastSunday, isSunday, recapNotice, sendWeeklyRecap, slideshowNotice, weekNews } from '../src/recap';
 import { Sender } from '../src/store';
 
 describe('the recap of Sunday, without the emulator', () => {
@@ -17,6 +17,17 @@ describe('the recap of Sunday, without the emulator', () => {
     assert.equal(quiet.body, 'Défi réussi.');
     assert.equal(recapNotice('2026-11-22', { photos: 0, birthdays: 0, challengePercent: null, challengeDone: false, trips: 0 }).body,
       'Les nouvelles de la famille, en un coup d\'œil.');
+  });
+
+  test('the last Sunday of the month tells the slideshow instead (récit 42)', () => {
+    assert.equal(isLastSunday('2026-11-29'), true);
+    assert.equal(isLastSunday('2026-11-22'), false);
+    const n = slideshowNotice('2026-11-29', { photos: 7, birthdays: 1, challengePercent: 60, challengeDone: false, trips: 2 });
+    assert.equal(n.title, 'Le diaporama de novembre');
+    assert.equal(n.body, 'Les photos du mois et le défi, en un film à regarder.');
+    assert.equal(n.recapWeek, '2026-11-29');
+    assert.equal(slideshowNotice('2026-08-30', { photos: 0, birthdays: 0, challengePercent: null, challengeDone: false, trips: 0 }).body,
+      'Les photos du mois, en un film à regarder.');
   });
 
   test('Sunday is the day in Paris', () => {
@@ -91,5 +102,19 @@ describe('the recap of Sunday against the emulator', () => {
     const { sent, send } = fakeSender();
     assert.equal(await sendWeeklyRecap(db, send, sunday), null);
     assert.equal(sent.length, 0);
+  });
+
+  test('the last Sunday, with the slideshow on, its notice replaces the week', async () => {
+    const last = new Date('2026-11-29T17:00:00Z');
+    const { sent, send } = fakeSender();
+    await db.doc('config/app').set({ features: { recap: true, tree: true, monthSlideshow: true } });
+    assert.equal(await sendWeeklyRecap(db, send, sunday), 2);
+    assert.equal(sent[0].notice.title, 'La semaine de la famille'); // Not the last Sunday.
+    assert.equal(await sendWeeklyRecap(db, send, last), 2);
+    assert.equal(sent[2].notice.title, 'Le diaporama de novembre');
+    await db.doc('config/app').set({ features: { recap: true, tree: true } });
+    await db.recursiveDelete(db.collection('weeklyRecaps'));
+    assert.equal(await sendWeeklyRecap(db, send, last), 2);
+    assert.equal(sent[4].notice.title, 'La semaine de la famille'); // Slideshow off: the week, as before.
   });
 });

@@ -83,6 +83,7 @@ export const treeMark = {
   rsvp: (eventId: string, memberId: string) => `rsvp-${eventId}-${memberId}`,
   help: (requestId: string) => `help-${requestId}`,
   arrival: (tripId: string, stepId: string) => `arrival-${tripId}-${stepId}`,
+  albumPhoto: (eventId: string, photoId: string) => `albumPhoto-${eventId}-${photoId}`,
 };
 
 /**
