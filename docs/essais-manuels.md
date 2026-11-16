@@ -347,3 +347,12 @@ Avec le module « Le coin des petits » allumé, un compte adulte qui a un enfan
 2. Publie-en une pour l'enfant, et allume « Dans « Les petits » ». **Attendu :** la carte porte l'étiquette « Les petits », dans le fil et sur sa page.
 3. Avec l'autre compte, ouvre les Bonnes nouvelles et touche le filtre « Les petits ». **Attendu :** seules celles des petits restent. Touche-le encore : tout revient.
 4. Éteins le module. **Attendu :** ni l'interrupteur, ni le filtre, ni l'étiquette pour les membres (l'admin principal voit toujours tout).
+
+## Le petit geste du jour (récit 43)
+
+Avec le module « Le petit geste du jour » allumé, deux comptes adultes.
+
+1. Avec le premier compte, publie une Bonne nouvelle avec une photo. **Attendu :** sur l'Accueil du second compte, le bloc « À faire pour moi » montre « La photo de … attend ta réaction » et « Voir la photo ».
+2. Touche « Voir la photo », puis réagis. **Attendu :** de retour sur l'Accueil, la ligne a disparu. Aucune notification n'est partie.
+3. En « Voir comme », ouvre l'Accueil d'un membre. **Attendu :** la ligne s'affiche pour lui, et rien n'est écrit.
+4. Éteins le module. **Attendu :** plus de ligne pour les membres.
