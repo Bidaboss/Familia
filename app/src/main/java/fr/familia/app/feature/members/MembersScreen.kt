@@ -204,14 +204,14 @@ fun MembersScreen(
                     }
                     if (treasuresOpen) {
                         items(treasures, key = { "treasure-${it.key}" }) { treasure ->
-                            SettingsRow(treasure.icon, treasure.labelRes, treasure.onClick, indent = true)
+                            SettingsRow(treasure.icon, treasure.labelRes, indent = true, onClick = treasure.onClick)
                         }
                     }
                 }
                 val everyone = state.groups.flatMap { it.members }
                 if (onShareApp != null && canShareApp(everyone.firstOrNull { it.id == state.currentMemberId })) {
                     val ownerName = everyone.firstOrNull { it.id == state.ownerId }?.firstName
-                    item(key = "share-app") { SettingsRow(Icons.Outlined.Share, R.string.share_app_title) { onShareApp(ownerName) } }
+                    item(key = "share-app") { SettingsRow(Icons.Outlined.Share, R.string.share_app_title, onClick = { onShareApp(ownerName) }) }
                 }
                 item(key = "settings-title") {
                     Column {
