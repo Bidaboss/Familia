@@ -111,6 +111,13 @@ import fr.familia.app.feature.settings.appearance.AppIconSwitcher
 import fr.familia.app.feature.gifts.share.SharedWish
 import fr.familia.app.feature.gifts.share.ShareTargetSwitch
 import fr.familia.app.feature.usage.UsageRoute
+import fr.familia.app.feature.feedback.FeedbackFormDestination
+import fr.familia.app.feature.feedback.FeedbackFormRoute
+import fr.familia.app.feature.feedback.FeedbackListDestination
+import fr.familia.app.feature.feedback.FeedbackListRoute
+import fr.familia.app.feature.feedback.MyFeedbackDestination
+import fr.familia.app.feature.feedback.MyFeedbackRoute
+import fr.familia.app.core.model.FeedbackOrigin
 import fr.familia.app.feature.tree.HostChallengeRoute
 import fr.familia.app.feature.settings.appearance.AppearanceScreen
 import fr.familia.app.feature.settings.appearance.ThemePreferences
@@ -221,6 +228,9 @@ fun FamiliaApp(
     /** The Sunday (AAAA-MM-JJ) of the recap notice that was touched, or null. */
     openRecap: String? = null,
     onRecapOpened: () -> Unit = {},
+    /** « Une idée ? Un souci ? » of a tapped notification: "list" (Retours) or "mine" (récit 6 sexies). */
+    openFeedback: String? = null,
+    onFeedbackOpened: () -> Unit = {},
     /** A link shared from another app, to add to « Mes envies » once (récit 8 bis). */
     sharedWish: SharedWish? = null,
     onSharedWishOpened: () -> Unit = {},
@@ -430,6 +440,15 @@ fun FamiliaApp(
             }
             onRecapOpened()
         }
+    }
+
+    // And for an idea or a problem: Retours for the admin principal, « Mes demandes » for its author.
+    LaunchedEffect(openFeedback) {
+        when (openFeedback) {
+            "list" -> navController.navigate(FeedbackListDestination) { launchSingleTop = true }
+            "mine" -> navController.navigate(MyFeedbackDestination) { launchSingleTop = true }
+        }
+        if (openFeedback != null) onFeedbackOpened()
     }
 
     var updateDismissed by rememberSaveable { mutableStateOf(false) }
@@ -1047,6 +1066,7 @@ fun FamiliaApp(
                             onOpenRecipes = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipesDestination()) }) else null,
                             onOpenCapsules = if (capsulesOn) ({ navController.navigate(CapsulesDestination) }) else null,
                             onOpenGenealogy = if (features.isOn(Feature.Genealogy)) ({ navController.navigate(GenealogyDestination) }) else null,
+                            onOpenFeedback = { navController.navigate(FeedbackFormDestination(FeedbackOrigin.Family.key)) },
                             onOpenWishes = if (features.isOn(Feature.Gifts)) {
                                 { id -> navController.navigate(GiftListDestination(wishesListId(id))) }
                             } else {
@@ -1060,6 +1080,7 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             onReplayOnboarding = { showOnboarding = true },
                             onBack = { navController.popBackStack() },
+                            onOpenFeedback = { navController.navigate(FeedbackFormDestination(FeedbackOrigin.Help.key)) },
                         )
                     }
                     composable<UpdateCheckDestination> {
@@ -1072,7 +1093,24 @@ fun FamiliaApp(
                             onOpenExport = { navController.navigate(ExportDestination) },
                             onBack = { navController.popBackStack() },
                             onOpenUsage = { navController.navigate(UsageDestination) },
+                            onOpenFeedback = { navController.navigate(FeedbackListDestination) },
                         )
+                    }
+                    composable<FeedbackListDestination> {
+                        FeedbackListRoute(container = container, onBack = { navController.popBackStack() })
+                    }
+                    composable<FeedbackFormDestination> { entry ->
+                        val origin = FeedbackOrigin.fromKey(entry.toRoute<FeedbackFormDestination>().origin)
+                        FeedbackFormRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            origin = origin,
+                            onBack = { navController.popBackStack() },
+                            onOpenMine = { navController.navigate(MyFeedbackDestination) { launchSingleTop = true } },
+                        )
+                    }
+                    composable<MyFeedbackDestination> {
+                        MyFeedbackRoute(container = container, currentMember = currentMember, onBack = { navController.popBackStack() })
                     }
                     composable<UsageDestination> {
                         UsageRoute(container = container, currentMember = currentMember, onBack = { navController.popBackStack() })

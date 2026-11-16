@@ -282,3 +282,21 @@ Avec le module « Vœux d'anniversaire » allumé, un membre dont c'est l'annive
 5. Change ta carte, puis retire-la. **Attendu :** le texte change, puis la carte disparaît.
 6. Le lendemain, rouvre la fiche. **Attendu :** les cartes sont toujours là, mais plus de champ pour écrire.
 7. Réglages > Notifications : coupe « Vœux d'anniversaire ». **Attendu :** plus d'avis de vœux pour ce compte.
+8. Ouvre les Bonnes nouvelles. **Attendu :** « 🎂 Joyeux anniversaire … ! » de Familia, avec un gâteau à la place de la photo de profil. Touche-la : les mêmes cartes de vœux s'affichent sous la nouvelle, avec le champ pour écrire le jour même.
+
+## Une idée ? Un souci ? (récit 6 sexies)
+
+Avant ces essais : « Publier Firebase » a publié les règles (Firestore et Storage) et les fonctions `onFeedbackSent`, `onFeedbackAnswered` et `onFeedbackRemoved`. Pas d'interrupteur.
+
+1. Avec un compte qui n'est pas admin principal, ouvre **Famille** et touche **Une idée ? Un souci ?**. Choisis « Un problème », écris une phrase et touche **Envoyer**. **Attendu :** « Merci ! C'est envoyé à l'admin de la famille. »
+2. Sur le téléphone de l'admin principal. **Attendu :** une notification « Souci signalé par … » avec le début du texte. La toucher ouvre **Retours**.
+3. Ouvre **Administration**. **Attendu :** la ligne **Retours** montre « 1 nouvelle(s) ».
+4. Touche **Retours**. **Attendu :** la demande est marquée « Un problème · Nouvelle », avec le prénom, la date, la version de l'appli, celle d'Android, le modèle du téléphone et « depuis Famille ».
+5. Touche **Répondre**, choisis **Prévue**, écris « Pour la prochaine version » et touche **Enregistrer**. **Attendu :** la carte montre « Prévue » et « Réponse : Pour la prochaine version » ; le compteur d'Administration a disparu.
+6. Sur le téléphone de l'auteur. **Attendu :** une notification « Ta demande est prévue » avec le mot. La toucher ouvre **Mes demandes**, qui montre la demande, son état et la réponse.
+7. Avec ce même compte, ouvre **Famille > Aide**, puis **Une idée ? Un souci ?** en bas de la page. Envoie une idée. **Attendu :** dans **Retours**, elle porte « depuis l'Aide ».
+8. Côté admin principal, supprime une demande. **Attendu :** elle disparaît de la liste, et de « Mes demandes » chez son auteur.
+9. En mode **Voir comme**. **Attendu :** pas de ligne « Une idée ? Un souci ? », ni dans Famille ni dans l'Aide.
+10. Avec un compte qui n'est pas admin principal, ouvre le formulaire, touche **Ajouter une capture d'écran** et choisis une capture. **Attendu :** elle s'affiche sous le texte, avec **Retirer la capture**. Envoie. **Attendu :** dans **Retours**, la capture s'affiche dans la carte ; elle n'est visible ni pour un autre membre ni dans un autre compte.
+11. Mode avion, avec une capture. **Attendu :** au bout d'un moment, « L'envoi n'a pas marché », et le texte et la capture restent là. Sans capture, l'envoi part plus tard tout seul.
+12. Dans **Retours**, touche **Copier pour Claude**, puis colle dans une note. **Attendu :** le type, la date, l'écran, le téléphone, l'état et le texte, sans le prénom de l'auteur.

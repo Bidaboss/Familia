@@ -65,9 +65,12 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         // Vœux d'anniversaire: the page of the member celebrated (récit 36).
         val birthdayOf = message.data[EXTRA_BIRTHDAY_OF]
         birthdayOf?.let { open.putExtra(EXTRA_BIRTHDAY_OF, it) }
+        // « Une idée ? Un souci ? » (récit 6 sexies): Retours or « Mes demandes ».
+        val feedback = message.data[EXTRA_FEEDBACK]
+        feedback?.let { open.putExtra(EXTRA_FEEDBACK, it) }
         val pending = PendingIntent.getActivity(
             this,
-            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId ?: joinMeId ?: capsuleId ?: recapWeek ?: birthdayOf).hashCode(),
+            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId ?: joinMeId ?: capsuleId ?: recapWeek ?: birthdayOf ?: feedback).hashCode(),
             open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -131,5 +134,7 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         /** The member celebrated, same key as functions/src/birthdayWishes.ts. */
         const val EXTRA_BIRTHDAY_OF = "birthdayOf"
         const val EXTRA_NOTIFICATION_TAG = "notificationTag"
+        /** "list" or "mine", same key as functions/src/feedback.ts. */
+        const val EXTRA_FEEDBACK = "feedback"
     }
 }

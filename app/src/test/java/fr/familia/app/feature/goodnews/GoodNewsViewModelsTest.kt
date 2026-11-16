@@ -102,6 +102,18 @@ class GoodNewsViewModelsTest {
         assertEquals(GoodNewsDetailUiState.Missing, viewModel.uiState.value)
     }
 
+    @Test
+    fun `the birthday news of Familia names the member it celebrates, any other none`() = runTest {
+        val birthday = goodNews("birthday-2026-kid1", TestFamily.kid, photos = 0)
+            .copy(authorId = "familia", authorName = "Familia", birthdayOf = TestFamily.kid.id)
+        val repo = FakeGoodNews(listOf(birthday, goodNews("n1", TestFamily.adult)))
+        val party = GoodNewsDetailViewModel(repo, FakeMembers(), "adult1", birthday.id) { NOW }
+        val plain = GoodNewsDetailViewModel(repo, FakeMembers(), "adult1", "n1") { NOW }
+        for (vm in listOf(party, plain)) backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        assertEquals(TestFamily.kid.id, (party.uiState.value as GoodNewsDetailUiState.Success).birthdayPerson?.id)
+        assertNull((plain.uiState.value as GoodNewsDetailUiState.Success).birthdayPerson)
+    }
+
     // --- The home card ---------------------------------------------------------------------------
 
     @Test

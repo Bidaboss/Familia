@@ -19,6 +19,7 @@ import { countLeftovers, deleteLeftovers, openDueCapsules } from './capsules';
 import { CommentData, deleteCommentMutesOf, deleteEventComments, onCommentCreated } from './comments';
 import { deleteLinksOf, removeMemberFromTree } from './genealogy';
 import { checkConsumptionIfDue } from './consumption';
+import { FeedbackData, onFeedbackChanged, onFeedbackCreated, screenshotToDelete } from './feedback';
 import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
 import { closeDuePolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
 import { cloudMonitoring } from './monitoring';
@@ -32,7 +33,7 @@ import {
 } from './helpRequests';
 import { addDays, EventData, hasVisibleChange, Notice, parisDay } from './logic';
 import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, memberForUid, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
-import { deleteExpenseBook, ExpenseData, historyEntry, writeExpenseHistory } from './expenses';
+import { deleteExpenseBook, ExpenseData, historyEntry, sendExpenseNotices, writeExpenseHistory } from './expenses';
 import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
 import {
@@ -78,6 +79,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.pollId ? { pollId: notice.pollId } : {}),
         ...(notice.joinMeId ? { joinMeId: notice.joinMeId } : {}),
         ...(notice.capsuleId ? { capsuleId: notice.capsuleId } : {}),
+        ...(notice.feedback ? { feedback: notice.feedback } : {}),
         ...(notice.souvenirKey ? { souvenirKey: notice.souvenirKey } : {}),
         ...(notice.recapWeek ? { recapWeek: notice.recapWeek } : {}),
         ...(notice.birthdayOf ? { birthdayOf: notice.birthdayOf } : {}),
@@ -162,6 +164,26 @@ export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (ev
 export const onEventCommentCreated = onDocumentCreated('events/{eventId}/comments/{commentId}', async (event) => {
   const data = event.data?.data() as CommentData | undefined;
   if (data) await onCommentCreated(getFirestore(), send, event.params.eventId, event.params.commentId, data);
+});
+
+// « Une idée ? Un souci ? » (récit 6 sexies): the admin principal is told of each new one.
+export const onFeedbackSent = onDocumentCreated('feedback/{feedbackId}', async (event) => {
+  const data = event.data?.data() as FeedbackData | undefined;
+  if (data) await onFeedbackCreated(getFirestore(), send, data);
+});
+
+// … and its author of each new state given by the admin principal.
+export const onFeedbackAnswered = onDocumentUpdated('feedback/{feedbackId}', async (event) => {
+  const before = event.data?.before.data() as FeedbackData | undefined;
+  const after = event.data?.after.data() as FeedbackData | undefined;
+  if (before && after) await onFeedbackChanged(getFirestore(), send, before, after);
+});
+
+// A removed request takes its screenshot with it, even when the app could not delete it (offline,
+// or the request deleted from the console). Only the one file this request may name.
+export const onFeedbackRemoved = onDocumentDeleted('feedback/{feedbackId}', async (event) => {
+  const path = screenshotToDelete(event.params.feedbackId, event.data?.data() as FeedbackData | undefined);
+  if (path) await getStorage().bucket().file(path).delete({ ignoreNotFound: true });
 });
 
 export const dayBeforeReminder = onSchedule({ schedule: '0 18 * * *', timeZone: 'Europe/Paris' }, async () => {
@@ -464,6 +486,8 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
   await sendDigests(getFirestore(), send, new Date());
   // And the polls whose end date has passed (récits 2 bis et 2 ter).
   await closeDuePolls(getFirestore(), new Date());
+  // And the day's notice of the accounts of each trip, once from 20 h (récit 16 bis).
+  await sendExpenseNotices(getFirestore(), send, new Date());
 });
 
 // --- Question de la semaine (récit 37) --------------------------------------------------------

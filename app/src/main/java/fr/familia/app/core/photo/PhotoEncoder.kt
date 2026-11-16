@@ -40,6 +40,24 @@ class PhotoEncoder(private val context: Context) {
         }
     }
 
+    /**
+     * One JPEG, longest side [maxSide], about [target] bytes and never above [limit]: a screenshot
+     * of « Une idée ? Un souci ? » (récit 6 sexies). Throws [IOException] when it is not a picture.
+     */
+    suspend fun encodeSingle(uri: Uri, maxSide: Int, target: Int, limit: Int): ByteArray = withContext(Dispatchers.IO) {
+        val source = decode(uri)
+        try {
+            val picture = scaled(source, maxSide)
+            try {
+                compress(picture, target, limit)
+            } finally {
+                if (picture !== source) picture.recycle()
+            }
+        } finally {
+            source.recycle()
+        }
+    }
+
     /** Decodes [uri] a little above 1600 px, turned the right way up. */
     private fun decode(uri: Uri): Bitmap {
         val resolver = context.contentResolver

@@ -21,11 +21,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.QueryStats
 import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -109,6 +111,9 @@ fun AdministrationScreen(
     onViewAs: ((Member) -> Unit)? = null,
     /** « Partager Familia » (récit 1 bis bis): the install link for the whole family. */
     onShareApp: (() -> Unit)? = null,
+    /** « Retours » (récit 6 sexies): the ideas and problems of the family; [feedbackUnseen] are new. */
+    onOpenFeedback: (() -> Unit)? = null,
+    feedbackUnseen: Int = 0,
 ) {
     Scaffold(
         modifier = modifier,
@@ -141,7 +146,7 @@ fun AdministrationScreen(
                     ReadyContent(
                         state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport, features, onSetFeature, onRenameHousehold,
                         onOpenUsage, consumption, challenges, onPickChallenge, capsuleLeftovers, onDeleteCapsuleLeftovers,
-                        rotation, onSaveRotation, viewAsMembers, onViewAs, onShareApp,
+                        rotation, onSaveRotation, viewAsMembers, onViewAs, onShareApp, onOpenFeedback, feedbackUnseen,
                     )
             }
         }
@@ -181,6 +186,8 @@ private fun ReadyContent(
     viewAsMembers: List<Member>,
     onViewAs: ((Member) -> Unit)?,
     onShareApp: (() -> Unit)?,
+    onOpenFeedback: (() -> Unit)?,
+    feedbackUnseen: Int,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
     var choosingViewAs by rememberSaveable { mutableStateOf(false) }
@@ -254,6 +261,34 @@ private fun ReadyContent(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                    }
+                }
+            }
+        }
+        if (onOpenFeedback != null) {
+            item(key = "feedback") {
+                HorizontalDivider(Modifier.padding(top = 8.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onOpenFeedback)
+                        .heightIn(min = 56.dp)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Outlined.Lightbulb, contentDescription = null)
+                    Spacer(Modifier.width(16.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.feedback_list_title), style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            stringResource(R.string.feedback_list_help),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    if (feedbackUnseen > 0) {
+                        Spacer(Modifier.width(8.dp))
+                        Badge { Text(stringResource(R.string.feedback_list_count, feedbackUnseen)) }
                     }
                 }
             }
