@@ -1640,6 +1640,9 @@
     <string name="feature_year_ago">Il y a un an</string>
     <string name="feature_birthday_wishes">Vœux d\'anniversaire</string>
     <string name="channel_birthdays">Vœux d\'anniversaire</string>
+    <string name="feature_welcome">La bienvenue</string>
+    <string name="channel_welcome">Bienvenue</string>
+    <string name="channel_welcome_description">Quand un membre de la famille arrive dans Familia</string>
     <string name="channel_birthdays_description">Le jour d\'un anniversaire, et les cartes de vœux reçues</string>
     <string name="wishes_title">Cartes de vœux</string>
     <string name="notifications_birthday_wishes">Vœux d\'anniversaire</string>

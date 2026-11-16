@@ -307,3 +307,14 @@ Avant ces essais : « Publier Firebase » a publié les règles (Firestore et St
 3. Toucher « Anniversaires », « L'arbre », « Voyages » ou « Il y a un an » ouvre sa carte sous la rangée ; la toucher encore la referme. Une seule carte est ouverte à la fois. Les autres puces ouvrent leur écran.
 4. Avec un deuxième téléphone, envoyer « Rejoignez-moi » : le lieu reçu apparaît en tête de « À faire pour moi », avec « Itinéraire ». Le bloc apparaît même sans autre chose à faire.
 5. Thème sombre puis Contraste fort : les cartes gardent leurs teintes, et Contraste fort ses bordures.
+
+## La bienvenue (récit 43)
+
+**À garder éteint pour la démo du 21/11** : ce jour-là, toute la famille se connecte pour la première fois, et chacun recevrait une notification par nouvel arrivant. Ne l'allume qu'après, pour ceux qui arrivent plus tard.
+
+Avec le module « La bienvenue » allumé, un membre ajouté qui ne s'est jamais connecté, et deux autres comptes.
+
+1. Connecte-toi pour la première fois avec le compte du nouveau membre. **Attendu :** les autres comptes reçoivent « … vient d'arriver », « Dis-lui bonjour ! ». Le nouveau membre ne la reçoit pas.
+2. Touche la notification. **Attendu :** la fiche du nouveau membre s'ouvre.
+3. Déconnecte-toi, puis reconnecte-toi avec ce compte. **Attendu :** aucune nouvelle notification.
+4. Fais de même avec un membre du foyer de test. **Attendu :** aucune notification.
