@@ -6,12 +6,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Source
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 
 /**
  * Reads the collections of docs/data-model.md from the server only: the offline cache may hold
- * part of the data, and a backup must be complete or not be made. Left out on purpose: the capsules the admin principal cannot read, the answers of the question of the week before they show to everyone, memberEmails (rebuilt from the members), and each member's
+ * part of the data, and a backup must be complete or not be made. Left out on purpose: the capsules the admin principal cannot read, the trips they do not follow (and the photos of trips), the answers of the question of the week before they show to everyone, memberEmails (rebuilt from the members), and each member's
  * phones and settings, which only they can read.
  */
 class FirestoreExportRepository(private val db: FirebaseFirestore) : ExportRepository {
@@ -35,10 +36,12 @@ class FirestoreExportRepository(private val db: FirebaseFirestore) : ExportRepos
         val helpRequests = async { db.collection("helpRequests").get(Source.SERVER).await().documents.map(::toExport) }
         val weekly = async { weeklyQuestions() }
         val capsules = async { capsules(memberId) }
+        val trips = async { trips(memberId) }
         val (questions, weeklyAnswers) = weekly.await()
+        val (tripDocs, tripSteps, tripItems) = trips.await()
         FamilyData(
             households.await(), members.await(), events.await(), answers.await(), helpRequests.await(), questions, weeklyAnswers,
-            capsules.await(),
+            capsules.await(), tripDocs, tripSteps, tripItems,
         )
     }
 
@@ -68,6 +71,21 @@ class FirestoreExportRepository(private val db: FirebaseFirestore) : ExportRepos
         val opened = async { capsules.whereArrayContains("openedFor", memberId).get(Source.SERVER).await().documents }
         (written.await() + opened.await()).distinctBy { it.id }.map(::toExport)
     }
+
+    /** The rules let one read a trip, its steps and its items only when one follows it. */
+    private suspend fun trips(memberId: String): Triple<List<ExportDocument>, List<ExportTripChild>, List<ExportTripChild>> =
+        coroutineScope {
+            val docs = db.collection("trips").whereArrayContains("readerIds", memberId).get(Source.SERVER).await().documents
+            val children = docs.map { trip ->
+                async {
+                    val steps = trip.reference.collection("steps").get(Source.SERVER).await().documents
+                    val items = trip.reference.collection("items").get(Source.SERVER).await().documents
+                    steps.map { ExportTripChild(trip.id, it.id, plain(it.data.orEmpty())) } to
+                        items.map { ExportTripChild(trip.id, it.id, plain(it.data.orEmpty())) }
+                }
+            }.awaitAll()
+            Triple(docs.map(::toExport), children.flatMap { it.first }, children.flatMap { it.second })
+        }
 
     private fun toExport(doc: DocumentSnapshot) = ExportDocument(doc.id, plain(doc.data.orEmpty()))
 

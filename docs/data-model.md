@@ -134,6 +134,8 @@ L'album d'un événement, caché derrière le module « Albums des événements 
 
 Droits : tous les membres voient l'album, comme l'événement. Un membre qui a répondu « Je viens » ajoute ses photos à partir du jour de l'événement (minuit en France : 22 h UTC la veille en été, 23 h en hiver ; les règles ouvrent toujours à 22 h UTC, donc en hiver une heure avant l'appli, sans danger). L'auteur de la photo, l'auteur de l'événement et l'admin principal la retirent. La suppression de l'événement emporte l'album et ses fichiers (`onEventDeleted`). Tests : `firebase/tests/eventAlbum.test.mjs` et `firebase/tests/storage.test.mjs`.
 
+Le lendemain de l'événement, ceux qui ont répondu « Je viens » et n'ont pas encore mis de photo reçoivent une invitation douce, une ligne du résumé du jour (« Tes photos d'hier à mettre dans l'album »), jamais une notification à part. Il faut les modules `eventAlbums` et `digest`, et le résumé ne doit pas être coupé dans les réglages (`weekly`). Un enfant sans appli n'en reçoit pas. La tâche des 30 minutes (`queueAlbumInvitations`, `functions/src/albumInvites.ts`) le fait une fois par jour, grâce à la marque `albumInvites/{jour}` que seul le serveur écrit. Tests : `functions/test/albumInvites.test.ts`.
+
 ### `members/{memberId}/devices/{token}` (lot 8)
 
 Les téléphones d'un membre, pour les notifications. L'identifiant du document est le jeton de notification (FCM) du téléphone, donc un même téléphone n'est enregistré qu'une fois.
@@ -180,6 +182,8 @@ Droits : toute la famille lit les cartes (la fiche de la personne, la Bonne nouv
 
 Le jour J, la tâche de 10 h (`birthdayGiftReminders`) publie la Bonne nouvelle de Familia (`birthdayOf`, sans photo, `authorId` = `familia`), une seule fois, puis prévient la famille qui a l'appli, sauf la personne et ceux qui ont coupé `birthdayWishes` : « C'est l'anniversaire de Camille », « Envoie-lui tes vœux. » (canal `birthdays`, donnée `birthdayOf`). Chaque carte prévient la personne fêtée (`onBirthdayCardWritten`) avec les prénoms de tous ceux qui ont écrit ce jour-là, jamais un nombre ; les avis du jour portent la même étiquette (`birthdayCards-{AAAA}`) et se remplacent sur le téléphone. Quand un membre part, ses cartes écrites et reçues sont effacées.
 
+Dans l'appli (`feature/wishes`), les cartes du dernier anniversaire s'affichent sur la fiche de la personne, en cartes Argile, sans compte. Le champ « Écris un mot à … » n'apparaît que le jour J, sur la fiche d'un autre, hors « Voir comme ». Le toucher d'un avis (`birthdayOf`) ouvre la fiche ; les avis de même étiquette (`notificationTag`) se remplacent aussi quand l'appli est ouverte.
+
 « Il y a un an » (récit 36, module `yearAgo`) : une carte de l'Accueil, sans notification ni donnée nouvelle. L'appli lit les Bonnes nouvelles publiées le même jour un an plus tôt (`createdAt` entre minuit et minuit, heure de Paris) et, sinon, les photos d'album (`trips/{tripId}/photos`) prises ce jour-là dans les voyages que le membre suit (`readerIds`). Une Bonne nouvelle qu'il a masquée, un « Défi réussi » de Familia et un souvenir qu'il a écarté ne s'affichent pas. « Ne plus me montrer ce souvenir » est gardé sur le téléphone (préférences `yearAgoDismissed-{memberId}`), rien n'est écrit dans Firestore ; il n'est pas proposé en « Voir comme ».
 
 ## Cloud Functions (lot 8)
@@ -214,6 +218,7 @@ L'admin principal crée une sauvegarde depuis Famille, puis « Administration »
 | `helpRequests` | Les demandes de coup de main, avec leur `id` |
 | `weeklyQuestions`, `weeklyAnswers` | Les questions de la semaine, et leurs réponses avec `questionId` et `memberId`. Les réponses d'une question n'y sont qu'à partir de son `revealAt` (48 h après sa publication), comme le veulent les règles |
 | `capsules` | Les capsules temporelles que l'admin principal peut lire : celles qu'il a écrites et celles déjà ouvertes pour lui (PRD rév. 184). Les autres restent scellées, même dans la sauvegarde |
+| `trips`, `tripSteps`, `tripItems` | Les voyages que l'admin principal suit (`readerIds`), avec leurs étapes et leur liste « à emporter » ; chaque étape et chaque objet porte son `tripId`. Les photos de voyage n'y sont pas, comme celles des albums |
 
 Les données sont lues sur le serveur, jamais dans le cache du téléphone. Hors ligne, aucune sauvegarde n'est faite et l'appli demande de se connecter : une sauvegarde est complète ou n'existe pas. L'appli lit les données avant d'ouvrir le sélecteur, et si l'écriture échoue, elle supprime le fichier créé. Les documents sont triés par identifiant, donc deux exports des mêmes données donnent le même fichier. Ne sont pas exportés : `memberEmails`, qui se reconstruit à partir des membres, et les téléphones et réglages de chacun, que seul le membre concerné peut lire. À partir de la V2, les cadeaux s'ajouteront au fichier, avec un `formatVersion` augmenté si sa forme change. Ajouter une clé ne change pas la forme : `formatVersion` reste à 1.
 
@@ -734,6 +739,7 @@ Les événements, les Bonnes nouvelles, les vœux et « Rejoignez-moi » restent
 | `souvenirs` | liste de clés | Les souvenirs gagnés depuis le dernier résumé. |
 | `challengeDone` | `AAAA-MM` ou `null` | Un défi réussi. |
 | `weekly` | `AAAA-MM-JJ` ou `null` | La question de la semaine publiée. |
+| `albums` | liste d'ids d'événements | Les albums d'hier où le membre est invité à mettre ses photos (récit 41). |
 | `sentDay` | `AAAA-MM-JJ` | Le dernier jour où le résumé est parti, une fois par jour au plus. |
 | `leavesSeen` | int | Les feuilles de l'arbre au dernier résumé, pour dire combien ont poussé depuis. |
 

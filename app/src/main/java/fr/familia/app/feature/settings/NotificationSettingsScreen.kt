@@ -63,6 +63,7 @@ fun NotificationSettingsScreen(
     onSouvenirsChange: (Boolean) -> Unit = {},
     onTreeChange: (Boolean) -> Unit = {},
     onRecapChange: (Boolean) -> Unit = {},
+    onBirthdayWishesChange: (Boolean) -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier,
@@ -143,6 +144,14 @@ fun NotificationSettingsScreen(
                             help = stringResource(R.string.notifications_recap_help),
                             checked = state.recap,
                             onChange = onRecapChange,
+                        )
+                    }
+                    if (LocalFeatureFlags.current.isOn(Feature.BirthdayWishes)) {
+                        SettingSwitch(
+                            title = stringResource(R.string.notifications_birthday_wishes),
+                            help = stringResource(R.string.notifications_birthday_wishes_help),
+                            checked = state.birthdayWishes,
+                            onChange = onBirthdayWishesChange,
                         )
                     }
                     if (state.saveFailed) {

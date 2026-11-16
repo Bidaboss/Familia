@@ -37,7 +37,7 @@ class NotificationSettingsViewModel(
             if (notifications == null) {
                 flowOf(NotificationSettingsUiState.Ready(dayBeforeReminder = true)) // Previews, no Firebase.
             } else {
-                combine<Boolean, Boolean, Boolean, Triple<Boolean, Boolean, Boolean>, Boolean, NotificationSettingsUiState>(
+                combine<Boolean, Boolean, Boolean, List<Boolean>, Boolean, NotificationSettingsUiState>(
                     notifications.observeDayBeforeReminder(memberId),
                     notifications.observeGoodNews(memberId),
                     notifications.observeWeekly(memberId),
@@ -45,10 +45,11 @@ class NotificationSettingsViewModel(
                         notifications.observeSouvenirs(memberId),
                         notifications.observeTree(memberId),
                         notifications.observeRecap(memberId),
-                    ) { s, t, r -> Triple(s, t, r) },
+                        notifications.observeBirthdayWishes(memberId),
+                    ) { s, t, r, b -> listOf(s, t, r, b) },
                     saveFailed,
-                ) { on, goodNews, weekly, (souvenirs, tree, recap), failed ->
-                    NotificationSettingsUiState.Ready(on, failed, goodNews, weekly, souvenirs, tree, recap)
+                ) { on, goodNews, weekly, (souvenirs, tree, recap, wishes), failed ->
+                    NotificationSettingsUiState.Ready(on, failed, goodNews, weekly, souvenirs, tree, recap, wishes)
                 }
                     .onStart { if (n > 0) emit(NotificationSettingsUiState.Loading) }
                     .catch { e ->
@@ -79,6 +80,9 @@ class NotificationSettingsViewModel(
 
     /** « La semaine de la famille » (récit 36): the Sunday notice; the screen stays in the app. */
     fun setRecap(enabled: Boolean) = save { it.setRecap(memberId, enabled) }
+
+    /** Vœux d'anniversaire (récit 36): the notices of the day; the cards stay on the member's page. */
+    fun setBirthdayWishes(enabled: Boolean) = save { it.setBirthdayWishes(memberId, enabled) }
 
     private fun save(write: suspend (NotificationRepository) -> Unit) {
         val repo = notifications ?: return

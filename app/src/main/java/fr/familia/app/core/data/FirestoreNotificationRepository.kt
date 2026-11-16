@@ -94,6 +94,17 @@ class FirestoreNotificationRepository(
         settings(memberId).set(mapOf("recap" to enabled), SetOptions.merge()).await()
     }
 
+    override fun observeBirthdayWishes(memberId: String): Flow<Boolean> = callbackFlow {
+        val registration = settings(memberId).addSnapshotListener { snapshot, error ->
+            if (error != null) close(error) else trySend(snapshot?.getBoolean("birthdayWishes") != false)
+        }
+        awaitClose { registration.remove() }
+    }
+
+    override suspend fun setBirthdayWishes(memberId: String, enabled: Boolean) {
+        settings(memberId).set(mapOf("birthdayWishes" to enabled), SetOptions.merge()).await()
+    }
+
     private fun settings(memberId: String) =
         db.collection("members").document(memberId).collection("settings").document("notifications")
 }

@@ -8,7 +8,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.feature.wishes.BirthdayCardsSection
 import fr.familia.app.feature.souvenirs.SouvenirCelebrationPreferences
 
 /** Connects a member's page to its ViewModel. */
@@ -35,5 +38,14 @@ fun MemberProfileRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    MemberProfileScreen(state = state, onBack = onBack, onEdit = onEdit, onSetShown = viewModel::setShown, onDismissBravo = viewModel::dismissBravo, onOpenRecipes = onOpenRecipes)
+    val wishesOn = LocalFeatureFlags.current.isOn(Feature.BirthdayWishes)
+    MemberProfileScreen(
+        state = state,
+        onBack = onBack,
+        onEdit = onEdit,
+        onSetShown = viewModel::setShown,
+        onDismissBravo = viewModel::dismissBravo,
+        onOpenRecipes = onOpenRecipes,
+        wishes = if (wishesOn) ({ person -> BirthdayCardsSection(container, currentMember, person) }) else null,
+    )
 }
