@@ -449,6 +449,25 @@ Cloud Functions (`functions/src/helpRequests.ts`), qui ne préviennent que les p
 
 Une demande passée ne prévient personne, sauf pour le « Merci ». La sauvegarde de l'admin principal inclut les demandes (`helpRequests`).
 
+## Capsule temporelle (PRD, récit 39)
+
+### `capsules/{capsuleId}`
+
+Un message pour plus tard : un texte et jusqu'à 3 photos, pour des membres choisis, scellé jusqu'à un jour donné.
+
+| Champ | Type | Description |
+|---|---|---|
+| `text` | texte | Le message, de 1 à 4 000 caractères |
+| `photoCount` | entier | De 0 à 3. Storage : `capsules/{authorId}/{capsuleId}/{n}.jpg` (512 Ko au plus) et `{n}-thumb.jpg` (64 Ko au plus), envoyées avant la capsule |
+| `recipientIds` | liste de textes | Les destinataires, de 1 à 13, sans doublon |
+| `openAt` | texte | Le jour d'ouverture, `AAAA-MM-JJ`, entre un mois et cinq ans après l'écriture |
+| `openedFor` | liste de textes | Vide jusqu'à l'ouverture, puis la copie de `recipientIds`, écrite par le serveur seul |
+| `openedAt` | horodatage | Ajouté par le serveur à l'ouverture |
+| `authorId`, `authorName` | texte | L'auteur et son prénom |
+| `createdAt` | horodatage | Heure du serveur |
+
+Droits : jusqu'au jour dit, seul l'auteur lit la capsule. Les destinataires ne savent même pas qu'elle existe, et l'admin principal ne la lit pas non plus. Le jour venu (heure de Paris), la tâche des 30 minutes (`openDueCapsules`, `functions/src/capsules.ts`) copie les destinataires dans `openedFor` et les prévient une fois (canal `capsules`), si le module « Capsules » est allumé. Ensuite, ils la lisent avec `openedFor array-contains <leur id>`, photos comprises. Une capsule ne se modifie jamais. Son auteur la supprime à tout moment, et `onCapsuleDeleted` efface alors ses photos.
+
 ## Carnet de recettes (PRD, récit 38)
 
 ### `recipes/{recipeId}`
