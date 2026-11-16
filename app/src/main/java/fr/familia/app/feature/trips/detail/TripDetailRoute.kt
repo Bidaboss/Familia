@@ -7,9 +7,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import fr.familia.app.core.album.rememberPhotoActions
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
-import fr.familia.app.feature.trips.photos.rememberPhotoActions
 import fr.familia.app.feature.trips.photos.rememberTripAlbum
 
 /** Connects the trip view to its ViewModel. */

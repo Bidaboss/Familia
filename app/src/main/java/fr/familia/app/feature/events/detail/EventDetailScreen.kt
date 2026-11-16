@@ -83,6 +83,7 @@ fun EventDetailScreen(
     modifier: Modifier = Modifier,
     /** « Ajouter à mon agenda » (PRD, récit 30); hidden when null. */
     onAddToCalendar: (() -> Unit)? = null,
+    album: @Composable () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier,
@@ -121,7 +122,7 @@ fun EventDetailScreen(
                         }
                     },
                 )
-                is EventDetailUiState.Success -> Content(state, onAnswer, onEdit, onAddToCalendar)
+                is EventDetailUiState.Success -> Content(state, onAnswer, onEdit, onAddToCalendar, album)
             }
         }
     }
@@ -133,6 +134,7 @@ private fun Content(
     onAnswer: (String, RsvpStatus) -> Unit,
     onEdit: () -> Unit,
     onAddToCalendar: (() -> Unit)?,
+    album: @Composable () -> Unit,
 ) {
     val event = state.event
     var showAnswers by rememberSaveable { mutableStateOf(false) }
@@ -192,6 +194,8 @@ private fun Content(
                 Text(stringResource(R.string.calendar_add), style = MaterialTheme.typography.labelLarge)
             }
         }
+        // The album of the event (récit 41), when its module is on.
+        album()
         if (state.canManage) {
             OutlinedButton(
                 onClick = onEdit,
