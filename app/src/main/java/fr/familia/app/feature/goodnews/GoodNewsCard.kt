@@ -132,6 +132,7 @@ private fun Photos(item: GoodNewsItem, full: Boolean) {
     val description = stringResource(R.string.goodnews_photo_of, whoLabel(item))
     val shape = RoundedCornerShape(16.dp)
     when {
+        news.photoIds.isEmpty() -> Unit // « Défi réussi » (récit 35).
         full -> news.photoIds.forEach { id ->
             StorageImage(news.photoPath(id), description, Modifier.fillMaxWidth().aspectRatio(4f / 3f).clip(shape))
         }

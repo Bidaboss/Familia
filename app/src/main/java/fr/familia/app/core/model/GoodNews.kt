@@ -36,6 +36,8 @@ data class GoodNews(
     /** Null until the server has written it (just published, offline). */
     val createdAt: Instant? = null,
     val updatedAt: Instant? = null,
+    /** « Défi réussi », published by Familia when the challenge of that month is achieved (récit 35): no photo, no author. */
+    val challengeMonth: String? = null,
 ) {
     /** Changed by its author after it was published. */
     val isEdited: Boolean get() = createdAt != null && updatedAt != null && updatedAt.isAfter(createdAt.plusSeconds(60))

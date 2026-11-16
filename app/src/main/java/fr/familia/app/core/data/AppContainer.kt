@@ -62,6 +62,7 @@ class AppContainer(context: Context) {
 
     val weeklyQuestionRepository: WeeklyQuestionRepository? by lazy { firestore?.let { FirestoreWeeklyQuestionRepository(it) } }
     val souvenirRepository: SouvenirRepository? by lazy { firestore?.let { FirestoreSouvenirRepository(it) } }
+    val treeRepository: TreeRepository? by lazy { firestore?.let { FirestoreTreeRepository(it) } }
 
     /** Photos of the good news and the trips, in Cloud Storage (firebase/storage.rules). */
     val photoStorage: PhotoStorage? by lazy {
