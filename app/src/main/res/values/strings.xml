@@ -202,6 +202,7 @@
     <string name="feature_weekly_question">Question de la semaine</string>
     <string name="feature_calendar">Ajouter à mon agenda</string>
     <string name="feature_event_albums">Albums des événements</string>
+    <string name="feature_souvenirs">Souvenirs</string>
     <string name="feature_month_slideshow">Diaporama du mois</string>
     <string name="household_rename_action">Renommer le foyer %1$s</string>
     <string name="household_rename_title">Renommer le foyer</string>
@@ -702,6 +703,8 @@
     <string name="notifications_good_news_help">Être prévenu quand quelqu\'un partage une bonne nouvelle. Si ton enfant en publie une, tu es toujours prévenu.</string>
     <string name="notifications_weekly">Question de la semaine</string>
     <string name="notifications_weekly_help">Être prévenu le lundi quand la nouvelle question arrive. Elle reste visible sur l\'Accueil.</string>
+    <string name="notifications_souvenirs">Nouveau souvenir</string>
+    <string name="notifications_souvenirs_help">Être prévenu quand tu gagnes un souvenir. Tes souvenirs restent sur ta fiche.</string>
     <!-- Voyages (V3, récits 11, 12 et 14), fil [DEV] voyage -->
     <string name="trips_title">Voyages</string>
     <string name="channel_trips">Voyages</string>
@@ -711,6 +714,8 @@
     <string name="channel_weekly_description">La question de la semaine, chaque lundi.</string>
     <string name="channel_admin">Administration</string>
     <string name="channel_admin_description">Quand Familia approche d\'une limite gratuite de Firebase. Seul l\'admin principal la reçoit.</string>
+    <string name="channel_souvenirs">Souvenirs</string>
+    <string name="channel_souvenirs_description">Quand tu gagnes un nouveau souvenir.</string>
     <string name="channel_trips_description">« Bien arrivé » des voyages que tu suis, et le rappel quand tu pars.</string>
     <string name="trips_add">Nouveau voyage</string>
     <string name="trips_open_action">ouvrir le voyage</string>
@@ -1004,4 +1009,46 @@
     <string name="help_topic_calendar_title">Ajouter à mon agenda</string>
     <string name="help_topic_calendar_body">Sur un événement ou un anniversaire, touche « Ajouter à mon agenda ». L\'agenda de ton téléphone s\'ouvre déjà rempli : tu n\'as plus qu\'à valider. C\'est une copie : si l\'événement change, la notification te le rappelle, et tu refais l\'ajout.</string>
     <string name="calendar_none">Aucune appli d\'agenda sur ce téléphone.</string>
+
+    <!-- Fiche d'un membre et souvenirs (récit 34) -->
+    <string name="profile_not_found_body">Cette personne ne fait peut-être plus partie de la famille.</string>
+    <string name="profile_birthday">Anniversaire le %1$s</string>
+    <string name="profile_edit">Modifier la fiche</string>
+    <string name="souvenirs_title">Souvenirs</string>
+    <string name="souvenirs_private_help">Tes souvenirs sont privés. Choisis ceux que la famille voit sur ta fiche.</string>
+    <string name="souvenirs_show">Montrer sur ma fiche</string>
+    <string name="souvenirs_next">Les prochains</string>
+    <string name="souvenirs_none_shown">%1$s ne montre pas encore de souvenir.</string>
+    <string name="souvenir_spoken">Souvenir : %1$s, obtenu le %2$s</string>
+    <string name="souvenir_spoken_next">Prochain souvenir : %1$s. %2$s</string>
+    <string name="souvenir_badge_first">1re</string>
+    <string name="souvenir_badge_5">5</string>
+    <string name="souvenir_badge_10">10</string>
+    <string name="souvenir_badge_year">1 an</string>
+    <string name="souvenir_first_good_news">Première Bonne nouvelle</string>
+    <string name="souvenir_reactions_10">10 réactions données</string>
+    <string name="souvenir_first_weekly_answer">Première réponse à la question</string>
+    <string name="souvenir_weekly_answers_10">10 réponses à la question</string>
+    <string name="souvenir_help_given_5">5 coups de main rendus</string>
+    <string name="souvenir_first_arrival">Premier « bien arrivé »</string>
+    <string name="souvenir_one_year">Un an dans Familia</string>
+    <string name="souvenir_hint_first_good_news">Partage ta première bonne nouvelle.</string>
+    <string name="souvenir_hint_first_weekly_answer">Réponds à une question de la semaine.</string>
+    <string name="souvenir_hint_first_arrival">Dis « bien arrivé » pendant un voyage.</string>
+    <string name="souvenir_hint_one_year">Il viendra pour ton premier anniversaire dans Familia.</string>
+    <plurals name="souvenir_left_reactions">
+        <item quantity="one">Encore %d réaction</item>
+        <item quantity="many">Encore %d réactions</item>
+        <item quantity="other">Encore %d réactions</item>
+    </plurals>
+    <plurals name="souvenir_left_weekly_answers">
+        <item quantity="one">Encore %d réponse</item>
+        <item quantity="many">Encore %d réponses</item>
+        <item quantity="other">Encore %d réponses</item>
+    </plurals>
+    <plurals name="souvenir_left_help">
+        <item quantity="one">Encore %d coup de main</item>
+        <item quantity="many">Encore %d coups de main</item>
+        <item quantity="other">Encore %d coups de main</item>
+    </plurals>
 </resources>

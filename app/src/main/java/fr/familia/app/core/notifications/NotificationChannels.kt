@@ -27,6 +27,7 @@ object NotificationChannels {
     const val COMMENTS = "comments"
     const val WEEKLY = "weekly"
     const val ADMIN = "admin"
+    const val SOUVENIRS = "souvenirs"
 
     /**
      * [feature]: the module that uses the channel; it is created only once that module shows.
@@ -54,6 +55,7 @@ object NotificationChannels {
         Spec(WEEKLY, R.string.channel_weekly, R.string.channel_weekly_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.WeeklyQuestion),
         // The consumption alert of the database (récit 1 sexies), for the admin principal only.
         Spec(ADMIN, R.string.channel_admin, R.string.channel_admin_description, NotificationManager.IMPORTANCE_DEFAULT, ownerOnly = true),
+        Spec(SOUVENIRS, R.string.channel_souvenirs, R.string.channel_souvenirs_description, NotificationManager.IMPORTANCE_LOW, Feature.Souvenirs),
     )
 
     /** Every id the app knows: a notice for another channel falls back on [EVENTS]. */

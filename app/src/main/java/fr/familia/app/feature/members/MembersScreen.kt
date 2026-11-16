@@ -99,6 +99,8 @@ fun MembersScreen(
     onPhotoFailureShown: () -> Unit = {},
     /** The gift button of each row opens the member's « Mes envies » (PRD, récit 7). */
     onOpenWishes: ((memberId: String) -> Unit)? = null,
+    /** Set: every row opens the member's page, whose Modifier keeps the rights of [onEditMember]. */
+    onOpenProfile: ((memberId: String) -> Unit)? = null,
 ) {
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var photoOf by rememberSaveable { mutableStateOf<String?>(null) }
@@ -155,7 +157,8 @@ fun MembersScreen(
                             member = member,
                             isMe = member.id == state.currentMemberId,
                             isOwner = member.id == state.ownerId,
-                            onClick = onEditMember?.takeIf { member.id in state.editableMemberIds }?.let { edit -> { edit(member.id) } },
+                            onClick = onOpenProfile?.let { open -> { open(member.id) } }
+                                ?: onEditMember?.takeIf { member.id in state.editableMemberIds }?.let { edit -> { edit(member.id) } },
                             hasPhoto = member.id in photos,
                             // A photo opens in full screen; without one, those who may add it choose one.
                             onPhotoClick = when {
