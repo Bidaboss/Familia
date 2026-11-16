@@ -10,7 +10,7 @@ import { Notice } from '../src/logic';
 import { notebookEntryId, syncNotebookEntry } from '../src/notebook';
 import { Sender } from '../src/store';
 import { Timestamp } from 'firebase-admin/firestore';
-import { claimOccasion, defaultWishOccasion, giverNames, occasionDay, revealWishes, thankGivers } from '../src/wishesReveal';
+import { claimOccasion, defaultWishOccasion, giverNames, occasionDay, receivedPath, revealWishes, thankGivers, wasRevealed } from '../src/wishesReveal';
 
 const ines: GiftMember = { id: 'ines', firstName: 'Inès', profile: 'adult', parentIds: [], birthDate: '1990-03-14' };
 const camille: GiftMember = { id: 'camille', firstName: 'Camille', profile: 'adult', parentIds: [], birthDate: '1988-12-09' };
@@ -209,5 +209,85 @@ describe('wishes reveal', () => {
     await db.doc('members/ines').update({ profile: 'childWithoutApp' });
     assert.equal(await revealWishes(db, fakeSender().send, DAY_AFTER), 0);
     assert.equal((await list().collection('items').get()).size, 3);
+  });
+});
+
+describe('ideas of the family reveal (récit 9 ter)', () => {
+  const IDEAS = 'ideas-ines';
+  const ideas = () => db.collection('giftLists').doc(IDEAS);
+
+  beforeEach(async () => {
+    await db.recursiveDelete(db.collection('giftLists'));
+    await db.recursiveDelete(db.collection('notebooks'));
+    await db.recursiveDelete(db.collection('members'));
+    await db.doc('config/app').set({ features: { gifts: true, singleList: true } });
+    for (const m of [ines, camille, jules]) await db.doc(`members/${m.id}`).set(member(m));
+    await db.doc('members/ines/devices/token-ines').set({});
+    // Inès never wrote a wish: no « Mes envies » yet.
+    await ideas().set({
+      kind: 'ideas', title: 'Idées de la famille', occasion: null, date: null, beneficiaryId: 'ines',
+      viewerIds: [], creatorId: 'camille', creatorName: 'Camille', revealed: false,
+    });
+    const idea = (title: string) => ({ title, url: null, price: 20, authorId: 'camille', visibleToBeneficiary: false });
+    await ideas().collection('items').doc('tea').set(idea('Un thé'));
+    await ideas().collection('items').doc('mug').set(idea('Une tasse'));
+    await ideas().collection('claims').doc('tea').set({
+      type: 'solo', holderId: 'camille', holderName: 'Camille', occasion: 'birthday', createdAt: Timestamp.fromDate(new Date('2027-01-05T10:00:00Z')),
+    });
+  });
+
+  test('where a revealed item is archived', () => {
+    assert.deepEqual(receivedPath('wishes-ines', 'book'), { listId: 'wishes-ines', receivedId: 'book' });
+    assert.deepEqual(receivedPath('ideas-ines', 'tea'), { listId: 'wishes-ines', receivedId: 'idea-tea' });
+    assert.equal(receivedPath('noel', 'tea'), null);
+  });
+
+  test('a taken idea goes to « On m\'a offert » of « Mes envies », made for it; the list of ideas stays', async () => {
+    const { sent, send } = fakeSender();
+    assert.equal(await revealWishes(db, send, DAY_AFTER), 1);
+    const wishes = await list().get();
+    assert.equal(wishes.get('kind'), 'wishes');
+    assert.equal(wishes.get('beneficiaryId'), 'ines');
+    assert.deepEqual(wishes.get('viewerIds'), []);
+    const tea = await list().collection('received').doc('idea-tea').get();
+    assert.equal(tea.get('title'), 'Un thé');
+    assert.deepEqual(tea.get('givers'), ['Camille']);
+    assert.equal(tea.get('occasion'), 'birthday');
+    assert.deepEqual((await ideas().collection('items').get()).docs.map((d) => d.id), ['mug']);
+    assert.equal((await ideas().collection('claims').get()).size, 0);
+    assert.equal((await ideas().get()).exists, true);
+    assert.deepEqual(sent.map((s) => s.token), ['token-ines']);
+    assert.equal(sent[0].notice.listId, LIST);
+    // Its removal is a gift, not a cancelled reservation.
+    assert.equal(await wasRevealed(db, IDEAS, 'tea'), true);
+    assert.equal(await wasRevealed(db, IDEAS, 'mug'), false);
+  });
+
+  test('an existing « Mes envies » is kept as it is', async () => {
+    await list().set({
+      kind: 'wishes', title: 'Mes envies', occasion: null, date: null, beneficiaryId: 'ines',
+      viewerIds: [], creatorId: 'ines', creatorName: 'Inès', revealed: false,
+    });
+    await list().collection('items').doc('book').set({ title: 'Un livre', authorId: 'ines', visibleToBeneficiary: true });
+    assert.equal(await revealWishes(db, fakeSender().send, DAY_AFTER), 1);
+    assert.equal((await list().get()).get('creatorId'), 'ines');
+    assert.equal((await list().collection('items').doc('book').get()).exists, true);
+  });
+
+  test('without the single list, the ideas are not revealed', async () => {
+    await db.doc('config/app').set({ features: { gifts: true, wishesReveal: true } });
+    assert.equal(await revealWishes(db, fakeSender().send, DAY_AFTER), 0);
+    assert.equal((await ideas().collection('claims').doc('tea').get()).exists, true);
+    assert.equal((await list().get()).exists, false);
+  });
+
+  test('the notebook of the giver follows the occasion of the reservation, and keeps the gift once revealed', async () => {
+    await syncNotebookEntry(db, IDEAS, 'tea', 'camille');
+    const entry = db.doc(`notebooks/camille/entries/${notebookEntryId(IDEAS, 'tea')}`);
+    assert.equal((await entry.get()).get('occasion'), 'birthday');
+    assert.equal((await entry.get()).get('year'), 2027);
+    await revealWishes(db, fakeSender().send, DAY_AFTER);
+    await syncNotebookEntry(db, IDEAS, 'tea', 'camille');
+    assert.equal((await entry.get()).exists, true);
   });
 });

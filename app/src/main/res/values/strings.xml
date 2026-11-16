@@ -744,6 +744,11 @@
     <string name="photo_unreadable_title">Impossible d\'ouvrir cette photo</string>
     <string name="photo_unreadable_body">Choisis-en une autre, ou prends une nouvelle photo.</string>
     <string name="photo_failed_title">La photo n\'a pas changé</string>
+    <string name="photo_add">Ajouter une photo</string>
+    <string name="photo_remove_confirm_title">Retirer la photo ?</string>
+    <string name="photo_remove_confirm_body">La photo disparaîtra quand tu enregistreras.</string>
+    <string name="photo_remove_confirm">Retirer</string>
+    <string name="photo_chosen">Photo choisie</string>
     <string name="photo_failed_body">Ça n\'a pas marché. Réessaie, et si ça recommence, demande à l\'admin principal.</string>
 
     <!-- Coups de main (PRD, récits 13 à 18) : fil [DEV] coups de main -->
@@ -1733,6 +1738,7 @@
     <string name="channel_birthdays">Vœux d\'anniversaire</string>
     <string name="feature_welcome">La bienvenue</string>
     <string name="feature_single_list">Une seule liste d\'envies par personne</string>
+    <string name="feature_more_photos">Plus de photos</string>
     <string name="feature_who_is_it">Qui est-ce ?</string>
     <string name="channel_welcome">Bienvenue</string>
     <string name="channel_welcome_description">Quand un membre de la famille arrive dans Familia</string>

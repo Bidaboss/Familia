@@ -49,7 +49,12 @@ class ProposeIdeaTest {
         val writes = mutableListOf<String>()
         val items = mutableListOf<Pair<String, GiftItem>>()
         val claims = mutableListOf<GiftClaim>()
+        val created = mutableListOf<GiftList>()
 
+        override suspend fun saveList(list: GiftList, isNew: Boolean) {
+            writes += "list"
+            created += list
+        }
         override fun observeVisibleLists(memberId: String): Flow<List<GiftList>> = lists
         override suspend fun saveItem(listId: String, item: GiftItem, isNew: Boolean) {
             if (failItem) error("refused")
@@ -97,6 +102,34 @@ class ProposeIdeaTest {
         assertEquals(ClaimType.Solo, gifts.claims.single().type)
         assertEquals("adult1", gifts.claims.single().holderId)
         assertTrue(notebook.entries.value.isEmpty())
+    }
+
+    @Test
+    fun `with the single list, the idea goes to the ideas of the family, created if missing`() = runTest {
+        val gifts = Gifts(listOf(list("s1", GiftListKind.Surprise, "adult2"), list("wishes-adult2", GiftListKind.Wishes, "adult2")))
+        val notebook = FakeNotebook(listOf(idea()))
+        val vm = ProposeIdeaViewModel(notebook, gifts, FakeMembers(), "adult1", "e1", singleList = true)
+        val state = vm.settled() as ProposeIdeaUiState.Choosing
+        assertEquals(listOf("ideas-adult2"), state.lists.map { it.id })
+        assertEquals("ideas-adult2", state.selectedListId)
+        assertFalse(state.canPrepareSurprise)
+        vm.propose()
+        assertEquals(ProposeIdeaUiState.Done("ideas-adult2"), vm.uiState.first { it is ProposeIdeaUiState.Done })
+        assertEquals(listOf("list", "item"), gifts.writes)
+        assertEquals(GiftListKind.Ideas, gifts.created.single().kind)
+        assertEquals("adult2", gifts.created.single().beneficiaryId)
+        assertFalse(gifts.items.single().second.visibleToBeneficiary)
+    }
+
+    @Test
+    fun `with the single list, an existing list of ideas is not created again`() = runTest {
+        val ideas = GiftList("ideas-adult2", GiftListKind.Ideas, "Idées", null, null, "adult2", emptyList(), "adult3", "Adult3")
+        val gifts = Gifts(listOf(ideas))
+        val vm = ProposeIdeaViewModel(FakeNotebook(listOf(idea())), gifts, FakeMembers(), "adult1", "e1", singleList = true)
+        assertNull((vm.settled() as ProposeIdeaUiState.Choosing).newList)
+        vm.propose()
+        vm.uiState.first { it is ProposeIdeaUiState.Done }
+        assertEquals(listOf("item"), gifts.writes)
     }
 
     @Test

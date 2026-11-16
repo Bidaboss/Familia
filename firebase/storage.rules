@@ -141,6 +141,25 @@ service firebase.storage {
         && (authorId == myMemberId() || eventData(eventId).authorId == myMemberId() || isOwner());
     }
 
+    // Plus de photos (PRD, récit 44): the cover of an event, events/{eventId}/cover/{authorId}/{photoId}.jpg
+    // and its {photoId}-thumb.jpg. The member sends it to their own folder before writing its name in
+    // the field coverPhoto of the event, where firestore.rules checks that they may change the event:
+    // sending reads no other document (LIMIT above). A cover is never replaced, a new one has a new
+    // name. Its sender removes it, and any member removes a cover that the event no longer names
+    // (the old one, after a chef de famille changed it). The server removes them with the event.
+    match /events/{eventId}/cover/{authorId}/{fileName} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && resource == null
+        && authorId == myMemberId()
+        && ((fileName.matches('^[A-Za-z0-9]{1,40}[.]jpg$') && isJpegUnder(512 * 1024))
+            || (fileName.matches('^[A-Za-z0-9]{1,40}-thumb[.]jpg$') && isJpegUnder(64 * 1024)));
+      allow delete: if isMember()
+        && (authorId == myMemberId()
+            || eventData(eventId).get('coverPhoto', null)
+                != 'events/' + eventId + '/cover/' + authorId + '/' + fileName.split('[-.]')[0]);
+    }
+
     // Capsule temporelle (PRD, récit 39): capsules/{authorId}/{capsuleId}/{n}.jpg and {n}-thumb.jpg,
     // n from 1 to 3, sent by the author before the document capsules/{capsuleId}. The author reads
     // them; the recipients only once the server opened the capsule. Deleting it removes them.

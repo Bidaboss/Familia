@@ -185,3 +185,34 @@ describe('editing and deleting', () => {
     await assertSucceeds(updateDoc(doc(as(env, ADMIN), 'events/e1'), { note: 'Gardé', updatedAt: serverTimestamp() }));
   });
 });
+
+describe('cover photo (récit 44)', () => {
+  const cover = (eventId, member, photo = 'c1') => `events/${eventId}/cover/${member}/${photo}`;
+
+  test('the author adds a cover of their own folder when creating, then changes and removes it', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(doc(db, 'events/n1'), event(ADULT, { coverPhoto: cover('n1', 'adult1') })));
+    await assertSucceeds(updateDoc(doc(db, 'events/n1'), { coverPhoto: cover('n1', 'adult1', 'c2'), updatedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(db, 'events/n1'), { coverPhoto: null, updatedAt: serverTimestamp() }));
+  });
+
+  test('a manager of the event changes it; another adult, even without touching the rest, cannot', async () => {
+    await stored('e1', OTHER_ADULT, { coverPhoto: cover('e1', 'adult2') });
+    await assertSucceeds(updateDoc(doc(as(env, ADMIN), 'events/e1'), { coverPhoto: cover('e1', 'admin1'), updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(as(env, ADULT3), 'events/e1'), { coverPhoto: cover('e1', 'adult3'), updatedAt: serverTimestamp() }));
+  });
+
+  test('editing the rest of the event keeps the cover named by someone else', async () => {
+    await stored('e1', OTHER_ADULT, { coverPhoto: cover('e1', 'adult2') });
+    await assertSucceeds(updateDoc(doc(as(env, ADMIN), 'events/e1'), { title: 'Goûter', updatedAt: serverTimestamp() }));
+  });
+
+  test('never a photo of someone else, of another event, or another file', async () => {
+    const db = as(env, ADULT);
+    await assertFails(setDoc(doc(db, 'events/n1'), event(ADULT, { coverPhoto: cover('n1', 'adult2') })));
+    await assertFails(setDoc(doc(db, 'events/n1'), event(ADULT, { coverPhoto: cover('n2', 'adult1') })));
+    await assertFails(setDoc(doc(db, 'events/n1'), event(ADULT, { coverPhoto: 'goodNews/adult1/p1/c1' })));
+    await assertFails(setDoc(doc(db, 'events/n1'), event(ADULT, { coverPhoto: `${cover('n1', 'adult1')}.jpg` })));
+    await assertFails(setDoc(doc(db, 'events/n1'), event(ADULT, { coverPhoto: 42 })));
+  });
+});

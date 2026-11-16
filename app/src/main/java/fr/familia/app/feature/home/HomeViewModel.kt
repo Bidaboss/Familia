@@ -52,6 +52,11 @@ class HomeViewModel(
     /** Null while the polls module is off: no block « Sondages ». */
     private val polls: PollRepository? = null,
     private val clock: () -> Instant = Instant::now,
+    /**
+     * Switch « Liste unique » (récit 9 ter): the lists of an occasion are gone from the Cadeaux tab,
+     * so the home screen no longer points to one. The birthdays stay on their own card.
+     */
+    private val singleList: Boolean = false,
 ) : ViewModel() {
 
     /** Read once and shared by the cards, so no card adds its own listener on the family. */
@@ -92,6 +97,7 @@ class HomeViewModel(
     /** The next occasion list and how many of its gifts I reserved: one listener, for that list only. */
     private fun nextOccasion(day: LocalDate): Flow<Pair<GiftList, Int>?> {
         val repo = gifts ?: return flowOf(null)
+        if (singleList) return flowOf(null)
         val next = bonus(repo.observeVisibleLists(currentMemberId), emptyList())
             .map { nextOccasionList(it, currentMemberId, day) }
             .distinctUntilChanged()
