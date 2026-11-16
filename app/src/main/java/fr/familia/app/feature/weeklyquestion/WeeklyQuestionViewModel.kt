@@ -9,6 +9,7 @@ import fr.familia.app.core.model.WeeklyAnswer
 import fr.familia.app.core.model.WeeklyQuestion
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -50,9 +52,9 @@ class WeeklyQuestionViewModel(
         if (q == null || questions == null) {
             flowOf(WeeklyQuestionUiState.None)
         } else {
-            questions.observeMyAnswer(q.id, currentMemberId).flatMapLatest { mine ->
+            combine(questions.observeMyAnswer(q.id, currentMemberId), revealed(q)) { mine, open -> mine to open }.flatMapLatest { (mine, open) ->
                 val now = clock()
-                val canSee = mine != null || q.isRevealed(now)
+                val canSee = mine != null || open
                 val others = if (canSee) questions.observeAnswers(q.id) else flowOf(emptyList())
                 combine(others, action) { all, act ->
                     WeeklyQuestionUiState.Success(
@@ -68,6 +70,16 @@ class WeeklyQuestionViewModel(
             }
         }
     }.catch { emit(WeeklyQuestionUiState.None) }
+
+    /** False until [WeeklyQuestion.revealAt], then true, even while the screen stays open. */
+    private fun revealed(q: WeeklyQuestion): Flow<Boolean> = flow {
+        val wait = q.revealAt.toEpochMilli() - clock().toEpochMilli()
+        if (wait > 0) {
+            emit(false)
+            delay(wait)
+        }
+        emit(true)
+    }
 
     val uiState: StateFlow<WeeklyQuestionUiState> =
         source.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), WeeklyQuestionUiState.Loading)

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -66,6 +67,12 @@ class WeeklyQuestionViewModelTest {
         assertEquals("2026-11-30", state.question.id)
         assertFalse(state.canSeeAnswers)
         assertTrue(state.answers.isEmpty())
+
+        // The screen stays open past revealAt: the answers show without reopening it.
+        advanceTimeBy(47 * 3600_000L + 1)
+        val revealed = vm.uiState.value as WeeklyQuestionUiState.Success
+        assertTrue(revealed.canSeeAnswers)
+        assertEquals(listOf("adult2"), revealed.answers.map { it.memberId })
     }
 
     @Test
