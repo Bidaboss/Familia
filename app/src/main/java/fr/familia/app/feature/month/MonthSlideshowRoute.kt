@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -62,7 +62,7 @@ fun MonthSlideshowHomeCard(month: YearMonth, onOpen: () -> Unit) {
             modifier = Modifier.semantics { heading() },
         )
         Text(stringResource(R.string.month_home_body), style = MaterialTheme.typography.bodyLarge, color = FamiliaClay.colors.onTintVariant(tint))
-        Button(onClick = onOpen, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.month_home_open)) }
+        OutlinedButton(onClick = onOpen, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.month_home_open)) }
     }
 }
 
@@ -138,7 +138,7 @@ private fun MonthBirthdays(birthdays: List<Member>) {
                     Text(member.firstName, style = MaterialTheme.typography.bodyLarge)
                     member.birthDate?.let { day ->
                         Text(
-                            stringResource(R.string.month_birthday_day, day.dayOfMonth),
+                            if (day.dayOfMonth == 1) stringResource(R.string.month_birthday_first) else stringResource(R.string.month_birthday_day, day.dayOfMonth),
                             style = MaterialTheme.typography.bodyMedium,
                             color = FamiliaClay.colors.onTintVariant(tint),
                         )

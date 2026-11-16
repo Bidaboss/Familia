@@ -792,6 +792,7 @@
     <string name="month_home_open">Voir le diaporama</string>
     <string name="month_birthdays">Anniversaires du mois</string>
     <string name="month_birthday_day">Le %1$d</string>
+    <string name="month_birthday_first">Le 1er</string>
     <string name="month_empty">Pas de photo ce mois-ci. Celles des voyages et des événements apparaissent ici.</string>
     <!-- Before a video leaves the app (carte EXPERT-6): the film, the album and the slideshow. -->
     <string name="share_consent_title">Avant de partager</string>
