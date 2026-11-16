@@ -37,7 +37,13 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
             lists.whereArrayContains("viewerIds", memberId).observe { it.toGiftList() },
             lists.whereEqualTo("kind", GiftListKind.Wishes.firestoreValue).observe { it.toGiftList() },
             lists.whereEqualTo("beneficiaryId", memberId).whereEqualTo("revealed", true).observe { it.toGiftList() },
-            lists.whereEqualTo("kind", GiftListKind.Ideas.firestoreValue).whereNotEqualTo("beneficiaryId", memberId).observe { it.toGiftList() },
+            // Until « Publier Firebase » builds its index, this query fails: the tab goes on without ideas.
+            lists.whereEqualTo("kind", GiftListKind.Ideas.firestoreValue).whereNotEqualTo("beneficiaryId", memberId)
+                .observe { it.toGiftList() }
+                .catch { e ->
+                    if (e is CancellationException) throw e
+                    emit(emptyList())
+                },
         ) { seen, wishes, revealed, ideas -> (seen + wishes + revealed + ideas).distinctBy { it.id } }
     }
 
