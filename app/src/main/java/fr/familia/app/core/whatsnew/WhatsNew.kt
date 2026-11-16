@@ -3,7 +3,7 @@ package fr.familia.app.core.whatsnew
 import fr.familia.app.core.model.MemberProfile
 
 /*
- * « Quoi de neuf ? » (PRD, récit 6 septies). The texts live in docs/whats-new/*.json; the
+ * « Quoi de neuf ? » (PRD, récit 6 septies). The texts live in the json files of docs/whats-new; the
  * « APK de publication » workflow gives each file the number of the version it ships with and
  * writes the whole history in config/app.whatsNew (firebase/functions/scripts/whats-new.mjs).
  * Nothing here is written to Firestore: what a member has seen stays on the phone.
