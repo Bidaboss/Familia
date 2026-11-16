@@ -53,6 +53,22 @@ class NotebookTest {
     }
 
     @Test
+    fun `Christmas goes to the archive the day after, the birthdays of a year at its end`() {
+        val christmasDay = LocalDate.of(2026, 12, 25)
+        val dayAfter = LocalDate.of(2026, 12, 26)
+        val birthdays = NotebookOccasion(GiftOccasion.Birthday, 2026)
+        assertEquals(false, isPast(christmas, christmasDay))
+        assertEquals(true, isPast(christmas, dayAfter))
+        assertEquals(false, isPast(birthdays, dayAfter))
+        assertEquals(true, isPast(birthdays, LocalDate.of(2027, 1, 1)))
+        assertEquals(false, isPast(none, LocalDate.of(2030, 1, 1)))
+        val next = NotebookOccasion(GiftOccasion.Christmas, 2027)
+        val sorted = sortedOccasions(setOf(christmas, birthdays, next, none), dayAfter)
+        assertEquals(listOf(birthdays, next, christmas, none), sorted)
+        assertEquals(birthdays, defaultOccasion(sorted, dayAfter))
+    }
+
+    @Test
     fun `one card per person for the chosen occasion, with what is bought and spent`() = runTest {
         val notebook = FakeNotebook(
             listOf(

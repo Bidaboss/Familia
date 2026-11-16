@@ -93,7 +93,7 @@ class NotebookViewModel(
         chosen.value = chosen.value.copy(occasion = occasion)
     }
 
-    /** Opens or closes the archive: the occasions of the past years. */
+    /** Opens or closes the archive: the occasions already past. */
     fun toggleArchive() {
         chosen.value = chosen.value.copy(archive = !chosen.value.archive)
     }
@@ -197,18 +197,27 @@ internal fun personKey(entry: NotebookEntry): String = entry.personId ?: "name:$
 /** This year's and the next occasions first, in the order of the year, then the past ones, newest first. */
 internal fun sortedOccasions(occasions: Set<NotebookOccasion>, today: LocalDate): List<NotebookOccasion> {
     val (dated, undated) = occasions.partition { it.year != null }
-    val (coming, past) = dated.partition { it.year!! >= today.year }
+    val (past, coming) = dated.partition { isPast(it, today) }
     val order = compareBy<NotebookOccasion> { it.year }.thenBy { it.occasion?.ordinal ?: GiftOccasion.entries.size }
     return coming.sortedWith(order) + past.sortedWith(order.reversed()) + undated
 }
 
-/** An occasion of a past year goes to the archive; one with no year never does. */
-internal fun isPast(occasion: NotebookOccasion, today: LocalDate): Boolean = (occasion.year ?: Int.MAX_VALUE) < today.year
+/**
+ * An occasion goes to the archive the day after it (PRD rév. 168): Noël from 26 December. The
+ * birthdays of a year gather several people, each on their own day, so they wait for the end of
+ * that year. One with no year never goes.
+ */
+internal fun isPast(occasion: NotebookOccasion, today: LocalDate): Boolean {
+    val year = occasion.year ?: return false
+    val last = if (occasion.occasion == GiftOccasion.Christmas) LocalDate.of(year, 12, 25) else LocalDate.of(year, 12, 31)
+    return last < today
+}
 
-/** Christmas of this year when there is one, else the first occasion still to come. */
+/** Christmas of this year while it is to come, else the first occasion still to come. */
 internal fun defaultOccasion(occasions: List<NotebookOccasion>, today: LocalDate): NotebookOccasion? =
-    occasions.firstOrNull { it == NotebookOccasion(GiftOccasion.Christmas, today.year) }
-        ?: occasions.firstOrNull { (it.year ?: Int.MAX_VALUE) >= today.year }
+    occasions.firstOrNull { it == NotebookOccasion(GiftOccasion.Christmas, today.year) && !isPast(it, today) }
+        ?: occasions.firstOrNull { it.year != null && !isPast(it, today) }
+        ?: occasions.firstOrNull { it.year == null }
         ?: occasions.firstOrNull()
 
 /** The occasions a reservation of « Mes envies » may be meant for: the server reveals it the day after. */
