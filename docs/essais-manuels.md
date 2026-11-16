@@ -283,3 +283,12 @@ Avec le module « Vœux d'anniversaire » allumé, un membre dont c'est l'annive
 6. Le lendemain, rouvre la fiche. **Attendu :** les cartes sont toujours là, mais plus de champ pour écrire.
 7. Réglages > Notifications : coupe « Vœux d'anniversaire ». **Attendu :** plus d'avis de vœux pour ce compte.
 8. Ouvre les Bonnes nouvelles. **Attendu :** « 🎂 Joyeux anniversaire … ! » de Familia, avec un gâteau à la place de la photo de profil. Touche-la : les mêmes cartes de vœux s'affichent sous la nouvelle, avec le champ pour écrire le jour même.
+
+## La bienvenue (récit 43)
+
+Avec le module « La bienvenue » allumé, un membre ajouté qui ne s'est jamais connecté, et deux autres comptes.
+
+1. Connecte-toi pour la première fois avec le compte du nouveau membre. **Attendu :** les autres comptes reçoivent « … vient d'arriver », « Dis-lui bonjour ! ». Le nouveau membre ne la reçoit pas.
+2. Touche la notification. **Attendu :** la fiche du nouveau membre s'ouvre.
+3. Déconnecte-toi, puis reconnecte-toi avec ce compte. **Attendu :** aucune nouvelle notification.
+4. Fais de même avec un membre du foyer de test. **Attendu :** aucune notification.

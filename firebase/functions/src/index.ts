@@ -43,6 +43,7 @@ import { deleteDigestOf, sendDigests } from './digest';
 import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { sendWeeklyRecap } from './recap';
 import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type BirthdayCard } from './birthdayWishes';
+import { isFirstSignIn, welcomeMember } from './welcome';
 import { revealWishes, thankGivers } from './wishesReveal';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
@@ -81,6 +82,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.souvenirKey ? { souvenirKey: notice.souvenirKey } : {}),
         ...(notice.recapWeek ? { recapWeek: notice.recapWeek } : {}),
         ...(notice.birthdayOf ? { birthdayOf: notice.birthdayOf } : {}),
+        ...(notice.welcomeOf ? { welcomeOf: notice.welcomeOf } : {}),
         ...(notice.tag ? { notificationTag: notice.tag } : {}),
       },
       // A surprise never shows on the lock screen (audit 2.2): only « Familia » and the channel.
@@ -285,6 +287,12 @@ export const birthdayGiftReminders = onSchedule({ schedule: '0 10 * * *', timeZo
 export const onBirthdayCardWritten = onDocumentCreated('birthdayCards/{cardId}', async (event) => {
   const card = event.data?.data() as BirthdayCard | undefined;
   if (card) await onBirthdayCardCreated(getFirestore(), send, card);
+});
+
+// La bienvenue (récit 43): the first sign-in of a member links their Google account (uid).
+export const onMemberSignedIn = onDocumentUpdated('members/{memberId}', async (event) => {
+  if (!isFirstSignIn(event.data?.before.data(), event.data?.after.data())) return;
+  await welcomeMember(getFirestore(), send, event.params.memberId, new Date());
 });
 
 // --- Bonnes nouvelles (PRD, récit 32) ---------------------------------------------------------------

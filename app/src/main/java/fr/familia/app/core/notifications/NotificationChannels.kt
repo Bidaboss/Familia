@@ -32,6 +32,7 @@ object NotificationChannels {
     const val TREE = "tree"
     const val RECAP = "recap"
     const val BIRTHDAYS = "birthdays"
+    const val WELCOME = "welcome"
     const val JOIN_ME = "joinMe"
     const val CAPSULES = "capsules"
 
@@ -75,6 +76,7 @@ object NotificationChannels {
         Spec(RECAP, R.string.channel_recap, R.string.channel_recap_description, NotificationManager.IMPORTANCE_LOW, Feature.Recap),
         // Vœux d'anniversaire (récit 36): « C'est l'anniversaire de … » and the cards received.
         Spec(BIRTHDAYS, R.string.channel_birthdays, R.string.channel_birthdays_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.BirthdayWishes),
+        Spec(WELCOME, R.string.channel_welcome, R.string.channel_welcome_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.Welcome),
     )
 
     /**

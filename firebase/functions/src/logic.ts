@@ -32,7 +32,7 @@ export type RsvpStatus = 'yes' | 'maybe' | 'no';
 
 /** The ids of NotificationChannels in the app. `events` is the « Planning » channel. */
 // Each module adds its id here and its channel in the app, in the same pull request.
-export type Channel = 'events' | 'reminders' | 'gifts' | 'helpRequests' | 'goodNews' | 'trips' | 'comments' | 'weekly' | 'admin' | 'souvenirs' | 'tree' | 'joinMe' | 'capsules' | 'recap' | 'birthdays';
+export type Channel = 'events' | 'reminders' | 'gifts' | 'helpRequests' | 'goodNews' | 'trips' | 'comments' | 'weekly' | 'admin' | 'souvenirs' | 'tree' | 'joinMe' | 'capsules' | 'recap' | 'birthdays' | 'welcome';
 
 export interface Notice {
   /**
@@ -59,6 +59,8 @@ export interface Notice {
   recapWeek?: string;
   /** Vœux d'anniversaire (récit 36): the member celebrated, the app opens their page. */
   birthdayOf?: string;
+  /** La bienvenue (récit 43): the newcomer, the app opens their page. */
+  welcomeOf?: string;
   /** Notices with the same tag replace each other on the phone (the cards of the day). */
   tag?: string;
 }
