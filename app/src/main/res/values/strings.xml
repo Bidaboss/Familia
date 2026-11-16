@@ -1655,6 +1655,9 @@
     <string name="goodnews_little_ones_switch">Dans « Les petits » : un dessin ou une réussite à garder</string>
     <string name="goodnews_little_ones_label">Les petits</string>
     <string name="goodnews_little_ones_filter">Les petits</string>
+    <string name="feature_daily_nudge">Le petit geste du jour</string>
+    <string name="daily_nudge_react">La photo de %1$s attend ta réaction</string>
+    <string name="daily_nudge_react_action">Voir la photo</string>
     <string name="goodnews_little_ones_empty">Pas encore de Bonne nouvelle des petits par ici.</string>
     <string name="channel_birthdays_description">Le jour d\'un anniversaire, et les cartes de vœux reçues</string>
     <string name="wishes_title">Cartes de vœux</string>
