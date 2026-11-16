@@ -148,8 +148,9 @@ fun HomeRoute(
     val helpOn = flags.isOn(Feature.HelpRequests)
     val tripsOn = flags.isOn(Feature.Trips)
     val pollsOn = flags.isOn(Feature.Polls)
+    val singleList = flags.isOn(Feature.SingleList)
     val viewModel: HomeViewModel = viewModel(
-        key = "home-$giftsOn-$helpOn-$tripsOn-$pollsOn",
+        key = "home-$giftsOn-$helpOn-$tripsOn-$pollsOn-$singleList",
         factory = viewModelFactory {
             initializer {
                 HomeViewModel(
@@ -161,6 +162,7 @@ fun HomeRoute(
                     gifts = if (giftsOn) container?.giftRepository else null,
                     trips = if (tripsOn) container?.tripRepository else null,
                     polls = if (pollsOn) container?.pollRepository else null,
+                    singleList = singleList,
                 )
             }
         },

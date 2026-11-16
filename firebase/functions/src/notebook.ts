@@ -70,8 +70,8 @@ async function takenUpBy(db: Firestore, listId: string, itemId: string, memberId
   const beneficiaryId = String(list.get('beneficiaryId') ?? '');
   const beneficiary = await db.collection('members').doc(beneficiaryId).get();
   const price = item.get('price');
-  // « Mes envies »: the occasion of the reservation, the same for its holder and every part (rév. 186).
-  const wish = list.get('kind') === 'wishes'
+  // « Mes envies » and the « Idées de la famille »: the occasion of the reservation, the same for its holder and every part (rév. 186).
+  const wish = list.get('kind') === 'wishes' || list.get('kind') === 'ideas'
     ? claimOccasion(claim.data() ?? {}, (beneficiary.get('birthDate') as string | null | undefined) ?? null, parisDay(new Date()))
     : null;
   const amount = share.exists ? Number(share.get('amount')) : NaN;
