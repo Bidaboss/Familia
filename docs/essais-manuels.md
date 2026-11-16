@@ -233,3 +233,16 @@ Avec le compte de l'admin principal.
 10. Si un écran tombe en erreur en mode Voir comme, c'est qu'il demande une donnée que le serveur refuse à l'admin (une liste sans lui, le carnet, les souvenirs privés). Ce n'est pas une fuite. Note l'écran pour qu'on le traite.
 
 Avant le 20/11 : refais tout cet essai sur l'APK de publication, puisque « Voir comme » a changé la façon dont l'appli reçoit ses données (relecture de #112).
+
+Limites connues de cette première partie : ce que le serveur cache à l'admin (le carnet de cadeaux, l'espace cadeau de son propre anniversaire) reste caché. Le message « Masqué : c'est ta surprise » et les demandes de coup de main viendront dans une deuxième partie.
+
+## Partager Familia avec toute la famille (récit 1 bis bis)
+
+Pas d'interrupteur : le bouton est là pour tous les adultes, dans la version famille (le lien vient du secret FAMILIA_DOWNLOAD_URL, comme l'invitation).
+
+1. Avec un compte adulte, ouvre l'onglet **Famille** et touche **Partager Familia**. **Attendu :** le partage d'Android s'ouvre, WhatsApp en tête s'il est installé.
+2. Choisis WhatsApp. **Attendu :** le message est déjà écrit et tu peux le modifier avant d'envoyer : l'accueil, le lien du dossier Drive, trois étapes, puis « Si ton adresse n'est pas inscrite, demande à » suivi du prénom de l'admin principal.
+3. Vérifie le lien. **Attendu :** c'est le même que dans « Envoyer l'invitation », sans rien après (aucun jeton, aucune adresse).
+4. Avec l'admin principal, ouvre **Administration** et touche **Partager Familia**. **Attendu :** le même message.
+5. Avec un compte enfant, ouvre l'onglet Famille. **Attendu :** pas de bouton Partager Familia.
+6. En mode **Voir comme** un adulte. **Attendu :** pas de bouton Partager Familia (rien ne sort de l'appli dans ce mode).
