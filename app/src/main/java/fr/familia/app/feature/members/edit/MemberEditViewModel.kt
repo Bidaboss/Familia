@@ -182,7 +182,7 @@ class MemberEditViewModel(
             val sent = write { repo.saveMember(member, original?.email) }
             if (sent == null) return@launch markFailed()
             _uiState.value = if (original == null) {
-                MemberEditUiState.Added(member.firstName, member.email)
+                MemberEditUiState.Added(member.firstName, member.email, hasApp = member.profile != MemberProfile.ChildWithoutApp)
             } else {
                 MemberEditUiState.Saved(sent.or(Confirmation.Saved))
             }
@@ -213,7 +213,7 @@ class MemberEditViewModel(
         parentIds.filter { id -> id != editedId && family.members.any { it.id == id } }
 
     private fun errorsFor(form: MemberForm): Set<FormError> =
-        if (showErrors) validate(form, family, editedId, today()) else emptySet()
+        if (showErrors) validate(form, family, editedId, today(), emailRequired = original?.uid != null) else emptySet()
 
     private fun markFailed() {
         val state = _uiState.value as? MemberEditUiState.Editing ?: return

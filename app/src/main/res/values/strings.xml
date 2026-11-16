@@ -125,6 +125,7 @@
     <string name="member_profile">Profil</string>
     <string name="member_email">Adresse Google</string>
     <string name="member_email_help">Celle avec laquelle la personne se connectera à l\'appli.</string>
+    <string name="member_email_help_optional">Facultative : celle avec laquelle la personne se connectera. Tu peux l\'ajouter plus tard, au moment de l\'inviter.</string>
     <string name="member_household">Foyer</string>
     <string name="member_household_new">Nouveau foyer</string>
     <string name="member_household_name">Nom du foyer</string>
@@ -315,6 +316,7 @@
     <string name="member_added_title">Membre ajouté</string>
     <string name="member_added_body_title">%1$s fait partie de la famille</string>
     <string name="member_added_body_invite">Envoie-lui l\'invitation par WhatsApp ou SMS : elle explique comment installer l\'appli et avec quelle adresse se connecter.</string>
+    <string name="member_added_body_no_email">%1$s est prêt dans son foyer. Le moment venu, ouvre sa fiche, ajoute son adresse Google, puis envoie-lui l\'invitation.</string>
     <string name="member_added_body_no_app">%1$s n\'a pas l\'appli. Ses adultes responsables voient et gèrent son planning.</string>
     <string name="member_remove">Retirer de la famille</string>
     <string name="member_remove_blocked">Ajoute d\'abord un autre adulte responsable pour : %1$s.</string>
@@ -403,6 +405,7 @@
     <string name="profile_child_without_app">Enfant, sans l\'appli</string>
     <string name="profile_with_owner">%1$s · admin principal</string>
     <string name="profile_with_admin">%1$s · chef de famille</string>
+    <string name="profile_without_email">%1$s · adresse Google à ajouter</string>
     <string name="app_version">Version %1$s</string>
 
     <string name="sign_in_intro">Les nouvelles, le planning et les cadeaux de la famille, au même endroit.</string>
@@ -533,7 +536,7 @@
     <string name="help_topic_updates_title">Mettre à jour l\'appli</string>
     <string name="help_topic_updates_body">À l\'ouverture et chaque fois que tu reviens dans l\'appli, Familia vérifie s\'il existe une nouvelle version et propose de l\'installer depuis le dossier Drive. Tu peux aussi vérifier toi-même dans l\'onglet Famille, ligne « Vérifier les mises à jour ».</string>
     <string name="help_topic_invite_title">Réservé aux chefs de famille : inviter un membre</string>
-    <string name="help_topic_invite_body">Dans l\'onglet Famille, touche « Ajouter un membre ». Indique son adresse Google, son foyer et son profil, puis envoie-lui l\'invitation par WhatsApp ou SMS.</string>
+    <string name="help_topic_invite_body">Dans l\'onglet Famille, touche « Ajouter un membre ». Indique son foyer et son profil. L\'adresse Google peut attendre : ajoute-la quand tu veux l\'inviter, puis envoie-lui l\'invitation par WhatsApp ou SMS.</string>
     <string name="help_topic_export_title">Réservé à l\'admin principal : sauvegarder les données</string>
     <string name="help_topic_export_body">Dans l\'onglet Famille, ouvre « Administration » puis « Sauvegarde des données ». Elle enregistre toutes les données dans un fichier JSON, sur le téléphone ou dans ton Drive.</string>
     <!-- Listes et cadeaux (PRD, V2, récits 7 à 10 bis) -->
@@ -544,6 +547,12 @@
     <string name="gifts_new_list">Nouvelle liste</string>
     <string name="gifts_open_list">ouvrir la liste</string>
     <string name="gifts_section_me">Moi</string>
+    <string name="gifts_wishes_none">Pas encore d\'envie</string>
+    <plurals name="gifts_wishes_preview">
+        <item quantity="one">%1$d envie : %2$s</item>
+        <item quantity="many">%1$d envies : %2$s</item>
+        <item quantity="other">%1$d envies : %2$s</item>
+    </plurals>
     <string name="gifts_wishes_empty">Encore vide : touche pour ajouter une envie</string>
     <string name="gifts_birthdays_title">Anniversaires à venir</string>
     <string name="gifts_birthday_of">Anniversaire de %1$s</string>
@@ -1078,6 +1087,7 @@
     <string name="view_as_title">Voir comme…</string>
     <string name="view_as_help">L\'appli telle que la voit un membre, sans rien pouvoir modifier.</string>
     <string name="view_as_banner">Tu vois l\'appli comme %1$s</string>
+    <string name="view_as_gift_list_kept">C\'est une liste pour toi : même en mode Voir comme, ses réservations et ses idées surprises restent cachées pour toi.</string>
     <string name="view_as_gifts_hidden">Les listes où tu n\'es pas invité restent cachées, même en mode Voir comme.</string>
     <string name="view_as_quit">Quitter</string>
     <string name="view_as_read_only">Lecture seule en mode Voir comme</string>
@@ -1123,7 +1133,12 @@
     <string name="expenses_shares_title">Parts de chacun</string>
     <string name="expenses_shares_body">Par défaut, chacun vaut 1 part, enfants compris. Le foyer compte la somme des parts de ses membres, et chaque dépense partagée « en parts » suit ces poids.</string>
     <string name="expenses_shares_error">De 0 à 10, par demi-part</string>
-    <string name="expenses_shares_household">%1$s : %2$s parts</string>
+    <string name="expenses_shares_legacy">Ces comptes ont été ouverts avec des parts par foyer. En enregistrant, chaque foyer prend la somme des parts de ses membres.</string>
+    <plurals name="expenses_shares_household">
+        <item quantity="one">%1$s : %2$s part</item>
+        <item quantity="many">%1$s : %2$s parts</item>
+        <item quantity="other">%1$s : %2$s parts</item>
+    </plurals>
     <string name="expenses_shares_household_empty">Un foyer compte au moins une demi-part.</string>
     <string name="expenses_export">Partager les comptes</string>
     <string name="expenses_export_csv">En tableau (pour un tableur)</string>
@@ -1304,6 +1319,9 @@
     <string name="home_todo_help">Demandé par %1$s · %2$s</string>
     <string name="home_open_event">ouvrir l\'événement</string>
     <string name="home_todo_vote">Sondage de %1$s · à toi de répondre</string>
+    <string name="home_polls_title">Sondages</string>
+    <string name="home_polls_new">Nouveau sondage</string>
+    <string name="home_polls_all">Tous les sondages</string>
     <string name="home_voted">Tu as voté</string>
     <string name="home_voted_lead">Tu as voté · en tête : %1$s (%2$d voix)</string>
     <string name="home_voted_tie">Tu as voté · plusieurs réponses à égalité</string>
@@ -1484,6 +1502,11 @@
     </plurals>
     <!-- Sondages (récits 2 bis et 2 ter) -->
     <string name="polls_title">Sondages</string>
+    <plurals name="polls_to_vote">
+        <item quantity="one">%d sondage attend ta réponse</item>
+        <item quantity="many">%d sondages attendent ta réponse</item>
+        <item quantity="other">%d sondages attendent ta réponse</item>
+    </plurals>
     <string name="polls_open">Ouvrir les sondages</string>
     <string name="polls_new">Nouveau sondage</string>
     <string name="polls_section_open">En cours</string>

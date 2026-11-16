@@ -231,6 +231,7 @@ private fun Header(state: GiftListUiState.Success, onOpenReceived: (() -> Unit)?
         }
         val notice = when {
             state.list.revealed -> stringResource(R.string.gift_list_revealed)
+            state.keptFromReader -> stringResource(R.string.view_as_gift_list_kept)
             state.keptFromMe && state.list.kind == GiftListKind.Wishes -> stringResource(R.string.gift_list_hidden_wishes)
             state.keptFromMe -> stringResource(R.string.gift_list_hidden_mine)
             state.list.kind == GiftListKind.Surprise -> stringResource(R.string.gift_list_surprise_notice, state.beneficiary.firstName)

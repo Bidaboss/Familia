@@ -117,6 +117,9 @@ class HomeActions(
     /** « Tous les voyages »: set while the trips module is on; the card then always shows. */
     val onOpenTrips: (() -> Unit)? = null,
     val onOpenPoll: (String) -> Unit = {},
+    /** « Tous les sondages » and « Nouveau sondage » of the block Sondages (BUG-1). */
+    val onOpenPolls: () -> Unit = {},
+    val onNewPoll: () -> Unit = {},
 )
 
 /** Connects the Accueil tab to its ViewModel; each module feeds its card only while it shows. */
@@ -255,9 +258,20 @@ fun HomeScreen(
         return
     }
     val month = YearMonth.from(ready.today).takeIf { onOpenMonth != null && isSlideshowTime(ready.today) }
-    val chips = homeChips(ready, actions, month, onOpenMonth, extras)
-    val toDo = ready.todos.isNotEmpty() || ready.voted.isNotEmpty() || joinMe?.hasShares == true || dailyNudge != null
-    if (!toDo && ready.week.isEmpty() && goodNews == null && discover == null && chips.isEmpty()) {
+    val toDo = ready.todos.isNotEmpty() || joinMe?.hasShares == true || dailyNudge != null
+    // Four blocks at most, in this priority (DESIGN, 16/11): a fifth, « À découvrir », becomes the
+    // first chip, with the same name, and opens its card under the row.
+    val blocks = listOf(toDo, ready.week.isNotEmpty(), ready.showsPolls, goodNews != null).count { it }
+    val discoverBlock = discover?.takeIf { blocks < HOME_BLOCKS }
+    val discoverChip = discover?.takeIf { blocks >= HOME_BLOCKS }?.let { d ->
+        HomeExtra(
+            "discover",
+            chip = { selected, toggle -> HomeChip(stringResource(R.string.discover_title), onClick = toggle, selected = selected) },
+            card = { DiscoverCard(d) },
+        )
+    }
+    val chips = listOfNotNull(discoverChip) + homeChips(ready, actions, month, onOpenMonth, extras)
+    if (!toDo && ready.week.isEmpty() && !ready.showsPolls && goodNews == null && discover == null && chips.isEmpty()) {
         EmptyState(
             icon = Icons.Outlined.CalendarMonth,
             title = stringResource(R.string.home_empty_title),
@@ -276,10 +290,11 @@ fun HomeScreen(
         contentPadding = ClaySpacing.list,
         verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
-        if (toDo) card("todo") { TodoCard(ready.todos, ready.today, actions, joinMe?.takeIf { it.hasShares }, dailyNudge, onOpenGoodNews, ready.voted) }
+        if (toDo) card("todo") { TodoCard(ready.todos, ready.today, actions, joinMe?.takeIf { it.hasShares }, dailyNudge, onOpenGoodNews) }
         if (ready.week.isNotEmpty()) card("week") { WeekCard(ready.week, ready.weekMore, ready.today, actions) }
+        if (ready.showsPolls) card("polls") { PollsCard(ready, actions) }
         if (goodNews != null) card("goodNews") { goodNews() }
-        if (discover != null) card("discover") { DiscoverCard(discover) }
+        if (discoverBlock != null) card("discover") { DiscoverCard(discoverBlock) }
         if (chips.isNotEmpty()) {
             card("chips") {
                 FlowRow(
@@ -297,6 +312,9 @@ fun HomeScreen(
         if (opened != null) card("open-$open") { opened() }
     }
 }
+
+/** The blocks of the Accueil before the chips (DESIGN-11). */
+private const val HOME_BLOCKS = 4
 
 /** The chips of the Accueil, in their order: those fed by the home screen, then the modules' [extras]. */
 @Composable
@@ -425,7 +443,6 @@ private fun TodoCard(
     joinMe: JoinMeHome?,
     dailyNudge: DailyNudge? = null,
     onOpenGoodNews: (String) -> Unit = {},
-    voted: List<HomeVoted> = emptyList(),
 ) {
     // A place sent to me tints the block for my foyer, as the « Rejoignez-moi » card did (récit 33).
     val tint = if (joinMe?.state?.received?.isNotEmpty() == true) ClayTint.Household else ClayTint.Plain
@@ -462,9 +479,27 @@ private fun TodoCard(
                 ) { RowIcon(Icons.Outlined.HowToVote) }
             }
         }
-        // The polls where I voted stay until their end, then show their result (retour d'essai du 16/11).
-        if (voted.isNotEmpty() && todos.isNotEmpty()) HorizontalDivider(Modifier.padding(vertical = 8.dp))
-        voted.forEach { item ->
+    }
+}
+
+/**
+ * « Sondages » (BUG-1): first those that wait for my vote, then those where I voted, until their
+ * end and two days with their result (retour d'essai du 16/11). « Nouveau sondage » for an adult,
+ * and « Tous les sondages ».
+ */
+@Composable
+private fun PollsCard(ready: HomeUiState.Ready, actions: HomeActions) {
+    ClayCard(modifier = Modifier.fillMaxWidth()) {
+        ClayCardTitle(stringResource(R.string.home_polls_title))
+        ready.pollsToVote.forEach { todo ->
+            HomeRow(
+                title = todo.poll.question,
+                detail = stringResource(R.string.home_todo_vote, todo.poll.authorName),
+                onClick = { actions.onOpenPoll(todo.poll.id) },
+                onClickLabel = stringResource(R.string.home_open_poll),
+            ) { RowIcon(Icons.Outlined.HowToVote) }
+        }
+        ready.voted.forEach { item ->
             HomeRow(
                 title = item.poll.question,
                 detail = votedDetail(item),
@@ -472,6 +507,12 @@ private fun TodoCard(
                 onClickLabel = stringResource(R.string.home_open_poll),
             ) { RowIcon(Icons.Outlined.HowToVote) }
         }
+        if (ready.canAskPoll) {
+            Button(onClick = actions.onNewPoll, modifier = Modifier.padding(top = 8.dp).heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.home_polls_new))
+            }
+        }
+        ClayLink(stringResource(R.string.home_polls_all), onClick = actions.onOpenPolls)
     }
 }
 
