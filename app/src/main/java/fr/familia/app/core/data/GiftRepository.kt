@@ -5,7 +5,9 @@ import fr.familia.app.core.model.GiftItem
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftShare
+import fr.familia.app.core.model.ReceivedGift
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 /**
  * Access to the gift lists (PRD, récits 7 to 10 bis). The security rules keep the surprise: each
@@ -65,4 +67,10 @@ interface GiftRepository {
      * birthday or the next Christmas of the beneficiary (PRD rév. 186). It is revealed the day after.
      */
     suspend fun setClaimOccasion(listId: String, itemId: String, occasion: GiftOccasion) {}
+
+    /** « On m'a offert » of the wishes [listId] (récit 10 bis). Only its owner and who keeps their lists read it. */
+    fun observeReceived(listId: String): Flow<List<ReceivedGift>> = flowOf(emptyList())
+
+    /** « Merci »: the owner of the wishes thanks the givers of [itemId]. */
+    suspend fun thank(listId: String, itemId: String) {}
 }

@@ -33,6 +33,10 @@ describe('wishes reveal logic', () => {
     assert.deepEqual(claimOccasion({ createdAt: made }, '1990-12-01', '2026-11-16'), { occasion: 'birthday', year: 2026 });
     // Without a date of birth, a birthday cannot be chosen: Christmas.
     assert.deepEqual(claimOccasion({ occasion: 'birthday', createdAt: made }, null, '2026-11-16'), { occasion: 'christmas', year: 2026 });
+    // Without a date (the rules always set one): the default from the day of the check, which
+    // keeps the gift hidden rather than reveal it too soon.
+    assert.deepEqual(claimOccasion({}, '1990-12-01', '2026-11-16'), { occasion: 'birthday', year: 2026 });
+    assert.deepEqual(claimOccasion({ occasion: 'christmas' }, '1990-12-01', '2026-12-26'), { occasion: 'christmas', year: 2027 });
     assert.equal(occasionDay({ occasion: 'birthday', year: 2027 }, '1990-03-14'), '2027-03-14');
     assert.equal(occasionDay({ occasion: 'christmas', year: 2026 }, null), '2026-12-25');
   });

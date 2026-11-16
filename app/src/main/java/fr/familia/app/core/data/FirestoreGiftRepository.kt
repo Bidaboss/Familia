@@ -12,6 +12,7 @@ import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftShare
+import fr.familia.app.core.model.ReceivedGift
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -178,6 +179,15 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
             .await()
     }
 
+    override fun observeReceived(listId: String): Flow<List<ReceivedGift>> =
+        db.collection(LISTS).document(listId).collection(RECEIVED).observe { it.toReceivedGift() }
+
+    override suspend fun thank(listId: String, itemId: String) {
+        db.collection(LISTS).document(listId).collection(RECEIVED).document(itemId)
+            .update(mapOf("thanked" to true, "thankedAt" to FieldValue.serverTimestamp()))
+            .await()
+    }
+
     private fun shareRef(listId: String, itemId: String, memberId: String) =
         db.collection(LISTS).document(listId).collection(CLAIMS).document(itemId).collection(SHARES).document(memberId)
 
@@ -257,10 +267,27 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
         )
     }
 
+    private fun DocumentSnapshot.toReceivedGift(): ReceivedGift? {
+        @Suppress("UNCHECKED_CAST")
+        val givers = (get("givers") as? List<Any?>)?.filterIsInstance<String>() ?: emptyList()
+        return ReceivedGift(
+            id = id,
+            title = getString("title") ?: return null,
+            url = getString("url"),
+            imageUrl = getString("imageUrl"),
+            givers = givers,
+            joint = getBoolean("joint") == true,
+            occasion = GiftOccasion.fromFirestore(getString("occasion")),
+            year = getLong("year")?.toInt(),
+            thanked = getBoolean("thanked") == true,
+        )
+    }
+
     private companion object {
         const val LISTS = "giftLists"
         const val ITEMS = "items"
         const val CLAIMS = "claims"
         const val SHARES = "shares"
+        const val RECEIVED = "received"
     }
 }
