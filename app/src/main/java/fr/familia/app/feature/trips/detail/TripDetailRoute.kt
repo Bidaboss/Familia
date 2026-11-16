@@ -65,6 +65,6 @@ fun TripDetailRoute(
         photos = photos,
         photoActions = photoActions,
         onOpenExpenses = onOpenExpenses,
-        onShare = shown?.takeIf { shareOn }?.let { success -> { share(context, tripShare(context, success.trip, success.today)) } },
+        onShare = shown?.takeIf { shareOn && it.canShare }?.let { success -> { share(context, tripShare(context, success.trip, success.today)) } },
     )
 }
