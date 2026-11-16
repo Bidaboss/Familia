@@ -28,6 +28,8 @@ data class MonthChallenge(
     val target: Int,
     val progress: Int,
     val achieved: Boolean,
+    /** The entry of the list it comes from (ChallengeCatalog); null for an older challenge. */
+    val choiceId: String? = null,
 ) {
     val fraction: Float get() = if (target <= 0) 0f else (progress.toFloat() / target).coerceIn(0f, 1f)
 }

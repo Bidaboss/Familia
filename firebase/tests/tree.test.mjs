@@ -1,8 +1,8 @@
 // L'arbre et le défi du mois (PRD, récit 35). Fictional family from helpers.mjs.
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { ADULT, STRANGER, as, createEnv, seed } from './helpers.mjs';
+import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import { ADMIN, ADULT, SECOND_ADMIN, STRANGER, as, createEnv, seed } from './helpers.mjs';
 
 let env;
 before(async () => { env = await createEnv(); });
@@ -48,5 +48,22 @@ describe('tree', () => {
     const settings = doc(as(env, ADULT), `members/${ADULT.memberId}/settings/notifications`);
     await assertSucceeds(setDoc(settings, { tree: false }));
     await assertFails(setDoc(settings, { tree: 'non' }));
+  });
+
+  test('only the admin principal picks the challenge of a month, from the list', async () => {
+    const pick = (who, month, data) => setDoc(doc(as(env, who), `challengePicks/${month}`), data);
+    await assertSucceeds(pick(ADMIN, '2027-01', { choiceId: 'kitchen', pickedAt: serverTimestamp() }));
+    await assertSucceeds(pick(ADMIN, '2027-01', { choiceId: 'pets', pickedAt: serverTimestamp() }));
+    await assertSucceeds(getDoc(doc(as(env, ADMIN), 'challengePicks/2027-01')));
+    // Not a chef de famille, not another adult, and only a challenge of the list.
+    await assertFails(pick(SECOND_ADMIN, '2027-01', { choiceId: 'kitchen', pickedAt: serverTimestamp() }));
+    await assertFails(pick(ADULT, '2027-01', { choiceId: 'kitchen', pickedAt: serverTimestamp() }));
+    await assertFails(getDoc(doc(as(env, ADULT), 'challengePicks/2027-01')));
+    await assertFails(pick(ADMIN, '2027-01', { choiceId: '1000 photos', pickedAt: serverTimestamp() }));
+    await assertFails(pick(ADMIN, '2027-01', { choiceId: 'kitchen', pickedAt: serverTimestamp(), target: 1 }));
+    await assertFails(pick(ADMIN, '2027-13', { choiceId: 'kitchen', pickedAt: serverTimestamp() }));
+    await assertFails(pick(ADMIN, 'janvier', { choiceId: 'kitchen', pickedAt: serverTimestamp() }));
+    await assertFails(pick(ADMIN, '2027-02', { choiceId: 'kitchen', pickedAt: new Date('2020-01-01') }));
+    await assertFails(deleteDoc(doc(as(env, ADMIN), 'challengePicks/2027-01')));
   });
 });

@@ -33,7 +33,7 @@ import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPh
 import {
   countGesture, countHelpGiven, deleteSouvenirsOf, giveSouvenir, giveYearSouvenirs, isNewWeeklyAnswer, souvenirMark,
 } from './souvenirs';
-import { addLeaf, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
+import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
 initializeApp();
 
@@ -256,6 +256,12 @@ export const onGoodNewsCreated = onDocumentCreated('goodNews/{postId}', async (e
     const achieved = await countForChallenge(getFirestore(), postId, data.photoIds?.length ?? 0, now);
     if (achieved) await celebrateChallenge(getFirestore(), send, achieved, now);
   });
+});
+
+/** The admin principal picked the challenge of a month in Administration (récit 35). */
+export const onChallengePicked = onDocumentWritten('challengePicks/{month}', async (event) => {
+  if (!event.data?.after.exists) return;
+  await grow('challengePick', () => applyChallengePick(getFirestore(), event.params.month, new Date()));
 });
 
 export const onGoodNewsUpdated = onDocumentUpdated('goodNews/{postId}', async (event) => {
