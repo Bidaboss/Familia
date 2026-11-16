@@ -69,6 +69,7 @@ import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import androidx.compose.ui.semantics.contentDescription
 import fr.familia.app.core.ui.MemberAvatar
@@ -119,7 +120,7 @@ fun PlanningScreen(
             is PlanningUiState.Success -> Column(Modifier.fillMaxSize()) {
                 // One row (audit DESIGN n°3): « Mois | Liste » on the left, « Mon foyer » on the right.
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -267,7 +268,7 @@ private fun MonthView(
 
 @Composable
 private fun MonthNavigation(month: YearMonth, canGoBack: Boolean, canGoForward: Boolean, onPrevious: () -> Unit, onNext: () -> Unit) {
-    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             month.format(monthFormatter).replaceFirstChar { it.titlecase(Locale.FRANCE) },
             style = MaterialTheme.typography.titleLarge,
@@ -368,7 +369,7 @@ private fun EventRow(item: PlanningItem, onClick: () -> Unit) {
                 .fillMaxWidth()
                 .clickable(onClickLabel = openLabel, onClick = onClick)
                 .heightIn(min = 56.dp)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
             verticalAlignment = Alignment.Top,
         ) {
             Text(
@@ -424,7 +425,7 @@ private fun TripRow(item: PlanningTrip, today: LocalDate, onClick: () -> Unit) {
                 .fillMaxWidth()
                 .clickable(onClickLabel = stringResource(R.string.trips_open_action), onClick = onClick)
                 .heightIn(min = 56.dp)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
             verticalAlignment = Alignment.Top,
         ) {
             Box(Modifier.widthIn(min = 72.dp)) {
@@ -463,7 +464,7 @@ private fun BirthdayRow(birthday: Birthday, onShare: (() -> Unit)? = null) {
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 56.dp)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
             verticalAlignment = Alignment.Top,
         ) {
             Box(Modifier.widthIn(min = 72.dp)) {

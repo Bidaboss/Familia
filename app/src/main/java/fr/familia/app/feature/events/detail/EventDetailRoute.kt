@@ -38,6 +38,8 @@ fun EventDetailRoute(
     onEdit: () -> Unit,
     onBack: () -> Unit,
     onOpenAlbum: () -> Unit = {},
+    /** « Comptes de l'événement » (PRODUIT-57), wired once the expenses screens exist. */
+    onOpenExpenses: (() -> Unit)? = null,
 ) {
     val viewModel: EventDetailViewModel = viewModel(
         factory = viewModelFactory {
@@ -62,6 +64,7 @@ fun EventDetailRoute(
     val context = LocalContext.current
     val calendarOn = LocalFeatureFlags.current.isOn(Feature.Calendar)
     val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)
+    val expensesOn = LocalFeatureFlags.current.isOn(Feature.Expenses)
     val shown = state as? EventDetailUiState.Success
     EventDetailScreen(
         state = state,
@@ -71,6 +74,7 @@ fun EventDetailRoute(
         onShare = shown?.takeIf { shareOn }?.let { success ->
             { share(context, eventShare(context, success.event, success.today)) }
         },
+        onOpenExpenses = onOpenExpenses?.takeIf { expensesOn && shown != null && canOpenExpenses(shown, currentMember) },
         onAnswer = viewModel::answer,
         onRetry = viewModel::retry,
         onEdit = onEdit,

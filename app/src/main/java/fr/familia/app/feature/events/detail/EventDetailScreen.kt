@@ -2,12 +2,8 @@ package fr.familia.app.feature.events.detail
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,8 +28,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Event
-import androidx.compose.material.icons.outlined.EventAvailable
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -67,6 +61,9 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.RsvpStatus
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClayLink
+import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.dayTitle
@@ -75,6 +72,14 @@ import fr.familia.app.feature.events.edit.TargetChoice
 import fr.familia.app.feature.events.edit.targetLabel
 import java.time.LocalDate
 import java.time.LocalTime
+
+/**
+ * « Comptes de l'événement » (PRODUIT-57) opens for an adult who answered « Je viens », or for the
+ * author of the event. « Peut-être » does not count, and a child never sees it.
+ */
+internal fun canOpenExpenses(state: EventDetailUiState.Success, me: Member): Boolean =
+    me.profile == MemberProfile.Adult &&
+        (state.event.authorId == me.id || state.answerers.any { it.isMe && it.status == RsvpStatus.Yes })
 
 /** An event, read only, and "qui vient" for the member and their children. Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,6 +95,8 @@ fun EventDetailScreen(
     onAddToCalendar: (() -> Unit)? = null,
     /** « Partager » vers une messagerie (PRD, récit 31); hidden when null. */
     onShare: (() -> Unit)? = null,
+    /** « Comptes de l'événement » (PRODUIT-57), set only for whom [canOpenExpenses] lets in; hidden when null. */
+    onOpenExpenses: (() -> Unit)? = null,
     album: @Composable () -> Unit = {},
 ) {
     Scaffold(
@@ -130,7 +137,7 @@ fun EventDetailScreen(
                         }
                     },
                 )
-                is EventDetailUiState.Success -> Content(state, onAnswer, onEdit, onAddToCalendar, album)
+                is EventDetailUiState.Success -> Content(state, onAnswer, onEdit, onAddToCalendar, onOpenExpenses, album)
             }
         }
     }
@@ -142,6 +149,7 @@ private fun Content(
     onAnswer: (String, RsvpStatus) -> Unit,
     onEdit: () -> Unit,
     onAddToCalendar: (() -> Unit)?,
+    onOpenExpenses: (() -> Unit)?,
     album: @Composable () -> Unit,
 ) {
     val event = state.event
@@ -150,7 +158,7 @@ private fun Content(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(event.title, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
@@ -178,11 +186,7 @@ private fun Content(
 
         HorizontalDivider(Modifier.padding(vertical = 8.dp))
 
-        Text(
-            stringResource(R.string.rsvp_title),
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.semantics { heading() },
-        )
+        ClayCardTitle(stringResource(R.string.rsvp_title))
         state.answerers.forEach { AnswerRow(it, onAnswer) }
         if (state.sendFailed) {
             Text(
@@ -196,25 +200,13 @@ private fun Content(
         // « N viennent » with their avatars; a tap shows every answer (DESIGN-5).
         ComingLine(state, onClick = { showAnswers = true })
 
-        if (onAddToCalendar != null) {
-            OutlinedButton(
-                onClick = onAddToCalendar,
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp).heightIn(min = 56.dp),
-            ) {
-                Icon(Icons.Outlined.EventAvailable, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
-                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                Text(stringResource(R.string.calendar_add), style = MaterialTheme.typography.labelLarge)
-            }
-        }
+        // Secondary actions are links (DESIGN-11): the one filled action of the screen is the answer.
+        onAddToCalendar?.let { ClayLink(stringResource(R.string.calendar_add), onClick = it) }
+        onOpenExpenses?.let { ClayLink(stringResource(R.string.event_detail_expenses), onClick = it) }
         // The album of the event (récit 41), when its module is on.
         album()
         if (state.canManage) {
-            OutlinedButton(
-                onClick = onEdit,
-                modifier = Modifier.fillMaxWidth().padding(top = if (onAddToCalendar != null) 8.dp else 16.dp).heightIn(min = 56.dp),
-            ) {
-                Text(stringResource(R.string.event_detail_edit), style = MaterialTheme.typography.labelLarge)
-            }
+            ClayLink(stringResource(R.string.event_detail_edit), onClick = onEdit)
         }
     }
     if (showAnswers) {

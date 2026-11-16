@@ -19,6 +19,7 @@
     <string name="planning_mode_list">Liste</string>
     <string name="event_detail_title">Événement</string>
     <string name="event_detail_edit">Modifier</string>
+    <string name="event_detail_expenses">Comptes de l\'événement</string>
     <string name="event_detail_when">%1$s à %2$s</string>
     <string name="event_detail_missing_title">Cet événement n\'existe plus</string>
     <string name="event_detail_missing_body">Il a sans doute été supprimé.</string>

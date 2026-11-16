@@ -318,3 +318,8 @@ Avec le module « La bienvenue » allumé, un membre ajouté qui ne s'est jamais
 2. Touche la notification. **Attendu :** la fiche du nouveau membre s'ouvre.
 3. Déconnecte-toi, puis reconnecte-toi avec ce compte. **Attendu :** aucune nouvelle notification.
 4. Fais de même avec un membre du foyer de test. **Attendu :** aucune notification.
+
+## Planning et fiche d'un événement (DESIGN-11)
+1. Planning : les marges sur les côtés passent à 20 dp, la liste reste la même.
+2. Fiche d'un événement : « Ajouter à mon agenda » et « Modifier » deviennent des liens « › ». Le seul bouton plein reste la réponse.
+3. « Comptes de l'événement › » n'apparaît pas encore : il sera branché quand les écrans des comptes seront fusionnés. Il ne s'affichera qu'avec le module Dépenses allumé, pour un adulte qui a répondu « Je viens » ou pour l'auteur de l'événement.
