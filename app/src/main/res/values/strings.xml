@@ -659,6 +659,8 @@
     <string name="channel_good_news_description">Quand quelqu\'un de la famille partage une bonne nouvelle</string>
     <string name="notifications_good_news">Bonnes nouvelles</string>
     <string name="notifications_good_news_help">Être prévenu quand quelqu\'un partage une bonne nouvelle. Si ton enfant en publie une, tu es toujours prévenu.</string>
+    <string name="notifications_weekly">Question de la semaine</string>
+    <string name="notifications_weekly_help">Être prévenu le lundi quand la nouvelle question arrive. Elle reste visible sur l\'Accueil.</string>
     <!-- Voyages (V3, récits 11, 12 et 14), fil [DEV] voyage -->
     <string name="trips_title">Voyages</string>
     <string name="channel_trips">Voyages</string>

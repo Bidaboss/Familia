@@ -37,11 +37,12 @@ class NotificationSettingsViewModel(
             if (notifications == null) {
                 flowOf(NotificationSettingsUiState.Ready(dayBeforeReminder = true)) // Previews, no Firebase.
             } else {
-                combine<Boolean, Boolean, Boolean, NotificationSettingsUiState>(
+                combine<Boolean, Boolean, Boolean, Boolean, NotificationSettingsUiState>(
                     notifications.observeDayBeforeReminder(memberId),
                     notifications.observeGoodNews(memberId),
+                    notifications.observeWeekly(memberId),
                     saveFailed,
-                ) { on, goodNews, failed -> NotificationSettingsUiState.Ready(on, failed, goodNews) }
+                ) { on, goodNews, weekly, failed -> NotificationSettingsUiState.Ready(on, failed, goodNews, weekly) }
                     .onStart { if (n > 0) emit(NotificationSettingsUiState.Loading) }
                     .catch { e ->
                         if (e is CancellationException) throw e
@@ -59,6 +60,9 @@ class NotificationSettingsViewModel(
 
     /** Bonnes nouvelles (récit 32). Never mutes the notice to the parents when a child publishes. */
     fun setGoodNews(enabled: Boolean) = save { it.setGoodNews(memberId, enabled) }
+
+    /** Question de la semaine (récit 37): only the Monday notice, the question stays on the home screen. */
+    fun setWeekly(enabled: Boolean) = save { it.setWeekly(memberId, enabled) }
 
     private fun save(write: suspend (NotificationRepository) -> Unit) {
         val repo = notifications ?: return

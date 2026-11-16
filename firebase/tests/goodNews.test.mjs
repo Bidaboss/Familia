@@ -216,5 +216,7 @@ describe('notification setting', () => {
     await assertSucceeds(setDoc(settings, { goodNews: false }));
     await assertSucceeds(setDoc(settings, { dayBeforeReminder: true, goodNews: true }));
     await assertFails(setDoc(settings, { goodNews: 'non' }));
+    await assertSucceeds(setDoc(settings, { dayBeforeReminder: true, goodNews: true, weekly: false }));
+    await assertFails(setDoc(settings, { weekly: 'non' }));
   });
 });
