@@ -4,10 +4,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -20,7 +22,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -70,12 +71,7 @@ fun RecipeDetailScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.recipe_title)) },
                 navigationIcon = { BackButton(onClick = onBack) },
-                actions = {
-                    if (state is RecipeDetailUiState.Ready) {
-                        IconButton(onClick = onShare) { Icon(Icons.Outlined.Share, contentDescription = stringResource(R.string.recipe_share)) }
-                    }
-                    HelpButton(ScreenHelp.Recipes)
-                },
+                actions = { HelpButton(ScreenHelp.Recipes) },
             )
         },
     ) { padding ->
@@ -87,7 +83,7 @@ fun RecipeDetailScreen(
                     title = stringResource(R.string.recipe_missing_title),
                     body = stringResource(R.string.recipe_missing_body),
                 )
-                is RecipeDetailUiState.Ready -> Content(state, onEdit, onRemove, photos, comments)
+                is RecipeDetailUiState.Ready -> Content(state, onEdit, onRemove, onShare, photos, comments)
             }
         }
     }
@@ -98,6 +94,7 @@ private fun Content(
     state: RecipeDetailUiState.Ready,
     onEdit: () -> Unit,
     onRemove: () -> Unit,
+    onShare: () -> Unit,
     photos: @Composable () -> Unit,
     comments: @Composable () -> Unit,
 ) {
@@ -128,6 +125,12 @@ private fun Content(
             recipe.stepLines.forEachIndexed { index, line -> Line("${index + 1}.", line) }
         }
         Text(stringResource(R.string.recipe_written_by, recipe.authorName), style = MaterialTheme.typography.bodyMedium, color = muted)
+        // Sent as a text, never with the photos (carte EXPERT-6).
+        OutlinedButton(onClick = onShare, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+            Icon(Icons.Outlined.Share, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.recipe_share))
+        }
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             SectionTitle(stringResource(R.string.recipe_comments_title))
             comments()
