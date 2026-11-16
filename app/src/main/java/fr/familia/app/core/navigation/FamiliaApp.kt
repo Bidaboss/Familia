@@ -540,6 +540,7 @@ fun FamiliaApp(
                                 },
                                 onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
                                 onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
+                                onOpenPoll = { id -> navController.navigate(PollDetailDestination(id)) },
                                 onNewTrip = { navController.navigate(TripEditDestination()) },
                                 onOpenTrips = if (features.isOn(Feature.Trips)) {
                                     { navController.navigate(TripsDestination) { launchSingleTop = true } }
