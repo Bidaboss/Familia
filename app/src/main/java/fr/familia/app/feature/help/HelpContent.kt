@@ -45,6 +45,7 @@ enum class HelpTopic(
     Answers(R.string.help_topic_answers_title, R.string.help_topic_answers_body),
     Calendar(R.string.help_topic_calendar_title, R.string.help_topic_calendar_body, feature = Feature.Calendar),
     Polls(R.string.help_topic_polls_title, R.string.help_topic_polls_body, feature = Feature.Polls),
+    Bring(R.string.help_topic_bring_title, R.string.help_topic_bring_body, feature = Feature.Bring),
     Notifications(R.string.help_topic_notifications_title, R.string.help_topic_notifications_body),
     HelpRequests(R.string.help_topic_help_requests_title, R.string.help_topic_help_requests_body, feature = Feature.HelpRequests),
     Family(R.string.help_topic_family_title, R.string.help_topic_family_body),

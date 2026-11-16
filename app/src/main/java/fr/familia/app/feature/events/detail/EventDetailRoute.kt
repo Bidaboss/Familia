@@ -23,6 +23,7 @@ import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.events.album.EventAlbumSection
+import fr.familia.app.feature.events.bring.BringSection
 import fr.familia.app.feature.events.album.isAlbumOpen
 
 /** Connects the event view to its ViewModel, and closes it when the event is deleted meanwhile. */
@@ -69,6 +70,11 @@ fun EventDetailRoute(
         onBack = onBack,
         album = {
             val success = state as? EventDetailUiState.Success
+            // « Qui apporte quoi » (récit 4 bis), before the album.
+            if (success != null && LocalFeatureFlags.current.isOn(Feature.Bring)) {
+                HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                BringSection(container, currentMember, eventId, success.canManage)
+            }
             if (success != null && LocalFeatureFlags.current.isOn(Feature.EventAlbums)) {
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
                 EventAlbumSection(container, currentMember, eventId, isAlbumOpen(success.event, success.today), onOpenAlbum)

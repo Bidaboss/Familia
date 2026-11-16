@@ -202,6 +202,7 @@
     <string name="feature_weekly_question">Question de la semaine</string>
     <string name="feature_calendar">Ajouter à mon agenda</string>
     <string name="feature_polls">Sondages</string>
+    <string name="feature_bring">Qui apporte quoi</string>
     <string name="feature_event_albums">Albums des événements</string>
     <string name="feature_souvenirs">Souvenirs</string>
     <string name="feature_tree">Arbre de la famille</string>
@@ -1227,6 +1228,26 @@
     <string name="poll_action_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
     <string name="help_topic_polls_title">Les sondages</string>
     <string name="help_topic_polls_body">Depuis le Planning, touche l\'icône des sondages. « Trouver une date » propose jusqu\'à 5 dates : chacun répond oui, peut-être ou non. « Choix libre » propose jusqu\'à 6 réponses. Les parents répondent pour leurs enfants qui n\'ont pas l\'appli. Celui qui a lancé le sondage le termine, et pour une date, l\'ajoute au planning : ceux qui ont dit oui y sont inscrits.</string>
+    <!-- Qui apporte quoi (récit 4 bis) -->
+    <string name="bring_title">Qui apporte quoi</string>
+    <string name="bring_empty">Ajoute ce qu\'il faut apporter : entrée, plat, dessert, boissons, pain… Chacun coche ce dont il se charge.</string>
+    <string name="bring_add_label">À apporter</string>
+    <string name="bring_add_hint">Le dessert</string>
+    <string name="bring_add_take">Je m\'en charge</string>
+    <string name="bring_add">Ajouter à la liste</string>
+    <string name="bring_too_long">60 caractères au plus.</string>
+    <string name="bring_free">Personne pour l\'instant</string>
+    <string name="bring_by">Apporté par %1$s</string>
+    <string name="bring_by_me">C\'est moi qui l\'apporte</string>
+    <string name="bring_take">Je m\'en charge</string>
+    <string name="bring_release_mine">Je ne peux plus</string>
+    <string name="bring_release">Libérer</string>
+    <string name="bring_delete">Retirer %1$s de la liste</string>
+    <string name="bring_delete_title">Retirer « %1$s » de la liste ?</string>
+    <string name="bring_delete_confirm">Retirer</string>
+    <string name="bring_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
+    <string name="help_topic_bring_title">Qui apporte quoi</string>
+    <string name="help_topic_bring_body">Dans un événement, ajoute ce qu\'il faut apporter et touche « Je m\'en charge » pour une ligne libre. Ton prénom s\'affiche : personne n\'apporte deux fois le dessert. « Je ne peux plus » la libère. La veille, le rappel te dit ce que tu apportes.</string>
 
     <!-- L'arbre de la famille et le défi du mois (récit 35) -->
     <string name="tree_title">L\'arbre de la famille</string>

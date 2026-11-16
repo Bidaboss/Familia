@@ -1,6 +1,7 @@
 // What the functions read and write in Firestore. Each function takes the database and the
 // sender as parameters, so the tests run them against the emulator with a fake sender.
 
+import { FieldValue } from 'firebase-admin/firestore';
 import type { Firestore } from 'firebase-admin/firestore';
 import {
   changeNotice, changeRecipients, ChangeKind, EventData, Member, Notice, parisDay, addDays, reminders, RsvpStatus,
@@ -44,10 +45,15 @@ export async function notify(db: Firestore, send: Sender, memberIds: string[], n
   return sent;
 }
 
-/** Whether « Ajouter à mon agenda » (récit 30) is switched on for the family in config/app. */
-async function calendarOn(db: Firestore): Promise<boolean> {
+/** Whether a module is switched on for the family in config/app (Administration > Modules). */
+export async function featureOn(db: Firestore, key: string): Promise<boolean> {
   const features = (await db.collection('config').doc('app').get()).get('features') as Record<string, boolean> | undefined;
-  return features?.calendar === true;
+  return features?.[key] === true;
+}
+
+/** Whether « Ajouter à mon agenda » (récit 30) is switched on for the family. */
+async function calendarOn(db: Firestore): Promise<boolean> {
+  return featureOn(db, 'calendar');
 }
 
 /**
@@ -85,9 +91,20 @@ export async function comingMembers(db: Firestore, eventId: string, members?: Me
   return coming;
 }
 
-/** The answers of a deleted event are useless and would stay readable: they go with it. */
+/** The answers and the « qui apporte quoi » list of a deleted event are useless and would stay readable: they go with it. */
 export async function deleteEventAnswers(db: Firestore, eventId: string): Promise<void> {
   await db.recursiveDelete(db.collection('events').doc(eventId).collection('rsvps'));
+  await db.recursiveDelete(db.collection('events').doc(eventId).collection('bring'));
+}
+
+/** « Qui apporte quoi » (récit 4 bis): what a member who left had taken is free again. */
+export async function releaseBringOf(db: Firestore, memberId: string): Promise<void> {
+  const taken = await db.collectionGroup('bring').where('takerId', '==', memberId).get();
+  const writer = db.bulkWriter();
+  for (const item of taken.docs) {
+    writer.update(item.ref, { takerId: null, takerName: null, updatedAt: FieldValue.serverTimestamp() });
+  }
+  await writer.close();
 }
 
 /**
@@ -114,12 +131,22 @@ export async function sendDayBeforeReminders(db: Firestore, send: Sender, now: D
   const events = await db.collection('events').where('date', '==', tomorrow).get();
   if (events.empty) return 0;
   const members = await loadMembers(db);
+  // « Qui apporte quoi » (récit 4 bis): the reminder says what each one brings.
+  const bringOn = await featureOn(db, 'bring');
   let sent = 0;
   for (const event of events.docs) {
     const answers = new Map<string, RsvpStatus>();
     const rsvps = await event.ref.collection('rsvps').get();
     rsvps.docs.forEach((r) => answers.set(r.id, r.get('status')));
-    const all = reminders(members, event.id, event.data() as EventData, answers, new Set());
+    const bringing = new Map<string, string[]>();
+    if (bringOn) {
+      const items = await event.ref.collection('bring').get();
+      items.docs
+        .filter((i) => typeof i.get('takerId') === 'string')
+        .sort((a, b) => String(a.get('label')).localeCompare(String(b.get('label')), 'fr'))
+        .forEach((i) => bringing.set(i.get('takerId'), [...(bringing.get(i.get('takerId')) ?? []), i.get('label')]));
+    }
+    const all = reminders(members, event.id, event.data() as EventData, answers, new Set(), bringing);
     const off = await remindersOff(db, all.map((r) => r.recipientId));
     for (const reminder of all) {
       if (off.has(reminder.recipientId)) continue;
