@@ -1,5 +1,6 @@
 package fr.familia.app.feature.members.profile
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -85,7 +86,7 @@ fun MemberProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text((state as? MemberProfileUiState.Ready)?.member?.firstName.orEmpty()) },
+                title = { Text((state as? MemberProfileUiState.Ready)?.member?.firstName.orEmpty(), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = {
                     // « Modifier » up on the right, for those who may (DESIGN, 16/11): never from the list.

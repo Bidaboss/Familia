@@ -1,5 +1,6 @@
 package fr.familia.app.feature.members.edit
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -137,6 +138,8 @@ fun MemberEditScreen(
                                 else -> R.string.member_add_title
                             },
                         ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 },
                 navigationIcon = {

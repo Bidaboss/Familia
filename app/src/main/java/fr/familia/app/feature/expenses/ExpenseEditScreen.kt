@@ -1,5 +1,6 @@
 package fr.familia.app.feature.expenses
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -79,7 +80,7 @@ fun ExpenseEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(if (editing?.isNew == false) R.string.expense_edit_title else R.string.expenses_add)) },
+                title = { Text(stringResource(if (editing?.isNew == false) R.string.expense_edit_title else R.string.expenses_add), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onDone) },
             )
         },

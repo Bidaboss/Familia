@@ -1,5 +1,6 @@
 package fr.familia.app.feature.goodnews.detail
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,7 +57,7 @@ fun GoodNewsDetailScreen(
     var removing by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.goodnews_detail_title)) }, navigationIcon = { BackButton(onClick = onBack) })
+            TopAppBar(title = { Text(stringResource(R.string.goodnews_detail_title), maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) })
         },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {

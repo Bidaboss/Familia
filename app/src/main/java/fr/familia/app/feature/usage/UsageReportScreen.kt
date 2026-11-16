@@ -1,5 +1,6 @@
 package fr.familia.app.feature.usage
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -62,7 +63,7 @@ fun UsageReportScreen(state: UsageUiState, onRetry: () -> Unit, onBack: () -> Un
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(if (full || state !is UsageUiState.Ready) R.string.usage_title else R.string.usage_children_title)) },
+                title = { Text(stringResource(if (full || state !is UsageUiState.Ready) R.string.usage_title else R.string.usage_children_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
             )
         },

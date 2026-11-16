@@ -1,5 +1,6 @@
 package fr.familia.app.feature.goodnews.edit
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -97,7 +98,7 @@ fun GoodNewsEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(if (editing?.isNew == false) R.string.goodnews_edit_title else R.string.goodnews_publish_title)) },
+                title = { Text(stringResource(if (editing?.isNew == false) R.string.goodnews_edit_title else R.string.goodnews_publish_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
                     BackButton(onClick = { if (hasContent && editing?.isSaving == false) confirmLeave = true else if (editing?.isSaving != true) onBack() })
                 },
