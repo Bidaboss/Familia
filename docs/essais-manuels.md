@@ -192,6 +192,16 @@ Avant ces essais : « Publier Firebase » a publié la page des liens (Hosting),
 6. Ouvre `https://familia-93286.web.app/o/event/` (sans identifiant). **Attendu :** la page dit que le lien n'est pas complet, sans bouton « Ouvrir ».
 7. Éteins le module. **Attendu :** les icônes Partager disparaissent pour tout le monde sauf l'admin principal.
 
+## Défi lancé par un foyer (récit 35 bis)
+
+Avec le module « Arbre » visible (admin principal, ou module allumé), deux comptes du même foyer : un adulte et un enfant avec l'appli.
+
+1. Administration > « Ordre des foyers » : mets ton foyer en premier, puis touche « Enregistrer l'ordre ». **Attendu :** ton foyer est en face du mois prochain, les autres suivent, un mois chacun.
+2. À partir de 7 jours avant le mois prochain, ouvre l'Accueil. **Attendu :** la carte de l'arbre dit « C'est à vous de lancer le défi de … ! » avec « Préparer le défi ».
+3. Avec le compte enfant, touche « Préparer le défi », choisis « Cuisine », un objectif, puis un nom, un emoji et une illustration. À l'aperçu, touche « Enregistrer pour le foyer ». **Attendu :** pas de bouton « Publier » ni « Passer notre tour » ; la phrase « Un adulte du foyer le publiera. »
+4. Avec le compte adulte, rouvre le guide. **Attendu :** le brouillon de l'enfant est là. Touche « Publier le défi ». **Attendu :** le guide se ferme et la bannière disparaît de l'Accueil.
+5. Avec un autre foyer, refais l'étape 2 au mois de son tour, puis touche « Passer notre tour » et confirme. **Attendu :** la bannière disparaît, et le défi du mois reste celui de Familia.
+
 ## Commentaires sous un événement (récit 28)
 
 Avant ces essais : « Publier Firebase » a publié les règles, l'index TTL et les fonctions, et le module « Commentaires sous les événements » est allumé dans Administration > Modules.

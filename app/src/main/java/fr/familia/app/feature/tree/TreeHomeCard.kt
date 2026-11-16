@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -34,11 +36,13 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.FamilyTree
+import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MonthChallenge
 import fr.familia.app.core.model.TreeSeason
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.FamiliaPreviews
+import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 import kotlin.math.cos
@@ -46,18 +50,24 @@ import kotlin.math.sin
 
 /** The card of l'arbre de la famille (récit 35) on the Accueil, behind Feature.Tree. */
 @Composable
-fun TreeHomeCard(container: AppContainer?, modifier: Modifier = Modifier) {
-    val month = YearMonth.now(ZoneId.of("Europe/Paris"))
+fun TreeHomeCard(
+    container: AppContainer?,
+    modifier: Modifier = Modifier,
+    currentMember: Member? = null,
+    /** Opens the guide of the challenge of the foyer (récit 35 bis) for that month. */
+    onPrepareChallenge: (YearMonth) -> Unit = {},
+) {
+    val today = LocalDate.now(ZoneId.of("Europe/Paris"))
     val viewModel: TreeViewModel = viewModel(
-        key = "treeHome-$month",
-        factory = viewModelFactory { initializer { TreeViewModel(container?.treeRepository, month) } },
+        key = "treeHome-$today-${currentMember?.householdId}",
+        factory = viewModelFactory { initializer { TreeViewModel(container?.treeRepository, today, currentMember?.householdId) } },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    state?.let { TreeHomeContent(it, modifier) }
+    state?.let { TreeHomeContent(it, modifier, onPrepareChallenge) }
 }
 
 @Composable
-fun TreeHomeContent(state: TreeUiState, modifier: Modifier = Modifier) {
+fun TreeHomeContent(state: TreeUiState, modifier: Modifier = Modifier, onPrepareChallenge: (YearMonth) -> Unit = {}) {
     val tree = state.tree
     ClayCard(modifier = modifier.fillMaxWidth()) {
         Text(stringResource(R.string.tree_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
@@ -75,6 +85,23 @@ fun TreeHomeContent(state: TreeUiState, modifier: Modifier = Modifier) {
             }
         }
         state.challenge?.let { ChallengeGauge(it) }
+        state.hostTurn?.let { month -> HostTurn(month, onPrepareChallenge) }
+    }
+}
+
+/** « C'est à vous de lancer le défi de janvier ! » for the foyer whose turn it is (récit 35 bis). */
+@Composable
+private fun HostTurn(month: YearMonth, onPrepare: (YearMonth) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(R.string.tree_host_turn, ofMonth(month)), style = MaterialTheme.typography.titleMedium)
+        Text(
+            stringResource(R.string.tree_host_turn_help),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Button(onClick = { onPrepare(month) }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+            Text(stringResource(R.string.tree_host_prepare))
+        }
     }
 }
 

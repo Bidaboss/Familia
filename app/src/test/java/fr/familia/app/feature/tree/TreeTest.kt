@@ -91,7 +91,7 @@ class TreeTest {
     @Test
     fun `the card shows the tree, then the challenge once the server has it`() = runTest {
         val repo = FakeTree()
-        val vm = TreeViewModel(repo, december)
+        val vm = TreeViewModel(repo, december.atDay(5))
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         assertNull(vm.uiState.value?.challenge)
         repo.tree.value = FamilyTree(42)
