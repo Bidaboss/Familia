@@ -1,5 +1,6 @@
 package fr.familia.app.feature.gifts.notebook
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,11 +21,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -68,6 +72,7 @@ import fr.familia.app.feature.gifts.occasionLabel
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpLink
 import fr.familia.app.feature.help.ScreenHelp
+import java.time.LocalDate
 
 /** What the notebook screen can ask for. */
 data class NotebookActions(
@@ -75,7 +80,11 @@ data class NotebookActions(
     val onRetry: () -> Unit = {},
     val onSelect: (NotebookOccasion) -> Unit = {},
     val onSetStatus: (NotebookEntry, GiftStatus) -> Unit = { _, _ -> },
+    val onSetOccasion: (NotebookEntry, NotebookOccasion) -> Unit = { _, _ -> },
     val onOpenList: (listId: String) -> Unit = {},
+    /** A new private idea, at the occasion shown. */
+    val onAddIdea: (at: NotebookOccasion?) -> Unit = {},
+    val onEditIdea: (entryId: String) -> Unit = {},
 )
 
 /** « Mes cadeaux à offrir »: one card per person for the chosen occasion. Stateless. */
@@ -90,6 +99,15 @@ fun NotebookScreen(state: NotebookUiState, actions: NotebookActions, modifier: M
                 navigationIcon = { BackButton(onClick = actions.onBack) },
                 actions = { HelpButton(ScreenHelp.Notebook) },
             )
+        },
+        floatingActionButton = {
+            if (state is NotebookUiState.Success) {
+                ExtendedFloatingActionButton(
+                    onClick = { actions.onAddIdea(state.selected) },
+                    icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                    text = { Text(stringResource(R.string.notebook_add_idea)) },
+                )
+            }
         },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
@@ -117,7 +135,7 @@ private fun Content(state: NotebookUiState.Success, actions: NotebookActions) {
     var openEntryId by rememberSaveable { mutableStateOf<String?>(null) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 32.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item(key = "private") {
@@ -225,7 +243,7 @@ private fun GiftRow(entry: NotebookEntry, variant: Color, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 56.dp)
-            .selectable(selected = false, role = Role.Button, onClick = onClick)
+            .clickable(role = Role.Button, onClick = onClick)
             .padding(vertical = 6.dp),
         verticalArrangement = Arrangement.Center,
     ) {
@@ -263,9 +281,14 @@ private fun StatusSheet(entry: NotebookEntry, actions: NotebookActions, onDismis
                 actions.onSetStatus(entry, status)
                 onDismiss()
             },
+            onSetOccasion = { occasion -> actions.onSetOccasion(entry, occasion) },
             onOpenList = { listId ->
                 onDismiss()
                 actions.onOpenList(listId)
+            },
+            onEdit = {
+                onDismiss()
+                actions.onEditIdea(entry.id)
             },
         )
     }
@@ -273,7 +296,15 @@ private fun StatusSheet(entry: NotebookEntry, actions: NotebookActions, onDismis
 
 /** Where a gift stands, chosen in one touch. Apart for screenshots. */
 @Composable
-internal fun StatusSheetContent(entry: NotebookEntry, onSetStatus: (GiftStatus) -> Unit, onOpenList: (String) -> Unit) {
+@OptIn(ExperimentalLayoutApi::class)
+internal fun StatusSheetContent(
+    entry: NotebookEntry,
+    onSetStatus: (GiftStatus) -> Unit,
+    onOpenList: (String) -> Unit,
+    onEdit: () -> Unit = {},
+    onSetOccasion: (NotebookOccasion) -> Unit = {},
+    thisYear: Int = LocalDate.now().year,
+) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).navigationBarsPadding()) {
         Text(entry.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         Text(
@@ -296,14 +327,40 @@ internal fun StatusSheetContent(entry: NotebookEntry, onSetStatus: (GiftStatus) 
                 }
             }
         }
+        // « Mes envies » has no occasion: the member says which one the gift is for.
+        if (entry.listId?.startsWith(WISHES_PREFIX) == true) {
+            Text(
+                stringResource(R.string.notebook_idea_occasion),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp).semantics { heading() },
+            )
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                GiftOccasion.entries.forEach { occasion ->
+                    val choice = NotebookOccasion(occasion, thisYear)
+                    FilterChip(
+                        selected = entry.occasion.occasion == occasion,
+                        onClick = { onSetOccasion(choice) },
+                        label = { Text(occasionName(choice)) },
+                        modifier = Modifier.heightIn(min = 56.dp),
+                    )
+                }
+            }
+        }
         entry.listId?.let { listId ->
             OutlinedButton(onClick = { onOpenList(listId) }, modifier = Modifier.padding(top = 8.dp).heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.notebook_open_list))
             }
         }
+        if (entry.source == NotebookSource.Idea) {
+            OutlinedButton(onClick = onEdit, modifier = Modifier.padding(top = 8.dp).heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.notebook_edit_idea))
+            }
+        }
         Spacer(Modifier.height(16.dp))
     }
 }
+
+private const val WISHES_PREFIX = "wishes-"
 
 /** Fictional notebook for previews and screenshots. */
 internal fun previewNotebook(): NotebookUiState.Success {

@@ -83,12 +83,20 @@ class NotebookViewModel(
     }
 
     fun setStatus(entry: NotebookEntry, status: GiftStatus) {
+        if (entry.status != status) follow(entry, status, entry.occasion)
+    }
+
+    /** For a gift of « Mes envies », which has no occasion of its own. */
+    fun setOccasion(entry: NotebookEntry, occasion: NotebookOccasion) {
+        if (entry.occasion != occasion) follow(entry, entry.status, occasion)
+    }
+
+    private fun follow(entry: NotebookEntry, status: GiftStatus, occasion: NotebookOccasion) {
         val repo = notebook ?: return
-        if (entry.status == status) return
         failed.value = false
         viewModelScope.launch {
             val ok = try {
-                withTimeoutOrNull(writeTimeoutMillis) { repo.follow(currentMemberId, entry.id, status, entry.occasion, entry.note) }
+                withTimeoutOrNull(writeTimeoutMillis) { repo.follow(currentMemberId, entry.id, status, occasion, entry.note) }
                 true
             } catch (e: CancellationException) {
                 throw e
