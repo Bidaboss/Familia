@@ -497,7 +497,7 @@ Une demande passée ne prévient personne, sauf pour le « Merci ». La sauvegar
 
 ## Arbre généalogique (PRD, récit 40)
 
-L'arbre se dessine à partir des membres, des proches sans compte (`kin`) et de leurs liens (`kinLinks`). Tout membre le lit. L'admin principal le modifie en entier, et un chef de famille modifie les proches de son foyer et les liens qui touchent son foyer. Il est derrière le module « Arbre généalogique » (`genealogy`), à ne pas confondre avec l'arbre des feuilles du récit 35.
+L'arbre se dessine à partir des membres, des proches sans compte (`kin`) et de leurs liens (`kinLinks`). Tout membre le lit. L'admin principal le modifie en entier, et un chef de famille modifie les proches de son foyer et les liens qui touchent son foyer : un conjoint d'un côté ou de l'autre, mais un parent seulement pour un enfant de son foyer (PRD rév. 195). Il est derrière le module « Arbre généalogique » (`genealogy`), à ne pas confondre avec l'arbre des feuilles du récit 35.
 
 ### `kin/{kinId}`
 

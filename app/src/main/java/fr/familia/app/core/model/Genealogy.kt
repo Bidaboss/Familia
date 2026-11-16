@@ -22,6 +22,21 @@ data class Kin(
         private val DATE = Regex("^[0-9]{4}(-[0-9]{2}-[0-9]{2})?$")
 
         fun isDate(value: String): Boolean = DATE.matches(value)
+
+        private val FRENCH_DAY = Regex("^([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})$")
+
+        /**
+         * What one types for an old date, as stored: « 1921 », « 04/03/1921 » or « 1921-03-04 ».
+         * Blank gives "" (no date); anything else, or an impossible day, null.
+         */
+        fun parseDate(input: String): String? {
+            val text = input.trim()
+            if (text.isEmpty()) return ""
+            if (Regex("^[0-9]{4}$").matches(text)) return text
+            val iso = FRENCH_DAY.matchEntire(text)?.destructured?.let { (d, m, y) -> "%s-%02d-%02d".format(y, m.toInt(), d.toInt()) } ?: text
+            if (!DATE.matches(iso)) return null
+            return runCatching { java.time.LocalDate.parse(iso) }.getOrNull()?.let { iso }
+        }
     }
 }
 

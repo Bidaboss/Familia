@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -98,5 +99,87 @@ class GenealogyTest {
         val vm = GenealogyViewModel(repo, FakeMembers(), "adult1")
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         assertEquals(GenealogyUiState.Failed, vm.uiState.value)
+    }
+
+    private fun TestScope.ready(vm: GenealogyViewModel): GenealogyUiState.Ready {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        return vm.uiState.value as GenealogyUiState.Ready
+    }
+
+    @Test
+    fun `the admin principal edits everything, a chef their household, an adult nothing (récit 40c)`() = runTest {
+        // admin1 is the admin principal and chef of h1; adult2 is in h2.
+        val repo = FakeGenealogy(listOf(jeanne))
+        val owner = ready(GenealogyViewModel(repo, FakeMembers(), "admin1"))
+        assertTrue(owner.isOwner && owner.canEditPerson("adult2"))
+        val chef = TestFamily.family.copy(ownerId = "someone-else")
+        val asChef = ready(GenealogyViewModel(repo, FakeMembers(chef), "admin1"))
+        assertTrue(asChef.canEditPerson("adult1") && asChef.canEditPerson("jeanne"))
+        assertTrue(!asChef.canEditPerson("adult2"))
+        assertTrue(asChef.canEditLink(KinLink.partners("adult1", "adult2")))
+        // PRD rév. 195: a parent only for a child of my household.
+        assertTrue(asChef.canEditLink(KinLink.parent("adult2", "adult1")))
+        assertTrue(!asChef.canEditLink(KinLink.parent("adult1", "adult2")))
+        assertTrue(!asChef.canJoin("adult1", Relation.Child, "adult2"))
+        assertTrue(asChef.canJoin("adult1", Relation.Partner, "adult2"))
+        val adult = ready(GenealogyViewModel(repo, FakeMembers(), "adult1"))
+        assertTrue(!adult.canEdit)
+    }
+
+    @Test
+    fun `a link is made once, never backwards, and only where one may`() = runTest {
+        val repo = FakeGenealogy(listOf(jeanne))
+        val vm = GenealogyViewModel(repo, FakeMembers(), "admin1")
+        ready(vm)
+        vm.addLink("adult1", Relation.Parent, "jeanne")
+        vm.addLink("adult1", Relation.Parent, "jeanne")
+        vm.addLink("jeanne", Relation.Parent, "adult1")
+        vm.addLink("adult1", Relation.Partner, "adult1")
+        assertEquals(listOf(KinLink.parent("jeanne", "adult1")), repo.links.value)
+
+        val adult = GenealogyViewModel(repo, FakeMembers(), "adult1")
+        ready(adult)
+        adult.addLink("adult1", Relation.Child, "kid1")
+        adult.removeLink(KinLink.parent("jeanne", "adult1"))
+        assertEquals(1, repo.links.value.size)
+    }
+
+    @Test
+    fun `a new relative joins the household of the person they are linked to, with the link`() = runTest {
+        val repo = FakeGenealogy()
+        val vm = GenealogyViewModel(repo, FakeMembers(), "admin1")
+        ready(vm)
+        vm.saveKin(Kin("", "  Lucien ", living = true, died = "1990", householdId = ""), "adult2" to Relation.Parent)
+        val saved = repo.kin.value.single()
+        assertEquals("kin-new", saved.id)
+        assertEquals("Lucien", saved.firstName)
+        assertEquals("h2", saved.householdId)
+        assertEquals(null, saved.died)
+        assertEquals(listOf(KinLink.parent("kin-new", "adult2")), repo.links.value)
+    }
+
+    @Test
+    fun `my words are mine, trimmed, and a blank one is taken away`() = runTest {
+        val repo = FakeGenealogy(listOf(jeanne))
+        val vm = GenealogyViewModel(repo, FakeMembers(), "kid1")
+        ready(vm)
+        vm.setWord("jeanne", "  Mamie Jeanne ")
+        vm.setWord("kid1", "moi")
+        assertEquals(mapOf("jeanne" to "Mamie Jeanne"), repo.words.value["kid1"])
+    }
+
+    @Test
+    fun `a refused change is said once`() = runTest {
+        val repo = object : GenealogyRepository by FakeGenealogy(listOf(jeanne)) {
+            override suspend fun deleteKin(id: String) {
+                throw IOException("refused")
+            }
+        }
+        val vm = GenealogyViewModel(repo, FakeMembers(), "admin1")
+        ready(vm)
+        vm.deleteKin("jeanne")
+        assertTrue(vm.actionFailed.value)
+        vm.failureShown()
+        assertTrue(!vm.actionFailed.value)
     }
 }
