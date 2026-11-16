@@ -112,7 +112,7 @@ class BirthdayCardsTest {
     fun `the news of a past birthday shows the cards of that year, read only`() = runTest {
         val cards = Cards()
         cards.all.value = listOf(BirthdayCard("camille", "ines", "Inès", "L'an dernier", 2025), BirthdayCard("camille", "ines", "Inès", "Cette année", 2026))
-        val vm = BirthdayCardsViewModel(cards, News(now), ines, camille, today, year = 2025, clock = { now })
+        val vm = BirthdayCardsViewModel(cards, News(now), ines, camille, today, birthdayYear = 2025, clock = { now })
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         assertEquals(listOf("L'an dernier"), vm.uiState.value.cards.map { it.text })
         assertFalse(vm.uiState.value.canWrite)

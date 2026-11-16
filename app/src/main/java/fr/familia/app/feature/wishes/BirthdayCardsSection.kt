@@ -47,7 +47,7 @@ fun BirthdayCardsSection(container: AppContainer?, currentMember: Member, person
         factory = viewModelFactory {
             initializer {
                 BirthdayCardsViewModel(
-                    container?.birthdayCardRepository, container?.goodNewsRepository, currentMember, person, today, mayWrite = !viewingAs, year = year,
+                    container?.birthdayCardRepository, container?.goodNewsRepository, currentMember, person, today, mayWrite = !viewingAs, birthdayYear = year,
                 )
             }
         },
