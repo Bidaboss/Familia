@@ -24,10 +24,51 @@ import fr.familia.app.feature.auth.FirebaseAuthRepository
 import fr.familia.app.feature.auth.GoogleCredentialProvider
 
 /**
- * Manual dependency injection: one place that builds the repositories, created once by
- * [fr.familia.app.FamiliaApplication]. Each field is null when Firebase is not configured yet.
+ * Manual dependency injection: everything the screens reach, built once by
+ * [fr.familia.app.FamiliaApplication] ([FirebaseAppContainer]). Each repository is null when
+ * Firebase is not configured yet.
+ *
+ * « Voir comme » (PRD, rôles) gives the screens a [fr.familia.app.core.viewas.ViewAsContainer]
+ * instead, where every write is refused. A new field goes here, in [FirebaseAppContainer] and in
+ * ViewAsContainer (the compiler asks for all three), with a read-only version there.
  */
-class AppContainer(context: Context) {
+interface AppContainer {
+    val authRepository: AuthRepository?
+    val memberRepository: MemberRepository?
+    val linkPreviewRepository: LinkPreviewRepository
+    val memberPhotoRepository: MemberPhotoRepository?
+    val eventRepository: EventRepository?
+    val rsvpRepository: RsvpRepository?
+    val bringRepository: BringRepository?
+    val eventCommentRepository: EventCommentRepository?
+    val helpRequestRepository: HelpRequestRepository?
+    val tripRepository: TripRepository?
+    val recipeRepository: RecipeRepository?
+    val capsuleRepository: CapsuleRepository?
+    val goodNewsRepository: GoodNewsRepository?
+    val weeklyQuestionRepository: WeeklyQuestionRepository?
+    val souvenirRepository: SouvenirRepository?
+    val treeRepository: TreeRepository?
+    val photoStorage: PhotoStorage?
+    val photoUploader: PhotoUploader?
+    val albumPhotoRepository: AlbumPhotoRepository?
+    val filmMaker: PhotoFilmMaker
+    val appConfigRepository: AppConfigRepository?
+    val giftRepository: GiftRepository?
+    val notebookRepository: NotebookRepository?
+    val usageRepository: UsageRepository?
+    val usageTracker: UsageTracker?
+    val consumptionRepository: ConsumptionRepository?
+    val pollRepository: PollRepository?
+    val joinMeRepository: JoinMeRepository?
+    val placeLocator: AndroidPlaceLocator
+    val exportRepository: ExportRepository?
+    val notificationRepository: NotificationRepository?
+    val googleCredentialProvider: GoogleCredentialProvider?
+}
+
+/** The real container, on Firebase. */
+class FirebaseAppContainer(context: Context) : AppContainer {
 
     private val appContext: Context = context.applicationContext
 
@@ -41,88 +82,88 @@ class AppContainer(context: Context) {
         }
     }
 
-    val authRepository: AuthRepository? by lazy {
+    override val authRepository: AuthRepository? by lazy {
         if (firebaseReady) FirebaseAuthRepository(FirebaseAuth.getInstance()) else null
     }
 
-    val memberRepository: MemberRepository? by lazy { firestore?.let { FirestoreMemberRepository(it) } }
+    override val memberRepository: MemberRepository? by lazy { firestore?.let { FirestoreMemberRepository(it) } }
 
     /** Reads the preview of a link shared to « Mes envies » (récit 8 bis), from the phone. */
-    val linkPreviewRepository: LinkPreviewRepository by lazy { HttpLinkPreviewRepository() }
+    override val linkPreviewRepository: LinkPreviewRepository by lazy { HttpLinkPreviewRepository() }
 
-    val memberPhotoRepository: MemberPhotoRepository? by lazy { firestore?.let { FirestoreMemberPhotoRepository(it) } }
+    override val memberPhotoRepository: MemberPhotoRepository? by lazy { firestore?.let { FirestoreMemberPhotoRepository(it) } }
 
-    val eventRepository: EventRepository? by lazy { firestore?.let { FirestoreEventRepository(it) } }
+    override val eventRepository: EventRepository? by lazy { firestore?.let { FirestoreEventRepository(it) } }
 
-    val rsvpRepository: RsvpRepository? by lazy { firestore?.let { FirestoreRsvpRepository(it) } }
+    override val rsvpRepository: RsvpRepository? by lazy { firestore?.let { FirestoreRsvpRepository(it) } }
 
     /** « Qui apporte quoi » of an event (PRD, récit 4 bis). */
-    val bringRepository: BringRepository? by lazy { firestore?.let { FirestoreBringRepository(it) } }
+    override val bringRepository: BringRepository? by lazy { firestore?.let { FirestoreBringRepository(it) } }
 
     /** The comments of an event (PRD, récit 28). */
-    val eventCommentRepository: EventCommentRepository? by lazy { firestore?.let { FirestoreEventCommentRepository(it) } }
+    override val eventCommentRepository: EventCommentRepository? by lazy { firestore?.let { FirestoreEventCommentRepository(it) } }
 
-    val helpRequestRepository: HelpRequestRepository? by lazy { firestore?.let { FirestoreHelpRequestRepository(it) } }
-    val tripRepository: TripRepository? by lazy { firestore?.let { FirestoreTripRepository(it) } }
+    override val helpRequestRepository: HelpRequestRepository? by lazy { firestore?.let { FirestoreHelpRequestRepository(it) } }
+    override val tripRepository: TripRepository? by lazy { firestore?.let { FirestoreTripRepository(it) } }
 
     /** The recipe book (récit 38). */
-    val recipeRepository: RecipeRepository? by lazy { firestore?.let { FirestoreRecipeRepository(it) } }
+    override val recipeRepository: RecipeRepository? by lazy { firestore?.let { FirestoreRecipeRepository(it) } }
 
     /** The time capsules (récit 39). */
-    val capsuleRepository: CapsuleRepository? by lazy { firestore?.let { FirestoreCapsuleRepository(it) } }
+    override val capsuleRepository: CapsuleRepository? by lazy { firestore?.let { FirestoreCapsuleRepository(it) } }
 
-    val goodNewsRepository: GoodNewsRepository? by lazy { firestore?.let { FirestoreGoodNewsRepository(it) } }
+    override val goodNewsRepository: GoodNewsRepository? by lazy { firestore?.let { FirestoreGoodNewsRepository(it) } }
 
-    val weeklyQuestionRepository: WeeklyQuestionRepository? by lazy { firestore?.let { FirestoreWeeklyQuestionRepository(it) } }
-    val souvenirRepository: SouvenirRepository? by lazy { firestore?.let { FirestoreSouvenirRepository(it) } }
-    val treeRepository: TreeRepository? by lazy { firestore?.let { FirestoreTreeRepository(it) } }
+    override val weeklyQuestionRepository: WeeklyQuestionRepository? by lazy { firestore?.let { FirestoreWeeklyQuestionRepository(it) } }
+    override val souvenirRepository: SouvenirRepository? by lazy { firestore?.let { FirestoreSouvenirRepository(it) } }
+    override val treeRepository: TreeRepository? by lazy { firestore?.let { FirestoreTreeRepository(it) } }
 
     /** Photos of the good news and the trips, in Cloud Storage (firebase/storage.rules). */
-    val photoStorage: PhotoStorage? by lazy {
+    override val photoStorage: PhotoStorage? by lazy {
         if (firebaseReady) FirebasePhotoStorage(FirebaseStorage.getInstance()) else null
     }
 
-    val photoUploader: PhotoUploader? by lazy {
+    override val photoUploader: PhotoUploader? by lazy {
         photoStorage?.let { StoragePhotoUploader(PhotoEncoder(appContext), it) }
     }
 
     /** The photo records of the albums: the trips, and later the events. */
-    val albumPhotoRepository: AlbumPhotoRepository? by lazy { firestore?.let { FirestoreAlbumPhotoRepository(it) } }
+    override val albumPhotoRepository: AlbumPhotoRepository? by lazy { firestore?.let { FirestoreAlbumPhotoRepository(it) } }
 
     /** The films of the albums (récit 16), made on the phone with Media3. */
-    val filmMaker: PhotoFilmMaker by lazy { Media3PhotoFilmMaker(appContext) }
+    override val filmMaker: PhotoFilmMaker by lazy { Media3PhotoFilmMaker(appContext) }
 
-    val appConfigRepository: AppConfigRepository? by lazy { firestore?.let { FirestoreAppConfigRepository(it) } }
+    override val appConfigRepository: AppConfigRepository? by lazy { firestore?.let { FirestoreAppConfigRepository(it) } }
 
-    val giftRepository: GiftRepository? by lazy { firestore?.let { FirestoreGiftRepository(it) } }
-    val notebookRepository: NotebookRepository? by lazy { firestore?.let { FirestoreNotebookRepository(it) } }
+    override val giftRepository: GiftRepository? by lazy { firestore?.let { FirestoreGiftRepository(it) } }
+    override val notebookRepository: NotebookRepository? by lazy { firestore?.let { FirestoreNotebookRepository(it) } }
 
     /** Time spent in the app (PRD, récit 1 nonies). */
-    val usageRepository: UsageRepository? by lazy { firestore?.let { FirestoreUsageRepository(it) } }
+    override val usageRepository: UsageRepository? by lazy { firestore?.let { FirestoreUsageRepository(it) } }
 
     /** One counter for the whole app, so a rotation is not a new opening. */
-    val usageTracker: UsageTracker? by lazy { usageRepository?.let { UsageTracker(appContext, it) } }
+    override val usageTracker: UsageTracker? by lazy { usageRepository?.let { UsageTracker(appContext, it) } }
 
     /** The daily use of the database, for the admin principal (PRD, récit 1 sexies). */
-    val consumptionRepository: ConsumptionRepository? by lazy { firestore?.let { FirestoreConsumptionRepository(it) } }
+    override val consumptionRepository: ConsumptionRepository? by lazy { firestore?.let { FirestoreConsumptionRepository(it) } }
 
     /** Sondages (PRD, récits 2 bis et 2 ter). */
-    val pollRepository: PollRepository? by lazy { firestore?.let { FirestorePollRepository(it) } }
+    override val pollRepository: PollRepository? by lazy { firestore?.let { FirestorePollRepository(it) } }
 
     /** « Rejoignez-moi » (PRD, récit 33). */
-    val joinMeRepository: JoinMeRepository? by lazy { firestore?.let { FirestoreJoinMeRepository(it) } }
+    override val joinMeRepository: JoinMeRepository? by lazy { firestore?.let { FirestoreJoinMeRepository(it) } }
 
     /** The position of the moment and the geocoder of the phone, for every place (récit 33). */
-    val placeLocator: AndroidPlaceLocator by lazy { AndroidPlaceLocator(appContext) }
+    override val placeLocator: AndroidPlaceLocator by lazy { AndroidPlaceLocator(appContext) }
 
-    val exportRepository: ExportRepository? by lazy { firestore?.let { FirestoreExportRepository(it) } }
+    override val exportRepository: ExportRepository? by lazy { firestore?.let { FirestoreExportRepository(it) } }
 
-    val notificationRepository: NotificationRepository? by lazy {
+    override val notificationRepository: NotificationRepository? by lazy {
         firestore?.let { FirestoreNotificationRepository(it, FirebaseMessaging.getInstance()) }
     }
 
     /** The web client id is generated from google-services.json by the Google services plugin. */
-    val googleCredentialProvider: GoogleCredentialProvider? by lazy {
+    override val googleCredentialProvider: GoogleCredentialProvider? by lazy {
         @Suppress("DiscouragedApi") // The resource only exists once google-services.json is added.
         val resId = context.resources.getIdentifier("default_web_client_id", "string", context.packageName)
         if (firebaseReady && resId != 0) GoogleCredentialProvider(context.getString(resId)) else null

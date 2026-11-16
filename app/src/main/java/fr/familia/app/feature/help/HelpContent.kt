@@ -70,6 +70,8 @@ enum class HelpTopic(
     WeeklyQuestion(R.string.help_topic_weekly_title, R.string.help_topic_weekly_body, feature = Feature.WeeklyQuestion),
     Souvenirs(R.string.help_topic_souvenirs_title, R.string.help_topic_souvenirs_body, feature = Feature.Souvenirs),
     Tree(R.string.help_topic_tree_title, R.string.help_topic_tree_body, feature = Feature.Tree),
+    /** « Voir comme » (PRD, rôles): the family knows the admin principal may look, without changing anything. */
+    ViewAs(R.string.help_topic_view_as_title, R.string.help_topic_view_as_body),
     Invite(R.string.help_topic_invite_title, R.string.help_topic_invite_body, HelpAudience.Chefs),
     Export(R.string.help_topic_export_title, R.string.help_topic_export_body, HelpAudience.Owner),
 }

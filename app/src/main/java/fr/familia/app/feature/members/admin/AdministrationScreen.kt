@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.QueryStats
 import androidx.compose.material.icons.outlined.SaveAlt
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -102,6 +103,9 @@ fun AdministrationScreen(
     /** « Ordre des foyers » (récit 35 bis); hidden when [onSaveRotation] is null. */
     rotation: ChallengeRotation.Schedule? = null,
     onSaveRotation: ((YearMonth, List<String>) -> Unit)? = null,
+    /** « Voir comme » (PRD, rôles): the members to look through the eyes of; hidden when [onViewAs] is null. */
+    viewAsMembers: List<Member> = emptyList(),
+    onViewAs: ((Member) -> Unit)? = null,
 ) {
     Scaffold(
         modifier = modifier,
@@ -134,7 +138,7 @@ fun AdministrationScreen(
                     ReadyContent(
                         state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport, features, onSetFeature, onRenameHousehold,
                         onOpenUsage, consumption, challenges, onPickChallenge, capsuleLeftovers, onDeleteCapsuleLeftovers,
-                        rotation, onSaveRotation,
+                        rotation, onSaveRotation, viewAsMembers, onViewAs,
                     )
             }
         }
@@ -171,8 +175,11 @@ private fun ReadyContent(
     onDeleteCapsuleLeftovers: (String) -> Unit,
     rotation: ChallengeRotation.Schedule?,
     onSaveRotation: ((YearMonth, List<String>) -> Unit)?,
+    viewAsMembers: List<Member>,
+    onViewAs: ((Member) -> Unit)?,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
+    var choosingViewAs by rememberSaveable { mutableStateOf(false) }
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var deleting by rememberSaveable { mutableStateOf<String?>(null) }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 8.dp)) {
@@ -223,6 +230,30 @@ private fun ReadyContent(
                 }
             }
         }
+        if (onViewAs != null && viewAsMembers.isNotEmpty()) {
+            item(key = "view-as") {
+                HorizontalDivider(Modifier.padding(top = 8.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = { choosingViewAs = true })
+                        .heightIn(min = 56.dp)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Outlined.Visibility, contentDescription = null)
+                    Spacer(Modifier.width(16.dp))
+                    Column {
+                        Text(stringResource(R.string.view_as_title), style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            stringResource(R.string.view_as_help),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+        }
         if (onPickChallenge != null && challenges.isNotEmpty()) {
             item(key = "challenge-title") {
                 HorizontalDivider(Modifier.padding(top = 8.dp))
@@ -264,6 +295,13 @@ private fun ReadyContent(
             household = toRename,
             onConfirm = { name -> onRenameHousehold(toRename, name); renaming = null },
             onDismiss = { renaming = null },
+        )
+    }
+    if (choosingViewAs && onViewAs != null) {
+        ViewAsDialog(
+            members = viewAsMembers,
+            onPick = { member -> choosingViewAs = false; onViewAs(member) },
+            onDismiss = { choosingViewAs = false },
         )
     }
     if (adding) {
@@ -464,4 +502,35 @@ private fun AdministrationScreenPreview() {
             )
         }
     }
+}
+
+/** « Voir comme… »: one line per member, the app opens as that member sees it. */
+@Composable
+private fun ViewAsDialog(members: List<Member>, onPick: (Member) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.view_as_title)) },
+        text = {
+            LazyColumn(Modifier.heightIn(max = 420.dp)) {
+                items(members, key = { "view-as-${it.id}" }) { member ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(onClick = { onPick(member) })
+                            .heightIn(min = 56.dp)
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        MemberAvatar(member)
+                        Spacer(Modifier.width(16.dp))
+                        Text(member.firstName, style = MaterialTheme.typography.titleMedium)
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
+        },
+    )
 }
