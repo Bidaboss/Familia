@@ -33,6 +33,7 @@ fun NotebookRoute(
             onBack = onBack,
             onRetry = viewModel::retry,
             onSelect = viewModel::select,
+            onToggleArchive = viewModel::toggleArchive,
             onSetStatus = viewModel::setStatus,
             onSetOccasion = viewModel::setOccasion,
             onSetBudget = viewModel::setBudget,

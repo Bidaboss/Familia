@@ -479,6 +479,7 @@
     <string name="notebook_idea_unavailable_body">Elle a été retirée entre-temps.</string>
     <string name="notebook_edit_idea">Modifier</string>
     <string name="notebook_propose">Proposer à la famille</string>
+    <string name="notebook_archive">Archives (%1$d)</string>
     <string name="notebook_propose_body">L\'idée rejoint une liste de %1$s, sans que %1$s la voie : la famille peut la prendre ou lancer un cadeau commun. Elle quitte ton carnet ; si tu la prends, elle y revient comme réservation.</string>
     <string name="notebook_propose_where">Sur quelle liste ?</string>
     <string name="notebook_propose_no_list">%1$s n\'a aucune liste où cette idée resterait cachée.</string>
