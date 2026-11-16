@@ -221,4 +221,17 @@ class HomeTest {
         val chosen = pollsVoted(me, listOf(poll("p6", now.minusSeconds(3600), closed = true, chosen = 0)), mapOf("p6" to listOf(vote(me.id, 1))), now)
         assertEquals(listOf(0), chosen.single().leaders)
     }
+
+    @Test
+    fun `the polls have their own block, shown with a poll or to an adult who can ask one`() {
+        val now = Instant.parse("2026-11-16T10:00:00Z")
+        val poll = Poll("p1", Poll.Kind.Choice, "Question", listOf("A", "B"), false, listOf(me.id), listOf(me.id), null, null, false, null, null, "adult2", "Adult2", null)
+        val toVote = pollsToVote(me, listOf(poll), emptyMap(), now, today)
+        val withPoll = homeState(me, family, today, emptyList(), emptyMap(), emptyList(), null, emptyList(), toVote, pollsOn = true)
+        assertTrue(withPoll.todos.isEmpty())
+        assertEquals(listOf("p1"), withPoll.pollsToVote.map { it.poll.id })
+        assertTrue(withPoll.showsPolls)
+        val off = homeState(me, family, today, emptyList(), emptyMap(), emptyList(), null, emptyList(), toVote, pollsOn = false)
+        assertTrue(!off.showsPolls)
+    }
 }

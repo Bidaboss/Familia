@@ -385,3 +385,9 @@ Avec l'interrupteur « Le petit geste du jour » allumé, et une Bonne nouvelle 
 ## Un sondage voté reste sur l'Accueil
 1. Réponds à un sondage depuis « À faire pour moi ». **Attendu :** il reste dans le bloc, avec « Tu as voté · en tête : … (n voix) », et l'ouvrir montre les résultats.
 2. Un sondage dont la date de fin est passée depuis moins de 2 jours : **Attendu :** « Terminé · en tête : … » (ou « retenu : … » si l'auteur a choisi). Au-delà de 2 jours, il disparaît.
+
+## Des sondages faciles à trouver (BUG-1)
+1. Planning : en haut, un bouton « Sondages », avec une pastille qui compte les sondages qui attendent ta réponse. TalkBack lit le nombre.
+2. Accueil : un bloc « Sondages » après « Cette semaine ». **Attendu :** d'abord ceux où tu n'as pas répondu (« Sondage de … · à toi de répondre »), puis ceux où tu as voté. « Nouveau sondage » pour un adulte, et « Tous les sondages ».
+3. Sans aucun sondage, en adulte : **Attendu :** le bloc reste, avec une phrase et « Nouveau sondage ». En enfant sans sondage : pas de bloc.
+4. « À faire pour moi » ne liste plus les sondages.

@@ -16,6 +16,7 @@ import fr.familia.app.core.model.concerns
 import fr.familia.app.core.model.upcomingBirthdays
 import fr.familia.app.core.viewas.listsSeenBy
 import fr.familia.app.feature.helprequests.canVolunteer
+import fr.familia.app.feature.polls.canAskPoll
 import fr.familia.app.feature.trips.canCreateTrip
 import fr.familia.app.feature.trips.firstNames
 import fr.familia.app.feature.trips.joinNames
@@ -83,10 +84,18 @@ sealed interface HomeUiState {
         val occasion: HomeOccasion? = null,
         val trips: List<HomeTrip> = emptyList(),
         val canCreateTrip: Boolean = false,
-        /** The polls where I voted, under « À faire pour moi » (retour d'essai du 16/11). */
+        /**
+         * The block « Sondages » (BUG-1, tranché par Kévin le 16/11): the polls that wait for my
+         * vote, then those where I voted. It shows while the module is on ([pollsOn]) and there is
+         * a poll, or I can ask one ([canAskPoll]).
+         */
+        val pollsToVote: List<HomeTodo.Vote> = emptyList(),
         val voted: List<HomeVoted> = emptyList(),
+        val pollsOn: Boolean = false,
+        val canAskPoll: Boolean = false,
     ) : HomeUiState {
-        val isEmpty: Boolean get() = todos.isEmpty() && voted.isEmpty() && week.isEmpty() && birthdays.isEmpty() && occasion == null && trips.isEmpty()
+        val showsPolls: Boolean get() = pollsOn && (pollsToVote.isNotEmpty() || voted.isNotEmpty() || canAskPoll)
+        val isEmpty: Boolean get() = todos.isEmpty() && !showsPolls && week.isEmpty() && birthdays.isEmpty() && occasion == null && trips.isEmpty()
     }
 }
 
@@ -95,6 +104,7 @@ internal object HomeWindow {
     const val TODO_DAYS = 30L
     const val TODO_SHOWN = 5
     const val VOTED_SHOWN = 2
+    const val TO_VOTE_SHOWN = 3
     const val POLL_RESULT_DAYS = 2L
     const val WEEK_DAYS = 7L
     const val WEEK_SHOWN = 3
@@ -213,17 +223,22 @@ internal fun homeState(
     trips: List<HomeTrip>,
     toVote: List<HomeTodo.Vote> = emptyList(),
     voted: List<HomeVoted> = emptyList(),
+    pollsOn: Boolean = false,
 ): HomeUiState.Ready {
     val week = week(me, family, events, today)
     return HomeUiState.Ready(
         today = today,
-        todos = todos(me, family, events, answers, help, today, toVote),
+        // The polls have their own block now, so « À faire pour moi » no longer lists them.
+        todos = todos(me, family, events, answers, help, today),
         week = week.take(HomeWindow.WEEK_SHOWN),
         weekMore = (week.size - HomeWindow.WEEK_SHOWN).coerceAtLeast(0),
         birthdays = birthdays(family, today),
         occasion = occasion,
         trips = trips,
         canCreateTrip = canCreateTrip(me),
+        pollsToVote = toVote.sortedBy { it.date }.take(HomeWindow.TO_VOTE_SHOWN),
         voted = voted,
+        pollsOn = pollsOn,
+        canAskPoll = canAskPoll(me),
     )
 }
