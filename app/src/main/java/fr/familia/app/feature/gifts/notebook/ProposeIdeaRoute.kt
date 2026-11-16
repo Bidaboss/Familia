@@ -19,12 +19,15 @@ fun ProposeIdeaRoute(
     onBack: () -> Unit,
     onNewSurprise: (personId: String) -> Unit,
     onDone: (listId: String) -> Unit,
+    singleList: Boolean = false,
 ) {
     val viewModel: ProposeIdeaViewModel = viewModel(
+        key = "propose-$entryId-$singleList",
         factory = viewModelFactory {
             initializer {
                 ProposeIdeaViewModel(
                     container?.notebookRepository, container?.giftRepository, container?.memberRepository, currentMember.id, entryId,
+                    singleList = singleList,
                 )
             }
         },

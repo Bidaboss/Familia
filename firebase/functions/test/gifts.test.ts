@@ -120,6 +120,22 @@ describe('functions', () => {
     assert.match(sent[0].notice.title, /2 semaines/);
   });
 
+  test('with the single list, the reminder speaks of an idea, never of a surprise list (récit 9 ter)', async () => {
+    const { sent, send } = fakeSender();
+    await sendBirthdayGiftReminders(db, send, new Date('2026-11-18T09:00:00Z'));
+    assert.match(sent[0].notice.body, /liste surprise/);
+    sent.length = 0;
+    await db.doc('config/app').set({ features: { gifts: true, singleList: true } });
+    await sendBirthdayGiftReminders(db, send, new Date('2026-11-18T09:00:00Z'));
+    assert.equal(sent[0].notice.body.includes('surprise'), false);
+    assert.match(sent[0].notice.body, /ajoute une idée pour Camille/);
+  });
+
+  test('a list of ideas has no date and is never revealed as a list', () => {
+    assert.equal(isDueForReveal({ kind: 'ideas', date: null, revealed: false }, '2026-12-26'), false);
+    assert.equal(isDueForReveal({ kind: 'ideas', date: '2026-12-25', revealed: false }, '2026-12-26'), false);
+  });
+
   test('while the gifts module is switched off, only the admin principal is notified', async () => {
     const { sent, send } = fakeSender();
     await db.doc('config/app').set({ features: { gifts: false } });

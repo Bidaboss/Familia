@@ -51,13 +51,20 @@ export function birthdayRecipients(members: GiftMember[], birthdayId: string): s
   return members.filter((m) => m.profile === 'adult' && m.id !== birthdayId).map((m) => m.id);
 }
 
-export function birthdayNotice(member: GiftMember, birthday: string, second: boolean, wishesListId: string | null): Notice {
+export function birthdayNotice(
+  member: GiftMember, birthday: string, second: boolean, wishesListId: string | null, singleList = false,
+): Notice {
   return {
     channel: 'gifts',
     title: second
       ? `Anniversaire de ${member.firstName} dans 2 semaines`
       : `Anniversaire de ${member.firstName} dans 3 semaines`,
-    body: second
+    // With the single list (récit 9 ter), no surprise list any more: the ideas of the family.
+    body: singleList
+      ? (second
+        ? `Rien n'est encore réservé pour le ${formatDay(birthday)}. Regarde ses envies, ou ajoute une idée pour ${member.firstName}.`
+        : `C'est le ${formatDay(birthday)}. Regarde ses envies, ou ajoute une idée pour ${member.firstName}.`)
+      : second
       ? `Rien n'est encore réservé pour le ${formatDay(birthday)}. Regarde ses envies, ou prépare une liste surprise.`
       : `C'est le ${formatDay(birthday)}. Regarde ses envies, ou prépare une liste surprise « Anniversaire de ${member.firstName} ».`,
     ...(wishesListId ? { listId: wishesListId } : {}),
@@ -66,7 +73,7 @@ export function birthdayNotice(member: GiftMember, birthday: string, second: boo
 
 /** A list is revealed the day after its occasion. « Mes envies » has no date and is never revealed this way. */
 export function isDueForReveal(list: { kind?: string; date?: string | null; revealed?: boolean }, today: string): boolean {
-  return list.kind !== 'wishes' && list.revealed !== true && typeof list.date === 'string' && list.date < today;
+  return list.kind !== 'wishes' && list.kind !== 'ideas' && list.revealed !== true && typeof list.date === 'string' && list.date < today;
 }
 
 export function revealNotice(listId: string, title: string): Notice {
@@ -147,6 +154,7 @@ export async function giftAudience(db: Firestore): Promise<(ids: string[]) => st
 /** PRD, récit 10: at D-21 every adult but the birthday member is reminded; at D-14 again if nothing is reserved. */
 export async function sendBirthdayGiftReminders(db: Firestore, send: Sender, now: Date): Promise<number> {
   const audience = await giftAudience(db);
+  const singleList = (await db.doc('config/app').get()).get('features.singleList') === true;
   const today = parisDay(now);
   const members = await loadGiftMembers(db);
   let sent = 0;
@@ -154,7 +162,7 @@ export async function sendBirthdayGiftReminders(db: Firestore, send: Sender, now
     for (const member of birthdaysIn(members, today, days)) {
       if (second && (await hasReservation(db, member.id))) continue;
       const wishes = await db.doc(`giftLists/wishes-${member.id}`).get();
-      const notice = birthdayNotice(member, addDays(today, days), second, wishes.exists ? wishes.id : null);
+      const notice = birthdayNotice(member, addDays(today, days), second, wishes.exists ? wishes.id : null, singleList);
       const recipients = audience(birthdayRecipients(members, member.id));
       if (recipients.length > 0) sent += await notify(db, send, recipients, notice);
     }

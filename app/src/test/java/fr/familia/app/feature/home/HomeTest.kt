@@ -174,6 +174,12 @@ class HomeTest {
         val bare = off.uiState.first { it is HomeUiState.Ready && it.week.isNotEmpty() } as HomeUiState.Ready
         assertNull(bare.occasion)
         assertTrue(bare.trips.isEmpty())
+
+        // With the single list (récit 9 ter), no list of an occasion to point to.
+        val single = HomeViewModel(FakeMembers(), events, me.id, gifts = gifts, today = flowOf(today), singleList = true)
+        single.uiState.launchIn(backgroundScope)
+        val noChip = single.uiState.first { it is HomeUiState.Ready && it.week.isNotEmpty() } as HomeUiState.Ready
+        assertNull(noChip.occasion)
     }
 
     @Test
