@@ -36,6 +36,7 @@ class FamilyExportTest {
             ExportWeeklyAnswer("2026-11-30", "m2", mapOf("text" to null, "skipped" to true)),
             ExportWeeklyAnswer("2026-11-30", "m1", mapOf("text" to "Des crêpes", "skipped" to false)),
         ),
+        capsules = listOf(ExportDocument("c1", mapOf("text" to "Pour tes 18 ans", "authorId" to "m1", "openedFor" to emptyList<String>()))),
     )
 
     private val json = Json.parseToJsonElement(familyExportJson(data, Instant.parse("2026-11-14T10:00:00Z"), "1.2.0")).jsonObject
@@ -60,6 +61,7 @@ class FamilyExportTest {
         val weekly = json.getValue("weeklyAnswers").jsonArray.map { it.jsonObject }
         assertEquals(listOf("m1", "m2"), weekly.map { it.getValue("memberId").jsonPrimitive.content })
         assertEquals("Des crêpes", weekly.first().getValue("text").jsonPrimitive.content)
+        assertEquals("Pour tes 18 ans", json.getValue("capsules").jsonArray.single().jsonObject.getValue("text").jsonPrimitive.content)
     }
 
     @Test

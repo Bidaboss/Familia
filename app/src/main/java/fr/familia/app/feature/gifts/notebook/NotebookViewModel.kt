@@ -203,9 +203,9 @@ internal fun sortedOccasions(occasions: Set<NotebookOccasion>, today: LocalDate)
 }
 
 /**
- * An occasion goes to the archive the day after it (PRD rév. 168): Noël from 26 December. The
- * birthdays of a year gather several people, each on their own day, so they wait for the end of
- * that year. One with no year never goes.
+ * An occasion goes to the archive the day after it (PRD rév. 168): Noël from 26 December. Every
+ * other occasion of a year, the birthdays first, gathers several people, each on their own day,
+ * so it waits for the end of that year. One with no year never goes.
  */
 internal fun isPast(occasion: NotebookOccasion, today: LocalDate): Boolean {
     val year = occasion.year ?: return false

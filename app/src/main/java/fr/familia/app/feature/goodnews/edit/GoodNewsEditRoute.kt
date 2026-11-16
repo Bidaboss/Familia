@@ -20,16 +20,19 @@ fun GoodNewsEditRoute(
     currentMember: Member,
     postId: String?,
     onDone: () -> Unit,
+    /** From « Participer au défi » (récit 35 bis): linked to the challenge of the foyer from the start. */
+    forChallenge: Boolean = false,
     onBack: () -> Unit,
 ) {
     val online = (LocalContext.current.applicationContext as? FamiliaApplication)?.networkMonitor?.isOnline ?: flowOf(true)
     val viewModel: GoodNewsEditViewModel = viewModel(
-        key = "goodNewsEdit-$postId",
+        key = "goodNewsEdit-$postId-$forChallenge",
         factory = viewModelFactory {
             initializer {
                 GoodNewsEditViewModel(
                     container?.goodNewsRepository, container?.memberRepository, container?.photoUploader,
                     currentMember.id, postId, online,
+                    tree = container?.treeRepository, linkToChallenge = forChallenge,
                 )
             }
         },
@@ -43,6 +46,7 @@ fun GoodNewsEditRoute(
         onRemovePhoto = viewModel::removePhoto,
         onFor = viewModel::setFor,
         onToggleMention = viewModel::toggleMention,
+        onForChallenge = viewModel::setForChallenge,
         onSave = viewModel::save,
         onDismissFailure = viewModel::dismissFailure,
         onBack = onBack,

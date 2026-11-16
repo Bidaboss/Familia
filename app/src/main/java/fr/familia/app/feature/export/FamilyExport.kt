@@ -20,7 +20,7 @@ private val prettyJson = Json { prettyPrint = true }
 
 /**
  * The backup file (PRD, récit 6 ter): one JSON object with the members, households, events,
- * answers, help requests and questions of the week, as stored in Firestore. Ids are kept, so the file can be read back into a new
+ * answers, help requests, questions of the week and the capsules the admin can read, as stored in Firestore. Ids are kept, so the file can be read back into a new
  * database. Times are written in ISO 8601 (UTC). Documents are sorted by id, so two exports of
  * the same data give the same file.
  */
@@ -35,6 +35,7 @@ fun familyExportJson(data: FamilyData, exportedAt: Instant, appVersion: String):
         put("events", documents(data.events))
         put("helpRequests", documents(data.helpRequests))
         put("weeklyQuestions", documents(data.weeklyQuestions))
+        put("capsules", documents(data.capsules))
         put(
             "weeklyAnswers",
             JsonArray(

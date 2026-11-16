@@ -38,6 +38,8 @@ data class GoodNews(
     val updatedAt: Instant? = null,
     /** « Défi réussi », published by Familia when the challenge of that month is achieved (récit 35): no photo, no author. */
     val challengeMonth: String? = null,
+    /** Linked to the challenge of a foyer for that month (récit 35 bis): it moves its gauge. */
+    val forChallenge: String? = null,
 ) {
     /** Changed by its author after it was published. */
     val isEdited: Boolean get() = createdAt != null && updatedAt != null && updatedAt.isAfter(createdAt.plusSeconds(60))

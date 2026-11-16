@@ -346,7 +346,7 @@ class ReadOnlyJoinMeRepository(private val inner: JoinMeRepository, private val 
 
 /** The export is the admin's own tool: not from someone else's eyes. */
 class ReadOnlyExportRepository(private val guard: ViewAsGuard) : ExportRepository {
-    override suspend fun loadFamilyData(): FamilyData = guard.refuse()
+    override suspend fun loadFamilyData(memberId: String): FamilyData = guard.refuse()
 }
 
 /**

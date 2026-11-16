@@ -320,7 +320,7 @@
     <string name="channel_help_requests">Entraide</string>
     <string name="channel_help_requests_description">Coups de main demandés, proposés ou confirmés</string>
     <string name="export_title">Sauvegarde des données</string>
-    <string name="export_body">Un fichier avec toutes les données de la famille, à garder pour toi : sur ce téléphone ou dans ton Drive.</string>
+    <string name="export_body">Un fichier avec toutes les données de la famille, à garder pour toi : sur ce téléphone ou dans ton Drive. Les capsules temporelles des autres restent scellées : seules les tiennes, et celles déjà ouvertes pour toi, y sont.</string>
     <string name="export_action">Créer la sauvegarde</string>
     <string name="export_in_progress">Sauvegarde en cours…</string>
     <string name="export_done">Sauvegarde enregistrée.</string>
@@ -944,6 +944,7 @@
     <string name="view_as_quit">Quitter</string>
     <string name="view_as_read_only">Lecture seule en mode Voir comme</string>
     <string name="feature_comments">Commentaires sous les événements</string>
+    <string name="feature_expenses">Comptes du voyage</string>
     <string name="event_comments_title">Commentaires</string>
     <string name="event_comments_more">Voir les commentaires plus anciens</string>
     <string name="event_comments_empty">Pas encore de commentaire. Une question, une idée, un « j\'ai hâte » ?</string>
@@ -1357,6 +1358,8 @@
     <string name="tree_host_turn">C\'est à vous de lancer le défi %1$s !</string>
     <string name="tree_host_turn_help">Préparez-le ensemble : tout le foyer peut aider, un adulte le publie.</string>
     <string name="tree_host_prepare">Préparer le défi</string>
+    <string name="tree_join_challenge">Participer au défi</string>
+    <string name="goodnews_for_challenge">Pour le défi : %1$s %2$s</string>
     <string name="host_title">Défi %1$s</string>
     <string name="host_step">Étape %1$d sur 4</string>
     <string name="host_next">Suivant</string>

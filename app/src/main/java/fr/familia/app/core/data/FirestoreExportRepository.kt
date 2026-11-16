@@ -11,18 +11,18 @@ import kotlinx.coroutines.tasks.await
 
 /**
  * Reads the collections of docs/data-model.md from the server only: the offline cache may hold
- * part of the data, and a backup must be complete or not be made. Left out on purpose: the answers of the question of the week before they show to everyone, memberEmails (rebuilt from the members), and each member's
+ * part of the data, and a backup must be complete or not be made. Left out on purpose: the capsules the admin principal cannot read, the answers of the question of the week before they show to everyone, memberEmails (rebuilt from the members), and each member's
  * phones and settings, which only they can read.
  */
 class FirestoreExportRepository(private val db: FirebaseFirestore) : ExportRepository {
 
-    override suspend fun loadFamilyData(): FamilyData = try {
-        load()
+    override suspend fun loadFamilyData(memberId: String): FamilyData = try {
+        load(memberId)
     } catch (e: FirebaseFirestoreException) {
         if (e.code == FirebaseFirestoreException.Code.UNAVAILABLE) throw ExportOfflineException(e) else throw e
     }
 
-    private suspend fun load(): FamilyData = coroutineScope {
+    private suspend fun load(memberId: String): FamilyData = coroutineScope {
         val households = async { db.collection("households").get(Source.SERVER).await().documents.map(::toExport) }
         val members = async { db.collection("members").get(Source.SERVER).await().documents.map(::toExport) }
         val events = async { db.collection("events").get(Source.SERVER).await().documents.map(::toExport) }
@@ -34,8 +34,12 @@ class FirestoreExportRepository(private val db: FirebaseFirestore) : ExportRepos
         }
         val helpRequests = async { db.collection("helpRequests").get(Source.SERVER).await().documents.map(::toExport) }
         val weekly = async { weeklyQuestions() }
+        val capsules = async { capsules(memberId) }
         val (questions, weeklyAnswers) = weekly.await()
-        FamilyData(households.await(), members.await(), events.await(), answers.await(), helpRequests.await(), questions, weeklyAnswers)
+        FamilyData(
+            households.await(), members.await(), events.await(), answers.await(), helpRequests.await(), questions, weeklyAnswers,
+            capsules.await(),
+        )
     }
 
     /**
@@ -55,6 +59,14 @@ class FirestoreExportRepository(private val db: FirebaseFirestore) : ExportRepos
                 }
             }
         questions.map(::toExport) to answers.flatMap { it.await() }
+    }
+
+    /** The rules let one read only the capsules one wrote and those opened for one: two queries. */
+    private suspend fun capsules(memberId: String): List<ExportDocument> = coroutineScope {
+        val capsules = db.collection("capsules")
+        val written = async { capsules.whereEqualTo("authorId", memberId).get(Source.SERVER).await().documents }
+        val opened = async { capsules.whereArrayContains("openedFor", memberId).get(Source.SERVER).await().documents }
+        (written.await() + opened.await()).distinctBy { it.id }.map(::toExport)
     }
 
     private fun toExport(doc: DocumentSnapshot) = ExportDocument(doc.id, plain(doc.data.orEmpty()))

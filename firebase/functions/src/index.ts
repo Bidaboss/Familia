@@ -31,6 +31,7 @@ import {
 } from './helpRequests';
 import { addDays, EventData, hasVisibleChange, Notice, parisDay } from './logic';
 import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, memberForUid, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
+import { deleteExpenseBook } from './expenses';
 import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
 import {
@@ -349,6 +350,11 @@ export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) =
   await deleteTripContents(getFirestore(), event.params.tripId);
   // The photos of the trip and their thumbnails (récit 15), all under trips/{tripId}/.
   await getStorage().bucket().deleteFiles({ prefix: `trips/${event.params.tripId}/` });
+});
+
+// Les comptes du voyage (récit 16 bis) live out of the trip: they go with it.
+export const onTripDeletedAccounts = onDocumentDeleted('trips/{tripId}', async (event) => {
+  await deleteExpenseBook(getFirestore(), 'trip', event.params.tripId);
 });
 
 // Capsule temporelle (récit 39): a removed capsule takes its photos with it.

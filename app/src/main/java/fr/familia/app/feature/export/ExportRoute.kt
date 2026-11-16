@@ -20,10 +20,10 @@ import java.io.IOException
 
 /** Connects the backup screen to its ViewModel and to the Android file picker. */
 @Composable
-fun ExportRoute(container: AppContainer?, onBack: () -> Unit) {
+fun ExportRoute(container: AppContainer?, memberId: String, onBack: () -> Unit) {
     val viewModel: ExportViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { ExportViewModel(container?.exportRepository, BuildConfig.VERSION_NAME) }
+            initializer { ExportViewModel(container?.exportRepository, BuildConfig.VERSION_NAME, memberId) }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
