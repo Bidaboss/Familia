@@ -405,6 +405,7 @@
     <string name="notebook_budget_title">Budget pour %1$s</string>
     <string name="notebook_budget_amount">Montant</string>
     <string name="notebook_budget_hint">Laisse vide pour ne pas avoir de budget.</string>
+    <string name="notebook_remove_budget">Retirer le budget</string>
     <string name="notebook_source_claim">Réservé sur sa liste</string>
     <string name="notebook_source_share">Cadeau commun</string>
     <string name="notebook_source_idea">Idée privée</string>

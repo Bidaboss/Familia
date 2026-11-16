@@ -296,7 +296,14 @@ private fun BudgetDialog(name: String, initial: Double?, onConfirm: (Double?) ->
             ) { Text(stringResource(R.string.action_ok)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
+            Row {
+                if (initial != null) {
+                    TextButton(onClick = { onConfirm(null) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                        Text(stringResource(R.string.notebook_remove_budget))
+                    }
+                }
+                TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
+            }
         },
     )
 }
