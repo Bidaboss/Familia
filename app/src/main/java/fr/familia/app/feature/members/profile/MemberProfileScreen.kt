@@ -82,7 +82,7 @@ fun MemberProfileScreen(
                 actions = {
                     // « Modifier » up on the right, for those who may (DESIGN, 16/11): never from the list.
                     if ((state as? MemberProfileUiState.Ready)?.canEdit == true) {
-                        TextButton(onClick = onEdit, modifier = Modifier.heightIn(min = 48.dp)) {
+                        TextButton(onClick = onEdit, modifier = Modifier.heightIn(min = 56.dp)) {
                             Text(stringResource(R.string.profile_edit))
                         }
                     }
