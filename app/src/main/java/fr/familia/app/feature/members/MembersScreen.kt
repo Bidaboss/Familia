@@ -23,6 +23,9 @@ import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.AccountTree
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.ExpandLess
+import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.HourglassEmpty
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
@@ -59,6 +62,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.OutlinedButton
 import fr.familia.app.R
@@ -120,6 +125,7 @@ fun MembersScreen(
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var photoOf by rememberSaveable { mutableStateOf<String?>(null) }
     var viewing by rememberSaveable { mutableStateOf<String?>(null) }
+    var treasuresOpen by rememberSaveable { mutableStateOf(false) }
     val photos = LocalMemberPhotos.current
     when (state) {
         MembersUiState.Loading ->
@@ -185,19 +191,27 @@ fun MembersScreen(
                         )
                     }
                 }
-                if (onOpenRecipes != null) {
-                    item(key = "recipes") { SettingsRow(Icons.Outlined.Restaurant, R.string.recipes_title, onOpenRecipes) }
-                }
-                if (onOpenCapsules != null) {
-                    item(key = "capsules") { SettingsRow(Icons.Outlined.HourglassEmpty, R.string.capsules_title, onOpenCapsules) }
-                }
-                if (onOpenGenealogy != null) {
-                    item(key = "genealogy") { SettingsRow(Icons.Outlined.AccountTree, R.string.genealogy_title, onOpenGenealogy) }
+                // « Nos trésors » (DESIGN-11): recettes, capsules and arbre généalogique under one entry,
+                // which opens in place. Each one stays behind its module; no module on, no entry.
+                val treasures = listOfNotNull(
+                    onOpenRecipes?.let { Treasure("recipes", Icons.Outlined.Restaurant, R.string.recipes_title, it) },
+                    onOpenCapsules?.let { Treasure("capsules", Icons.Outlined.HourglassEmpty, R.string.capsules_title, it) },
+                    onOpenGenealogy?.let { Treasure("genealogy", Icons.Outlined.AccountTree, R.string.genealogy_title, it) },
+                )
+                if (treasures.isNotEmpty()) {
+                    item(key = "treasures") {
+                        TreasuresRow(open = treasuresOpen, onToggle = { treasuresOpen = !treasuresOpen })
+                    }
+                    if (treasuresOpen) {
+                        items(treasures, key = { "treasure-${it.key}" }) { treasure ->
+                            SettingsRow(treasure.icon, treasure.labelRes, indent = true, onClick = treasure.onClick)
+                        }
+                    }
                 }
                 val everyone = state.groups.flatMap { it.members }
                 if (onShareApp != null && canShareApp(everyone.firstOrNull { it.id == state.currentMemberId })) {
                     val ownerName = everyone.firstOrNull { it.id == state.ownerId }?.firstName
-                    item(key = "share-app") { SettingsRow(Icons.Outlined.Share, R.string.share_app_title) { onShareApp(ownerName) } }
+                    item(key = "share-app") { SettingsRow(Icons.Outlined.Share, R.string.share_app_title, onClick = { onShareApp(ownerName) }) }
                 }
                 item(key = "settings-title") {
                     Column {
@@ -207,7 +221,7 @@ fun MembersScreen(
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
-                                .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp)
+                                .padding(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 16.dp, bottom = 4.dp)
                                 .semantics { heading() },
                         )
                     }
@@ -321,15 +335,37 @@ fun MembersScreen(
     }
 }
 
+private class Treasure(val key: String, val icon: ImageVector, @StringRes val labelRes: Int, val onClick: () -> Unit)
+
+/** « Nos trésors »: one row that opens or closes the treasures under it, read « développé » by TalkBack. */
+@Composable
+private fun TreasuresRow(open: Boolean, onToggle: () -> Unit) {
+    val state = stringResource(if (open) R.string.members_treasures_open else R.string.members_treasures_closed)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onToggle)
+            .heightIn(min = 56.dp)
+            .padding(horizontal = ClaySpacing.screen, vertical = 12.dp)
+            .semantics { stateDescription = state },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Outlined.AutoAwesome, contentDescription = null)
+        Spacer(Modifier.width(16.dp))
+        Text(stringResource(R.string.members_treasures), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+        Icon(if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, contentDescription = null)
+    }
+}
+
 /** A settings entry below the members (design: settings live in the Famille tab). */
 @Composable
-private fun SettingsRow(icon: ImageVector, @StringRes labelRes: Int, onClick: () -> Unit) {
+private fun SettingsRow(icon: ImageVector, @StringRes labelRes: Int, onClick: () -> Unit, indent: Boolean = false) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .heightIn(min = 56.dp)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(start = if (indent) ClaySpacing.screen + 40.dp else ClaySpacing.screen, end = ClaySpacing.screen, top = 12.dp, bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(icon, contentDescription = null)
@@ -343,7 +379,7 @@ private fun HouseholdHeader(name: String, onRename: (() -> Unit)?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 4.dp, top = 8.dp),
+            .padding(start = ClaySpacing.screen, end = 4.dp, top = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -379,7 +415,7 @@ private fun MemberRow(
             .fillMaxWidth()
             .then(if (onClick != null) Modifier.clickable(onClickLabel = editLabel, onClick = onClick) else Modifier)
             .heightIn(min = 56.dp)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (onPhotoClick != null) {

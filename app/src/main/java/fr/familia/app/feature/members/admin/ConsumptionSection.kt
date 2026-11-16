@@ -23,6 +23,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.roundToInt
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClaySpacing
 
 /**
  * The « Consommation » card (PRD, récit 1 sexies): how much of each free limit of the database
@@ -30,13 +32,9 @@ import kotlin.math.roundToInt
  */
 @Composable
 internal fun ConsumptionSection(card: ConsumptionCard, modifier: Modifier = Modifier) {
-    ClayCard(modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+    ClayCard(modifier.fillMaxWidth().padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(
-                stringResource(R.string.consumption_title),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.semantics { heading() },
-            )
+            ClayCardTitle(stringResource(R.string.consumption_title), style = MaterialTheme.typography.titleMedium)
             when (card) {
                 ConsumptionCard.Waiting -> Text(stringResource(R.string.consumption_waiting), style = MaterialTheme.typography.bodyMedium)
                 is ConsumptionCard.Ready -> ReadyConsumption(card.consumption)

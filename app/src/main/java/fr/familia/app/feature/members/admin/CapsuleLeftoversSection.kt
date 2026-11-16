@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.CapsuleLeftover
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClaySpacing
 
 /**
  * « Capsules d'anciens membres » (PRD rév. 184): how many sealed capsules each member who left
@@ -37,13 +39,9 @@ internal fun CapsuleLeftoversSection(
     modifier: Modifier = Modifier,
 ) {
     var confirming by rememberSaveable { mutableStateOf<String?>(null) }
-    ClayCard(modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+    ClayCard(modifier.fillMaxWidth().padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(
-                stringResource(R.string.capsule_leftovers_title),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.semantics { heading() },
-            )
+            ClayCardTitle(stringResource(R.string.capsule_leftovers_title), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.capsule_leftovers_help), style = MaterialTheme.typography.bodyMedium)
             leftovers.forEach { left ->
                 Text(

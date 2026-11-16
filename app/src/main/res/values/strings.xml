@@ -131,6 +131,9 @@
     <string name="member_remove_owner_only">Seul l\'admin principal peut retirer %1$s.</string>
     <string name="administration_title">Administration</string>
     <string name="members_settings_title">Réglages</string>
+    <string name="members_treasures">Nos trésors</string>
+    <string name="members_treasures_open">ouvert</string>
+    <string name="members_treasures_closed">fermé</string>
     <string name="administration_error_body">L\'appli n\'a pas pu lire la famille. Réessaie dans un moment.</string>
     <string name="administration_not_allowed_title">Réservé à l\'admin principal</string>
     <string name="administration_not_allowed_body">Ce menu sert à nommer les chefs de famille, gérer les foyers et sauvegarder les données.</string>

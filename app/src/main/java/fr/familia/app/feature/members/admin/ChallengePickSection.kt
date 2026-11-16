@@ -32,6 +32,7 @@ import fr.familia.app.feature.tree.MonthPick
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import fr.familia.app.core.ui.ClaySpacing
 
 private val monthFormat = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.FRENCH)
 
@@ -44,7 +45,7 @@ private fun monthLabel(month: YearMonth): String = month.format(monthFormat).rep
 @Composable
 fun ChallengePickSection(picks: List<MonthPick>, onPick: (YearMonth, String) -> Unit) {
     var choosing by rememberSaveable { mutableStateOf<String?>(null) }
-    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         picks.forEach { pick ->
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(monthLabel(pick.month), style = MaterialTheme.typography.titleMedium)

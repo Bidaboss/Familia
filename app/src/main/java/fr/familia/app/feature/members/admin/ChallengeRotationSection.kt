@@ -29,6 +29,7 @@ import fr.familia.app.core.model.ChallengeRotation
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import fr.familia.app.core.ui.ClaySpacing
 
 private val monthFormat = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.FRENCH)
 
@@ -45,7 +46,7 @@ fun ChallengeRotationSection(schedule: ChallengeRotation.Schedule, onSave: (Year
         if (to !in order.indices) return
         order = order.toMutableList().apply { add(to, removeAt(from)) }
     }
-    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         order.forEachIndexed { i, id ->
             val month = schedule.start.plusMonths(i.toLong())
                 .format(monthFormat).replaceFirstChar { it.titlecase(Locale.FRENCH) }
