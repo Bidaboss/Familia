@@ -10,6 +10,19 @@ interface CapsuleRepository {
 
     /** The capsules already opened for [memberId], updated live. The sealed ones never show. */
     fun observeOpenedFor(memberId: String): Flow<List<Capsule>>
+
+    /** One capsule; null once removed, or when it cannot be read (still sealed for someone else). */
+    fun observeCapsule(id: String): Flow<Capsule?>
+
+    suspend fun deleteCapsule(id: String)
+
+    fun newCapsuleId(): String
+
+    /**
+     * Writes a new sealed capsule signed by its author, once its photos are in Storage. The
+     * server time and an empty `openedFor` are set here, as the rules require.
+     */
+    suspend fun createCapsule(capsule: Capsule)
 }
 
 /** The next to open first; then the last opened first. */

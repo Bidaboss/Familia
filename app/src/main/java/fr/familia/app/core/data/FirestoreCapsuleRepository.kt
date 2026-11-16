@@ -1,12 +1,15 @@
 package fr.familia.app.core.data
 
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import fr.familia.app.core.model.Capsule
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 
 /**
@@ -20,6 +23,39 @@ class FirestoreCapsuleRepository(private val db: FirebaseFirestore) : CapsuleRep
 
     override fun observeOpenedFor(memberId: String): Flow<List<Capsule>> =
         observe(db.collection(CAPSULES).whereArrayContains("openedFor", memberId))
+
+    override fun observeCapsule(id: String): Flow<Capsule?> = callbackFlow {
+        val registration = db.collection(CAPSULES).document(id).addSnapshotListener { snapshot, error ->
+            when {
+                // Removed meanwhile, or still sealed for this member: nothing to show.
+                error?.code == FirebaseFirestoreException.Code.PERMISSION_DENIED -> trySend(null)
+                error != null -> close(error)
+                else -> trySend(snapshot?.takeIf { it.exists() }?.toCapsule())
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
+    override suspend fun deleteCapsule(id: String) {
+        db.collection(CAPSULES).document(id).delete().await()
+    }
+
+    override fun newCapsuleId(): String = db.collection(CAPSULES).document().id
+
+    override suspend fun createCapsule(capsule: Capsule) {
+        db.collection(CAPSULES).document(capsule.id).set(
+            mapOf(
+                "text" to capsule.text,
+                "photoCount" to capsule.photoCount.toLong(),
+                "recipientIds" to capsule.recipientIds,
+                "openAt" to capsule.openAt.toString(),
+                "openedFor" to emptyList<String>(),
+                "authorId" to capsule.authorId,
+                "authorName" to capsule.authorName,
+                "createdAt" to FieldValue.serverTimestamp(),
+            ),
+        ).await()
+    }
 
     private fun observe(query: Query): Flow<List<Capsule>> = callbackFlow {
         val registration = query.addSnapshotListener { snapshot, error ->

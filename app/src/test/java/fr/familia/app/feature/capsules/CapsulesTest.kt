@@ -23,6 +23,14 @@ class FakeCapsules(initial: List<Capsule> = emptyList()) : CapsuleRepository {
     val capsules = MutableStateFlow(initial)
     override fun observeWrittenBy(memberId: String): Flow<List<Capsule>> = capsules.map { list -> list.filter { it.authorId == memberId } }
     override fun observeOpenedFor(memberId: String): Flow<List<Capsule>> = capsules.map { list -> list.filter { memberId in it.openedFor } }
+    override fun observeCapsule(id: String): Flow<Capsule?> = capsules.map { list -> list.firstOrNull { it.id == id } }
+    override suspend fun deleteCapsule(id: String) {
+        capsules.value = capsules.value.filterNot { it.id == id }
+    }
+    override fun newCapsuleId(): String = "k-new"
+    override suspend fun createCapsule(capsule: Capsule) {
+        capsules.value = capsules.value + capsule
+    }
 }
 
 /** Fictional capsules of the test family (see TestFamily). */
@@ -54,6 +62,34 @@ class CapsulesTest {
         assertEquals("Kid1 et Adult2", ready.sealed[1].recipients)
         assertFalse(ready.opened[0].isMine)
         assertTrue(ready.sealed.all { it.isMine })
+    }
+
+    @Test
+    fun `a capsule still sealed stays closed for its recipients, open for its author`() = runTest {
+        val repo = FakeCapsules(listOf(forMeSealed))
+        fun detail(me: String) = CapsuleDetailViewModel(repo, FakeMembers(), me, "k2").also { vm ->
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        }
+        assertEquals(CapsuleDetailUiState.Missing, detail("adult1").uiState.value)
+        assertTrue((detail("adult2").uiState.value as CapsuleDetailUiState.Ready).row.isMine)
+    }
+
+    @Test
+    fun `only the author removes a capsule, while it is sealed, and its removal closes it`() = runTest {
+        val repo = FakeCapsules(listOf(forMeOpened, forMeSealed))
+        fun detail(me: String, id: String) = CapsuleDetailViewModel(repo, FakeMembers(), me, id).also { vm ->
+            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        }
+        // Opened, it is a keepsake of its recipients: neither they nor its author remove it.
+        detail("adult1", "k1").remove()
+        detail("adult2", "k1").remove()
+        assertEquals(2, repo.capsules.value.size)
+
+        val author = detail("adult2", "k2")
+        author.remove()
+
+        assertEquals(CapsuleDetailUiState.Removed, author.uiState.value)
+        assertEquals(listOf("k1"), repo.capsules.value.map { it.id })
     }
 
     @Test
