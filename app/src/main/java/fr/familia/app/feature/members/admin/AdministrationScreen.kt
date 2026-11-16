@@ -54,6 +54,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.model.ChallengeRotation
 import fr.familia.app.feature.members.RenameHouseholdDialog
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Household
@@ -94,6 +95,9 @@ fun AdministrationScreen(
     /** « Défi du mois » (récit 35): this month and the next; hidden when [onPickChallenge] is null. */
     challenges: List<MonthPick> = emptyList(),
     onPickChallenge: ((YearMonth, String) -> Unit)? = null,
+    /** « Ordre des foyers » (récit 35 bis); hidden when [onSaveRotation] is null. */
+    rotation: ChallengeRotation.Schedule? = null,
+    onSaveRotation: ((YearMonth, List<String>) -> Unit)? = null,
 ) {
     Scaffold(
         modifier = modifier,
@@ -125,7 +129,7 @@ fun AdministrationScreen(
                 is AdministrationUiState.Ready ->
                     ReadyContent(
                         state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport, features, onSetFeature, onRenameHousehold,
-                        onOpenUsage, consumption, challenges, onPickChallenge,
+                        onOpenUsage, consumption, challenges, onPickChallenge, rotation, onSaveRotation,
                     )
             }
         }
@@ -158,6 +162,8 @@ private fun ReadyContent(
     consumption: ConsumptionCard?,
     challenges: List<MonthPick>,
     onPickChallenge: ((YearMonth, String) -> Unit)?,
+    rotation: ChallengeRotation.Schedule?,
+    onSaveRotation: ((YearMonth, List<String>) -> Unit)?,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
@@ -216,6 +222,12 @@ private fun ReadyContent(
                 SectionTitle(R.string.administration_challenge_title, R.string.administration_challenge_help)
             }
             item(key = "challenge") { ChallengePickSection(challenges, onPickChallenge) }
+        }
+        if (onSaveRotation != null && rotation != null && rotation.households.isNotEmpty()) {
+            item(key = "rotation-title") {
+                SectionTitle(R.string.administration_rotation_title, R.string.administration_rotation_help)
+            }
+            item(key = "rotation") { ChallengeRotationSection(rotation, onSaveRotation) }
         }
         if (consumption != null) {
             item(key = "consumption") { ConsumptionSection(consumption) }

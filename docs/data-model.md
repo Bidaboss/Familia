@@ -685,7 +685,7 @@ Le choix de l'admin principal dans Administration, pour ce mois ou le suivant : 
 
 ### `challengeRotation/current` (récit 35 bis)
 
-L'ordre dans lequel les foyers lancent le défi, un mois chacun : `householdIds` (1 à 20 foyers, dans l'ordre), `startMonth` (`AAAA-MM`, le mois du premier) et `updatedAt` (l'heure du serveur). Le foyer d'un mois est `householdIds[(mois - startMonth) % taille]`. La famille le lit, seul l'admin principal l'écrit depuis Administration. Sans ordre, aucun foyer ne prépare de défi.
+L'ordre dans lequel les foyers lancent le défi, un mois chacun : `householdIds` (1 à 20 foyers, dans l'ordre), `startMonth` (`AAAA-MM`, le mois du premier) et `updatedAt` (l'heure du serveur). Le foyer d'un mois est `householdIds[(mois - startMonth) % taille]`. La famille le lit, seul l'admin principal l'écrit depuis Administration (« Ordre des foyers » : il monte ou descend les foyers ; un premier ordre commence le mois suivant, un ordre déjà là reprend au foyer du mois). Supprimer un foyer le retire de l'ordre, et les suivants avancent d'un mois. Sans ordre, aucun foyer ne prépare de défi.
 
 ### `householdChallenges/{AAAA-MM}` (récit 35 bis)
 
@@ -701,7 +701,7 @@ L'ordre dans lequel les foyers lancent le défi, un mois chacun : `householdIds`
 
 Tout le foyer du mois le prépare, enfants compris, pour le mois en cours ou le suivant. Seul un adulte du foyer le publie ou passe le tour. Une fois publié ou passé, il ne change plus depuis l'appli et personne ne l'efface ; l'admin principal peut toujours imposer un autre défi par `challengePicks`. Toute la famille le lit.
 
-La fonction `onHouseholdChallengeWritten` l'applique quand il passe à `published` : pour le mois en cours, il remplace le défi tant que personne n'a fait avancer la jauge et que l'admin principal n'a rien choisi ; pour le mois suivant, il servira à créer le défi le 1er. Rien de publié le 1er : le défi par défaut prend le relais, sans prévenir la famille.
+La fonction `onHouseholdChallengeWritten` l'applique quand il passe à `published` : pour le mois en cours, il remplace le défi tant que personne n'a fait avancer la jauge et que l'admin principal n'a rien choisi ; pour le mois suivant, il servira à créer le défi le 1er. Rien ne change tant que le module `tree` est éteint. Rien de publié le 1er : le défi par défaut prend le relais, sans prévenir la famille.
 
 Sept jours avant son mois, la tâche de 18 h prévient le foyer (ses membres avec l'appli, sauf ceux qui ont coupé `tree`) : « C'est à vous de lancer le défi de janvier ! Préparez-le ensemble dans l'appli, ou passez votre tour. » Une seule fois (`treeMarks/hostReminder-{AAAA-MM}`), pas si le foyer a déjà publié ou passé, ni quand le module `tree` est éteint.
 

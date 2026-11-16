@@ -158,6 +158,11 @@
     <string name="administration_challenge_locked">La jauge a commencé : ce défi reste jusqu\'à la fin du mois.</string>
     <string name="administration_challenge_dialog_title">Défi de %1$s</string>
     <string name="administration_challenge_confirm">Choisir ce défi</string>
+    <string name="administration_rotation_title">Ordre des foyers</string>
+    <string name="administration_rotation_help">Chaque foyer lance le défi d\'un mois, à tour de rôle. Il est prévenu 7 jours avant et peut passer son tour. Monte ou descends un foyer, puis enregistre.</string>
+    <string name="administration_rotation_up">Monter %1$s</string>
+    <string name="administration_rotation_down">Descendre %1$s</string>
+    <string name="administration_rotation_save">Enregistrer l\'ordre</string>
     <string name="administration_feature_on">Visible par la famille</string>
     <string name="administration_feature_off">Caché à la famille</string>
     <string name="feature_home">Accueil</string>

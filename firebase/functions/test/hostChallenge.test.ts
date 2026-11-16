@@ -130,6 +130,14 @@ describe('the challenge of a foyer against the emulator', () => {
     assert.equal((await db.doc('challenges/2027-02').get()).get('source'), 'admin');
   });
 
+  test('while the tree is off, a challenge published during its month waits', async () => {
+    await ensureChallenge(db, '2026-12', now);
+    await db.doc('householdChallenges/2026-12').set(published('h1'));
+    await db.doc('config/app').set({ features: { tree: false } });
+    assert.equal(await applyHostedChallenge(db, '2026-12', now), false);
+    assert.equal((await db.doc('challenges/2026-12').get()).get('source'), 'default');
+  });
+
   test('a draft or a turn passed leaves the default challenge', async () => {
     await db.doc('householdChallenges/2026-12').set(published('h1', { status: 'draft' }));
     await ensureChallenge(db, '2026-12', now);
