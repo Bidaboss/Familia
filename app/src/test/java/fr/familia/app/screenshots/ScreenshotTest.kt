@@ -8,7 +8,9 @@ import fr.familia.app.core.navigation.FamiliaApp
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.theme.FamiliaThemeId
 import fr.familia.app.core.theme.themeBackground
+import fr.familia.app.feature.settings.appearance.AppIcon
 import fr.familia.app.feature.settings.appearance.AppearanceScreen
+import fr.familia.app.feature.settings.appearance.IconSection
 import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.Modifier
 import fr.familia.app.feature.auth.SessionUiState
@@ -321,6 +323,12 @@ class ScreenshotTest {
     @Config(fontScale = 2f)
     fun appearanceFontScale200() = capture("apparence_police_200") {
         AppearanceScreen(FamiliaThemeId.Classic, {}, {})
+    }
+
+    /** « Icône de l'appli », with the message shown once the icon changed. */
+    @Test
+    fun appIconChoice() = capture("apparence_icone") {
+        Surface { IconSection(AppIcon.Terre, changed = true, onChoose = {}) }
     }
 
     /** The Accueil in each theme, as on the board of the themes (DESIGN-7). */
