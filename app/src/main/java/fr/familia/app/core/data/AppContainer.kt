@@ -52,6 +52,9 @@ class AppContainer(context: Context) {
 
     val rsvpRepository: RsvpRepository? by lazy { firestore?.let { FirestoreRsvpRepository(it) } }
 
+    /** « Qui apporte quoi » of an event (PRD, récit 4 bis). */
+    val bringRepository: BringRepository? by lazy { firestore?.let { FirestoreBringRepository(it) } }
+
     val helpRequestRepository: HelpRequestRepository? by lazy { firestore?.let { FirestoreHelpRequestRepository(it) } }
     val tripRepository: TripRepository? by lazy { firestore?.let { FirestoreTripRepository(it) } }
 

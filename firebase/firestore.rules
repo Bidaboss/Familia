@@ -331,6 +331,55 @@ service cloud.firestore {
       allow delete: if isMember() && canAnswerFor(memberId);
     }
 
+    // --- Qui apporte quoi (PRD, récit 4 bis) -------------------------------------------------------
+    //
+    // events/{eventId}/bring/{itemId}: one thing to bring (entrée, pain…). Every member with the app
+    // adds a line or takes one; a line taken shows the first name of whoever took it, who can let it
+    // go. The label never changes: a wrong line is deleted by its author or by those who manage the event.
+
+    function eventPath(eventId) {
+      return /databases/$(database)/documents/events/$(eventId);
+    }
+
+    function isBringTaker(b) {
+      return (b.takerId == null && b.takerName == null)
+        || (b.takerId == myMemberId() && b.takerName == me().firstName);
+    }
+
+    function isValidBring(b) {
+      return b.keys().hasAll(['label', 'authorId', 'takerId', 'takerName', 'createdAt', 'updatedAt'])
+        && b.keys().size() == 6
+        && b.label is string && b.label.trim().size() > 0 && b.label.size() <= 60
+        && b.updatedAt == request.time;
+    }
+
+    match /events/{eventId}/bring/{itemId} {
+      allow read: if isMember();
+
+      allow create: if isMember()
+        && exists(eventPath(eventId))
+        && isValidBring(request.resource.data)
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.createdAt == request.time
+        && isBringTaker(request.resource.data);
+
+      // Take a free line, or let go of one: the taker, the line's author or those who manage the event.
+      allow update: if isMember()
+        && isValidBring(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['takerId', 'takerName', 'updatedAt'])
+        && ((resource.data.takerId == null
+             && request.resource.data.takerId == myMemberId()
+             && request.resource.data.takerName == me().firstName)
+            || (resource.data.takerId != null
+                && request.resource.data.takerId == null && request.resource.data.takerName == null
+                && (resource.data.takerId == myMemberId()
+                    || resource.data.authorId == myMemberId()
+                    || canManage(get(eventPath(eventId)).data))));
+
+      allow delete: if isMember()
+        && (resource.data.authorId == myMemberId() || canManage(get(eventPath(eventId)).data));
+    }
+
     // The album of an event (récit 41) opens on its day: from 22:00 UTC the day before,
     // midnight in France in summer, 23:00 in winter (an hour before the app, harmless).
     // Its photos have the shape of the trip photos (isValidAlbumPhoto in the trips section): 30 places per person, files in Storage at events/{eventId}/{authorId}/.

@@ -27,7 +27,7 @@ import {
   HelpNotice, HelpRequestData, HelpSender, onHelpRequestWritten, reopenRequestsOf, sendStillOpenReminders,
 } from './helpRequests';
 import { addDays, EventData, hasVisibleChange, Notice, parisDay } from './logic';
-import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, memberForUid, notifyChange, Sender, sendDayBeforeReminders } from './store';
+import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, memberForUid, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
 import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
 import {
@@ -106,6 +106,8 @@ export const onEventDeleted = onDocumentDeletedWithAuthContext('events/{eventId}
 
 export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (event) => {
   await deleteMemberData(getFirestore(), event.params.memberId);
+  // « Qui apporte quoi » (récit 4 bis): what they had taken is free again.
+  await releaseBringOf(getFirestore(), event.params.memberId);
 });
 
 export const dayBeforeReminder = onSchedule({ schedule: '0 18 * * *', timeZone: 'Europe/Paris' }, async () => {
