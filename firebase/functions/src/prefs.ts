@@ -24,6 +24,8 @@ export const FAMILY_OF: Readonly<Record<Channel, Family | null>> = {
   reminders: 'reminders',
   gifts: 'gifts',
   goodNews: 'goodNews',
+  // La bienvenue d'un nouveau membre (récit 43) is a good news of the family.
+  welcome: 'goodNews',
   comments: 'comments',
   helpRequests: 'helpRequests',
   trips: 'trips',
