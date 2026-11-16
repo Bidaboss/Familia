@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 /** A member offered in the form, with their household name to tell two namesakes apart. */
-data class MemberChoice(val id: String, val firstName: String, val householdName: String?, val locked: Boolean = false)
+data class MemberChoice(val id: String, val firstName: String, val householdName: String?, val locked: Boolean = false, val householdId: String? = null)
 
 sealed interface TripEditUiState {
     data object Loading : TripEditUiState
@@ -94,7 +94,7 @@ class TripEditViewModel(
         editedId = existing?.id ?: tripRepo.newTripId()
         val creatorId = existing?.creatorId ?: current.id
         val households = family.households.associate { it.id to it.name }
-        fun choice(m: Member) = MemberChoice(m.id, m.firstName, households[m.householdId], locked = m.id == creatorId)
+        fun choice(m: Member) = MemberChoice(m.id, m.firstName, households[m.householdId], locked = m.id == creatorId, householdId = m.householdId)
         // Editing keeps the participants already chosen, even those this member could not add.
         val offered = participantChoices(current, family)
         val kept = family.members.filter { it.id in existing?.participantIds.orEmpty() && offered.none { o -> o.id == it.id } }

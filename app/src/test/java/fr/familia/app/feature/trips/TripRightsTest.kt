@@ -28,17 +28,19 @@ class TripRightsTest {
     }
 
     @Test
-    fun `an adult adds adults of any household and the children of their own`() {
+    fun `anyone of the family can be added, of every household, children included (PRD rev 190)`() {
         val ids = participantChoices(TestFamily.adult, family).map { it.id }
         assertEquals("adult1", ids.first())
-        assertTrue(ids.containsAll(listOf("admin1", "adult2", "kid1")))
-        assertFalse("kid2" in ids) // a child of another household
+        assertEquals(setOf("admin1", "adult1", "adult2", "kid1", "kid2"), ids.toSet())
+        assertEquals(5, participantChoices(TestFamily.admin, family).size)
     }
 
     @Test
-    fun `a child adds adults only, the admin principal anyone`() {
-        assertEquals(listOf("kid1", "admin1", "adult1", "adult2"), participantChoices(TestFamily.kid, family).map { it.id })
-        assertEquals(5, participantChoices(TestFamily.admin, family).size)
+    fun `a whole household or the whole family is ticked at once, each one following`() {
+        val form = fr.familia.app.feature.trips.edit.TripForm(participantIds = setOf("adult1"))
+            .withParticipants(listOf("adult2", "kid2"))
+        assertEquals(setOf("adult1", "adult2", "kid2"), form.participantIds)
+        assertTrue(form.readerIds.containsAll(listOf("adult2", "kid2")))
     }
 
     @Test
