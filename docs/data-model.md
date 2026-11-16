@@ -1098,7 +1098,7 @@ Lu par toute la famille une fois accepté ; en `pending`, seulement par l'ado, l
 
 ### `momentCheers/{momentId}-{authorId}`
 
-`momentId`, `forMemberId`, `authorId`, `authorName`, `text` (1 à 280), `createdAt`. Un par membre et par moment, seulement pendant les 24 h qui suivent `startedAt`, jamais pour soi. L'auteur le supprime. Chaque encouragement prévient le membre avec les prénoms de tous ceux qui ont écrit (« Inès et Noé pensent à toi. »), jamais un nombre. `onMemberDeleted` supprime les moments et encouragements d'un membre supprimé.
+`momentId`, `forMemberId`, `authorId`, `authorName`, `text` (1 à 280), `createdAt`. Un par membre et par moment, seulement pendant les 24 h qui suivent `startedAt`, jamais pour soi. L'auteur le supprime ; un moment supprimé emporte ses encouragements (`onMomentDeleted`). Chaque encouragement prévient le membre avec les prénoms de tous ceux qui ont écrit (« Inès et Noé pensent à toi. »), jamais un nombre. `onMemberDeleted` supprime les moments et encouragements d'un membre supprimé.
 
 ## La bienvenue (PRD, récit 43)
 

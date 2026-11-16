@@ -91,6 +91,12 @@ export async function onMomentCheerCreated(db: Firestore, send: Sender, cheer: M
   return true;
 }
 
+/** A moment removed (taken back, refused) takes its encouragements with it. */
+export async function deleteCheersOf(db: Firestore, momentId: string): Promise<void> {
+  const cheers = await db.collection('momentCheers').where('momentId', '==', momentId).get();
+  await Promise.all(cheers.docs.map((c) => c.ref.delete()));
+}
+
 /** A member removed takes their moments, and the encouragements they wrote or received. */
 export async function deleteMomentsOf(db: Firestore, memberId: string): Promise<void> {
   for (const field of ['forMemberId', 'authorId']) {

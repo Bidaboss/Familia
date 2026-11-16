@@ -46,7 +46,7 @@ import { sendWeeklyRecap } from './recap';
 import { deleteQuietQueueOf, sendHeldNotices } from './prefs';
 import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type BirthdayCard } from './birthdayWishes';
 import { deleteWelcomeOf, isFirstSignIn, welcomeMember } from './welcome';
-import { deleteMomentsOf, onMomentCheerCreated, startMoments, type MomentCheer } from './thinkOfMe';
+import { deleteCheersOf, deleteMomentsOf, onMomentCheerCreated, startMoments, type MomentCheer } from './thinkOfMe';
 import { revealWishes, thankGivers } from './wishesReveal';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
@@ -318,6 +318,11 @@ export const birthdayGiftReminders = onSchedule({ schedule: '0 10 * * *', timeZo
   try { await startBirthdays(getFirestore(), send, now); } catch (e) { console.error('birthday wishes', e); }
   // « Pensez à moi » (récit 43): the important moments of the day.
   try { await startMoments(getFirestore(), send, now); } catch (e) { console.error('think of me', e); }
+});
+
+// A moment removed takes its encouragements with it (récit 43).
+export const onMomentDeleted = onDocumentDeleted('moments/{momentId}', async (event) => {
+  await deleteCheersOf(getFirestore(), event.params.momentId);
 });
 
 // Each encouragement of « Pensez à moi » tells the person (récit 43).

@@ -4,7 +4,7 @@ import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { Notice } from '../src/logic';
 import { Sender } from '../src/store';
-import { cheersNotice, deleteMomentsOf, invitationNotice, onMomentCheerCreated, startMoments } from '../src/thinkOfMe';
+import { cheersNotice, deleteCheersOf, deleteMomentsOf, invitationNotice, onMomentCheerCreated, startMoments } from '../src/thinkOfMe';
 
 describe('Pensez à moi, without the emulator', () => {
   test('the notices name the people, never a number', () => {
@@ -86,6 +86,14 @@ describe('Pensez à moi against the emulator', () => {
     await onMomentCheerCreated(db, send, second);
     assert.deepEqual(sent.map((s) => s.token), ['token-camille', 'token-camille']);
     assert.equal(sent[1].notice.body, 'Inès et Noé pensent à toi.');
+  });
+
+  test('a moment removed takes its encouragements, and only them', async () => {
+    await db.doc('momentCheers/m1-ines').set({ momentId: 'm1', forMemberId: 'camille', authorId: 'ines', authorName: 'Inès', text: 'x' });
+    await db.doc('momentCheers/later-noe').set({ momentId: 'later', forMemberId: 'ines', authorId: 'noe', authorName: 'Noé', text: 'y' });
+    await deleteCheersOf(db, 'm1');
+    assert.equal((await db.doc('momentCheers/m1-ines').get()).exists, false);
+    assert.equal((await db.doc('momentCheers/later-noe').get()).exists, true);
   });
 
   test('a member removed takes their moments and encouragements', async () => {
