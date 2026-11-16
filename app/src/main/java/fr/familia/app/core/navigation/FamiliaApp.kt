@@ -189,6 +189,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
+import fr.familia.app.feature.whoisit.WhoIsItDestination
+import fr.familia.app.feature.whoisit.WhoIsItEditDestination
+import fr.familia.app.feature.whoisit.WhoIsItEditRoute
+import fr.familia.app.feature.whoisit.WhoIsItListRoute
+import fr.familia.app.feature.whoisit.WhoIsItPostDestination
+import fr.familia.app.feature.whoisit.WhoIsItPostRoute
 import java.time.YearMonth
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
@@ -796,6 +802,30 @@ fun FamiliaApp(
                             onAdd = { navController.navigate(CapsuleEditDestination) },
                         )
                     }
+                    composable<WhoIsItDestination> {
+                        WhoIsItListRoute(
+                            container = container,
+                            onOpen = { id -> navController.navigate(WhoIsItPostDestination(id)) },
+                            onAdd = { navController.navigate(WhoIsItEditDestination) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<WhoIsItEditDestination> {
+                        WhoIsItEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onPublished = { id -> navController.navigate(WhoIsItPostDestination(id)) { popUpTo<WhoIsItEditDestination> { inclusive = true } } },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<WhoIsItPostDestination> { entry ->
+                        WhoIsItPostRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            postId = entry.toRoute<WhoIsItPostDestination>().postId,
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
                     composable<GenealogyDestination> {
                         GenealogyRoute(
                             container = container,
@@ -1087,6 +1117,7 @@ fun FamiliaApp(
                             onOpenRecipes = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipesDestination()) }) else null,
                             onOpenCapsules = if (capsulesOn) ({ navController.navigate(CapsulesDestination) }) else null,
                             onOpenGenealogy = if (features.isOn(Feature.Genealogy)) ({ navController.navigate(GenealogyDestination) }) else null,
+                            onOpenWhoIsIt = if (features.isOn(Feature.WhoIsIt)) ({ navController.navigate(WhoIsItDestination) }) else null,
                             onOpenFeedback = { navController.navigate(FeedbackFormDestination(FeedbackOrigin.Family.key)) },
                             onOpenWishes = if (features.isOn(Feature.Gifts)) {
                                 { id -> navController.navigate(GiftListDestination(wishesListId(id))) }
