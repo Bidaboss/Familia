@@ -706,6 +706,8 @@
     <string name="channel_comments_description">Quand la famille réagit à ce que tu as partagé.</string>
     <string name="channel_weekly">Rendez-vous de la semaine</string>
     <string name="channel_weekly_description">La question de la semaine, chaque lundi.</string>
+    <string name="channel_admin">Administration</string>
+    <string name="channel_admin_description">Quand Familia approche d\'une limite gratuite de Firebase. Seul l\'admin principal la reçoit.</string>
     <string name="channel_trips_description">« Bien arrivé » des voyages que tu suis, et le rappel quand tu pars.</string>
     <string name="trips_add">Nouveau voyage</string>
     <string name="trips_open_action">ouvrir le voyage</string>
@@ -908,4 +910,18 @@
     <string name="weekly_failed_body">Ta réponse n\'a pas été enregistrée. Vérifie ta connexion et réessaie.</string>
     <string name="weekly_open">Ouvrir la question de la semaine</string>
     <string name="weekly_see_answers">Voir les réponses</string>
+    <!-- Consommation (PRD, récit 1 sexies) -->
+    <string name="consumption_title">Consommation</string>
+    <string name="consumption_waiting">Le premier relevé arrive demain matin, vers 8 h.</string>
+    <string name="consumption_day">Relevé du %1$s</string>
+    <string name="consumption_failed">Familia n\'a pas pu lire la consommation. Il manque sans doute le rôle « Lecteur Monitoring » : voir le guide de déploiement.</string>
+    <string name="consumption_reads">Lectures</string>
+    <string name="consumption_writes">Écritures</string>
+    <string name="consumption_deletes">Suppressions</string>
+    <string name="consumption_storage">Taille de la base</string>
+    <string name="consumption_figures">%1$s sur %2$s gratuites</string>
+    <string name="consumption_storage_figures">%1$s Mo sur 1 Go gratuit</string>
+    <string name="consumption_gauge_description">%1$s : %2$s, %3$d pour cent</string>
+    <string name="consumption_cost">Coût estimé du mois : %1$s</string>
+    <string name="consumption_cost_help">Familia te prévient à 80 % d\'une limite ou au-delà de 0,50 €. L\'alerte de Google arrive par e-mail à 1 €.</string>
 </resources>

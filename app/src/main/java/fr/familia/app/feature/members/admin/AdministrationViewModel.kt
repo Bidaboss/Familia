@@ -3,6 +3,7 @@ package fr.familia.app.feature.members.admin
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.AppConfigRepository
+import fr.familia.app.core.data.ConsumptionRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Family
@@ -35,6 +36,7 @@ class AdministrationViewModel(
     private val members: MemberRepository?,
     private val currentMemberId: String,
     private val appConfig: AppConfigRepository? = null,
+    private val consumptionRepository: ConsumptionRepository? = null,
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
@@ -66,6 +68,18 @@ class AdministrationViewModel(
     val features: StateFlow<Map<String, Boolean>> = (appConfig?.observeAppConfig()?.map { it.features } ?: emptyFlow())
         .catch { e -> if (e is CancellationException) throw e }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
+
+    /**
+     * The « Consommation » card (PRD, récit 1 sexies): [ConsumptionCard.Waiting] before the first
+     * morning, null when it cannot show (no repository, or the read was refused).
+     */
+    val consumption: StateFlow<ConsumptionCard?> = (
+        consumptionRepository?.observeLatest()
+            ?.map { latest -> latest?.let { ConsumptionCard.Ready(it) } ?: ConsumptionCard.Waiting }
+            ?: emptyFlow()
+        )
+        .catch { e -> if (e is CancellationException) throw e }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     /** Switches [feature] on or off for the family; the admin principal always sees it. */
     fun setFeature(feature: Feature, on: Boolean) {

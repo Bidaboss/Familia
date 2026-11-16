@@ -15,6 +15,8 @@ import {
   deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
   sendBirthdayGiftReminders, updateSharesTotal,
 } from './gifts';
+import { checkConsumption } from './consumption';
+import { cloudMonitoring } from './monitoring';
 import { deleteMemberNotebook, syncNotebookEntry, syncNotebookItem } from './notebook';
 import {
   deleteReactionDigest, FileRemover, GoodNewsData, GoodNewsNotice, GoodNewsSender, onGoodNewsEdited, onGoodNewsPublished,
@@ -23,7 +25,7 @@ import {
 import {
   HelpNotice, HelpRequestData, HelpSender, onHelpRequestWritten, reopenRequestsOf, sendStillOpenReminders,
 } from './helpRequests';
-import { EventData, hasVisibleChange, Notice } from './logic';
+import { addDays, EventData, hasVisibleChange, Notice, parisDay } from './logic';
 import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, notifyChange, Sender, sendDayBeforeReminders } from './store';
 import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion } from './weeklyQuestion';
@@ -252,4 +254,11 @@ export const onWeeklyAnswerWritten = onDocumentWritten('weeklyQuestions/{weekId}
 
 export const onMemberDeletedAnswers = onDocumentDeleted('members/{memberId}', async (event) => {
   await deleteAnswersOf(getFirestore(), event.params.memberId);
+});
+
+// --- Consommation (récit 1 sexies) ------------------------------------------------------------
+
+// Each morning, the figures of the day before: Monitoring has them all by then.
+export const consumptionCheck = onSchedule({ schedule: '0 8 * * *', timeZone: 'Europe/Paris' }, async () => {
+  await checkConsumption(getFirestore(), cloudMonitoring, send, addDays(parisDay(new Date()), -1));
 });

@@ -75,6 +75,9 @@ class AppContainer(context: Context) {
     /** One counter for the whole app, so a rotation is not a new opening. */
     val usageTracker: UsageTracker? by lazy { usageRepository?.let { UsageTracker(appContext, it) } }
 
+    /** The daily use of the database, for the admin principal (PRD, récit 1 sexies). */
+    val consumptionRepository: ConsumptionRepository? by lazy { firestore?.let { FirestoreConsumptionRepository(it) } }
+
     val exportRepository: ExportRepository? by lazy { firestore?.let { FirestoreExportRepository(it) } }
 
     val notificationRepository: NotificationRepository? by lazy {
