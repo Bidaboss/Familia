@@ -2,7 +2,7 @@
 // adult1 is celebrated, adult2 and adult3 write to them.
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import { Timestamp, deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { ADULT, NEIGHBOUR, OTHER_ADULT, STRANGER, as, createEnv, seed } from './helpers.mjs';
 
 let env;
@@ -20,9 +20,11 @@ function card(by, overrides = {}) {
 }
 
 /** The Bonne nouvelle that Familia publishes on the morning of the birthday. */
-async function birthdayStarted() {
+async function birthdayStarted(hoursAgo = 1) {
   await env.withSecurityRulesDisabled(async (ctx) => {
-    await setDoc(doc(ctx.firestore(), `goodNews/birthday-${YEAR}-${ADULT.memberId}`), { text: 'x', birthdayOf: ADULT.memberId });
+    await setDoc(doc(ctx.firestore(), `goodNews/birthday-${YEAR}-${ADULT.memberId}`), {
+      text: 'x', birthdayOf: ADULT.memberId, createdAt: Timestamp.fromMillis(Date.now() - hoursAgo * 3600 * 1000),
+    });
   });
 }
 
@@ -48,6 +50,11 @@ describe('birthday cards', () => {
     await assertFails(setDoc(doc(db, `birthdayCards/${cardId(NEIGHBOUR)}`), card(NEIGHBOUR)));
     await assertFails(setDoc(doc(db, `birthdayCards/${cardId(OTHER_ADULT)}`), card(OTHER_ADULT, { authorName: 'Mamie' })));
     await assertFails(setDoc(doc(db, `birthdayCards/other-id`), card(OTHER_ADULT)));
+  });
+
+  test('the next day, no more card: the Bonne nouvelle is more than 24 h old', async () => {
+    await birthdayStarted(25);
+    await assertFails(setDoc(doc(as(env, OTHER_ADULT), `birthdayCards/${cardId(OTHER_ADULT)}`), card(OTHER_ADULT)));
   });
 
   test('a short word only, and nothing else', async () => {

@@ -871,13 +871,19 @@ service cloud.firestore {
     // --- Vœux d'anniversaire (PRD, récit 36, avis EXPERT n° 11) ---------------------------------
     //
     // birthdayCards/{year}-{forMemberId}-{authorId}: one card per member and per birthday, a short
-    // word to the person celebrated. It can be written only on the day: while the Bonne nouvelle
-    // goodNews/birthday-{year}-{forMemberId} that Familia publishes that morning exists. The whole
+    // word to the person celebrated. It can be written only on the day: within 24 h of the Bonne
+    // nouvelle goodNews/birthday-{year}-{forMemberId} that Familia publishes that morning. The whole
     // family reads the cards (the person's page, the Bonne nouvelle); the author changes or removes
     // theirs. Nobody else writes one, and the app never shows how many there are.
 
     function isBirthdayCardText(t) {
       return t is string && t.trim().size() > 0 && t.size() <= 280;
+    }
+
+    // The day: the Bonne nouvelle of Familia exists and was published less than 24 h ago.
+    function isBirthdayToday(year, forMemberId) {
+      let news = /databases/$(database)/documents/goodNews/$('birthday-' + string(year) + '-' + forMemberId);
+      return exists(news) && get(news).data.createdAt > request.time - duration.value(24, 'h');
     }
 
     match /birthdayCards/{cardId} {
@@ -892,7 +898,7 @@ service cloud.firestore {
         && request.resource.data.forMemberId != myMemberId()
         && request.resource.data.year is int
         && cardId == string(request.resource.data.year) + '-' + request.resource.data.forMemberId + '-' + myMemberId()
-        && exists(/databases/$(database)/documents/goodNews/$('birthday-' + string(request.resource.data.year) + '-' + request.resource.data.forMemberId))
+        && isBirthdayToday(request.resource.data.year, request.resource.data.forMemberId)
         && isBirthdayCardText(request.resource.data.text)
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;

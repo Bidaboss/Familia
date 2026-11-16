@@ -1,6 +1,6 @@
 // Vœux d'anniversaire (PRD, récit 36, avis EXPERT n° 11). On the day, at 10 h, Familia publishes a
 // Bonne nouvelle « Joyeux anniversaire » for the person (goodNews/birthday-{year}-{memberId}) and
-// tells the family « C'est l'anniversaire de Léa, envoie-lui tes vœux ». Each wish is a card
+// tells the family « C'est l'anniversaire de Camille, envoie-lui tes vœux ». Each wish is a card
 // (birthdayCards/{year}-{forMemberId}-{authorId}); the rules accept one only while that Bonne
 // nouvelle exists. The person is told of each card, the notices of the day replacing each other.
 // Never a count, never who did not send one, and no reminder.
@@ -40,7 +40,7 @@ export function invitationNotice(firstName: string, memberId: string): Notice {
   };
 }
 
-/** « Paméla, Vincent et Ophélie t'ont envoyé une carte de vœux. »: names, never a number. */
+/** « Inès, Noé et Lou t'ont envoyé une carte de vœux. »: names, never a number. */
 export function cardsNotice(memberId: string, year: number, authors: string[]): Notice {
   const names = authors.length <= 1
     ? authors.join('')
