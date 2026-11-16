@@ -923,5 +923,5 @@
     <string name="consumption_storage_figures">%1$s Mo sur 1 Go gratuit</string>
     <string name="consumption_gauge_description">%1$s : %2$s, %3$d pour cent</string>
     <string name="consumption_cost">Coût estimé du mois : %1$s</string>
-    <string name="consumption_cost_help">Familia te prévient à 80 % d\'une limite ou au-delà de 0,50 €. L\'alerte de Google arrive par e-mail à 1 €.</string>
+    <string name="consumption_cost_help">Ce coût est une estimation, pas la facture. Familia te prévient à 80 % d\'une limite ou au-delà de 0,50 €. Le vrai garde-fou reste l\'alerte de Google, par e-mail à 1 €.</string>
 </resources>
