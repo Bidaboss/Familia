@@ -375,3 +375,15 @@ Avec l'interrupteur « À découvrir » allumé (l'admin principal le voit même
 4. Lundi 07/12 : **Attendu :** « Sondages et Qui apporte quoi ». L'Entraide est sautée, car le tuto la montre déjà.
 5. En Voir comme : **Attendu :** pas de « Plus tard », et « Essayer » ouvre le module sans cacher la carte du membre regardé.
 6. Avant le 30/11 ou interrupteur éteint : **Attendu :** pas de carte. Aucune notification n'est envoyée.
+
+## Photos : envoi refusé par le serveur (après #167 et « Publier Firebase »)
+1. Ajoute une photo à un voyage dont tu es participant, à une recette que tu as écrite et à l'album d'un événement où tu as dit « je viens ». **Attendu :** les trois passent.
+2. Sur ces trois cas, si une photo échoue : **Attendu :** le message dit si la photo est illisible, si le serveur l'a refusée, ou si c'est le réseau.
+3. Limites connues (une règle Storage ne lit que deux documents en production) : l'admin principal ne peut pas ajouter de photo à la recette de quelqu'un d'autre (« refusée par le serveur »). Quand il retire la photo d'un autre sans être le créateur du voyage ou de l'événement, la photo disparaît bien de l'écran, mais son fichier reste stocké jusqu'à la suppression du voyage ou de l'événement.
+
+## « Qui est-ce ? » (récit 43, interrupteur whoIsIt)
+1. Allume l'interrupteur, puis Famille > « Qui est-ce ? » > « Publier une photo » : une vieille photo, un indice, qui est dessus et l'année. **Attendu :** la photo s'ouvre, avec ta réponse et « Personne n'a encore deviné ».
+2. Avec un autre compte : la puce « Qui est-ce ? » apparaît sur l'Accueil. Devine. **Attendu :** la réponse et les devinettes s'affichent juste après, sans score.
+3. « Je ne sais pas » : **Attendu :** la réponse s'affiche aussi.
+4. « Ne plus me montrer » : **Attendu :** la puce disparaît sur ce téléphone.
+5. En Voir comme : **Attendu :** on lit, mais on ne devine pas, on ne publie pas et on ne retire rien.
