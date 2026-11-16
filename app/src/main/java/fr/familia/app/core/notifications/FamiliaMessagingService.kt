@@ -59,9 +59,12 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         // Capsule temporelle: the capsule that opened.
         val capsuleId = message.data[EXTRA_CAPSULE_ID]
         capsuleId?.let { open.putExtra(EXTRA_CAPSULE_ID, it) }
+        // La semaine de la famille: its screen (récit 36).
+        val recapWeek = message.data[EXTRA_RECAP_WEEK]
+        recapWeek?.let { open.putExtra(EXTRA_RECAP_WEEK, it) }
         val pending = PendingIntent.getActivity(
             this,
-            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId ?: joinMeId ?: capsuleId).hashCode(),
+            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId ?: joinMeId ?: capsuleId ?: recapWeek).hashCode(),
             open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -112,5 +115,8 @@ class FamiliaMessagingService : FirebaseMessagingService() {
 
         /** Same key as the `data` of functions/src/index.ts for a capsule notice. */
         const val EXTRA_CAPSULE_ID = "capsuleId"
+
+        /** The Sunday of « La semaine de la famille », same key as functions/src/recap.ts. */
+        const val EXTRA_RECAP_WEEK = "recapWeek"
     }
 }
