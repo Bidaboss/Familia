@@ -69,6 +69,7 @@ import fr.familia.app.feature.helprequests.whenLabel
 import fr.familia.app.feature.goodnews.home.GoodNewsHomeCard
 import fr.familia.app.feature.month.MonthSlideshowHomeCard
 import fr.familia.app.feature.month.isSlideshowTime
+import fr.familia.app.feature.tree.TreeHomeCard
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionHomeCard
 import fr.familia.app.feature.trips.tripDatesLabel
 import java.time.Instant
@@ -138,6 +139,11 @@ fun HomeRoute(
             null
         },
         onOpenMonth = if (flags.isOn(Feature.MonthSlideshow)) onOpenMonth else null,
+        tree = if (flags.isOn(Feature.Tree)) {
+            { TreeHomeCard(container) }
+        } else {
+            null
+        },
     )
 }
 
@@ -146,6 +152,7 @@ fun HomeRoute(
  * nothing to say (PRD, « Tableau de bord d'accueil »). [goodNews] is the « Bonnes nouvelles » card,
  * [weeklyQuestion] the question of the week (récit 37), both given only while their module is on.
  * [onOpenMonth], set while the slideshow module is on, shows its card from the last Sunday (récit 42).
+ * [tree] is l'arbre de la famille and its challenge of the month (récit 35), while its module is on.
  */
 @Composable
 fun HomeScreen(
@@ -154,6 +161,7 @@ fun HomeScreen(
     goodNews: (@Composable () -> Unit)? = null,
     weeklyQuestion: (@Composable () -> Unit)? = null,
     onOpenMonth: ((YearMonth) -> Unit)? = null,
+    tree: (@Composable () -> Unit)? = null,
 ) {
     val ready = state as? HomeUiState.Ready
     if (ready == null) {
@@ -161,7 +169,7 @@ fun HomeScreen(
         return
     }
     val month = YearMonth.from(ready.today).takeIf { onOpenMonth != null && isSlideshowTime(ready.today) }
-    if (ready.isEmpty && goodNews == null && weeklyQuestion == null && month == null) {
+    if (ready.isEmpty && goodNews == null && weeklyQuestion == null && month == null && tree == null) {
         EmptyState(
             icon = Icons.Outlined.CalendarMonth,
             title = stringResource(R.string.home_empty_title),
@@ -182,6 +190,7 @@ fun HomeScreen(
         if (ready.week.isNotEmpty()) card("week") { WeekCard(ready.week, ready.weekMore, ready.today, actions) }
         if (goodNews != null) card("goodNews") { goodNews() }
         if (weeklyQuestion != null) card("weeklyQuestion") { weeklyQuestion() }
+        if (tree != null) card("tree") { tree() }
         if (month != null && onOpenMonth != null) card("month") { MonthSlideshowHomeCard(month) { onOpenMonth(month) } }
         if (ready.birthdays.isNotEmpty()) card("birthdays") { BirthdaysCard(ready.birthdays, ready.today, actions.onOpenWishes) }
         ready.occasion?.let { occasion -> card("occasion") { OccasionCard(occasion, ready.today) { actions.onOpenList(occasion.list.id) } } }
