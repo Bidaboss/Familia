@@ -1,5 +1,8 @@
 package fr.familia.app.feature.expenses
 
+import android.content.Context
+import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -18,12 +22,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Payments
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -36,10 +44,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -51,6 +61,8 @@ import fr.familia.app.core.model.EURO
 import fr.familia.app.core.model.Expense
 import fr.familia.app.core.model.ExpenseCategory
 import fr.familia.app.core.model.SplitMode
+import fr.familia.app.core.share.ShareContent
+import fr.familia.app.core.share.share
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
@@ -92,6 +104,8 @@ fun ExpensesScreen(
     onAdd: (() -> Unit)? = null,
     onEdit: ((expenseId: String) -> Unit)? = null,
     actions: ExpensesActions? = null,
+    /** The history of an expense this member may not change: who added it, who changed what. */
+    onHistory: ((expenseId: String) -> Unit)? = null,
 ) {
     val success = state as? ExpensesUiState.Success
     val snackbar = LocalSnackbarHost.current
@@ -107,6 +121,7 @@ fun ExpensesScreen(
             TopAppBar(
                 title = { Text(success?.let { stringResource(R.string.expenses_title_of, it.title) } ?: stringResource(R.string.expenses_title)) },
                 navigationIcon = { BackButton(onClick = onBack) },
+                actions = { if (success != null) ExportMenu(success) },
             )
         },
         floatingActionButton = {
@@ -137,14 +152,19 @@ fun ExpensesScreen(
                         }
                     },
                 )
-                is ExpensesUiState.Success -> Content(state, onEdit, actions)
+                is ExpensesUiState.Success -> Content(state, onEdit, actions, onHistory)
             }
         }
     }
 }
 
 @Composable
-private fun Content(state: ExpensesUiState.Success, onEdit: ((String) -> Unit)?, actions: ExpensesActions?) {
+private fun Content(
+    state: ExpensesUiState.Success,
+    onEdit: ((String) -> Unit)?,
+    actions: ExpensesActions?,
+    onHistory: ((String) -> Unit)?,
+) {
     var editShares by rememberSaveable { mutableStateOf(false) }
     var confirmClose by rememberSaveable { mutableStateOf(false) }
     LazyColumn(
@@ -212,7 +232,8 @@ private fun Content(state: ExpensesUiState.Success, onEdit: ((String) -> Unit)?,
             item(key = "no-expense") { Hint(stringResource(R.string.expenses_empty)) }
         }
         items(state.expenses, key = { "expense-${it.expense.id}" }) { row ->
-            ExpenseLine(row, onEdit?.takeIf { row.canEdit }?.let { edit -> { edit(row.expense.id) } })
+            val open = if (row.canEdit) onEdit else onHistory
+            ExpenseLine(row, open?.let { go -> { go(row.expense.id) } })
         }
         if (actions != null && state.isCreator) {
             item(key = "creator-title") { TripSectionTitle(stringResource(R.string.expenses_creator_title)) }
@@ -355,22 +376,74 @@ private fun ExpenseLine(row: ExpenseRow, onClick: (() -> Unit)?) {
     }
 }
 
+/** « Partager les comptes »: as a table for a spreadsheet, or as an Argile image. */
+@Composable
+private fun ExportMenu(state: ExpensesUiState.Success) {
+    val context = LocalContext.current
+    var open by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { open = true }, modifier = Modifier.size(56.dp)) {
+            Icon(Icons.Outlined.Share, contentDescription = stringResource(R.string.expenses_export))
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.expenses_export_csv)) },
+                onClick = { open = false; exportCsv(context, state) },
+                modifier = Modifier.heightIn(min = 56.dp),
+            )
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.expenses_export_image)) },
+                onClick = { open = false; exportImage(context, state) },
+                modifier = Modifier.heightIn(min = 56.dp),
+            )
+        }
+    }
+}
+
+private fun exportCsv(context: Context, state: ExpensesUiState.Success) {
+    val csv = expensesCsv(state, { context.getString(categoryRes(it)) }, { context.getString(splitRes(it)) })
+    val title = context.getString(R.string.expenses_title_of, state.title)
+    if (!shareCsv(context, csv, csvFileName(state.title), title, context.getString(R.string.share_chooser))) {
+        Toast.makeText(context, R.string.share_no_app, Toast.LENGTH_LONG).show()
+    }
+}
+
+private fun exportImage(context: Context, state: ExpensesUiState.Success) {
+    val lines = expensesImageLines(
+        state,
+        total = context.getString(R.string.expenses_total, formatCents(state.totalCents)),
+        transfer = { context.getString(R.string.expenses_transfer, it.fromName, formatCents(it.amountCents), it.toName) },
+        allSettled = context.getString(R.string.expenses_all_settled),
+        more = { context.resources.getQuantityString(R.plurals.expenses_more_transfers, it, it) },
+    )
+    val title = context.getString(R.string.expenses_title_of, state.title)
+    share(context, ShareContent(title = title, lines = lines, text = (listOf(title) + lines).joinToString("\n"), link = ""))
+}
+
 @Composable
 private fun Hint(text: String) {
     Text(text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable
-fun categoryLabel(category: ExpenseCategory): String = stringResource(
-    when (category) {
-        ExpenseCategory.Lodging -> R.string.expense_category_lodging
-        ExpenseCategory.Transport -> R.string.expense_category_transport
-        ExpenseCategory.Groceries -> R.string.expense_category_groceries
-        ExpenseCategory.Restaurant -> R.string.expense_category_restaurant
-        ExpenseCategory.Activity -> R.string.expense_category_activity
-        ExpenseCategory.Other -> R.string.expense_category_other
-    },
-)
+fun categoryLabel(category: ExpenseCategory): String = stringResource(categoryRes(category))
+
+@StringRes
+fun categoryRes(category: ExpenseCategory): Int = when (category) {
+    ExpenseCategory.Lodging -> R.string.expense_category_lodging
+    ExpenseCategory.Transport -> R.string.expense_category_transport
+    ExpenseCategory.Groceries -> R.string.expense_category_groceries
+    ExpenseCategory.Restaurant -> R.string.expense_category_restaurant
+    ExpenseCategory.Activity -> R.string.expense_category_activity
+    ExpenseCategory.Other -> R.string.expense_category_other
+}
+
+@StringRes
+fun splitRes(mode: SplitMode): Int = when (mode) {
+    SplitMode.Shares -> R.string.expense_split_shares
+    SplitMode.Equal -> R.string.expense_split_equal
+    SplitMode.Amounts -> R.string.expense_split_amounts
+}
 
 @FamiliaPreviews
 @Composable

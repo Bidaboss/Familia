@@ -160,8 +160,10 @@ import fr.familia.app.feature.recipes.RecipesDestination
 import fr.familia.app.feature.recipes.RecipesRoute
 import fr.familia.app.feature.trips.TripDetailDestination
 import fr.familia.app.feature.expenses.ExpenseEditRoute
+import fr.familia.app.feature.expenses.ExpenseHistoryRoute
 import fr.familia.app.feature.expenses.ExpensesRoute
 import fr.familia.app.feature.expenses.TripExpenseEditDestination
+import fr.familia.app.feature.expenses.TripExpenseHistoryDestination
 import fr.familia.app.feature.expenses.TripExpensesDestination
 import fr.familia.app.feature.trips.TripEditDestination
 import fr.familia.app.feature.trips.TripPhotosDestination
@@ -663,6 +665,7 @@ fun FamiliaApp(
                             tripId = entry.toRoute<TripExpensesDestination>().tripId,
                             onAdd = { navController.navigate(TripExpenseEditDestination(entry.toRoute<TripExpensesDestination>().tripId)) },
                             onEdit = { id -> navController.navigate(TripExpenseEditDestination(entry.toRoute<TripExpensesDestination>().tripId, id)) },
+                            onHistory = { id -> navController.navigate(TripExpenseHistoryDestination(entry.toRoute<TripExpensesDestination>().tripId, id)) },
                             onBack = { navController.popBackStack() },
                         )
                     }
@@ -673,8 +676,13 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             tripId = route.tripId,
                             expenseId = route.expenseId,
+                            onHistory = { id -> navController.navigate(TripExpenseHistoryDestination(route.tripId, id)) },
                             onDone = { navController.popBackStack() },
                         )
+                    }
+                    composable<TripExpenseHistoryDestination> { entry ->
+                        val route = entry.toRoute<TripExpenseHistoryDestination>()
+                        ExpenseHistoryRoute(container = container, tripId = route.tripId, expenseId = route.expenseId, onBack = { navController.popBackStack() })
                     }
                     composable<TripPhotosDestination> { entry ->
                         TripPhotosRoute(

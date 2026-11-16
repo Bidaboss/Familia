@@ -39,6 +39,7 @@ import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.Expense
 import fr.familia.app.core.model.ExpenseBook
 import fr.familia.app.core.model.ExpenseContainer
+import fr.familia.app.core.model.ExpenseHistoryEntry
 import fr.familia.app.core.model.ExpenseSettlement
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.FamilyTree
@@ -398,6 +399,7 @@ class ReadOnlyExpenseRepository(private val inner: ExpenseRepository, private va
     override fun observeExpenses(bookId: String): Flow<List<Expense>> = inner.observeExpenses(bookId)
     override fun observeSettlements(bookId: String): Flow<List<ExpenseSettlement>> = inner.observeSettlements(bookId)
     override fun newExpenseId(bookId: String): String = inner.newExpenseId(bookId)
+    override fun observeHistory(bookId: String, expenseId: String): Flow<List<ExpenseHistoryEntry>> = inner.observeHistory(bookId, expenseId)
     override suspend fun saveExpense(bookId: String, expense: Expense, me: Member, isNew: Boolean) = guard.refuse()
     override suspend fun deleteExpense(bookId: String, expenseId: String) = guard.refuse()
     override suspend fun setClosed(bookId: String, closed: Boolean) = guard.refuse()
