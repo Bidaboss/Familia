@@ -445,3 +445,14 @@ Avec le module « Pensez à moi » allumé, un adulte parent d'un enfant de moin
 3. Avec le compte de l'ado, ouvre sa fiche. **Attendu :** « Noté par … » avec « Oui » et « Non merci ».
 4. Le jour J vers 10 h. **Attendu :** les autres reçoivent « Pensez à … aujourd'hui ». Sur la fiche, « Aujourd'hui : « … » » et un champ pour un mot. Le membre reçoit « … pense à toi. » à chaque mot. Rien le lendemain.
 5. En « Voir comme », ouvre une fiche. **Attendu :** ni champ ni bouton, la lecture seule.
+
+## La photo d'un événement (récit 44)
+
+Avec le module « Plus de photos » allumé, après « Publier Firebase », et un autre compte.
+
+1. Crée un événement et touche « Ajouter une photo », puis « Prendre une photo ». **Attendu :** la photo s'affiche en large dans le formulaire, avec « Changer la photo » et « Retirer la photo ».
+2. Enregistre. **Attendu :** la photo en bandeau en haut de la fiche, au-dessus du titre, une vignette sur la ligne du Planning et dans « Cette semaine » sur l'Accueil. Pareil sur l'autre téléphone.
+3. Modifie l'événement et choisis une autre photo dans la galerie. **Attendu :** la nouvelle photo partout après l'enregistrement.
+4. « Retirer la photo » demande une confirmation. Enregistre. **Attendu :** plus de bandeau ni de vignette, la ligne garde son icône habituelle.
+5. Avec un compte qui ne peut pas modifier l'événement : **Attendu :** aucune photo à ajouter, la fiche montre seulement le bandeau.
+6. Module éteint. **Attendu :** ni photo dans le formulaire, ni bandeau, ni vignette.

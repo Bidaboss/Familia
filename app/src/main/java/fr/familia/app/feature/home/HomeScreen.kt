@@ -86,6 +86,7 @@ import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.core.photo.CoverThumbnail
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.dayShortLabel
 import fr.familia.app.core.ui.formatTime
@@ -547,6 +548,7 @@ private fun eventWhen(event: Event, today: LocalDate): String {
 
 @Composable
 private fun WeekCard(week: List<Event>, more: Int, today: LocalDate, actions: HomeActions) {
+    val covers = LocalFeatureFlags.current.isOn(Feature.MorePhotos)
     ClayCard(modifier = Modifier.fillMaxWidth()) {
         ClayCardTitle(stringResource(R.string.home_week_title))
         week.forEach { event ->
@@ -555,7 +557,11 @@ private fun WeekCard(week: List<Event>, more: Int, today: LocalDate, actions: Ho
                 detail = listOfNotNull(eventWhen(event, today), event.place?.takeIf { it.isNotBlank() }).joinToString(" · "),
                 onClick = { actions.onOpenEvent(event.id) },
                 onClickLabel = stringResource(R.string.home_open_event),
-            ) { RowIcon(Icons.Outlined.Event) }
+            ) {
+                // The thumbnail of its cover in place of the icon (récit 44).
+                val cover = event.coverPhoto?.takeIf { covers }
+                if (cover != null) CoverThumbnail(cover, size = 40.dp) else RowIcon(Icons.Outlined.Event)
+            }
         }
         if (more > 0) {
             Text(

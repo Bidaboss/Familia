@@ -63,15 +63,18 @@ class FirestoreEventRepository(private val db: FirebaseFirestore) : EventReposit
             "updatedAt" to FieldValue.serverTimestamp(),
         )
         if (isNew) {
+            // Left out when there is none, so the event fits the rules of before the cover too.
+            val cover = event.coverPhoto?.let { mapOf("coverPhoto" to it) }.orEmpty()
             ref.set(
-                fields + mapOf(
+                fields + cover + mapOf(
                     "authorId" to event.authorId,
                     "authorName" to event.authorName,
                     "createdAt" to FieldValue.serverTimestamp(),
                 ),
             ).await()
         } else {
-            ref.update(fields).await()
+            // Removing a field that is not there changes nothing, under the old rules too.
+            ref.update(fields + ("coverPhoto" to (event.coverPhoto ?: FieldValue.delete()))).await()
         }
     }
 
@@ -100,6 +103,7 @@ class FirestoreEventRepository(private val db: FirebaseFirestore) : EventReposit
             target = target,
             authorId = getString("authorId").orEmpty(),
             authorName = getString("authorName").orEmpty(),
+            coverPhoto = getString("coverPhoto"),
         )
     }
 

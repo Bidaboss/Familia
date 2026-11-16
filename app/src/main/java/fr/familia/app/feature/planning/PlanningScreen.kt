@@ -66,6 +66,9 @@ import fr.familia.app.core.share.ShareButton
 import fr.familia.app.core.model.Birthday
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventTarget
+import fr.familia.app.core.model.Feature
+import fr.familia.app.core.photo.CoverThumbnail
+import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.theme.FamiliaTheme
@@ -391,6 +394,12 @@ private fun EventRow(item: PlanningItem, onClick: () -> Unit) {
                 answersLabel(item)?.let {
                     Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
                 }
+            }
+            // The thumbnail of its cover (récit 44), before the author.
+            val cover = event.coverPhoto?.takeIf { LocalFeatureFlags.current.isOn(Feature.MorePhotos) }
+            if (cover != null) {
+                Spacer(Modifier.width(12.dp))
+                CoverThumbnail(cover)
             }
             val by = stringResource(R.string.planning_by, item.authorName)
             if (item.author != null) {

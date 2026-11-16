@@ -9,7 +9,10 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.photo.SinglePhotoSaver
+import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.ui.Confirmation
 
 /**
@@ -24,6 +27,7 @@ fun EventEditRoute(
     onDone: (Confirmation) -> Unit,
     onBack: () -> Unit,
 ) {
+    val morePhotos = LocalFeatureFlags.current.isOn(Feature.MorePhotos)
     val viewModel: EventEditViewModel = viewModel(
         factory = viewModelFactory {
             initializer {
@@ -33,6 +37,7 @@ fun EventEditRoute(
                     currentMember.id,
                     eventId,
                     savedState = createSavedStateHandle(),
+                    photos = if (morePhotos) photoSaver(container) else null,
                 )
             }
         },
@@ -48,4 +53,10 @@ fun EventEditRoute(
         onDelete = viewModel::delete,
         onBack = onBack,
     )
+}
+
+private fun photoSaver(container: AppContainer?): SinglePhotoSaver? {
+    val uploader = container?.photoUploader ?: return null
+    val storage = container.photoStorage ?: return null
+    return SinglePhotoSaver(uploader, storage)
 }

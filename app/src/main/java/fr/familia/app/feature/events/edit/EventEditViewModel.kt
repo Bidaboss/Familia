@@ -9,6 +9,8 @@ import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.photo.SinglePhoto
+import fr.familia.app.core.photo.SinglePhotoSaver
 import fr.familia.app.feature.events.allowedTargets
 import fr.familia.app.feature.events.canManage
 import fr.familia.app.feature.events.targetName
@@ -36,6 +38,8 @@ class EventEditViewModel(
     private val writeTimeoutMillis: Long = 4_000,
     /** Keeps the draft if Android closes the app in the background (audit DESIGN du 15/11). */
     private val savedState: SavedStateHandle? = null,
+    /** Sends and removes the cover (PRD, récit 44); null hides it, as when « Plus de photos » is off. */
+    private val photos: SinglePhotoSaver? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<EventEditUiState>(EventEditUiState.Loading)
@@ -89,6 +93,8 @@ class EventEditViewModel(
             targets = choices,
             errors = emptySet(),
             hasChanges = form != initialForm,
+            showPhoto = photos != null,
+            storedCover = existing?.coverPhoto,
         )
     }
 
@@ -119,15 +125,31 @@ class EventEditViewModel(
             _uiState.value = state.copy(errors = errors)
             return
         }
-        val event = state.form.toEvent(
-            id = editedId,
-            authorId = original?.authorId ?: author.id,
-            authorName = original?.authorName ?: author.firstName,
-        )
+        val before = original?.coverPhoto
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
+            // The new cover goes first: the rules of the event only name a photo already sent.
+            val cover = try {
+                photos?.prepare(before, state.form.photo) { SinglePhoto.eventCover(editedId, author.id) } ?: before
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                return@launch markFailed()
+            }
+            val event = state.form.toEvent(
+                id = editedId,
+                authorId = original?.authorId ?: author.id,
+                authorName = original?.authorName ?: author.firstName,
+                coverPhoto = cover,
+            )
             val sent = write { repo.saveEvent(event, isNew = original == null) }
-            if (sent != null) _uiState.value = EventEditUiState.Done(sent.or(Confirmation.Saved)) else markFailed()
+            if (sent != null) {
+                photos?.cleanUp(previous = before, saved = cover)
+                _uiState.value = EventEditUiState.Done(sent.or(Confirmation.Saved))
+            } else {
+                photos?.cleanUp(previous = cover, saved = before)
+                markFailed()
+            }
         }
     }
 

@@ -98,6 +98,9 @@ fun EventDetailScreen(
     onShare: (() -> Unit)? = null,
     /** « Comptes de l'événement » (PRODUIT-57), set only for whom [canOpenExpenses] lets in; hidden when null. */
     onOpenExpenses: (() -> Unit)? = null,
+    /** Above the title: the cover of the event (récit 44), when its module is on. */
+    header: @Composable () -> Unit = {},
+    // Last, so a trailing lambda stays the album.
     album: @Composable () -> Unit = {},
 ) {
     Scaffold(
@@ -138,7 +141,7 @@ fun EventDetailScreen(
                         }
                     },
                 )
-                is EventDetailUiState.Success -> Content(state, onAnswer, onEdit, onAddToCalendar, onOpenExpenses, album)
+                is EventDetailUiState.Success -> Content(state, onAnswer, onEdit, onAddToCalendar, onOpenExpenses, album, header)
             }
         }
     }
@@ -152,6 +155,7 @@ private fun Content(
     onAddToCalendar: (() -> Unit)?,
     onOpenExpenses: (() -> Unit)?,
     album: @Composable () -> Unit,
+    header: @Composable () -> Unit,
 ) {
     val event = state.event
     var showAnswers by rememberSaveable { mutableStateOf(false) }
@@ -162,6 +166,7 @@ private fun Content(
             .padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        header()
         Text(event.title, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
         val day = dayTitle(event.date, state.today)
         Text(
