@@ -322,7 +322,9 @@ Avec le module « La bienvenue » allumé, un membre ajouté qui ne s'est jamais
 ## Planning et fiche d'un événement (DESIGN-11)
 1. Planning : les marges sur les côtés passent à 20 dp, la liste reste la même.
 2. Fiche d'un événement : « Ajouter à mon agenda » et « Modifier » deviennent des liens « › ». Le seul bouton plein reste la réponse.
-3. « Comptes de l'événement › » n'apparaît pas encore : il sera branché quand les écrans des comptes seront fusionnés. Il ne s'affichera qu'avec le module Dépenses allumé, pour un adulte qui a répondu « Je viens » ou pour l'auteur de l'événement.
+3. Module Dépenses allumé, sur un événement où tu as répondu « Je viens » : **Attendu :** le lien « Comptes de l'événement › » ouvre les comptes de cet événement. « Ajouter une dépense » les enrichit, et l'historique d'une dépense s'ouvre. Retour : la fiche de l'événement.
+4. Même événement, réponds « Peut-être ». **Attendu :** le lien disparaît, sauf si tu es l'auteur de l'événement.
+5. Avec un compte d'enfant, ou module Dépenses éteint : **Attendu :** jamais de lien « Comptes de l'événement ».
 
 ## Accueil : rien ne trahit une surprise (démo du 21/11)
 1. Avec un compte A, créer une liste surprise pour B, datée dans 5 jours. Sur l'Accueil de B, et en Voir comme B depuis l'admin principal, aucune puce ne parle de cette liste.
