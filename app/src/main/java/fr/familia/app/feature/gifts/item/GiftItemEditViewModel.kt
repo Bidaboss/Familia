@@ -31,7 +31,7 @@ data class GiftItemForm(
     val url: String = "",
     val price: String = "",
     val note: String = "",
-    /** Récit 9 ter: Christmas or a birthday; null for « Quand vous voulez ». */
+    /** Récit 9 ter: Christmas or a birthday; null for « Quand tu veux ». */
     val occasion: GiftOccasion? = null,
 )
 
@@ -56,7 +56,7 @@ sealed interface GiftItemEditUiState {
         val imageUrl: String? = null,
         /** The preview of a shared link is being read. */
         val previewLoading: Boolean = false,
-        /** A wish says what it is for (récit 9 ter): « Quand vous voulez », Christmas or the birthday. */
+        /** A wish says what it is for (récit 9 ter): « Quand tu veux », Christmas or the birthday. */
         val showOccasion: Boolean = false,
         /** The wish is for the member themselves: « mon anniversaire », else « son anniversaire ». */
         val forMe: Boolean = true,

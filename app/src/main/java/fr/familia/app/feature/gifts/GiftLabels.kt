@@ -21,7 +21,7 @@ fun occasionLabel(occasion: GiftOccasion): String = stringResource(
     },
 )
 
-/** What a wish is for (récit 9 ter): « Quand vous voulez », « Pour Noël », « Pour mon/son anniversaire ». */
+/** What a wish is for (récit 9 ter): « Quand tu veux », « Pour Noël », « Pour mon/son anniversaire ». */
 @Composable
 fun wishOccasionLabel(occasion: GiftOccasion?, forMe: Boolean): String = stringResource(
     when (occasion) {

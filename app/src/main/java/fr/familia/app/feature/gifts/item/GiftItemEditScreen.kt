@@ -254,7 +254,7 @@ private fun GiftItemEditScreenPreview() {
     FamiliaTheme { Surface { GiftItemEditScreen(previewGiftItemForm(), {}, {}, {}, {}) } }
 }
 
-/** What a wish is for (récit 9 ter): « Quand vous voulez » by default, Christmas or the birthday. */
+/** What a wish is for (récit 9 ter): « Quand tu veux » by default, Christmas or the birthday. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun WishOccasionChoice(selected: GiftOccasion?, forMe: Boolean, onSelect: (GiftOccasion?) -> Unit) {

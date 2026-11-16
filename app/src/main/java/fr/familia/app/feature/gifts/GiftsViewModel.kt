@@ -146,7 +146,7 @@ class GiftsViewModel(
 /**
  * An occasion to prepare in the Cadeaux tab (récit 9 ter): it replaces the lists for an occasion.
  * Christmas shows everyone; a birthday shows its person. A wish counts for it when it says so, or
- * when it says nothing (« Quand vous voulez »); the ideas of the family always count.
+ * when it says nothing (« Quand tu veux »); the ideas of the family always count.
  */
 sealed interface GiftMoment {
     data class Christmas(val year: Int) : GiftMoment
