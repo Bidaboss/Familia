@@ -5,8 +5,10 @@ import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.photo.PhotoRefusedException
 import fr.familia.app.core.photo.PhotoStorage
 import fr.familia.app.core.photo.PhotoUploader
+import fr.familia.app.core.photo.UnreadablePhotoException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,8 +30,14 @@ data class AlbumRights(val me: Member?, val canAdd: Boolean, val canManage: Bool
 
 /** What went wrong with the last photos, said under the photos until the next try. */
 enum class PhotoProblem {
-    /** A photo could not be read or sent: the others went on. */
+    /** A photo could not be sent (network): the others went on. */
     SendFailed,
+
+    /** The chosen file is not a picture the phone can read. */
+    Unreadable,
+
+    /** The server refused the photo: retrying will not help, someone must look. */
+    Refused,
 
     /** More photos were chosen than places left: only the first ones were kept. */
     TooMany,
@@ -122,7 +130,11 @@ class AlbumPhotosViewModel(
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    problem.value = PhotoProblem.SendFailed
+                    problem.value = when (e) {
+                        is UnreadablePhotoException -> PhotoProblem.Unreadable
+                        is PhotoRefusedException -> PhotoProblem.Refused
+                        else -> PhotoProblem.SendFailed
+                    }
                 } finally {
                     reserved -= slot
                     sending.update { it - 1 }
