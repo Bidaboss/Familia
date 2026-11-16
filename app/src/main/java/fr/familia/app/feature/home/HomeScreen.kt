@@ -67,6 +67,7 @@ import fr.familia.app.core.ui.formatTime
 import fr.familia.app.feature.helprequests.kindLabel
 import fr.familia.app.feature.helprequests.whenLabel
 import fr.familia.app.feature.goodnews.home.GoodNewsHomeCard
+import fr.familia.app.feature.joinme.JoinMeHomeCard
 import fr.familia.app.feature.month.MonthSlideshowHomeCard
 import fr.familia.app.feature.month.isSlideshowTime
 import fr.familia.app.feature.tree.TreeHomeCard
@@ -103,6 +104,7 @@ fun HomeRoute(
     onPublishGoodNews: () -> Unit = {},
     onOpenWeeklyQuestion: () -> Unit = {},
     onOpenMonth: (YearMonth) -> Unit = {},
+    onJoinMe: () -> Unit = {},
 ) {
     val flags = LocalFeatureFlags.current
     val giftsOn = flags.isOn(Feature.Gifts)
@@ -144,6 +146,11 @@ fun HomeRoute(
         } else {
             null
         },
+        joinMe = if (flags.isOn(Feature.Places)) {
+            { JoinMeHomeCard(container, currentMember, onJoinMe) }
+        } else {
+            null
+        },
     )
 }
 
@@ -153,6 +160,7 @@ fun HomeRoute(
  * [weeklyQuestion] the question of the week (récit 37), both given only while their module is on.
  * [onOpenMonth], set while the slideshow module is on, shows its card from the last Sunday (récit 42).
  * [tree] is l'arbre de la famille and its challenge of the month (récit 35), while its module is on.
+ * [joinMe], given while the places module is on, is the « Rejoignez-moi » card, first (récit 33).
  */
 @Composable
 fun HomeScreen(
@@ -162,6 +170,7 @@ fun HomeScreen(
     weeklyQuestion: (@Composable () -> Unit)? = null,
     onOpenMonth: ((YearMonth) -> Unit)? = null,
     tree: (@Composable () -> Unit)? = null,
+    joinMe: (@Composable () -> Unit)? = null,
 ) {
     val ready = state as? HomeUiState.Ready
     if (ready == null) {
@@ -169,7 +178,7 @@ fun HomeScreen(
         return
     }
     val month = YearMonth.from(ready.today).takeIf { onOpenMonth != null && isSlideshowTime(ready.today) }
-    if (ready.isEmpty && goodNews == null && weeklyQuestion == null && month == null && tree == null) {
+    if (ready.isEmpty && goodNews == null && weeklyQuestion == null && month == null && tree == null && joinMe == null) {
         EmptyState(
             icon = Icons.Outlined.CalendarMonth,
             title = stringResource(R.string.home_empty_title),
@@ -186,6 +195,8 @@ fun HomeScreen(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        // First: someone may be waiting for me there (récit 33).
+        if (joinMe != null) card("joinMe") { joinMe() }
         if (ready.todos.isNotEmpty()) card("todo") { TodoCard(ready.todos, ready.today, actions) }
         if (ready.week.isNotEmpty()) card("week") { WeekCard(ready.week, ready.weekMore, ready.today, actions) }
         if (goodNews != null) card("goodNews") { goodNews() }

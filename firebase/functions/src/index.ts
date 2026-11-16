@@ -17,6 +17,7 @@ import {
 } from './gifts';
 import { openDueCapsules } from './capsules';
 import { checkConsumptionIfDue } from './consumption';
+import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
 import { closeDuePolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
 import { cloudMonitoring } from './monitoring';
 import { deleteMemberNotebook, syncNotebookEntry, syncNotebookItem } from './notebook';
@@ -64,6 +65,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.tripId ? { tripId: notice.tripId } : {}),
         ...(notice.weeklyQuestionId ? { weeklyQuestionId: notice.weeklyQuestionId } : {}),
         ...(notice.pollId ? { pollId: notice.pollId } : {}),
+        ...(notice.joinMeId ? { joinMeId: notice.joinMeId } : {}),
         ...(notice.capsuleId ? { capsuleId: notice.capsuleId } : {}),
         ...(notice.souvenirKey ? { souvenirKey: notice.souvenirKey } : {}),
       },
@@ -355,6 +357,7 @@ export const onMemberDeletedAnswers = onDocumentDeleted('members/{memberId}', as
   await deleteVotesOf(getFirestore(), event.params.memberId);
   await deleteSouvenirsOf(getFirestore(), event.params.memberId);
   await deleteTreeDataOf(getFirestore(), event.params.memberId);
+  await deleteJoinMeOf(getFirestore(), event.params.memberId);
 });
 
 // --- Sondages (récits 2 bis et 2 ter) ---------------------------------------------------------
@@ -376,4 +379,11 @@ export const onPollUpdated = onDocumentUpdatedWithAuthContext('polls/{pollId}', 
 
 export const onPollDeleted = onDocumentDeleted('polls/{pollId}', async (event) => {
   await deletePollVotes(getFirestore(), event.params.pollId);
+});
+
+// --- « Rejoignez-moi » (récit 33) -----------------------------------------------------------------
+
+export const onJoinMeCreatedNotify = onDocumentCreated('joinMe/{shareId}', async (event) => {
+  const data = event.data?.data() as JoinMeData | undefined;
+  if (data) await onJoinMeCreated(getFirestore(), send, event.params.shareId, data);
 });

@@ -43,6 +43,8 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     Recipes("recipes", R.string.feature_recipes),
     /** « Qui apporte quoi » on an event (PRD, récit 4 bis). */
     Bring("bring", R.string.feature_bring),
+    /** The place component and « Rejoignez-moi » (PRD, récit 33). */
+    Places("places", R.string.feature_places),
 }
 
 /**

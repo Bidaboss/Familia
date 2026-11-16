@@ -29,6 +29,7 @@ object NotificationChannels {
     const val ADMIN = "admin"
     const val SOUVENIRS = "souvenirs"
     const val TREE = "tree"
+    const val JOIN_ME = "joinMe"
 
     /**
      * [feature]: the module that uses the channel; it is created only once that module shows.
@@ -58,6 +59,8 @@ object NotificationChannels {
         Spec(ADMIN, R.string.channel_admin, R.string.channel_admin_description, NotificationManager.IMPORTANCE_DEFAULT, ownerOnly = true),
         Spec(SOUVENIRS, R.string.channel_souvenirs, R.string.channel_souvenirs_description, NotificationManager.IMPORTANCE_LOW, Feature.Souvenirs),
         Spec(TREE, R.string.channel_tree, R.string.channel_tree_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.Tree),
+        // « Rejoignez-moi » (récit 33): someone waits for me, so it rings.
+        Spec(JOIN_ME, R.string.channel_join_me, R.string.channel_join_me_description, NotificationManager.IMPORTANCE_HIGH, Feature.Places),
     )
 
     /** Every id the app knows: a notice for another channel falls back on [EVENTS]. */
