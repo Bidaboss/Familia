@@ -36,6 +36,7 @@ import {
   countGesture, countHelpGiven, deleteSouvenirsOf, giveSouvenir, giveYearSouvenirs, isNewWeeklyAnswer, souvenirMark,
 } from './souvenirs';
 import { deleteDigestOf, sendDigests } from './digest';
+import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { revealWishes } from './wishesReveal';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
@@ -173,6 +174,8 @@ export const helpRequestStillOpen = onSchedule({ schedule: '0 18 * * *', timeZon
   await countHelpGiven(getFirestore(), send, addDays(parisDay(now), -1), now);
   await giveYearSouvenirs(getFirestore(), send, now);
   await grow('challenge', () => ensureChallenge(getFirestore(), parisMonth(now), now));
+  // And, 7 days before a month, the foyer whose turn it is to launch its challenge (récit 35 bis).
+  await grow('hostReminder', () => remindHost(getFirestore(), send, now));
 });
 
 // Spec, cas limites: a volunteer removed from the family frees their upcoming requests.
@@ -266,7 +269,7 @@ const removeFiles: FileRemover = async (paths: string[]) => {
 };
 
 export const onGoodNewsCreated = onDocumentCreated('goodNews/{postId}', async (event) => {
-  const data = event.data?.data() as (GoodNewsData & { challengeMonth?: string }) | undefined;
+  const data = event.data?.data() as (GoodNewsData & { challengeMonth?: string; forChallenge?: string }) | undefined;
   if (!data || data.challengeMonth) return; // « Défi réussi », published by Familia: already told.
   await onGoodNewsPublished(getFirestore(), sendGoodNews, event.params.postId, data);
   await giveSouvenir(getFirestore(), send, data.authorId, 'firstGoodNews', new Date());
@@ -274,9 +277,15 @@ export const onGoodNewsCreated = onDocumentCreated('goodNews/{postId}', async (e
   await grow('goodNews', async () => {
     const now = new Date();
     await addLeaf(getFirestore(), data.authorId, treeMark.goodNews(postId), now);
-    const achieved = await countForChallenge(getFirestore(), postId, data.photoIds?.length ?? 0, now);
+    const achieved = await countForChallenge(getFirestore(), postId, data.photoIds?.length ?? 0, now, data.forChallenge ?? null);
     if (achieved) await celebrateChallenge(getFirestore(), send, achieved, now);
   });
+});
+
+/** A foyer published the challenge of its month (récit 35 bis). */
+export const onHouseholdChallengeWritten = onDocumentWritten('householdChallenges/{month}', async (event) => {
+  if (event.data?.after.get('status') !== 'published' || event.data?.before.get('status') === 'published') return;
+  await grow('hostedChallenge', () => applyHostedChallenge(getFirestore(), event.params.month, new Date()));
 });
 
 /** The admin principal picked the challenge of a month in Administration (récit 35). */

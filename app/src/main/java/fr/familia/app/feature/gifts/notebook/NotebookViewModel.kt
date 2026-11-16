@@ -126,8 +126,10 @@ class NotebookViewModel(
         viewModelScope.launch {
             val ok = try {
                 withTimeoutOrNull(writeTimeoutMillis) {
-                    repo.follow(currentMemberId, entry.id, status, occasion, entry.note)
+                    // The reservation first: it decides the reveal, and the notebook follows it.
+                    // A refused choice then leaves both as they were.
                     if (claimOccasion != null && listId != null && itemId != null) gifts?.setClaimOccasion(listId, itemId, claimOccasion)
+                    repo.follow(currentMemberId, entry.id, status, occasion, entry.note)
                 }
                 true
             } catch (e: CancellationException) {

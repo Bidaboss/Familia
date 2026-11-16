@@ -92,3 +92,19 @@ data class GiftClaim(
 
 /** The part of [memberId] in a joint gift, in euros. The responsible marks it [received]. */
 data class GiftShare(val memberId: String, val memberName: String, val amount: Double, val received: Boolean)
+
+/**
+ * A wish someone gave, in « On m'a offert » (PRD, récit 10 bis): written by the server the day
+ * after the occasion, with the first names of the givers and never their amounts.
+ */
+data class ReceivedGift(
+    val id: String,
+    val title: String,
+    val url: String?,
+    val imageUrl: String?,
+    val givers: List<String>,
+    val joint: Boolean,
+    val occasion: GiftOccasion?,
+    val year: Int?,
+    val thanked: Boolean,
+)

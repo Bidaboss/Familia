@@ -86,6 +86,13 @@ describe('publish', () => {
     }
     await assertSucceeds(setDoc(ref(db), news(ADULT, { text: 'x'.repeat(500), photoIds: ['a', 'b_2', 'C3'] })));
   });
+
+  test('it can count for the challenge of a foyer, named by its month (récit 35 bis)', async () => {
+    const db = as(env, ADULT);
+    await assertFails(setDoc(ref(db), news(ADULT, { forChallenge: 'décembre' })));
+    await assertFails(setDoc(ref(db), news(ADULT, { forChallenge: true })));
+    await assertSucceeds(setDoc(ref(db), news(ADULT, { forChallenge: '2026-12' })));
+  });
 });
 
 describe('read', () => {

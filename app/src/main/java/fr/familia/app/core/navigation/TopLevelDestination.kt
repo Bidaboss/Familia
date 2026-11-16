@@ -159,6 +159,10 @@ data class NotebookIdeaDestination(val entryId: String? = null, val occasion: St
 @Serializable
 data class ProposeIdeaDestination(val entryId: String)
 
+/** « On m'a offert » (récit 10 bis): the wishes the family gave to the signed-in member. */
+@Serializable
+data object ReceivedGiftsDestination
+
 /** "Vérifier les mises à jour", opened from the Famille tab (lot 10). */
 @Serializable
 data object UpdateCheckDestination

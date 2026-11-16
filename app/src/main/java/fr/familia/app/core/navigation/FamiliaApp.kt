@@ -128,6 +128,7 @@ import kotlinx.coroutines.CancellationException
 import fr.familia.app.feature.gifts.AllBirthdaysScreen
 import fr.familia.app.feature.gifts.GiftsRoute
 import fr.familia.app.feature.gifts.detail.GiftListRoute
+import fr.familia.app.feature.gifts.received.ReceivedGiftsRoute
 import fr.familia.app.feature.gifts.edit.GiftListEditRoute
 import fr.familia.app.feature.gifts.item.GiftItemEditRoute
 import fr.familia.app.feature.gifts.notebook.NotebookIdeaRoute
@@ -804,7 +805,15 @@ fun FamiliaApp(
                             onAddItem = { navController.navigate(GiftItemEditDestination(listId)) },
                             onEditItem = { itemId -> navController.navigate(GiftItemEditDestination(listId, itemId)) },
                             onBack = { navController.popBackStack() },
+                            onOpenReceived = if (features.isOn(Feature.WishesReveal)) {
+                                { navController.navigate(ReceivedGiftsDestination) }
+                            } else {
+                                null
+                            },
                         )
+                    }
+                    composable<ReceivedGiftsDestination> {
+                        ReceivedGiftsRoute(container = container, currentMember = currentMember, onBack = { navController.popBackStack() })
                     }
                     composable<GiftListEditDestination> { entry ->
                         val route = entry.toRoute<GiftListEditDestination>()
