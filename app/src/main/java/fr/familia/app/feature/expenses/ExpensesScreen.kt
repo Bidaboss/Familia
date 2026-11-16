@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -31,7 +30,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -382,8 +380,9 @@ private fun ExportMenu(state: ExpensesUiState.Success) {
     val context = LocalContext.current
     var open by remember { mutableStateOf(false) }
     Box {
-        IconButton(onClick = { open = true }, modifier = Modifier.size(56.dp)) {
-            Icon(Icons.Outlined.Share, contentDescription = stringResource(R.string.expenses_export))
+        TextButton(onClick = { open = true }, modifier = Modifier.heightIn(min = 56.dp)) {
+            Icon(Icons.Outlined.Share, contentDescription = null)
+            Text(stringResource(R.string.share_button), modifier = Modifier.padding(start = 8.dp))
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             DropdownMenuItem(

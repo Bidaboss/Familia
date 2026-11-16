@@ -17,6 +17,9 @@ internal fun csvCents(cents: Long): String = String.format(Locale.FRANCE, "%.2f"
 internal fun csvCell(value: String): String =
     if (value.any { it == ';' || it == '"' || it == '\n' || it == '\r' }) "\"" + value.replace("\"", "\"\"") + "\"" else value
 
+/** A cell typed by a member: one starting like a formula (« = », « + », « - », « @ ») stays text. */
+internal fun csvText(value: String): String = if (value.firstOrNull()?.let { it in "=+-@" } == true) "'$value" else value
+
 /**
  * The accounts as a table for a spreadsheet (récit 16 bis): the expenses, then the balance of each
  * household and « Qui rembourse qui ». French style: « ; » between cells and a comma in amounts,
@@ -34,27 +37,28 @@ fun expensesCsv(
         val e = row.expense
         lines += listOf(
             e.date.toString(),
-            e.title,
+            csvText(e.title),
             category(e.category),
-            row.payerName,
-            names[e.payerHouseholdId] ?: e.payerHouseholdId,
+            csvText(row.payerName),
+            csvText(names[e.payerHouseholdId] ?: e.payerHouseholdId),
             csvCents(e.amountCents),
             e.currency,
             if (e.currency == EURO) "" else csvCents(e.originalCents),
             if (e.currency == EURO) "" else e.rate.toString().replace('.', ','),
             split(e.mode),
-            e.householdIds.joinToString(", ") { names[it] ?: it },
+            csvText(e.householdIds.joinToString(", ") { names[it] ?: it }),
         )
     }
     lines += emptyList<String>()
     lines += listOf("Foyer", "Parts", "A payé (€)", "Sa part (€)", "Solde (€)")
     for (h in state.households) {
-        lines += listOf(h.name, shareText(h.shares), csvCents(h.paidCents), csvCents(h.owedCents), csvCents(h.netCents))
+        lines += listOf(csvText(h.name), shareText(h.shares), csvCents(h.paidCents), csvCents(h.owedCents), csvCents(h.netCents))
     }
     lines += emptyList<String>()
-    lines += listOf("Qui rembourse qui", "", "Montant (€)")
-    for (t in state.transfers) lines += listOf(t.fromName, t.toName, csvCents(t.amountCents))
-    for (s in state.settlements) lines += listOf(s.fromName, s.toName, csvCents(s.amountCents), "remboursé")
+    lines += listOf("Qui rembourse qui")
+    lines += listOf("De", "À", "Montant (€)", "État")
+    for (t in state.transfers) lines += listOf(csvText(t.fromName), csvText(t.toName), csvCents(t.amountCents), "à rembourser")
+    for (s in state.settlements) lines += listOf(csvText(s.fromName), csvText(s.toName), csvCents(s.amountCents), "remboursé")
     lines += emptyList<String>()
     lines += listOf("Total", "", csvCents(state.totalCents))
     // The byte order mark tells Excel the file is UTF-8, so « é » stays « é ».

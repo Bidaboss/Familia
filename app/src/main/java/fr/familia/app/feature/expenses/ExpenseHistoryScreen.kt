@@ -92,12 +92,16 @@ private fun HistoryLine(row: HistoryRow) {
     val what = when (row.action) {
         ExpenseHistoryAction.Created -> stringResource(R.string.expense_history_created, who, formatCents(row.amountCents))
         ExpenseHistoryAction.Deleted -> stringResource(R.string.expense_history_deleted, who)
-        ExpenseHistoryAction.Edited -> stringResource(
-            R.string.expense_history_edited,
+        ExpenseHistoryAction.Edited -> if (row.fields.isEmpty()) {
+            stringResource(R.string.expense_history_edited_plain, who, formatCents(row.amountCents))
+        } else {
+            stringResource(
+                R.string.expense_history_edited,
             who,
-            row.fields.map { fieldLabel(it) }.joinToString(", "),
-            formatCents(row.amountCents),
-        )
+                row.fields.map { fieldLabel(it) }.joinToString(", "),
+                formatCents(row.amountCents),
+            )
+        }
     }
     ClayCard(Modifier.fillMaxWidth()) {
         Text(what, style = MaterialTheme.typography.bodyLarge)

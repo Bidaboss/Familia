@@ -1066,6 +1066,7 @@
     <string name="expense_history_someone">Quelqu\'un</string>
     <string name="expense_history_created">%1$s l\'a ajoutée : %2$s</string>
     <string name="expense_history_edited">%1$s a changé %2$s : %3$s</string>
+    <string name="expense_history_edited_plain">%1$s l\'a modifiée : %2$s</string>
     <string name="expense_history_deleted">%1$s l\'a supprimée</string>
     <string name="expense_history_when">%1$s à %2$s</string>
     <string name="expense_field_title">Le titre</string>

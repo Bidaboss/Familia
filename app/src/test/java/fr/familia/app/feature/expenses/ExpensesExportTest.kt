@@ -33,7 +33,9 @@ class ExpensesExportTest {
         assertEquals("2027-07-10;Ferry;Transport;Sacha;Foyer Deux;120,00;CHF;125,00;0,96;Equal;Foyer Un, Foyer Deux", lines[1])
         assertEquals("2027-07-12;\"Marché; fromages\";Groceries;Camille;Foyer Un;84,50;EUR;;;Shares;Foyer Un, Foyer Deux", lines[2])
         assertTrue(lines.contains("Foyer Un;1,5;84,50;114,50;-30,00"))
-        assertTrue(lines.contains("Foyer Un;Foyer Deux;30,00"))
+        assertTrue(lines.contains("De;À;Montant (€);État"))
+        assertTrue(lines.contains("Foyer Un;Foyer Deux;30,00;à rembourser"))
+        assertTrue(lines.contains("Foyer Un;1,5;84,50;114,50;-30,00"))
         assertTrue(lines.contains("Total;;204,50"))
     }
 
@@ -42,6 +44,10 @@ class ExpensesExportTest {
         assertEquals("\"Le \"\"grand\"\" plein\"", csvCell("Le \"grand\" plein"))
         assertEquals("comptes-ete-a-l-ile.csv", csvFileName("Été à l'île !"))
         assertEquals("comptes.csv", csvFileName("…"))
+        // A title that looks like a formula stays text in the spreadsheet; a negative amount does not.
+        assertEquals("'=SOMME(A1)", csvText("=SOMME(A1)"))
+        assertEquals("'-5 € de remise", csvText("-5 € de remise"))
+        assertEquals("Ferry", csvText("Ferry"))
     }
 
     @Test
