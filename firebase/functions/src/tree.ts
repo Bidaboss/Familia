@@ -197,8 +197,17 @@ export async function countForChallenge(
   });
 }
 
-export function challengeNotice(c: Challenge): Notice {
-  return { channel: 'tree', title: 'Défi réussi !', body: `${c.emoji} ${c.title} : bravo à toute la famille, l'arbre fleurit.` };
+/** [host]: the name of the foyer that launched the challenge (récit 35 bis), cited as its host. */
+export function challengeNotice(c: Challenge, host: string | null = null): Notice {
+  const by = host ? `, lancé par ${host}` : '';
+  return { channel: 'tree', title: 'Défi réussi !', body: `${c.emoji} ${c.title}${by} : bravo à toute la famille, l'arbre fleurit.` };
+}
+
+/** The name of the foyer that launched [c], or null for a challenge of Familia or of the admin. */
+async function hostName(db: Firestore, c: Challenge & { householdId?: string | null }): Promise<string | null> {
+  if (!c.householdId) return null;
+  const name = (await db.collection('households').doc(c.householdId).get()).get('name');
+  return typeof name === 'string' && name.trim() ? name.trim() : null;
 }
 
 /** The module is on for the family: until then the tree grows quietly, and nothing is told or posted. */
@@ -211,11 +220,14 @@ async function treeOn(db: Firestore): Promise<boolean> {
  * Bonne nouvelle « Défi réussi » is published by Familia, once (goodNews/challenge-{month}). It
  * names nobody: the challenge belongs to the whole family.
  */
-export async function celebrateChallenge(db: Firestore, send: Sender, c: Challenge & { month: string }, now: Date): Promise<boolean> {
+export async function celebrateChallenge(
+  db: Firestore, send: Sender, c: Challenge & { month: string; householdId?: string | null }, now: Date,
+): Promise<boolean> {
   if (!(await treeOn(db))) return false;
+  const host = await hostName(db, c);
   try {
     await db.collection('goodNews').doc(`challenge-${c.month}`).create({
-      text: `${c.emoji} Défi réussi : ${c.title}. Bravo à toute la famille !`,
+      text: `${c.emoji} Défi réussi : ${c.title}${host ? `, lancé par ${host}` : ''}. Bravo à toute la famille !`,
       photoIds: [], authorId: 'familia', authorName: 'Familia', forMemberId: 'familia', householdId: null,
       mentionIds: [], reactions: {}, hiddenByIds: [], challengeMonth: c.month, createdAt: now, updatedAt: now,
     });
@@ -231,7 +243,7 @@ export async function celebrateChallenge(db: Firestore, send: Sender, c: Challen
   const told = withApp.filter((id) => !muted.has(id));
   // With the résumé of the day (AVIS-14), « Défi réussi » goes in it; the Bonne nouvelle is there at once.
   if (await digestOn(db)) await queueDigest(db, told, { kind: 'challengeDone', month: c.month }, now);
-  else await notify(db, send, told, challengeNotice(c));
+  else await notify(db, send, told, challengeNotice(c, host));
   return true;
 }
 

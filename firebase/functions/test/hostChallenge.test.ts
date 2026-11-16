@@ -5,7 +5,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { applyHostedChallenge, hostNotice, hostOf, nextMonth, ofMonth, remindHost } from '../src/hostChallenge';
 import { Notice } from '../src/logic';
 import { Sender } from '../src/store';
-import { countForChallenge, ensureChallenge } from '../src/tree';
+import { celebrateChallenge, countForChallenge, ensureChallenge } from '../src/tree';
 
 describe('the challenge of a foyer, without the emulator', () => {
   test('the months are named the French way, and follow each other', () => {
@@ -41,7 +41,7 @@ describe('the challenge of a foyer against the emulator', () => {
   });
 
   beforeEach(async () => {
-    for (const c of ['members', 'challenges', 'challengePicks', 'challengeRotation', 'householdChallenges', 'treeMarks', 'familyTree']) {
+    for (const c of ['members', 'challenges', 'challengePicks', 'challengeRotation', 'householdChallenges', 'treeMarks', 'familyTree', 'goodNews', 'households']) {
       await db.recursiveDelete(db.collection(c));
     }
     const batch = db.batch();
@@ -109,6 +109,13 @@ describe('the challenge of a foyer against the emulator', () => {
     await countForChallenge(db, 'n5', 1, january, '2027-01');
     const achieved = await countForChallenge(db, 'n6', 1, january, '2027-01');
     assert.equal(achieved?.month, '2027-01');
+    // The souvenir of the challenge cites the foyer that launched it, as its host.
+    await db.doc('households/h2').set({ name: 'les Martin' });
+    const { sent, send } = fakeSender();
+    assert.equal(await celebrateChallenge(db, send, achieved!, january), true);
+    assert.equal((await db.doc('goodNews/challenge-2027-01').get()).get('text'),
+      '📸 Défi réussi : 15 photos de nos balades, lancé par les Martin. Bravo à toute la famille !');
+    assert.match(sent[0].notice.body, /lancé par les Martin :/);
   });
 
   test('published during its month: it replaces the challenge nobody moved, never the admin\'s pick', async () => {
