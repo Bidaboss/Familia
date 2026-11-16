@@ -679,6 +679,136 @@ service cloud.firestore {
       allow delete: if isMember() && canRemoveGoodNews(resource.data);
     }
 
+    // --- Sondages (PRD, récits 2 bis et 2 ter) ---------------------------------------------------
+    //
+    // polls/{pollId}: a date poll (2 to 5 dates, each answered yes, maybe or no) or a free poll
+    // (2 to 6 texts, one or several choices). An adult asks the whole family or the members ticked
+    // (askedIds); viewerIds is the author, then the members asked and the responsible adults of the
+    // children asked, so the app reads its polls with array-contains. The question and its options
+    // never change once asked, so the votes always match them. Data model: docs/data-model.md.
+
+    function isPollOption(kind, options, i) {
+      return options.size() <= i
+        || (options[i] is string
+            && ((kind == 'date' && options[i].matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}( ([01][0-9]|2[0-3]):[0-5][0-9])?$'))
+                || (kind == 'choice' && options[i].trim().size() > 0 && options[i].size() <= 80)));
+    }
+
+    // The 15 fields exactly. createdEventId is the event made from the date chosen (isPollClose).
+    function isValidPoll(p) {
+      return p.keys().hasAll(['kind', 'question', 'options', 'multiple', 'askedIds', 'viewerIds', 'eventId',
+                              'closesAt', 'closed', 'chosen', 'createdEventId', 'authorId', 'authorName',
+                              'createdAt', 'updatedAt'])
+        && p.keys().size() == 15
+        && p.kind in ['date', 'choice']
+        && p.question is string && p.question.trim().size() > 0 && p.question.size() <= 120
+        && p.options is list && p.options.size() >= 2
+        && p.options.size() <= (p.kind == 'date' ? 5 : 6)
+        && isPollOption(p.kind, p.options, 0) && isPollOption(p.kind, p.options, 1)
+        && isPollOption(p.kind, p.options, 2) && isPollOption(p.kind, p.options, 3)
+        && isPollOption(p.kind, p.options, 4) && isPollOption(p.kind, p.options, 5)
+        && p.multiple is bool && (p.kind == 'choice' || p.multiple == false)
+        && p.askedIds is list && p.askedIds.size() >= 1 && p.askedIds.size() <= 30
+        && p.viewerIds is list && p.viewerIds.size() <= 40 && p.viewerIds[0] == p.authorId
+        && p.viewerIds.hasAll(p.askedIds)
+        && (p.eventId == null || (p.eventId is string && exists(/databases/$(database)/documents/events/$(p.eventId))))
+        && (p.closesAt == null || p.closesAt is timestamp)
+        && p.closed is bool
+        && (p.chosen == null || (p.chosen is int && p.chosen >= 0 && p.chosen < p.options.size()))
+        && p.authorName is string && p.authorName.size() > 0 && p.authorName.size() <= 40
+        && p.updatedAt == request.time;
+    }
+
+    function pollPath(pollId) {
+      return /databases/$(database)/documents/polls/$(pollId);
+    }
+
+    // Votes are taken until the author closes the poll, or until its end date.
+    function pollIsOpen(poll) {
+      return poll.closed == false && (poll.closesAt == null || request.time < poll.closesAt);
+    }
+
+    // Close, or for a date poll choose the date (which closes it too): the author or the admin
+    // principal, and only those fields. Choosing a date links the event the app has just created
+    // for it (createdEventId, by the same member); the server then signs up those who said yes.
+    function isPollClose() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['closed', 'chosen', 'createdEventId', 'updatedAt'])
+        && request.resource.data.closed == true
+        && ((request.resource.data.chosen == resource.data.chosen
+             && request.resource.data.createdEventId == resource.data.createdEventId)
+            || (resource.data.kind == 'date' && resource.data.chosen == null
+                && request.resource.data.chosen != null
+                && request.resource.data.createdEventId is string
+                && get(/databases/$(database)/documents/events/$(request.resource.data.createdEventId)).data.authorId == myMemberId()))
+        && isValidPoll(request.resource.data);
+    }
+
+    match /polls/{pollId} {
+      allow read: if isMember() && (myMemberId() in resource.data.viewerIds || isOwner());
+
+      // A child with the app votes but does not ask (PRD, droits d'un enfant).
+      allow create: if isMember()
+        && me().profile == 'adult'
+        && isValidPoll(request.resource.data)
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.closed == false
+        && request.resource.data.chosen == null
+        && request.resource.data.createdEventId == null
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if isMember()
+        && (resource.data.authorId == myMemberId() || isOwner())
+        && isPollClose();
+
+      allow delete: if isMember() && (resource.data.authorId == myMemberId() || isOwner());
+    }
+
+    function isDateAnswer(answers, i) {
+      return answers.size() <= i || answers[i] in ['yes', 'maybe', 'no'];
+    }
+
+    function isChoice(choices, i, count) {
+      return choices.size() <= i || (choices[i] is int && choices[i] >= 0 && choices[i] < count);
+    }
+
+    // A date poll: one answer per date, in order. A free poll: the indexes chosen, one only
+    // unless the author allowed several.
+    function isValidVote(v, memberId, poll) {
+      return v.memberId == memberId
+        && v.votedBy == myMemberId()
+        && v.updatedAt == request.time
+        && v.keys().size() == 4
+        && ((poll.kind == 'date'
+             && v.keys().hasAll(['memberId', 'answers', 'votedBy', 'updatedAt'])
+             && v.answers is list && v.answers.size() == poll.options.size()
+             && isDateAnswer(v.answers, 0) && isDateAnswer(v.answers, 1) && isDateAnswer(v.answers, 2)
+             && isDateAnswer(v.answers, 3) && isDateAnswer(v.answers, 4))
+            || (poll.kind == 'choice'
+                && v.keys().hasAll(['memberId', 'choices', 'votedBy', 'updatedAt'])
+                && v.choices is list && v.choices.size() >= 1
+                && v.choices.size() <= (poll.multiple ? poll.options.size() : 1)
+                && v.choices.toSet().size() == v.choices.size()
+                && isChoice(v.choices, 0, poll.options.size()) && isChoice(v.choices, 1, poll.options.size())
+                && isChoice(v.choices, 2, poll.options.size()) && isChoice(v.choices, 3, poll.options.size())
+                && isChoice(v.choices, 4, poll.options.size()) && isChoice(v.choices, 5, poll.options.size())));
+    }
+
+    // polls/{pollId}/votes/{memberId}: visible to everyone who sees the poll (votes are named,
+    // PRD 2 ter), written by the member asked or one of their responsible adults while it is open.
+    match /polls/{pollId}/votes/{memberId} {
+      allow read: if isMember()
+        && (myMemberId() in get(pollPath(pollId)).data.viewerIds || isOwner());
+      allow create, update: if isMember()
+        && canAnswerFor(memberId)
+        && memberId in get(pollPath(pollId)).data.askedIds
+        && pollIsOpen(get(pollPath(pollId)).data)
+        && isValidVote(request.resource.data, memberId, get(pollPath(pollId)).data);
+      allow delete: if isMember()
+        && canAnswerFor(memberId)
+        && pollIsOpen(get(pollPath(pollId)).data);
+    }
+
     // --- Listes et cadeaux (V2) -------------------------------------------------------------------
     //
     // PRD, récits 7 à 10 bis. The surprise is kept by the server, not by the app: the beneficiary

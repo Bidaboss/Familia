@@ -50,9 +50,12 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         // Souvenirs: one's own page.
         val souvenirKey = message.data[EXTRA_SOUVENIR_KEY]
         souvenirKey?.let { open.putExtra(EXTRA_SOUVENIR_KEY, it) }
+        // Sondages: the poll to open.
+        val pollId = message.data[EXTRA_POLL_ID]
+        pollId?.let { open.putExtra(EXTRA_POLL_ID, it) }
         val pending = PendingIntent.getActivity(
             this,
-            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey).hashCode(),
+            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId).hashCode(),
             open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -92,5 +95,8 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         /** Same key as the `data` of functions/src/weeklyQuestion.ts. */
         const val EXTRA_WEEKLY_QUESTION_ID = "weeklyQuestionId"
         const val EXTRA_SOUVENIR_KEY = "souvenirKey"
+
+        /** Same key as the `data` of functions/src/polls.ts. */
+        const val EXTRA_POLL_ID = "pollId"
     }
 }

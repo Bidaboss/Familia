@@ -79,6 +79,18 @@ data object WeeklyArchiveDestination
 @Serializable
 data class EventDetailDestination(val eventId: String)
 
+/** « Sondages », opened from the Planning bar (récits 2 bis et 2 ter). */
+@Serializable
+data object PollsDestination
+
+/** One poll, opened from the list or a notification. */
+@Serializable
+data class PollDetailDestination(val pollId: String)
+
+/** « Nouveau sondage ». */
+@Serializable
+data object PollEditDestination
+
 /** Event form opened from the Planning tab: a new event when [eventId] is null. */
 @Serializable
 data class EventEditDestination(val eventId: String? = null)

@@ -147,3 +147,14 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 3. Dans Anniversaires, touche l'icône d'agenda au bout d'une ligne. **Attendu :** « Anniversaire de … », toute la journée, répété chaque année.
 4. Depuis un autre téléphone, modifie l'événement de l'étape 1. **Attendu :** la notification « Événement modifié » se termine par « Si tu l'as ajouté à ton agenda, mets-le à jour depuis Familia. »
 5. Éteins le module. **Attendu :** plus de bouton ni d'icône d'agenda pour les autres membres, et la notification de modification ne parle plus d'agenda.
+
+## Sondages (récits 2 bis et 2 ter)
+
+1. Allume « Sondages » dans Administration > Modules. Dans le Planning, touche l'icône des sondages en haut. **Attendu :** la page « Sondages », vide, avec « Nouveau sondage ».
+2. Touche « Nouveau sondage », garde « Trouver une date », écris une question, choisis 3 dates (une avec une heure), laisse « Toute la famille » cochée et une date de fin dans une semaine. Envoie. **Attendu :** le sondage apparaît dans « En cours » ; les autres téléphones reçoivent « Nouveau sondage ».
+3. Sur le téléphone d'un parent, ouvre la notification. **Attendu :** le sondage s'ouvre sur « Ma réponse », avec une carte « Réponse de … » pour chacun de ses enfants. Réponds pour chaque date, puis touche « Envoyer ma réponse ». Essaie d'envoyer la réponse d'un enfant avec une date vide. **Attendu :** « Réponds pour chaque date. », rien n'est envoyé.
+4. Regarde « Résultats » et « Par foyer ». **Attendu :** les noms sous chaque date, la date en tête marquée « En tête », un tableau par foyer avec ✓ ? ✗, et « Pas encore répondu : … ».
+5. Sur le téléphone de l'auteur, touche « Choisir cette date » sous une date, garde le nom proposé et touche « Ajouter au planning ». **Attendu :** l'événement apparaît dans le Planning ; ceux qui ont dit oui sont inscrits « Je viens » ; le sondage passe dans « Terminés » avec « Date retenue : … » et « Voir l'événement ».
+6. Fais un « Choix libre » avec 3 réponses, sans plusieurs réponses. Réponds sur deux téléphones, puis « Terminer le sondage ». **Attendu :** une seule réponse cochable à la fois ; « Résultat du sondage » arrive aux autres ; plus personne ne peut répondre.
+7. Sur le téléphone d'un enfant avec l'appli, ouvre « Sondages ». **Attendu :** il répond, mais ne voit pas « Nouveau sondage ».
+8. Supprime un sondage. **Attendu :** il disparaît partout, sans notification.

@@ -17,9 +17,10 @@ fun OnboardingRoute(
     answersForChildren: Boolean,
     gifts: Boolean = false,
     helpRequests: Boolean = false,
+    usage: Boolean = false,
     onDone: () -> Unit,
 ) {
-    val pages = remember(answersForChildren, gifts, helpRequests) { onboardingPages(answersForChildren, gifts, helpRequests) }
+    val pages = remember(answersForChildren, gifts, helpRequests, usage) { onboardingPages(answersForChildren, gifts, helpRequests, usage) }
     var index by rememberSaveable { mutableIntStateOf(0) }
     val permission = rememberNotificationPermission()
     var askedPermission by rememberSaveable { mutableStateOf(false) }

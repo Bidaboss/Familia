@@ -16,6 +16,7 @@ import {
   sendBirthdayGiftReminders, updateSharesTotal,
 } from './gifts';
 import { checkConsumptionIfDue } from './consumption';
+import { closeDuePolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
 import { cloudMonitoring } from './monitoring';
 import { deleteMemberNotebook, syncNotebookEntry, syncNotebookItem } from './notebook';
 import {
@@ -26,7 +27,7 @@ import {
   HelpNotice, HelpRequestData, HelpSender, onHelpRequestWritten, reopenRequestsOf, sendStillOpenReminders,
 } from './helpRequests';
 import { addDays, EventData, hasVisibleChange, Notice, parisDay } from './logic';
-import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, notifyChange, Sender, sendDayBeforeReminders } from './store';
+import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, memberForUid, notifyChange, Sender, sendDayBeforeReminders } from './store';
 import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
 import {
@@ -50,6 +51,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.listId ? { listId: notice.listId } : {}),
         ...(notice.tripId ? { tripId: notice.tripId } : {}),
         ...(notice.weeklyQuestionId ? { weeklyQuestionId: notice.weeklyQuestionId } : {}),
+        ...(notice.pollId ? { pollId: notice.pollId } : {}),
         ...(notice.souvenirKey ? { souvenirKey: notice.souvenirKey } : {}),
       },
       android: { notification: { channelId: notice.channel } },
@@ -269,6 +271,8 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
   await publishWeeklyQuestion(getFirestore(), send, new Date());
   // And the consumption of the day before, once from 8 h (récit 1 sexies).
   await checkConsumptionIfDue(getFirestore(), cloudMonitoring, send, new Date());
+  // And the polls whose end date has passed (récits 2 bis et 2 ter).
+  await closeDuePolls(getFirestore(), new Date());
 });
 
 // --- Question de la semaine (récit 37) --------------------------------------------------------
@@ -284,5 +288,27 @@ export const onWeeklyAnswerWritten = onDocumentWritten('weeklyQuestions/{weekId}
 
 export const onMemberDeletedAnswers = onDocumentDeleted('members/{memberId}', async (event) => {
   await deleteAnswersOf(getFirestore(), event.params.memberId);
+  await deleteVotesOf(getFirestore(), event.params.memberId);
   await deleteSouvenirsOf(getFirestore(), event.params.memberId);
+});
+
+// --- Sondages (récits 2 bis et 2 ter) ---------------------------------------------------------
+
+export const onPollCreatedNotify = onDocumentCreated('polls/{pollId}', async (event) => {
+  const data = event.data?.data() as PollData | undefined;
+  if (data) await onPollCreated(getFirestore(), send, event.params.pollId, data);
+});
+
+export const onPollUpdated = onDocumentUpdatedWithAuthContext('polls/{pollId}', async (event) => {
+  const before = event.data?.before.data() as PollData | undefined;
+  const after = event.data?.after.data() as PollData | undefined;
+  if (!before || !after) return;
+  const db = getFirestore();
+  const uid = actorUid(event);
+  const actor = uid ? memberForUid(await loadMembers(db), uid) : null;
+  await onPollClosed(db, send, event.params.pollId, before, after, actor?.id ?? null);
+});
+
+export const onPollDeleted = onDocumentDeleted('polls/{pollId}', async (event) => {
+  await deletePollVotes(getFirestore(), event.params.pollId);
 });
