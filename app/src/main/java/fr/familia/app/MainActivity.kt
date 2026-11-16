@@ -71,6 +71,7 @@ class MainActivity : ComponentActivity() {
             openJoinMe.value = intent.hasJoinMe()
             openCapsuleId.value = intent.capsuleId()
             openRecap.value = intent.hasRecap()
+            intent.birthdayOf()?.let { openMemberId.value = it }
             openFeedback.value = intent.feedback()
             sharedWish.value = intent.sharedWish()
             openSharedLink(intent)
@@ -150,6 +151,7 @@ class MainActivity : ComponentActivity() {
         if (intent.hasJoinMe()) openJoinMe.value = true
         intent.capsuleId()?.let { openCapsuleId.value = it }
         if (intent.hasRecap()) openRecap.value = true
+        intent.birthdayOf()?.let { openMemberId.value = it }
         intent.feedback()?.let { openFeedback.value = it }
         intent.sharedWish()?.let { sharedWish.value = it }
         openSharedLink(intent)
@@ -192,4 +194,5 @@ class MainActivity : ComponentActivity() {
     private fun Intent.feedback(): String? = getStringExtra(FamiliaMessagingService.EXTRA_FEEDBACK)
 
     private fun Intent.hasRecap(): Boolean = getStringExtra(FamiliaMessagingService.EXTRA_RECAP_WEEK) != null
+    private fun Intent.birthdayOf(): String? = getStringExtra(FamiliaMessagingService.EXTRA_BIRTHDAY_OF)
 }

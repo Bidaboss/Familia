@@ -26,7 +26,17 @@ data class FamilyData(
      * wrote and the ones opened for them. The others stay sealed, even in a backup.
      */
     val capsules: List<ExportDocument> = emptyList(),
+    /**
+     * Carnet de voyage (récits 11 à 16): the trips the admin principal follows (readerIds), with
+     * their steps and their list of things to bring. The others are not theirs to read.
+     */
+    val trips: List<ExportDocument> = emptyList(),
+    val tripSteps: List<ExportTripChild> = emptyList(),
+    val tripItems: List<ExportTripChild> = emptyList(),
 )
+
+/** A step or an item of the trip [tripId]. */
+data class ExportTripChild(val tripId: String, val id: String, val fields: Map<String, Any?>)
 
 /** An answer to the question of the week [questionId]: its id is the member's. */
 data class ExportWeeklyAnswer(val questionId: String, val memberId: String, val fields: Map<String, Any?>)
@@ -36,6 +46,6 @@ class ExportOfflineException(cause: Throwable) : Exception(cause)
 
 /** PRD, récit 6 ter: everything the family wrote, for a backup or to leave Firebase. */
 interface ExportRepository {
-    /** [memberId] is the admin principal's: it decides which capsules they can read. */
+    /** [memberId] is the admin principal's: it decides which capsules and trips they can read. */
     suspend fun loadFamilyData(memberId: String): FamilyData
 }

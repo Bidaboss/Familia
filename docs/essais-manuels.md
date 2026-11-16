@@ -271,6 +271,17 @@ Avec le module « Il y a un an » allumé, et une Bonne nouvelle (ou une photo d
 3. Avec un compte qui ne suit pas ce voyage, ouvre l'Accueil. **Attendu :** pas de carte pour cette photo.
 4. Touche « Ne plus me montrer ce souvenir ». **Attendu :** la carte disparaît (ou passe au souvenir suivant du même jour), et ne revient pas en rouvrant l'appli.
 
+## Vœux d'anniversaire (récit 36)
+
+Avec le module « Vœux d'anniversaire » allumé, un membre dont c'est l'anniversaire (sa date de naissance mise au jour du test), et deux autres comptes.
+
+1. Après 10 h, regarde les notifications d'un autre compte. **Attendu :** « C'est l'anniversaire de … », « Envoie-lui tes vœux. » ; la personne fêtée ne la reçoit pas.
+2. Touche la notification. **Attendu :** la fiche de la personne s'ouvre, avec « Cartes de vœux » et « Écris un mot à … ».
+3. Écris un mot et touche « Envoyer ma carte ». **Attendu :** la carte s'affiche, signée « De … ». Aucun nombre de cartes nulle part.
+4. Sur le téléphone de la personne fêtée. **Attendu :** une notification « … t'a envoyé une carte de vœux. » ; après une deuxième carte, une seule notification avec les deux prénoms.
+5. Change ta carte, puis retire-la. **Attendu :** le texte change, puis la carte disparaît.
+6. Le lendemain, rouvre la fiche. **Attendu :** les cartes sont toujours là, mais plus de champ pour écrire.
+7. Réglages > Notifications : coupe « Vœux d'anniversaire ». **Attendu :** plus d'avis de vœux pour ce compte.
 ## Une idée ? Un souci ? (récit 6 sexies)
 
 Avant ces essais : « Publier Firebase » a publié les règles (Firestore et Storage) et les fonctions `onFeedbackSent` et `onFeedbackAnswered`. Pas d'interrupteur.

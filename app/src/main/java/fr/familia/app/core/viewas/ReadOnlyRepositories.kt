@@ -15,6 +15,7 @@ import fr.familia.app.core.data.FeedbackRepository
 import fr.familia.app.core.data.ExportRepository
 import fr.familia.app.core.data.GenealogyRepository
 import fr.familia.app.core.data.GiftRepository
+import fr.familia.app.core.data.BirthdayCardRepository
 import fr.familia.app.core.data.GoodNewsRepository
 import fr.familia.app.core.data.HelpRequestRepository
 import fr.familia.app.core.data.JoinMeRepository
@@ -52,6 +53,7 @@ import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftShare
 import fr.familia.app.core.model.GiftStatus
+import fr.familia.app.core.model.BirthdayCard
 import fr.familia.app.core.model.GoodNews
 import fr.familia.app.core.model.HelpRequest
 import fr.familia.app.core.model.HostedChallenge
@@ -215,6 +217,12 @@ class ReadOnlyCapsuleRepository(private val inner: CapsuleRepository, private va
     override suspend fun createCapsule(capsule: Capsule) = guard.refuse()
     override fun observeLeftovers(): Flow<List<CapsuleLeftover>> = inner.observeLeftovers()
     override suspend fun askDeleteLeftovers(memberId: String) = guard.refuse()
+}
+
+class ReadOnlyBirthdayCardRepository(private val inner: BirthdayCardRepository, private val guard: ViewAsGuard) : BirthdayCardRepository {
+    override fun observeFor(memberId: String, year: Int): Flow<List<BirthdayCard>> = inner.observeFor(memberId, year)
+    override suspend fun save(card: BirthdayCard, isNew: Boolean) = guard.refuse()
+    override suspend fun remove(card: BirthdayCard) = guard.refuse()
 }
 
 class ReadOnlyGoodNewsRepository(private val inner: GoodNewsRepository, private val guard: ViewAsGuard) : GoodNewsRepository {
@@ -400,6 +408,8 @@ class ReadOnlyNotificationRepository(private val inner: NotificationRepository, 
     override suspend fun setTree(memberId: String, enabled: Boolean) = guard.refuse()
     override fun observeRecap(memberId: String): Flow<Boolean> = inner.observeRecap(memberId)
     override suspend fun setRecap(memberId: String, enabled: Boolean) = guard.refuse()
+    override fun observeBirthdayWishes(memberId: String): Flow<Boolean> = inner.observeBirthdayWishes(memberId)
+    override suspend fun setBirthdayWishes(memberId: String, enabled: Boolean) = guard.refuse()
 }
 
 class ReadOnlyExpenseRepository(private val inner: ExpenseRepository, private val guard: ViewAsGuard) : ExpenseRepository {

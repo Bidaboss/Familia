@@ -62,6 +62,8 @@ fun MemberProfileScreen(
     onSetShown: (key: String, shown: Boolean) -> Unit,
     onDismissBravo: () -> Unit = {},
     onOpenRecipes: (() -> Unit)? = null,
+    /** The cards of vœux (récit 36), while their module is on. */
+    wishes: (@Composable (Member) -> Unit)? = null,
 ) {
     (state as? MemberProfileUiState.Ready)?.bravo?.let { souvenir ->
         SouvenirKind.of(souvenir.key)?.let { kind ->
@@ -100,7 +102,7 @@ fun MemberProfileScreen(
                     title = stringResource(R.string.member_not_found_title),
                     body = stringResource(R.string.profile_not_found_body),
                 )
-                is MemberProfileUiState.Ready -> Content(state, onSetShown, onOpenRecipes)
+                is MemberProfileUiState.Ready -> Content(state, onSetShown, onOpenRecipes, wishes)
             }
         }
     }
@@ -108,7 +110,12 @@ fun MemberProfileScreen(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Content(state: MemberProfileUiState.Ready, onSetShown: (String, Boolean) -> Unit, onOpenRecipes: (() -> Unit)?) {
+private fun Content(
+    state: MemberProfileUiState.Ready,
+    onSetShown: (String, Boolean) -> Unit,
+    onOpenRecipes: (() -> Unit)?,
+    wishes: (@Composable (Member) -> Unit)?,
+) {
     val member = state.member
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -124,6 +131,8 @@ private fun Content(state: MemberProfileUiState.Ready, onSetShown: (String, Bool
                 }
             }
         }
+        // On the day, and until the next birthday, the cards of vœux (récit 36).
+        wishes?.invoke(member)
         // The recipes that come from this member (récit 38).
         onOpenRecipes?.let { open ->
             OutlinedButton(onClick = open, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {

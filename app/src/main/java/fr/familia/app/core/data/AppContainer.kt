@@ -50,6 +50,7 @@ interface AppContainer {
     val genealogyRepository: GenealogyRepository?
     val weeklyQuestionRepository: WeeklyQuestionRepository?
     val souvenirRepository: SouvenirRepository?
+    val birthdayCardRepository: BirthdayCardRepository?
     val treeRepository: TreeRepository?
     val photoStorage: PhotoStorage?
     val photoUploader: PhotoUploader?
@@ -125,6 +126,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
 
     override val weeklyQuestionRepository: WeeklyQuestionRepository? by lazy { firestore?.let { FirestoreWeeklyQuestionRepository(it) } }
     override val souvenirRepository: SouvenirRepository? by lazy { firestore?.let { FirestoreSouvenirRepository(it) } }
+    override val birthdayCardRepository: BirthdayCardRepository? by lazy { firestore?.let { FirestoreBirthdayCardRepository(it) } }
     override val treeRepository: TreeRepository? by lazy { firestore?.let { FirestoreTreeRepository(it) } }
 
     /** Photos of the good news and the trips, in Cloud Storage (firebase/storage.rules). */
