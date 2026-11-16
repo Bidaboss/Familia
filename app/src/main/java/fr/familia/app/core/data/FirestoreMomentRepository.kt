@@ -93,12 +93,14 @@ class FirestoreMomentRepository(private val db: FirebaseFirestore) : MomentRepos
         )
     }
 
-    private fun DocumentSnapshot.toCheer(): MomentCheer? = MomentCheer(
-        momentId = getString("momentId") ?: return null,
-        forMemberId = getString("forMemberId") ?: return null,
-        authorId = getString("authorId") ?: return null,
-        authorName = getString("authorName").orEmpty(),
-        text = getString("text") ?: return null,
-        createdAt = getTimestamp("createdAt", DocumentSnapshot.ServerTimestampBehavior.ESTIMATE)?.toInstant(),
-    )
+    private fun DocumentSnapshot.toCheer(): MomentCheer? {
+        return MomentCheer(
+            momentId = getString("momentId") ?: return null,
+            forMemberId = getString("forMemberId") ?: return null,
+            authorId = getString("authorId") ?: return null,
+            authorName = getString("authorName").orEmpty(),
+            text = getString("text") ?: return null,
+            createdAt = getTimestamp("createdAt", DocumentSnapshot.ServerTimestampBehavior.ESTIMATE)?.toInstant(),
+        )
+    }
 }
