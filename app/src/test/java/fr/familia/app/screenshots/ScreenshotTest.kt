@@ -57,6 +57,10 @@ import fr.familia.app.feature.members.edit.MemberEditScreen
 import fr.familia.app.feature.members.edit.previewEditState
 import fr.familia.app.feature.members.admin.AdministrationScreen
 import fr.familia.app.feature.members.admin.previewAdministrationState
+import fr.familia.app.feature.members.admin.ConsumptionCard
+import fr.familia.app.feature.members.admin.ConsumptionSection
+import fr.familia.app.feature.members.admin.previewConsumption
+import fr.familia.app.core.model.Consumption
 import fr.familia.app.feature.members.edit.previewExistingState
 import fr.familia.app.feature.members.edit.MemberEditUiState
 import java.time.LocalDate
@@ -454,6 +458,15 @@ class ScreenshotTest {
     @Config(fontScale = 2f)
     fun administrationFontScale200() = capture("administration_police_200") {
         Surface { AdministrationScreen(previewAdministrationState(), {}, {}, { _, _ -> }, {}, {}, {}) }
+    }
+
+    @Test
+    fun consumptionLight() = capture("consommation_clair") { Surface { ConsumptionSection(previewConsumption()) } }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun consumptionFailedDark() = capture("consommation_erreur_sombre", darkTheme = true) {
+        Surface { ConsumptionSection(ConsumptionCard.Ready(Consumption(LocalDate.of(2026, 11, 20), failed = true))) }
     }
 
     @Test

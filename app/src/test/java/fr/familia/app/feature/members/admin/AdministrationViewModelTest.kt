@@ -1,6 +1,8 @@
 package fr.familia.app.feature.members.admin
 
+import fr.familia.app.core.data.ConsumptionRepository
 import fr.familia.app.core.data.MemberRepository
+import fr.familia.app.core.model.Consumption
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
@@ -14,10 +16,12 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.io.IOException
+import java.time.LocalDate
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AdministrationViewModelTest {
@@ -38,6 +42,28 @@ class AdministrationViewModelTest {
     )
 
     private fun adminVm(repo: FakeMembers, me: String = "o") = AdministrationViewModel(repo, me)
+
+    @Test
+    fun `the consumption card waits for the first morning, then shows the latest day`() = runTest {
+        val latest = MutableStateFlow<Consumption?>(null)
+        val vm = AdministrationViewModel(FakeMembers(family), "o", consumptionRepository = object : ConsumptionRepository {
+            override fun observeLatest(): Flow<Consumption?> = latest
+        })
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.consumption.collect {} }
+        assertEquals(ConsumptionCard.Waiting, vm.consumption.value)
+        val day = Consumption(LocalDate.of(2026, 11, 20), reads = 3_000)
+        latest.value = day
+        assertEquals(ConsumptionCard.Ready(day), vm.consumption.value)
+    }
+
+    @Test
+    fun `a refused read hides the consumption card`() = runTest {
+        val vm = AdministrationViewModel(FakeMembers(family), "o", consumptionRepository = object : ConsumptionRepository {
+            override fun observeLatest(): Flow<Consumption?> = kotlinx.coroutines.flow.flow { throw IOException("refused") }
+        })
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.consumption.collect {} }
+        assertNull(vm.consumption.value)
+    }
 
     @Test
     fun `only the admin principal opens the menu`() {

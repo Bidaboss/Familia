@@ -1221,6 +1221,14 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // consumption/{day}: the use of the database each day, read from Cloud Monitoring by the
+    // 30-minute task, from 8 h (récit 1 sexies). Only the admin principal sees it, in
+    // Administration › Consommation; only the server writes it.
+    match /consumption/{day} {
+      allow read: if isOwner();
+      allow write: if false;
+    }
+
     // config/app: the latest version and the HTTPS link of its APK (docs/mise-a-jour.md), and
     // the module switches `features` (PRD rév. 120). config/family: { ownerMemberId }, the admin
     // principal. Every member reads them. The workflow « APK de publication » writes the version

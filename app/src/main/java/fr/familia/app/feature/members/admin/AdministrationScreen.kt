@@ -87,6 +87,8 @@ fun AdministrationScreen(
     onSetFeature: ((Feature, Boolean) -> Unit)? = null,
     /** Renames a household (moved here from the Famille tab, DESIGN-5); hidden when null. */
     onRenameHousehold: ((Household, String) -> Unit)? = null,
+    /** « Consommation » (PRD, récit 1 sexies); hidden when null. */
+    consumption: ConsumptionCard? = null,
 ) {
     Scaffold(
         modifier = modifier,
@@ -116,7 +118,10 @@ fun AdministrationScreen(
                     body = stringResource(R.string.administration_not_allowed_body),
                 )
                 is AdministrationUiState.Ready ->
-                    ReadyContent(state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport, features, onSetFeature, onRenameHousehold, onOpenUsage)
+                    ReadyContent(
+                        state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport, features, onSetFeature, onRenameHousehold,
+                        onOpenUsage, consumption,
+                    )
             }
         }
     }
@@ -145,6 +150,7 @@ private fun ReadyContent(
     onSetFeature: ((Feature, Boolean) -> Unit)?,
     onRenameHousehold: ((Household, String) -> Unit)?,
     onOpenUsage: (() -> Unit)?,
+    consumption: ConsumptionCard?,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
@@ -196,6 +202,9 @@ private fun ReadyContent(
                     Text(stringResource(R.string.usage_title), style = MaterialTheme.typography.titleMedium)
                 }
             }
+        }
+        if (consumption != null) {
+            item(key = "consumption") { ConsumptionSection(consumption) }
         }
         item(key = "backup") {
             HorizontalDivider(Modifier.padding(top = 8.dp))
