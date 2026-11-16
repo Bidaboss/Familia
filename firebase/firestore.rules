@@ -355,15 +355,35 @@ service cloud.firestore {
     // reminder the evening before can be turned off; récit 32: the good news too; récit 37: the
     // question of the week). Nobody else reads
     // or changes them.
+    // Souvenirs (PRD, récit 34): members/{memberId}/souvenirs/{key}, given by the server only. A
+    // souvenir is private (carte EXPERT-3): its member reads it, and the family reads it once the
+    // member shows it (`shown`), the only field the member changes. souvenirCounters/{memberId}
+    // holds the counted gestures, read by its member only for « Encore 5 coups de main ».
+    // souvenirMarks stays closed: only the Cloud Functions use it.
+    match /members/{memberId}/souvenirs/{key} {
+      allow read: if isMember() && (memberId == myMemberId() || resource.data.shown == true);
+      allow update: if isMember()
+        && memberId == myMemberId()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['shown'])
+        && request.resource.data.shown is bool;
+      allow create, delete: if false;
+    }
+
+    match /souvenirCounters/{memberId} {
+      allow read: if isMember() && memberId == myMemberId();
+      allow write: if false;
+    }
+
     match /members/{memberId}/settings/{settingId} {
       allow read: if isMember() && myMemberId() == memberId;
       allow create, update: if isMember()
         && myMemberId() == memberId
         && settingId == 'notifications'
-        && request.resource.data.keys().hasOnly(['dayBeforeReminder', 'goodNews', 'weekly'])
+        && request.resource.data.keys().hasOnly(['dayBeforeReminder', 'goodNews', 'weekly', 'souvenirs'])
         && (!('dayBeforeReminder' in request.resource.data) || request.resource.data.dayBeforeReminder is bool)
         && (!('goodNews' in request.resource.data) || request.resource.data.goodNews is bool)
-        && (!('weekly' in request.resource.data) || request.resource.data.weekly is bool);
+        && (!('weekly' in request.resource.data) || request.resource.data.weekly is bool)
+        && (!('souvenirs' in request.resource.data) || request.resource.data.souvenirs is bool);
     }
 
     // --- Coups de main (PRD, récits 13 à 18) ---------------------------------------------------------

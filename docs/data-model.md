@@ -144,6 +144,7 @@ Droits : seul le membre lui-même lit, ajoute ou supprime ses téléphones. Les 
 | `dayBeforeReminder` | booléen | `false` coupe le rappel de la veille (PRD, récit 6 bis). Sans document, le rappel est actif. |
 | `goodNews` | booléen, facultatif | `false` coupe les notifications des Bonnes nouvelles (récit 32). Sans valeur, elles sont actives. Ne coupe pas l'avis aux adultes responsables quand un enfant publie (carte AVIS-12). |
 
+| `souvenirs` | booléen, facultatif | `false` coupe l'avis « Nouveau souvenir » (récit 34). Sans valeur, il est actif. |
 | `weekly` | booléen, facultatif | `false` coupe l'avis de la question de la semaine (récit 37), et plus tard les autres rendez-vous de la semaine. Sans valeur, il est actif. |
 
 Droits : seul le membre lui-même lit et modifie ses réglages. L'appli écrit chaque réglage en fusion, pour ne pas effacer l'autre.
@@ -491,6 +492,26 @@ Droits : les lecteurs du voyage voient les photos, dans Firestore comme dans Sto
 - `onTripDeleted` : un voyage supprimé emporte ses étapes, sa liste, ses photos et leurs fichiers dans Storage (tout le dossier `trips/{tripId}/`).
 
 Les notifications des voyages portent `tripId` au lieu de `eventId` : un appui ouvre le voyage.
+
+## Souvenirs (PRD, récit 34)
+
+Une liste fixe de souvenirs, gagnés par ses propres gestes (`functions/src/souvenirs.ts`) : première Bonne nouvelle, 10 réactions données, 5 coups de main rendus, premier « bien arrivé », première réponse et 10 réponses à la question de la semaine, un an dans Familia. Les clés ne changent jamais : l'appli dessine chaque souvenir à partir de sa clé (composant SouvenirMedal de [DESIGN]). Pas de score, pas de total, pas de classement (carte EXPERT-3). Aucun souvenir ne vient des réservations de cadeaux.
+
+### `members/{memberId}/souvenirs/{key}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `key` | texte | La clé du souvenir |
+| `earnedAt` | horodatage | Quand il a été gagné |
+| `shown` | booléen | `false` à l'arrivée. Le membre le passe à `true` pour le montrer sur sa fiche |
+
+Droits : le serveur seul crée et supprime. Le membre lit ses souvenirs et change `shown`, rien d'autre. La famille lit un souvenir seulement s'il est montré : une requête doit filtrer `shown == true`.
+
+### `souvenirCounters/{memberId}` et `souvenirMarks/{markId}`
+
+`souvenirCounters` garde les gestes comptés (`reactions`, `helpGiven`, `weeklyAnswers`), que seul le membre lit, pour afficher « Encore 5 coups de main ». `souvenirMarks` note chaque geste compté (`reaction-{postId}-{memberId}`, `weekly-{weekId}-{memberId}`, `help-{requestId}`), pour qu'un geste défait puis refait compte une fois. Personne ne les écrit depuis l'appli, et personne ne lit les marques.
+
+Les souvenirs sont donnés par les fonctions qui existent déjà, sans nouvelle tâche planifiée : `onGoodNewsCreated` (première Bonne nouvelle), `onGoodNewsUpdated` (réactions), `onTripStepUpdated` (premier « bien arrivé »), `onWeeklyAnswerWritten` (réponses), `helpRequestStillOpen` à 18 h (les coups de main pris de la veille, et un an après la création de la fiche du membre). Une notification « Nouveau souvenir » (canal `souvenirs`, donnée `souvenirKey`) part une fois, seulement si le module `souvenirs` est allumé, si le membre a l'appli et s'il n'a pas coupé `souvenirs` dans ses réglages. Module éteint, les souvenirs sont quand même gardés. `onMemberDeletedAnswers` retire aussi les souvenirs et compteurs d'un membre parti.
 
 ## Question de la semaine (PRD, récit 37)
 
