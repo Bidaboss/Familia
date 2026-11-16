@@ -4,6 +4,7 @@ import android.net.Uri
 import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
@@ -16,7 +17,9 @@ import fr.familia.app.core.model.Feedback
 import fr.familia.app.core.model.FeedbackContext
 import fr.familia.app.core.model.FeedbackOrigin
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.photo.LocalPhotoStorage
 import fr.familia.app.core.photo.PhotoEncoder
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 /** « Une idée ? Un souci ? », opened from the Famille tab or from the Aide (PRD, récit 6 sexies). */
@@ -99,11 +102,15 @@ fun FeedbackListRoute(container: AppContainer?, onBack: () -> Unit) {
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val actionFailed by viewModel.actionFailed.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val storage = LocalPhotoStorage.current
+    val scope = rememberCoroutineScope()
     FeedbackListScreen(
         state = state,
         onBack = onBack,
         onAnswer = viewModel::answer,
         onRemove = viewModel::remove,
+        onShareForClaude = { item -> scope.launch { shareFeedbackForClaude(context, storage, item) } },
         actionFailed = actionFailed,
         onFailureShown = viewModel::failureShown,
     )
