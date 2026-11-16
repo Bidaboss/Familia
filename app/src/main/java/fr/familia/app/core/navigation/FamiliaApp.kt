@@ -133,6 +133,11 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.ui.graphics.Color
 import fr.familia.app.feature.home.HomeRoute as HomeTab
 import fr.familia.app.feature.discover.DiscoverModule
+import fr.familia.app.feature.polls.rememberPollsToVote
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.res.pluralStringResource
 import fr.familia.app.feature.settings.NotificationSettingsRoute
 import fr.familia.app.feature.export.ExportRoute
 import fr.familia.app.feature.members.admin.AdministrationRoute
@@ -534,6 +539,7 @@ fun FamiliaApp(
                         onGoodNews = onGoodNews,
                         onWeeklyQuestion = onWeekly,
                         onPolls = if (pollsOn) ({ navController.navigate(PollsDestination) { launchSingleTop = true } }) else null,
+                        pollsToVote = if (pollsOn && tab == TopLevelDestination.Planning) rememberPollsToVote(container, currentMember.id) else 0,
                     )
                 }
             },
@@ -591,6 +597,8 @@ fun FamiliaApp(
                                 onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
                                 onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
                                 onOpenPoll = { id -> navController.navigate(PollDetailDestination(id)) },
+                                onOpenPolls = { navController.navigate(PollsDestination) { launchSingleTop = true } },
+                                onNewPoll = { navController.navigate(PollEditDestination) },
                                 onNewTrip = { navController.navigate(TripEditDestination()) },
                                 onOpenTrips = if (features.isOn(Feature.Trips)) {
                                     { navController.navigate(TripsDestination) { launchSingleTop = true } }
@@ -1195,6 +1203,8 @@ private fun TabTopBar(
     onGoodNews: (() -> Unit)? = null,
     onWeeklyQuestion: (() -> Unit)? = null,
     onPolls: (() -> Unit)? = null,
+    /** The polls that wait for my vote: the badge of « Sondages » (BUG-1). */
+    pollsToVote: Int = 0,
 ) {
     TopAppBar(
         scrollBehavior = scrollBehavior,
@@ -1227,9 +1237,22 @@ private fun TabTopBar(
                             Icon(Icons.Outlined.QuestionAnswer, contentDescription = stringResource(R.string.weekly_open))
                         }
                     }
+                    // Named, with the number that waits for my vote, so it is found (BUG-1).
                     if (onPolls != null) {
-                        IconButton(onClick = onPolls, modifier = Modifier.size(56.dp)) {
-                            Icon(Icons.Outlined.Poll, contentDescription = stringResource(R.string.polls_title))
+                        val waiting = if (pollsToVote > 0) pluralStringResource(R.plurals.polls_to_vote, pollsToVote, pollsToVote) else null
+                        TextButton(
+                            onClick = onPolls,
+                            modifier = Modifier
+                                .heightIn(min = 56.dp)
+                                .semantics(mergeDescendants = true) { if (waiting != null) stateDescription = waiting },
+                        ) {
+                            Icon(Icons.Outlined.Poll, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.polls_title))
+                            if (pollsToVote > 0) {
+                                Spacer(Modifier.width(6.dp))
+                                Badge(modifier = Modifier.clearAndSetSemantics { }) { Text(pollsToVote.toString()) }
+                            }
                         }
                     }
                     // Trips have no tab (carte DESIGN-4): from here only while the Accueil is off.

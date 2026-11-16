@@ -1302,6 +1302,9 @@
     <string name="home_todo_help">Demandé par %1$s · %2$s</string>
     <string name="home_open_event">ouvrir l\'événement</string>
     <string name="home_todo_vote">Sondage de %1$s · à toi de répondre</string>
+    <string name="home_polls_title">Sondages</string>
+    <string name="home_polls_new">Nouveau sondage</string>
+    <string name="home_polls_all">Tous les sondages</string>
     <string name="home_voted">Tu as voté</string>
     <string name="home_voted_lead">Tu as voté · en tête : %1$s (%2$d voix)</string>
     <string name="home_voted_tie">Tu as voté · plusieurs réponses à égalité</string>
@@ -1482,6 +1485,11 @@
     </plurals>
     <!-- Sondages (récits 2 bis et 2 ter) -->
     <string name="polls_title">Sondages</string>
+    <plurals name="polls_to_vote">
+        <item quantity="one">%d sondage attend ta réponse</item>
+        <item quantity="many">%d sondages attendent ta réponse</item>
+        <item quantity="other">%d sondages attendent ta réponse</item>
+    </plurals>
     <string name="polls_open">Ouvrir les sondages</string>
     <string name="polls_new">Nouveau sondage</string>
     <string name="polls_section_open">En cours</string>
