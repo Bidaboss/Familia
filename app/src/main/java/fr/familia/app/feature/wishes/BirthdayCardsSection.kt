@@ -39,15 +39,15 @@ import java.time.ZoneId
 
 /** « Cartes de vœux » on a member's page (récit 36), while its module is on. Shows nothing on an ordinary day. */
 @Composable
-fun BirthdayCardsSection(container: AppContainer?, currentMember: Member, person: Member) {
+fun BirthdayCardsSection(container: AppContainer?, currentMember: Member, person: Member, year: Int? = null) {
     val today = LocalDate.now(ZoneId.of("Europe/Paris"))
     val viewingAs = LocalViewAs.current.viewed != null
     val viewModel: BirthdayCardsViewModel = viewModel(
-        key = "birthdayCards-${person.id}-$today-$viewingAs",
+        key = "birthdayCards-${person.id}-$today-$year-$viewingAs",
         factory = viewModelFactory {
             initializer {
                 BirthdayCardsViewModel(
-                    container?.birthdayCardRepository, container?.goodNewsRepository, currentMember, person, today, mayWrite = !viewingAs,
+                    container?.birthdayCardRepository, container?.goodNewsRepository, currentMember, person, today, mayWrite = !viewingAs, year = year,
                 )
             }
         },

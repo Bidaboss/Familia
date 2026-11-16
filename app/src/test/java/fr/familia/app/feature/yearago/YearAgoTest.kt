@@ -57,10 +57,11 @@ class YearAgoTest {
     }
 
     @Test
-    fun `a good news one hid, a challenge news and a souvenir set aside stay out`() {
+    fun `a good news one hid, a challenge or birthday news and a souvenir set aside stay out`() {
         val list = listOf(
             news("hidden", lastYear(9), hiddenBy = listOf("ines")),
             news("challenge", lastYear(9), photos = 0, challenge = "2026-11"),
+            news("birthday-2026-camille", lastYear(9), photos = 0).copy(birthdayOf = "camille"),
             news("aside", lastYear(10)),
         )
         assertNull(YearAgo.pick(today, "ines", list, emptyList(), setOf("news-aside")))

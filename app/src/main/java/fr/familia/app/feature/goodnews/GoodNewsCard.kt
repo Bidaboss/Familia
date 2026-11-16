@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -78,6 +79,7 @@ fun GoodNewsCard(
             when {
                 item.author != null -> MemberAvatar(item.author)
                 item.news.challengeMonth != null -> ChallengeAvatar()
+                item.news.birthdayOf != null -> BirthdayAvatar()
             }
             Column(Modifier.weight(1f)) {
                 Text(whoLabel(item), style = MaterialTheme.typography.titleMedium)
@@ -139,7 +141,7 @@ private fun Photos(item: GoodNewsItem, full: Boolean) {
     val description = stringResource(R.string.goodnews_photo_of, whoLabel(item))
     val shape = RoundedCornerShape(16.dp)
     when {
-        news.photoIds.isEmpty() -> Unit // « Défi réussi » (récit 35).
+        news.photoIds.isEmpty() -> Unit // « Défi réussi » (récit 35), « Joyeux anniversaire » (récit 36).
         full -> news.photoIds.forEach { id ->
             StorageImage(news.photoPath(id), description, Modifier.fillMaxWidth().aspectRatio(4f / 3f).clip(shape))
         }
@@ -207,6 +209,16 @@ fun reactionName(reaction: Reaction): Int = when (reaction) {
  * The avatar of the « Défi réussi » published by Familia (récit 35), in the size of a member's
  * avatar: the medal of the Fêtes souvenirs (DESIGN, 16/11), so the challenge has the same image everywhere.
  */
+@Composable
+private fun BirthdayAvatar() {
+    Box(
+        Modifier.size(40.dp).clip(CircleShape).background(SouvenirFamily.Party.light),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(Icons.Outlined.Cake, contentDescription = null, tint = SouvenirFamily.Party.dark)
+    }
+}
+
 @Composable
 private fun ChallengeAvatar() {
     Box(
