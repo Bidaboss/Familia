@@ -1057,7 +1057,15 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time
         && (request.resource.data.type == 'solo' || me().profile == 'adult');
 
-      allow update: if false;
+      // On « Mes envies », the holder chooses the occasion the gift is meant for (PRD rév. 186):
+      // the next birthday or the next Christmas after the reservation, revealed the day after.
+      // Without a choice, the server takes whichever comes first.
+      allow update: if isMember()
+        && resource.data.holderId == myMemberId()
+        && list().kind == 'wishes'
+        && list().revealed == false
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['occasion'])
+        && request.resource.data.occasion in ['birthday', 'christmas'];
 
       // The holder releases the item; the shares of a joint gift are removed on the server.
       allow delete: if isMember() && resource.data.holderId == myMemberId() && list().revealed == false;

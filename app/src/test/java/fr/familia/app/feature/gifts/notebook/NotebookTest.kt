@@ -1,5 +1,6 @@
 package fr.familia.app.feature.gifts.notebook
 
+import fr.familia.app.core.data.GiftRepository
 import fr.familia.app.core.data.NotebookRepository
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftStatus
@@ -8,6 +9,7 @@ import fr.familia.app.core.model.NotebookEntry
 import fr.familia.app.core.model.NotebookOccasion
 import fr.familia.app.core.model.NotebookSource
 import fr.familia.app.core.model.notebookBudgetId
+import fr.familia.app.feature.gifts.FakeGifts
 import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -74,6 +76,28 @@ class NotebookTest {
         vm.select(birthday)
         val other = vm.uiState.first { it is NotebookUiState.Success && it.selected == birthday } as NotebookUiState.Success
         assertEquals(listOf("e"), other.people.single().entries.map { it.id })
+    }
+
+    /** Records the occasions chosen for reservations. */
+    private class Gifts : GiftRepository by FakeGifts(null) {
+        val chosen = mutableListOf<Triple<String, String, GiftOccasion>>()
+        override suspend fun setClaimOccasion(listId: String, itemId: String, occasion: GiftOccasion) {
+            chosen += Triple(listId, itemId, occasion)
+        }
+    }
+
+    @Test
+    fun `the occasion of one's own reservation of wishes is written on it, never for a part`() = runTest {
+        fun taken(id: String, source: NotebookSource) =
+            entry(id, "adult2").copy(source = source, listId = "wishes-adult2", itemId = "i$id")
+        val gifts = Gifts()
+        val vm = NotebookViewModel(FakeNotebook(listOf(taken("a", NotebookSource.Claim), taken("b", NotebookSource.Share))), "adult1", today = flowOf(today), gifts = gifts)
+        val state = vm.uiState.first { it is NotebookUiState.Success } as NotebookUiState.Success
+        val entries = state.people.single().entries.associateBy { it.id }
+        vm.setOccasion(entries.getValue("a"), birthday)
+        vm.setOccasion(entries.getValue("b"), birthday)
+        vm.uiState.first { s -> (s as? NotebookUiState.Success)?.people?.single()?.entries?.any { it.id == "a" } == false }
+        assertEquals(listOf(Triple("wishes-adult2", "ia", GiftOccasion.Birthday)), gifts.chosen)
     }
 
     @Test

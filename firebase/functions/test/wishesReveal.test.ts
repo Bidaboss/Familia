@@ -9,21 +9,32 @@ import { deleteGiftListContent, GiftMember, onGiftItemChanged } from '../src/gif
 import { Notice } from '../src/logic';
 import { notebookEntryId, syncNotebookEntry } from '../src/notebook';
 import { Sender } from '../src/store';
-import { giverNames, revealWishes, wishesRevealOccasion } from '../src/wishesReveal';
+import { Timestamp } from 'firebase-admin/firestore';
+import { claimOccasion, defaultWishOccasion, giverNames, occasionDay, revealWishes } from '../src/wishesReveal';
 
 const ines: GiftMember = { id: 'ines', firstName: 'Inès', profile: 'adult', parentIds: [], birthDate: '1990-03-14' };
 const camille: GiftMember = { id: 'camille', firstName: 'Camille', profile: 'adult', parentIds: [], birthDate: '1988-12-09' };
 const jules: GiftMember = { id: 'jules', firstName: 'Jules', profile: 'adult', parentIds: [], birthDate: null };
 
 describe('wishes reveal logic', () => {
-  test('the day after a birthday, or after Christmas', () => {
-    assert.equal(wishesRevealOccasion('1990-03-14', '2027-03-15'), 'birthday');
-    assert.equal(wishesRevealOccasion('1990-03-14', '2027-03-14'), null);
-    assert.equal(wishesRevealOccasion('1990-03-14', '2026-12-26'), 'christmas');
-    assert.equal(wishesRevealOccasion(null, '2026-12-26'), 'christmas');
-    assert.equal(wishesRevealOccasion(null, '2026-12-25'), null);
-    // Born on 28 February: the day after is 1 March, even in a leap year.
-    assert.equal(wishesRevealOccasion('2000-02-28', '2028-02-29'), 'birthday');
+  test('by default, the next occasion: the birthday or Christmas, whichever comes first', () => {
+    assert.deepEqual(defaultWishOccasion('1990-03-14', '2026-11-16'), { occasion: 'christmas', year: 2026 });
+    assert.deepEqual(defaultWishOccasion('1990-12-01', '2026-11-16'), { occasion: 'birthday', year: 2026 });
+    assert.deepEqual(defaultWishOccasion('1990-03-14', '2026-12-26'), { occasion: 'birthday', year: 2027 });
+    assert.deepEqual(defaultWishOccasion(null, '2026-12-26'), { occasion: 'christmas', year: 2027 });
+    // The day itself still counts.
+    assert.deepEqual(defaultWishOccasion('1990-03-14', '2027-03-14'), { occasion: 'birthday', year: 2027 });
+  });
+
+  test('the occasion of a reservation: the chosen one after the day it was made, or the default', () => {
+    const made = Timestamp.fromDate(new Date('2026-11-20T10:00:00Z'));
+    assert.deepEqual(claimOccasion({ occasion: 'christmas', createdAt: made }, '1990-12-01', '2026-11-16'), { occasion: 'christmas', year: 2026 });
+    assert.deepEqual(claimOccasion({ occasion: 'birthday', createdAt: made }, '1990-03-14', '2026-11-16'), { occasion: 'birthday', year: 2027 });
+    assert.deepEqual(claimOccasion({ createdAt: made }, '1990-12-01', '2026-11-16'), { occasion: 'birthday', year: 2026 });
+    // Without a date of birth, a birthday cannot be chosen: Christmas.
+    assert.deepEqual(claimOccasion({ occasion: 'birthday', createdAt: made }, null, '2026-11-16'), { occasion: 'christmas', year: 2026 });
+    assert.equal(occasionDay({ occasion: 'birthday', year: 2027 }, '1990-03-14'), '2027-03-14');
+    assert.equal(occasionDay({ occasion: 'christmas', year: 2026 }, null), '2026-12-25');
   });
 
   test('the givers, the responsible first, each once', () => {
@@ -78,8 +89,13 @@ describe('wishes reveal', () => {
     await list().collection('items').doc('book').set(item('Un livre'));
     await list().collection('items').doc('scarf').set(item('Une écharpe'));
     await list().collection('items').doc('lamp').set(item('Une lampe'));
-    await list().collection('claims').doc('book').set({ type: 'solo', holderId: 'camille', holderName: 'Camille' });
-    await list().collection('claims').doc('scarf').set({ type: 'shared', holderId: 'jules', holderName: 'Jules' });
+    await list().collection('claims').doc('book').set({
+      type: 'solo', holderId: 'camille', holderName: 'Camille', occasion: 'birthday', createdAt: Timestamp.fromDate(new Date('2027-01-05T10:00:00Z')),
+    });
+    // Made in January: by default, for the birthday of 14 March.
+    await list().collection('claims').doc('scarf').set({
+      type: 'shared', holderId: 'jules', holderName: 'Jules', createdAt: Timestamp.fromDate(new Date('2027-01-10T10:00:00Z')),
+    });
     await list().collection('claims').doc('scarf').collection('shares').doc('jules').set({ amount: 10 });
     await list().collection('claims').doc('scarf').collection('shares').doc('camille').set({ amount: 15 });
   });
@@ -105,6 +121,34 @@ describe('wishes reveal', () => {
     // Only Inès is told.
     assert.deepEqual(sent.map((s) => s.token), ['token-ines']);
     assert.equal(sent[0].notice.listId, LIST);
+  });
+
+  test('a gift meant for Christmas stays hidden after the birthday, and is revealed after Christmas', async () => {
+    await list().collection('claims').doc('book').update({ occasion: 'christmas' });
+    assert.equal(await revealWishes(db, fakeSender().send, DAY_AFTER), 1);
+    assert.equal((await list().collection('items').doc('book').get()).exists, true);
+    assert.equal((await list().collection('claims').doc('book').get()).exists, true);
+    assert.equal(await revealWishes(db, fakeSender().send, new Date('2027-12-26T06:00:00Z')), 1);
+    assert.equal((await list().collection('received').doc('book').get()).get('occasion'), 'christmas');
+  });
+
+  test('a reservation whose occasion passed while the switch was off is revealed the next morning', async () => {
+    await db.doc('config/app').set({ features: { gifts: true, wishesReveal: false } });
+    assert.equal(await revealWishes(db, fakeSender().send, DAY_AFTER), 0);
+    await db.doc('config/app').set({ features: { gifts: true, wishesReveal: true } });
+    assert.equal(await revealWishes(db, fakeSender().send, new Date('2027-04-02T06:00:00Z')), 2);
+  });
+
+  test('the notebook of the holder and of each part shows the occasion of the reservation', async () => {
+    await list().collection('claims').doc('book').update({ occasion: 'christmas' });
+    await syncNotebookEntry(db, LIST, 'book', 'camille');
+    const entry = await db.doc(`notebooks/camille/entries/${notebookEntryId(LIST, 'book')}`).get();
+    assert.equal(entry.get('occasion'), 'christmas');
+    assert.equal(entry.get('year'), 2027);
+    await syncNotebookEntry(db, LIST, 'scarf', 'camille');
+    const part = await db.doc(`notebooks/camille/entries/${notebookEntryId(LIST, 'scarf')}`).get();
+    assert.equal(part.get('occasion'), 'birthday');
+    assert.equal(part.get('year'), 2027);
   });
 
   test('nothing the day of the occasion, nor without the switch', async () => {

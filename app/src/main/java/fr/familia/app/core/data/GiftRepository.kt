@@ -3,6 +3,7 @@ package fr.familia.app.core.data
 import fr.familia.app.core.model.GiftClaim
 import fr.familia.app.core.model.GiftItem
 import fr.familia.app.core.model.GiftList
+import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftShare
 import kotlinx.coroutines.flow.Flow
 
@@ -58,4 +59,10 @@ interface GiftRepository {
     suspend fun markShareReceived(listId: String, itemId: String, memberId: String, received: Boolean)
 
     suspend fun leaveShare(listId: String, itemId: String, memberId: String)
+
+    /**
+     * On « Mes envies », the holder of [itemId] says which occasion the gift is for: the next
+     * birthday or the next Christmas of the beneficiary (PRD rév. 186). It is revealed the day after.
+     */
+    suspend fun setClaimOccasion(listId: String, itemId: String, occasion: GiftOccasion) {}
 }

@@ -2,6 +2,7 @@ package fr.familia.app.feature.gifts.notebook
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.familia.app.core.data.GiftRepository
 import fr.familia.app.core.data.NotebookRepository
 import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.core.model.GiftOccasion
@@ -9,6 +10,7 @@ import fr.familia.app.core.model.GiftStatus
 import fr.familia.app.core.model.NotebookBudget
 import fr.familia.app.core.model.NotebookEntry
 import fr.familia.app.core.model.NotebookOccasion
+import fr.familia.app.core.model.NotebookSource
 import fr.familia.app.core.model.notebookBudgetId
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -67,6 +69,8 @@ class NotebookViewModel(
     private val currentMemberId: String,
     today: Flow<LocalDate> = currentDayFlow(),
     private val writeTimeoutMillis: Long = 4_000,
+    /** Writes the occasion of a reservation of « Mes envies », which decides when it is revealed. */
+    private val gifts: GiftRepository? = null,
 ) : ViewModel() {
 
     /** The occasion the member chose, and whether the archive is open. */
@@ -102,17 +106,29 @@ class NotebookViewModel(
         if (entry.status != status) follow(entry, status, entry.occasion)
     }
 
-    /** For a gift of « Mes envies », which has no occasion of its own. */
+    /**
+     * For a gift of « Mes envies », which has no occasion of its own. On one's own reservation, the
+     * reservation follows (PRD rév. 186): the gift is revealed the day after that occasion. The
+     * part of a joint gift follows the responsible, and is not chosen here.
+     */
     fun setOccasion(entry: NotebookEntry, occasion: NotebookOccasion) {
+        if (entry.source == NotebookSource.Share) return
         if (entry.occasion != occasion) follow(entry, entry.status, occasion)
     }
 
     private fun follow(entry: NotebookEntry, status: GiftStatus, occasion: NotebookOccasion) {
         val repo = notebook ?: return
+        val claimOccasion = occasion.occasion
+            ?.takeIf { entry.source == NotebookSource.Claim && entry.occasion.occasion != it && it in WISH_OCCASIONS }
+        val listId = entry.listId?.takeIf { it.startsWith(WISHES_PREFIX) }
+        val itemId = entry.itemId
         failed.value = false
         viewModelScope.launch {
             val ok = try {
-                withTimeoutOrNull(writeTimeoutMillis) { repo.follow(currentMemberId, entry.id, status, occasion, entry.note) }
+                withTimeoutOrNull(writeTimeoutMillis) {
+                    repo.follow(currentMemberId, entry.id, status, occasion, entry.note)
+                    if (claimOccasion != null && listId != null && itemId != null) gifts?.setClaimOccasion(listId, itemId, claimOccasion)
+                }
                 true
             } catch (e: CancellationException) {
                 throw e
@@ -192,3 +208,6 @@ internal fun defaultOccasion(occasions: List<NotebookOccasion>, today: LocalDate
     occasions.firstOrNull { it == NotebookOccasion(GiftOccasion.Christmas, today.year) }
         ?: occasions.firstOrNull { (it.year ?: Int.MAX_VALUE) >= today.year }
         ?: occasions.firstOrNull()
+
+/** The occasions a reservation of « Mes envies » may be meant for: the server reveals it the day after. */
+internal val WISH_OCCASIONS = setOf(GiftOccasion.Birthday, GiftOccasion.Christmas)

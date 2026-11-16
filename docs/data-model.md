@@ -268,9 +268,11 @@ La réservation d'un article. Son identifiant est celui de l'article, donc un ar
 | `holderId`, `holderName` | `memberId`, texte | Le réservant, ou le responsable du cadeau commun |
 | `createdAt` | horodatage serveur | |
 | `sharesTotal`, `sharesCount` | nombre, entier | Cadeau commun : total et nombre des parts, tenus par une Cloud Function (absents tant qu'aucune part n'a changé) |
+| `occasion` | `birthday` \| `christmas`, facultatif | « Mes envies » seulement (PRD rév. 186) : le prochain anniversaire ou le prochain Noël du bénéficiaire après la réservation, choisi par le réservant depuis son carnet. Absent, c'est celui des deux qui vient en premier. L'envie est dévoilée le lendemain. Les parts d'un cadeau commun suivent le choix du responsable |
 
 - **Lire** : ceux qui voient la liste, sauf le bénéficiaire avant la révélation.
 - **Réserver** : ceux qui voient la liste, sauf le bénéficiaire. Un enfant réserve seul, jamais en cadeau commun (carte PRODUIT-19).
+- **Modifier** : le réservant, seulement `occasion`, sur « Mes envies ». Une Cloud Function (`onGiftClaimUpdated`) remet alors à jour le carnet du réservant et des participants.
 - **Relâcher** : le réservant seulement, tant que la liste n'est pas révélée. Les parts d'un cadeau commun relâché sont effacées par une Cloud Function.
 
 ### `giftLists/{listId}/claims/{itemId}/shares/{memberId}`
@@ -298,7 +300,7 @@ Une envie offerte, sortie de « Mes envies » le lendemain de l'occasion de son 
 | `title`, `url`, `imageUrl` | texte | Repris de l'article |
 | `givers` | liste de textes | Prénoms de ceux qui l'ont offerte : le responsable, puis les participants. Jamais les montants |
 | `joint` | booléen | Vrai pour un cadeau commun |
-| `occasion` | `birthday` ou `christmas` | L'occasion de la veille |
+| `occasion` | `birthday` ou `christmas` | L'occasion de la réservation |
 | `year` | nombre | Année de l'occasion |
 | `thanked` | booléen | Faux à la création, vrai quand le bénéficiaire a dit merci |
 | `thankedAt` | horodatage serveur | Présent une fois le merci dit |
@@ -313,7 +315,7 @@ Une envie offerte, sortie de « Mes envies » le lendemain de l'occasion de son 
 | Fonction | Quand | Ce qu'elle fait |
 |---|---|---|
 | `revealGifts` | Chaque jour à 7 h, heure de Paris | Passe `revealed` à vrai pour les listes dont l'occasion est passée (pas « Mes envies »), et prévient leur bénéficiaire s'il a l'appli (PRD, récit 10 bis) |
-| `revealGifts`, ensuite (`wishesReveal.ts`) | Chaque jour à 7 h, heure de Paris, après les listes | Le lendemain d'un anniversaire ou de Noël, passe chaque envie réservée dans `received`, efface l'article et sa réservation, et prévient le bénéficiaire. Le carnet des donateurs garde le cadeau, et personne ne reçoit « Réservation annulée ». Une envie non réservée reste |
+| `revealGifts`, ensuite (`wishesReveal.ts`) | Chaque jour à 7 h, heure de Paris, après les listes | Passe dans `received` chaque envie réservée dont l'occasion (`occasion` de la réservation) était la veille ou avant, efface l'article et sa réservation, et prévient le bénéficiaire. Le carnet des donateurs garde le cadeau, et personne ne reçoit « Réservation annulée ». Une envie non réservée reste |
 | `birthdayGiftReminders` | Chaque jour à 10 h, heure de Paris | À J-21 d'un anniversaire, prévient tous les adultes sauf le fêté, avec ses envies. À J-14, recommence si aucun article de ses listes n'est réservé (récit 10) |
 | `onGiftItemWritten` | Un article est modifié ou supprimé | S'il était réservé, prévient le réservant et les participants (jamais le bénéficiaire), et met à jour leur carnet. Une suppression efface aussi la réservation et ses parts |
 | `onGiftShareWritten` | Une part est ajoutée, modifiée ou retirée | Recalcule `sharesTotal` et `sharesCount` sur la réservation, et met à jour le carnet du participant |

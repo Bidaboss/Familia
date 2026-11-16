@@ -1,6 +1,6 @@
-// « Mes envies » révélées (PRD, récit 10 bis, carte PRODUIT-20, rév. 183). « Mes envies » has no
-// date: the day after the next occasion of its owner (their birthday, or Christmas), at 7 a.m.,
-// each wish someone took is revealed. It leaves the list for giftLists/{listId}/received/{itemId},
+// « Mes envies » révélées (PRD, récit 10 bis, carte PRODUIT-20, rév. 183 and 186). « Mes envies »
+// has no date: each reservation carries its occasion (the next birthday or the next Christmas
+// of its owner, by default whichever comes first), and the day after it, at 7 a.m., the wish is revealed. It leaves the list for giftLists/{listId}/received/{itemId},
 // the archive « On m'a offert », with the first names of the givers and never their amounts. A
 // wish released before the day is not revealed; a wish nobody took stays as it is.
 //
@@ -9,17 +9,48 @@
 import type { Firestore } from 'firebase-admin/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
 import { giftAudience, GiftMember, loadGiftMembers, nextBirthday } from './gifts';
-import { addDays, Notice, parisDay } from './logic';
+import { Notice, parisDay } from './logic';
 import { notify, Sender } from './store';
 
 export type RevealOccasion = 'birthday' | 'christmas';
 
-/** The occasion [today] is the day after, for a member born on [birthDate], or null. */
-export function wishesRevealOccasion(birthDate: string | null, today: string): RevealOccasion | null {
-  const yesterday = addDays(today, -1);
-  if (birthDate && birthDate <= yesterday && nextBirthday(birthDate, yesterday) === yesterday) return 'birthday';
-  if (yesterday.endsWith('-12-25')) return 'christmas';
-  return null;
+/** The occasion a reservation of « Mes envies » is meant for (PRD rév. 186). */
+export interface WishOccasion {
+  occasion: RevealOccasion;
+  year: number;
+}
+
+/** The day of [o], AAAA-MM-JJ; null for a birthday without a birth date. */
+export function occasionDay(o: WishOccasion, birthDate: string | null): string | null {
+  if (o.occasion === 'christmas') return `${o.year}-12-25`;
+  return birthDate ? nextBirthday(birthDate, `${o.year}-01-01`) : null;
+}
+
+/** By default, the next occasion of the beneficiary on [day]: their birthday or Christmas, whichever comes first. */
+export function defaultWishOccasion(birthDate: string | null, day: string): WishOccasion {
+  const christmas = nextChristmas(day);
+  if (!birthDate) return christmas;
+  const birthday = nextBirthday(birthDate, day);
+  return birthday < `${christmas.year}-12-25` ? { occasion: 'birthday', year: Number(birthday.slice(0, 4)) } : christmas;
+}
+
+/** The next Christmas on or after [day]. */
+function nextChristmas(day: string): WishOccasion {
+  const year = Number(day.slice(0, 4));
+  return { occasion: 'christmas', year: day <= `${year}-12-25` ? year : year + 1 };
+}
+
+/**
+ * The occasion of a reservation (PRD rév. 186): the next birthday or the next Christmas after the
+ * day it was made, as its holder chose in `occasion`; without a choice, whichever comes first
+ * (reservations made before rév. 186 have none). [fallbackDay] stands for a missing date.
+ */
+export function claimOccasion(claim: { occasion?: unknown; createdAt?: unknown }, birthDate: string | null, fallbackDay: string): WishOccasion {
+  const created = claim.createdAt as { toDate?: () => Date } | undefined;
+  const day = typeof created?.toDate === 'function' ? parisDay(created.toDate()) : fallbackDay;
+  if (claim.occasion === 'christmas') return nextChristmas(day);
+  if (claim.occasion === 'birthday' && birthDate) return { occasion: 'birthday', year: Number(nextBirthday(birthDate, day).slice(0, 4)) };
+  return defaultWishOccasion(birthDate, day);
 }
 
 /** The givers as the beneficiary reads them: the responsible first, then each part, once each. */
@@ -37,7 +68,11 @@ export function wishesRevealNotice(listId: string, count: number): Notice {
   };
 }
 
-/** Every morning: the wishes of whoever had an occasion yesterday. Returns the number revealed. */
+/**
+ * Every morning: each reservation whose occasion was yesterday, or before (a day the switch was
+ * off), is revealed. A gift meant for Christmas stays hidden after an earlier birthday. Returns
+ * the number revealed.
+ */
 export async function revealWishes(db: Firestore, send: Sender, now: Date): Promise<number> {
   const config = await db.doc('config/app').get();
   if (config.get('features.gifts') !== true || config.get('features.wishesReveal') !== true) return 0;
@@ -48,23 +83,22 @@ export async function revealWishes(db: Firestore, send: Sender, now: Date): Prom
   for (const member of members) {
     // A child without the app: their adults already see everything.
     if (member.profile === 'childWithoutApp') continue;
-    const occasion = wishesRevealOccasion(member.birthDate, today);
-    if (!occasion) continue;
-    const count = await revealWishesOf(db, member.id, members, occasion, Number(addDays(today, -1).slice(0, 4)));
+    const count = await revealWishesOf(db, member, members, today);
     revealed += count;
     if (count > 0 && audience([member.id]).length > 0) await notify(db, send, [member.id], wishesRevealNotice(`wishes-${member.id}`, count));
   }
   return revealed;
 }
 
-/** Moves each taken wish of [memberId] to the archive, then removes it with its reservation. */
-export async function revealWishesOf(
-  db: Firestore, memberId: string, members: GiftMember[], occasion: RevealOccasion, year: number,
-): Promise<number> {
-  const list = db.collection('giftLists').doc(`wishes-${memberId}`);
+/** Moves each taken wish of [member] whose occasion is past to the archive, then removes it with its reservation. */
+export async function revealWishesOf(db: Firestore, member: GiftMember, members: GiftMember[], today: string): Promise<number> {
+  const list = db.collection('giftLists').doc(`wishes-${member.id}`);
   const claims = await list.collection('claims').get();
   let count = 0;
   for (const claim of claims.docs) {
+    const meant = claimOccasion(claim.data(), member.birthDate, today);
+    const day = occasionDay(meant, member.birthDate);
+    if (!day || day >= today) continue;
     const item = await list.collection('items').doc(claim.id).get();
     if (!item.exists) {
       await db.recursiveDelete(claim.ref);
@@ -83,8 +117,8 @@ export async function revealWishesOf(
       imageUrl: (item.get('imageUrl') as string | null) ?? null,
       givers: giverNames(String(claim.get('holderId') ?? ''), joint ? shares.docs.map((s) => s.id) : [], members, String(claim.get('holderName') ?? '')),
       joint,
-      occasion,
-      year,
+      occasion: meant.occasion,
+      year: meant.year,
       thanked: false,
       revealedAt: FieldValue.serverTimestamp(),
     });
