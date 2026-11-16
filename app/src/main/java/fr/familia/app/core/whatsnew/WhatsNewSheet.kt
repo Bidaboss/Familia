@@ -64,12 +64,13 @@ fun WhatsNewHost(
     val context = LocalContext.current
     val decider = remember(context) { WhatsNewDecider(WhatsNewPreferences(context.applicationContext)) }
     val discover = remember(context) { DiscoverPreferences(context.applicationContext) }
-    remember(currentMember.id) { if (freshInstall) decider.noteFreshInstall(currentMember.id) }
     // Decided once per opening: a module switched on meanwhile shows at the next one.
     var decided by rememberSaveable(currentMember.id) { mutableStateOf(false) }
     var cards by remember(currentMember.id) { mutableStateOf(emptyList<ShownCard>()) }
     val child = WhatsNew.isChild(currentMember.profile)
     LaunchedEffect(appConfig != null, currentMember.id) {
+        // Noted at once, even before config/app is read, so a new install closed early stays one.
+        if (freshInstall) decider.noteFreshInstall(currentMember.id)
         if (appConfig == null || decided) return@LaunchedEffect
         decided = true
         cards = decider.cardsToShow(currentMember.id, appConfig.whatsNew, installedVersion, child) { appConfig.features[it] == true }
