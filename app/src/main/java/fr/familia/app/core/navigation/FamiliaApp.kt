@@ -74,7 +74,9 @@ import fr.familia.app.feature.birthdays.BirthdaysRoute
 import fr.familia.app.feature.events.detail.EventDetailRoute
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.photo.LocalPhotoStorage
+import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.NotebookOccasion
 import fr.familia.app.core.model.wishesListId
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.OfflineBanner
@@ -106,6 +108,7 @@ import fr.familia.app.feature.gifts.GiftsRoute
 import fr.familia.app.feature.gifts.detail.GiftListRoute
 import fr.familia.app.feature.gifts.edit.GiftListEditRoute
 import fr.familia.app.feature.gifts.item.GiftItemEditRoute
+import fr.familia.app.feature.gifts.notebook.NotebookIdeaRoute
 import fr.familia.app.feature.gifts.notebook.NotebookRoute
 import fr.familia.app.feature.events.answerableMembers
 import fr.familia.app.core.data.currentDayFlow
@@ -504,6 +507,18 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             onBack = { navController.popBackStack() },
                             onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
+                            onAddIdea = { at -> navController.navigate(NotebookIdeaDestination(occasion = at?.occasion?.name, year = at?.year)) },
+                            onEditIdea = { id -> navController.navigate(NotebookIdeaDestination(entryId = id)) },
+                        )
+                    }
+                    composable<NotebookIdeaDestination> { entry ->
+                        val route = entry.toRoute<NotebookIdeaDestination>()
+                        NotebookIdeaRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            entryId = route.entryId,
+                            startOccasion = NotebookOccasion(GiftOccasion.entries.firstOrNull { it.name == route.occasion }, route.year),
+                            onDone = { navController.popBackStack() },
                         )
                     }
                     composable<GiftListDestination> { entry ->

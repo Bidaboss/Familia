@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.NotebookOccasion
 
 /** Connects « Mes cadeaux à offrir » to its ViewModel. */
 @Composable
@@ -16,6 +17,8 @@ fun NotebookRoute(
     currentMember: Member,
     onBack: () -> Unit,
     onOpenList: (listId: String) -> Unit,
+    onAddIdea: (at: NotebookOccasion?) -> Unit,
+    onEditIdea: (entryId: String) -> Unit,
 ) {
     val viewModel: NotebookViewModel = viewModel(
         factory = viewModelFactory {
@@ -30,7 +33,11 @@ fun NotebookRoute(
             onRetry = viewModel::retry,
             onSelect = viewModel::select,
             onSetStatus = viewModel::setStatus,
+            onSetOccasion = viewModel::setOccasion,
+            onSetBudget = viewModel::setBudget,
             onOpenList = onOpenList,
+            onAddIdea = onAddIdea,
+            onEditIdea = onEditIdea,
         ),
     )
 }

@@ -3,9 +3,11 @@ package fr.familia.app.feature.gifts.notebook
 import fr.familia.app.core.data.NotebookRepository
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftStatus
+import fr.familia.app.core.model.NotebookBudget
 import fr.familia.app.core.model.NotebookEntry
 import fr.familia.app.core.model.NotebookOccasion
 import fr.familia.app.core.model.NotebookSource
+import fr.familia.app.core.model.notebookBudgetId
 import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -84,6 +86,43 @@ class NotebookTest {
         assertTrue(after is NotebookUiState.Success)
         assertEquals(setOf("adult1"), notebook.askedFor)
     }
+
+    @Test
+    fun `a gift of « Mes envies » gets the occasion the member chooses`() = runTest {
+        val wish = NotebookEntry("gift_w", NotebookSource.Claim, "adult2", "Adult2", none, "Un livre", null, 15.0, null, GiftStatus.Idea, listId = "wishes-adult2", itemId = "i")
+        val notebook = FakeNotebook(listOf(wish))
+        val vm = NotebookViewModel(notebook, "adult1", today = flowOf(today))
+        vm.uiState.first { it is NotebookUiState.Success }
+        vm.setOccasion(wish, christmas)
+        val state = vm.uiState.first { (it as? NotebookUiState.Success)?.selected == christmas } as NotebookUiState.Success
+        assertEquals(listOf("gift_w"), state.people.single().entries.map { it.id })
+    }
+
+    @Test
+    fun `a budget belongs to one person and one occasion, and can be removed`() = runTest {
+        val notebook = FakeNotebook(listOf(entry("a", "adult2", price = 20.0, status = GiftStatus.Bought), entry("b", "adult2", occasion = birthday)))
+        val vm = NotebookViewModel(notebook, "adult1", today = flowOf(today))
+        val state = vm.uiState.first { it is NotebookUiState.Success } as NotebookUiState.Success
+        vm.setBudget(state.people.single(), christmas, 50.0)
+        val withBudget = vm.uiState.first { (it as? NotebookUiState.Success)?.people?.single()?.budget == 50.0 } as NotebookUiState.Success
+        assertEquals(20.0, withBudget.people.single().spent, 0.001)
+        vm.select(birthday)
+        val other = vm.uiState.first { (it as? NotebookUiState.Success)?.selected == birthday } as NotebookUiState.Success
+        assertEquals(null, other.people.single().budget)
+        vm.setBudget(withBudget.people.single(), christmas, null)
+        vm.select(christmas)
+        vm.uiState.first { (it as? NotebookUiState.Success)?.let { s -> s.selected == christmas && s.people.single().budget == null } == true }
+        assertTrue(notebook.budgets.value.isEmpty())
+    }
+
+    @Test
+    fun `a budget id is safe for Firestore and ignores the case of a first name`() {
+        assertEquals(
+            notebookBudgetId(null, "Mamie Jo", christmas),
+            notebookBudgetId(null, " mamie jo", christmas),
+        )
+        assertTrue(notebookBudgetId(null, "Jo/Lou", christmas).none { it == '/' })
+    }
 }
 
 class FakeNotebook(entries: List<NotebookEntry> = emptyList()) : NotebookRepository {
@@ -110,5 +149,21 @@ class FakeNotebook(entries: List<NotebookEntry> = emptyList()) : NotebookReposit
     override suspend fun deleteIdea(memberId: String, entryId: String) {
         askedFor += memberId
         entries.update { all -> all.filterNot { it.id == entryId } }
+    }
+
+    val budgets = MutableStateFlow<List<NotebookBudget>>(emptyList())
+
+    override fun observeBudgets(memberId: String): Flow<List<NotebookBudget>> {
+        askedFor += memberId
+        return budgets
+    }
+
+    override suspend fun setBudget(memberId: String, budget: NotebookBudget, amount: Double?) {
+        askedFor += memberId
+        val id = notebookBudgetId(budget.personId, budget.personName, budget.occasion)
+        budgets.update { all ->
+            all.filterNot { notebookBudgetId(it.personId, it.personName, it.occasion) == id } +
+                listOfNotNull(amount?.let { budget.copy(amount = it) })
+        }
     }
 }
