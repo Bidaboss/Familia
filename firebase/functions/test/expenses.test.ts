@@ -4,7 +4,9 @@ import { after, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { deleteExpenseBook, expenseBookId, historyEntry, writeExpenseHistory } from '../src/expenses';
+import { deleteExpenseBook, expenseBookId, expenseNotice, formatEuroCents, historyEntry, sendExpenseNotices, writeExpenseHistory } from '../src/expenses';
+import type { Notice } from '../src/logic';
+import type { Sender } from '../src/store';
 
 describe('the accounts of a trip', () => {
   const app = initializeApp({ projectId: 'demo-familia' }, 'expenses-test');
@@ -70,4 +72,50 @@ describe('the accounts of a trip', () => {
     assert.equal((await book.listCollections()).length, 0);
     assert.equal((await db.collection('expenseBooks/trip_tx5/expenses/e1/history').get()).size, 0);
   });
+
+  test('the notice of the day groups what the others added, and says nothing of one\'s own', () => {
+    assert.equal(formatEuroCents(12500), '125,00\u00A0€');
+    assert.equal(formatEuroCents(5), '0,05\u00A0€');
+    const added = [{ authorId: 'm1', amountCents: 6000 }, { authorId: 'm2', amountCents: 2550 }, { authorId: 'm2', amountCents: 1000 }];
+    assert.deepEqual(expenseNotice('tn1', 'Corse', 'm1', added), {
+      channel: 'trips', title: 'Comptes · Corse', body: '2 nouvelles dépenses aujourd\'hui, 35,50\u00A0€. Le solde est à jour dans l\'appli.', tripId: 'tn1',
+    });
+    assert.equal(expenseNotice('tn1', 'Corse', 'm2', added)?.body.startsWith('Une nouvelle dépense'), true);
+    assert.equal(expenseNotice('tn1', 'Corse', 'm1', [{ authorId: 'm1', amountCents: 100 }]), null);
+  });
+
+  test('once a day from 20 h, to the adult participants only, and to the admin alone while the module is off', async () => {
+    const sent: { token: string; notice: Notice }[] = [];
+    const send: Sender = async (token, notice) => { sent.push({ token, notice }); return 'ok'; };
+    for (const c of ['members', 'expenseNotices', 'trips']) await db.recursiveDelete(db.collection(c));
+    await db.recursiveDelete(db.collection('expenseBooks'));
+    // 21 h in Paris on 12/07/2027; the expenses were added that afternoon.
+    const evening = new Date('2027-07-12T19:00:00Z');
+    const afternoon = new Date('2027-07-12T13:00:00Z');
+    const batch = db.batch();
+    batch.set(db.doc('config/app'), { features: { expenses: false } });
+    batch.set(db.doc('config/family'), { ownerMemberId: 'n-admin' });
+    for (const [id, profile] of [['n-admin', 'adult'], ['n-adult', 'adult'], ['n-child', 'child'], ['n-away', 'adult']] as const) {
+      batch.set(db.doc(`members/${id}`), { firstName: id, profile, parentIds: [] });
+      batch.set(db.doc(`members/${id}/devices/token-${id}`), { updatedAt: evening });
+    }
+    batch.set(db.doc('trips/tn1'), { title: 'Corse', participantIds: ['n-admin', 'n-adult', 'n-child'] });
+    batch.set(db.doc('expenseBooks/trip_tn1'), { containerType: 'trip', containerId: 'tn1', closed: false });
+    batch.set(db.doc('expenseBooks/trip_tn1/expenses/e1'), { authorId: 'n-adult', amountCents: 4000, createdAt: afternoon });
+    await batch.commit();
+
+    assert.equal(await sendExpenseNotices(db, send, new Date('2027-07-12T17:00:00Z')), 0); // 19 h in Paris.
+    assert.equal(await sendExpenseNotices(db, send, evening), 1);
+    assert.deepEqual(sent.map((s) => s.token), ['token-n-admin']);
+    assert.equal(await sendExpenseNotices(db, send, new Date('2027-07-12T20:30:00Z')), 0); // Once a day.
+
+    // The next evening, with the module on: only what was added since, to every adult participant but its author.
+    await db.doc('config/app').set({ features: { expenses: true } });
+    await db.doc('expenseBooks/trip_tn1/expenses/e2').set({ authorId: 'n-admin', amountCents: 1500, createdAt: new Date('2027-07-13T10:00:00Z') });
+    sent.length = 0;
+    assert.equal(await sendExpenseNotices(db, send, new Date('2027-07-13T19:00:00Z')), 1);
+    assert.deepEqual(sent.map((s) => s.token), ['token-n-adult']);
+    assert.match(sent[0].notice.body, /^Une nouvelle dépense aujourd'hui, 15,00/);
+  });
 });
+
