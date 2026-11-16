@@ -38,6 +38,8 @@ import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.ReceivedGift
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.EmptyState
@@ -84,8 +86,8 @@ fun ReceivedGiftsScreen(state: ReceivedGiftsUiState, onBack: () -> Unit = {}, on
 private fun GiftsContent(state: ReceivedGiftsUiState.Success, onThank: (String) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = ClaySpacing.list,
+        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
         item(key = "intro") {
             Text(
@@ -110,7 +112,7 @@ private fun GiftsContent(state: ReceivedGiftsUiState.Success, onThank: (String) 
 
 @Composable
 private fun GiftCard(gift: ReceivedGift, onThank: () -> Unit) {
-    ClayCard(tint = ClayTint.Birthday) {
+    ClayCard(tint = ClayTint.Birthday, contentPadding = ClaySpacing.card) {
         gift.imageUrl?.let { image ->
             // The picture of the shop page (récit 8 bis): decorative.
             AsyncImage(
@@ -120,7 +122,7 @@ private fun GiftCard(gift: ReceivedGift, onThank: () -> Unit) {
                 modifier = Modifier.padding(bottom = 8.dp).fillMaxWidth().heightIn(max = 160.dp).clip(MaterialTheme.shapes.medium),
             )
         }
-        Text(gift.title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+        ClayCardTitle(gift.title, style = MaterialTheme.typography.titleMedium)
         val givers = joinNames(gift.givers)
         if (givers.isNotEmpty()) {
             Text(
