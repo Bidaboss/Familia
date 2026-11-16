@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.AdminPanelSettings
@@ -79,6 +80,8 @@ fun MembersScreen(
     onOpenAdministration: (() -> Unit)? = null,
     onOpenUpdates: (() -> Unit)? = null,
     onOpenHelp: (() -> Unit)? = null,
+    /** Famille › Réglages › Apparence, while the Thèmes module is on (DESIGN-7). */
+    onOpenAppearance: (() -> Unit)? = null,
     /** The pencil shows on the households of [MembersUiState.Success.renamableHouseholdIds]. */
     onRenameHousehold: ((Household, String) -> Unit)? = null,
     renameFailed: Boolean = false,
@@ -175,6 +178,9 @@ fun MembersScreen(
                     item(key = "notifications") {
                         SettingsRow(Icons.Outlined.Notifications, R.string.notifications_title, onOpenNotifications)
                     }
+                }
+                if (onOpenAppearance != null) {
+                    item(key = "appearance") { SettingsRow(Icons.Outlined.Palette, R.string.appearance_title, onOpenAppearance) }
                 }
                 if (onOpenAdministration != null && state.isOwner) {
                     item(key = "administration") {

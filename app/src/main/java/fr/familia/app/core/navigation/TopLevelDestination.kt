@@ -75,6 +75,10 @@ data class EventEditDestination(val eventId: String? = null)
 @Serializable
 data class MemberEditDestination(val memberId: String? = null)
 
+/** Famille › Réglages › Apparence: the theme of this phone (DESIGN-7). */
+@Serializable
+data object AppearanceDestination
+
 /** Notification settings, opened from the Famille tab (lot 8). */
 @Serializable
 data object NotificationSettingsDestination

@@ -5,6 +5,7 @@ import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontSynthesis
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -58,3 +59,30 @@ internal val FamiliaTypography = Base.copy(
     labelMedium = Base.labelMedium.sized(14, 20, FontWeight.Medium),
     labelSmall = Base.labelSmall.sized(14, 18, FontWeight.Medium),
 )
+
+/**
+ * The type scale of a theme: its font on the titles (headlines and titleLarge), at the same sizes
+ * unless the font is wide. Body text and labels stay in Nunito and Fredoka.
+ */
+internal fun familiaTypography(style: ClayStyle): Typography {
+    val font = style.titleFont ?: return FamiliaTypography
+    fun TextStyle.themed() = copy(
+        fontFamily = font,
+        fontSize = fontSize * style.titleScale,
+        lineHeight = lineHeight * style.titleScale,
+        // The display fonts have a single weight: never a fake bold.
+        fontSynthesis = FontSynthesis.None,
+    )
+    return FamiliaTypography.copy(
+        headlineLarge = FamiliaTypography.headlineLarge.themed(),
+        headlineMedium = FamiliaTypography.headlineMedium.themed(),
+        headlineSmall = FamiliaTypography.headlineSmall.themed(),
+        titleLarge = FamiliaTypography.titleLarge.themed(),
+    )
+}
+
+/** The day headers of the planning, in the day font of the theme. */
+internal fun dayHeaderStyle(style: ClayStyle, base: TextStyle): TextStyle {
+    val font = style.dayFont ?: style.titleFont ?: return base
+    return base.copy(fontFamily = font, fontSynthesis = FontSynthesis.None)
+}
