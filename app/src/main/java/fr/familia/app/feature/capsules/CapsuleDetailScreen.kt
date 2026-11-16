@@ -1,5 +1,6 @@
 package fr.familia.app.feature.capsules
 
+import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -80,8 +81,8 @@ private fun Content(state: CapsuleDetailUiState.Ready, onRemove: () -> Unit) {
     val capsule = row.capsule
     val muted = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(capsuleHeadline(row), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
@@ -92,7 +93,8 @@ private fun Content(state: CapsuleDetailUiState.Ready, onRemove: () -> Unit) {
             // The author reads it at any time; the recipients do not even know it exists yet.
             Text(stringResource(R.string.capsule_sealed_note), style = MaterialTheme.typography.bodyMedium, color = muted)
         }
-        ClayCard(modifier = Modifier.fillMaxWidth()) {
+        // The words of the capsule are the point of the screen (DESIGN-11).
+        ClayCard(modifier = Modifier.fillMaxWidth(), emphasis = true) {
             Text(capsule.text, style = MaterialTheme.typography.bodyLarge)
         }
         (1..capsule.photoCount).forEach { n ->

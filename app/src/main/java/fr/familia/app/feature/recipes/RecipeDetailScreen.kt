@@ -1,27 +1,26 @@
 package fr.familia.app.feature.recipes
 
+import fr.familia.app.core.ui.ClayLink
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Restaurant
-import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -101,8 +100,8 @@ private fun Content(
     val recipe = state.recipe
     val muted = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(recipe.title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
@@ -116,21 +115,18 @@ private fun Content(
             SectionTitle(stringResource(R.string.recipe_photos_title))
             photos()
         }
-        ClayCard(modifier = Modifier.fillMaxWidth()) {
-            SectionTitle(stringResource(R.string.recipe_ingredients))
+        // What to buy comes first in the kitchen: the point of the screen (DESIGN-11).
+        ClayCard(modifier = Modifier.fillMaxWidth(), emphasis = true) {
+            ClayCardTitle(stringResource(R.string.recipe_ingredients), style = MaterialTheme.typography.titleMedium)
             recipe.ingredientLines.forEach { line -> Line("•", line) }
         }
         ClayCard(modifier = Modifier.fillMaxWidth()) {
-            SectionTitle(stringResource(R.string.recipe_steps))
+            ClayCardTitle(stringResource(R.string.recipe_steps), style = MaterialTheme.typography.titleMedium)
             recipe.stepLines.forEachIndexed { index, line -> Line("${index + 1}.", line) }
         }
         Text(stringResource(R.string.recipe_written_by, recipe.authorName), style = MaterialTheme.typography.bodyMedium, color = muted)
         // Sent as a text, never with the photos (carte EXPERT-6).
-        OutlinedButton(onClick = onShare, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            Icon(Icons.Outlined.Share, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.recipe_share))
-        }
+        ClayLink(stringResource(R.string.recipe_share), onClick = onShare)
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             SectionTitle(stringResource(R.string.recipe_comments_title))
             comments()

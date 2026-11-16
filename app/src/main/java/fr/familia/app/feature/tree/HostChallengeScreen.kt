@@ -1,5 +1,6 @@
 package fr.familia.app.feature.tree
 
+import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -148,8 +149,8 @@ fun HostChallengeScreen(state: HostGuideState, onBack: () -> Unit, actions: Host
         },
     ) { padding ->
         Column(
-            Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
         ) {
             Text(
                 stringResource(R.string.host_step, state.step),
@@ -322,7 +323,8 @@ private fun Choice(selected: Boolean, label: String, onClick: () -> Unit, conten
 private fun PreviewStep(state: HostGuideState, actions: HostGuideActions) {
     val draft = state.draft
     StepTitle(stringResource(R.string.host_preview_title), stringResource(R.string.host_preview_help))
-    ClayCard(Modifier.fillMaxWidth()) {
+    // The challenge as the family will see it: the point of this step (DESIGN-11).
+    ClayCard(Modifier.fillMaxWidth(), emphasis = true) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(56.dp).background(MaterialTheme.colorScheme.secondaryContainer, CircleShape), contentAlignment = Alignment.Center) {
                 Icon(illustrationIcons.getValue(draft.illustration).first, contentDescription = null)

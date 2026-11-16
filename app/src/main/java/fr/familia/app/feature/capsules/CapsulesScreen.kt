@@ -1,5 +1,7 @@
 package fr.familia.app.feature.capsules
 
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -99,8 +101,8 @@ private fun CapsuleList(state: CapsulesUiState.Ready, onOpen: ((String) -> Unit)
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         // Room at the bottom so the add button never hides the last capsule.
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 8.dp, bottom = 96.dp),
+        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
         if (state.opened.isNotEmpty()) {
             item(key = "opened-title") { SectionTitle(stringResource(R.string.capsules_opened)) }
@@ -128,7 +130,7 @@ private fun CapsuleCard(row: CapsuleRow, onClick: (() -> Unit)?) {
         onClick = onClick,
         onClickLabel = onClick?.let { stringResource(R.string.capsules_open) },
     ) {
-        Text(capsuleHeadline(row), style = MaterialTheme.typography.titleMedium)
+        ClayCardTitle(capsuleHeadline(row), style = MaterialTheme.typography.titleMedium)
         Text(capsuleDateLine(capsule), style = MaterialTheme.typography.bodyMedium, color = FamiliaClay.colors.onTintVariant(if (capsule.isOpened) ClayTint.Family else ClayTint.Plain))
         if (capsule.isOpened) {
             Text(capsule.text, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)

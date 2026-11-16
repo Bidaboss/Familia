@@ -1,5 +1,7 @@
 package fr.familia.app.feature.recipes
 
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -97,8 +99,8 @@ private fun RecipeList(state: RecipesUiState.Ready, onSearch: (String) -> Unit, 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         // Room at the bottom so the add button never hides the last recipe.
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 8.dp, bottom = 96.dp),
+        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
         item(key = "search") {
             OutlinedTextField(
@@ -122,7 +124,7 @@ private fun RecipeList(state: RecipesUiState.Ready, onSearch: (String) -> Unit, 
 private fun RecipeCard(row: RecipeRow, onClick: () -> Unit) {
     val muted = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
     ClayCard(modifier = Modifier.fillMaxWidth(), onClick = onClick, onClickLabel = stringResource(R.string.recipes_open)) {
-        Text(row.recipe.title, style = MaterialTheme.typography.titleMedium)
+        ClayCardTitle(row.recipe.title, style = MaterialTheme.typography.titleMedium)
         row.origin?.let { Text(stringResource(R.string.recipe_from, it), style = MaterialTheme.typography.bodyMedium, color = muted) }
         if (row.recipe.tags.isNotEmpty()) {
             Text(row.recipe.tags.joinToString(" · "), style = MaterialTheme.typography.bodyMedium, color = muted)
