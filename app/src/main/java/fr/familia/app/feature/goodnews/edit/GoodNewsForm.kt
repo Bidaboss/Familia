@@ -10,6 +10,8 @@ data class GoodNewsForm(
     val mentionIds: Set<String> = emptySet(),
     /** Counts for the challenge of a foyer of the month (récit 35 bis); the photo is already required. */
     val forChallenge: Boolean = false,
+    /** « Les petits » (récit 43): only when it is for a child, not for oneself. */
+    val littleOnes: Boolean = false,
 )
 
 enum class GoodNewsFormError { TextMissing, TextTooLong, NoPhoto }

@@ -10,7 +10,9 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.FamiliaApplication
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.ui.LocalFeatureFlags
 import kotlinx.coroutines.flow.flowOf
 
 /** Connects the publishing form to its ViewModel, and closes it once published. */
@@ -47,6 +49,8 @@ fun GoodNewsEditRoute(
         onFor = viewModel::setFor,
         onToggleMention = viewModel::toggleMention,
         onForChallenge = viewModel::setForChallenge,
+        littleOnesOn = LocalFeatureFlags.current.isOn(Feature.LittleOnes),
+        onLittleOnes = viewModel::setLittleOnes,
         onSave = viewModel::save,
         onDismissFailure = viewModel::dismissFailure,
         onBack = onBack,

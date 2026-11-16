@@ -804,15 +804,18 @@ service cloud.firestore {
       return ids.size() <= i || (ids[i] is string && ids[i].matches('^[A-Za-z0-9_]{1,40}$'));
     }
 
-    // The 11 fields, and forChallenge at most. householdId is the household of the member the news is for, so a
+    // The 11 fields, and forChallenge and littleOnes at most. householdId is the household of the member the news is for, so a
     // chef de famille can remove it there without the rules reading another document.
     function isValidGoodNews(n) {
       return n.keys().hasAll(['text', 'photoIds', 'authorId', 'authorName', 'forMemberId', 'householdId',
                               'mentionIds', 'reactions', 'hiddenByIds', 'createdAt', 'updatedAt'])
         && n.keys().hasOnly(['text', 'photoIds', 'authorId', 'authorName', 'forMemberId', 'householdId',
-                             'mentionIds', 'reactions', 'hiddenByIds', 'createdAt', 'updatedAt', 'forChallenge'])
+                             'mentionIds', 'reactions', 'hiddenByIds', 'createdAt', 'updatedAt', 'forChallenge',
+                             'littleOnes'])
         // Linked to the challenge of a foyer (récit 35 bis): its month; the photo is already required.
         && (!('forChallenge' in n) || isMonthId(n.forChallenge))
+        // « Les petits » (récit 43): only on a news an adult publishes for a child, never on one's own.
+        && (!('littleOnes' in n) || (n.littleOnes == true && n.forMemberId != n.authorId))
         && n.text is string && n.text.trim().size() > 0 && n.text.size() <= 500
         && n.photoIds is list && n.photoIds.size() >= 1 && n.photoIds.size() <= 3
         && isPhotoId(n.photoIds, 0) && isPhotoId(n.photoIds, 1) && isPhotoId(n.photoIds, 2)

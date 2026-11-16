@@ -87,7 +87,12 @@ class GoodNewsEditViewModel(
     fun removePhoto(uri: String) = edit { it.copy(form = it.form.copy(photos = it.form.photos - uri)) }
 
     fun setFor(memberId: String) = edit { s ->
-        if (!s.isNew || s.targets.none { it.id == memberId }) s else s.copy(form = s.form.copy(forMemberId = memberId))
+        when {
+            !s.isNew || s.targets.none { it.id == memberId } -> s
+            // Back to « Pour moi »: « Les petits » no longer applies.
+            memberId == s.targets.first().id -> s.copy(form = s.form.copy(forMemberId = memberId, littleOnes = false))
+            else -> s.copy(form = s.form.copy(forMemberId = memberId))
+        }
     }
 
     fun toggleMention(memberId: String) = edit {
@@ -97,6 +102,11 @@ class GoodNewsEditViewModel(
 
     fun setForChallenge(linked: Boolean) = edit {
         if (!it.isNew || it.challenge == null) it else it.copy(form = it.form.copy(forChallenge = linked))
+    }
+
+    /** « Les petits »: only on a new good news for a child of the household. */
+    fun setLittleOnes(on: Boolean) = edit {
+        if (!it.isNew || it.form.forMemberId == it.targets.first().id) it else it.copy(form = it.form.copy(littleOnes = on))
     }
 
     fun dismissFailure() = edit { it.copy(failure = null) }
@@ -133,6 +143,7 @@ class GoodNewsEditViewModel(
             householdId = forMember.householdId,
             mentionIds = s.form.mentionIds.filter { id -> s.candidates.any { it.id == id } }.sorted(),
             forChallenge = if (s.form.forChallenge && s.challenge != null) s.challenge.month.toString() else null,
+            littleOnes = s.form.littleOnes && forMember.id != me.id,
         )
         return try {
             s.form.photos.zip(draft.photoIds).forEachIndexed { index, (uri, photoId) ->

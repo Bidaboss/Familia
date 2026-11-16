@@ -13,5 +13,7 @@ sealed interface GoodNewsFeedUiState {
         val canLoadMore: Boolean,
         val now: Instant,
         val actionFailed: Boolean = false,
+        /** The filter « Les petits » (récit 43): only the good news with that label. */
+        val littleOnesOnly: Boolean = false,
     ) : GoodNewsFeedUiState
 }

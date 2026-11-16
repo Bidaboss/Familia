@@ -45,7 +45,7 @@ import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { sendWeeklyRecap } from './recap';
 import { deleteQuietQueueOf, sendHeldNotices } from './prefs';
 import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type BirthdayCard } from './birthdayWishes';
-import { isFirstSignIn, welcomeMember } from './welcome';
+import { deleteWelcomeOf, isFirstSignIn, welcomeMember } from './welcome';
 import { revealWishes, thankGivers } from './wishesReveal';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
@@ -161,6 +161,7 @@ export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (ev
   await releaseBringOf(getFirestore(), event.params.memberId);
   await deleteCommentMutesOf(getFirestore(), event.params.memberId);
   await deleteBirthdayCardsOf(getFirestore(), event.params.memberId);
+  await deleteWelcomeOf(getFirestore(), event.params.memberId);
 });
 
 // Commentaires d'un événement (récit 28): those who follow the event are told.

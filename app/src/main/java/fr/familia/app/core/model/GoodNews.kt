@@ -42,6 +42,8 @@ data class GoodNews(
     val forChallenge: String? = null,
     /** « Joyeux anniversaire », published by Familia on the birthday of this member (récit 36): no photo, no author. */
     val birthdayOf: String? = null,
+    /** « Les petits » (récit 43): a young child's drawing or success, published for them by a responsible adult. */
+    val littleOnes: Boolean = false,
 ) {
     /** Changed by its author after it was published. */
     val isEdited: Boolean get() = createdAt != null && updatedAt != null && updatedAt.isAfter(createdAt.plusSeconds(60))

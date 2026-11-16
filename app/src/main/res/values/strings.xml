@@ -1653,6 +1653,11 @@
     <string name="feature_welcome">La bienvenue</string>
     <string name="channel_welcome">Bienvenue</string>
     <string name="channel_welcome_description">Quand un membre de la famille arrive dans Familia</string>
+    <string name="feature_little_ones">Le coin des petits</string>
+    <string name="goodnews_little_ones_switch">Dans « Les petits » : un dessin ou une réussite à garder</string>
+    <string name="goodnews_little_ones_label">Les petits</string>
+    <string name="goodnews_little_ones_filter">Les petits</string>
+    <string name="goodnews_little_ones_empty">Pas encore de Bonne nouvelle des petits par ici.</string>
     <string name="channel_birthdays_description">Le jour d\'un anniversaire, et les cartes de vœux reçues</string>
     <string name="wishes_title">Cartes de vœux</string>
     <string name="notifications_birthday_wishes">Vœux d\'anniversaire</string>
