@@ -15,7 +15,7 @@ import {
   deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
   sendBirthdayGiftReminders, updateSharesTotal,
 } from './gifts';
-import { openDueCapsules } from './capsules';
+import { countLeftovers, deleteLeftovers, openDueCapsules } from './capsules';
 import { CommentData, deleteCommentMutesOf, deleteEventComments, onCommentCreated } from './comments';
 import { checkConsumptionIfDue } from './consumption';
 import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
@@ -356,6 +356,18 @@ export const onCapsuleDeleted = onDocumentDeleted('capsules/{capsuleId}', async 
   const authorId = event.data?.get('authorId');
   if (typeof authorId !== 'string' || authorId === '') return;
   await getStorage().bucket().deleteFiles({ prefix: `capsules/${authorId}/${event.params.capsuleId}/` });
+});
+
+// An author who leaves: the admin principal sees how many sealed capsules are left (PRD rév. 184).
+export const onMemberDeletedCapsules = onDocumentDeleted('members/{memberId}', async (event) => {
+  const firstName = String(event.data?.get('firstName') ?? '');
+  await countLeftovers(getFirestore(), event.params.memberId, firstName, new Date());
+});
+
+// The admin principal confirmed: those capsules are deleted unread.
+export const onCapsuleLeftoversUpdated = onDocumentUpdated('capsuleLeftovers/{memberId}', async (event) => {
+  if (event.data?.after.get('deleteAsked') !== true || event.data?.before.get('deleteAsked') === true) return;
+  await deleteLeftovers(getFirestore(), event.params.memberId);
 });
 
 // Carnet de recettes (récit 38): a removed recipe takes its photos and comments with it, records

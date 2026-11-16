@@ -1629,7 +1629,7 @@ service cloud.firestore {
     // month to five years ahead). Until then only the author reads it: the recipients do not even
     // see that it exists. On the day, the server alone copies recipientIds into openedFor and tells
     // them (functions/src/capsules.ts); they read it from then on. Never edited; the author removes
-    // it at any time. Photos in Storage at capsules/{authorId}/{capsuleId}/{n}.jpg, sent before.
+    // it while sealed. Photos in Storage at capsules/{authorId}/{capsuleId}/{n}.jpg, sent before.
 
     function isCapsuleDay(day) {
       return day is string && day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
@@ -1661,6 +1661,16 @@ service cloud.firestore {
       allow create: if isMember() && isValidCapsule(request.resource.data);
       // Only while sealed (PRD rév. 187): once opened, it is a keepsake of its recipients.
       allow delete: if isMember() && resource.data.authorId == myMemberId() && resource.data.openedFor == [];
+    }
+
+    // capsuleLeftovers/{memberId}: written by the server when an author leaves the family, with how
+    // many sealed capsules they left (PRD rév. 184). The admin principal reads it, without seeing
+    // the capsules, and may only ask for their deletion; the server does it (functions/capsules.ts).
+    match /capsuleLeftovers/{memberId} {
+      allow read: if isOwner();
+      allow update: if isOwner()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['deleteAsked'])
+        && request.resource.data.deleteAsked == true;
     }
 
     // --- App updates (lot 10) ---------------------------------------------------------------------

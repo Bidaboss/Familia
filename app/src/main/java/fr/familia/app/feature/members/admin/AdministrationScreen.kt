@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.ChallengeRotation
 import fr.familia.app.feature.members.RenameHouseholdDialog
+import fr.familia.app.core.model.CapsuleLeftover
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
@@ -95,6 +96,9 @@ fun AdministrationScreen(
     /** « Défi du mois » (récit 35): this month and the next; hidden when [onPickChallenge] is null. */
     challenges: List<MonthPick> = emptyList(),
     onPickChallenge: ((YearMonth, String) -> Unit)? = null,
+    /** Sealed capsules of members who left (PRD rév. 184); hidden when empty. */
+    capsuleLeftovers: List<CapsuleLeftover> = emptyList(),
+    onDeleteCapsuleLeftovers: (String) -> Unit = {},
     /** « Ordre des foyers » (récit 35 bis); hidden when [onSaveRotation] is null. */
     rotation: ChallengeRotation.Schedule? = null,
     onSaveRotation: ((YearMonth, List<String>) -> Unit)? = null,
@@ -129,7 +133,8 @@ fun AdministrationScreen(
                 is AdministrationUiState.Ready ->
                     ReadyContent(
                         state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport, features, onSetFeature, onRenameHousehold,
-                        onOpenUsage, consumption, challenges, onPickChallenge, rotation, onSaveRotation,
+                        onOpenUsage, consumption, challenges, onPickChallenge, capsuleLeftovers, onDeleteCapsuleLeftovers,
+                        rotation, onSaveRotation,
                     )
             }
         }
@@ -162,6 +167,8 @@ private fun ReadyContent(
     consumption: ConsumptionCard?,
     challenges: List<MonthPick>,
     onPickChallenge: ((YearMonth, String) -> Unit)?,
+    capsuleLeftovers: List<CapsuleLeftover>,
+    onDeleteCapsuleLeftovers: (String) -> Unit,
     rotation: ChallengeRotation.Schedule?,
     onSaveRotation: ((YearMonth, List<String>) -> Unit)?,
 ) {
@@ -222,6 +229,9 @@ private fun ReadyContent(
                 SectionTitle(R.string.administration_challenge_title, R.string.administration_challenge_help)
             }
             item(key = "challenge") { ChallengePickSection(challenges, onPickChallenge) }
+        }
+        if (capsuleLeftovers.isNotEmpty()) {
+            item(key = "capsule-leftovers") { CapsuleLeftoversSection(capsuleLeftovers, onDeleteCapsuleLeftovers) }
         }
         if (onSaveRotation != null && rotation != null && rotation.households.isNotEmpty()) {
             item(key = "rotation-title") {
