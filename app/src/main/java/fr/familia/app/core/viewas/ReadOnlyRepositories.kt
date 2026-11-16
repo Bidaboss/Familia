@@ -443,8 +443,8 @@ class ReadOnlyNotificationRepository(private val inner: NotificationRepository, 
 
 class ReadOnlyExpenseRepository(private val inner: ExpenseRepository, private val guard: ViewAsGuard) : ExpenseRepository {
     override fun observeBook(container: ExpenseContainer): Flow<ExpenseBook?> = inner.observeBook(container)
-    override suspend fun openBook(container: ExpenseContainer, creatorId: String, shares: Map<String, Double>) = guard.refuse()
-    override suspend fun setShares(bookId: String, shares: Map<String, Double>) = guard.refuse()
+    override suspend fun openBook(container: ExpenseContainer, creatorId: String, shares: Map<String, Double>, memberShares: Map<String, Double>) = guard.refuse()
+    override suspend fun setShares(bookId: String, shares: Map<String, Double>, memberShares: Map<String, Double>) = guard.refuse()
     override fun observeExpenses(bookId: String): Flow<List<Expense>> = inner.observeExpenses(bookId)
     override fun observeSettlements(bookId: String): Flow<List<ExpenseSettlement>> = inner.observeSettlements(bookId)
     override fun newExpenseId(bookId: String): String = inner.newExpenseId(bookId)
