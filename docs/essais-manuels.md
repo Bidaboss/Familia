@@ -429,6 +429,13 @@ Il faut une version publiée avec un fichier dans `docs/whats-new`, et un télé
 6. Onglet Famille : **Attendu :** « Nos trésors » puis les membres, et plus aucun réglage en bas.
 7. En « Voir comme » : **Attendu :** ni « Partager Familia » ni « Une idée ? Un souci ? » dans la feuille.
 
+## Joindre une recette dans « Qui apporte quoi »
+Avec les modules « Qui apporte quoi » et Recettes allumés, et au moins une recette dans le carnet.
+1. Un événement, « Qui apporte quoi » : touche « Joindre une recette ». **Attendu :** le choix d'une recette, avec la recherche par titre.
+2. Choisis-en une sans rien avoir écrit. **Attendu :** « Recette jointe : … » et le titre de la recette dans le champ. « Retirer la recette » l'enlève.
+3. Ajoute la ligne. **Attendu :** la ligne montre « Voir la recette », qui ouvre la recette. Pareil sur un autre téléphone.
+4. Module Recettes éteint : **Attendu :** ni « Joindre une recette » ni « Voir la recette ».
+
 ## Pensez à moi (récit 43)
 
 Avec le module « Pensez à moi » allumé, un adulte parent d'un enfant de moins de 15 ans et d'un ado de 15 ans ou plus (date de naissance remplie), et un autre compte.

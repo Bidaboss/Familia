@@ -1,5 +1,6 @@
 package fr.familia.app.feature.discover
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayCardTitle
@@ -30,7 +32,10 @@ import fr.familia.app.core.viewas.LocalViewAs
 import java.time.LocalDate
 
 /** The module of the week on the Accueil; [onLater] is null in « Voir comme », where nothing is kept. */
-class DiscoverHome(val module: DiscoverModule, val onTry: () -> Unit, val onLater: (() -> Unit)?)
+class DiscoverHome(val module: DiscoverModule, val onTry: () -> Unit, val onLater: (() -> Unit)?, val forChild: Boolean = false) {
+    @get:StringRes val titleRes: Int get() = if (forChild) module.childTitleRes else module.titleRes
+    @get:StringRes val bodyRes: Int get() = if (forChild) module.childBodyRes else module.bodyRes
+}
 
 /**
  * The card « À découvrir » of this week for [currentMember], or null when there is none (AVIS-19).
@@ -62,6 +67,7 @@ fun rememberDiscoverHome(currentMember: Member, onOpen: (DiscoverModule) -> Unit
             onOpen(module)
         },
         onLater = if (viewingAs) null else hide,
+        forChild = currentMember.profile != MemberProfile.Adult,
     )
 }
 
@@ -71,12 +77,12 @@ fun DiscoverCard(discover: DiscoverHome, modifier: Modifier = Modifier) {
     ClayCard(modifier = modifier.fillMaxWidth()) {
         ClayCardTitle(stringResource(R.string.discover_title))
         Text(
-            stringResource(discover.module.titleRes),
+            stringResource(discover.titleRes),
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(top = 8.dp),
         )
         Text(
-            stringResource(discover.module.bodyRes),
+            stringResource(discover.bodyRes),
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(top = 4.dp),
         )

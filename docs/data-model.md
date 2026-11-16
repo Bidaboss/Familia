@@ -422,6 +422,7 @@ Une chose à apporter à l'événement. Visible dans l'événement une fois le m
 | `label` | texte (1 à 60 caractères) | Ce qu'il faut apporter. Ne change plus : une ligne fausse se retire |
 | `authorId` | `memberId` | Qui a ajouté la ligne |
 | `takerId`, `takerName` | `memberId` et texte, ou null | Qui s'en charge, et son prénom à ce moment-là ; null tant que la ligne est libre |
+| `recipeId` | texte (1 à 64), facultatif | Une recette du carnet jointe à l'ajout (« Joindre une recette », module `recipes`). Absent sans recette ; ne change plus ensuite |
 | `createdAt`, `updatedAt` | horodatage serveur | |
 
 Droits : tous les membres avec l'appli (enfants compris) lisent, ajoutent une ligne (libre ou prise par eux) et prennent une ligne libre. Une ligne prise se libère par celui qui l'a prise, l'auteur de la ligne, ou ceux qui gèrent l'événement (« Modifier »). La ligne se retire par son auteur ou ceux qui gèrent l'événement.

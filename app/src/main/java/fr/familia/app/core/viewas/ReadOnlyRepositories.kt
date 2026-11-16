@@ -164,7 +164,8 @@ class ReadOnlyRsvpRepository(private val inner: RsvpRepository, private val guar
 
 class ReadOnlyBringRepository(private val inner: BringRepository, private val guard: ViewAsGuard) : BringRepository {
     override fun observe(eventId: String): Flow<List<BringItem>> = inner.observe(eventId)
-    override suspend fun add(eventId: String, label: String, authorId: String, authorName: String, take: Boolean) = guard.refuse()
+    override suspend fun add(eventId: String, label: String, authorId: String, authorName: String, take: Boolean, recipeId: String?) =
+        guard.refuse()
     override suspend fun take(eventId: String, itemId: String, memberId: String, firstName: String) = guard.refuse()
     override suspend fun release(eventId: String, itemId: String) = guard.refuse()
     override suspend fun delete(eventId: String, itemId: String) = guard.refuse()
