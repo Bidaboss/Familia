@@ -28,8 +28,8 @@ class ExpensesExportTest {
     @Test
     fun `the table opens in a French spreadsheet, oldest expense first, with the balance and the transfers`() {
         val csv = expensesCsv(state, { it.name }, { it.name })
-        assertTrue(csv.startsWith("﻿Date;Dépense;"))
-        val lines = csv.removePrefix("﻿").split("\r\n")
+        assertTrue(csv.startsWith("\uFEFFDate;Dépense;"))
+        val lines = csv.removePrefix("\uFEFF").split("\r\n")
         assertEquals("2027-07-10;Ferry;Transport;Sacha;Foyer Deux;120,00;CHF;125,00;0,96;Equal;Foyer Un, Foyer Deux", lines[1])
         assertEquals("2027-07-12;\"Marché; fromages\";Groceries;Camille;Foyer Un;84,50;EUR;;;Shares;Foyer Un, Foyer Deux", lines[2])
         assertTrue(lines.contains("Foyer Un;1,5;84,50;114,50;-30,00"))

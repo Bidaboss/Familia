@@ -58,7 +58,7 @@ fun expensesCsv(
     lines += emptyList<String>()
     lines += listOf("Total", "", csvCents(state.totalCents))
     // The byte order mark tells Excel the file is UTF-8, so « é » stays « é ».
-    return "﻿" + lines.joinToString("\r\n") { cells -> cells.joinToString(";") { csvCell(it) } } + "\r\n"
+    return "\uFEFF" + lines.joinToString("\r\n") { cells -> cells.joinToString(";") { csvCell(it) } } + "\r\n"
 }
 
 /** The lines of the Argile image: the total, then who pays back whom, never more than the card holds. */
