@@ -24,15 +24,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Box
@@ -40,6 +37,24 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClayLink
+import fr.familia.app.core.ui.ClaySpacing
+import fr.familia.app.feature.joinme.JoinMeHome
+import fr.familia.app.feature.joinme.JoinMeHomeContent
+import fr.familia.app.feature.joinme.rememberJoinMeHome
+import fr.familia.app.feature.month.monthName
+import fr.familia.app.feature.tree.TreeHomeChip
+import fr.familia.app.feature.weeklyquestion.WeeklyQuestionHomeChip
+import fr.familia.app.feature.yearago.YearAgoHomeChip
 import fr.familia.app.R
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Birthday
@@ -68,12 +83,9 @@ import fr.familia.app.core.ui.formatTime
 import fr.familia.app.feature.helprequests.kindLabel
 import fr.familia.app.feature.helprequests.whenLabel
 import fr.familia.app.feature.goodnews.home.GoodNewsHomeCard
-import fr.familia.app.feature.joinme.JoinMeHomeCard
-import fr.familia.app.feature.month.MonthSlideshowHomeCard
 import fr.familia.app.feature.month.isSlideshowTime
 import fr.familia.app.feature.tree.TreeHomeCard
 import fr.familia.app.feature.yearago.YearAgoHomeCard
-import fr.familia.app.feature.weeklyquestion.WeeklyQuestionHomeCard
 import fr.familia.app.feature.trips.tripDatesLabel
 import java.time.Instant
 import java.time.LocalDate
@@ -136,6 +148,42 @@ fun HomeRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val placesOn = flags.isOn(Feature.Places)
+    val joinMe = if (placesOn) rememberJoinMeHome(container, currentMember) else null
+    // The small modules stand in the row of chips, each only while it has something to say (rév. 205).
+    val extras = buildList {
+        if (flags.isOn(Feature.WeeklyQuestion)) {
+            add(HomeExtra("weeklyQuestion", chip = { _, _ -> WeeklyQuestionHomeChip(container, currentMember, onOpenWeeklyQuestion) }))
+        }
+        if (flags.isOn(Feature.Tree)) {
+            add(
+                HomeExtra(
+                    "tree",
+                    chip = { selected, toggle -> TreeHomeChip(container, currentMember, selected, toggle) },
+                    card = {
+                        TreeHomeCard(
+                            container,
+                            currentMember = currentMember,
+                            onPrepareChallenge = onPrepareChallenge,
+                            onJoinChallenge = onJoinChallenge,
+                        )
+                    },
+                ),
+            )
+        }
+        if (flags.isOn(Feature.YearAgo)) {
+            add(
+                HomeExtra(
+                    "yearAgo",
+                    chip = { selected, toggle -> YearAgoHomeChip(container, currentMember, selected, toggle) },
+                    card = { YearAgoHomeCard(container, currentMember, onOpenGoodNews = onOpenGoodNews, onOpenTrip = actions.onOpenTrip) },
+                ),
+            )
+        }
+        if (placesOn) {
+            add(HomeExtra("joinMe", chip = { _, _ -> HomeChip(stringResource(R.string.joinme_send_open), onClick = onJoinMe) }))
+        }
+    }
     HomeScreen(
         state = state,
         actions = actions,
@@ -144,63 +192,31 @@ fun HomeRoute(
         } else {
             null
         },
-        weeklyQuestion = if (flags.isOn(Feature.WeeklyQuestion)) {
-            { WeeklyQuestionHomeCard(container, currentMember, onOpenWeeklyQuestion) }
-        } else {
-            null
-        },
         onOpenMonth = if (flags.isOn(Feature.MonthSlideshow)) onOpenMonth else null,
-        tree = if (flags.isOn(Feature.Tree)) {
-            {
-                TreeHomeCard(
-                    container,
-                    currentMember = currentMember,
-                    onPrepareChallenge = onPrepareChallenge,
-                    onJoinChallenge = onJoinChallenge,
-                )
-            }
-        } else {
-            null
-        },
-        joinMe = if (flags.isOn(Feature.Places)) {
-            { JoinMeHomeCard(container, currentMember, onJoinMe) }
-        } else {
-            null
-        },
-        yearAgo = if (flags.isOn(Feature.YearAgo)) {
-            {
-                YearAgoHomeCard(
-                    container,
-                    currentMember,
-                    onOpenGoodNews = onOpenGoodNews,
-                    onOpenTrip = actions.onOpenTrip,
-                )
-            }
-        } else {
-            null
-        },
+        joinMe = joinMe,
+        extras = extras,
     )
 }
 
 /**
- * The Accueil: fixed cards in a fixed order, the same for everyone, each hidden while it has
- * nothing to say (PRD, « Tableau de bord d'accueil »). [goodNews] is the « Bonnes nouvelles » card,
- * [weeklyQuestion] the question of the week (récit 37), both given only while their module is on.
- * [onOpenMonth], set while the slideshow module is on, shows its card from the last Sunday (récit 42).
- * [tree] is l'arbre de la famille and its challenge of the month (récit 35), while its module is on.
- * [joinMe], given while the places module is on, is the « Rejoignez-moi » card, first (récit 33).
+ * The Accueil (PRD rév. 205, DESIGN-11): four blocks at most, the same for everyone and in a fixed
+ * order, each hidden while it has nothing to say: « À faire pour moi » (in relief, with what
+ * « Rejoignez-moi » sent me at its top), « Cette semaine », « Bonnes nouvelles », then « À découvrir »
+ * the week of its release (AVIS-19, to come). Then one row of chips: anniversaires first, then the
+ * question of the week, l'arbre, le diaporama, les voyages, la prochaine occasion and the [extras]
+ * that follow. A chip with a card opens it under the row, one at a time; the others open their screen.
+ * [goodNews] is given while its module is on, [onOpenMonth] while the slideshow is, from the last
+ * Sunday of the month (récit 42), and [joinMe] while the places module is.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun HomeScreen(
     state: HomeUiState,
     actions: HomeActions,
     goodNews: (@Composable () -> Unit)? = null,
-    weeklyQuestion: (@Composable () -> Unit)? = null,
     onOpenMonth: ((YearMonth) -> Unit)? = null,
-    tree: (@Composable () -> Unit)? = null,
-    joinMe: (@Composable () -> Unit)? = null,
-    /** « Il y a un an » (récit 36), while its module is on: it shows itself only on a day with a souvenir. */
-    yearAgo: (@Composable () -> Unit)? = null,
+    joinMe: JoinMeHome? = null,
+    extras: List<HomeExtra> = emptyList(),
 ) {
     val ready = state as? HomeUiState.Ready
     if (ready == null) {
@@ -208,7 +224,9 @@ fun HomeScreen(
         return
     }
     val month = YearMonth.from(ready.today).takeIf { onOpenMonth != null && isSlideshowTime(ready.today) }
-    if (ready.isEmpty && goodNews == null && weeklyQuestion == null && month == null && tree == null && joinMe == null) {
+    val chips = homeChips(ready, actions, month, onOpenMonth, extras)
+    val toDo = ready.todos.isNotEmpty() || joinMe?.hasShares == true
+    if (!toDo && ready.week.isEmpty() && goodNews == null && chips.isEmpty()) {
         EmptyState(
             icon = Icons.Outlined.CalendarMonth,
             title = stringResource(R.string.home_empty_title),
@@ -220,36 +238,106 @@ fun HomeScreen(
         }
         return
     }
+    var open by rememberSaveable { mutableStateOf<String?>(null) }
+    val opened = chips.firstOrNull { it.key == open }?.card
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = ClaySpacing.list,
+        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
-        // First: someone may be waiting for me there (récit 33).
-        if (joinMe != null) card("joinMe") { joinMe() }
-        if (ready.todos.isNotEmpty()) card("todo") { TodoCard(ready.todos, ready.today, actions) }
+        if (toDo) card("todo") { TodoCard(ready.todos, ready.today, actions, joinMe?.takeIf { it.hasShares }) }
         if (ready.week.isNotEmpty()) card("week") { WeekCard(ready.week, ready.weekMore, ready.today, actions) }
         if (goodNews != null) card("goodNews") { goodNews() }
-        if (yearAgo != null) card("yearAgo") { yearAgo() }
-        if (weeklyQuestion != null) card("weeklyQuestion") { weeklyQuestion() }
-        if (tree != null) card("tree") { tree() }
-        if (month != null && onOpenMonth != null) card("month") { MonthSlideshowHomeCard(month) { onOpenMonth(month) } }
-        if (ready.birthdays.isNotEmpty()) card("birthdays") { BirthdaysCard(ready.birthdays, ready.today, actions.onOpenWishes) }
-        ready.occasion?.let { occasion -> card("occasion") { OccasionCard(occasion, ready.today) { actions.onOpenList(occasion.list.id) } } }
-        // While the module is on, the card always shows: it is the way to the trips (audit DESIGN n°4).
-        if (ready.trips.isNotEmpty() || actions.onOpenTrips != null) {
-            card("trips") { TripsCard(ready.trips, ready.today, ready.canCreateTrip, actions) }
+        // The 4th block, « À découvrir », comes with AVIS-19.
+        if (chips.isNotEmpty()) {
+            card("chips") {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    chips.forEach { extra ->
+                        key(extra.key) {
+                            extra.chip(open == extra.key) { open = if (open == extra.key) null else extra.key }
+                        }
+                    }
+                }
+            }
         }
+        if (opened != null) card("open-$open") { opened() }
     }
+}
+
+/** The chips of the Accueil, in their order: those fed by the home screen, then the modules' [extras]. */
+@Composable
+private fun homeChips(
+    ready: HomeUiState.Ready,
+    actions: HomeActions,
+    month: YearMonth?,
+    onOpenMonth: ((YearMonth) -> Unit)?,
+    extras: List<HomeExtra>,
+): List<HomeExtra> {
+    val birthdays = ready.birthdays.takeIf { it.isNotEmpty() }?.let { list ->
+        HomeExtra(
+            "birthdays",
+            chip = { selected, toggle ->
+                HomeChip(pluralStringResource(R.plurals.home_chip_birthdays, list.size, list.size), onClick = toggle, selected = selected)
+            },
+            card = { BirthdaysCard(list, ready.today, actions.onOpenWishes) },
+        )
+    }
+    val slideshow = if (month != null && onOpenMonth != null) {
+        HomeExtra("month", chip = { _, _ -> HomeChip(stringResource(R.string.month_title, monthName(month)), onClick = { onOpenMonth(month) }) })
+    } else {
+        null
+    }
+    // While the module is on, the chip always shows: it is the way to the trips (audit DESIGN n°4).
+    val trips = if (ready.trips.isNotEmpty() || actions.onOpenTrips != null) {
+        HomeExtra(
+            "trips",
+            chip = { selected, toggle ->
+                val label = if (ready.trips.any { it.ongoing }) {
+                    stringResource(R.string.home_chip_trips_ongoing)
+                } else {
+                    stringResource(R.string.trips_title)
+                }
+                HomeChip(label, onClick = toggle, selected = selected)
+            },
+            card = { TripsCard(ready.trips, ready.today, ready.canCreateTrip, actions) },
+        )
+    } else {
+        null
+    }
+    val occasion = ready.occasion?.let { occasion ->
+        HomeExtra(
+            "occasion",
+            chip = { _, _ ->
+                HomeChip(
+                    stringResource(R.string.home_chip_detail, occasion.list.title, occasionWhen(occasion.daysLeft).replaceFirstChar { it.lowercase() }),
+                    onClick = { actions.onOpenList(occasion.list.id) },
+                )
+            },
+        )
+    }
+    val byKey = extras.associateBy { it.key }
+    return listOfNotNull(
+        birthdays,
+        byKey["weeklyQuestion"],
+        byKey["tree"],
+        slideshow,
+        trips,
+        occasion,
+    ) + extras.filter { it.key != "weeklyQuestion" && it.key != "tree" }
+}
+
+@Composable
+private fun occasionWhen(daysLeft: Long): String = when (daysLeft) {
+    0L -> stringResource(R.string.home_occasion_today)
+    1L -> stringResource(R.string.home_occasion_tomorrow)
+    else -> pluralStringResource(R.plurals.home_occasion_in_days, daysLeft.toInt(), daysLeft.toInt())
 }
 
 private fun LazyListScope.card(key: String, content: @Composable () -> Unit) {
     item(key = key) { content() }
-}
-
-@Composable
-private fun CardTitle(text: String) {
-    Text(text, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
 }
 
 /** A row of a card: 56 dp tall at least, clickable as a whole when [onClick] is set. */
@@ -286,9 +374,15 @@ private fun RowIcon(icon: androidx.compose.ui.graphics.vector.ImageVector) {
 }
 
 @Composable
-private fun TodoCard(todos: List<HomeTodo>, today: LocalDate, actions: HomeActions) {
-    ClayCard(modifier = Modifier.fillMaxWidth()) {
-        CardTitle(stringResource(R.string.home_todo_title))
+private fun TodoCard(todos: List<HomeTodo>, today: LocalDate, actions: HomeActions, joinMe: JoinMeHome?) {
+    // A place sent to me tints the block for my foyer, as the « Rejoignez-moi » card did (récit 33).
+    val tint = if (joinMe?.state?.received?.isNotEmpty() == true) ClayTint.Household else ClayTint.Plain
+    ClayCard(modifier = Modifier.fillMaxWidth(), tint = tint, emphasis = true) {
+        ClayCardTitle(stringResource(R.string.home_todo_title))
+        joinMe?.let {
+            JoinMeHomeContent(it.state, it.stopFailed, it.onStop)
+            if (todos.isNotEmpty()) HorizontalDivider(Modifier.padding(vertical = 8.dp))
+        }
         todos.forEach { todo ->
             when (todo) {
                 is HomeTodo.Answer -> HomeRow(
@@ -324,7 +418,7 @@ private fun eventWhen(event: Event, today: LocalDate): String {
 @Composable
 private fun WeekCard(week: List<Event>, more: Int, today: LocalDate, actions: HomeActions) {
     ClayCard(modifier = Modifier.fillMaxWidth()) {
-        CardTitle(stringResource(R.string.home_week_title))
+        ClayCardTitle(stringResource(R.string.home_week_title))
         week.forEach { event ->
             HomeRow(
                 title = event.title,
@@ -340,9 +434,7 @@ private fun WeekCard(week: List<Event>, more: Int, today: LocalDate, actions: Ho
                 color = FamiliaClay.colors.onTintVariant(ClayTint.Plain),
             )
         }
-        TextButton(onClick = actions.onOpenPlanning, modifier = Modifier.heightIn(min = 56.dp).align(Alignment.End)) {
-            Text(stringResource(R.string.home_week_all))
-        }
+        ClayLink(stringResource(R.string.home_week_all), onClick = actions.onOpenPlanning)
     }
 }
 
@@ -350,7 +442,7 @@ private fun WeekCard(week: List<Event>, more: Int, today: LocalDate, actions: Ho
 private fun BirthdaysCard(birthdays: List<Birthday>, today: LocalDate, onOpenWishes: ((String) -> Unit)?) {
     val tint = ClayTint.Birthday
     ClayCard(modifier = Modifier.fillMaxWidth(), tint = tint) {
-        CardTitle(stringResource(R.string.home_birthdays_title))
+        ClayCardTitle(stringResource(R.string.home_birthdays_title))
         birthdays.forEach { birthday ->
             HomeRow(
                 title = birthday.member.firstName,
@@ -368,37 +460,9 @@ private fun BirthdaysCard(birthdays: List<Birthday>, today: LocalDate, onOpenWis
 }
 
 @Composable
-private fun OccasionCard(occasion: HomeOccasion, today: LocalDate, onOpen: () -> Unit) {
-    ClayCard(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onOpen,
-        onClickLabel = stringResource(R.string.home_open_list),
-    ) {
-        CardTitle(stringResource(R.string.home_occasion_title))
-        Text(occasion.list.title, style = MaterialTheme.typography.titleMedium)
-        Text(
-            when (occasion.daysLeft) {
-                0L -> stringResource(R.string.home_occasion_today)
-                1L -> stringResource(R.string.home_occasion_tomorrow)
-                else -> pluralStringResource(R.plurals.home_occasion_in_days, occasion.daysLeft.toInt(), occasion.daysLeft.toInt())
-            },
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        occasion.myClaims?.let { claims ->
-            Text(
-                if (claims == 0) stringResource(R.string.home_occasion_no_claim) else pluralStringResource(R.plurals.home_occasion_claims, claims, claims),
-                style = MaterialTheme.typography.bodyMedium,
-                color = FamiliaClay.colors.onTintVariant(ClayTint.Plain),
-            )
-        }
-    }
-}
-
-@Composable
 private fun TripsCard(trips: List<HomeTrip>, today: LocalDate, canCreate: Boolean, actions: HomeActions) {
     ClayCard(modifier = Modifier.fillMaxWidth()) {
-        CardTitle(stringResource(if (trips.isEmpty()) R.string.trips_title else R.string.home_trips_title))
+        ClayCardTitle(stringResource(if (trips.isEmpty()) R.string.trips_title else R.string.home_trips_title))
         trips.forEach { item ->
             HomeRow(
                 title = item.trip.title,
@@ -414,18 +478,8 @@ private fun TripsCard(trips: List<HomeTrip>, today: LocalDate, canCreate: Boolea
         if (trips.isEmpty()) {
             Text(stringResource(R.string.home_trips_none), style = MaterialTheme.typography.bodyLarge)
         }
-        Row(modifier = Modifier.align(Alignment.End)) {
-            if (canCreate) {
-                TextButton(onClick = actions.onNewTrip, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.trips_add))
-                }
-            }
-            actions.onOpenTrips?.let { open ->
-                TextButton(onClick = open, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.home_trips_all))
-                }
-            }
-        }
+        if (canCreate) ClayLink(stringResource(R.string.trips_add), onClick = actions.onNewTrip)
+        actions.onOpenTrips?.let { open -> ClayLink(stringResource(R.string.home_trips_all), onClick = open) }
     }
 }
 

@@ -42,6 +42,7 @@ import fr.familia.app.core.model.TreeSeason
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.feature.home.HomeChip
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
@@ -59,13 +60,33 @@ fun TreeHomeCard(
     /** « Participer au défi »: a Bonne nouvelle linked to the challenge of a foyer. */
     onJoinChallenge: () -> Unit = {},
 ) {
+    val state by treeHomeViewModel(container, currentMember).uiState.collectAsStateWithLifecycle()
+    state?.let { TreeHomeContent(it, modifier, onPrepareChallenge, onJoinChallenge) }
+}
+
+/**
+ * The chip of the tree on the Accueil (DESIGN-11): « L'arbre · 74 feuilles », or « Défi du mois » while
+ * it is the turn of my foyer to launch it. It opens [TreeHomeCard] under the row of chips.
+ */
+@Composable
+fun TreeHomeChip(container: AppContainer?, currentMember: Member?, selected: Boolean, onToggle: () -> Unit) {
+    val state by treeHomeViewModel(container, currentMember).uiState.collectAsStateWithLifecycle()
+    val tree = state?.tree ?: return
+    val label = if (state?.hostTurn != null) {
+        stringResource(R.string.tree_chip_host)
+    } else {
+        stringResource(R.string.tree_chip, pluralStringResource(R.plurals.tree_leaves, tree.leaves, tree.leaves))
+    }
+    HomeChip(label = label, onClick = onToggle, selected = selected)
+}
+
+@Composable
+private fun treeHomeViewModel(container: AppContainer?, currentMember: Member?): TreeViewModel {
     val today = LocalDate.now(ZoneId.of("Europe/Paris"))
-    val viewModel: TreeViewModel = viewModel(
+    return viewModel(
         key = "treeHome-$today-${currentMember?.householdId}",
         factory = viewModelFactory { initializer { TreeViewModel(container?.treeRepository, today, currentMember?.householdId) } },
     )
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
-    state?.let { TreeHomeContent(it, modifier, onPrepareChallenge, onJoinChallenge) }
 }
 
 @Composable
