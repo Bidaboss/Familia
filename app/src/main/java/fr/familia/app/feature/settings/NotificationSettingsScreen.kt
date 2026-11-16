@@ -59,6 +59,7 @@ fun NotificationSettingsScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     onGoodNewsChange: (Boolean) -> Unit = {},
+    onWeeklyChange: (Boolean) -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier,
@@ -107,6 +108,14 @@ fun NotificationSettingsScreen(
                             help = stringResource(R.string.notifications_good_news_help),
                             checked = state.goodNews,
                             onChange = onGoodNewsChange,
+                        )
+                    }
+                    if (LocalFeatureFlags.current.isOn(Feature.WeeklyQuestion)) {
+                        SettingSwitch(
+                            title = stringResource(R.string.notifications_weekly),
+                            help = stringResource(R.string.notifications_weekly_help),
+                            checked = state.weekly,
+                            onChange = onWeeklyChange,
                         )
                     }
                     if (state.saveFailed) {

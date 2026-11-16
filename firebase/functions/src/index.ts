@@ -26,6 +26,7 @@ import {
 import { EventData, hasVisibleChange, Notice } from './logic';
 import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, notifyChange, Sender, sendDayBeforeReminders } from './store';
 import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
+import { countAnswers, deleteAnswersOf, publishWeeklyQuestion } from './weeklyQuestion';
 
 initializeApp();
 
@@ -43,6 +44,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.eventId ? { eventId: notice.eventId } : {}),
         ...(notice.listId ? { listId: notice.listId } : {}),
         ...(notice.tripId ? { tripId: notice.tripId } : {}),
+        ...(notice.weeklyQuestionId ? { weeklyQuestionId: notice.weeklyQuestionId } : {}),
       },
       android: { notification: { channelId: notice.channel } },
     });
@@ -240,4 +242,16 @@ export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) =
 
 export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/Paris' }, async () => {
   await sendArrivalReminders(getFirestore(), send, new Date());
+  // Also the question of the week, on Monday from 9 h (récit 37): one task less to pay for.
+  await publishWeeklyQuestion(getFirestore(), send, new Date());
+});
+
+// --- Question de la semaine (récit 37) --------------------------------------------------------
+
+export const onWeeklyAnswerWritten = onDocumentWritten('weeklyQuestions/{weekId}/answers/{memberId}', async (event) => {
+  await countAnswers(getFirestore(), event.params.weekId);
+});
+
+export const onMemberDeletedAnswers = onDocumentDeleted('members/{memberId}', async (event) => {
+  await deleteAnswersOf(getFirestore(), event.params.memberId);
 });

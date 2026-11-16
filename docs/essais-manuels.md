@@ -118,3 +118,19 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 5. Dans chaque thème, ouvre Planning, Accueil et Famille. **Attendu :** les textes restent en Nunito et lisibles, les boutons gardent leur place et leur taille, et la couleur de chaque membre ne change pas.
 6. En police à 200 %, avec Arcade (police pixel), **attendu :** les titres passent à la ligne, mais rien n'est coupé.
 7. Éteins le module. **Attendu :** l'appli revient au thème Classique et la ligne « Apparence » disparaît. Le choix reste gardé pour quand le module sera rallumé.
+
+### Icône de l'appli
+
+1. Installe la nouvelle version par-dessus l'ancienne. **Attendu :** l'appli s'ouvre depuis la liste des applis avec l'olivier. Si l'icône de l'écran d'accueil a disparu, ajoute-la de nouveau, une seule fois.
+2. Dans « Apparence », tout en bas, touche « Terre ». **Attendu :** le message « L'icône change dans quelques secondes… » apparaît, et l'appli reste ouverte. Va dans la liste des applis. **Attendu :** une seule Familia, avec l'arbre sur fond terracotta.
+3. Ouvre Familia depuis cette nouvelle icône, puis touche une notification. **Attendu :** les deux ouvrent l'appli normalement.
+4. Reviens dans « Apparence ». **Attendu :** « Terre » est cochée. Choisis « Or », puis « Olivier ». **Attendu :** à chaque fois, une seule icône dans la liste des applis.
+5. Avec un fond d'écran d'Android 13 ou plus et les « icônes à thème » activées, **attendu :** l'arbre prend la couleur du téléphone, quelle que soit l'icône choisie.
+
+## Utilisation (récit 1 nonies)
+
+1. Avec le module « Utilisation » éteint, utilise l'appli quelques minutes, puis ouvre Administration > Utilisation. **Attendu :** rien n'est compté, et chacun apparaît « Jamais connecté ».
+2. Allume « Utilisation (temps passé) » dans Administration > Modules. Passe 2 minutes sur Planning et 1 minute sur Cadeaux, mets l'appli en arrière-plan, puis rouvre-la. **Attendu :** dans Utilisation, tu es « Dernière visite : aujourd'hui », avec environ 2 min de Planning et 1 min de Cadeaux, et une ouverture aujourd'hui sur le graphique.
+3. Quitte l'appli 1 minute, puis reviens. **Attendu :** le nombre d'ouvertures ne bouge pas, car un retour en moins de 5 minutes ne compte pas.
+4. Sur le téléphone d'Alexandrine, si elle est adulte responsable d'un enfant qui a l'appli, **attendu :** une ligne « Temps de mes enfants » apparaît dans l'onglet Famille, avec le temps de cet enfant sur 7 et 30 jours, et rien d'autre. Un adulte sans enfant avec l'appli ne voit pas cette ligne.
+5. Dans la console Firebase, ouvre `usage/<ton id>/days/<aujourd'hui>`. **Attendu :** seulement `day`, `opens`, `seconds` et `expireAt`, sans aucun titre, texte ou identifiant d'élément.

@@ -63,6 +63,14 @@ data class GoodNewsDetailDestination(val postId: String)
 @Serializable
 data class GoodNewsEditDestination(val postId: String? = null)
 
+/** The question of the week (récit 37): this week's, or an older one when [questionId] is set. */
+@Serializable
+data class WeeklyQuestionDestination(val questionId: String? = null)
+
+/** « Nos réponses »: the questions of the week already asked (récit 37). */
+@Serializable
+data object WeeklyArchiveDestination
+
 /** Read-only view of an event with "qui vient", opened from the Planning tab. */
 @Serializable
 data class EventDetailDestination(val eventId: String)
@@ -86,6 +94,13 @@ data object NotificationSettingsDestination
 /** Admin backup of the family's data, opened from the Famille tab (lot 9). */
 @Serializable
 data object ExportDestination
+
+/**
+ * « Utilisation » (PRD, récit 1 nonies): the whole family from Administration for the admin
+ * principal, the children's time from the Famille tab for a responsible adult (carte EXPERT-5).
+ */
+@Serializable
+data object UsageDestination
 
 /** The Administration menu of the admin principal (PRD, récit 1 ter). */
 @Serializable

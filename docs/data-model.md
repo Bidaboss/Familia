@@ -144,6 +144,8 @@ Droits : seul le membre lui-même lit, ajoute ou supprime ses téléphones. Les 
 | `dayBeforeReminder` | booléen | `false` coupe le rappel de la veille (PRD, récit 6 bis). Sans document, le rappel est actif. |
 | `goodNews` | booléen, facultatif | `false` coupe les notifications des Bonnes nouvelles (récit 32). Sans valeur, elles sont actives. Ne coupe pas l'avis aux adultes responsables quand un enfant publie (carte AVIS-12). |
 
+| `weekly` | booléen, facultatif | `false` coupe l'avis de la question de la semaine (récit 37), et plus tard les autres rendez-vous de la semaine. Sans valeur, il est actif. |
+
 Droits : seul le membre lui-même lit et modifie ses réglages. L'appli écrit chaque réglage en fusion, pour ne pas effacer l'autre.
 
 ## Cloud Functions (lot 8)
@@ -486,3 +488,61 @@ Droits : les lecteurs du voyage voient les photos, dans Firestore comme dans Sto
 - `onTripDeleted` : un voyage supprimé emporte ses étapes, sa liste, ses photos et leurs fichiers dans Storage (tout le dossier `trips/{tripId}/`).
 
 Les notifications des voyages portent `tripId` au lieu de `eventId` : un appui ouvre le voyage.
+
+## Question de la semaine (PRD, récit 37)
+
+Chaque lundi à 9 h (heure de Paris), le serveur publie une question tirée de la banque de départ (`functions/src/questionBank.ts`, 60 questions validées par Kévin, [banque](https://claude.ai/artifact/SX2LFwekq2v8GzGeRJC8wF)). La première sort le lundi 30/11/2026, et c'est la première de la banque. Une question de saison sort d'abord pendant sa saison ; sinon le tirage se fait parmi les questions pas posées depuis 330 jours, toujours le même pour un lundi donné. Rien ne sort tant que le module `weeklyQuestion` est éteint dans `config/app.features`.
+
+### `weeklyQuestions/{weekId}`
+
+`weekId` est la date du lundi, `AAAA-MM-JJ`. Le document est écrit seulement par les Cloud Functions.
+
+| Champ | Type | Description |
+|---|---|---|
+| `weekId` | texte | La date du lundi, aussi rangée en champ pour les requêtes |
+| `text` | texte | La question |
+| `bankId` | texte (`q01` à `q60`) | Sa place dans la banque, pour ne pas la reposer trop tôt |
+| `proposedByName` | texte ou null | Le prénom du membre qui l'a proposée (« Proposée par Timéo », plus tard) |
+| `publishedAt` | horodatage | Lundi 9 h |
+| `revealAt` | horodatage | 48 h plus tard : à partir de là, tout le monde lit les réponses |
+| `answerCount` | entier | Le nombre de réponses, sans « Passer », tenu par le serveur. La carte d'accueil montre ce nombre, jamais les noms (carte EXPERT-3) |
+
+### `weeklyQuestions/{weekId}/answers/{memberId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `memberId`, `memberName` | `memberId`, texte | Qui répond, et son prénom à ce moment-là |
+| `text` | texte (1 à 500 caractères) ou null | La réponse ; null pour « Passer » |
+| `skipped` | booléen | `true` pour « Passer » (avis [EXPERT] n° 8) |
+| `updatedAt` | horodatage serveur | |
+
+Droits :
+
+- **Question** : tous les membres la lisent ; personne ne l'écrit depuis l'appli.
+- **Répondre ou passer** : chaque membre avec l'appli, enfants compris, pour lui seul, sur une question publiée. Il peut changer ou retirer sa réponse.
+- **Lire les réponses** : sa propre réponse toujours ; celles des autres une fois qu'on a répondu ou passé, et pour tous à partir de `revealAt`. Avant, une requête sur `answers` est refusée : l'appli lit seulement la réponse du membre.
+
+Cloud Functions (`functions/src/weeklyQuestion.ts`) :
+
+| Fonction | Déclencheur | Rôle |
+|---|---|---|
+| `publishWeeklyQuestion`, appelée par `arrivalReminder` | toutes les 30 minutes, agit le lundi à partir de 9 h | Publie la question de la semaine et prévient chaque membre qui a l'appli, sauf ceux qui ont coupé `weekly`. Canal `weekly`, donnée `weeklyQuestionId`. Ne fait rien deux fois le même lundi. Pas de tâche planifiée à part : Cloud Scheduler n'en offre que 3 gratuites. |
+| `onWeeklyAnswerWritten` | réponse écrite ou retirée | Recompte `answerCount`. |
+| `onMemberDeletedAnswers` | suppression d'un membre | Retire ses réponses (carte EXPERT-1). |
+
+Plus tard : la photo facultative d'une réponse, la sauvegarde JSON des questions et réponses, le choix et l'ajout de questions dans Administration, les questions proposées par les membres, la feuille de l'arbre (récit 35) et le regroupement avec les autres rendez-vous en une notification par jour (carte AVIS-14).
+
+## Utilisation (PRD, récit 1 nonies)
+
+### `usage/{memberId}/days/{day}`
+
+Le temps passé dans l'appli par un membre, un jour donné. Le téléphone le compte (appli au premier plan, partie par partie) et l'envoie lui-même : chaque jour terminé une fois, et le jour en cours au plus toutes les 3 heures. Rien n'est compté tant que le module « Utilisation » est éteint pour la famille.
+
+| Champ | Type | Sens |
+|---|---|---|
+| `day` | string `AAAA-MM-JJ` | Le jour, identique à l'id du document. |
+| `opens` | int (0 à 500) | Les ouvertures de l'appli. Un retour en moins de 5 minutes n'en compte pas une nouvelle. |
+| `seconds` | map | Les secondes par partie de l'appli : `home`, `planning`, `gifts`, `help`, `goodNews`, `weeklyQuestion`, `trips`, `family`, `other` (0 à 86 400 chacune). |
+| `expireAt` | timestamp | Le jour plus 13 mois. La règle TTL de `firestore.indexes.json` efface le document à cette date. |
+
+Le document ne contient jamais ce que la personne a lu, écrit ou ouvert. Seul le membre écrit ses propres jours. L'admin principal lit les jours de tout le monde, et les adultes responsables d'un enfant (ses `parentIds`) lisent ceux de cet enfant (carte EXPERT-5). Personne ne supprime un jour depuis l'appli : le TTL s'en charge, et la fonction qui suit le retrait d'un membre efface aussi tous ses jours.

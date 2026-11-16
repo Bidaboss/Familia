@@ -17,4 +17,9 @@ interface NotificationRepository {
     fun observeGoodNews(memberId: String): Flow<Boolean> = flowOf(true)
 
     suspend fun setGoodNews(memberId: String, enabled: Boolean) = Unit
+
+    /** True unless the member turned the question of the week off (récit 37). */
+    fun observeWeekly(memberId: String): Flow<Boolean> = flowOf(true)
+
+    suspend fun setWeekly(memberId: String, enabled: Boolean) = Unit
 }

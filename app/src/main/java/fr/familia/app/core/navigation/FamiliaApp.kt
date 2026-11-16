@@ -14,6 +14,7 @@ import fr.familia.app.feature.update.rememberInAppUpdater
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.notifications.NotificationChannels
 import fr.familia.app.core.model.FeatureFlags
+import fr.familia.app.core.model.UsageScreen
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.update.UpdateCheckRoute
 import kotlinx.coroutines.flow.catch
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Celebration
+import androidx.compose.material.icons.outlined.QuestionAnswer
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Icon
@@ -49,6 +51,8 @@ import fr.familia.app.feature.help.HelpRoute
 import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
 import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
+import fr.familia.app.feature.weeklyquestion.WeeklyArchiveRoute
+import fr.familia.app.feature.weeklyquestion.WeeklyQuestionRoute
 import fr.familia.app.feature.help.LocalOpenHelp
 import fr.familia.app.feature.help.ScreenHelp
 import androidx.compose.runtime.LaunchedEffect
@@ -56,6 +60,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -86,6 +91,8 @@ import fr.familia.app.feature.events.edit.EventEditRoute
 import fr.familia.app.feature.planning.PlanningRoute
 import fr.familia.app.feature.home.HomeActions
 import fr.familia.app.feature.home.HomePreferences
+import fr.familia.app.feature.settings.appearance.AppIconSwitcher
+import fr.familia.app.feature.usage.UsageRoute
 import fr.familia.app.feature.settings.appearance.AppearanceScreen
 import fr.familia.app.feature.settings.appearance.ThemePreferences
 import fr.familia.app.core.theme.FamiliaClay
@@ -155,6 +162,9 @@ fun FamiliaApp(
     /** The trip of a tapped « bien arrivé » notification, to open once (V3). */
     openTripId: String? = null,
     onTripOpened: () -> Unit = {},
+    /** The question of the week of a tapped notification, to open once (récit 37). */
+    openWeeklyQuestionId: String? = null,
+    onWeeklyQuestionOpened: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
     // Each time the app opens, this phone is (re)registered for the notifications of this member.
@@ -174,6 +184,7 @@ fun FamiliaApp(
     val homePrefs = remember(context) { HomePreferences(context.applicationContext) }
     val themePrefs = remember(context) { ThemePreferences(context.applicationContext) }
     var chosenTheme by remember { mutableStateOf(themePrefs.theme) }
+    val iconSwitcher = remember(context) { AppIconSwitcher(context.applicationContext) }
     var showOnboarding by rememberSaveable { mutableStateOf(!onboarding.seen) }
     if (showOnboarding) {
         // The 4th screen mentions answering for one's children only to those who have some.
@@ -274,6 +285,14 @@ fun FamiliaApp(
             onGoodNewsOpened()
         }
     }
+    // And for the question of the week (récit 37).
+    val weeklyOn = features.isOn(Feature.WeeklyQuestion)
+    LaunchedEffect(openWeeklyQuestionId, weeklyOn) {
+        if (openWeeklyQuestionId != null && weeklyOn) {
+            navController.navigate(WeeklyQuestionDestination(openWeeklyQuestionId))
+            onWeeklyQuestionOpened()
+        }
+    }
 
     var updateDismissed by rememberSaveable { mutableStateOf(false) }
     LifecycleEventEffect(Lifecycle.Event.ON_START) { updateDismissed = false }
@@ -303,6 +322,18 @@ fun FamiliaApp(
         scope.launch { snackbar.showConfirmation(context.getString(confirmation.textRes)) }
     }
 
+    // Time spent in the app (PRD, récit 1 nonies): counted on this phone only once the module is on
+    // for the family, the admin principal included, then sent once a day.
+    val usageTracker = container?.usageTracker
+    if (usageTracker != null && features.isOnForFamily(Feature.Usage)) {
+        val usageScreen = UsageScreen.forRoute(currentDestination?.route)
+        LifecycleStartEffect(usageTracker, currentMember.id) {
+            usageTracker.start(currentMember.id)
+            onStopOrDispose { usageTracker.stop() }
+        }
+        LaunchedEffect(usageTracker, usageScreen) { usageTracker.show(usageScreen) }
+    }
+
     // The theme chosen on this phone shows once the Thèmes module is on; before, Classique (DESIGN-7).
     val themesOn = features.isOn(Feature.Themes)
     FamiliaTheme(theme = if (themesOn) chosenTheme else FamiliaThemeId.Classic) {
@@ -326,11 +357,13 @@ fun FamiliaApp(
                 // Until the Accueil arrives, the Bonnes nouvelles and the trips open from the Planning bar,
                 // each behind its module.
                 val onGoodNews = if (goodNewsOn) ({ navController.navigate(GoodNewsFeedDestination) }) else null
+                val onWeekly = if (weeklyOn) ({ navController.navigate(WeeklyQuestionDestination()) }) else null
                 if (tab != null) {
                     TabTopBar(
                         tab, currentMember,
                         onOpenTrips = { navController.navigate(TripsDestination) { launchSingleTop = true } },
                         onGoodNews = onGoodNews,
+                        onWeeklyQuestion = onWeekly,
                     )
                 }
             },
@@ -392,6 +425,7 @@ fun FamiliaApp(
                             onOpenGoodNewsFeed = { navController.navigate(GoodNewsFeedDestination) },
                             onOpenGoodNews = { id -> navController.navigate(GoodNewsDetailDestination(id)) },
                             onPublishGoodNews = { navController.navigate(GoodNewsEditDestination()) },
+                            onOpenWeeklyQuestion = { navController.navigate(WeeklyQuestionDestination()) },
                         )
                     }
                     composable<PlanningRoute> {
@@ -616,6 +650,22 @@ fun FamiliaApp(
                             onBack = { navController.popBackStack() },
                         )
                     }
+                    composable<WeeklyQuestionDestination> { entry ->
+                        WeeklyQuestionRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            questionId = entry.toRoute<WeeklyQuestionDestination>().questionId,
+                            onBack = { navController.popBackStack() },
+                            onArchive = { navController.navigate(WeeklyArchiveDestination) { launchSingleTop = true } },
+                        )
+                    }
+                    composable<WeeklyArchiveDestination> {
+                        WeeklyArchiveRoute(
+                            container = container,
+                            onOpen = { id -> navController.navigate(WeeklyQuestionDestination(id)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
                     composable<GoodNewsEditDestination> { entry ->
                         GoodNewsEditRoute(
                             container = container,
@@ -635,6 +685,7 @@ fun FamiliaApp(
                             onOpenUpdates = { navController.navigate(UpdateCheckDestination) },
                             onOpenHelp = { navController.navigate(HelpDestination) },
                             onOpenAppearance = if (themesOn) ({ navController.navigate(AppearanceDestination) }) else null,
+                            onOpenChildrenUsage = if (features.isOn(Feature.Usage)) ({ navController.navigate(UsageDestination) }) else null,
                             onOpenWishes = if (features.isOn(Feature.Gifts)) {
                                 { id -> navController.navigate(GiftListDestination(wishesListId(id))) }
                             } else {
@@ -659,12 +710,17 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             onOpenExport = { navController.navigate(ExportDestination) },
                             onBack = { navController.popBackStack() },
+                            onOpenUsage = { navController.navigate(UsageDestination) },
                         )
+                    }
+                    composable<UsageDestination> {
+                        UsageRoute(container = container, currentMember = currentMember, onBack = { navController.popBackStack() })
                     }
                     composable<ExportDestination> {
                         ExportRoute(container = container, onBack = { navController.popBackStack() })
                     }
                     composable<AppearanceDestination> {
+                        var chosenIcon by remember { mutableStateOf(iconSwitcher.current) }
                         AppearanceScreen(
                             current = chosenTheme,
                             onChoose = { theme ->
@@ -672,6 +728,11 @@ fun FamiliaApp(
                                 themePrefs.theme = theme
                             },
                             onBack = { navController.popBackStack() },
+                            icon = chosenIcon,
+                            onChooseIcon = { icon ->
+                                chosenIcon = icon
+                                iconSwitcher.choose(icon)
+                            },
                         )
                     }
                     composable<NotificationSettingsDestination> {
@@ -703,7 +764,13 @@ fun FamiliaApp(
 /** Title bar of a tab, with its « ? » where the spec has one. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TabTopBar(tab: TopLevelDestination, member: Member, onOpenTrips: () -> Unit = {}, onGoodNews: (() -> Unit)? = null) {
+private fun TabTopBar(
+    tab: TopLevelDestination,
+    member: Member,
+    onOpenTrips: () -> Unit = {},
+    onGoodNews: (() -> Unit)? = null,
+    onWeeklyQuestion: (() -> Unit)? = null,
+) {
     TopAppBar(
         // Transparent, so the theme's pattern shows behind the title too.
         colors = TopAppBarDefaults.topAppBarColors(
@@ -718,6 +785,11 @@ private fun TabTopBar(tab: TopLevelDestination, member: Member, onOpenTrips: () 
                     if (onGoodNews != null) {
                         IconButton(onClick = onGoodNews, modifier = Modifier.size(56.dp)) {
                             Icon(Icons.Outlined.Celebration, contentDescription = stringResource(R.string.goodnews_open_feed))
+                        }
+                    }
+                    if (onWeeklyQuestion != null) {
+                        IconButton(onClick = onWeeklyQuestion, modifier = Modifier.size(56.dp)) {
+                            Icon(Icons.Outlined.QuestionAnswer, contentDescription = stringResource(R.string.weekly_open))
                         }
                     }
                     // Trips have no tab (carte DESIGN-4): until the Accueil tab, they open from here,
