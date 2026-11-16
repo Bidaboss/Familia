@@ -3,11 +3,14 @@ package fr.familia.app.core.share
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import fr.familia.app.R
 import java.io.File
@@ -26,7 +29,7 @@ fun ShareConsentReminder(onContinue: () -> Unit, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.share_consent_title)) },
         text = { Text(stringResource(R.string.share_consent_body)) },
-        confirmButton = { TextButton(onClick = onContinue) { Text(stringResource(R.string.share_consent_continue)) } },
+        confirmButton = { TextButton(onClick = onContinue, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.share_consent_continue)) } },
     )
 }
 
