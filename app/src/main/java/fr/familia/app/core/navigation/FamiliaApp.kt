@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import fr.familia.app.BuildConfig
 import fr.familia.app.R
+import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.update.UpdateBanner
 import fr.familia.app.feature.update.availableUpdate
 import fr.familia.app.feature.update.InAppUpdateDialogs
@@ -239,8 +240,11 @@ fun FamiliaApp(
     onMemberOpened: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
-    // Each time the app opens, this phone is (re)registered for the notifications of this member.
-    LaunchedEffect(currentMember.id) {
+    // Each time the app opens, this phone is (re)registered for the notifications of this member;
+    // never in « Voir comme », where the phone stays the admin's.
+    val viewingAs = LocalViewAs.current.viewed != null
+    LaunchedEffect(currentMember.id, viewingAs) {
+        if (viewingAs) return@LaunchedEffect
         try {
             container?.notificationRepository?.registerThisDevice(currentMember.id)
         } catch (e: CancellationException) {

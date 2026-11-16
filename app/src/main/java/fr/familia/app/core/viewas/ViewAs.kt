@@ -19,8 +19,8 @@ class ViewAsGuard(private val onRefused: () -> Unit = {}) {
         throw ReadOnlyViewException()
     }
 
-    /** A write the app makes by itself (the phone's registration, the time counted): skipped silently. */
-    fun refuseQuietly() = Unit
+    // No quiet refusal: in « Voir comme » the app makes no write by itself when a screen opens
+    // (the phone is not registered, the time is not counted), so any write reaching here was asked.
 }
 
 /** What the screens know of « Voir comme »: start it from Administration, or the member looked at. */
