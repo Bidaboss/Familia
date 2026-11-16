@@ -352,16 +352,18 @@ service cloud.firestore {
     }
 
     // members/{memberId}/settings/notifications: the member's own choices (PRD, récit 6 bis: the
-    // reminder the evening before can be turned off; récit 32: the good news too). Nobody else reads
+    // reminder the evening before can be turned off; récit 32: the good news too; récit 37: the
+    // question of the week). Nobody else reads
     // or changes them.
     match /members/{memberId}/settings/{settingId} {
       allow read: if isMember() && myMemberId() == memberId;
       allow create, update: if isMember()
         && myMemberId() == memberId
         && settingId == 'notifications'
-        && request.resource.data.keys().hasOnly(['dayBeforeReminder', 'goodNews'])
+        && request.resource.data.keys().hasOnly(['dayBeforeReminder', 'goodNews', 'weekly'])
         && (!('dayBeforeReminder' in request.resource.data) || request.resource.data.dayBeforeReminder is bool)
-        && (!('goodNews' in request.resource.data) || request.resource.data.goodNews is bool);
+        && (!('goodNews' in request.resource.data) || request.resource.data.goodNews is bool)
+        && (!('weekly' in request.resource.data) || request.resource.data.weekly is bool);
     }
 
     // --- Coups de main (PRD, récits 13 à 18) ---------------------------------------------------------
