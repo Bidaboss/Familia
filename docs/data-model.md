@@ -132,7 +132,8 @@ Droits :
 
 L'album d'un événement, caché derrière le module « Albums des événements » (`eventAlbums`). Il a la même forme que les photos d'un voyage (`authorId`, `authorName`, `slot` de 1 à 30, `createdAt`), et les fichiers vont dans Storage à `events/{eventId}/{authorId}/{slot}.jpg` et `{slot}-thumb.jpg`.
 
-Droits : tous les membres voient l'album, comme l'événement. Un membre qui a répondu « Je viens » ajoute ses photos à partir du jour de l'événement (minuit en France, soit 22 h UTC la veille). L'auteur de la photo, l'auteur de l'événement et l'admin principal la retirent. La suppression de l'événement emporte l'album et ses fichiers (`onEventDeleted`). Tests : `firebase/tests/eventAlbum.test.mjs` et `firebase/tests/storage.test.mjs`.
+Droits : tous les membres voient l'album, comme l'événement. Un membre qui a répondu « Je viens » ajoute ses photos à partir du jour de l'événement (minuit en France : 22 h UTC la veille en été, 23 h en hiver ; les règles ouvrent toujours à 22 h UTC, donc en hiver une heure avant l'appli, sans danger). L'auteur de la photo, l'auteur de l'événement et l'admin principal la retirent. La suppression de l'événement emporte l'album et ses fichiers (`onEventDeleted`). Tests : `firebase/tests/eventAlbum.test.mjs` et `firebase/tests/storage.test.mjs`.
+
 ### `members/{memberId}/devices/{token}` (lot 8)
 
 Les téléphones d'un membre, pour les notifications. L'identifiant du document est le jeton de notification (FCM) du téléphone, donc un même téléphone n'est enregistré qu'une fois.

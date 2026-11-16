@@ -21,6 +21,8 @@ enum class ScreenHelp(@StringRes val titleRes: Int, @StringRes val bodyRes: Int)
     TripDetail(R.string.help_screen_trip_detail_title, R.string.help_screen_trip_detail_body),
     TripEdit(R.string.help_screen_trip_edit_title, R.string.help_screen_trip_edit_body),
     TripStepEdit(R.string.help_screen_trip_step_title, R.string.help_screen_trip_step_body),
+    EventAlbum(R.string.help_screen_event_album_title, R.string.help_screen_event_album_body),
+    MonthSlideshow(R.string.help_screen_month_title, R.string.help_screen_month_body),
     Polls(R.string.help_topic_polls_title, R.string.help_topic_polls_body),
 }
 

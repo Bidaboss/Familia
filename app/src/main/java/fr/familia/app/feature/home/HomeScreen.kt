@@ -67,11 +67,14 @@ import fr.familia.app.core.ui.formatTime
 import fr.familia.app.feature.helprequests.kindLabel
 import fr.familia.app.feature.helprequests.whenLabel
 import fr.familia.app.feature.goodnews.home.GoodNewsHomeCard
+import fr.familia.app.feature.month.MonthSlideshowHomeCard
+import fr.familia.app.feature.month.isSlideshowTime
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionHomeCard
 import fr.familia.app.feature.trips.tripDatesLabel
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.YearMonth
 import java.time.ZoneId
 import java.util.Locale
 
@@ -96,6 +99,7 @@ fun HomeRoute(
     onOpenGoodNews: (String) -> Unit = {},
     onPublishGoodNews: () -> Unit = {},
     onOpenWeeklyQuestion: () -> Unit = {},
+    onOpenMonth: (YearMonth) -> Unit = {},
 ) {
     val flags = LocalFeatureFlags.current
     val giftsOn = flags.isOn(Feature.Gifts)
@@ -131,6 +135,7 @@ fun HomeRoute(
         } else {
             null
         },
+        onOpenMonth = if (flags.isOn(Feature.MonthSlideshow)) onOpenMonth else null,
     )
 }
 
@@ -138,6 +143,7 @@ fun HomeRoute(
  * The Accueil: fixed cards in a fixed order, the same for everyone, each hidden while it has
  * nothing to say (PRD, « Tableau de bord d'accueil »). [goodNews] is the « Bonnes nouvelles » card,
  * [weeklyQuestion] the question of the week (récit 37), both given only while their module is on.
+ * [onOpenMonth], set while the slideshow module is on, shows its card from the last Sunday (récit 42).
  */
 @Composable
 fun HomeScreen(
@@ -145,13 +151,15 @@ fun HomeScreen(
     actions: HomeActions,
     goodNews: (@Composable () -> Unit)? = null,
     weeklyQuestion: (@Composable () -> Unit)? = null,
+    onOpenMonth: ((YearMonth) -> Unit)? = null,
 ) {
     val ready = state as? HomeUiState.Ready
     if (ready == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         return
     }
-    if (ready.isEmpty && goodNews == null && weeklyQuestion == null) {
+    val month = YearMonth.from(ready.today).takeIf { onOpenMonth != null && isSlideshowTime(ready.today) }
+    if (ready.isEmpty && goodNews == null && weeklyQuestion == null && month == null) {
         EmptyState(
             icon = Icons.Outlined.CalendarMonth,
             title = stringResource(R.string.home_empty_title),
@@ -172,6 +180,7 @@ fun HomeScreen(
         if (ready.week.isNotEmpty()) card("week") { WeekCard(ready.week, ready.weekMore, ready.today, actions) }
         if (goodNews != null) card("goodNews") { goodNews() }
         if (weeklyQuestion != null) card("weeklyQuestion") { weeklyQuestion() }
+        if (month != null && onOpenMonth != null) card("month") { MonthSlideshowHomeCard(month) { onOpenMonth(month) } }
         if (ready.birthdays.isNotEmpty()) card("birthdays") { BirthdaysCard(ready.birthdays, ready.today, actions.onOpenWishes) }
         ready.occasion?.let { occasion -> card("occasion") { OccasionCard(occasion, ready.today) { actions.onOpenList(occasion.list.id) } } }
         if (ready.trips.isNotEmpty()) card("trips") { TripsCard(ready.trips, ready.today, ready.canCreateTrip, actions) }

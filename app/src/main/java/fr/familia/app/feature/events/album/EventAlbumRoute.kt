@@ -101,7 +101,7 @@ fun EventAlbumRoute(container: AppContainer?, currentMember: Member, eventId: St
         state = state,
         actions = rememberPhotoActions(album),
         onBack = onBack,
-        actionsBar = { HelpButton(ScreenHelp.EventDetail) },
+        actionsBar = { HelpButton(ScreenHelp.EventAlbum) },
         top = { AlbumFilmPart(film, state.photos.size, filmActions) },
     )
 }

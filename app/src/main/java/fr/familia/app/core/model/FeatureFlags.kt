@@ -30,6 +30,7 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     Calendar("calendar", R.string.feature_calendar),
 
     Souvenirs("souvenirs", R.string.feature_souvenirs),
+    MonthSlideshow("monthSlideshow", R.string.feature_month_slideshow),
     /** Sondage de date et sondage libre (PRD, récits 2 bis et 2 ter). */
     Polls("polls", R.string.feature_polls),
 }

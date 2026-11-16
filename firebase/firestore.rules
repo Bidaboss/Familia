@@ -331,9 +331,9 @@ service cloud.firestore {
       allow delete: if isMember() && canAnswerFor(memberId);
     }
 
-    // The album of an event (récit 41) opens on its day, at midnight in France (UTC+1 or +2, so
-    // from 22:00 UTC the day before). Its photos have the shape of the trip photos (isValidAlbumPhoto
-    // in the trips section): 30 places per person, files in Storage at events/{eventId}/{authorId}/.
+    // The album of an event (récit 41) opens on its day: from 22:00 UTC the day before,
+    // midnight in France in summer, 23:00 in winter (an hour before the app, harmless).
+    // Its photos have the shape of the trip photos (isValidAlbumPhoto in the trips section): 30 places per person, files in Storage at events/{eventId}/{authorId}/.
     function albumIsOpen(eventId) {
       let day = get(/databases/$(database)/documents/events/$(eventId)).data.date.split('-');
       return request.time >= timestamp.date(int(day[0]), int(day[1]), int(day[2])) - duration.value(2, 'h');

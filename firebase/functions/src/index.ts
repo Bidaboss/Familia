@@ -93,10 +93,14 @@ export const onEventDeleted = onDocumentDeletedWithAuthContext('events/{eventId}
     const answered = await comingMembers(db, event.params.eventId, members);
     if (data) await notifyChange(db, send, 'deleted', event.params.eventId, data, actorUid(event), new Date(), answered, members);
   } finally {
-    await deleteEventAnswers(db, event.params.eventId);
-    // The album of the event (récit 41): its records, then its files in Storage.
-    await db.recursiveDelete(db.collection('events').doc(event.params.eventId).collection('photos'));
-    await getStorage().bucket().deleteFiles({ prefix: `events/${event.params.eventId}/` });
+    // Each one is tried even if another fails: answers, then the album (récit 41), records and files.
+    const results = await Promise.allSettled([
+      deleteEventAnswers(db, event.params.eventId),
+      db.recursiveDelete(db.collection('events').doc(event.params.eventId).collection('photos')),
+      getStorage().bucket().deleteFiles({ prefix: `events/${event.params.eventId}/` }),
+    ]);
+    const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
+    if (failed) throw failed.reason;
   }
 });
 
