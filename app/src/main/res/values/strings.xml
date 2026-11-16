@@ -19,6 +19,7 @@
     <string name="planning_mode_list">Liste</string>
     <string name="event_detail_title">Événement</string>
     <string name="event_detail_edit">Modifier</string>
+    <string name="event_detail_expenses">Comptes de l\'événement</string>
     <string name="event_detail_when">%1$s à %2$s</string>
     <string name="event_detail_missing_title">Cet événement n\'existe plus</string>
     <string name="event_detail_missing_body">Il a sans doute été supprimé.</string>
@@ -1290,6 +1291,8 @@
     <!-- DESIGN-11, Accueil (PRD rév. 205): the row of chips under the blocks. -->
     <string name="home_chip_detail">%1$s · %2$s</string>
     <string name="home_chip_trips_ongoing">Voyages · en cours</string>
+    <string name="home_chip_my_birthday">Ton anniversaire</string>
+    <string name="home_chip_my_occasion">Tes envies</string>
     <plurals name="home_chip_birthdays">
         <item quantity="one">Anniversaires · %d</item>
         <item quantity="many">Anniversaires · %d</item>
@@ -1297,7 +1300,6 @@
     </plurals>
     <string name="home_birthdays_title">Anniversaires à venir</string>
     <string name="home_open_wishes">voir ses envies</string>
-    <string name="home_occasion_title">Prochaine occasion</string>
     <string name="home_open_list">ouvrir la liste</string>
     <string name="home_occasion_today">C\'est aujourd\'hui !</string>
     <string name="home_occasion_tomorrow">C\'est demain</string>

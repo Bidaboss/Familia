@@ -44,8 +44,13 @@ class HomeTest {
     private val family = TestFamily.family
     private val me = TestFamily.adult
 
-    private fun list(id: String, date: LocalDate?, kind: GiftListKind = GiftListKind.Own, beneficiary: String = "adult2") =
-        GiftList(id, kind, "Liste $id", GiftOccasion.Birthday, date, beneficiary, emptyList(), beneficiary, "Adult2")
+    private fun list(
+        id: String,
+        date: LocalDate?,
+        kind: GiftListKind = GiftListKind.Own,
+        beneficiary: String = "adult2",
+        viewers: List<String> = listOf(me.id),
+    ) = GiftList(id, kind, "Liste $id", GiftOccasion.Birthday, date, beneficiary, viewers, beneficiary, "Adult2")
 
     @Test
     fun `to do lists the events of the month without my answer, and the coups de main for me`() {
@@ -103,7 +108,19 @@ class HomeTest {
             list("far", today.plusDays(30)),
             list("next", today.plusDays(10)),
         )
-        assertEquals("next", nextOccasionList(lists, today)?.id)
+        assertEquals("next", nextOccasionList(lists, me.id, today)?.id)
+    }
+
+    @Test
+    fun `the beneficiary of a surprise never learns it exists, nor a list they cannot read, even in Voir comme`() {
+        // The surprise for me, read by the others: what the account of the admin principal gets in Voir comme.
+        val surprise = list("surprise", today.plusDays(2), GiftListKind.Surprise, beneficiary = me.id, viewers = listOf("adult2"))
+        val notMine = list("closed", today.plusDays(3), viewers = listOf("adult2"))
+        assertNull(nextOccasionList(listOf(surprise, notMine), me.id, today))
+        val mine = list("mine", today.plusDays(5), beneficiary = me.id, viewers = listOf(me.id))
+        val shown = occasion(nextOccasionList(listOf(surprise, notMine, mine), me.id, today), me, family, 0, today)
+        assertEquals("mine", shown?.list?.id)
+        assertTrue(shown?.isMine == true)
     }
 
     @Test
