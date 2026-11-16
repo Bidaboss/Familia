@@ -49,15 +49,17 @@ class FakeHelpRequests(
         requests.value = requests.value.filter { it.id != request.id } + request
     }
 
-    override suspend fun take(id: String, volunteerId: String, volunteerName: String) {
+    override suspend fun take(id: String, volunteerId: String, volunteerName: String, note: String?) {
         failWith?.let { throw it }
         if (hangTake) awaitCancellation()
         val current = requests.value.first { it.id == id }
         if (current.status != HelpStatus.Open) throw AlreadyTakenException(current.volunteerName)
-        change(id) { it.copy(status = HelpStatus.Taken, volunteerId = volunteerId, volunteerName = volunteerName) }
+        change(id) { it.copy(status = HelpStatus.Taken, volunteerId = volunteerId, volunteerName = volunteerName, volunteerNote = note) }
     }
 
-    override suspend fun withdraw(id: String) = change(id) { it.copy(status = HelpStatus.Open, volunteerId = null, volunteerName = null) }
+    override suspend fun withdraw(id: String) = change(id) { it.copy(status = HelpStatus.Open, volunteerId = null, volunteerName = null, volunteerNote = null) }
+
+    override suspend fun setVolunteerNote(id: String, note: String?) = change(id) { it.copy(volunteerNote = note) }
 
     override suspend fun decline(id: String, memberId: String) = change(id) { it.copy(declinedBy = memberId) }
 

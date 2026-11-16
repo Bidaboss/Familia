@@ -47,5 +47,6 @@ fun HelpRequestDetailRoute(
         onDuplicate = onDuplicate,
         onDismissError = viewModel::dismissError,
         onBack = onBack,
+        onSetNote = viewModel::setNote,
     )
 }

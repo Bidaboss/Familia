@@ -6,6 +6,7 @@ import fr.familia.app.core.data.AlreadyTakenException
 import fr.familia.app.core.data.HelpRequestRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.currentDayFlow
+import fr.familia.app.core.model.VOLUNTEER_NOTE_MAX
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.HelpRequest
 import fr.familia.app.core.model.HelpStatus
@@ -77,14 +78,14 @@ class HelpRequestDetailViewModel(
     }
 
     /** « Je m'en occupe »: only online, in a transaction (spec, cas limites). */
-    fun take() {
+    fun take(note: String = "") {
         val state = uiState.value as? HelpRequestDetailUiState.Success ?: return
         val repo = requests ?: return
         if (!state.canVolunteer || action.value.busy) return
         viewModelScope.launch {
             action.value = Action(busy = true)
             action.value = try {
-                val done = withTimeoutOrNull(takeTimeoutMillis) { repo.take(requestId, currentMemberId, state.myFirstName) }
+                val done = withTimeoutOrNull(takeTimeoutMillis) { repo.take(requestId, currentMemberId, state.myFirstName, cleanNote(note)) }
                 if (done == null) Action(error = HelpActionError.NeedsNetwork) else Action()
             } catch (e: CancellationException) {
                 throw e
@@ -98,6 +99,9 @@ class HelpRequestDetailViewModel(
     }
 
     fun withdraw() = write { requests?.withdraw(requestId) }
+
+    /** The volunteer changes their word; an empty one clears it. */
+    fun setNote(note: String) = write { requests?.setVolunteerNote(requestId, cleanNote(note)) }
 
     fun decline() = write { requests?.decline(requestId, currentMemberId) }
 
@@ -125,3 +129,6 @@ class HelpRequestDetailViewModel(
         }
     }
 }
+
+/** Trimmed, cut at [VOLUNTEER_NOTE_MAX], null when empty. */
+internal fun cleanNote(note: String): String? = note.trim().take(VOLUNTEER_NOTE_MAX).ifEmpty { null }
