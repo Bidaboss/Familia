@@ -22,7 +22,6 @@ fun GiftsRoute(
     /** Null while the notebook module is off for this member. */
     onOpenNotebook: (() -> Unit)? = null,
 ) {
-    // « Voir comme »: the admin principal still reads with their own account.
     val viewModel: GiftsViewModel = viewModel(
         factory = viewModelFactory {
             initializer { GiftsViewModel(container?.giftRepository, container?.memberRepository, currentMember.id) }

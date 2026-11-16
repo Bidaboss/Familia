@@ -1170,6 +1170,8 @@ service cloud.firestore {
     // only reads it once it is revealed. Written as a plain OR so the app's queries can be proven.
     function canSeeList(l) {
       return l.kind == 'wishes'
+        // « Idées de la famille » (récit 9 ter): the whole family but the person, never revealed to them.
+        || (l.kind == 'ideas' && l.beneficiaryId != myMemberId())
         || myMemberId() in l.viewerIds
         || (l.beneficiaryId == myMemberId() && l.revealed == true);
     }
@@ -1181,7 +1183,12 @@ service cloud.firestore {
 
     // The creator manages a list; the keeper of the beneficiary manages their own list and wishes.
     function canManageList(l) {
-      return l.creatorId == myMemberId() || (l.kind != 'surprise' && keepsListsOf(l.beneficiaryId));
+      return l.creatorId == myMemberId() || (!(l.kind in ['surprise', 'ideas']) && keepsListsOf(l.beneficiaryId));
+    }
+
+    // The two permanent lists of a member (récit 9 ter): their wishes, and the ideas of the family.
+    function isPermanentList(kind) {
+      return kind in ['wishes', 'ideas'];
     }
 
     function isValidGiftList(l) {
@@ -1189,15 +1196,15 @@ service cloud.firestore {
                               'creatorId', 'creatorName', 'revealed', 'createdAt', 'updatedAt'])
         && l.keys().hasOnly(['kind', 'title', 'occasion', 'date', 'beneficiaryId', 'viewerIds',
                              'creatorId', 'creatorName', 'revealed', 'createdAt', 'updatedAt'])
-        && l.kind in ['wishes', 'own', 'surprise']
+        && l.kind in ['wishes', 'own', 'surprise', 'ideas']
         && l.title is string && l.title.size() > 0 && l.title.size() <= 60
         && l.beneficiaryId is string && exists(memberPath(l.beneficiaryId))
         && l.viewerIds is list && l.viewerIds.size() <= 40
         && l.creatorName is string && l.creatorName.size() > 0 && l.creatorName.size() <= 40
         && l.revealed is bool
         && l.updatedAt == request.time
-        && ((l.kind == 'wishes' && l.occasion == null && l.date == null && l.viewerIds.size() == 0)
-            || (l.kind != 'wishes'
+        && ((isPermanentList(l.kind) && l.occasion == null && l.date == null && l.viewerIds.size() == 0)
+            || (!isPermanentList(l.kind)
                 && l.occasion in ['christmas', 'birthday', 'birth', 'other']
                 && isDay(l.date)
                 && myMemberId() in l.viewerIds
@@ -1220,7 +1227,12 @@ service cloud.firestore {
         && request.resource.data.revealed == false
         && request.resource.data.createdAt == request.time
         && (request.resource.data.kind == 'surprise'
-            || (keepsListsOf(request.resource.data.beneficiaryId)
+            // The ideas of the family: by anyone but the person, at its one id.
+            || (request.resource.data.kind == 'ideas'
+                && request.resource.data.beneficiaryId != myMemberId()
+                && listId == 'ideas-' + request.resource.data.beneficiaryId)
+            || (request.resource.data.kind != 'ideas'
+                && keepsListsOf(request.resource.data.beneficiaryId)
                 && (request.resource.data.kind != 'wishes'
                     || listId == 'wishes-' + request.resource.data.beneficiaryId)));
 
@@ -1238,14 +1250,16 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt;
 
       // « Mes envies » is permanent. Items, reservations and shares are removed on the server.
-      allow delete: if isMember() && resource.data.kind != 'wishes' && canManageList(resource.data);
+      allow delete: if isMember() && !isPermanentList(resource.data.kind) && canManageList(resource.data);
     }
 
     function isValidGiftItem(i) {
       return i.keys().hasAll(['title', 'url', 'price', 'note', 'authorId', 'authorName',
                               'visibleToBeneficiary', 'createdAt', 'updatedAt'])
         && i.keys().hasOnly(['title', 'url', 'price', 'note', 'authorId', 'authorName',
-                             'visibleToBeneficiary', 'createdAt', 'updatedAt', 'imageUrl'])
+                             'visibleToBeneficiary', 'createdAt', 'updatedAt', 'imageUrl', 'occasion'])
+        // The occasion a wish is for (récit 9 ter): absent or null for « Quand tu veux ».
+        && (!('occasion' in i) || i.occasion == null || i.occasion in ['christmas', 'birthday'])
         && i.title is string && i.title.size() > 0 && i.title.size() <= 80
         && (i.url == null || (i.url is string && i.url.size() <= 500 && i.url.matches('^https?://.+')))
         && (i.price == null || (i.price is number && i.price >= 0 && i.price <= 100000))
@@ -1283,7 +1297,7 @@ service cloud.firestore {
         && request.resource.data.authorName == me().firstName
         && request.resource.data.createdAt == request.time
         && request.resource.data.visibleToBeneficiary
-             == (list().kind != 'surprise' && keepsListsOf(list().beneficiaryId));
+             == (!(list().kind in ['surprise', 'ideas']) && keepsListsOf(list().beneficiaryId));
 
       // The author edits or removes their item until it is reserved. The beneficiary's side may
       // always do it: refusing would tell them that the item is reserved. The Cloud Function then
@@ -1334,7 +1348,7 @@ service cloud.firestore {
       // Without a choice, the server takes whichever comes first.
       allow update: if isMember()
         && resource.data.holderId == myMemberId()
-        && list().kind == 'wishes'
+        && isPermanentList(list().kind)
         && list().revealed == false
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['occasion'])
         && request.resource.data.occasion in ['birthday', 'christmas'];

@@ -1,6 +1,14 @@
 {
   "indexes": [
     {
+      "collectionGroup": "giftLists",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "kind", "order": "ASCENDING" },
+        { "fieldPath": "beneficiaryId", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "polls",
       "queryScope": "COLLECTION",
       "fields": [

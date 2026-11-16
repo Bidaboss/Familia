@@ -32,14 +32,14 @@ fun isKeptFrom(list: GiftList, me: Member): Boolean = list.beneficiaryId == me.i
 fun canManageList(list: GiftList, me: Member, family: Family): Boolean {
     if (list.revealed) return false
     if (list.creatorId == me.id) return true
-    if (list.kind == GiftListKind.Surprise) return false
+    if (list.kind == GiftListKind.Surprise || list.kind == GiftListKind.Ideas) return false
     val beneficiary = family.members.firstOrNull { it.id == list.beneficiaryId } ?: return false
     return keepsListsOf(me, beneficiary)
 }
 
 /** An item added by [me] is shown to the beneficiary only when [me] keeps their lists, and never on a surprise list. */
 fun addsVisibleItem(list: GiftList, me: Member, family: Family): Boolean {
-    if (list.kind == GiftListKind.Surprise) return false
+    if (list.kind == GiftListKind.Surprise || list.kind == GiftListKind.Ideas) return false
     val beneficiary = family.members.firstOrNull { it.id == list.beneficiaryId } ?: return false
     return keepsListsOf(me, beneficiary)
 }
@@ -67,7 +67,7 @@ fun normalizedViewers(
             viewers += beneficiary.parentIds
         }
         GiftListKind.Surprise -> viewers -= beneficiary.id
-        GiftListKind.Wishes -> return emptyList()
+        GiftListKind.Wishes, GiftListKind.Ideas -> return emptyList()
     }
     return viewers.sorted()
 }
@@ -76,5 +76,5 @@ fun normalizedViewers(
 fun lockedViewers(kind: GiftListKind, beneficiary: Member, me: Member): Set<String> = when (kind) {
     GiftListKind.Own -> setOf(me.id, beneficiary.id) + beneficiary.parentIds
     GiftListKind.Surprise -> setOf(me.id)
-    GiftListKind.Wishes -> emptySet()
+    GiftListKind.Wishes, GiftListKind.Ideas -> emptySet()
 }
