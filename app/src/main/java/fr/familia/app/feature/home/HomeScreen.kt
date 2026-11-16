@@ -56,6 +56,8 @@ import fr.familia.app.feature.tree.TreeHomeChip
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionHomeChip
 import fr.familia.app.feature.yearago.YearAgoHomeChip
 import fr.familia.app.feature.discover.DiscoverCard
+import fr.familia.app.core.model.Poll
+import fr.familia.app.feature.polls.shortDateLabel
 import fr.familia.app.feature.dailynudge.DailyNudge
 import fr.familia.app.feature.dailynudge.DailyNudgeLine
 import fr.familia.app.feature.dailynudge.rememberDailyNudge
@@ -243,7 +245,7 @@ fun HomeScreen(
     }
     val month = YearMonth.from(ready.today).takeIf { onOpenMonth != null && isSlideshowTime(ready.today) }
     val chips = homeChips(ready, actions, month, onOpenMonth, extras)
-    val toDo = ready.todos.isNotEmpty() || joinMe?.hasShares == true || dailyNudge != null
+    val toDo = ready.todos.isNotEmpty() || ready.voted.isNotEmpty() || joinMe?.hasShares == true || dailyNudge != null
     if (!toDo && ready.week.isEmpty() && goodNews == null && discover == null && chips.isEmpty()) {
         EmptyState(
             icon = Icons.Outlined.CalendarMonth,
@@ -263,7 +265,7 @@ fun HomeScreen(
         contentPadding = ClaySpacing.list,
         verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
-        if (toDo) card("todo") { TodoCard(ready.todos, ready.today, actions, joinMe?.takeIf { it.hasShares }, dailyNudge, onOpenGoodNews) }
+        if (toDo) card("todo") { TodoCard(ready.todos, ready.today, actions, joinMe?.takeIf { it.hasShares }, dailyNudge, onOpenGoodNews, ready.voted) }
         if (ready.week.isNotEmpty()) card("week") { WeekCard(ready.week, ready.weekMore, ready.today, actions) }
         if (goodNews != null) card("goodNews") { goodNews() }
         if (discover != null) card("discover") { DiscoverCard(discover) }
@@ -412,6 +414,7 @@ private fun TodoCard(
     joinMe: JoinMeHome?,
     dailyNudge: DailyNudge? = null,
     onOpenGoodNews: (String) -> Unit = {},
+    voted: List<HomeVoted> = emptyList(),
 ) {
     // A place sent to me tints the block for my foyer, as the « Rejoignez-moi » card did (récit 33).
     val tint = if (joinMe?.state?.received?.isNotEmpty() == true) ClayTint.Household else ClayTint.Plain
@@ -448,6 +451,31 @@ private fun TodoCard(
                 ) { RowIcon(Icons.Outlined.HowToVote) }
             }
         }
+        // The polls where I voted stay until their end, then show their result (retour d'essai du 16/11).
+        if (voted.isNotEmpty() && todos.isNotEmpty()) HorizontalDivider(Modifier.padding(vertical = 8.dp))
+        voted.forEach { item ->
+            HomeRow(
+                title = item.poll.question,
+                detail = votedDetail(item),
+                onClick = { actions.onOpenPoll(item.poll.id) },
+                onClickLabel = stringResource(R.string.home_open_poll),
+            ) { RowIcon(Icons.Outlined.HowToVote) }
+        }
+    }
+}
+
+/** « Tu as voté · en tête : sam. 19/12 (4 voix) », or « Terminé · retenu : … » once it is over. */
+@Composable
+private fun votedDetail(item: HomeVoted): String {
+    val poll = item.poll
+    val first = item.leaders.firstOrNull()
+    val label = first?.let { if (poll.kind == Poll.Kind.Date) shortDateLabel(poll, it) else poll.options.getOrNull(it).orEmpty() }
+    return when {
+        item.over && poll.chosen != null && label != null -> stringResource(R.string.home_voted_over_chosen, label)
+        label == null -> stringResource(if (item.over) R.string.home_voted_over else R.string.home_voted)
+        item.leaders.size > 1 -> stringResource(if (item.over) R.string.home_voted_over_tie else R.string.home_voted_tie)
+        item.over -> stringResource(R.string.home_voted_over_lead, label, item.leaderVotes)
+        else -> stringResource(R.string.home_voted_lead, label, item.leaderVotes)
     }
 }
 

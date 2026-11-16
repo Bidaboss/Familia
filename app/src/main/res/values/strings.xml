@@ -1298,6 +1298,13 @@
     <string name="home_todo_help">Demandé par %1$s · %2$s</string>
     <string name="home_open_event">ouvrir l\'événement</string>
     <string name="home_todo_vote">Sondage de %1$s · à toi de répondre</string>
+    <string name="home_voted">Tu as voté</string>
+    <string name="home_voted_lead">Tu as voté · en tête : %1$s (%2$d voix)</string>
+    <string name="home_voted_tie">Tu as voté · plusieurs réponses à égalité</string>
+    <string name="home_voted_over">Terminé · voir le résultat</string>
+    <string name="home_voted_over_lead">Terminé · en tête : %1$s (%2$d voix)</string>
+    <string name="home_voted_over_tie">Terminé · plusieurs réponses à égalité</string>
+    <string name="home_voted_over_chosen">Terminé · retenu : %1$s</string>
     <string name="home_open_poll">ouvrir le sondage</string>
     <string name="home_open_help">ouvrir le coup de main</string>
     <string name="home_week_title">Cette semaine</string>
