@@ -612,9 +612,10 @@ fun FamiliaApp(
                             onBack = { navController.popBackStack() },
                         )
                     }
-                    composable<RecipesDestination> {
+                    composable<RecipesDestination> { entry ->
                         RecipesRoute(
                             container = container,
+                            originMemberId = entry.toRoute<RecipesDestination>().originMemberId,
                             onOpen = { id -> navController.navigate(RecipeDetailDestination(id)) },
                             onAdd = { navController.navigate(RecipeEditDestination()) },
                             onBack = { navController.popBackStack() },
@@ -837,6 +838,7 @@ fun FamiliaApp(
                             memberId = memberId,
                             onBack = { navController.popBackStack() },
                             onEdit = { navController.navigate(MemberEditDestination(memberId)) },
+                            onOpenRecipes = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipesDestination(memberId)) }) else null,
                         )
                     }
                     composable<WeeklyArchiveDestination> {
@@ -867,7 +869,7 @@ fun FamiliaApp(
                             onOpenHelp = { navController.navigate(HelpDestination) },
                             onOpenAppearance = if (themesOn) ({ navController.navigate(AppearanceDestination) }) else null,
                             onOpenChildrenUsage = if (features.isOn(Feature.Usage)) ({ navController.navigate(UsageDestination) }) else null,
-                            onOpenRecipes = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipesDestination) }) else null,
+                            onOpenRecipes = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipesDestination()) }) else null,
                             onOpenWishes = if (features.isOn(Feature.Gifts)) {
                                 { id -> navController.navigate(GiftListDestination(wishesListId(id))) }
                             } else {

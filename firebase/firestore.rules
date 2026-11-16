@@ -1293,6 +1293,24 @@ service cloud.firestore {
         && (resource.data.authorId == myMemberId() || canManageRecipe(recipeOf(recipeId)));
     }
 
+    // recipes/{recipeId}/comments/{commentId} (récit 38): every member reads and writes comments in
+    // their own name, 1 to 500 characters, never edited. Its author, the author of the recipe or the
+    // admin principal removes one. Deleting the recipe deletes them on the server.
+    match /recipes/{recipeId}/comments/{commentId} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && exists(/databases/$(database)/documents/recipes/$(recipeId))
+        && request.resource.data.keys().hasAll(['text', 'authorId', 'authorName', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['text', 'authorId', 'authorName', 'createdAt'])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 500
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.createdAt == request.time;
+      allow delete: if isMember()
+        && (resource.data.authorId == myMemberId() || canManageRecipe(recipeOf(recipeId)));
+    }
+
     // --- Trips (V3, récits 11 à 15) ----------------------------------------------------------------
 
     function tripPath(tripId) {

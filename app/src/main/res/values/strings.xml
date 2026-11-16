@@ -840,6 +840,19 @@
     <string name="recipe_photos_title">Photos du plat</string>
     <string name="recipe_photos_empty">Pas encore de photo du plat.</string>
     <string name="recipe_photos_empty_author">Ajoute jusqu\'à 3 photos du plat, pour donner envie.</string>
+    <string name="recipe_share">Partager la recette</string>
+    <string name="recipe_share_chooser">Envoyer la recette avec…</string>
+    <string name="recipe_comments_title">Commentaires</string>
+    <string name="recipe_comments_empty">Pas encore de commentaire. Dis ce que tu en penses, ou comment tu la fais.</string>
+    <string name="recipe_comment_field">Ton commentaire</string>
+    <string name="recipe_comment_count">%1$d sur %2$d caractères</string>
+    <string name="recipe_comment_send">Publier le commentaire</string>
+    <string name="recipe_comment_send_failed">Le commentaire n\'a pas pu être envoyé. Vérifie la connexion et réessaie.</string>
+    <string name="recipe_comment_remove">Retirer</string>
+    <string name="recipe_comment_remove_title">Retirer ce commentaire ?</string>
+    <string name="recipe_comment_remove_failed">Le commentaire n\'a pas pu être retiré. Réessaie.</string>
+    <string name="recipes_from_title">Recettes de %1$s</string>
+    <string name="profile_recipes">Voir ses recettes</string>
     <string name="recipe_ingredients">Ingrédients</string>
     <string name="recipe_steps">Étapes</string>
     <string name="recipe_written_by">Notée par %1$s</string>
@@ -871,7 +884,7 @@
     <string name="error_recipe_steps_missing">Écris au moins une étape.</string>
     <string name="error_recipe_too_long">Texte trop long : raccourcis-le un peu.</string>
     <string name="help_screen_recipes_title">Le carnet de recettes</string>
-    <string name="help_screen_recipes_body">Les recettes de la famille, par ordre alphabétique. Cherche par nom, ingrédient, étiquette ou personne. Touche « Nouvelle recette » pour en noter une : un ingrédient par ligne, une étape par ligne. Seule la personne qui l\'a notée, ou l\'administrateur, peut la modifier ou la retirer.</string>
+    <string name="help_screen_recipes_body">Les recettes de la famille, par ordre alphabétique. Cherche par nom, ingrédient, étiquette ou personne. Touche « Nouvelle recette » pour en noter une : un ingrédient par ligne, une étape par ligne. Seule la personne qui l\'a notée, ou l\'administrateur, peut la modifier, ajouter jusqu\'à 3 photos du plat ou la retirer. Chacun peut laisser un commentaire. Le bouton Partager envoie la recette en texte, sans les photos.</string>
     <string name="month_empty">Pas de photo ce mois-ci. Celles des voyages et des événements apparaissent ici.</string>
     <!-- Before a video leaves the app (carte EXPERT-6): the film, the album and the slideshow. -->
     <string name="share_consent_title">Avant de partager</string>

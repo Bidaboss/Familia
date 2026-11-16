@@ -19,6 +19,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -60,6 +61,7 @@ fun MemberProfileScreen(
     onEdit: () -> Unit,
     onSetShown: (key: String, shown: Boolean) -> Unit,
     onDismissBravo: () -> Unit = {},
+    onOpenRecipes: (() -> Unit)? = null,
 ) {
     (state as? MemberProfileUiState.Ready)?.bravo?.let { souvenir ->
         SouvenirKind.of(souvenir.key)?.let { kind ->
@@ -98,7 +100,7 @@ fun MemberProfileScreen(
                     title = stringResource(R.string.member_not_found_title),
                     body = stringResource(R.string.profile_not_found_body),
                 )
-                is MemberProfileUiState.Ready -> Content(state, onSetShown)
+                is MemberProfileUiState.Ready -> Content(state, onSetShown, onOpenRecipes)
             }
         }
     }
@@ -106,7 +108,7 @@ fun MemberProfileScreen(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Content(state: MemberProfileUiState.Ready, onSetShown: (String, Boolean) -> Unit) {
+private fun Content(state: MemberProfileUiState.Ready, onSetShown: (String, Boolean) -> Unit, onOpenRecipes: (() -> Unit)?) {
     val member = state.member
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -122,6 +124,13 @@ private fun Content(state: MemberProfileUiState.Ready, onSetShown: (String, Bool
                 }
             }
         }
+        // The recipes that come from this member (récit 38).
+        onOpenRecipes?.let { open ->
+            OutlinedButton(onClick = open, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.profile_recipes))
+            }
+        }
+
         Text(stringResource(R.string.souvenirs_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         val earned = state.souvenirs.mapNotNull { s -> SouvenirKind.of(s.key)?.let { it to s } }
         if (state.isMe) {
