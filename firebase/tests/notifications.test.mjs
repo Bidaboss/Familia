@@ -67,4 +67,19 @@ describe('settings', () => {
     await assertFails(setDoc(settings(db, 'adult1'), { dayBeforeReminder: false, isAdmin: true }));
     await assertFails(setDoc(settings(db, 'adult1', 'other'), { dayBeforeReminder: false }));
   });
+
+  test('récit 6 quinquies: one switch per family and the quiet hours, nothing else', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(settings(db, 'adult1'), {
+      planning: true, reminders: true, gifts: false, comments: false, helpRequests: true, trips: false, quietHours: true,
+    }, { merge: true }));
+    await assertFails(setDoc(settings(db, 'adult1'), { level: 'minimal' }, { merge: true }));
+    await assertFails(setDoc(settings(db, 'adult1'), { quietHours: 'oui' }, { merge: true }));
+    await assertFails(setDoc(settings(db, 'adult1'), { trips: 1 }, { merge: true }));
+    await assertFails(setDoc(settings(db, 'adult1'), { quietFrom: 21 }, { merge: true }));
+    // Nobody else sets them, the admin included, and the held notices stay closed.
+    await assertFails(setDoc(settings(as(env, ADMIN), 'adult1'), { trips: true }, { merge: true }));
+    await assertFails(getDoc(doc(db, 'quietQueue/adult1')));
+    await assertFails(setDoc(doc(db, 'quietQueue/adult1'), { items: [] }));
+  });
 });

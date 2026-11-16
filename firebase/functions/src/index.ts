@@ -43,6 +43,7 @@ import { queueAlbumInvitations } from './albumInvites';
 import { deleteDigestOf, sendDigests } from './digest';
 import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { sendWeeklyRecap } from './recap';
+import { deleteQuietQueueOf, sendHeldNotices } from './prefs';
 import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type BirthdayCard } from './birthdayWishes';
 import { isFirstSignIn, welcomeMember } from './welcome';
 import { revealWishes, thankGivers } from './wishesReveal';
@@ -475,7 +476,23 @@ export const onRecipeDeleted = onDocumentDeleted('recipes/{recipeId}', async (ev
   if (failed) throw failed.reason;
 });
 
+/** A notice held during the quiet hours goes out with the sender it was made for. */
+const sendHeld = async (token: string, notice: Notice & { goodNewsId?: string; helpRequestId?: string }) => {
+  if (notice.goodNewsId && (notice.channel === 'goodNews' || notice.channel === 'comments')) {
+    return sendGoodNews(token, { channel: notice.channel, title: notice.title, body: notice.body, goodNewsId: notice.goodNewsId });
+  }
+  if (notice.helpRequestId) return sendHelp(token, { channel: notice.channel, title: notice.title, body: notice.body, helpRequestId: notice.helpRequestId });
+  return send(token, notice);
+};
+
 export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/Paris' }, async () => {
+  // First what was held during the quiet hours (récit 6 quinquies), from 8 h. A failure waits
+  // for the next run and never stops the rest.
+  try {
+    await sendHeldNotices(getFirestore(), sendHeld, new Date());
+  } catch (e) {
+    console.error('quietQueue', e);
+  }
   await sendArrivalReminders(getFirestore(), send, new Date());
   // Also the question of the week, on Monday from 9 h (récit 37): one task less to pay for.
   await publishWeeklyQuestion(getFirestore(), send, new Date());
@@ -512,6 +529,7 @@ export const onWeeklyAnswerWritten = onDocumentWritten('weeklyQuestions/{weekId}
 export const onMemberDeletedAnswers = onDocumentDeleted('members/{memberId}', async (event) => {
   await deleteAnswersOf(getFirestore(), event.params.memberId);
   await deleteVotesOf(getFirestore(), event.params.memberId);
+  await deleteQuietQueueOf(getFirestore(), event.params.memberId);
   await deleteSouvenirsOf(getFirestore(), event.params.memberId);
   await deleteTreeDataOf(getFirestore(), event.params.memberId);
   await deleteJoinMeOf(getFirestore(), event.params.memberId);
