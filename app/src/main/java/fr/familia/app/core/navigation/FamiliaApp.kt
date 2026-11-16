@@ -136,6 +136,8 @@ import androidx.compose.ui.graphics.Color
 import fr.familia.app.feature.home.HomeRoute as HomeTab
 import fr.familia.app.feature.discover.DiscoverModule
 import fr.familia.app.feature.polls.rememberPollsToVote
+import fr.familia.app.core.share.canShareApp
+import fr.familia.app.core.share.shareApp
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
@@ -523,6 +525,30 @@ fun FamiliaApp(
         // Pinned: the title bar stays, and takes the surface color once the content scrolls under it
         // (audit DESIGN n°4), so the theme's pattern no longer mixes with the title.
         val topBarScroll = TopAppBarDefaults.pinnedScrollBehavior()
+        // The sheet of my photo (DESIGN-12): my profile and the settings that were under Famille.
+        var accountOpen by rememberSaveable { mutableStateOf(false) }
+        if (accountOpen) {
+            val shareContext = LocalContext.current
+            val inViewAs = LocalViewAs.current.viewed != null
+            AccountSheet(
+                container = container,
+                member = currentMember,
+                actions = AccountActions(
+                    onOpenProfile = if (souvenirsOn) ({ navController.navigate(MemberProfileDestination(currentMember.id)) }) else null,
+                    onOpenAppearance = if (themesOn) ({ navController.navigate(AppearanceDestination) }) else null,
+                    onOpenNotifications = { navController.navigate(NotificationSettingsDestination) },
+                    onOpenHelp = { navController.navigate(HelpDestination) { launchSingleTop = true } },
+                    onOpenUpdates = { navController.navigate(UpdateCheckDestination) },
+                    // Nothing leaves the app while the admin looks through a member's eyes.
+                    onOpenFeedback = if (inViewAs) null else ({ navController.navigate(FeedbackFormDestination(FeedbackOrigin.Family.key)) }),
+                    onShareApp = if (inViewAs) null else ({ owner -> shareApp(shareContext, owner) }),
+                    canShareApp = canShareApp(currentMember),
+                    onOpenChildrenUsage = if (features.isOn(Feature.Usage)) ({ navController.navigate(UsageDestination) }) else null,
+                    onOpenAdministration = { navController.navigate(AdministrationDestination) },
+                ),
+                onDismiss = { accountOpen = false },
+            )
+        }
         Scaffold(
             // The theme's background and its pattern show behind the tabs.
             modifier = Modifier.themeBackground().nestedScroll(topBarScroll.nestedScrollConnection),
@@ -548,6 +574,7 @@ fun FamiliaApp(
                         onWeeklyQuestion = onWeekly,
                         onPolls = if (pollsOn) ({ navController.navigate(PollsDestination) { launchSingleTop = true } }) else null,
                         pollsToVote = if (pollsOn && tab == TopLevelDestination.Planning) rememberPollsToVote(container, currentMember.id) else 0,
+                        onAccount = { accountOpen = true },
                     )
                 }
             },
@@ -1119,17 +1146,10 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             onEditMember = { id -> navController.navigate(MemberEditDestination(id)) },
                             onOpenProfile = if (souvenirsOn) ({ id -> navController.navigate(MemberProfileDestination(id)) }) else null,
-                            onOpenNotifications = { navController.navigate(NotificationSettingsDestination) },
-                            onOpenAdministration = { navController.navigate(AdministrationDestination) },
-                            onOpenUpdates = { navController.navigate(UpdateCheckDestination) },
-                            onOpenHelp = { navController.navigate(HelpDestination) },
-                            onOpenAppearance = if (themesOn) ({ navController.navigate(AppearanceDestination) }) else null,
-                            onOpenChildrenUsage = if (features.isOn(Feature.Usage)) ({ navController.navigate(UsageDestination) }) else null,
                             onOpenRecipes = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipesDestination()) }) else null,
                             onOpenCapsules = if (capsulesOn) ({ navController.navigate(CapsulesDestination) }) else null,
                             onOpenGenealogy = if (features.isOn(Feature.Genealogy)) ({ navController.navigate(GenealogyDestination) }) else null,
                             onOpenWhoIsIt = if (features.isOn(Feature.WhoIsIt)) ({ navController.navigate(WhoIsItDestination) }) else null,
-                            onOpenFeedback = { navController.navigate(FeedbackFormDestination(FeedbackOrigin.Family.key)) },
                             onOpenWishes = if (features.isOn(Feature.Gifts)) {
                                 { id -> navController.navigate(GiftListDestination(wishesListId(id))) }
                             } else {
@@ -1239,6 +1259,8 @@ private fun TabTopBar(
     onPolls: (() -> Unit)? = null,
     /** The polls that wait for my vote: the badge of « Sondages » (BUG-1). */
     pollsToVote: Int = 0,
+    /** My photo, last at the right, opens the sheet of my account and the settings (DESIGN-12). */
+    onAccount: (() -> Unit)? = null,
 ) {
     TopAppBar(
         scrollBehavior = scrollBehavior,
@@ -1304,6 +1326,7 @@ private fun TabTopBar(
                 TopLevelDestination.HelpRequests -> HelpButton(ScreenHelp.HelpRequests)
                 TopLevelDestination.Gifts -> HelpButton(ScreenHelp.Gifts)
             }
+            onAccount?.let { AccountButton(member, onClick = it) }
         },
     )
 }

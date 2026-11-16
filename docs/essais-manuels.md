@@ -408,6 +408,16 @@ Avec l'interrupteur « Le petit geste du jour » allumé, et une Bonne nouvelle 
 ## Les recettes faciles à trouver
 1. Famille : en haut, « Nos trésors » avec les tuiles Recettes, Arbre, Capsules et Qui est-ce ?, chacune seulement si son module est allumé. Avec les quatre, elles vont sur deux rangées de deux. **Attendu :** chaque tuile ouvre son écran. Avec un seul module allumé, la tuile prend toute la largeur.
 2. Avec un autre compte, ajoute une recette. **Attendu :** sur ton Accueil, la puce « Nouvelle recette : … » ouvre cette recette. Elle disparaît 7 jours après. L'auteur ne la voit pas.
+
+## Ma photo en haut à droite (DESIGN-12)
+1. Sur chacun des 5 onglets : **Attendu :** ta photo (ou tes initiales) à droite de la barre du haut, après le « ? ». TalkBack lit « Mon compte et réglages ».
+2. Touche-la. **Attendu :** une feuille s'ouvre avec, dans l'ordre : Mon profil, Apparence, Notifications, Aide, Vérifier les mises à jour, « Une idée ? Un souci ? », Partager Familia. Une ligne absente veut dire que son module est éteint.
+3. Avec le compte de l'admin principal : **Attendu :** « Administration » en dernier, après un trait. Avec un autre compte, pas de ligne Administration.
+4. Avec un parent d'un enfant qui a l'appli (pas l'admin) : **Attendu :** « Temps de mes enfants » dans la feuille.
+5. Touche une ligne. **Attendu :** la feuille se ferme et l'écran s'ouvre.
+6. Onglet Famille : **Attendu :** « Nos trésors » puis les membres, et plus aucun réglage en bas.
+7. En « Voir comme » : **Attendu :** ni « Partager Familia » ni « Une idée ? Un souci ? » dans la feuille.
+
 ## Pensez à moi (récit 43)
 
 Avec le module « Pensez à moi » allumé, un adulte parent d'un enfant de moins de 15 ans et d'un ado de 15 ans ou plus (date de naissance remplie), et un autre compte.

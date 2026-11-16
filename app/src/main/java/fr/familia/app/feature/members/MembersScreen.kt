@@ -34,21 +34,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Groups
-import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.QueryStats
 import androidx.compose.material.icons.outlined.PhotoCamera
-import androidx.compose.material.icons.automirrored.outlined.HelpOutline
-import androidx.compose.material.icons.outlined.AdminPanelSettings
-import androidx.compose.material.icons.outlined.SystemUpdate
-import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.PhotoAlbum
-import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.CircularProgressIndicator
@@ -71,7 +62,6 @@ import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.OutlinedButton
 import fr.familia.app.R
-import fr.familia.app.core.share.canShareApp
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
@@ -83,7 +73,10 @@ import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.feature.members.photo.MemberPhotoEditor
 import fr.familia.app.feature.members.photo.MemberPhotoViewer
 
-/** Famille tab: members grouped by household, then the installed version. Stateless. */
+/**
+ * Famille tab: « Nos trésors », then the members grouped by household. The settings moved to the
+ * sheet of the avatar (DESIGN-12). Stateless.
+ */
 @Composable
 fun MembersScreen(
     state: MembersUiState,
@@ -91,18 +84,6 @@ fun MembersScreen(
     modifier: Modifier = Modifier,
     /** Opens the form; each row and the add button follow the rights in [MembersUiState.Success]. */
     onEditMember: ((memberId: String?) -> Unit)? = null,
-    onOpenNotifications: (() -> Unit)? = null,
-    /** Shown to the admin principal only (PRD, récit 1 ter). */
-    onOpenAdministration: (() -> Unit)? = null,
-    onOpenUpdates: (() -> Unit)? = null,
-    onOpenHelp: (() -> Unit)? = null,
-    /** Famille › Réglages › Apparence, while the Thèmes module is on (DESIGN-7). */
-    onOpenAppearance: (() -> Unit)? = null,
-    /**
-     * « Temps de mes enfants » (carte EXPERT-5): shown to an adult responsible for a child with the
-     * app. The admin principal finds everyone's time in Administration instead.
-     */
-    onOpenChildrenUsage: (() -> Unit)? = null,
     /** « Carnet de recettes », while its module is on (récit 38). */
     onOpenRecipes: (() -> Unit)? = null,
     /** « Capsules temporelles », while their module is on (récit 39). */
@@ -123,10 +104,6 @@ fun MembersScreen(
     onOpenWishes: ((memberId: String) -> Unit)? = null,
     /** Set: every row opens the member's page, whose Modifier keeps the rights of [onEditMember]. */
     onOpenProfile: ((memberId: String) -> Unit)? = null,
-    /** « Partager Familia » (récit 1 bis bis), shown to adults, given the admin principal's first name. */
-    onShareApp: ((ownerFirstName: String?) -> Unit)? = null,
-    /** « Une idée ? Un souci ? » (récit 6 sexies), for every member. */
-    onOpenFeedback: (() -> Unit)? = null,
 ) {
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var photoOf by rememberSaveable { mutableStateOf<String?>(null) }
@@ -214,54 +191,6 @@ fun MembersScreen(
                             onWishesClick = onOpenWishes?.let { open -> { open(member.id) } },
                         )
                     }
-                }
-                val everyone = state.groups.flatMap { it.members }
-                if (onShareApp != null && canShareApp(everyone.firstOrNull { it.id == state.currentMemberId })) {
-                    val ownerName = everyone.firstOrNull { it.id == state.ownerId }?.firstName
-                    item(key = "share-app") { SettingsRow(Icons.Outlined.Share, R.string.share_app_title, onClick = { onShareApp(ownerName) }) }
-                }
-                item(key = "settings-title") {
-                    Column {
-                        HorizontalDivider(Modifier.padding(top = 8.dp))
-                        Text(
-                            stringResource(R.string.members_settings_title),
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .padding(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 16.dp, bottom = 4.dp)
-                                .semantics { heading() },
-                        )
-                    }
-                }
-                if (onOpenNotifications != null) {
-                    item(key = "notifications") {
-                        SettingsRow(Icons.Outlined.Notifications, R.string.notifications_title, onOpenNotifications)
-                    }
-                }
-                if (onOpenAppearance != null) {
-                    item(key = "appearance") { SettingsRow(Icons.Outlined.Palette, R.string.appearance_title, onOpenAppearance) }
-                }
-                val hasChildWithApp = state.groups.any { group ->
-                    group.members.any { it.profile == MemberProfile.ChildWithApp && state.currentMemberId in it.parentIds }
-                }
-                if (onOpenChildrenUsage != null && !state.isOwner && hasChildWithApp) {
-                    item(key = "children-usage") {
-                        SettingsRow(Icons.Outlined.QueryStats, R.string.usage_children_title, onOpenChildrenUsage)
-                    }
-                }
-                if (onOpenAdministration != null && state.isOwner) {
-                    item(key = "administration") {
-                        SettingsRow(Icons.Outlined.AdminPanelSettings, R.string.administration_title, onOpenAdministration)
-                    }
-                }
-                if (onOpenUpdates != null) {
-                    item(key = "updates") { SettingsRow(Icons.Outlined.SystemUpdate, R.string.update_check_title, onOpenUpdates) }
-                }
-                if (onOpenFeedback != null) {
-                    item(key = "feedback") { SettingsRow(Icons.Outlined.Lightbulb, R.string.feedback_title, onOpenFeedback) }
-                }
-                if (onOpenHelp != null) {
-                    item(key = "help") { SettingsRow(Icons.AutoMirrored.Outlined.HelpOutline, R.string.help_title, onOpenHelp) }
                 }
             }
             if (canAdd && onEditMember != null) {
@@ -412,23 +341,6 @@ private fun TreasureBadge(treasure: Treasure) {
         contentAlignment = Alignment.Center,
     ) {
         Icon(treasure.icon, contentDescription = null, tint = treasure.family.dark, modifier = Modifier.size(28.dp))
-    }
-}
-
-/** A settings entry below the members (design: settings live in the Famille tab). */
-@Composable
-private fun SettingsRow(icon: ImageVector, @StringRes labelRes: Int, onClick: () -> Unit, indent: Boolean = false) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .heightIn(min = 56.dp)
-            .padding(start = if (indent) ClaySpacing.screen + 40.dp else ClaySpacing.screen, end = ClaySpacing.screen, top = 12.dp, bottom = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(icon, contentDescription = null)
-        Spacer(Modifier.width(16.dp))
-        Text(stringResource(labelRes), style = MaterialTheme.typography.titleMedium)
     }
 }
 
