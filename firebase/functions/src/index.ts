@@ -36,7 +36,7 @@ import {
   countGesture, countHelpGiven, deleteSouvenirsOf, giveSouvenir, giveYearSouvenirs, isNewWeeklyAnswer, souvenirMark,
 } from './souvenirs';
 import { deleteDigestOf, sendDigests } from './digest';
-import { revealWishes } from './wishesReveal';
+import { revealWishes, thankGivers } from './wishesReveal';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
 initializeApp();
@@ -234,6 +234,11 @@ export const revealGifts = onSchedule({ schedule: '0 7 * * *', timeZone: 'Europe
       console.error(`revealGifts: ${what}`, e);
     }
   }
+});
+
+// « Merci » on « On m'a offert »: its givers are told, once (PRD rév. 189).
+export const onReceivedGiftUpdated = onDocumentUpdated('giftLists/{listId}/received/{itemId}', async (event) => {
+  await thankGivers(getFirestore(), send, event.params.listId, event.data?.before.data(), event.data?.after.data());
 });
 
 // D-21 and D-14 before a birthday (PRD, récit 10).
