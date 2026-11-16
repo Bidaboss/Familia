@@ -1,6 +1,7 @@
 package fr.familia.app.feature.export
 
 import fr.familia.app.core.data.ExportDocument
+import fr.familia.app.core.data.ExportTripChild
 import fr.familia.app.core.data.FamilyData
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -20,7 +21,7 @@ private val prettyJson = Json { prettyPrint = true }
 
 /**
  * The backup file (PRD, récit 6 ter): one JSON object with the members, households, events,
- * answers, help requests, questions of the week and the capsules the admin can read, as stored in Firestore. Ids are kept, so the file can be read back into a new
+ * answers, help requests, questions of the week, the capsules the admin can read and the trips they follow (with steps and items), as stored in Firestore. Ids are kept, so the file can be read back into a new
  * database. Times are written in ISO 8601 (UTC). Documents are sorted by id, so two exports of
  * the same data give the same file.
  */
@@ -36,6 +37,9 @@ fun familyExportJson(data: FamilyData, exportedAt: Instant, appVersion: String):
         put("helpRequests", documents(data.helpRequests))
         put("weeklyQuestions", documents(data.weeklyQuestions))
         put("capsules", documents(data.capsules))
+        put("trips", documents(data.trips))
+        put("tripSteps", tripChildren(data.tripSteps))
+        put("tripItems", tripChildren(data.tripItems))
         put(
             "weeklyAnswers",
             JsonArray(
@@ -64,6 +68,12 @@ fun familyExportJson(data: FamilyData, exportedAt: Instant, appVersion: String):
 
 /** "familia-sauvegarde-2026-11-14.json". */
 fun exportFileName(day: LocalDate): String = "familia-sauvegarde-$day.json"
+
+private fun tripChildren(children: List<ExportTripChild>): JsonArray = JsonArray(
+    children.sortedWith(compareBy({ it.tripId }, { it.id })).map {
+        JsonObject(mapOf("tripId" to JsonPrimitive(it.tripId), "id" to JsonPrimitive(it.id)) + fields(it.fields))
+    },
+)
 
 private fun documents(docs: List<ExportDocument>): JsonArray =
     JsonArray(docs.sortedBy { it.id }.map { JsonObject(mapOf("id" to JsonPrimitive(it.id)) + fields(it.fields)) })
