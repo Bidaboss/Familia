@@ -201,6 +201,7 @@
     <string name="usage_screen_other">Autres écrans</string>
     <string name="feature_weekly_question">Question de la semaine</string>
     <string name="feature_event_albums">Albums des événements</string>
+    <string name="feature_month_slideshow">Diaporama du mois</string>
     <string name="household_rename_action">Renommer le foyer %1$s</string>
     <string name="household_rename_title">Renommer le foyer</string>
     <string name="household_rename_failed_title">Le nom n\'a pas changé</string>
@@ -785,6 +786,13 @@
     <string name="event_album_not_open">L\'album s\'ouvre le jour de l\'événement. Ceux qui ont dit « Je viens » pourront y mettre leurs photos.</string>
     <string name="event_album_empty_coming">Ajoute tes photos du moment : tous ceux qui voient l\'événement les verront.</string>
     <string name="event_album_empty">Pas encore de photo. Ceux qui ont dit « Je viens » peuvent en ajouter.</string>
+    <!-- Diaporama du mois (récit 42) -->
+    <string name="month_title">%1$s en famille</string>
+    <string name="month_home_body">Les photos du mois, les anniversaires, et une vidéo à partager.</string>
+    <string name="month_home_open">Voir le diaporama</string>
+    <string name="month_birthdays">Anniversaires du mois</string>
+    <string name="month_birthday_day">Le %1$d</string>
+    <string name="month_empty">Pas de photo ce mois-ci. Celles des voyages et des événements apparaissent ici.</string>
     <!-- Before a video leaves the app (carte EXPERT-6): the film, the album and the slideshow. -->
     <string name="share_consent_title">Avant de partager</string>
     <string name="share_consent_body">Des enfants apparaissent peut-être sur ces photos. Pense à demander l\'accord de leurs parents avant d\'envoyer la vidéo hors de Familia.</string>
@@ -871,6 +879,10 @@
     <string name="help_screen_trip_edit_body">Donne un nom et des dates, puis coche qui part, dans tous les foyers. Toute la famille suit le voyage par défaut : décoche ceux qui ne doivent pas le voir. Ceux qui partent le suivent toujours.</string>
     <string name="help_screen_trip_step_title">Une étape</string>
     <string name="help_screen_trip_step_body">Choisis le type, le lieu, le départ et l\'arrivée prévue. Avec une heure d\'arrivée, ceux qui partent reçoivent un rappel 3 h après s\'ils n\'ont pas dit « Bien arrivé ».</string>
+    <string name="help_screen_event_album_title">Les photos de l\'événement</string>
+    <string name="help_screen_event_album_body">Toutes les photos de l\'événement, des plus récentes aux plus anciennes. Si tu as dit « Je viens », ajoute jusqu\'à 30 photos à partir du jour de l\'événement. Touche une photo pour la voir en grand. « Faire le film » prépare une vidéo sur ton téléphone, à regarder ou à partager.</string>
+    <string name="help_screen_month_title">Le diaporama du mois</string>
+    <string name="help_screen_month_body">Les photos du mois, prises dans les voyages que tu suis et les événements qui te concernent, et les anniversaires du mois. « Faire le film » en prépare une vidéo sur ton téléphone. Pour ajouter ou retirer une photo, va dans son voyage ou son événement.</string>
     <string name="help_topic_trips_title">Les voyages</string>
     <string name="help_topic_trips_body">Touche « Voyages » en haut du planning. Un voyage a des dates, des personnes qui partent et des étapes. Il apparaît dans le planning de ceux qui le suivent. À chaque arrivée, une personne qui part touche « Bien arrivé » : ceux qui suivent le voyage sont prévenus. Sans « Bien arrivé » 3 h après l\'heure prévue, ceux qui partent reçoivent un rappel. Aucune position GPS n\'est collectée.</string>
     <string name="help_topic_weekly_title">Répondre à la question de la semaine</string>
