@@ -1117,6 +1117,48 @@ service cloud.firestore {
 
     // --- App updates (lot 10) ---------------------------------------------------------------------
 
+    // --- Question de la semaine (récit 37) ------------------------------------------------------
+    //
+    // The server publishes weeklyQuestions/{weekId} each Monday at 9 h and keeps its answerCount:
+    // nothing writes a question from the app. An answer is weeklyQuestions/{weekId}/answers/{memberId},
+    // written by that member only, children with the app included. Before revealAt (48 h after the
+    // question), the answers of the others are read only once one has answered or passed, so
+    // nobody copies (PRD rév. 148, avis [EXPERT] n° 8). Data model: docs/data-model.md.
+
+    function weeklyQuestionPath(weekId) {
+      return /databases/$(database)/documents/weeklyQuestions/$(weekId);
+    }
+
+    // The 5 fields exactly. « Passer » is skipped with no text; an answer is a short text.
+    function isValidAnswer(a, memberId) {
+      return a.keys().hasAll(['memberId', 'memberName', 'text', 'skipped', 'updatedAt'])
+        && a.keys().size() == 5
+        && a.memberId == memberId
+        && a.memberName == me().firstName
+        && a.skipped is bool
+        && (a.skipped ? a.text == null : (a.text is string && a.text.trim().size() > 0 && a.text.size() <= 500))
+        && a.updatedAt == request.time;
+    }
+
+    match /weeklyQuestions/{weekId} {
+      allow read: if isMember();
+      allow write: if false;
+    }
+
+    match /weeklyQuestions/{weekId}/answers/{memberId} {
+      allow read: if isMember()
+        && (memberId == myMemberId()
+            || exists(/databases/$(database)/documents/weeklyQuestions/$(weekId)/answers/$(myMemberId()))
+            || request.time >= get(weeklyQuestionPath(weekId)).data.revealAt);
+
+      allow create, update: if isMember()
+        && memberId == myMemberId()
+        && exists(weeklyQuestionPath(weekId))
+        && isValidAnswer(request.resource.data, memberId);
+
+      allow delete: if isMember() && memberId == myMemberId();
+    }
+
     // config/app: the latest version and the HTTPS link of its APK (docs/mise-a-jour.md), and
     // the module switches `features` (PRD rév. 120). config/family: { ownerMemberId }, the admin
     // principal. Every member reads them. The workflow « APK de publication » writes the version
