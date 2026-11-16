@@ -47,9 +47,10 @@ jobs:
           FAMILIA_KEY_ALIAS: ${{ secrets.FAMILIA_KEY_ALIAS }}
           FAMILIA_KEY_PASSWORD: ${{ secrets.FAMILIA_KEY_PASSWORD }}
           FIREBASE_SECRET_ACCOUNT: ${{ secrets.FIREBASE_SECRET_ACCOUNT }}
+          FAMILIA_DOWNLOAD_URL: ${{ secrets.FAMILIA_DOWNLOAD_URL }}
         run: |
           missing=0
-          for name in FAMILIA_KEYSTORE_BASE64 FAMILIA_KEYSTORE_PASSWORD FAMILIA_KEY_ALIAS FAMILIA_KEY_PASSWORD FIREBASE_SECRET_ACCOUNT; do
+          for name in FAMILIA_KEYSTORE_BASE64 FAMILIA_KEYSTORE_PASSWORD FAMILIA_KEY_ALIAS FAMILIA_KEY_PASSWORD FIREBASE_SECRET_ACCOUNT FAMILIA_DOWNLOAD_URL; do
             if [ -z "${!name}" ]; then
               echo "::error::Le secret GitHub $name manque (Settings, Secrets and variables, Actions)."
               missing=1
@@ -80,6 +81,7 @@ jobs:
           FAMILIA_KEYSTORE_PASSWORD: ${{ secrets.FAMILIA_KEYSTORE_PASSWORD }}
           FAMILIA_KEY_ALIAS: ${{ secrets.FAMILIA_KEY_ALIAS }}
           FAMILIA_KEY_PASSWORD: ${{ secrets.FAMILIA_KEY_PASSWORD }}
+          FAMILIA_DOWNLOAD_URL: ${{ secrets.FAMILIA_DOWNLOAD_URL }}
         run: ./gradlew --no-daemon assembleRelease -PfamiliaVersionCode="$VERSION_CODE"
 
       - name: Check the signature and name the file
@@ -127,16 +129,18 @@ jobs:
       - run: npm ci
         working-directory: firebase/functions
 
-      # The Drive folder comes from DOWNLOAD_URL, the link already in the app and the invitation.
+      # The Drive folder comes from the secret FAMILIA_DOWNLOAD_URL, the link built into the app
+      # and the invitation.
       - name: Publish to the family
         working-directory: firebase/functions
         env:
           FIREBASE_SECRET_ACCOUNT: ${{ secrets.FIREBASE_SECRET_ACCOUNT }}
+          FAMILIA_DOWNLOAD_URL: ${{ secrets.FAMILIA_DOWNLOAD_URL }}
         run: |
           key="$RUNNER_TEMP/firebase-key.json"
           trap 'rm -f "$key"' EXIT
           printf '%s' "$FIREBASE_SECRET_ACCOUNT" > "$key"
-          FOLDER_ID=$(grep -oP 'drive/folders/\K[A-Za-z0-9_-]+' ../../app/build.gradle.kts)
+          FOLDER_ID=$(printf '%s' "$FAMILIA_DOWNLOAD_URL" | grep -oP 'drive/folders/\K[A-Za-z0-9_-]+' || true)
           PROJECT_ID=$(node -p "JSON.parse(require('fs').readFileSync('../.firebaserc', 'utf8')).projects.default")
           FOLDER_ID="$FOLDER_ID" PROJECT_ID="$PROJECT_ID" GOOGLE_APPLICATION_CREDENTIALS="$key" \
             node scripts/publish-release.mjs

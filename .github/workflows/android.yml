@@ -67,6 +67,8 @@ jobs:
       FAMILIA_TEST_KEYSTORE_PASSWORD: ${{ secrets.FAMILIA_TEST_KEYSTORE_PASSWORD }}
       FAMILIA_TEST_KEY_ALIAS: ${{ secrets.FAMILIA_TEST_KEY_ALIAS }}
       FAMILIA_TEST_KEY_PASSWORD: ${{ secrets.FAMILIA_TEST_KEY_PASSWORD }}
+      # The Drive link of the invitation (app/build.gradle.kts). Empty for a contribution from a fork.
+      FAMILIA_DOWNLOAD_URL: ${{ secrets.FAMILIA_DOWNLOAD_URL }}
     steps:
       - uses: actions/checkout@v4
 

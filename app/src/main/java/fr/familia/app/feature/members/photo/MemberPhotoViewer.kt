@@ -32,7 +32,7 @@ import fr.familia.app.R
 import fr.familia.app.core.model.Member
 
 /**
- * The profile photo in full screen, on a dark background (Kévin, 15/11). The back gesture or the
+ * The profile photo in full screen, on a dark background (15/11). The back gesture or the
  * « Fermer » button closes it. [onChange] offers « Changer la photo » to those who may change it.
  */
 @Composable

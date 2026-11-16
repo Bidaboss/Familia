@@ -6,3 +6,5 @@ Appli Android privée pour la famille : planning partagé, anniversaires et cade
 - Installation par APK (dossier Drive), mise à jour proposée à l'ouverture.
 
 Le PRD, le plan de développement et les principes de design sont tenus dans le projet Claude « Familia ».
+
+Le code est public pour être consulté seulement : tous droits réservés (voir [LICENSE](LICENSE)).
