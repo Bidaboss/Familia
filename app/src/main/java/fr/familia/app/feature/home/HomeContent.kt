@@ -23,6 +23,9 @@ import java.time.Instant
 import java.time.ZoneId
 import fr.familia.app.core.model.Poll
 import fr.familia.app.core.model.PollVote
+import fr.familia.app.core.model.leaders
+import fr.familia.app.core.model.tally
+import java.time.Duration
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
@@ -43,6 +46,13 @@ sealed interface HomeTodo {
     /** A poll that asks me and that I have not answered (PRD, récits 2 bis et 2 ter). */
     data class Vote(val poll: Poll, override val date: LocalDate) : HomeTodo
 }
+
+/**
+ * A poll where I voted: it stays on the Accueil until its end, then [HomeWindow.POLL_RESULT_DAYS]
+ * more days with its result ([over]). [leaders] are the options in the lead (or the one chosen),
+ * [leaderVotes] the yes of the first of them.
+ */
+data class HomeVoted(val poll: Poll, val leaders: List<Int>, val leaderVotes: Int, val over: Boolean)
 
 /** A trip I follow, ongoing or to come, with the last « Bien arrivé » while it is ongoing. */
 data class HomeTrip(val trip: Trip, val who: String, val ongoing: Boolean, val lastArrival: TripArrival?)
@@ -73,8 +83,10 @@ sealed interface HomeUiState {
         val occasion: HomeOccasion? = null,
         val trips: List<HomeTrip> = emptyList(),
         val canCreateTrip: Boolean = false,
+        /** The polls where I voted, under « À faire pour moi » (retour d'essai du 16/11). */
+        val voted: List<HomeVoted> = emptyList(),
     ) : HomeUiState {
-        val isEmpty: Boolean get() = todos.isEmpty() && week.isEmpty() && birthdays.isEmpty() && occasion == null && trips.isEmpty()
+        val isEmpty: Boolean get() = todos.isEmpty() && voted.isEmpty() && week.isEmpty() && birthdays.isEmpty() && occasion == null && trips.isEmpty()
     }
 }
 
@@ -82,6 +94,8 @@ sealed interface HomeUiState {
 internal object HomeWindow {
     const val TODO_DAYS = 30L
     const val TODO_SHOWN = 5
+    const val VOTED_SHOWN = 2
+    const val POLL_RESULT_DAYS = 2L
     const val WEEK_DAYS = 7L
     const val WEEK_SHOWN = 3
     const val BIRTHDAY_DAYS = 30L
@@ -123,6 +137,28 @@ internal fun pollsToVote(me: Member, polls: List<Poll>, votes: Map<String, List<
             val first = if (poll.kind == Poll.Kind.Date) poll.options.mapNotNull { Poll.dateOption(it)?.first }.minOrNull() else null
             val ends = poll.closesAt?.atZone(ZoneId.of("Europe/Paris"))?.toLocalDate()
             HomeTodo.Vote(poll, maxOf(first ?: ends ?: today, today))
+        }
+
+/**
+ * A poll stays on the Accueil while it is open, and [HomeWindow.POLL_RESULT_DAYS] days after its
+ * end date to show the result. One closed by hand has no date of closing: it goes at once,
+ * unless its end date is still to come.
+ */
+internal fun showsOnHome(poll: Poll, now: Instant): Boolean =
+    poll.isOpen(now) || (poll.closesAt != null && now < poll.closesAt.plus(Duration.ofDays(HomeWindow.POLL_RESULT_DAYS)))
+
+/** The polls that asked me and where I voted, the soonest to end first. */
+internal fun pollsVoted(me: Member, polls: List<Poll>, votes: Map<String, List<PollVote>>, now: Instant): List<HomeVoted> =
+    polls
+        .filter { me.id in it.askedIds && showsOnHome(it, now) }
+        .filter { poll -> votes[poll.id].orEmpty().any { it.memberId == me.id } }
+        .sortedBy { it.closesAt ?: Instant.MAX }
+        .take(HomeWindow.VOTED_SHOWN)
+        .map { poll ->
+            val all = votes[poll.id].orEmpty()
+            val lead = poll.chosen?.let { listOf(it) } ?: leaders(poll, all).sorted()
+            val count = lead.firstOrNull()?.let { tally(poll, all).getOrNull(it)?.yes?.size } ?: 0
+            HomeVoted(poll, lead, count, over = !poll.isOpen(now))
         }
 
 /** The events of the next 7 days that concern me, by date. */
@@ -176,6 +212,7 @@ internal fun homeState(
     occasion: HomeOccasion?,
     trips: List<HomeTrip>,
     toVote: List<HomeTodo.Vote> = emptyList(),
+    voted: List<HomeVoted> = emptyList(),
 ): HomeUiState.Ready {
     val week = week(me, family, events, today)
     return HomeUiState.Ready(
@@ -187,5 +224,6 @@ internal fun homeState(
         occasion = occasion,
         trips = trips,
         canCreateTrip = canCreateTrip(me),
+        voted = voted,
     )
 }
