@@ -438,3 +438,9 @@ Avec le module « Pensez à moi » allumé, un adulte parent d'un enfant de moin
 3. Avec le compte de l'ado, ouvre sa fiche. **Attendu :** « Noté par … » avec « Oui » et « Non merci ».
 4. Le jour J vers 10 h. **Attendu :** les autres reçoivent « Pensez à … aujourd'hui ». Sur la fiche, « Aujourd'hui : « … » » et un champ pour un mot. Le membre reçoit « … pense à toi. » à chaque mot. Rien le lendemain.
 5. En « Voir comme », ouvre une fiche. **Attendu :** ni champ ni bouton, la lecture seule.
+
+## Partager une bonne nouvelle ou un coup de main (récit 31)
+Avec l'interrupteur « Partager » allumé :
+1. Ouvre une bonne nouvelle d'un adulte avec une photo, touche Partager en haut : l'image porte la photo, le message donne le début du texte et le lien.
+2. Ouvre la bonne nouvelle d'un enfant d'un autre foyer : l'image part sans la photo. Celle de ton enfant part avec.
+3. Ouvre un coup de main que tu as demandé, encore ouvert : Partager donne le titre et le moment, sans le lieu ni la note. Une fois pris, le bouton disparaît, et il n'apparaît jamais sur la demande de quelqu'un d'autre.

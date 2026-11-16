@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Reaction
+import fr.familia.app.core.share.ShareButton
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClaySpacing
@@ -52,11 +53,17 @@ fun GoodNewsDetailScreen(
     onDismissError: () -> Unit,
     onBack: () -> Unit,
     wishes: (@Composable (Member) -> Unit)? = null,
+    /** « Partager » (récit 31), while its module is on. */
+    onShare: (() -> Unit)? = null,
 ) {
     var removing by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.goodnews_detail_title)) }, navigationIcon = { BackButton(onClick = onBack) })
+            TopAppBar(
+                title = { Text(stringResource(R.string.goodnews_detail_title)) },
+                navigationIcon = { BackButton(onClick = onBack) },
+                actions = { onShare?.let { ShareButton(onClick = it) } },
+            )
         },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {

@@ -16,5 +16,7 @@ sealed interface GoodNewsDetailUiState {
         val now: Instant,
         val actionFailed: Boolean = false,
         val birthdayPerson: Member? = null,
+        /** Its first photo may leave Familia with a share (carte EXPERT-2). */
+        val photoShareable: Boolean = false,
     ) : GoodNewsDetailUiState
 }

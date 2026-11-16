@@ -320,6 +320,7 @@ class ReadOnlyPhotoStorage(private val inner: PhotoStorage, private val guard: V
     override suspend fun upload(path: String, jpeg: ByteArray) = guard.refuse()
     override suspend fun downloadUrl(path: String): String = inner.downloadUrl(path)
     override suspend fun delete(path: String) = guard.refuse()
+    override suspend fun bytes(path: String, maxBytes: Long): ByteArray? = inner.bytes(path, maxBytes)
 }
 
 class ReadOnlyPhotoUploader(private val guard: ViewAsGuard) : PhotoUploader {
