@@ -5,7 +5,7 @@ import { after, beforeEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { notebookEntryId } from '../src/notebook';
+import { notebookEntryId, syncNotebookEntry } from '../src/notebook';
 import { copiedItemId, keptOccasion, migrateToSingleList, singleListTarget, widenedAudience } from '../src/singleList';
 import { revealGiftLists } from '../src/gifts';
 import { revealWishesOf } from '../src/wishesReveal';
@@ -118,7 +118,11 @@ describe('single list migration', () => {
     assert.equal(entry.get('itemId'), id);
     // The old entry stays, and says where it went: the app shows only one.
     const old = await db.doc(`notebooks/camille/entries/${notebookEntryId('noel-ines', 'book')}`).get();
-    assert.equal(old.get('movedTo'), notebookEntryId('wishes-ines', id));
+    assert.equal(old.get('movedTo'), notebookEntryId('wishes-ines', id));    // The trigger of the copied reservation runs after the batch: it keeps the state and the note.
+    await syncNotebookEntry(db, 'wishes-ines', id, 'camille');
+    const synced = await db.doc(`notebooks/camille/entries/${notebookEntryId('wishes-ines', id)}`).get();
+    assert.equal(synced.get('status'), 'bought');
+    assert.equal(synced.get('note'), 'Caché au grenier');
   });
 
   test('turned on twice, nothing is copied twice, even a copy deleted since', async () => {
