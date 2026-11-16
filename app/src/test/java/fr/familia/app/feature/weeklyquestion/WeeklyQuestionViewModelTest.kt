@@ -37,10 +37,12 @@ private class FakeWeeklyQuestions(questions: List<WeeklyQuestion>, answers: List
     override fun observeAnswers(questionId: String): Flow<List<WeeklyAnswer>> =
         answers.map { list -> list.filter { it.first == questionId }.map { it.second } }
 
-    override suspend fun answer(questionId: String, memberId: String, memberName: String, text: String?) {
+    override suspend fun answer(questionId: String, memberId: String, memberName: String, text: String?, photoId: String?) {
         answers.value = answers.value.filterNot { it.first == questionId && it.second.memberId == memberId } +
-            (questionId to WeeklyAnswer(memberId, memberName, text, text == null, null))
+            (questionId to WeeklyAnswer(memberId, memberName, text, text == null, null, photoId))
     }
+
+    override fun newPhotoId(): String = "p${answers.value.size + 1}"
 
     override suspend fun removeAnswer(questionId: String, memberId: String) {
         answers.value = answers.value.filterNot { it.first == questionId && it.second.memberId == memberId }
@@ -134,5 +136,38 @@ class WeeklyQuestionViewModelTest {
 
         repo.questions.value = emptyList()
         assertEquals(WeeklyArchiveUiState.Empty, archive.uiState.value)
+    }
+
+    @Test
+    fun `a photo is sent before the answer that names it, kept on a change, and can be dropped`() = runTest {
+        val repo = FakeWeeklyQuestions(listOf(monday))
+        val sent = mutableListOf<String>()
+        val vm = WeeklyQuestionViewModel(repo, FakeMembers(), "adult1", null, clock = { published.plusSeconds(3600) }) { _, photo, thumb ->
+            sent += listOf(photo, thumb)
+        }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+
+        vm.answer("Des crêpes", newPhoto = "content://photo/1")
+        assertEquals(listOf("weeklyQuestions/2026-11-30/adult1/p1.jpg", "weeklyQuestions/2026-11-30/adult1/p1-thumb.jpg"), sent)
+        assertEquals("p1", repo.answers.value.single().second.photoId)
+
+        vm.answer("Des crêpes au sucre")
+        assertEquals("p1", repo.answers.value.single().second.photoId)
+
+        vm.answer("Des crêpes au sucre", keepPhoto = false)
+        assertNull(repo.answers.value.single().second.photoId)
+        assertEquals(2, sent.size)
+    }
+
+    @Test
+    fun `a photo that cannot be sent leaves no answer and says so`() = runTest {
+        val repo = FakeWeeklyQuestions(listOf(monday))
+        val vm = WeeklyQuestionViewModel(repo, FakeMembers(), "adult1", null, clock = { published.plusSeconds(3600) }) { _, _, _ ->
+            throw java.io.IOException("unreadable")
+        }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        vm.answer("Des crêpes", newPhoto = "content://photo/1")
+        assertTrue(repo.answers.value.isEmpty())
+        assertTrue((vm.uiState.value as WeeklyQuestionUiState.Success).failed)
     }
 }

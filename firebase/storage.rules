@@ -57,6 +57,21 @@ service firebase.storage {
       allow delete: if isMember() && authorId == myMemberId();
     }
 
+    // Question de la semaine (PRD, récit 37): one optional photo per answer,
+    // weeklyQuestions/{weekId}/{memberId}/{photoId}.jpg and its {photoId}-thumb.jpg, sent by the
+    // member before the answer that names it. The Cloud Function deletes a photo once its answer
+    // drops it or is removed.
+    match /weeklyQuestions/{weekId}/{memberId}/{fileName} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && resource == null
+        && memberId == myMemberId()
+        && weekId.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && ((fileName.matches('^[A-Za-z0-9]{1,40}[.]jpg$') && isJpegUnder(512 * 1024))
+            || (fileName.matches('^[A-Za-z0-9]{1,40}-thumb[.]jpg$') && isJpegUnder(64 * 1024)));
+      allow delete: if isMember() && memberId == myMemberId();
+    }
+
     // --- Everything else is closed --------------------------------------------------------------
     match /{allPaths=**} {
       allow read, write: if false;

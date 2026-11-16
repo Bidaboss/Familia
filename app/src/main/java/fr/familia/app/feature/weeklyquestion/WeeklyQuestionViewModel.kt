@@ -7,6 +7,9 @@ import fr.familia.app.core.data.WeeklyQuestionRepository
 import fr.familia.app.core.model.WEEKLY_ANSWER_MAX
 import fr.familia.app.core.model.WeeklyAnswer
 import fr.familia.app.core.model.WeeklyQuestion
+import fr.familia.app.core.model.weeklyPhotoPath
+import fr.familia.app.core.model.weeklyThumbnailPath
+import fr.familia.app.core.photo.PhotoUploader
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -36,6 +39,7 @@ class WeeklyQuestionViewModel(
     private val currentMemberId: String,
     private val questionId: String?,
     private val clock: () -> Instant = Instant::now,
+    private val uploader: PhotoUploader? = null,
 ) : ViewModel() {
 
     private data class Action(val busy: Boolean = false, val failed: Boolean = false)
@@ -84,10 +88,26 @@ class WeeklyQuestionViewModel(
     val uiState: StateFlow<WeeklyQuestionUiState> =
         source.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), WeeklyQuestionUiState.Loading)
 
-    /** Answers, or changes one's answer. An empty text does nothing: « Passer » is its own button. */
-    fun answer(text: String) {
+    /**
+     * Answers, or changes one's answer. An empty text does nothing: « Passer » is its own button.
+     * [newPhoto] (a content URI) is sent first and replaces the photo; otherwise [keepPhoto] keeps
+     * the photo already there or drops it. The server deletes a photo no answer names any more.
+     */
+    fun answer(text: String, newPhoto: String? = null, keepPhoto: Boolean = true) {
         val clean = cleanAnswer(text) ?: return
-        write { q, name -> questions?.answer(q.id, currentMemberId, name, clean) }
+        val kept = (uiState.value as? WeeklyQuestionUiState.Success)?.myAnswer?.photoId?.takeIf { keepPhoto }
+        write { q, name ->
+            val repo = questions ?: return@write
+            val photoId = if (newPhoto != null) {
+                val send = uploader ?: error("No photo uploader")
+                repo.newPhotoId().also { id ->
+                    send.upload(newPhoto, weeklyPhotoPath(q.id, currentMemberId, id), weeklyThumbnailPath(q.id, currentMemberId, id))
+                }
+            } else {
+                kept
+            }
+            repo.answer(q.id, currentMemberId, name, clean, photoId)
+        }
     }
 
     /** « Passer »: no answer this week, and the others' answers show. */

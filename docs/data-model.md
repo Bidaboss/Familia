@@ -466,6 +466,7 @@ La liste « À prévoir » du voyage (récit 13) : ce qu'il faut apporter ou ré
 | `assigneeName` | texte ou null | Son prénom, gardé pour que la ligne reste lisible s'il quitte le voyage. Null avec `assigneeId` |
 | `done` | booléen | Coché quand c'est fait |
 | `updatedAt` | horodatage serveur | |
+| `photoId` | texte ou null, facultatif | La photo de la réponse, jamais pour « Passer ». Storage : `weeklyQuestions/{weekId}/{memberId}/{photoId}.jpg` (512 Ko au plus) et `{photoId}-thumb.jpg` (64 Ko au plus), envoyées par le membre avant la réponse. Tous les membres lisent les photos. |
 
 Droits : les lecteurs du voyage lisent la liste. Les participants, enfants compris, ajoutent, cochent, modifient et retirent les lignes. L'admin principal peut retirer une ligne. La personne en charge est forcément un participant. La suppression du voyage supprime sa liste sur le serveur. Tests : `firebase/tests/trips.test.mjs`.
 
@@ -515,7 +516,7 @@ Cloud Functions (`functions/src/weeklyQuestion.ts`) :
 | Fonction | Déclencheur | Rôle |
 |---|---|---|
 | `publishWeeklyQuestion`, appelée par `arrivalReminder` | toutes les 30 minutes, agit le lundi à partir de 9 h | Publie la question de la semaine et prévient chaque membre qui a l'appli, sauf ceux qui ont coupé `weekly`. Canal `weekly`, donnée `weeklyQuestionId`. Ne fait rien deux fois le même lundi. Pas de tâche planifiée à part : Cloud Scheduler n'en offre que 3 gratuites. |
-| `onWeeklyAnswerWritten` | réponse écrite ou retirée | Recompte `answerCount`. |
+| `onWeeklyAnswerWritten` | réponse écrite ou retirée | Recompte `answerCount`, et supprime de Storage la photo qu'une réponse ne nomme plus (photo changée ou retirée, « Passer », réponse retirée ou membre parti). |
 | `onMemberDeletedAnswers` | suppression d'un membre | Retire ses réponses (carte EXPERT-1). |
 
-Plus tard : la photo facultative d'une réponse, la sauvegarde JSON des questions et réponses, le choix et l'ajout de questions dans Administration, les questions proposées par les membres, la feuille de l'arbre (récit 35) et le regroupement avec les autres rendez-vous en une notification par jour (carte AVIS-14).
+Plus tard : le choix et l'ajout de questions dans Administration, les questions proposées par les membres, la feuille de l'arbre (récit 35) et le regroupement avec les autres rendez-vous en une notification par jour (carte AVIS-14).

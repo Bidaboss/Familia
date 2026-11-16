@@ -871,5 +871,8 @@
     <string name="weekly_failed_title">Ça n\'a pas marché</string>
     <string name="weekly_failed_body">Ta réponse n\'a pas été enregistrée. Vérifie ta connexion et réessaie.</string>
     <string name="weekly_open">Ouvrir la question de la semaine</string>
+    <string name="weekly_photo_add">Ajouter une photo</string>
+    <string name="weekly_photo_remove">Retirer la photo</string>
+    <string name="weekly_photo_description">Photo jointe à la réponse</string>
     <string name="weekly_see_answers">Voir les réponses</string>
 </resources>

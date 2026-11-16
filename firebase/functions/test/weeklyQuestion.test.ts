@@ -9,7 +9,7 @@ import { Notice } from '../src/logic';
 import { QUESTION_BANK } from '../src/questionBank';
 import { Sender } from '../src/store';
 import {
-  countAnswers, deleteAnswersOf, FIRST_DAY, inSeason, pickQuestion, publishWeeklyQuestion, REVEAL_AFTER_MS,
+  countAnswers, deleteAnswersOf, FIRST_DAY, inSeason, pickQuestion, publishWeeklyQuestion, removeOldAnswerPhoto, REVEAL_AFTER_MS,
 } from '../src/weeklyQuestion';
 
 describe('which question comes out', () => {
@@ -46,6 +46,23 @@ describe('which question comes out', () => {
   test('the same Monday always draws the same question', () => {
     const recent = new Set(['q01', 'q02']);
     assert.equal(pickQuestion(QUESTION_BANK, recent, '2027-03-08')?.id, pickQuestion(QUESTION_BANK, recent, '2027-03-08')?.id);
+  });
+});
+
+describe('the photo of an answer', () => {
+  test('goes when the answer drops it, changes it or is removed, and stays otherwise', async () => {
+    const removed: string[] = [];
+    const remove = async (paths: string[]) => { removed.push(...paths); };
+    const week = '2026-11-30';
+    assert.equal(await removeOldAnswerPhoto(remove, week, 'kid1', { photoId: 'p1' }, { photoId: 'p1' }), false);
+    assert.equal(await removeOldAnswerPhoto(remove, week, 'kid1', undefined, { photoId: 'p1' }), false);
+    assert.equal(await removeOldAnswerPhoto(remove, week, 'kid1', { photoId: null }, undefined), false);
+    assert.deepEqual(removed, []);
+    assert.equal(await removeOldAnswerPhoto(remove, week, 'kid1', { photoId: 'p1' }, { photoId: 'p2' }), true);
+    assert.deepEqual(removed, ['weeklyQuestions/2026-11-30/kid1/p1.jpg', 'weeklyQuestions/2026-11-30/kid1/p1-thumb.jpg']);
+    removed.length = 0;
+    assert.equal(await removeOldAnswerPhoto(remove, week, 'kid1', { photoId: 'p2' }, undefined), true);
+    assert.deepEqual(removed, ['weeklyQuestions/2026-11-30/kid1/p2.jpg', 'weeklyQuestions/2026-11-30/kid1/p2-thumb.jpg']);
   });
 });
 
