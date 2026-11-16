@@ -499,13 +499,14 @@ service cloud.firestore {
       allow create, update: if isMember()
         && myMemberId() == memberId
         && settingId == 'notifications'
-        && request.resource.data.keys().hasOnly(['dayBeforeReminder', 'goodNews', 'weekly', 'souvenirs', 'tree', 'recap'])
+        && request.resource.data.keys().hasOnly(['dayBeforeReminder', 'goodNews', 'weekly', 'souvenirs', 'tree', 'recap', 'birthdayWishes'])
         && (!('dayBeforeReminder' in request.resource.data) || request.resource.data.dayBeforeReminder is bool)
         && (!('goodNews' in request.resource.data) || request.resource.data.goodNews is bool)
         && (!('weekly' in request.resource.data) || request.resource.data.weekly is bool)
         && (!('souvenirs' in request.resource.data) || request.resource.data.souvenirs is bool)
         && (!('tree' in request.resource.data) || request.resource.data.tree is bool)
-        && (!('recap' in request.resource.data) || request.resource.data.recap is bool);
+        && (!('recap' in request.resource.data) || request.resource.data.recap is bool)
+        && (!('birthdayWishes' in request.resource.data) || request.resource.data.birthdayWishes is bool);
     }
 
     // L'arbre de la famille et le défi du mois (PRD, récit 35): familyTree/current and
@@ -865,6 +866,44 @@ service cloud.firestore {
       allow update: if isMember() && (isGoodNewsReaction() || isGoodNewsHide() || isGoodNewsEdit());
 
       allow delete: if isMember() && canRemoveGoodNews(resource.data);
+    }
+
+    // --- Vœux d'anniversaire (PRD, récit 36, avis EXPERT n° 11) ---------------------------------
+    //
+    // birthdayCards/{year}-{forMemberId}-{authorId}: one card per member and per birthday, a short
+    // word to the person celebrated. It can be written only on the day: while the Bonne nouvelle
+    // goodNews/birthday-{year}-{forMemberId} that Familia publishes that morning exists. The whole
+    // family reads the cards (the person's page, the Bonne nouvelle); the author changes or removes
+    // theirs. Nobody else writes one, and the app never shows how many there are.
+
+    function isBirthdayCardText(t) {
+      return t is string && t.trim().size() > 0 && t.size() <= 280;
+    }
+
+    match /birthdayCards/{cardId} {
+      allow read: if isMember();
+
+      allow create: if isMember()
+        && request.resource.data.keys().hasOnly(['forMemberId', 'authorId', 'authorName', 'text', 'year', 'createdAt', 'updatedAt'])
+        && request.resource.data.keys().hasAll(['forMemberId', 'authorId', 'authorName', 'text', 'year', 'createdAt', 'updatedAt'])
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.forMemberId is string
+        && request.resource.data.forMemberId != myMemberId()
+        && request.resource.data.year is int
+        && cardId == string(request.resource.data.year) + '-' + request.resource.data.forMemberId + '-' + myMemberId()
+        && exists(/databases/$(database)/documents/goodNews/$('birthday-' + string(request.resource.data.year) + '-' + request.resource.data.forMemberId))
+        && isBirthdayCardText(request.resource.data.text)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if isMember()
+        && resource.data.authorId == myMemberId()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'updatedAt'])
+        && isBirthdayCardText(request.resource.data.text)
+        && request.resource.data.updatedAt == request.time;
+
+      allow delete: if isMember() && resource.data.authorId == myMemberId();
     }
 
     // --- Sondages (PRD, récits 2 bis et 2 ter) ---------------------------------------------------
@@ -2023,7 +2062,7 @@ service cloud.firestore {
       allow update: if docId == 'app'
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['features'])
         && request.resource.data.features is map
-        && request.resource.data.features.size() <= 30
+        && request.resource.data.features.size() <= 40
         && isOwner();
       allow create, delete: if false;
     }

@@ -151,6 +151,7 @@ Droits : seul le membre lui-même lit, ajoute ou supprime ses téléphones. Les 
 | `dayBeforeReminder` | booléen | `false` coupe le rappel de la veille (PRD, récit 6 bis). Sans document, le rappel est actif. |
 | `goodNews` | booléen, facultatif | `false` coupe les notifications des Bonnes nouvelles (récit 32). Sans valeur, elles sont actives. Ne coupe pas l'avis aux adultes responsables quand un enfant publie (carte AVIS-12). |
 | `recap` | booléen, facultatif | `false` coupe « La semaine de la famille », le récap du dimanche à 18 h (récit 36). Sans valeur, il est actif. |
+| `birthdayWishes` | booléen, facultatif | `false` coupe les avis des vœux d'anniversaire (récit 36) : « C'est l'anniversaire de … » et, pour soi, les cartes reçues. Sans valeur, ils sont actifs. |
 | `souvenirs` | booléen, facultatif | `false` coupe l'avis « Nouveau souvenir » (récit 34). Sans valeur, il est actif. |
 | `tree` | booléen, facultatif | `false` coupe l'avis « Défi réussi » (récit 35). Sans valeur, il est actif. |
 | `weekly` | booléen, facultatif | `false` coupe l'avis de la question de la semaine (récit 37), et plus tard les autres rendez-vous de la semaine. Sans valeur, il est actif. |
@@ -162,6 +163,22 @@ Droits : seul le membre lui-même lit et modifie ses réglages. L'appli écrit c
 Un document par dimanche, posé par la tâche de 18 h quand elle envoie « La semaine de la famille » : il garantit un seul envoi par semaine (`sentAt`, `expireAt` à 40 jours, effacé par le TTL de Firestore). Aucune règle ne l'ouvre.
 
 Le dimanche, si le module `recap` est allumé, chaque membre qui a l'appli et n'a pas coupé `recap` reçoit une notification (canal `recap`, discret, donnée `recapWeek`) qui résume la semaine : les photos des Bonnes nouvelles des 7 derniers jours, les anniversaires des 14 prochains jours, la jauge du défi (si le module `tree` est allumé) et les voyages en cours que ce membre peut voir (`readerIds` : un voyage surprise reste caché). Sans nouvelle, le texte reste simple : « Les nouvelles de la famille, en un coup d'œil. » Au toucher, l'écran « La semaine de la famille » (`feature/recap`) relit lui-même ce que le membre peut voir : les 3 photos de la semaine (les plus aimées d'abord, sans compte ni nom, sans les Bonnes nouvelles qu'il a masquées), les anniversaires des 14 prochains jours, la jauge du défi et les voyages en cours qu'il suit. Chaque partie suit son module (`goodNews`, `trips`, `tree`).
+
+### `birthdayCards/{AAAA}-{forMemberId}-{authorId}` (récit 36, vœux d'anniversaire)
+
+Une carte de vœux par membre et par anniversaire, derrière le module `birthdayWishes`.
+
+| Champ | Type | Description |
+|---|---|---|
+| `forMemberId` | id de membre | La personne fêtée. Jamais soi-même. |
+| `authorId`, `authorName` | id, texte | Qui écrit, signé de son prénom. |
+| `text` | texte, 1 à 280 caractères | Le mot de la carte. |
+| `year` | entier | L'année de l'anniversaire. |
+| `createdAt`, `updatedAt` | horodatages serveur | |
+
+Droits : toute la famille lit les cartes (la fiche de la personne, la Bonne nouvelle du jour). Un membre écrit la sienne seulement le jour J, c'est-à-dire tant que la Bonne nouvelle `goodNews/birthday-{AAAA}-{forMemberId}` existe. L'auteur change le texte ou retire sa carte ; personne d'autre n'y touche. L'appli ne montre jamais combien il y en a, ni qui n'en a pas envoyé, et il n'y a aucune relance (avis EXPERT n° 11).
+
+Le jour J, la tâche de 10 h (`birthdayGiftReminders`) publie la Bonne nouvelle de Familia (`birthdayOf`, sans photo, `authorId` = `familia`), une seule fois, puis prévient la famille qui a l'appli, sauf la personne et ceux qui ont coupé `birthdayWishes` : « C'est l'anniversaire de Léa », « Envoie-lui tes vœux. » (canal `birthdays`, donnée `birthdayOf`). Chaque carte prévient la personne fêtée (`onBirthdayCardWritten`) avec les prénoms de tous ceux qui ont écrit ce jour-là, jamais un nombre ; les avis du jour portent la même étiquette (`birthdayCards-{AAAA}`) et se remplacent sur le téléphone. Quand un membre part, ses cartes écrites et reçues sont effacées.
 
 « Il y a un an » (récit 36, module `yearAgo`) : une carte de l'Accueil, sans notification ni donnée nouvelle. L'appli lit les Bonnes nouvelles publiées le même jour un an plus tôt (`createdAt` entre minuit et minuit, heure de Paris) et, sinon, les photos d'album (`trips/{tripId}/photos`) prises ce jour-là dans les voyages que le membre suit (`readerIds`). Une Bonne nouvelle qu'il a masquée, un « Défi réussi » de Familia et un souvenir qu'il a écarté ne s'affichent pas. « Ne plus me montrer ce souvenir » est gardé sur le téléphone (préférences `yearAgoDismissed-{memberId}`), rien n'est écrit dans Firestore ; il n'est pas proposé en « Voir comme ».
 
