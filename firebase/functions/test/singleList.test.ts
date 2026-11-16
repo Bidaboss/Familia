@@ -6,7 +6,10 @@ import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { notebookEntryId } from '../src/notebook';
-import { copiedItemId, keptOccasion, migrateToSingleList, singleListTarget } from '../src/singleList';
+import { copiedItemId, keptOccasion, migrateToSingleList, singleListTarget, widenedAudience } from '../src/singleList';
+import { revealGiftLists } from '../src/gifts';
+import { revealWishesOf } from '../src/wishesReveal';
+import type { Sender } from '../src/store';
 
 describe('single list logic', () => {
   test('what the beneficiary sees goes to their wishes, the rest to the ideas', () => {
@@ -22,6 +25,13 @@ describe('single list logic', () => {
     assert.equal(keptOccasion('birth'), null);
     assert.equal(keptOccasion('other'), null);
     assert.equal(keptOccasion(null), null);
+  });
+
+  test('a copy never reaches a member the list was kept from', () => {
+    const members = [{ id: 'ines', profile: 'adult' }, { id: 'camille', profile: 'adult' }, { id: 'leo', profile: 'childWithApp' }, { id: 'noa', profile: 'childWithoutApp' }];
+    assert.deepEqual(widenedAudience('ines', ['camille'], members), ['leo']);
+    assert.deepEqual(widenedAudience('ines', ['camille', 'leo'], members), []);
+    assert.deepEqual(widenedAudience('ines', undefined, members), ['camille', 'leo']);
   });
 });
 
@@ -128,6 +138,40 @@ describe('single list migration', () => {
     await migrateToSingleList(db);
     assert.equal((await lists.doc('wishes-ines').collection('items').get()).size, 2);
     assert.equal((await lists.doc('wishes-ines').get()).get('title'), 'Mes envies');
+  });
+
+  test('a list hidden from a member is left as it is, and marked skipped', async () => {
+    await db.doc('members/leo').set({ firstName: 'Sacha', profile: 'childWithApp', householdId: 'h2', parentIds: [] });
+    await lists.doc('noel-ines').update({ viewerIds: ['camille', 'ines', 'leo'] });
+    // The surprise list is seen by Camille only: Sacha would read its copy in the ideas.
+    assert.equal(await migrateToSingleList(db), 2);
+    assert.equal((await lists.doc('ideas-ines').collection('items').doc(copiedItemId('surprise-ines', 'scarf')).get()).exists, false);
+    assert.equal((await db.doc('migrations/singleList/lists/surprise-ines').get()).get('status'), 'skipped');
+    assert.equal((await db.doc('migrations/singleList/lists/noel-ines').get()).get('status'), 'copied');
+  });
+
+  test('a copied surprise is revealed the day after the date of its list, not before', async () => {
+    // A birthday on the 12th, celebrated at a dinner on the 21st.
+    await lists.doc('surprise-ines').update({ date: '2026-11-21' });
+    await lists.doc('surprise-ines').collection('claims').doc('scarf').set({ type: 'solo', holderId: 'camille', holderName: 'Camille', createdAt: made });
+    await migrateToSingleList(db);
+    const id = copiedItemId('surprise-ines', 'scarf');
+    assert.equal((await lists.doc('ideas-ines').collection('claims').doc(id).get()).get('revealAfter'), '2026-11-21');
+    const ines = { id: 'ines', firstName: 'Inès', profile: 'adult' as const, parentIds: [], birthDate: '1990-11-12' };
+    assert.equal(await revealWishesOf(db, ines, [ines], '2026-11-17', 'ideas'), 0);
+    assert.equal(await revealWishesOf(db, ines, [ines], '2026-11-21', 'ideas'), 0);
+    assert.equal(await revealWishesOf(db, ines, [ines], '2026-11-22', 'ideas'), 1);
+    assert.equal((await lists.doc('wishes-ines').collection('received').doc(`idea-${id}`).get()).exists, true);
+  });
+
+  test('a copied list is not revealed a second time by the old lists', async () => {
+    await migrateToSingleList(db);
+    const send: Sender = async () => 'ok';
+    assert.equal(await revealGiftLists(db, send, new Date('2026-12-26T06:00:00Z')), 0);
+    assert.equal((await lists.doc('noel-ines').get()).get('revealed'), false);
+    // Turned off again, the old lists are revealed as before.
+    await db.doc('config/app').set({ features: { gifts: true } });
+    assert.equal(await revealGiftLists(db, send, new Date('2026-12-26T06:00:00Z')), 2);
   });
 
   test('nothing while the switch is off', async () => {

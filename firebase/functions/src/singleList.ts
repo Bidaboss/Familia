@@ -9,6 +9,13 @@
 //   « Idées de la famille » (ideas-{id}).
 // - Its reservation, the parts of a joint gift and the notebook entries of the givers follow it.
 //
+// - A list is copied only when every member who reads the target list already reads it (its
+//   viewerIds): a copy never shows a gift to someone its creator kept it from. Any other list is
+//   left as it is, logged and marked skipped in migrations/singleList/lists/{listId}.
+// - The day after the date of the list stays the day of the reveal (revealAfter on the reservation).
+// - A list copied is marked copied there too: the morning reveal of the old lists leaves it alone,
+//   so its beneficiary is never told twice about the same gift.
+//
 // Idempotent: each item is copied in one batch together with its mark, migrations/singleList/items/
 // {listId}_{itemId}; a marked item is never copied again, even after a deletion of its copy, so
 // turning the switch on twice makes no duplicate.
@@ -35,27 +42,51 @@ export function copiedItemId(listId: string, itemId: string): string {
 }
 
 const MARKS = 'migrations/singleList/items';
+export const LIST_MARKS = 'migrations/singleList/lists';
+
+/**
+ * The members who would read the copy of a list of [beneficiaryId] but not the list itself
+ * ([viewerIds]). « Mes envies » and the ideas are both read by the whole family but the person
+ * (who, in « Mes envies », only gets what they already saw); a child without the app reads nothing.
+ */
+export function widenedAudience(beneficiaryId: string, viewerIds: unknown, members: { id: string; profile?: unknown }[]): string[] {
+  const viewers = new Set(Array.isArray(viewerIds) ? viewerIds.map(String) : []);
+  return members
+    .filter((m) => m.profile !== 'childWithoutApp' && m.id !== beneficiaryId && !viewers.has(m.id))
+    .map((m) => m.id);
+}
 
 /** Copies every item still to copy. Returns the number of items copied. Does nothing while the switch is off. */
 export async function migrateToSingleList(db: Firestore): Promise<number> {
   const config = await db.doc('config/app').get();
   if (config.get('features.singleList') !== true) return 0;
   const lists = await db.collection('giftLists').where('kind', 'in', ['own', 'surprise']).get();
+  const members = (await db.collection('members').get()).docs.map((m) => ({ id: m.id, profile: m.get('profile') }));
   let copied = 0;
   for (const list of lists.docs) {
     // A revealed list is past: its gifts were given, they belong to its own history.
     if (list.get('revealed') === true) continue;
     const beneficiaryId = String(list.get('beneficiaryId') ?? '');
     if (!beneficiaryId) continue;
+    const listMark = db.doc(`${LIST_MARKS}/${list.id}`);
     const items = await list.ref.collection('items').get();
+    const widened = widenedAudience(beneficiaryId, list.get('viewerIds'), members);
+    if (widened.length > 0) {
+      console.warn(`singleList: ${list.id} left as it is, ${widened.length} member(s) would see it`);
+      await listMark.set({ status: 'skipped', reason: 'audience', missing: widened.length, at: FieldValue.serverTimestamp() });
+      continue;
+    }
+    let failed = false;
     for (const item of items.docs) {
       try {
         if (await copyItem(db, list, item, beneficiaryId)) copied++;
       } catch (e) {
         // One item that fails never holds back the others; the next run tries it again.
+        failed = true;
         console.error(`singleList: ${list.id}/${item.id}`, e);
       }
     }
+    if (!failed) await listMark.set({ status: 'copied', at: FieldValue.serverTimestamp() });
   }
   return copied;
 }
@@ -78,8 +109,12 @@ async function copyItem(db: Firestore, list: DocumentSnapshot, item: DocumentSna
     visibleToBeneficiary: target === 'wishes',
   });
   if (claim.exists) {
-    // The occasion of the list becomes the one of the reservation: it is revealed the day after.
-    batch.set(targetList.collection('claims').doc(newId), { ...claim.data(), occasion });
+    // The occasion of the list becomes the one of the reservation, and its date stays the day of
+    // the reveal: a surprise for a dinner after the birthday is never revealed before the dinner.
+    const date = list.get('date');
+    batch.set(targetList.collection('claims').doc(newId), {
+      ...claim.data(), occasion, ...(typeof date === 'string' ? { revealAfter: date } : {}),
+    });
     for (const share of shares?.docs ?? []) batch.set(targetList.collection('claims').doc(newId).collection('shares').doc(share.id), share.data());
     // The notebooks of the givers keep their state and note; the old entry says where it went.
     const givers = new Set([String(claim.get('holderId') ?? ''), ...(shares?.docs.map((s) => s.id) ?? [])]);

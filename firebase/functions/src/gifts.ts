@@ -124,7 +124,12 @@ export async function loadGiftMembers(db: Firestore): Promise<GiftMember[]> {
 export async function revealGiftLists(db: Firestore, send: Sender, now: Date): Promise<number> {
   const today = parisDay(now);
   const lists = await db.collection('giftLists').where('revealed', '==', false).get();
-  const due = lists.docs.filter((doc) => isDueForReveal(doc.data(), today));
+  // « Liste unique » (récit 9 ter): a list copied into « Mes envies » and the ideas is revealed
+  // there, gift by gift; revealing it here too would tell its beneficiary twice.
+  const copied = (await db.doc('config/app').get()).get('features.singleList') === true
+    ? new Set((await db.collection('migrations/singleList/lists').where('status', '==', 'copied').get()).docs.map((d) => d.id))
+    : new Set<string>();
+  const due = lists.docs.filter((doc) => !copied.has(doc.id) && isDueForReveal(doc.data(), today));
   if (due.length === 0) return 0;
   const members = await loadGiftMembers(db);
   const audience = await giftAudience(db);

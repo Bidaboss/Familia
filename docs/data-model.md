@@ -329,6 +329,7 @@ La réservation d'un article. Son identifiant est celui de l'article, donc un ar
 | `createdAt` | horodatage serveur | |
 | `sharesTotal`, `sharesCount` | nombre, entier | Cadeau commun : total et nombre des parts, tenus par une Cloud Function (absents tant qu'aucune part n'a changé) |
 | `occasion` | `birthday` \| `christmas`, facultatif | « Mes envies » seulement (PRD rév. 186) : le prochain anniversaire ou le prochain Noël du bénéficiaire après la réservation, choisi par le réservant depuis son carnet. Absent, c'est celui des deux qui vient en premier. L'envie est dévoilée le lendemain. Les parts d'un cadeau commun suivent le choix du responsable |
+| `revealAfter` | texte `AAAA-MM-JJ`, facultatif | Écrit par la copie « Liste unique » seulement : la date de la liste d'origine. La réservation est alors dévoilée le lendemain de cette date, quelle que soit son `occasion` |
 
 - **Lire** : ceux qui voient la liste, sauf le bénéficiaire avant la révélation.
 - **Réserver** : ceux qui voient la liste, sauf le bénéficiaire. Un enfant réserve seul, jamais en cadeau commun (carte PRODUIT-19).
@@ -415,6 +416,10 @@ Ce que le membre prévoit d'offrir. Seul ce membre lit et écrit son carnet : ni
 ### `migrations/singleList/items/{listId}_{itemId}` (récit 9 ter, « Liste unique »)
 
 Écrit par la fonction seule, jamais lu par l'appli. Quand l'interrupteur `singleList` s'allume, chaque article d'une liste d'occasion non révélée est copié, sans rien effacer : dans « Mes envies » s'il est visible par la personne (avec l'occasion de sa liste si c'est Noël ou un anniversaire), sinon dans ses « Idées de la famille ». La copie a l'identifiant `from-{listId}-{itemId}` ; sa réservation, ses parts et les entrées de carnet des offrants suivent. Cette marque, écrite dans le même lot, empêche toute seconde copie : rallumer l'interrupteur ne copie que les nouveaux articles. Champs : `listId`, `itemId`, `target`, `copiedId`, `copiedAt`.
+
+### `migrations/singleList/lists/{listId}` (récit 9 ter, « Liste unique »)
+
+Écrit par la fonction seule, jamais lu par l'appli. Une liste n'est copiée que si tous ceux qui liraient sa copie la voient déjà (ses `viewerIds` couvrent toute la famille sauf la personne, les enfants sans l'appli mis à part). Sinon elle reste telle quelle : `status: 'skipped'`, `reason: 'audience'`, `missing` (le nombre de membres qui la verraient en plus). Une liste copiée sans erreur porte `status: 'copied'` : tant que l'interrupteur est allumé, la révélation du matin des anciennes listes la laisse de côté, puisque ses cadeaux sont dévoilés un par un depuis « Mes envies » et les idées. Champ commun : `at`.
 
 ### `notebooks/{memberId}/budgets/{budgetId}`
 
