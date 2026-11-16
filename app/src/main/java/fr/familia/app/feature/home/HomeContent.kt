@@ -14,6 +14,7 @@ import fr.familia.app.core.model.TripArrival
 import fr.familia.app.core.model.TripStep
 import fr.familia.app.core.model.concerns
 import fr.familia.app.core.model.upcomingBirthdays
+import fr.familia.app.core.viewas.listsSeenBy
 import fr.familia.app.feature.helprequests.canVolunteer
 import fr.familia.app.feature.trips.canCreateTrip
 import fr.familia.app.feature.trips.firstNames
@@ -50,7 +51,13 @@ data class HomeTrip(val trip: Trip, val who: String, val ongoing: Boolean, val l
  * The next occasion of a gift list I can see. [myClaims] is null on my own list: what is reserved
  * for me never shows. Surprise lists never come here, they stay behind the Cadeaux tab.
  */
-data class HomeOccasion(val list: GiftList, val beneficiaryName: String, val daysLeft: Long, val myClaims: Int?)
+data class HomeOccasion(val list: GiftList, val beneficiaryName: String, val daysLeft: Long, val myClaims: Int?) {
+    /**
+     * My own list: the Accueil then never names it, it only says « Ton anniversaire · dans 3 jours »
+     * and leads to my envies (PRODUIT, démo du 21/11).
+     */
+    val isMine: Boolean get() = myClaims == null
+}
 
 sealed interface HomeUiState {
     data object Loading : HomeUiState
@@ -127,9 +134,13 @@ internal fun week(me: Member, family: Family, events: List<Event>, today: LocalD
 internal fun birthdays(family: Family, today: LocalDate): List<Birthday> =
     upcomingBirthdays(family.members, today).filter { it.date <= today.plusDays(HomeWindow.BIRTHDAY_DAYS) }
 
-/** The next dated, not yet revealed list I can see; surprise lists stay out of the home screen. */
-internal fun nextOccasionList(lists: List<GiftList>, today: LocalDate): GiftList? =
-    lists
+/**
+ * The next dated, not yet revealed list I can see. Whatever the repository gave, only the lists that
+ * the rule canSeeList lets me read count ([listsSeenBy], the same in Voir comme), and surprise lists
+ * stay out of the home screen: their beneficiary never learns they exist.
+ */
+internal fun nextOccasionList(lists: List<GiftList>, meId: String, today: LocalDate): GiftList? =
+    listsSeenBy(lists, meId)
         .filter { it.kind == GiftListKind.Own && !it.revealed && it.date != null && it.date >= today }
         .minByOrNull { it.date!! }
 

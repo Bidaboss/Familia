@@ -92,7 +92,7 @@ class HomeViewModel(
     private fun nextOccasion(day: LocalDate): Flow<Pair<GiftList, Int>?> {
         val repo = gifts ?: return flowOf(null)
         val next = bonus(repo.observeVisibleLists(currentMemberId), emptyList())
-            .map { nextOccasionList(it, day) }
+            .map { nextOccasionList(it, currentMemberId, day) }
             .distinctUntilChanged()
         return next.flatMapLatest<GiftList?, Pair<GiftList, Int>?> { list ->
             when {

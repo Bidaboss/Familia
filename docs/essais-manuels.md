@@ -323,3 +323,9 @@ Avec le module « La bienvenue » allumé, un membre ajouté qui ne s'est jamais
 1. Planning : les marges sur les côtés passent à 20 dp, la liste reste la même.
 2. Fiche d'un événement : « Ajouter à mon agenda » et « Modifier » deviennent des liens « › ». Le seul bouton plein reste la réponse.
 3. « Comptes de l'événement › » n'apparaît pas encore : il sera branché quand les écrans des comptes seront fusionnés. Il ne s'affichera qu'avec le module Dépenses allumé, pour un adulte qui a répondu « Je viens » ou pour l'auteur de l'événement.
+
+## Accueil : rien ne trahit une surprise (démo du 21/11)
+1. Avec un compte A, créer une liste surprise pour B, datée dans 5 jours. Sur l'Accueil de B, et en Voir comme B depuis l'admin principal, aucune puce ne parle de cette liste.
+2. B crée sa propre liste d'anniversaire datée dans 3 jours : sur son Accueil, la puce dit « Ton anniversaire · dans 3 jours », sans titre de liste, et ouvre ses envies.
+3. Sur l'Accueil de A (lecteur de la liste de B), la puce montre le titre de la liste et le délai.
+4. Sans voyage en cours ni à venir, la puce « Voyages » n'apparaît pas ; « Dire où je suis » reste la dernière puce.

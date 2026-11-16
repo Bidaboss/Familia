@@ -1291,6 +1291,8 @@
     <!-- DESIGN-11, Accueil (PRD rév. 205): the row of chips under the blocks. -->
     <string name="home_chip_detail">%1$s · %2$s</string>
     <string name="home_chip_trips_ongoing">Voyages · en cours</string>
+    <string name="home_chip_my_birthday">Ton anniversaire</string>
+    <string name="home_chip_my_occasion">Tes envies</string>
     <plurals name="home_chip_birthdays">
         <item quantity="one">Anniversaires · %d</item>
         <item quantity="many">Anniversaires · %d</item>
