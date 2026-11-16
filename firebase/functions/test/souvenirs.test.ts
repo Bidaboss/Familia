@@ -109,12 +109,16 @@ describe('against the emulator', () => {
     assert.deepEqual(await giveYearSouvenirs(db, send, inAYear), []);
   });
 
-  test('a member removed takes their souvenirs and counters', async () => {
+  test('a member removed takes their souvenirs, counters and gesture marks (EXPERT-1)', async () => {
     const { send } = fakeSender();
     await giveSouvenir(db, send, 'camille', 'firstGoodNews', now);
     await countGesture(db, send, 'camille', 'reactions', 'reaction-n1-camille', now);
+    await countGesture(db, send, 'ines', 'reactions', 'reaction-n1-ines', now);
+    assert.equal((await db.doc('souvenirMarks/reaction-n1-camille').get()).exists, true);
     await deleteSouvenirsOf(db, 'camille');
     assert.equal((await db.collection('members/camille/souvenirs').get()).size, 0);
     assert.equal((await db.doc('souvenirCounters/camille').get()).exists, false);
+    assert.equal((await db.collection('souvenirMarks').where('memberId', '==', 'camille').get()).size, 0);
+    assert.equal((await db.doc('souvenirMarks/reaction-n1-ines').get()).exists, true);
   });
 });

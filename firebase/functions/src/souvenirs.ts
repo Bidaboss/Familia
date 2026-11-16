@@ -118,11 +118,13 @@ export async function giveYearSouvenirs(db: Firestore, send: Sender, now: Date):
   return given;
 }
 
-/** A member removed from the family takes their souvenirs and counters with them. */
+/** A member removed from the family takes their souvenirs, counters and gesture marks with them (EXPERT-1). */
 export async function deleteSouvenirsOf(db: Firestore, memberId: string): Promise<void> {
   const souvenirs = await db.collection('members').doc(memberId).collection('souvenirs').get();
+  const marks = await db.collection('souvenirMarks').where('memberId', '==', memberId).get();
   const batch = db.batch();
   souvenirs.docs.forEach((s) => batch.delete(s.ref));
+  marks.docs.forEach((m) => batch.delete(m.ref));
   batch.delete(db.collection('souvenirCounters').doc(memberId));
   await batch.commit();
 }
