@@ -116,8 +116,9 @@ service cloud.firestore {
         && m.profile in ['adult', 'childWithApp', 'childWithoutApp']
         && m.isAdmin is bool && (!m.isAdmin || m.profile == 'adult')
         && hasValidParents(m)
-        && (m.profile != 'childWithoutApp' || m.email == null)
-        && (m.profile == 'childWithoutApp' || m.email != null);
+        // An adult or a child with the app may wait for their address: they cannot sign in until
+        // it is added, and the email index only exists once it is.
+        && (m.profile != 'childWithoutApp' || m.email == null);
     }
 
     // The email index and the member document must always agree, in the same batched write.
@@ -176,6 +177,8 @@ service cloud.firestore {
       allow update: if isMember()
         && isValidMember(request.resource.data)
         && request.resource.data.uid == resource.data.uid
+        // A member who already signed in keeps an address: removing it would lock them out.
+        && (resource.data.uid == null || request.resource.data.email != null)
         && emailIndexMatches(memberId, request.resource.data.email)
         && (resource.data.email == null || resource.data.email == request.resource.data.email
             || !existsAfter(emailIndexPath(resource.data.email)))

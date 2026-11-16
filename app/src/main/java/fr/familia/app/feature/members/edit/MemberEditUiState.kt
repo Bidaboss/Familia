@@ -42,5 +42,6 @@ sealed interface MemberEditUiState {
     data class Saved(val confirmation: Confirmation) : MemberEditUiState
 
     /** A new member was saved: the screen offers to send the invitation when they have an address. */
-    data class Added(val firstName: String, val email: String?) : MemberEditUiState
+    /** [hasApp] false for a child without the app; an address may still be missing when it is true. */
+    data class Added(val firstName: String, val email: String?, val hasApp: Boolean = email != null) : MemberEditUiState
 }
