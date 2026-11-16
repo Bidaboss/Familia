@@ -9,7 +9,7 @@ import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -21,7 +21,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
-/** Plays the rules: the answer and the guesses show to the author and to those who guessed. */
+/**
+ * Plays the rules like Firestore: the answer and the guesses show to the author and to those who
+ * guessed, and a listener refused at the start stays empty for good (it is never reopened).
+ */
 private class FakeWhoIsIt(private val me: String) : WhoIsItRepository {
     val posts = MutableStateFlow(listOf(WhoIsItPost("w1", "adult2", "Inès", "Un mariage", null)))
     val answers = MutableStateFlow(mapOf("w1" to WhoIsItAnswer("Mamie Jeanne", 1961)))
@@ -33,8 +36,8 @@ private class FakeWhoIsIt(private val me: String) : WhoIsItRepository {
 
     override fun observeLatest(count: Int): Flow<List<WhoIsItPost>> = posts.map { it.take(count) }
     override fun observePost(id: String): Flow<WhoIsItPost?> = posts.map { list -> list.firstOrNull { it.id == id } }
-    override fun observeAnswer(id: String): Flow<WhoIsItAnswer?> = combine(answers, guesses) { a, _ -> if (mayRead(id)) a[id] else null }
-    override fun observeGuesses(id: String): Flow<List<WhoIsItGuess>> = guesses.map { if (mayRead(id)) it[id].orEmpty() else emptyList() }
+    override fun observeAnswer(id: String): Flow<WhoIsItAnswer?> = if (mayRead(id)) answers.map { it[id] } else flowOf(null)
+    override fun observeGuesses(id: String): Flow<List<WhoIsItGuess>> = if (mayRead(id)) guesses.map { it[id].orEmpty() } else flowOf(emptyList())
     override fun newPostId(): String = "new"
     override suspend fun publish(post: WhoIsItPost, answer: WhoIsItAnswer) {
         published += post to answer

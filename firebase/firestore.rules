@@ -2139,6 +2139,12 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/whoIsIt/$(postId)).data;
     }
 
+    // The post as it stands once the write is done: the app writes the post and its answer in one
+    // batch, and get() would not see a post written in the same batch.
+    function whoIsItAfter(postId) {
+      return getAfter(/databases/$(database)/documents/whoIsIt/$(postId)).data;
+    }
+
     function guessedWhoIsIt(postId) {
       return exists(/databases/$(database)/documents/whoIsIt/$(postId)/guesses/$(myMemberId()));
     }
@@ -2160,7 +2166,7 @@ service cloud.firestore {
       allow read: if isMember() && (whoIsItOf(postId).authorId == myMemberId() || guessedWhoIsIt(postId));
       allow create, update: if isMember()
         && docId == 'main'
-        && whoIsItOf(postId).authorId == myMemberId()
+        && whoIsItAfter(postId).authorId == myMemberId()
         && request.resource.data.keys().hasAll(['who', 'year'])
         && request.resource.data.keys().hasOnly(['who', 'year', 'personId'])
         && request.resource.data.who is string
