@@ -37,6 +37,11 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
 
     /** L'arbre de la famille et le défi du mois, sur l'Accueil (PRD, récit 35). */
     Tree("tree", R.string.feature_tree),
+    /**
+     * The résumé of the day (AVIS-14): the notices of the souvenirs, of the challenge and of the
+     * question of the week wait for one notification at 18 h. Server only: the app just shows it.
+     */
+    Digest("digest", R.string.feature_digest),
     MonthSlideshow("monthSlideshow", R.string.feature_month_slideshow),
     /** Sondage de date et sondage libre (PRD, récits 2 bis et 2 ter). */
     Polls("polls", R.string.feature_polls),

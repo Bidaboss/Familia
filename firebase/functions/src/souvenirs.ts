@@ -5,6 +5,7 @@
 
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import type { Notice } from './logic';
+import { digestOn, queueDigest } from './digest';
 import { notify, type Sender } from './store';
 
 /** The counted gestures, kept in souvenirCounters/{memberId}, which only the server reads. */
@@ -63,7 +64,11 @@ export async function giveSouvenir(db: Firestore, send: Sender, memberId: string
   }
   if (member.get('profile') === 'childWithoutApp' || !(await moduleOn(db))) return true;
   const settings = await member.ref.collection('settings').doc('notifications').get();
-  if (settings.get('souvenirs') !== false) await notify(db, send, [memberId], souvenirNotice(key));
+  if (settings.get('souvenirs') === false) return true;
+  // The very first souvenir of a member is told at once; the next ones wait for the résumé (AVIS-14).
+  const first = (await member.ref.collection('souvenirs').limit(2).get()).size === 1;
+  if (!first && (await digestOn(db))) await queueDigest(db, [memberId], { kind: 'souvenir', key }, now);
+  else await notify(db, send, [memberId], souvenirNotice(key));
   return true;
 }
 

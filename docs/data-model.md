@@ -611,6 +611,35 @@ Droits : le serveur seul crée et supprime. Le membre lit ses souvenirs et chang
 
 Les souvenirs sont donnés par les fonctions qui existent déjà, sans nouvelle tâche planifiée : `onGoodNewsCreated` (première Bonne nouvelle), `onGoodNewsUpdated` (réactions), `onTripStepUpdated` (premier « bien arrivé »), `onWeeklyAnswerWritten` (réponses), `helpRequestStillOpen` à 18 h (les coups de main pris de la veille, et un an après la création de la fiche du membre). Une notification « Nouveau souvenir » (canal `souvenirs`, donnée `souvenirKey`) part une fois, seulement si le module `souvenirs` est allumé, si le membre a l'appli et s'il n'a pas coupé `souvenirs` dans ses réglages. Module éteint, les souvenirs sont quand même gardés. `onMemberDeletedAnswers` retire aussi les souvenirs, le compteur et les marques d’un membre parti.
 
+## Le résumé du jour (PRD, carte AVIS-14)
+
+Module `digest` (Administration > Modules, « Résumé du jour »). Tant qu'il est éteint, tout part tout de suite, comme avant.
+
+Une fois allumé, ces notifications attendent le résumé :
+
+- les souvenirs, sauf le tout premier de chaque membre ;
+- « Défi réussi » (la Bonne nouvelle de Familia, elle, paraît tout de suite) ;
+- la question de la semaine.
+
+La tâche de toutes les 30 minutes envoie le résumé une fois par jour, à partir de 18 h, sur le canal `weekly`. Il ressemble par exemple à « Aujourd'hui dans Familia : nouveau souvenir, question de la semaine, défi à 60 %, 12 nouvelles feuilles. ». La jauge et les feuilles n'accompagnent qu'une nouvelle qui attend : elles ne font jamais partir un résumé seules.
+
+Les événements, les Bonnes nouvelles, les vœux et « Rejoignez-moi » restent instantanés.
+
+### `engagementDigests/{memberId}`
+
+| Champ | Type | Sens |
+|---|---|---|
+| `pending` | bool | Quelque chose attend. |
+| `souvenirs` | liste de clés | Les souvenirs gagnés depuis le dernier résumé. |
+| `challengeDone` | `AAAA-MM` ou `null` | Un défi réussi. |
+| `weekly` | `AAAA-MM-JJ` ou `null` | La question de la semaine publiée. |
+| `sentDay` | `AAAA-MM-JJ` | Le dernier jour où le résumé est parti, une fois par jour au plus. |
+| `leavesSeen` | int | Les feuilles de l'arbre au dernier résumé, pour dire combien ont poussé depuis. |
+
+Seules les fonctions s'en servent, aucune règle ne l'ouvre. Il est effacé avec le membre. Chaque réglage (`souvenirs`, `tree`, `weekly`) est vérifié au moment où la nouvelle entre dans le résumé.
+
+À savoir avant d'allumer le module (relecture de #100) : le résumé arrive sur le canal Android « Question de la semaine » (`weekly`). Un membre qui a coupé ce canal dans les réglages d'Android ne reçoit plus ses souvenirs. Il faudra le dire dans l'aide, ou donner au résumé son propre canal.
+
 ## L'arbre de la famille et le défi du mois (PRD, récit 35)
 
 Un arbre commun grandit avec les gestes de tous, et un défi par mois a sa jauge (`functions/src/tree.ts`). Le serveur seul écrit. Rien ne dit qui a le plus contribué (carte EXPERT-3).
