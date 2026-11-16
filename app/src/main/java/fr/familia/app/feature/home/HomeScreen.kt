@@ -87,6 +87,8 @@ import fr.familia.app.feature.month.isSlideshowTime
 import fr.familia.app.feature.tree.TreeHomeCard
 import fr.familia.app.feature.yearago.YearAgoHomeCard
 import fr.familia.app.feature.trips.tripDatesLabel
+import fr.familia.app.feature.whoisit.WhoIsItHomeCard
+import fr.familia.app.feature.whoisit.WhoIsItHomeChip
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -177,6 +179,15 @@ fun HomeRoute(
                     "yearAgo",
                     chip = { selected, toggle -> YearAgoHomeChip(container, currentMember, selected, toggle) },
                     card = { YearAgoHomeCard(container, currentMember, onOpenGoodNews = onOpenGoodNews, onOpenTrip = actions.onOpenTrip) },
+                ),
+            )
+        }
+        if (flags.isOn(Feature.WhoIsIt)) {
+            add(
+                HomeExtra(
+                    "whoIsIt",
+                    chip = { selected, toggle -> WhoIsItHomeChip(container, currentMember, selected, toggle) },
+                    card = { WhoIsItHomeCard(container, currentMember) },
                 ),
             )
         }
