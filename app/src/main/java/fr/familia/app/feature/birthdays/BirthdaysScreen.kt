@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.EventAvailable
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Button
@@ -53,6 +54,8 @@ fun BirthdaysScreen(
     modifier: Modifier = Modifier,
     /** « Ajouter à mon agenda » on each birthday (PRD, récit 30); hidden when null. */
     onAddToCalendar: ((Birthday) -> Unit)? = null,
+    /** « Partager » on each birthday (PRD, récit 31), while the Partager module is on; hidden when null. */
+    onShare: ((Birthday) -> Unit)? = null,
 ) {
     when (state) {
         BirthdaysUiState.Loading ->
@@ -78,7 +81,12 @@ fun BirthdaysScreen(
         } else {
             LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 8.dp)) {
                 items(state.birthdays, key = { "birthday-${it.member.id}" }) { birthday ->
-                    BirthdayRow(birthday, state.today, onAddToCalendar?.let { add -> { add(birthday) } })
+                    BirthdayRow(
+                        birthday,
+                        state.today,
+                        onAddToCalendar?.let { add -> { add(birthday) } },
+                        onShare?.let { share -> { share(birthday) } },
+                    )
                 }
                 if (state.missingDate.isNotEmpty()) {
                     item(key = "missing") { MissingDates(state.missingDate) }
@@ -89,7 +97,7 @@ fun BirthdaysScreen(
 }
 
 @Composable
-private fun BirthdayRow(birthday: Birthday, today: LocalDate, onAddToCalendar: (() -> Unit)?) {
+private fun BirthdayRow(birthday: Birthday, today: LocalDate, onAddToCalendar: (() -> Unit)?, onShare: (() -> Unit)?) {
     val isToday = birthday.date == today
     Column {
         Row(
@@ -124,6 +132,15 @@ private fun BirthdayRow(birthday: Birthday, today: LocalDate, onAddToCalendar: (
                     Icon(
                         Icons.Outlined.EventAvailable,
                         contentDescription = stringResource(R.string.calendar_add_birthday, birthday.member.firstName),
+                        tint = if (isToday) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+            if (onShare != null) {
+                IconButton(onClick = onShare, modifier = Modifier.size(56.dp)) {
+                    Icon(
+                        Icons.Outlined.Share,
+                        contentDescription = stringResource(R.string.share_birthday_button, birthday.member.firstName),
                         tint = if (isToday) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
                     )
                 }

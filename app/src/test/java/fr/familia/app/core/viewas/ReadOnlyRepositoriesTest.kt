@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
@@ -102,6 +103,18 @@ class ReadOnlyRepositoriesTest {
             list("ideas-adult1", GiftListKind.Ideas, "adult1", emptyList()),
         )
         assertEquals(listOf("wishes-adult2", "noel", "revealed", "ideas-adult2"), listsSeenBy(adminLists, "adult1").map { it.id })
+    }
+
+    @Test
+    fun `a list opened by its id stays hidden from the one it is a surprise for`() {
+        fun list(id: String, kind: GiftListKind, beneficiary: String, viewers: List<String>, revealed: Boolean = false) =
+            GiftList(id, kind, "Liste $id", null, null, beneficiary, viewers, "adult2", "Adult2", revealed)
+        val surprise = list("anniv", GiftListKind.Surprise, "adult1", listOf("admin1", "adult2"))
+        assertNull(listSeenBy(surprise, "adult1"))
+        assertEquals("anniv", listSeenBy(surprise, "adult2")?.id)
+        assertEquals("anniv", listSeenBy(surprise.copy(revealed = true), "adult1")?.id)
+        assertNull(listSeenBy(list("ideas-adult1", GiftListKind.Ideas, "adult1", emptyList()), "adult1"))
+        assertNull(listSeenBy(null, "adult1"))
     }
 
     @Test

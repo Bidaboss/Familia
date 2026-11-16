@@ -163,7 +163,7 @@ class ScreenshotTest {
     fun clayCardsFontScale200() = capture("argile_cartes_police_200") { ClayCardSamples() }
 
     @Test
-    fun birthdaysLight() = capture("anniversaires_clair") { Surface { BirthdaysScreen(previewBirthdays(), onRetry = {}, onAddToCalendar = {}) } }
+    fun birthdaysLight() = capture("anniversaires_clair") { Surface { BirthdaysScreen(previewBirthdays(), onRetry = {}, onAddToCalendar = {}, onShare = {}) } }
 
     @Test
     @Config(qualifiers = "+night")

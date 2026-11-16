@@ -29,6 +29,18 @@ app/src/main/java/fr/familia/app/
 - **Versions** : toutes dans `gradle/libs.versions.toml`, Compose via sa BOM.
 - **Code et commentaires en anglais, interface en français.**
 
+## Partager (`core/share`, récit 31)
+
+Chaque fil branche « Partager » sur ses écrans avec les mêmes briques :
+
+- **Contenu** : une fonction `xxxShare(context, item): ShareContent` dans `ShareItems.kt`, ou dans le module du fil si elle a besoin de son modèle. Elle donne un titre, une ou deux lignes pour l'image, un texte qui se lit seul et le lien. Rien de caché ne sort : ni « qui vient », ni note, ni réponse de sondage, ni réservation ou cadeau.
+- **Lien** : `shareLink(ShareKind.Xxx, id)`. Un nouveau `ShareKind` demande trois choses : son `path`, qui ne change plus une fois partagé ; sa porte dans `MainActivity.openSharedLink` ; et la page `firebase/hosting/open.html`, qui ne montre aucune donnée de la famille et **jamais** le lien d'installation.
+- **Photo** : seulement si `photoAllowed(sharerId, …)` l'autorise (carte EXPERT-2, photo d'un enfant). Une vidéo ou un diaporama passent par `ShareConsentReminder`, puis `shareVideo` (carte EXPERT-6).
+- **Bouton** : `share(context, content)` ouvre la feuille d'Android, ou dit qu'il n'y a pas d'appli. `ShareButton` fait 56 dp. Dans une liste, le libellé nomme l'élément (par exemple « Partager l'anniversaire de … »).
+- **Interrupteur** : le bouton ne se montre que si `Feature.Share` est allumé (`LocalFeatureFlags`), et jamais en « Voir comme » s'il écrit quelque chose.
+
+Déjà branchés : événement, sondage, anniversaire (Planning et liste des anniversaires), voyage. Les listes, Bonnes nouvelles et Coups de main sont faits par leurs fils.
+
 ## Compilation
 
 - La CI GitHub (`.github/workflows/android.yml`) compile l'APK de test, lance le lint Android et les tests unitaires à chaque pull request. L'APK est téléchargeable dans l'onglet « Actions » de la PR, rubrique « Artifacts ».

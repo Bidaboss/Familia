@@ -10,6 +10,7 @@ import fr.familia.app.core.ui.ClayCard
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.background
 import androidx.compose.ui.unit.em
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import fr.familia.app.core.ui.aboveSnackbar
 import androidx.annotation.StringRes
@@ -316,17 +317,25 @@ private fun RowScope.TreasureTile(treasure: Treasure, alone: Boolean) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 TreasureBadge(treasure)
                 Spacer(Modifier.width(16.dp))
-                Text(stringResource(treasure.labelRes), style = MaterialTheme.typography.titleMedium, maxLines = 1)
-            }
-        } else {
-            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                TreasureBadge(treasure)
-                Spacer(Modifier.height(8.dp))
                 Text(
                     stringResource(treasure.labelRes),
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        } else {
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                TreasureBadge(treasure)
+                Spacer(Modifier.height(8.dp))
+                // Two lines at 200 %, so « Qui est-ce ? » or « Capsules » stay whole.
+                Text(
+                    stringResource(treasure.labelRes),
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
                 )
             }
         }
