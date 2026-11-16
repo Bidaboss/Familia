@@ -128,13 +128,15 @@ class FirestoreExpenseRepository(private val db: FirebaseFirestore) : ExpenseRep
         )
     }
 
-    private fun DocumentSnapshot.toSettlement(): ExpenseSettlement? = ExpenseSettlement(
-        id = id,
-        fromHouseholdId = getString("fromHouseholdId") ?: return null,
-        toHouseholdId = getString("toHouseholdId") ?: return null,
-        amountCents = getLong("amountCents") ?: return null,
-        confirmedBy = getString("confirmedBy").orEmpty(),
-    )
+    private fun DocumentSnapshot.toSettlement(): ExpenseSettlement? {
+        return ExpenseSettlement(
+            id = id,
+            fromHouseholdId = getString("fromHouseholdId") ?: return null,
+            toHouseholdId = getString("toHouseholdId") ?: return null,
+            amountCents = getLong("amountCents") ?: return null,
+            confirmedBy = getString("confirmedBy").orEmpty(),
+        )
+    }
 
     private companion object {
         const val BOOKS = "expenseBooks"
