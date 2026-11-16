@@ -21,6 +21,8 @@ describe('the accounts of a trip', () => {
     await book.collection('expenses').doc('e1').collection('history').doc('h1').set({ action: 'created' });
     await book.collection('settlements').doc('s1').set({ amountCents: 1000 });
     await db.doc('expenseBooks/trip_tx2').set({ containerType: 'trip', containerId: 'tx2' });
+    await db.doc('expenseNotices/trip_tx1').set({ day: '2027-07-12' });
+    await db.doc('expenseNotices/trip_tx2').set({ day: '2027-07-12' });
 
     await deleteExpenseBook(db, 'trip', 'tx1');
 
@@ -29,6 +31,8 @@ describe('the accounts of a trip', () => {
     assert.equal((await book.collection('expenses').doc('e1').collection('history').doc('h1').get()).exists, false);
     assert.equal((await book.collection('settlements').doc('s1').get()).exists, false);
     assert.equal((await db.doc('expenseBooks/trip_tx2').get()).exists, true);
+    assert.equal((await db.doc('expenseNotices/trip_tx1').get()).exists, false);
+    assert.equal((await db.doc('expenseNotices/trip_tx2').get()).exists, true);
   });
 
   test('the history says who did what, and which fields changed', () => {
@@ -78,7 +82,7 @@ describe('the accounts of a trip', () => {
     assert.equal(formatEuroCents(5), '0,05\u00A0€');
     const added = [{ authorId: 'm1', amountCents: 6000 }, { authorId: 'm2', amountCents: 2550 }, { authorId: 'm2', amountCents: 1000 }];
     assert.deepEqual(expenseNotice('tn1', 'Corse', 'm1', added), {
-      channel: 'trips', title: 'Comptes · Corse', body: '2 nouvelles dépenses aujourd\'hui, 35,50\u00A0€. Le solde est à jour dans l\'appli.', tripId: 'tn1',
+      channel: 'trips', title: 'Comptes · Corse', body: '2 nouvelles dépenses, 35,50\u00A0€. Le solde est à jour dans l\'appli.', tripId: 'tn1',
     });
     assert.equal(expenseNotice('tn1', 'Corse', 'm2', added)?.body.startsWith('Une nouvelle dépense'), true);
     assert.equal(expenseNotice('tn1', 'Corse', 'm1', [{ authorId: 'm1', amountCents: 100 }]), null);
@@ -115,7 +119,7 @@ describe('the accounts of a trip', () => {
     sent.length = 0;
     assert.equal(await sendExpenseNotices(db, send, new Date('2027-07-13T19:00:00Z')), 1);
     assert.deepEqual(sent.map((s) => s.token), ['token-n-adult']);
-    assert.match(sent[0].notice.body, /^Une nouvelle dépense aujourd'hui, 15,00/);
+    assert.match(sent[0].notice.body, /^Une nouvelle dépense, 15,00/);
   });
 });
 

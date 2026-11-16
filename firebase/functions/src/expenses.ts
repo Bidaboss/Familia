@@ -13,9 +13,11 @@ export function expenseBookId(containerType: ExpenseContainerType, containerId: 
   return `${containerType}_${containerId}`;
 }
 
-/** Removes the accounts of a container, with their expenses, history and reimbursements. */
+/** Removes the accounts of a container, with their expenses, history, reimbursements and daily notice. */
 export async function deleteExpenseBook(db: Firestore, containerType: ExpenseContainerType, containerId: string): Promise<void> {
-  await db.recursiveDelete(db.collection('expenseBooks').doc(expenseBookId(containerType, containerId)));
+  const id = expenseBookId(containerType, containerId);
+  await db.recursiveDelete(db.collection('expenseBooks').doc(id));
+  await db.collection('expenseNotices').doc(id).delete();
 }
 
 /** The fields of an expense that the history follows. */
@@ -104,7 +106,8 @@ export function expenseNotice(tripId: string, tripTitle: string, memberId: strin
   return {
     channel: 'trips',
     title: `Comptes · ${tripTitle}`,
-    body: `${what} aujourd'hui, ${formatEuroCents(total)}. Le solde est à jour dans l'appli.`,
+    // Since the last notice, which may be days ago when nobody added anything in between.
+    body: `${what}, ${formatEuroCents(total)}. Le solde est à jour dans l'appli.`,
     tripId,
   };
 }
