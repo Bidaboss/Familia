@@ -41,6 +41,7 @@ import {
 import { deleteDigestOf, sendDigests } from './digest';
 import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { sendWeeklyRecap } from './recap';
+import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type BirthdayCard } from './birthdayWishes';
 import { revealWishes, thankGivers } from './wishesReveal';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
@@ -78,9 +79,11 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.capsuleId ? { capsuleId: notice.capsuleId } : {}),
         ...(notice.souvenirKey ? { souvenirKey: notice.souvenirKey } : {}),
         ...(notice.recapWeek ? { recapWeek: notice.recapWeek } : {}),
+        ...(notice.birthdayOf ? { birthdayOf: notice.birthdayOf } : {}),
+        ...(notice.tag ? { notificationTag: notice.tag } : {}),
       },
       // A surprise never shows on the lock screen (audit 2.2): only « Familia » and the channel.
-      android: { notification: { channelId: notice.channel, ...(PRIVATE_CHANNELS.has(notice.channel) ? { visibility: 'private' as const } : {}) } },
+      android: { notification: { channelId: notice.channel, ...(notice.tag ? { tag: notice.tag } : {}), ...(PRIVATE_CHANNELS.has(notice.channel) ? { visibility: 'private' as const } : {}) } },
     });
     return 'ok';
   } catch (e) {
@@ -143,6 +146,7 @@ export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (ev
   // « Qui apporte quoi » (récit 4 bis): what they had taken is free again.
   await releaseBringOf(getFirestore(), event.params.memberId);
   await deleteCommentMutesOf(getFirestore(), event.params.memberId);
+  await deleteBirthdayCardsOf(getFirestore(), event.params.memberId);
 });
 
 // Commentaires d'un événement (récit 28): those who follow the event are told.
@@ -269,7 +273,17 @@ export const onReceivedGiftUpdated = onDocumentUpdated('giftLists/{listId}/recei
 
 // D-21 and D-14 before a birthday (PRD, récit 10).
 export const birthdayGiftReminders = onSchedule({ schedule: '0 10 * * *', timeZone: 'Europe/Paris' }, async () => {
-  await sendBirthdayGiftReminders(getFirestore(), send, new Date());
+  const now = new Date();
+  // Each on its own: a failure of the reminders never holds back the wishes, nor the reverse.
+  try { await sendBirthdayGiftReminders(getFirestore(), send, now); } catch (e) { console.error('birthday gift reminders', e); }
+  // On the day, « C'est l'anniversaire de … » and its Bonne nouvelle (récit 36).
+  try { await startBirthdays(getFirestore(), send, now); } catch (e) { console.error('birthday wishes', e); }
+});
+
+// Each card of vœux tells the person celebrated (récit 36).
+export const onBirthdayCardWritten = onDocumentCreated('birthdayCards/{cardId}', async (event) => {
+  const card = event.data?.data() as BirthdayCard | undefined;
+  if (card) await onBirthdayCardCreated(getFirestore(), send, card);
 });
 
 // --- Bonnes nouvelles (PRD, récit 32) ---------------------------------------------------------------
@@ -297,8 +311,8 @@ const removeFiles: FileRemover = async (paths: string[]) => {
 };
 
 export const onGoodNewsCreated = onDocumentCreated('goodNews/{postId}', async (event) => {
-  const data = event.data?.data() as (GoodNewsData & { challengeMonth?: string; forChallenge?: string }) | undefined;
-  if (!data || data.challengeMonth) return; // « Défi réussi », published by Familia: already told.
+  const data = event.data?.data() as (GoodNewsData & { challengeMonth?: string; forChallenge?: string; birthdayOf?: string }) | undefined;
+  if (!data || data.challengeMonth || data.birthdayOf) return; // Published by Familia: already told.
   await onGoodNewsPublished(getFirestore(), sendGoodNews, event.params.postId, data);
   await giveSouvenir(getFirestore(), send, data.authorId, 'firstGoodNews', new Date());
   const { postId } = event.params;
