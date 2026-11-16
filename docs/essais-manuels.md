@@ -354,6 +354,10 @@ Avec le module « Le coin des petits » allumé, un compte adulte qui a un enfan
 3. Avec l'autre compte, ouvre les Bonnes nouvelles et touche le filtre « Les petits ». **Attendu :** seules celles des petits restent. Touche-le encore : tout revient.
 4. Éteins le module. **Attendu :** ni l'interrupteur, ni le filtre, ni l'étiquette pour les membres (l'admin principal voit toujours tout).
 
+## Voir comme : aucune écriture à l'ouverture
+1. Admin principal : Administration › Voir comme › un membre. Naviguer dans tous les onglets : aucun message « Lecture seule » n'apparaît tant qu'on ne touche aucun bouton d'action.
+2. Quitter Voir comme : les notifications arrivent toujours sur le téléphone de l'admin (il n'a pas été inscrit pour le membre regardé).
+
 ## Le petit geste du jour (récit 43)
 
 Avec le module « Le petit geste du jour » allumé, deux comptes adultes.
@@ -362,3 +366,29 @@ Avec le module « Le petit geste du jour » allumé, deux comptes adultes.
 2. Touche « Voir la photo », puis réagis. **Attendu :** de retour sur l'Accueil, la ligne a disparu. Aucune notification n'est partie.
 3. En « Voir comme », ouvre l'Accueil d'un membre. **Attendu :** la ligne s'affiche pour lui, et rien n'est écrit.
 4. Éteins le module. **Attendu :** plus de ligne pour les membres.
+
+## À découvrir (AVIS-19)
+Avec l'interrupteur « À découvrir » allumé (l'admin principal le voit même éteint). Pour essayer avant le 30/11, mets la date du téléphone au lundi 30/11/2026 ou après.
+1. Lundi 30/11 : l'Accueil montre « À découvrir » en 4e bloc, après « Bonnes nouvelles », avec « La question de la semaine ». **Attendu :** « Essayer » ouvre la question de la semaine.
+2. Reviens sur l'Accueil. **Attendu :** la carte a disparu, et elle ne revient pas après avoir fermé l'appli.
+3. Avec un autre compte, touche « Plus tard ». **Attendu :** la carte disparaît pour ce compte seulement.
+4. Lundi 07/12 : **Attendu :** « Sondages et Qui apporte quoi ». L'Entraide est sautée, car le tuto la montre déjà.
+5. En Voir comme : **Attendu :** pas de « Plus tard », et « Essayer » ouvre le module sans cacher la carte du membre regardé.
+6. Avant le 30/11 ou interrupteur éteint : **Attendu :** pas de carte. Aucune notification n'est envoyée.
+
+## Le petit geste du jour dans « À faire pour moi »
+Avec l'interrupteur « Le petit geste du jour » allumé, et une Bonne nouvelle avec photo publiée par un autre membre, sans ta réaction.
+1. Accueil : **Attendu :** une ligne dans « À faire pour moi », sous ce que « Rejoignez-moi » t'a envoyé et au-dessus des réponses à donner, avec un trait entre chaque partie.
+2. Touche le lien. **Attendu :** la Bonne nouvelle s'ouvre.
+3. Sans rien d'autre à faire : **Attendu :** le bloc « À faire pour moi » s'affiche quand même, avec la ligne seule.
+
+## Un sondage voté reste sur l'Accueil
+1. Réponds à un sondage depuis « À faire pour moi ». **Attendu :** il reste dans le bloc, avec « Tu as voté · en tête : … (n voix) », et l'ouvrir montre les résultats.
+2. Un sondage dont la date de fin est passée depuis moins de 2 jours : **Attendu :** « Terminé · en tête : … » (ou « retenu : … » si l'auteur a choisi). Au-delà de 2 jours, il disparaît.
+
+## Des sondages faciles à trouver (BUG-1)
+1. Planning : en haut, un bouton « Sondages », avec une pastille qui compte les sondages qui attendent ta réponse. TalkBack lit le nombre.
+2. Accueil : un bloc « Sondages » après « Cette semaine ». **Attendu :** d'abord ceux où tu n'as pas répondu (« Sondage de … · à toi de répondre »), puis ceux où tu as voté. « Nouveau sondage » pour un adulte, et « Tous les sondages ».
+3. Sans aucun sondage à montrer : **Attendu :** pas de bloc Sondages.
+5. Avec 4 blocs (À faire, Cette semaine, Sondages, Bonnes nouvelles) et la carte « À découvrir » de la semaine (dès le 30/11) : **Attendu :** « À découvrir » devient la première puce, et la toucher ouvre sa carte sous la rangée.
+4. « À faire pour moi » ne liste plus les sondages.

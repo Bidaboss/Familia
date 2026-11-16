@@ -41,12 +41,14 @@ class ExpensesViewModelTest {
     )
 
     @Test
-    fun `the first adult participant opens the book with one share per adult and a half per child`() = runTest {
+    fun `the first adult participant opens the book with one share per person, children too`() = runTest {
         val repo = FakeExpenses()
         val vm = ExpensesViewModel(repo, TripExpenseContext(trips, "t1"), FakeMembers(), "adult2")
         val state = vm.uiState.first { it is ExpensesUiState.Success } as ExpensesUiState.Success
-        assertEquals(mapOf("h1" to 1.5, "h2" to 1.0), repo.opened.single().second)
+        assertEquals(mapOf("h1" to 2.0, "h2" to 1.0), repo.opened.single().second)
+        assertEquals(mapOf("adult1" to 1.0, "kid1" to 1.0, "adult2" to 1.0), repo.bookValue!!.memberShares)
         assertEquals("adult1", repo.opened.single().first)
+        assertEquals(listOf("Foyer Deux", "Foyer Un"), state.shareGroups.map { it.name })
         assertEquals(listOf("Foyer Deux", "Foyer Un"), state.households.map { it.name })
         assertFalse(state.isCreator)
         assertTrue(state.transfers.isEmpty())
@@ -104,28 +106,33 @@ class ExpensesViewModelTest {
     }
 
     @Test
-    fun `only the creator changes the shares, by halves from 0,5 to 20, and closes the accounts`() = runTest {
+    fun `only the creator changes the shares of each person, by halves from 0 to 10, and closes the accounts`() = runTest {
         val repo = FakeExpenses(book(), listOf(expense("a", 10_000, "adult1", "h1", author = "adult2")))
         val other = ExpensesViewModel(repo, TripExpenseContext(trips, "t1"), FakeMembers(), "adult2")
         backgroundScope.launch { other.uiState.collect {} }
         other.uiState.first { it is ExpensesUiState.Success }
-        assertFalse(other.saveShares(mapOf("h1" to "1", "h2" to "1")))
+        assertFalse(other.saveShares(mapOf("adult1" to "1", "kid1" to "1", "adult2" to "1")))
         other.setClosed(true)
         assertFalse(repo.bookValue!!.closed)
 
         val creator = ExpensesViewModel(repo, TripExpenseContext(trips, "t1"), FakeMembers(), "adult1")
         backgroundScope.launch { creator.uiState.collect {} }
         creator.uiState.first { it is ExpensesUiState.Success }
-        assertFalse(creator.saveShares(mapOf("h1" to "1,3", "h2" to "1")))
-        assertFalse(creator.saveShares(mapOf("h1" to "2")))
-        assertTrue(creator.saveShares(mapOf("h1" to "2", "h2" to "0,5")))
-        assertEquals(mapOf("h1" to 2.0, "h2" to 0.5), repo.bookValue!!.shares)
+        assertFalse(creator.saveShares(mapOf("adult1" to "1,3", "kid1" to "1", "adult2" to "1")))
+        assertFalse(creator.saveShares(mapOf("adult1" to "1", "kid1" to "1")))
+        // A household that would weigh nothing is refused.
+        assertFalse(creator.saveShares(mapOf("adult1" to "1", "kid1" to "1", "adult2" to "0")))
+        assertTrue(creator.saveShares(mapOf("adult1" to "1", "kid1" to "0,5", "adult2" to "2")))
+        assertEquals(mapOf("h1" to 1.5, "h2" to 2.0), repo.bookValue!!.shares)
+        assertEquals(mapOf("adult1" to 1.0, "kid1" to 0.5, "adult2" to 2.0), repo.bookValue!!.memberShares)
+        val saved = creator.uiState.first { it is ExpensesUiState.Success && it.households.any { h -> h.people.isNotEmpty() } } as ExpensesUiState.Success
+        assertEquals(listOf("adult1" to 1.0, "kid1" to 0.5), saved.households.first { it.id == "h1" }.people.map { it.id to it.shares })
 
         creator.setClosed(true)
         val closed = creator.uiState.first { it is ExpensesUiState.Success && it.closed } as ExpensesUiState.Success
         assertTrue(closed.transfers.none { it.canConfirm })
         assertTrue(closed.expenses.none { it.canEdit })
-        assertFalse(creator.saveShares(mapOf("h1" to "1", "h2" to "1")))
+        assertFalse(creator.saveShares(mapOf("adult1" to "1", "kid1" to "1", "adult2" to "1")))
         creator.setClosed(false)
         assertFalse(repo.bookValue!!.closed)
     }
@@ -166,12 +173,12 @@ class FakeExpenses(
     val saved = mutableListOf<Pair<Expense, Boolean>>()
 
     override fun observeBook(container: ExpenseContainer): Flow<ExpenseBook?> = book
-    override suspend fun openBook(container: ExpenseContainer, creatorId: String, shares: Map<String, Double>) {
+    override suspend fun openBook(container: ExpenseContainer, creatorId: String, shares: Map<String, Double>, memberShares: Map<String, Double>) {
         opened += creatorId to shares
-        book.value = ExpenseBook(container.bookId, container, creatorId, shares)
+        book.value = ExpenseBook(container.bookId, container, creatorId, shares, memberShares = memberShares)
     }
-    override suspend fun setShares(bookId: String, shares: Map<String, Double>) {
-        book.value = book.value?.copy(shares = shares)
+    override suspend fun setShares(bookId: String, shares: Map<String, Double>, memberShares: Map<String, Double>) {
+        book.value = book.value?.copy(shares = shares, memberShares = memberShares)
     }
     override fun observeExpenses(bookId: String): Flow<List<Expense>> = expenses
     override fun observeSettlements(bookId: String): Flow<List<ExpenseSettlement>> = settlements.map { it }

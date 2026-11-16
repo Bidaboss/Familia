@@ -23,7 +23,7 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 | Champ | Type | Description |
 |---|---|---|
 | `firstName` | texte | Prénom affiché partout |
-| `email` | texte ou null | Adresse Google, en minuscules. Null pour un enfant sans l'appli |
+| `email` | texte ou null | Adresse Google, en minuscules. Null pour un enfant sans l'appli, et pour un membre préparé dont l'adresse sera ajoutée au moment de l'inviter (il ne peut pas se connecter avant) |
 | `birthDate` | texte `AAAA-MM-JJ` ou null | Sert à calculer les anniversaires (lot 5) |
 | `householdId` | texte | Foyer du membre |
 | `profile` | `adult` \| `childWithApp` \| `childWithoutApp` | Droits du membre |
@@ -76,6 +76,20 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 - **Retirer la photo** supprime le document. La suppression d'un membre retire aussi sa photo, dans le même lot d'écriture.
 - **Pourquoi Firestore plutôt que Storage :** 13 photos d'environ 100 Ko tiennent largement dans un document chacune (la limite est de 1 Mo). Elles restent lisibles hors ligne, comme le reste. Les mêmes règles de sécurité les protègent. Et il n'y a aucun service ni aucune facturation de plus à activer.
 - **L'export JSON ne contient pas les photos.**
+
+### `memberCards/{memberId}` (récit 7 bis, fiche membre)
+
+| Champ | Type | Rôle |
+|---|---|---|
+| `top`, `bottom`, `shoes` | texte, 20 caractères au plus | Taille du haut, taille du bas et pointure, en texte libre (« M », « 12 ans », « 39 »), vides si inconnues |
+| `allergies`, `tastes` | texte, 300 caractères au plus | Allergies et goûts, pour choisir un cadeau ou un menu |
+| `updatedBy` | texte | Le membre qui a écrit la fiche |
+| `updatedAt` | timestamp | Heure du serveur |
+
+- **Qui la change :** les mêmes que pour la photo (le membre, un adulte du foyer pour un enfant, l'admin principal).
+- **Qui la lit :** toute la famille, et personne d'autre.
+- Une fiche vidée supprime le document. La fonction `onMemberDeletedCard` la supprime avec son membre.
+- Derrière l'interrupteur `memberCard`.
 
 ### `events/{eventId}` (lot 4)
 
@@ -1028,8 +1042,9 @@ les adultes participants le lisent et l'écrivent. Les montants sont en centimes
 ### `expenseBooks/{containerType}_{containerId}`
 
 `containerType` (`trip` ou `event`), `containerId`, `creatorId` (le créateur du voyage ou l'auteur
-de l'événement, qui change les parts, corrige tout et clôture), `shares` (foyer → nombre de parts : 1 par adulte et 0,5 par enfant par
-défaut), `closed`, `createdAt`, `updatedAt`. Ouvert par le premier adulte participant qui affiche les comptes.
+de l'événement, qui change les parts, corrige tout et clôture), `shares` (foyer → nombre de parts : la somme des parts de ses membres), `memberShares`
+(membre → parts, de 0 à 10 par demi-part, 1 par personne par défaut, enfants compris ; absent d'un
+carnet ouvert avant les parts par personne tant que le créateur ne les a pas enregistrées), `closed`, `createdAt`, `updatedAt`. Ouvert par le premier adulte participant qui affiche les comptes.
 
 Les comptes d'un événement (PRODUIT-57, un week-end ou un repas) : partagés par ceux qui ont
 répondu « Je viens » (`rsvps/{memberId}.status == 'yes'`) et par l'auteur ; « Peut-être » ne compte

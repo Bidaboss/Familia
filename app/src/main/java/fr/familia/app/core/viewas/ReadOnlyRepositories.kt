@@ -23,6 +23,7 @@ import fr.familia.app.core.data.BirthdayCardRepository
 import fr.familia.app.core.data.GoodNewsRepository
 import fr.familia.app.core.data.HelpRequestRepository
 import fr.familia.app.core.data.JoinMeRepository
+import fr.familia.app.core.data.MemberCardRepository
 import fr.familia.app.core.data.MemberPhoto
 import fr.familia.app.core.data.MemberPhotoRepository
 import fr.familia.app.core.data.MemberRepository
@@ -42,6 +43,7 @@ import fr.familia.app.core.model.CapsuleLeftover
 import fr.familia.app.core.model.ChallengeRotation
 import fr.familia.app.core.model.DayUsage
 import fr.familia.app.core.model.Event
+import fr.familia.app.core.model.MemberCard
 import fr.familia.app.core.model.Expense
 import fr.familia.app.core.model.ExpenseBook
 import fr.familia.app.core.model.ExpenseContainer
@@ -115,7 +117,7 @@ class ReadOnlyAuthRepository(private val inner: AuthRepository, private val guar
     override fun currentUser(): AuthUser? = inner.currentUser()
     override suspend fun signInWithGoogleIdToken(idToken: String): AuthUser = guard.refuse()
     override fun signOut() {
-        guard.refuseQuietly()
+        guard.refuse()
     }
 }
 
@@ -135,6 +137,11 @@ class ReadOnlyMemberPhotoRepository(private val inner: MemberPhotoRepository, pr
     override fun observePhotos(): Flow<Map<String, MemberPhoto>> = inner.observePhotos()
     override suspend fun savePhoto(memberId: String, jpeg: ByteArray) = guard.refuse()
     override suspend fun removePhoto(memberId: String) = guard.refuse()
+}
+
+class ReadOnlyMemberCardRepository(private val inner: MemberCardRepository, private val guard: ViewAsGuard) : MemberCardRepository {
+    override fun observeCard(memberId: String): Flow<MemberCard?> = inner.observeCard(memberId)
+    override suspend fun saveCard(card: MemberCard, byId: String) = guard.refuse()
 }
 
 class ReadOnlyEventRepository(private val inner: EventRepository, private val guard: ViewAsGuard) : EventRepository {
@@ -363,7 +370,7 @@ class ReadOnlyNotebookRepository(private val inner: NotebookRepository, private 
 
 /** Nothing is counted while the admin looks through someone else's eyes (PRD, récit 1 nonies). */
 class ReadOnlyUsageRepository(private val inner: UsageRepository, private val guard: ViewAsGuard) : UsageRepository {
-    override suspend fun saveDay(memberId: String, day: LocalDate, usage: DayUsage) = guard.refuseQuietly()
+    override suspend fun saveDay(memberId: String, day: LocalDate, usage: DayUsage) = guard.refuse()
     override suspend fun fetchDays(memberId: String, since: LocalDate): List<UsageDay> = inner.fetchDays(memberId, since)
     override suspend fun fetchLastDay(memberId: String): LocalDate? = inner.fetchLastDay(memberId)
 }
@@ -414,7 +421,7 @@ class ReadOnlyExportRepository(private val guard: ViewAsGuard) : ExportRepositor
  * member being looked at, and their settings are not changed.
  */
 class ReadOnlyNotificationRepository(private val inner: NotificationRepository, private val guard: ViewAsGuard) : NotificationRepository {
-    override suspend fun registerThisDevice(memberId: String) = guard.refuseQuietly()
+    override suspend fun registerThisDevice(memberId: String) = guard.refuse()
     override fun observeDayBeforeReminder(memberId: String): Flow<Boolean> = inner.observeDayBeforeReminder(memberId)
     override suspend fun setDayBeforeReminder(memberId: String, enabled: Boolean) = guard.refuse()
     override fun observeGoodNews(memberId: String): Flow<Boolean> = inner.observeGoodNews(memberId)
@@ -436,8 +443,8 @@ class ReadOnlyNotificationRepository(private val inner: NotificationRepository, 
 
 class ReadOnlyExpenseRepository(private val inner: ExpenseRepository, private val guard: ViewAsGuard) : ExpenseRepository {
     override fun observeBook(container: ExpenseContainer): Flow<ExpenseBook?> = inner.observeBook(container)
-    override suspend fun openBook(container: ExpenseContainer, creatorId: String, shares: Map<String, Double>) = guard.refuse()
-    override suspend fun setShares(bookId: String, shares: Map<String, Double>) = guard.refuse()
+    override suspend fun openBook(container: ExpenseContainer, creatorId: String, shares: Map<String, Double>, memberShares: Map<String, Double>) = guard.refuse()
+    override suspend fun setShares(bookId: String, shares: Map<String, Double>, memberShares: Map<String, Double>) = guard.refuse()
     override fun observeExpenses(bookId: String): Flow<List<Expense>> = inner.observeExpenses(bookId)
     override fun observeSettlements(bookId: String): Flow<List<ExpenseSettlement>> = inner.observeSettlements(bookId)
     override fun newExpenseId(bookId: String): String = inner.newExpenseId(bookId)

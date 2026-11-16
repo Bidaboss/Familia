@@ -13,7 +13,7 @@ private val claudeDay = DateTimeFormatter.ofPattern("d MMMM yyyy 'à' HH'h'mm", 
  * that codes the app. It says what, where and on which phone, but never who sent it: the first
  * name stays in the app.
  */
-fun feedbackForClaude(item: Feedback, zone: ZoneId = ZoneId.systemDefault()): String {
+fun feedbackForClaude(item: Feedback, zone: ZoneId = ZoneId.systemDefault(), imageAttached: Boolean = false): String {
     val c = item.context
     val kind = when (item.kind) {
         Feedback.Kind.Idea -> "une idée"
@@ -38,7 +38,11 @@ fun feedbackForClaude(item: Feedback, zone: ZoneId = ZoneId.systemDefault()): St
         if (phone.isNotEmpty()) appendLine("Téléphone : $phone.")
         appendLine("État : $status.")
         item.note?.let { appendLine("Déjà répondu : $it") }
-        if (item.screenshot != null) appendLine("Une capture d'écran est jointe dans l'appli, dans Administration > Retours.")
+        if (imageAttached) {
+            appendLine("La capture d'écran envoyée avec la demande est jointe.")
+        } else if (item.screenshot != null) {
+            appendLine("Une capture d'écran est jointe dans l'appli, dans Administration > Retours.")
+        }
         appendLine()
         appendLine("Texte :")
         appendLine(item.text)

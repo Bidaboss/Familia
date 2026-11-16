@@ -73,7 +73,7 @@ fun ViewAsHost(
         val guard = ViewAsGuard { main.post { Toast.makeText(context.applicationContext, readOnly, Toast.LENGTH_SHORT).show() } }
         ViewAsContainer(container, guard, me.id)
     }
-    val control = ViewAsControl(viewed = viewed, stop = { viewedId = null })
+    val control = ViewAsControl(viewed = viewed, stop = { viewedId = null }, readerId = me.id)
     Column(Modifier.fillMaxSize()) {
         ViewAsBanner(viewed.firstName, onQuit = { viewedId = null }, modifier = Modifier.statusBarsPadding())
         // A new app for each member looked at: its own screens, back stack and state.

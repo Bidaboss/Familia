@@ -46,6 +46,40 @@ describe('adding a member', () => {
     await assertFails(setDoc(doc(as(env, ADMIN), 'memberEmails/stranger@example.com'), { memberId: 'adult1' }));
   });
 
+  test('an adult or a child with the app can be prepared without an address, added later', async () => {
+    const db = as(env, ADMIN);
+    const later = { memberId: 'later1', email: 'later1@example.com', uid: 'uid-later1' };
+    await assertSucceeds(addMember(db, later, adultDoc(later, { email: null })));
+    // Without an address, nobody can sign in as them.
+    await assertFails(getDoc(doc(as(env, later), 'members/admin1')));
+    const kid = { memberId: 'kid3' };
+    await assertSucceeds(addMember(db, kid, adultDoc(kid, { email: null, profile: 'childWithApp', parentIds: ['adult1'] })));
+    // The address is added with its entry, in the same batch, and opens access.
+    const batch = writeBatch(db);
+    batch.update(doc(db, 'members/later1'), { email: later.email });
+    batch.set(doc(db, `memberEmails/${later.email}`), { memberId: 'later1' });
+    await assertSucceeds(batch.commit());
+    await assertSucceeds(getDoc(doc(as(env, later), 'members/admin1')));
+  });
+
+  test('a member who already signed in cannot lose their address', async () => {
+    const db = as(env, ADMIN);
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), `members/${ADULT.memberId}`), { uid: ADULT.uid });
+    });
+    const batch = writeBatch(db);
+    batch.update(doc(db, `members/${ADULT.memberId}`), { email: null });
+    batch.delete(doc(db, `memberEmails/${ADULT.email}`));
+    await assertFails(batch.commit());
+  });
+
+  test('an address added without its entry is refused', async () => {
+    const db = as(env, ADMIN);
+    const later = { memberId: 'later2' };
+    await assertSucceeds(addMember(db, later, adultDoc(later, { email: null })));
+    await assertFails(updateDoc(doc(db, 'members/later2'), { email: 'later2@example.com' }));
+  });
+
   test('a child without the app has no email and at least one responsible adult', async () => {
     const db = as(env, ADMIN);
     const child = { memberId: 'kid1' };

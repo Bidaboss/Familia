@@ -19,8 +19,8 @@ class ViewAsGuard(private val onRefused: () -> Unit = {}) {
         throw ReadOnlyViewException()
     }
 
-    /** A write the app makes by itself (the phone's registration, the time counted): skipped silently. */
-    fun refuseQuietly() = Unit
+    // No quiet refusal: in « Voir comme » the app makes no write by itself when a screen opens
+    // (the phone is not registered, the time is not counted), so any write reaching here was asked.
 }
 
 /** What the screens know of « Voir comme »: start it from Administration, or the member looked at. */
@@ -30,6 +30,8 @@ data class ViewAsControl(
     /** Null when « Voir comme » cannot start here (not the admin principal, or already in it). */
     val start: ((Member) -> Unit)? = null,
     val stop: () -> Unit = {},
+    /** In « Voir comme », the admin principal, who still reads with their own account; null outside. */
+    val readerId: String? = null,
 )
 
 val LocalViewAs = staticCompositionLocalOf { ViewAsControl() }
@@ -45,6 +47,7 @@ class ViewAsContainer(private val base: AppContainer, guard: ViewAsGuard, adminI
     override val memberRepository = base.memberRepository?.let { ReadOnlyMemberRepository(it, guard) }
     override val linkPreviewRepository = base.linkPreviewRepository
     override val memberPhotoRepository = base.memberPhotoRepository?.let { ReadOnlyMemberPhotoRepository(it, guard) }
+    override val memberCardRepository = base.memberCardRepository?.let { ReadOnlyMemberCardRepository(it, guard) }
     override val eventRepository = base.eventRepository?.let { ReadOnlyEventRepository(it, guard) }
     override val rsvpRepository = base.rsvpRepository?.let { ReadOnlyRsvpRepository(it, guard) }
     override val bringRepository = base.bringRepository?.let { ReadOnlyBringRepository(it, guard) }

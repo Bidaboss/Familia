@@ -48,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -84,7 +85,7 @@ data class ExpensesActions(
     val onConfirm: (TransferRow) -> Unit,
     val onUndo: (SettlementRow) -> Unit,
     val onSetClosed: (Boolean) -> Unit,
-    /** The shares typed for each household; false when one is wrong and the form stays open. */
+    /** The shares typed for each person, by member id; false when one is wrong and the form stays open. */
     val onSaveShares: (Map<String, String>) -> Boolean,
     val onDismissError: () -> Unit,
 )
@@ -259,7 +260,7 @@ private fun Content(
         }
     }
     if (actions != null && editShares && !state.closed) {
-        SharesDialog(state.households, onSave = actions.onSaveShares, onDismiss = { editShares = false })
+        SharesDialog(state.shareGroups, state.sharesByHousehold, onSave = actions.onSaveShares, onDismiss = { editShares = false })
     }
     if (actions != null && confirmClose) {
         AlertDialog(
@@ -280,34 +281,55 @@ private fun Content(
     }
 }
 
-/** The shares of each household, typed by the creator: from 0,5 to 20, by halves. */
+/**
+ * The shares of each person, typed by the creator under the name of their household: from 0 to 10,
+ * by halves, 1 by default. Each household shows the sum of its people, which the balance uses.
+ */
 @Composable
-private fun SharesDialog(households: List<HouseholdRow>, onSave: (Map<String, String>) -> Boolean, onDismiss: () -> Unit) {
-    var typed by rememberSaveable { mutableStateOf(households.associate { it.id to shareText(it.shares) }) }
-    val allValid = households.all { parseShare(typed[it.id].orEmpty()) != null }
+private fun SharesDialog(groups: List<ShareGroup>, byHousehold: Boolean, onSave: (Map<String, String>) -> Boolean, onDismiss: () -> Unit) {
+    var typed by rememberSaveable { mutableStateOf(groups.flatMap { it.people }.associate { it.id to shareText(it.shares) }) }
+    val sums = groups.associate { g -> g.householdId to g.people.map { parsePersonShare(typed[it.id].orEmpty()) } }
+    val allValid = sums.values.all { values -> values.all { it != null } && values.sumOf { it ?: 0.0 } >= SHARE_MIN }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.expenses_shares_title)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.expenses_shares_body), style = MaterialTheme.typography.bodyMedium)
-                households.forEach { h ->
-                    val value = typed[h.id].orEmpty()
-                    val wrong = parseShare(value) == null
-                    OutlinedTextField(
-                        value = value,
-                        onValueChange = { typed = typed + (h.id to it) },
-                        label = { Text(h.name) },
-                        singleLine = true,
-                        isError = wrong,
-                        supportingText = if (wrong) {
-                            { Text(stringResource(R.string.expenses_shares_error)) }
-                        } else {
-                            null
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.fillMaxWidth(),
+                if (byHousehold) {
+                    // A book opened before the shares by person: saving replaces the shares of each household.
+                    Text(stringResource(R.string.expenses_shares_legacy), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                }
+                groups.forEach { g ->
+                    val values = sums[g.householdId].orEmpty()
+                    val total = values.sumOf { it ?: 0.0 }
+                    Text(
+                        // French: « 0,5 part », « 1 part », « 1,5 parts ».
+                        pluralStringResource(R.plurals.expenses_shares_household, if (total < 2.0) 1 else 2, g.name, shareText(total)),
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.padding(top = 8.dp),
                     )
+                    if (values.all { it != null } && total < SHARE_MIN) {
+                        Text(stringResource(R.string.expenses_shares_household_empty), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+                    }
+                    g.people.forEach { p ->
+                        val value = typed[p.id].orEmpty()
+                        val wrong = parsePersonShare(value) == null
+                        OutlinedTextField(
+                            value = value,
+                            onValueChange = { typed = typed + (p.id to it) },
+                            label = { Text(p.firstName) },
+                            singleLine = true,
+                            isError = wrong,
+                            supportingText = if (wrong) {
+                                { Text(stringResource(R.string.expenses_shares_error)) }
+                            } else {
+                                null
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
             }
         },
@@ -329,6 +351,13 @@ private fun BalanceRow(row: HouseholdRow) {
     ClayCard(Modifier.fillMaxWidth()) {
         Text(row.name, style = MaterialTheme.typography.titleMedium)
         Text(stringResource(R.string.expenses_shares, shareText(row.shares)), style = MaterialTheme.typography.bodyMedium)
+        if (row.people.isNotEmpty()) {
+            Text(
+                row.people.joinToString(" · ") { "${it.firstName} ${shareText(it.shares)}" },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         Text(
             stringResource(R.string.expenses_paid_owed, formatCents(row.paidCents), formatCents(row.owedCents)),
             style = MaterialTheme.typography.bodyMedium,

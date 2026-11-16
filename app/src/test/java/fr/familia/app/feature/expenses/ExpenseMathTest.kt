@@ -36,12 +36,13 @@ class ExpenseMathTest {
     )
 
     @Test
-    fun `one share per adult and a half per child`() {
+    fun `one share per person, children too, added up by household`() {
         val participants = listOf(
             member("a1", "h1"), member("a2", "h1"), member("k1", "h1", MemberProfile.ChildWithApp),
             member("a3", "h2"), member("k2", "h2", MemberProfile.ChildWithoutApp),
         )
-        assertEquals(mapOf("h1" to 2.5, "h2" to 1.5), defaultShares(participants))
+        assertEquals(mapOf("h1" to 3.0, "h2" to 2.0), defaultShares(participants))
+        assertEquals(mapOf("h1" to 2.5, "h2" to 1.0), householdShares(participants, mapOf("k1" to 0.5, "k2" to 0.0)))
     }
 
     @Test

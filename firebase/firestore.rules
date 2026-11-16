@@ -116,8 +116,9 @@ service cloud.firestore {
         && m.profile in ['adult', 'childWithApp', 'childWithoutApp']
         && m.isAdmin is bool && (!m.isAdmin || m.profile == 'adult')
         && hasValidParents(m)
-        && (m.profile != 'childWithoutApp' || m.email == null)
-        && (m.profile == 'childWithoutApp' || m.email != null);
+        // An adult or a child with the app may wait for their address: they cannot sign in until
+        // it is added, and the email index only exists once it is.
+        && (m.profile != 'childWithoutApp' || m.email == null);
     }
 
     // The email index and the member document must always agree, in the same batched write.
@@ -176,6 +177,8 @@ service cloud.firestore {
       allow update: if isMember()
         && isValidMember(request.resource.data)
         && request.resource.data.uid == resource.data.uid
+        // A member who already signed in keeps an address: removing it would lock them out.
+        && (resource.data.uid == null || request.resource.data.email != null)
         && emailIndexMatches(memberId, request.resource.data.email)
         && (resource.data.email == null || resource.data.email == request.resource.data.email
             || !existsAfter(emailIndexPath(resource.data.email)))
@@ -1512,6 +1515,36 @@ service cloud.firestore {
       allow delete: if canChangePhoto(memberId) || (isMember() && !existsAfter(memberPath(memberId)));
     }
 
+    // --- Fiche membre (PRD, récit 7 bis) ------------------------------------------------------------
+    //
+    // memberCards/{memberId} -> { top, bottom, shoes, allergies, tastes, updatedBy, updatedAt }: the
+    // sizes, shoe size, allergies and tastes of a member, free texts, blank when unknown. The whole
+    // family reads it, to pick a present or a menu. Those who change the photo change the card. An
+    // empty card is deleted; the functions delete it with its member (onMemberDeletedCard).
+    function isCardSize(v) {
+      return v is string && v.size() <= 20;
+    }
+
+    function isCardText(v) {
+      return v is string && v.size() <= 300;
+    }
+
+    match /memberCards/{memberId} {
+      allow read: if isMember();
+      allow create, update: if canChangePhoto(memberId)
+        && exists(memberPath(memberId))
+        && request.resource.data.keys().hasOnly(['top', 'bottom', 'shoes', 'allergies', 'tastes', 'updatedBy', 'updatedAt'])
+        && request.resource.data.keys().hasAll(['top', 'bottom', 'shoes', 'allergies', 'tastes', 'updatedBy', 'updatedAt'])
+        && isCardSize(request.resource.data.top)
+        && isCardSize(request.resource.data.bottom)
+        && isCardSize(request.resource.data.shoes)
+        && isCardText(request.resource.data.allergies)
+        && isCardText(request.resource.data.tastes)
+        && request.resource.data.updatedBy == myMemberId()
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if canChangePhoto(memberId);
+    }
+
     // --- Carnet de recettes (récit 38) -------------------------------------------------------------
     //
     // recipes/{recipeId}: a family recipe, seen by every member. Ingredients and steps are kept as
@@ -1867,11 +1900,13 @@ service cloud.firestore {
 
     function isValidBook(b, bookId) {
       return b.keys().hasAll(['containerType', 'containerId', 'creatorId', 'shares', 'closed', 'createdAt', 'updatedAt'])
-        && b.keys().hasOnly(['containerType', 'containerId', 'creatorId', 'shares', 'closed', 'createdAt', 'updatedAt'])
+        && b.keys().hasOnly(['containerType', 'containerId', 'creatorId', 'shares', 'memberShares', 'closed', 'createdAt', 'updatedAt'])
         && b.containerType in ['trip', 'event']
         && b.containerId is string
         && bookId == b.containerType + '_' + b.containerId
         && b.shares is map && b.shares.size() >= 1 && b.shares.size() <= 13
+        // The shares of each person, optional: a book opened before has none.
+        && (!('memberShares' in b) || (b.memberShares is map && b.memberShares.size() <= 40))
         && b.closed is bool
         && b.updatedAt == request.time;
     }
@@ -1888,8 +1923,9 @@ service cloud.firestore {
       allow update: if canUseBook(resource.data)
         && (resource.data.creatorId == myMemberId() || isOwner())
         && isValidBook(request.resource.data, bookId)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['shares', 'closed', 'updatedAt'])
-        && (resource.data.closed == false || request.resource.data.shares == resource.data.shares);
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['shares', 'memberShares', 'closed', 'updatedAt'])
+        && (resource.data.closed == false
+          || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['closed', 'updatedAt']));
     }
 
     function isValidExpense(e, book) {

@@ -3,6 +3,7 @@ package fr.familia.app.feature.feedback
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -204,6 +205,8 @@ fun FeedbackListScreen(
     onBack: () -> Unit,
     onAnswer: ((id: String, status: Feedback.Status, note: String) -> Unit)? = null,
     onRemove: (String) -> Unit = {},
+    /** « Partager pour Claude »: the text and the screenshot together; null outside Retours. */
+    onShareForClaude: ((Feedback) -> Unit)? = null,
     actionFailed: Boolean = false,
     onFailureShown: () -> Unit = {},
 ) {
@@ -250,7 +253,17 @@ fun FeedbackListScreen(
                                         path = path,
                                         contentDescription = stringResource(R.string.feedback_screenshot),
                                         contentScale = ContentScale.Fit,
-                                        modifier = Modifier.fillMaxWidth().height(240.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(240.dp)
+                                            // Touching the picture shares it with the text, for Claude.
+                                            .then(
+                                                if (onShareForClaude != null) {
+                                                    Modifier.clickable(onClickLabel = stringResource(R.string.feedback_share_for_claude)) { onShareForClaude(item) }
+                                                } else {
+                                                    Modifier
+                                                },
+                                            ),
                                     )
                                 }
                                 item.note?.let { Text(stringResource(R.string.feedback_note_shown, it), style = MaterialTheme.typography.bodyMedium) }
@@ -272,6 +285,11 @@ fun FeedbackListScreen(
                                             modifier = Modifier.heightIn(min = 56.dp),
                                         ) {
                                             Text(stringResource(if (copied == item.id) R.string.feedback_copied else R.string.feedback_copy_for_claude))
+                                        }
+                                        if (onShareForClaude != null) {
+                                            TextButton(onClick = { onShareForClaude(item) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                                                Text(stringResource(R.string.feedback_share_for_claude))
+                                            }
                                         }
                                         TextButton(onClick = { removing = item.id }, modifier = Modifier.heightIn(min = 56.dp)) {
                                             Text(stringResource(R.string.feedback_remove))

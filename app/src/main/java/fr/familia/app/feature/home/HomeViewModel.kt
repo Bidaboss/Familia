@@ -49,7 +49,7 @@ class HomeViewModel(
     private val gifts: GiftRepository? = null,
     private val trips: TripRepository? = null,
     private val today: Flow<LocalDate> = currentDayFlow(),
-    /** Null while the polls module is off: no poll in « À faire pour moi ». */
+    /** Null while the polls module is off: no block « Sondages ». */
     private val polls: PollRepository? = null,
     private val clock: () -> Instant = Instant::now,
 ) : ViewModel() {
@@ -77,8 +77,9 @@ class HomeViewModel(
                     } else {
                         val next = extras.first?.let { (giftList, claims) -> occasion(giftList, me, fam, claims, day) }
                         val (asked, votes) = extras.third
-                        val toVote = pollsToVote(me, asked, votes, clock(), day)
-                        homeState(me, fam, day, list, answers, help, next, extras.second, toVote)
+                        val now = clock()
+                        val toVote = pollsToVote(me, asked, votes, now, day)
+                        homeState(me, fam, day, list, answers, help, next, extras.second, toVote, pollsVoted(me, asked, votes, now), pollsOn = polls != null)
                     }
                 }.catch { e ->
                     if (e is CancellationException) throw e
@@ -126,7 +127,7 @@ class HomeViewModel(
     private fun openPolls(): Flow<Pair<List<Poll>, Map<String, List<PollVote>>>> {
         val repo = polls ?: return flowOf(emptyList<Poll>() to emptyMap())
         val asked = bonus(repo.observeMine(currentMemberId), emptyList())
-            .map { list -> list.filter { it.isOpen(clock()) && currentMemberId in it.askedIds } }
+            .map { list -> list.filter { showsOnHome(it, clock()) && currentMemberId in it.askedIds } }
             .distinctUntilChanged()
         return asked.flatMapLatest { list ->
             if (list.isEmpty()) {

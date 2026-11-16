@@ -22,6 +22,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material3.AlertDialog
@@ -60,6 +61,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.ClaimType
@@ -107,6 +109,8 @@ data class GiftListActions(
     val onMarkReceived: (itemId: String, memberId: String, received: Boolean) -> Unit = { _, _, _ -> },
     /** « On m'a offert », on one's own wishes; null while its module is off (récit 10 bis). */
     val onOpenReceived: (() -> Unit)? = null,
+    /** The page of the beneficiary, for their sizes and tastes (récit 7 bis); null while that module is off. */
+    val onOpenBeneficiary: ((memberId: String) -> Unit)? = null,
 )
 
 /** One gift list: its items, and the reservations for everyone but the beneficiary. Stateless. */
@@ -161,7 +165,7 @@ fun GiftListScreen(state: GiftListUiState, actions: GiftListActions, modifier: M
                 GiftListUiState.Error -> EmptyState(
                     icon = Icons.Outlined.CardGiftcard,
                     title = stringResource(R.string.gifts_error_title),
-                    body = stringResource(R.string.planning_error_body),
+                    body = stringResource(R.string.gifts_error_body),
                     action = {
                         Button(onClick = actions.onRetry, modifier = Modifier.heightIn(min = 56.dp)) {
                             Text(stringResource(R.string.action_retry))
@@ -182,7 +186,7 @@ private fun Content(state: GiftListUiState.Success, actions: GiftListActions) {
         contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 16.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
-        item(key = "header") { Header(state, actions.onOpenReceived) }
+        item(key = "header") { Header(state, actions.onOpenReceived, actions.onOpenBeneficiary) }
         if (state.items.isEmpty()) {
             item(key = "empty") {
                 Text(
@@ -219,7 +223,7 @@ private fun Content(state: GiftListUiState.Success, actions: GiftListActions) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Header(state: GiftListUiState.Success, onOpenReceived: (() -> Unit)?) {
+private fun Header(state: GiftListUiState.Success, onOpenReceived: (() -> Unit)?, onOpenBeneficiary: ((String) -> Unit)? = null) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         val subtitle = listSubtitle(state.list, state.beneficiary.firstName, state.today)
         if (subtitle.isNotEmpty()) {
@@ -227,6 +231,7 @@ private fun Header(state: GiftListUiState.Success, onOpenReceived: (() -> Unit)?
         }
         val notice = when {
             state.list.revealed -> stringResource(R.string.gift_list_revealed)
+            state.keptFromReader -> stringResource(R.string.view_as_gift_list_kept)
             state.keptFromMe && state.list.kind == GiftListKind.Wishes -> stringResource(R.string.gift_list_hidden_wishes)
             state.keptFromMe -> stringResource(R.string.gift_list_hidden_mine)
             state.list.kind == GiftListKind.Surprise -> stringResource(R.string.gift_list_surprise_notice, state.beneficiary.firstName)
@@ -239,6 +244,13 @@ private fun Header(state: GiftListUiState.Success, onOpenReceived: (() -> Unit)?
         }
         if (onOpenReceived != null && state.isMine && state.list.kind == GiftListKind.Wishes) {
             ClayLink(stringResource(R.string.received_open), onClick = onOpenReceived)
+        }
+        // Someone else's list: their sizes and tastes are one touch away (récit 7 bis).
+        if (onOpenBeneficiary != null && !state.isMine) {
+            ClayLink(
+                stringResource(R.string.gift_list_beneficiary_card, state.beneficiary.firstName),
+                onClick = { onOpenBeneficiary(state.beneficiary.id) },
+            )
         }
         if (state.actionFailed) {
             Text(
@@ -265,6 +277,8 @@ private fun ItemCard(row: ItemRow, state: GiftListUiState.Success, onOpen: () ->
                 Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null)
             }
             ItemDetails(row, tint)
+            // The shop link shows on the card itself, as a link, so nobody has to guess it is there.
+            item.url?.let { url -> ItemLink(url, prominent = false) }
             claim?.let { ClaimStatus(it, item, tint) }
             if (state.canReserve && claim == null) {
                 // Tonal: the screen keeps a single filled action, « Ajouter ».
@@ -275,6 +289,30 @@ private fun ItemCard(row: ItemRow, state: GiftListUiState.Success, onOpen: () ->
         }
     }
 }
+
+/** « Voir sur amazon.fr », with the icon of an outside page: a tonal button in the sheet, a link on the card. */
+@Composable
+private fun ItemLink(url: String, prominent: Boolean) {
+    val uriHandler = LocalUriHandler.current
+    val host = linkHost(url)
+    val label = if (host != null) stringResource(R.string.gift_item_open_link_on, host) else stringResource(R.string.gift_item_open_link)
+    val open = { runCatching { uriHandler.openUri(url) }; Unit }
+    if (prominent) {
+        FilledTonalButton(onClick = open, modifier = Modifier.heightIn(min = 56.dp)) {
+            Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+            Text(label)
+        }
+    } else {
+        TextButton(onClick = open, modifier = Modifier.heightIn(min = 56.dp), contentPadding = PaddingValues(horizontal = 4.dp)) {
+            Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+            Text(label, style = MaterialTheme.typography.labelLarge, textDecoration = TextDecoration.Underline)
+        }
+    }
+}
+
+/** The site of a link without « www. », or null when it cannot be read. */
+internal fun linkHost(url: String): String? =
+    runCatching { java.net.URI(url).host }.getOrNull()?.removePrefix("www.")?.takeIf { it.isNotBlank() }
 
 @Composable
 private fun ItemDetails(row: ItemRow, tint: ClayTint) {
@@ -303,7 +341,6 @@ private fun ItemSheet(row: ItemRow, state: GiftListUiState.Success, actions: Gif
 @Composable
 internal fun ItemSheetContent(row: ItemRow, state: GiftListUiState.Success, actions: GiftListActions, onEdit: () -> Unit) {
     val item = row.item
-    val uriHandler = LocalUriHandler.current
     Column(
         modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).navigationBarsPadding(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -328,11 +365,7 @@ internal fun ItemSheetContent(row: ItemRow, state: GiftListUiState.Success, acti
             modifier = Modifier.padding(top = 4.dp),
         ) {
             ReservationButtons(row, state, actions)
-            item.url?.let { url ->
-                OutlinedButton(onClick = { runCatching { uriHandler.openUri(url) } }, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.gift_item_open_link))
-                }
-            }
+            item.url?.let { url -> ItemLink(url, prominent = true) }
             if (row.canEdit) {
                 OutlinedButton(onClick = onEdit, modifier = Modifier.heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.event_detail_edit))

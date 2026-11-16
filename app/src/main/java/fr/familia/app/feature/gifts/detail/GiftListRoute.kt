@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.viewas.LocalViewAs
 
 /** Connects a gift list to its ViewModel. */
 @Composable
@@ -22,10 +23,16 @@ fun GiftListRoute(
     onOpenReceived: (() -> Unit)? = null,
     /** The occasion of a reservation of « Mes envies » is shown and chosen only with the reveal on. */
     showClaimOccasion: Boolean = false,
+    /** The beneficiary's page, for their sizes and tastes (récit 7 bis). */
+    onOpenBeneficiary: ((memberId: String) -> Unit)? = null,
 ) {
+    // « Voir comme »: the admin principal still reads with their own account.
+    val readerId = LocalViewAs.current.readerId ?: currentMember.id
     val viewModel: GiftListViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { GiftListViewModel(container?.giftRepository, container?.memberRepository, currentMember.id, listId) }
+            initializer {
+                GiftListViewModel(container?.giftRepository, container?.memberRepository, currentMember.id, listId, readerId = readerId)
+            }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -45,6 +52,7 @@ fun GiftListRoute(
             onLeaveShare = viewModel::leaveShare,
             onMarkReceived = viewModel::markReceived,
             onOpenReceived = onOpenReceived,
+            onOpenBeneficiary = onOpenBeneficiary,
         ),
     )
 }

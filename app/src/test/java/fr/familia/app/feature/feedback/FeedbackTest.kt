@@ -190,6 +190,13 @@ class FeedbackTest {
         assertTrue(text.contains("État : Prévue."))
         assertTrue(text.contains("Déjà répondu : Pour la prochaine version"))
         assertTrue(text.contains("capture d'écran"))
+        assertTrue(text.contains("Administration > Retours"))
+        val shared = feedbackForClaude(
+            Feedback("f1", Feedback.Kind.Problem, "Le planning reste blanc.", "m1", "Camille", context, null, Feedback.Status.New, null, screenshot = "feedback/m1/f1.jpg"),
+            imageAttached = true,
+        )
+        assertTrue(shared.contains("est jointe."))
+        assertFalse(shared.contains("Administration > Retours"))
         assertTrue(text.contains("Le planning reste blanc."))
         assertFalse(text.contains("Camille"))
     }
