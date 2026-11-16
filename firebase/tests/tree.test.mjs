@@ -66,4 +66,11 @@ describe('tree', () => {
     await assertFails(pick(ADMIN, '2027-02', { choiceId: 'kitchen', pickedAt: new Date('2020-01-01') }));
     await assertFails(deleteDoc(doc(as(env, ADMIN), 'challengePicks/2027-01')));
   });
+
+  test('the résumé of the day stays closed, even to its member (AVIS-14)', async () => {
+    const db = as(env, ADULT);
+    await assertFails(getDoc(doc(db, `engagementDigests/${ADULT.memberId}`)));
+    await assertFails(setDoc(doc(db, `engagementDigests/${ADULT.memberId}`), { pending: false }));
+    await assertFails(getDoc(doc(as(env, ADMIN), `engagementDigests/${ADULT.memberId}`)));
+  });
 });

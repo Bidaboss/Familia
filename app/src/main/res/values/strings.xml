@@ -217,6 +217,7 @@
     <string name="feature_event_albums">Albums des événements</string>
     <string name="feature_souvenirs">Souvenirs</string>
     <string name="feature_tree">Arbre de la famille</string>
+    <string name="feature_digest">Résumé du jour (souvenirs, défi, question)</string>
     <string name="feature_month_slideshow">Diaporama du mois</string>
     <string name="feature_recipes">Carnet de recettes</string>
     <string name="household_rename_action">Renommer le foyer %1$s</string>

@@ -6,6 +6,7 @@
 
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import { addDays, parisDay, type Notice } from './logic';
+import { digestOn, queueDigest } from './digest';
 import { notify, type Sender } from './store';
 
 export const LEAVES_PER_DAY = 5;
@@ -206,7 +207,10 @@ export async function celebrateChallenge(db: Firestore, send: Sender, c: Challen
   if (withApp.length === 0) return true;
   const settings = await db.getAll(...withApp.map((id) => db.doc(`members/${id}/settings/notifications`)));
   const muted = new Set(settings.filter((s) => s.exists && s.get('tree') === false).map((s) => s.ref.parent.parent!.id));
-  await notify(db, send, withApp.filter((id) => !muted.has(id)), challengeNotice(c));
+  const told = withApp.filter((id) => !muted.has(id));
+  // With the résumé of the day (AVIS-14), « Défi réussi » goes in it; the Bonne nouvelle is there at once.
+  if (await digestOn(db)) await queueDigest(db, told, { kind: 'challengeDone', month: c.month }, now);
+  else await notify(db, send, told, challengeNotice(c));
   return true;
 }
 
