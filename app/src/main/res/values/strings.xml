@@ -1704,6 +1704,9 @@
     <string name="feature_who_is_it">Qui est-ce ?</string>
     <string name="channel_welcome">Bienvenue</string>
     <string name="channel_welcome_description">Quand un membre de la famille arrive dans Familia</string>
+    <string name="feature_think_of_me">Pensez à moi</string>
+    <string name="channel_think_of_me">Pensez à moi</string>
+    <string name="channel_think_of_me_description">Le jour d\'un moment important, et les encouragements reçus</string>
     <string name="feature_little_ones">Le coin des petits</string>
     <string name="feature_discover">À découvrir</string>
     <string name="goodnews_little_ones_switch">Dans « Les petits » : un dessin ou une réussite à garder</string>

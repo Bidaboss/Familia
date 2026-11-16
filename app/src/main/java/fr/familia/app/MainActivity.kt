@@ -71,7 +71,7 @@ class MainActivity : ComponentActivity() {
             openJoinMe.value = intent.hasJoinMe()
             openCapsuleId.value = intent.capsuleId()
             openRecap.value = intent.recapWeek()
-            (intent.birthdayOf() ?: intent.welcomeOf())?.let { openMemberId.value = it }
+            (intent.birthdayOf() ?: intent.welcomeOf() ?: intent.thinkOfMeOf())?.let { openMemberId.value = it }
             openFeedback.value = intent.feedback()
             sharedWish.value = intent.sharedWish()
             openSharedLink(intent)
@@ -151,7 +151,7 @@ class MainActivity : ComponentActivity() {
         if (intent.hasJoinMe()) openJoinMe.value = true
         intent.capsuleId()?.let { openCapsuleId.value = it }
         intent.recapWeek()?.let { openRecap.value = it }
-        (intent.birthdayOf() ?: intent.welcomeOf())?.let { openMemberId.value = it }
+        (intent.birthdayOf() ?: intent.welcomeOf() ?: intent.thinkOfMeOf())?.let { openMemberId.value = it }
         intent.feedback()?.let { openFeedback.value = it }
         intent.sharedWish()?.let { sharedWish.value = it }
         openSharedLink(intent)
@@ -197,4 +197,6 @@ class MainActivity : ComponentActivity() {
     private fun Intent.recapWeek(): String? = getStringExtra(FamiliaMessagingService.EXTRA_RECAP_WEEK)
     private fun Intent.birthdayOf(): String? = getStringExtra(FamiliaMessagingService.EXTRA_BIRTHDAY_OF)
     private fun Intent.welcomeOf(): String? = getStringExtra(FamiliaMessagingService.EXTRA_WELCOME_OF)
+
+    private fun Intent.thinkOfMeOf(): String? = getStringExtra(FamiliaMessagingService.EXTRA_THINK_OF_ME_OF)
 }

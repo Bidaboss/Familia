@@ -928,6 +928,93 @@ service cloud.firestore {
       allow delete: if isMember() && resource.data.authorId == myMemberId();
     }
 
+    // --- Pensez à moi (PRD, récit 43) ---------------------------------------------------------------
+    //
+    // moments/{id}: an important moment of a member (an exam, a match), on a day. The member notes
+    // their own; a responsible adult notes it for a child, and from 15 years old the teenager
+    // accepts it first (status 'pending', then 'accepted'). The Cloud Functions start it on the day
+    // (startedAt), which opens the encouragements for 24 h: momentCheers/{momentId}-{authorId}, a
+    // short word, one per member. The family reads both; the app never shows how many there are.
+
+    function isMomentTitle(t) {
+      return t is string && t.trim().size() > 0 && t.size() <= 80;
+    }
+
+    // 15 years old today or before, from the birth date of the member (AAAA-MM-JJ). Born a 29
+    // February: on 1 March, since the 15th birthday never falls on a 29 February. Without a birth
+    // date the child counts as younger: the admin fills it in Administration.
+    function isTeenOrOlder(memberId) {
+      let birth = get(memberPath(memberId)).data.get('birthDate', null);
+      let leapDay = birth != null && birth[5:10] == '02-29';
+      return birth != null
+        && timestamp.date(int(birth[0:4]) + 15, leapDay ? 3 : int(birth[5:7]), leapDay ? 1 : int(birth[8:10])) <= request.time;
+    }
+
+    function momentStatusOnCreate(m) {
+      return (m.forMemberId == myMemberId() && m.status == 'accepted')
+        || (m.forMemberId != myMemberId() && isParentOf(m.forMemberId)
+            && m.status == (isTeenOrOlder(m.forMemberId) ? 'pending' : 'accepted'));
+    }
+
+    match /moments/{momentId} {
+      // Waiting for the teenager: only they, its author and their responsible adults read it. The
+      // others read the accepted ones (the app asks for status == 'accepted').
+      allow read: if isMember()
+        && (resource.data.status == 'accepted'
+            || resource.data.forMemberId == myMemberId()
+            || resource.data.authorId == myMemberId()
+            || isParentOf(resource.data.forMemberId));
+
+      allow create: if isMember()
+        && request.resource.data.keys().hasOnly(['forMemberId', 'authorId', 'authorName', 'title', 'day', 'status', 'createdAt'])
+        && request.resource.data.keys().hasAll(['forMemberId', 'authorId', 'authorName', 'title', 'day', 'status', 'createdAt'])
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.forMemberId is string
+        && isMomentTitle(request.resource.data.title)
+        && isDay(request.resource.data.day)
+        && momentStatusOnCreate(request.resource.data)
+        && request.resource.data.createdAt == request.time;
+
+      // The teenager accepts what a parent noted for them, and nothing else changes.
+      allow update: if isMember()
+        && resource.data.forMemberId == myMemberId()
+        && resource.data.status == 'pending'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && request.resource.data.status == 'accepted';
+
+      // The member it is for, or its author, takes it back (or refuses it).
+      allow delete: if isMember()
+        && (resource.data.forMemberId == myMemberId() || resource.data.authorId == myMemberId());
+    }
+
+    function isMomentStartedToday(momentId) {
+      let moment = /databases/$(database)/documents/moments/$(momentId);
+      return exists(moment)
+        && get(moment).data.status == 'accepted'
+        && 'startedAt' in get(moment).data
+        && get(moment).data.startedAt > request.time - duration.value(24, 'h');
+    }
+
+    match /momentCheers/{cheerId} {
+      allow read: if isMember();
+
+      allow create: if isMember()
+        && request.resource.data.keys().hasOnly(['momentId', 'forMemberId', 'authorId', 'authorName', 'text', 'createdAt'])
+        && request.resource.data.keys().hasAll(['momentId', 'forMemberId', 'authorId', 'authorName', 'text', 'createdAt'])
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.momentId is string
+        && cheerId == request.resource.data.momentId + '-' + myMemberId()
+        && isMomentStartedToday(request.resource.data.momentId)
+        && request.resource.data.forMemberId == get(/databases/$(database)/documents/moments/$(request.resource.data.momentId)).data.forMemberId
+        && request.resource.data.forMemberId != myMemberId()
+        && isBirthdayCardText(request.resource.data.text)
+        && request.resource.data.createdAt == request.time;
+
+      allow delete: if isMember() && resource.data.authorId == myMemberId();
+    }
+
     // --- Sondages (PRD, récits 2 bis et 2 ter) ---------------------------------------------------
     //
     // polls/{pollId}: a date poll (2 to 5 dates, each answered yes, maybe or no) or a free poll

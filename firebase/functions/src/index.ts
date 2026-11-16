@@ -46,6 +46,7 @@ import { sendWeeklyRecap } from './recap';
 import { deleteQuietQueueOf, sendHeldNotices } from './prefs';
 import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type BirthdayCard } from './birthdayWishes';
 import { deleteWelcomeOf, isFirstSignIn, welcomeMember } from './welcome';
+import { deleteCheersOf, deleteMomentsOf, onMomentCheerCreated, startMoments, type MomentCheer } from './thinkOfMe';
 import { revealWishes, thankGivers } from './wishesReveal';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
@@ -86,6 +87,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.recapWeek ? { recapWeek: notice.recapWeek } : {}),
         ...(notice.birthdayOf ? { birthdayOf: notice.birthdayOf } : {}),
         ...(notice.welcomeOf ? { welcomeOf: notice.welcomeOf } : {}),
+        ...(notice.thinkOfMeOf ? { thinkOfMeOf: notice.thinkOfMeOf } : {}),
         ...(notice.tag ? { notificationTag: notice.tag } : {}),
       },
       // A surprise never shows on the lock screen (audit 2.2): only « Familia » and the channel.
@@ -162,6 +164,7 @@ export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (ev
   await deleteCommentMutesOf(getFirestore(), event.params.memberId);
   await deleteBirthdayCardsOf(getFirestore(), event.params.memberId);
   await deleteWelcomeOf(getFirestore(), event.params.memberId);
+  await deleteMomentsOf(getFirestore(), event.params.memberId);
 });
 
 // Commentaires d'un événement (récit 28): those who follow the event are told.
@@ -313,6 +316,19 @@ export const birthdayGiftReminders = onSchedule({ schedule: '0 10 * * *', timeZo
   try { await sendBirthdayGiftReminders(getFirestore(), send, now); } catch (e) { console.error('birthday gift reminders', e); }
   // On the day, « C'est l'anniversaire de … » and its Bonne nouvelle (récit 36).
   try { await startBirthdays(getFirestore(), send, now); } catch (e) { console.error('birthday wishes', e); }
+  // « Pensez à moi » (récit 43): the important moments of the day.
+  try { await startMoments(getFirestore(), send, now); } catch (e) { console.error('think of me', e); }
+});
+
+// A moment removed takes its encouragements with it (récit 43).
+export const onMomentDeleted = onDocumentDeleted('moments/{momentId}', async (event) => {
+  await deleteCheersOf(getFirestore(), event.params.momentId);
+});
+
+// Each encouragement of « Pensez à moi » tells the person (récit 43).
+export const onMomentCheerWritten = onDocumentCreated('momentCheers/{cheerId}', async (event) => {
+  const cheer = event.data?.data() as MomentCheer | undefined;
+  if (cheer) await onMomentCheerCreated(getFirestore(), send, cheer);
 });
 
 // Each card of vœux tells the person celebrated (récit 36).
