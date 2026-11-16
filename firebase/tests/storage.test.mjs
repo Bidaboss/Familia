@@ -167,16 +167,11 @@ describe('trips folder (récit 15)', () => {
     await assertSucceeds(deleteObject(ref(storageAs(ADMIN), file('adult3', '3.jpg'))));
   });
 
-  test('a place whose record exists is never sent again', async () => {
-    await assertSucceeds(uploadString(ref(storageAs(NEIGHBOUR), file('adult3', '4.jpg')), 'x', 'raw', jpeg));
-    await env.withSecurityRulesDisabled(async (ctx) => {
-      await setDoc(doc(ctx.firestore(), 'trips/t1/photos/adult3_4'), { authorId: 'adult3', authorName: 'adult3', slot: 4, createdAt: Timestamp.fromMillis(0) });
-    });
-    await assertFails(uploadString(ref(storageAs(NEIGHBOUR), file('adult3', '4.jpg')), 'y', 'raw', jpeg));
-    await assertFails(uploadString(ref(storageAs(NEIGHBOUR), file('adult3', '4-thumb.jpg')), 'y', 'raw', jpeg));
-    // Without a record (a send cut in the middle), the place can be sent again.
+  test('a participant may send their own place again, never in the folder of someone else', async () => {
+    // The rule reads only the trip (two documents at most in production, see storage.rules).
     await assertSucceeds(uploadString(ref(storageAs(NEIGHBOUR), file('adult3', '5.jpg')), 'x', 'raw', jpeg));
     await assertSucceeds(uploadString(ref(storageAs(NEIGHBOUR), file('adult3', '5.jpg')), 'y', 'raw', jpeg));
+    await assertFails(uploadString(ref(storageAs(ADULT), file('adult3', '5.jpg')), 'z', 'raw', jpeg));
   });
 });
 
@@ -201,8 +196,8 @@ describe('events folder (récit 41)', () => {
     await assertFails(getBytes(ref(storageAs(STRANGER), file('e1', 'adult3'))));
   });
 
-  test('not before the day, not without « je viens », not in the folder of someone else', async () => {
-    await assertFails(uploadString(ref(storageAs(NEIGHBOUR), file('e2', 'adult3')), 'x', 'raw', jpeg));
+  test('not without « je viens », not in the folder of someone else', async () => {
+    // The day is checked by the record in firestore.rules: Storage may read one document only.
     await assertFails(uploadString(ref(storageAs(OTHER_ADULT), file('e1', 'adult2')), 'x', 'raw', jpeg));
     await assertFails(uploadString(ref(storageAs(NEIGHBOUR), file('e1', 'adult2')), 'x', 'raw', jpeg));
     await assertFails(uploadString(ref(storageAs(NEIGHBOUR), file('e1', 'adult3', '31.jpg')), 'x', 'raw', jpeg));
@@ -216,13 +211,9 @@ describe('events folder (récit 41)', () => {
     await assertSucceeds(deleteObject(ref(storageAs(ADULT), file('e1', 'adult3', '2.jpg'))));
   });
 
-  test('the admin principal removes them too, and a recorded place is never sent again', async () => {
+  test('the admin principal removes them too', async () => {
     await uploadString(ref(storageAs(NEIGHBOUR), file('e1', 'adult3', '3.jpg')), 'x', 'raw', jpeg);
     await assertSucceeds(deleteObject(ref(storageAs(ADMIN), file('e1', 'adult3', '3.jpg'))));
-    await env.withSecurityRulesDisabled(async (ctx) => {
-      await setDoc(doc(ctx.firestore(), 'events/e1/photos/adult3_4'), { authorId: 'adult3', slot: 4 });
-    });
-    await assertFails(uploadString(ref(storageAs(NEIGHBOUR), file('e1', 'adult3', '4.jpg')), 'x', 'raw', jpeg));
   });
 });
 
