@@ -1,6 +1,9 @@
 package fr.familia.app.feature.settings
 
 import fr.familia.app.core.data.NotificationRepository
+import fr.familia.app.core.model.NotificationFamily
+import fr.familia.app.core.model.NotificationLevel
+import fr.familia.app.core.model.NotificationPrefs
 import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -43,6 +46,17 @@ private class FakeNotifications(
     override fun observeBirthdayWishes(memberId: String): Flow<Boolean> = wishes
     override suspend fun setBirthdayWishes(memberId: String, enabled: Boolean) {
         wishes.value = enabled
+    }
+    val prefs = MutableStateFlow(NotificationPrefs())
+    val writes = mutableListOf<Map<NotificationFamily, Boolean>>()
+    override fun observePrefs(memberId: String): Flow<NotificationPrefs> = prefs
+    override suspend fun setFamilies(memberId: String, families: Map<NotificationFamily, Boolean>) {
+        writes += families
+        val off = prefs.value.off + families.filterValues { !it }.keys - families.filterValues { it }.keys
+        prefs.value = prefs.value.copy(off = off)
+    }
+    override suspend fun setQuietHours(memberId: String, enabled: Boolean) {
+        prefs.value = prefs.value.copy(quietHours = enabled)
     }
 }
 
@@ -107,5 +121,27 @@ class NotificationSettingsViewModelTest {
         vm.setWeekly(false)
         assertEquals(NotificationSettingsUiState.Ready(dayBeforeReminder = true, weekly = false), vm.uiState.value)
         assertEquals(false, repo.weekly.value)
+    }
+
+    @Test
+    fun `a level sets every family in one write, and a switch changed afterwards counts`() = runTest {
+        val repo = FakeNotifications()
+        val vm = NotificationSettingsViewModel(repo, "adult1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        fun prefs() = (vm.uiState.value as NotificationSettingsUiState.Ready).prefs
+        assertEquals(NotificationLevel.All, prefs().level)
+
+        vm.setLevel(NotificationLevel.Essential)
+        assertEquals(1, repo.writes.size)
+        assertEquals(NotificationFamily.entries.toSet(), repo.writes.single().keys)
+        assertEquals(NotificationLevel.Essential, prefs().level)
+
+        vm.setFamily(NotificationFamily.Gifts, true)
+        assertEquals(mapOf(NotificationFamily.Gifts to true), repo.writes.last())
+        assertEquals(true, prefs().isOn(NotificationFamily.Gifts))
+        assertEquals(null, prefs().level) // Set one by one: no level is ticked.
+
+        vm.setQuietHours(true)
+        assertEquals(true, prefs().quietHours)
     }
 }

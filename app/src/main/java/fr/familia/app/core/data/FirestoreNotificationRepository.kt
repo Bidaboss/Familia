@@ -4,6 +4,8 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessaging
+import fr.familia.app.core.model.NotificationFamily
+import fr.familia.app.core.model.NotificationPrefs
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -103,6 +105,22 @@ class FirestoreNotificationRepository(
 
     override suspend fun setBirthdayWishes(memberId: String, enabled: Boolean) {
         settings(memberId).set(mapOf("birthdayWishes" to enabled), SetOptions.merge()).await()
+    }
+
+    override fun observePrefs(memberId: String): Flow<NotificationPrefs> = callbackFlow {
+        val registration = settings(memberId).addSnapshotListener { snapshot, error ->
+            if (error != null) close(error) else trySend(NotificationPrefs.from(snapshot?.data))
+        }
+        awaitClose { registration.remove() }
+    }
+
+    override suspend fun setFamilies(memberId: String, families: Map<NotificationFamily, Boolean>) {
+        if (families.isEmpty()) return
+        settings(memberId).set(families.mapKeys { it.key.key }, SetOptions.merge()).await()
+    }
+
+    override suspend fun setQuietHours(memberId: String, enabled: Boolean) {
+        settings(memberId).set(mapOf("quietHours" to enabled), SetOptions.merge()).await()
     }
 
     private fun settings(memberId: String) =

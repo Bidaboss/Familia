@@ -3,6 +3,9 @@ package fr.familia.app.feature.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.NotificationRepository
+import fr.familia.app.core.model.NotificationFamily
+import fr.familia.app.core.model.NotificationLevel
+import fr.familia.app.core.model.NotificationPrefs
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,8 +40,8 @@ class NotificationSettingsViewModel(
             if (notifications == null) {
                 flowOf(NotificationSettingsUiState.Ready(dayBeforeReminder = true)) // Previews, no Firebase.
             } else {
-                combine<Boolean, Boolean, Boolean, List<Boolean>, Boolean, NotificationSettingsUiState>(
-                    notifications.observeDayBeforeReminder(memberId),
+                combine<Pair<Boolean, NotificationPrefs>, Boolean, Boolean, List<Boolean>, Boolean, NotificationSettingsUiState>(
+                    combine(notifications.observeDayBeforeReminder(memberId), notifications.observePrefs(memberId), ::Pair),
                     notifications.observeGoodNews(memberId),
                     notifications.observeWeekly(memberId),
                     combine(
@@ -48,8 +51,8 @@ class NotificationSettingsViewModel(
                         notifications.observeBirthdayWishes(memberId),
                     ) { s, t, r, b -> listOf(s, t, r, b) },
                     saveFailed,
-                ) { on, goodNews, weekly, (souvenirs, tree, recap, wishes), failed ->
-                    NotificationSettingsUiState.Ready(on, failed, goodNews, weekly, souvenirs, tree, recap, wishes)
+                ) { (on, prefs), goodNews, weekly, (souvenirs, tree, recap, wishes), failed ->
+                    NotificationSettingsUiState.Ready(on, failed, goodNews, weekly, souvenirs, tree, recap, wishes, prefs)
                 }
                     .onStart { if (n > 0) emit(NotificationSettingsUiState.Loading) }
                     .catch { e ->
@@ -83,6 +86,15 @@ class NotificationSettingsViewModel(
 
     /** Vœux d'anniversaire (récit 36): the notices of the day; the cards stay on the member's page. */
     fun setBirthdayWishes(enabled: Boolean) = save { it.setBirthdayWishes(memberId, enabled) }
+
+    /** « Tout », « L'essentiel » or « Presque rien » (récit 6 quinquies): sets every family at once. */
+    fun setLevel(level: NotificationLevel) = save { repo -> repo.setFamilies(memberId, NotificationFamily.entries.associateWith { it in level.on }) }
+
+    /** One family, whatever the level: the switch always counts. */
+    fun setFamily(family: NotificationFamily, enabled: Boolean) = save { it.setFamilies(memberId, mapOf(family to enabled)) }
+
+    /** From 22 h to 8 h, notices wait until 8 h, grouped. */
+    fun setQuietHours(enabled: Boolean) = save { it.setQuietHours(memberId, enabled) }
 
     private fun save(write: suspend (NotificationRepository) -> Unit) {
         val repo = notifications ?: return
