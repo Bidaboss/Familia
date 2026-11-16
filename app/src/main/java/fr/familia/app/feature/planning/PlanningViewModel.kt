@@ -49,7 +49,7 @@ class PlanningViewModel(
     private val today: Flow<LocalDate> = currentDayFlow(),
     private val rsvps: RsvpRepository? = null,
     initialScope: PlanningScope = PlanningScope.Family,
-    /** Keeps the filter on the phone (PlanningScopePreferences). */
+    /** Called on each change of the filter (no longer kept on the phone since 16/11). */
     private val saveScope: (PlanningScope) -> Unit = {},
     private val trips: TripRepository? = null,
 ) : ViewModel() {

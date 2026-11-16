@@ -10,7 +10,7 @@ PRD, récit 3 et cas limite « Pas de réseau » : le planning reste consultable
 2. Ferme l'appli complètement (glisse-la hors de la liste des applis récentes).
 3. Active le mode avion.
 4. Rouvre l'appli. **Attendu :** le bandeau « Hors ligne » apparaît en haut, le planning, les anniversaires et la famille s'affichent avec les dernières données, sans écran d'erreur.
-5. Passe de « Liste » à « Mois » et change de mois. **Attendu :** tout s'affiche normalement.
+5. Le planning s'ouvre sur « Mois ». Passe à « Liste », puis reviens à « Mois » et change de mois. **Attendu :** tout s'affiche normalement.
 6. Ajoute un événement « Essai hors ligne » pour demain. **Attendu :** le formulaire se ferme après quelques secondes au plus, et l'événement apparaît tout de suite dans ton planning.
 7. Sur un deuxième téléphone connecté, regarde le planning. **Attendu :** l'événement n'y est pas encore.
 8. Désactive le mode avion sur le premier téléphone. **Attendu :** le bandeau disparaît, et l'événement apparaît sur le deuxième téléphone en moins d'une minute.
@@ -35,7 +35,7 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 6. Sur B, ouvre Famille, puis Notifications, et coupe « Rappel la veille à 18 h ». **Attendu :** le soir suivant, B ne reçoit plus de rappel.
 7. Sur A, supprime l'événement. **Attendu :** B reçoit « Événement annulé ».
 8. Sur B, bloque les notifications de Familia dans les réglages Android, puis rouvre Famille et Notifications. **Attendu :** un encadré dit que les notifications sont bloquées, avec un bouton pour les autoriser.
-9. Avec A et B dans deux foyers différents : sur A, ajoute un événement pour son foyer seulement. **Attendu :** B ne reçoit rien, mais le voit dans le planning avec « Toute la famille ». Sur B, choisis « Mon foyer » en haut du planning. **Attendu :** l'événement disparaît, les anniversaires restent. Ferme et rouvre l'appli : « Mon foyer » est toujours choisi.
+9. Avec A et B dans deux foyers différents : sur A, ajoute un événement pour son foyer seulement. **Attendu :** B ne reçoit rien, mais le voit dans le planning avec « Toute la famille ». Sur B, active l'interrupteur « Mon foyer » en haut du planning. **Attendu :** l'événement disparaît, les anniversaires restent. Ferme et rouvre l'appli : le planning revient sur toute la famille, interrupteur éteint.
 10. Sur B, ajoute-toi en « Je viens » sur l'événement du foyer de A (repasse sur « Toute la famille »), puis sur A, change son heure. **Attendu :** B reçoit « Événement modifié ».
 11. Sur B, ouvre Famille, Notifications, puis « Réglages Android des notifications ». **Attendu :** les catégories Planning, Rappels et Cadeaux apparaissent (les autres arrivent avec leur module), chacune avec son interrupteur.
 
@@ -88,8 +88,8 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 
 ## Haut du planning sur une rangée (audit DESIGN n°3)
 
-1. Ouvre le planning. **Attendu :** une seule rangée en haut, avec « Liste | Mois » à gauche et « Mon foyer » à droite.
-2. Touche « Mon foyer ». **Attendu :** une coche apparaît et seuls les événements de ton foyer restent. Touche-le à nouveau : toute la famille revient.
+1. Ouvre le planning. **Attendu :** une seule rangée en haut, avec « Mois | Liste » à gauche (Mois choisi) et l'interrupteur « Mon foyer » éteint à droite.
+2. Active « Mon foyer ». **Attendu :** l'interrupteur s'allume et seuls les événements de ton foyer restent. Éteins-le : toute la famille revient.
 3. En police à 200 %, **attendu :** rien n'est coupé, et les boutons gardent au moins la hauteur d'un doigt.
 
 ## Tuto : écrans Cadeaux et Entraide (AVIS-18)

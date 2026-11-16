@@ -47,15 +47,15 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.material3.Switch
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -94,7 +94,8 @@ fun PlanningScreen(
     onAddEvent: () -> Unit,
     onOpenEvent: (eventId: String) -> Unit,
     modifier: Modifier = Modifier,
-    initialMode: PlanningMode = PlanningMode.List,
+    /** The month first (16/11), the list one tap away. */
+    initialMode: PlanningMode = PlanningMode.Month,
     /** « Toute la famille » / « Mon foyer » (carte AVIS-8); hidden when null. */
     onScopeChange: ((PlanningScope) -> Unit)? = null,
     onOpenTrip: (tripId: String) -> Unit = {},
@@ -116,7 +117,7 @@ fun PlanningScreen(
                 },
             )
             is PlanningUiState.Success -> Column(Modifier.fillMaxSize()) {
-                // One row (audit DESIGN n°3): « Liste | Mois » on the left, « Mon foyer » on the right.
+                // One row (audit DESIGN n°3): « Mois | Liste » on the left, « Mon foyer » on the right.
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -158,11 +159,11 @@ fun PlanningScreen(
     }
 }
 
-/** "Liste" or "Mois": two labelled buttons, always visible, 56 dp high. */
+/** "Mois" or "Liste": two labelled buttons, always visible, 56 dp high, the month first (16/11). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ModeSwitch(mode: PlanningMode, onModeChange: (PlanningMode) -> Unit, modifier: Modifier = Modifier) {
-    val labels = listOf(PlanningMode.List to R.string.planning_mode_list, PlanningMode.Month to R.string.planning_mode_month)
+    val labels = listOf(PlanningMode.Month to R.string.planning_mode_month, PlanningMode.List to R.string.planning_mode_list)
     SingleChoiceSegmentedButtonRow(modifier) {
         labels.forEachIndexed { index, (value, label) ->
             SegmentedButton(
@@ -178,23 +179,24 @@ private fun ModeSwitch(mode: PlanningMode, onModeChange: (PlanningMode) -> Unit,
 }
 
 /**
- * « Mon foyer », on or off: on, it keeps the events for the whole family, for my household, for its
- * members and for the children I am responsible for, and every birthday. Off is the whole family.
+ * « Mon foyer », a switch, off at first (16/11): on, it keeps the events for the whole family, for
+ * my household, for its members and for the children I am responsible for, and every birthday.
+ * Off is the whole family. The whole row toggles it, 56 dp high.
  */
 @Composable
 private fun ScopeChip(scope: PlanningScope, onScopeChange: (PlanningScope) -> Unit) {
-    val selected = scope == PlanningScope.Household
-    FilterChip(
-        selected = selected,
-        onClick = { onScopeChange(if (selected) PlanningScope.Family else PlanningScope.Household) },
-        label = { Text(stringResource(R.string.planning_scope_household), style = MaterialTheme.typography.labelLarge) },
-        leadingIcon = if (selected) {
-            { Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
-        } else {
-            null
-        },
-        modifier = Modifier.heightIn(min = 56.dp),
-    )
+    val on = scope == PlanningScope.Household
+    Row(
+        modifier = Modifier
+            .heightIn(min = 56.dp)
+            .toggleable(value = on, role = Role.Switch, onValueChange = { onScopeChange(if (it) PlanningScope.Household else PlanningScope.Family) })
+            .padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(stringResource(R.string.planning_scope_household), style = MaterialTheme.typography.labelLarge)
+        Switch(checked = on, onCheckedChange = null)
+    }
 }
 
 /** The headers and rows of the given days, shared by the list and the month view. */
