@@ -188,6 +188,7 @@ L'admin principal crée une sauvegarde depuis Famille, puis « Administration »
 | `rsvps` | Les réponses, avec `eventId` et `memberId` |
 | `helpRequests` | Les demandes de coup de main, avec leur `id` |
 | `weeklyQuestions`, `weeklyAnswers` | Les questions de la semaine, et leurs réponses avec `questionId` et `memberId`. Les réponses d'une question n'y sont qu'à partir de son `revealAt` (48 h après sa publication), comme le veulent les règles |
+| `capsules` | Les capsules temporelles que l'admin principal peut lire : celles qu'il a écrites et celles déjà ouvertes pour lui (PRD rév. 184). Les autres restent scellées, même dans la sauvegarde |
 
 Les données sont lues sur le serveur, jamais dans le cache du téléphone. Hors ligne, aucune sauvegarde n'est faite et l'appli demande de se connecter : une sauvegarde est complète ou n'existe pas. L'appli lit les données avant d'ouvrir le sélecteur, et si l'écriture échoue, elle supprime le fichier créé. Les documents sont triés par identifiant, donc deux exports des mêmes données donnent le même fichier. Ne sont pas exportés : `memberEmails`, qui se reconstruit à partir des membres, et les téléphones et réglages de chacun, que seul le membre concerné peut lire. À partir de la V2, les cadeaux s'ajouteront au fichier, avec un `formatVersion` augmenté si sa forme change. Ajouter une clé ne change pas la forme : `formatVersion` reste à 1.
 

@@ -39,6 +39,8 @@ sealed interface ExportUiState {
 class ExportViewModel(
     private val export: ExportRepository?,
     private val appVersion: String,
+    /** The admin principal: the backup holds only the capsules they can read. */
+    private val memberId: String,
     private val now: () -> Instant = Instant::now,
 ) : ViewModel() {
 
@@ -55,7 +57,7 @@ class ExportViewModel(
         viewModelScope.launch {
             _uiState.value = try {
                 val at = now()
-                json = familyExportJson(repo.loadFamilyData(), at, appVersion)
+                json = familyExportJson(repo.loadFamilyData(memberId), at, appVersion)
                 ExportUiState.AwaitingDestination(exportFileName(at.atZone(ZoneId.systemDefault()).toLocalDate()))
             } catch (e: CancellationException) {
                 throw e
