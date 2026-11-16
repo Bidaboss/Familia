@@ -74,4 +74,25 @@ describe('recipes (récit 38)', () => {
     await assertFails(deleteDoc(doc(as(env, NEIGHBOUR), 'recipes/r1')));
     await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'recipes/r1')));
   });
+
+  test('every tag is a short text', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(doc(db, 'recipes/r1'), recipe(ADULT, { tags: ['dessert', 'Noël', 'x'.repeat(24)] })));
+    await assertFails(setDoc(doc(db, 'recipes/r2'), recipe(ADULT, { tags: ['dessert', 42] })));
+    await assertFails(setDoc(doc(db, 'recipes/r3'), recipe(ADULT, { tags: [''] })));
+    await assertFails(setDoc(doc(db, 'recipes/r4'), recipe(ADULT, { tags: ['a', 'b', 'c', 'd', 'e', 'x'.repeat(25)] })));
+  });
+
+  test('a recipe whose origin left the family can still be changed, but not pointed at someone unknown', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'recipes/r1'), {
+        ...recipe(ADULT, { originMemberId: 'gone', origin: '' }),
+        createdAt: Timestamp.fromMillis(0),
+        updatedAt: Timestamp.fromMillis(0),
+      });
+    });
+    const db = as(env, ADULT);
+    await assertSucceeds(updateDoc(doc(db, 'recipes/r1'), { title: 'Gâteau de Mamie', updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db, 'recipes/r1'), { originMemberId: 'nobody', updatedAt: serverTimestamp() }));
+  });
 });

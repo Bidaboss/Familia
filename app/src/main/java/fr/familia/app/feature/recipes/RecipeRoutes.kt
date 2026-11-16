@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -38,7 +39,15 @@ fun RecipeEditRoute(container: AppContainer?, currentMember: Member, recipeId: S
     val viewModel: RecipeEditViewModel = viewModel(
         key = "recipe-edit-$recipeId",
         factory = viewModelFactory {
-            initializer { RecipeEditViewModel(container?.recipeRepository, container?.memberRepository, currentMember.id, recipeId) }
+            initializer {
+                RecipeEditViewModel(
+                    container?.recipeRepository,
+                    container?.memberRepository,
+                    currentMember.id,
+                    recipeId,
+                    savedState = createSavedStateHandle(),
+                )
+            }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()

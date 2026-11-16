@@ -1,5 +1,6 @@
 package fr.familia.app.feature.recipes
 
+import androidx.lifecycle.SavedStateHandle
 import fr.familia.app.core.data.RecipeRepository
 import fr.familia.app.core.data.recipeOrder
 import fr.familia.app.core.model.Recipe
@@ -140,5 +141,18 @@ class RecipesTest {
     fun `only the author or the admin principal opens the form of a recipe`() = runTest {
         val vm = RecipeEditViewModel(FakeRecipes(listOf(apple)), FakeMembers(), "adult2", recipeId = "r1")
         assertEquals(RecipeEditUiState.Unavailable, vm.uiState.value)
+    }
+
+    @Test
+    fun `the draft comes back after Android stopped the app`() = runTest {
+        val saved = SavedStateHandle()
+        val first = RecipeEditViewModel(FakeRecipes(), FakeMembers(), "adult1", recipeId = null, savedState = saved)
+        first.update { it.copy(title = "Crêpes", steps = "Mélanger.\nCuire.") }
+
+        val again = RecipeEditViewModel(FakeRecipes(), FakeMembers(), "adult1", recipeId = null, savedState = saved)
+
+        val editing = again.uiState.value as RecipeEditUiState.Editing
+        assertEquals("Crêpes" to "Mélanger.\nCuire.", editing.form.title to editing.form.steps)
+        assertTrue(editing.hasChanges)
     }
 }
