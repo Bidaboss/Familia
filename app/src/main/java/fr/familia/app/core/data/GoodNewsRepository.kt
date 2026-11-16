@@ -3,11 +3,16 @@ package fr.familia.app.core.data
 import fr.familia.app.core.model.GoodNews
 import fr.familia.app.core.model.Reaction
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import java.time.Instant
 
 /** Access to the « Bonnes nouvelles ». Screens never talk to Firestore directly. */
 interface GoodNewsRepository {
     /** The [count] most recent, newest first, updated live (offline cache too). */
     fun observeLatest(count: Int): Flow<List<GoodNews>>
+
+    /** Those published from [from] (included) to [to] (excluded), updated live (« Il y a un an », récit 36). */
+    fun observeBetween(from: Instant, to: Instant): Flow<List<GoodNews>> = flowOf(emptyList())
 
     /** One good news, updated live; null once removed or malformed. */
     fun observePost(id: String): Flow<GoodNews?>

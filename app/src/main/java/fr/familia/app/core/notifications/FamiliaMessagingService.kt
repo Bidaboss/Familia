@@ -68,8 +68,12 @@ class FamiliaMessagingService : FirebaseMessagingService() {
             open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val built = NotificationCompat.Builder(this, notification.channelId?.takeIf { it in NotificationChannels.ids } ?: NotificationChannels.EVENTS)
+        val channel = notification.channelId?.takeIf { it in NotificationChannels.ids } ?: NotificationChannels.EVENTS
+        val built = NotificationCompat.Builder(this, channel)
             .setSmallIcon(R.drawable.ic_notification)
+            .setVisibility(
+                if (channel in NotificationChannels.privateIds) NotificationCompat.VISIBILITY_PRIVATE else NotificationCompat.VISIBILITY_PUBLIC,
+            )
             .setColor(ContextCompat.getColor(this, R.color.notification_accent))
             .setContentTitle(notification.title)
             .setContentText(notification.body)

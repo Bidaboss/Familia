@@ -106,7 +106,7 @@ jobs:
             grep "SHA-256" signature.txt
             echo '```'
             echo "L'APK est déposé dans le dossier Drive et annoncé à la famille (étape « Publish to the family »)."
-            echo "Il reste aussi téléchargeable dans l'artefact **familia-apk** ci-dessous."
+            echo "Il reste aussi téléchargeable 24 h dans l'artefact **familia-apk** ci-dessous."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove the key from the runner
@@ -118,7 +118,8 @@ jobs:
         with:
           name: familia-apk
           path: out/*.apk
-          retention-days: 30
+          # Public repository (audit 2.4): the APK lives in the Drive folder; this copy lasts a day.
+          retention-days: 1
 
       - uses: actions/setup-node@v4
         with:

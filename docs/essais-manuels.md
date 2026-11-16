@@ -247,6 +247,11 @@ Pas d'interrupteur : le bouton est là pour tous les adultes, dans la version fa
 5. Avec un compte enfant, ouvre l'onglet Famille. **Attendu :** pas de bouton Partager Familia.
 6. En mode **Voir comme** un adulte. **Attendu :** pas de bouton Partager Familia (rien ne sort de l'appli dans ce mode).
 
+## Aucune surprise sur l'écran verrouillé (audit 2.2)
+
+1. Sur un téléphone neuf ou qui installe l'appli pour la première fois, réserve un cadeau pour ce membre depuis un autre compte, téléphone verrouillé. **Attendu :** l'écran verrouillé montre seulement « Familia » et le canal, sans le texte. Même chose pour une capsule qui s'ouvre.
+2. Refais l'essai sur un téléphone **qui avait déjà l'appli** avant cette version. Android ne change pas la visibilité d'un canal déjà créé, c'est le serveur qui la demande alors à chaque notification. **Attendu :** le texte reste caché sur l'écran verrouillé. S'il s'affiche, désinstalle et réinstalle l'appli sur ce téléphone avant le 21 (ou, dans les réglages Android de Familia, mets le canal Cadeaux sur « Masquer le contenu sensible »).
+
 ## La semaine de la famille (récit 36)
 
 Avec le module « Récap du dimanche » allumé, et deux comptes : un qui suit un voyage en cours, un autre décoché de ce voyage.
@@ -256,3 +261,12 @@ Avec le module « Récap du dimanche » allumé, et deux comptes : un qui suit u
 3. Touche la notification. **Attendu :** l'écran « La semaine de la famille » s'ouvre, avec au plus 3 photos, les anniversaires des 14 prochains jours, la jauge du défi et les voyages en cours. Aucun nombre de réactions, aucun nom sous les photos.
 4. Touche une photo, puis reviens, puis touche un voyage. **Attendu :** la Bonne nouvelle, puis le voyage, s'ouvrent.
 5. Réglages > Notifications : coupe « La semaine de la famille ». **Attendu :** le dimanche suivant, plus de notification pour ce compte.
+
+## Il y a un an (récit 36)
+
+Avec le module « Il y a un an » allumé, et une Bonne nouvelle (ou une photo dans l'album d'un voyage) publiée le même jour, un an plus tôt. Pour l'essai, change la date du téléphone d'un an en avant.
+
+1. Ouvre l'Accueil. **Attendu :** la carte « Il y a un an » montre la Bonne nouvelle (ou la photo de voyage), sans notification.
+2. Touche-la. **Attendu :** la Bonne nouvelle, ou le voyage, s'ouvre.
+3. Avec un compte qui ne suit pas ce voyage, ouvre l'Accueil. **Attendu :** pas de carte pour cette photo.
+4. Touche « Ne plus me montrer ce souvenir ». **Attendu :** la carte disparaît (ou passe au souvenir suivant du même jour), et ne revient pas en rouvrant l'appli.

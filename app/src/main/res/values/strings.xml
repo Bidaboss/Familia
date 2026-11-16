@@ -1544,6 +1544,11 @@
     <string name="notifications_recap">La semaine de la famille</string>
     <string name="notifications_recap_help">Le dimanche à 18 h : les photos, les anniversaires à venir, le défi et les voyages.</string>
     <string name="recap_title">La semaine de la famille</string>
+    <string name="feature_year_ago">Il y a un an</string>
+    <string name="year_ago_title">Il y a un an</string>
+    <string name="year_ago_news">Une Bonne nouvelle de %1$s</string>
+    <string name="year_ago_trip">Une photo de voyage de %1$s</string>
+    <string name="year_ago_dismiss">Ne plus me montrer ce souvenir</string>
     <string name="recap_photos">Les photos de la semaine</string>
     <string name="recap_birthdays">Les anniversaires à venir</string>
     <string name="recap_trips">Les voyages en cours</string>
