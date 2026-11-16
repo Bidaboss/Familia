@@ -127,11 +127,13 @@ import androidx.compose.material3.BadgedBox
 import kotlinx.coroutines.flow.combine
 import fr.familia.app.feature.trips.TripDetailDestination
 import fr.familia.app.feature.trips.TripEditDestination
+import fr.familia.app.feature.trips.TripPhotosDestination
 import fr.familia.app.feature.trips.TripStepEditDestination
 import fr.familia.app.feature.trips.TripsDestination
 import fr.familia.app.feature.trips.detail.TripDetailRoute
 import fr.familia.app.feature.trips.edit.TripEditRoute
 import fr.familia.app.feature.trips.list.TripsRoute
+import fr.familia.app.feature.trips.photos.TripPhotosRoute
 import fr.familia.app.feature.trips.step.StepEditRoute
 import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material3.TextButton
@@ -454,6 +456,15 @@ fun FamiliaApp(
                             onEditTrip = { navController.navigate(TripEditDestination(tripId)) },
                             onAddStep = { navController.navigate(TripStepEditDestination(tripId)) },
                             onEditStep = { stepId -> navController.navigate(TripStepEditDestination(tripId, stepId)) },
+                            onSeePhotos = { navController.navigate(TripPhotosDestination(tripId)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<TripPhotosDestination> { entry ->
+                        TripPhotosRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            tripId = entry.toRoute<TripPhotosDestination>().tripId,
                             onBack = { navController.popBackStack() },
                         )
                     }

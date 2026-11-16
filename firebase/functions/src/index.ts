@@ -28,7 +28,7 @@ import {
 import { EventData, hasVisibleChange, Notice } from './logic';
 import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, notifyChange, Sender, sendDayBeforeReminders } from './store';
 import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
-import { countAnswers, deleteAnswersOf, publishWeeklyQuestion } from './weeklyQuestion';
+import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
 
 initializeApp();
 
@@ -238,6 +238,8 @@ export const onTripStepUpdated = onDocumentUpdatedWithAuthContext('trips/{tripId
 
 export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) => {
   await deleteTripContents(getFirestore(), event.params.tripId);
+  // The photos of the trip and their thumbnails (récit 15), all under trips/{tripId}/.
+  await getStorage().bucket().deleteFiles({ prefix: `trips/${event.params.tripId}/` });
 });
 
 export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/Paris' }, async () => {
@@ -251,7 +253,9 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
 // --- Question de la semaine (récit 37) --------------------------------------------------------
 
 export const onWeeklyAnswerWritten = onDocumentWritten('weeklyQuestions/{weekId}/answers/{memberId}', async (event) => {
-  await countAnswers(getFirestore(), event.params.weekId);
+  const { weekId, memberId } = event.params;
+  await countAnswers(getFirestore(), weekId);
+  await removeOldAnswerPhoto(removeFiles, weekId, memberId, event.data?.before.data(), event.data?.after.data());
 });
 
 export const onMemberDeletedAnswers = onDocumentDeleted('members/{memberId}', async (event) => {

@@ -8,6 +8,8 @@ import com.google.firebase.firestore.firestoreSettings
 import com.google.firebase.firestore.persistentCacheSettings
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.FirebaseStorage
+import fr.familia.app.core.album.AlbumPhotoRepository
+import fr.familia.app.core.album.FirestoreAlbumPhotoRepository
 import fr.familia.app.core.photo.FirebasePhotoStorage
 import fr.familia.app.core.photo.PhotoEncoder
 import fr.familia.app.core.photo.PhotoStorage
@@ -63,6 +65,9 @@ class AppContainer(context: Context) {
     val photoUploader: PhotoUploader? by lazy {
         photoStorage?.let { StoragePhotoUploader(PhotoEncoder(appContext), it) }
     }
+
+    /** The photo records of the albums: the trips, and later the events. */
+    val albumPhotoRepository: AlbumPhotoRepository? by lazy { firestore?.let { FirestoreAlbumPhotoRepository(it) } }
 
     val appConfigRepository: AppConfigRepository? by lazy { firestore?.let { FirestoreAppConfigRepository(it) } }
 

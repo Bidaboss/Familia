@@ -137,3 +137,24 @@ export async function deleteAnswersOf(db: Firestore, memberId: string): Promise<
   await batch.commit();
   return mine.length;
 }
+
+type AnswerPhoto = { photoId?: string | null } | undefined;
+
+/** The photo of an answer: weeklyQuestions/{weekId}/{memberId}/{photoId}.jpg and its thumbnail. */
+export function answerPhotoPaths(weekId: string, memberId: string, photoId: string): string[] {
+  const folder = `weeklyQuestions/${weekId}/${memberId}`;
+  return [`${folder}/${photoId}.jpg`, `${folder}/${photoId}-thumb.jpg`];
+}
+
+/**
+ * An answer dropped or changed its photo, or was removed (also when its member leaves): the old
+ * photo goes, so Storage keeps only the photos that an answer names.
+ */
+export async function removeOldAnswerPhoto(
+  remove: (paths: string[]) => Promise<void>, weekId: string, memberId: string, before: AnswerPhoto, after: AnswerPhoto,
+): Promise<boolean> {
+  const old = before?.photoId;
+  if (!old || old === after?.photoId) return false;
+  await remove(answerPhotoPaths(weekId, memberId, old));
+  return true;
+}
