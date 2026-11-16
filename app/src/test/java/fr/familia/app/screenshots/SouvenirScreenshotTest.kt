@@ -20,6 +20,7 @@ import fr.familia.app.feature.members.profile.MemberProfileScreen
 import fr.familia.app.feature.members.profile.MemberProfileUiState
 import fr.familia.app.feature.settings.NotificationSettingsScreen
 import fr.familia.app.feature.settings.NotificationSettingsUiState
+import fr.familia.app.feature.souvenirs.BravoContent
 import fr.familia.app.feature.souvenirs.SouvenirKind
 import fr.familia.app.feature.souvenirs.SouvenirMedal
 import fr.familia.app.feature.souvenirs.previewSouvenirs
@@ -74,6 +75,11 @@ class SouvenirScreenshotTest {
         }
     }
 
+    // The « Bravo » sheet, drawn without its modal window (a popup is not captured).
+    private val bravo: @Composable () -> Unit = {
+        Surface { BravoContent(SouvenirKind.HelpGiven5, previewSouvenirs().last().copy(key = "helpGiven5"), {}, {}) }
+    }
+
     // The Notifications settings with the module switched on, so the « Souvenirs » switch shows.
     private val settings: @Composable () -> Unit = {
         CompositionLocalProvider(LocalFeatureFlags provides FeatureFlags(mapOf(Feature.Souvenirs.key to true))) {
@@ -115,6 +121,17 @@ class SouvenirScreenshotTest {
     @Test
     @Config(qualifiers = "+night")
     fun medalsDark() = capture("souvenirs_medaillons_sombre", darkTheme = true, content = medals)
+
+    @Test
+    fun bravoLight() = capture("souvenir_bravo_clair", content = bravo)
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun bravoDark() = capture("souvenir_bravo_sombre", darkTheme = true, content = bravo)
+
+    @Test
+    @Config(fontScale = 2f)
+    fun bravoFontScale200() = capture("souvenir_bravo_police_200", content = bravo)
 
     @Test
     fun settingsLight() = capture("notifications_souvenirs_clair", content = settings)
