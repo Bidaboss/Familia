@@ -2351,11 +2351,13 @@ service cloud.firestore {
     match /config/{docId} {
       allow read: if isMember() && docId in ['app', 'family'];
       // The admin principal switches modules (features) and orders « À découvrir » (discoverOrder,
-      // AVIS-19 partie 2: the module keys, 20 at most). Each is checked only when present.
+      // AVIS-19 partie 2: the module keys, 20 at most). `features` is never removed once there:
+      // it may only be missing on a config/app that never had it.
       allow update: if docId == 'app'
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['features', 'discoverOrder'])
-        && (!('features' in request.resource.data)
-            || (request.resource.data.features is map && request.resource.data.features.size() <= 40))
+        && (('features' in request.resource.data
+                && request.resource.data.features is map && request.resource.data.features.size() <= 40)
+            || (!('features' in request.resource.data) && !('features' in resource.data)))
         && (!('discoverOrder' in request.resource.data)
             || (request.resource.data.discoverOrder is list && request.resource.data.discoverOrder.size() <= 20))
         && isOwner();
