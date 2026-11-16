@@ -173,6 +173,7 @@
     <string name="feature_wishes_reveal">Dévoiler les envies offertes</string>
     <string name="received_title">On m\'a offert</string>
     <string name="received_open">On m\'a offert</string>
+    <string name="gift_list_beneficiary_card">Tailles et goûts de %1$s</string>
     <string name="received_intro">Les envies que la famille t\'a offertes, avec les prénoms de ceux qui les ont prises ; les montants restent secrets.</string>
     <string name="received_empty_title">Rien pour l\'instant</string>
     <string name="received_empty_body">Le lendemain de ton anniversaire et de Noël, les envies que la famille a prises pour toi arrivent ici.</string>
@@ -1006,6 +1007,18 @@
     <string name="recipe_comment_remove_failed">Le commentaire n\'a pas pu être retiré. Réessaie.</string>
     <string name="recipes_from_title">Recettes de %1$s</string>
     <string name="profile_recipes">Voir ses recettes</string>
+    <string name="member_card_title">Tailles et goûts</string>
+    <string name="member_card_top">Taille du haut</string>
+    <string name="member_card_bottom">Taille du bas</string>
+    <string name="member_card_shoes">Pointure</string>
+    <string name="member_card_allergies">Allergies</string>
+    <string name="member_card_tastes">Goûts</string>
+    <string name="member_card_help">Pour que la famille choisisse le bon cadeau et le bon menu. Toute la famille voit cette fiche : laisse vide ce que tu ne veux pas dire.</string>
+    <string name="member_card_empty_mine">Ajoute tes tailles, ta pointure, tes allergies et tes goûts : la famille choisira plus facilement.</string>
+    <string name="member_card_empty_other">%1$s n\'a encore rien noté.</string>
+    <string name="member_card_fill">Remplir</string>
+    <string name="member_card_edit">Modifier</string>
+    <string name="member_card_save_failed">La fiche n\'a pas pu être enregistrée. Réessaie dans un instant.</string>
     <string name="recipe_ingredients">Ingrédients</string>
     <string name="recipe_steps">Étapes</string>
     <string name="recipe_written_by">Notée par %1$s</string>
@@ -1647,6 +1660,7 @@
     <string name="recap_title">La semaine de la famille</string>
     <string name="feature_year_ago">Il y a un an</string>
     <string name="feature_birthday_wishes">Vœux d\'anniversaire</string>
+    <string name="feature_member_card">Tailles et goûts sur la fiche</string>
     <string name="channel_birthdays">Vœux d\'anniversaire</string>
     <string name="feature_welcome">La bienvenue</string>
     <string name="feature_who_is_it">Qui est-ce ?</string>

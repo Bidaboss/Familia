@@ -22,6 +22,8 @@ fun GiftListRoute(
     onOpenReceived: (() -> Unit)? = null,
     /** The occasion of a reservation of « Mes envies » is shown and chosen only with the reveal on. */
     showClaimOccasion: Boolean = false,
+    /** The beneficiary's page, for their sizes and tastes (récit 7 bis). */
+    onOpenBeneficiary: ((memberId: String) -> Unit)? = null,
 ) {
     val viewModel: GiftListViewModel = viewModel(
         factory = viewModelFactory {
@@ -45,6 +47,7 @@ fun GiftListRoute(
             onLeaveShare = viewModel::leaveShare,
             onMarkReceived = viewModel::markReceived,
             onOpenReceived = onOpenReceived,
+            onOpenBeneficiary = onOpenBeneficiary,
         ),
     )
 }

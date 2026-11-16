@@ -77,6 +77,20 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 - **Pourquoi Firestore plutôt que Storage :** 13 photos d'environ 100 Ko tiennent largement dans un document chacune (la limite est de 1 Mo). Elles restent lisibles hors ligne, comme le reste. Les mêmes règles de sécurité les protègent. Et il n'y a aucun service ni aucune facturation de plus à activer.
 - **L'export JSON ne contient pas les photos.**
 
+### `memberCards/{memberId}` (récit 7 bis, fiche membre)
+
+| Champ | Type | Rôle |
+|---|---|---|
+| `top`, `bottom`, `shoes` | texte, 20 caractères au plus | Taille du haut, taille du bas et pointure, en texte libre (« M », « 12 ans », « 39 »), vides si inconnues |
+| `allergies`, `tastes` | texte, 300 caractères au plus | Allergies et goûts, pour choisir un cadeau ou un menu |
+| `updatedBy` | texte | Le membre qui a écrit la fiche |
+| `updatedAt` | timestamp | Heure du serveur |
+
+- **Qui la change :** les mêmes que pour la photo (le membre, un adulte du foyer pour un enfant, l'admin principal).
+- **Qui la lit :** toute la famille, et personne d'autre.
+- Une fiche vidée supprime le document. La fonction `onMemberDeletedCard` la supprime avec son membre.
+- Derrière l'interrupteur `memberCard`.
+
 ### `events/{eventId}` (lot 4)
 
 | Champ | Type | Description |
