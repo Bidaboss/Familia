@@ -3,8 +3,9 @@ package fr.familia.app.core.share
 /*
  * The link of a share (PRD, récit 31). It goes through a free Firebase Hosting page, which shows
  * no family data: the app opens the item for whoever has it (Android App Links, or the button of
- * the page), and the page offers to install Familia to the others. Only the kind and the id of
- * the item are in the link; the security rules still decide what each member reads.
+ * the page). Only the kind and the id of the item are in the link; the security rules still decide
+ * what each member reads. The page never shows the installation link: the family sends it to
+ * whoever joins.
  */
 
 /** The Hosting site of the Firebase project (firebase/hosting, published by « Publier Firebase »). */

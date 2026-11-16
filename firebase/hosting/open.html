@@ -11,18 +11,15 @@
   <!--
     The page of a shared link (PRD, récit 31): /o/<kind>/<id>. It shows no family data, only the
     kind of item. With Familia installed, Android usually opens the app before this page; here the
-    button opens it (familia://), and the second one leads to the installation.
-    __DOWNLOAD_URL__ is replaced by the workflow « Publier Firebase » with the secret
-    FAMILIA_DOWNLOAD_URL; without it, the page says to ask for the link.
+    button opens it (familia://). The page never shows the installation link: the family sends it
+    to whoever joins (a product decision for Kévin if it should change).
   -->
   <main>
     <div class="brand">Familia</div>
     <h1 id="title">Un message de la famille</h1>
     <p id="body">Il s'ouvre dans l'appli Familia, réservée à la famille.</p>
     <a id="open" class="button filled" href="#">Ouvrir dans Familia</a>
-    <p id="install-help" style="margin-top: 24px">Pas encore l'appli ? Installe-la, puis connecte-toi avec l'adresse Google que la famille a inscrite pour toi.</p>
-    <a id="install" class="button outlined" href="__DOWNLOAD_URL__">Installer Familia</a>
-    <p id="ask" hidden>Pas encore l'appli ? Demande le lien d'installation à la personne qui t'a envoyé ce message.</p>
+    <p style="margin-top: 24px">Pas encore l'appli ? Demande le lien d'installation à la personne qui t'a envoyé ce message.</p>
   </main>
   <script>
     (function () {
@@ -38,13 +35,6 @@
       var parts = location.pathname.split('/').filter(Boolean);
       var kind = parts[1], id = parts[2];
       var valid = parts.length === 3 && parts[0] === 'o' && titles.hasOwnProperty(kind) && /^[A-Za-z0-9_-]{1,64}$/.test(id || '');
-      var install = document.getElementById('install');
-      var hasInstall = /^https:\/\//.test(install.getAttribute('href'));
-      if (!hasInstall) {
-        install.hidden = true;
-        document.getElementById('install-help').hidden = true;
-        document.getElementById('ask').hidden = false;
-      }
       var open = document.getElementById('open');
       if (!valid) {
         open.hidden = true;
@@ -52,8 +42,7 @@
         return;
       }
       document.getElementById('title').textContent = titles[kind];
-      var fallback = hasInstall ? install.getAttribute('href') : location.href;
-      open.href = 'intent://o/' + kind + '/' + id + '#Intent;scheme=familia;S.browser_fallback_url=' + encodeURIComponent(fallback) + ';end';
+      open.href = 'intent://o/' + kind + '/' + id + '#Intent;scheme=familia;S.browser_fallback_url=' + encodeURIComponent(location.href) + ';end';
     })();
   </script>
 </body>
