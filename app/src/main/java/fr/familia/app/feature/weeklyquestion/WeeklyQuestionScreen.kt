@@ -63,12 +63,18 @@ fun WeeklyQuestionScreen(
     onRemove: () -> Unit,
     onDismissError: () -> Unit,
     onBack: () -> Unit,
+    onArchive: () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.weekly_title)) },
                 navigationIcon = { BackButton(onClick = onBack) },
+                actions = {
+                    TextButton(onClick = onArchive, modifier = Modifier.heightIn(min = 56.dp)) {
+                        Text(stringResource(R.string.weekly_archive_title))
+                    }
+                },
             )
         },
     ) { padding ->

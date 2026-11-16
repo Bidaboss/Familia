@@ -50,6 +50,7 @@ import fr.familia.app.feature.help.HelpRoute
 import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
 import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
+import fr.familia.app.feature.weeklyquestion.WeeklyArchiveRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionRoute
 import fr.familia.app.feature.help.LocalOpenHelp
 import fr.familia.app.feature.help.ScreenHelp
@@ -628,6 +629,14 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             questionId = entry.toRoute<WeeklyQuestionDestination>().questionId,
+                            onBack = { navController.popBackStack() },
+                            onArchive = { navController.navigate(WeeklyArchiveDestination) { launchSingleTop = true } },
+                        )
+                    }
+                    composable<WeeklyArchiveDestination> {
+                        WeeklyArchiveRoute(
+                            container = container,
+                            onOpen = { id -> navController.navigate(WeeklyQuestionDestination(id)) },
                             onBack = { navController.popBackStack() },
                         )
                     }

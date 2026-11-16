@@ -67,6 +67,10 @@ data class GoodNewsEditDestination(val postId: String? = null)
 @Serializable
 data class WeeklyQuestionDestination(val questionId: String? = null)
 
+/** « Nos réponses »: the questions of the week already asked (récit 37). */
+@Serializable
+data object WeeklyArchiveDestination
+
 /** Read-only view of an event with "qui vient", opened from the Planning tab. */
 @Serializable
 data class EventDetailDestination(val eventId: String)

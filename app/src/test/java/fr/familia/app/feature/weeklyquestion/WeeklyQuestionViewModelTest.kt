@@ -124,4 +124,15 @@ class WeeklyQuestionViewModelTest {
         assertNull(cleanAnswer("   "))
         assertEquals(500, cleanAnswer("x".repeat(600))!!.length)
     }
+
+    @Test
+    fun `nos reponses lists the questions newest first, and says when there is none`() = runTest {
+        val repo = FakeWeeklyQuestions(listOf(older, monday))
+        val archive = WeeklyArchiveViewModel(repo)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { archive.uiState.collect {} }
+        assertEquals(WeeklyArchiveUiState.Ready(listOf(monday, older)), archive.uiState.value)
+
+        repo.questions.value = emptyList()
+        assertEquals(WeeklyArchiveUiState.Empty, archive.uiState.value)
+    }
 }

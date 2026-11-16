@@ -29,6 +29,11 @@ private class FakeNotifications(
         if (writeFails) throw IllegalStateException("refused")
         settings.value = settings.value + (memberId to enabled)
     }
+    val weekly = MutableStateFlow(true)
+    override fun observeWeekly(memberId: String): Flow<Boolean> = weekly
+    override suspend fun setWeekly(memberId: String, enabled: Boolean) {
+        weekly.value = enabled
+    }
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -62,5 +67,15 @@ class NotificationSettingsViewModelTest {
         val vm = NotificationSettingsViewModel(FakeNotifications(readFails = true), "adult1")
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         assertEquals(NotificationSettingsUiState.Error, vm.uiState.value)
+    }
+
+    @Test
+    fun `the question of the week notice can be turned off`() = runTest {
+        val repo = FakeNotifications()
+        val vm = NotificationSettingsViewModel(repo, "adult1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        vm.setWeekly(false)
+        assertEquals(NotificationSettingsUiState.Ready(dayBeforeReminder = true, weekly = false), vm.uiState.value)
+        assertEquals(false, repo.weekly.value)
     }
 }
