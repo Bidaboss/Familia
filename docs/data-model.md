@@ -384,6 +384,7 @@ Spec : « Spec Familia : coups de main » (tenue par [PRODUIT]), avec les cartes
 | `viewerIds` | liste de `memberId` | Toujours `[authorId]` suivi de `notifyIds` : sert à la requête de l'onglet (`array-contains`) |
 | `status` | `open` \| `taken` \| `cancelled` | Ouverte, prise, annulée. Une demande annulée le reste |
 | `volunteerId`, `volunteerName` | `memberId` et texte, ou null | Le volontaire et son prénom |
+| `volunteerNote` | texte (200 max), ou null, facultatif | Le mot du volontaire à l'auteur, posé avec « Je m'en occupe » ou plus tard par lui seul, effacé quand il se retire |
 | `declinedBy` | `memberId` ou null | « Je ne peux pas » de la seule personne prévenue (carte PRODUIT-22). Remis à null quand le demandeur élargit |
 | `thankedAt` | horodatage serveur ou null | Le « Merci » du demandeur, une seule fois |
 | `createdAt`, `updatedAt` | horodatage serveur | `createdAt` jamais modifié, `updatedAt` à chaque écriture |

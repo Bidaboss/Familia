@@ -31,6 +31,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.foundation.border
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.translate
+import fr.familia.app.core.theme.ClayBorder
+import fr.familia.app.core.theme.ClayShadow
+import fr.familia.app.core.theme.ClayStyle
 import fr.familia.app.core.theme.ClayColors
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
@@ -81,15 +90,18 @@ fun ClayCard(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val colors = FamiliaClay.colors
+    val style = FamiliaClay.style
+    val shape = if (style.cardRadius == 28.dp) ClayCardShape else RoundedCornerShape(style.cardRadius)
     val stripe = colors.tintAsStripe && tint != ClayTint.Plain
     val background = if (colors.tintAsStripe) colors.card else colors.tint(tint)
     val stripeColor = colors.tint(tint)
     Box(
         modifier = modifier
-            .clayRelief(colors, ClayCardShape, background)
+            .themedRelief(style, colors, shape, background)
             // The dark-mode stripe is drawn, not laid out: it follows the card height whether the
             // card sits in a LazyColumn or in a bounded Column, and never stretches the card.
             .then(if (stripe) Modifier.drawBehind { drawStripe(stripeColor) } else Modifier)
+            .then(style.border?.let { Modifier.themedBorder(it, shape) } ?: Modifier)
             .then(if (onClick != null) Modifier.clickable(onClickLabel = onClickLabel, onClick = onClick) else Modifier),
     ) {
         CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSurface) {
@@ -97,6 +109,46 @@ fun ClayCard(
         }
     }
 }
+
+/** The relief of the theme: the Argile one, a hard offset copy, a soft shadow or a glow, or none. */
+private fun Modifier.themedRelief(style: ClayStyle, colors: ClayColors, shape: Shape, background: Color): Modifier =
+    when (val kind = style.shadow) {
+        ClayShadow.Relief -> clayRelief(colors, shape, background)
+        is ClayShadow.Hard -> this
+            .drawBehind {
+                val offset = kind.offset.toPx()
+                translate(offset, offset) {
+                    drawOutline(shape.createOutline(size, layoutDirection, this), kind.color)
+                }
+            }
+            .clip(shape)
+            .drawBehind { drawRect(background) }
+        is ClayShadow.Soft -> this
+            .shadow(kind.elevation, shape, clip = false, ambientColor = kind.color, spotColor = kind.color)
+            .clip(shape)
+            .drawBehind { drawRect(background) }
+        ClayShadow.None -> clip(shape).drawBehind { drawRect(background) }
+    }
+
+/** A plain or dashed border, drawn inside the card's edge. */
+private fun Modifier.themedBorder(line: ClayBorder, shape: Shape): Modifier =
+    if (!line.dashed) {
+        border(line.width, line.color, shape)
+    } else {
+        drawWithContent {
+            drawContent()
+            val width = line.width.toPx()
+            val inset = width / 2
+            translate(inset, inset) {
+                val inner = Size(size.width - width, size.height - width)
+                drawOutline(
+                    shape.createOutline(inner, layoutDirection, this),
+                    line.color,
+                    style = Stroke(width, pathEffect = PathEffect.dashPathEffect(floatArrayOf(3 * width, 2 * width))),
+                )
+            }
+        }
+    }
 
 /** A 4 dp rounded bar at the start of the card, 12 dp from the edge and 16 dp from top and bottom. */
 private fun DrawScope.drawStripe(color: Color) {

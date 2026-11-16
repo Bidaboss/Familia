@@ -73,6 +73,8 @@ import androidx.compose.ui.semantics.contentDescription
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.dayTitle
+import fr.familia.app.core.theme.dayHeaderColor
+import fr.familia.app.core.theme.dayHeaderTextStyle
 import fr.familia.app.core.ui.formatDay
 import fr.familia.app.core.ui.formatTime
 import fr.familia.app.core.model.Trip
@@ -334,8 +336,8 @@ private fun DayCell(date: LocalDate?, today: LocalDate, hasSomething: Boolean, m
 private fun DayHeader(date: LocalDate, today: LocalDate) {
     Text(
         text = dayTitle(date, today),
-        style = MaterialTheme.typography.titleLarge,
-        color = MaterialTheme.colorScheme.primary,
+        style = dayHeaderTextStyle(),
+        color = dayHeaderColor(),
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp)

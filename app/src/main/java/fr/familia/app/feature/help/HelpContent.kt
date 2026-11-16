@@ -6,6 +6,7 @@ import fr.familia.app.core.model.Feature
 
 /** The « ? » of a screen (spec « tuto et aide », récit 26): a few sentences on what it does. */
 enum class ScreenHelp(@StringRes val titleRes: Int, @StringRes val bodyRes: Int) {
+    Home(R.string.help_screen_home_title, R.string.help_screen_home_body),
     Planning(R.string.help_screen_planning_title, R.string.help_screen_planning_body),
     EventDetail(R.string.help_screen_event_detail_title, R.string.help_screen_event_detail_body),
     EventEdit(R.string.help_screen_event_edit_title, R.string.help_screen_event_edit_body),
@@ -14,6 +15,7 @@ enum class ScreenHelp(@StringRes val titleRes: Int, @StringRes val bodyRes: Int)
     GiftList(R.string.help_screen_gift_list_title, R.string.help_screen_gift_list_body),
     GiftListEdit(R.string.help_screen_gift_list_edit_title, R.string.help_screen_gift_list_edit_body),
     GiftItemEdit(R.string.help_screen_gift_item_edit_title, R.string.help_screen_gift_item_edit_body),
+    Notebook(R.string.help_screen_notebook_title, R.string.help_screen_notebook_body),
     HelpRequests(R.string.help_screen_help_requests_title, R.string.help_screen_help_requests_body),
     Trips(R.string.help_screen_trips_title, R.string.help_screen_trips_body),
     TripDetail(R.string.help_screen_trip_detail_title, R.string.help_screen_trip_detail_body),
@@ -32,6 +34,7 @@ enum class HelpTopic(
     /** The module whose topics stay hidden while it is switched off. */
     val feature: Feature? = null,
 ) {
+    Home(R.string.help_topic_home_title, R.string.help_topic_home_body, feature = Feature.Home),
     Planning(R.string.help_topic_planning_title, R.string.help_topic_planning_body),
     AddEvent(R.string.help_topic_add_title, R.string.help_topic_add_body),
     EditEvent(R.string.help_topic_edit_title, R.string.help_topic_edit_body),
@@ -43,6 +46,7 @@ enum class HelpTopic(
     GiftLists(R.string.help_topic_gift_lists_title, R.string.help_topic_gift_lists_body, feature = Feature.Gifts),
     Reserve(R.string.help_topic_reserve_title, R.string.help_topic_reserve_body, feature = Feature.Gifts),
     Updates(R.string.help_topic_updates_title, R.string.help_topic_updates_body),
+    Appearance(R.string.help_topic_appearance_title, R.string.help_topic_appearance_body, feature = Feature.Themes),
     Trips(R.string.help_topic_trips_title, R.string.help_topic_trips_body),
     Invite(R.string.help_topic_invite_title, R.string.help_topic_invite_body, HelpAudience.Chefs),
     Export(R.string.help_topic_export_title, R.string.help_topic_export_body, HelpAudience.Owner),
