@@ -1013,7 +1013,7 @@
     <string name="member_card_shoes">Pointure</string>
     <string name="member_card_allergies">Allergies</string>
     <string name="member_card_tastes">Goûts</string>
-    <string name="member_card_help">Pour que la famille choisisse le bon cadeau et le bon menu. Laisse vide ce que tu ne veux pas dire.</string>
+    <string name="member_card_help">Pour que la famille choisisse le bon cadeau et le bon menu. Toute la famille voit cette fiche : laisse vide ce que tu ne veux pas dire.</string>
     <string name="member_card_empty_mine">Ajoute tes tailles, ta pointure, tes allergies et tes goûts : la famille choisira plus facilement.</string>
     <string name="member_card_empty_other">%1$s n\'a encore rien noté.</string>
     <string name="member_card_fill">Remplir</string>
