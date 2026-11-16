@@ -128,6 +128,8 @@ import androidx.compose.material3.BadgedBox
 import kotlinx.coroutines.flow.combine
 import fr.familia.app.feature.events.album.EventAlbumDestination
 import fr.familia.app.feature.events.album.EventAlbumRoute
+import fr.familia.app.feature.month.MonthSlideshowDestination
+import fr.familia.app.feature.month.MonthSlideshowRoute
 import fr.familia.app.feature.trips.TripDetailDestination
 import fr.familia.app.feature.trips.TripEditDestination
 import fr.familia.app.feature.trips.TripPhotosDestination
@@ -143,6 +145,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
+import java.time.YearMonth
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
 @Composable
@@ -438,6 +441,7 @@ fun FamiliaApp(
                             onOpenGoodNews = { id -> navController.navigate(GoodNewsDetailDestination(id)) },
                             onPublishGoodNews = { navController.navigate(GoodNewsEditDestination()) },
                             onOpenWeeklyQuestion = { navController.navigate(WeeklyQuestionDestination()) },
+                            onOpenMonth = { month -> navController.navigate(MonthSlideshowDestination(month.year, month.monthValue)) },
                         )
                     }
                     composable<PlanningRoute> {
@@ -519,6 +523,15 @@ fun FamiliaApp(
                             eventId = eventId,
                             onEdit = { navController.navigate(EventEditDestination(eventId)) },
                             onOpenAlbum = { navController.navigate(EventAlbumDestination(eventId)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<MonthSlideshowDestination> { entry ->
+                        val route = entry.toRoute<MonthSlideshowDestination>()
+                        MonthSlideshowRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            month = YearMonth.of(route.year, route.month),
                             onBack = { navController.popBackStack() },
                         )
                     }
