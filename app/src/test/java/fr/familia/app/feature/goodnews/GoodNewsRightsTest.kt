@@ -43,7 +43,7 @@ class GoodNewsRightsTest {
     }
 
     @Test
-    fun `the « Défi réussi » of Familia: only the admin principal removes it, nobody edits it (récit 35)`() {
+    fun `the « Défi réussi » of Familia, only the admin principal removes it, nobody edits it (récit 35)`() {
         val defi = goodNews("challenge-2026-12", TestFamily.admin).copy(
             authorId = "familia", authorName = "Familia", forMemberId = "familia", householdId = "", challengeMonth = "2026-12",
         )
