@@ -1758,4 +1758,30 @@
         <item quantity="other">Laissées par %1$s, elles ne s\'ouvriront jamais. Ni toi ni personne ne pourra les lire. C\'est définitif.</item>
     </plurals>
     <string name="capsule_leftovers_confirm">Supprimer</string>
+    <!-- Régler mes notifications (récit 6 quinquies). -->
+    <string name="notifications_level_title">Combien de notifications ?</string>
+    <string name="notifications_level_all">Tout</string>
+    <string name="notifications_level_all_help">Tu es prévenu de tout ce qui se passe dans la famille.</string>
+    <string name="notifications_level_essential">L\'essentiel</string>
+    <string name="notifications_level_essential_help">Seulement le planning et les rappels.</string>
+    <string name="notifications_level_minimal">Presque rien</string>
+    <string name="notifications_level_minimal_help">Seulement ce qui te concerne directement : un « Rejoins-moi », un coup de main que tu as pris, une réponse pour toi.</string>
+    <string name="notifications_families_title">Dans le détail</string>
+    <string name="notifications_family_planning">Planning</string>
+    <string name="notifications_family_planning_help">Un événement ajouté, modifié ou supprimé.</string>
+    <string name="notifications_family_reminders">Rappels</string>
+    <string name="notifications_family_reminders_help">Les rappels avant un événement où tu viens.</string>
+    <string name="notifications_family_gifts">Cadeaux</string>
+    <string name="notifications_family_gifts_help">Les listes et les cadeaux réservés. Rien ne gâche une surprise.</string>
+    <string name="notifications_family_comments">Commentaires</string>
+    <string name="notifications_family_comments_help">Quand quelqu\'un écrit sous un événement ou une photo.</string>
+    <string name="notifications_family_help">Coups de main</string>
+    <string name="notifications_family_help_help">Une nouvelle demande de coup de main dans la famille.</string>
+    <string name="notifications_family_trips">Voyages</string>
+    <string name="notifications_family_trips_help">Les étapes et les arrivées des voyages de la famille.</string>
+    <string name="notifications_family_weekly">Rendez-vous de la semaine</string>
+    <string name="notifications_family_weekly_help">Question de la semaine, souvenirs, défi, récap du dimanche et vœux.</string>
+    <string name="notifications_quiet_hours">Calme la nuit</string>
+    <string name="notifications_quiet_hours_help">Entre 22 h et 8 h, rien ne sonne. Ce qui arrive la nuit t\'attend à 8 h, regroupé. Ce qui te concerne directement arrive toujours.</string>
+    <string name="notifications_details_title">Précisions</string>
 </resources>

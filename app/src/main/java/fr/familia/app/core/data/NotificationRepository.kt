@@ -1,5 +1,7 @@
 package fr.familia.app.core.data
 
+import fr.familia.app.core.model.NotificationFamily
+import fr.familia.app.core.model.NotificationPrefs
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
@@ -42,4 +44,13 @@ interface NotificationRepository {
     fun observeBirthdayWishes(memberId: String): Flow<Boolean> = flowOf(true)
 
     suspend fun setBirthdayWishes(memberId: String, enabled: Boolean) = Unit
+
+    /** The families and the quiet hours (récit 6 quinquies). */
+    fun observePrefs(memberId: String): Flow<NotificationPrefs> = flowOf(NotificationPrefs())
+
+    /** Turns these families on or off in one write: one switch, or a whole level. */
+    suspend fun setFamilies(memberId: String, families: Map<NotificationFamily, Boolean>) = Unit
+
+    /** From 22 h to 8 h, notices wait until 8 h, grouped. */
+    suspend fun setQuietHours(memberId: String, enabled: Boolean) = Unit
 }

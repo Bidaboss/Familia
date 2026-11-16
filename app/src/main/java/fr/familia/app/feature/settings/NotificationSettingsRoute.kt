@@ -31,11 +31,12 @@ fun NotificationSettingsRoute(container: AppContainer?, currentMember: Member, o
         onOpenSystemSettings = { openNotificationSettings(context) },
         onRetry = viewModel::retry,
         onBack = onBack,
-        onGoodNewsChange = viewModel::setGoodNews,
-        onWeeklyChange = viewModel::setWeekly,
         onSouvenirsChange = viewModel::setSouvenirs,
         onTreeChange = viewModel::setTree,
         onRecapChange = viewModel::setRecap,
         onBirthdayWishesChange = viewModel::setBirthdayWishes,
+        onLevelChange = viewModel::setLevel,
+        onFamilyChange = viewModel::setFamily,
+        onQuietHoursChange = viewModel::setQuietHours,
     )
 }
