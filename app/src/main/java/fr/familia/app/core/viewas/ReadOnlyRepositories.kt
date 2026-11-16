@@ -11,6 +11,7 @@ import fr.familia.app.core.data.EventCommentRepository
 import fr.familia.app.core.data.EventRepository
 import fr.familia.app.core.data.FamilyData
 import fr.familia.app.core.data.ExportRepository
+import fr.familia.app.core.data.GenealogyRepository
 import fr.familia.app.core.data.GiftRepository
 import fr.familia.app.core.data.GoodNewsRepository
 import fr.familia.app.core.data.HelpRequestRepository
@@ -47,6 +48,8 @@ import fr.familia.app.core.model.HelpRequest
 import fr.familia.app.core.model.HostedChallenge
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.JoinMe
+import fr.familia.app.core.model.Kin
+import fr.familia.app.core.model.KinLink
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MonthChallenge
 import fr.familia.app.core.model.NotebookBudget
@@ -240,6 +243,18 @@ class ReadOnlyTreeRepository(private val inner: TreeRepository, private val guar
     override suspend fun setRotation(rotation: ChallengeRotation) = guard.refuse()
     override fun observeHosted(month: YearMonth): Flow<HostedChallenge?> = inner.observeHosted(month)
     override suspend fun saveHosted(challenge: HostedChallenge, memberId: String) = guard.refuse()
+}
+
+class ReadOnlyGenealogyRepository(private val inner: GenealogyRepository, private val guard: ViewAsGuard) : GenealogyRepository {
+    override fun observeKin(): Flow<List<Kin>> = inner.observeKin()
+    override fun observeLinks(): Flow<List<KinLink>> = inner.observeLinks()
+    override fun observeWords(memberId: String): Flow<Map<String, String>> = inner.observeWords(memberId)
+    override fun newKinId(): String = inner.newKinId()
+    override suspend fun saveKin(kin: Kin, byMemberId: String, firstLink: KinLink?) = guard.refuse()
+    override suspend fun deleteKin(id: String) = guard.refuse()
+    override suspend fun addLink(link: KinLink, byMemberId: String) = guard.refuse()
+    override suspend fun removeLink(link: KinLink) = guard.refuse()
+    override suspend fun saveWords(memberId: String, words: Map<String, String>) = guard.refuse()
 }
 
 class ReadOnlyPhotoStorage(private val inner: PhotoStorage, private val guard: ViewAsGuard) : PhotoStorage {

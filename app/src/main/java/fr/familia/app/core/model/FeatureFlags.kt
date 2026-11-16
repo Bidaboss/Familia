@@ -48,6 +48,8 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     Recipes("recipes", R.string.feature_recipes),
     /** La capsule temporelle (PRD, récit 39); the server opens nothing while it is off. */
     Capsules("capsules", R.string.feature_capsules),
+    /** L'arbre généalogique (PRD, récit 40), not the tree of leaves of [Tree]. */
+    Genealogy("genealogy", R.string.feature_genealogy),
     /** « Qui apporte quoi » on an event (PRD, récit 4 bis). */
     Bring("bring", R.string.feature_bring),
     /** The place component and « Rejoignez-moi » (PRD, récit 33). */

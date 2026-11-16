@@ -501,6 +501,45 @@ Cloud Functions (`functions/src/helpRequests.ts`), qui ne préviennent que les p
 
 Une demande passée ne prévient personne, sauf pour le « Merci ». La sauvegarde de l'admin principal inclut les demandes (`helpRequests`).
 
+## Arbre généalogique (PRD, récit 40)
+
+L'arbre se dessine à partir des membres, des proches sans compte (`kin`) et de leurs liens (`kinLinks`). Tout membre le lit. L'admin principal le modifie en entier, et un chef de famille modifie les proches de son foyer et les liens qui touchent son foyer. Il est derrière le module « Arbre généalogique » (`genealogy`), à ne pas confondre avec l'arbre des feuilles du récit 35.
+
+### `kin/{kinId}`
+
+Un proche sans compte : un arrière-grand-parent, un défunt, ou un parent vivant qui n'est pas dans l'appli. Il ne reçoit rien et ne compte pas parmi les membres.
+
+| Champ | Type | Description |
+|---|---|---|
+| `firstName` | texte | De 1 à 40 caractères |
+| `lastName` | texte, facultatif | 40 caractères au plus |
+| `living` | booléen | `true` pour un proche vivant |
+| `born`, `died` | texte, facultatif | Une année `AAAA` ou un jour `AAAA-MM-JJ`. `died` seulement si `living` est `false` |
+| `note` | texte, facultatif | Quelques mots, 500 caractères au plus |
+| `householdId` | texte | Le foyer qui l'a ajouté : ses chefs le modifient |
+| `updatedBy`, `updatedAt` | texte, horodatage | Qui l'a écrit en dernier, et l'heure du serveur |
+
+### `kinLinks/{linkId}`
+
+Un lien entre deux personnes de l'arbre, membres ou proches. Son identifiant est `{kind}_{aId}_{bId}`, donc un même lien n'existe jamais deux fois. Un lien ne se modifie pas : on le retire, puis on le refait.
+
+| Champ | Type | Description |
+|---|---|---|
+| `kind` | texte | `parent` (`aId` est un parent de `bId`) ou `partner` (deux conjoints, dans l'ordre alphabétique) |
+| `aId`, `bId` | texte | Deux personnes différentes, qui existent |
+| `updatedBy`, `updatedAt` | texte, horodatage | Qui l'a écrit, et l'heure du serveur |
+
+Un proche et son premier lien partent dans le même batch. Quand un proche est supprimé, `onKinDeleted` retire ses liens. Quand un membre est retiré, `onMemberDeletedKin` retire ses liens et ses mots.
+
+### `kinWords/{memberId}`
+
+Les mots qu'un membre a choisis pour les personnes de l'arbre (« bonus-maman », « Mamie Jeanne »…), au lieu d'un mot imposé (avis [EXPERT] n° 14). Lui seul les lit et les écrit.
+
+| Champ | Type | Description |
+|---|---|---|
+| `words` | table | Identifiant de la personne vers son mot, 60 au plus |
+| `updatedAt` | horodatage | Heure du serveur |
+
 ## Capsule temporelle (PRD, récit 39)
 
 ### `capsules/{capsuleId}`
