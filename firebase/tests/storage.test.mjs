@@ -215,4 +215,13 @@ describe('events folder (récit 41)', () => {
     await assertSucceeds(deleteObject(ref(storageAs(NEIGHBOUR), file('e1', 'adult3'))));
     await assertSucceeds(deleteObject(ref(storageAs(ADULT), file('e1', 'adult3', '2.jpg'))));
   });
+
+  test('the admin principal removes them too, and a recorded place is never sent again', async () => {
+    await uploadString(ref(storageAs(NEIGHBOUR), file('e1', 'adult3', '3.jpg')), 'x', 'raw', jpeg);
+    await assertSucceeds(deleteObject(ref(storageAs(ADMIN), file('e1', 'adult3', '3.jpg'))));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'events/e1/photos/adult3_4'), { authorId: 'adult3', slot: 4 });
+    });
+    await assertFails(uploadString(ref(storageAs(NEIGHBOUR), file('e1', 'adult3', '4.jpg')), 'x', 'raw', jpeg));
+  });
 });
