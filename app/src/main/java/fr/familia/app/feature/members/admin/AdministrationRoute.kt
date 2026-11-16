@@ -11,6 +11,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.newCount
 import fr.familia.app.core.share.hasInstallLink
 import fr.familia.app.core.share.shareApp
 import fr.familia.app.core.ui.LocalFeatureFlags
@@ -28,6 +29,8 @@ fun AdministrationRoute(
     onOpenExport: () -> Unit,
     onBack: () -> Unit,
     onOpenUsage: (() -> Unit)? = null,
+    /** « Retours » (récit 6 sexies). */
+    onOpenFeedback: (() -> Unit)? = null,
 ) {
     val viewModel: AdministrationViewModel = viewModel(
         factory = viewModelFactory {
@@ -58,6 +61,8 @@ fun AdministrationRoute(
         .filter { it.id != currentMember.id }
         .sortedWith(compareBy(Collator.getInstance(Locale.FRENCH)) { it.firstName })
     val context = LocalContext.current
+    val feedbacks = remember(container) { container?.feedbackRepository?.observeAll()?.catch { emit(emptyList()) } ?: flowOf(emptyList()) }
+    val feedback by feedbacks.collectAsStateWithLifecycle(initialValue = emptyList())
     AdministrationScreen(
         state = state,
         onBack = onBack,
@@ -83,5 +88,7 @@ fun AdministrationRoute(
         onViewAs = startViewAs,
         // Only the admin principal opens Administration: the name in the message is their own.
         onShareApp = if (hasInstallLink()) { { shareApp(context, currentMember.firstName) } } else null,
+        onOpenFeedback = onOpenFeedback,
+        feedbackUnseen = newCount(feedback),
     )
 }

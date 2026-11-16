@@ -11,6 +11,7 @@ import fr.familia.app.core.data.EventCommentRepository
 import fr.familia.app.core.data.EventRepository
 import fr.familia.app.core.data.ExpenseRepository
 import fr.familia.app.core.data.FamilyData
+import fr.familia.app.core.data.FeedbackRepository
 import fr.familia.app.core.data.ExportRepository
 import fr.familia.app.core.data.GenealogyRepository
 import fr.familia.app.core.data.GiftRepository
@@ -44,6 +45,8 @@ import fr.familia.app.core.model.ExpenseHistoryEntry
 import fr.familia.app.core.model.ExpenseSettlement
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.FamilyTree
+import fr.familia.app.core.model.Feedback
+import fr.familia.app.core.model.FeedbackContext
 import fr.familia.app.core.model.GiftClaim
 import fr.familia.app.core.model.GiftItem
 import fr.familia.app.core.model.GiftList
@@ -345,6 +348,14 @@ class ReadOnlyUsageRepository(private val inner: UsageRepository, private val gu
     override suspend fun saveDay(memberId: String, day: LocalDate, usage: DayUsage) = guard.refuseQuietly()
     override suspend fun fetchDays(memberId: String, since: LocalDate): List<UsageDay> = inner.fetchDays(memberId, since)
     override suspend fun fetchLastDay(memberId: String): LocalDate? = inner.fetchLastDay(memberId)
+}
+
+class ReadOnlyFeedbackRepository(private val inner: FeedbackRepository, private val guard: ViewAsGuard) : FeedbackRepository {
+    override suspend fun send(kind: Feedback.Kind, text: String, me: Member, context: FeedbackContext, screenshot: ByteArray?) = guard.refuse()
+    override fun observeAll(): Flow<List<Feedback>> = inner.observeAll()
+    override fun observeMine(memberId: String): Flow<List<Feedback>> = inner.observeMine(memberId)
+    override suspend fun setStatus(id: String, status: Feedback.Status, note: String?) = guard.refuse()
+    override suspend fun delete(id: String, screenshot: String?) = guard.refuse()
 }
 
 class ReadOnlyPollRepository(private val inner: PollRepository, private val guard: ViewAsGuard) : PollRepository {

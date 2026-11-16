@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Replay
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -55,6 +56,8 @@ fun HelpScreen(
     modifier: Modifier = Modifier,
     initiallyOpen: HelpTopic? = null,
     versionName: String = BuildConfig.VERSION_NAME,
+    /** « Une idée ? Un souci ? » (récit 6 sexies), also reachable from here. */
+    onOpenFeedback: (() -> Unit)? = null,
 ) {
     var openTopic by rememberSaveable { mutableStateOf(initiallyOpen) }
     Scaffold(
@@ -93,6 +96,13 @@ fun HelpScreen(
                             ?: stringResource(R.string.help_contact_body_unknown),
                         style = MaterialTheme.typography.bodyLarge,
                     )
+                    if (onOpenFeedback != null) {
+                        OutlinedButton(onClick = onOpenFeedback, modifier = Modifier.fillMaxWidth().padding(top = 8.dp).heightIn(min = 56.dp)) {
+                            Icon(Icons.Outlined.Lightbulb, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.feedback_title))
+                        }
+                    }
                 }
             }
             // The version moved here from the Famille tab (DESIGN-5): it is what one gives when asking for help.

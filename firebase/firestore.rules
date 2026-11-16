@@ -2049,6 +2049,46 @@ service cloud.firestore {
       allow delete: if isMember() && resource.data.authorId == myMemberId();
     }
 
+    // feedback/{feedbackId}: « Une idée ? Un souci ? » (PRD, récit 6 sexies). Any member with the
+    // app, a child included, sends an idea or a problem in their own name: a text of 1 to 1000
+    // characters, and the context added by the phone (versions, model, the screen it came from).
+    // Only its author and the admin principal read it. The admin principal gives it a state
+    // (new, planned, done, declined) and an optional word of up to 300 characters, and nothing
+    // else; the author or the admin principal deletes it. The server tells the admin principal of
+    // each new one, and the author of each new state.
+    function isFeedbackNote(note) {
+      return note == null || (note is string && note.size() > 0 && note.size() <= 300);
+    }
+
+    match /feedback/{feedbackId} {
+      allow read: if isMember() && (resource.data.authorId == myMemberId() || isOwner());
+      allow create: if isMember()
+        && request.resource.data.keys().hasAll(['kind', 'text', 'authorId', 'authorName', 'appVersion', 'android', 'device', 'screen', 'createdAt', 'status', 'note', 'statusAt'])
+        && request.resource.data.keys().hasOnly(['kind', 'text', 'authorId', 'authorName', 'appVersion', 'android', 'device', 'screen', 'createdAt', 'status', 'note', 'statusAt', 'screenshot'])
+        // The optional screenshot, sent to Storage just before, at the one place of this request.
+        && (!('screenshot' in request.resource.data)
+            || request.resource.data.screenshot == 'feedback/' + myMemberId() + '/' + feedbackId + '.jpg')
+        && request.resource.data.kind in ['idea', 'problem']
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 1000
+        && request.resource.data.appVersion is string && request.resource.data.appVersion.size() <= 40
+        && request.resource.data.android is string && request.resource.data.android.size() <= 20
+        && request.resource.data.device is string && request.resource.data.device.size() <= 80
+        && request.resource.data.screen in ['family', 'help']
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.status == 'new'
+        && request.resource.data.note == null
+        && request.resource.data.statusAt == null;
+      allow update: if isOwner()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'note', 'statusAt'])
+        && request.resource.data.status in ['new', 'planned', 'done', 'declined']
+        && isFeedbackNote(request.resource.data.note)
+        && request.resource.data.statusAt == request.time;
+      allow delete: if isMember() && (resource.data.authorId == myMemberId() || isOwner());
+    }
+
     // consumption/{day}: the use of the database each day, read from Cloud Monitoring by the
     // 30-minute task, from 8 h (récit 1 sexies). Only the admin principal sees it, in
     // Administration › Consommation; only the server writes it.
