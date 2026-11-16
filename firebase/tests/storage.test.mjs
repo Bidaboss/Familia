@@ -225,3 +225,30 @@ describe('events folder (récit 41)', () => {
     await assertFails(uploadString(ref(storageAs(NEIGHBOUR), file('e1', 'adult3', '4.jpg')), 'x', 'raw', jpeg));
   });
 });
+
+describe('recipes folder (récit 38)', () => {
+  // r1 is written by adult1.
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'recipes/r1'), { title: 'Gâteau', authorId: 'adult1' });
+    });
+  });
+  const file = (author, name = '1.jpg') => `recipes/r1/${author}/${name}`;
+
+  test('the author sends up to 3 photos, and the family sees them', async () => {
+    await assertSucceeds(uploadString(ref(storageAs(ADULT), file('adult1')), 'x', 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storageAs(ADULT), file('adult1', '3-thumb.jpg')), 'x', 'raw', jpeg));
+    await assertSucceeds(getBytes(ref(storageAs(NEIGHBOUR), file('adult1'))));
+    await assertFails(getBytes(ref(storageAs(STRANGER), file('adult1'))));
+    await assertFails(uploadString(ref(storageAs(ADULT), file('adult1', '4.jpg')), 'x', 'raw', jpeg));
+  });
+
+  test('nobody else sends photos, but the admin principal may, and removes them', async () => {
+    await assertFails(uploadString(ref(storageAs(OTHER_ADULT), file('adult2')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storageAs(OTHER_ADULT), file('adult1')), 'x', 'raw', jpeg));
+    await uploadString(ref(storageAs(ADULT), file('adult1', '2.jpg')), 'x', 'raw', jpeg);
+    await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), file('adult1', '2.jpg'))));
+    await assertSucceeds(deleteObject(ref(storageAs(ADMIN), file('adult1', '2.jpg'))));
+    await assertSucceeds(uploadString(ref(storageAs(ADMIN), file('admin1')), 'x', 'raw', jpeg));
+  });
+});

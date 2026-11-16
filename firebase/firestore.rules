@@ -1081,6 +1081,24 @@ service cloud.firestore {
       allow delete: if isMember() && canManageRecipe(resource.data);
     }
 
+    // recipes/{recipeId}/photos/{photoId} (récit 38, partie 2): the photos of the dish, shaped like
+    // the photos of a trip (isValidAlbumPhoto) but with 3 places, 1 to 3. Whoever may change the
+    // recipe adds and removes them; the files are in Storage at recipes/{recipeId}/{authorId}/.
+    // Deleting the recipe deletes them on the server (onRecipeDeleted).
+    function recipeOf(recipeId) {
+      return get(/databases/$(database)/documents/recipes/$(recipeId)).data;
+    }
+
+    match /recipes/{recipeId}/photos/{photoId} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && canManageRecipe(recipeOf(recipeId))
+        && isValidAlbumPhoto(request.resource.data, photoId)
+        && request.resource.data.slot <= 3;
+      allow delete: if isMember()
+        && (resource.data.authorId == myMemberId() || canManageRecipe(recipeOf(recipeId)));
+    }
+
     // --- Trips (V3, récits 11 à 15) ----------------------------------------------------------------
 
     function tripPath(tripId) {

@@ -1,6 +1,8 @@
 package fr.familia.app.feature.recipes
 
 import androidx.lifecycle.SavedStateHandle
+import fr.familia.app.core.album.AlbumPhoto
+import fr.familia.app.core.album.AlbumPhotosUiState
 import fr.familia.app.core.data.RecipeRepository
 import fr.familia.app.core.data.recipeOrder
 import fr.familia.app.core.model.Recipe
@@ -10,6 +12,7 @@ import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -154,5 +157,18 @@ class RecipesTest {
         val editing = again.uiState.value as RecipeEditUiState.Editing
         assertEquals("Crêpes" to "Mélanger.\nCuire.", editing.form.title to editing.form.steps)
         assertTrue(editing.hasChanges)
+    }
+
+    @Test
+    fun `the author and the admin principal add the photos of the dish, 3 places each`() = runTest {
+        val repo = FakeRecipes(listOf(apple))
+        assertTrue(recipePhotoRights(repo, FakeMembers(), "r1", "adult1").first().canAdd)
+        assertTrue(recipePhotoRights(repo, FakeMembers(), "r1", "admin1").first().canManage)
+        assertFalse(recipePhotoRights(repo, FakeMembers(), "r1", "adult2").first().canAdd)
+        assertEquals(null, recipePhotoRights(repo, FakeMembers(), "gone", "adult1").first().me)
+
+        val one = AlbumPhoto(recipePhotoFolder("r1"), "adult1", "Adult1", 1, null)
+        assertEquals(2, AlbumPhotosUiState(listOf(one), "adult1", canAdd = true, maxPerMember = RECIPE_PHOTOS).placesLeft)
+        assertEquals(listOf(2, 3), AlbumPhoto.freeSlots(listOf(1), RECIPE_PHOTOS))
     }
 }

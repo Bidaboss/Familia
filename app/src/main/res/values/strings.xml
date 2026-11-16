@@ -825,6 +825,9 @@
         <item quantity="many">Pour %1$d personnes</item>
         <item quantity="other">Pour %1$d personnes</item>
     </plurals>
+    <string name="recipe_photos_title">Photos du plat</string>
+    <string name="recipe_photos_empty">Pas encore de photo du plat.</string>
+    <string name="recipe_photos_empty_author">Ajoute jusqu\'à 3 photos du plat, pour donner envie.</string>
     <string name="recipe_ingredients">Ingrédients</string>
     <string name="recipe_steps">Étapes</string>
     <string name="recipe_written_by">Notée par %1$s</string>

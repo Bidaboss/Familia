@@ -30,8 +30,8 @@ data class AlbumPhoto(
 
         fun photoId(authorId: String, slot: Int): String = "${authorId}_$slot"
 
-        /** The free places of a member, smallest first, given the places already [taken]. */
-        fun freeSlots(taken: Collection<Int>): List<Int> = (1..MAX_PER_MEMBER).filterNot { it in taken }
+        /** The free places of a member, smallest first, given the places already [taken], out of [max]. */
+        fun freeSlots(taken: Collection<Int>, max: Int = MAX_PER_MEMBER): List<Int> = (1..max).filterNot { it in taken }
     }
 }
 
