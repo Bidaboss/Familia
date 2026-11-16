@@ -32,7 +32,7 @@ import {
 } from './helpRequests';
 import { addDays, EventData, hasVisibleChange, Notice, parisDay } from './logic';
 import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, memberForUid, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
-import { deleteExpenseBook, ExpenseData, historyEntry, writeExpenseHistory } from './expenses';
+import { deleteExpenseBook, ExpenseData, historyEntry, sendExpenseNotices, writeExpenseHistory } from './expenses';
 import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
 import {
@@ -451,6 +451,8 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
   await sendDigests(getFirestore(), send, new Date());
   // And the polls whose end date has passed (récits 2 bis et 2 ter).
   await closeDuePolls(getFirestore(), new Date());
+  // And the day's notice of the accounts of each trip, once from 20 h (récit 16 bis).
+  await sendExpenseNotices(getFirestore(), send, new Date());
 });
 
 // --- Question de la semaine (récit 37) --------------------------------------------------------
