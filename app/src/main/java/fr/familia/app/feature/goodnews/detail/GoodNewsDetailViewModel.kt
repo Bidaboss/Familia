@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.GoodNewsRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Reaction
+import fr.familia.app.core.share.goodNewsPhotoAllowed
 import fr.familia.app.feature.goodnews.goodNewsItem
 import fr.familia.app.feature.goodnews.nextReaction
 import kotlinx.coroutines.flow.Flow
@@ -43,6 +44,7 @@ class GoodNewsDetailViewModel(
                         clock(),
                         failed,
                         birthdayPerson = news.birthdayOf?.let { id -> family.members.firstOrNull { it.id == id } },
+                        photoShareable = goodNewsPhotoAllowed(news, currentMemberId, family),
                     )
                 }
             }.catch { emit(GoodNewsDetailUiState.Missing) }

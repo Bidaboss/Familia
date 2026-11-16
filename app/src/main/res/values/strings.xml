@@ -1120,6 +1120,10 @@
     <string name="share_poll_line">Sondage de la famille</string>
     <string name="share_poll_text">Sondage dans Familia : %1$s Réponds ici :</string>
     <string name="share_trip_text">%1$s, %2$s. Le carnet de voyage est dans Familia :</string>
+    <string name="share_goodnews_title">Bonne nouvelle de %1$s</string>
+    <string name="share_goodnews_text">%1$s : « %2$s » Viens réagir dans Familia :</string>
+    <string name="share_help_line">Coup de main · %1$s</string>
+    <string name="share_help_text">Coup de main demandé : %1$s, %2$s. Qui peut aider ? Réponds dans Familia :</string>
     <string name="share_birthday_button">Partager l\'anniversaire de %1$s</string>
     <string name="share_birthday_text">Anniversaire de %1$s : %2$s le %3$s. On se retrouve dans Familia :</string>
     <string name="feature_share">Partager vers une messagerie</string>
