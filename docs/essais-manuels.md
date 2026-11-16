@@ -475,3 +475,9 @@ Avec l'interrupteur « Partager » allumé :
 1. Ouvre une bonne nouvelle d'un adulte avec une photo, touche Partager en haut : l'image porte la photo, le message donne le début du texte et le lien.
 2. Ouvre la bonne nouvelle d'un enfant d'un autre foyer : l'image part sans la photo. Celle de ton enfant part avec.
 3. Ouvre un coup de main que tu as demandé à toute la famille, encore ouvert : Partager donne le titre et le moment, sans le lieu ni la note. Le bouton n'apparaît pas sur une demande faite à quelques personnes seulement, ni une fois la demande prise, ni sur celle de quelqu'un d'autre.
+
+## Une photo dans un coup de main (Kévin 16/11)
+1. Demande un coup de main, touche « Ajouter une photo », prends la photo d'un QR code ou choisis-la dans la galerie, puis envoie.
+2. Sur un téléphone prévenu, ouvre la demande : la photo est entière, sans être coupée. Touche-la : elle s'ouvre en grand sur fond noir, prête à être scannée. « Fermer » revient à la demande.
+3. Sur le téléphone d'un membre non prévenu, la demande n'apparaît pas, et la photo non plus.
+4. Modifie la demande, touche « Retirer la photo », enregistre : elle disparaît pour tout le monde.

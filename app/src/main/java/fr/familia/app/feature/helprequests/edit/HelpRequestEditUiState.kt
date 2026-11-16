@@ -23,6 +23,8 @@ sealed interface HelpRequestEditUiState {
         /** Always warned and not untickable: the parents of a child, the current volunteer. */
         val lockedIds: Set<String>,
         val errors: Set<HelpFormError>,
+        /** The photo already saved with the request, null for a new one or a duplicate. */
+        val storedPhoto: String? = null,
         val hasChanges: Boolean = false,
         val isSaving: Boolean = false,
         val saveFailed: Boolean = false,

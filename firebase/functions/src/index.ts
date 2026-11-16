@@ -218,6 +218,8 @@ const sendHelp: HelpSender = async (token: string, notice: HelpNotice) => {
 export const onHelpRequestWrite = onDocumentWrittenWithAuthContext('helpRequests/{requestId}', async (event) => {
   const before = event.data?.before.data() as HelpRequestData | undefined;
   const after = event.data?.after.data() as HelpRequestData | undefined;
+  // Deleted: its image goes too (Kévin 16/11, a QR code), even if the notices below fail.
+  if (before && !after) await getStorage().bucket().deleteFiles({ prefix: `helpRequests/${event.params.requestId}/` });
   await onHelpRequestWritten(getFirestore(), sendHelp, event.params.requestId, before, after, actorUid(event), new Date());
   if (after?.status === 'taken' && before?.status !== 'taken' && after.volunteerId) {
     const volunteerId = after.volunteerId;

@@ -670,13 +670,16 @@ service cloud.firestore {
       return v == null || (v is string && v.size() <= 200);
     }
 
-    // The 19 fields, plus volunteerNote when there is one (requests made before it have 19):
-    // hasAll plus the size, cheaper than hasOnly against the limit of 1000 expressions.
+    // The 19 fields, plus volunteerNote and photo when there are some (older requests have 19).
     function isValidHelpRequest(r) {
       return r.keys().hasAll(['kind', 'title', 'date', 'startTime', 'endTime', 'place', 'note', 'authorId',
                               'authorName', 'forMemberId', 'notifyIds', 'viewerIds', 'status', 'volunteerId',
                               'volunteerName', 'declinedBy', 'thankedAt', 'createdAt', 'updatedAt'])
-        && (r.keys().size() == 19 || (r.keys().size() == 20 && 'volunteerNote' in r && isVolunteerNote(r.volunteerNote)))
+        && r.keys().hasOnly(['kind', 'title', 'date', 'startTime', 'endTime', 'place', 'note', 'authorId',
+                             'authorName', 'forMemberId', 'notifyIds', 'viewerIds', 'status', 'volunteerId',
+                             'volunteerName', 'declinedBy', 'thankedAt', 'createdAt', 'updatedAt',
+                             'volunteerNote', 'photo'])
+        && isVolunteerNote(r.get('volunteerNote', null))
         && r.kind in ['childcare', 'ride', 'other']
         && r.title is string && r.title.size() > 0 && r.title.size() <= 80
         && isDay(r.date)
@@ -690,6 +693,17 @@ service cloud.firestore {
         && (r.declinedBy == null || r.declinedBy is string)
         && r.updatedAt == request.time
         && hasValidAudience(r);
+    }
+
+    // The image of a request (Kévin 16/11, a QR code): optional, the base of a photo sent beforehand
+    // to helpRequests/{requestId}/{memberId}/{photoId} (storage.rules). Whoever writes the request
+    // adds, changes or removes it, but only names a photo of their own folder.
+    function isValidHelpPhoto(requestId, r, before) {
+      return r.get('photo', null) == null
+        || (before != null && r.photo == before.get('photo', null))
+        || (r.photo is string
+            && r.photo.matches('^helpRequests/' + requestId + '/[A-Za-z0-9]{1,40}/[A-Za-z0-9]{1,40}$')
+            && r.photo.split('/')[2] == myMemberId());
     }
 
     // Modify or cancel (Règles et droits): the admin principal all requests, anyone their own, an
@@ -759,7 +773,7 @@ service cloud.firestore {
     // Modify, widen to other people or cancel. The author, the person helped, the volunteer and
     // the creation time never change; the volunteer stays among the people warned; a new date is
     // not in the past; widening clears a « Je ne peux pas ». A cancelled request stays cancelled.
-    function isHelpEdit() {
+    function isHelpEdit(requestId) {
       return resource.data.status != 'cancelled'
         && request.resource.data.status in [resource.data.status, 'cancelled']
         && !request.resource.data.diff(resource.data).affectedKeys()
@@ -768,7 +782,8 @@ service cloud.firestore {
         && (resource.data.volunteerId == null || resource.data.volunteerId in request.resource.data.notifyIds)
         && (request.resource.data.date == resource.data.date || isHelpDayAhead(request.resource.data.date))
         && canManageHelp(resource.data)
-        && isValidHelpRequest(request.resource.data);
+        && isValidHelpRequest(request.resource.data)
+        && isValidHelpPhoto(requestId, request.resource.data, resource.data);
     }
 
     // helpRequests/{requestId}. One update rule; each case starts with the cheap checks that tell
@@ -790,10 +805,11 @@ service cloud.firestore {
         && request.resource.data.declinedBy == null
         && request.resource.data.thankedAt == null
         && request.resource.data.get('volunteerNote', null) == null
+        && isValidHelpPhoto(requestId, request.resource.data, null)
         && request.resource.data.createdAt == request.time;
 
       allow update: if isMember()
-        && (isHelpTake() || isHelpWithdraw() || isHelpNote() || isHelpDecline() || isHelpThanks() || isHelpEdit());
+        && (isHelpTake() || isHelpWithdraw() || isHelpNote() || isHelpDecline() || isHelpThanks() || isHelpEdit(requestId));
 
       allow delete: if isMember() && canManageHelp(resource.data);
     }

@@ -513,6 +513,7 @@ Spec : « Spec Familia : coups de main » (tenue par [PRODUIT]), avec les cartes
 | `startTime`, `endTime` | texte `HH:mm` ou null | Facultatives ; la fin après le début |
 | `place` | texte (120 au plus) ou null | Lieu facultatif |
 | `note` | texte (1 000 au plus) ou null | Note facultative |
+| `photo` | texte ou absent/null | Facultatif (Kévin 16/11 : un QR code, ce qu'il faut récupérer) : la base `helpRequests/{requestId}/{memberId}/{photoId}` de deux fichiers Storage, `.jpg` (500 Ko au plus) et `-thumb.jpg`, envoyés avant la demande dans le dossier de qui écrit. Seuls ceux de `viewerIds` les lisent (pas même l'admin principal, limite de deux lectures de Storage). Le serveur les efface avec la demande |
 | `authorId`, `authorName` | `memberId`, texte | Le demandeur et son prénom au moment de la demande, jamais modifiés |
 | `forMemberId` | `memberId` | Le membre aidé : le demandeur, ou un de ses enfants pour un adulte |
 | `notifyIds` | liste de `memberId`, 1 à 30 | Les personnes prévenues, jamais le demandeur. Pour un enfant, ses adultes responsables y sont toujours (sauf s'il est lui-même le demandeur) |

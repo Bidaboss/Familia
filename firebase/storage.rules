@@ -160,6 +160,31 @@ service firebase.storage {
                 != 'events/' + eventId + '/cover/' + authorId + '/' + fileName.split('[-.]')[0]);
     }
 
+    // The image of a coup de main (récit 13, Kévin 16/11: the QR code of a parcel to pick up),
+    // helpRequests/{requestId}/{authorId}/{photoId}.jpg and {photoId}-thumb.jpg. Sent to the
+    // sender's own folder before its name goes in the field photo of the request, where
+    // firestore.rules checks that they may write it. Only those who see the request (viewerIds,
+    // PRODUIT-8) read it: the request is the one document read besides the caller (LIMIT above),
+    // so not even the admin principal reads it outside them. Never replaced; its sender removes
+    // it, and anyone removes an image the request no longer names. The server removes them with
+    // the request.
+    function helpRequestData(requestId) {
+      return firestore.get(docPath('helpRequests/' + requestId)).data;
+    }
+
+    match /helpRequests/{requestId}/{authorId}/{fileName} {
+      allow read: if isMember() && myMemberId() in helpRequestData(requestId).viewerIds;
+      allow create: if isMember()
+        && resource == null
+        && authorId == myMemberId()
+        && ((fileName.matches('^[A-Za-z0-9]{1,40}[.]jpg$') && isJpegUnder(512 * 1024))
+            || (fileName.matches('^[A-Za-z0-9]{1,40}-thumb[.]jpg$') && isJpegUnder(64 * 1024)));
+      allow delete: if isMember()
+        && (authorId == myMemberId()
+            || helpRequestData(requestId).get('photo', null)
+                != 'helpRequests/' + requestId + '/' + authorId + '/' + fileName.split('[-.]')[0]);
+    }
+
     // Capsule temporelle (PRD, récit 39): capsules/{authorId}/{capsuleId}/{n}.jpg and {n}-thumb.jpg,
     // n from 1 to 3, sent by the author before the document capsules/{capsuleId}. The author reads
     // them; the recipients only once the server opened the capsule. Deleting it removes them.

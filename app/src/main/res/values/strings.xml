@@ -757,6 +757,11 @@
     <!-- Coups de main (PRD, récits 13 à 18) : fil [DEV] coups de main -->
     <string name="nav_help_requests">Entraide</string>
     <string name="helprequest_screen_title">Coups de main</string>
+    <string name="helprequest_photo_title">Photo</string>
+    <string name="helprequest_photo_hint">Un QR code de colis, ce qu\'il faut récupérer, l\'endroit : seuls ceux que tu préviens la voient.</string>
+    <string name="helprequest_photo_label">Photo jointe à la demande</string>
+    <string name="helprequest_photo_open">Voir la photo en grand</string>
+    <string name="helprequest_photo_close">Fermer</string>
     <string name="helprequest_kind_childcare">Garde</string>
     <string name="helprequest_kind_ride">Trajet</string>
     <string name="helprequest_kind_other">Autre</string>
