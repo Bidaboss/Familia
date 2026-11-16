@@ -89,6 +89,9 @@ class AppContainer(context: Context) {
     /** The daily use of the database, for the admin principal (PRD, récit 1 sexies). */
     val consumptionRepository: ConsumptionRepository? by lazy { firestore?.let { FirestoreConsumptionRepository(it) } }
 
+    /** Sondages (PRD, récits 2 bis et 2 ter). */
+    val pollRepository: PollRepository? by lazy { firestore?.let { FirestorePollRepository(it) } }
+
     val exportRepository: ExportRepository? by lazy { firestore?.let { FirestoreExportRepository(it) } }
 
     val notificationRepository: NotificationRepository? by lazy {

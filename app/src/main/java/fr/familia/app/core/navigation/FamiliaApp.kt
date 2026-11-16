@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Celebration
+import androidx.compose.material.icons.outlined.Poll
 import androidx.compose.material.icons.outlined.QuestionAnswer
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.unit.dp
@@ -90,6 +91,9 @@ import fr.familia.app.core.ui.rememberMemberPhotos
 import fr.familia.app.feature.members.MembersRoute
 import fr.familia.app.feature.events.edit.EventEditRoute
 import fr.familia.app.feature.planning.PlanningRoute
+import fr.familia.app.feature.polls.detail.PollDetailRoute
+import fr.familia.app.feature.polls.edit.PollEditRoute
+import fr.familia.app.feature.polls.list.PollsRoute
 import fr.familia.app.feature.home.HomeActions
 import fr.familia.app.feature.home.HomePreferences
 import fr.familia.app.feature.settings.appearance.AppIconSwitcher
@@ -170,6 +174,9 @@ fun FamiliaApp(
     onWeeklyQuestionOpened: () -> Unit = {},
     openSouvenir: Boolean = false,
     onSouvenirOpened: () -> Unit = {},
+    /** The poll of a tapped notification, to open once its module shows. */
+    openPollId: String? = null,
+    onPollOpened: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
     // Each time the app opens, this phone is (re)registered for the notifications of this member.
@@ -306,6 +313,15 @@ fun FamiliaApp(
         }
     }
 
+    // And for a poll (récits 2 bis et 2 ter).
+    val pollsOn = features.isOn(Feature.Polls)
+    LaunchedEffect(openPollId, pollsOn) {
+        if (openPollId != null && pollsOn) {
+            navController.navigate(PollDetailDestination(openPollId))
+            onPollOpened()
+        }
+    }
+
     var updateDismissed by rememberSaveable { mutableStateOf(false) }
     LifecycleEventEffect(Lifecycle.Event.ON_START) { updateDismissed = false }
 
@@ -376,6 +392,7 @@ fun FamiliaApp(
                         onOpenTrips = { navController.navigate(TripsDestination) { launchSingleTop = true } },
                         onGoodNews = onGoodNews,
                         onWeeklyQuestion = onWeekly,
+                        onPolls = if (pollsOn) ({ navController.navigate(PollsDestination) { launchSingleTop = true } }) else null,
                     )
                 }
             },
@@ -448,6 +465,28 @@ fun FamiliaApp(
                             onOpenEvent = { id -> navController.navigate(EventDetailDestination(id)) },
                             onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
                         )
+                    }
+                    // --- Sondages (récits 2 bis et 2 ter), from the Planning bar ---
+                    composable<PollsDestination> {
+                        PollsRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onNew = { navController.navigate(PollEditDestination) },
+                            onOpen = { id -> navController.navigate(PollDetailDestination(id)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<PollDetailDestination> { entry ->
+                        PollDetailRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            pollId = entry.toRoute<PollDetailDestination>().pollId,
+                            onOpenEvent = { id -> navController.navigate(EventDetailDestination(id)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<PollEditDestination> {
+                        PollEditRoute(container = container, currentMember = currentMember, onDone = { navController.popBackStack() })
                     }
                     // Trips (V3): no tab (carte DESIGN-4), they open from the planning.
                     composable<TripsDestination> {
@@ -802,6 +841,7 @@ private fun TabTopBar(
     onOpenTrips: () -> Unit = {},
     onGoodNews: (() -> Unit)? = null,
     onWeeklyQuestion: (() -> Unit)? = null,
+    onPolls: (() -> Unit)? = null,
 ) {
     TopAppBar(
         // Transparent, so the theme's pattern shows behind the title too.
@@ -822,6 +862,11 @@ private fun TabTopBar(
                     if (onWeeklyQuestion != null) {
                         IconButton(onClick = onWeeklyQuestion, modifier = Modifier.size(56.dp)) {
                             Icon(Icons.Outlined.QuestionAnswer, contentDescription = stringResource(R.string.weekly_open))
+                        }
+                    }
+                    if (onPolls != null) {
+                        IconButton(onClick = onPolls, modifier = Modifier.size(56.dp)) {
+                            Icon(Icons.Outlined.Poll, contentDescription = stringResource(R.string.polls_open))
                         }
                     }
                     // Trips have no tab (carte DESIGN-4): until the Accueil tab, they open from here,

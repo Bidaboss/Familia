@@ -11,6 +11,15 @@
       ]
     },
     {
+      "collectionGroup": "votes",
+      "fieldPath": "memberId",
+      "indexes": [
+        { "order": "ASCENDING", "queryScope": "COLLECTION" },
+        { "order": "DESCENDING", "queryScope": "COLLECTION" },
+        { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
+      ]
+    },
+    {
       "collectionGroup": "days",
       "fieldPath": "expireAt",
       "ttl": true,

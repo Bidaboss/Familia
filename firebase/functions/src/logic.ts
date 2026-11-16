@@ -49,6 +49,8 @@ export interface Notice {
   weeklyQuestionId?: string;
   /** A new souvenir (récit 34): the app opens the member's own page. */
   souvenirKey?: string;
+  /** A poll to answer or its result (récits 2 bis et 2 ter). */
+  pollId?: string;
 }
 
 export type ChangeKind = 'added' | 'edited' | 'deleted';

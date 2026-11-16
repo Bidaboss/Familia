@@ -21,6 +21,7 @@ enum class ScreenHelp(@StringRes val titleRes: Int, @StringRes val bodyRes: Int)
     TripDetail(R.string.help_screen_trip_detail_title, R.string.help_screen_trip_detail_body),
     TripEdit(R.string.help_screen_trip_edit_title, R.string.help_screen_trip_edit_body),
     TripStepEdit(R.string.help_screen_trip_step_title, R.string.help_screen_trip_step_body),
+    Polls(R.string.help_topic_polls_title, R.string.help_topic_polls_body),
 }
 
 /** Who sees a topic of the help page: the functions they can use. */
@@ -40,6 +41,7 @@ enum class HelpTopic(
     EditEvent(R.string.help_topic_edit_title, R.string.help_topic_edit_body),
     Answers(R.string.help_topic_answers_title, R.string.help_topic_answers_body),
     Calendar(R.string.help_topic_calendar_title, R.string.help_topic_calendar_body, feature = Feature.Calendar),
+    Polls(R.string.help_topic_polls_title, R.string.help_topic_polls_body, feature = Feature.Polls),
     Notifications(R.string.help_topic_notifications_title, R.string.help_topic_notifications_body),
     HelpRequests(R.string.help_topic_help_requests_title, R.string.help_topic_help_requests_body, feature = Feature.HelpRequests),
     Family(R.string.help_topic_family_title, R.string.help_topic_family_body),
