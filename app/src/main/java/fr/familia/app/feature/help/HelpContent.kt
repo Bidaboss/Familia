@@ -48,6 +48,7 @@ enum class HelpTopic(
     Updates(R.string.help_topic_updates_title, R.string.help_topic_updates_body),
     Appearance(R.string.help_topic_appearance_title, R.string.help_topic_appearance_body, feature = Feature.Themes),
     Trips(R.string.help_topic_trips_title, R.string.help_topic_trips_body),
+    WeeklyQuestion(R.string.help_topic_weekly_title, R.string.help_topic_weekly_body, feature = Feature.WeeklyQuestion),
     Invite(R.string.help_topic_invite_title, R.string.help_topic_invite_body, HelpAudience.Chefs),
     Export(R.string.help_topic_export_title, R.string.help_topic_export_body, HelpAudience.Owner),
 }
