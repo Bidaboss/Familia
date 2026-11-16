@@ -9,6 +9,7 @@ import fr.familia.app.core.data.CapsuleRepository
 import fr.familia.app.core.data.CommentPage
 import fr.familia.app.core.data.EventCommentRepository
 import fr.familia.app.core.data.EventRepository
+import fr.familia.app.core.data.ExpenseRepository
 import fr.familia.app.core.data.FamilyData
 import fr.familia.app.core.data.ExportRepository
 import fr.familia.app.core.data.GiftRepository
@@ -34,6 +35,10 @@ import fr.familia.app.core.model.CapsuleLeftover
 import fr.familia.app.core.model.ChallengeRotation
 import fr.familia.app.core.model.DayUsage
 import fr.familia.app.core.model.Event
+import fr.familia.app.core.model.Expense
+import fr.familia.app.core.model.ExpenseBook
+import fr.familia.app.core.model.ExpenseContainer
+import fr.familia.app.core.model.ExpenseSettlement
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.FamilyTree
 import fr.familia.app.core.model.GiftClaim
@@ -353,4 +358,15 @@ class ReadOnlyNotificationRepository(private val inner: NotificationRepository, 
     override suspend fun setSouvenirs(memberId: String, enabled: Boolean) = guard.refuse()
     override fun observeTree(memberId: String): Flow<Boolean> = inner.observeTree(memberId)
     override suspend fun setTree(memberId: String, enabled: Boolean) = guard.refuse()
+}
+
+class ReadOnlyExpenseRepository(private val inner: ExpenseRepository, private val guard: ViewAsGuard) : ExpenseRepository {
+    override fun observeBook(container: ExpenseContainer): Flow<ExpenseBook?> = inner.observeBook(container)
+    override suspend fun openBook(container: ExpenseContainer, creatorId: String, shares: Map<String, Double>) = guard.refuse()
+    override suspend fun setShares(bookId: String, shares: Map<String, Double>) = guard.refuse()
+    override fun observeExpenses(bookId: String): Flow<List<Expense>> = inner.observeExpenses(bookId)
+    override fun observeSettlements(bookId: String): Flow<List<ExpenseSettlement>> = inner.observeSettlements(bookId)
+    override fun newExpenseId(bookId: String): String = inner.newExpenseId(bookId)
+    override suspend fun saveExpense(bookId: String, expense: Expense, me: Member, isNew: Boolean) = guard.refuse()
+    override suspend fun deleteExpense(bookId: String, expenseId: String) = guard.refuse()
 }

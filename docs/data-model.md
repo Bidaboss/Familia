@@ -910,3 +910,33 @@ L'usage de la base un jour donné, lu une fois chaque matin à partir de 8 h dan
 | `error` | string | `monitoring` quand Monitoring n'a pas pu être lu (rôle « Lecteur Monitoring » manquant, docs/deploiement.md). Les autres champs manquent alors. |
 
 Ces documents sont petits (un par jour) et ne contiennent rien sur la famille.
+
+## Comptes du voyage (PRD rév. 193, récit 16 bis)
+
+Une brique commune : un carnet appartient à un contexte (un voyage aujourd'hui, un événement plus
+tard). Il est rangé hors de `trips/` et supprimé avec son voyage (`onTripDeletedAccounts`). Seuls
+les adultes participants le lisent et l'écrivent. Les montants sont en centimes d'euro entiers.
+
+### `expenseBooks/{containerType}_{containerId}`
+
+`containerType` (`trip`), `containerId`, `creatorId` (le créateur du voyage, qui change les parts,
+corrige tout et clôture), `shares` (foyer → nombre de parts : 1 par adulte et 0,5 par enfant par
+défaut), `closed`, `createdAt`, `updatedAt`. Ouvert par le premier adulte participant qui affiche les comptes.
+
+### `expenseBooks/{bookId}/expenses/{expenseId}`
+
+`title`, `amountCents` (en euros), `date` (`AAAA-MM-JJ`), `payerId`, `payerHouseholdId`, `category`
+(`lodging`, `transport`, `groceries`, `restaurant`, `activity`, `other`), `mode` (`shares`, `equal`,
+`amounts`), `householdIds`, `amounts` (foyer → centimes, en mode `amounts` seulement), `currency`,
+`originalCents`, `rate` (euros pour une unité, tapé à la main ; 1 en euros), `authorId`,
+`authorName`, `createdAt`, `updatedAt`.
+
+### `expenseBooks/{bookId}/expenses/{expenseId}/history/{entryId}`
+
+Écrit par le serveur seul à chaque changement (`onExpenseWritten`) : `action` (`created`, `edited`,
+`deleted`), `byId`, `byName`, `title`, `amountCents`, `changed` (les champs modifiés), `at`.
+
+### `expenseBooks/{bookId}/settlements/{settlementId}`
+
+« C'est remboursé », coché par un adulte du foyer qui reçoit : `fromHouseholdId`, `toHouseholdId`,
+`amountCents`, `confirmedBy`, `confirmedByName`, `createdAt`.

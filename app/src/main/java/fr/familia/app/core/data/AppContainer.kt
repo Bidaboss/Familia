@@ -43,6 +43,7 @@ interface AppContainer {
     val eventCommentRepository: EventCommentRepository?
     val helpRequestRepository: HelpRequestRepository?
     val tripRepository: TripRepository?
+    val expenseRepository: ExpenseRepository?
     val recipeRepository: RecipeRepository?
     val capsuleRepository: CapsuleRepository?
     val goodNewsRepository: GoodNewsRepository?
@@ -105,6 +106,9 @@ class FirebaseAppContainer(context: Context) : AppContainer {
 
     override val helpRequestRepository: HelpRequestRepository? by lazy { firestore?.let { FirestoreHelpRequestRepository(it) } }
     override val tripRepository: TripRepository? by lazy { firestore?.let { FirestoreTripRepository(it) } }
+
+    /** The accounts of a trip (récit 16 bis). */
+    override val expenseRepository: ExpenseRepository? by lazy { firestore?.let { FirestoreExpenseRepository(it) } }
 
     /** The recipe book (récit 38). */
     override val recipeRepository: RecipeRepository? by lazy { firestore?.let { FirestoreRecipeRepository(it) } }
