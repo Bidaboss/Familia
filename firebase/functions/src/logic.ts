@@ -63,6 +63,8 @@ export interface Notice {
   birthdayOf?: string;
   /** La bienvenue (récit 43): the newcomer, the app opens their page. */
   welcomeOf?: string;
+  /** Aimed at the member directly (récit 6 quinquies): never muted, never held for the night. */
+  direct?: boolean;
   /** Notices with the same tag replace each other on the phone (the cards of the day). */
   tag?: string;
 }

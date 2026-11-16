@@ -27,6 +27,7 @@ describe('the birthday wishes, without the emulator', () => {
     assert.equal(invite.channel, 'birthdays');
     assert.equal(invite.birthdayOf, 'camille');
     assert.equal(cardsNotice('camille', 2026, ['Inès']).body, 'Inès t\'a envoyé une carte de vœux.');
+    assert.equal(cardsNotice('camille', 2026, ['Inès']).direct, true); // Reaches « Presque rien ».
     const many = cardsNotice('camille', 2026, ['Inès', 'Lou', 'Noé']);
     assert.equal(many.body, 'Inès, Lou et Noé t\'ont envoyé une carte de vœux.');
     assert.equal(many.tag, 'birthdayCards-2026');
