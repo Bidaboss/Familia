@@ -43,6 +43,8 @@ object NotificationChannels {
         val importance: Int,
         val feature: Feature? = null,
         val ownerOnly: Boolean = false,
+        /** A second module that also uses the channel: either one creates it. */
+        val orFeature: Feature? = null,
     )
 
     private val specs = listOf(
@@ -52,8 +54,11 @@ object NotificationChannels {
         Spec(HELP_REQUESTS, R.string.channel_help_requests, R.string.channel_help_requests_description, NotificationManager.IMPORTANCE_HIGH, Feature.HelpRequests),
         Spec(GOOD_NEWS, R.string.channel_good_news, R.string.channel_good_news_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.GoodNews),
         Spec(TRIPS, R.string.channel_trips, R.string.channel_trips_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.Trips),
-        // Grouped reactions to one's Bonnes nouvelles for now (PRD rév. 174); later the comments too.
-        Spec(COMMENTS, R.string.channel_comments, R.string.channel_comments_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.GoodNews),
+        // Grouped reactions to one's Bonnes nouvelles (PRD rév. 174) and the comments of an event (récit 28).
+        Spec(
+            COMMENTS, R.string.channel_comments, R.string.channel_comments_description, NotificationManager.IMPORTANCE_DEFAULT,
+            Feature.GoodNews, orFeature = Feature.Comments,
+        ),
         // The question of the week for now (récit 37); later the other weekly rendez-vous (AVIS-14).
         Spec(WEEKLY, R.string.channel_weekly, R.string.channel_weekly_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.WeeklyQuestion),
         // The consumption alert of the database (récit 1 sexies), for the admin principal only.
@@ -79,7 +84,8 @@ object NotificationChannels {
         // Creating an existing channel only updates its name and description, never the member's choice.
         manager.createNotificationChannels(
             specs.filter { spec ->
-                (spec.feature == null || features.isOn(spec.feature)) && (!spec.ownerOnly || features.isOwner)
+                (spec.feature == null || features.isOn(spec.feature) || (spec.orFeature != null && features.isOn(spec.orFeature))) &&
+                    (!spec.ownerOnly || features.isOwner)
             }.map { spec ->
                 NotificationChannel(spec.id, context.getString(spec.name), spec.importance)
                     .apply { description = context.getString(spec.description) }

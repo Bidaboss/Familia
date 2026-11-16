@@ -26,6 +26,7 @@ import fr.familia.app.core.share.share
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.events.album.EventAlbumSection
 import fr.familia.app.feature.events.bring.BringSection
+import fr.familia.app.feature.events.comments.EventCommentsSection
 import fr.familia.app.feature.events.album.isAlbumOpen
 
 /** Connects the event view to its ViewModel, and closes it when the event is deleted meanwhile. */
@@ -84,6 +85,11 @@ fun EventDetailRoute(
             if (success != null && LocalFeatureFlags.current.isOn(Feature.EventAlbums)) {
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
                 EventAlbumSection(container, currentMember, eventId, isAlbumOpen(success.event, success.today), onOpenAlbum)
+            }
+            // The comments (récit 28), last: they can grow long.
+            if (success != null && LocalFeatureFlags.current.isOn(Feature.Comments)) {
+                HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                EventCommentsSection(container, currentMember, eventId)
             }
         },
     )

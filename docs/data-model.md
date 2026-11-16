@@ -370,6 +370,26 @@ Droits : tous les membres avec l'appli (enfants compris) lisent, ajoutent une li
 
 Serveur : le rappel de la veille (`dayBeforeReminder`) ajoute « Tu apportes : … » quand le module est allumé, et prévient aussi celui qui a pris une ligne sans avoir répondu « Je viens » (pas s'il a dit non). La liste part avec l'événement ; ce qu'un membre retiré avait pris redevient libre (`releaseBringOf`, index `bring.takerId` en groupe de collections).
 
+### `events/{eventId}/comments/{commentId}` (commentaires, PRD, récit 28)
+
+Un commentaire sous un événement. Visible dans l'événement une fois le module `comments` allumé.
+
+| Champ | Type | Description |
+|---|---|---|
+| `text` | texte (1 à 500 caractères) | Le commentaire |
+| `authorId`, `authorName` | `memberId` et texte | Qui l'a écrit, et son prénom à ce moment-là (le commentaire reste signé après son départ) |
+| `createdAt` | horodatage serveur | |
+| `expireAt` | horodatage | 365 jours après l'écriture, posé par le téléphone (les règles acceptent 360 à 370 jours). Firestore efface le commentaire à cette date (TTL, groupe de collections `comments`) |
+| `editedAt` | horodatage serveur, absent tant que le texte n'a pas changé | Affiche « modifié » |
+
+Droits : tous les membres lisent et écrivent les leurs. Seul l'auteur change le texte (et rien d'autre). L'auteur, l'admin principal et un chef du foyer de l'auteur retirent un commentaire. L'appli montre les 30 plus récents, puis 30 de plus à chaque « Voir les commentaires plus anciens ».
+
+### `events/{eventId}/commentMutes/{memberId}`
+
+« Ne plus être prévenu des commentaires » de cet événement : un seul champ `mutedAt` (horodatage serveur). Seul ce membre le lit, le crée et le retire.
+
+Serveur (`firebase/functions/src/comments.ts`) : un nouveau commentaire prévient l'auteur de l'événement, ceux qui ont déjà commenté et ceux qui ont répondu « Je viens » ou « Peut-être » (les parents pour un enfant sans appli), jamais celui qui écrit ni ceux qui ont coupé, sur le canal `comments`. Tant que le module est éteint, seul l'admin principal est prévenu. Les commentaires et les « ne plus être prévenu » partent avec l'événement ; ceux d'un membre retiré partent aussi, ses commentaires restent jusqu'à leur expiration.
+
 ## Bonnes nouvelles (PRD, récit 32)
 
 Une Bonne nouvelle a un texte court, une à trois photos et peut nommer des membres. Toute la famille la voit (quand les cercles de la rév. 124 arriveront, la vérification d'audience ira dans la règle de lecture et dans le dossier Storage).
