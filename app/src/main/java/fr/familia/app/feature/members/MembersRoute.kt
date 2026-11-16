@@ -26,6 +26,8 @@ fun MembersRoute(
     onOpenAppearance: (() -> Unit)? = null,
     /** The time of one's children in the app, while the Utilisation module is on (carte EXPERT-5). */
     onOpenChildrenUsage: (() -> Unit)? = null,
+    /** The recipe book, while its module is on (récit 38). */
+    onOpenRecipes: (() -> Unit)? = null,
 ) {
     val viewModel: MembersViewModel = viewModel(
         factory = viewModelFactory {
@@ -43,6 +45,7 @@ fun MembersRoute(
         onOpenHelp = onOpenHelp,
         onOpenAppearance = onOpenAppearance,
         onOpenChildrenUsage = onOpenChildrenUsage,
+        onOpenRecipes = onOpenRecipes,
         // The screen shows each action only where the live rights allow it (the rules check it too).
         onOpenAdministration = onOpenAdministration,
         onEditMember = onEditMember,

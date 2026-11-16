@@ -434,6 +434,24 @@ Cloud Functions (`functions/src/helpRequests.ts`), qui ne préviennent que les p
 
 Une demande passée ne prévient personne, sauf pour le « Merci ». La sauvegarde de l'admin principal inclut les demandes (`helpRequests`).
 
+## Carnet de recettes (PRD, récit 38)
+
+### `recipes/{recipeId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `title` | texte | Le nom de la recette, de 1 à 80 caractères |
+| `originMemberId` | `memberId` ou `null` | De qui vient la recette, quand c'est un membre de la famille |
+| `origin` | texte | Sinon, qui l'a transmise, librement (« Mamie Jeanne »), 80 caractères au plus. Vide avec `originMemberId` |
+| `servings` | entier ou `null` | Le nombre de parts, de 1 à 50 |
+| `ingredients` | texte | Un ingrédient par ligne, de 1 à 3 000 caractères |
+| `steps` | texte | Une étape par ligne, de 1 à 6 000 caractères |
+| `tags` | liste de textes | 6 au plus (« dessert », « Noël ») |
+| `authorId`, `authorName` | texte | Le membre qui l'a écrite et son prénom, qui ne changent jamais |
+| `createdAt`, `updatedAt` | horodatage | Heure du serveur |
+
+Droits : tous les membres lisent toutes les recettes, et chacun écrit les siennes. L'auteur et l'admin principal les modifient et les retirent. Le module se montre avec l'interrupteur « Carnet de recettes ». Photos, commentaires et partage viendront dans une seconde partie.
+
 ## Voyages (V3, récits 11 à 15)
 
 ### `trips/{tripId}`
@@ -614,6 +632,57 @@ Cloud Functions (`functions/src/weeklyQuestion.ts`) :
 | `onMemberDeletedAnswers` | suppression d'un membre | Retire ses réponses (carte EXPERT-1). |
 
 Plus tard : le choix et l'ajout de questions dans Administration, les questions proposées par les membres, la feuille de l'arbre (récit 35) et le regroupement avec les autres rendez-vous en une notification par jour (carte AVIS-14).
+
+## Sondages (PRD, récits 2 bis et 2 ter)
+
+Un adulte pose une question à toute la famille ou aux membres qu'il coche : « Trouver une date » (2 à 5 dates, chacun répond oui, peut-être ou non à chaque date) ou « Choix libre » (2 à 6 réponses, une seule ou plusieurs). Les parents répondent pour leurs enfants. Les réponses sont nommées : tous ceux qui voient le sondage voient qui a répondu quoi. L'entrée est dans la barre du Planning, derrière le module `polls`.
+
+### `polls/{pollId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `kind` | `date` ou `choice` | Le type de sondage |
+| `question` | texte (1 à 120 caractères) | Ne change plus une fois posée |
+| `options` | liste (2 à 5 dates, 2 à 6 textes) | Une date s'écrit `AAAA-MM-JJ` ou `AAAA-MM-JJ HH:MM` ; un texte fait au plus 80 caractères. Ne change plus |
+| `multiple` | booléen | Plusieurs réponses permises (choix libre seulement) |
+| `askedIds` | liste de `memberId` (1 à 30) | Qui répond |
+| `viewerIds` | liste de `memberId` | L'auteur en premier, puis ceux qui répondent et les adultes responsables des enfants interrogés. L'appli lit ses sondages par `array-contains` |
+| `eventId` | `eventId` ou null | L'événement auquel le sondage est rattaché (plus tard) |
+| `closesAt` | horodatage ou null | Fin des réponses : minuit (heure de Paris) après le dernier jour choisi |
+| `closed` | booléen | Terminé par l'auteur, ou par le serveur à `closesAt` |
+| `chosen` | entier ou null | La date retenue (son rang dans `options`) |
+| `createdEventId` | `eventId` ou null | L'événement créé pour la date retenue, par le même membre |
+| `authorId`, `authorName` | `memberId`, texte | L'auteur et son prénom au moment de poser la question |
+| `createdAt`, `updatedAt` | horodatage serveur | |
+
+### `polls/{pollId}/votes/{memberId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `memberId` | `memberId` | Qui répond (identique à l'id) |
+| `answers` | liste de `yes`, `maybe`, `no` | Sondage de date : une réponse par date, dans l'ordre |
+| `choices` | liste d'entiers | Choix libre : les rangs choisis (un seul si `multiple` est faux) |
+| `votedBy` | `memberId` | Le membre lui-même, ou l'adulte qui répond pour son enfant |
+| `updatedAt` | horodatage serveur | |
+
+Droits :
+
+- **Poser** : un adulte (un enfant avec l'appli répond mais ne pose pas).
+- **Lire** : ceux de `viewerIds`, et l'admin principal.
+- **Répondre** : le membre interrogé ou un de ses adultes responsables, tant que le sondage est ouvert. On peut changer sa réponse.
+- **Terminer, choisir la date, supprimer** : l'auteur ou l'admin principal. Choisir la date le termine aussi. L'appli crée d'abord l'événement (au nom de celui qui choisit), puis écrit `chosen` et `createdEventId` ; la règle vérifie que cet événement existe et qu'il est bien de lui.
+
+Cloud Functions (`functions/src/polls.ts`) :
+
+| Fonction | Déclencheur | Rôle |
+|---|---|---|
+| `onPollCreatedNotify` | sondage créé | Prévient ceux qui répondent, sauf l'auteur : « Nouveau sondage ». Canal `events`, donnée `pollId`. |
+| `onPollUpdated` | sondage terminé | Date choisie : ceux qui ont dit oui sont inscrits « Je viens » à l'événement créé. Choix libre terminé : le résultat part à tous ceux qui voient le sondage, sauf celui qui l'a terminé. Sondage de date terminé par sa fin : l'auteur est invité à choisir la date. |
+| `closeDuePolls`, appelée par `arrivalReminder` | toutes les 30 minutes | Termine les sondages dont `closesAt` est passé. Pas de tâche planifiée à part : Cloud Scheduler n'en offre que 3 gratuites. |
+| `onPollDeleted` | sondage supprimé | Supprime ses réponses. |
+| `onMemberDeletedAnswers` | suppression d'un membre | Retire aussi ses réponses aux sondages (index `votes.memberId` en groupe de collections). |
+
+Plus tard : rattacher un sondage à un événement (`eventId`) et le rappel « À faire pour moi » sur l'Accueil.
 
 ## Utilisation (PRD, récit 1 nonies)
 

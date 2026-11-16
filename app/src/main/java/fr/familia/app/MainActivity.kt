@@ -35,6 +35,9 @@ class MainActivity : ComponentActivity() {
     /** A « Nouveau souvenir » was tapped: one's own page opens (récit 34). */
     private val openSouvenir = mutableStateOf(false)
 
+    /** The poll of a tapped notification (récits 2 bis et 2 ter). */
+    private val openPollId = mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -46,6 +49,7 @@ class MainActivity : ComponentActivity() {
             openTripId.value = intent.tripId()
             openWeeklyQuestionId.value = intent.weeklyQuestionId()
             openSouvenir.value = intent.hasSouvenir()
+            openPollId.value = intent.pollId()
         }
         val app = application as FamiliaApplication
         val container = app.container
@@ -58,6 +62,7 @@ class MainActivity : ComponentActivity() {
             val tripToOpen by openTripId
             val weeklyToOpen by openWeeklyQuestionId
             val souvenirToOpen by openSouvenir
+            val pollToOpen by openPollId
             FamiliaTheme {
                 SessionRoute(container = container) { member ->
                     FamiliaApp(
@@ -78,6 +83,8 @@ class MainActivity : ComponentActivity() {
                         onWeeklyQuestionOpened = { openWeeklyQuestionId.value = null },
                         openSouvenir = souvenirToOpen,
                         onSouvenirOpened = { openSouvenir.value = false },
+                        openPollId = pollToOpen,
+                        onPollOpened = { openPollId.value = null },
                     )
                 }
             }
@@ -94,6 +101,7 @@ class MainActivity : ComponentActivity() {
         intent.tripId()?.let { openTripId.value = it }
         intent.weeklyQuestionId()?.let { openWeeklyQuestionId.value = it }
         if (intent.hasSouvenir()) openSouvenir.value = true
+        intent.pollId()?.let { openPollId.value = it }
     }
 
     private fun Intent.eventId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_EVENT_ID)
@@ -108,4 +116,5 @@ class MainActivity : ComponentActivity() {
     private fun Intent.weeklyQuestionId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_WEEKLY_QUESTION_ID)
 
     private fun Intent.hasSouvenir(): Boolean = getStringExtra(FamiliaMessagingService.EXTRA_SOUVENIR_KEY) != null
+    private fun Intent.pollId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_POLL_ID)
 }

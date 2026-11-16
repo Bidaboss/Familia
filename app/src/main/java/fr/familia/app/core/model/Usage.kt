@@ -34,7 +34,7 @@ enum class UsageScreen(val key: String, @StringRes val labelRes: Int) {
             return when {
                 name.startsWith("HelpRequest") -> HelpRequests
                 name.startsWith("Home") -> Home
-                name.startsWith("Planning") || name.startsWith("Event") -> Planning
+                name.startsWith("Planning") || name.startsWith("Event") || name.startsWith("Poll") -> Planning
                 name.startsWith("Gift") || name.startsWith("Birthday") || name.startsWith("Notebook") -> Gifts
                 name.startsWith("GoodNews") -> GoodNews
                 name.startsWith("WeeklyQuestion") -> WeeklyQuestion
