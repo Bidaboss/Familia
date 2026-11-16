@@ -331,6 +331,21 @@ Ce que le membre prévoit d'offrir. Seul ce membre lit et écrit son carnet : ni
 
 Ce que le membre compte dépenser pour une personne et une occasion : `personId` (ou null), `personName`, `occasion`, `year`, `amount` (de 0 exclu à 100 000 euros), `updatedAt`. Seul le membre le lit et l'écrit.
 
+### `events/{eventId}/bring/{itemId}` (« Qui apporte quoi », PRD, récit 4 bis)
+
+Une chose à apporter à l'événement. Visible dans l'événement une fois le module `bring` allumé.
+
+| Champ | Type | Description |
+|---|---|---|
+| `label` | texte (1 à 60 caractères) | Ce qu'il faut apporter. Ne change plus : une ligne fausse se retire |
+| `authorId` | `memberId` | Qui a ajouté la ligne |
+| `takerId`, `takerName` | `memberId` et texte, ou null | Qui s'en charge, et son prénom à ce moment-là ; null tant que la ligne est libre |
+| `createdAt`, `updatedAt` | horodatage serveur | |
+
+Droits : tous les membres avec l'appli (enfants compris) lisent, ajoutent une ligne (libre ou prise par eux) et prennent une ligne libre. Une ligne prise se libère par celui qui l'a prise, l'auteur de la ligne, ou ceux qui gèrent l'événement (« Modifier »). La ligne se retire par son auteur ou ceux qui gèrent l'événement.
+
+Serveur : le rappel de la veille (`dayBeforeReminder`) ajoute « Tu apportes : … » quand le module est allumé, et prévient aussi celui qui a pris une ligne sans avoir répondu « Je viens » (pas s'il a dit non). La liste part avec l'événement ; ce qu'un membre retiré avait pris redevient libre (`releaseBringOf`, index `bring.takerId` en groupe de collections).
+
 ## Bonnes nouvelles (PRD, récit 32)
 
 Une Bonne nouvelle a un texte court, une à trois photos et peut nommer des membres. Toute la famille la voit (quand les cercles de la rév. 124 arriveront, la vérification d'audience ira dans la règle de lecture et dans le dossier Storage).
