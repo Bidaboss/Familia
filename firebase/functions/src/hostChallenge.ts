@@ -76,10 +76,11 @@ export async function remindHost(db: Firestore, send: Sender, now: Date): Promis
  * A foyer published the challenge of [month]. For the month in progress it replaces the
  * challenge while nobody has moved the gauge, unless the admin principal picked one: their
  * choice stays (« L'admin principal peut remplacer un défi »). For the next month, the
- * challenge is created from it when the month starts. Returns whether it is now the challenge.
+ * challenge is created from it when the month starts. Nothing while the tree is off. Returns
+ * whether it is now the challenge.
  */
 export async function applyHostedChallenge(db: Firestore, month: string, now: Date): Promise<boolean> {
-  if (month !== parisMonth(now)) return false;
+  if (month !== parisMonth(now) || !(await featureOn(db, 'tree'))) return false;
   const hosted = await hostedChallenge(db, month);
   if (!hosted || (await db.collection('challengePicks').doc(month).get()).exists) return false;
   const ref = db.collection('challenges').doc(month);
