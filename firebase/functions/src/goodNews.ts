@@ -60,7 +60,7 @@ export function goodNewsAudience(members: GoodNewsMember[]): GoodNewsMember[] {
  * get a notice of their own, even if they turned the others off (carte AVIS-12).
  */
 export function goodNewsMessages(
-  id: string, n: GoodNewsData, members: GoodNewsMember[], mutedIds: Set<string>,
+  id: string, n: GoodNewsData, members: GoodNewsMember[], mutedIds: Set<string> = new Set(),
 ): GoodNewsMessage[] {
   const author = members.find((m) => m.id === n.authorId);
   const forName = n.forMemberId !== n.authorId ? members.find((m) => m.id === n.forMemberId)?.firstName : undefined;
@@ -133,19 +133,11 @@ async function loadMembers(db: Firestore): Promise<GoodNewsMember[]> {
   }));
 }
 
-/** Members who turned the good news off: members/{id}/settings/notifications.goodNews. */
-async function mutedMembers(db: Firestore, memberIds: string[]): Promise<Set<string>> {
-  if (memberIds.length === 0) return new Set();
-  const refs = memberIds.map((mid) => db.collection('members').doc(mid).collection('settings').doc('notifications'));
-  const docs = await db.getAll(...refs);
-  return new Set(docs.filter((d) => d.exists && d.get('goodNews') === false).map((d) => d.ref.parent.parent!.id));
-}
-
 export async function onGoodNewsPublished(db: Firestore, send: GoodNewsSender, id: string, n: GoodNewsData, now: Date = new Date()): Promise<number> {
   const members = await loadMembers(db);
-  const muted = await mutedMembers(db, members.map((m) => m.id));
   let sent = 0;
-  for (const { recipientIds, notice } of goodNewsMessages(id, n, members, muted)) sent += await deliver(db, send, recipientIds, notice, now);
+  // The switch « Bonnes nouvelles » is read by deliver (récit 6 quinquies), like every family.
+  for (const { recipientIds, notice } of goodNewsMessages(id, n, members)) sent += await deliver(db, send, recipientIds, notice, now);
   return sent;
 }
 
