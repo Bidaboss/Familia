@@ -37,3 +37,15 @@ data class Capsule(
         fun latestOpening(today: LocalDate): LocalDate = today.plusYears(5)
     }
 }
+
+/**
+ * What an author who left the family still has sealed (PRD rév. 184): only a count, written by
+ * the server. The admin principal never reads the capsules themselves, and may ask for their
+ * deletion ([deleteAsked]); the server then deletes them.
+ */
+data class CapsuleLeftover(
+    val memberId: String,
+    val memberName: String,
+    val count: Int,
+    val deleteAsked: Boolean,
+)

@@ -57,9 +57,11 @@ import fr.familia.app.feature.members.edit.MemberEditScreen
 import fr.familia.app.feature.members.edit.previewEditState
 import fr.familia.app.feature.members.admin.AdministrationScreen
 import fr.familia.app.feature.members.admin.previewAdministrationState
+import fr.familia.app.feature.members.admin.CapsuleLeftoversSection
 import fr.familia.app.feature.members.admin.ConsumptionCard
 import fr.familia.app.feature.members.admin.ConsumptionSection
 import fr.familia.app.feature.members.admin.previewConsumption
+import fr.familia.app.core.model.CapsuleLeftover
 import fr.familia.app.core.model.Consumption
 import fr.familia.app.feature.members.edit.previewExistingState
 import fr.familia.app.feature.members.edit.MemberEditUiState
@@ -461,6 +463,16 @@ class ScreenshotTest {
     @Config(fontScale = 2f)
     fun administrationFontScale200() = capture("administration_police_200") {
         Surface { AdministrationScreen(previewAdministrationState(), {}, {}, { _, _ -> }, {}, {}, {}) }
+    }
+
+    @Test
+    fun capsuleLeftoversLight() = capture("capsules_anciens_membres_clair") {
+        Surface {
+            CapsuleLeftoversSection(
+                listOf(CapsuleLeftover("m1", "Jules", 2, deleteAsked = false), CapsuleLeftover("m2", "Nina", 1, deleteAsked = true)),
+                onDelete = {},
+            )
+        }
     }
 
     @Test

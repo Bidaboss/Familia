@@ -1,7 +1,9 @@
 package fr.familia.app.core.data
 
 import fr.familia.app.core.model.Capsule
+import fr.familia.app.core.model.CapsuleLeftover
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 /** The time capsules (PRD, récit 39). See docs/data-model.md. */
 interface CapsuleRepository {
@@ -23,6 +25,12 @@ interface CapsuleRepository {
      * server time and an empty `openedFor` are set here, as the rules require.
      */
     suspend fun createCapsule(capsule: Capsule)
+
+    /** For the admin principal: what removed authors still have sealed, by first name. */
+    fun observeLeftovers(): Flow<List<CapsuleLeftover>> = emptyFlow()
+
+    /** The admin principal confirmed: the server deletes those capsules, unread. */
+    suspend fun askDeleteLeftovers(memberId: String) = Unit
 }
 
 /** The next to open first; then the last opened first. */

@@ -3,9 +3,11 @@ package fr.familia.app.feature.members.admin
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.AppConfigRepository
+import fr.familia.app.core.data.CapsuleRepository
 import fr.familia.app.core.data.ConsumptionRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.TreeRepository
+import fr.familia.app.core.model.CapsuleLeftover
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Household
@@ -44,6 +46,7 @@ class AdministrationViewModel(
     private val appConfig: AppConfigRepository? = null,
     private val consumptionRepository: ConsumptionRepository? = null,
     private val tree: TreeRepository? = null,
+    private val capsules: CapsuleRepository? = null,
     /** The month in Paris: the card offers it and the next one. */
     private val month: YearMonth = YearMonth.now(ZoneId.of("Europe/Paris")),
 ) : ViewModel() {
@@ -104,6 +107,30 @@ class AdministrationViewModel(
         )
         .catch { e -> if (e is CancellationException) throw e }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /**
+     * The sealed capsules of members who left (PRD rév. 184): a count per author, never the
+     * capsules. Empty without the repository, or when the read is refused.
+     */
+    val capsuleLeftovers: StateFlow<List<CapsuleLeftover>> = (capsules?.observeLeftovers() ?: emptyFlow())
+        .catch { e -> if (e is CancellationException) throw e }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** After the confirmation that names the count: the server deletes them, unread. */
+    fun deleteCapsuleLeftovers(memberId: String) {
+        val repo = capsules ?: return
+        val leftover = capsuleLeftovers.value.firstOrNull { it.memberId == memberId } ?: return
+        if (leftover.deleteAsked) return
+        viewModelScope.launch {
+            try {
+                repo.askDeleteLeftovers(memberId)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _actionFailed.value = true
+            }
+        }
+    }
 
     /** Picks the challenge of [month]; the server keeps the current one once its gauge has moved. */
     fun pickChallenge(month: YearMonth, choiceId: String) {

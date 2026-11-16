@@ -55,6 +55,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.feature.members.RenameHouseholdDialog
+import fr.familia.app.core.model.CapsuleLeftover
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
@@ -94,6 +95,9 @@ fun AdministrationScreen(
     /** « Défi du mois » (récit 35): this month and the next; hidden when [onPickChallenge] is null. */
     challenges: List<MonthPick> = emptyList(),
     onPickChallenge: ((YearMonth, String) -> Unit)? = null,
+    /** Sealed capsules of members who left (PRD rév. 184); hidden when empty. */
+    capsuleLeftovers: List<CapsuleLeftover> = emptyList(),
+    onDeleteCapsuleLeftovers: (String) -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier,
@@ -125,7 +129,7 @@ fun AdministrationScreen(
                 is AdministrationUiState.Ready ->
                     ReadyContent(
                         state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport, features, onSetFeature, onRenameHousehold,
-                        onOpenUsage, consumption, challenges, onPickChallenge,
+                        onOpenUsage, consumption, challenges, onPickChallenge, capsuleLeftovers, onDeleteCapsuleLeftovers,
                     )
             }
         }
@@ -158,6 +162,8 @@ private fun ReadyContent(
     consumption: ConsumptionCard?,
     challenges: List<MonthPick>,
     onPickChallenge: ((YearMonth, String) -> Unit)?,
+    capsuleLeftovers: List<CapsuleLeftover>,
+    onDeleteCapsuleLeftovers: (String) -> Unit,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
@@ -216,6 +222,9 @@ private fun ReadyContent(
                 SectionTitle(R.string.administration_challenge_title, R.string.administration_challenge_help)
             }
             item(key = "challenge") { ChallengePickSection(challenges, onPickChallenge) }
+        }
+        if (capsuleLeftovers.isNotEmpty()) {
+            item(key = "capsule-leftovers") { CapsuleLeftoversSection(capsuleLeftovers, onDeleteCapsuleLeftovers) }
         }
         if (consumption != null) {
             item(key = "consumption") { ConsumptionSection(consumption) }

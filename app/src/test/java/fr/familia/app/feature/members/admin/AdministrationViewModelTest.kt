@@ -1,9 +1,12 @@
 package fr.familia.app.feature.members.admin
 
+import fr.familia.app.core.data.CapsuleRepository
 import fr.familia.app.core.data.ConsumptionRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.TreeRepository
+import fr.familia.app.core.model.CapsuleLeftover
 import fr.familia.app.core.model.Consumption
+import fr.familia.app.feature.capsules.FakeCapsules
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.FamilyTree
 import fr.familia.app.core.model.Household
@@ -47,6 +50,37 @@ class AdministrationViewModelTest {
     )
 
     private fun adminVm(repo: FakeMembers, me: String = "o") = AdministrationViewModel(repo, me)
+
+    @Test
+    fun `the sealed capsules of a member who left are deleted once, on request (PRD rev 184)`() = runTest {
+        val leftovers = MutableStateFlow(listOf(CapsuleLeftover("gone", "Jules", 2, deleteAsked = false)))
+        val asked = mutableListOf<String>()
+        val capsules = object : CapsuleRepository by FakeCapsules() {
+            override fun observeLeftovers(): Flow<List<CapsuleLeftover>> = leftovers
+            override suspend fun askDeleteLeftovers(memberId: String) {
+                asked += memberId
+                leftovers.value = leftovers.value.map { if (it.memberId == memberId) it.copy(deleteAsked = true) else it }
+            }
+        }
+        val vm = AdministrationViewModel(FakeMembers(family), "o", capsules = capsules)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.capsuleLeftovers.collect {} }
+        assertEquals(2, vm.capsuleLeftovers.value.single().count)
+        vm.deleteCapsuleLeftovers("unknown")
+        vm.deleteCapsuleLeftovers("gone")
+        vm.deleteCapsuleLeftovers("gone")
+        assertEquals(listOf("gone"), asked)
+        assertTrue(vm.capsuleLeftovers.value.single().deleteAsked)
+    }
+
+    @Test
+    fun `a refused read of the leftovers hides the card`() = runTest {
+        val capsules = object : CapsuleRepository by FakeCapsules() {
+            override fun observeLeftovers(): Flow<List<CapsuleLeftover>> = kotlinx.coroutines.flow.flow { throw IOException("refused") }
+        }
+        val vm = AdministrationViewModel(FakeMembers(family), "o", capsules = capsules)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.capsuleLeftovers.collect {} }
+        assertTrue(vm.capsuleLeftovers.value.isEmpty())
+    }
 
     @Test
     fun `the consumption card waits for the first morning, then shows the latest day`() = runTest {

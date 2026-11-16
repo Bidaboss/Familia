@@ -1389,4 +1389,29 @@
     <string name="capsule_edit_sending_photo">Envoi de la photo %1$d sur %2$d…</string>
     <string name="capsule_edit_sealing">Scellement de la capsule…</string>
     <string name="capsule_edit_seal">Sceller la capsule</string>
+    <!-- Administration : capsules d'un membre retiré (PRD rév. 184) -->
+    <string name="capsule_leftovers_title">Capsules d\'anciens membres</string>
+    <string name="capsule_leftovers_help">Elles s\'ouvriront à leur date pour leurs destinataires. Tu ne peux pas les lire, mais tu peux les supprimer.</string>
+    <plurals name="capsule_leftovers_line">
+        <item quantity="one">%1$s a laissé %2$d capsule encore scellée.</item>
+        <item quantity="many">%1$s a laissé %2$d capsules encore scellées.</item>
+        <item quantity="other">%1$s a laissé %2$d capsules encore scellées.</item>
+    </plurals>
+    <plurals name="capsule_leftovers_delete">
+        <item quantity="one">Supprimer cette capsule</item>
+        <item quantity="many">Supprimer ces %1$d capsules</item>
+        <item quantity="other">Supprimer ces %1$d capsules</item>
+    </plurals>
+    <string name="capsule_leftovers_deleting">Suppression en cours…</string>
+    <plurals name="capsule_leftovers_confirm_title">
+        <item quantity="one">Supprimer %1$d capsule sans la lire ?</item>
+        <item quantity="many">Supprimer %1$d capsules sans les lire ?</item>
+        <item quantity="other">Supprimer %1$d capsules sans les lire ?</item>
+    </plurals>
+    <plurals name="capsule_leftovers_confirm_body">
+        <item quantity="one">Laissée par %1$s, elle ne s\'ouvrira jamais. Ni toi ni personne ne pourra la lire. C\'est définitif.</item>
+        <item quantity="many">Laissées par %1$s, elles ne s\'ouvriront jamais. Ni toi ni personne ne pourra les lire. C\'est définitif.</item>
+        <item quantity="other">Laissées par %1$s, elles ne s\'ouvriront jamais. Ni toi ni personne ne pourra les lire. C\'est définitif.</item>
+    </plurals>
+    <string name="capsule_leftovers_confirm">Supprimer</string>
 </resources>

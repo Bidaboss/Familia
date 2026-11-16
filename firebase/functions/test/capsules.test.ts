@@ -4,7 +4,7 @@ import { after, beforeEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { CapsuleData, isDue, openDueCapsules } from '../src/capsules';
+import { CapsuleData, countLeftovers, deleteLeftovers, isDue, openDueCapsules } from '../src/capsules';
 import { Notice } from '../src/logic';
 import { Sender } from '../src/store';
 
@@ -40,6 +40,7 @@ describe('against the emulator', () => {
   beforeEach(async () => {
     await db.recursiveDelete(db.collection('members'));
     await db.recursiveDelete(db.collection('capsules'));
+    await db.recursiveDelete(db.collection('capsuleLeftovers'));
     const batch = db.batch();
     batch.set(db.doc('config/app'), { features: { capsules: true } });
     for (const id of ['camille', 'ines', 'noe']) {
@@ -72,5 +73,46 @@ describe('against the emulator', () => {
     const { sent, send } = fakeSender();
     assert.deepEqual(await openDueCapsules(db, send, morning), []);
     assert.equal(sent.length, 0);
+  });
+
+  test('an opened capsule is not read again at the next runs', async () => {
+    const { send } = fakeSender();
+    await db.doc('capsules/old').set({ text: 'x', photoCount: 0, authorId: 'camille', authorName: 'Camille', recipientIds: ['ines'], openAt: '2027-01-01', openedFor: ['ines'], createdAt: new Date(0) });
+    assert.deepEqual(await openDueCapsules(db, send, morning), ['today']);
+    assert.deepEqual((await db.doc('capsules/old').get()).get('openedFor'), ['ines']);
+  });
+
+  test('an author who leaves: their sealed capsules are counted, still open on their day', async () => {
+    await db.doc('members/camille').delete();
+    assert.equal(await countLeftovers(db, 'camille', 'Camille', morning), 2);
+    const left = await db.doc('capsuleLeftovers/camille').get();
+    assert.equal(left.get('memberName'), 'Camille');
+    assert.equal(left.get('deleteAsked'), false);
+    assert.equal(await countLeftovers(db, 'noe', 'Noé', morning), 0);
+    assert.equal((await db.doc('capsuleLeftovers/noe').get()).exists, false);
+
+    const { sent, send } = fakeSender();
+    assert.deepEqual(await openDueCapsules(db, send, morning), ['today']);
+    assert.equal(sent.length, 2);
+    assert.equal((await db.doc('capsuleLeftovers/camille').get()).get('count'), 1);
+  });
+
+  test('once the admin principal asks, the sealed ones go unread, the opened ones stay', async () => {
+    await db.doc('members/camille').delete();
+    await countLeftovers(db, 'camille', 'Camille', morning);
+    await openDueCapsules(db, fakeSender().send, morning);
+    assert.equal(await deleteLeftovers(db, 'camille'), 0, 'nothing before the request');
+    await db.doc('capsuleLeftovers/camille').update({ deleteAsked: true });
+    assert.equal(await deleteLeftovers(db, 'camille'), 1);
+    assert.equal((await db.doc('capsules/later').get()).exists, false);
+    assert.equal((await db.doc('capsules/today').get()).exists, true);
+    assert.equal((await db.doc('capsuleLeftovers/camille').get()).exists, false);
+  });
+
+  test('a member back in the family keeps their capsules', async () => {
+    await db.doc('capsuleLeftovers/camille').set({ memberName: 'Camille', count: 2, deleteAsked: true, updatedAt: morning });
+    assert.equal(await deleteLeftovers(db, 'camille'), 0);
+    assert.equal((await db.doc('capsules/later').get()).exists, true);
+    assert.equal((await db.doc('capsuleLeftovers/camille').get()).exists, false);
   });
 });

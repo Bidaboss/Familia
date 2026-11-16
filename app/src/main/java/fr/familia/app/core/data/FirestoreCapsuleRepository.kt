@@ -6,6 +6,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import fr.familia.app.core.model.Capsule
+import fr.familia.app.core.model.CapsuleLeftover
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -57,6 +58,27 @@ class FirestoreCapsuleRepository(private val db: FirebaseFirestore) : CapsuleRep
         ).await()
     }
 
+    override fun observeLeftovers(): Flow<List<CapsuleLeftover>> = callbackFlow {
+        val registration = db.collection(LEFTOVERS).addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+            } else if (snapshot != null) {
+                trySend(
+                    snapshot.documents.mapNotNull { doc ->
+                        val count = (doc.getLong("count") ?: 0L).toInt()
+                        if (count <= 0) return@mapNotNull null
+                        CapsuleLeftover(doc.id, doc.getString("memberName").orEmpty(), count, doc.getBoolean("deleteAsked") == true)
+                    }.sortedBy { it.memberName.lowercase() },
+                )
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
+    override suspend fun askDeleteLeftovers(memberId: String) {
+        db.collection(LEFTOVERS).document(memberId).update("deleteAsked", true).await()
+    }
+
     private fun observe(query: Query): Flow<List<Capsule>> = callbackFlow {
         val registration = query.addSnapshotListener { snapshot, error ->
             if (error != null) {
@@ -89,5 +111,6 @@ class FirestoreCapsuleRepository(private val db: FirebaseFirestore) : CapsuleRep
 
     private companion object {
         const val CAPSULES = "capsules"
+        const val LEFTOVERS = "capsuleLeftovers"
     }
 }
