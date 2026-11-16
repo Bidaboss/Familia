@@ -255,6 +255,7 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
             holderName = getString("holderName").orEmpty(),
             sharesTotal = getDouble("sharesTotal") ?: 0.0,
             sharesCount = getLong("sharesCount")?.toInt() ?: 0,
+            occasion = GiftOccasion.fromFirestore(getString("occasion")),
         )
     }
 

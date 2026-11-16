@@ -30,6 +30,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -77,6 +78,7 @@ import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.feature.gifts.formatEuros
+import fr.familia.app.feature.gifts.occasionLabel
 import fr.familia.app.feature.gifts.listSubtitle
 import fr.familia.app.feature.gifts.listTitle
 import fr.familia.app.feature.gifts.parseEuros
@@ -95,6 +97,7 @@ data class GiftListActions(
     val onTake: (itemId: String) -> Unit = {},
     val onOpenJointGift: (itemId: String) -> Unit = {},
     val onRelease: (itemId: String) -> Unit = {},
+    val onSetClaimOccasion: (itemId: String, occasion: GiftOccasion) -> Unit = { _, _ -> },
     val onSetShare: (itemId: String, amount: Double) -> Unit = { _, _ -> },
     val onLeaveShare: (itemId: String) -> Unit = {},
     val onMarkReceived: (itemId: String, memberId: String, received: Boolean) -> Unit = { _, _, _ -> },
@@ -317,6 +320,7 @@ internal fun ItemSheetContent(row: ItemRow, state: GiftListUiState.Success, acti
         ItemDetails(row, ClayTint.Plain)
         item.note?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
         row.claim?.let { ClaimStatus(it, item, ClayTint.Plain) }
+        row.claim?.let { claim -> ClaimOccasion(claim) { actions.onSetClaimOccasion(item.id, it) } }
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -363,6 +367,43 @@ private fun ClaimStatus(claim: ClaimView, item: GiftItem, tint: ClayTint) {
             )
         }
     }
+}
+
+/**
+ * « Mes envies »: which occasion the gift is for, the next birthday or the next Christmas (PRD
+ * rév. 186). Its holder chooses; whoever takes part reads it.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ClaimOccasion(claim: ClaimView, onSelect: (GiftOccasion) -> Unit) {
+    val occasion = claim.occasion ?: return
+    if (!claim.isMine) {
+        Text(
+            stringResource(if (occasion == GiftOccasion.Birthday) R.string.gift_claim_for_birthday else R.string.gift_claim_for_christmas),
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        return
+    }
+    Text(
+        stringResource(R.string.notebook_idea_occasion),
+        style = MaterialTheme.typography.titleSmall,
+        modifier = Modifier.padding(top = 4.dp).semantics { heading() },
+    )
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        listOf(GiftOccasion.Christmas, GiftOccasion.Birthday).forEach { choice ->
+            FilterChip(
+                selected = choice == occasion,
+                onClick = { if (choice != occasion) onSelect(choice) },
+                label = { Text(occasionLabel(choice)) },
+                modifier = Modifier.heightIn(min = 56.dp),
+            )
+        }
+    }
+    Text(
+        stringResource(R.string.gift_claim_occasion_hint),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 @Composable

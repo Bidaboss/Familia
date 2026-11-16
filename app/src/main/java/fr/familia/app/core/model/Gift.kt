@@ -88,7 +88,23 @@ data class GiftClaim(
     val holderName: String,
     val sharesTotal: Double = 0.0,
     val sharesCount: Int = 0,
+    /** « Mes envies » only: the occasion its holder chose, the next one of this kind (PRD rév. 186). */
+    val occasion: GiftOccasion? = null,
 )
+
+/**
+ * The occasion a reservation of « Mes envies » is meant for without a choice: the beneficiary's
+ * birthday or Christmas, whichever comes first after [day]. The server decides with the day of the
+ * reservation (wishesReveal.ts); this is what the app shows meanwhile.
+ */
+fun defaultWishOccasion(birthDate: LocalDate?, day: LocalDate): GiftOccasion {
+    val christmasThisYear = LocalDate.of(day.year, 12, 25)
+    val christmas = if (day <= christmasThisYear) christmasThisYear else christmasThisYear.plusYears(1)
+    if (birthDate == null) return GiftOccasion.Christmas
+    val thisYear = runCatching { birthDate.withYear(day.year) }.getOrElse { LocalDate.of(day.year, 2, 28) }
+    val birthday = if (thisYear >= day) thisYear else runCatching { birthDate.withYear(day.year + 1) }.getOrElse { LocalDate.of(day.year + 1, 2, 28) }
+    return if (birthday < christmas) GiftOccasion.Birthday else GiftOccasion.Christmas
+}
 
 /** The part of [memberId] in a joint gift, in euros. The responsible marks it [received]. */
 data class GiftShare(val memberId: String, val memberName: String, val amount: Double, val received: Boolean)

@@ -38,6 +38,7 @@ fun GiftListRoute(
             onTake = viewModel::take,
             onOpenJointGift = viewModel::openJointGift,
             onRelease = viewModel::release,
+            onSetClaimOccasion = viewModel::setClaimOccasion,
             onSetShare = viewModel::setShare,
             onLeaveShare = viewModel::leaveShare,
             onMarkReceived = viewModel::markReceived,
