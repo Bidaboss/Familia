@@ -37,4 +37,9 @@ interface NotificationRepository {
     fun observeRecap(memberId: String): Flow<Boolean> = flowOf(true)
 
     suspend fun setRecap(memberId: String, enabled: Boolean) = Unit
+
+    /** Vœux d'anniversaire (récit 36): « C'est l'anniversaire de … » and the cards received, on unless turned off. */
+    fun observeBirthdayWishes(memberId: String): Flow<Boolean> = flowOf(true)
+
+    suspend fun setBirthdayWishes(memberId: String, enabled: Boolean) = Unit
 }

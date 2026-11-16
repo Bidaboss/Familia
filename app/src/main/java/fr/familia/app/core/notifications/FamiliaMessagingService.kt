@@ -62,9 +62,12 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         // La semaine de la famille: its screen (récit 36).
         val recapWeek = message.data[EXTRA_RECAP_WEEK]
         recapWeek?.let { open.putExtra(EXTRA_RECAP_WEEK, it) }
+        // Vœux d'anniversaire: the page of the member celebrated (récit 36).
+        val birthdayOf = message.data[EXTRA_BIRTHDAY_OF]
+        birthdayOf?.let { open.putExtra(EXTRA_BIRTHDAY_OF, it) }
         val pending = PendingIntent.getActivity(
             this,
-            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId ?: joinMeId ?: capsuleId ?: recapWeek).hashCode(),
+            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId ?: joinMeId ?: capsuleId ?: recapWeek ?: birthdayOf).hashCode(),
             open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -81,7 +84,13 @@ class FamiliaMessagingService : FirebaseMessagingService() {
             .setContentIntent(pending)
             .setAutoCancel(true)
             .build()
-        NotificationManagerCompat.from(this).notify(message.messageId.hashCode(), built)
+        // Notices with the same tag replace each other: the cards of vœux of the day (récit 36).
+        val tag = message.data[EXTRA_NOTIFICATION_TAG]
+        if (tag != null) {
+            NotificationManagerCompat.from(this).notify(tag, 0, built)
+        } else {
+            NotificationManagerCompat.from(this).notify(message.messageId.hashCode(), built)
+        }
     }
 
     /**
@@ -118,5 +127,9 @@ class FamiliaMessagingService : FirebaseMessagingService() {
 
         /** The Sunday of « La semaine de la famille », same key as functions/src/recap.ts. */
         const val EXTRA_RECAP_WEEK = "recapWeek"
+
+        /** The member celebrated, same key as functions/src/birthdayWishes.ts. */
+        const val EXTRA_BIRTHDAY_OF = "birthdayOf"
+        const val EXTRA_NOTIFICATION_TAG = "notificationTag"
     }
 }
