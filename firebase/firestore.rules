@@ -331,6 +331,33 @@ service cloud.firestore {
       allow delete: if isMember() && canAnswerFor(memberId);
     }
 
+    // The album of an event (récit 41) opens on its day, at midnight in France (UTC+1 or +2, so
+    // from 22:00 UTC the day before). Its photos have the shape of the trip photos (isValidAlbumPhoto
+    // in the trips section): 30 places per person, files in Storage at events/{eventId}/{authorId}/.
+    function albumIsOpen(eventId) {
+      let day = get(/databases/$(database)/documents/events/$(eventId)).data.date.split('-');
+      return request.time >= timestamp.date(int(day[0]), int(day[1]), int(day[2])) - duration.value(2, 'h');
+    }
+
+    function saidComing(eventId) {
+      return get(/databases/$(database)/documents/events/$(eventId)/rsvps/$(myMemberId())).data.status == 'yes';
+    }
+
+    // events/{eventId}/photos/{photoId}. Everyone who sees the event sees its album; a member who
+    // said « je viens » adds photos of their own from the day of the event. The author removes
+    // them, as do the author of the event and the admin principal. Deleting the event deletes them.
+    match /events/{eventId}/photos/{photoId} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && albumIsOpen(eventId)
+        && saidComing(eventId)
+        && isValidAlbumPhoto(request.resource.data, photoId);
+      allow delete: if isMember()
+        && (resource.data.authorId == myMemberId()
+            || isOwner()
+            || get(/databases/$(database)/documents/events/$(eventId)).data.authorId == myMemberId());
+    }
+
     // The answers of all events at once, for the counters of the planning (collectionGroup query).
     // Read only: writes go through events/{eventId}/rsvps/{memberId} above.
     match /{path=**}/rsvps/{memberId} {
@@ -1141,7 +1168,7 @@ service cloud.firestore {
     // the id of the document is the author and the place (« m1_7 »), so the rules cap the photos
     // per person without counting them. The files are in Storage (firebase/storage.rules), at
     // trips/{tripId}/{authorId}/{slot}.jpg and {slot}-thumb.jpg, sent before this document.
-    function isValidTripPhoto(p, photoId) {
+    function isValidAlbumPhoto(p, photoId) {
       return p.keys().hasAll(['authorId', 'authorName', 'slot', 'createdAt'])
         && p.keys().hasOnly(['authorId', 'authorName', 'slot', 'createdAt'])
         && p.authorId == myMemberId()
@@ -1156,7 +1183,7 @@ service cloud.firestore {
     // photo is never edited. Deleting the trip deletes the photos and their files on the server.
     match /trips/{tripId}/photos/{photoId} {
       allow read: if isMember() && myMemberId() in tripOf(tripId).readerIds;
-      allow create: if isMember() && isParticipantOf(tripId) && isValidTripPhoto(request.resource.data, photoId);
+      allow create: if isMember() && isParticipantOf(tripId) && isValidAlbumPhoto(request.resource.data, photoId);
       allow delete: if isMember()
         && (resource.data.authorId == myMemberId() || canManageTrip(tripOf(tripId)));
     }

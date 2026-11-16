@@ -92,6 +92,9 @@ export const onEventDeleted = onDocumentDeletedWithAuthContext('events/{eventId}
     if (data) await notifyChange(db, send, 'deleted', event.params.eventId, data, actorUid(event), new Date(), answered, members);
   } finally {
     await deleteEventAnswers(db, event.params.eventId);
+    // The album of the event (récit 41): its records, then its files in Storage.
+    await db.recursiveDelete(db.collection('events').doc(event.params.eventId).collection('photos'));
+    await getStorage().bucket().deleteFiles({ prefix: `events/${event.params.eventId}/` });
   }
 });
 

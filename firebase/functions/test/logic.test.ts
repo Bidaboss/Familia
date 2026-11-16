@@ -93,6 +93,13 @@ test('change texts name the author and the event', () => {
   assert.equal(changeNotice('added', 'e1', event, 'Camille').channel, 'events');
 });
 
+test('with « Ajouter à mon agenda » on, a change or a deletion reminds to update the copy (récit 30)', () => {
+  assert.match(changeNotice('edited', 'e1', event, 'Camille', true).body, /mets-le à jour depuis Familia\.$/);
+  assert.match(changeNotice('deleted', 'e1', event, 'Camille', true).body, /pense à l'en retirer\.$/);
+  assert.doesNotMatch(changeNotice('added', 'e1', event, 'Camille', true).body, /agenda/);
+  assert.doesNotMatch(changeNotice('edited', 'e1', event, 'Camille').body, /agenda/);
+});
+
 test('the reminder goes to those coming or maybe coming, children without the app through their adults', () => {
   const answers = new Map<string, RsvpStatus>([
     ['ines', 'maybe'], ['jade', 'yes'], ['noe', 'yes'], ['lina', 'yes'], ['sam', 'no'], ['gone', 'yes'],

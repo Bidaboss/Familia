@@ -126,6 +126,8 @@ import fr.familia.app.feature.helprequests.list.HelpRequestsRoute
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import kotlinx.coroutines.flow.combine
+import fr.familia.app.feature.events.album.EventAlbumDestination
+import fr.familia.app.feature.events.album.EventAlbumRoute
 import fr.familia.app.feature.trips.TripDetailDestination
 import fr.familia.app.feature.trips.TripEditDestination
 import fr.familia.app.feature.trips.TripPhotosDestination
@@ -516,6 +518,15 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             eventId = eventId,
                             onEdit = { navController.navigate(EventEditDestination(eventId)) },
+                            onOpenAlbum = { navController.navigate(EventAlbumDestination(eventId)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<EventAlbumDestination> { entry ->
+                        EventAlbumRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            eventId = entry.toRoute<EventAlbumDestination>().eventId,
                             onBack = { navController.popBackStack() },
                         )
                     }

@@ -44,6 +44,12 @@ export async function notify(db: Firestore, send: Sender, memberIds: string[], n
   return sent;
 }
 
+/** Whether « Ajouter à mon agenda » (récit 30) is switched on for the family in config/app. */
+async function calendarOn(db: Firestore): Promise<boolean> {
+  const features = (await db.collection('config').doc('app').get()).get('features') as Record<string, boolean> | undefined;
+  return features?.calendar === true;
+}
+
 /**
  * PRD, récit 6: an event was added, edited or deleted by [actor]. [answered] holds the members who
  * said « Je viens » or « Peut-être »: read before a deletion removes the answers.
@@ -56,7 +62,8 @@ export async function notifyChange(
   const actor = memberForUid(members, actorUid);
   const recipients = changeRecipients(members, actor?.id ?? null, event, parisDay(now), answered);
   if (recipients.length === 0) return 0;
-  return notify(db, send, recipients, changeNotice(kind, eventId, event, actor?.firstName ?? null));
+  const calendarHint = kind !== 'added' && await calendarOn(db);
+  return notify(db, send, recipients, changeNotice(kind, eventId, event, actor?.firstName ?? null, calendarHint));
 }
 
 /**
