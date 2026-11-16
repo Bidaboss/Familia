@@ -23,6 +23,7 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
      * Kévin has announced it.
      */
     Usage("usage", R.string.feature_usage),
+    WeeklyQuestion("weeklyQuestion", R.string.feature_weekly_question),
 }
 
 /**

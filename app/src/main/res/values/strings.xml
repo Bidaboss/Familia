@@ -199,6 +199,7 @@
     <string name="usage_screen_weekly_question">Question de la semaine</string>
     <string name="usage_screen_trips">Voyages</string>
     <string name="usage_screen_other">Autres écrans</string>
+    <string name="feature_weekly_question">Question de la semaine</string>
     <string name="household_rename_action">Renommer le foyer %1$s</string>
     <string name="household_rename_title">Renommer le foyer</string>
     <string name="household_rename_failed_title">Le nom n\'a pas changé</string>
@@ -696,11 +697,15 @@
     <string name="channel_good_news_description">Quand quelqu\'un de la famille partage une bonne nouvelle</string>
     <string name="notifications_good_news">Bonnes nouvelles</string>
     <string name="notifications_good_news_help">Être prévenu quand quelqu\'un partage une bonne nouvelle. Si ton enfant en publie une, tu es toujours prévenu.</string>
+    <string name="notifications_weekly">Question de la semaine</string>
+    <string name="notifications_weekly_help">Être prévenu le lundi quand la nouvelle question arrive. Elle reste visible sur l\'Accueil.</string>
     <!-- Voyages (V3, récits 11, 12 et 14), fil [DEV] voyage -->
     <string name="trips_title">Voyages</string>
     <string name="channel_trips">Voyages</string>
     <string name="channel_comments">Commentaires et réactions</string>
     <string name="channel_comments_description">Quand la famille réagit à ce que tu as partagé.</string>
+    <string name="channel_weekly">Rendez-vous de la semaine</string>
+    <string name="channel_weekly_description">La question de la semaine, chaque lundi.</string>
     <string name="channel_trips_description">« Bien arrivé » des voyages que tu suis, et le rappel quand tu pars.</string>
     <string name="trips_add">Nouveau voyage</string>
     <string name="trips_open_action">ouvrir le voyage</string>
@@ -874,4 +879,33 @@
     <string name="theme_contrast">Contraste fort</string>
     <string name="help_topic_appearance_title">Changer l\'apparence</string>
     <string name="help_topic_appearance_body">Dans l\'onglet Famille, touche « Apparence » et choisis un thème, puis l\'icône de l\'appli tout en bas. Ils ne changent que ce téléphone. « Contraste fort » est le plus facile à lire.</string>
+
+    <!-- Question de la semaine (récit 37) -->
+    <string name="weekly_title">Question de la semaine</string>
+    <string name="weekly_none_title">Pas encore de question</string>
+    <string name="weekly_none_body">Chaque lundi à 9 h, une nouvelle question arrive pour toute la famille.</string>
+    <string name="weekly_week_of">Semaine du %1$s</string>
+    <string name="weekly_proposed_by">Proposée par %1$s</string>
+    <string name="weekly_answer_label">Ta réponse</string>
+    <string name="weekly_answer">Répondre</string>
+    <string name="weekly_skip">Passer</string>
+    <string name="weekly_my_answer">Ta réponse</string>
+    <string name="weekly_i_skipped">Tu as passé cette question.</string>
+    <string name="weekly_edit">Modifier</string>
+    <string name="weekly_answer_after_all">Répondre quand même</string>
+    <string name="weekly_remove">Retirer</string>
+    <string name="weekly_archive_title">Nos réponses</string>
+    <string name="weekly_archive_error_title">Impossible d\'ouvrir les questions</string>
+    <string name="weekly_archive_error_body">Vérifie ta connexion, puis reviens sur cet écran.</string>
+    <plurals name="weekly_answer_count">
+        <item quantity="one">%d réponse</item>
+        <item quantity="many">%d réponses</item>
+        <item quantity="other">%d réponses</item>
+    </plurals>
+    <string name="weekly_hidden_until">Les réponses des autres s\'affichent quand tu as répondu ou passé, et pour tout le monde %1$s.</string>
+    <string name="weekly_no_other_answer">Personne d\'autre n\'a encore répondu.</string>
+    <string name="weekly_failed_title">Ça n\'a pas marché</string>
+    <string name="weekly_failed_body">Ta réponse n\'a pas été enregistrée. Vérifie ta connexion et réessaie.</string>
+    <string name="weekly_open">Ouvrir la question de la semaine</string>
+    <string name="weekly_see_answers">Voir les réponses</string>
 </resources>

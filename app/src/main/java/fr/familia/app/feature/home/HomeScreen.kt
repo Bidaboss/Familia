@@ -67,6 +67,7 @@ import fr.familia.app.core.ui.formatTime
 import fr.familia.app.feature.helprequests.kindLabel
 import fr.familia.app.feature.helprequests.whenLabel
 import fr.familia.app.feature.goodnews.home.GoodNewsHomeCard
+import fr.familia.app.feature.weeklyquestion.WeeklyQuestionHomeCard
 import fr.familia.app.feature.trips.tripDatesLabel
 import java.time.Instant
 import java.time.LocalDate
@@ -94,6 +95,7 @@ fun HomeRoute(
     onOpenGoodNewsFeed: () -> Unit = {},
     onOpenGoodNews: (String) -> Unit = {},
     onPublishGoodNews: () -> Unit = {},
+    onOpenWeeklyQuestion: () -> Unit = {},
 ) {
     val flags = LocalFeatureFlags.current
     val giftsOn = flags.isOn(Feature.Gifts)
@@ -124,25 +126,32 @@ fun HomeRoute(
         } else {
             null
         },
+        weeklyQuestion = if (flags.isOn(Feature.WeeklyQuestion)) {
+            { WeeklyQuestionHomeCard(container, currentMember, onOpenWeeklyQuestion) }
+        } else {
+            null
+        },
     )
 }
 
 /**
  * The Accueil: fixed cards in a fixed order, the same for everyone, each hidden while it has
- * nothing to say (PRD, « Tableau de bord d'accueil »). [goodNews] is the « Bonnes nouvelles » card.
+ * nothing to say (PRD, « Tableau de bord d'accueil »). [goodNews] is the « Bonnes nouvelles » card,
+ * [weeklyQuestion] the question of the week (récit 37), both given only while their module is on.
  */
 @Composable
 fun HomeScreen(
     state: HomeUiState,
     actions: HomeActions,
     goodNews: (@Composable () -> Unit)? = null,
+    weeklyQuestion: (@Composable () -> Unit)? = null,
 ) {
     val ready = state as? HomeUiState.Ready
     if (ready == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         return
     }
-    if (ready.isEmpty && goodNews == null) {
+    if (ready.isEmpty && goodNews == null && weeklyQuestion == null) {
         EmptyState(
             icon = Icons.Outlined.CalendarMonth,
             title = stringResource(R.string.home_empty_title),
@@ -162,6 +171,7 @@ fun HomeScreen(
         if (ready.todos.isNotEmpty()) card("todo") { TodoCard(ready.todos, ready.today, actions) }
         if (ready.week.isNotEmpty()) card("week") { WeekCard(ready.week, ready.weekMore, ready.today, actions) }
         if (goodNews != null) card("goodNews") { goodNews() }
+        if (weeklyQuestion != null) card("weeklyQuestion") { weeklyQuestion() }
         if (ready.birthdays.isNotEmpty()) card("birthdays") { BirthdaysCard(ready.birthdays, ready.today, actions.onOpenWishes) }
         ready.occasion?.let { occasion -> card("occasion") { OccasionCard(occasion, ready.today) { actions.onOpenList(occasion.list.id) } } }
         if (ready.trips.isNotEmpty()) card("trips") { TripsCard(ready.trips, ready.today, ready.canCreateTrip, actions) }
