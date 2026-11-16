@@ -21,7 +21,7 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     /**
      * Counting the time spent in the app (PRD, récit 1 nonies). Unlike the others, the switch
      * also governs the admin principal: nothing is counted until it is on for the family, once
-     * Kévin has announced it.
+     * the main admin has announced it.
      */
     Usage("usage", R.string.feature_usage),
     WeeklyQuestion("weeklyQuestion", R.string.feature_weekly_question),

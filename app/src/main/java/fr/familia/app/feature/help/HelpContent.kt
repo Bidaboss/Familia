@@ -82,7 +82,7 @@ fun helpTopics(isChef: Boolean, isOwner: Boolean = false): List<HelpTopic> = Hel
     }
 }
 
-/** "Kévin", "Kévin ou Inès", "Kévin, Inès ou Sam": who to contact when something goes wrong. */
+/** "Camille", "Camille ou Inès", "Camille, Inès ou Sam": who to contact when something goes wrong. */
 fun adminNames(names: List<String>): String? = when (names.size) {
     0 -> null
     1 -> names[0]

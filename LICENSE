@@ -1,0 +1,21 @@
+Copyright (c) 2026 Kévin (Bidaboss). Tous droits réservés.
+
+Ce dépôt est public pour être consulté, pas pour être réutilisé. Sans l'accord écrit de
+l'auteur, il est interdit de copier, modifier, distribuer, publier ou vendre tout ou partie
+de ce code, de ses documents ou de ses images, et d'en tirer une autre application.
+
+Le fait de pouvoir lire ce dépôt sur GitHub ne donne aucune licence, en dehors de ce que
+les conditions d'utilisation de GitHub permettent déjà (le voir et en faire une copie
+(« fork ») sur GitHub).
+
+Les composants de tiers gardent leur propre licence : les polices dans
+app/src/main/assets/licences/ et les bibliothèques déclarées dans les fichiers Gradle et
+package.json.
+
+---
+
+Copyright (c) 2026 Kévin (Bidaboss). All rights reserved.
+
+This repository is public for viewing only. No permission is granted to copy, modify,
+distribute, publish or sell any part of it, or to build another application from it,
+without the author's written consent. Third-party components keep their own licenses.
