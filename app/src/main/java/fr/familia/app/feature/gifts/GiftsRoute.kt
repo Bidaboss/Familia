@@ -18,6 +18,8 @@ fun GiftsRoute(
     onNewList: () -> Unit,
     onAllBirthdays: () -> Unit,
     onPrepareSurprise: (memberId: String) -> Unit,
+    /** Null while the notebook module is off for this member. */
+    onOpenNotebook: (() -> Unit)? = null,
 ) {
     val viewModel: GiftsViewModel = viewModel(
         factory = viewModelFactory {
@@ -32,5 +34,6 @@ fun GiftsRoute(
         onRetry = viewModel::retry,
         onAllBirthdays = onAllBirthdays,
         onPrepareSurprise = onPrepareSurprise,
+        onOpenNotebook = onOpenNotebook,
     )
 }

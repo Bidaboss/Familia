@@ -15,6 +15,7 @@ enum class ScreenHelp(@StringRes val titleRes: Int, @StringRes val bodyRes: Int)
     GiftList(R.string.help_screen_gift_list_title, R.string.help_screen_gift_list_body),
     GiftListEdit(R.string.help_screen_gift_list_edit_title, R.string.help_screen_gift_list_edit_body),
     GiftItemEdit(R.string.help_screen_gift_item_edit_title, R.string.help_screen_gift_item_edit_body),
+    Notebook(R.string.help_screen_notebook_title, R.string.help_screen_notebook_body),
     HelpRequests(R.string.help_screen_help_requests_title, R.string.help_screen_help_requests_body),
     Trips(R.string.help_screen_trips_title, R.string.help_screen_trips_body),
     TripDetail(R.string.help_screen_trip_detail_title, R.string.help_screen_trip_detail_body),

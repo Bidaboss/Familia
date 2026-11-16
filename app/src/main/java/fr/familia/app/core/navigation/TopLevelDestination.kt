@@ -103,6 +103,10 @@ data class GiftListEditDestination(val listId: String? = null, val forMemberId: 
 @Serializable
 data class GiftItemEditDestination(val listId: String, val itemId: String? = null)
 
+/** « Mes cadeaux à offrir », the member's private gift notebook (PRD, récit 9 bis). */
+@Serializable
+data object NotebookDestination
+
 /** "Vérifier les mises à jour", opened from the Famille tab (lot 10). */
 @Serializable
 data object UpdateCheckDestination
