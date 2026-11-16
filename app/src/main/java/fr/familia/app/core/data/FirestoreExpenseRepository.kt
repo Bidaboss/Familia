@@ -12,6 +12,7 @@ import fr.familia.app.core.model.ExpenseContainerType
 import fr.familia.app.core.model.ExpenseSettlement
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.SplitMode
+import fr.familia.app.core.model.Transfer
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -51,6 +52,10 @@ class FirestoreExpenseRepository(private val db: FirebaseFirestore) : ExpenseRep
         book(bookId).update(mapOf("shares" to shares, "updatedAt" to FieldValue.serverTimestamp())).await()
     }
 
+    override suspend fun setClosed(bookId: String, closed: Boolean) {
+        book(bookId).update(mapOf("closed" to closed, "updatedAt" to FieldValue.serverTimestamp())).await()
+    }
+
     override fun observeExpenses(bookId: String): Flow<List<Expense>> =
         observe(book(bookId).collection(EXPENSES).orderBy("date", Query.Direction.DESCENDING)) { it.toExpense() }
 
@@ -85,6 +90,23 @@ class FirestoreExpenseRepository(private val db: FirebaseFirestore) : ExpenseRep
 
     override suspend fun deleteExpense(bookId: String, expenseId: String) {
         book(bookId).collection(EXPENSES).document(expenseId).delete().await()
+    }
+
+    override suspend fun settle(bookId: String, transfer: Transfer, me: Member) {
+        book(bookId).collection(SETTLEMENTS).document().set(
+            mapOf(
+                "fromHouseholdId" to transfer.fromHouseholdId,
+                "toHouseholdId" to transfer.toHouseholdId,
+                "amountCents" to transfer.amountCents,
+                "confirmedBy" to me.id,
+                "confirmedByName" to me.firstName,
+                "createdAt" to FieldValue.serverTimestamp(),
+            ),
+        ).await()
+    }
+
+    override suspend fun unsettle(bookId: String, settlementId: String) {
+        book(bookId).collection(SETTLEMENTS).document(settlementId).delete().await()
     }
 
     private fun <T> observe(query: Query, map: (DocumentSnapshot) -> T?): Flow<List<T>> = callbackFlow {
@@ -135,6 +157,7 @@ class FirestoreExpenseRepository(private val db: FirebaseFirestore) : ExpenseRep
             toHouseholdId = getString("toHouseholdId") ?: return null,
             amountCents = getLong("amountCents") ?: return null,
             confirmedBy = getString("confirmedBy").orEmpty(),
+            confirmedByName = getString("confirmedByName").orEmpty(),
         )
     }
 

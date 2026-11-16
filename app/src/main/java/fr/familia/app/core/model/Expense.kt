@@ -95,6 +95,7 @@ data class ExpenseSettlement(
     val toHouseholdId: String,
     val amountCents: Long,
     val confirmedBy: String,
+    val confirmedByName: String = "",
 )
 
 /**
