@@ -58,6 +58,7 @@ import fr.familia.app.R
 import fr.familia.app.core.model.EURO
 import fr.familia.app.core.model.Expense
 import fr.familia.app.core.model.ExpenseCategory
+import fr.familia.app.core.model.ExpenseContainerType
 import fr.familia.app.core.model.SplitMode
 import fr.familia.app.core.share.ShareContent
 import fr.familia.app.core.share.share
@@ -104,7 +105,10 @@ fun ExpensesScreen(
     actions: ExpensesActions? = null,
     /** The history of an expense this member may not change: who added it, who changed what. */
     onHistory: ((expenseId: String) -> Unit)? = null,
+    /** A trip or an event (PRODUIT-57): only a few words change. */
+    kind: ExpenseContainerType = ExpenseContainerType.Trip,
 ) {
+    val isEvent = kind == ExpenseContainerType.Event
     val success = state as? ExpensesUiState.Success
     val snackbar = LocalSnackbarHost.current
     val failedText = stringResource(R.string.expenses_write_failed)
@@ -117,7 +121,7 @@ fun ExpensesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(success?.let { stringResource(R.string.expenses_title_of, it.title) } ?: stringResource(R.string.expenses_title)) },
+                title = { Text(success?.let { stringResource(R.string.expenses_title_of, it.title) } ?: stringResource(if (isEvent) R.string.expenses_title_event else R.string.expenses_title)) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = { if (success != null) ExportMenu(success) },
             )
@@ -138,7 +142,7 @@ fun ExpensesScreen(
                 ExpensesUiState.NotAllowed -> EmptyState(
                     icon = Icons.Outlined.Payments,
                     title = stringResource(R.string.expenses_not_allowed_title),
-                    body = stringResource(R.string.expenses_not_allowed_body),
+                    body = stringResource(if (isEvent) R.string.expenses_not_allowed_body_event else R.string.expenses_not_allowed_body),
                 )
                 ExpensesUiState.Error -> EmptyState(
                     icon = Icons.Outlined.Payments,
@@ -150,7 +154,7 @@ fun ExpensesScreen(
                         }
                     },
                 )
-                is ExpensesUiState.Success -> Content(state, onEdit, actions, onHistory)
+                is ExpensesUiState.Success -> Content(state, onEdit, actions, onHistory, isEvent)
             }
         }
     }
@@ -162,6 +166,7 @@ private fun Content(
     onEdit: ((String) -> Unit)?,
     actions: ExpensesActions?,
     onHistory: ((String) -> Unit)?,
+    isEvent: Boolean,
 ) {
     var editShares by rememberSaveable { mutableStateOf(false) }
     var confirmClose by rememberSaveable { mutableStateOf(false) }
@@ -227,7 +232,7 @@ private fun Content(
         }
         item(key = "expenses-title") { TripSectionTitle(stringResource(R.string.expenses_list)) }
         if (state.expenses.isEmpty()) {
-            item(key = "no-expense") { Hint(stringResource(R.string.expenses_empty)) }
+            item(key = "no-expense") { Hint(stringResource(if (isEvent) R.string.expenses_empty_event else R.string.expenses_empty)) }
         }
         items(state.expenses, key = { "expense-${it.expense.id}" }) { row ->
             val open = if (row.canEdit) onEdit else onHistory

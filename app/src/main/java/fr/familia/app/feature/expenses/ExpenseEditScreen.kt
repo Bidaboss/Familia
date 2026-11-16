@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.EURO
 import fr.familia.app.core.model.ExpenseCategory
+import fr.familia.app.core.model.ExpenseContainerType
 import fr.familia.app.core.model.SplitMode
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
@@ -70,6 +71,8 @@ fun ExpenseEditScreen(
     onDone: () -> Unit,
     /** The history of the expense being changed; null for a new one. */
     onHistory: (() -> Unit)? = null,
+    /** A trip or an event (PRODUIT-57): only a few words change. */
+    kind: ExpenseContainerType = ExpenseContainerType.Trip,
 ) {
     LaunchedEffect(state) { if (state == ExpenseEditUiState.Done) onDone() }
     val editing = state as? ExpenseEditUiState.Editing
@@ -87,7 +90,9 @@ fun ExpenseEditScreen(
                 ExpenseEditUiState.Unavailable -> EmptyState(
                     icon = Icons.Outlined.Payments,
                     title = stringResource(R.string.expense_unavailable_title),
-                    body = stringResource(R.string.expense_unavailable_body),
+                    body = stringResource(
+                        if (kind == ExpenseContainerType.Event) R.string.expense_unavailable_body_event else R.string.expense_unavailable_body,
+                    ),
                 )
                 is ExpenseEditUiState.Editing -> Form(state, onChange, onSave, onDelete, onHistory)
             }

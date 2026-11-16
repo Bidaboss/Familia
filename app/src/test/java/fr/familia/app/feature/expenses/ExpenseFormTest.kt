@@ -80,7 +80,7 @@ class ExpenseFormTest {
         val book = ExpenseBook("trip_t1", ExpenseContainer(ExpenseContainerType.Trip, "t1"), "adult1", mapOf("h1" to 1.5, "h2" to 1.0))
         val repo = FakeExpenses(book = book)
         val trips = FakeTrips(listOf(TestTrips.trip(participants = listOf("adult1", "kid1", "adult2"))))
-        val vm = ExpenseEditViewModel(repo, trips, FakeMembers(), "adult2", "t1", null, today = { day })
+        val vm = ExpenseEditViewModel(repo, TripExpenseContext(trips, "t1"), FakeMembers(), "adult2", null, today = { day })
         val editing = vm.uiState.first { it is ExpenseEditUiState.Editing } as ExpenseEditUiState.Editing
         assertEquals("adult2", editing.form.payerId)
         assertEquals(listOf("adult1", "adult2"), editing.payers.map { it.id })
@@ -92,7 +92,7 @@ class ExpenseFormTest {
         assertEquals(1_840L, saved.amountCents)
         assertEquals("h2", saved.payerHouseholdId)
 
-        val kid = ExpenseEditViewModel(repo, trips, FakeMembers(), "kid1", "t1", null, today = { day })
+        val kid = ExpenseEditViewModel(repo, TripExpenseContext(trips, "t1"), FakeMembers(), "kid1", null, today = { day })
         assertEquals(ExpenseEditUiState.Unavailable, kid.uiState.first { it != ExpenseEditUiState.Loading })
     }
 }

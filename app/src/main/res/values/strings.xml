@@ -1068,6 +1068,7 @@
     <string name="feature_comments">Commentaires sous les événements</string>
     <string name="feature_expenses">Comptes du voyage</string>
     <string name="expenses_title">Comptes du voyage</string>
+    <string name="expenses_title_event">Comptes de l\'événement</string>
     <string name="expenses_title_of">Comptes · %1$s</string>
     <string name="expenses_open">Comptes du voyage</string>
     <string name="expenses_add">Ajouter une dépense</string>
@@ -1084,10 +1085,12 @@
     <string name="expenses_all_settled">Tout le monde est à jour.</string>
     <string name="expenses_list">Dépenses</string>
     <string name="expenses_empty">Pas encore de dépense. Le premier plein, les courses, la location : note-les au fil du voyage.</string>
+    <string name="expenses_empty_event">Pas encore de dépense. Les courses, le gîte, le gâteau : note-les, chacun voit vite où il en est.</string>
     <string name="expenses_line_detail">%1$s · payé par %2$s · %3$s</string>
     <string name="expenses_original">%1$s %2$s</string>
     <string name="expenses_not_allowed_title">Comptes réservés</string>
     <string name="expenses_not_allowed_body">Seuls les adultes qui partent voient les comptes du voyage.</string>
+    <string name="expenses_not_allowed_body_event">Seuls les adultes qui ont répondu « Je viens » voient les comptes de l\'événement.</string>
     <string name="expenses_error_title">Comptes indisponibles</string>
     <string name="expenses_error_body">Impossible de charger les comptes pour l\'instant.</string>
     <string name="expenses_shares">Parts : %1$s</string>
@@ -1140,6 +1143,7 @@
     <string name="expense_edit_title">Modifier la dépense</string>
     <string name="expense_unavailable_title">Dépense indisponible</string>
     <string name="expense_unavailable_body">Elle a été supprimée, les comptes sont clôturés, ou seul son auteur et le créateur du voyage peuvent la modifier.</string>
+    <string name="expense_unavailable_body_event">Elle a été supprimée, les comptes sont clôturés, ou seul son auteur et l\'organisateur de l\'événement peuvent la modifier.</string>
     <string name="expense_title_field">Quoi ?</string>
     <string name="expense_amount_field">Montant</string>
     <string name="expense_currency_field">Devise</string>

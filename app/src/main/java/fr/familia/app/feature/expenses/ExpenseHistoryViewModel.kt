@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.ExpenseRepository
 import fr.familia.app.core.model.ExpenseContainer
-import fr.familia.app.core.model.ExpenseContainerType
 import fr.familia.app.core.model.ExpenseHistoryAction
 import fr.familia.app.core.model.ExpenseHistoryEntry
 import kotlinx.coroutines.CancellationException
@@ -65,18 +64,18 @@ fun historyRows(entries: List<ExpenseHistoryEntry>, zone: ZoneId): List<HistoryR
     }
 
 /**
- * The history of one expense of a trip (récit 16 bis), written by the server on each change. The
+ * The history of one expense of a trip (récit 16 bis) or of an event (PRODUIT-57), written by the server on each change. The
  * rules let only the adult participants read it: anyone else gets [ExpenseHistoryUiState.Error].
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class ExpenseHistoryViewModel(
     private val expenses: ExpenseRepository?,
-    tripId: String,
+    container: ExpenseContainer,
     private val expenseId: String,
     private val zone: ZoneId = ZoneId.systemDefault(),
 ) : ViewModel() {
 
-    private val bookId = ExpenseContainer(ExpenseContainerType.Trip, tripId).bookId
+    private val bookId = container.bookId
     private val attempt = MutableStateFlow(0)
 
     val uiState: StateFlow<ExpenseHistoryUiState> = attempt
