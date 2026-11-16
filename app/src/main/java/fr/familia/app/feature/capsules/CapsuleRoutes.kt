@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -22,6 +23,9 @@ data object CapsulesDestination
 
 @Serializable
 data class CapsuleDetailDestination(val capsuleId: String)
+
+@Serializable
+data object CapsuleEditDestination
 
 @Composable
 fun CapsulesRoute(container: AppContainer?, currentMember: Member, onOpen: (String) -> Unit, onBack: () -> Unit, onAdd: (() -> Unit)? = null) {
@@ -44,4 +48,30 @@ fun CapsuleDetailRoute(container: AppContainer?, currentMember: Member, capsuleI
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(state) { if (state == CapsuleDetailUiState.Removed) onBack() }
     CapsuleDetailScreen(state, viewModel::remove, onBack)
+}
+
+/** A sealed capsule opens at once; it can never be changed afterwards. */
+@Composable
+fun CapsuleEditRoute(container: AppContainer?, currentMember: Member, onSealed: (String) -> Unit, onBack: () -> Unit) {
+    val viewModel: CapsuleEditViewModel = viewModel(
+        factory = viewModelFactory {
+            initializer {
+                CapsuleEditViewModel(
+                    container?.capsuleRepository,
+                    container?.memberRepository,
+                    currentMember.id,
+                    savedState = createSavedStateHandle(),
+                )
+            }
+        },
+    )
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(state) { (state as? CapsuleEditUiState.Done)?.let { onSealed(it.capsuleId) } }
+    val actions = CapsuleEditActions(
+        onText = viewModel::setText,
+        onToggleRecipient = viewModel::toggleRecipient,
+        onOpenAt = viewModel::setOpenAt,
+        onSeal = viewModel::seal,
+    )
+    CapsuleEditScreen(state, actions, onBack)
 }

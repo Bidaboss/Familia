@@ -97,11 +97,11 @@ class CapsuleDetailViewModel(
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CapsuleDetailUiState.Loading)
         }
 
-    /** Removes the capsule and its photos, after the screen asked for confirmation. Its author only. */
+    /** Removes the capsule and its photos, after the screen asked for confirmation. Its author only, while sealed. */
     fun remove() {
         val repo = capsules ?: return
         val ready = uiState.value as? CapsuleDetailUiState.Ready ?: return
-        if (!ready.row.isMine) return
+        if (!ready.row.isMine || ready.row.capsule.isOpened) return
         viewModelScope.launch {
             removal.value = try {
                 // Offline, the removal waits in Firestore and is sent later.

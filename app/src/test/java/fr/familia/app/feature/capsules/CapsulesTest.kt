@@ -27,6 +27,10 @@ class FakeCapsules(initial: List<Capsule> = emptyList()) : CapsuleRepository {
     override suspend fun deleteCapsule(id: String) {
         capsules.value = capsules.value.filterNot { it.id == id }
     }
+    override fun newCapsuleId(): String = "k-new"
+    override suspend fun createCapsule(capsule: Capsule) {
+        capsules.value = capsules.value + capsule
+    }
 }
 
 /** Fictional capsules of the test family (see TestFamily). */
@@ -71,20 +75,21 @@ class CapsulesTest {
     }
 
     @Test
-    fun `only the author removes a capsule, and its removal closes it`() = runTest {
-        val repo = FakeCapsules(listOf(forMeOpened))
-        fun detail(me: String) = CapsuleDetailViewModel(repo, FakeMembers(), me, "k1").also { vm ->
+    fun `only the author removes a capsule, while it is sealed, and its removal closes it`() = runTest {
+        val repo = FakeCapsules(listOf(forMeOpened, forMeSealed))
+        fun detail(me: String, id: String) = CapsuleDetailViewModel(repo, FakeMembers(), me, id).also { vm ->
             backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         }
-        val recipient = detail("adult1")
-        recipient.remove()
-        assertEquals(1, repo.capsules.value.size)
+        // Opened, it is a keepsake of its recipients: neither they nor its author remove it.
+        detail("adult1", "k1").remove()
+        detail("adult2", "k1").remove()
+        assertEquals(2, repo.capsules.value.size)
 
-        val author = detail("adult2")
+        val author = detail("adult2", "k2")
         author.remove()
 
         assertEquals(CapsuleDetailUiState.Removed, author.uiState.value)
-        assertTrue(repo.capsules.value.isEmpty())
+        assertEquals(listOf("k1"), repo.capsules.value.map { it.id })
     }
 
     @Test

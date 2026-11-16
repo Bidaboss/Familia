@@ -104,7 +104,8 @@ private fun Content(state: CapsuleDetailUiState.Ready, onRemove: () -> Unit) {
                 contentScale = ContentScale.Fit,
             )
         }
-        if (row.isMine) {
+        // Once opened, it is a keepsake of its recipients: nobody removes it any more (PRD rév. 187).
+        if (row.isMine && !capsule.isOpened) {
             if (state.removeFailed) {
                 Text(stringResource(R.string.capsule_remove_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
             }
