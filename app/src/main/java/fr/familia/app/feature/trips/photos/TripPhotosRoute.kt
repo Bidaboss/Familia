@@ -15,7 +15,7 @@ import fr.familia.app.core.album.AlbumFilmViewModel
 import fr.familia.app.core.album.AlbumPhotosViewModel
 import fr.familia.app.core.album.AlbumScreen
 import fr.familia.app.core.album.FilmActions
-import fr.familia.app.core.album.PhotoActions
+import fr.familia.app.core.album.rememberPhotoActions
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
 import fr.familia.app.feature.help.HelpButton
@@ -41,18 +41,6 @@ fun rememberTripAlbum(container: AppContainer?, currentMember: Member, tripId: S
         }
     },
 )
-
-/** The actions of the photo views, given once per ViewModel. */
-@Composable
-fun rememberPhotoActions(viewModel: AlbumPhotosViewModel, onSeeAll: () -> Unit = {}): PhotoActions =
-    remember(viewModel, onSeeAll) {
-        PhotoActions(
-            onAdd = viewModel::addPhotos,
-            onRemove = viewModel::removePhoto,
-            onSeeAll = onSeeAll,
-            onDismissProblem = viewModel::dismissProblem,
-        )
-    }
 
 /** « Voir les photos » of a trip, with its film (récit 16). */
 @Composable
