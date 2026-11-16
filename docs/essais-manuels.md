@@ -92,6 +92,19 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 2. Active « Mon foyer ». **Attendu :** l'interrupteur s'allume et seuls les événements de ton foyer restent. Éteins-le : toute la famille revient.
 3. En police à 200 %, **attendu :** rien n'est coupé, et les boutons gardent au moins la hauteur d'un doigt.
 
+## Plantages (récit 6 sexies, rév. 220)
+
+Avec le compte de l'admin principal, après « Publier Firebase ».
+
+1. Administration : **Attendu :** une ligne « Plantages », sans badge.
+2. Ouvre-la. **Attendu :** « Aucun plantage », et « Faire un essai » en bas.
+3. Touche « Faire un essai », puis « Fermer l'appli ». **Attendu :** l'appli se ferme.
+4. Rouvre l'appli. **Attendu :** dans la minute, une notification « Nouveau plantage » qui parle de CrashTestException. La toucher ouvre Plantages, avec une carte « CrashTestException », « 1 fois, chez 1 personne », la version et l'écran « Crashes ».
+5. Refais l'essai, puis rouvre. **Attendu :** la même carte passe à « 2 fois », et aucune notification de plus (même sorte, et une seule par jour).
+6. « Copier pour Claude », puis colle le texte dans une note. **Attendu :** l'erreur, le nombre de fois, les versions, le téléphone et la trace. Aucun prénom.
+7. « Marquer comme réglé », puis confirme. **Attendu :** la carte disparaît, et le badge d'Administration aussi.
+8. Avec le compte d'un autre adulte : **Attendu :** pas de ligne « Plantages » dans son menu, puisqu'il n'a pas Administration.
+
 ## Un enfant suivi par Family Link se connecte (avant le 21)
 
 À faire une fois avant le repas, avec le téléphone d'un enfant suivi par Family Link et le téléphone du parent qui le suit. Si ça bloque, il reste une solution simple pour le jour J (voir le repli à la fin).

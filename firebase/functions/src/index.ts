@@ -19,6 +19,7 @@ import { countLeftovers, deleteLeftovers, openDueCapsules } from './capsules';
 import { CommentData, deleteCommentMutesOf, deleteEventComments, onCommentCreated } from './comments';
 import { deleteLinksOf, removeMemberFromTree } from './genealogy';
 import { checkConsumptionIfDue } from './consumption';
+import { CrashData, onCrashReported } from './crashes';
 import { FeedbackData, onFeedbackChanged, onFeedbackCreated, screenshotToDelete } from './feedback';
 import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
 import { closeDuePolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
@@ -191,6 +192,12 @@ export const onFeedbackAnswered = onDocumentUpdated('feedback/{feedbackId}', asy
 export const onFeedbackRemoved = onDocumentDeleted('feedback/{feedbackId}', async (event) => {
   const path = screenshotToDelete(event.params.feedbackId, event.data?.data() as FeedbackData | undefined);
   if (path) await getStorage().bucket().file(path).delete({ ignoreNotFound: true });
+});
+
+// « Plantages » (récit 6 sexies, rév. 220): the admin principal is told of a new kind of crash, once a day at most.
+export const onCrashSent = onDocumentCreated('crashReports/{reportId}', async (event) => {
+  const data = event.data?.data() as CrashData | undefined;
+  if (data) await onCrashReported(getFirestore(), send, event.params.reportId, data);
 });
 
 export const dayBeforeReminder = onSchedule({ schedule: '0 18 * * *', timeZone: 'Europe/Paris' }, async () => {
