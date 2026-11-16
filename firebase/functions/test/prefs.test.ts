@@ -97,6 +97,28 @@ describe('my notification settings against the emulator', () => {
     assert.equal(await sendHeldNotices(db, send, morning), 0);
   });
 
+  test('a morning send that reaches no phone is kept for the next run, for a day at most', async () => {
+    await deliver(db, fakeSender().send, ['lou'], news, night);
+    let down = true;
+    const sent: string[] = [];
+    const flaky: Sender = async (token) => {
+      if (down) return 'error';
+      sent.push(token);
+      return 'ok';
+    };
+    assert.equal(await sendHeldNotices(db, flaky, morning), 0);
+    assert.equal((await db.doc('quietQueue/lou').get()).get('items').length, 1);
+    down = false;
+    assert.equal(await sendHeldNotices(db, flaky, new Date('2026-11-24T07:30:00Z')), 1);
+    assert.deepEqual(sent, ['token-lou']);
+    assert.equal((await db.doc('quietQueue/lou').get()).exists, false);
+
+    await deliver(db, fakeSender().send, ['lou'], news, night);
+    down = true;
+    assert.equal(await sendHeldNotices(db, flaky, new Date('2026-11-25T08:00:00Z')), 0); // More than a day later.
+    assert.equal((await db.doc('quietQueue/lou').get()).exists, false);
+  });
+
   test('at night, what aims at me is not held', async () => {
     const { sent, send } = fakeSender();
     assert.equal(await deliver(db, send, ['lou'], { ...news, direct: true } as Notice, night), 1);

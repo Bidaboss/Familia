@@ -102,6 +102,11 @@ class TripViewModelsTest {
         val hidden = TripDetailViewModel(surprise, FakeMembers(), "adult1", "t1", today = flowOf(july))
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { hidden.uiState.collect {} }
         assertFalse((hidden.uiState.value as TripDetailUiState.Success).canShare)
+
+        // Closed by default: a trip with no reader never goes out.
+        val nobody = TripDetailViewModel(FakeTrips(listOf(TestTrips.trip(readers = emptyList()))), FakeMembers(), "adult1", "t1", today = flowOf(july))
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { nobody.uiState.collect {} }
+        (nobody.uiState.value as? TripDetailUiState.Success)?.let { assertFalse(it.canShare) }
     }
 
     @Test

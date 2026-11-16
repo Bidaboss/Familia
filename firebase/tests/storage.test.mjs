@@ -253,6 +253,30 @@ describe('recipes folder (récit 38)', () => {
   });
 });
 
+describe('« Qui est-ce ? » folder (récit 43)', () => {
+  const file = (author, post, name = 'photo.jpg') => `whoIsIt/${author}/${post}/${name}`;
+
+  test('the author sends the photo and its thumbnail before the post, the family reads them', async () => {
+    const storage = storageAs(ADULT);
+    await assertSucceeds(uploadString(ref(storage, file('adult1', 'w1')), 'x'.repeat(300 * 1024), 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storage, file('adult1', 'w1', 'photo-thumb.jpg')), 'x'.repeat(30 * 1024), 'raw', jpeg));
+    await assertSucceeds(getBytes(ref(storageAs(NEIGHBOUR), file('adult1', 'w1'))));
+    await assertFails(uploadString(ref(storage, file('adult1', 'w2', 'other.jpg')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, file('adult1', 'w3')), 'x'.repeat(600 * 1024), 'raw', jpeg));
+    await assertFails(uploadString(ref(storageAs(OTHER_ADULT), file('adult1', 'w4')), 'x', 'raw', jpeg));
+  });
+
+  test('never into the post of someone else, and only its author or the admin removes', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'whoIsIt/w1'), { authorId: 'adult2' });
+    });
+    await assertFails(uploadString(ref(storageAs(ADULT), file('adult1', 'w1')), 'x', 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storageAs(OTHER_ADULT), file('adult2', 'w1')), 'x', 'raw', jpeg));
+    await assertFails(deleteObject(ref(storageAs(ADULT), file('adult2', 'w1'))));
+    await assertSucceeds(deleteObject(ref(storageAs(ADMIN), file('adult2', 'w1'))));
+  });
+});
+
 describe('capsules folder (récit 39)', () => {
   const file = (author, capsule, name = '1.jpg') => `capsules/${author}/${capsule}/${name}`;
 

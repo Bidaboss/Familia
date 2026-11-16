@@ -2199,6 +2199,73 @@ service cloud.firestore {
       allow delete: if isMember() && (resource.data.authorId == myMemberId() || isOwner());
     }
 
+    // --- « Qui est-ce ? » (récit 43) -----------------------------------------------------------------
+    // whoIsIt/{postId}: an old photo scanned by a member, file in Storage at
+    // whoIsIt/{authorId}/{postId}/photo.jpg. Every member sees the photo and its hint; nobody sees
+    // the answer before guessing. No score. Its author or the admin principal removes it; the
+    // server then removes the answer, the guesses and the files (onWhoIsItDeleted).
+    function isValidWhoIsIt(p) {
+      return p.keys().hasAll(['authorId', 'authorName', 'hint', 'createdAt'])
+        && p.keys().hasOnly(['authorId', 'authorName', 'hint', 'createdAt'])
+        && p.hint is string && p.hint.size() <= 140
+        && p.authorId == myMemberId()
+        && p.authorName == me().firstName
+        && p.createdAt == request.time;
+    }
+
+    function whoIsItOf(postId) {
+      return get(/databases/$(database)/documents/whoIsIt/$(postId)).data;
+    }
+
+    function guessedWhoIsIt(postId) {
+      return exists(/databases/$(database)/documents/whoIsIt/$(postId)/guesses/$(myMemberId()));
+    }
+
+    function isWhoIsItYear(y) {
+      return y == null || (y is int && y >= 1850 && y <= 2100);
+    }
+
+    match /whoIsIt/{postId} {
+      allow read: if isMember();
+      allow create: if isMember() && postId.matches('^[A-Za-z0-9]{1,40}$') && isValidWhoIsIt(request.resource.data);
+      allow delete: if isMember() && (resource.data.authorId == myMemberId() || isOwner());
+    }
+
+    // whoIsIt/{postId}/answer/main: who is on it and the year, written by the author with the
+    // photo; [personId] points to someone of the tree (a member or a relative, récit 40). Read by
+    // the author and by those who already guessed.
+    match /whoIsIt/{postId}/answer/{docId} {
+      allow read: if isMember() && (whoIsItOf(postId).authorId == myMemberId() || guessedWhoIsIt(postId));
+      allow create, update: if isMember()
+        && docId == 'main'
+        && whoIsItOf(postId).authorId == myMemberId()
+        && request.resource.data.keys().hasAll(['who', 'year'])
+        && request.resource.data.keys().hasOnly(['who', 'year', 'personId'])
+        && request.resource.data.who is string
+        && request.resource.data.who.size() > 0 && request.resource.data.who.size() <= 80
+        && isWhoIsItYear(request.resource.data.year)
+        && (!('personId' in request.resource.data.keys())
+            || (request.resource.data.personId is string && request.resource.data.personId.size() <= 64));
+      allow delete: if false;
+    }
+
+    // whoIsIt/{postId}/guesses/{memberId}: one guess per member, in their own name, never changed:
+    // a name (or nothing, « Je ne sais pas ») and maybe a year. The author does not guess their
+    // own photo. The guesses show once one has guessed, like the answer.
+    match /whoIsIt/{postId}/guesses/{memberId} {
+      allow read: if isMember() && (whoIsItOf(postId).authorId == myMemberId() || guessedWhoIsIt(postId));
+      allow create: if isMember()
+        && memberId == myMemberId()
+        && whoIsItOf(postId).authorId != myMemberId()
+        && request.resource.data.keys().hasAll(['who', 'year', 'name', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['who', 'year', 'name', 'createdAt'])
+        && request.resource.data.who is string && request.resource.data.who.size() <= 80
+        && isWhoIsItYear(request.resource.data.year)
+        && request.resource.data.name == me().firstName
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+
     // consumption/{day}: the use of the database each day, read from Cloud Monitoring by the
     // 30-minute task, from 8 h (récit 1 sexies). Only the admin principal sees it, in
     // Administration › Consommation; only the server writes it.
