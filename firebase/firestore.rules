@@ -477,6 +477,68 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // --- Le défi lancé par un foyer (PRD, récit 35 bis) --------------------------------------
+
+    function isMonthId(m) {
+      return m is string && m.matches('^20[0-9]{2}-(0[1-9]|1[0-2])$');
+    }
+
+    function monthIndex(m) {
+      return int(m.split('-')[0]) * 12 + int(m.split('-')[1]) - 1;
+    }
+
+    // challengeRotation/current: the order in which the foyers launch the challenge, a month each
+    // from startMonth. The admin principal sets it in Administration; the family reads it.
+    match /challengeRotation/{rotationId} {
+      allow read: if isMember();
+      allow write: if isOwner() && rotationId == 'current'
+        && request.resource.data.keys().hasOnly(['householdIds', 'startMonth', 'updatedAt'])
+        && request.resource.data.householdIds is list
+        && request.resource.data.householdIds.size() >= 1 && request.resource.data.householdIds.size() <= 20
+        && isMonthId(request.resource.data.startMonth)
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    // The foyer whose turn [month] is.
+    function hostOf(month) {
+      let r = get(/databases/$(database)/documents/challengeRotation/current).data;
+      return r.householdIds[(monthIndex(month) - monthIndex(r.startMonth)) % r.householdIds.size()];
+    }
+
+    // The month in progress or the next one (in UTC: a few hours apart from Paris at the turn of a month).
+    function isNowOrNext(month) {
+      let now = request.time.year() * 12 + request.time.month() - 1;
+      return monthIndex(month) == now || monthIndex(month) == now + 1;
+    }
+
+    function isValidHostedChallenge(c, month) {
+      return c.keys().hasOnly(['householdId', 'status', 'kind', 'title', 'emoji', 'illustration', 'target', 'updatedBy', 'updatedAt'])
+        && c.householdId == me().householdId
+        && c.householdId == hostOf(month)
+        && c.status in ['draft', 'published', 'skipped']
+        && c.kind in ['photo', 'outing', 'cooking', 'kindness', 'creative']
+        && c.title is string && c.title.trim().size() > 0 && c.title.size() <= 60
+        && c.emoji is string && c.emoji.size() > 0 && c.emoji.size() <= 8
+        && c.illustration in ['sun', 'heart', 'leaf', 'star', 'camera', 'pot']
+        && c.target is int && c.target >= 3 && c.target <= 50
+        && c.updatedBy == myMemberId()
+        && c.updatedAt == request.time;
+    }
+
+    // householdChallenges/{AAAA-MM}: the challenge a foyer prepares for its month. Every member of
+    // the foyer prepares it, children included; only an adult publishes it or passes the turn. Once
+    // published or passed it no longer changes from the app: the admin principal replaces it with
+    // challengePicks. The functions turn it into challenges/{month}.
+    match /householdChallenges/{month} {
+      allow read: if isMember();
+      allow create, update: if isMember() && isMonthId(month) && isNowOrNext(month)
+        && month >= get(/databases/$(database)/documents/challengeRotation/current).data.startMonth
+        && (resource == null || resource.data.status == 'draft')
+        && isValidHostedChallenge(request.resource.data, month)
+        && (request.resource.data.status == 'draft' || me().profile == 'adult');
+      allow delete: if false;
+    }
+
     // challengePicks/{AAAA-MM}: the challenge the admin principal chose in Administration, from
     // the list of the functions (tree.ts, CATALOG). The functions apply it to challenges/{month}.
     match /challengePicks/{month} {
@@ -686,12 +748,15 @@ service cloud.firestore {
       return ids.size() <= i || (ids[i] is string && ids[i].matches('^[A-Za-z0-9_]{1,40}$'));
     }
 
-    // The 11 fields exactly. householdId is the household of the member the news is for, so a
+    // The 11 fields, and forChallenge at most. householdId is the household of the member the news is for, so a
     // chef de famille can remove it there without the rules reading another document.
     function isValidGoodNews(n) {
       return n.keys().hasAll(['text', 'photoIds', 'authorId', 'authorName', 'forMemberId', 'householdId',
                               'mentionIds', 'reactions', 'hiddenByIds', 'createdAt', 'updatedAt'])
-        && n.keys().size() == 11
+        && n.keys().hasOnly(['text', 'photoIds', 'authorId', 'authorName', 'forMemberId', 'householdId',
+                             'mentionIds', 'reactions', 'hiddenByIds', 'createdAt', 'updatedAt', 'forChallenge'])
+        // Linked to the challenge of a foyer (récit 35 bis): its month; the photo is already required.
+        && (!('forChallenge' in n) || isMonthId(n.forChallenge))
         && n.text is string && n.text.trim().size() > 0 && n.text.size() <= 500
         && n.photoIds is list && n.photoIds.size() >= 1 && n.photoIds.size() <= 3
         && isPhotoId(n.photoIds, 0) && isPhotoId(n.photoIds, 1) && isPhotoId(n.photoIds, 2)
