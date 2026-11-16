@@ -70,7 +70,7 @@ fun AlbumScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     top()
                     PhotoStatus(state, actions.onDismissProblem)
-                    if (state.canAdd) AddPhotosButton(state.placesLeft, actions.onAdd)
+                    if (state.canAdd) AddPhotosButton(state.placesLeft, actions.onAdd, max = state.maxPerMember)
                 }
             }
             items(state.photos, key = { it.id }) { photo ->

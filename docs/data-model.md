@@ -152,6 +152,7 @@ Droits : seul le membre lui-même lit, ajoute ou supprime ses téléphones. Les 
 | `goodNews` | booléen, facultatif | `false` coupe les notifications des Bonnes nouvelles (récit 32). Sans valeur, elles sont actives. Ne coupe pas l'avis aux adultes responsables quand un enfant publie (carte AVIS-12). |
 
 | `souvenirs` | booléen, facultatif | `false` coupe l'avis « Nouveau souvenir » (récit 34). Sans valeur, il est actif. |
+| `tree` | booléen, facultatif | `false` coupe l'avis « Défi réussi » (récit 35). Sans valeur, il est actif. |
 | `weekly` | booléen, facultatif | `false` coupe l'avis de la question de la semaine (récit 37), et plus tard les autres rendez-vous de la semaine. Sans valeur, il est actif. |
 
 Droits : seul le membre lui-même lit et modifie ses réglages. L'appli écrit chaque réglage en fusion, pour ne pas effacer l'autre.
@@ -464,7 +465,13 @@ Une demande passée ne prévient personne, sauf pour le « Merci ». La sauvegar
 | `authorId`, `authorName` | texte | Le membre qui l'a écrite et son prénom, qui ne changent jamais |
 | `createdAt`, `updatedAt` | horodatage | Heure du serveur |
 
-Droits : tous les membres lisent toutes les recettes, et chacun écrit les siennes. L'auteur et l'admin principal les modifient et les retirent. Le module se montre avec l'interrupteur « Carnet de recettes ». Photos, commentaires et partage viendront dans une seconde partie.
+Droits : tous les membres lisent toutes les recettes, et chacun écrit les siennes. L'auteur et l'admin principal les modifient et les retirent. Le module se montre avec l'interrupteur « Carnet de recettes ». Les commentaires et le partage viendront ensuite. Une étiquette est un texte de 1 à 24 caractères. Si le membre nommé dans `originMemberId` quitte la famille, la recette garde son id et reste modifiable.
+
+### `recipes/{recipeId}/photos/{authorId}_{slot}`
+
+Les photos du plat, sur le modèle des photos d'un voyage (`authorId`, `authorName`, `slot`, `createdAt`), avec 3 places par personne (`slot` de 1 à 3). Les fichiers sont dans Storage, à `recipes/{recipeId}/{authorId}/{slot}.jpg` (512 Ko au plus) et `{slot}-thumb.jpg` (64 Ko au plus), envoyés avant la fiche.
+
+Droits : tous les membres les voient. L'auteur de la recette et l'admin principal les ajoutent et les retirent. Quand la recette est supprimée, la fonction `onRecipeDeleted` efface ses photos, les fiches comme les fichiers.
 
 ## Voyages (V3, récits 11 à 15)
 
@@ -552,6 +559,57 @@ Droits : le serveur seul crée et supprime. Le membre lit ses souvenirs et chang
 `souvenirCounters` garde les gestes comptés (`reactions`, `helpGiven`, `weeklyAnswers`), que seul le membre lit, pour afficher « Encore 5 coups de main ». `souvenirMarks` note chaque geste compté (`reaction-{postId}-{memberId}`, `weekly-{weekId}-{memberId}`, `help-{requestId}`), pour qu'un geste défait puis refait compte une fois. Personne ne les écrit depuis l'appli, et personne ne lit les marques. Quand un membre part, ses souvenirs, son compteur et ses marques sont effacés (carte EXPERT-1).
 
 Les souvenirs sont donnés par les fonctions qui existent déjà, sans nouvelle tâche planifiée : `onGoodNewsCreated` (première Bonne nouvelle), `onGoodNewsUpdated` (réactions), `onTripStepUpdated` (premier « bien arrivé »), `onWeeklyAnswerWritten` (réponses), `helpRequestStillOpen` à 18 h (les coups de main pris de la veille, et un an après la création de la fiche du membre). Une notification « Nouveau souvenir » (canal `souvenirs`, donnée `souvenirKey`) part une fois, seulement si le module `souvenirs` est allumé, si le membre a l'appli et s'il n'a pas coupé `souvenirs` dans ses réglages. Module éteint, les souvenirs sont quand même gardés. `onMemberDeletedAnswers` retire aussi les souvenirs, le compteur et les marques d’un membre parti.
+
+## L'arbre de la famille et le défi du mois (PRD, récit 35)
+
+Un arbre commun grandit avec les gestes de tous, et un défi par mois a sa jauge (`functions/src/tree.ts`). Le serveur seul écrit. Rien ne dit qui a le plus contribué (carte EXPERT-3).
+
+### `familyTree/current`
+
+| Champ | Type | Sens |
+|---|---|---|
+| `leaves` | int | Les feuilles de l'arbre. Le nombre ne baisse jamais. |
+| `bloomedMonths` | liste de `AAAA-MM` | Les mois où le défi a été réussi : l'arbre fleurit. |
+| `updatedAt` | horodatage | Le dernier changement. |
+
+Les paliers visibles sont à 20, 60, 120, 250, 500 et 1000 feuilles (`TREE_LEVELS`). L'appli dessine l'arbre de son palier et l'habille selon la saison.
+
+Une feuille s'ajoute pour chacun de ces gestes :
+
+- une Bonne nouvelle, pour son auteur ;
+- une réaction, pour celui qui réagit ;
+- une réponse « Je viens » à un événement, pour la personne qui vient ;
+- un coup de main pris, pour le volontaire ;
+- un « bien arrivé », pour celui qui l'envoie.
+
+Chaque geste compte une seule fois, et chaque personne apporte au plus 5 feuilles par jour, pour éviter la triche. Les votes et les vœux du récit viendront avec leurs modules.
+
+### `challenges/{AAAA-MM}`
+
+| Champ | Type | Sens |
+|---|---|---|
+| `title`, `emoji` | texte | Par exemple « 20 photos de Noël », 🎄. |
+| `measure` | `photos` \| `goodNews` | Ce qui fait avancer la jauge : les photos des Bonnes nouvelles du mois, ou le nombre de Bonnes nouvelles. |
+| `target`, `progress` | int | L'objectif et la jauge, qui s'arrête à l'objectif. |
+| `achievedAt` | horodatage ou `null` | Le moment où le défi a été réussi. |
+| `source` | `default` | Le défi par défaut du mois. Le choix dans Administration et le défi d'un foyer (récit 35 bis) viendront ensuite. |
+| `month`, `createdAt` | texte, horodatage | Le mois, et la création. |
+
+Le défi est créé à partir du défi par défaut du mois, la première fois qu'il sert. La tâche de 18 h le crée aussi, pour qu'il soit là dès le 1er du mois.
+
+Quand l'objectif est atteint :
+
+- l'arbre fleurit (`bloomedMonths`) ;
+- si le module `tree` est allumé, toute la famille qui a l'appli reçoit « Défi réussi ! » (canal `tree`), sauf ceux qui ont coupé `tree` ;
+- Familia publie une Bonne nouvelle `goodNews/challenge-{AAAA-MM}`, une seule fois. Son auteur est `familia`, elle n'a pas de photo, elle porte `challengeMonth` et ne nomme personne.
+
+Module éteint, l'arbre et la jauge avancent quand même, mais rien n'est envoyé ni publié.
+
+Droits : la famille lit `familyTree` et `challenges`. Personne n'y écrit depuis l'appli.
+
+`treeMarks/{markId}` (`goodNews-{postId}`, `reaction-{postId}-{memberId}`, `rsvp-{eventId}-{memberId}`, `help-{requestId}`, `arrival-{tripId}-{stepId}`, `challenge-{postId}`) et `treeDays/{memberId}_{AAAA-MM-JJ}` (`count`) servent aux fonctions seules. Aucune règle ne les ouvre. Un TTL sur `expireAt` les efface 40 jours après. Quand un membre part, ses marques et ses jours sont effacés (carte EXPERT-1), mais ses feuilles restent à la famille.
+
+Fonctions : il n'y a pas de nouvelle tâche planifiée. Ces déclencheurs, qui existent déjà, ajoutent la feuille ou font avancer la jauge : `onGoodNewsCreated`, `onGoodNewsUpdated`, `onHelpRequestWrite`, `onTripStepUpdated` et `helpRequestStillOpen` (le défi du mois). Un seul déclencheur est nouveau : `onRsvpWritten` (`events/{eventId}/rsvps/{memberId}`), pour « Je viens ». Une erreur de l'arbre n'arrête jamais ce que faisait le déclencheur.
 
 ## Question de la semaine (PRD, récit 37)
 

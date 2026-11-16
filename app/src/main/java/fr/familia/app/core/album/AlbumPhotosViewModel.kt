@@ -46,10 +46,12 @@ data class AlbumPhotosUiState(
     /** Photos of this phone still being sent. */
     val sending: Int = 0,
     val problem: PhotoProblem? = null,
+    /** Places of each member in this album: 30 for a trip or an event, 3 for a recipe. */
+    val maxPerMember: Int = AlbumPhoto.MAX_PER_MEMBER,
 ) {
     /** Places left to this member, the photos being sent included. */
     val placesLeft: Int
-        get() = (AlbumPhoto.MAX_PER_MEMBER - photos.count { it.authorId == currentMemberId } - sending).coerceAtLeast(0)
+        get() = (maxPerMember - photos.count { it.authorId == currentMemberId } - sending).coerceAtLeast(0)
 
     fun canRemove(photo: AlbumPhoto): Boolean = photo.authorId == currentMemberId || canManage
 }
@@ -67,6 +69,7 @@ class AlbumPhotosViewModel(
     private val currentMemberId: String,
     private val folder: String,
     private val writeTimeoutMillis: Long = 4_000,
+    private val maxPerMember: Int = AlbumPhoto.MAX_PER_MEMBER,
 ) : ViewModel() {
 
     private val sending = MutableStateFlow(0)
@@ -75,7 +78,7 @@ class AlbumPhotosViewModel(
     /** Places taken by photos still being sent, so two quick choices never take the same one. */
     private val reserved = mutableSetOf<Int>()
     private var me: Member? = null
-    private val empty = AlbumPhotosUiState(currentMemberId = currentMemberId)
+    private val empty = AlbumPhotosUiState(currentMemberId = currentMemberId, maxPerMember = maxPerMember)
 
     val uiState: StateFlow<AlbumPhotosUiState> =
         if (photos == null || rights == null) {
@@ -83,7 +86,7 @@ class AlbumPhotosViewModel(
         } else {
             combine(photos.observePhotos(folder), rights, sending, problem) { list, r, n, p ->
                 me = r.me
-                if (r.me == null) empty else AlbumPhotosUiState(list, currentMemberId, r.canAdd, r.canManage, n, p)
+                if (r.me == null) empty else AlbumPhotosUiState(list, currentMemberId, r.canAdd, r.canManage, n, p, maxPerMember)
             }
                 // The screen of the module says when it cannot be read; here, simply no photos.
                 .catch { e -> if (e is CancellationException) throw e else emit(empty) }
@@ -101,7 +104,7 @@ class AlbumPhotosViewModel(
         val state = uiState.value
         if (sources.isEmpty() || !state.canAdd) return
         val taken = state.photos.filter { it.authorId == member.id }.map { it.slot }.toSet() + reserved
-        val chosen = sources.zip(AlbumPhoto.freeSlots(taken))
+        val chosen = sources.zip(AlbumPhoto.freeSlots(taken, maxPerMember))
         if (chosen.isEmpty()) {
             problem.value = PhotoProblem.TooMany
             return

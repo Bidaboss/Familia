@@ -3,6 +3,9 @@ package fr.familia.app.screenshots
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import com.github.takahirom.roborazzi.captureRoboImage
+import fr.familia.app.core.album.AlbumPhotosSection
+import fr.familia.app.core.album.PhotoActions
+import fr.familia.app.core.album.previewAlbumPhotos
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.feature.recipes.RecipeDetailScreen
 import fr.familia.app.feature.recipes.RecipeEditScreen
@@ -23,7 +26,14 @@ import org.robolectric.annotation.GraphicsMode
 class RecipeScreenshotTest {
 
     private val list: @Composable () -> Unit = { Surface { RecipesScreen(previewRecipesState(), {}, {}, {}, {}) } }
-    private val detail: @Composable () -> Unit = { Surface { RecipeDetailScreen(previewRecipeDetail(), {}, {}, {}) } }
+    private val detail: @Composable () -> Unit = {
+        Surface {
+            RecipeDetailScreen(previewRecipeDetail(), {}, {}, {}) {
+                // Two photos of the dish, one place left: no photo being sent, so no moving bar.
+                AlbumPhotosSection(previewAlbumPhotos("recipes/1", count = 2).copy(maxPerMember = 3), PhotoActions(), "", showSeeAll = false)
+            }
+        }
+    }
     private val edit: @Composable () -> Unit = { Surface { RecipeEditScreen(previewRecipeEdit(), {}, {}, {}) } }
 
     @Test
