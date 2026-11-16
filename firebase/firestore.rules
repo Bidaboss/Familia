@@ -407,6 +407,50 @@ service cloud.firestore {
             || get(/databases/$(database)/documents/events/$(eventId)).data.authorId == myMemberId());
     }
 
+    // events/{eventId}/comments/{commentId} (PRD, récit 28). Whoever sees the event (every member)
+    // reads its comments and writes their own: a text of 1 to 500 characters, kept 12 months
+    // (expireAt, TTL), set by the phone between 360 and 370 days ahead. Its author changes only the
+    // text. Its author removes it, as do the admin principal and a chef de famille of the author's
+    // household. Deleting the event deletes them on the server (onEventDeleted).
+    function isCommentText(text) {
+      return text is string && text.size() > 0 && text.size() <= 500;
+    }
+
+    match /events/{eventId}/comments/{commentId} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && exists(/databases/$(database)/documents/events/$(eventId))
+        && request.resource.data.keys().hasAll(['text', 'authorId', 'authorName', 'createdAt', 'expireAt'])
+        && request.resource.data.keys().hasOnly(['text', 'authorId', 'authorName', 'createdAt', 'expireAt'])
+        && isCommentText(request.resource.data.text)
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.expireAt is timestamp
+        && request.resource.data.expireAt > request.time + duration.value(360, 'd')
+        && request.resource.data.expireAt < request.time + duration.value(370, 'd');
+      allow update: if isMember()
+        && resource.data.authorId == myMemberId()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'editedAt'])
+        && isCommentText(request.resource.data.text)
+        && request.resource.data.editedAt == request.time;
+      allow delete: if isMember()
+        && (resource.data.authorId == myMemberId()
+            || isOwner()
+            || (exists(memberPath(resource.data.authorId)) && isChefOf(get(memberPath(resource.data.authorId)).data.householdId)));
+    }
+
+    // « Ne plus être prévenu » for the comments of an event: events/{eventId}/commentMutes/{memberId},
+    // written and removed by that member only. The server reads them before telling anyone.
+    match /events/{eventId}/commentMutes/{memberId} {
+      allow read: if isMember() && memberId == myMemberId();
+      allow create: if isMember()
+        && memberId == myMemberId()
+        && request.resource.data.keys().hasOnly(['mutedAt'])
+        && request.resource.data.mutedAt == request.time;
+      allow delete: if isMember() && memberId == myMemberId();
+    }
+
     // The answers of all events at once, for the counters of the planning (collectionGroup query).
     // Read only: writes go through events/{eventId}/rsvps/{memberId} above.
     match /{path=**}/rsvps/{memberId} {

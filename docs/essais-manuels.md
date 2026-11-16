@@ -201,3 +201,17 @@ Avec le module « Arbre » visible (admin principal, ou module allumé), deux co
 3. Avec le compte enfant, touche « Préparer le défi », choisis « Cuisine », un objectif, puis un nom, un emoji et une illustration. À l'aperçu, touche « Enregistrer pour le foyer ». **Attendu :** pas de bouton « Publier » ni « Passer notre tour » ; la phrase « Un adulte du foyer le publiera. »
 4. Avec le compte adulte, rouvre le guide. **Attendu :** le brouillon de l'enfant est là. Touche « Publier le défi ». **Attendu :** le guide se ferme et la bannière disparaît de l'Accueil.
 5. Avec un autre foyer, refais l'étape 2 au mois de son tour, puis touche « Passer notre tour » et confirme. **Attendu :** la bannière disparaît, et le défi du mois reste celui de Familia.
+
+## Commentaires sous un événement (récit 28)
+
+Avant ces essais : « Publier Firebase » a publié les règles, l'index TTL et les fonctions, et le module « Commentaires sous les événements » est allumé dans Administration > Modules.
+
+1. Ouvre un événement. **Attendu :** une partie « Commentaires » tout en bas, vide, avec une phrase d'exemple, un champ et « Publier le commentaire ».
+2. Écris « Je prends le gâteau » et publie. **Attendu :** le commentaire apparaît avec ton prénom, le jour et l'heure ; le champ se vide.
+3. Sur un autre téléphone qui a dit « Je viens », ouvre le même événement. **Attendu :** il voit ton commentaire, sans « Modifier » ni « Retirer ». Il a reçu une notification « Prénom a commenté « Titre » » ; l'appui ouvre l'événement.
+4. Sur ton téléphone, touche « Modifier », change le texte et enregistre. **Attendu :** le nouveau texte partout, avec « · modifié ».
+5. Sur l'autre téléphone, touche « Ne plus être prévenu des commentaires », puis écris un commentaire depuis le tien. **Attendu :** plus de notification là-bas. Le bouton devient « Être à nouveau prévenu des commentaires ».
+6. Avec le compte d'un chef de famille, ouvre l'événement. **Attendu :** « Retirer » sur les commentaires des membres de son foyer seulement. L'admin principal peut tout retirer.
+7. Écris plus de 30 commentaires (ou ouvre un événement qui en a). **Attendu :** les 30 plus récents, et « Voir les commentaires plus anciens » en haut qui montre les autres.
+8. Supprime l'événement. **Attendu :** ses commentaires disparaissent aussi (console Firebase).
+9. Éteins le module. **Attendu :** la partie disparaît pour tout le monde sauf l'admin principal, et seul l'admin principal reçoit encore les notifications.
