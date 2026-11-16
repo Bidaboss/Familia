@@ -19,6 +19,7 @@ fun NotebookRoute(
     onOpenList: (listId: String) -> Unit,
     onAddIdea: (at: NotebookOccasion?) -> Unit,
     onEditIdea: (entryId: String) -> Unit,
+    onProposeIdea: (entryId: String) -> Unit,
 ) {
     val viewModel: NotebookViewModel = viewModel(
         factory = viewModelFactory {
@@ -38,6 +39,7 @@ fun NotebookRoute(
             onOpenList = onOpenList,
             onAddIdea = onAddIdea,
             onEditIdea = onEditIdea,
+            onProposeIdea = onProposeIdea,
         ),
     )
 }
