@@ -4,7 +4,8 @@
 // the app, or one who turned off the résumé (settings `weekly`) gets nothing.
 //
 // albumInvites/{day}: written once per Paris day, so the 30-minute task queues each event once;
-// the mark of the day before is then removed.
+// the mark of the day before is then removed. If anything fails after the mark, it is taken off
+// so the next run tries again: queueDigest uses arrayUnion, so nobody is queued twice.
 
 import type { Firestore } from 'firebase-admin/firestore';
 import { queueDigest } from './digest';
@@ -24,8 +25,18 @@ export async function queueAlbumInvitations(db: Firestore, now: Date): Promise<n
       throw e;
     });
   if (!claimed) return 0;
-  // Only the mark of today is needed: the one of yesterday goes.
-  await db.collection('albumInvites').doc(yesterday).delete();
+  try {
+    const queued = await inviteFor(db, yesterday, now);
+    // Only the mark of today is needed: the one of yesterday goes.
+    await db.collection('albumInvites').doc(yesterday).delete();
+    return queued;
+  } catch (e) {
+    await db.collection('albumInvites').doc(today).delete().catch(() => undefined);
+    throw e;
+  }
+}
+
+async function inviteFor(db: Firestore, yesterday: string, now: Date): Promise<number> {
   // A single-field equality: no composite index.
   const events = await db.collection('events').where('date', '==', yesterday).get();
   let queued = 0;
