@@ -15,6 +15,8 @@ import {
   deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
   sendBirthdayGiftReminders, updateSharesTotal,
 } from './gifts';
+import { checkConsumptionIfDue } from './consumption';
+import { cloudMonitoring } from './monitoring';
 import { deleteMemberNotebook, syncNotebookEntry, syncNotebookItem } from './notebook';
 import {
   deleteReactionDigest, FileRemover, GoodNewsData, GoodNewsNotice, GoodNewsSender, onGoodNewsEdited, onGoodNewsPublished,
@@ -244,6 +246,8 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
   await sendArrivalReminders(getFirestore(), send, new Date());
   // Also the question of the week, on Monday from 9 h (récit 37): one task less to pay for.
   await publishWeeklyQuestion(getFirestore(), send, new Date());
+  // And the consumption of the day before, once from 8 h (récit 1 sexies).
+  await checkConsumptionIfDue(getFirestore(), cloudMonitoring, send, new Date());
 });
 
 // --- Question de la semaine (récit 37) --------------------------------------------------------
