@@ -15,6 +15,7 @@ import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.gifts.detail.GiftListUiState
 import fr.familia.app.feature.gifts.detail.GiftListViewModel
+import fr.familia.app.feature.gifts.detail.linkHost
 import fr.familia.app.feature.gifts.edit.GiftListEditUiState
 import fr.familia.app.feature.gifts.edit.GiftListEditViewModel
 import fr.familia.app.feature.gifts.item.GiftItemEditUiState
@@ -27,6 +28,7 @@ import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
@@ -198,6 +200,26 @@ class GiftsTest {
     }
 
     @Test
+    fun `a shop link names its site`() {
+        assertEquals("amazon.fr", linkHost("https://www.amazon.fr/dp/123"))
+        assertEquals("fnac.com", linkHost("https://fnac.com"))
+        assertNull(linkHost("pas un lien"))
+    }
+
+    @Test
+    fun `a joint gift whose parts are refused keeps the list on screen`() = runTest {
+        val gifts = FakeGifts(list("l", "adult1", viewers = listOf("adult1", "adult2")))
+        gifts.claims.value = listOf(GiftClaim("i1", ClaimType.Shared, "adult2", "Adult2"))
+        gifts.refuseShares = true
+        val vm = GiftListViewModel(gifts, FakeMembers(), "adult2", "l", today = flowOf(today))
+        val state = vm.uiState.first { it !is GiftListUiState.Loading }
+        assertTrue(state is GiftListUiState.Success)
+        val claim = (state as GiftListUiState.Success).items.single().claim!!
+        assertEquals(ClaimType.Shared, claim.type)
+        assertTrue(claim.shares.isEmpty())
+    }
+
+    @Test
     fun `a joint gift opened before the server kept its total shows at least my part`() = runTest {
         val gifts = FakeGifts(list("l", "adult1", viewers = listOf("adult1", "adult2")))
         gifts.claims.value = listOf(GiftClaim("i1", ClaimType.Shared, "admin1", "Admin1"))
@@ -291,6 +313,8 @@ class FakeGifts(list: GiftList?) : GiftRepository {
     val shares = MutableStateFlow<Map<String, List<GiftShare>>>(emptyMap())
     val itemQueries = mutableListOf<Boolean>()
     var claimQueries = 0
+    /** The server refuses the parts, like right after « Cadeau commun ». */
+    var refuseShares = false
 
     override fun observeVisibleLists(memberId: String): Flow<List<GiftList>> = list.map { listOfNotNull(it) }
     override fun observeList(listId: String): Flow<GiftList?> = list
@@ -303,7 +327,7 @@ class FakeGifts(list: GiftList?) : GiftRepository {
         return claims
     }
     override fun observeShares(listId: String, itemIds: List<String>, memberId: String, allOf: Set<String>): Flow<Map<String, List<GiftShare>>> =
-        shares.map { all ->
+        if (refuseShares) flow { throw IllegalStateException("PERMISSION_DENIED") } else shares.map { all ->
             all.filterKeys { it in itemIds }.mapValues { (itemId, parts) -> if (itemId in allOf) parts else parts.filter { it.memberId == memberId } }
         }
     override fun newListId(): String = "new-list"

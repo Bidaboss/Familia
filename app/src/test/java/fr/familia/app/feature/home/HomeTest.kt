@@ -192,4 +192,33 @@ class HomeTest {
         assertEquals(today.plusDays(3), shown[0].date)
         assertEquals(today, shown[1].date)
     }
+
+    @Test
+    fun `a poll where I voted stays with its leader until its end, then two days with its result`() {
+        val now = Instant.parse("2026-11-16T10:00:00Z")
+        fun poll(id: String, closesAt: Instant?, closed: Boolean = false, chosen: Int? = null) =
+            Poll(id, Poll.Kind.Choice, "Question $id", listOf("Pizza", "Crêpes"), false, listOf(me.id), listOf(me.id), null, closesAt, closed, chosen, null, "adult2", "Adult2", null)
+        val open = poll("p1", now.plusSeconds(86_400))
+        val ended = poll("p2", now.minusSeconds(86_400))
+        val longAgo = poll("p3", now.minusSeconds(3 * 86_400))
+        val closedByHand = poll("p4", null, closed = true)
+        val notVoted = poll("p5", now.plusSeconds(86_400))
+        fun vote(member: String, choice: Int) = PollVote(member, choices = listOf(choice), votedBy = member)
+        val votes = mapOf(
+            "p1" to listOf(vote(me.id, 1), vote("adult2", 1), vote("kid1", 0)),
+            "p2" to listOf(vote(me.id, 0)),
+            "p3" to listOf(vote(me.id, 0)),
+            "p4" to listOf(vote(me.id, 0)),
+        )
+        val shown = pollsVoted(me, listOf(open, ended, longAgo, closedByHand, notVoted), votes, now)
+        assertEquals(listOf("p2", "p1"), shown.map { it.poll.id })
+        assertTrue(shown[0].over)
+        assertEquals(listOf(1), shown[1].leaders)
+        assertEquals(2, shown[1].leaderVotes)
+        assertTrue(!shown[1].over)
+        // The one I voted on no longer asks me, but stays on the Accueil.
+        assertTrue(pollsToVote(me, listOf(open), votes, now, today).isEmpty())
+        val chosen = pollsVoted(me, listOf(poll("p6", now.minusSeconds(3600), closed = true, chosen = 0)), mapOf("p6" to listOf(vote(me.id, 1))), now)
+        assertEquals(listOf(0), chosen.single().leaders)
+    }
 }

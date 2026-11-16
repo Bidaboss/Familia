@@ -381,3 +381,7 @@ Avec l'interrupteur « Le petit geste du jour » allumé, et une Bonne nouvelle 
 1. Accueil : **Attendu :** une ligne dans « À faire pour moi », sous ce que « Rejoignez-moi » t'a envoyé et au-dessus des réponses à donner, avec un trait entre chaque partie.
 2. Touche le lien. **Attendu :** la Bonne nouvelle s'ouvre.
 3. Sans rien d'autre à faire : **Attendu :** le bloc « À faire pour moi » s'affiche quand même, avec la ligne seule.
+
+## Un sondage voté reste sur l'Accueil
+1. Réponds à un sondage depuis « À faire pour moi ». **Attendu :** il reste dans le bloc, avec « Tu as voté · en tête : … (n voix) », et l'ouvrir montre les résultats.
+2. Un sondage dont la date de fin est passée depuis moins de 2 jours : **Attendu :** « Terminé · en tête : … » (ou « retenu : … » si l'auteur a choisi). Au-delà de 2 jours, il disparaît.
