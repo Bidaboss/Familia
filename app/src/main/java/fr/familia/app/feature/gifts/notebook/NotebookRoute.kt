@@ -23,7 +23,7 @@ fun NotebookRoute(
 ) {
     val viewModel: NotebookViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { NotebookViewModel(container?.notebookRepository, currentMember.id) }
+            initializer { NotebookViewModel(container?.notebookRepository, currentMember.id, gifts = container?.giftRepository) }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()

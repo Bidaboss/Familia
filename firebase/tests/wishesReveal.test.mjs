@@ -60,3 +60,22 @@ describe('« On m\'a offert »', () => {
     await assertFails(updateDoc(doc(as(env, OTHER_ADULT), 'giftLists/wishes-kid2/received/k1'), { thanked: true, thankedAt: serverTimestamp() }));
   });
 });
+
+describe('the occasion of a reservation of « Mes envies » (rév. 186)', () => {
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, 'giftLists/wishes-adult1/items/i1'), { title: 'Un livre' });
+      await setDoc(doc(db, 'giftLists/wishes-adult1/claims/i1'), { type: 'solo', holderId: 'adult2', holderName: 'adult2', createdAt: OLD });
+    });
+  });
+
+  test('its holder chooses it, nobody else, and nothing else changes', async () => {
+    const claim = (who) => doc(as(env, who), 'giftLists/wishes-adult1/claims/i1');
+    await assertSucceeds(updateDoc(claim(OTHER_ADULT), { occasion: 'christmas' }));
+    await assertSucceeds(updateDoc(claim(OTHER_ADULT), { occasion: 'birthday' }));
+    await assertFails(updateDoc(claim(OTHER_ADULT), { occasion: 'other' }));
+    await assertFails(updateDoc(claim(OTHER_ADULT), { occasion: 'christmas', holderName: 'Autre' }));
+    await assertFails(updateDoc(claim(NEIGHBOUR), { occasion: 'christmas' }));
+  });
+});

@@ -6,7 +6,8 @@
 
 import type { Firestore } from 'firebase-admin/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
-import { wasRevealed } from './wishesReveal';
+import { parisDay } from './logic';
+import { claimOccasion, wasRevealed } from './wishesReveal';
 
 export type NotebookSource = 'claim' | 'share';
 
@@ -29,8 +30,9 @@ export function notebookEntryId(listId: string, itemId: string): string {
 }
 
 /**
- * The fields the server writes. The occasion of « Mes envies » is unknown: the member chooses it
- * in the notebook, and a later sync keeps that choice ([current] is the stored entry, if any).
+ * The fields the server writes. The occasion of a gift of « Mes envies » is the one of its
+ * reservation (rév. 186), which the holder changes from the notebook; [current], the stored entry,
+ * only fills in when neither the list nor the reservation has one.
  */
 export function takenUpFields(t: TakenUp, current: { occasion?: unknown; year?: unknown } | undefined): Record<string, unknown> {
   const listHasOccasion = t.occasion !== null;
@@ -68,6 +70,10 @@ async function takenUpBy(db: Firestore, listId: string, itemId: string, memberId
   const beneficiaryId = String(list.get('beneficiaryId') ?? '');
   const beneficiary = await db.collection('members').doc(beneficiaryId).get();
   const price = item.get('price');
+  // « Mes envies »: the occasion of the reservation, the same for its holder and every part (rév. 186).
+  const wish = list.get('kind') === 'wishes'
+    ? claimOccasion(claim.data() ?? {}, (beneficiary.get('birthDate') as string | null | undefined) ?? null, parisDay(new Date()))
+    : null;
   const amount = share.exists ? Number(share.get('amount')) : NaN;
   return {
     source: solo ? 'claim' : 'share',
@@ -75,8 +81,8 @@ async function takenUpBy(db: Firestore, listId: string, itemId: string, memberId
     itemId,
     personId: beneficiaryId,
     personName: String(beneficiary.get('firstName') ?? list.get('creatorName') ?? ''),
-    occasion: (list.get('occasion') as string | null) ?? null,
-    year: yearOf(list.get('date')),
+    occasion: wish ? wish.occasion : ((list.get('occasion') as string | null) ?? null),
+    year: wish ? wish.year : yearOf(list.get('date')),
     title: String(item.get('title') ?? ''),
     url: (item.get('url') as string | null) ?? null,
     // Alone, the whole price; in a joint gift, the member's own part (none yet for a responsible).

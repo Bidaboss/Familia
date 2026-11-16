@@ -4,7 +4,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import com.github.takahirom.roborazzi.captureRoboImage
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.feature.capsules.CapsuleDetailScreen
+import fr.familia.app.feature.capsules.CapsuleEditActions
+import fr.familia.app.feature.capsules.CapsuleEditScreen
 import fr.familia.app.feature.capsules.CapsulesScreen
+import fr.familia.app.feature.capsules.previewCapsuleDetail
+import fr.familia.app.feature.capsules.previewCapsuleEdit
 import fr.familia.app.feature.capsules.previewCapsulesState
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -19,6 +24,8 @@ import org.robolectric.annotation.GraphicsMode
 class CapsuleScreenshotTest {
 
     private val list: @Composable () -> Unit = { Surface { CapsulesScreen(previewCapsulesState(), {}, onOpen = {}, onAdd = {}) } }
+    private val edit: @Composable () -> Unit = { Surface { CapsuleEditScreen(previewCapsuleEdit(), CapsuleEditActions(), {}) } }
+    private val detail: @Composable () -> Unit = { Surface { CapsuleDetailScreen(previewCapsuleDetail(), {}, {}) } }
 
     @Test
     fun capsulesLight() = capture("capsules_clair", content = list)
@@ -30,6 +37,20 @@ class CapsuleScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun capsulesFontScale200() = capture("capsules_police_200", content = list)
+
+    @Test
+    fun capsuleLight() = capture("capsule_clair", content = detail)
+
+    @Test
+    @Config(fontScale = 2f)
+    fun capsuleFontScale200() = capture("capsule_police_200", content = detail)
+
+    @Test
+    fun capsuleEditLight() = capture("capsule_nouvelle_clair", content = edit)
+
+    @Test
+    @Config(fontScale = 2f)
+    fun capsuleEditFontScale200() = capture("capsule_nouvelle_police_200", content = edit)
 
     private fun capture(name: String, darkTheme: Boolean = false, content: @Composable () -> Unit) {
         captureRoboImage("build/outputs/roborazzi/$name.png") {

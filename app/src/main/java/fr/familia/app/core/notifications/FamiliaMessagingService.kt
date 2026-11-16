@@ -56,9 +56,12 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         // Rejoignez-moi: the Accueil, where its card is.
         val joinMeId = message.data[EXTRA_JOIN_ME_ID]
         joinMeId?.let { open.putExtra(EXTRA_JOIN_ME_ID, it) }
+        // Capsule temporelle: the capsule that opened.
+        val capsuleId = message.data[EXTRA_CAPSULE_ID]
+        capsuleId?.let { open.putExtra(EXTRA_CAPSULE_ID, it) }
         val pending = PendingIntent.getActivity(
             this,
-            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId ?: joinMeId).hashCode(),
+            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId ?: joinMeId ?: capsuleId).hashCode(),
             open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -102,5 +105,8 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         /** Same key as the `data` of functions/src/polls.ts. */
         const val EXTRA_POLL_ID = "pollId"
         const val EXTRA_JOIN_ME_ID = "joinMeId"
+
+        /** Same key as the `data` of functions/src/index.ts for a capsule notice. */
+        const val EXTRA_CAPSULE_ID = "capsuleId"
     }
 }

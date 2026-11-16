@@ -191,6 +191,12 @@ export const onGiftClaimCreated = onDocumentCreated('giftLists/{listId}/claims/{
   await syncNotebookEntry(getFirestore(), event.params.listId, event.params.itemId, holderId);
 });
 
+// The holder chose another occasion for a wish (rév. 186): every notebook of the gift follows.
+export const onGiftClaimUpdated = onDocumentUpdated('giftLists/{listId}/claims/{itemId}', async (event) => {
+  if (event.data?.before.get('occasion') === event.data?.after.get('occasion')) return;
+  await syncNotebookItem(getFirestore(), event.params.listId, event.params.itemId);
+});
+
 export const onGiftClaimDeleted = onDocumentDeleted('giftLists/{listId}/claims/{itemId}', async (event) => {
   const db = getFirestore();
   await deleteClaimShares(db, event.params.listId, event.params.itemId);
@@ -215,12 +221,18 @@ export const onMemberDeletedGifts = onDocumentDeleted('members/{memberId}', asyn
   await deleteMemberNotebook(getFirestore(), event.params.memberId);
 });
 
-// The morning after an occasion, its lists are revealed, then the taken wishes of whoever had a
-// birthday or Christmas yesterday (PRD, récit 10 bis).
+// The morning after an occasion, its lists are revealed, then each taken wish whose occasion
+// was yesterday or before (PRD, récit 10 bis, rév. 186).
 export const revealGifts = onSchedule({ schedule: '0 7 * * *', timeZone: 'Europe/Paris' }, async () => {
   const now = new Date();
-  await revealGiftLists(getFirestore(), send, now);
-  await revealWishes(getFirestore(), send, now);
+  // Each on its own: a failure of the lists never holds back the wishes, nor the reverse.
+  for (const [what, reveal] of [['lists', revealGiftLists], ['wishes', revealWishes]] as const) {
+    try {
+      await reveal(getFirestore(), send, now);
+    } catch (e) {
+      console.error(`revealGifts: ${what}`, e);
+    }
+  }
 });
 
 // D-21 and D-14 before a birthday (PRD, récit 10).
