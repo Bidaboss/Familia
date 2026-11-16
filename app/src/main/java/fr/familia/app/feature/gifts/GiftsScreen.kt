@@ -73,7 +73,7 @@ fun GiftsScreen(
             GiftsUiState.Error -> EmptyState(
                 icon = Icons.Outlined.CardGiftcard,
                 title = stringResource(R.string.gifts_error_title),
-                body = stringResource(R.string.planning_error_body),
+                body = stringResource(R.string.gifts_error_body),
                 action = {
                     Button(onClick = onRetry, modifier = Modifier.heightIn(min = 56.dp)) {
                         Text(stringResource(R.string.action_retry))

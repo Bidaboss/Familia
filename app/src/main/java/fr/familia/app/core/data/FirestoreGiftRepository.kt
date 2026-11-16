@@ -4,6 +4,7 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import fr.familia.app.core.model.ClaimType
 import fr.familia.app.core.model.GiftClaim
@@ -13,11 +14,15 @@ import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftShare
 import fr.familia.app.core.model.ReceivedGift
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 
@@ -65,7 +70,8 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
         val claims = db.collection(LISTS).document(listId).collection(CLAIMS)
         val flows = itemIds.map { itemId ->
             val shares = claims.document(itemId).collection(SHARES)
-            if (itemId in allOf) shares.observe { it.toGiftShare() } else shares.document(memberId).observeOne()
+            val parts = if (itemId in allOf) shares.observe { it.toGiftShare() } else shares.document(memberId).observeOne()
+            parts.retryRefused()
         }
         return combine(flows) { parts -> itemIds.zip(parts.toList()).toMap() }
     }
@@ -192,6 +198,21 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
         db.collection(LISTS).document(listId).collection(CLAIMS).document(itemId).collection(SHARES).document(memberId)
 
     /** One live document as a list of zero or one item: a part that does not exist yet is empty. */
+    /**
+     * The rules read the reservation to let the responsible read every part. Right after « Cadeau
+     * commun », the listener can reach the server before the reservation does, and is refused: it is
+     * tried again a few times, then the parts read empty rather than take the whole list down.
+     */
+    private fun Flow<List<GiftShare>>.retryRefused(): Flow<List<GiftShare>> =
+        retryWhen { cause, attempt ->
+            val retry = cause is FirebaseFirestoreException && attempt < SHARE_RETRIES
+            if (retry) delay(SHARE_RETRY_DELAY_MILLIS * (attempt + 1))
+            retry
+        }.catch { e ->
+            if (e is CancellationException) throw e
+            emit(emptyList())
+        }
+
     private fun DocumentReference.observeOne(): Flow<List<GiftShare>> = callbackFlow {
         val registration = addSnapshotListener { snapshot, error ->
             if (error != null) {
@@ -291,5 +312,7 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
         const val CLAIMS = "claims"
         const val SHARES = "shares"
         const val RECEIVED = "received"
+        const val SHARE_RETRIES = 4L
+        const val SHARE_RETRY_DELAY_MILLIS = 750L
     }
 }

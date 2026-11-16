@@ -539,6 +539,7 @@
     <string name="nav_gifts">Cadeaux</string>
     <string name="nav_gifts_child">Mes envies</string>
     <string name="gifts_error_title">Impossible d\'afficher les cadeaux</string>
+    <string name="gifts_error_body">L\'appli n\'a pas pu lire les cadeaux. Réessaie, et si ça continue, préviens un chef de famille.</string>
     <string name="gifts_new_list">Nouvelle liste</string>
     <string name="gifts_open_list">ouvrir la liste</string>
     <string name="gifts_section_me">Moi</string>
@@ -576,6 +577,7 @@
     <string name="gift_item_price">Environ %1$s</string>
     <string name="gift_item_idea_of">Idée de %1$s</string>
     <string name="gift_item_open_link">Voir le lien</string>
+    <string name="gift_item_open_link_on">Voir sur %1$s</string>
     <string name="gift_reserved_by">Réservé par %1$s</string>
     <string name="gift_reserved_by_me">Tu l\'as réservé</string>
     <string name="gift_joint_by">Cadeau commun, organisé par %1$s</string>
