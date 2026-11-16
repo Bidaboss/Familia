@@ -5,7 +5,6 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import fr.familia.app.core.model.Member
-import fr.familia.app.core.photo.PhotoRefusedException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -30,19 +29,14 @@ class FirestoreAlbumPhotoRepository(private val db: FirebaseFirestore) : AlbumPh
     }
 
     override suspend fun addPhoto(folder: String, slot: Int, me: Member) {
-        try {
-            photos(folder).document(AlbumPhoto.photoId(me.id, slot)).set(
-                mapOf(
-                    "authorId" to me.id,
-                    "authorName" to me.firstName,
-                    "slot" to slot,
-                    "createdAt" to FieldValue.serverTimestamp(),
-                ),
-            ).await()
-        } catch (e: FirebaseFirestoreException) {
-            if (e.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) throw PhotoRefusedException(e)
-            throw e
-        }
+        photos(folder).document(AlbumPhoto.photoId(me.id, slot)).set(
+            mapOf(
+                "authorId" to me.id,
+                "authorName" to me.firstName,
+                "slot" to slot,
+                "createdAt" to FieldValue.serverTimestamp(),
+            ),
+        ).await()
     }
 
     override suspend fun deletePhoto(photo: AlbumPhoto) {

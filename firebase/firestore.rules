@@ -1425,6 +1425,36 @@ service cloud.firestore {
       allow delete: if canChangePhoto(memberId) || (isMember() && !existsAfter(memberPath(memberId)));
     }
 
+    // --- Fiche membre (PRD, récit 7 bis) ------------------------------------------------------------
+    //
+    // memberCards/{memberId} -> { top, bottom, shoes, allergies, tastes, updatedBy, updatedAt }: the
+    // sizes, shoe size, allergies and tastes of a member, free texts, blank when unknown. The whole
+    // family reads it, to pick a present or a menu. Those who change the photo change the card. An
+    // empty card is deleted; the functions delete it with its member (onMemberDeletedCard).
+    function isCardSize(v) {
+      return v is string && v.size() <= 20;
+    }
+
+    function isCardText(v) {
+      return v is string && v.size() <= 300;
+    }
+
+    match /memberCards/{memberId} {
+      allow read: if isMember();
+      allow create, update: if canChangePhoto(memberId)
+        && exists(memberPath(memberId))
+        && request.resource.data.keys().hasOnly(['top', 'bottom', 'shoes', 'allergies', 'tastes', 'updatedBy', 'updatedAt'])
+        && request.resource.data.keys().hasAll(['top', 'bottom', 'shoes', 'allergies', 'tastes', 'updatedBy', 'updatedAt'])
+        && isCardSize(request.resource.data.top)
+        && isCardSize(request.resource.data.bottom)
+        && isCardSize(request.resource.data.shoes)
+        && isCardText(request.resource.data.allergies)
+        && isCardText(request.resource.data.tastes)
+        && request.resource.data.updatedBy == myMemberId()
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if canChangePhoto(memberId);
+    }
+
     // --- Carnet de recettes (récit 38) -------------------------------------------------------------
     //
     // recipes/{recipeId}: a family recipe, seen by every member. Ingredients and steps are kept as
@@ -2139,12 +2169,6 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/whoIsIt/$(postId)).data;
     }
 
-    // The post as it stands once the write is done: the app writes the post and its answer in one
-    // batch, and get() would not see a post written in the same batch.
-    function whoIsItAfter(postId) {
-      return getAfter(/databases/$(database)/documents/whoIsIt/$(postId)).data;
-    }
-
     function guessedWhoIsIt(postId) {
       return exists(/databases/$(database)/documents/whoIsIt/$(postId)/guesses/$(myMemberId()));
     }
@@ -2166,7 +2190,7 @@ service cloud.firestore {
       allow read: if isMember() && (whoIsItOf(postId).authorId == myMemberId() || guessedWhoIsIt(postId));
       allow create, update: if isMember()
         && docId == 'main'
-        && whoIsItAfter(postId).authorId == myMemberId()
+        && whoIsItOf(postId).authorId == myMemberId()
         && request.resource.data.keys().hasAll(['who', 'year'])
         && request.resource.data.keys().hasOnly(['who', 'year', 'personId'])
         && request.resource.data.who is string

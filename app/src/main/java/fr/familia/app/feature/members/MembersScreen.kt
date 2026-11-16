@@ -37,7 +37,6 @@ import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.PersonAdd
-import androidx.compose.material.icons.outlined.PhotoAlbum
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -105,8 +104,6 @@ fun MembersScreen(
     /** « Capsules temporelles », while their module is on (récit 39). */
     onOpenCapsules: (() -> Unit)? = null,
     onOpenGenealogy: (() -> Unit)? = null,
-    /** « Qui est-ce ? » (récit 43), among the treasures. */
-    onOpenWhoIsIt: (() -> Unit)? = null,
     /** The pencil shows on the households of [MembersUiState.Success.renamableHouseholdIds]. */
     onRenameHousehold: ((Household, String) -> Unit)? = null,
     renameFailed: Boolean = false,
@@ -200,7 +197,6 @@ fun MembersScreen(
                     onOpenRecipes?.let { Treasure("recipes", Icons.Outlined.Restaurant, R.string.recipes_title, it) },
                     onOpenCapsules?.let { Treasure("capsules", Icons.Outlined.HourglassEmpty, R.string.capsules_title, it) },
                     onOpenGenealogy?.let { Treasure("genealogy", Icons.Outlined.AccountTree, R.string.genealogy_title, it) },
-                    onOpenWhoIsIt?.let { Treasure("whoIsIt", Icons.Outlined.PhotoAlbum, R.string.feature_who_is_it, it) },
                 )
                 if (treasures.isNotEmpty()) {
                     item(key = "treasures") {

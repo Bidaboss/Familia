@@ -55,6 +55,10 @@ import fr.familia.app.feature.month.monthName
 import fr.familia.app.feature.tree.TreeHomeChip
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionHomeChip
 import fr.familia.app.feature.yearago.YearAgoHomeChip
+import fr.familia.app.feature.discover.DiscoverCard
+import fr.familia.app.feature.discover.DiscoverHome
+import fr.familia.app.feature.discover.DiscoverModule
+import fr.familia.app.feature.discover.rememberDiscoverHome
 import fr.familia.app.R
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Birthday
@@ -87,8 +91,6 @@ import fr.familia.app.feature.month.isSlideshowTime
 import fr.familia.app.feature.tree.TreeHomeCard
 import fr.familia.app.feature.yearago.YearAgoHomeCard
 import fr.familia.app.feature.trips.tripDatesLabel
-import fr.familia.app.feature.whoisit.WhoIsItHomeCard
-import fr.familia.app.feature.whoisit.WhoIsItHomeChip
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -126,6 +128,8 @@ fun HomeRoute(
     onPrepareChallenge: (YearMonth) -> Unit = {},
     /** A Bonne nouvelle linked to the challenge of a foyer (récit 35 bis). */
     onJoinChallenge: () -> Unit = {},
+    /** Opens the module of « À découvrir » (AVIS-19). */
+    onOpenDiscover: (DiscoverModule) -> Unit = {},
 ) {
     val flags = LocalFeatureFlags.current
     val giftsOn = flags.isOn(Feature.Gifts)
@@ -152,6 +156,7 @@ fun HomeRoute(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val placesOn = flags.isOn(Feature.Places)
     val joinMe = if (placesOn) rememberJoinMeHome(container, currentMember) else null
+    val discover = if (flags.isOn(Feature.Discover)) rememberDiscoverHome(currentMember, onOpenDiscover) else null
     // The small modules stand in the row of chips, each only while it has something to say (rév. 205).
     val extras = buildList {
         if (flags.isOn(Feature.WeeklyQuestion)) {
@@ -182,15 +187,6 @@ fun HomeRoute(
                 ),
             )
         }
-        if (flags.isOn(Feature.WhoIsIt)) {
-            add(
-                HomeExtra(
-                    "whoIsIt",
-                    chip = { selected, toggle -> WhoIsItHomeChip(container, currentMember, selected, toggle) },
-                    card = { WhoIsItHomeCard(container, currentMember) },
-                ),
-            )
-        }
         if (placesOn) {
             add(HomeExtra("joinMe", chip = { _, _ -> HomeChip(stringResource(R.string.joinme_send_open), onClick = onJoinMe) }))
         }
@@ -205,6 +201,7 @@ fun HomeRoute(
         },
         onOpenMonth = if (flags.isOn(Feature.MonthSlideshow)) onOpenMonth else null,
         joinMe = joinMe,
+        discover = discover,
         extras = extras,
     )
 }
@@ -213,7 +210,7 @@ fun HomeRoute(
  * The Accueil (PRD rév. 205, DESIGN-11): four blocks at most, the same for everyone and in a fixed
  * order, each hidden while it has nothing to say: « À faire pour moi » (in relief, with what
  * « Rejoignez-moi » sent me at its top), « Cette semaine », « Bonnes nouvelles », then « À découvrir »
- * the week of its release (AVIS-19, to come). Then one row of chips: anniversaires first, then the
+ * the week of its module ([discover], AVIS-19). Then one row of chips: anniversaires first, then the
  * question of the week, l'arbre, le diaporama, les voyages, la prochaine occasion and the [extras]
  * that follow. A chip with a card opens it under the row, one at a time; the others open their screen.
  * [goodNews] is given while its module is on, [onOpenMonth] while the slideshow is, from the last
@@ -227,6 +224,7 @@ fun HomeScreen(
     goodNews: (@Composable () -> Unit)? = null,
     onOpenMonth: ((YearMonth) -> Unit)? = null,
     joinMe: JoinMeHome? = null,
+    discover: DiscoverHome? = null,
     extras: List<HomeExtra> = emptyList(),
 ) {
     val ready = state as? HomeUiState.Ready
@@ -237,7 +235,7 @@ fun HomeScreen(
     val month = YearMonth.from(ready.today).takeIf { onOpenMonth != null && isSlideshowTime(ready.today) }
     val chips = homeChips(ready, actions, month, onOpenMonth, extras)
     val toDo = ready.todos.isNotEmpty() || joinMe?.hasShares == true
-    if (!toDo && ready.week.isEmpty() && goodNews == null && chips.isEmpty()) {
+    if (!toDo && ready.week.isEmpty() && goodNews == null && discover == null && chips.isEmpty()) {
         EmptyState(
             icon = Icons.Outlined.CalendarMonth,
             title = stringResource(R.string.home_empty_title),
@@ -259,7 +257,7 @@ fun HomeScreen(
         if (toDo) card("todo") { TodoCard(ready.todos, ready.today, actions, joinMe?.takeIf { it.hasShares }) }
         if (ready.week.isNotEmpty()) card("week") { WeekCard(ready.week, ready.weekMore, ready.today, actions) }
         if (goodNews != null) card("goodNews") { goodNews() }
-        // The 4th block, « À découvrir », comes with AVIS-19.
+        if (discover != null) card("discover") { DiscoverCard(discover) }
         if (chips.isNotEmpty()) {
             card("chips") {
                 FlowRow(

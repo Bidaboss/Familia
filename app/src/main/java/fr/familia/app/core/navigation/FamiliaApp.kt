@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import fr.familia.app.BuildConfig
 import fr.familia.app.R
+import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.update.UpdateBanner
 import fr.familia.app.feature.update.availableUpdate
 import fr.familia.app.feature.update.InAppUpdateDialogs
@@ -131,6 +132,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.ui.graphics.Color
 import fr.familia.app.feature.home.HomeRoute as HomeTab
+import fr.familia.app.feature.discover.DiscoverModule
 import fr.familia.app.feature.settings.NotificationSettingsRoute
 import fr.familia.app.feature.export.ExportRoute
 import fr.familia.app.feature.members.admin.AdministrationRoute
@@ -187,12 +189,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
-import fr.familia.app.feature.whoisit.WhoIsItDestination
-import fr.familia.app.feature.whoisit.WhoIsItEditDestination
-import fr.familia.app.feature.whoisit.WhoIsItEditRoute
-import fr.familia.app.feature.whoisit.WhoIsItListRoute
-import fr.familia.app.feature.whoisit.WhoIsItPostDestination
-import fr.familia.app.feature.whoisit.WhoIsItPostRoute
 import java.time.YearMonth
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
@@ -245,8 +241,11 @@ fun FamiliaApp(
     onMemberOpened: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
-    // Each time the app opens, this phone is (re)registered for the notifications of this member.
-    LaunchedEffect(currentMember.id) {
+    // Each time the app opens, this phone is (re)registered for the notifications of this member;
+    // never in « Voir comme », where the phone stays the admin's.
+    val viewingAs = LocalViewAs.current.viewed != null
+    LaunchedEffect(currentMember.id, viewingAs) {
+        if (viewingAs) return@LaunchedEffect
         try {
             container?.notificationRepository?.registerThisDevice(currentMember.id)
         } catch (e: CancellationException) {
@@ -609,6 +608,17 @@ fun FamiliaApp(
                             onPrepareChallenge = { month ->
                                 navController.navigate(HostChallengeDestination(month.year, month.monthValue)) { launchSingleTop = true }
                             },
+                            onOpenDiscover = { module ->
+                                when (module) {
+                                    DiscoverModule.WeeklyQuestion -> navController.navigate(WeeklyQuestionDestination())
+                                    DiscoverModule.HelpRequests -> navController.navigateToTab(TopLevelDestination.HelpRequests)
+                                    DiscoverModule.Polls -> navController.navigate(PollsDestination) { launchSingleTop = true }
+                                    DiscoverModule.Recipes -> navController.navigate(RecipesDestination())
+                                    DiscoverModule.Trips -> navController.navigate(TripsDestination) { launchSingleTop = true }
+                                    DiscoverModule.Capsules -> navController.navigate(CapsulesDestination) { launchSingleTop = true }
+                                    DiscoverModule.Genealogy -> navController.navigate(GenealogyDestination) { launchSingleTop = true }
+                                }
+                            },
                         )
                     }
                     composable<RecapDestination> {
@@ -786,30 +796,6 @@ fun FamiliaApp(
                             onAdd = { navController.navigate(CapsuleEditDestination) },
                         )
                     }
-                    composable<WhoIsItDestination> {
-                        WhoIsItListRoute(
-                            container = container,
-                            onOpen = { id -> navController.navigate(WhoIsItPostDestination(id)) },
-                            onAdd = { navController.navigate(WhoIsItEditDestination) },
-                            onBack = { navController.popBackStack() },
-                        )
-                    }
-                    composable<WhoIsItEditDestination> {
-                        WhoIsItEditRoute(
-                            container = container,
-                            currentMember = currentMember,
-                            onPublished = { id -> navController.navigate(WhoIsItPostDestination(id)) { popUpTo<WhoIsItEditDestination> { inclusive = true } } },
-                            onBack = { navController.popBackStack() },
-                        )
-                    }
-                    composable<WhoIsItPostDestination> { entry ->
-                        WhoIsItPostRoute(
-                            container = container,
-                            currentMember = currentMember,
-                            postId = entry.toRoute<WhoIsItPostDestination>().postId,
-                            onBack = { navController.popBackStack() },
-                        )
-                    }
                     composable<GenealogyDestination> {
                         GenealogyRoute(
                             container = container,
@@ -964,6 +950,11 @@ fun FamiliaApp(
                             } else {
                                 null
                             },
+                            onOpenBeneficiary = if (features.isOn(Feature.MemberCard)) {
+                                { id -> navController.navigate(MemberProfileDestination(id)) }
+                            } else {
+                                null
+                            },
                         )
                     }
                     composable<ReceivedGiftsDestination> {
@@ -1096,7 +1087,6 @@ fun FamiliaApp(
                             onOpenRecipes = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipesDestination()) }) else null,
                             onOpenCapsules = if (capsulesOn) ({ navController.navigate(CapsulesDestination) }) else null,
                             onOpenGenealogy = if (features.isOn(Feature.Genealogy)) ({ navController.navigate(GenealogyDestination) }) else null,
-                            onOpenWhoIsIt = if (features.isOn(Feature.WhoIsIt)) ({ navController.navigate(WhoIsItDestination) }) else null,
                             onOpenFeedback = { navController.navigate(FeedbackFormDestination(FeedbackOrigin.Family.key)) },
                             onOpenWishes = if (features.isOn(Feature.Gifts)) {
                                 { id -> navController.navigate(GiftListDestination(wishesListId(id))) }

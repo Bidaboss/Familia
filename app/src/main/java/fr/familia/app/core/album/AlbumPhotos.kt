@@ -126,8 +126,6 @@ fun PhotoStatus(state: AlbumPhotosUiState, onDismiss: () -> Unit) {
         Text(
             when (problem) {
                 PhotoProblem.SendFailed -> stringResource(R.string.album_photos_send_failed)
-                PhotoProblem.Unreadable -> stringResource(R.string.album_photos_unreadable)
-                PhotoProblem.Refused -> stringResource(R.string.album_photos_refused)
                 PhotoProblem.TooMany -> stringResource(R.string.album_photos_too_many, state.maxPerMember)
                 PhotoProblem.RemoveFailed -> stringResource(R.string.album_photos_remove_failed)
             },

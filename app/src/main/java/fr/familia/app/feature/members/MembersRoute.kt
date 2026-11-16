@@ -35,8 +35,6 @@ fun MembersRoute(
     onOpenCapsules: (() -> Unit)? = null,
     /** The family tree, while its module is on (récit 40). */
     onOpenGenealogy: (() -> Unit)? = null,
-    /** « Qui est-ce ? », while its module is on (récit 43). */
-    onOpenWhoIsIt: (() -> Unit)? = null,
     /** « Une idée ? Un souci ? » (récit 6 sexies). */
     onOpenFeedback: (() -> Unit)? = null,
 ) {
@@ -64,7 +62,6 @@ fun MembersRoute(
         onOpenRecipes = onOpenRecipes,
         onOpenCapsules = onOpenCapsules,
         onOpenGenealogy = onOpenGenealogy,
-        onOpenWhoIsIt = onOpenWhoIsIt,
         // The screen shows each action only where the live rights allow it (the rules check it too).
         onOpenAdministration = onOpenAdministration,
         onEditMember = onEditMember,

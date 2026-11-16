@@ -1,7 +1,6 @@
 package fr.familia.app.core.photo
 
 import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.StorageException
 import com.google.firebase.storage.StorageMetadata
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.ConcurrentHashMap
@@ -29,12 +28,7 @@ class FirebasePhotoStorage(private val storage: FirebaseStorage) : PhotoStorage 
     private val urls = ConcurrentHashMap<String, String>()
 
     override suspend fun upload(path: String, jpeg: ByteArray) {
-        try {
-            storage.reference.child(path).putBytes(jpeg, jpegMetadata).await()
-        } catch (e: StorageException) {
-            if (e.errorCode == StorageException.ERROR_NOT_AUTHORIZED) throw PhotoRefusedException(e)
-            throw e
-        }
+        storage.reference.child(path).putBytes(jpeg, jpegMetadata).await()
     }
 
     override suspend fun downloadUrl(path: String): String =
