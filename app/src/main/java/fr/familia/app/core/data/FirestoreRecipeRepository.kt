@@ -4,7 +4,9 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Recipe
+import fr.familia.app.core.model.RecipeComment
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -61,6 +63,45 @@ class FirestoreRecipeRepository(private val db: FirebaseFirestore) : RecipeRepos
         db.collection(RECIPES).document(id).delete().await()
     }
 
+    override fun observeComments(recipeId: String): Flow<List<RecipeComment>> = callbackFlow {
+        val registration = comments(recipeId).addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+            } else if (snapshot != null) {
+                trySend(snapshot.documents.mapNotNull { it.toComment() }.sortedWith(recipeCommentOrder))
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
+    override suspend fun addComment(recipeId: String, text: String, me: Member) {
+        comments(recipeId).document().set(
+            mapOf(
+                "text" to text,
+                "authorId" to me.id,
+                "authorName" to me.firstName,
+                "createdAt" to FieldValue.serverTimestamp(),
+            ),
+        ).await()
+    }
+
+    override suspend fun deleteComment(recipeId: String, commentId: String) {
+        comments(recipeId).document(commentId).delete().await()
+    }
+
+    private fun comments(recipeId: String) = db.collection(RECIPES).document(recipeId).collection(COMMENTS)
+
+    private fun DocumentSnapshot.toComment(): RecipeComment? {
+        val text = getString("text") ?: return null
+        return RecipeComment(
+            id = id,
+            text = text,
+            authorId = getString("authorId").orEmpty(),
+            authorName = getString("authorName").orEmpty(),
+            createdAt = getTimestamp("createdAt")?.toDate()?.toInstant(),
+        )
+    }
+
     private fun DocumentSnapshot.toRecipe(): Recipe? {
         val title = getString("title") ?: return null
         return Recipe(
@@ -80,5 +121,6 @@ class FirestoreRecipeRepository(private val db: FirebaseFirestore) : RecipeRepos
 
     private companion object {
         const val RECIPES = "recipes"
+        const val COMMENTS = "comments"
     }
 }

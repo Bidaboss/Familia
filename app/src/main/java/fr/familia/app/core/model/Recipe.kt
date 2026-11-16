@@ -34,3 +34,18 @@ data class Recipe(
         fun lines(text: String): List<String> = text.lines().map { it.trim() }.filter { it.isNotEmpty() }
     }
 }
+
+/** A comment under a recipe (« Je la fais avec moins de sucre »), in recipes/{recipeId}/comments. */
+data class RecipeComment(
+    val id: String,
+    val text: String,
+    val authorId: String,
+    /** Kept so the comment stays signed once its author has left. */
+    val authorName: String,
+    /** Null just after this phone sent it, until the server time arrives. */
+    val createdAt: Instant?,
+) {
+    companion object {
+        const val MAX_TEXT = 500
+    }
+}

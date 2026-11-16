@@ -60,6 +60,7 @@ fun MemberProfileScreen(
     onEdit: () -> Unit,
     onSetShown: (key: String, shown: Boolean) -> Unit,
     onDismissBravo: () -> Unit = {},
+    onOpenRecipes: (() -> Unit)? = null,
 ) {
     (state as? MemberProfileUiState.Ready)?.bravo?.let { souvenir ->
         SouvenirKind.of(souvenir.key)?.let { kind ->
@@ -90,7 +91,7 @@ fun MemberProfileScreen(
                     title = stringResource(R.string.member_not_found_title),
                     body = stringResource(R.string.profile_not_found_body),
                 )
-                is MemberProfileUiState.Ready -> Content(state, onEdit, onSetShown)
+                is MemberProfileUiState.Ready -> Content(state, onEdit, onSetShown, onOpenRecipes)
             }
         }
     }
@@ -98,7 +99,7 @@ fun MemberProfileScreen(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Content(state: MemberProfileUiState.Ready, onEdit: () -> Unit, onSetShown: (String, Boolean) -> Unit) {
+private fun Content(state: MemberProfileUiState.Ready, onEdit: () -> Unit, onSetShown: (String, Boolean) -> Unit, onOpenRecipes: (() -> Unit)?) {
     val member = state.member
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -117,6 +118,12 @@ private fun Content(state: MemberProfileUiState.Ready, onEdit: () -> Unit, onSet
         if (state.canEdit) {
             OutlinedButton(onClick = onEdit, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.profile_edit))
+            }
+        }
+        // The recipes that come from this member (récit 38).
+        onOpenRecipes?.let { open ->
+            OutlinedButton(onClick = open, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.profile_recipes))
             }
         }
 
