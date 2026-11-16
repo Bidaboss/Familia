@@ -1,7 +1,5 @@
 package fr.familia.app.feature.goodnews
 
-import androidx.compose.material.icons.rounded.EmojiEvents
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,10 +11,12 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.rounded.EmojiEvents
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -24,7 +24,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -46,6 +45,7 @@ import fr.familia.app.core.photo.StorageImage
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.feature.souvenirs.SouvenirFamily
 import java.time.Instant
@@ -119,11 +119,11 @@ fun GoodNewsCard(
 private fun PostActions(item: GoodNewsItem, onEdit: () -> Unit, onRemove: () -> Unit, onHide: (Boolean) -> Unit) {
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (item.canEdit) {
-            OutlinedButton(onClick = onEdit, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.goodnews_edit)) }
+            ClayLink(stringResource(R.string.goodnews_edit), onClick = onEdit)
         }
         if (item.canHide) {
             val label = if (item.isHiddenForMe) R.string.goodnews_unhide else R.string.goodnews_hide
-            OutlinedButton(onClick = { onHide(!item.isHiddenForMe) }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(label)) }
+            ClayLink(stringResource(label), onClick = { onHide(!item.isHiddenForMe) })
         }
         if (item.canRemove) {
             TextButton(

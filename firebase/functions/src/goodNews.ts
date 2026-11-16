@@ -3,6 +3,7 @@
 // Firestore, sends and deletes in Storage.
 
 import { FieldValue, Timestamp, type Firestore } from 'firebase-admin/firestore';
+import { deliver } from './prefs';
 
 export interface GoodNewsData {
   text: string;
@@ -28,6 +29,8 @@ export interface GoodNewsNotice {
   title: string;
   body: string;
   goodNewsId: string;
+  /** The post of a child, to their responsible adults (AVIS-12): never muted (récit 6 quinquies). */
+  direct?: boolean;
 }
 
 export interface GoodNewsMessage {
@@ -76,7 +79,7 @@ export function goodNewsMessages(
   if (parents.length > 0) {
     messages.push({
       recipientIds: parents,
-      notice: { channel: 'goodNews', title: `${n.authorName} a publié une Bonne nouvelle`, body: preview(n.text), goodNewsId: id },
+      notice: { channel: 'goodNews', title: `${n.authorName} a publié une Bonne nouvelle`, body: preview(n.text), goodNewsId: id, direct: true },
     });
   }
   return messages;
@@ -138,20 +141,11 @@ async function mutedMembers(db: Firestore, memberIds: string[]): Promise<Set<str
   return new Set(docs.filter((d) => d.exists && d.get('goodNews') === false).map((d) => d.ref.parent.parent!.id));
 }
 
-export async function onGoodNewsPublished(db: Firestore, send: GoodNewsSender, id: string, n: GoodNewsData): Promise<number> {
+export async function onGoodNewsPublished(db: Firestore, send: GoodNewsSender, id: string, n: GoodNewsData, now: Date = new Date()): Promise<number> {
   const members = await loadMembers(db);
   const muted = await mutedMembers(db, members.map((m) => m.id));
   let sent = 0;
-  for (const { recipientIds, notice } of goodNewsMessages(id, n, members, muted)) {
-    for (const memberId of recipientIds) {
-      const devices = await db.collection('members').doc(memberId).collection('devices').get();
-      for (const device of devices.docs) {
-        const result = await send(device.id, notice);
-        if (result === 'ok') sent++;
-        if (result === 'unregistered') await device.ref.delete();
-      }
-    }
-  }
+  for (const { recipientIds, notice } of goodNewsMessages(id, n, members, muted)) sent += await deliver(db, send, recipientIds, notice, now);
   return sent;
 }
 
@@ -182,14 +176,7 @@ export async function sendReactionDigests(db: Firestore, send: GoodNewsSender, n
     const memberDocs = reactors.length === 0 ? [] : await db.getAll(...reactors.map((mid) => db.collection('members').doc(mid)));
     const names = memberDocs.filter((d) => d.exists).map((d) => String(d.get('firstName') ?? '')).filter((name) => name);
     const notice = reactionsNotice(digest.id, n, names);
-    if (notice) {
-      const devices = await db.collection('members').doc(n.authorId).collection('devices').get();
-      for (const device of devices.docs) {
-        const result = await send(device.id, notice);
-        if (result === 'ok') sent++;
-        if (result === 'unregistered') await device.ref.delete();
-      }
-    }
+    if (notice) sent += await deliver(db, send, [n.authorId], notice, now);
     await digest.ref.update({ dueAt: FieldValue.delete(), notifiedIds: [...named, ...reactors].sort() });
   }
   return sent;

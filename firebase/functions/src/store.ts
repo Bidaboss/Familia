@@ -6,6 +6,7 @@ import type { Firestore } from 'firebase-admin/firestore';
 import {
   changeNotice, changeRecipients, ChangeKind, EventData, Member, Notice, parisDay, addDays, reminders, RsvpStatus,
 } from './logic';
+import { deliver } from './prefs';
 
 /** Sends one notification to one phone. "unregistered" means the app was uninstalled. */
 export type Sender = (token: string, notice: Notice) => Promise<'ok' | 'unregistered' | 'error'>;
@@ -32,17 +33,9 @@ export function memberForUid(members: Member[], uid: string | undefined): Member
  * Sends [notice] to every phone of [memberIds]. Phones live in members/{id}/devices/{token};
  * the token of an uninstalled app is deleted so it is not tried again.
  */
-export async function notify(db: Firestore, send: Sender, memberIds: string[], notice: Notice): Promise<number> {
-  let sent = 0;
-  for (const memberId of memberIds) {
-    const devices = await db.collection('members').doc(memberId).collection('devices').get();
-    for (const device of devices.docs) {
-      const result = await send(device.id, notice);
-      if (result === 'ok') sent++;
-      if (result === 'unregistered') await device.ref.delete();
-    }
-  }
-  return sent;
+export async function notify(db: Firestore, send: Sender, memberIds: string[], notice: Notice, now: Date = new Date()): Promise<number> {
+  // Each member's settings (récit 6 quinquies) decide: now, at 8 h, or not at all.
+  return deliver(db, send, memberIds, notice, now);
 }
 
 /** Whether a module is switched on for the family in config/app (Administration > Modules). */

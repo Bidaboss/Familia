@@ -4,6 +4,7 @@
 
 import type { Firestore } from 'firebase-admin/firestore';
 import { addDays, formatDay, formatTime, parisDay, type Channel } from './logic';
+import { deliver } from './prefs';
 
 export interface HelpRequestData {
   kind: 'childcare' | 'ride' | 'other';
@@ -38,6 +39,8 @@ export interface HelpNotice {
   title: string;
   body: string;
   helpRequestId: string;
+  /** To the volunteer, about the coup de main they took: never muted (récit 6 quinquies). */
+  direct?: boolean;
 }
 
 export interface HelpMessage {
@@ -67,8 +70,8 @@ function unique(ids: string[], except: (string | null | undefined)[], members: H
   return [...new Set(ids)].filter((id) => known.has(id) && !skip.has(id)).sort();
 }
 
-function message(id: string, recipientIds: string[], title: string, body: string): HelpMessage[] {
-  return recipientIds.length === 0 ? [] : [{ recipientIds, notice: { channel: 'helpRequests', title, body, helpRequestId: id } }];
+function message(id: string, recipientIds: string[], title: string, body: string, direct = false): HelpMessage[] {
+  return recipientIds.length === 0 ? [] : [{ recipientIds, notice: { channel: 'helpRequests', title, body, helpRequestId: id, ...(direct ? { direct } : {}) } }];
 }
 
 function askedNotice(id: string, r: HelpRequestData, recipients: string[], members: HelpMember[]): HelpMessage[] {
@@ -92,7 +95,7 @@ export function helpMessages(
   if (!after) return [];
   // Récit 17: « Merci » once the day has come, to the volunteer.
   if (before && !before.thankedAt && after.thankedAt && after.volunteerId) {
-    return message(id, unique([after.volunteerId], [], members), `${after.authorName} te dit merci !`, `Merci pour « ${after.title} ».`);
+    return message(id, unique([after.volunteerId], [], members), `${after.authorName} te dit merci !`, `Merci pour « ${after.title} ».`, true);
   }
   if (after.date < today) return [];
   if (!before) return askedNotice(id, after, unique(after.notifyIds, [after.authorId, actorId], members), members);
@@ -101,7 +104,7 @@ export function helpMessages(
   if (before.status !== 'cancelled' && after.status === 'cancelled') {
     return message(
       id, unique([before.volunteerId ?? ''], [actorId], members), 'Coup de main annulé',
-      `${after.authorName} a annulé « ${after.title} », ${helpWhen(after)}. Tu n'as plus à t'en occuper.`,
+      `${after.authorName} a annulé « ${after.title} », ${helpWhen(after)}. Tu n'as plus à t'en occuper.`, true,
     );
   }
   // Récit 16: « [prénom] s'occupe de [titre] » to the author, and the parents of a child.
@@ -137,7 +140,7 @@ export function helpMessages(
   if (after.status === 'taken' && moved && after.volunteerId) {
     messages.push(...message(
       id, unique([after.volunteerId], [actorId], members), 'Coup de main modifié',
-      `« ${after.title} » est maintenant ${helpWhen(after)}${after.place ? `, ${after.place}` : ''}.`,
+      `« ${after.title} » est maintenant ${helpWhen(after)}${after.place ? `, ${after.place}` : ''}.`, true,
     ));
   }
   return messages;
@@ -169,16 +172,7 @@ export async function loadHelpMembers(db: Firestore): Promise<(HelpMember & { ui
 
 async function sendAll(db: Firestore, send: HelpSender, messages: HelpMessage[]): Promise<number> {
   let sent = 0;
-  for (const { recipientIds, notice } of messages) {
-    for (const memberId of recipientIds) {
-      const devices = await db.collection('members').doc(memberId).collection('devices').get();
-      for (const device of devices.docs) {
-        const result = await send(device.id, notice);
-        if (result === 'ok') sent++;
-        if (result === 'unregistered') await device.ref.delete();
-      }
-    }
-  }
+  for (const { recipientIds, notice } of messages) sent += await deliver(db, send, recipientIds, notice);
   return sent;
 }
 

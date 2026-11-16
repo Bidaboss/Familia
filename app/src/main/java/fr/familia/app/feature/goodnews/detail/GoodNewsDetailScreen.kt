@@ -31,6 +31,7 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Reaction
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
+import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.feature.goodnews.GoodNewsActionFailedDialog
@@ -70,7 +71,7 @@ fun GoodNewsDetailScreen(
                     },
                 )
                 is GoodNewsDetailUiState.Success -> Column(
-                    Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
+                    Modifier.verticalScroll(rememberScrollState()).padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(24.dp),
                 ) {
                     GoodNewsCard(

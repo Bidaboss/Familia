@@ -25,6 +25,7 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.feature.home.HomeChip
 
 /**
  * The question of the week on the home screen (récit 37): the question and only the number of
@@ -33,15 +34,30 @@ import fr.familia.app.core.ui.FamiliaPreviews
  */
 @Composable
 fun WeeklyQuestionHomeCard(container: AppContainer?, currentMember: Member, onOpen: () -> Unit, modifier: Modifier = Modifier) {
-    val viewModel: WeeklyQuestionViewModel = viewModel(
-        key = "weeklyQuestionHome",
-        factory = viewModelFactory {
-            initializer { WeeklyQuestionViewModel(container?.weeklyQuestionRepository, container?.memberRepository, currentMember.id, null) }
-        },
-    )
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val state by weeklyQuestionHomeViewModel(container, currentMember).uiState.collectAsStateWithLifecycle()
     (state as? WeeklyQuestionUiState.Success)?.let { WeeklyQuestionHomeContent(it, onOpen, modifier) }
 }
+
+/** The chip of the question of the Accueil (DESIGN-11): it shows once there is a question, and opens it. */
+@Composable
+fun WeeklyQuestionHomeChip(container: AppContainer?, currentMember: Member, onOpen: () -> Unit) {
+    val state by weeklyQuestionHomeViewModel(container, currentMember).uiState.collectAsStateWithLifecycle()
+    val success = state as? WeeklyQuestionUiState.Success ?: return
+    val label = if (success.myAnswer == null) {
+        stringResource(R.string.weekly_chip_to_answer)
+    } else {
+        pluralStringResource(R.plurals.weekly_chip_answers, success.question.answerCount, success.question.answerCount)
+    }
+    HomeChip(label = label, onClick = onOpen)
+}
+
+@Composable
+private fun weeklyQuestionHomeViewModel(container: AppContainer?, currentMember: Member): WeeklyQuestionViewModel = viewModel(
+    key = "weeklyQuestionHome",
+    factory = viewModelFactory {
+        initializer { WeeklyQuestionViewModel(container?.weeklyQuestionRepository, container?.memberRepository, currentMember.id, null) }
+    },
+)
 
 @Composable
 fun WeeklyQuestionHomeContent(state: WeeklyQuestionUiState.Success, onOpen: () -> Unit, modifier: Modifier = Modifier) {
