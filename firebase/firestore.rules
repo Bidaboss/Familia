@@ -473,8 +473,9 @@ service cloud.firestore {
 
     // members/{memberId}/settings/notifications: the member's own choices (PRD, récit 6 bis: the
     // reminder the evening before can be turned off; récit 32: the good news too; récit 37: the
-    // question of the week). Nobody else reads
-    // or changes them.
+    // question of the week; récit 6 quinquies: the level, the families, the quiet hours). Nobody
+    // else reads or changes them, not even the responsible adults of a child.
+    // quietQueue/{memberId}, the notices held for 8 h, has no rule: only the functions use it.
     // Souvenirs (PRD, récit 34): members/{memberId}/souvenirs/{key}, given by the server only. A
     // souvenir is private (carte EXPERT-3): its member reads it, and the family reads it once the
     // member shows it (`shown`), the only field the member changes. souvenirCounters/{memberId}
@@ -499,7 +500,17 @@ service cloud.firestore {
       allow create, update: if isMember()
         && myMemberId() == memberId
         && settingId == 'notifications'
-        && request.resource.data.keys().hasOnly(['dayBeforeReminder', 'goodNews', 'weekly', 'souvenirs', 'tree', 'recap', 'birthdayWishes'])
+        && request.resource.data.keys().hasOnly(['dayBeforeReminder', 'goodNews', 'weekly', 'souvenirs', 'tree', 'recap', 'birthdayWishes',
+          'level', 'planning', 'reminders', 'gifts', 'comments', 'helpRequests', 'trips', 'quietHours'])
+        // Récit 6 quinquies: three levels, one switch per family, the quiet hours.
+        && (!('level' in request.resource.data) || request.resource.data.level in ['all', 'essential', 'minimal'])
+        && (!('planning' in request.resource.data) || request.resource.data.planning is bool)
+        && (!('reminders' in request.resource.data) || request.resource.data.reminders is bool)
+        && (!('gifts' in request.resource.data) || request.resource.data.gifts is bool)
+        && (!('comments' in request.resource.data) || request.resource.data.comments is bool)
+        && (!('helpRequests' in request.resource.data) || request.resource.data.helpRequests is bool)
+        && (!('trips' in request.resource.data) || request.resource.data.trips is bool)
+        && (!('quietHours' in request.resource.data) || request.resource.data.quietHours is bool)
         && (!('dayBeforeReminder' in request.resource.data) || request.resource.data.dayBeforeReminder is bool)
         && (!('goodNews' in request.resource.data) || request.resource.data.goodNews is bool)
         && (!('weekly' in request.resource.data) || request.resource.data.weekly is bool)

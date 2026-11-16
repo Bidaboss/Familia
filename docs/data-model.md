@@ -156,9 +156,18 @@ Droits : seul le membre lui-même lit, ajoute ou supprime ses téléphones. Les 
 | `birthdayWishes` | booléen, facultatif | `false` coupe les avis des vœux d'anniversaire (récit 36) : « C'est l'anniversaire de … » et, pour soi, les cartes reçues. Sans valeur, ils sont actifs. |
 | `souvenirs` | booléen, facultatif | `false` coupe l'avis « Nouveau souvenir » (récit 34). Sans valeur, il est actif. |
 | `tree` | booléen, facultatif | `false` coupe l'avis « Défi réussi » (récit 35). Sans valeur, il est actif. |
-| `weekly` | booléen, facultatif | `false` coupe l'avis de la question de la semaine (récit 37), et plus tard les autres rendez-vous de la semaine. Sans valeur, il est actif. |
+| `weekly` | booléen, facultatif | `false` coupe la famille « Rendez-vous de la semaine » (récit 6 quinquies) : la question de la semaine (récit 37), les souvenirs, le défi, le récap du dimanche et les vœux. Sans valeur, elle est active. |
+| `level` | `'all'`, `'essential'` ou `'minimal'`, facultatif | Le niveau choisi en tête de l'écran « Notifications » (récit 6 quinquies) : « Tout » (par défaut), « L'essentiel » (le planning, les rappels et ce qui me vise directement) ou « Presque rien » (seulement ce qui me vise directement). |
+| `planning`, `reminders`, `gifts`, `comments`, `helpRequests`, `trips` | booléens, facultatifs | Un interrupteur par famille (récit 6 quinquies), avec `goodNews` et `weekly` ci-dessus. `false` coupe la famille, quel que soit le niveau. Sans valeur, elle est active. |
+| `quietHours` | booléen, facultatif | `true` garde ce qui arrive entre 22 h et 8 h (heure de Paris) et l'envoie à 8 h, regroupé (récit 6 quinquies). Sans valeur, les heures calmes sont éteintes. |
 
 Droits : seul le membre lui-même lit et modifie ses réglages. L'appli écrit chaque réglage en fusion, pour ne pas effacer l'autre.
+
+Le filtre (`functions/src/prefs.ts`) s'applique côté serveur à chaque envoi, dans `notify` et dans les envois des Bonnes nouvelles et des coups de main : une notification coupée n'est pas envoyée du tout. Chaque canal Android appartient à une famille : `events` au Planning, `reminders` aux Rappels, `gifts` aux Cadeaux, `goodNews` aux Bonnes nouvelles, `comments` aux Commentaires et réactions, `helpRequests` à l'Entraide, `trips` aux Voyages, et `weekly`, `souvenirs`, `tree`, `recap` et `birthdays` aux Rendez-vous de la semaine. Ce qui me vise directement ne se coupe jamais : les canaux `joinMe`, `capsules`, `feedback` et `admin` (l'alerte de consommation), la Bonne nouvelle d'un enfant pour ses adultes responsables (AVIS-12), et ce qui concerne un coup de main que j'ai pris (merci, annulation, changement). Un enfant règle ses propres notifications : ses adultes responsables ne les rallument pas.
+
+### `quietQueue/{memberId}` (récit 6 quinquies)
+
+Les notifications gardées pendant les heures calmes d'un membre (`items`, chacune avec son heure, `heldAt`). À partir de 8 h, la tâche des 30 minutes les envoie, puis efface le document. Elle fait une notification par canal : une seule part telle quelle, plusieurs partent en « Cette nuit dans Familia » avec leurs titres. Une surprise garde ainsi son canal privé (`gifts`, `capsules`). Le document part avec le membre. Aucune règle ne l'ouvre, seules les fonctions l'utilisent.
 
 ### `weeklyRecaps/{AAAA-MM-JJ}` (récit 36)
 
