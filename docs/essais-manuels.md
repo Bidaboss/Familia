@@ -167,3 +167,15 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 4. Touche « Je ne peux plus » sur le dessert. **Attendu :** la ligne redevient libre partout.
 5. La veille de l'événement, à 18 h. **Attendu :** le rappel finit par « Tu apportes : … » pour chacun ; celui qui a pris une ligne sans répondre « Je viens » le reçoit aussi.
 6. Éteins le module. **Attendu :** la partie disparaît pour les autres membres, et le rappel ne parle plus de ce qu'on apporte.
+
+## Lieux et « Rejoignez-moi » (récit 33)
+
+1. Allume « Lieux et « Rejoignez-moi » » dans Administration > Modules. Ouvre l'Accueil. **Attendu :** une carte « Rejoignez-moi » en haut, avec « Dire où je suis ».
+2. Touche « Dire où je suis », puis « Prendre ma position ». **Attendu :** Android demande la localisation, avec « Pendant l'utilisation de l'appli » (jamais « Toujours »). Accepte : l'adresse où tu es s'affiche.
+3. Regarde « À qui ? ». **Attendu :** personne n'est coché, et « Envoyer » reste grisé. Touche « Mon foyer » : ton foyer se coche. Touche-le encore : tout se décoche. Coche une seule personne, écris un nom et un mot, puis « Envoyer ».
+4. Sur le téléphone de la personne cochée. **Attendu :** une notification « Prénom : rejoins-moi » avec le lieu et le mot. L'appui ouvre l'Accueil, où la carte montre le lieu et « Itinéraire ». « Itinéraire » ouvre Google Maps ou Waze sur le bon point.
+5. Sur ton téléphone, l'Accueil montre « Tu partages ce lieu jusqu'à … ». Touche « Ne plus partager ». **Attendu :** la carte disparaît des deux téléphones.
+6. Recommence avec « Un autre endroit » : tape une adresse puis « Chercher » ; puis colle le lien « Partager » d'un lieu dans Google Maps. **Attendu :** l'adresse est trouvée ; avec le lien, le nom du lieu se remplit tout seul.
+7. Refuse l'autorisation de localisation (Paramètres Android > Applis > Familia). **Attendu :** un message propose de choisir un autre endroit.
+8. Ouvre un événement qui a un lieu. **Attendu :** un bouton « Itinéraire » sous le lieu.
+9. Le lendemain, plus de 24 h après l'envoi. **Attendu :** la carte a disparu de l'Accueil.

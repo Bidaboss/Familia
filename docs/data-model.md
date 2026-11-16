@@ -705,6 +705,34 @@ Cloud Functions (`functions/src/polls.ts`) :
 
 Plus tard : rattacher un sondage à un événement (`eventId`) et le rappel « À faire pour moi » sur l'Accueil.
 
+## Lieux et « Rejoignez-moi » (PRD, récit 33)
+
+Interrupteur `places`. Un lieu (`core/place/Place.kt`) a toujours une position (`lat`, `lng`), et peut avoir un nom choisi par le membre et une adresse trouvée par le géocodeur Android (gratuit). Il n'y a pas de carte dans l'appli, donc pas de clé d'API : « Itinéraire » passe un lien `geo:` à Google Maps ou Waze. Le même composant servira à une Bonne nouvelle, à un événement et à une étape de voyage. Pour l'instant, le lieu d'un événement (texte libre) gagne seulement un bouton « Itinéraire ».
+
+La position est lue une seule fois, quand le membre touche « Prendre ma position ». L'autorisation demandée est « pendant l'utilisation de l'appli » seulement (`ACCESS_FINE_LOCATION` et `ACCESS_COARSE_LOCATION`, jamais `ACCESS_BACKGROUND_LOCATION`). Le membre peut aussi taper une adresse, ou coller un lien Google Maps : un lien court `maps.app.goo.gl` est ouvert une fois par le téléphone pour lire le lien complet.
+
+### `joinMe/{shareId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `authorId`, `authorName` | `memberId` et texte | Qui l'envoie, et son prénom |
+| `recipientIds` | liste de `memberId` (1 à 30) | Ceux qui le reçoivent, cochés à chaque fois (personne au départ, carte AVIS-13). Jamais l'auteur |
+| `name` | texte (1 à 60) ou null | Le nom du lieu |
+| `address` | texte (1 à 200) ou null | L'adresse trouvée par le téléphone |
+| `lat`, `lng` | nombres | La position |
+| `note` | texte (1 à 200) ou null | Un mot (« On est près du poste de secours ») |
+| `createdAt` | horodatage serveur | |
+| `expireAt` | horodatage | 24 h après l'envoi, écrit par le téléphone (la règle accepte entre 22 h et 26 h, pour une horloge un peu fausse). Firestore supprime le document ensuite (TTL déclarée dans `firestore.indexes.json`) ; l'appli le cache dès `expireAt` |
+
+Droits : tout membre avec l'appli l'envoie, en son nom. Seuls l'auteur et les destinataires le lisent, pas même l'admin principal. Personne ne le modifie. Seul l'auteur le retire (« Ne plus partager »).
+
+Cloud Functions (`functions/src/joinMe.ts`) :
+
+| Fonction | Déclencheur | Rôle |
+|---|---|---|
+| `onJoinMeCreatedNotify` | partage créé | Prévient les destinataires tout de suite, sans regroupement (carte AVIS-14) : « Camille : rejoins-moi », le lieu et le mot. Canal `joinMe` (sonne), donnée `joinMeId` : un appui ouvre l'Accueil. Tant que le module est éteint pour la famille, seul l'admin principal est prévenu, et seulement s'il est coché. |
+| `onMemberDeletedAnswers` | suppression d'un membre | Retire aussi les partages qu'il avait envoyés. |
+
 ## Utilisation (PRD, récit 1 nonies)
 
 ### `usage/{memberId}/days/{day}`

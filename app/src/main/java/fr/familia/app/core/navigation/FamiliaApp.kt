@@ -92,6 +92,7 @@ import fr.familia.app.feature.members.MembersRoute
 import fr.familia.app.feature.events.edit.EventEditRoute
 import fr.familia.app.feature.planning.PlanningRoute
 import fr.familia.app.feature.polls.detail.PollDetailRoute
+import fr.familia.app.feature.joinme.JoinMeRoute
 import fr.familia.app.feature.polls.edit.PollEditRoute
 import fr.familia.app.feature.polls.list.PollsRoute
 import fr.familia.app.feature.home.HomeActions
@@ -190,6 +191,8 @@ fun FamiliaApp(
     /** The poll of a tapped notification, to open once its module shows. */
     openPollId: String? = null,
     onPollOpened: () -> Unit = {},
+    openJoinMe: Boolean = false,
+    onJoinMeOpened: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
     // Each time the app opens, this phone is (re)registered for the notifications of this member.
@@ -334,6 +337,15 @@ fun FamiliaApp(
         if (openPollId != null && pollsOn) {
             navController.navigate(PollDetailDestination(openPollId))
             onPollOpened()
+        }
+    }
+
+    // And for a « Rejoignez-moi » (récit 33): its card is on the Accueil.
+    val placesOn = features.isOn(Feature.Places) && features.isOn(Feature.Home)
+    LaunchedEffect(openJoinMe, placesOn) {
+        if (openJoinMe && placesOn) {
+            navController.navigateToTab(TopLevelDestination.Home)
+            onJoinMeOpened()
         }
     }
 
@@ -483,6 +495,7 @@ fun FamiliaApp(
                             onPublishGoodNews = { navController.navigate(GoodNewsEditDestination()) },
                             onOpenWeeklyQuestion = { navController.navigate(WeeklyQuestionDestination()) },
                             onOpenMonth = { month -> navController.navigate(MonthSlideshowDestination(month.year, month.monthValue)) },
+                            onJoinMe = { navController.navigate(JoinMeDestination) { launchSingleTop = true } },
                         )
                     }
                     composable<PlanningRoute> {
@@ -515,6 +528,9 @@ fun FamiliaApp(
                     }
                     composable<PollEditDestination> {
                         PollEditRoute(container = container, currentMember = currentMember, onDone = { navController.popBackStack() })
+                    }
+                    composable<JoinMeDestination> {
+                        JoinMeRoute(container = container, currentMember = currentMember, onDone = { navController.popBackStack() })
                     }
                     // Trips (V3): no tab (carte DESIGN-4), they open from the planning.
                     composable<TripsDestination> {

@@ -15,6 +15,7 @@ import fr.familia.app.core.photo.PhotoEncoder
 import fr.familia.app.core.photo.PhotoStorage
 import fr.familia.app.core.photo.PhotoUploader
 import fr.familia.app.core.photo.StoragePhotoUploader
+import fr.familia.app.core.place.AndroidPlaceLocator
 import fr.familia.app.core.usage.UsageTracker
 import fr.familia.app.core.video.Media3PhotoFilmMaker
 import fr.familia.app.core.video.PhotoFilmMaker
@@ -98,6 +99,12 @@ class AppContainer(context: Context) {
 
     /** Sondages (PRD, récits 2 bis et 2 ter). */
     val pollRepository: PollRepository? by lazy { firestore?.let { FirestorePollRepository(it) } }
+
+    /** « Rejoignez-moi » (PRD, récit 33). */
+    val joinMeRepository: JoinMeRepository? by lazy { firestore?.let { FirestoreJoinMeRepository(it) } }
+
+    /** The position of the moment and the geocoder of the phone, for every place (récit 33). */
+    val placeLocator: AndroidPlaceLocator by lazy { AndroidPlaceLocator(appContext) }
 
     val exportRepository: ExportRepository? by lazy { firestore?.let { FirestoreExportRepository(it) } }
 
