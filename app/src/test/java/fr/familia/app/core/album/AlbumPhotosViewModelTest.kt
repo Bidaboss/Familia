@@ -1,8 +1,10 @@
 package fr.familia.app.core.album
 
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.photo.PhotoRefusedException
 import fr.familia.app.core.photo.PhotoStorage
 import fr.familia.app.core.photo.PhotoUploader
+import fr.familia.app.core.photo.UnreadablePhotoException
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.trips.FakeTrips
@@ -21,7 +23,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import java.io.IOException
 import java.time.Instant
 
 /** The album of a trip of TestTrips: adult1 created it and goes with adult2, everyone follows. */
@@ -48,10 +49,11 @@ class AlbumPhotosViewModelTest {
     }
 
     /** Remembers what was sent, and refuses the sources listed in [failing]. */
-    private class FakeUploader(private val failing: Set<String> = emptySet()) : PhotoUploader {
+    private class FakeUploader(private val failing: Set<String> = emptySet(), private val refused: Set<String> = emptySet()) : PhotoUploader {
         val sent = mutableListOf<Triple<String, String, String>>()
         override suspend fun upload(source: String, photoPath: String, thumbnailPath: String) {
-            if (source in failing) throw IOException("unreadable")
+            if (source in failing) throw UnreadablePhotoException("unreadable")
+            if (source in refused) throw PhotoRefusedException(IllegalStateException("rules"))
             sent += Triple(source, photoPath, thumbnailPath)
         }
     }
@@ -124,9 +126,21 @@ class AlbumPhotosViewModelTest {
         vm.addPhotos(listOf("content://a", "content://b"))
 
         assertEquals(listOf(2 to "adult2"), photos.added)
-        assertEquals(PhotoProblem.SendFailed, vm.uiState.value.problem)
+        assertEquals(PhotoProblem.Unreadable, vm.uiState.value.problem)
         vm.dismissProblem()
         assertNull(vm.uiState.value.problem)
+    }
+
+    @Test
+    fun `a photo the server refuses is said as such, not as a network problem`() = runTest {
+        val photos = FakeAlbum()
+        val vm = album("adult2", photos, FakeUploader(refused = setOf("content://a")))
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+
+        vm.addPhotos(listOf("content://a"))
+
+        assertTrue(photos.added.isEmpty())
+        assertEquals(PhotoProblem.Refused, vm.uiState.value.problem)
     }
 
     @Test
