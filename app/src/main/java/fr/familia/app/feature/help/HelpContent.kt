@@ -23,6 +23,7 @@ enum class ScreenHelp(@StringRes val titleRes: Int, @StringRes val bodyRes: Int)
     TripStepEdit(R.string.help_screen_trip_step_title, R.string.help_screen_trip_step_body),
     EventAlbum(R.string.help_screen_event_album_title, R.string.help_screen_event_album_body),
     MonthSlideshow(R.string.help_screen_month_title, R.string.help_screen_month_body),
+    Recipes(R.string.help_screen_recipes_title, R.string.help_screen_recipes_body),
 }
 
 /** Who sees a topic of the help page: the functions they can use. */
