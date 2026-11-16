@@ -205,3 +205,17 @@ Avant ces essais : « Publier Firebase » a publié les règles, l'index TTL et 
 7. Écris plus de 30 commentaires (ou ouvre un événement qui en a). **Attendu :** les 30 plus récents, et « Voir les commentaires plus anciens » en haut qui montre les autres.
 8. Supprime l'événement. **Attendu :** ses commentaires disparaissent aussi (console Firebase).
 9. Éteins le module. **Attendu :** la partie disparaît pour tout le monde sauf l'admin principal, et seul l'admin principal reçoit encore les notifications.
+
+## Voir comme (PRD, rôles)
+
+Avec le compte de l'admin principal.
+
+1. Ouvre Famille > Administration. **Attendu :** une ligne « Voir comme… » avec une phrase d'explication. Touche-la. **Attendu :** la liste des autres membres, par prénom, avec leur photo.
+2. Choisis un adulte d'un autre foyer. **Attendu :** l'appli repart de son premier onglet, sous un bandeau « Tu vois l'appli comme Prénom » avec « Quitter ». Les onglets et les modules sont les siens : un module encore en test n'apparaît plus.
+3. Ouvre un événement et touche « Je viens ». **Attendu :** le message « Lecture seule en mode Voir comme », et la réponse ne change pas, ni ici ni sur un autre téléphone. Essaie aussi d'ajouter un événement, de commenter et de réserver un cadeau : même message, rien n'est écrit.
+4. Ouvre Famille. **Attendu :** pas de menu Administration (le membre n'est pas admin principal), et les droits de ce membre (un chef voit ceux de son foyer).
+5. Touche « Quitter ». **Attendu :** l'appli revient à ton compte, sur son premier onglet, avec Administration.
+6. Ouvre Aide. **Attendu :** une rubrique « Si tu as besoin d'aide » dit que l'admin principal peut voir l'appli comme toi, sans rien modifier.
+7. Avec le compte d'un autre membre, ouvre Administration si tu y as accès. **Attendu :** pas de « Voir comme… ».
+
+Limites connues de cette première partie : ce que le serveur cache à l'admin (le carnet de cadeaux, l'espace cadeau de son propre anniversaire) reste caché. Le message « Masqué : c'est ta surprise » et les demandes de coup de main viendront dans une deuxième partie.

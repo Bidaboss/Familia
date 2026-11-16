@@ -932,6 +932,13 @@
     <string name="share_poll_text">Sondage dans Familia : %1$s Réponds ici :</string>
     <string name="share_birthday_text">Anniversaire de %1$s : %2$s le %3$s. On se retrouve dans Familia :</string>
     <string name="feature_share">Partager vers une messagerie</string>
+    <string name="help_topic_view_as_title">Si tu as besoin d\'aide</string>
+    <string name="help_topic_view_as_body">L\'admin principal peut voir l\'appli comme toi, sans rien modifier, pour t\'aider. Il ne voit jamais ton carnet de cadeaux.</string>
+    <string name="view_as_title">Voir comme…</string>
+    <string name="view_as_help">L\'appli telle que la voit un membre, sans rien pouvoir modifier.</string>
+    <string name="view_as_banner">Tu vois l\'appli comme %1$s</string>
+    <string name="view_as_quit">Quitter</string>
+    <string name="view_as_read_only">Lecture seule en mode Voir comme</string>
     <string name="feature_comments">Commentaires sous les événements</string>
     <string name="event_comments_title">Commentaires</string>
     <string name="event_comments_more">Voir les commentaires plus anciens</string>

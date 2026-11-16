@@ -1,0 +1,74 @@
+package fr.familia.app.core.viewas
+
+import androidx.compose.runtime.staticCompositionLocalOf
+import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Member
+import fr.familia.app.core.usage.UsageTracker
+
+/** Thrown by every write in « Voir comme »: nothing was written. */
+class ReadOnlyViewException : IllegalStateException("Lecture seule en mode Voir comme")
+
+/**
+ * Refuses the writes of « Voir comme ». [onRefused] tells the admin (« Lecture seule en mode Voir
+ * comme »); it is called on the thread of the write, so it must be safe from anywhere.
+ */
+class ViewAsGuard(private val onRefused: () -> Unit = {}) {
+    /** A write the admin asked for: they are told, and the caller gets [ReadOnlyViewException]. */
+    fun refuse(): Nothing {
+        onRefused()
+        throw ReadOnlyViewException()
+    }
+
+    /** A write the app makes by itself (the phone's registration, the time counted): skipped silently. */
+    fun refuseQuietly() = Unit
+}
+
+/** What the screens know of « Voir comme »: start it from Administration, or the member looked at. */
+data class ViewAsControl(
+    /** Null outside « Voir comme ». */
+    val viewed: Member? = null,
+    /** Null when « Voir comme » cannot start here (not the admin principal, or already in it). */
+    val start: ((Member) -> Unit)? = null,
+    val stop: () -> Unit = {},
+)
+
+val LocalViewAs = staticCompositionLocalOf { ViewAsControl() }
+
+/**
+ * The container of « Voir comme »: the same reads as [base], every write refused. The member's
+ * own time is not counted (no [usageTracker]).
+ */
+class ViewAsContainer(private val base: AppContainer, guard: ViewAsGuard) : AppContainer {
+    override val authRepository = base.authRepository?.let { ReadOnlyAuthRepository(it, guard) }
+    override val memberRepository = base.memberRepository?.let { ReadOnlyMemberRepository(it, guard) }
+    override val linkPreviewRepository = base.linkPreviewRepository
+    override val memberPhotoRepository = base.memberPhotoRepository?.let { ReadOnlyMemberPhotoRepository(it, guard) }
+    override val eventRepository = base.eventRepository?.let { ReadOnlyEventRepository(it, guard) }
+    override val rsvpRepository = base.rsvpRepository?.let { ReadOnlyRsvpRepository(it, guard) }
+    override val bringRepository = base.bringRepository?.let { ReadOnlyBringRepository(it, guard) }
+    override val eventCommentRepository = base.eventCommentRepository?.let { ReadOnlyEventCommentRepository(it, guard) }
+    override val helpRequestRepository = base.helpRequestRepository?.let { ReadOnlyHelpRequestRepository(it, guard) }
+    override val tripRepository = base.tripRepository?.let { ReadOnlyTripRepository(it, guard) }
+    override val recipeRepository = base.recipeRepository?.let { ReadOnlyRecipeRepository(it, guard) }
+    override val capsuleRepository = base.capsuleRepository?.let { ReadOnlyCapsuleRepository(it, guard) }
+    override val goodNewsRepository = base.goodNewsRepository?.let { ReadOnlyGoodNewsRepository(it, guard) }
+    override val weeklyQuestionRepository = base.weeklyQuestionRepository?.let { ReadOnlyWeeklyQuestionRepository(it, guard) }
+    override val souvenirRepository = base.souvenirRepository?.let { ReadOnlySouvenirRepository(it, guard) }
+    override val treeRepository = base.treeRepository?.let { ReadOnlyTreeRepository(it, guard) }
+    override val photoStorage = base.photoStorage?.let { ReadOnlyPhotoStorage(it, guard) }
+    override val photoUploader = base.photoUploader?.let { ReadOnlyPhotoUploader(guard) }
+    override val albumPhotoRepository = base.albumPhotoRepository?.let { ReadOnlyAlbumPhotoRepository(it, guard) }
+    override val filmMaker = base.filmMaker
+    override val appConfigRepository = base.appConfigRepository?.let { ReadOnlyAppConfigRepository(it, guard) }
+    override val giftRepository = base.giftRepository?.let { ReadOnlyGiftRepository(it, guard) }
+    override val notebookRepository = base.notebookRepository?.let { ReadOnlyNotebookRepository(it, guard) }
+    override val usageRepository = base.usageRepository?.let { ReadOnlyUsageRepository(it, guard) }
+    override val usageTracker: UsageTracker? = null
+    override val consumptionRepository = base.consumptionRepository
+    override val pollRepository = base.pollRepository?.let { ReadOnlyPollRepository(it, guard) }
+    override val joinMeRepository = base.joinMeRepository?.let { ReadOnlyJoinMeRepository(it, guard) }
+    override val placeLocator = base.placeLocator
+    override val exportRepository = base.exportRepository?.let { ReadOnlyExportRepository(guard) }
+    override val notificationRepository = base.notificationRepository?.let { ReadOnlyNotificationRepository(it, guard) }
+    override val googleCredentialProvider = base.googleCredentialProvider
+}

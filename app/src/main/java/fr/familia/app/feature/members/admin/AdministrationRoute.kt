@@ -2,6 +2,7 @@ package fr.familia.app.feature.members.admin
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -10,6 +11,11 @@ import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.core.viewas.LocalViewAs
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOf
+import java.text.Collator
+import java.util.Locale
 
 /** Connects the Administration menu to its ViewModel. */
 @Composable
@@ -39,6 +45,13 @@ fun AdministrationRoute(
     val rotation by viewModel.rotation.collectAsStateWithLifecycle()
     // The card only shows when the tree is on for the admin principal (always, while in test).
     val treeOn = LocalFeatureFlags.current.isOn(Feature.Tree)
+    // « Voir comme » (PRD, rôles): every other member, by first name.
+    val startViewAs = LocalViewAs.current.start
+    val families = remember(container) { container?.memberRepository?.observeFamily()?.catch { } ?: flowOf(null) }
+    val family by families.collectAsStateWithLifecycle(initialValue = null)
+    val viewAsMembers = family?.members.orEmpty()
+        .filter { it.id != currentMember.id }
+        .sortedWith(compareBy(Collator.getInstance(Locale.FRENCH)) { it.firstName })
     AdministrationScreen(
         state = state,
         onBack = onBack,
@@ -58,5 +71,7 @@ fun AdministrationRoute(
         onPickChallenge = if (treeOn) viewModel::pickChallenge else null,
         rotation = rotation,
         onSaveRotation = if (treeOn) viewModel::saveRotation else null,
+        viewAsMembers = viewAsMembers,
+        onViewAs = startViewAs,
     )
 }
