@@ -93,6 +93,11 @@ jobs:
       - name: Android lint
         run: ./gradlew lintDebug
 
+      # R8 runs only on the release build: building it here (unsigned, no secret) shows a missing
+      # keep rule in the PR, not on the day of a release.
+      - name: Release APK with R8 (unsigned)
+        run: ./gradlew assembleRelease
+
       - name: Unit tests and screenshots
         run: ./gradlew recordRoborazziDebug
 

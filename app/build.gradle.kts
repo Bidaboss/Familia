@@ -72,7 +72,11 @@ android {
             if (signingValue("FAMILIA_TEST_KEYSTORE_PATH") != null) signingConfig = signingConfigs.getByName("test")
         }
         release {
-            isMinifyEnabled = false
+            // R8 (audit): smaller APK. Turned on only after the release of the 21st (see
+            // proguard-rules.pro): names are kept, so the traces of « Plantages » stay readable.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             if (signingValue("FAMILIA_KEYSTORE_PATH") != null) signingConfig = signingConfigs.getByName("release")
         }
     }
