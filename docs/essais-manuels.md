@@ -179,3 +179,15 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 7. Refuse l'autorisation de localisation (Paramètres Android > Applis > Familia). **Attendu :** un message propose de choisir un autre endroit.
 8. Ouvre un événement qui a un lieu. **Attendu :** un bouton « Itinéraire » sous le lieu.
 9. Le lendemain, plus de 24 h après l'envoi. **Attendu :** la carte a disparu de l'Accueil.
+
+## Partager vers une messagerie (récit 31, première partie)
+
+Avant ces essais : « Publier Firebase » a publié la page des liens (Hosting), et le module « Partager vers une messagerie » est allumé dans Administration > Modules.
+
+1. Ouvre un événement, puis touche l'icône **Partager** en haut. **Attendu :** le partage d'Android s'ouvre. Dans WhatsApp, le message montre une image Argile (titre, jour, heure, lieu, « Familia » en bas), puis un texte qui se lit seul et un lien `https://familia-93286.web.app/o/event/…`. Ni « qui vient », ni la note de l'événement.
+2. Fais la même chose sur un sondage, puis sur un anniversaire du Planning (icône à droite de la ligne). **Attendu :** le sondage montre sa question, sans les réponses. L'anniversaire montre le prénom, le jour et l'âge, sans photo.
+3. Sur un téléphone qui a la version famille, touche le lien reçu. **Attendu :** Familia s'ouvre directement sur l'événement, le sondage ou la page du membre.
+4. Ouvre le même lien dans le navigateur d'un téléphone sans Familia. **Attendu :** une page Argile dit « Un événement de la famille », sans aucun titre, nom ni date, avec « Ouvrir dans Familia » et la phrase « Demande le lien d'installation… ». Aucun lien vers le Drive.
+5. Avec la version de test, touche « Ouvrir dans Familia » sur cette page. **Attendu :** Android propose d'ouvrir Familia (test), puis l'élément s'ouvre.
+6. Ouvre `https://familia-93286.web.app/o/event/` (sans identifiant). **Attendu :** la page dit que le lien n'est pas complet, sans bouton « Ouvrir ».
+7. Éteins le module. **Attendu :** les icônes Partager disparaissent pour tout le monde sauf l'admin principal.

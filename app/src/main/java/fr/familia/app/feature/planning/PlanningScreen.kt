@@ -62,6 +62,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.share.ShareButton
 import fr.familia.app.core.model.Birthday
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventTarget
@@ -97,6 +98,8 @@ fun PlanningScreen(
     /** « Toute la famille » / « Mon foyer » (carte AVIS-8); hidden when null. */
     onScopeChange: ((PlanningScope) -> Unit)? = null,
     onOpenTrip: (tripId: String) -> Unit = {},
+    /** « Partager » on a birthday (PRD, récit 31); hidden when null. */
+    onShareBirthday: ((Birthday) -> Unit)? = null,
 ) {
     var mode by rememberSaveable { mutableStateOf(initialMode) }
     Box(modifier.fillMaxSize()) {
@@ -137,10 +140,10 @@ fun PlanningScreen(
                             // Room at the bottom so the add button never hides the last event.
                             contentPadding = PaddingValues(bottom = 96.dp),
                         ) {
-                            dayItems(state.days, state.today, onOpenEvent, onOpenTrip)
+                            dayItems(state.days, state.today, onOpenEvent, onOpenTrip, onShareBirthday)
                         }
                     }
-                    PlanningMode.Month -> MonthView(state, onOpenEvent, onOpenTrip)
+                    PlanningMode.Month -> MonthView(state, onOpenEvent, onOpenTrip, onShareBirthday)
                 }
             }
         }
@@ -200,10 +203,13 @@ private fun LazyListScope.dayItems(
     today: LocalDate,
     onOpenEvent: (String) -> Unit,
     onOpenTrip: (String) -> Unit = {},
+    onShareBirthday: ((Birthday) -> Unit)? = null,
 ) {
     days.forEach { day ->
         item(key = "day-${day.date}") { DayHeader(day.date, today) }
-        items(day.birthdays, key = { "birthday-${day.date}-${it.member.id}" }) { BirthdayRow(it) }
+        items(day.birthdays, key = { "birthday-${day.date}-${it.member.id}" }) { birthday ->
+            BirthdayRow(birthday, onShare = onShareBirthday?.let { share -> { share(birthday) } })
+        }
         items(day.trips, key = { "trip-${day.date}-${it.trip.id}" }) { trip ->
             TripRow(trip, today, onClick = { onOpenTrip(trip.trip.id) })
         }
@@ -220,7 +226,12 @@ private fun LazyListScope.dayItems(
  * Only the current month and the next twelve: the planning shows what is to come.
  */
 @Composable
-private fun MonthView(state: PlanningUiState.Success, onOpenEvent: (String) -> Unit, onOpenTrip: (String) -> Unit = {}) {
+private fun MonthView(
+    state: PlanningUiState.Success,
+    onOpenEvent: (String) -> Unit,
+    onOpenTrip: (String) -> Unit = {},
+    onShareBirthday: ((Birthday) -> Unit)? = null,
+) {
     var offset by rememberSaveable { mutableIntStateOf(0) }
     val month = YearMonth.from(state.today).plusMonths(offset.toLong())
     val monthDays = state.days.filter { YearMonth.from(it.date) == month }
@@ -247,7 +258,7 @@ private fun MonthView(state: PlanningUiState.Success, onOpenEvent: (String) -> U
                 )
             }
         } else {
-            dayItems(monthDays, state.today, onOpenEvent, onOpenTrip)
+            dayItems(monthDays, state.today, onOpenEvent, onOpenTrip, onShareBirthday)
         }
     }
 }
@@ -444,7 +455,7 @@ private fun TripRow(item: PlanningTrip, today: LocalDate, onClick: () -> Unit) {
 
 /** A birthday in the planning: read only, it comes from the member's birth date. */
 @Composable
-private fun BirthdayRow(birthday: Birthday) {
+private fun BirthdayRow(birthday: Birthday, onShare: (() -> Unit)? = null) {
     Column {
         Row(
             modifier = Modifier
@@ -467,6 +478,10 @@ private fun BirthdayRow(birthday: Birthday) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+            if (onShare != null) {
+                Spacer(Modifier.weight(1f))
+                ShareButton(onClick = onShare)
             }
         }
         HorizontalDivider(Modifier.padding(start = 100.dp))
