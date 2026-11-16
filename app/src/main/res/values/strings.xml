@@ -881,6 +881,8 @@
     <string name="help_topic_trips_body">Touche « Voyages » en haut du planning. Un voyage a des dates, des personnes qui partent et des étapes. Il apparaît dans le planning de ceux qui le suivent. À chaque arrivée, une personne qui part touche « Bien arrivé » : ceux qui suivent le voyage sont prévenus. Sans « Bien arrivé » 3 h après l\'heure prévue, ceux qui partent reçoivent un rappel. Aucune position GPS n\'est collectée.</string>
     <string name="help_topic_weekly_title">Répondre à la question de la semaine</string>
     <string name="help_topic_weekly_body">Chaque lundi à 9 h, une question arrive pour toute la famille, sur l\'Accueil. Réponds en quelques mots, ou touche « Passer ». Tu vois les réponses des autres dès que tu as répondu ou passé, et tout le monde les voit le mercredi vers 9 h. Tu peux modifier ou retirer ta réponse. « Nos réponses » garde les questions des semaines passées. Pour ne plus être prévenu le lundi, va dans les réglages des notifications.</string>
+    <string name="help_topic_souvenirs_title">Mes souvenirs</string>
+    <string name="help_topic_souvenirs_body">Familia te donne un souvenir pour certains gestes : ta première Bonne nouvelle, 10 réactions, 5 coups de main rendus, ton premier « bien arrivé » en voyage, tes réponses à la question de la semaine, et ta première année dans Familia. Tu les trouves sur ta fiche, dans l\'onglet Famille. Ils sont privés : touche « Montrer sur ma fiche » pour que la famille voie ceux que tu choisis. Il n\'y a ni classement ni score. Pour ne plus être prévenu d\'un nouveau souvenir, va dans les réglages des notifications.</string>
     <!-- Accueil (PRD, récit 29, « Tableau de bord d'accueil ») -->
     <string name="nav_home">Accueil</string>
     <string name="home_empty_title">Rien de prévu pour l\'instant</string>
@@ -1023,6 +1025,10 @@
     <string name="souvenir_hint_first_weekly_answer">Réponds à une question de la semaine.</string>
     <string name="souvenir_hint_first_arrival">Dis « bien arrivé » pendant un voyage.</string>
     <string name="souvenir_hint_one_year">Il viendra pour ton premier anniversaire dans Familia.</string>
+    <string name="souvenir_bravo_title">Bravo !</string>
+    <string name="souvenir_bravo_private">Ce souvenir est à toi. Personne ne le voit tant que tu ne le montres pas.</string>
+    <string name="souvenir_bravo_shown">La famille le voit sur ta fiche.</string>
+    <string name="souvenir_bravo_close">Fermer</string>
     <plurals name="souvenir_left_reactions">
         <item quantity="one">Encore %d réaction</item>
         <item quantity="many">Encore %d réactions</item>

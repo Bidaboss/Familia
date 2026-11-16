@@ -9,6 +9,8 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Souvenir
 import fr.familia.app.core.model.SouvenirCounters
 import fr.familia.app.core.model.canEditMember
+import fr.familia.app.feature.souvenirs.SouvenirCelebrations
+import fr.familia.app.feature.souvenirs.SouvenirKind
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,6 +40,8 @@ sealed interface MemberProfileUiState {
         val souvenirs: List<Souvenir>,
         val counters: SouvenirCounters = SouvenirCounters(),
         val saveFailed: Boolean = false,
+        /** The newest souvenir not yet celebrated on this phone, for the « Bravo » sheet (my page only). */
+        val bravo: Souvenir? = null,
     ) : MemberProfileUiState
 }
 
@@ -48,10 +52,12 @@ class MemberProfileViewModel(
     private val souvenirs: SouvenirRepository?,
     private val currentMemberId: String,
     private val memberId: String,
+    private val celebrations: SouvenirCelebrations? = null,
 ) : ViewModel() {
 
     private val saveFailed = MutableStateFlow(false)
     private val isMe = memberId == currentMemberId
+    private val celebrated = MutableStateFlow(if (isMe) celebrations?.celebrated(memberId).orEmpty() else emptySet())
 
     private val mySouvenirs = when {
         souvenirs == null -> flowOf(emptyList())
@@ -67,7 +73,7 @@ class MemberProfileViewModel(
             if (member == null) {
                 flowOf(MemberProfileUiState.NotFound)
             } else {
-                combine(mySouvenirs, counters, saveFailed) { list, count, failed ->
+                combine(mySouvenirs, counters, saveFailed, celebrated) { list, count, failed, done ->
                     MemberProfileUiState.Ready(
                         member = member,
                         householdName = family.households.firstOrNull { it.id == member.householdId }?.name,
@@ -76,6 +82,11 @@ class MemberProfileViewModel(
                         souvenirs = list.sortedBy { it.earnedAt },
                         counters = count,
                         saveFailed = failed,
+                        bravo = if (isMe && celebrations != null) {
+                            list.filter { it.key !in done && SouvenirKind.of(it.key) != null }.maxByOrNull { it.earnedAt }
+                        } else {
+                            null
+                        },
                     )
                 }
             }
@@ -85,6 +96,17 @@ class MemberProfileViewModel(
             emit(MemberProfileUiState.NotFound)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MemberProfileUiState.Loading)
+
+    /**
+     * Closes the « Bravo » sheet. Every souvenir already earned counts as celebrated, so a member who
+     * opens the page for the first time sees one sheet only, for the newest.
+     */
+    fun dismissBravo() {
+        val state = uiState.value as? MemberProfileUiState.Ready ?: return
+        val keys = state.souvenirs.map { it.key }.toSet()
+        celebrations?.markCelebrated(memberId, keys)
+        celebrated.value = celebrated.value + keys
+    }
 
     /** Shows a souvenir on one's own page, or hides it again. */
     fun setShown(key: String, shown: Boolean) {
