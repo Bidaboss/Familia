@@ -53,6 +53,13 @@ class ShareLinkTest {
     }
 
     @Test
+    fun `the manifest opens the links of the same host and scheme`() {
+        val manifest = java.io.File("src/main/AndroidManifest.xml").readText()
+        assertTrue(manifest.contains("""android:host="$SHARE_HOST""""))
+        assertTrue(manifest.contains("""android:scheme="$SHARE_SCHEME" android:host="o""""))
+    }
+
+    @Test
     fun `the message ends with the link on its own line`() {
         val content = ShareContent("Repas", emptyList(), "Repas de Noël. Les détails sont dans Familia : ", "https://x/o/event/a")
         assertEquals("Repas de Noël. Les détails sont dans Familia :\nhttps://x/o/event/a", shareMessage(content))

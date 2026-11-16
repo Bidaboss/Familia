@@ -31,9 +31,12 @@ class AppIconTest {
             assertTrue("alias .${icon.alias} missing", alias != null)
             assertTrue(alias!!.value.contains("""android:enabled="${icon == AppIcon.Default}""""))
         }
+        // MainActivity opens shared links (récit 31), but the launcher entries stay on the aliases.
+        val mainActivity = Regex("""<activity\s[^>]*android:name="\.MainActivity"(?:[^>]*/>|[\s\S]*?</activity>)""").find(manifest)
+        assertTrue("MainActivity missing", mainActivity != null)
         assertTrue(
             "MainActivity must not have its own launcher entry",
-            Regex("""android:name="\.MainActivity"[^>]*/>""").containsMatchIn(manifest),
+            !mainActivity!!.value.contains("android.intent.category.LAUNCHER"),
         )
     }
 }
