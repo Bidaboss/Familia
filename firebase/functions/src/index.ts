@@ -16,6 +16,7 @@ import {
   sendBirthdayGiftReminders, updateSharesTotal,
 } from './gifts';
 import { openDueCapsules } from './capsules';
+import { CommentData, deleteCommentMutesOf, deleteEventComments, onCommentCreated } from './comments';
 import { checkConsumptionIfDue } from './consumption';
 import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
 import { closeDuePolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
@@ -110,10 +111,11 @@ export const onEventDeleted = onDocumentDeletedWithAuthContext('events/{eventId}
     const answered = await comingMembers(db, event.params.eventId, members);
     if (data) await notifyChange(db, send, 'deleted', event.params.eventId, data, actorUid(event), new Date(), answered, members);
   } finally {
-    // Each one is tried even if another fails: answers, then the album (récit 41), records and files.
+    // Each one is tried even if another fails: answers, the album (récit 41), records and files, comments (récit 28).
     const results = await Promise.allSettled([
       deleteEventAnswers(db, event.params.eventId),
       db.recursiveDelete(db.collection('events').doc(event.params.eventId).collection('photos')),
+      deleteEventComments(db, event.params.eventId),
       getStorage().bucket().deleteFiles({ prefix: `events/${event.params.eventId}/` }),
     ]);
     const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
@@ -132,6 +134,13 @@ export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (ev
   await deleteMemberData(getFirestore(), event.params.memberId);
   // « Qui apporte quoi » (récit 4 bis): what they had taken is free again.
   await releaseBringOf(getFirestore(), event.params.memberId);
+  await deleteCommentMutesOf(getFirestore(), event.params.memberId);
+});
+
+// Commentaires d'un événement (récit 28): those who follow the event are told.
+export const onEventCommentCreated = onDocumentCreated('events/{eventId}/comments/{commentId}', async (event) => {
+  const data = event.data?.data() as CommentData | undefined;
+  if (data) await onCommentCreated(getFirestore(), send, event.params.eventId, event.params.commentId, data);
 });
 
 export const dayBeforeReminder = onSchedule({ schedule: '0 18 * * *', timeZone: 'Europe/Paris' }, async () => {
