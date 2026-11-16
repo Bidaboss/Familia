@@ -23,5 +23,9 @@ data class BirthdayCard(
 
         /** The Bonne nouvelle that Familia publishes on the morning of the birthday: cards may be written while it is new. */
         fun newsId(year: Int, memberId: String): String = "birthday-$year-$memberId"
+
+        /** The year of such a Bonne nouvelle, read back from its id; null for any other. */
+        fun yearOfNews(newsId: String): Int? =
+            newsId.takeIf { it.startsWith("birthday-") }?.removePrefix("birthday-")?.substringBefore('-')?.toIntOrNull()
     }
 }

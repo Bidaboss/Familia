@@ -38,7 +38,12 @@ class GoodNewsDetailViewModel(
                 if (news == null || me == null) {
                     GoodNewsDetailUiState.Missing
                 } else {
-                    GoodNewsDetailUiState.Success(goodNewsItem(news, me, family), clock(), failed)
+                    GoodNewsDetailUiState.Success(
+                        goodNewsItem(news, me, family),
+                        clock(),
+                        failed,
+                        birthdayPerson = news.birthdayOf?.let { id -> family.members.firstOrNull { it.id == id } },
+                    )
                 }
             }.catch { emit(GoodNewsDetailUiState.Missing) }
         }

@@ -58,7 +58,7 @@ object YearAgo {
         val day = dayOf(today)
         fun Instant?.isThatDay() = this != null && atZone(ZONE).toLocalDate() == day
         val fromNews = news
-            .filter { it.createdAt.isThatDay() && it.challengeMonth == null && !it.isHiddenFor(memberId) }
+            .filter { it.createdAt.isThatDay() && it.challengeMonth == null && it.birthdayOf == null && !it.isHiddenFor(memberId) }
             .map { YearAgoMemory.News(it) }
             .filterNot { it.key in dismissed }
             .sortedWith(

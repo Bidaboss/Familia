@@ -58,9 +58,11 @@ class BirthdayCardsViewModel(
     today: LocalDate,
     /** False in « Voir comme ». */
     mayWrite: Boolean = true,
+    /** The year of the birthday shown; the last one when null (on the member's page). */
+    birthdayYear: Int? = null,
     private val clock: () -> Instant = Instant::now,
 ) : ViewModel() {
-    private val year = BirthdayWishes.lastBirthdayYear(person.birthDate, today)
+    private val year = birthdayYear ?: BirthdayWishes.lastBirthdayYear(person.birthDate, today)
     private val saving = MutableStateFlow(false)
     private val failed = MutableStateFlow(false)
 
