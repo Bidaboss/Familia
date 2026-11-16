@@ -200,6 +200,7 @@
     <string name="usage_screen_trips">Voyages</string>
     <string name="usage_screen_other">Autres écrans</string>
     <string name="feature_weekly_question">Question de la semaine</string>
+    <string name="feature_calendar">Ajouter à mon agenda</string>
     <string name="feature_event_albums">Albums des événements</string>
     <string name="household_rename_action">Renommer le foyer %1$s</string>
     <string name="household_rename_title">Renommer le foyer</string>
@@ -982,4 +983,12 @@
     <string name="consumption_gauge_description">%1$s : %2$s, %3$d pour cent</string>
     <string name="consumption_cost">Coût estimé du mois : %1$s</string>
     <string name="consumption_cost_help">Ce coût est une estimation, pas la facture. Familia te prévient à 80 % d\'une limite ou au-delà de 0,50 €. Le vrai garde-fou reste l\'alerte de Google, par e-mail à 1 €.</string>
+    <!-- Ajouter à mon agenda (PRD, récit 30) -->
+    <string name="calendar_add">Ajouter à mon agenda</string>
+    <string name="calendar_add_birthday">Ajouter l\'anniversaire de %1$s à mon agenda</string>
+    <string name="calendar_birthday_title">Anniversaire de %1$s</string>
+    <string name="calendar_created_from">Créé depuis Familia</string>
+    <string name="help_topic_calendar_title">Ajouter à mon agenda</string>
+    <string name="help_topic_calendar_body">Sur un événement ou un anniversaire, touche « Ajouter à mon agenda ». L\'agenda de ton téléphone s\'ouvre déjà rempli : tu n\'as plus qu\'à valider. C\'est une copie : si l\'événement change, la notification te le rappelle, et tu refais l\'ajout.</string>
+    <string name="calendar_none">Aucune appli d\'agenda sur ce téléphone.</string>
 </resources>

@@ -138,13 +138,23 @@ export function changeRecipients(
     .map((m) => m.id);
 }
 
-export function changeNotice(kind: ChangeKind, eventId: string, event: EventData, actorName: string | null): Notice {
+/** PRD, récit 30: « Ajouter à mon agenda » makes a copy, so a change reminds to update it. */
+export const CALENDAR_HINT = {
+  edited: ' Si tu l\'as ajouté à ton agenda, mets-le à jour depuis Familia.',
+  deleted: ' Si tu l\'avais ajouté à ton agenda, pense à l\'en retirer.',
+};
+
+/** [calendarHint]: the module « Ajouter à mon agenda » is on for the family (config/app). */
+export function changeNotice(
+  kind: ChangeKind, eventId: string, event: EventData, actorName: string | null, calendarHint = false,
+): Notice {
   const who = actorName ?? 'Un membre de la famille';
   const title = { added: 'Nouvel événement', edited: 'Événement modifié', deleted: 'Événement annulé' }[kind];
   const body = kind === 'deleted'
     ? `${who} a supprimé « ${event.title} » du ${formatDay(event.date)}.`
     : `${who} a ${kind === 'added' ? 'ajouté' : 'modifié'} « ${event.title} », ${formatWhen(event)}.`;
-  return { channel: 'events', title, body, eventId };
+  const hint = calendarHint && kind !== 'added' ? CALENDAR_HINT[kind] : '';
+  return { channel: 'events', title, body: body + hint, eventId };
 }
 
 export interface Reminder {
