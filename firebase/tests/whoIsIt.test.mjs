@@ -3,7 +3,7 @@
 // in h1, adult3 in h2.
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, Timestamp, updateDoc } from 'firebase/firestore';
+import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, Timestamp, updateDoc, writeBatch } from 'firebase/firestore';
 import { ADMIN, ADULT, NEIGHBOUR, OTHER_ADULT, STRANGER, as, createEnv, seed } from './helpers.mjs';
 
 let env;
@@ -35,6 +35,20 @@ describe('« Qui est-ce ? » (récit 43)', () => {
     await assertFails(setDoc(doc(as(env, ADULT), 'whoIsIt/w2'), post(OTHER_ADULT)));
     await assertFails(setDoc(doc(as(env, ADULT), 'whoIsIt/w3'), post(ADULT, { hint: 'x'.repeat(141) })));
     await assertFails(setDoc(doc(as(env, ADULT), 'whoIsIt/w4'), post(ADULT, { score: 3 })));
+  });
+
+  test('the app publishes the post and its answer in one batch, in its own name only', async () => {
+    const db = as(env, ADULT);
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'whoIsIt/w5'), post(ADULT));
+    batch.set(doc(db, 'whoIsIt/w5/answer/main'), { who: 'Mamie Jeanne', year: 1961 });
+    await assertSucceeds(batch.commit());
+
+    const other = as(env, OTHER_ADULT);
+    const forged = writeBatch(other);
+    forged.set(doc(other, 'whoIsIt/w6'), post(ADULT));
+    forged.set(doc(other, 'whoIsIt/w6/answer/main'), { who: 'Moi', year: 1990 });
+    await assertFails(forged.commit());
   });
 
   test('only the author writes the answer, and a post is never edited', async () => {

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -42,6 +43,7 @@ import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.PersonAdd
+import androidx.compose.material.icons.outlined.PhotoAlbum
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -106,6 +108,8 @@ fun MembersScreen(
     /** « Capsules temporelles », while their module is on (récit 39). */
     onOpenCapsules: (() -> Unit)? = null,
     onOpenGenealogy: (() -> Unit)? = null,
+    /** « Qui est-ce ? » (récit 43), among the treasures. */
+    onOpenWhoIsIt: (() -> Unit)? = null,
     /** The pencil shows on the households of [MembersUiState.Success.renamableHouseholdIds]. */
     onRenameHousehold: ((Household, String) -> Unit)? = null,
     renameFailed: Boolean = false,
@@ -160,6 +164,9 @@ fun MembersScreen(
                     },
                     onOpenCapsules?.let {
                         Treasure("capsules", Icons.Rounded.HourglassTop, SouvenirFamily.Trips, R.string.members_treasure_capsules, R.string.members_treasure_capsules_open, it)
+                    },
+                    onOpenWhoIsIt?.let {
+                        Treasure("whoIsIt", Icons.Outlined.PhotoAlbum, SouvenirFamily.Share, R.string.members_treasure_who_is_it, R.string.members_treasure_who_is_it_open, it)
                     },
                 )
                 if (treasures.isNotEmpty()) {
@@ -342,14 +349,7 @@ private class Treasure(
     @StringRes val labelRes: Int,
     @StringRes val openLabelRes: Int,
     val onClick: () -> Unit,
-) {
-    /**
-     * The short form used before the tiles (« Qui est-ce ? », #173): a warm color, and its name read
-     * as is. Lets either PR land first without breaking main.
-     */
-    constructor(key: String, icon: ImageVector, @StringRes labelRes: Int, onClick: () -> Unit) :
-        this(key, icon, SouvenirFamily.Share, labelRes, labelRes, onClick)
-}
+)
 
 /**
  * « Nos trésors » (DESIGN-12): a small title, then one tile per module on, of equal width. A tile
@@ -363,33 +363,42 @@ private fun TreasureTiles(treasures: List<Treasure>) {
             style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 0.08.em),
             modifier = Modifier.padding(bottom = 8.dp).semantics { heading() },
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            treasures.forEach { treasure ->
-                ClayCard(
-                    modifier = Modifier.weight(1f).heightIn(min = 112.dp),
-                    onClick = treasure.onClick,
-                    onClickLabel = stringResource(treasure.openLabelRes),
-                    contentPadding = PaddingValues(16.dp),
-                ) {
-                    if (treasures.size == 1) {
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            TreasureBadge(treasure)
-                            Spacer(Modifier.width(16.dp))
-                            Text(stringResource(treasure.labelRes), style = MaterialTheme.typography.titleMedium, maxLines = 1)
-                        }
-                    } else {
-                        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                            TreasureBadge(treasure)
-                            Spacer(Modifier.height(8.dp))
-                            Text(
-                                stringResource(treasure.labelRes),
-                                style = MaterialTheme.typography.titleMedium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
+        // Four tiles go on two rows of two, so each name stays readable on a narrow phone.
+        val rows = treasures.chunked(if (treasures.size > 3) 2 else 3)
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            rows.forEach { row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    row.forEach { treasure -> TreasureTile(treasure, alone = row.size == 1) }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RowScope.TreasureTile(treasure: Treasure, alone: Boolean) {
+    ClayCard(
+        modifier = Modifier.weight(1f).heightIn(min = 112.dp),
+        onClick = treasure.onClick,
+        onClickLabel = stringResource(treasure.openLabelRes),
+        contentPadding = PaddingValues(16.dp),
+    ) {
+        if (alone) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                TreasureBadge(treasure)
+                Spacer(Modifier.width(16.dp))
+                Text(stringResource(treasure.labelRes), style = MaterialTheme.typography.titleMedium, maxLines = 1)
+            }
+        } else {
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                TreasureBadge(treasure)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    stringResource(treasure.labelRes),
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
     }

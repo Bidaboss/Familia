@@ -63,15 +63,15 @@ class PhotoEncoder(private val context: Context) {
         val resolver = context.contentResolver
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         // With inJustDecodeBounds the decoder returns null and only fills [bounds].
-        val stream = resolver.openInputStream(uri) ?: throw IOException("Cannot open $uri")
+        val stream = resolver.openInputStream(uri) ?: throw UnreadablePhotoException("Cannot open $uri")
         stream.use { BitmapFactory.decodeStream(it, null, bounds) }
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) throw IOException("Not a picture: $uri")
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) throw UnreadablePhotoException("Not a picture: $uri")
 
         val options = BitmapFactory.Options().apply {
             inSampleSize = PhotoSizing.inSampleSize(bounds.outWidth, bounds.outHeight, PhotoSizing.PHOTO_MAX_SIDE)
         }
         val bitmap = resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, options) }
-            ?: throw IOException("Not a picture: $uri")
+            ?: throw UnreadablePhotoException("Not a picture: $uri")
         val orientation = resolver.openInputStream(uri)?.use {
             ExifInterface(it).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
         } ?: ExifInterface.ORIENTATION_NORMAL

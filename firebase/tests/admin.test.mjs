@@ -62,6 +62,17 @@ describe('adding a member', () => {
     await assertSucceeds(getDoc(doc(as(env, later), 'members/admin1')));
   });
 
+  test('a member who already signed in cannot lose their address', async () => {
+    const db = as(env, ADMIN);
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), `members/${ADULT.memberId}`), { uid: ADULT.uid });
+    });
+    const batch = writeBatch(db);
+    batch.update(doc(db, `members/${ADULT.memberId}`), { email: null });
+    batch.delete(doc(db, `memberEmails/${ADULT.email}`));
+    await assertFails(batch.commit());
+  });
+
   test('an address added without its entry is refused', async () => {
     const db = as(env, ADMIN);
     const later = { memberId: 'later2' };

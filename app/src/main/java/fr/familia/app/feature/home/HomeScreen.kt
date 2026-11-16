@@ -96,6 +96,8 @@ import fr.familia.app.feature.month.isSlideshowTime
 import fr.familia.app.feature.tree.TreeHomeCard
 import fr.familia.app.feature.yearago.YearAgoHomeCard
 import fr.familia.app.feature.trips.tripDatesLabel
+import fr.familia.app.feature.whoisit.WhoIsItHomeCard
+import fr.familia.app.feature.whoisit.WhoIsItHomeChip
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -201,6 +203,15 @@ fun HomeRoute(
         }
         if (flags.isOn(Feature.Recipes)) {
             add(HomeExtra("newRecipe", chip = { _, _ -> RecipeHomeChip(container, currentMember.id, onOpenRecipe) }))
+        }
+        if (flags.isOn(Feature.WhoIsIt)) {
+            add(
+                HomeExtra(
+                    "whoIsIt",
+                    chip = { selected, toggle -> WhoIsItHomeChip(container, currentMember, selected, toggle) },
+                    card = { WhoIsItHomeCard(container, currentMember) },
+                ),
+            )
         }
         if (placesOn) {
             add(HomeExtra("joinMe", chip = { _, _ -> HomeChip(stringResource(R.string.joinme_send_open), onClick = onJoinMe) }))
