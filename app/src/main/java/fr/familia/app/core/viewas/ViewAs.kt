@@ -71,6 +71,7 @@ class ViewAsContainer(private val base: AppContainer, guard: ViewAsGuard, adminI
     override val usageTracker: UsageTracker? = null
     override val consumptionRepository = base.consumptionRepository
     override val pollRepository = base.pollRepository?.let { ReadOnlyPollRepository(it, guard) }
+    override val feedbackRepository = base.feedbackRepository?.let { ReadOnlyFeedbackRepository(it, guard) }
     override val joinMeRepository = base.joinMeRepository?.let { ReadOnlyJoinMeRepository(it, guard) }
     override val placeLocator = base.placeLocator
     override val exportRepository = base.exportRepository?.let { ReadOnlyExportRepository(guard) }

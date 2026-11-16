@@ -87,6 +87,20 @@ service firebase.storage {
       return firestore.get(docPath('config/family')).data.ownerMemberId == myMemberId();
     }
 
+    // « Une idée ? Un souci ? » (PRD, récit 6 sexies): one optional screenshot per request,
+    // feedback/{authorId}/{feedbackId}.jpg, at most 150 KB, sent by its author just before the
+    // document feedback/{feedbackId} that names it. Only the author and the admin principal see it,
+    // as for the request. Either removes it with the request.
+    match /feedback/{authorId}/{fileName} {
+      allow read: if isMember() && (authorId == myMemberId() || isOwner());
+      allow create: if isMember()
+        && resource == null
+        && authorId == myMemberId()
+        && fileName.matches('^[A-Za-z0-9]{1,40}[.]jpg$')
+        && isJpegUnder(150 * 1024);
+      allow delete: if isMember() && (authorId == myMemberId() || isOwner());
+    }
+
     match /trips/{tripId}/{authorId}/{fileName} {
       allow read: if isMember() && myMemberId() in tripData(tripId).readerIds;
       // A slot whose record exists holds a photo already: its files never change.

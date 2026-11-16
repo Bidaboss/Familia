@@ -32,7 +32,7 @@ export type RsvpStatus = 'yes' | 'maybe' | 'no';
 
 /** The ids of NotificationChannels in the app. `events` is the « Planning » channel. */
 // Each module adds its id here and its channel in the app, in the same pull request.
-export type Channel = 'events' | 'reminders' | 'gifts' | 'helpRequests' | 'goodNews' | 'trips' | 'comments' | 'weekly' | 'admin' | 'souvenirs' | 'tree' | 'joinMe' | 'capsules' | 'recap' | 'birthdays' | 'welcome';
+export type Channel = 'events' | 'reminders' | 'gifts' | 'helpRequests' | 'goodNews' | 'trips' | 'comments' | 'weekly' | 'admin' | 'souvenirs' | 'tree' | 'joinMe' | 'capsules' | 'recap' | 'birthdays' | 'feedback' | 'welcome';
 
 export interface Notice {
   /**
@@ -55,6 +55,8 @@ export interface Notice {
   pollId?: string;
   /** A time capsule that just opened (récit 39). */
   capsuleId?: string;
+  /** « Une idée ? Un souci ? » (récit 6 sexies): `list` opens Retours, `mine` opens « Mes demandes ». */
+  feedback?: 'list' | 'mine';
   /** « La semaine de la famille » (récit 36): the Sunday of the week, the app opens its screen. */
   recapWeek?: string;
   /** Vœux d'anniversaire (récit 36): the member celebrated, the app opens their page. */
