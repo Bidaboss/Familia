@@ -1673,6 +1673,131 @@ service cloud.firestore {
         && request.resource.data.deleteAsked == true;
     }
 
+    // --- Comptes (récit 16 bis) -------------------------------------------------------------------
+    // The accounts of a trip (PRD rév. 193), a common brick: a book belongs to a container (a trip
+    // today, an event later, PRODUIT-57), at expenseBooks/{containerType}_{containerId}, out of
+    // trips/ so the deletion of a trip never takes them by surprise. Only the adult participants of
+    // the container see and change them: the readers of the trip and the children never do.
+    // Amounts are whole euro cents. The sums of a split are checked by the app, which rules cannot
+    // add up; the history of each expense is written by the server alone.
+
+    function bookPath(bookId) {
+      return /databases/$(database)/documents/expenseBooks/$(bookId);
+    }
+
+    function canUseAccounts(containerType, containerId) {
+      return isMember()
+        && me().profile == 'adult'
+        && containerType == 'trip'
+        && myMemberId() in tripOf(containerId).participantIds;
+    }
+
+    function bookOf(bookId) {
+      return get(bookPath(bookId)).data;
+    }
+
+    function canUseBook(book) {
+      return canUseAccounts(book.containerType, book.containerId);
+    }
+
+    function isValidBook(b, bookId) {
+      return b.keys().hasAll(['containerType', 'containerId', 'creatorId', 'shares', 'closed', 'createdAt', 'updatedAt'])
+        && b.keys().hasOnly(['containerType', 'containerId', 'creatorId', 'shares', 'closed', 'createdAt', 'updatedAt'])
+        && b.containerType == 'trip'
+        && b.containerId is string
+        && bookId == b.containerType + '_' + b.containerId
+        && b.shares is map && b.shares.size() >= 1 && b.shares.size() <= 13
+        && b.closed is bool
+        && b.updatedAt == request.time;
+    }
+
+    // Any adult participant opens the book; the creator of the trip keeps the right to correct
+    // everything, to change the shares of each household and to close the accounts.
+    match /expenseBooks/{bookId} {
+      allow read: if isMember() && (resource == null || canUseBook(resource.data));
+      allow create: if canUseAccounts(request.resource.data.containerType, request.resource.data.containerId)
+        && isValidBook(request.resource.data, bookId)
+        && request.resource.data.creatorId == tripOf(request.resource.data.containerId).creatorId
+        && request.resource.data.closed == false
+        && request.resource.data.createdAt == request.time;
+      allow update: if canUseBook(resource.data)
+        && (resource.data.creatorId == myMemberId() || isOwner())
+        && isValidBook(request.resource.data, bookId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['shares', 'closed', 'updatedAt'])
+        && (resource.data.closed == false || request.resource.data.shares == resource.data.shares);
+    }
+
+    function isValidExpense(e, book) {
+      return e.keys().hasAll(['title', 'amountCents', 'date', 'payerId', 'payerHouseholdId', 'category', 'mode',
+          'householdIds', 'amounts', 'currency', 'originalCents', 'rate', 'authorId', 'authorName', 'createdAt', 'updatedAt'])
+        && e.keys().hasOnly(['title', 'amountCents', 'date', 'payerId', 'payerHouseholdId', 'category', 'mode',
+          'householdIds', 'amounts', 'currency', 'originalCents', 'rate', 'authorId', 'authorName', 'createdAt', 'updatedAt'])
+        && e.title is string && e.title.size() >= 1 && e.title.size() <= 80
+        && e.amountCents is int && e.amountCents > 0 && e.amountCents <= 10000000
+        && isDay(e.date)
+        && e.payerId in tripOf(book.containerId).participantIds
+        && get(memberPath(e.payerId)).data.householdId == e.payerHouseholdId
+        && e.category in ['lodging', 'transport', 'groceries', 'restaurant', 'activity', 'other']
+        && e.mode in ['shares', 'equal', 'amounts']
+        && e.householdIds is list && e.householdIds.size() >= 1 && e.householdIds.size() <= 13
+        && book.shares.keys().hasAll(e.householdIds)
+        && e.amounts is map
+        && (e.mode == 'amounts' ? e.amounts.keys().hasOnly(e.householdIds) : e.amounts.size() == 0)
+        && e.currency is string && e.currency.matches('^[A-Z]{3}$')
+        && e.originalCents is int && e.originalCents > 0
+        && e.rate is number && e.rate > 0
+        && (e.currency != 'EUR' || (e.rate == 1 && e.originalCents == e.amountCents))
+        && e.updatedAt == request.time;
+    }
+
+    // Each adult participant adds expenses, and changes or deletes their own; the creator of the
+    // trip corrects any of them. Nothing changes once the accounts are closed.
+    match /expenseBooks/{bookId}/expenses/{expenseId} {
+      allow read: if canUseBook(bookOf(bookId));
+      allow create: if canUseBook(bookOf(bookId))
+        && bookOf(bookId).closed == false
+        && isValidExpense(request.resource.data, bookOf(bookId))
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.createdAt == request.time;
+      allow update: if canUseBook(bookOf(bookId))
+        && bookOf(bookId).closed == false
+        && (resource.data.authorId == myMemberId() || bookOf(bookId).creatorId == myMemberId())
+        && isValidExpense(request.resource.data, bookOf(bookId))
+        && request.resource.data.authorId == resource.data.authorId
+        && request.resource.data.authorName == resource.data.authorName
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if canUseBook(bookOf(bookId))
+        && bookOf(bookId).closed == false
+        && (resource.data.authorId == myMemberId() || bookOf(bookId).creatorId == myMemberId());
+    }
+
+    // The history of an expense, written by the server on each change.
+    match /expenseBooks/{bookId}/expenses/{expenseId}/history/{entryId} {
+      allow read: if canUseBook(bookOf(bookId));
+    }
+
+    // « C'est remboursé », ticked by an adult of the household that received the money. It can be
+    // taken back by who ticked it, until the accounts are closed. No reminder is ever sent.
+    match /expenseBooks/{bookId}/settlements/{settlementId} {
+      allow read: if canUseBook(bookOf(bookId));
+      allow create: if canUseBook(bookOf(bookId))
+        && bookOf(bookId).closed == false
+        && request.resource.data.keys().hasAll(['fromHouseholdId', 'toHouseholdId', 'amountCents', 'confirmedBy', 'confirmedByName', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['fromHouseholdId', 'toHouseholdId', 'amountCents', 'confirmedBy', 'confirmedByName', 'createdAt'])
+        && request.resource.data.confirmedBy == myMemberId()
+        && request.resource.data.confirmedByName == me().firstName
+        && request.resource.data.toHouseholdId == me().householdId
+        && request.resource.data.fromHouseholdId != request.resource.data.toHouseholdId
+        && bookOf(bookId).shares.keys().hasAll([request.resource.data.fromHouseholdId, request.resource.data.toHouseholdId])
+        && request.resource.data.amountCents is int && request.resource.data.amountCents > 0
+        && request.resource.data.amountCents <= 10000000
+        && request.resource.data.createdAt == request.time;
+      allow delete: if canUseBook(bookOf(bookId))
+        && bookOf(bookId).closed == false
+        && resource.data.confirmedBy == myMemberId();
+    }
+
     // --- App updates (lot 10) ---------------------------------------------------------------------
 
     // --- Question de la semaine (récit 37) ------------------------------------------------------

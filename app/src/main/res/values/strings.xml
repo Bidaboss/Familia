@@ -943,6 +943,7 @@
     <string name="view_as_quit">Quitter</string>
     <string name="view_as_read_only">Lecture seule en mode Voir comme</string>
     <string name="feature_comments">Commentaires sous les événements</string>
+    <string name="feature_expenses">Comptes du voyage</string>
     <string name="event_comments_title">Commentaires</string>
     <string name="event_comments_more">Voir les commentaires plus anciens</string>
     <string name="event_comments_empty">Pas encore de commentaire. Une question, une idée, un « j\'ai hâte » ?</string>
