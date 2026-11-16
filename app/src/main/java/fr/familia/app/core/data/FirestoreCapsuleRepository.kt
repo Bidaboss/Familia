@@ -1,6 +1,7 @@
 package fr.familia.app.core.data
 
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
@@ -37,6 +38,23 @@ class FirestoreCapsuleRepository(private val db: FirebaseFirestore) : CapsuleRep
 
     override suspend fun deleteCapsule(id: String) {
         db.collection(CAPSULES).document(id).delete().await()
+    }
+
+    override fun newCapsuleId(): String = db.collection(CAPSULES).document().id
+
+    override suspend fun createCapsule(capsule: Capsule) {
+        db.collection(CAPSULES).document(capsule.id).set(
+            mapOf(
+                "text" to capsule.text,
+                "photoCount" to capsule.photoCount.toLong(),
+                "recipientIds" to capsule.recipientIds,
+                "openAt" to capsule.openAt.toString(),
+                "openedFor" to emptyList<String>(),
+                "authorId" to capsule.authorId,
+                "authorName" to capsule.authorName,
+                "createdAt" to FieldValue.serverTimestamp(),
+            ),
+        ).await()
     }
 
     private fun observe(query: Query): Flow<List<Capsule>> = callbackFlow {

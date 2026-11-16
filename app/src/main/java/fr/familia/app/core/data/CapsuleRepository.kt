@@ -15,6 +15,14 @@ interface CapsuleRepository {
     fun observeCapsule(id: String): Flow<Capsule?>
 
     suspend fun deleteCapsule(id: String)
+
+    fun newCapsuleId(): String
+
+    /**
+     * Writes a new sealed capsule signed by its author, once its photos are in Storage. The
+     * server time and an empty `openedFor` are set here, as the rules require.
+     */
+    suspend fun createCapsule(capsule: Capsule)
 }
 
 /** The next to open first; then the last opened first. */

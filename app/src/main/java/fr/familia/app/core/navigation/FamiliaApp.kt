@@ -49,6 +49,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
 import fr.familia.app.feature.capsules.CapsuleDetailDestination
 import fr.familia.app.feature.capsules.CapsuleDetailRoute
+import fr.familia.app.feature.capsules.CapsuleEditDestination
+import fr.familia.app.feature.capsules.CapsuleEditRoute
 import fr.familia.app.feature.capsules.CapsulesDestination
 import fr.familia.app.feature.capsules.CapsulesRoute
 import fr.familia.app.feature.help.HelpButton
@@ -658,6 +660,16 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             onOpen = { id -> navController.navigate(CapsuleDetailDestination(id)) },
+                            onBack = { navController.popBackStack() },
+                            onAdd = { navController.navigate(CapsuleEditDestination) },
+                        )
+                    }
+                    composable<CapsuleEditDestination> {
+                        CapsuleEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            // The sealed capsule opens in place of the form.
+                            onSealed = { id -> navController.navigate(CapsuleDetailDestination(id)) { popUpTo<CapsuleEditDestination> { inclusive = true } } },
                             onBack = { navController.popBackStack() },
                         )
                     }
