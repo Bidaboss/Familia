@@ -25,6 +25,9 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     Usage("usage", R.string.feature_usage),
     WeeklyQuestion("weeklyQuestion", R.string.feature_weekly_question),
     EventAlbums("eventAlbums", R.string.feature_event_albums),
+
+    /** « Ajouter à mon agenda » on an event and a birthday (PRD, récit 30). */
+    Calendar("calendar", R.string.feature_calendar),
     MonthSlideshow("monthSlideshow", R.string.feature_month_slideshow),
 }
 

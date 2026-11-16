@@ -2,6 +2,9 @@ package fr.familia.app.feature.events.detail
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedButton
@@ -25,6 +28,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Event
+import androidx.compose.material.icons.outlined.EventAvailable
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -76,6 +81,8 @@ fun EventDetailScreen(
     onEdit: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    /** « Ajouter à mon agenda » (PRD, récit 30); hidden when null. */
+    onAddToCalendar: (() -> Unit)? = null,
     album: @Composable () -> Unit = {},
 ) {
     Scaffold(
@@ -115,7 +122,7 @@ fun EventDetailScreen(
                         }
                     },
                 )
-                is EventDetailUiState.Success -> Content(state, onAnswer, onEdit, album)
+                is EventDetailUiState.Success -> Content(state, onAnswer, onEdit, onAddToCalendar, album)
             }
         }
     }
@@ -126,6 +133,7 @@ private fun Content(
     state: EventDetailUiState.Success,
     onAnswer: (String, RsvpStatus) -> Unit,
     onEdit: () -> Unit,
+    onAddToCalendar: (() -> Unit)?,
     album: @Composable () -> Unit,
 ) {
     val event = state.event
@@ -176,12 +184,22 @@ private fun Content(
         // « N viennent » with their avatars; a tap shows every answer (DESIGN-5).
         ComingLine(state, onClick = { showAnswers = true })
 
+        if (onAddToCalendar != null) {
+            OutlinedButton(
+                onClick = onAddToCalendar,
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp).heightIn(min = 56.dp),
+            ) {
+                Icon(Icons.Outlined.EventAvailable, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                Text(stringResource(R.string.calendar_add), style = MaterialTheme.typography.labelLarge)
+            }
+        }
         // The album of the event (récit 41), when its module is on.
         album()
         if (state.canManage) {
             OutlinedButton(
                 onClick = onEdit,
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp).heightIn(min = 56.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = if (onAddToCalendar != null) 8.dp else 16.dp).heightIn(min = 56.dp),
             ) {
                 Text(stringResource(R.string.event_detail_edit), style = MaterialTheme.typography.labelLarge)
             }
