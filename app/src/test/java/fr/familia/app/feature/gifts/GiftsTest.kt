@@ -118,6 +118,65 @@ class GiftsTest {
     }
 
     @Test
+    fun `with the single list, everyone shows with their wishes and the ideas of the family, and no list for an occasion`() {
+        val lists = listOf(
+            list("w", "adult1", GiftListKind.Wishes, viewers = emptyList()),
+            list("own", "admin1", viewers = listOf("admin1", "adult2")),
+            list("old", "adult2", revealed = true),
+            list("ideas-adult1", "adult1", GiftListKind.Ideas, viewers = emptyList(), creator = "admin1"),
+        )
+        val state = giftsState(family, lists, "adult2", today, singleList = true) as GiftsUiState.Success
+        assertTrue(state.singleList)
+        assertEquals(family.members.size, state.sections.size)
+        assertTrue(state.sections.all { it.lists.isEmpty() })
+        assertTrue(state.archived.isEmpty())
+        assertEquals("ideas-adult1", state.sections.first { it.member.id == "adult1" }.ideas?.id)
+        // Switch off: the ideas of the family stay out of the tab.
+        val off = giftsState(family, lists, "adult2", today) as GiftsUiState.Success
+        assertTrue(off.sections.none { it.ideas != null || it.lists.any { l -> l.kind == GiftListKind.Ideas } })
+    }
+
+    @Test
+    fun `the ideas of the family open empty for the others, never for the person`() = runTest {
+        val other = GiftListViewModel(FakeGifts(null), FakeMembers(), "adult2", "ideas-adult1", today = flowOf(today))
+        val state = other.uiState.first { it !is GiftListUiState.Loading } as GiftListUiState.Success
+        assertEquals(GiftListKind.Ideas, state.list.kind)
+        assertTrue(state.canAddItems)
+        assertFalse(state.keptFromMe)
+        val mine = GiftListViewModel(FakeGifts(null), FakeMembers(), "adult1", "ideas-adult1", today = flowOf(today))
+        assertEquals(GiftListUiState.Missing, mine.uiState.first { it !is GiftListUiState.Loading })
+    }
+
+    @Test
+    fun `choosing an occasion keeps its people and counts the wishes said for it, or for whenever`() {
+        val lists = listOf(
+            list("wishes-adult1", "adult1", GiftListKind.Wishes, viewers = emptyList()),
+            list("ideas-adult1", "adult1", GiftListKind.Ideas, viewers = emptyList(), creator = "admin1"),
+        )
+        fun item(id: String, occasion: GiftOccasion?) = GiftItem(id, id, null, null, null, "adult1", "Adult1", true, occasion = occasion)
+        val base = (giftsState(family, lists, "adult2", today, singleList = true) as GiftsUiState.Success).copy(
+            listItems = mapOf(
+                "wishes-adult1" to listOf(item("noel", GiftOccasion.Christmas), item("anniv", GiftOccasion.Birthday), item("libre", null)),
+                "ideas-adult1" to listOf(item("idee", null)),
+            ),
+        )
+        val all = forMoment(base, null) as GiftsUiState.Success
+        assertEquals(3, all.wishPreviews.getValue("wishes-adult1").count)
+        assertTrue(all.occasions.first() is GiftMoment.Christmas)
+        val christmas = forMoment(base, all.occasions.first()) as GiftsUiState.Success
+        assertEquals(listOf("libre", "noel"), christmas.wishPreviews.getValue("wishes-adult1").titles)
+        // The ideas of the family get no preview: their card never says how many.
+        assertTrue("ideas-adult1" !in christmas.wishPreviews)
+        assertEquals(family.members.size, christmas.sections.size)
+        val adult1 = family.members.first { it.id == "adult1" }
+        val birthday = forMoment(base, GiftMoment.BirthdayOf(adult1, LocalDate.of(2027, 1, 1))) as GiftsUiState.Success
+        // A birthday that is not among the next ones is not an occasion of the tab: everyone shows.
+        assertEquals(null, birthday.moment)
+        // Switch off: no occasion to choose.
+        assertTrue((forMoment(base.copy(singleList = false), null) as GiftsUiState.Success).occasions.isEmpty())
+    }
+
+    @Test
     fun `amounts and links typed by a member are understood`() {
         assertEquals(19.9, parseEuros("19,90 €")!!, 0.001)
         assertEquals(30.0, parseEuros(" 30 ")!!, 0.001)

@@ -1,5 +1,6 @@
 package fr.familia.app.feature.recipes
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -81,7 +82,7 @@ fun RecipeEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(if (editing?.isNew == false) R.string.recipe_edit else R.string.recipes_add)) },
+                title = { Text(stringResource(if (editing?.isNew == false) R.string.recipe_edit else R.string.recipes_add), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = { if (hasChanges) confirmLeave = true else onBack() }) },
                 actions = { HelpButton(ScreenHelp.Recipes) },
             )

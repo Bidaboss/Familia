@@ -9,8 +9,10 @@ import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.GiftItem
 import fr.familia.app.core.model.GiftList
+import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.ideasListId
 import fr.familia.app.core.model.wishesListId
 import fr.familia.app.feature.gifts.addsVisibleItem
 import fr.familia.app.feature.gifts.isKeptFrom
@@ -24,7 +26,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
-data class GiftItemForm(val title: String = "", val url: String = "", val price: String = "", val note: String = "")
+data class GiftItemForm(
+    val title: String = "",
+    val url: String = "",
+    val price: String = "",
+    val note: String = "",
+    /** Récit 9 ter: Christmas or a birthday; null for « Quand tu veux ». */
+    val occasion: GiftOccasion? = null,
+)
 
 enum class GiftItemFormError { TitleMissing, TitleTooLong, BadLink, BadPrice, NoteTooLong }
 
@@ -47,6 +56,10 @@ sealed interface GiftItemEditUiState {
         val imageUrl: String? = null,
         /** The preview of a shared link is being read. */
         val previewLoading: Boolean = false,
+        /** A wish says what it is for (récit 9 ter): « Quand tu veux », Christmas or the birthday. */
+        val showOccasion: Boolean = false,
+        /** The wish is for the member themselves: « mon anniversaire », else « son anniversaire ». */
+        val forMe: Boolean = true,
     ) : GiftItemEditUiState
 
     data object Done : GiftItemEditUiState
@@ -69,6 +82,8 @@ class GiftItemEditViewModel(
     private val shared: GiftItemForm? = null,
     /** Reads the title, picture and price of a shared link (récit 8 bis). */
     private val previews: LinkPreviewRepository? = null,
+    /** The switch « Liste unique » (récit 9 ter): a wish then says what it is for. */
+    private val singleList: Boolean = false,
 ) : ViewModel() {
 
     /** The picture read for [previewedUrl]: dropped if the member changes the link. */
@@ -130,6 +145,7 @@ class GiftItemEditViewModel(
                 url = it.url.orEmpty(),
                 price = it.price?.let(::priceText).orEmpty(),
                 note = it.note.orEmpty(),
+                occasion = it.occasion,
             )
         } ?: GiftItemForm()
         val form = restoredDraft() ?: shared?.takeIf { existing == null } ?: initialForm
@@ -141,6 +157,8 @@ class GiftItemEditViewModel(
             beneficiaryName = beneficiary.firstName,
             imageUrl = existing?.imageUrl,
             previewLoading = shared != null && existing == null && previews != null,
+            showOccasion = singleList && target.kind == GiftListKind.Wishes,
+            forMe = beneficiary.id == current.id,
         )
         if (shared != null && existing == null) readPreview(shared.url)
     }
@@ -185,6 +203,11 @@ class GiftItemEditViewModel(
     }
 
     private fun emptyWishes(family: Family, current: Member): GiftList? {
+        // The first idea of the family for someone creates their « Idées de la famille » (récit 9 ter).
+        family.members.firstOrNull { ideasListId(it.id) == listId }?.let { owner ->
+            if (owner.id == current.id) return null
+            return GiftList(listId, GiftListKind.Ideas, "Idées de la famille", null, null, owner.id, emptyList(), current.id, current.firstName)
+        }
         val owner = family.members.firstOrNull { wishesListId(it.id) == listId } ?: return null
         if (!keepsListsOf(current, owner)) return null
         return GiftList(listId, GiftListKind.Wishes, "Mes envies", null, null, owner.id, emptyList(), current.id, current.firstName)
@@ -196,7 +219,8 @@ class GiftItemEditViewModel(
 
     private fun restoredDraft(): GiftItemForm? {
         val title = saved.get<String>(DRAFT_TITLE) ?: return null
-        return GiftItemForm(title, saved[DRAFT_URL] ?: "", saved[DRAFT_PRICE] ?: "", saved[DRAFT_NOTE] ?: "")
+        val occasion = GiftOccasion.entries.firstOrNull { it.name == saved.get<String>(DRAFT_OCCASION) }
+        return GiftItemForm(title, saved[DRAFT_URL] ?: "", saved[DRAFT_PRICE] ?: "", saved[DRAFT_NOTE] ?: "", occasion)
     }
 
     fun update(change: (GiftItemForm) -> GiftItemForm) {
@@ -206,6 +230,7 @@ class GiftItemEditViewModel(
         saved[DRAFT_URL] = form.url
         saved[DRAFT_PRICE] = form.price
         saved[DRAFT_NOTE] = form.note
+        saved[DRAFT_OCCASION] = form.occasion?.name
         _uiState.value = state.copy(
             form = form,
             errors = errorsFor(form),
@@ -238,6 +263,8 @@ class GiftItemEditViewModel(
             authorName = original?.authorName ?: author.firstName,
             visibleToBeneficiary = visible,
             imageUrl = state.imageUrl,
+            // Only a wish says what it is for; an idea keeps none.
+            occasion = form.occasion?.takeIf { state.showOccasion } ?: original?.occasion?.takeIf { !state.showOccasion },
         )
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
@@ -282,6 +309,7 @@ private const val DRAFT_TITLE = "draft.title"
 private const val DRAFT_URL = "draft.url"
 private const val DRAFT_PRICE = "draft.price"
 private const val DRAFT_NOTE = "draft.note"
+private const val DRAFT_OCCASION = "draft.occasion"
 
 /** The same limits as the security rules. */
 fun validateItem(form: GiftItemForm): Set<GiftItemFormError> = buildSet {

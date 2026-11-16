@@ -2,7 +2,6 @@ package fr.familia.app.core.album
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -82,16 +81,17 @@ fun AlbumFilmPart(state: FilmState, photoCount: Int, actions: FilmActions) {
             }
             is FilmState.Ready -> {
                 Text(stringResource(R.string.album_film_ready), style = MaterialTheme.typography.bodyLarge)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // One under the other: side by side, the labels are cut at 200 % text size.
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(
                         onClick = { noPlayer = !playVideo(context, File(state.path)) },
-                        modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                     ) {
                         Icon(Icons.Outlined.PlayArrow, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.album_film_watch))
                     }
-                    Button(onClick = { remind = true }, modifier = Modifier.weight(1f).heightIn(min = 56.dp)) {
+                    Button(onClick = { remind = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                         Icon(Icons.Outlined.Share, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.album_film_share))

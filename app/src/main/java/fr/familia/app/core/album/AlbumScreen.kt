@@ -1,5 +1,6 @@
 package fr.familia.app.core.album
 
+import androidx.compose.ui.text.style.TextOverflow
 import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -54,7 +55,7 @@ fun AlbumScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(title) },
+                title = { Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = { actionsBar() },
             )

@@ -1,5 +1,6 @@
 package fr.familia.app.feature.capsules
 
+import androidx.compose.ui.text.style.TextOverflow
 import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,7 +56,7 @@ fun CapsuleDetailScreen(state: CapsuleDetailUiState, onRemove: () -> Unit, onBac
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.capsule_title)) },
+                title = { Text(stringResource(R.string.capsule_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = { HelpButton(ScreenHelp.Capsules) },
             )
