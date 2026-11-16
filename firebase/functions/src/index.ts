@@ -15,6 +15,7 @@ import {
   deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
   sendBirthdayGiftReminders, updateSharesTotal,
 } from './gifts';
+import { openDueCapsules } from './capsules';
 import { checkConsumptionIfDue } from './consumption';
 import { closeDuePolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
 import { cloudMonitoring } from './monitoring';
@@ -62,6 +63,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.tripId ? { tripId: notice.tripId } : {}),
         ...(notice.weeklyQuestionId ? { weeklyQuestionId: notice.weeklyQuestionId } : {}),
         ...(notice.pollId ? { pollId: notice.pollId } : {}),
+        ...(notice.capsuleId ? { capsuleId: notice.capsuleId } : {}),
         ...(notice.souvenirKey ? { souvenirKey: notice.souvenirKey } : {}),
       },
       android: { notification: { channelId: notice.channel } },
@@ -299,6 +301,13 @@ export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) =
   await getStorage().bucket().deleteFiles({ prefix: `trips/${event.params.tripId}/` });
 });
 
+// Capsule temporelle (récit 39): a removed capsule takes its photos with it.
+export const onCapsuleDeleted = onDocumentDeleted('capsules/{capsuleId}', async (event) => {
+  const authorId = event.data?.get('authorId');
+  if (typeof authorId !== 'string' || authorId === '') return;
+  await getStorage().bucket().deleteFiles({ prefix: `capsules/${authorId}/${event.params.capsuleId}/` });
+});
+
 // Carnet de recettes (récit 38): a removed recipe takes its photos with it, records and files.
 export const onRecipeDeleted = onDocumentDeleted('recipes/{recipeId}', async (event) => {
   const recipe = getFirestore().collection('recipes').doc(event.params.recipeId);
@@ -312,6 +321,8 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
   await publishWeeklyQuestion(getFirestore(), send, new Date());
   // And the consumption of the day before, once from 8 h (récit 1 sexies).
   await checkConsumptionIfDue(getFirestore(), cloudMonitoring, send, new Date());
+  // And the time capsules whose day has come (récit 39).
+  await openDueCapsules(getFirestore(), send, new Date());
   // And the polls whose end date has passed (récits 2 bis et 2 ter).
   await closeDuePolls(getFirestore(), new Date());
 });
