@@ -62,4 +62,14 @@ class GenealogyTreeTest {
         assertTrue(Kin.isDate("1999-03-04"))
         assertTrue(!Kin.isDate("04/03/1921"))
     }
+
+    @Test
+    fun `an old date is typed as a year or a French day, and stored as AAAA or AAAA-MM-JJ`() {
+        assertEquals("1921", Kin.parseDate(" 1921 "))
+        assertEquals("1921-03-04", Kin.parseDate("4/3/1921"))
+        assertEquals("1921-03-04", Kin.parseDate("1921-03-04"))
+        assertEquals("", Kin.parseDate("  "))
+        assertEquals(null, Kin.parseDate("31/02/1921"))
+        assertEquals(null, Kin.parseDate("mars 1921"))
+    }
 }

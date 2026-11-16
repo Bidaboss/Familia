@@ -4,29 +4,69 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.GenealogyRepository
 import fr.familia.app.core.data.MemberRepository
+import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.GenealogyTree
+import fr.familia.app.core.model.Kin
+import fr.familia.app.core.model.KinLink
+import fr.familia.app.core.model.KinLinkKind
+import fr.familia.app.core.model.TreePerson
+import fr.familia.app.core.model.isOwner
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+
+/** How the other person is joined to the one whose card is open. */
+enum class Relation { Parent, Child, Partner }
 
 sealed interface GenealogyUiState {
     data object Loading : GenealogyUiState
     data object Failed : GenealogyUiState
 
-    /** [words]: the words I chose for the people of the tree, by person id. */
-    data class Ready(val tree: GenealogyTree, val words: Map<String, String>, val me: String) : GenealogyUiState {
-        /** Nobody is joined to anyone yet: the screen says how the tree fills up. */
-        val isEmpty: Boolean get() = tree.links.isEmpty()
+    /**
+     * [words]: the words I chose for the people of the tree, by person id. [isOwner] edits the
+     * whole tree; [chefOf] is the household I am chef of, whose kin and links I edit.
+     */
+    data class Ready(
+        val tree: GenealogyTree,
+        val words: Map<String, String>,
+        val me: String,
+        val isOwner: Boolean = false,
+        val chefOf: String? = null,
+    ) : GenealogyUiState {
+        /** Nobody joined to anyone, and no relative yet: the screen says how the tree fills up. */
+        val isEmpty: Boolean get() = tree.links.isEmpty() && tree.people.values.none { it is TreePerson.OfKin }
+
+        /** I may add relatives and links at all. */
+        val canEdit: Boolean get() = isOwner || chefOf != null
+
+        /** I may edit [personId]'s card (a relative) or join others to them. */
+        fun canEditPerson(personId: String): Boolean =
+            isOwner || (chefOf != null && tree.people[personId]?.householdId == chefOf)
+
+        /** The rules' managesLink: one side is in a household I manage. */
+        fun canEditLink(link: KinLink): Boolean = canEditPerson(link.aId) || canEditPerson(link.bId)
     }
 }
 
-/** L'arbre généalogique (PRD, récit 40): everyone reads it. Changing it comes with récit 40c. */
-class GenealogyViewModel(genealogy: GenealogyRepository?, members: MemberRepository?, currentMemberId: String) : ViewModel() {
+/**
+ * L'arbre généalogique (PRD, récit 40): everyone reads it and chooses their own words; the admin
+ * principal edits it all, and a chef de famille the relatives and links of their household. The
+ * rules check the same (firestore.rules, « Arbre généalogique »).
+ */
+class GenealogyViewModel(
+    private val genealogy: GenealogyRepository?,
+    members: MemberRepository?,
+    private val currentMemberId: String,
+) : ViewModel() {
+
+    private var family = Family(emptyList(), emptyList())
 
     val uiState: StateFlow<GenealogyUiState> =
         if (genealogy == null || members == null) {
@@ -39,10 +79,111 @@ class GenealogyViewModel(genealogy: GenealogyRepository?, members: MemberReposit
                 // My words are a nicety: without them, the tree still shows.
                 genealogy.observeWords(currentMemberId).onStart { emit(emptyMap()) }.catch { e -> if (e is CancellationException) throw e else emit(emptyMap()) },
             ) { family, kin, links, words ->
-                val ready: GenealogyUiState = GenealogyUiState.Ready(GenealogyTree(family.members, kin, links), words, currentMemberId)
+                this.family = family
+                val me = family.members.firstOrNull { it.id == currentMemberId }
+                val ready: GenealogyUiState = GenealogyUiState.Ready(
+                    tree = GenealogyTree(family.members, kin, links),
+                    words = words,
+                    me = currentMemberId,
+                    isOwner = me != null && family.isOwner(me),
+                    chefOf = me?.takeIf { it.isAdmin }?.householdId,
+                )
                 ready
             }
                 .catch { e -> if (e is CancellationException) throw e else emit(GenealogyUiState.Failed) }
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), GenealogyUiState.Loading)
         }
+
+    private val _actionFailed = MutableStateFlow(false)
+
+    /** True when the server refused a change: the screen says so once. */
+    val actionFailed: StateFlow<Boolean> = _actionFailed.asStateFlow()
+
+    fun failureShown() {
+        _actionFailed.value = false
+    }
+
+    private val ready get() = uiState.value as? GenealogyUiState.Ready
+
+    /** The link that makes [otherId] the [relation] of [personId]. */
+    fun linkFor(personId: String, relation: Relation, otherId: String): KinLink = when (relation) {
+        Relation.Parent -> KinLink.parent(otherId, personId)
+        Relation.Child -> KinLink.parent(personId, otherId)
+        Relation.Partner -> KinLink.partners(personId, otherId)
+    }
+
+    /** Joins [otherId] to [personId]; refused here when the rules would refuse it. */
+    fun addLink(personId: String, relation: Relation, otherId: String) {
+        val state = ready ?: return
+        if (personId == otherId || otherId !in state.tree.people) return
+        val link = linkFor(personId, relation, otherId)
+        if (!state.canEditLink(link) || state.tree.links.any { it.id == link.id }) return
+        // A parent and a child the other way round would loop: refused.
+        if (link.kind == KinLinkKind.Parent && state.tree.links.any { it.id == KinLink.parent(link.bId, link.aId).id }) return
+        write { addLink(link, currentMemberId) }
+    }
+
+    fun removeLink(link: KinLink) {
+        val state = ready ?: return
+        if (!state.canEditLink(link)) return
+        write { removeLink(link) }
+    }
+
+    /**
+     * Adds a relative, or edits one ([kin] with an existing id). A new one goes to the household
+     * of the person they are joined to when I manage it, else to mine; with [joinTo], the link
+     * goes in the same batch.
+     */
+    fun saveKin(kin: Kin, joinTo: Pair<String, Relation>? = null) {
+        val state = ready ?: return
+        val firstName = kin.firstName.trim()
+        if (firstName.isEmpty()) return
+        val existing = state.tree.people[kin.id]
+        val household = when {
+            existing != null -> existing.householdId
+            joinTo != null && state.canEditPerson(joinTo.first) -> state.tree.people[joinTo.first]?.householdId
+            else -> state.chefOf ?: family.members.firstOrNull { it.id == currentMemberId }?.householdId
+        } ?: return
+        if (!state.isOwner && household != state.chefOf) return
+        if (existing != null && !state.canEditPerson(kin.id)) return
+        val id = if (existing != null) kin.id else genealogy?.newKinId() ?: return
+        val saved = kin.copy(id = id, firstName = firstName, householdId = household, died = kin.died.takeUnless { kin.living })
+        val link = joinTo?.takeIf { existing == null }?.let { (personId, relation) -> linkFor(personId, relation, id) }
+        write { saveKin(saved, currentMemberId, link) }
+    }
+
+    /** Takes a relative out of the tree; the server removes their links. */
+    fun deleteKin(id: String) {
+        val state = ready ?: return
+        if (state.tree.people[id] !is TreePerson.OfKin || !state.canEditPerson(id)) return
+        write { deleteKin(id) }
+    }
+
+    /** My word for [personId]; blank takes it away. */
+    fun setWord(personId: String, word: String) {
+        val state = ready ?: return
+        if (personId == currentMemberId || personId !in state.tree.people) return
+        val trimmed = word.trim().take(MAX_WORD)
+        val words = (state.words - personId).let { if (trimmed.isEmpty()) it else it + (personId to trimmed) }
+            .filterKeys { it in state.tree.people }
+        if (words == state.words) return
+        write { saveWords(currentMemberId, words) }
+    }
+
+    private fun write(block: suspend GenealogyRepository.() -> Unit) {
+        val repo = genealogy ?: return
+        viewModelScope.launch {
+            try {
+                repo.block()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _actionFailed.value = true
+            }
+        }
+    }
+
+    companion object {
+        const val MAX_WORD = 30
+    }
 }
