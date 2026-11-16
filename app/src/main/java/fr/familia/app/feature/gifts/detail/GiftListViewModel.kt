@@ -11,8 +11,10 @@ import fr.familia.app.core.model.GiftClaim
 import fr.familia.app.core.model.GiftItem
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
+import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftShare
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.defaultWishOccasion
 import fr.familia.app.core.model.wishesListId
 import fr.familia.app.feature.gifts.canManageList
 import fr.familia.app.feature.gifts.canReserve
@@ -48,6 +50,8 @@ data class ClaimView(
     val myShare: GiftShare? = null,
     /** The total of the parts: counted live by the responsible, kept by the server for the others. */
     val total: Double = shares.sumOf { it.amount },
+    /** « Mes envies » only: the occasion the gift is meant for, chosen by the holder (PRD rév. 186). */
+    val occasion: GiftOccasion? = null,
 )
 
 data class ItemRow(
@@ -184,6 +188,7 @@ class GiftListViewModel(
                         } else {
                             maxOf(it.sharesTotal, parts.sumOf { share -> share.amount })
                         },
+                        occasion = if (list.kind == GiftListKind.Wishes) it.occasion ?: defaultWishOccasion(beneficiary.birthDate, it.createdOn ?: day) else null,
                     )
                 },
             )
@@ -218,6 +223,9 @@ class GiftListViewModel(
     }
 
     fun release(itemId: String) = write { it.release(listId, itemId) }
+
+    /** On « Mes envies », the holder says which occasion the gift is for: it is revealed the day after. */
+    fun setClaimOccasion(itemId: String, occasion: GiftOccasion) = write { it.setClaimOccasion(listId, itemId, occasion) }
 
     /** Joins a joint gift with [amount], or changes one's part. */
     fun setShare(itemId: String, amount: Double) {
