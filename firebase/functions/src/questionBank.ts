@@ -24,7 +24,7 @@ export const QUESTION_BANK: BankQuestion[] = [
   plain(9, 'Le moment où tu as le plus ri en famille ?'),
   plain(10, 'Ton premier souvenir d\'école ?'),
   plain(11, 'Un conseil qu\'on t\'a donné et que tu suis encore ?'),
-  plain(12, 'Une photo ancienne que tu aimes : raconte ce qu\'on y voit !'),
+  plain(12, 'Une photo ancienne que tu aimes : raconte-la (photo bienvenue) !'),
   // Goûts et habitudes
   plain(13, 'Ton plat préféré cuisiné par quelqu\'un de la famille ?'),
   plain(14, 'Ton petit-déjeuner idéal ?'),
@@ -64,7 +64,7 @@ export const QUESTION_BANK: BankQuestion[] = [
   plain(45, 'Ta petite victoire de la semaine ?'),
   plain(46, 'Ce qui t\'a fait sourire cette semaine ?'),
   plain(47, 'Une chose nouvelle que tu as apprise récemment ?'),
-  plain(48, 'Décris ce que tu vois de ta fenêtre aujourd\'hui ?'),
+  plain(48, 'La photo de ta vue du jour (photo bienvenue) ?'),
   plain(49, 'Un objectif pour le mois qui vient ?'),
   plain(50, 'Une découverte (resto, lieu, appli, recette) à partager ?'),
   // Saisons
