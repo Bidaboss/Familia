@@ -115,6 +115,8 @@ export async function revealWishesOf(db: Firestore, member: GiftMember, members:
       title: String(item.get('title') ?? ''),
       url: (item.get('url') as string | null) ?? null,
       imageUrl: (item.get('imageUrl') as string | null) ?? null,
+      // Who to thank (rév. 189): ids, read by the server only to send the « Merci ».
+      giverIds: [...new Set([String(claim.get('holderId') ?? ''), ...(joint ? shares.docs.map((s) => s.id) : [])])].filter((id) => id.length > 0),
       givers: giverNames(String(claim.get('holderId') ?? ''), joint ? shares.docs.map((s) => s.id) : [], members, String(claim.get('holderName') ?? '')),
       joint,
       occasion: meant.occasion,
@@ -129,6 +131,33 @@ export async function revealWishesOf(db: Firestore, member: GiftMember, members:
     count++;
   }
   return count;
+}
+
+/** « X te dit merci ! » to each giver, once: `thanked` only ever goes from false to true. */
+export function thankNotice(beneficiaryName: string, title: string): Notice {
+  return { channel: 'gifts', title: `${beneficiaryName} te dit merci !`, body: `Merci pour « ${title} ».` };
+}
+
+/**
+ * « Merci » on « On m'a offert » (PRD rév. 189): every giver of the wish is told, the responsible
+ * and each part of a joint gift. Returns the number of notifications sent.
+ */
+export async function thankGivers(
+  db: Firestore, send: Sender, listId: string,
+  before: { thanked?: unknown } | undefined, after: { thanked?: unknown; giverIds?: unknown; title?: unknown } | undefined,
+): Promise<number> {
+  if (!after || after.thanked !== true || before?.thanked === true) return 0;
+  const list = await db.collection('giftLists').doc(listId).get();
+  const beneficiaryId = String(list.get('beneficiaryId') ?? '');
+  const members = await loadGiftMembers(db);
+  const name = members.find((m) => m.id === beneficiaryId)?.firstName ?? '';
+  if (!name) return 0;
+  const ids = (Array.isArray(after.giverIds) ? after.giverIds : []).filter(
+    (id): id is string => typeof id === 'string' && id !== beneficiaryId && members.some((m) => m.id === id),
+  );
+  const recipients = (await giftAudience(db))(ids);
+  if (recipients.length === 0) return 0;
+  return notify(db, send, recipients, thankNotice(name, String(after.title ?? '')));
 }
 
 /** True once the wish was revealed: its removal is not a cancelled reservation. */
