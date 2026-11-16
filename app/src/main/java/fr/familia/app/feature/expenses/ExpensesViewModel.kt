@@ -105,6 +105,9 @@ class ExpensesViewModel(
     private var opening = false
     private val writeFailed = MutableStateFlow(false)
 
+    /** The transfers being ticked: a second tap waits for the first, so nothing is paid back twice. */
+    private val settling = mutableSetOf<TransferRow>()
+
     /** This member, once the family is known: the author of a « C'est remboursé ». */
     private var me: Member? = null
 
@@ -135,8 +138,12 @@ class ExpensesViewModel(
     /** « C'est remboursé », by an adult of the household that received [row]. */
     fun confirm(row: TransferRow) {
         val who = me ?: return
-        if (!row.canConfirm) return
-        write { repo, s -> if (!s.closed) repo.settle(s.bookId, Transfer(row.fromId, row.toId, row.amountCents), who) }
+        val current = uiState.value as? ExpensesUiState.Success ?: return
+        // A transfer already ticked is gone from the list: a late second tap finds nothing to tick.
+        if (!row.canConfirm || row !in current.transfers || !settling.add(row)) return
+        write(onEnd = { settling.remove(row) }) { repo, s ->
+            if (!s.closed) repo.settle(s.bookId, Transfer(row.fromId, row.toId, row.amountCents), who)
+        }
     }
 
     /** Takes back a « C'est remboursé » ticked by this member. */
@@ -167,11 +174,19 @@ class ExpensesViewModel(
     }
 
     /** Saves with the current accounts. Offline, the change waits in the queue and shows at once. */
-    private fun write(block: suspend (ExpenseRepository, ExpensesUiState.Success) -> Unit) {
-        val repo = expenses ?: return
-        val s = uiState.value as? ExpensesUiState.Success ?: return
+    private fun write(onEnd: () -> Unit = {}, block: suspend (ExpenseRepository, ExpensesUiState.Success) -> Unit) {
+        val repo = expenses
+        val s = uiState.value as? ExpensesUiState.Success
+        if (repo == null || s == null) {
+            onEnd()
+            return
+        }
         viewModelScope.launch {
-            if (sendWrite(writeTimeoutMillis) { block(repo, s) } == null) writeFailed.value = true
+            try {
+                if (sendWrite(writeTimeoutMillis) { block(repo, s) } == null) writeFailed.value = true
+            } finally {
+                onEnd()
+            }
         }
     }
 

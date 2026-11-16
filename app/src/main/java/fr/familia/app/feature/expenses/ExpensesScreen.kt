@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Payments
@@ -34,12 +36,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -193,7 +196,11 @@ private fun Content(state: ExpensesUiState.Success, onEdit: ((String) -> Unit)?,
                         modifier = Modifier.weight(1f),
                     )
                     if (actions != null && row.canUndo) {
-                        TextButton(onClick = { actions.onUndo(row) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                        val undoLabel = stringResource(R.string.expenses_settled_undo, row.fromName, row.toName)
+                        TextButton(
+                            onClick = { actions.onUndo(row) },
+                            modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = undoLabel },
+                        ) {
                             Text(stringResource(R.string.action_cancel))
                         }
                     }
@@ -252,13 +259,13 @@ private fun Content(state: ExpensesUiState.Success, onEdit: ((String) -> Unit)?,
 /** The shares of each household, typed by the creator: from 0,5 to 20, by halves. */
 @Composable
 private fun SharesDialog(households: List<HouseholdRow>, onSave: (Map<String, String>) -> Boolean, onDismiss: () -> Unit) {
-    var typed by remember { mutableStateOf(households.associate { it.id to shareText(it.shares) }) }
+    var typed by rememberSaveable { mutableStateOf(households.associate { it.id to shareText(it.shares) }) }
     val allValid = households.all { parseShare(typed[it.id].orEmpty()) != null }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.expenses_shares_title)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.expenses_shares_body), style = MaterialTheme.typography.bodyMedium)
                 households.forEach { h ->
                     val value = typed[h.id].orEmpty()

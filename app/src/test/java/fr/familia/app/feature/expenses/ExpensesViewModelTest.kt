@@ -88,6 +88,8 @@ class ExpensesViewModelTest {
         val toTick = receiver.uiState.first { it is ExpensesUiState.Success } as ExpensesUiState.Success
         assertTrue(toTick.transfers.single().canConfirm)
         receiver.confirm(toTick.transfers.single())
+        receiver.confirm(toTick.transfers.single())
+        assertEquals(1, repo.settlementList.size)
         val settled = receiver.uiState.first { it is ExpensesUiState.Success && it.settlements.isNotEmpty() } as ExpensesUiState.Success
         assertTrue(settled.transfers.isEmpty())
         assertEquals(0L, settled.households.first { it.id == "h2" }.netCents)

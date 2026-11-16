@@ -1039,6 +1039,7 @@
     <string name="expenses_shares">Parts : %1$s</string>
     <string name="expenses_settle">C\'est remboursé</string>
     <string name="expenses_settled_title">Déjà remboursé</string>
+    <string name="expenses_settled_undo">Annuler le remboursement de %1$s à %2$s</string>
     <string name="expenses_settled_line">%1$s a remboursé %2$s à %3$s · coché par %4$s</string>
     <string name="expenses_creator_title">Réglages des comptes</string>
     <string name="expenses_edit_shares">Modifier les parts</string>
