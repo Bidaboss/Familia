@@ -60,6 +60,8 @@ class GiftItemEditViewModel(
     /** Keeps the draft when Android closes the app in the background. */
     private val saved: SavedStateHandle = SavedStateHandle(),
     private val writeTimeoutMillis: Long = 4_000,
+    /** A new item filled from a link shared by another app (récit 8 bis): a change to keep or drop. */
+    private val shared: GiftItemForm? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<GiftItemEditUiState>(GiftItemEditUiState.Loading)
@@ -119,7 +121,7 @@ class GiftItemEditViewModel(
                 note = it.note.orEmpty(),
             )
         } ?: GiftItemForm()
-        val form = restoredDraft() ?: initialForm
+        val form = restoredDraft() ?: shared?.takeIf { existing == null } ?: initialForm
         _uiState.value = GiftItemEditUiState.Editing(
             form = form,
             hasChanges = form != initialForm,

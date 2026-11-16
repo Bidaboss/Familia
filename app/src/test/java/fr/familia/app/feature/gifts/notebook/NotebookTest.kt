@@ -77,6 +77,26 @@ class NotebookTest {
     }
 
     @Test
+    fun `the occasions of past years wait in the archive`() = runTest {
+        val notebook = FakeNotebook(listOf(entry("a", "adult2"), entry("b", "adult2", occasion = lastChristmas), entry("c", "adult3", occasion = none)))
+        val vm = NotebookViewModel(notebook, "adult1", today = flowOf(today))
+        val closed = vm.uiState.first { it is NotebookUiState.Success } as NotebookUiState.Success
+        assertEquals(listOf(christmas, none), closed.occasions)
+        assertEquals(1, closed.archivedCount)
+
+        vm.toggleArchive()
+        val open = vm.uiState.first { (it as? NotebookUiState.Success)?.showArchive == true } as NotebookUiState.Success
+        assertEquals(listOf(christmas, lastChristmas, none), open.occasions)
+
+        // An occasion chosen from the archive stays in the row once it is closed again.
+        vm.select(lastChristmas)
+        vm.toggleArchive()
+        val back = vm.uiState.first { (it as? NotebookUiState.Success)?.let { s -> !s.showArchive && s.selected == lastChristmas } == true }
+        assertEquals(listOf(christmas, lastChristmas, none), (back as NotebookUiState.Success).occasions)
+        assertEquals(listOf("b"), back.people.single().entries.map { it.id })
+    }
+
+    @Test
     fun `only the member's own notebook is asked for, and a state is saved`() = runTest {
         val notebook = FakeNotebook(listOf(entry("a", "adult2")))
         val vm = NotebookViewModel(notebook, "adult1", today = flowOf(today))
