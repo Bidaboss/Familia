@@ -818,6 +818,12 @@
     <string name="appearance_title">Apparence</string>
     <string name="appearance_theme_title">Thème</string>
     <string name="appearance_theme_help">Choisis l\'allure de l\'appli sur ce téléphone. Les textes et les boutons restent à la même place.</string>
+    <string name="app_icon_title">Icône de l\'appli</string>
+    <string name="app_icon_help">Choisis l\'arbre qui ouvre Familia sur ce téléphone.</string>
+    <string name="app_icon_olivier">Olivier</string>
+    <string name="app_icon_terre">Terre</string>
+    <string name="app_icon_or">Or</string>
+    <string name="app_icon_changed">L\'icône change dans quelques secondes. Si elle était sur ton écran d\'accueil, elle peut disparaître de cet endroit : retrouve-la dans la liste des applis.</string>
     <string name="appearance_sample_event">Repas de famille · 12 h 30</string>
     <string name="theme_classic">Classique</string>
     <string name="theme_arcade">Arcade</string>
@@ -829,5 +835,5 @@
     <string name="theme_spain">Espagne</string>
     <string name="theme_contrast">Contraste fort</string>
     <string name="help_topic_appearance_title">Changer l\'apparence</string>
-    <string name="help_topic_appearance_body">Dans l\'onglet Famille, touche « Apparence » et choisis un thème. Il ne change que ce téléphone. « Contraste fort » est le plus facile à lire.</string>
+    <string name="help_topic_appearance_body">Dans l\'onglet Famille, touche « Apparence » et choisis un thème, puis l\'icône de l\'appli tout en bas. Ils ne changent que ce téléphone. « Contraste fort » est le plus facile à lire.</string>
 </resources>
