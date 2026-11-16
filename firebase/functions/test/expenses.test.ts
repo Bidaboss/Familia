@@ -33,6 +33,15 @@ describe('the accounts of a trip', () => {
     assert.equal((await db.doc('expenseBooks/trip_tx2').get()).exists, true);
     assert.equal((await db.doc('expenseNotices/trip_tx1').get()).exists, false);
     assert.equal((await db.doc('expenseNotices/trip_tx2').get()).exists, true);
+
+    // The book of an event (PRODUIT-57) goes the same way, and never the trip's of the same id.
+    assert.equal(expenseBookId('event', 'tx2'), 'event_tx2');
+    await db.doc('expenseBooks/event_tx2').set({ containerType: 'event', containerId: 'tx2' });
+    await db.doc('expenseBooks/event_tx2/expenses/e1').set({ title: 'Fromage' });
+    await deleteExpenseBook(db, 'event', 'tx2');
+    assert.equal((await db.doc('expenseBooks/event_tx2').get()).exists, false);
+    assert.equal((await db.doc('expenseBooks/event_tx2/expenses/e1').get()).exists, false);
+    assert.equal((await db.doc('expenseBooks/trip_tx2').get()).exists, true);
   });
 
   test('the history says who did what, and which fields changed', () => {
@@ -81,11 +90,15 @@ describe('the accounts of a trip', () => {
     assert.equal(formatEuroCents(12500), '125,00\u00A0€');
     assert.equal(formatEuroCents(5), '0,05\u00A0€');
     const added = [{ authorId: 'm1', amountCents: 6000 }, { authorId: 'm2', amountCents: 2550 }, { authorId: 'm2', amountCents: 1000 }];
-    assert.deepEqual(expenseNotice('tn1', 'Corse', 'm1', added), {
+    assert.deepEqual(expenseNotice({ type: 'trip', id: 'tn1' }, 'Corse', 'm1', added), {
       channel: 'trips', title: 'Comptes · Corse', body: '2 nouvelles dépenses, 35,50\u00A0€. Le solde est à jour dans l\'appli.', tripId: 'tn1',
     });
-    assert.equal(expenseNotice('tn1', 'Corse', 'm2', added)?.body.startsWith('Une nouvelle dépense'), true);
-    assert.equal(expenseNotice('tn1', 'Corse', 'm1', [{ authorId: 'm1', amountCents: 100 }]), null);
+    assert.equal(expenseNotice({ type: 'trip', id: 'tn1' }, 'Corse', 'm2', added)?.body.startsWith('Une nouvelle dépense'), true);
+    assert.equal(expenseNotice({ type: 'trip', id: 'tn1' }, 'Corse', 'm1', [{ authorId: 'm1', amountCents: 100 }]), null);
+    // An event's notice opens the event (PRODUIT-57).
+    assert.deepEqual(expenseNotice({ type: 'event', id: 'ev1' }, 'Raclette', 'm1', added), {
+      channel: 'events', title: 'Comptes · Raclette', body: '2 nouvelles dépenses, 35,50\u00A0€. Le solde est à jour dans l\'appli.', eventId: 'ev1',
+    });
   });
 
   test('once a day from 20 h, to the adult participants only, and to the admin alone while the module is off', async () => {
@@ -120,6 +133,32 @@ describe('the accounts of a trip', () => {
     assert.equal(await sendExpenseNotices(db, send, new Date('2027-07-13T19:00:00Z')), 1);
     assert.deepEqual(sent.map((s) => s.token), ['token-n-adult']);
     assert.match(sent[0].notice.body, /^Une nouvelle dépense, 15,00/);
+  });
+
+  test('an event tells the adults who come and its author, never « Peut-être »', async () => {
+    const sent: { token: string; notice: Notice }[] = [];
+    const send: Sender = async (token, notice) => { sent.push({ token, notice }); return 'ok'; };
+    for (const c of ['members', 'expenseNotices', 'events']) await db.recursiveDelete(db.collection(c));
+    await db.recursiveDelete(db.collection('expenseBooks'));
+    const evening = new Date('2027-07-12T19:00:00Z');
+    const batch = db.batch();
+    batch.set(db.doc('config/app'), { features: { expenses: true } });
+    for (const [id, profile] of [['v-author', 'adult'], ['v-yes', 'adult'], ['v-maybe', 'adult'], ['v-child', 'child'], ['v-payer', 'adult']] as const) {
+      batch.set(db.doc(`members/${id}`), { firstName: id, profile, parentIds: [] });
+      batch.set(db.doc(`members/${id}/devices/token-${id}`), { updatedAt: evening });
+    }
+    batch.set(db.doc('events/ev1'), { title: 'Raclette', authorId: 'v-author' });
+    for (const [id, status] of [['v-yes', 'yes'], ['v-maybe', 'maybe'], ['v-child', 'yes'], ['v-payer', 'yes']]) {
+      batch.set(db.doc(`events/ev1/rsvps/${id}`), { status });
+    }
+    batch.set(db.doc('expenseBooks/event_ev1'), { containerType: 'event', containerId: 'ev1', closed: false });
+    batch.set(db.doc('expenseBooks/event_ev1/expenses/e1'), { authorId: 'v-payer', amountCents: 3000, createdAt: new Date('2027-07-12T13:00:00Z') });
+    await batch.commit();
+
+    assert.equal(await sendExpenseNotices(db, send, evening), 2);
+    assert.deepEqual(sent.map((s) => s.token).sort(), ['token-v-author', 'token-v-yes']);
+    assert.equal(sent[0].notice.eventId, 'ev1');
+    assert.equal(sent[0].notice.title, 'Comptes · Raclette');
   });
 });
 

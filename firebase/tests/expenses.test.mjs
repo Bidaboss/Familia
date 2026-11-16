@@ -169,3 +169,58 @@ describe('« C\'est remboursé »', () => {
     await assertFails(setDoc(doc(as(env, ADULT), `expenseBooks/${BOOK}/settlements/s1`), settlement(ADULT, { fromHouseholdId: 'h1' })));
   });
 });
+
+// PRODUIT-57: the same brick on an event of the planning. The event e1 is written by adult2;
+// adult3 and kid1 come, adult1 only answered « Peut-être ».
+describe('the accounts of an event', () => {
+  const EVENT_BOOK = 'event_e1';
+  const eventBook = (overrides = {}) => book({ containerType: 'event', containerId: 'e1', creatorId: 'adult2', ...overrides });
+
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, 'events/e1'), { title: 'Week-end au lac', date: '2027-05-08', authorId: 'adult2', authorName: 'adult2' });
+      await setDoc(doc(db, 'events/e1/rsvps/adult3'), { status: 'yes', answeredBy: 'adult3', updatedAt: Timestamp.fromMillis(0) });
+      await setDoc(doc(db, 'events/e1/rsvps/kid1'), { status: 'yes', answeredBy: 'adult1', updatedAt: Timestamp.fromMillis(0) });
+      await setDoc(doc(db, 'events/e1/rsvps/adult1'), { status: 'maybe', answeredBy: 'adult1', updatedAt: Timestamp.fromMillis(0) });
+    });
+  });
+
+  test('an adult who comes, or the author, opens it, with the author as its creator', async () => {
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), `expenseBooks/${EVENT_BOOK}`), eventBook({ creatorId: 'adult3' })));
+    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), `expenseBooks/${EVENT_BOOK}`), eventBook()));
+    await assertSucceeds(getDoc(doc(as(env, OTHER_ADULT), `expenseBooks/${EVENT_BOOK}`)));
+  });
+
+  test('« Peut-être », a child or another container type never use it', async () => {
+    await assertFails(setDoc(doc(as(env, ADULT), `expenseBooks/${EVENT_BOOK}`), eventBook()));
+    await assertFails(setDoc(doc(as(env, KID), `expenseBooks/${EVENT_BOOK}`), eventBook()));
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'expenseBooks/meal_e1'), eventBook({ containerType: 'meal' })));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `expenseBooks/${EVENT_BOOK}`), { ...eventBook(), createdAt: Timestamp.fromMillis(0), updatedAt: Timestamp.fromMillis(0) });
+    });
+    await assertFails(getDoc(doc(as(env, ADULT), `expenseBooks/${EVENT_BOOK}`)));
+  });
+
+  test('the payer comes to the event; the author may pay too', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `expenseBooks/${EVENT_BOOK}`), { ...eventBook(), createdAt: Timestamp.fromMillis(0), updatedAt: Timestamp.fromMillis(0) });
+    });
+    const path = `expenseBooks/${EVENT_BOOK}/expenses`;
+    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), `${path}/x1`), expense(NEIGHBOUR)));
+    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), `${path}/x2`), expense(NEIGHBOUR, { payerId: 'adult2', payerHouseholdId: 'h1' })));
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), `${path}/x3`), expense(NEIGHBOUR, { payerId: 'adult1', payerHouseholdId: 'h1' })));
+  });
+
+  test('who changes « Je viens » for « Non » loses the accounts at once', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `expenseBooks/${EVENT_BOOK}`), { ...eventBook(), createdAt: Timestamp.fromMillis(0), updatedAt: Timestamp.fromMillis(0) });
+    });
+    await assertSucceeds(getDoc(doc(as(env, NEIGHBOUR), `expenseBooks/${EVENT_BOOK}`)));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'events/e1/rsvps/adult3'), { status: 'no', answeredBy: 'adult3', updatedAt: Timestamp.fromMillis(0) });
+    });
+    await assertFails(getDoc(doc(as(env, NEIGHBOUR), `expenseBooks/${EVENT_BOOK}`)));
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), `expenseBooks/${EVENT_BOOK}/expenses/x4`), expense(NEIGHBOUR)));
+  });
+});
