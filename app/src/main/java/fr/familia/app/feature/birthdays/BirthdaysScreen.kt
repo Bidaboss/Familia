@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -118,8 +119,8 @@ private fun BirthdayRow(birthday: Birthday, today: LocalDate, onAddToCalendar: (
                 )
             }
             if (onAddToCalendar != null) {
-                // 48 dp target; the label names the member for TalkBack.
-                IconButton(onClick = onAddToCalendar) {
+                // 56 dp target (Argile); the label names the member for TalkBack.
+                IconButton(onClick = onAddToCalendar, modifier = Modifier.size(56.dp)) {
                     Icon(
                         Icons.Outlined.EventAvailable,
                         contentDescription = stringResource(R.string.calendar_add_birthday, birthday.member.firstName),

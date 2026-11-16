@@ -155,7 +155,7 @@ class ScreenshotTest {
     @Test
     @Config(qualifiers = "+night")
     fun birthdaysDark() = capture("anniversaires_sombre", darkTheme = true) {
-        Surface { BirthdaysScreen(previewBirthdays(), onRetry = {}) }
+        Surface { BirthdaysScreen(previewBirthdays(), onRetry = {}, onAddToCalendar = {}) }
     }
 
     @Test
