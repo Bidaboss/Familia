@@ -75,6 +75,9 @@ import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClayLink
+import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.feature.gifts.formatEuros
@@ -176,8 +179,8 @@ private fun Content(state: GiftListUiState.Success, actions: GiftListActions) {
     var openItemId by rememberSaveable { mutableStateOf<String?>(null) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 16.dp, bottom = 96.dp),
+        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
         item(key = "header") { Header(state, actions.onOpenReceived) }
         if (state.items.isEmpty()) {
@@ -235,10 +238,7 @@ private fun Header(state: GiftListUiState.Success, onOpenReceived: (() -> Unit)?
             HelpLink(ScreenHelp.GiftList)
         }
         if (onOpenReceived != null && state.isMine && state.list.kind == GiftListKind.Wishes) {
-            OutlinedButton(onClick = onOpenReceived, modifier = Modifier.padding(top = 4.dp).heightIn(min = 56.dp)) {
-                Icon(Icons.Outlined.CardGiftcard, contentDescription = null)
-                Text(stringResource(R.string.received_open), modifier = Modifier.padding(start = 8.dp))
-            }
+            ClayLink(stringResource(R.string.received_open), onClick = onOpenReceived)
         }
         if (state.actionFailed) {
             Text(
@@ -257,10 +257,10 @@ private fun ItemCard(row: ItemRow, state: GiftListUiState.Success, onOpen: () ->
     val item = row.item
     val claim = row.claim
     val tint = if (claim != null) ClayTint.Household else ClayTint.Plain
-    ClayCard(modifier = Modifier.fillMaxWidth(), tint = tint, onClick = onOpen, onClickLabel = openLabel) {
+    ClayCard(modifier = Modifier.fillMaxWidth(), tint = tint, onClick = onOpen, onClickLabel = openLabel, contentPadding = ClaySpacing.card) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(item.title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                ClayCardTitle(item.title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 // Says to the eye what the click label says to TalkBack: the card opens.
                 Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null)
             }
