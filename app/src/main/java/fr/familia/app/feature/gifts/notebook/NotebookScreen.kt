@@ -421,22 +421,33 @@ internal fun StatusSheetContent(
                 }
             }
         }
-        // « Mes envies » has no occasion: the member says which one the gift is for.
+        // « Mes envies » has no occasion: the member says which one the gift is for, the next
+        // birthday or the next Christmas; it is revealed the day after (PRD rév. 186). The part of
+        // a joint gift follows the choice of its responsible.
         if (entry.listId?.startsWith(WISHES_PREFIX) == true) {
             Text(
                 stringResource(R.string.notebook_idea_occasion),
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.padding(top = 8.dp, bottom = 4.dp).semantics { heading() },
             )
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                GiftOccasion.entries.forEach { occasion ->
-                    val choice = NotebookOccasion(occasion, thisYear)
-                    FilterChip(
-                        selected = entry.occasion.occasion == occasion,
-                        onClick = { onSetOccasion(choice) },
-                        label = { Text(occasionName(choice)) },
-                        modifier = Modifier.heightIn(min = 56.dp),
-                    )
+            if (entry.source == NotebookSource.Share) {
+                Text(
+                    stringResource(R.string.notebook_share_occasion, occasionName(entry.occasion)),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    WISH_OCCASIONS.sortedBy { it.ordinal }.forEach { occasion ->
+                        val selected = entry.occasion.occasion == occasion
+                        FilterChip(
+                            selected = selected,
+                            onClick = { onSetOccasion(NotebookOccasion(occasion, thisYear)) },
+                            // The year is the server's: the next one after the reservation.
+                            label = { Text(if (selected) occasionName(entry.occasion) else occasionLabel(occasion)) },
+                            modifier = Modifier.heightIn(min = 56.dp),
+                        )
+                    }
                 }
             }
         }
@@ -459,7 +470,7 @@ internal fun StatusSheetContent(
     }
 }
 
-private const val WISHES_PREFIX = "wishes-"
+internal const val WISHES_PREFIX = "wishes-"
 
 /** Fictional notebook for previews and screenshots. */
 internal fun previewNotebook(): NotebookUiState.Success {

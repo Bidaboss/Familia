@@ -172,6 +172,12 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
         shareRef(listId, itemId, memberId).delete().await()
     }
 
+    override suspend fun setClaimOccasion(listId: String, itemId: String, occasion: GiftOccasion) {
+        db.collection(LISTS).document(listId).collection(CLAIMS).document(itemId)
+            .update("occasion", occasion.firestoreValue)
+            .await()
+    }
+
     private fun shareRef(listId: String, itemId: String, memberId: String) =
         db.collection(LISTS).document(listId).collection(CLAIMS).document(itemId).collection(SHARES).document(memberId)
 

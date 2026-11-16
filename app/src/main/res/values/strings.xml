@@ -485,6 +485,7 @@
     <string name="notebook_idea_for">Pour qui</string>
     <string name="notebook_idea_other">Ou quelqu\'un hors famille (prénom)</string>
     <string name="notebook_idea_occasion">Pour quelle occasion</string>
+    <string name="notebook_share_occasion">%1$s, choisi par le responsable du cadeau commun</string>
     <string name="notebook_idea_year">Année (facultative)</string>
     <string name="notebook_idea_status">Où en est-il</string>
     <string name="notebook_idea_delete">Retirer l\'idée</string>
