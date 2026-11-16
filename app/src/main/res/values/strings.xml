@@ -1380,7 +1380,13 @@
     <string name="capsule_edit_pick_day">Choisir le jour</string>
     <string name="capsule_edit_when_hint">Entre le %1$s et le %2$s. Elle s\'ouvre ce jour-là.</string>
     <string name="capsule_edit_no_date">Choisis un jour entre un mois et cinq ans d\'ici.</string>
+    <string name="capsule_edit_add_photos">Ajouter des photos (encore %1$d)</string>
+    <string name="capsule_edit_photo_remove">Retirer la photo %1$d</string>
     <string name="capsule_edit_sealed_note">Une fois scellée, la capsule ne se modifie plus. Tu pourras la supprimer tant qu\'elle n\'est pas ouverte.</string>
+    <string name="capsule_edit_needs_network">Les photos ont besoin d\'Internet. Reconnecte-toi, puis réessaie.</string>
+    <string name="capsule_edit_photo_unreadable">Une photo n\'a pas pu être lue. Retire-la, puis réessaie.</string>
     <string name="capsule_edit_failed">La capsule n\'a pas été scellée. Réessaie dans un moment.</string>
+    <string name="capsule_edit_sending_photo">Envoi de la photo %1$d sur %2$d…</string>
+    <string name="capsule_edit_sealing">Scellement de la capsule…</string>
     <string name="capsule_edit_seal">Sceller la capsule</string>
 </resources>
