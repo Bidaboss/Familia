@@ -338,3 +338,9 @@ Avec le module « La bienvenue » allumé, un membre ajouté qui ne s'est jamais
 ## Administration (DESIGN-11)
 1. Administration : les marges sur les côtés passent à 20 dp, dans toutes les sections.
 2. Les cartes « Consommation » et « Capsules restantes » ont leur titre avec la pastille en thème clair.
+
+## Une phrase d'aide par écran au plus (DESIGN-11)
+1. Administration : sous les titres de section, seule la phrase des modules reste (« Un module éteint est caché à la famille… »). Le « ? » en haut à droite explique les chefs, les foyers, le défi et le tour des foyers.
+2. Rejoignez-moi : une seule phrase sous « Envoyer » (« Ta position est prise une seule fois… ») ; le reste est dans le « ? ».
+3. Sauvegarde, Cadeaux reçus et « Une idée ? Un souci ? » : une seule phrase en tête.
+4. Accueil, « ? » : l'aide parle des blocs et des puces.

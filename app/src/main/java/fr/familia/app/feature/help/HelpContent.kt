@@ -35,6 +35,7 @@ enum class ScreenHelp(
     Capsules(R.string.help_screen_capsules_title, R.string.help_screen_capsules_body),
     Genealogy(R.string.help_screen_genealogy_title, R.string.help_screen_genealogy_body),
     JoinMe(R.string.help_topic_joinme_title, R.string.help_topic_joinme_body),
+    Administration(R.string.help_screen_administration_title, R.string.help_screen_administration_body),
 }
 
 /** Who sees a topic of the help page: the functions they can use. */
