@@ -130,9 +130,11 @@ service firebase.storage {
     // n from 1 to 3, sent by the author before the document capsules/{capsuleId}. The author reads
     // them; the recipients only once the server opened the capsule. Deleting it removes them.
     match /capsules/{authorId}/{capsuleId}/{fileName} {
+      // The capsule must be this author's too, so a folder can never borrow another one's opening.
       allow read: if isMember()
         && (authorId == myMemberId()
-            || myMemberId() in firestore.get(docPath('capsules/' + capsuleId)).data.openedFor);
+            || (firestore.get(docPath('capsules/' + capsuleId)).data.authorId == authorId
+                && myMemberId() in firestore.get(docPath('capsules/' + capsuleId)).data.openedFor));
       allow create: if isMember()
         && resource == null
         && authorId == myMemberId()

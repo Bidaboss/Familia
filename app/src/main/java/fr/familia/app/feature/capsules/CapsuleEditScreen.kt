@@ -1,19 +1,29 @@
 package fr.familia.app.feature.capsules
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AddAPhoto
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.HourglassEmpty
 import androidx.compose.material3.Button
@@ -41,11 +51,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import fr.familia.app.R
 import fr.familia.app.core.model.Capsule
 import fr.familia.app.core.theme.ClayTint
@@ -65,10 +78,12 @@ data class CapsuleEditActions(
     val onText: (String) -> Unit = {},
     val onToggleRecipient: (String) -> Unit = {},
     val onOpenAt: (LocalDate) -> Unit = {},
+    val onAddPhotos: (List<String>) -> Unit = {},
+    val onRemovePhoto: (String) -> Unit = {},
     val onSeal: () -> Unit = {},
 )
 
-/** « Nouvelle capsule »: the message, who it is for, and when it opens. Stateless. */
+/** « Nouvelle capsule »: the message, its photos, who it is for, and when it opens. Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CapsuleEditScreen(state: CapsuleEditUiState, actions: CapsuleEditActions, onBack: () -> Unit) {
@@ -116,6 +131,7 @@ private fun Form(state: CapsuleEditUiState.Editing, actions: CapsuleEditActions)
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             modifier = Modifier.fillMaxWidth(),
         )
+        Photos(state, actions)
         SectionTitle(stringResource(R.string.capsule_edit_who))
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             state.members.forEach { member ->
@@ -140,9 +156,59 @@ private fun Form(state: CapsuleEditUiState.Editing, actions: CapsuleEditActions)
             ErrorText(stringResource(R.string.capsule_edit_no_date))
         }
         Text(stringResource(R.string.capsule_edit_sealed_note), style = MaterialTheme.typography.bodyMedium, color = muted)
-        if (state.saveFailed) ErrorText(stringResource(R.string.capsule_edit_failed))
+        state.failure?.let { failure ->
+            ErrorText(
+                stringResource(
+                    when (failure) {
+                        CapsuleSaveFailure.NeedsNetwork -> R.string.capsule_edit_needs_network
+                        CapsuleSaveFailure.PhotoUnreadable -> R.string.capsule_edit_photo_unreadable
+                        CapsuleSaveFailure.Failed -> R.string.capsule_edit_failed
+                    },
+                ),
+            )
+        }
+        state.sendingPhoto?.let { n ->
+            // Text only: a moving bar would freeze the screenshots.
+            Text(
+                if (n == 0) stringResource(R.string.capsule_edit_sealing) else stringResource(R.string.capsule_edit_sending_photo, n, form.photos.size),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+        }
         Button(onClick = actions.onSeal, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Text(stringResource(R.string.capsule_edit_seal))
+        }
+    }
+}
+
+@Composable
+private fun Photos(state: CapsuleEditUiState.Editing, actions: CapsuleEditActions) {
+    // The Android photo picker: no permission to ask, and it works on every phone of the family.
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(Capsule.MAX_PHOTOS)) { uris ->
+        actions.onAddPhotos(uris.map { it.toString() })
+    }
+    state.form.photos.forEachIndexed { index, uri ->
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            AsyncImage(
+                model = uri,
+                contentDescription = stringResource(R.string.capsule_photo, index + 1, state.form.photos.size),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(72.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.surfaceVariant),
+            )
+            if (!state.isSaving) {
+                OutlinedButton(onClick = { actions.onRemovePhoto(uri) }, modifier = Modifier.weight(1f).heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.capsule_edit_photo_remove, index + 1))
+                }
+            }
+        }
+    }
+    if (state.canAddPhotos && !state.isSaving) {
+        OutlinedButton(
+            onClick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+        ) {
+            Icon(Icons.Outlined.AddAPhoto, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.capsule_edit_add_photos, Capsule.MAX_PHOTOS - state.form.photos.size))
         }
     }
 }
@@ -194,7 +260,7 @@ private fun ErrorText(text: String) {
     Text(text, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
 }
 
-/** A half-written capsule of Camille for Inès, for previews and screenshots. */
+/** A half-written capsule of Camille for Inès, for previews and screenshots: no photo to load. */
 internal fun previewCapsuleEdit(): CapsuleEditUiState.Editing = CapsuleEditUiState.Editing(
     form = CapsuleForm(text = "Un petit mot pour Noël prochain.", recipientIds = setOf("b"), openAt = LocalDate.of(2027, 12, 24)),
     today = LocalDate.of(2026, 11, 16),

@@ -1550,7 +1550,8 @@ service cloud.firestore {
       allow read: if isMember()
         && (resource.data.authorId == myMemberId() || myMemberId() in resource.data.openedFor);
       allow create: if isMember() && isValidCapsule(request.resource.data);
-      allow delete: if isMember() && resource.data.authorId == myMemberId();
+      // Only while sealed (PRD rév. 187): once opened, it is a keepsake of its recipients.
+      allow delete: if isMember() && resource.data.authorId == myMemberId() && resource.data.openedFor == [];
     }
 
     // --- App updates (lot 10) ---------------------------------------------------------------------
