@@ -1889,6 +1889,15 @@
     <string name="notifications_quiet_hours_help">Entre 22 h et 8 h, rien ne sonne. Ce qui arrive la nuit t\'attend à 8 h, regroupé. Ce qui te concerne directement arrive toujours.</string>
     <string name="notifications_details_title">Précisions</string>
     <!-- À découvrir (AVIS-19) -->
+    <!-- Quoi de neuf ? (PRD, récit 6 septies) -->
+    <string name="whats_new_title">Quoi de neuf ?</string>
+    <string name="whats_new_position">%1$d sur %2$d</string>
+    <string name="whats_new_try">Essayer</string>
+    <string name="whats_new_go">C\'est parti</string>
+    <string name="whats_new_later">Plus tard</string>
+    <string name="whats_new_version">Version %1$s</string>
+    <string name="whats_new_empty_title">Rien de neuf pour l\'instant</string>
+    <string name="whats_new_empty_body">Les nouveautés de chaque mise à jour apparaîtront ici.</string>
     <string name="discover_title">À découvrir</string>
     <string name="discover_try">Essayer</string>
     <string name="discover_later">Plus tard</string>

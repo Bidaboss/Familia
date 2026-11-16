@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Lightbulb
@@ -58,6 +59,8 @@ fun HelpScreen(
     versionName: String = BuildConfig.VERSION_NAME,
     /** « Une idée ? Un souci ? » (récit 6 sexies), also reachable from here. */
     onOpenFeedback: (() -> Unit)? = null,
+    /** « Quoi de neuf ? » again: the news of every version (récit 6 septies). */
+    onOpenWhatsNew: (() -> Unit)? = null,
 ) {
     var openTopic by rememberSaveable { mutableStateOf(initiallyOpen) }
     Scaffold(
@@ -101,6 +104,13 @@ fun HelpScreen(
                             Icon(Icons.Outlined.Lightbulb, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
                             Text(stringResource(R.string.feedback_title))
+                        }
+                    }
+                    if (onOpenWhatsNew != null) {
+                        OutlinedButton(onClick = onOpenWhatsNew, modifier = Modifier.fillMaxWidth().padding(top = 8.dp).heightIn(min = 56.dp)) {
+                            Icon(Icons.Outlined.AutoAwesome, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.account_whats_new))
                         }
                     }
                 }
