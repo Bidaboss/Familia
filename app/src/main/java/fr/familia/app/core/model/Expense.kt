@@ -5,11 +5,12 @@ import java.time.LocalDate
 
 /**
  * The shared accounts of a trip (PRD rév. 193, récit 16 bis). They are a common brick: a book of
- * accounts belongs to a [container] (a trip today, an event of the planning later, PRODUIT-57)
+ * accounts belongs to a [container] (a trip, or an event of the planning for a weekend or a meal, PRODUIT-57)
  * and never to the trip itself. Amounts are whole euro cents, so a sum never loses a cent.
  */
 enum class ExpenseContainerType(val firestoreValue: String) {
     Trip("trip"),
+    Event("event"),
     ;
 
     companion object {

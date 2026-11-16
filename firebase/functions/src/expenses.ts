@@ -6,7 +6,7 @@ import { FieldValue, Timestamp, type Firestore } from 'firebase-admin/firestore'
 import { parisDay, type Notice } from './logic';
 import { featureOn, loadMembers, notify, type Sender } from './store';
 
-export type ExpenseContainerType = 'trip';
+export type ExpenseContainerType = 'trip' | 'event';
 
 /** The id of the book of a container: one per container, found without a query. */
 export function expenseBookId(containerType: ExpenseContainerType, containerId: string): string {
@@ -58,8 +58,8 @@ export function historyEntry(
   };
 }
 
-/** The collection of each kind of container: a trip today, an event later. */
-const CONTAINERS: Record<ExpenseContainerType, string> = { trip: 'trips' };
+/** The collection of each kind of container: a trip, or an event of the planning (PRODUIT-57). */
+const CONTAINERS: Record<ExpenseContainerType, string> = { trip: 'trips', event: 'events' };
 
 /**
  * Writes [entry] under the expense; never once its book or its container is gone. Deleting a trip
@@ -98,18 +98,37 @@ export function formatEuroCents(cents: number): string {
  * The notice of one member: what the others noted since the last one, grouped. Null when only this
  * member added expenses, or nobody did: a notice about one's own expenses tells nothing.
  */
-export function expenseNotice(tripId: string, tripTitle: string, memberId: string, added: NewExpense[]): Notice | null {
+export function expenseNotice(
+  container: { type: ExpenseContainerType; id: string },
+  title: string,
+  memberId: string,
+  added: NewExpense[],
+): Notice | null {
   const others = added.filter((e) => e.authorId !== memberId);
   if (others.length === 0) return null;
   const total = others.reduce((sum, e) => sum + e.amountCents, 0);
   const what = others.length === 1 ? 'Une nouvelle dépense' : `${others.length} nouvelles dépenses`;
-  return {
-    channel: 'trips',
-    title: `Comptes · ${tripTitle}`,
-    // Since the last notice, which may be days ago when nobody added anything in between.
-    body: `${what}, ${formatEuroCents(total)}. Le solde est à jour dans l'appli.`,
-    tripId,
-  };
+  // Since the last notice, which may be days ago when nobody added anything in between.
+  const body = `${what}, ${formatEuroCents(total)}. Le solde est à jour dans l'appli.`;
+  return container.type === 'trip'
+    ? { channel: 'trips', title: `Comptes · ${title}`, body, tripId: container.id }
+    : { channel: 'events', title: `Comptes · ${title}`, body, eventId: container.id };
+}
+
+/**
+ * Who shares the costs of a container, and its title. A trip: its participants. An event: those
+ * who said « Je viens » and its author; « Peut-être » does not count, like in the rules.
+ */
+async function sharing(db: Firestore, type: ExpenseContainerType, id: string): Promise<{ title: string; ids: Set<string> } | null> {
+  const container = await db.collection(CONTAINERS[type]).doc(id).get();
+  if (!container.exists) return null;
+  const title = String(container.get('title') ?? '');
+  if (type === 'trip') return { title, ids: new Set((container.get('participantIds') as string[] | undefined) ?? []) };
+  const coming = await container.ref.collection('rsvps').where('status', '==', 'yes').get();
+  const ids = new Set(coming.docs.map((r) => r.id));
+  const author = container.get('authorId');
+  if (typeof author === 'string') ids.add(author);
+  return { title, ids };
 }
 
 /**
@@ -140,19 +159,18 @@ export async function sendExpenseNotices(db: Firestore, send: Sender, now: Date)
     });
     if (!since) continue;
     const containerId = book.get('containerId');
-    if (book.get('containerType') !== 'trip' || typeof containerId !== 'string') continue;
-    const trip = await db.collection('trips').doc(containerId).get();
-    if (!trip.exists) continue;
+    const type = book.get('containerType') as ExpenseContainerType;
+    if (!(type in CONTAINERS) || typeof containerId !== 'string') continue;
+    const container = await sharing(db, type, containerId);
+    if (!container) continue;
     const added = await book.ref.collection('expenses').where('createdAt', '>', since).get();
     if (added.empty) continue;
     const list: NewExpense[] = added.docs.map((e) => ({ authorId: String(e.get('authorId') ?? ''), amountCents: Number(e.get('amountCents') ?? 0) }));
-    const participants = new Set((trip.get('participantIds') as string[] | undefined) ?? []);
     const recipients = members
-      .filter((m) => m.profile === 'adult' && participants.has(m.id))
+      .filter((m) => m.profile === 'adult' && container.ids.has(m.id))
       .filter((m) => on || (typeof owner === 'string' && m.id === owner));
-    const title = String(trip.get('title') ?? '');
     for (const member of recipients) {
-      const notice = expenseNotice(containerId, title, member.id, list);
+      const notice = expenseNotice({ type, id: containerId }, container.title, member.id, list);
       if (notice && (await notify(db, send, [member.id], notice)) > 0) told++;
     }
   }

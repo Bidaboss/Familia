@@ -990,9 +990,14 @@ les adultes participants le lisent et l'écrivent. Les montants sont en centimes
 
 ### `expenseBooks/{containerType}_{containerId}`
 
-`containerType` (`trip`), `containerId`, `creatorId` (le créateur du voyage, qui change les parts,
-corrige tout et clôture), `shares` (foyer → nombre de parts : 1 par adulte et 0,5 par enfant par
+`containerType` (`trip` ou `event`), `containerId`, `creatorId` (le créateur du voyage ou l'auteur
+de l'événement, qui change les parts, corrige tout et clôture), `shares` (foyer → nombre de parts : 1 par adulte et 0,5 par enfant par
 défaut), `closed`, `createdAt`, `updatedAt`. Ouvert par le premier adulte participant qui affiche les comptes.
+
+Les comptes d'un événement (PRODUIT-57, un week-end ou un repas) : partagés par ceux qui ont
+répondu « Je viens » (`rsvps/{memberId}.status == 'yes'`) et par l'auteur ; « Peut-être » ne compte
+pas. Seuls les adultes parmi eux les lisent et les écrivent, et le payeur doit en faire partie. Le
+livre est supprimé avec l'événement (`onEventDeletedAccounts`).
 
 ### `expenseBooks/{bookId}/expenses/{expenseId}`
 
@@ -1017,5 +1022,6 @@ défaut), `closed`, `createdAt`, `updatedAt`. Ouvert par le premier adulte parti
 La notification du jour des comptes (récit 16 bis), écrite par les fonctions seules (aucune règle
 ne l'ouvre aux membres) : `day` (AAAA-MM-JJ à Paris) et `at`, l'heure de la dernière. Chaque soir
 à partir de 20 h, `arrivalReminder` dit aux adultes participants ce que les autres ont ajouté
-depuis `at`, en une seule notification sur le canal `trips`, sans relance. Interrupteur éteint :
+depuis `at`, en une seule notification sur le canal `trips` (`events` pour un événement, qui
+ouvre l'événement), sans relance. Interrupteur éteint :
 seul l'admin principal la reçoit.
