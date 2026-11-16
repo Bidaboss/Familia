@@ -63,6 +63,10 @@ data class GoodNewsDetailDestination(val postId: String)
 @Serializable
 data class GoodNewsEditDestination(val postId: String? = null)
 
+/** The question of the week (récit 37): this week's, or an older one when [questionId] is set. */
+@Serializable
+data class WeeklyQuestionDestination(val questionId: String? = null)
+
 /** Read-only view of an event with "qui vient", opened from the Planning tab. */
 @Serializable
 data class EventDetailDestination(val eventId: String)
