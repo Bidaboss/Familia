@@ -1,5 +1,16 @@
 package fr.familia.app.feature.members
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.rounded.RestaurantMenu
+import androidx.compose.material.icons.rounded.AccountTree
+import androidx.compose.material.icons.rounded.HourglassTop
+import fr.familia.app.feature.souvenirs.SouvenirFamily
+import fr.familia.app.core.ui.ClayCard
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.background
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.text.style.TextOverflow
 import fr.familia.app.core.ui.aboveSnackbar
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
@@ -8,6 +19,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,15 +34,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Groups
-import androidx.compose.material.icons.outlined.AccountTree
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.ExpandLess
-import androidx.compose.material.icons.outlined.ExpandMore
-import androidx.compose.material.icons.outlined.HourglassEmpty
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.QueryStats
-import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.AdminPanelSettings
@@ -51,10 +57,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -63,7 +67,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.stateDescription
 import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.OutlinedButton
@@ -128,7 +131,6 @@ fun MembersScreen(
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var photoOf by rememberSaveable { mutableStateOf<String?>(null) }
     var viewing by rememberSaveable { mutableStateOf<String?>(null) }
-    var treasuresOpen by rememberSaveable { mutableStateOf(false) }
     val photos = LocalMemberPhotos.current
     when (state) {
         MembersUiState.Loading ->
@@ -151,6 +153,25 @@ fun MembersScreen(
                 // Room at the bottom so the add button never hides the last row.
                 contentPadding = PaddingValues(top = 8.dp, bottom = if (canAdd) 96.dp else 8.dp),
             ) {
+                // « Nos trésors » at the top (DESIGN-12, avancé au 21 par PRODUIT): recettes, arbre and
+                // capsules as tiles. Each one stays behind its module; no module on, no row.
+                val treasures = listOfNotNull(
+                    onOpenRecipes?.let {
+                        Treasure("recipes", Icons.Rounded.RestaurantMenu, SouvenirFamily.Party, R.string.members_treasure_recipes, R.string.members_treasure_recipes_open, it)
+                    },
+                    onOpenGenealogy?.let {
+                        Treasure("genealogy", Icons.Rounded.AccountTree, SouvenirFamily.Help, R.string.members_treasure_tree, R.string.members_treasure_tree_open, it)
+                    },
+                    onOpenCapsules?.let {
+                        Treasure("capsules", Icons.Rounded.HourglassTop, SouvenirFamily.Trips, R.string.members_treasure_capsules, R.string.members_treasure_capsules_open, it)
+                    },
+                    onOpenWhoIsIt?.let {
+                        Treasure("whoIsIt", Icons.Outlined.PhotoAlbum, SouvenirFamily.Share, R.string.members_treasure_who_is_it, R.string.members_treasure_who_is_it_open, it)
+                    },
+                )
+                if (treasures.isNotEmpty()) {
+                    item(key = "treasures") { TreasureTiles(treasures) }
+                }
                 if (state.groups.isEmpty()) {
                     item(key = "empty") {
                         EmptyState(
@@ -192,24 +213,6 @@ fun MembersScreen(
                             },
                             onWishesClick = onOpenWishes?.let { open -> { open(member.id) } },
                         )
-                    }
-                }
-                // « Nos trésors » (DESIGN-11): recettes, capsules and arbre généalogique under one entry,
-                // which opens in place. Each one stays behind its module; no module on, no entry.
-                val treasures = listOfNotNull(
-                    onOpenRecipes?.let { Treasure("recipes", Icons.Outlined.Restaurant, R.string.recipes_title, it) },
-                    onOpenCapsules?.let { Treasure("capsules", Icons.Outlined.HourglassEmpty, R.string.capsules_title, it) },
-                    onOpenGenealogy?.let { Treasure("genealogy", Icons.Outlined.AccountTree, R.string.genealogy_title, it) },
-                    onOpenWhoIsIt?.let { Treasure("whoIsIt", Icons.Outlined.PhotoAlbum, R.string.feature_who_is_it, it) },
-                )
-                if (treasures.isNotEmpty()) {
-                    item(key = "treasures") {
-                        TreasuresRow(open = treasuresOpen, onToggle = { treasuresOpen = !treasuresOpen })
-                    }
-                    if (treasuresOpen) {
-                        items(treasures, key = { "treasure-${it.key}" }) { treasure ->
-                            SettingsRow(treasure.icon, treasure.labelRes, indent = true, onClick = treasure.onClick)
-                        }
                     }
                 }
                 val everyone = state.groups.flatMap { it.members }
@@ -339,25 +342,76 @@ fun MembersScreen(
     }
 }
 
-private class Treasure(val key: String, val icon: ImageVector, @StringRes val labelRes: Int, val onClick: () -> Unit)
+private class Treasure(
+    val key: String,
+    val icon: ImageVector,
+    val family: SouvenirFamily,
+    @StringRes val labelRes: Int,
+    @StringRes val openLabelRes: Int,
+    val onClick: () -> Unit,
+)
 
-/** « Nos trésors »: one row that opens or closes the treasures under it, read « développé » by TalkBack. */
+/**
+ * « Nos trésors » (DESIGN-12): a small title, then one tile per module on, of equal width. A tile
+ * alone takes the whole width, its picture on the left.
+ */
 @Composable
-private fun TreasuresRow(open: Boolean, onToggle: () -> Unit) {
-    val state = stringResource(if (open) R.string.members_treasures_open else R.string.members_treasures_closed)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onToggle)
-            .heightIn(min = 56.dp)
-            .padding(horizontal = ClaySpacing.screen, vertical = 12.dp)
-            .semantics { stateDescription = state },
-        verticalAlignment = Alignment.CenterVertically,
+private fun TreasureTiles(treasures: List<Treasure>) {
+    Column(Modifier.padding(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 8.dp, bottom = 8.dp)) {
+        Text(
+            stringResource(R.string.members_treasures),
+            style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 0.08.em),
+            modifier = Modifier.padding(bottom = 8.dp).semantics { heading() },
+        )
+        // Four tiles go on two rows of two, so each name stays readable on a narrow phone.
+        val rows = treasures.chunked(if (treasures.size > 3) 2 else 3)
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            rows.forEach { row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    row.forEach { treasure -> TreasureTile(treasure, alone = row.size == 1) }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RowScope.TreasureTile(treasure: Treasure, alone: Boolean) {
+    ClayCard(
+        modifier = Modifier.weight(1f).heightIn(min = 112.dp),
+        onClick = treasure.onClick,
+        onClickLabel = stringResource(treasure.openLabelRes),
+        contentPadding = PaddingValues(16.dp),
     ) {
-        Icon(Icons.Outlined.AutoAwesome, contentDescription = null)
-        Spacer(Modifier.width(16.dp))
-        Text(stringResource(R.string.members_treasures), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
-        Icon(if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, contentDescription = null)
+        if (alone) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                TreasureBadge(treasure)
+                Spacer(Modifier.width(16.dp))
+                Text(stringResource(treasure.labelRes), style = MaterialTheme.typography.titleMedium, maxLines = 1)
+            }
+        } else {
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                TreasureBadge(treasure)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    stringResource(treasure.labelRes),
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+    }
+}
+
+/** The 48 dp disc in the light tint of its family, with the filled picture in the dark one. */
+@Composable
+private fun TreasureBadge(treasure: Treasure) {
+    Box(
+        Modifier.size(48.dp).clip(CircleShape).background(treasure.family.light),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(treasure.icon, contentDescription = null, tint = treasure.family.dark, modifier = Modifier.size(28.dp))
     }
 }
 

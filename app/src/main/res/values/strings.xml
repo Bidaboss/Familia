@@ -133,8 +133,15 @@
     <string name="administration_title">Administration</string>
     <string name="members_settings_title">Réglages</string>
     <string name="members_treasures">Nos trésors</string>
-    <string name="members_treasures_open">ouvert</string>
-    <string name="members_treasures_closed">fermé</string>
+    <string name="members_treasure_recipes">Recettes</string>
+    <string name="members_treasure_recipes_open">ouvrir les recettes</string>
+    <string name="members_treasure_tree">Arbre</string>
+    <string name="members_treasure_tree_open">ouvrir l\'arbre généalogique</string>
+    <string name="members_treasure_capsules">Capsules</string>
+    <string name="members_treasure_capsules_open">ouvrir les capsules</string>
+    <string name="members_treasure_who_is_it">Qui est-ce ?</string>
+    <string name="members_treasure_who_is_it_open">ouvrir « Qui est-ce ? »</string>
+    <string name="home_new_recipe">Nouvelle recette : %1$s</string>
     <string name="administration_error_body">L\'appli n\'a pas pu lire la famille. Réessaie dans un moment.</string>
     <string name="administration_not_allowed_title">Réservé à l\'admin principal</string>
     <string name="administration_not_allowed_body">Ce menu sert à nommer les chefs de famille, gérer les foyers et sauvegarder les données.</string>
@@ -504,7 +511,7 @@
     <string name="help_screen_family_title">La famille</string>
     <string name="help_screen_administration_title">L\'administration</string>
     <string name="help_screen_administration_body">Un chef de famille gère les membres et les événements de son foyer.\n\nLe crayon renomme un foyer ; un foyer sans membre peut être supprimé.\n\nChoisis le défi de la famille dans la liste. Le défi d\'un mois ne change plus dès que sa jauge a avancé. Chaque foyer lance le défi d\'un mois, à tour de rôle. Il est prévenu 7 jours avant et peut passer son tour. Monte ou descends un foyer, puis enregistre.</string>
-    <string name="help_screen_family_body">Les membres de la famille, rangés par foyer. Plus bas, règle tes notifications, vérifie les mises à jour et ouvre l\'aide. Seuls l\'admin principal et les chefs de famille, pour leur foyer, ajoutent ou modifient un membre.</string>
+    <string name="help_screen_family_body">En haut, Nos trésors : les recettes, l\'arbre et les capsules de la famille. Dessous, les membres, rangés par foyer. Plus bas, règle tes notifications, vérifie les mises à jour et ouvre l\'aide. Seuls l\'admin principal et les chefs de famille, pour leur foyer, ajoutent ou modifient un membre.</string>
     <string name="help_screen_gifts_title">Cadeaux</string>
     <string name="help_screen_gifts_body">En haut, les prochains anniversaires. Plus bas, les listes de chacun : « Mes envies », que chacun remplit toute l\'année, et les listes d\'occasion, comme Noël. Touche une liste pour l\'ouvrir, ou « Nouvelle liste » pour en créer une.</string>
     <string name="help_screen_gift_list_title">Une liste</string>

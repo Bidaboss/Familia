@@ -140,6 +140,8 @@ fun HomeRoute(
     onJoinChallenge: () -> Unit = {},
     /** Opens the module of « À découvrir » (AVIS-19). */
     onOpenDiscover: (DiscoverModule) -> Unit = {},
+    /** Opens the recipe of the chip « Nouvelle recette ». */
+    onOpenRecipe: (String) -> Unit = {},
 ) {
     val flags = LocalFeatureFlags.current
     val giftsOn = flags.isOn(Feature.Gifts)
@@ -198,6 +200,9 @@ fun HomeRoute(
                     card = { YearAgoHomeCard(container, currentMember, onOpenGoodNews = onOpenGoodNews, onOpenTrip = actions.onOpenTrip) },
                 ),
             )
+        }
+        if (flags.isOn(Feature.Recipes)) {
+            add(HomeExtra("newRecipe", chip = { _, _ -> RecipeHomeChip(container, currentMember.id, onOpenRecipe) }))
         }
         if (flags.isOn(Feature.WhoIsIt)) {
             add(

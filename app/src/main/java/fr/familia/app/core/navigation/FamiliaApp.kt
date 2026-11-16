@@ -624,6 +624,7 @@ fun FamiliaApp(
                             onPrepareChallenge = { month ->
                                 navController.navigate(HostChallengeDestination(month.year, month.monthValue)) { launchSingleTop = true }
                             },
+                            onOpenRecipe = { id -> navController.navigate(RecipeDetailDestination(id)) },
                             onOpenDiscover = { module ->
                                 when (module) {
                                     DiscoverModule.WeeklyQuestion -> navController.navigate(WeeklyQuestionDestination())
