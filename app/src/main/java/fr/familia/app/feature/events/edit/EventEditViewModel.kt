@@ -130,7 +130,9 @@ class EventEditViewModel(
         viewModelScope.launch {
             // The new cover goes first: the rules of the event only name a photo already sent.
             val cover = try {
-                photos?.prepare(before, state.form.photo) { SinglePhoto.eventCover(editedId, author.id) } ?: before
+                // A removed cover gives null, which must stay null: no « ?: before » here.
+                photos?.prepare(before, state.form.photo) { SinglePhoto.eventCover(editedId, author.id) }
+                    ?: before.takeIf { photos == null }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
