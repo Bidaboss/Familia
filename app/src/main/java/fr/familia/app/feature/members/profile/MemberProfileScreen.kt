@@ -66,6 +66,8 @@ fun MemberProfileScreen(
     wishes: (@Composable (Member) -> Unit)? = null,
     /** Tailles, pointure, allergies et goûts (récit 7 bis), while their module is on. */
     card: (@Composable (Member) -> Unit)? = null,
+    /** « Pensez à moi » (récit 43), while its module is on. */
+    thinkOfMe: (@Composable (Member) -> Unit)? = null,
 ) {
     (state as? MemberProfileUiState.Ready)?.bravo?.let { souvenir ->
         SouvenirKind.of(souvenir.key)?.let { kind ->
@@ -104,7 +106,7 @@ fun MemberProfileScreen(
                     title = stringResource(R.string.member_not_found_title),
                     body = stringResource(R.string.profile_not_found_body),
                 )
-                is MemberProfileUiState.Ready -> Content(state, onSetShown, onOpenRecipes, wishes, card)
+                is MemberProfileUiState.Ready -> Content(state, onSetShown, onOpenRecipes, wishes, card, thinkOfMe)
             }
         }
     }
@@ -118,6 +120,7 @@ private fun Content(
     onOpenRecipes: (() -> Unit)?,
     wishes: (@Composable (Member) -> Unit)?,
     card: (@Composable (Member) -> Unit)?,
+    thinkOfMe: (@Composable (Member) -> Unit)?,
 ) {
     val member = state.member
     Column(
@@ -138,6 +141,7 @@ private fun Content(
         wishes?.invoke(member)
         // What to offer, what to cook (récit 7 bis).
         card?.invoke(member)
+        thinkOfMe?.invoke(member)
         // The recipes that come from this member (récit 38).
         onOpenRecipes?.let { open ->
             OutlinedButton(onClick = open, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
