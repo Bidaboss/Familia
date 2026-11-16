@@ -20,6 +20,7 @@ import fr.familia.app.core.data.ExportRepository
 import fr.familia.app.core.data.GenealogyRepository
 import fr.familia.app.core.data.GiftRepository
 import fr.familia.app.core.data.BirthdayCardRepository
+import fr.familia.app.core.data.MomentRepository
 import fr.familia.app.core.data.GoodNewsRepository
 import fr.familia.app.core.data.HelpRequestRepository
 import fr.familia.app.core.data.JoinMeRepository
@@ -71,6 +72,8 @@ import fr.familia.app.core.model.JoinMe
 import fr.familia.app.core.model.Kin
 import fr.familia.app.core.model.KinLink
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.Moment
+import fr.familia.app.core.model.MomentCheer
 import fr.familia.app.core.model.MonthChallenge
 import fr.familia.app.core.model.NotebookBudget
 import fr.familia.app.core.model.NotebookEntry
@@ -249,6 +252,16 @@ class ReadOnlyBirthdayCardRepository(private val inner: BirthdayCardRepository, 
     override fun observeFor(memberId: String, year: Int): Flow<List<BirthdayCard>> = inner.observeFor(memberId, year)
     override suspend fun save(card: BirthdayCard, isNew: Boolean) = guard.refuse()
     override suspend fun remove(card: BirthdayCard) = guard.refuse()
+}
+
+class ReadOnlyMomentRepository(private val inner: MomentRepository, private val guard: ViewAsGuard) : MomentRepository {
+    override fun observeFor(memberId: String, withPending: Boolean): Flow<List<Moment>> = inner.observeFor(memberId, withPending)
+    override fun observeCheers(momentId: String): Flow<List<MomentCheer>> = inner.observeCheers(momentId)
+    override suspend fun add(moment: Moment) = guard.refuse()
+    override suspend fun accept(momentId: String) = guard.refuse()
+    override suspend fun remove(momentId: String) = guard.refuse()
+    override suspend fun cheer(cheer: MomentCheer) = guard.refuse()
+    override suspend fun removeCheer(cheer: MomentCheer) = guard.refuse()
 }
 
 class ReadOnlyGoodNewsRepository(private val inner: GoodNewsRepository, private val guard: ViewAsGuard) : GoodNewsRepository {

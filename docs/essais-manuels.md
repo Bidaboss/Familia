@@ -409,6 +409,17 @@ Avec l'interrupteur « Le petit geste du jour » allumé, et une Bonne nouvelle 
 1. Famille : en haut, « Nos trésors » avec les tuiles Recettes, Arbre, Capsules et Qui est-ce ?, chacune seulement si son module est allumé. Avec les quatre, elles vont sur deux rangées de deux. **Attendu :** chaque tuile ouvre son écran. Avec un seul module allumé, la tuile prend toute la largeur.
 2. Avec un autre compte, ajoute une recette. **Attendu :** sur ton Accueil, la puce « Nouvelle recette : … » ouvre cette recette. Elle disparaît 7 jours après. L'auteur ne la voit pas.
 
+## « Quoi de neuf ? » (récit 6 septies)
+Il faut une version publiée avec un fichier dans `docs/whats-new`, et un téléphone qui avait déjà l'appli.
+1. Installe la mise à jour, puis ouvre l'appli. **Attendu :** la feuille « Quoi de neuf ? » montre les cartes de la version, les plus récentes d'abord, et on passe de l'une à l'autre en glissant.
+2. « Essayer » : **Attendu :** l'écran de la carte s'ouvre, et la feuille ne revient pas à l'ouverture suivante.
+3. « Plus tard » : **Attendu :** la feuille revient à l'ouverture suivante, puis plus jamais.
+4. Sur un téléphone neuf : **Attendu :** le tuto, puis rien. La feuille ne s'ouvre pas.
+5. Une carte d'un module éteint : **Attendu :** absente. Allume le module dans Administration, ferme et rouvre l'appli : **Attendu :** la carte apparaît.
+6. Avec un compte enfant : **Attendu :** le texte pour enfant, et aucune carte réservée aux adultes.
+7. En Voir comme : **Attendu :** aucune feuille.
+8. Aide, ou menu de l'avatar, puis « Quoi de neuf ? » : **Attendu :** toutes les versions, la plus récente en haut.
+
 ## Ma photo en haut à droite (DESIGN-12)
 1. Sur chacun des 5 onglets : **Attendu :** ta photo (ou tes initiales) à droite de la barre du haut, après le « ? ». TalkBack lit « Mon compte et réglages ».
 2. Touche-la. **Attendu :** une feuille s'ouvre avec, dans l'ordre : Mon profil, Apparence, Notifications, Aide, Vérifier les mises à jour, « Une idée ? Un souci ? », Partager Familia. Une ligne absente veut dire que son module est éteint.
@@ -417,3 +428,13 @@ Avec l'interrupteur « Le petit geste du jour » allumé, et une Bonne nouvelle 
 5. Touche une ligne. **Attendu :** la feuille se ferme et l'écran s'ouvre.
 6. Onglet Famille : **Attendu :** « Nos trésors » puis les membres, et plus aucun réglage en bas.
 7. En « Voir comme » : **Attendu :** ni « Partager Familia » ni « Une idée ? Un souci ? » dans la feuille.
+
+## Pensez à moi (récit 43)
+
+Avec le module « Pensez à moi » allumé, un adulte parent d'un enfant de moins de 15 ans et d'un ado de 15 ans ou plus (date de naissance remplie), et un autre compte.
+
+1. Sur ta propre fiche, note « Examen » pour demain. **Attendu :** il apparaît sous « Pensez à moi », avec « Retirer ».
+2. Sur la fiche de l'enfant, note un moment. **Attendu :** il est accepté tout de suite. Sur celle de l'ado : « … choisira de l'accepter ou non », puis « En attente de la réponse de … ».
+3. Avec le compte de l'ado, ouvre sa fiche. **Attendu :** « Noté par … » avec « Oui » et « Non merci ».
+4. Le jour J vers 10 h. **Attendu :** les autres reçoivent « Pensez à … aujourd'hui ». Sur la fiche, « Aujourd'hui : « … » » et un champ pour un mot. Le membre reçoit « … pense à toi. » à chaque mot. Rien le lendemain.
+5. En « Voir comme », ouvre une fiche. **Attendu :** ni champ ni bouton, la lecture seule.
