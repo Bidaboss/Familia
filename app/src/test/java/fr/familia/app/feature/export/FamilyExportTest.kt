@@ -2,6 +2,7 @@ package fr.familia.app.feature.export
 
 import fr.familia.app.core.data.ExportAnswer
 import fr.familia.app.core.data.ExportDocument
+import fr.familia.app.core.data.ExportTripChild
 import fr.familia.app.core.data.ExportWeeklyAnswer
 import fr.familia.app.core.data.FamilyData
 import kotlinx.serialization.json.Json
@@ -37,6 +38,12 @@ class FamilyExportTest {
             ExportWeeklyAnswer("2026-11-30", "m1", mapOf("text" to "Des crêpes", "skipped" to false)),
         ),
         capsules = listOf(ExportDocument("c1", mapOf("text" to "Pour tes 18 ans", "authorId" to "m1", "openedFor" to emptyList<String>()))),
+        trips = listOf(ExportDocument("t1", mapOf("title" to "Bretagne", "readerIds" to listOf("m1")))),
+        tripSteps = listOf(
+            ExportTripChild("t1", "s2", mapOf("place" to "Quimper")),
+            ExportTripChild("t1", "s1", mapOf("place" to "Rennes")),
+        ),
+        tripItems = listOf(ExportTripChild("t1", "i1", mapOf("label" to "Crème solaire"))),
     )
 
     private val json = Json.parseToJsonElement(familyExportJson(data, Instant.parse("2026-11-14T10:00:00Z"), "1.2.0")).jsonObject
@@ -62,6 +69,11 @@ class FamilyExportTest {
         assertEquals(listOf("m1", "m2"), weekly.map { it.getValue("memberId").jsonPrimitive.content })
         assertEquals("Des crêpes", weekly.first().getValue("text").jsonPrimitive.content)
         assertEquals("Pour tes 18 ans", json.getValue("capsules").jsonArray.single().jsonObject.getValue("text").jsonPrimitive.content)
+        assertEquals("Bretagne", json.getValue("trips").jsonArray.single().jsonObject.getValue("title").jsonPrimitive.content)
+        val steps = json.getValue("tripSteps").jsonArray.map { it.jsonObject }
+        assertEquals(listOf("s1", "s2"), steps.map { it.getValue("id").jsonPrimitive.content })
+        assertTrue(steps.all { it.getValue("tripId").jsonPrimitive.content == "t1" })
+        assertEquals("Crème solaire", json.getValue("tripItems").jsonArray.single().jsonObject.getValue("label").jsonPrimitive.content)
     }
 
     @Test

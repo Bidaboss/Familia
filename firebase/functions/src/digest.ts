@@ -17,7 +17,9 @@ export const DIGEST_HOUR = 18;
 export type DigestItem =
   | { kind: 'souvenir'; key: string }
   | { kind: 'challengeDone'; month: string }
-  | { kind: 'weekly'; weekId: string };
+  | { kind: 'weekly'; weekId: string }
+  // The day after an event, those who came are invited to add their photos (récit 41).
+  | { kind: 'album'; eventId: string };
 
 /** Whether the notices wait for the résumé (Administration > Modules > « Résumé du jour »). */
 export async function digestOn(db: Firestore): Promise<boolean> {
@@ -29,7 +31,8 @@ export async function queueDigest(db: Firestore, memberIds: string[], item: Dige
   const fields: Record<string, unknown> =
     item.kind === 'souvenir' ? { souvenirs: FieldValue.arrayUnion(item.key) }
       : item.kind === 'challengeDone' ? { challengeDone: item.month }
-        : { weekly: item.weekId };
+        : item.kind === 'album' ? { albums: FieldValue.arrayUnion(item.eventId) }
+          : { weekly: item.weekId };
   for (let i = 0; i < memberIds.length; i += 400) {
     const batch = db.batch();
     for (const id of memberIds.slice(i, i + 400)) {
@@ -64,8 +67,15 @@ export async function familyNews(db: Firestore, now: Date): Promise<FamilyNews> 
  * The sentence of one résumé. What is waiting comes first; the gauge and the new leaves only go
  * with it, so that the family never gets a notification for the gauge alone. Null when nothing waits.
  */
-export function digestNotice(waiting: { souvenirs: string[]; challengeDone: boolean; weekly: string | null }, news: FamilyNews, newLeaves: number): Notice | null {
+export function digestNotice(
+  waiting: { souvenirs: string[]; challengeDone: boolean; weekly: string | null; albums?: string[] },
+  news: FamilyNews,
+  newLeaves: number,
+): Notice | null {
   const parts: string[] = [];
+  const albums = waiting.albums ?? [];
+  if (albums.length === 1) parts.push('tes photos d\'hier à mettre dans l\'album');
+  if (albums.length > 1) parts.push('tes photos d\'hier à mettre dans les albums');
   if (waiting.souvenirs.length === 1) parts.push('nouveau souvenir');
   if (waiting.souvenirs.length > 1) parts.push(`${waiting.souvenirs.length} nouveaux souvenirs`);
   if (waiting.challengeDone) parts.push('défi réussi, l\'arbre fleurit');
@@ -78,6 +88,8 @@ export function digestNotice(waiting: { souvenirs: string[]; challengeDone: bool
     title: 'Aujourd\'hui dans Familia',
     body: parts.join(', ').replace(/^./, (c) => c.toUpperCase()) + '.',
     ...(waiting.weekly && parts.length === 1 ? { weeklyQuestionId: waiting.weekly } : {}),
+    // The album alone: a tap opens its event, where the album is.
+    ...(albums.length === 1 && parts.length === 1 ? { eventId: albums[0] } : {}),
   };
 }
 
@@ -98,7 +110,7 @@ export async function sendDigests(db: Firestore, send: Sender, now: Date): Promi
       const d = await t.get(doc.ref);
       if (!d.get('pending') || d.get('sentDay') === today) return null;
       t.set(doc.ref, {
-        pending: false, sentDay: today, souvenirs: [], challengeDone: null, weekly: null,
+        pending: false, sentDay: today, souvenirs: [], challengeDone: null, weekly: null, albums: [],
         leavesSeen: news.leaves, updatedAt: now,
       }, { merge: true });
       return d;
@@ -109,6 +121,7 @@ export async function sendDigests(db: Firestore, send: Sender, now: Date): Promi
       souvenirs: (taken.get('souvenirs') as string[] | undefined) ?? [],
       challengeDone: Boolean(taken.get('challengeDone')),
       weekly: (taken.get('weekly') as string | null | undefined) ?? null,
+      albums: (taken.get('albums') as string[] | undefined) ?? [],
     }, news, typeof seen === 'number' ? Math.max(0, news.leaves - seen) : 0);
     if (notice && (await notify(db, send, [doc.id], notice)) > 0) told++;
   }

@@ -38,6 +38,7 @@ import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPh
 import {
   countGesture, countHelpGiven, deleteSouvenirsOf, giveSouvenir, giveYearSouvenirs, isNewWeeklyAnswer, souvenirMark,
 } from './souvenirs';
+import { queueAlbumInvitations } from './albumInvites';
 import { deleteDigestOf, sendDigests } from './digest';
 import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { sendWeeklyRecap } from './recap';
@@ -444,6 +445,8 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
   await checkConsumptionIfDue(getFirestore(), cloudMonitoring, send, new Date());
   // And the time capsules whose day has come (récit 39).
   await openDueCapsules(getFirestore(), send, new Date());
+  // And, before it, the invitations to yesterday's albums (récit 41), once a day.
+  await queueAlbumInvitations(getFirestore(), new Date());
   // And the résumé of the day, once from 18 h (AVIS-14).
   await sendDigests(getFirestore(), send, new Date());
   // And the polls whose end date has passed (récits 2 bis et 2 ter).
