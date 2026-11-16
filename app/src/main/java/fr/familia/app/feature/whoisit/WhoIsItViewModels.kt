@@ -13,6 +13,7 @@ import fr.familia.app.core.model.parseWhoIsItYear
 import fr.familia.app.core.photo.PhotoStorage
 import fr.familia.app.core.photo.PhotoUploader
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -75,6 +77,7 @@ sealed interface WhoIsItPostUiState {
     }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class WhoIsItPostViewModel(
     private val repo: WhoIsItRepository?,
     private val memberId: String,
@@ -89,12 +92,23 @@ class WhoIsItPostViewModel(
 
     private val draft = MutableStateFlow(Draft())
 
+    /**
+     * Bumped once one has guessed. Before that, the rules refuse the answer and the guesses, and
+     * Firestore closes a refused listener for good: they are listened to again after the guess.
+     */
+    private val readable = MutableStateFlow(0)
+
     private data class Draft(val who: String = "", val year: String = "", val yearInvalid: Boolean = false, val sending: Boolean = false, val failed: Boolean = false)
 
     val uiState: StateFlow<WhoIsItPostUiState> = if (repo == null) {
         MutableStateFlow(WhoIsItPostUiState.Missing)
     } else {
-        combine(repo.observePost(postId), repo.observeAnswer(postId), repo.observeGuesses(postId), draft) { post, answer, guesses, d ->
+        combine(
+            repo.observePost(postId),
+            readable.flatMapLatest { repo.observeAnswer(postId) },
+            readable.flatMapLatest { repo.observeGuesses(postId) },
+            draft,
+        ) { post, answer, guesses, d ->
             if (post == null) return@combine WhoIsItPostUiState.Missing
             val isAuthor = post.authorId == memberId
             WhoIsItPostUiState.Ready(
@@ -147,7 +161,10 @@ class WhoIsItPostViewModel(
             } catch (e: Exception) {
                 false
             }
-            if (ok) memory?.let { it.save(memberId, GUESSED, it.load(memberId, GUESSED) + postId) }
+            if (ok) {
+                memory?.let { it.save(memberId, GUESSED, it.load(memberId, GUESSED) + postId) }
+                readable.update { it + 1 }
+            }
             draft.update { if (ok) Draft() else it.copy(sending = false, failed = true) }
         }
     }
