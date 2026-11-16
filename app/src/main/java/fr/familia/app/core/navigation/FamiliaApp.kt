@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Celebration
+import androidx.compose.material.icons.outlined.QuestionAnswer
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Icon
@@ -49,6 +50,7 @@ import fr.familia.app.feature.help.HelpRoute
 import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
 import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
+import fr.familia.app.feature.weeklyquestion.WeeklyQuestionRoute
 import fr.familia.app.feature.help.LocalOpenHelp
 import fr.familia.app.feature.help.ScreenHelp
 import androidx.compose.runtime.LaunchedEffect
@@ -155,6 +157,9 @@ fun FamiliaApp(
     /** The trip of a tapped « bien arrivé » notification, to open once (V3). */
     openTripId: String? = null,
     onTripOpened: () -> Unit = {},
+    /** The question of the week of a tapped notification, to open once (récit 37). */
+    openWeeklyQuestionId: String? = null,
+    onWeeklyQuestionOpened: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
     // Each time the app opens, this phone is (re)registered for the notifications of this member.
@@ -275,6 +280,14 @@ fun FamiliaApp(
             onGoodNewsOpened()
         }
     }
+    // And for the question of the week (récit 37).
+    val weeklyOn = features.isOn(Feature.WeeklyQuestion)
+    LaunchedEffect(openWeeklyQuestionId, weeklyOn) {
+        if (openWeeklyQuestionId != null && weeklyOn) {
+            navController.navigate(WeeklyQuestionDestination(openWeeklyQuestionId))
+            onWeeklyQuestionOpened()
+        }
+    }
 
     var updateDismissed by rememberSaveable { mutableStateOf(false) }
     LifecycleEventEffect(Lifecycle.Event.ON_START) { updateDismissed = false }
@@ -327,11 +340,13 @@ fun FamiliaApp(
                 // Until the Accueil arrives, the Bonnes nouvelles and the trips open from the Planning bar,
                 // each behind its module.
                 val onGoodNews = if (goodNewsOn) ({ navController.navigate(GoodNewsFeedDestination) }) else null
+                val onWeekly = if (weeklyOn) ({ navController.navigate(WeeklyQuestionDestination()) }) else null
                 if (tab != null) {
                     TabTopBar(
                         tab, currentMember,
                         onOpenTrips = { navController.navigate(TripsDestination) { launchSingleTop = true } },
                         onGoodNews = onGoodNews,
+                        onWeeklyQuestion = onWeekly,
                     )
                 }
             },
@@ -393,6 +408,7 @@ fun FamiliaApp(
                             onOpenGoodNewsFeed = { navController.navigate(GoodNewsFeedDestination) },
                             onOpenGoodNews = { id -> navController.navigate(GoodNewsDetailDestination(id)) },
                             onPublishGoodNews = { navController.navigate(GoodNewsEditDestination()) },
+                            onOpenWeeklyQuestion = { navController.navigate(WeeklyQuestionDestination()) },
                         )
                     }
                     composable<PlanningRoute> {
@@ -622,6 +638,14 @@ fun FamiliaApp(
                             onBack = { navController.popBackStack() },
                         )
                     }
+                    composable<WeeklyQuestionDestination> { entry ->
+                        WeeklyQuestionRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            questionId = entry.toRoute<WeeklyQuestionDestination>().questionId,
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
                     composable<GoodNewsEditDestination> { entry ->
                         GoodNewsEditRoute(
                             container = container,
@@ -715,7 +739,13 @@ fun FamiliaApp(
 /** Title bar of a tab, with its « ? » where the spec has one. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TabTopBar(tab: TopLevelDestination, member: Member, onOpenTrips: () -> Unit = {}, onGoodNews: (() -> Unit)? = null) {
+private fun TabTopBar(
+    tab: TopLevelDestination,
+    member: Member,
+    onOpenTrips: () -> Unit = {},
+    onGoodNews: (() -> Unit)? = null,
+    onWeeklyQuestion: (() -> Unit)? = null,
+) {
     TopAppBar(
         // Transparent, so the theme's pattern shows behind the title too.
         colors = TopAppBarDefaults.topAppBarColors(
@@ -730,6 +760,11 @@ private fun TabTopBar(tab: TopLevelDestination, member: Member, onOpenTrips: () 
                     if (onGoodNews != null) {
                         IconButton(onClick = onGoodNews, modifier = Modifier.size(56.dp)) {
                             Icon(Icons.Outlined.Celebration, contentDescription = stringResource(R.string.goodnews_open_feed))
+                        }
+                    }
+                    if (onWeeklyQuestion != null) {
+                        IconButton(onClick = onWeeklyQuestion, modifier = Modifier.size(56.dp)) {
+                            Icon(Icons.Outlined.QuestionAnswer, contentDescription = stringResource(R.string.weekly_open))
                         }
                     }
                     // Trips have no tab (carte DESIGN-4): until the Accueil tab, they open from here,

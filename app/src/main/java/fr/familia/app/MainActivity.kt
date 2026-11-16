@@ -29,6 +29,9 @@ class MainActivity : ComponentActivity() {
     /** The trip of a tapped « bien arrivé » notification (V3). */
     private val openTripId = mutableStateOf<String?>(null)
 
+    /** The question of the week of a tapped notification (récit 37). */
+    private val openWeeklyQuestionId = mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -38,6 +41,7 @@ class MainActivity : ComponentActivity() {
             openHelpRequestId.value = intent.helpRequestId()
             openGoodNewsId.value = intent.goodNewsId()
             openTripId.value = intent.tripId()
+            openWeeklyQuestionId.value = intent.weeklyQuestionId()
         }
         val app = application as FamiliaApplication
         val container = app.container
@@ -48,6 +52,7 @@ class MainActivity : ComponentActivity() {
             val helpRequestToOpen by openHelpRequestId
             val goodNewsToOpen by openGoodNewsId
             val tripToOpen by openTripId
+            val weeklyToOpen by openWeeklyQuestionId
             FamiliaTheme {
                 SessionRoute(container = container) { member ->
                     FamiliaApp(
@@ -64,6 +69,8 @@ class MainActivity : ComponentActivity() {
                         onGoodNewsOpened = { openGoodNewsId.value = null },
                         openTripId = tripToOpen,
                         onTripOpened = { openTripId.value = null },
+                        openWeeklyQuestionId = weeklyToOpen,
+                        onWeeklyQuestionOpened = { openWeeklyQuestionId.value = null },
                     )
                 }
             }
@@ -78,6 +85,7 @@ class MainActivity : ComponentActivity() {
         intent.helpRequestId()?.let { openHelpRequestId.value = it }
         intent.goodNewsId()?.let { openGoodNewsId.value = it }
         intent.tripId()?.let { openTripId.value = it }
+        intent.weeklyQuestionId()?.let { openWeeklyQuestionId.value = it }
     }
 
     private fun Intent.eventId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_EVENT_ID)
@@ -88,4 +96,6 @@ class MainActivity : ComponentActivity() {
 
     private fun Intent.goodNewsId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_GOOD_NEWS_ID)
     private fun Intent.tripId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_TRIP_ID)
+
+    private fun Intent.weeklyQuestionId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_WEEKLY_QUESTION_ID)
 }
