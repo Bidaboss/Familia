@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -15,7 +16,16 @@ import fr.familia.app.core.model.Member
 fun StepEditRoute(container: AppContainer?, currentMember: Member, tripId: String, stepId: String?, onDone: () -> Unit) {
     val viewModel: StepEditViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { StepEditViewModel(container?.tripRepository, container?.memberRepository, currentMember.id, tripId, stepId) }
+            initializer {
+                StepEditViewModel(
+                    container?.tripRepository,
+                    container?.memberRepository,
+                    currentMember.id,
+                    tripId,
+                    stepId,
+                    savedState = createSavedStateHandle(),
+                )
+            }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()

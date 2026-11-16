@@ -1,5 +1,7 @@
 package fr.familia.app.feature.trips
 
+import androidx.lifecycle.SavedStateHandle
+import fr.familia.app.core.model.StepType
 import fr.familia.app.core.model.TripArrival
 import fr.familia.app.core.model.TripItem
 import fr.familia.app.feature.events.FakeMembers
@@ -193,6 +195,33 @@ class TripViewModelsTest {
         assertEquals(TripEditUiState.Done(null, deleted = true), admin.uiState.value)
     }
 
+    @Test
+    fun `a trip draft survives Android stopping the app`() {
+        val handle = SavedStateHandle()
+        val first = TripEditViewModel(FakeTrips(), FakeMembers(), "adult1", null, savedState = handle)
+        first.update {
+            it.copy(title = "Bretagne", startDate = LocalDate.of(2027, 8, 2), endDate = LocalDate.of(2027, 8, 9))
+                .withParticipant("adult2", true)
+                .withReader("kid2", false)
+        }
+
+        val again = TripEditViewModel(FakeTrips(), FakeMembers(), "adult1", null, savedState = handle)
+        val state = again.editing()
+        assertEquals("Bretagne", state.form.title)
+        assertEquals(LocalDate.of(2027, 8, 2), state.form.startDate)
+        assertEquals(LocalDate.of(2027, 8, 9), state.form.endDate)
+        assertEquals(setOf("adult1", "adult2"), state.form.participantIds)
+        assertFalse("kid2" in state.form.readerIds)
+        assertTrue(state.hasChanges)
+    }
+
+    @Test
+    fun `without a draft the trip form starts clean`() {
+        val vm = TripEditViewModel(FakeTrips(), FakeMembers(), "adult1", null, savedState = SavedStateHandle())
+        assertEquals("", vm.editing().form.title)
+        assertFalse(vm.editing().hasChanges)
+    }
+
     // --- Step form --------------------------------------------------------------------------------
 
     private fun StepEditViewModel.editing() = uiState.value as StepEditUiState.Editing
@@ -249,5 +278,44 @@ class TripViewModelsTest {
     fun `a follower who does not take part cannot open the step form`() {
         val vm = StepEditViewModel(FakeTrips(), FakeMembers(), "kid1", "t1", null, zone = paris, now = beforeTrip)
         assertEquals(StepEditUiState.Unavailable, vm.uiState.value)
+    }
+
+    @Test
+    fun `a step draft survives Android stopping the app, dates and hours included`() {
+        val handle = SavedStateHandle()
+        val first = StepEditViewModel(FakeTrips(), FakeMembers(), "adult2", "t1", null, zone = paris, now = beforeTrip, savedState = handle)
+        first.update {
+            it.copy(
+                type = StepType.Train,
+                place = "Quimper",
+                departTime = LocalTime.of(7, 5),
+                arriveDate = LocalDate.of(2027, 7, 11),
+                arriveTime = LocalTime.of(12, 30),
+                note = "Voiture 4",
+            )
+        }
+
+        val again = StepEditViewModel(FakeTrips(), FakeMembers(), "adult2", "t1", null, zone = paris, now = beforeTrip, savedState = handle)
+        val form = again.editing().form
+        assertEquals(StepType.Train, form.type)
+        assertEquals("Quimper", form.place)
+        assertEquals(LocalDate.of(2027, 7, 10), form.departDate)
+        assertEquals(LocalTime.of(7, 5), form.departTime)
+        assertEquals(LocalDate.of(2027, 7, 11), form.arriveDate)
+        assertEquals(LocalTime.of(12, 30), form.arriveTime)
+        assertEquals("Voiture 4", form.note)
+        assertTrue(again.editing().hasChanges)
+    }
+
+    @Test
+    fun `an hour cleared in the step draft stays cleared`() {
+        val handle = SavedStateHandle()
+        val first = StepEditViewModel(FakeTrips(), FakeMembers(), "adult2", "t1", null, zone = paris, now = beforeTrip, savedState = handle)
+        first.update { it.copy(place = "Brest", departTime = LocalTime.of(9, 0)) }
+        first.update { it.copy(departTime = null) }
+
+        val again = StepEditViewModel(FakeTrips(), FakeMembers(), "adult2", "t1", null, zone = paris, now = beforeTrip, savedState = handle)
+        assertNull(again.editing().form.departTime)
+        assertNull(again.editing().form.arriveDate)
     }
 }
