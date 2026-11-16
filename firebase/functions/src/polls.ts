@@ -67,10 +67,23 @@ export function chooseDateNotice(pollId: string, poll: PollData): Notice {
   };
 }
 
+/**
+ * Who may get a poll notification. Once the module is switched on for the family in Administration
+ * (config/app.features.polls), everyone; before that, the admin principal only, the one member the
+ * app already shows the module to, so a try never reaches the family (relecture de la #81).
+ */
+export async function pollAudience(db: Firestore): Promise<(ids: string[]) => string[]> {
+  const config = await db.doc('config/app').get();
+  if (config.get('features.polls') === true) return (ids) => ids;
+  const owner = (await db.doc('config/family').get()).get('ownerMemberId');
+  return (ids) => ids.filter((id) => typeof owner === 'string' && id === owner);
+}
+
 /** A new poll: everyone asked is told, except its author. */
 export async function onPollCreated(db: Firestore, send: Sender, pollId: string, poll: PollData): Promise<number> {
-  const asked = poll.askedIds.filter((id) => id !== poll.authorId);
-  return notify(db, send, asked, newPollNotice(pollId, poll));
+  const audience = await pollAudience(db);
+  const asked = audience(poll.askedIds.filter((id) => id !== poll.authorId));
+  return asked.length === 0 ? 0 : notify(db, send, asked, newPollNotice(pollId, poll));
 }
 
 async function votesOf(db: Firestore, pollId: string): Promise<VoteData[]> {
@@ -98,24 +111,29 @@ export async function onPollClosed(
     return;
   }
   if (before.closed || !after.closed) return;
+  const audience = await pollAudience(db);
   if (after.kind === 'choice') {
+    const to = audience(after.viewerIds.filter((id) => id !== actorId));
+    if (to.length === 0) return;
     const votes = await votesOf(db, pollId);
-    await notify(db, send, after.viewerIds.filter((id) => id !== actorId), resultNotice(pollId, after, votes));
+    await notify(db, send, to, resultNotice(pollId, after, votes));
   } else if (after.chosen == null && actorId == null) {
-    await notify(db, send, [after.authorId], chooseDateNotice(pollId, after));
+    const to = audience([after.authorId]);
+    if (to.length > 0) await notify(db, send, to, chooseDateNotice(pollId, after));
   }
 }
 
-/** From the task every 30 minutes: closes the polls whose end date has passed. */
+/**
+ * From the task every 30 minutes: closes the polls whose end date has passed. Only the open ones
+ * are read (composite index closed + closesAt), so the read does not grow with old polls.
+ */
 export async function closeDuePolls(db: Firestore, now: Date): Promise<number> {
-  const due = await db.collection('polls').where('closesAt', '<=', Timestamp.fromDate(now)).get();
-  let closed = 0;
-  for (const doc of due.docs) {
-    if (doc.get('closed') === true) continue;
-    await doc.ref.update({ closed: true, updatedAt: Timestamp.now() });
-    closed++;
-  }
-  return closed;
+  const due = await db.collection('polls')
+    .where('closed', '==', false)
+    .where('closesAt', '<=', Timestamp.fromDate(now))
+    .get();
+  for (const doc of due.docs) await doc.ref.update({ closed: true, updatedAt: Timestamp.now() });
+  return due.size;
 }
 
 export async function deletePollVotes(db: Firestore, pollId: string): Promise<void> {

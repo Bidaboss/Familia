@@ -61,6 +61,27 @@ describe('against the emulator', () => {
     await db.recursiveDelete(db.collection('members'));
     await db.recursiveDelete(db.collection('events'));
     for (const id of ['camille', 'ines', 'noe']) await db.doc(`members/${id}/devices/token-${id}`).set({ updatedAt: new Date() });
+    await db.doc('config/app').set({ features: { polls: true } });
+    await db.doc('config/family').set({ ownerMemberId: 'ines' });
+  });
+
+  test('module off: a new poll and its result reach the admin principal only', async () => {
+    await db.doc('config/app').set({ features: { polls: false } });
+    const created = fakeSender();
+    await onPollCreated(db, created.send, 'p1', poll());
+    assert.deepEqual(created.sent.map((s) => s.token), ['token-ines']);
+    const closed = fakeSender();
+    await onPollClosed(db, closed.send, 'p1', poll(), poll({ closed: true }), 'ines');
+    assert.equal(closed.sent.length, 0);
+  });
+
+  test('module off: nothing reaches the family when the admin principal is not asked', async () => {
+    await db.doc('config/app').delete();
+    const { sent, send } = fakeSender();
+    await onPollCreated(db, send, 'p1', poll({ askedIds: ['camille', 'noe'], viewerIds: ['camille', 'noe'] }));
+    const p = poll({ kind: 'date', options: ['2026-12-19', '2026-12-20'] });
+    await onPollClosed(db, send, 'p1', p, { ...p, closed: true }, null);
+    assert.equal(sent.length, 0);
   });
 
   test('a new poll reaches the members asked, not its author', async () => {
@@ -72,6 +93,7 @@ describe('against the emulator', () => {
   test('the end date closes the poll once', async () => {
     await db.doc('polls/due').set({ ...poll(), closesAt: Timestamp.fromDate(new Date('2026-11-20T10:00:00Z')) });
     await db.doc('polls/later').set({ ...poll(), closesAt: Timestamp.fromDate(new Date('2026-11-30T10:00:00Z')) });
+    await db.doc('polls/old').set({ ...poll(), closed: true, closesAt: Timestamp.fromDate(new Date('2026-11-01T10:00:00Z')) });
     assert.equal(await closeDuePolls(db, new Date('2026-11-21T08:00:00Z')), 1);
     assert.equal((await db.doc('polls/due').get()).get('closed'), true);
     assert.equal((await db.doc('polls/later').get()).get('closed'), false);
