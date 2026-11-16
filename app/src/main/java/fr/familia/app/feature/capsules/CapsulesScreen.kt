@@ -138,7 +138,7 @@ private fun CapsuleCard(row: CapsuleRow, onClick: (() -> Unit)?) {
     }
 }
 
-/** « De Camille » for a capsule received; « Pour Léa et Louka » for one's own. */
+/** « De Camille » for a capsule received; « Pour Noé et Lou » for one's own. */
 @Composable
 internal fun capsuleHeadline(row: CapsuleRow): String =
     if (row.isMine) {
@@ -166,7 +166,7 @@ internal fun previewCapsules(): List<Capsule> = listOf(
 internal fun previewCapsulesState(): CapsulesUiState.Ready = previewCapsules().let { list ->
     CapsulesUiState.Ready(
         opened = listOf(CapsuleRow(list[0], "Camille", isMine = false)),
-        sealed = listOf(CapsuleRow(list[2], "Inès", isMine = true), CapsuleRow(list[1], "Léa et Louka", isMine = true)),
+        sealed = listOf(CapsuleRow(list[2], "Inès", isMine = true), CapsuleRow(list[1], "Noé et Lou", isMine = true)),
     )
 }
 

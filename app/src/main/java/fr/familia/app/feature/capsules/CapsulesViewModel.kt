@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
-/** A capsule of a list, with its recipients by first name (« Léa et Louka »), and whether one wrote it. */
+/** A capsule of a list, with its recipients by first name (« Noé et Lou »), and whether one wrote it. */
 data class CapsuleRow(val capsule: Capsule, val recipients: String, val isMine: Boolean)
 
 sealed interface CapsulesUiState {
