@@ -160,7 +160,7 @@ export async function sendExpenseNotices(db: Firestore, send: Sender, now: Date)
     if (!since) continue;
     const containerId = book.get('containerId');
     const type = book.get('containerType') as ExpenseContainerType;
-    if (!(type in CONTAINERS) || typeof containerId !== 'string') continue;
+    if (!Object.hasOwn(CONTAINERS, type) || typeof containerId !== 'string') continue;
     const container = await sharing(db, type, containerId);
     if (!container) continue;
     const added = await book.ref.collection('expenses').where('createdAt', '>', since).get();

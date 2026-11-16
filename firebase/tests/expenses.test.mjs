@@ -211,4 +211,16 @@ describe('the accounts of an event', () => {
     await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), `${path}/x2`), expense(NEIGHBOUR, { payerId: 'adult2', payerHouseholdId: 'h1' })));
     await assertFails(setDoc(doc(as(env, NEIGHBOUR), `${path}/x3`), expense(NEIGHBOUR, { payerId: 'adult1', payerHouseholdId: 'h1' })));
   });
+
+  test('who changes « Je viens » for « Non » loses the accounts at once', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `expenseBooks/${EVENT_BOOK}`), { ...eventBook(), createdAt: Timestamp.fromMillis(0), updatedAt: Timestamp.fromMillis(0) });
+    });
+    await assertSucceeds(getDoc(doc(as(env, NEIGHBOUR), `expenseBooks/${EVENT_BOOK}`)));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'events/e1/rsvps/adult3'), { status: 'no', answeredBy: 'adult3', updatedAt: Timestamp.fromMillis(0) });
+    });
+    await assertFails(getDoc(doc(as(env, NEIGHBOUR), `expenseBooks/${EVENT_BOOK}`)));
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), `expenseBooks/${EVENT_BOOK}/expenses/x4`), expense(NEIGHBOUR)));
+  });
 });
