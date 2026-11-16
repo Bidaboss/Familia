@@ -23,10 +23,9 @@ fun GiftsRoute(
     onOpenNotebook: (() -> Unit)? = null,
 ) {
     // « Voir comme »: the admin principal still reads with their own account.
-    val readerId = LocalViewAs.current.readerId ?: currentMember.id
     val viewModel: GiftsViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { GiftsViewModel(container?.giftRepository, container?.memberRepository, currentMember.id, readerId = readerId) }
+            initializer { GiftsViewModel(container?.giftRepository, container?.memberRepository, currentMember.id) }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()

@@ -138,16 +138,15 @@ class GiftsTest {
         }
         assertEquals(WishPreview(4, listOf("Lego", "Puzzle", "un atlas")), wishPreview(items))
         assertEquals(WishPreview(0, emptyList()), wishPreview(emptyList()))
+        // A surprise idea added by someone else enters neither the number nor the titles.
+        val surprise = GiftItem("s", "Montre", null, null, null, "adult2", "Adult2", visibleToBeneficiary = false)
+        assertEquals(WishPreview(4, listOf("Lego", "Puzzle", "un atlas")), wishPreview(items + surprise))
 
         val gifts = FakeGifts(list("wishes-adult1", "adult1", kind = GiftListKind.Wishes, viewers = emptyList()))
         val other = GiftsViewModel(gifts, FakeMembers(), "adult2", today = flowOf(today))
         val seen = other.uiState.first { it is GiftsUiState.Success && it.wishPreviews.isNotEmpty() } as GiftsUiState.Success
         assertEquals(1, seen.wishPreviews.getValue("wishes-adult1").count)
-        assertEquals(listOf(false), gifts.itemQueries)
-        // The beneficiary, or the admin reading for someone in « Voir comme », only counts what they may see.
-        gifts.itemQueries.clear()
-        val asAdmin = GiftsViewModel(gifts, FakeMembers(), "adult2", today = flowOf(today), readerId = "adult1")
-        asAdmin.uiState.first { it is GiftsUiState.Success && it.wishPreviews.isNotEmpty() }
+        // Even for someone else, only what the beneficiary sees: the overview is shown to the whole family.
         assertEquals(listOf(true), gifts.itemQueries)
     }
 

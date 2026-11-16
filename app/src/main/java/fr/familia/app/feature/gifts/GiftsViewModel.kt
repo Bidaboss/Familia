@@ -71,8 +71,6 @@ class GiftsViewModel(
     private val members: MemberRepository?,
     private val currentMemberId: String,
     private val today: Flow<LocalDate> = currentDayFlow(),
-    /** Who really reads: the admin principal in « Voir comme », else the member themselves. */
-    private val readerId: String = currentMemberId,
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
@@ -101,17 +99,16 @@ class GiftsViewModel(
 
     /**
      * Adds what each « Envies » holds: one live read of its items, never more than the list screen
-     * itself reads. The beneficiary (and, in « Voir comme », the admin who reads for them) only counts
-     * the ideas they may see, so a surprise never shows through the number. A read that fails leaves
-     * the card as it was, without the preview.
+     * itself reads, but only the wishes their beneficiary wrote or sees: a surprise idea added by
+     * someone else never shows on the overview (the tab is shown to the whole family, beneficiary
+     * included). A read that fails leaves the card as it was, without the preview.
      */
     private fun withPreviews(repo: GiftRepository, state: GiftsUiState): Flow<GiftsUiState> {
         if (state !is GiftsUiState.Success) return flowOf(state)
         val wishes = state.sections.mapNotNull { it.wishes }
         if (wishes.isEmpty()) return flowOf(state)
         val previews = wishes.map { list ->
-            val hidden = !list.revealed && (list.beneficiaryId == currentMemberId || list.beneficiaryId == readerId)
-            repo.observeItems(list.id, hiddenFromMe = hidden)
+            repo.observeItems(list.id, hiddenFromMe = true)
                 .map<List<GiftItem>, Pair<String, WishPreview>?> { items -> list.id to wishPreview(items) }
                 .onStart { emit(null) }
                 .catch { e ->
@@ -128,7 +125,9 @@ data class WishPreview(val count: Int, val titles: List<String>)
 
 /** The preview of [items]: their number, and the first [WISH_PREVIEW_TITLES] titles in alphabetical order. */
 internal fun wishPreview(items: List<GiftItem>): WishPreview =
-    WishPreview(items.size, items.map { it.title.trim() }.sortedBy { it.lowercase() }.take(WISH_PREVIEW_TITLES))
+    items.filter { it.visibleToBeneficiary }.let { shown ->
+        WishPreview(shown.size, shown.map { it.title.trim() }.sortedBy { it.lowercase() }.take(WISH_PREVIEW_TITLES))
+    }
 
 private const val WISH_PREVIEW_TITLES = 3
 
