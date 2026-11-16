@@ -59,6 +59,13 @@ class MonthSlideshowTest {
     }
 
     @Test
+    fun `the recap of the last Sunday opens the slideshow of its month, even touched later`() {
+        assertEquals(YearMonth.of(2026, 11), slideshowMonthOf("2026-11-29"))
+        assertNull(slideshowMonthOf("2026-11-22"))
+        assertNull(slideshowMonthOf("pas une date"))
+    }
+
+    @Test
     fun `the birthdays of the month, by day`() {
         val family = TestFamily.family.copy(
             members = listOf(
