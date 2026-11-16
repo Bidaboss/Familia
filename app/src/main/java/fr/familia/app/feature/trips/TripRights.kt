@@ -38,21 +38,12 @@ fun isParticipant(trip: Trip, me: Member): Boolean = me.id in trip.participantId
 fun canDeleteStep(trip: Trip, me: Member, family: Family): Boolean = isParticipant(trip, me) || family.isOwner(me)
 
 /**
- * Who [me] may add as a participant (récit 11): adults of any household, and children of their own
- * household, with the app or not. The admin principal adds anyone. [me] comes
- * first, then by first name.
+ * Who [me] may add as a participant (récit 11, PRD rév. 190): anyone of the family, of every
+ * household, children included, with the app or not, since several households often leave
+ * together. [me] comes first, then by first name.
  */
-fun participantChoices(me: Member, family: Family): List<Member> {
-    val others = family.members.filter { it.id != me.id }.filter { member ->
-        when {
-            family.isOwner(me) -> true
-            member.profile == MemberProfile.Adult -> true
-            me.profile == MemberProfile.Adult -> member.householdId == me.householdId
-            else -> false
-        }
-    }
-    return listOf(me) + others.sortedBy { it.firstName.lowercase() }
-}
+fun participantChoices(me: Member, family: Family): List<Member> =
+    listOf(me) + family.members.filter { it.id != me.id }.sortedBy { it.firstName.lowercase() }
 
 /** Where a trip is in time: the planning and the list say « En cours » for an ongoing one. */
 enum class TripPhase { Upcoming, Ongoing, Past }

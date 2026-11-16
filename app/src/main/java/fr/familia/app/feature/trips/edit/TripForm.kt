@@ -15,6 +15,10 @@ data class TripForm(
     fun withParticipant(id: String, taking: Boolean): TripForm =
         if (taking) copy(participantIds = participantIds + id, readerIds = readerIds + id) else copy(participantIds = participantIds - id)
 
+    /** « Tout un foyer », « Toute la famille » (PRD rév. 190): ticks them all, each one also following. */
+    fun withParticipants(ids: Collection<String>): TripForm =
+        copy(participantIds = participantIds + ids, readerIds = readerIds + ids)
+
     /** Ticks or unticks a follower; a participant cannot be unticked. */
     fun withReader(id: String, following: Boolean): TripForm = when {
         following -> copy(readerIds = readerIds + id)

@@ -148,6 +148,7 @@ private fun FormContent(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            ParticipantShortcuts(state.participants, form.participantIds) { ids -> onChange { it.withParticipants(ids) } }
             state.participants.forEach { choice ->
                 TripCheckRow(
                     label = choice.firstName,
@@ -260,4 +261,32 @@ internal fun previewTripEditState(isNew: Boolean = true, errors: Set<TripFormErr
 @Composable
 private fun TripEditScreenPreview() {
     FamiliaTheme { Surface { TripEditScreen(previewTripEditState(isNew = false), {}, {}, {}, {}) } }
+}
+
+/**
+ * « Toute la famille », then « Tout le foyer … » for each household (PRD rév. 190): several
+ * households often leave together. Each adds everyone of it; unticking stays one by one. A shortcut
+ * whose people are all ticked already is not offered.
+ */
+@Composable
+private fun ParticipantShortcuts(choices: List<MemberChoice>, taking: Set<String>, onAdd: (List<String>) -> Unit) {
+    val missing = { ids: List<String> -> ids.any { it !in taking } }
+    val everyone = choices.map { it.id }
+    val households = choices.filter { it.householdId != null }.groupBy { it.householdId to it.householdName }
+    Column(Modifier.padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (missing(everyone)) {
+            OutlinedButton(onClick = { onAdd(everyone) }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.trip_add_everyone))
+            }
+        }
+        households.forEach { (key, members) ->
+            val ids = members.map { it.id }
+            val name = key.second
+            if (name != null && households.size > 1 && missing(ids)) {
+                OutlinedButton(onClick = { onAdd(ids) }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.trip_add_household, name))
+                }
+            }
+        }
+    }
 }

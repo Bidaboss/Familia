@@ -987,7 +987,9 @@
     <string name="trip_pick_start">Choisir le départ</string>
     <string name="trip_pick_end">Choisir le retour</string>
     <string name="trip_field_participants">Qui part ?</string>
-    <string name="trip_field_participants_help">Chaque personne qui part peut ajouter des étapes et dire « Bien arrivé ».</string>
+    <string name="trip_field_participants_help">Choisis qui part, de tous les foyers, enfants compris. Chaque personne qui part peut ajouter des étapes et dire « Bien arrivé ».</string>
+    <string name="trip_add_everyone">Ajouter toute la famille</string>
+    <string name="trip_add_household">Ajouter tout le foyer %1$s</string>
     <string name="trip_field_readers">Qui suit le voyage ?</string>
     <string name="trip_field_readers_help">Toute la famille par défaut. Décoche ceux qui ne doivent pas le voir : ils ne verront ni le voyage, ni ses étapes.</string>
     <string name="trip_reader_participant">Part en voyage</string>
