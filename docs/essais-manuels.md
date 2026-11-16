@@ -428,3 +428,13 @@ Il faut une version publiée avec un fichier dans `docs/whats-new`, et un télé
 5. Touche une ligne. **Attendu :** la feuille se ferme et l'écran s'ouvre.
 6. Onglet Famille : **Attendu :** « Nos trésors » puis les membres, et plus aucun réglage en bas.
 7. En « Voir comme » : **Attendu :** ni « Partager Familia » ni « Une idée ? Un souci ? » dans la feuille.
+
+## Pensez à moi (récit 43)
+
+Avec le module « Pensez à moi » allumé, un adulte parent d'un enfant de moins de 15 ans et d'un ado de 15 ans ou plus (date de naissance remplie), et un autre compte.
+
+1. Sur ta propre fiche, note « Examen » pour demain. **Attendu :** il apparaît sous « Pensez à moi », avec « Retirer ».
+2. Sur la fiche de l'enfant, note un moment. **Attendu :** il est accepté tout de suite. Sur celle de l'ado : « … choisira de l'accepter ou non », puis « En attente de la réponse de … ».
+3. Avec le compte de l'ado, ouvre sa fiche. **Attendu :** « Noté par … » avec « Oui » et « Non merci ».
+4. Le jour J vers 10 h. **Attendu :** les autres reçoivent « Pensez à … aujourd'hui ». Sur la fiche, « Aujourd'hui : « … » » et un champ pour un mot. Le membre reçoit « … pense à toi. » à chaque mot. Rien le lendemain.
+5. En « Voir comme », ouvre une fiche. **Attendu :** ni champ ni bouton, la lecture seule.

@@ -12,6 +12,7 @@ import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.members.card.MemberCardSection
+import fr.familia.app.feature.thinkofme.ThinkOfMeSection
 import fr.familia.app.feature.wishes.BirthdayCardsSection
 import fr.familia.app.feature.souvenirs.SouvenirCelebrationPreferences
 
@@ -41,6 +42,7 @@ fun MemberProfileRoute(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val wishesOn = LocalFeatureFlags.current.isOn(Feature.BirthdayWishes)
     val cardOn = LocalFeatureFlags.current.isOn(Feature.MemberCard)
+    val thinkOfMeOn = LocalFeatureFlags.current.isOn(Feature.ThinkOfMe)
     MemberProfileScreen(
         state = state,
         onBack = onBack,
@@ -50,5 +52,6 @@ fun MemberProfileRoute(
         onOpenRecipes = onOpenRecipes,
         wishes = if (wishesOn) ({ person -> BirthdayCardsSection(container, currentMember, person) }) else null,
         card = if (cardOn) ({ person -> MemberCardSection(container, currentMember, person) }) else null,
+        thinkOfMe = if (thinkOfMeOn) ({ person -> ThinkOfMeSection(container, currentMember, person) }) else null,
     )
 }
