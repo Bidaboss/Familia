@@ -2,6 +2,7 @@ package fr.familia.app.feature.expenses
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -37,7 +38,16 @@ fun ExpensesRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    ExpensesScreen(state = state, onRetry = viewModel::retry, onBack = onBack, onAdd = onAdd, onEdit = onEdit)
+    val actions = remember(viewModel) {
+        ExpensesActions(
+            onConfirm = viewModel::confirm,
+            onUndo = viewModel::undo,
+            onSetClosed = viewModel::setClosed,
+            onSaveShares = viewModel::saveShares,
+            onDismissError = viewModel::dismissError,
+        )
+    }
+    ExpensesScreen(state = state, onRetry = viewModel::retry, onBack = onBack, onAdd = onAdd, onEdit = onEdit, actions = actions)
 }
 
 /** Connects the expense form to its ViewModel. */
