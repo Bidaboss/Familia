@@ -9,6 +9,8 @@ import fr.familia.app.core.model.ExpenseBook
 import fr.familia.app.core.model.ExpenseCategory
 import fr.familia.app.core.model.ExpenseContainer
 import fr.familia.app.core.model.ExpenseContainerType
+import fr.familia.app.core.model.ExpenseHistoryAction
+import fr.familia.app.core.model.ExpenseHistoryEntry
 import fr.familia.app.core.model.ExpenseSettlement
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.SplitMode
@@ -63,6 +65,9 @@ class FirestoreExpenseRepository(private val db: FirebaseFirestore) : ExpenseRep
         observe(book(bookId).collection(SETTLEMENTS)) { it.toSettlement() }
 
     override fun newExpenseId(bookId: String): String = book(bookId).collection(EXPENSES).document().id
+
+    override fun observeHistory(bookId: String, expenseId: String): Flow<List<ExpenseHistoryEntry>> =
+        observe(book(bookId).collection(EXPENSES).document(expenseId).collection(HISTORY).orderBy("at")) { it.toHistoryEntry() }
 
     override suspend fun saveExpense(bookId: String, expense: Expense, me: Member, isNew: Boolean) {
         val fields = mapOf(
@@ -150,6 +155,21 @@ class FirestoreExpenseRepository(private val db: FirebaseFirestore) : ExpenseRep
         )
     }
 
+    private fun DocumentSnapshot.toHistoryEntry(): ExpenseHistoryEntry? {
+        val action = ExpenseHistoryAction.fromFirestore(getString("action")) ?: return null
+        @Suppress("UNCHECKED_CAST")
+        val changed = (get("changed") as? List<Any?>)?.filterIsInstance<String>().orEmpty()
+        return ExpenseHistoryEntry(
+            id = id,
+            action = action,
+            byName = getString("byName").orEmpty(),
+            title = getString("title").orEmpty(),
+            amountCents = getLong("amountCents") ?: 0,
+            changed = changed,
+            at = getTimestamp("at")?.toDate()?.toInstant(),
+        )
+    }
+
     private fun DocumentSnapshot.toSettlement(): ExpenseSettlement? {
         return ExpenseSettlement(
             id = id,
@@ -165,5 +185,6 @@ class FirestoreExpenseRepository(private val db: FirebaseFirestore) : ExpenseRep
         const val BOOKS = "expenseBooks"
         const val EXPENSES = "expenses"
         const val SETTLEMENTS = "settlements"
+        const val HISTORY = "history"
     }
 }

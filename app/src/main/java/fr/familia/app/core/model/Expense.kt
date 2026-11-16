@@ -1,5 +1,6 @@
 package fr.familia.app.core.model
 
+import java.time.Instant
 import java.time.LocalDate
 
 /**
@@ -96,6 +97,32 @@ data class ExpenseSettlement(
     val amountCents: Long,
     val confirmedBy: String,
     val confirmedByName: String = "",
+)
+
+/** What a line of the history of an expense tells. */
+enum class ExpenseHistoryAction(val firestoreValue: String) {
+    Created("created"),
+    Edited("edited"),
+    Deleted("deleted"),
+    ;
+
+    companion object {
+        fun fromFirestore(value: String?): ExpenseHistoryAction? = entries.firstOrNull { it.firestoreValue == value }
+    }
+}
+
+/**
+ * One line of the history of an expense, written by the server (récit 16 bis): who did what, when,
+ * and which fields changed ([changed] holds the Firestore names: amountCents, date…).
+ */
+data class ExpenseHistoryEntry(
+    val id: String,
+    val action: ExpenseHistoryAction,
+    val byName: String,
+    val title: String,
+    val amountCents: Long,
+    val changed: List<String> = emptyList(),
+    val at: Instant? = null,
 )
 
 /**

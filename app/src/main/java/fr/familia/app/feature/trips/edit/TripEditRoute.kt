@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -25,7 +26,15 @@ fun TripEditRoute(
 ) {
     val viewModel: TripEditViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { TripEditViewModel(container?.tripRepository, container?.memberRepository, currentMember.id, tripId) }
+            initializer {
+                TripEditViewModel(
+                    container?.tripRepository,
+                    container?.memberRepository,
+                    currentMember.id,
+                    tripId,
+                    savedState = createSavedStateHandle(),
+                )
+            }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()

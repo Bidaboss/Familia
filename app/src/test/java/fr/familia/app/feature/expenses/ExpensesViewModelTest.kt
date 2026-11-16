@@ -5,6 +5,7 @@ import fr.familia.app.core.model.Expense
 import fr.familia.app.core.model.ExpenseBook
 import fr.familia.app.core.model.ExpenseCategory
 import fr.familia.app.core.model.ExpenseContainer
+import fr.familia.app.core.model.ExpenseHistoryEntry
 import fr.familia.app.core.model.ExpenseSettlement
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.SplitMode
@@ -175,6 +176,8 @@ class FakeExpenses(
     override fun observeExpenses(bookId: String): Flow<List<Expense>> = expenses
     override fun observeSettlements(bookId: String): Flow<List<ExpenseSettlement>> = settlements.map { it }
     override fun newExpenseId(bookId: String): String = "new-${expenses.value.size + 1}"
+    val history = MutableStateFlow<Map<String, List<ExpenseHistoryEntry>>>(emptyMap())
+    override fun observeHistory(bookId: String, expenseId: String): Flow<List<ExpenseHistoryEntry>> = history.map { it[expenseId].orEmpty() }
     override suspend fun saveExpense(bookId: String, expense: Expense, me: Member, isNew: Boolean) {
         saved += expense to isNew
         expenses.value = expenses.value.filterNot { it.id == expense.id } + expense

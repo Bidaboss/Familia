@@ -33,8 +33,9 @@ data class ShareContent(
     val photo: Bitmap? = null,
 )
 
-/** The text of the message: the text of the item, then the link on its own line. */
-fun shareMessage(content: ShareContent): String = "${content.text.trim()}\n${content.link}"
+/** The text of the message: the text of the item, then the link on its own line, when there is one. */
+fun shareMessage(content: ShareContent): String =
+    if (content.link.isBlank()) content.text.trim() else "${content.text.trim()}\n${content.link}"
 
 private const val SIZE = 1080
 private const val MARGIN = 72f
