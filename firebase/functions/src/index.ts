@@ -17,6 +17,7 @@ import {
 } from './gifts';
 import { countLeftovers, deleteLeftovers, openDueCapsules } from './capsules';
 import { CommentData, deleteCommentMutesOf, deleteEventComments, onCommentCreated } from './comments';
+import { deleteLinksOf, removeMemberFromTree } from './genealogy';
 import { checkConsumptionIfDue } from './consumption';
 import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
 import { closeDuePolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
@@ -374,6 +375,15 @@ export const onMemberDeletedCapsules = onDocumentDeleted('members/{memberId}', a
 export const onCapsuleLeftoversUpdated = onDocumentUpdated('capsuleLeftovers/{memberId}', async (event) => {
   if (event.data?.after.get('deleteAsked') !== true || event.data?.before.get('deleteAsked') === true) return;
   await deleteLeftovers(getFirestore(), event.params.memberId);
+});
+
+// Arbre généalogique (récit 40): someone who leaves the tree takes their links with them.
+export const onMemberDeletedKin = onDocumentDeleted('members/{memberId}', async (event) => {
+  await removeMemberFromTree(getFirestore(), event.params.memberId);
+});
+
+export const onKinDeleted = onDocumentDeleted('kin/{kinId}', async (event) => {
+  await deleteLinksOf(getFirestore(), event.params.kinId);
 });
 
 // Carnet de recettes (récit 38): a removed recipe takes its photos and comments with it, records
