@@ -11,7 +11,7 @@ import kotlinx.coroutines.tasks.await
 
 /**
  * Reads the collections of docs/data-model.md from the server only: the offline cache may hold
- * part of the data, and a backup must be complete or not be made. Left out on purpose: memberEmails (rebuilt from the members), and each member's
+ * part of the data, and a backup must be complete or not be made. Left out on purpose: the answers of the question of the week before they show to everyone, memberEmails (rebuilt from the members), and each member's
  * phones and settings, which only they can read.
  */
 class FirestoreExportRepository(private val db: FirebaseFirestore) : ExportRepository {
@@ -33,7 +33,28 @@ class FirestoreExportRepository(private val db: FirebaseFirestore) : ExportRepos
             }
         }
         val helpRequests = async { db.collection("helpRequests").get(Source.SERVER).await().documents.map(::toExport) }
-        FamilyData(households.await(), members.await(), events.await(), answers.await(), helpRequests.await())
+        val weekly = async { weeklyQuestions() }
+        val (questions, weeklyAnswers) = weekly.await()
+        FamilyData(households.await(), members.await(), events.await(), answers.await(), helpRequests.await(), questions, weeklyAnswers)
+    }
+
+    /**
+     * The rules let anyone read the answers of a question only from its revealAt: the answers of
+     * this week's question join the backup 48 h after it is published.
+     */
+    private suspend fun weeklyQuestions(): Pair<List<ExportDocument>, List<ExportWeeklyAnswer>> = coroutineScope {
+        val questions = db.collection("weeklyQuestions").get(Source.SERVER).await().documents
+        val now = Timestamp.now()
+        val answers = questions
+            .filter { q -> q.getTimestamp("revealAt")?.let { it <= now } == true }
+            .map { q ->
+                async {
+                    q.reference.collection("answers").get(Source.SERVER).await().documents.map { a ->
+                        ExportWeeklyAnswer(q.id, a.id, plain(a.data.orEmpty()))
+                    }
+                }
+            }
+        questions.map(::toExport) to answers.flatMap { it.await() }
     }
 
     private fun toExport(doc: DocumentSnapshot) = ExportDocument(doc.id, plain(doc.data.orEmpty()))

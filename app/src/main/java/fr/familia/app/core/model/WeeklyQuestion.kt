@@ -21,11 +21,18 @@ data class WeeklyQuestion(
     fun isRevealed(now: Instant): Boolean = !now.isBefore(revealAt)
 }
 
-/** One member's answer; [skipped] is « Passer », with no [text]. */
+/** One member's answer; [skipped] is « Passer », with no [text]. [photoId] is its optional photo. */
 data class WeeklyAnswer(
     val memberId: String,
     val memberName: String,
     val text: String?,
     val skipped: Boolean,
     val updatedAt: Instant?,
+    val photoId: String? = null,
 )
+
+/** Storage: weeklyQuestions/{questionId}/{memberId}/{photoId}.jpg, as in storage.rules. */
+fun weeklyPhotoPath(questionId: String, memberId: String, photoId: String) = "weeklyQuestions/$questionId/$memberId/$photoId.jpg"
+
+fun weeklyThumbnailPath(questionId: String, memberId: String, photoId: String) =
+    "weeklyQuestions/$questionId/$memberId/$photoId-thumb.jpg"

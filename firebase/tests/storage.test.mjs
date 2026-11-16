@@ -87,6 +87,32 @@ describe('goodNews folder (récit 32)', () => {
   });
 });
 
+describe('weeklyQuestions folder (récit 37)', () => {
+  let week = 0;
+  beforeEach(() => { week += 1; });
+  const photo = (member, name = 'p1.jpg') => `weeklyQuestions/2026-11-${String(week).padStart(2, '0')}/${member}/${name}`;
+
+  test('a member sends the photo of their answer and its thumbnail, and the family reads them', async () => {
+    const storage = storageAs(ADULT);
+    await assertSucceeds(uploadString(ref(storage, photo('adult1')), 'x'.repeat(300 * 1024), 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storage, photo('adult1', 'p1-thumb.jpg')), 'x'.repeat(30 * 1024), 'raw', jpeg));
+    await assertSucceeds(getBytes(ref(storageAs(OTHER_ADULT), photo('adult1'))));
+    await assertFails(getBytes(ref(storageAs(STRANGER), photo('adult1'))));
+  });
+
+  test('only in one\'s own folder, a JPEG not too big, never replaced, deleted by its member', async () => {
+    const storage = storageAs(ADULT);
+    await assertFails(uploadString(ref(storageAs(OTHER_ADULT), photo('adult1')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, photo('adult1')), 'x'.repeat(513 * 1024), 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, photo('adult1', 'p1.png')), 'x', 'raw', { contentType: 'image/png' }));
+    await assertFails(uploadString(ref(storage, 'weeklyQuestions/semaine/adult1/p1.jpg'), 'x', 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storage, photo('adult1')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, photo('adult1')), 'y', 'raw', jpeg));
+    await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), photo('adult1'))));
+    await assertSucceeds(deleteObject(ref(storage, photo('adult1'))));
+  });
+});
+
 describe('trips folder (récit 15)', () => {
   // ADULT created the trip and takes part with adult3; adult2 does not follow it.
   beforeEach(async () => {

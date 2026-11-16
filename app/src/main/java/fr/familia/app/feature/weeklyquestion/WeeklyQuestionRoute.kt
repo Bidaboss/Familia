@@ -16,7 +16,13 @@ fun WeeklyQuestionRoute(container: AppContainer?, currentMember: Member, questio
         key = "weeklyQuestion-${questionId.orEmpty()}",
         factory = viewModelFactory {
             initializer {
-                WeeklyQuestionViewModel(container?.weeklyQuestionRepository, container?.memberRepository, currentMember.id, questionId)
+                WeeklyQuestionViewModel(
+                    container?.weeklyQuestionRepository,
+                    container?.memberRepository,
+                    currentMember.id,
+                    questionId,
+                    uploader = container?.photoUploader,
+                )
             }
         },
     )

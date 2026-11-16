@@ -57,6 +57,21 @@ service firebase.storage {
       allow delete: if isMember() && authorId == myMemberId();
     }
 
+    // Question de la semaine (PRD, récit 37): one optional photo per answer,
+    // weeklyQuestions/{weekId}/{memberId}/{photoId}.jpg and its {photoId}-thumb.jpg, sent by the
+    // member before the answer that names it. The Cloud Function deletes a photo once its answer
+    // drops it or is removed.
+    match /weeklyQuestions/{weekId}/{memberId}/{fileName} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && resource == null
+        && memberId == myMemberId()
+        && weekId.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && ((fileName.matches('^[A-Za-z0-9]{1,40}[.]jpg$') && isJpegUnder(512 * 1024))
+            || (fileName.matches('^[A-Za-z0-9]{1,40}-thumb[.]jpg$') && isJpegUnder(64 * 1024)));
+      allow delete: if isMember() && memberId == myMemberId();
+    }
+
     // Voyages (PRD, récit 15): trips/{tripId}/{authorId}/{slot}.jpg, about 300 KB, and its thumbnail
     // {slot}-thumb.jpg, about 30 KB, with a slot from 1 to 30 (30 photos per participant, see the
     // document trips/{tripId}/photos/{authorId}_{slot} in firestore.rules). The followers of the trip
