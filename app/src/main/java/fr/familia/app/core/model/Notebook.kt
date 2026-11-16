@@ -55,3 +55,21 @@ data class NotebookEntry(
     val listId: String? = null,
     val itemId: String? = null,
 )
+
+/** What the member means to spend for one person at one occasion. */
+data class NotebookBudget(
+    val personId: String?,
+    val personName: String,
+    val occasion: NotebookOccasion,
+    val amount: Double,
+)
+
+/**
+ * The id of a budget: one per person and occasion. A person outside the family is known by their
+ * first name, whatever its case. Only letters, digits, « _ » and « - »: a Firestore id has no « / ».
+ */
+fun notebookBudgetId(personId: String?, personName: String, occasion: NotebookOccasion): String {
+    val person = personId ?: "name-" + personName.trim().lowercase()
+    val raw = "${person}_${occasion.occasion?.firestoreValue ?: "none"}_${occasion.year ?: "none"}"
+    return raw.map { if (it.isLetterOrDigit() || it == '_' || it == '-') it else '-' }.joinToString("").take(200)
+}
