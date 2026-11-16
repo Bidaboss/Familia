@@ -1,5 +1,6 @@
 package fr.familia.app.feature.gifts.notebook
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -72,7 +73,7 @@ fun ProposeIdeaScreen(state: ProposeIdeaUiState, actions: ProposeIdeaActions, to
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.notebook_propose)) },
+                title = { Text(stringResource(R.string.notebook_propose), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = actions.onBack) },
                 actions = { HelpButton(ScreenHelp.Notebook) },
             )

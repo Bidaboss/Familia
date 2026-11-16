@@ -1,5 +1,6 @@
 package fr.familia.app.feature.members.admin
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -127,7 +128,7 @@ fun AdministrationScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.administration_title)) },
+                title = { Text(stringResource(R.string.administration_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 // One help sentence on the screen at most (DESIGN-11): the others are in the « ? ».
                 actions = { HelpButton(ScreenHelp.Administration) },

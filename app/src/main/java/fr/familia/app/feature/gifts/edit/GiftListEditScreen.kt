@@ -1,5 +1,6 @@
 package fr.familia.app.feature.gifts.edit
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -107,6 +108,8 @@ fun GiftListEditScreen(
                         stringResource(
                             if ((state as? GiftListEditUiState.Editing)?.isNew == false) R.string.gift_list_edit_title else R.string.gift_list_new_title,
                         ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 },
                 navigationIcon = { BackButton(onClick = { if (hasChanges) confirmLeave = true else onBack() }) },

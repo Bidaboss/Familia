@@ -1,5 +1,6 @@
 package fr.familia.app.feature.gifts.detail
 
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -128,6 +129,8 @@ fun GiftListScreen(state: GiftListUiState, actions: GiftListActions, modifier: M
                     Text(
                         success?.let { listTitle(it.list, it.beneficiary.firstName, it.isMine) }
                             ?: stringResource(R.string.gift_list_title),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 },
                 navigationIcon = { BackButton(onClick = actions.onBack) },
