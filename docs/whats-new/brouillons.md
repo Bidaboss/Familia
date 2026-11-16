@@ -8,4 +8,4 @@ Ces cartes sont prêtes, mais pas encore publiées. Le workflow ne lit que les f
 | `capsule-temporelle` | `capsules` | `capsules` | La capsule temporelle | Écris un message à ouvrir plus tard, pour un anniversaire ou dans dix ans. Il reste scellé jusqu'au jour choisi. |
 | `carnet-de-voyage` | `trips` | `trips` | Le carnet de voyage | Prépare les vacances ensemble : dates, logement, qui apporte quoi et comptes du séjour, au même endroit. |
 | `diaporama-du-mois` | `monthSlideshow` | (aucun écran pour l'instant) | Le diaporama du mois | Chaque mois, les photos, le défi et les anniversaires défilent en plein écran. Idéal sur la télé pendant un repas. |
-| `liste-unique` | clé de l'interrupteur « Liste unique » (récit 9 ter, à venir) | `gifts` | Une seule liste d'envies | Tes idées de cadeaux tiennent dans une seule liste. Indique l'occasion si tu veux : Noël, anniversaire… |
+| `liste-unique` | `singleList` (à publier une fois les 4 PR du récit 9 ter fusionnées) | `gifts` | Une seule liste d'envies | Tes idées de cadeaux tiennent dans une seule liste. Indique l'occasion si tu veux : Noël, anniversaire… |
