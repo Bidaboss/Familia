@@ -66,7 +66,7 @@ Familia doit rester gratuite. L'alerte à 1 € te prévient bien avant tout co�
 
 ## Alerte de consommation (récit 1 sexies)
 
-Chaque matin à 8 h, la fonction `consumptionCheck` lit dans Cloud Monitoring les lectures, écritures et suppressions de la veille, et la taille de la base. Elle les range dans `consumption/<jour>`, que la carte « Consommation » d'Administration affiche. Elle te prévient par une notification (canal « Administration ») à 80 % d'une limite gratuite, ou quand le coût estimé du mois dépasse 0,50 €. L'alerte de budget à 1 € par e-mail reste le filet de sécurité.
+Chaque matin à partir de 8 h, la tâche des 30 minutes (`arrivalReminder`, qui sert aussi aux voyages et à la question de la semaine) lit une seule fois dans Cloud Monitoring les lectures, écritures et suppressions de la veille, et la taille de la base. Elle les range dans `consumption/<jour>`, que la carte « Consommation » d'Administration affiche. Elle te prévient par une notification (canal « Administration ») à 80 % d'une limite gratuite, ou quand le coût estimé du mois dépasse 0,50 €. L'alerte de budget à 1 € par e-mail reste le filet de sécurité.
 
 Pour lire Monitoring, la fonction a besoin d'un rôle, à donner une seule fois :
 

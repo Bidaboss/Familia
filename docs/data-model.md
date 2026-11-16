@@ -537,7 +537,7 @@ Le document ne contient jamais ce que la personne a lu, écrit ou ouvert. Seul l
 
 ### `consumption/{day}`
 
-L'usage de la base un jour donné, lu chaque matin à 8 h dans Cloud Monitoring par la fonction `consumptionCheck` (`firebase/functions/src/consumption.ts`). Seul le serveur l'écrit ; seul l'admin principal le lit, dans Administration › Consommation.
+L'usage de la base un jour donné, lu une fois chaque matin à partir de 8 h dans Cloud Monitoring par la tâche des 30 minutes `arrivalReminder` (`checkConsumptionIfDue` de `firebase/functions/src/consumption.ts`), seulement si le document de la veille n'existe pas encore. Seul le serveur l'écrit ; seul l'admin principal le lit, dans Administration › Consommation.
 
 | Champ | Type | Sens |
 |---|---|---|

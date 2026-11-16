@@ -4,7 +4,7 @@
 // 0,50 €. The Google budget alert at 1 € by e-mail stays as the safety net.
 
 import type { Firestore } from 'firebase-admin/firestore';
-import { addDays, Notice } from './logic';
+import { addDays, Notice, parisDay } from './logic';
 import { notify, Sender } from './store';
 
 export type Limit = 'reads' | 'writes' | 'deletes' | 'storage';
@@ -182,4 +182,21 @@ export async function checkConsumption(db: Firestore, monitoring: MonitoringRead
     for (const alert of found.filter((a) => !already.has(a))) await notify(db, send, [ownerId], alertNotice(alert, use, cost));
   }
   return found;
+}
+
+/** The hour from which the day before is read: Monitoring has all its figures by then. */
+export const CHECK_FROM_HOUR = 8;
+
+/**
+ * Called by the task every 30 minutes (one paid Cloud Scheduler task less): from 8 h in Paris,
+ * reads the day before once, when consumption/{day before} does not exist yet. Returns the day
+ * read, or null when there was nothing to do.
+ */
+export async function checkConsumptionIfDue(db: Firestore, monitoring: MonitoringReader, send: Sender, now: Date): Promise<string | null> {
+  const hour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', hour: '2-digit', hourCycle: 'h23' }).format(now));
+  if (hour < CHECK_FROM_HOUR) return null;
+  const day = addDays(parisDay(now), -1);
+  if ((await db.collection('consumption').doc(day).get()).exists) return null;
+  await checkConsumption(db, monitoring, send, day);
+  return day;
 }

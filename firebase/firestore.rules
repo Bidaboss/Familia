@@ -1195,7 +1195,7 @@ service cloud.firestore {
     }
 
     // consumption/{day}: the use of the database each day, read from Cloud Monitoring by the
-    // function consumptionCheck (récit 1 sexies). Only the admin principal sees it, in
+    // 30-minute task, from 8 h (récit 1 sexies). Only the admin principal sees it, in
     // Administration › Consommation; only the server writes it.
     match /consumption/{day} {
       allow read: if isOwner();

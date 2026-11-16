@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import {
-  alertNotice, alerts, checkConsumption, dayCost, DayUse, FREE, MonitoringReader, monthCost, parisMidnight, pickMetrics,
+  alertNotice, alerts, checkConsumption, checkConsumptionIfDue, dayCost, DayUse, FREE, MonitoringReader, monthCost, parisMidnight, pickMetrics,
 } from '../src/consumption';
 import { Notice } from '../src/logic';
 import { Sender } from '../src/store';
@@ -122,5 +122,21 @@ describe('the daily check', () => {
     assert.deepEqual(await checkConsumption(db, refused, send, '2026-11-20'), []);
     assert.equal((await db.doc('consumption/2026-11-20').get()).get('error'), 'monitoring');
     assert.equal(sent.length, 0);
+  });
+
+  test('the 30-minute task reads the day before once, from 8 h in Paris', async () => {
+    const { send } = fakeSender();
+    let reads = 0;
+    const counting: MonitoringReader = {
+      metricTypes: async () => { reads++; return []; },
+      total: async () => null,
+    };
+    // 7 h 30 in Paris (6 h 30 UTC in winter): too early.
+    assert.equal(await checkConsumptionIfDue(db, counting, send, new Date('2026-11-21T06:30:00Z')), null);
+    // 8 h, then 8 h 30: one reading only, of the 20th.
+    assert.equal(await checkConsumptionIfDue(db, counting, send, new Date('2026-11-21T07:00:00Z')), '2026-11-20');
+    assert.equal(await checkConsumptionIfDue(db, counting, send, new Date('2026-11-21T07:30:00Z')), null);
+    assert.equal(reads, 1);
+    assert.ok((await db.doc('consumption/2026-11-20').get()).exists);
   });
 });

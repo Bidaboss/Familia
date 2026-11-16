@@ -3,8 +3,8 @@ package fr.familia.app.core.model
 import java.time.LocalDate
 
 /**
- * The use of the database on one day, read each morning from Cloud Monitoring by the function
- * consumptionCheck (PRD, récit 1 sexies): consumption/{day}, for the admin principal only.
+ * The use of the database on one day, read each morning from Cloud Monitoring by the
+ * 30-minute task of the functions (PRD, récit 1 sexies): consumption/{day}, for the admin principal only.
  * [failed]: Monitoring could not be read, most likely because the « Lecteur Monitoring » role is
  * missing (docs/deploiement.md).
  */

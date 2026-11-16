@@ -15,7 +15,7 @@ import {
   deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
   sendBirthdayGiftReminders, updateSharesTotal,
 } from './gifts';
-import { checkConsumption } from './consumption';
+import { checkConsumptionIfDue } from './consumption';
 import { cloudMonitoring } from './monitoring';
 import { deleteMemberNotebook, syncNotebookEntry, syncNotebookItem } from './notebook';
 import {
@@ -25,7 +25,7 @@ import {
 import {
   HelpNotice, HelpRequestData, HelpSender, onHelpRequestWritten, reopenRequestsOf, sendStillOpenReminders,
 } from './helpRequests';
-import { addDays, EventData, hasVisibleChange, Notice, parisDay } from './logic';
+import { EventData, hasVisibleChange, Notice } from './logic';
 import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, notifyChange, Sender, sendDayBeforeReminders } from './store';
 import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion } from './weeklyQuestion';
@@ -244,6 +244,8 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
   await sendArrivalReminders(getFirestore(), send, new Date());
   // Also the question of the week, on Monday from 9 h (récit 37): one task less to pay for.
   await publishWeeklyQuestion(getFirestore(), send, new Date());
+  // And the consumption of the day before, once from 8 h (récit 1 sexies).
+  await checkConsumptionIfDue(getFirestore(), cloudMonitoring, send, new Date());
 });
 
 // --- Question de la semaine (récit 37) --------------------------------------------------------
@@ -254,11 +256,4 @@ export const onWeeklyAnswerWritten = onDocumentWritten('weeklyQuestions/{weekId}
 
 export const onMemberDeletedAnswers = onDocumentDeleted('members/{memberId}', async (event) => {
   await deleteAnswersOf(getFirestore(), event.params.memberId);
-});
-
-// --- Consommation (récit 1 sexies) ------------------------------------------------------------
-
-// Each morning, the figures of the day before: Monitoring has them all by then.
-export const consumptionCheck = onSchedule({ schedule: '0 8 * * *', timeZone: 'Europe/Paris' }, async () => {
-  await checkConsumption(getFirestore(), cloudMonitoring, send, addDays(parisDay(new Date()), -1));
 });
