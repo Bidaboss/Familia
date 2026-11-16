@@ -95,6 +95,13 @@ data object NotificationSettingsDestination
 @Serializable
 data object ExportDestination
 
+/**
+ * « Utilisation » (PRD, récit 1 nonies): the whole family from Administration for the admin
+ * principal, the children's time from the Famille tab for a responsible adult (carte EXPERT-5).
+ */
+@Serializable
+data object UsageDestination
+
 /** The Administration menu of the admin principal (PRD, récit 1 ter). */
 @Serializable
 data object AdministrationDestination
