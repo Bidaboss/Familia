@@ -106,7 +106,7 @@ fun GiftsScreen(
                     }
                 }
                 birthdaysSection(state, onAllBirthdays, onPrepareSurprise)
-                state.sections.forEach { section -> personSection(section, state.today, onOpenList) }
+                state.sections.forEach { section -> personSection(section, state.today, state.wishPreviews, onOpenList) }
                 if (state.archived.isNotEmpty()) archivedSection(state.archived, state.today, onOpenList)
             }
         }
@@ -121,7 +121,12 @@ fun GiftsScreen(
     }
 }
 
-private fun LazyListScope.personSection(section: GiftPersonSection, today: LocalDate, onOpenList: (String) -> Unit) {
+private fun LazyListScope.personSection(
+    section: GiftPersonSection,
+    today: LocalDate,
+    previews: Map<String, WishPreview>,
+    onOpenList: (String) -> Unit,
+) {
     item(key = "person-${section.member.id}") {
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 12.dp).semantics(mergeDescendants = true) { heading() },
@@ -146,11 +151,7 @@ private fun LazyListScope.personSection(section: GiftPersonSection, today: Local
             }
             ListCard(
                 title = title,
-                subtitle = if (wishes == null) {
-                    stringResource(R.string.gifts_wishes_empty)
-                } else {
-                    stringResource(R.string.gift_wishes_subtitle)
-                },
+                subtitle = wishesSubtitle(wishes?.let { previews[it.id] }, empty = wishes == null, keptByMe = section.keptByMe),
                 tint = ClayTint.Family,
                 onClick = { onOpenList(wishes?.id ?: wishesListId(section.member.id)) },
             )
@@ -276,6 +277,7 @@ internal fun previewGifts(): GiftsUiState.Success {
                 lists = listOf(list("l2", GiftListKind.Surprise, "Les 40 ans d'Inès", "b", GiftOccasion.Birthday, LocalDate.of(2027, 2, 3)))),
         ),
         archived = emptyList(),
+        wishPreviews = mapOf("w-a" to WishPreview(4, listOf("Un livre de cuisine", "Une plante", "Un puzzle")), "w-b" to WishPreview(0, emptyList())),
     )
 }
 
@@ -283,4 +285,19 @@ internal fun previewGifts(): GiftsUiState.Success {
 @Composable
 private fun GiftsScreenPreview() {
     FamiliaTheme { Surface { GiftsScreen(previewGifts(), {}, {}, {}) } }
+}
+
+/**
+ * What the card of an « Envies » says: « 3 envies : Lego, vélo, livre… » once its ideas are read,
+ * « Pas encore d'envie » when it holds none, and « Toute la famille la voit » while it loads.
+ */
+@Composable
+private fun wishesSubtitle(preview: WishPreview?, empty: Boolean, keptByMe: Boolean): String = when {
+    empty || preview?.count == 0 ->
+        stringResource(if (keptByMe) R.string.gifts_wishes_empty else R.string.gifts_wishes_none)
+    preview == null -> stringResource(R.string.gift_wishes_subtitle)
+    else -> {
+        val titles = preview.titles.joinToString(", ") + if (preview.count > preview.titles.size) "…" else ""
+        pluralStringResource(R.plurals.gifts_wishes_preview, preview.count, preview.count, titles)
+    }
 }

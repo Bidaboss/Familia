@@ -543,6 +543,12 @@
     <string name="gifts_new_list">Nouvelle liste</string>
     <string name="gifts_open_list">ouvrir la liste</string>
     <string name="gifts_section_me">Moi</string>
+    <string name="gifts_wishes_none">Pas encore d\'envie</string>
+    <plurals name="gifts_wishes_preview">
+        <item quantity="one">%1$d envie : %2$s</item>
+        <item quantity="many">%1$d envies : %2$s</item>
+        <item quantity="other">%1$d envies : %2$s</item>
+    </plurals>
     <string name="gifts_wishes_empty">Encore vide : touche pour ajouter une envie</string>
     <string name="gifts_birthdays_title">Anniversaires à venir</string>
     <string name="gifts_birthday_of">Anniversaire de %1$s</string>
