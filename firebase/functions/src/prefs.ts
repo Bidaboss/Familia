@@ -83,7 +83,8 @@ export async function loadPrefs(db: Firestore, memberIds: string[]): Promise<Map
 /** Who gets [notice] now, and who gets it at 8 h; the others turned it off. */
 export async function audience(db: Firestore, memberIds: string[], notice: Filtered, now: Date): Promise<{ now: string[]; later: string[] }> {
   const prefs = await loadPrefs(db, memberIds);
-  const quiet = isQuietHour(now);
+  // What aims at the member directly rings even at night: a « rejoins-moi » cannot wait for 8 h.
+  const quiet = isQuietHour(now) && !notice.direct && FAMILY_OF[notice.channel] !== null;
   const result = { now: [] as string[], later: [] as string[] };
   for (const id of memberIds) {
     const p = prefs.get(id) ?? DEFAULT_PREFS;

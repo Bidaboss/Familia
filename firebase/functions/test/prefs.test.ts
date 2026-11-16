@@ -97,6 +97,14 @@ describe('my notification settings against the emulator', () => {
     assert.equal(await sendHeldNotices(db, send, morning), 0);
   });
 
+  test('at night, what aims at me is not held', async () => {
+    const { sent, send } = fakeSender();
+    assert.equal(await deliver(db, send, ['lou'], { ...news, direct: true } as Notice, night), 1);
+    assert.equal(await deliver(db, send, ['lou'], { channel: 'joinMe', title: 'Rejoins-moi', body: 'Au parc' }, night), 1);
+    assert.equal(sent.length, 2);
+    assert.equal((await db.doc('quietQueue/lou').get()).exists, false);
+  });
+
   test('in the day, the quiet hours change nothing, and what aims at me reaches « Presque rien »', async () => {
     const { sent, send } = fakeSender();
     assert.equal(await deliver(db, send, ['noe', 'lou'], { ...news, direct: true } as Notice, morning), 2);
