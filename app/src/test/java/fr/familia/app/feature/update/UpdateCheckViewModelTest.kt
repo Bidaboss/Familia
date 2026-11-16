@@ -22,6 +22,7 @@ private class FakeConfig(var result: () -> AppConfig) : AppConfigRepository {
         return result()
     }
     override suspend fun setFeature(key: String, enabled: Boolean) = Unit
+    override suspend fun setDiscoverOrder(keys: List<String>) = Unit
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -69,6 +70,7 @@ class UpdateCheckViewModelTest {
             override fun observeAppConfig(): Flow<AppConfig> = emptyFlow()
             override suspend fun fetchAppConfig(): AppConfig = awaitCancellation()
             override suspend fun setFeature(key: String, enabled: Boolean) = Unit
+            override suspend fun setDiscoverOrder(keys: List<String>) = Unit
         }
         val vm = UpdateCheckViewModel(repo, 1, url)
         assertEquals(UpdateCheckUiState.Checking, vm.uiState.value)

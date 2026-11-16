@@ -19,6 +19,8 @@ data class AppConfig(
     val features: Map<String, Boolean> = emptyMap(),
     /** « Quoi de neuf ? » of every version (config/app.whatsNew, written by the workflow). */
     val whatsNew: List<WhatsNewRelease> = emptyList(),
+    /** The order of « À découvrir » chosen by the admin principal (config/app.discoverOrder, AVIS-19). */
+    val discoverOrder: List<String> = emptyList(),
 )
 
 interface AppConfigRepository {
@@ -33,6 +35,9 @@ interface AppConfigRepository {
 
     /** The admin principal switches a module on or off for the family (the rules check it). */
     suspend fun setFeature(key: String, enabled: Boolean)
+
+    /** The admin principal sets the order of « À découvrir » (the module keys; the rules check it). */
+    suspend fun setDiscoverOrder(keys: List<String>)
 }
 
 class AppConfigOfflineException(cause: Throwable? = null) : Exception(cause)

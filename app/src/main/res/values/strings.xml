@@ -170,6 +170,9 @@
     <string name="administration_rotation_up">Monter %1$s</string>
     <string name="administration_rotation_down">Descendre %1$s</string>
     <string name="administration_rotation_save">Enregistrer l\'ordre</string>
+    <string name="administration_discover_title">Ordre d\'« À découvrir »</string>
+    <string name="administration_discover_week">Semaine du %1$s</string>
+    <string name="administration_discover_in_tutorial">Déjà dans le tuto, pas de semaine</string>
     <string name="administration_feature_on">Visible par la famille</string>
     <string name="administration_feature_off">Caché à la famille</string>
     <string name="feature_home">Accueil</string>
@@ -1117,6 +1120,7 @@
     <string name="share_poll_line">Sondage de la famille</string>
     <string name="share_poll_text">Sondage dans Familia : %1$s Réponds ici :</string>
     <string name="share_trip_text">%1$s, %2$s. Le carnet de voyage est dans Familia :</string>
+    <string name="share_birthday_button">Partager l\'anniversaire de %1$s</string>
     <string name="share_birthday_text">Anniversaire de %1$s : %2$s le %3$s. On se retrouve dans Familia :</string>
     <string name="feature_share">Partager vers une messagerie</string>
     <string name="help_topic_view_as_title">Si tu as besoin d\'aide</string>

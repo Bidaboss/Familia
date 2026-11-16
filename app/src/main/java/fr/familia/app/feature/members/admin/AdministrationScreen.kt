@@ -63,6 +63,7 @@ import fr.familia.app.core.model.ChallengeRotation
 import fr.familia.app.feature.members.RenameHouseholdDialog
 import fr.familia.app.core.model.CapsuleLeftover
 import fr.familia.app.core.model.Feature
+import fr.familia.app.feature.discover.DiscoverModule
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
@@ -118,6 +119,10 @@ fun AdministrationScreen(
     /** « Retours » (récit 6 sexies): the ideas and problems of the family; [feedbackUnseen] are new. */
     onOpenFeedback: (() -> Unit)? = null,
     feedbackUnseen: Int = 0,
+    /** « Ordre d'À découvrir » (AVIS-19 partie 2): the order in force; hidden when [onSaveDiscoverOrder] is null. */
+    discoverOrder: List<DiscoverModule> = DiscoverModule.entries,
+    discoverInTutorial: Set<DiscoverModule> = emptySet(),
+    onSaveDiscoverOrder: ((List<DiscoverModule>) -> Unit)? = null,
 ) {
     Scaffold(
         modifier = modifier,
@@ -153,6 +158,7 @@ fun AdministrationScreen(
                         state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport, features, onSetFeature, onRenameHousehold,
                         onOpenUsage, consumption, challenges, onPickChallenge, capsuleLeftovers, onDeleteCapsuleLeftovers,
                         rotation, onSaveRotation, viewAsMembers, onViewAs, onShareApp, onOpenFeedback, feedbackUnseen,
+                        discoverOrder, discoverInTutorial, onSaveDiscoverOrder,
                     )
             }
         }
@@ -194,6 +200,9 @@ private fun ReadyContent(
     onShareApp: (() -> Unit)?,
     onOpenFeedback: (() -> Unit)?,
     feedbackUnseen: Int,
+    discoverOrder: List<DiscoverModule>,
+    discoverInTutorial: Set<DiscoverModule>,
+    onSaveDiscoverOrder: ((List<DiscoverModule>) -> Unit)?,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
     var choosingViewAs by rememberSaveable { mutableStateOf(false) }
@@ -338,6 +347,13 @@ private fun ReadyContent(
                 SectionTitle(R.string.administration_rotation_title)
             }
             item(key = "rotation") { ChallengeRotationSection(rotation, onSaveRotation) }
+        }
+        if (onSaveDiscoverOrder != null) {
+            item(key = "discover-title") {
+                HorizontalDivider(Modifier.padding(top = 8.dp))
+                SectionTitle(R.string.administration_discover_title)
+            }
+            item(key = "discover") { DiscoverOrderSection(discoverOrder, discoverInTutorial, onSaveDiscoverOrder) }
         }
         if (consumption != null) {
             item(key = "consumption") { ConsumptionSection(consumption) }
