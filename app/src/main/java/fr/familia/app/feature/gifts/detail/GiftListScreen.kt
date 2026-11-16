@@ -68,6 +68,7 @@ import fr.familia.app.core.model.ClaimType
 import fr.familia.app.core.model.GiftItem
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
+import fr.familia.app.core.model.isPermanent
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftShare
 import fr.familia.app.core.model.Member
@@ -131,7 +132,7 @@ fun GiftListScreen(state: GiftListUiState, actions: GiftListActions, modifier: M
                 navigationIcon = { BackButton(onClick = actions.onBack) },
                 actions = {
                     HelpButton(ScreenHelp.GiftList)
-                    if (success?.canManage == true && success.list.kind != GiftListKind.Wishes) {
+                    if (success?.canManage == true && !success.list.kind.isPermanent) {
                         TextButton(onClick = actions.onEditList, modifier = Modifier.heightIn(min = 56.dp)) {
                             Text(stringResource(R.string.event_detail_edit), style = MaterialTheme.typography.labelLarge)
                         }
@@ -144,7 +145,17 @@ fun GiftListScreen(state: GiftListUiState, actions: GiftListActions, modifier: M
                 ExtendedFloatingActionButton(
                     onClick = actions.onAddItem,
                     icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                    text = { Text(stringResource(if (success.list.kind == GiftListKind.Wishes && success.isMine) R.string.gift_add_wish else R.string.gift_add_item)) },
+                    text = {
+                        Text(
+                            stringResource(
+                                when {
+                                    success.list.kind == GiftListKind.Ideas -> R.string.gift_add_idea
+                                    success.list.kind == GiftListKind.Wishes && success.isMine -> R.string.gift_add_wish
+                                    else -> R.string.gift_add_item
+                                },
+                            ),
+                        )
+                    },
                 )
             }
         },
@@ -192,6 +203,7 @@ private fun Content(state: GiftListUiState.Success, actions: GiftListActions) {
                 Text(
                     when {
                         state.keptFromMe -> stringResource(R.string.gift_list_empty_mine)
+                        state.list.kind == GiftListKind.Ideas -> stringResource(R.string.gift_ideas_empty)
                         state.list.kind == GiftListKind.Wishes && !state.canAddItems ->
                             stringResource(R.string.gift_wishes_empty_other, state.beneficiary.firstName)
                         else -> stringResource(R.string.gift_list_empty)
@@ -235,6 +247,7 @@ private fun Header(state: GiftListUiState.Success, onOpenReceived: (() -> Unit)?
             state.keptFromMe && state.list.kind == GiftListKind.Wishes -> stringResource(R.string.gift_list_hidden_wishes)
             state.keptFromMe -> stringResource(R.string.gift_list_hidden_mine)
             state.list.kind == GiftListKind.Surprise -> stringResource(R.string.gift_list_surprise_notice, state.beneficiary.firstName)
+            state.list.kind == GiftListKind.Ideas -> stringResource(R.string.gift_ideas_notice, state.beneficiary.firstName)
             else -> stringResource(R.string.gift_list_own_notice, state.beneficiary.firstName)
         }
         // One short sentence; the whole explanation is one touch away.

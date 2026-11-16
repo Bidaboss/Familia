@@ -12,6 +12,7 @@ import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
+import fr.familia.app.core.model.isPermanent
 import fr.familia.app.core.model.upcomingBirthdays
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -37,8 +38,10 @@ data class GiftPersonSection(
     val keptByMe: Boolean,
     /** Their « Mes envies », null while nothing was added to it yet. */
     val wishes: GiftList?,
-    /** Their lists for an occasion that are not revealed yet, by date. */
+    /** Their lists for an occasion that are not revealed yet, by date. Empty with the single list. */
     val lists: List<GiftList>,
+    /** « Idées de la famille » for them (récit 9 ter), null while nobody added one; never for oneself. */
+    val ideas: GiftList? = null,
 )
 
 sealed interface GiftsUiState {
@@ -53,8 +56,10 @@ sealed interface GiftsUiState {
         val sections: List<GiftPersonSection>,
         /** Revealed lists, newest first, with the first name of their beneficiary. */
         val archived: List<Pair<GiftList, String>>,
-        /** What each « Envies » holds, by list id, as this member may see it; missing while it loads. */
+        /** What each « Envies » and « Idées de la famille » holds, by list id, as this member may see it; missing while it loads. */
         val wishPreviews: Map<String, WishPreview> = emptyMap(),
+        /** One list of wishes per person, and the ideas of the family (récit 9 ter): no list for an occasion. */
+        val singleList: Boolean = false,
     ) : GiftsUiState
 
     data object Error : GiftsUiState
@@ -71,6 +76,8 @@ class GiftsViewModel(
     private val members: MemberRepository?,
     private val currentMemberId: String,
     private val today: Flow<LocalDate> = currentDayFlow(),
+    /** The switch « Liste unique » (récit 9 ter). */
+    private val singleList: Boolean = false,
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
@@ -81,7 +88,7 @@ class GiftsViewModel(
                 flowOf(GiftsUiState.Error)
             } else {
                 combine(members.observeFamily(), gifts.observeVisibleLists(currentMemberId), today) { family, lists, day ->
-                    giftsState(family, lists, currentMemberId, day)
+                    giftsState(family, lists, currentMemberId, day, singleList)
                 }
                     .flatMapLatest { state -> withPreviews(gifts, state) }
                     .onStart { if (n > 0) emit(GiftsUiState.Loading) }
@@ -105,11 +112,14 @@ class GiftsViewModel(
      */
     private fun withPreviews(repo: GiftRepository, state: GiftsUiState): Flow<GiftsUiState> {
         if (state !is GiftsUiState.Success) return flowOf(state)
-        val wishes = state.sections.mapNotNull { it.wishes }
+        val wishes = state.sections.flatMap { listOfNotNull(it.wishes, it.ideas) }
         if (wishes.isEmpty()) return flowOf(state)
         val previews = wishes.map { list ->
-            repo.observeItems(list.id, hiddenFromMe = true)
-                .map<List<GiftItem>, Pair<String, WishPreview>?> { items -> list.id to wishPreview(items) }
+            // The ideas of the family are all hidden from their person, and never on the tab of that
+            // person: they count all, and their card shows no title (GiftsScreen).
+            val ideas = list.kind == GiftListKind.Ideas
+            repo.observeItems(list.id, hiddenFromMe = !ideas)
+                .map<List<GiftItem>, Pair<String, WishPreview>?> { items -> list.id to wishPreview(items, onlyVisible = !ideas) }
                 .onStart { emit(null) }
                 .catch { e ->
                     if (e is CancellationException) throw e
@@ -124,24 +134,27 @@ class GiftsViewModel(
 data class WishPreview(val count: Int, val titles: List<String>)
 
 /** The preview of [items]: their number, and the first [WISH_PREVIEW_TITLES] titles in alphabetical order. */
-internal fun wishPreview(items: List<GiftItem>): WishPreview =
-    items.filter { it.visibleToBeneficiary }.let { shown ->
+internal fun wishPreview(items: List<GiftItem>, onlyVisible: Boolean = true): WishPreview =
+    items.filter { !onlyVisible || it.visibleToBeneficiary }.let { shown ->
         WishPreview(shown.size, shown.map { it.title.trim() }.sortedBy { it.lowercase() }.take(WISH_PREVIEW_TITLES))
     }
 
 private const val WISH_PREVIEW_TITLES = 3
 
 /** Groups the visible lists by beneficiary. Pure, so the tests check it without Firestore. */
-internal fun giftsState(family: Family, lists: List<GiftList>, meId: String, today: LocalDate): GiftsUiState {
+internal fun giftsState(family: Family, lists: List<GiftList>, meId: String, today: LocalDate, singleList: Boolean = false): GiftsUiState {
     val me = family.members.firstOrNull { it.id == meId } ?: return GiftsUiState.Error
     val byId = family.members.associateBy { it.id }
-    // Lists of removed members are not shown.
+    // Lists of removed members are not shown. The ideas of the family only exist with the single list,
+    // and with it, the lists for an occasion are gone from the screen (récit 9 ter).
     val known = lists.filter { it.beneficiaryId in byId }
+        .filter { if (singleList) it.kind.isPermanent else it.kind != GiftListKind.Ideas }
     val active = known.filter { !it.revealed }
     val kept = keptMembers(me, family)
     val keptIds = kept.map { it.id }.toSet()
+    // With the single list, everyone shows: the family can note an idea for anybody.
     val others = family.members
-        .filter { it.id !in keptIds && active.any { list -> list.beneficiaryId == it.id } }
+        .filter { it.id !in keptIds && (singleList || active.any { list -> list.beneficiaryId == it.id }) }
         .sortedBy { it.firstName.lowercase() }
     val sections = (kept + others).map { member ->
         val theirs = active.filter { it.beneficiaryId == member.id }
@@ -150,8 +163,9 @@ internal fun giftsState(family: Family, lists: List<GiftList>, meId: String, tod
             isMe = member.id == me.id,
             keptByMe = member.id in keptIds,
             wishes = theirs.firstOrNull { it.kind == GiftListKind.Wishes },
-            lists = theirs.filter { it.kind != GiftListKind.Wishes }
+            lists = theirs.filter { !it.kind.isPermanent }
                 .sortedWith(compareBy<GiftList>({ it.date ?: LocalDate.MAX }, { it.title.lowercase() })),
+            ideas = theirs.firstOrNull { it.kind == GiftListKind.Ideas && member.id != me.id },
         )
     }
     val archived = known.filter { it.revealed }
@@ -163,6 +177,7 @@ internal fun giftsState(family: Family, lists: List<GiftList>, meId: String, tod
         canPrepareSurprise = me.profile == MemberProfile.Adult,
         sections = sections,
         archived = archived,
+        singleList = singleList,
     )
 }
 

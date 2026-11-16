@@ -118,6 +118,36 @@ class GiftsTest {
     }
 
     @Test
+    fun `with the single list, everyone shows with their wishes and the ideas of the family, and no list for an occasion`() {
+        val lists = listOf(
+            list("w", "adult1", GiftListKind.Wishes, viewers = emptyList()),
+            list("own", "admin1", viewers = listOf("admin1", "adult2")),
+            list("old", "adult2", revealed = true),
+            list("ideas-adult1", "adult1", GiftListKind.Ideas, viewers = emptyList(), creator = "admin1"),
+        )
+        val state = giftsState(family, lists, "adult2", today, singleList = true) as GiftsUiState.Success
+        assertTrue(state.singleList)
+        assertEquals(family.members.size, state.sections.size)
+        assertTrue(state.sections.all { it.lists.isEmpty() })
+        assertTrue(state.archived.isEmpty())
+        assertEquals("ideas-adult1", state.sections.first { it.member.id == "adult1" }.ideas?.id)
+        // Switch off: the ideas of the family stay out of the tab.
+        val off = giftsState(family, lists, "adult2", today) as GiftsUiState.Success
+        assertTrue(off.sections.none { it.ideas != null || it.lists.any { l -> l.kind == GiftListKind.Ideas } })
+    }
+
+    @Test
+    fun `the ideas of the family open empty for the others, never for the person`() = runTest {
+        val other = GiftListViewModel(FakeGifts(null), FakeMembers(), "adult2", "ideas-adult1", today = flowOf(today))
+        val state = other.uiState.first { it !is GiftListUiState.Loading } as GiftListUiState.Success
+        assertEquals(GiftListKind.Ideas, state.list.kind)
+        assertTrue(state.canAddItems)
+        assertFalse(state.keptFromMe)
+        val mine = GiftListViewModel(FakeGifts(null), FakeMembers(), "adult1", "ideas-adult1", today = flowOf(today))
+        assertEquals(GiftListUiState.Missing, mine.uiState.first { it !is GiftListUiState.Loading })
+    }
+
+    @Test
     fun `amounts and links typed by a member are understood`() {
         assertEquals(19.9, parseEuros("19,90 €")!!, 0.001)
         assertEquals(30.0, parseEuros(" 30 ")!!, 0.001)

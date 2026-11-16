@@ -38,6 +38,7 @@ import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
+import fr.familia.app.core.model.ideasListId
 import fr.familia.app.core.model.wishesListId
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
@@ -106,11 +107,12 @@ fun GiftsScreen(
                     }
                 }
                 birthdaysSection(state, onAllBirthdays, onPrepareSurprise)
-                state.sections.forEach { section -> personSection(section, state.today, state.wishPreviews, onOpenList) }
+                state.sections.forEach { section -> personSection(section, state.today, state.wishPreviews, onOpenList, state.singleList) }
                 if (state.archived.isNotEmpty()) archivedSection(state.archived, state.today, onOpenList)
             }
         }
-        if (state is GiftsUiState.Success) {
+        // With the single list (récit 9 ter), nobody makes a list any more: each person has theirs.
+        if (state is GiftsUiState.Success && !state.singleList) {
             ExtendedFloatingActionButton(
                 onClick = onNewList,
                 icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
@@ -126,6 +128,7 @@ private fun LazyListScope.personSection(
     today: LocalDate,
     previews: Map<String, WishPreview>,
     onOpenList: (String) -> Unit,
+    singleList: Boolean = false,
 ) {
     item(key = "person-${section.member.id}") {
         Row(
@@ -154,6 +157,23 @@ private fun LazyListScope.personSection(
                 subtitle = wishesSubtitle(wishes?.let { previews[it.id] }, empty = wishes == null, keptByMe = section.keptByMe),
                 tint = ClayTint.Family,
                 onClick = { onOpenList(wishes?.id ?: wishesListId(section.member.id)) },
+            )
+        }
+    }
+    // « Idées de la famille » (récit 9 ter): for everyone but oneself, even before the first idea.
+    if (singleList && !section.isMe) {
+        item(key = "ideas-${section.member.id}") {
+            val ideas = section.ideas
+            val preview = ideas?.let { previews[it.id] }
+            ListCard(
+                title = stringResource(R.string.gift_ideas_title),
+                subtitle = if (preview == null || preview.count == 0) {
+                    stringResource(R.string.gift_ideas_subtitle, section.member.firstName)
+                } else {
+                    pluralStringResource(R.plurals.gift_ideas_count, preview.count, preview.count)
+                },
+                tint = ClayTint.Birthday,
+                onClick = { onOpenList(ideas?.id ?: ideasListId(section.member.id)) },
             )
         }
     }

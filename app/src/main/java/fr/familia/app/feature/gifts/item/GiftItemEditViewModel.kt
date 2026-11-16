@@ -11,6 +11,7 @@ import fr.familia.app.core.model.GiftItem
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.ideasListId
 import fr.familia.app.core.model.wishesListId
 import fr.familia.app.feature.gifts.addsVisibleItem
 import fr.familia.app.feature.gifts.isKeptFrom
@@ -185,6 +186,11 @@ class GiftItemEditViewModel(
     }
 
     private fun emptyWishes(family: Family, current: Member): GiftList? {
+        // The first idea of the family for someone creates their « Idées de la famille » (récit 9 ter).
+        family.members.firstOrNull { ideasListId(it.id) == listId }?.let { owner ->
+            if (owner.id == current.id) return null
+            return GiftList(listId, GiftListKind.Ideas, "Idées de la famille", null, null, owner.id, emptyList(), current.id, current.firstName)
+        }
         val owner = family.members.firstOrNull { wishesListId(it.id) == listId } ?: return null
         if (!keepsListsOf(current, owner)) return null
         return GiftList(listId, GiftListKind.Wishes, "Mes envies", null, null, owner.id, emptyList(), current.id, current.firstName)
