@@ -71,6 +71,10 @@ data class WeeklyQuestionDestination(val questionId: String? = null)
 @Serializable
 data class HostChallengeDestination(val year: Int, val month: Int)
 
+/** « La semaine de la famille », opened by the notification of Sunday (récit 36). */
+@Serializable
+data object RecapDestination
+
 /** A member's page, read-only, opened from Famille while the Souvenirs module is on (récit 34). */
 @Serializable
 data class MemberProfileDestination(val memberId: String)

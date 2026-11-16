@@ -49,6 +49,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
 import fr.familia.app.feature.capsules.CapsuleDetailDestination
+import fr.familia.app.feature.recap.RecapRoute
 import fr.familia.app.feature.capsules.CapsuleDetailRoute
 import fr.familia.app.feature.capsules.CapsuleEditDestination
 import fr.familia.app.feature.capsules.CapsuleEditRoute
@@ -211,6 +212,9 @@ fun FamiliaApp(
     /** The time capsule of a tapped notification, to open once its module shows (récit 39). */
     openCapsuleId: String? = null,
     onCapsuleOpened: () -> Unit = {},
+    /** « La semaine de la famille » of a tapped notification, to open once its module shows (récit 36). */
+    openRecap: Boolean = false,
+    onRecapOpened: () -> Unit = {},
     /** A link shared from another app, to add to « Mes envies » once (récit 8 bis). */
     sharedWish: SharedWish? = null,
     onSharedWishOpened: () -> Unit = {},
@@ -406,6 +410,15 @@ fun FamiliaApp(
         }
     }
 
+    // And for « La semaine de la famille » (récit 36).
+    val recapOn = features.isOn(Feature.Recap)
+    LaunchedEffect(openRecap, recapOn) {
+        if (openRecap && recapOn) {
+            navController.navigate(RecapDestination) { launchSingleTop = true }
+            onRecapOpened()
+        }
+    }
+
     var updateDismissed by rememberSaveable { mutableStateOf(false) }
     LifecycleEventEffect(Lifecycle.Event.ON_START) { updateDismissed = false }
 
@@ -558,6 +571,15 @@ fun FamiliaApp(
                             onPrepareChallenge = { month ->
                                 navController.navigate(HostChallengeDestination(month.year, month.monthValue)) { launchSingleTop = true }
                             },
+                        )
+                    }
+                    composable<RecapDestination> {
+                        RecapRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onBack = { navController.popBackStack() },
+                            onOpenGoodNews = { id -> navController.navigate(GoodNewsDetailDestination(id)) },
+                            onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
                         )
                     }
                     composable<HostChallengeDestination> { entry ->
