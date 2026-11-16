@@ -1168,7 +1168,7 @@ service cloud.firestore {
                               'visibleToBeneficiary', 'createdAt', 'updatedAt'])
         && i.keys().hasOnly(['title', 'url', 'price', 'note', 'authorId', 'authorName',
                              'visibleToBeneficiary', 'createdAt', 'updatedAt', 'imageUrl', 'occasion'])
-        // The occasion a wish is for (récit 9 ter): absent or null for « Quand vous voulez ».
+        // The occasion a wish is for (récit 9 ter): absent or null for « Quand tu veux ».
         && (!('occasion' in i) || i.occasion == null || i.occasion in ['christmas', 'birthday'])
         && i.title is string && i.title.size() > 0 && i.title.size() <= 80
         && (i.url == null || (i.url is string && i.url.size() <= 500 && i.url.matches('^https?://.+')))

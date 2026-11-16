@@ -73,7 +73,7 @@ data class GiftItem(
     val authorName: String,
     val visibleToBeneficiary: Boolean,
     val imageUrl: String? = null,
-    /** The occasion a wish is for (récit 9 ter): Christmas or a birthday; null for « Quand vous voulez ». */
+    /** The occasion a wish is for (récit 9 ter): Christmas or a birthday; null for « Quand tu veux ». */
     val occasion: GiftOccasion? = null,
 )
 
