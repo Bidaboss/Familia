@@ -1111,6 +1111,23 @@ service cloud.firestore {
       allow delete: if isMember() && (memberId == myMemberId() || claim().holderId == myMemberId());
     }
 
+    // giftLists/{listId}/received/{itemId}: « On m'a offert » (récit 10 bis), the wishes revealed
+    // the day after an occasion, written by the Cloud Function only. Its owner and the adults who
+    // keep their lists read it; the owner may only say thank you.
+    match /giftLists/{listId}/received/{itemId} {
+      function list() {
+        return get(giftListPath(listId)).data;
+      }
+
+      allow read: if isMember() && list().kind == 'wishes' && keepsListsOf(list().beneficiaryId);
+
+      allow update: if isMember()
+        && list().beneficiaryId == myMemberId()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['thanked', 'thankedAt'])
+        && request.resource.data.thanked == true
+        && request.resource.data.thankedAt == request.time;
+    }
+
     // --- Mon carnet de cadeaux (PRD, récit 9 bis) ----------------------------------------------
     //
     // notebooks/{memberId}: what a member plans to give. Only that member reads or writes it: not

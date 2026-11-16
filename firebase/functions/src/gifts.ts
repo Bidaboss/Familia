@@ -7,6 +7,7 @@
 import type { DocumentSnapshot, Firestore } from 'firebase-admin/firestore';
 import { addDays, formatDay, Notice, parisDay, Profile } from './logic';
 import { notify, Sender } from './store';
+import { wasRevealed } from './wishesReveal';
 
 export interface GiftMember {
   id: string;
@@ -216,6 +217,8 @@ export async function onGiftItemChanged(
 ): Promise<number> {
   if (!before) return 0;
   if (after && !itemChanged(before, after)) return 0;
+  // A revealed wish left the list for « On m'a offert »: nothing was cancelled (wishesReveal.ts).
+  if (!after && (await wasRevealed(db, listId, itemId))) return 0;
   const { claim, ids } = await reservers(db, listId, itemId);
   let sent = 0;
   if (ids.length > 0) {

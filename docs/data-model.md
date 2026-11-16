@@ -289,11 +289,31 @@ Une part d'un cadeau commun, une par adulte. Aucun paiement ne passe par l'appli
 - **Modifier** : le membre change son montant ; le responsable marque la part reçue ou non. Personne d'autre.
 - **Retirer** : le membre ou le responsable.
 
+### `giftLists/{listId}/received/{itemId}` (« On m'a offert », PRD, récit 10 bis)
+
+Une envie offerte, sortie de « Mes envies » le lendemain de l'occasion de son bénéficiaire. Seule la liste `wishes-{memberId}` en a. Derrière l'interrupteur `config/app.features.wishesReveal`, en plus de `features.gifts`.
+
+| Champ | Type | Description |
+|---|---|---|
+| `title`, `url`, `imageUrl` | texte | Repris de l'article |
+| `givers` | liste de textes | Prénoms de ceux qui l'ont offerte : le responsable, puis les participants. Jamais les montants |
+| `joint` | booléen | Vrai pour un cadeau commun |
+| `occasion` | `birthday` ou `christmas` | L'occasion de la veille |
+| `year` | nombre | Année de l'occasion |
+| `thanked` | booléen | Faux à la création, vrai quand le bénéficiaire a dit merci |
+| `thankedAt` | horodatage serveur | Présent une fois le merci dit |
+| `revealedAt` | horodatage serveur | |
+
+- **Lire** : le bénéficiaire, et les adultes qui gardent ses listes (un enfant sans l'appli n'a rien de dévoilé).
+- **Modifier** : le bénéficiaire, seulement pour passer `thanked` à vrai avec `thankedAt`.
+- **Créer, supprimer** : le serveur seul.
+
 ### Cloud Functions des cadeaux (`firebase/functions/src/gifts.ts`)
 
 | Fonction | Quand | Ce qu'elle fait |
 |---|---|---|
 | `revealGifts` | Chaque jour à 7 h, heure de Paris | Passe `revealed` à vrai pour les listes dont l'occasion est passée (pas « Mes envies »), et prévient leur bénéficiaire s'il a l'appli (PRD, récit 10 bis) |
+| `revealWishesDaily` (`wishesReveal.ts`) | Chaque jour à 8 h, heure de Paris | Le lendemain d'un anniversaire ou de Noël, passe chaque envie réservée dans `received`, efface l'article et sa réservation, et prévient le bénéficiaire. Le carnet des donateurs garde le cadeau, et personne ne reçoit « Réservation annulée ». Une envie non réservée reste |
 | `birthdayGiftReminders` | Chaque jour à 10 h, heure de Paris | À J-21 d'un anniversaire, prévient tous les adultes sauf le fêté, avec ses envies. À J-14, recommence si aucun article de ses listes n'est réservé (récit 10) |
 | `onGiftItemWritten` | Un article est modifié ou supprimé | S'il était réservé, prévient le réservant et les participants (jamais le bénéficiaire), et met à jour leur carnet. Une suppression efface aussi la réservation et ses parts |
 | `onGiftShareWritten` | Une part est ajoutée, modifiée ou retirée | Recalcule `sharesTotal` et `sharesCount` sur la réservation, et met à jour le carnet du participant |

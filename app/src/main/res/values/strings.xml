@@ -159,6 +159,7 @@
     <string name="feature_help_requests">Coups de main</string>
     <string name="feature_gift_notebook">Carnet de cadeaux</string>
     <string name="feature_share_to_wishes">Partager vers « Mes envies »</string>
+    <string name="feature_wishes_reveal">Dévoiler les envies offertes</string>
     <string name="share_to_wishes">Mes envies Familia</string>
     <string name="gift_item_preview_loading">Lecture de la page de la boutique…</string>
     <string name="feature_trips">Carnet de voyage</string>
