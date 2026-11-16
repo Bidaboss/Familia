@@ -78,7 +78,11 @@ describe('the tree against the emulator', () => {
     // Somebody else still counts, and so does Camille the next day.
     assert.equal(await addLeaf(db, 'ines', treeMark.rsvp('e1', 'ines'), now), true);
     assert.equal(await addLeaf(db, 'camille', treeMark.help('h1'), new Date('2026-12-06T10:00:00Z')), true);
-    assert.equal(await leaves(), LEAVES_PER_DAY + 2);
+    // A photo of an event album counts once per slot, even taken off and put back.
+    const later = new Date('2026-12-07T10:00:00Z');
+    assert.equal(await addLeaf(db, 'ines', treeMark.albumPhoto('e1', 'ines_1'), later), true);
+    assert.equal(await addLeaf(db, 'ines', treeMark.albumPhoto('e1', 'ines_1'), later), false);
+    assert.equal(await leaves(), LEAVES_PER_DAY + 3);
   });
 
   test('the photos of the month fill the gauge, once per post, and the tree blooms once', async () => {

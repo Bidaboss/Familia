@@ -767,7 +767,8 @@ Une feuille s'ajoute pour chacun de ces gestes :
 - une réaction, pour celui qui réagit ;
 - une réponse « Je viens » à un événement, pour la personne qui vient ;
 - un coup de main pris, pour le volontaire ;
-- un « bien arrivé », pour celui qui l'envoie.
+- un « bien arrivé », pour celui qui l'envoie ;
+- une photo dans l'album d'un événement (récit 41), pour son auteur, une fois par emplacement (`onEventPhotoCreated`).
 
 Chaque geste compte une seule fois, et chaque personne apporte au plus 5 feuilles par jour, pour éviter la triche. Les votes et les vœux du récit viendront avec leurs modules.
 
@@ -821,7 +822,7 @@ Module éteint, l'arbre et la jauge avancent quand même, mais rien n'est envoy�
 
 Droits : la famille lit `familyTree`, `challenges`, `challengeRotation` et `householdChallenges`. Personne n'écrit `familyTree` ni `challenges` depuis l'appli : `challengePicks` et `challengeRotation` sont ouverts à l'admin principal seul, `householdChallenges` au foyer du mois.
 
-`treeMarks/{markId}` (`goodNews-{postId}`, `reaction-{postId}-{memberId}`, `rsvp-{eventId}-{memberId}`, `help-{requestId}`, `arrival-{tripId}-{stepId}`, `challenge-{postId}`) et `treeDays/{memberId}_{AAAA-MM-JJ}` (`count`) servent aux fonctions seules. Aucune règle ne les ouvre. Un TTL sur `expireAt` les efface 40 jours après. Quand un membre part, ses marques et ses jours sont effacés (carte EXPERT-1), mais ses feuilles restent à la famille.
+`treeMarks/{markId}` (`goodNews-{postId}`, `reaction-{postId}-{memberId}`, `rsvp-{eventId}-{memberId}`, `help-{requestId}`, `arrival-{tripId}-{stepId}`, `albumPhoto-{eventId}-{photoId}`, `challenge-{postId}`) et `treeDays/{memberId}_{AAAA-MM-JJ}` (`count`) servent aux fonctions seules. Aucune règle ne les ouvre. Un TTL sur `expireAt` les efface 40 jours après. Quand un membre part, ses marques et ses jours sont effacés (carte EXPERT-1), mais ses feuilles restent à la famille.
 
 Fonctions : il n'y a pas de nouvelle tâche planifiée. Ces déclencheurs, qui existent déjà, ajoutent la feuille ou font avancer la jauge : `onGoodNewsCreated`, `onGoodNewsUpdated`, `onHelpRequestWrite`, `onTripStepUpdated` et `helpRequestStillOpen` (le défi du mois). Un seul déclencheur est nouveau : `onRsvpWritten` (`events/{eventId}/rsvps/{memberId}`), pour « Je viens ». Une erreur de l'arbre n'arrête jamais ce que faisait le déclencheur.
 
