@@ -247,8 +247,19 @@ fun HomeScreen(
         return
     }
     val month = YearMonth.from(ready.today).takeIf { onOpenMonth != null && isSlideshowTime(ready.today) }
-    val chips = homeChips(ready, actions, month, onOpenMonth, extras)
     val toDo = ready.todos.isNotEmpty() || joinMe?.hasShares == true || dailyNudge != null
+    // Four blocks at most, in this priority (DESIGN, 16/11): a fifth, « À découvrir », becomes the
+    // first chip, with the same name, and opens its card under the row.
+    val blocks = listOf(toDo, ready.week.isNotEmpty(), ready.showsPolls, goodNews != null).count { it }
+    val discoverBlock = discover?.takeIf { blocks < HOME_BLOCKS }
+    val discoverChip = discover?.takeIf { blocks >= HOME_BLOCKS }?.let { d ->
+        HomeExtra(
+            "discover",
+            chip = { selected, toggle -> HomeChip(stringResource(R.string.discover_title), onClick = toggle, selected = selected) },
+            card = { DiscoverCard(d) },
+        )
+    }
+    val chips = listOfNotNull(discoverChip) + homeChips(ready, actions, month, onOpenMonth, extras)
     if (!toDo && ready.week.isEmpty() && !ready.showsPolls && goodNews == null && discover == null && chips.isEmpty()) {
         EmptyState(
             icon = Icons.Outlined.CalendarMonth,
@@ -272,7 +283,7 @@ fun HomeScreen(
         if (ready.week.isNotEmpty()) card("week") { WeekCard(ready.week, ready.weekMore, ready.today, actions) }
         if (ready.showsPolls) card("polls") { PollsCard(ready, actions) }
         if (goodNews != null) card("goodNews") { goodNews() }
-        if (discover != null) card("discover") { DiscoverCard(discover) }
+        if (discoverBlock != null) card("discover") { DiscoverCard(discoverBlock) }
         if (chips.isNotEmpty()) {
             card("chips") {
                 FlowRow(
@@ -290,6 +301,9 @@ fun HomeScreen(
         if (opened != null) card("open-$open") { opened() }
     }
 }
+
+/** The blocks of the Accueil before the chips (DESIGN-11). */
+private const val HOME_BLOCKS = 4
 
 /** The chips of the Accueil, in their order: those fed by the home screen, then the modules' [extras]. */
 @Composable
@@ -481,14 +495,6 @@ private fun PollsCard(ready: HomeUiState.Ready, actions: HomeActions) {
                 onClick = { actions.onOpenPoll(item.poll.id) },
                 onClickLabel = stringResource(R.string.home_open_poll),
             ) { RowIcon(Icons.Outlined.HowToVote) }
-        }
-        if (ready.pollsToVote.isEmpty() && ready.voted.isEmpty()) {
-            Text(
-                stringResource(R.string.home_polls_empty),
-                style = MaterialTheme.typography.bodyLarge,
-                color = FamiliaClay.colors.onTintVariant(ClayTint.Plain),
-                modifier = Modifier.padding(vertical = 8.dp),
-            )
         }
         if (ready.canAskPoll) {
             Button(onClick = actions.onNewPoll, modifier = Modifier.padding(top = 8.dp).heightIn(min = 56.dp)) {

@@ -1301,7 +1301,6 @@
     <string name="home_open_event">ouvrir l\'événement</string>
     <string name="home_todo_vote">Sondage de %1$s · à toi de répondre</string>
     <string name="home_polls_title">Sondages</string>
-    <string name="home_polls_empty">Aucun sondage en cours. Demande l\'avis de la famille sur une date ou un repas.</string>
     <string name="home_polls_new">Nouveau sondage</string>
     <string name="home_polls_all">Tous les sondages</string>
     <string name="home_voted">Tu as voté</string>

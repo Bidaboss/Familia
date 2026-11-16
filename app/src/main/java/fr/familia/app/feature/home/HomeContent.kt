@@ -86,15 +86,15 @@ sealed interface HomeUiState {
         val canCreateTrip: Boolean = false,
         /**
          * The block « Sondages » (BUG-1, tranché par Kévin le 16/11): the polls that wait for my
-         * vote, then those where I voted. It shows while the module is on ([pollsOn]) and there is
-         * a poll, or I can ask one ([canAskPoll]).
+         * vote, then those where I voted. It shows only while the module is on ([pollsOn]) and
+         * there is a poll to show (DESIGN: never an empty block); [canAskPoll] adds « Nouveau sondage ».
          */
         val pollsToVote: List<HomeTodo.Vote> = emptyList(),
         val voted: List<HomeVoted> = emptyList(),
         val pollsOn: Boolean = false,
         val canAskPoll: Boolean = false,
     ) : HomeUiState {
-        val showsPolls: Boolean get() = pollsOn && (pollsToVote.isNotEmpty() || voted.isNotEmpty() || canAskPoll)
+        val showsPolls: Boolean get() = pollsOn && (pollsToVote.isNotEmpty() || voted.isNotEmpty())
         val isEmpty: Boolean get() = todos.isEmpty() && !showsPolls && week.isEmpty() && birthdays.isEmpty() && occasion == null && trips.isEmpty()
     }
 }

@@ -223,7 +223,7 @@ class HomeTest {
     }
 
     @Test
-    fun `the polls have their own block, shown with a poll or to an adult who can ask one`() {
+    fun `the polls have their own block, shown only with a poll to show`() {
         val now = Instant.parse("2026-11-16T10:00:00Z")
         val poll = Poll("p1", Poll.Kind.Choice, "Question", listOf("A", "B"), false, listOf(me.id), listOf(me.id), null, null, false, null, null, "adult2", "Adult2", null)
         val toVote = pollsToVote(me, listOf(poll), emptyMap(), now, today)
@@ -233,5 +233,8 @@ class HomeTest {
         assertTrue(withPoll.showsPolls)
         val off = homeState(me, family, today, emptyList(), emptyMap(), emptyList(), null, emptyList(), toVote, pollsOn = false)
         assertTrue(!off.showsPolls)
+        val none = homeState(me, family, today, emptyList(), emptyMap(), emptyList(), null, emptyList(), emptyList(), pollsOn = true)
+        assertTrue(none.canAskPoll)
+        assertTrue(!none.showsPolls)
     }
 }
