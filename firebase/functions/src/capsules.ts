@@ -44,7 +44,6 @@ async function isModuleOn(db: Firestore): Promise<boolean> {
 export async function openDueCapsules(db: Firestore, send: Sender, now: Date): Promise<string[]> {
   if (!(await isModuleOn(db))) return [];
   const today = parisDay(now);
-  // A single-field range: no composite index. Only the capsules not yet opened go on.
   // Only the sealed ones, by equality: no composite index, and the opened ones are not read again
   // at each run (relecture #104). The day is checked here.
   const sealed = await db.collection('capsules').where('openedFor', '==', []).get();
