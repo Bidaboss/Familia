@@ -4,13 +4,16 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import com.github.takahirom.roborazzi.captureRoboImage
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.model.FamilyTree
 import fr.familia.app.feature.tree.TreeHomeContent
+import fr.familia.app.feature.tree.TreeUiState
 import fr.familia.app.feature.tree.previewTreeState
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import java.time.YearMonth
 
 /** L'arbre de la famille (récit 35) in light, dark and at 200 % font size. Fictional data. */
 @RunWith(RobolectricTestRunner::class)
@@ -31,6 +34,12 @@ class TreeScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun treeFontScale200() = capture("arbre_police_200", content = growing)
+
+    /** The tallest tree, in summer: both rows of tufts. */
+    @Test
+    fun treeTallSummer() = capture("arbre_grand_ete") {
+        Surface { TreeHomeContent(TreeUiState(FamilyTree(1000), challenge = null, month = YearMonth.of(2027, 7))) }
+    }
 
     @Test
     fun treeBloomedLight() = capture("arbre_fleuri_clair", content = bloomed)
