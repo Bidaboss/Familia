@@ -453,3 +453,72 @@ describe('reservations and joint gifts (récit 9)', () => {
     await assertFails(setDoc(doc(as(env, ADULT), 'giftLists/own1/claims/mine/shares/adult1'), newShare(ADULT)));
   });
 });
+
+// Récit 9 ter: one list of wishes per person, and « Idées de la famille » (ideas-{member}), which
+// the whole family reads but the person, never revealed to them, « Voir comme » included.
+describe('the ideas of the family (récit 9 ter)', () => {
+  function newIdeas(by, beneficiary) {
+    return newList(by, {
+      kind: 'ideas', title: 'Idées de la famille', occasion: null, date: null,
+      beneficiaryId: beneficiary, viewerIds: [],
+    });
+  }
+
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, 'giftLists/ideas-adult1'), storedList({
+        kind: 'ideas', title: 'Idées de la famille', occasion: null, date: null, viewerIds: [],
+        creatorId: 'adult2', creatorName: 'adult2',
+      }));
+      await setDoc(doc(db, 'giftLists/ideas-adult1/items/i1'), storedItem({
+        authorId: 'adult2', authorName: 'adult2', visibleToBeneficiary: false,
+      }));
+      await setDoc(doc(db, 'giftLists/ideas-adult1/claims/i1'), {
+        type: 'solo', holderId: 'adult3', holderName: 'adult3', createdAt: OLD,
+      });
+    });
+  });
+
+  test('anyone but the person creates them, at their one id', async () => {
+    await assertSucceeds(setDoc(doc(as(env, OTHER_ADULT), 'giftLists/ideas-adult3'), newIdeas(OTHER_ADULT, 'adult3')));
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'giftLists/ideas-adult3x'), newIdeas(NEIGHBOUR, 'adult2')));
+    await assertFails(setDoc(doc(as(env, ADULT), 'giftLists/ideas-adult1b'), newIdeas(ADULT, 'adult1')));
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'giftLists/ideas-adult2'), { ...newIdeas(NEIGHBOUR, 'adult2'), viewerIds: ['adult3'] }));
+  });
+
+  test('the family reads them and reserves in them; the person never reads anything of them', async () => {
+    await assertSucceeds(getDoc(doc(as(env, OTHER_ADULT), 'giftLists/ideas-adult1')));
+    await assertSucceeds(getDoc(doc(as(env, KID), 'giftLists/ideas-adult1/items/i1')));
+    await assertSucceeds(getDoc(doc(as(env, OTHER_ADULT), 'giftLists/ideas-adult1/claims/i1')));
+    await assertFails(getDoc(doc(as(env, ADULT), 'giftLists/ideas-adult1')));
+    await assertFails(getDoc(doc(as(env, ADULT), 'giftLists/ideas-adult1/items/i1')));
+    await assertFails(getDoc(doc(as(env, ADULT), 'giftLists/ideas-adult1/claims/i1')));
+    await assertFails(getDoc(doc(as(env, STRANGER), 'giftLists/ideas-adult1')));
+  });
+
+  test('an idea is never visible to the person, and the person adds none', async () => {
+    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'giftLists/ideas-adult1/items/n1'), newItem(NEIGHBOUR)));
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'giftLists/ideas-adult1/items/n2'), newItem(NEIGHBOUR, { visibleToBeneficiary: true })));
+    await assertFails(setDoc(doc(as(env, ADULT), 'giftLists/ideas-adult1/items/n3'), newItem(ADULT)));
+    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'giftLists/ideas-adult1/claims/n1'), newClaim(NEIGHBOUR)));
+    await assertSucceeds(updateDoc(doc(as(env, NEIGHBOUR), 'giftLists/ideas-adult1/claims/n1'), { occasion: 'christmas' }));
+  });
+
+  test('they are permanent: nobody deletes them, and their shape stays that of a permanent list', async () => {
+    await assertFails(deleteDoc(doc(as(env, OTHER_ADULT), 'giftLists/ideas-adult1')));
+    await assertFails(updateDoc(doc(as(env, OTHER_ADULT), 'giftLists/ideas-adult1'), { occasion: 'christmas', updatedAt: serverTimestamp() }));
+  });
+
+  test('the query of the tab: the ideas of everyone but oneself', async () => {
+    const db = as(env, OTHER_ADULT);
+    await assertSucceeds(getDocs(query(collection(db, 'giftLists'), where('kind', '==', 'ideas'), where('beneficiaryId', '!=', 'adult2'))));
+    await assertFails(getDocs(query(collection(db, 'giftLists'), where('kind', '==', 'ideas'))));
+  });
+
+  test('a wish says the occasion it is for, or none', async () => {
+    await assertSucceeds(setDoc(doc(as(env, ADULT), 'giftLists/wishes-adult1/items/o1'), newItem(ADULT, { visibleToBeneficiary: true, occasion: 'christmas' })));
+    await assertSucceeds(setDoc(doc(as(env, ADULT), 'giftLists/wishes-adult1/items/o2'), newItem(ADULT, { visibleToBeneficiary: true, occasion: null })));
+    await assertFails(setDoc(doc(as(env, ADULT), 'giftLists/wishes-adult1/items/o3'), newItem(ADULT, { visibleToBeneficiary: true, occasion: 'easter' })));
+  });
+});

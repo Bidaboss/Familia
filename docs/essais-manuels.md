@@ -419,3 +419,12 @@ Il faut une version publiée avec un fichier dans `docs/whats-new`, et un télé
 6. Avec un compte enfant : **Attendu :** le texte pour enfant, et aucune carte réservée aux adultes.
 7. En Voir comme : **Attendu :** aucune feuille.
 8. Aide, ou menu de l'avatar, puis « Quoi de neuf ? » : **Attendu :** toutes les versions, la plus récente en haut.
+
+## Ma photo en haut à droite (DESIGN-12)
+1. Sur chacun des 5 onglets : **Attendu :** ta photo (ou tes initiales) à droite de la barre du haut, après le « ? ». TalkBack lit « Mon compte et réglages ».
+2. Touche-la. **Attendu :** une feuille s'ouvre avec, dans l'ordre : Mon profil, Apparence, Notifications, Aide, Vérifier les mises à jour, « Une idée ? Un souci ? », Partager Familia. Une ligne absente veut dire que son module est éteint.
+3. Avec le compte de l'admin principal : **Attendu :** « Administration » en dernier, après un trait. Avec un autre compte, pas de ligne Administration.
+4. Avec un parent d'un enfant qui a l'appli (pas l'admin) : **Attendu :** « Temps de mes enfants » dans la feuille.
+5. Touche une ligne. **Attendu :** la feuille se ferme et l'écran s'ouvre.
+6. Onglet Famille : **Attendu :** « Nos trésors » puis les membres, et plus aucun réglage en bas.
+7. En « Voir comme » : **Attendu :** ni « Partager Familia » ni « Une idée ? Un souci ? » dans la feuille.

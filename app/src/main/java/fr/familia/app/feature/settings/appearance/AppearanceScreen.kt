@@ -56,7 +56,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import fr.familia.app.core.theme.ClayTint
 
 /**
- * Famille › Réglages › Apparence (DESIGN-7): the 9 themes, each shown in its own colors and fonts.
+ * Ma photo › Apparence (DESIGN-7): the 9 themes, each shown in its own colors and fonts.
  * The choice applies at once and stays on this phone.
  */
 @OptIn(ExperimentalMaterial3Api::class)

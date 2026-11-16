@@ -11,6 +11,7 @@ import fr.familia.app.core.model.GiftClaim
 import fr.familia.app.core.model.GiftItem
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
+import fr.familia.app.core.model.isPermanent
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftShare
 import fr.familia.app.core.model.Member
@@ -190,7 +191,7 @@ class GiftListViewModel(
             ItemRow(
                 item = item,
                 canEdit = !list.revealed && item.authorId == me.id && (item.visibleToBeneficiary || claim == null),
-                isSurpriseIdea = !item.visibleToBeneficiary && list.kind != GiftListKind.Surprise,
+                isSurpriseIdea = !item.visibleToBeneficiary && list.kind != GiftListKind.Surprise && list.kind != GiftListKind.Ideas,
                 claim = claim?.let {
                     ClaimView(
                         type = it.type,
@@ -205,7 +206,7 @@ class GiftListViewModel(
                         } else {
                             maxOf(it.sharesTotal, parts.sumOf { share -> share.amount })
                         },
-                        occasion = if (list.kind == GiftListKind.Wishes) it.occasion ?: defaultWishOccasion(beneficiary.birthDate, it.createdOn ?: day) else null,
+                        occasion = if (list.kind.isPermanent) it.occasion ?: defaultWishOccasion(beneficiary.birthDate, it.createdOn ?: day) else null,
                     )
                 },
             )
