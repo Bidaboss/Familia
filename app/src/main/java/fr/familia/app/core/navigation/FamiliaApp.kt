@@ -53,6 +53,8 @@ import fr.familia.app.feature.capsules.CapsuleEditDestination
 import fr.familia.app.feature.capsules.CapsuleEditRoute
 import fr.familia.app.feature.capsules.CapsulesDestination
 import fr.familia.app.feature.capsules.CapsulesRoute
+import fr.familia.app.feature.genealogy.GenealogyDestination
+import fr.familia.app.feature.genealogy.GenealogyRoute
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpRoute
 import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
@@ -688,6 +690,14 @@ fun FamiliaApp(
                             onAdd = { navController.navigate(CapsuleEditDestination) },
                         )
                     }
+                    composable<GenealogyDestination> {
+                        GenealogyRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onBack = { navController.popBackStack() },
+                            onOpenProfile = if (souvenirsOn) ({ id -> navController.navigate(MemberProfileDestination(id)) }) else null,
+                        )
+                    }
                     composable<CapsuleEditDestination> {
                         CapsuleEditRoute(
                             container = container,
@@ -965,6 +975,7 @@ fun FamiliaApp(
                             onOpenChildrenUsage = if (features.isOn(Feature.Usage)) ({ navController.navigate(UsageDestination) }) else null,
                             onOpenRecipes = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipesDestination()) }) else null,
                             onOpenCapsules = if (capsulesOn) ({ navController.navigate(CapsulesDestination) }) else null,
+                            onOpenGenealogy = if (features.isOn(Feature.Genealogy)) ({ navController.navigate(GenealogyDestination) }) else null,
                             onOpenWishes = if (features.isOn(Feature.Gifts)) {
                                 { id -> navController.navigate(GiftListDestination(wishesListId(id))) }
                             } else {

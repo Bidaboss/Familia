@@ -1,5 +1,11 @@
 package fr.familia.app.screenshots
 
+import fr.familia.app.core.model.GenealogyTree
+import fr.familia.app.core.model.Kin
+import fr.familia.app.core.model.KinLink
+import fr.familia.app.feature.genealogy.GenealogyScreen
+import fr.familia.app.feature.genealogy.GenealogyUiState
+import fr.familia.app.feature.genealogy.PersonCard
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -465,6 +471,38 @@ class ScreenshotTest {
     @Config(fontScale = 2f)
     fun administrationFontScale200() = capture("administration_police_200") {
         Surface { AdministrationScreen(previewAdministrationState(), {}, {}, { _, _ -> }, {}, {}, {}) }
+    }
+
+    private fun previewGenealogy(): GenealogyUiState.Ready {
+        fun m(id: String, name: String) = Member(id, name, null, null, "h1", MemberProfile.Adult, false, emptyList(), null)
+        val jeanne = Kin("jeanne", "Jeanne", "Martin", living = false, born = "1921", died = "1999", note = "Elle faisait les meilleures crêpes.", householdId = "h1")
+        val tree = GenealogyTree(
+            listOf(m("camille", "Camille"), m("ines", "Inès"), m("noe", "Noé"), m("lou", "Lou")),
+            listOf(jeanne),
+            listOf(
+                KinLink.parent("jeanne", "camille"),
+                KinLink.partners("camille", "ines"),
+                KinLink.parent("camille", "noe"),
+                KinLink.parent("ines", "noe"),
+                KinLink.parent("camille", "lou"),
+            ),
+        )
+        return GenealogyUiState.Ready(tree, mapOf("jeanne" to "Arrière-grand-mère", "ines" to "Bonus-maman"), "noe")
+    }
+
+    @Test
+    fun genealogyLight() = capture("arbre_genealogique_clair") { GenealogyScreen(previewGenealogy(), onBack = {}) }
+
+    @Test
+    @Config(qualifiers = "+night")
+    fun genealogyPersonDark() = capture("arbre_fiche_sombre", darkTheme = true) {
+        val state = previewGenealogy()
+        Surface { PersonCard(state.tree.people.getValue("jeanne"), state.tree, state.words, onOpenProfile = null, onClose = {}) }
+    }
+
+    @Test
+    fun genealogyEmpty() = capture("arbre_vide") {
+        GenealogyScreen(GenealogyUiState.Ready(GenealogyTree(emptyList(), emptyList(), emptyList()), emptyMap(), "noe"), onBack = {})
     }
 
     @Test

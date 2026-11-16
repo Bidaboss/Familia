@@ -32,8 +32,9 @@ class FirestoreGenealogyRepository(private val db: FirebaseFirestore) : Genealog
             if (error != null) {
                 close(error)
             } else {
+                // The rules cannot check each value of the map: only strings are kept, at most 30 characters.
                 val words = (snapshot?.get("words") as? Map<*, *>).orEmpty()
-                trySend(words.entries.mapNotNull { (k, v) -> (k as? String)?.let { key -> (v as? String)?.let { key to it } } }.toMap())
+                trySend(words.entries.mapNotNull { (k, v) -> (k as? String)?.let { key -> (v as? String)?.let { key to it.take(30) } } }.toMap())
             }
         }
         awaitClose { registration.remove() }

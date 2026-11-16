@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.HourglassEmpty
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
@@ -94,6 +95,7 @@ fun MembersScreen(
     onOpenRecipes: (() -> Unit)? = null,
     /** « Capsules temporelles », while their module is on (récit 39). */
     onOpenCapsules: (() -> Unit)? = null,
+    onOpenGenealogy: (() -> Unit)? = null,
     /** The pencil shows on the households of [MembersUiState.Success.renamableHouseholdIds]. */
     onRenameHousehold: ((Household, String) -> Unit)? = null,
     renameFailed: Boolean = false,
@@ -181,6 +183,9 @@ fun MembersScreen(
                 }
                 if (onOpenCapsules != null) {
                     item(key = "capsules") { SettingsRow(Icons.Outlined.HourglassEmpty, R.string.capsules_title, onOpenCapsules) }
+                }
+                if (onOpenGenealogy != null) {
+                    item(key = "genealogy") { SettingsRow(Icons.Outlined.AccountTree, R.string.genealogy_title, onOpenGenealogy) }
                 }
                 item(key = "settings-title") {
                     Column {
