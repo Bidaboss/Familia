@@ -5,6 +5,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.Source
+import fr.familia.app.core.whatsnew.WhatsNew
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -44,5 +45,6 @@ class FirestoreAppConfigRepository(private val db: FirebaseFirestore) : AppConfi
         features = (snapshot?.get("features") as? Map<*, *>).orEmpty()
             .mapNotNull { (k, v) -> (k as? String)?.let { key -> (v as? Boolean)?.let { key to it } } }
             .toMap(),
+        whatsNew = WhatsNew.parse(snapshot?.get("whatsNew")),
     )
 }

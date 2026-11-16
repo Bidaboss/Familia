@@ -56,6 +56,8 @@ interface AppContainer {
     val weeklyQuestionRepository: WeeklyQuestionRepository?
     val souvenirRepository: SouvenirRepository?
     val birthdayCardRepository: BirthdayCardRepository?
+    /** « Pensez à moi » (récit 43). */
+    val momentRepository: MomentRepository? get() = null
     val treeRepository: TreeRepository?
     val photoStorage: PhotoStorage?
     val photoUploader: PhotoUploader?
@@ -136,6 +138,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val weeklyQuestionRepository: WeeklyQuestionRepository? by lazy { firestore?.let { FirestoreWeeklyQuestionRepository(it) } }
     override val souvenirRepository: SouvenirRepository? by lazy { firestore?.let { FirestoreSouvenirRepository(it) } }
     override val birthdayCardRepository: BirthdayCardRepository? by lazy { firestore?.let { FirestoreBirthdayCardRepository(it) } }
+    override val momentRepository: MomentRepository? by lazy { firestore?.let { FirestoreMomentRepository(it) } }
     override val treeRepository: TreeRepository? by lazy { firestore?.let { FirestoreTreeRepository(it) } }
 
     /** Photos of the good news and the trips, in Cloud Storage (firebase/storage.rules). */

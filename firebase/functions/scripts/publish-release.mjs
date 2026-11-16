@@ -4,7 +4,8 @@
 // 2. replaces the APK of the Drive folder, so the download link never changes;
 // 3. then announces the version in config/app, so the "Nouvelle version" banner only shows once
 //    the file is there, with the Drive file id, size and SHA-256 the app checks when it downloads
-//    the APK itself (PRD, récit 6 quater).
+//    the APK itself (PRD, récit 6 quater), and the texts of « Quoi de neuf ? » (docs/whats-new,
+//    récit 6 septies): a new file takes this version, the others keep theirs.
 // The Drive folder must be shared with the service account as editor, and hold exactly one APK,
 // uploaded once by the main admin. A service account has no Drive space of its own: it can replace the
 // content of a file someone shared, but not create one. No dependency besides firebase-admin.
@@ -12,6 +13,7 @@ import { createHash, createSign } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { mergeWhatsNew, readWhatsNew } from './whats-new.mjs';
 
 const apkPath = process.env.APK_PATH;
 const versionCode = Number(process.env.VERSION_CODE);
@@ -29,9 +31,18 @@ if (!Number.isInteger(versionCode) || versionCode < 1) fail('Le numéro de versi
 if (!versionName) fail("Le nom de version est introuvable dans l'APK.");
 if (!/^[A-Za-z0-9_-]{10,}$/.test(folderId)) fail("L'identifiant du dossier Drive est introuvable (secret GitHub FAMILIA_DOWNLOAD_URL).");
 
+// Read before anything changes: a bad file stops here, with every problem listed.
+let whatsNewFiles;
+try {
+  whatsNewFiles = readWhatsNew(new URL('../../../docs/whats-new/', import.meta.url));
+} catch (error) {
+  fail(`Les textes de « Quoi de neuf ? » (docs/whats-new) ont un problème :\n${error.message}`);
+}
+
 initializeApp({ projectId });
 const configApp = getFirestore().collection('config').doc('app');
-const published = (await configApp.get()).get('latestVersionCode') ?? 0;
+const current = await configApp.get();
+const published = current.get('latestVersionCode') ?? 0;
 if (versionCode <= published) {
   fail(`La version ${published} est déjà annoncée et rien de nouveau n'a été fusionné depuis : il n'y a rien à publier.`);
 }
@@ -123,5 +134,6 @@ await configApp.set({
   apkFileId: files[0].id,
   apkSize: apk.length,
   apkSha256: createHash('sha256').update(apk).digest('hex'),
+  whatsNew: mergeWhatsNew(current.get('whatsNew'), whatsNewFiles, versionCode, versionName),
 }, { merge: true });
 console.log(`Version ${versionName} (${versionCode}) annoncée dans config/app.`);

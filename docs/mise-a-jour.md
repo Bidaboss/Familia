@@ -40,6 +40,7 @@ L'API Google Drive s'active toute seule au premier lancement. Ce lancement atten
    - il fabrique et signe l'APK ;
    - il remplace l'APK du dossier Drive, sous le nom `familia-0.2.<numéro>.apk` ; le lien ne change pas ;
    - il annonce la version dans `config/app`, avec l'identifiant, la taille et l'empreinte de l'APK.
+   - il envoie aussi les textes de « Quoi de neuf ? » (`docs/whats-new`, voir son README) dans `config/app.whatsNew`. Si un de ces textes a un problème, il s'arrête avant de toucher au Drive.
 
    **Attendu :** à la prochaine ouverture de Familia, chacun voit « Nouvelle version disponible ». « Mettre à jour » télécharge l'APK (une barre montre l'avancement), puis Android propose de l'installer par-dessus l'appli. Les données ne bougent pas, puisqu'elles sont dans Firebase.
 

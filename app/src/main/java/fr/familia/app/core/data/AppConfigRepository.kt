@@ -1,5 +1,6 @@
 package fr.familia.app.core.data
 
+import fr.familia.app.core.whatsnew.WhatsNewRelease
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -16,6 +17,8 @@ data class AppConfig(
     val apkSha256: String? = null,
     /** Modules switched on for the family (config/app.features); the others are in test. */
     val features: Map<String, Boolean> = emptyMap(),
+    /** « Quoi de neuf ? » of every version (config/app.whatsNew, written by the workflow). */
+    val whatsNew: List<WhatsNewRelease> = emptyList(),
 )
 
 interface AppConfigRepository {
