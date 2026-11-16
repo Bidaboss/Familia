@@ -90,6 +90,8 @@ data class GiftClaim(
     val sharesCount: Int = 0,
     /** « Mes envies » only: the occasion its holder chose, the next one of this kind (PRD rév. 186). */
     val occasion: GiftOccasion? = null,
+    /** The day it was made, in Paris: without a choice, its occasion counts from that day, as on the server. */
+    val createdOn: java.time.LocalDate? = null,
 )
 
 /**

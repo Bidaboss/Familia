@@ -188,7 +188,7 @@ class GiftListViewModel(
                         } else {
                             maxOf(it.sharesTotal, parts.sumOf { share -> share.amount })
                         },
-                        occasion = if (list.kind == GiftListKind.Wishes) it.occasion ?: defaultWishOccasion(beneficiary.birthDate, day) else null,
+                        occasion = if (list.kind == GiftListKind.Wishes) it.occasion ?: defaultWishOccasion(beneficiary.birthDate, it.createdOn ?: day) else null,
                     )
                 },
             )

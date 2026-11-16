@@ -97,7 +97,8 @@ data class GiftListActions(
     val onTake: (itemId: String) -> Unit = {},
     val onOpenJointGift: (itemId: String) -> Unit = {},
     val onRelease: (itemId: String) -> Unit = {},
-    val onSetClaimOccasion: (itemId: String, occasion: GiftOccasion) -> Unit = { _, _ -> },
+    /** The occasion of a reservation of « Mes envies »; null while the reveal is off (wishesReveal). */
+    val onSetClaimOccasion: ((itemId: String, occasion: GiftOccasion) -> Unit)? = null,
     val onSetShare: (itemId: String, amount: Double) -> Unit = { _, _ -> },
     val onLeaveShare: (itemId: String) -> Unit = {},
     val onMarkReceived: (itemId: String, memberId: String, received: Boolean) -> Unit = { _, _, _ -> },
@@ -320,7 +321,7 @@ internal fun ItemSheetContent(row: ItemRow, state: GiftListUiState.Success, acti
         ItemDetails(row, ClayTint.Plain)
         item.note?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
         row.claim?.let { ClaimStatus(it, item, ClayTint.Plain) }
-        row.claim?.let { claim -> ClaimOccasion(claim) { actions.onSetClaimOccasion(item.id, it) } }
+        actions.onSetClaimOccasion?.let { set -> row.claim?.let { claim -> ClaimOccasion(claim) { set(item.id, it) } } }
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
