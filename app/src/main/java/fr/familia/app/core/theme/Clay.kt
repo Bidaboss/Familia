@@ -3,6 +3,7 @@ package fr.familia.app.core.theme
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 
 /**
  * Who a card is for (design principles, « Style Argile »). The tint always doubles a « Pour … »
@@ -33,7 +34,38 @@ data class ClayColors(
      * light text keeps its contrast.
      */
     val tintAsStripe: Boolean,
+    /**
+     * In the light themes (DESIGN-11) every card is [card], and the tint becomes a 10 dp dot
+     * before its title (ClayCardTitle). Dark themes and Contraste fort keep their strong tints.
+     */
+    val tintAsDot: Boolean = false,
+    /** The dots of the Classique theme, chosen by [DESIGN]; null deepens the tint. */
+    val dotHousehold: Color? = null,
+    val dotFamily: Color? = null,
+    val dotBirthday: Color? = null,
 ) {
+    /** The background of a card of [tint]. */
+    fun cardBackground(tint: ClayTint): Color = if (tintAsStripe || tintAsDot) card else tint(tint)
+
+    /** The color of the dot or stripe that marks a [tint] card. */
+    fun mark(tint: ClayTint): Color = when (tint) {
+        ClayTint.Plain -> Color.Transparent
+        // On a white card the pale tints would not show: the dot takes their strong color.
+        else -> if (tintAsDot) strong(tint) else tint(tint)
+    }
+
+    // A pale tint on a white card would not show: the dot is the tint, deepened toward the text.
+    private fun strong(tint: ClayTint): Color = when (tint) {
+        ClayTint.Household -> dotHousehold ?: lerp(household, onPlainVariant, DOT_DEPTH)
+        ClayTint.Family -> dotFamily ?: lerp(family, onPlainVariant, DOT_DEPTH)
+        ClayTint.Birthday -> dotBirthday ?: lerp(birthday, onPlainVariant, DOT_DEPTH)
+        ClayTint.Plain -> Color.Transparent
+    }
+
+    private companion object {
+        const val DOT_DEPTH = 0.45f
+    }
+
     fun tint(tint: ClayTint): Color = when (tint) {
         ClayTint.Plain -> card
         ClayTint.Household -> household
@@ -62,6 +94,10 @@ internal val LightClayColors = ClayColors(
     highlight = Color(0x99FFFFFF),
     shade = Color(0x0F5A2A10),
     tintAsStripe = false,
+    tintAsDot = true,
+    dotHousehold = Color(0xFF4A78C8),
+    dotFamily = Color(0xFFC99A1E),
+    dotBirthday = Color(0xFFD8693A),
 )
 
 // Dark: text #EBDCD3 on cards #2B201A (11.9:1).
