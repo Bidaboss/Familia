@@ -16,6 +16,8 @@ import fr.familia.app.core.photo.PhotoStorage
 import fr.familia.app.core.photo.PhotoUploader
 import fr.familia.app.core.photo.StoragePhotoUploader
 import fr.familia.app.core.usage.UsageTracker
+import fr.familia.app.core.video.Media3PhotoFilmMaker
+import fr.familia.app.core.video.PhotoFilmMaker
 import fr.familia.app.feature.auth.AuthRepository
 import fr.familia.app.feature.auth.FirebaseAuthRepository
 import fr.familia.app.feature.auth.GoogleCredentialProvider
@@ -69,6 +71,9 @@ class AppContainer(context: Context) {
 
     /** The photo records of the albums: the trips, and later the events. */
     val albumPhotoRepository: AlbumPhotoRepository? by lazy { firestore?.let { FirestoreAlbumPhotoRepository(it) } }
+
+    /** The films of the albums (récit 16), made on the phone with Media3. */
+    val filmMaker: PhotoFilmMaker by lazy { Media3PhotoFilmMaker(appContext) }
 
     val appConfigRepository: AppConfigRepository? by lazy { firestore?.let { FirestoreAppConfigRepository(it) } }
 
