@@ -4,17 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.ExpenseRepository
 import fr.familia.app.core.data.MemberRepository
-import fr.familia.app.core.data.TripRepository
 import fr.familia.app.core.model.Expense
 import fr.familia.app.core.model.ExpenseBook
 import fr.familia.app.core.model.ExpenseContainer
-import fr.familia.app.core.model.ExpenseContainerType
 import fr.familia.app.core.model.ExpenseSettlement
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.Transfer
-import fr.familia.app.core.model.Trip
 import fr.familia.app.core.ui.sendWrite
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -85,22 +82,19 @@ sealed interface ExpensesUiState {
 }
 
 /**
- * The accounts of a trip (PRD rév. 193, récit 16 bis): the balance of each household, « Qui
+ * The accounts of a trip (PRD rév. 193, récit 16 bis) or of an event (PRODUIT-57): the balance of each household, « Qui
  * rembourse qui » and the expenses. The first adult participant to open them opens the book,
  * with one share per adult and a half per child. Who received a transfer ticks « C'est
- * remboursé »; the creator of the trip changes the shares and closes the accounts.
+ * remboursé »; the creator of the trip (the author of the event) changes the shares and closes the accounts.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class ExpensesViewModel(
     private val expenses: ExpenseRepository?,
-    private val trips: TripRepository?,
+    private val source: ExpenseContextSource?,
     private val members: MemberRepository?,
     private val currentMemberId: String,
-    tripId: String,
     private val writeTimeoutMillis: Long = 4_000,
 ) : ViewModel() {
-
-    private val container = ExpenseContainer(ExpenseContainerType.Trip, tripId)
     private val attempt = MutableStateFlow(0)
     private var opening = false
     private val writeFailed = MutableStateFlow(false)
@@ -114,11 +108,12 @@ class ExpensesViewModel(
     private val base: Flow<ExpensesUiState> = attempt
         .flatMapLatest { n ->
             val repo = expenses
-            if (repo == null || trips == null || members == null) {
+            val src = source
+            if (repo == null || src == null || members == null) {
                 flowOf(ExpensesUiState.NotAllowed)
             } else {
-                combine(trips.observeTrip(container.id), members.observeFamily()) { trip, family -> trip to family }
-                    .flatMapLatest { (trip, family) -> withBook(repo, trip, family) }
+                combine(src.observe(), members.observeFamily()) { context, family -> context to family }
+                    .flatMapLatest { (context, family) -> withBook(repo, src.container, context, family) }
                     .onStart { if (n > 0) emit(ExpensesUiState.Loading) }
                     .catch { e ->
                         if (e is CancellationException) throw e
@@ -190,7 +185,7 @@ class ExpensesViewModel(
         }
     }
 
-    private fun withBook(repo: ExpenseRepository, trip: Trip?, family: Family): Flow<ExpensesUiState> {
+    private fun withBook(repo: ExpenseRepository, container: ExpenseContainer, trip: ExpenseContext?, family: Family): Flow<ExpensesUiState> {
         val me = family.members.firstOrNull { it.id == currentMemberId }
         if (trip == null || me == null || me.profile != MemberProfile.Adult || me.id !in trip.participantIds) {
             return flowOf(ExpensesUiState.NotAllowed)
@@ -198,7 +193,7 @@ class ExpensesViewModel(
         this.me = me
         return repo.observeBook(container).flatMapLatest { book ->
             if (book == null) {
-                open(repo, trip, family)
+                open(repo, container, trip, family)
                 flowOf(ExpensesUiState.Loading)
             } else {
                 combine(repo.observeExpenses(book.id), repo.observeSettlements(book.id)) { list, settled ->
@@ -209,7 +204,7 @@ class ExpensesViewModel(
     }
 
     /** Opens the book once, with the default shares of the participants. Offline, it waits in the queue. */
-    private fun open(repo: ExpenseRepository, trip: Trip, family: Family) {
+    private fun open(repo: ExpenseRepository, container: ExpenseContainer, trip: ExpenseContext, family: Family) {
         if (opening) return
         opening = true
         val participants = family.members.filter { it.id in trip.participantIds }
@@ -226,7 +221,7 @@ class ExpensesViewModel(
     }
 
     private fun state(
-        trip: Trip,
+        trip: ExpenseContext,
         family: Family,
         me: Member,
         book: ExpenseBook,

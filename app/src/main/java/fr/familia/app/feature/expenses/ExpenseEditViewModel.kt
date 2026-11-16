@@ -4,9 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.ExpenseRepository
 import fr.familia.app.core.data.MemberRepository
-import fr.familia.app.core.data.TripRepository
-import fr.familia.app.core.model.ExpenseContainer
-import fr.familia.app.core.model.ExpenseContainerType
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import kotlinx.coroutines.CancellationException
@@ -42,21 +39,21 @@ sealed interface ExpenseEditUiState {
 }
 
 /**
- * Add, change or delete an expense of a trip (récit 16 bis). Its author changes it, the creator of
- * the trip corrects any of them. Offline, the save shows at once and leaves with the network.
+ * Add, change or delete an expense of a trip (récit 16 bis) or of an event (PRODUIT-57). Its author
+ * changes it, the creator of the book (of the trip, or the author of the event) corrects any of them. Offline, the save shows at once and leaves with the network.
  */
 class ExpenseEditViewModel(
     private val expenses: ExpenseRepository?,
-    private val trips: TripRepository?,
+    private val source: ExpenseContextSource?,
     private val members: MemberRepository?,
     private val currentMemberId: String,
-    tripId: String,
     private val expenseId: String?,
     private val today: () -> LocalDate = LocalDate::now,
     private val writeTimeoutMillis: Long = 4_000,
 ) : ViewModel() {
 
-    private val container = ExpenseContainer(ExpenseContainerType.Trip, tripId)
+    /** Only used once [load] found the book, so never with a missing [source]. */
+    private val bookId = source?.container?.bookId.orEmpty()
     private val _uiState = MutableStateFlow<ExpenseEditUiState>(ExpenseEditUiState.Loading)
     val uiState: StateFlow<ExpenseEditUiState> = _uiState.asStateFlow()
 
@@ -73,8 +70,9 @@ class ExpenseEditViewModel(
         val repo = expenses ?: return unavailable()
         val loaded = try {
             val family = members?.observeFamily()?.first() ?: return unavailable()
-            val trip = trips?.getTrip(container.id) ?: return unavailable()
-            val book = repo.observeBook(container).first() ?: return unavailable()
+            val context = source ?: return unavailable()
+            val trip = context.get() ?: return unavailable()
+            val book = repo.observeBook(context.container).first() ?: return unavailable()
             val existing = expenseId?.let { id -> repo.observeExpenses(book.id).first().firstOrNull { it.id == id } }
             Triple(family, trip to book, existing)
         } catch (e: CancellationException) {
@@ -122,15 +120,15 @@ class ExpenseEditViewModel(
             _uiState.value = state.copy(errors = errors)
             return
         }
-        val expense = expenseOf(expenseId ?: repo.newExpenseId(container.bookId), state.form, payerHouseholds, member.id)
-        write(state) { repo.saveExpense(container.bookId, expense, member, isNew = expenseId == null) }
+        val expense = expenseOf(expenseId ?: repo.newExpenseId(bookId), state.form, payerHouseholds, member.id)
+        write(state) { repo.saveExpense(bookId, expense, member, isNew = expenseId == null) }
     }
 
     fun delete() {
         val state = _uiState.value as? ExpenseEditUiState.Editing ?: return
         val repo = expenses ?: return
         val id = expenseId ?: return
-        write(state) { repo.deleteExpense(container.bookId, id) }
+        write(state) { repo.deleteExpense(bookId, id) }
     }
 
     private fun write(state: ExpenseEditUiState.Editing, block: suspend () -> Unit) {

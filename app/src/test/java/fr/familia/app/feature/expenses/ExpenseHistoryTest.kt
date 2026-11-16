@@ -1,5 +1,7 @@
 package fr.familia.app.feature.expenses
 
+import fr.familia.app.core.model.ExpenseContainer
+import fr.familia.app.core.model.ExpenseContainerType
 import fr.familia.app.core.model.ExpenseHistoryAction
 import fr.familia.app.core.model.ExpenseHistoryEntry
 import fr.familia.app.testing.MainDispatcherRule
@@ -36,7 +38,7 @@ class ExpenseHistoryTest {
                 ExpenseHistoryEntry("h2", ExpenseHistoryAction.Edited, "Sacha", "Courses du marché", 8_450, listOf("amountCents", "title"), Instant.parse("2027-07-12T17:05:00Z")),
             ),
         )
-        val vm = ExpenseHistoryViewModel(repo, "t1", "e1", paris)
+        val vm = ExpenseHistoryViewModel(repo, ExpenseContainer(ExpenseContainerType.Trip, "t1"), "e1", paris)
         val state = vm.uiState.first { it is ExpenseHistoryUiState.Success } as ExpenseHistoryUiState.Success
         assertEquals("Courses du marché", state.title)
         assertEquals(listOf("h2", "h1"), state.rows.map { it.id })

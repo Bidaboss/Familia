@@ -43,7 +43,7 @@ class ExpensesViewModelTest {
     @Test
     fun `the first adult participant opens the book with one share per adult and a half per child`() = runTest {
         val repo = FakeExpenses()
-        val vm = ExpensesViewModel(repo, trips, FakeMembers(), "adult2", "t1")
+        val vm = ExpensesViewModel(repo, TripExpenseContext(trips, "t1"), FakeMembers(), "adult2")
         val state = vm.uiState.first { it is ExpensesUiState.Success } as ExpensesUiState.Success
         assertEquals(mapOf("h1" to 1.5, "h2" to 1.0), repo.opened.single().second)
         assertEquals("adult1", repo.opened.single().first)
@@ -58,7 +58,7 @@ class ExpensesViewModelTest {
             book = ExpenseBook("trip_t1", ExpenseContainer(fr.familia.app.core.model.ExpenseContainerType.Trip, "t1"), "adult1", mapOf("h1" to 1.5, "h2" to 1.0)),
             expenses = listOf(expense("a", 10_000, "adult1", "h1"), expense("b", 2_500, "adult2", "h2")),
         )
-        val vm = ExpensesViewModel(repo, trips, FakeMembers(), "adult2", "t1")
+        val vm = ExpensesViewModel(repo, TripExpenseContext(trips, "t1"), FakeMembers(), "adult2")
         val state = vm.uiState.first { it is ExpensesUiState.Success } as ExpensesUiState.Success
         assertEquals(12_500L, state.totalCents)
         // 125 € for 2,5 shares: h1 owes 75 €, h2 owes 50 €. h1 paid 100 €, h2 paid 25 €.
@@ -77,14 +77,14 @@ class ExpensesViewModelTest {
     @Test
     fun `the household that receives ticks « C'est remboursé », and only who ticked it takes it back`() = runTest {
         val repo = FakeExpenses(book(), listOf(expense("a", 10_000, "adult1", "h1"), expense("b", 2_500, "adult2", "h2")))
-        val payer = ExpensesViewModel(repo, trips, FakeMembers(), "adult2", "t1")
+        val payer = ExpensesViewModel(repo, TripExpenseContext(trips, "t1"), FakeMembers(), "adult2")
         backgroundScope.launch { payer.uiState.collect {} }
         val owed = payer.uiState.first { it is ExpensesUiState.Success } as ExpensesUiState.Success
         // adult2 pays back: only the household that receives the money may tick it.
         payer.confirm(owed.transfers.single())
         assertTrue(repo.settlementList.isEmpty())
 
-        val receiver = ExpensesViewModel(repo, trips, FakeMembers(), "adult1", "t1")
+        val receiver = ExpensesViewModel(repo, TripExpenseContext(trips, "t1"), FakeMembers(), "adult1")
         backgroundScope.launch { receiver.uiState.collect {} }
         val toTick = receiver.uiState.first { it is ExpensesUiState.Success } as ExpensesUiState.Success
         assertTrue(toTick.transfers.single().canConfirm)
@@ -106,14 +106,14 @@ class ExpensesViewModelTest {
     @Test
     fun `only the creator changes the shares, by halves from 0,5 to 20, and closes the accounts`() = runTest {
         val repo = FakeExpenses(book(), listOf(expense("a", 10_000, "adult1", "h1", author = "adult2")))
-        val other = ExpensesViewModel(repo, trips, FakeMembers(), "adult2", "t1")
+        val other = ExpensesViewModel(repo, TripExpenseContext(trips, "t1"), FakeMembers(), "adult2")
         backgroundScope.launch { other.uiState.collect {} }
         other.uiState.first { it is ExpensesUiState.Success }
         assertFalse(other.saveShares(mapOf("h1" to "1", "h2" to "1")))
         other.setClosed(true)
         assertFalse(repo.bookValue!!.closed)
 
-        val creator = ExpensesViewModel(repo, trips, FakeMembers(), "adult1", "t1")
+        val creator = ExpensesViewModel(repo, TripExpenseContext(trips, "t1"), FakeMembers(), "adult1")
         backgroundScope.launch { creator.uiState.collect {} }
         creator.uiState.first { it is ExpensesUiState.Success }
         assertFalse(creator.saveShares(mapOf("h1" to "1,3", "h2" to "1")))
@@ -133,7 +133,7 @@ class ExpensesViewModelTest {
     @Test
     fun `a refused change says so once`() = runTest {
         val repo = FakeExpenses(book(), listOf(expense("a", 10_000, "adult1", "h1"))).apply { refuse = true }
-        val creator = ExpensesViewModel(repo, trips, FakeMembers(), "adult1", "t1")
+        val creator = ExpensesViewModel(repo, TripExpenseContext(trips, "t1"), FakeMembers(), "adult1")
         backgroundScope.launch { creator.uiState.collect {} }
         creator.uiState.first { it is ExpensesUiState.Success }
         creator.setClosed(true)
@@ -145,7 +145,7 @@ class ExpensesViewModelTest {
     @Test
     fun `a follower who does not go, or a child, never sees the accounts`() = runTest {
         for (who in listOf("admin1", "kid1")) {
-            val vm = ExpensesViewModel(FakeExpenses(), trips, FakeMembers(), who, "t1")
+            val vm = ExpensesViewModel(FakeExpenses(), TripExpenseContext(trips, "t1"), FakeMembers(), who)
             assertEquals(ExpensesUiState.NotAllowed, vm.uiState.first { it !is ExpensesUiState.Loading })
         }
     }
