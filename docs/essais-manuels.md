@@ -246,3 +246,13 @@ Pas d'interrupteur : le bouton est là pour tous les adultes, dans la version fa
 4. Avec l'admin principal, ouvre **Administration** et touche **Partager Familia**. **Attendu :** le même message.
 5. Avec un compte enfant, ouvre l'onglet Famille. **Attendu :** pas de bouton Partager Familia.
 6. En mode **Voir comme** un adulte. **Attendu :** pas de bouton Partager Familia (rien ne sort de l'appli dans ce mode).
+
+## La semaine de la famille (récit 36)
+
+Avec le module « Récap du dimanche » allumé, et deux comptes : un qui suit un voyage en cours, un autre décoché de ce voyage.
+
+1. Un dimanche après 18 h, regarde les notifications. **Attendu :** une seule « La semaine de la famille », discrète, avec par exemple « 3 photos, 1 anniversaire à venir, défi à 40 %, 1 voyage en cours. »
+2. Avec le compte décoché du voyage, lis la même notification. **Attendu :** elle ne parle pas de ce voyage.
+3. Touche la notification. **Attendu :** l'écran « La semaine de la famille » s'ouvre, avec au plus 3 photos, les anniversaires des 14 prochains jours, la jauge du défi et les voyages en cours. Aucun nombre de réactions, aucun nom sous les photos.
+4. Touche une photo, puis reviens, puis touche un voyage. **Attendu :** la Bonne nouvelle, puis le voyage, s'ouvrent.
+5. Réglages > Notifications : coupe « La semaine de la famille ». **Attendu :** le dimanche suivant, plus de notification pour ce compte.

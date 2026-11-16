@@ -122,7 +122,7 @@ private fun HostTurn(month: YearMonth, onPrepare: (YearMonth) -> Unit) {
 
 /** The challenge of the month: its title and a gauge that moves by itself, never a name. */
 @Composable
-private fun ChallengeGauge(challenge: MonthChallenge) {
+internal fun ChallengeGauge(challenge: MonthChallenge) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             stringResource(R.string.tree_challenge, challenge.emoji, challenge.title),
