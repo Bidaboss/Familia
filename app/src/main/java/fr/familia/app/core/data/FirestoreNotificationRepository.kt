@@ -61,6 +61,17 @@ class FirestoreNotificationRepository(
         settings(memberId).set(mapOf("weekly" to enabled), SetOptions.merge()).await()
     }
 
+    override fun observeSouvenirs(memberId: String): Flow<Boolean> = callbackFlow {
+        val registration = settings(memberId).addSnapshotListener { snapshot, error ->
+            if (error != null) close(error) else trySend(snapshot?.getBoolean("souvenirs") != false)
+        }
+        awaitClose { registration.remove() }
+    }
+
+    override suspend fun setSouvenirs(memberId: String, enabled: Boolean) {
+        settings(memberId).set(mapOf("souvenirs" to enabled), SetOptions.merge()).await()
+    }
+
     private fun settings(memberId: String) =
         db.collection("members").document(memberId).collection("settings").document("notifications")
 }

@@ -22,4 +22,9 @@ interface NotificationRepository {
     fun observeWeekly(memberId: String): Flow<Boolean> = flowOf(true)
 
     suspend fun setWeekly(memberId: String, enabled: Boolean) = Unit
+
+    /** True unless the member turned the « Nouveau souvenir » notice off (récit 34). */
+    fun observeSouvenirs(memberId: String): Flow<Boolean> = flowOf(true)
+
+    suspend fun setSouvenirs(memberId: String, enabled: Boolean) = Unit
 }

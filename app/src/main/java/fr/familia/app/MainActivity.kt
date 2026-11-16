@@ -32,6 +32,9 @@ class MainActivity : ComponentActivity() {
     /** The question of the week of a tapped notification (récit 37). */
     private val openWeeklyQuestionId = mutableStateOf<String?>(null)
 
+    /** A « Nouveau souvenir » was tapped: one's own page opens (récit 34). */
+    private val openSouvenir = mutableStateOf(false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -42,6 +45,7 @@ class MainActivity : ComponentActivity() {
             openGoodNewsId.value = intent.goodNewsId()
             openTripId.value = intent.tripId()
             openWeeklyQuestionId.value = intent.weeklyQuestionId()
+            openSouvenir.value = intent.hasSouvenir()
         }
         val app = application as FamiliaApplication
         val container = app.container
@@ -53,6 +57,7 @@ class MainActivity : ComponentActivity() {
             val goodNewsToOpen by openGoodNewsId
             val tripToOpen by openTripId
             val weeklyToOpen by openWeeklyQuestionId
+            val souvenirToOpen by openSouvenir
             FamiliaTheme {
                 SessionRoute(container = container) { member ->
                     FamiliaApp(
@@ -71,6 +76,8 @@ class MainActivity : ComponentActivity() {
                         onTripOpened = { openTripId.value = null },
                         openWeeklyQuestionId = weeklyToOpen,
                         onWeeklyQuestionOpened = { openWeeklyQuestionId.value = null },
+                        openSouvenir = souvenirToOpen,
+                        onSouvenirOpened = { openSouvenir.value = false },
                     )
                 }
             }
@@ -86,6 +93,7 @@ class MainActivity : ComponentActivity() {
         intent.goodNewsId()?.let { openGoodNewsId.value = it }
         intent.tripId()?.let { openTripId.value = it }
         intent.weeklyQuestionId()?.let { openWeeklyQuestionId.value = it }
+        if (intent.hasSouvenir()) openSouvenir.value = true
     }
 
     private fun Intent.eventId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_EVENT_ID)
@@ -98,4 +106,6 @@ class MainActivity : ComponentActivity() {
     private fun Intent.tripId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_TRIP_ID)
 
     private fun Intent.weeklyQuestionId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_WEEKLY_QUESTION_ID)
+
+    private fun Intent.hasSouvenir(): Boolean = getStringExtra(FamiliaMessagingService.EXTRA_SOUVENIR_KEY) != null
 }

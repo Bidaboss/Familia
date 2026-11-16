@@ -15,6 +15,8 @@ fun MembersRoute(
     container: AppContainer?,
     currentMember: Member,
     onEditMember: (memberId: String?) -> Unit,
+    /** While the Souvenirs module is on, a row opens the member's page (récit 34). */
+    onOpenProfile: ((memberId: String) -> Unit)? = null,
     onOpenNotifications: () -> Unit,
     onOpenAdministration: () -> Unit,
     onOpenUpdates: () -> Unit,
@@ -44,6 +46,7 @@ fun MembersRoute(
         // The screen shows each action only where the live rights allow it (the rules check it too).
         onOpenAdministration = onOpenAdministration,
         onEditMember = onEditMember,
+        onOpenProfile = onOpenProfile,
         onRenameHousehold = viewModel::renameHousehold,
         renameFailed = renameFailed,
         onRenameFailureShown = viewModel::renameFailureShown,
