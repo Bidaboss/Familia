@@ -316,7 +316,7 @@
     <string name="help_screen_gift_item_edit_title">Une idée de cadeau</string>
     <string name="help_screen_gift_item_edit_body">Seul le titre est obligatoire. Ajoute un lien vers le site, un prix pour donner une idée et une note, comme une taille ou une couleur. Une idée que tu ajoutes sur la liste d\'un autre reste cachée à la personne qui la recevra.</string>
     <string name="help_screen_notebook_title">Mes cadeaux à offrir</string>
-    <string name="help_screen_notebook_body">Ton carnet est pour toi seul : personne d\'autre ne le voit, pas même la personne qui recevra ni l\'administrateur. Ce que tu réserves sur une liste et tes parts de cadeaux communs y arrivent tout seuls. Choisis l\'occasion en haut, puis touche un cadeau pour dire où il en est : idée, acheté, emballé ou offert.</string>
+    <string name="help_screen_notebook_body">Ton carnet est pour toi seul : personne d\'autre ne le voit, pas même la personne qui recevra ni l\'administrateur. Ce que tu réserves sur une liste et tes parts de cadeaux communs y arrivent tout seuls. Choisis l\'occasion en haut, puis touche un cadeau pour dire où il en est : idée, acheté, emballé ou offert. Une idée à toi peut être proposée à la famille : elle rejoint une liste de la personne, qui ne la voit pas.</string>
     <string name="help_topic_planning_title">Le planning</string>
     <string name="help_topic_planning_body">Il montre les événements à venir en liste ou par mois, et les anniversaires de chacun, chaque année. Il reste lisible sans réseau, avec les dernières données reçues.</string>
     <string name="help_topic_add_title">Ajouter un événement</string>
@@ -430,6 +430,13 @@
     <string name="notebook_idea_unavailable_title">Idée introuvable</string>
     <string name="notebook_idea_unavailable_body">Elle a été retirée entre-temps.</string>
     <string name="notebook_edit_idea">Modifier</string>
+    <string name="notebook_propose">Proposer à la famille</string>
+    <string name="notebook_propose_body">L\'idée rejoint une liste de %1$s, sans que %1$s la voie : la famille peut la prendre ou lancer un cadeau commun. Elle quitte ton carnet ; si tu la prends, elle y revient comme réservation.</string>
+    <string name="notebook_propose_where">Sur quelle liste ?</string>
+    <string name="notebook_propose_no_list">%1$s n\'a aucune liste où cette idée resterait cachée.</string>
+    <string name="notebook_propose_take_it">Je le prends moi-même</string>
+    <string name="notebook_propose_note_kept">Ta note privée n\'est pas recopiée.</string>
+    <string name="notebook_propose_confirm">Proposer</string>
     <string name="error_notebook_person_missing">Choisis une personne, ou écris son prénom.</string>
     <string name="error_notebook_name_too_long">40 caractères au plus.</string>
     <string name="error_notebook_bad_year">Indique une année, par exemple 2026.</string>

@@ -109,6 +109,7 @@ import fr.familia.app.feature.gifts.edit.GiftListEditRoute
 import fr.familia.app.feature.gifts.item.GiftItemEditRoute
 import fr.familia.app.feature.gifts.notebook.NotebookIdeaRoute
 import fr.familia.app.feature.gifts.notebook.NotebookRoute
+import fr.familia.app.feature.gifts.notebook.ProposeIdeaRoute
 import fr.familia.app.feature.events.answerableMembers
 import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.feature.helprequests.badgeCount
@@ -507,6 +508,20 @@ fun FamiliaApp(
                             onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
                             onAddIdea = { at -> navController.navigate(NotebookIdeaDestination(occasion = at?.occasion?.name, year = at?.year)) },
                             onEditIdea = { id -> navController.navigate(NotebookIdeaDestination(entryId = id)) },
+                            onProposeIdea = { id -> navController.navigate(ProposeIdeaDestination(id)) },
+                        )
+                    }
+                    composable<ProposeIdeaDestination> { entry ->
+                        ProposeIdeaRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            entryId = entry.toRoute<ProposeIdeaDestination>().entryId,
+                            onBack = { navController.popBackStack() },
+                            onNewSurprise = { id -> navController.navigate(GiftListEditDestination(forMemberId = id)) },
+                            onDone = { listId ->
+                                navController.popBackStack()
+                                navController.navigate(GiftListDestination(listId))
+                            },
                         )
                     }
                     composable<NotebookIdeaDestination> { entry ->
