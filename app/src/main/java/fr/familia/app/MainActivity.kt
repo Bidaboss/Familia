@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
     private val openMemberId = mutableStateOf<String?>(null)
     /** The time capsule of a tapped notification (récit 39). */
     private val openCapsuleId = mutableStateOf<String?>(null)
-    private val openRecap = mutableStateOf(false)
+    private val openRecap = mutableStateOf<String?>(null)
     /** « Une idée ? Un souci ? » (récit 6 sexies): "list" opens Retours, "mine" « Mes demandes ». */
     private val openFeedback = mutableStateOf<String?>(null)
 
@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
             openPollId.value = intent.pollId()
             openJoinMe.value = intent.hasJoinMe()
             openCapsuleId.value = intent.capsuleId()
-            openRecap.value = intent.hasRecap()
+            openRecap.value = intent.recapWeek()
             intent.birthdayOf()?.let { openMemberId.value = it }
             openFeedback.value = intent.feedback()
             sharedWish.value = intent.sharedWish()
@@ -123,7 +123,7 @@ class MainActivity : ComponentActivity() {
                             openCapsuleId = capsuleToOpen,
                             onCapsuleOpened = { openCapsuleId.value = null },
                             openRecap = recapToOpen,
-                            onRecapOpened = { openRecap.value = false },
+                            onRecapOpened = { openRecap.value = null },
                             openFeedback = feedbackToOpen,
                             onFeedbackOpened = { openFeedback.value = null },
                             sharedWish = wishToAdd,
@@ -150,7 +150,7 @@ class MainActivity : ComponentActivity() {
         intent.pollId()?.let { openPollId.value = it }
         if (intent.hasJoinMe()) openJoinMe.value = true
         intent.capsuleId()?.let { openCapsuleId.value = it }
-        if (intent.hasRecap()) openRecap.value = true
+        intent.recapWeek()?.let { openRecap.value = it }
         intent.birthdayOf()?.let { openMemberId.value = it }
         intent.feedback()?.let { openFeedback.value = it }
         intent.sharedWish()?.let { sharedWish.value = it }
@@ -193,6 +193,7 @@ class MainActivity : ComponentActivity() {
     private fun Intent.capsuleId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_CAPSULE_ID)
     private fun Intent.feedback(): String? = getStringExtra(FamiliaMessagingService.EXTRA_FEEDBACK)
 
-    private fun Intent.hasRecap(): Boolean = getStringExtra(FamiliaMessagingService.EXTRA_RECAP_WEEK) != null
+    /** The Sunday of the recap notice (AAAA-MM-JJ), or null. */
+    private fun Intent.recapWeek(): String? = getStringExtra(FamiliaMessagingService.EXTRA_RECAP_WEEK)
     private fun Intent.birthdayOf(): String? = getStringExtra(FamiliaMessagingService.EXTRA_BIRTHDAY_OF)
 }
