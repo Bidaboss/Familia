@@ -27,8 +27,7 @@ class HttpLinkPreviewRepository : LinkPreviewRepository {
                 if (connection.responseCode !in 200..299) return@withContext null
                 if (connection.contentType?.contains("html", ignoreCase = true) == false) return@withContext null
                 val head = connection.inputStream.use { stream ->
-                    val bytes = stream.readNBytesCompat(MAX_BYTES)
-                    String(bytes, Charsets.UTF_8)
+                    decodePage(stream.readNBytesCompat(MAX_BYTES), connection.contentType)
                 }
                 parseLinkPreview(head, base = connection.url.toString())
             } finally {
@@ -76,7 +75,10 @@ fun parseLinkPreview(html: String, base: String): LinkPreview? {
     val image = meta("og:image:secure_url", "og:image", "twitter:image")
         ?.let { resolve(it, base) }
         ?.takeIf { it.startsWith("https://") && it.length <= 1000 }
+    // A price in another currency would mislead: only euros, or a price with no currency given.
+    val currency = meta("product:price:currency", "og:price:currency")?.uppercase()
     val price = meta("product:price:amount", "og:price:amount")
+        ?.takeIf { currency == null || currency == "EUR" }
         ?.replace(',', '.')
         ?.toDoubleOrNull()
         ?.takeIf { it >= 0 && it <= 100_000 }
@@ -93,3 +95,13 @@ private fun resolve(link: String, base: String): String? = try {
 private fun unescape(text: String): String = text
     .replace("&amp;", "&").replace("&quot;", "\"").replace("&#39;", "'").replace("&#x27;", "'")
     .replace("&apos;", "'").replace("&lt;", "<").replace("&gt;", ">").replace("&nbsp;", " ")
+
+private val CHARSET = Regex("""charset\s*=\s*["']?([A-Za-z0-9_-]+)""", RegexOption.IGNORE_CASE)
+
+/** The page in its own charset: the server's header first, then the page's meta, else UTF-8. */
+internal fun decodePage(bytes: ByteArray, contentType: String?): String {
+    val declared = contentType?.let { CHARSET.find(it)?.groupValues?.get(1) }
+        ?: CHARSET.find(String(bytes, Charsets.ISO_8859_1).take(4096))?.groupValues?.get(1)
+    val charset = declared?.let { runCatching { java.nio.charset.Charset.forName(it) }.getOrNull() } ?: Charsets.UTF_8
+    return String(bytes, charset)
+}
