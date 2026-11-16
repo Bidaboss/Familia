@@ -405,6 +405,7 @@ fun FamiliaApp(
                             onOpenGoodNewsFeed = { navController.navigate(GoodNewsFeedDestination) },
                             onOpenGoodNews = { id -> navController.navigate(GoodNewsDetailDestination(id)) },
                             onPublishGoodNews = { navController.navigate(GoodNewsEditDestination()) },
+                            onOpenWeeklyQuestion = { navController.navigate(WeeklyQuestionDestination()) },
                         )
                     }
                     composable<PlanningRoute> {
