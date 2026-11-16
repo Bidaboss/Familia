@@ -19,6 +19,7 @@ fun HelpRoute(
     onReplayOnboarding: () -> Unit,
     onBack: () -> Unit,
     onOpenFeedback: (() -> Unit)? = null,
+    onOpenWhatsNew: (() -> Unit)? = null,
 ) {
     val viewModel: HelpViewModel = viewModel(
         factory = viewModelFactory { initializer { HelpViewModel(container?.memberRepository, currentMember) } },
@@ -28,5 +29,5 @@ fun HelpRoute(
     // Voir comme only looks: no request in someone else's name.
     val inViewAs = LocalViewAs.current.viewed != null
     val shown = state.copy(topics = state.topics.filter { topic -> topic.feature?.let(flags::isOn) ?: true })
-    HelpScreen(state = shown, onReplayOnboarding = onReplayOnboarding, onBack = onBack, onOpenFeedback = onOpenFeedback?.takeIf { !inViewAs })
+    HelpScreen(state = shown, onReplayOnboarding = onReplayOnboarding, onBack = onBack, onOpenFeedback = onOpenFeedback?.takeIf { !inViewAs }, onOpenWhatsNew = onOpenWhatsNew)
 }

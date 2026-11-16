@@ -545,6 +545,7 @@ fun FamiliaApp(
                     onOpenAppearance = if (themesOn) ({ navController.navigate(AppearanceDestination) }) else null,
                     onOpenNotifications = { navController.navigate(NotificationSettingsDestination) },
                     onOpenHelp = { navController.navigate(HelpDestination) { launchSingleTop = true } },
+                    onOpenWhatsNew = { navController.navigate(WhatsNewDestination) { launchSingleTop = true } },
                     onOpenUpdates = { navController.navigate(UpdateCheckDestination) },
                     // Nothing leaves the app while the admin looks through a member's eyes.
                     onOpenFeedback = if (inViewAs) null else ({ navController.navigate(FeedbackFormDestination(FeedbackOrigin.Family.key)) }),
@@ -1180,6 +1181,7 @@ fun FamiliaApp(
                             onReplayOnboarding = { showOnboarding = true },
                             onBack = { navController.popBackStack() },
                             onOpenFeedback = { navController.navigate(FeedbackFormDestination(FeedbackOrigin.Help.key)) },
+                            onOpenWhatsNew = { navController.navigate(WhatsNewDestination) { launchSingleTop = true } },
                         )
                     }
                     composable<UpdateCheckDestination> {
