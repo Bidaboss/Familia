@@ -37,4 +37,11 @@ class OnboardingPagesTest {
         assertEquals(OnboardingPage.Gifts, giftsOnly[3])
         assertEquals(false, OnboardingPage.HelpRequests in giftsOnly)
     }
+
+    @Test
+    fun `once the time in the app is counted, the welcome says who sees it`() {
+        val pages = onboardingPages(answersForChildren = true, usage = true)
+        assertEquals(OnboardingPage.WelcomeUsage, pages.first())
+        assertEquals(4, pages.size)
+    }
 }

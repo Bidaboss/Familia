@@ -320,6 +320,7 @@
     <string name="onboarding_not_now">Pas maintenant</string>
     <string name="onboarding_welcome_title">Bienvenue dans Familia</string>
     <string name="onboarding_welcome_body">Tout le monde voit le même planning : les événements et les anniversaires de la famille. Touche un événement pour voir le détail.</string>
+    <string name="onboarding_welcome_body_usage">Tout le monde voit le même planning : les événements et les anniversaires de la famille. Touche un événement pour voir le détail. L\'administrateur voit combien de temps chacun passe dans l\'appli, et les parents voient le temps de leurs enfants.</string>
     <string name="onboarding_add_title">Ajouter un événement</string>
     <string name="onboarding_add_body">Touche le bouton « Ajouter », donne un titre et une date. Toute la famille le voit aussitôt.</string>
     <string name="onboarding_answer_title">Dire si tu viens</string>
@@ -372,6 +373,8 @@
     <string name="help_topic_notifications_body">Tu es prévenu quand quelqu\'un ajoute, modifie ou supprime un événement qui te concerne (toute la famille, ton foyer, un enfant dont tu t\'occupes, ou un événement où tu viens), mais jamais pour tes propres changements. La veille à 18\u00A0h, un rappel part si tu as répondu « Je viens » ou « Peut-être ». Tu peux couper ce rappel dans l\'onglet Famille, ligne « Notifications ».</string>
     <string name="help_topic_family_title">La famille</string>
     <string name="help_topic_family_body">La liste des membres, rangés par foyer. Les anniversaires de chacun sont dans le planning, et en haut de l\'onglet Cadeaux.</string>
+    <string name="help_topic_usage_title">Ce que voit l\'administrateur</string>
+    <string name="help_topic_usage_body">L\'administrateur voit combien de temps chacun passe dans l\'appli, et les parents voient le temps de leurs enfants.</string>
     <string name="help_topic_wishes_title">Mes envies</string>
     <string name="help_topic_wishes_body">Chacun a sa liste « Mes envies », à remplir toute l\'année. Toute la famille peut la voir pour trouver une idée. Un parent remplit celle d\'un enfant qui n\'a pas l\'appli. Pour l\'ouvrir : onglet Cadeaux, ta section, « Mes envies ».</string>
     <string name="help_topic_gift_lists_title">Les listes d\'occasion</string>
@@ -938,6 +941,8 @@
         <item quantity="other">Tu as réservé %d idées.</item>
     </plurals>
     <string name="home_trips_title">En voyage</string>
+    <string name="home_trips_none">Aucun voyage en cours ni à venir.</string>
+    <string name="home_trips_all">Tous les voyages</string>
     <string name="home_trip_ongoing">En cours</string>
     <string name="help_screen_home_title">L\'accueil</string>
     <string name="help_screen_home_body">Ici, l\'essentiel du moment : ce que tu as à faire, les 7 prochains jours, les anniversaires, la prochaine occasion et les voyages. Une carte vide ne s\'affiche pas. Touche une ligne pour l\'ouvrir.</string>

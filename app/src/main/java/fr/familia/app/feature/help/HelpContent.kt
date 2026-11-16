@@ -45,6 +45,8 @@ enum class HelpTopic(
     Notifications(R.string.help_topic_notifications_title, R.string.help_topic_notifications_body),
     HelpRequests(R.string.help_topic_help_requests_title, R.string.help_topic_help_requests_body, feature = Feature.HelpRequests),
     Family(R.string.help_topic_family_title, R.string.help_topic_family_body),
+    /** What the admin principal sees of the time in the app (choix EXPERT-5, audit DESIGN n°4). */
+    Usage(R.string.help_topic_usage_title, R.string.help_topic_usage_body, feature = Feature.Usage),
     Wishes(R.string.help_topic_wishes_title, R.string.help_topic_wishes_body, feature = Feature.Gifts),
     GiftLists(R.string.help_topic_gift_lists_title, R.string.help_topic_gift_lists_body, feature = Feature.Gifts),
     Reserve(R.string.help_topic_reserve_title, R.string.help_topic_reserve_body, feature = Feature.Gifts),

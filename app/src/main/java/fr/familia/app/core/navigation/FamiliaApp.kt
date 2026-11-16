@@ -102,6 +102,8 @@ import fr.familia.app.core.theme.FamiliaThemeId
 import fr.familia.app.core.theme.themeBackground
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.ui.graphics.Color
 import fr.familia.app.feature.home.HomeRoute as HomeTab
 import fr.familia.app.feature.settings.NotificationSettingsRoute
@@ -149,6 +151,7 @@ import androidx.compose.foundation.layout.width
 import java.time.YearMonth
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FamiliaApp(
     container: AppContainer?,
@@ -217,6 +220,8 @@ fun FamiliaApp(
             answersForChildren = answersForChildren,
             gifts = tutoFlags.isOn(Feature.Gifts),
             helpRequests = tutoFlags.isOn(Feature.HelpRequests),
+            // Switched on for the family, not just seen by the admin principal: only then is time counted.
+            usage = tutoFlags.isOnForFamily(Feature.Usage),
         ) {
             onboarding.markSeen()
             showOnboarding = false
@@ -361,23 +366,30 @@ fun FamiliaApp(
         LocalSnackbarHost provides snackbar,
         LocalPhotoStorage provides container?.photoStorage,
     ) {
+        // Pinned: the title bar stays, and takes the surface color once the content scrolls under it
+        // (audit DESIGN n°4), so the theme's pattern no longer mixes with the title.
+        val topBarScroll = TopAppBarDefaults.pinnedScrollBehavior()
         Scaffold(
             // The theme's background and its pattern show behind the tabs.
-            modifier = Modifier.themeBackground(),
+            modifier = Modifier.themeBackground().nestedScroll(topBarScroll.nestedScrollConnection),
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onBackground,
             snackbarHost = { SnackbarHost(snackbar) },
             topBar = {
                 // The tabs get a title bar, with the « ? » of their screen (spec « tuto et aide », récit 26).
                 val tab = TopLevelDestination.entries.firstOrNull { currentDestination.isOn(it) }
-                // Until the Accueil arrives, the Bonnes nouvelles and the trips open from the Planning bar,
-                // each behind its module.
-                val onGoodNews = if (goodNewsOn) ({ navController.navigate(GoodNewsFeedDestination) }) else null
-                val onWeekly = if (weeklyOn) ({ navController.navigate(WeeklyQuestionDestination()) }) else null
+                // The Bonnes nouvelles, the question of the week and the trips have their card on the
+                // Accueil: the Planning bar keeps them only while the Accueil is off, so its title is
+                // never cut (audit DESIGN n°4).
+                val viaPlanning = !features.isOn(Feature.Home)
+                val onGoodNews = if (goodNewsOn && viaPlanning) ({ navController.navigate(GoodNewsFeedDestination) }) else null
+                val onWeekly = if (weeklyOn && viaPlanning) ({ navController.navigate(WeeklyQuestionDestination()) }) else null
+                val onTrips = if (features.isOn(Feature.Trips) && viaPlanning) ({ navController.navigate(TripsDestination) { launchSingleTop = true } }) else null
                 if (tab != null) {
                     TabTopBar(
                         tab, currentMember,
-                        onOpenTrips = { navController.navigate(TripsDestination) { launchSingleTop = true } },
+                        scrollBehavior = topBarScroll,
+                        onOpenTrips = onTrips,
                         onGoodNews = onGoodNews,
                         onWeeklyQuestion = onWeekly,
                     )
@@ -437,6 +449,11 @@ fun FamiliaApp(
                                 onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
                                 onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
                                 onNewTrip = { navController.navigate(TripEditDestination()) },
+                                onOpenTrips = if (features.isOn(Feature.Trips)) {
+                                    { navController.navigate(TripsDestination) { launchSingleTop = true } }
+                                } else {
+                                    null
+                                },
                             ),
                             onOpenGoodNewsFeed = { navController.navigate(GoodNewsFeedDestination) },
                             onOpenGoodNews = { id -> navController.navigate(GoodNewsDetailDestination(id)) },
@@ -827,14 +844,18 @@ fun FamiliaApp(
 private fun TabTopBar(
     tab: TopLevelDestination,
     member: Member,
-    onOpenTrips: () -> Unit = {},
+    scrollBehavior: TopAppBarScrollBehavior? = null,
+    onOpenTrips: (() -> Unit)? = null,
     onGoodNews: (() -> Unit)? = null,
     onWeeklyQuestion: (() -> Unit)? = null,
 ) {
     TopAppBar(
-        // Transparent, so the theme's pattern shows behind the title too.
+        scrollBehavior = scrollBehavior,
+        // Transparent at rest, so the theme's pattern shows behind the title; the surface color once
+        // the content scrolls under it.
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
+            scrolledContainerColor = MaterialTheme.colorScheme.surface,
             titleContentColor = FamiliaClay.style.titleColor ?: MaterialTheme.colorScheme.onSurface,
         ),
         // The Entraide tab keeps the full name « Coups de main » as its title (DESIGN-4).
@@ -852,9 +873,8 @@ private fun TabTopBar(
                             Icon(Icons.Outlined.QuestionAnswer, contentDescription = stringResource(R.string.weekly_open))
                         }
                     }
-                    // Trips have no tab (carte DESIGN-4): until the Accueil tab, they open from here,
-                    // once the module is switched on in Administration.
-                    if (LocalFeatureFlags.current.isOn(Feature.Trips)) {
+                    // Trips have no tab (carte DESIGN-4): from here only while the Accueil is off.
+                    if (onOpenTrips != null) {
                         TextButton(onClick = onOpenTrips, modifier = Modifier.heightIn(min = 56.dp)) {
                             Icon(Icons.Outlined.CardTravel, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
