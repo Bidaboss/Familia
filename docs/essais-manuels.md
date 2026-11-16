@@ -228,7 +228,7 @@ Avec le compte de l'admin principal.
 6. Ouvre Aide. **Attendu :** une rubrique « Si tu as besoin d'aide » dit que l'admin principal peut voir l'appli comme toi, sans rien modifier.
 7. Avec le compte d'un autre membre, ouvre Administration si tu y as accès. **Attendu :** pas de « Voir comme… ».
 
-8. Voir comme un membre qui prépare ton anniversaire, puis ouvre Cadeaux. **Attendu :** en haut, « Masqué : c'est ta surprise… ». La liste surprise pour toi n'apparaît pas, et l'écran ne tombe pas en erreur. Les listes où vous êtes invités tous les deux s'affichent, ainsi que « Mes envies » de chacun. Le carnet de cadeaux n'est pas proposé.
+8. Voir comme un membre qui prépare ton anniversaire, puis ouvre Cadeaux. **Attendu :** en haut, « Les listes où tu n'es pas invité restent cachées… ». La liste surprise pour toi n'apparaît pas, et l'écran ne tombe pas en erreur. Les listes où vous êtes invités tous les deux s'affichent, ainsi que « Mes envies » de chacun. Le carnet de cadeaux n'est pas proposé.
 9. Ouvre Entraide. **Attendu :** les coups de main que ce membre voit, y compris les siens.
 10. Si un écran tombe en erreur en mode Voir comme, c'est qu'il demande une donnée que le serveur refuse à l'admin (une liste sans lui, le carnet, les souvenirs privés). Ce n'est pas une fuite. Note l'écran pour qu'on le traite.
 
