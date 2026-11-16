@@ -85,6 +85,8 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
      * et des listes surprises (PRD rév. 209, récit 9 ter). Allumé, l'ancien écran des listes disparaît.
      */
     SingleList("singleList", R.string.feature_single_list),
+    /** Une photo de couverture sur un événement et une photo sur une envie (PRD, récit 44). */
+    MorePhotos("morePhotos", R.string.feature_more_photos),
 }
 
 /**
