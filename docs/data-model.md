@@ -299,6 +299,7 @@ Une envie offerte, sortie de « Mes envies » le lendemain de l'occasion de son 
 |---|---|---|
 | `title`, `url`, `imageUrl` | texte | Repris de l'article |
 | `givers` | liste de textes | Prénoms de ceux qui l'ont offerte : le responsable, puis les participants. Jamais les montants |
+| `giverIds` | liste de `memberId` | Les mêmes donateurs, pour leur envoyer le « Merci » (PRD rév. 189) |
 | `joint` | booléen | Vrai pour un cadeau commun |
 | `occasion` | `birthday` ou `christmas` | L'occasion de la réservation |
 | `year` | nombre | Année de l'occasion |
@@ -321,6 +322,7 @@ Une envie offerte, sortie de « Mes envies » le lendemain de l'occasion de son 
 | `onGiftShareWritten` | Une part est ajoutée, modifiée ou retirée | Recalcule `sharesTotal` et `sharesCount` sur la réservation, et met à jour le carnet du participant |
 | `onGiftClaimCreated` | Une réservation est faite | La reprend dans le carnet de son auteur |
 | `onGiftClaimDeleted` | Une réservation est relâchée | Efface les parts du cadeau commun, et la retire du carnet de son auteur |
+| `onReceivedGiftUpdated` | Le bénéficiaire dit « Merci » dans « On m'a offert » | Prévient chaque donateur, une seule fois : « X te dit merci ! » (canal gifts, PRD rév. 189) |
 | `onGiftListDeleted` | Une liste est supprimée | Efface ses articles, réservations, parts et cadeaux reçus |
 | `onMemberDeletedGifts` | Un membre est retiré | Efface les listes dont il est le bénéficiaire, et son carnet |
 
