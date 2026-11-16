@@ -20,12 +20,18 @@ fun AdministrationRoute(
 ) {
     val viewModel: AdministrationViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { AdministrationViewModel(container?.memberRepository, currentMember.id, container?.appConfigRepository) }
+            initializer { AdministrationViewModel(
+                    container?.memberRepository,
+                    currentMember.id,
+                    container?.appConfigRepository,
+                    container?.consumptionRepository,
+                ) }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val failed by viewModel.actionFailed.collectAsStateWithLifecycle()
     val features by viewModel.features.collectAsStateWithLifecycle()
+    val consumption by viewModel.consumption.collectAsStateWithLifecycle()
     AdministrationScreen(
         state = state,
         onBack = onBack,
@@ -40,5 +46,6 @@ fun AdministrationRoute(
         features = features,
         onSetFeature = viewModel::setFeature,
         onRenameHousehold = viewModel::renameHousehold,
+        consumption = consumption,
     )
 }

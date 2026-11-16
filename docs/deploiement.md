@@ -64,6 +64,18 @@ Familia doit rester gratuite. L'alerte à 1 € te prévient bien avant tout co�
 2. Vérifie qu'un budget « Familia » existe, avec un montant de 1 € et des alertes à 50 %, 90 % et 100 %, envoyées sur ton adresse.
 3. S'il n'existe pas, crée-le avec ces valeurs.
 
+## Alerte de consommation (récit 1 sexies)
+
+Chaque matin à partir de 8 h, la tâche des 30 minutes (`arrivalReminder`, qui sert aussi aux voyages et à la question de la semaine) lit une seule fois dans Cloud Monitoring les lectures, écritures et suppressions de la veille, et la taille de la base. Elle les range dans `consumption/<jour>`, que la carte « Consommation » d'Administration affiche. Elle te prévient par une notification (canal « Administration ») à 80 % d'une limite gratuite, ou quand le coût estimé du mois dépasse 0,50 €. L'alerte de budget à 1 € par e-mail reste le filet de sécurité.
+
+Pour lire Monitoring, la fonction a besoin du rôle « Lecteur Monitoring ». Le compte des fonctions a souvent déjà le rôle Éditeur, qui le contient. Fais donc ces étapes seulement si la carte affiche « Familia n'a pas pu lire la consommation » :
+
+1. Ouvre console.cloud.google.com sur le projet Familia, puis **IAM et administration** et **IAM**.
+2. Trouve la ligne `<numéro>-compute@developer.gserviceaccount.com` (le compte qui fait tourner les fonctions), puis touche le crayon au bout de la ligne.
+3. Touche **Ajouter un autre rôle**, cherche **Lecteur Monitoring** (`roles/monitoring.viewer`), choisis-le, puis **Enregistrer**.
+
+Sans ce rôle, rien ne casse : la carte affiche « Familia n'a pas pu lire la consommation ». Le lendemain matin du rôle ajouté, elle affiche les chiffres.
+
 Pour une famille de 13 personnes, les notifications et le rappel restent dans la part gratuite. Les fonctions sont limitées à une seule instance, ce qui plafonne le coût même en cas de bug.
 
 ## Revenir en arrière

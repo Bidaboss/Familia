@@ -570,3 +570,21 @@ Le temps passé dans l'appli par un membre, un jour donné. Le téléphone le co
 | `expireAt` | timestamp | Le jour plus 13 mois. La règle TTL de `firestore.indexes.json` efface le document à cette date. |
 
 Le document ne contient jamais ce que la personne a lu, écrit ou ouvert. Seul le membre écrit ses propres jours. L'admin principal lit les jours de tout le monde, et les adultes responsables d'un enfant (ses `parentIds`) lisent ceux de cet enfant (carte EXPERT-5). Personne ne supprime un jour depuis l'appli : le TTL s'en charge, et la fonction qui suit le retrait d'un membre efface aussi tous ses jours.
+
+## Consommation (PRD, récit 1 sexies)
+
+### `consumption/{day}`
+
+L'usage de la base un jour donné, lu une fois chaque matin à partir de 8 h dans Cloud Monitoring par la tâche des 30 minutes `arrivalReminder` (`checkConsumptionIfDue` de `firebase/functions/src/consumption.ts`), seulement si le document de la veille n'existe pas encore. Seul le serveur l'écrit ; seul l'admin principal le lit, dans Administration › Consommation.
+
+| Champ | Type | Sens |
+|---|---|---|
+| `day` | string `AAAA-MM-JJ` | Le jour lu (la veille), identique à l'id. |
+| `reads`, `writes`, `deletes` | int | Les opérations de la journée, heure de Paris. |
+| `storageBytes` | int ou null | La taille de la base ce jour-là, si Monitoring la donne. |
+| `monthCost` | number | Le coût estimé du mois jusqu'à ce jour, en euros, au-delà des parts gratuites (prix volontairement hauts). |
+| `alerts` | liste | Les limites atteintes à 80 % (`reads`, `writes`, `deletes`, `storage`) et `cost` au-delà de 0,50 €. Une alerte n'est envoyée qu'une fois par jour. |
+| `checkedAt` | timestamp | L'heure du relevé. |
+| `error` | string | `monitoring` quand Monitoring n'a pas pu être lu (rôle « Lecteur Monitoring » manquant, docs/deploiement.md). Les autres champs manquent alors. |
+
+Ces documents sont petits (un par jour) et ne contiennent rien sur la famille.
