@@ -26,20 +26,34 @@ export interface Challenge {
   target: number;
 }
 
-/** One default challenge per month (01 to 12), always within everyone's reach. */
-const DEFAULTS: Record<string, Challenge> = {
-  '01': { title: '10 bonnes nouvelles pour bien commencer', emoji: '✨', measure: 'goodNews', target: 10 },
-  '02': { title: '15 photos de l\'hiver', emoji: '❄️', measure: 'photos', target: 15 },
-  '03': { title: '10 premiers signes du printemps', emoji: '🌱', measure: 'photos', target: 10 },
-  '04': { title: '12 bonnes nouvelles du printemps', emoji: '🌷', measure: 'goodNews', target: 12 },
-  '05': { title: '15 photos en plein air', emoji: '🌳', measure: 'photos', target: 15 },
-  '06': { title: '12 bonnes nouvelles avant l\'été', emoji: '☀️', measure: 'goodNews', target: 12 },
-  '07': { title: '20 photos de vacances', emoji: '🏖️', measure: 'photos', target: 20 },
-  '08': { title: '20 cartes postales en photo', emoji: '📸', measure: 'photos', target: 20 },
-  '09': { title: '10 bonnes nouvelles de la rentrée', emoji: '🎒', measure: 'goodNews', target: 10 },
-  '10': { title: '15 couleurs d\'automne', emoji: '🍂', measure: 'photos', target: 15 },
-  '11': { title: '12 petits bonheurs', emoji: '🧡', measure: 'goodNews', target: 12 },
-  '12': { title: '20 photos de Noël', emoji: '🎄', measure: 'photos', target: 20 },
+/**
+ * The list the admin principal chooses from in Administration (récit 35), always within everyone's
+ * reach. The app keeps the same list (ChallengeCatalog.kt): add an entry on both sides.
+ */
+export const CATALOG: Record<string, Challenge> = {
+  goodNewsStart: { title: '10 bonnes nouvelles pour bien commencer', emoji: '✨', measure: 'goodNews', target: 10 },
+  winterPhotos: { title: '15 photos de l\'hiver', emoji: '❄️', measure: 'photos', target: 15 },
+  springSigns: { title: '10 premiers signes du printemps', emoji: '🌱', measure: 'photos', target: 10 },
+  springNews: { title: '12 bonnes nouvelles du printemps', emoji: '🌷', measure: 'goodNews', target: 12 },
+  outdoorPhotos: { title: '15 photos en plein air', emoji: '🌳', measure: 'photos', target: 15 },
+  summerNews: { title: '12 bonnes nouvelles avant l\'été', emoji: '☀️', measure: 'goodNews', target: 12 },
+  holidayPhotos: { title: '20 photos de vacances', emoji: '🏖️', measure: 'photos', target: 20 },
+  postcards: { title: '20 cartes postales en photo', emoji: '📸', measure: 'photos', target: 20 },
+  backToSchool: { title: '10 bonnes nouvelles de la rentrée', emoji: '🎒', measure: 'goodNews', target: 10 },
+  autumnColours: { title: '15 couleurs d\'automne', emoji: '🍂', measure: 'photos', target: 15 },
+  littleJoys: { title: '12 petits bonheurs', emoji: '🧡', measure: 'goodNews', target: 12 },
+  christmasPhotos: { title: '20 photos de Noël', emoji: '🎄', measure: 'photos', target: 20 },
+  kitchen: { title: '10 photos de nos plats', emoji: '🍲', measure: 'photos', target: 10 },
+  pets: { title: '10 photos de nos animaux', emoji: '🐾', measure: 'photos', target: 10 },
+  proudOf: { title: '10 fiertés de la famille', emoji: '🏅', measure: 'goodNews', target: 10 },
+  together: { title: '15 photos tous ensemble', emoji: '🤗', measure: 'photos', target: 15 },
+};
+
+/** The challenge of each month (01 to 12) when the admin principal has not chosen another. */
+const DEFAULTS: Record<string, string> = {
+  '01': 'goodNewsStart', '02': 'winterPhotos', '03': 'springSigns', '04': 'springNews',
+  '05': 'outdoorPhotos', '06': 'summerNews', '07': 'holidayPhotos', '08': 'postcards',
+  '09': 'backToSchool', '10': 'autumnColours', '11': 'littleJoys', '12': 'christmasPhotos',
 };
 
 /** The month in Paris, AAAA-MM. */
@@ -47,8 +61,12 @@ export function parisMonth(now: Date): string {
   return parisDay(now).slice(0, 7);
 }
 
-export function defaultChallenge(month: string): Challenge {
+export function defaultChallengeId(month: string): string {
   return DEFAULTS[month.slice(5, 7)];
+}
+
+export function defaultChallenge(month: string): Challenge {
+  return CATALOG[defaultChallengeId(month)];
 }
 
 /** Marks and day counts are only needed for a while: the TTL rule on expireAt erases them. */
@@ -86,14 +104,46 @@ export async function addLeaf(db: Firestore, memberId: string, markId: string, n
   });
 }
 
-/** The challenge of [month], created from the default the first time it is needed. */
+/** The challenge the admin principal picked for [month] (challengePicks/{month}), or null. */
+async function pickedId(db: Firestore, month: string): Promise<string | null> {
+  const id = (await db.collection('challengePicks').doc(month).get()).get('choiceId');
+  return typeof id === 'string' && CATALOG[id] ? id : null;
+}
+
+/** The challenge of [month], created the first time it is needed: the one picked, or the default. */
 export async function ensureChallenge(db: Firestore, month: string, now: Date): Promise<void> {
   const ref = db.collection('challenges').doc(month);
+  if ((await ref.get()).exists) return;
+  const picked = await pickedId(db, month);
+  const choiceId = picked ?? defaultChallengeId(month);
   try {
-    await ref.create({ ...defaultChallenge(month), month, progress: 0, achievedAt: null, source: 'default', createdAt: now });
+    await ref.create({ ...CATALOG[choiceId], choiceId, month, progress: 0, achievedAt: null, source: picked ? 'admin' : 'default', createdAt: now });
   } catch (e) {
     if ((e as { code?: number }).code !== 6) throw e; // ALREADY_EXISTS: it is there.
   }
+}
+
+/**
+ * The admin principal picked a challenge for [month] in Administration. It replaces the challenge
+ * of the month only while nobody has moved the gauge, so that no photo counts for nothing; the app
+ * says so. Returns whether the challenge of the month is now the one picked.
+ */
+export async function applyChallengePick(db: Firestore, month: string, now: Date): Promise<boolean> {
+  const choiceId = await pickedId(db, month);
+  if (!choiceId) return false;
+  const ref = db.collection('challenges').doc(month);
+  return db.runTransaction(async (t) => {
+    const doc = await t.get(ref);
+    const fields = { ...CATALOG[choiceId], choiceId, source: 'admin' };
+    if (!doc.exists) {
+      t.create(ref, { ...fields, month, progress: 0, achievedAt: null, createdAt: now });
+      return true;
+    }
+    if (doc.get('choiceId') === choiceId) return true;
+    if (doc.get('achievedAt') || Number(doc.get('progress') ?? 0) > 0) return false;
+    t.update(ref, { ...fields, updatedAt: now });
+    return true;
+  });
 }
 
 /**

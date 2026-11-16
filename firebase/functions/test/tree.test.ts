@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { after, beforeEach, describe, test } from 'node:test';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { Notice } from '../src/logic';
 import { Sender } from '../src/store';
 import {
-  addLeaf, celebrateChallenge, countForChallenge, defaultChallenge, deleteTreeDataOf, ensureChallenge, LEAVES_PER_DAY,
+  addLeaf, applyChallengePick, CATALOG, celebrateChallenge, countForChallenge, defaultChallenge, deleteTreeDataOf, ensureChallenge, LEAVES_PER_DAY,
   parisMonth, treeLevel, treeMark,
 } from '../src/tree';
 
@@ -22,6 +24,20 @@ describe('the tree, without the emulator', () => {
     assert.deepEqual(defaultChallenge('2026-12'), { title: '20 photos de Noël', emoji: '🎄', measure: 'photos', target: 20 });
     // 1 December at 0 h 30 in Paris is still 30 November in UTC.
     assert.equal(parisMonth(new Date('2026-11-30T23:30:00Z')), '2026-12');
+  });
+
+  test('the list holds every default, each within reach', () => {
+    for (const c of Object.values(CATALOG)) assert.ok(c.target > 0 && c.target <= 20 && c.title && c.emoji);
+    // The rules (challengePicks) and the app (ChallengeCatalog.kt) keep the same 16 ids.
+    assert.equal(Object.keys(CATALOG).length, 16);
+  });
+
+  test('the rules accept exactly the ids of the list (challengePicks)', () => {
+    const rules = readFileSync(join(__dirname, '..', '..', '..', 'firestore.rules'), 'utf8');
+    const block = rules.slice(rules.indexOf('match /challengePicks/{month}'));
+    const list = /choiceId in \[([^\]]*)\]/.exec(block)?.[1] ?? '';
+    const ids = [...list.matchAll(/'([^']+)'/g)].map((m) => m[1]);
+    assert.deepEqual([...ids].sort(), Object.keys(CATALOG).sort());
   });
 });
 
@@ -44,7 +60,7 @@ describe('the tree against the emulator', () => {
   const leaves = async () => Number((await db.doc('familyTree/current').get()).get('leaves') ?? 0);
 
   beforeEach(async () => {
-    for (const c of ['members', 'familyTree', 'challenges', 'treeMarks', 'treeDays', 'goodNews']) await db.recursiveDelete(db.collection(c));
+    for (const c of ['members', 'familyTree', 'challenges', 'challengePicks', 'treeMarks', 'treeDays', 'goodNews']) await db.recursiveDelete(db.collection(c));
     const batch = db.batch();
     batch.set(db.doc('config/app'), { features: { tree: true } });
     for (const [id, profile] of [['camille', 'adult'], ['ines', 'adult'], ['lou', 'childWithoutApp']]) {
@@ -83,6 +99,27 @@ describe('the tree against the emulator', () => {
     await db.doc('challenges/2026-12').set({ title: 'Autre', emoji: '⭐', measure: 'goodNews', target: 5, progress: 2, achievedAt: null });
     await ensureChallenge(db, '2026-12', now);
     assert.equal((await db.doc('challenges/2026-12').get()).get('title'), 'Autre');
+  });
+
+  test('the challenge picked by the admin principal: used when the month starts, or replaces one nobody has moved', async () => {
+    await db.doc('challengePicks/2026-12').set({ choiceId: 'kitchen', pickedAt: now });
+    await ensureChallenge(db, '2026-12', now);
+    const created = await db.doc('challenges/2026-12').get();
+    assert.equal(created.get('title'), '10 photos de nos plats');
+    assert.equal(created.get('source'), 'admin');
+    // Changed again before anyone moved the gauge: replaced.
+    await db.doc('challengePicks/2026-12').set({ choiceId: 'proudOf', pickedAt: now });
+    assert.equal(await applyChallengePick(db, '2026-12', now), true);
+    assert.equal((await db.doc('challenges/2026-12').get()).get('measure'), 'goodNews');
+    // Once the gauge has moved, it stays: no gesture counts for nothing.
+    await countForChallenge(db, 'n1', 0, now);
+    await db.doc('challengePicks/2026-12').set({ choiceId: 'pets', pickedAt: now });
+    assert.equal(await applyChallengePick(db, '2026-12', now), false);
+    assert.equal((await db.doc('challenges/2026-12').get()).get('choiceId'), 'proudOf');
+    // The next month is created straight away from its pick.
+    await db.doc('challengePicks/2027-01').set({ choiceId: 'pets', pickedAt: now });
+    assert.equal(await applyChallengePick(db, '2027-01', now), true);
+    assert.equal((await db.doc('challenges/2027-01').get()).get('progress'), 0);
   });
 
   test('a challenge achieved: one notice for each member with the app, one « Défi réussi », nobody named', async () => {

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.AppConfigRepository
 import fr.familia.app.core.data.ConsumptionRepository
 import fr.familia.app.core.data.MemberRepository
+import fr.familia.app.core.data.TreeRepository
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Household
@@ -12,6 +13,8 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.isOwner
 import fr.familia.app.feature.members.MembersViewModel.Companion.MAX_HOUSEHOLD_NAME
+import fr.familia.app.feature.tree.ChallengeCatalog
+import fr.familia.app.feature.tree.MonthPick
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +22,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -26,6 +30,8 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.YearMonth
+import java.time.ZoneId
 
 /**
  * The Administration menu of the admin principal (PRD, récit 1 ter): name or remove the chefs de
@@ -37,6 +43,9 @@ class AdministrationViewModel(
     private val currentMemberId: String,
     private val appConfig: AppConfigRepository? = null,
     private val consumptionRepository: ConsumptionRepository? = null,
+    private val tree: TreeRepository? = null,
+    /** The month in Paris: the card offers it and the next one. */
+    private val month: YearMonth = YearMonth.now(ZoneId.of("Europe/Paris")),
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
@@ -80,6 +89,36 @@ class AdministrationViewModel(
         )
         .catch { e -> if (e is CancellationException) throw e }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /**
+     * The « Défi du mois » card (récit 35): this month and the next, with the challenge each will
+     * have. Empty without the tree repository, or when the reads are refused.
+     */
+    val challenges: StateFlow<List<MonthPick>> = (
+        tree?.let { repo ->
+            val next = month.plusMonths(1)
+            combine(repo.observeChallenge(month), repo.observePick(month), repo.observeChallenge(next), repo.observePick(next)) { c1, p1, c2, p2 ->
+                listOf(MonthPick.of(month, c1, p1), MonthPick.of(next, c2, p2))
+            }
+        } ?: emptyFlow()
+        )
+        .catch { e -> if (e is CancellationException) throw e }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Picks the challenge of [month]; the server keeps the current one once its gauge has moved. */
+    fun pickChallenge(month: YearMonth, choiceId: String) {
+        val repo = tree ?: return
+        if (ChallengeCatalog.of(choiceId) == null) return
+        viewModelScope.launch {
+            try {
+                repo.pick(month, choiceId)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _actionFailed.value = true
+            }
+        }
+    }
 
     /** Switches [feature] on or off for the family; the admin principal always sees it. */
     fun setFeature(feature: Feature, on: Boolean) {

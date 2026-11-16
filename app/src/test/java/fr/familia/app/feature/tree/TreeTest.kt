@@ -57,6 +57,31 @@ class TreeTest {
     }
 
     @Test
+    fun `the list of challenges is the server's, December is 20 photos de Noël`() {
+        assertEquals(16, ChallengeCatalog.choices.size)
+        assertEquals(16, ChallengeCatalog.choices.map { it.id }.toSet().size)
+        assertEquals("christmasPhotos", ChallengeCatalog.defaultFor(december).id)
+        assertEquals("goodNewsStart", ChallengeCatalog.defaultFor(YearMonth.of(2027, 1)).id)
+    }
+
+    @Test
+    fun `a month shows its pick until the gauge moves, then keeps its challenge`() {
+        val next = YearMonth.of(2027, 1)
+        // Nothing yet: the default of the month.
+        assertEquals(MonthPick(next, ChallengeCatalog.defaultFor(next), locked = false), MonthPick.of(next, null, null))
+        // Picked before the server created it.
+        assertEquals("pets", MonthPick.of(next, null, "pets").choice.id)
+        val started = MonthChallenge(december, "20 photos de Noël", "🎄", 20, 3, false, choiceId = "christmasPhotos")
+        val locked = MonthPick.of(december, started, "pets")
+        assertTrue(locked.locked)
+        assertEquals("christmasPhotos", locked.choice.id)
+        // Nobody moved it: the pick shows, and it can still change.
+        val untouched = MonthPick.of(december, started.copy(progress = 0), "pets")
+        assertFalse(untouched.locked)
+        assertEquals("pets", untouched.choice.id)
+    }
+
+    @Test
     fun `the gauge never goes past its target`() {
         assertEquals(0.35f, MonthChallenge(december, "20 photos de Noël", "🎄", 20, 7, false).fraction, 0.001f)
         assertEquals(1f, MonthChallenge(december, "x", "", 20, 25, true).fraction, 0.001f)

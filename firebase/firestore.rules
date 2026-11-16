@@ -477,6 +477,20 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // challengePicks/{AAAA-MM}: the challenge the admin principal chose in Administration, from
+    // the list of the functions (tree.ts, CATALOG). The functions apply it to challenges/{month}.
+    match /challengePicks/{month} {
+      allow read: if isOwner();
+      allow create, update: if isOwner()
+        && month.matches('^20[0-9]{2}-(0[1-9]|1[0-2])$')
+        && request.resource.data.keys().hasOnly(['choiceId', 'pickedAt'])
+        && request.resource.data.choiceId in ['goodNewsStart', 'winterPhotos', 'springSigns', 'springNews',
+          'outdoorPhotos', 'summerNews', 'holidayPhotos', 'postcards', 'backToSchool', 'autumnColours',
+          'littleJoys', 'christmasPhotos', 'kitchen', 'pets', 'proudOf', 'together']
+        && request.resource.data.pickedAt == request.time;
+      allow delete: if false;
+    }
+
     // --- Coups de main (PRD, récits 13 à 18) ---------------------------------------------------------
 
     // A day AAAA-MM-JJ as a timestamp at midnight UTC.
