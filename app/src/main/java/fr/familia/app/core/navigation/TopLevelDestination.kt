@@ -91,6 +91,10 @@ data class PollDetailDestination(val pollId: String)
 @Serializable
 data object PollEditDestination
 
+/** « Rejoignez-moi », opened from its card on the Accueil (récit 33). */
+@Serializable
+data object JoinMeDestination
+
 /** Event form opened from the Planning tab: a new event when [eventId] is null. */
 @Serializable
 data class EventEditDestination(val eventId: String? = null)
