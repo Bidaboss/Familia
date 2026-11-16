@@ -234,6 +234,7 @@
     <string name="feature_event_albums">Albums des événements</string>
     <string name="feature_souvenirs">Souvenirs</string>
     <string name="feature_tree">Arbre de la famille</string>
+    <string name="feature_recap">La semaine de la famille</string>
     <string name="feature_digest">Résumé du jour (souvenirs, défi, question)</string>
     <string name="feature_month_slideshow">Diaporama du mois</string>
     <string name="feature_recipes">Carnet de recettes</string>
@@ -795,6 +796,8 @@
     <string name="channel_souvenirs_description">Quand tu gagnes un nouveau souvenir.</string>
     <string name="channel_tree">Défi du mois</string>
     <string name="channel_tree_description">Quand la famille réussit le défi du mois.</string>
+    <string name="channel_recap">La semaine de la famille</string>
+    <string name="channel_recap_description">Le dimanche à 18 h, les nouvelles de la semaine.</string>
     <string name="channel_join_me">Rejoignez-moi</string>
     <string name="channel_join_me_description">Quand un proche t\'envoie l\'endroit où le rejoindre.</string>
     <string name="channel_capsules">Capsules temporelles</string>
@@ -1461,6 +1464,8 @@
     <string name="tree_challenge_done">Défi réussi : l\'arbre est en fleurs !</string>
     <string name="notifications_tree">Défi du mois</string>
     <string name="notifications_tree_help">Quand la famille réussit le défi du mois.</string>
+    <string name="notifications_recap">La semaine de la famille</string>
+    <string name="notifications_recap_help">Le dimanche à 18 h : les photos, les anniversaires à venir, le défi et les voyages.</string>
     <string name="help_topic_tree_title">L\'arbre de la famille et le défi du mois</string>
     <string name="help_topic_tree_body">L\'arbre, sur l\'Accueil, grandit avec les gestes de tous : une Bonne nouvelle, une réaction, un « Je viens », un coup de main ou un « bien arrivé » lui ajoutent chacun une feuille, 5 par jour au plus pour chaque personne. Il ne rétrécit jamais et change avec les saisons. Chaque mois a son défi, par exemple « 20 photos de Noël » : publie une Bonne nouvelle avec des photos et la jauge avance toute seule. Quand le défi est réussi, l\'arbre fleurit et toute la famille est prévenue. Personne ne voit qui a le plus aidé.</string>
     <!-- Capsule temporelle (récit 39) -->

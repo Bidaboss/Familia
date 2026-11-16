@@ -37,14 +37,18 @@ class NotificationSettingsViewModel(
             if (notifications == null) {
                 flowOf(NotificationSettingsUiState.Ready(dayBeforeReminder = true)) // Previews, no Firebase.
             } else {
-                combine<Boolean, Boolean, Boolean, Pair<Boolean, Boolean>, Boolean, NotificationSettingsUiState>(
+                combine<Boolean, Boolean, Boolean, Triple<Boolean, Boolean, Boolean>, Boolean, NotificationSettingsUiState>(
                     notifications.observeDayBeforeReminder(memberId),
                     notifications.observeGoodNews(memberId),
                     notifications.observeWeekly(memberId),
-                    combine(notifications.observeSouvenirs(memberId), notifications.observeTree(memberId)) { s, t -> s to t },
+                    combine(
+                        notifications.observeSouvenirs(memberId),
+                        notifications.observeTree(memberId),
+                        notifications.observeRecap(memberId),
+                    ) { s, t, r -> Triple(s, t, r) },
                     saveFailed,
-                ) { on, goodNews, weekly, (souvenirs, tree), failed ->
-                    NotificationSettingsUiState.Ready(on, failed, goodNews, weekly, souvenirs, tree)
+                ) { on, goodNews, weekly, (souvenirs, tree, recap), failed ->
+                    NotificationSettingsUiState.Ready(on, failed, goodNews, weekly, souvenirs, tree, recap)
                 }
                     .onStart { if (n > 0) emit(NotificationSettingsUiState.Loading) }
                     .catch { e ->
@@ -72,6 +76,9 @@ class NotificationSettingsViewModel(
 
     /** L'arbre (récit 35): only the « Défi réussi » notice; the tree keeps growing. */
     fun setTree(enabled: Boolean) = save { it.setTree(memberId, enabled) }
+
+    /** « La semaine de la famille » (récit 36): the Sunday notice; the screen stays in the app. */
+    fun setRecap(enabled: Boolean) = save { it.setRecap(memberId, enabled) }
 
     private fun save(write: suspend (NotificationRepository) -> Unit) {
         val repo = notifications ?: return

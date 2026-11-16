@@ -32,4 +32,9 @@ interface NotificationRepository {
     fun observeTree(memberId: String): Flow<Boolean> = flowOf(true)
 
     suspend fun setTree(memberId: String, enabled: Boolean) = Unit
+
+    /** « La semaine de la famille » (récit 36), on unless turned off. */
+    fun observeRecap(memberId: String): Flow<Boolean> = flowOf(true)
+
+    suspend fun setRecap(memberId: String, enabled: Boolean) = Unit
 }
