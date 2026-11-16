@@ -35,6 +35,7 @@ import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPh
 import {
   countGesture, countHelpGiven, deleteSouvenirsOf, giveSouvenir, giveYearSouvenirs, isNewWeeklyAnswer, souvenirMark,
 } from './souvenirs';
+import { deleteDigestOf, sendDigests } from './digest';
 import { revealWishes } from './wishesReveal';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
@@ -355,6 +356,8 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
   await checkConsumptionIfDue(getFirestore(), cloudMonitoring, send, new Date());
   // And the time capsules whose day has come (récit 39).
   await openDueCapsules(getFirestore(), send, new Date());
+  // And the résumé of the day, once from 18 h (AVIS-14).
+  await sendDigests(getFirestore(), send, new Date());
   // And the polls whose end date has passed (récits 2 bis et 2 ter).
   await closeDuePolls(getFirestore(), new Date());
 });
@@ -376,6 +379,7 @@ export const onMemberDeletedAnswers = onDocumentDeleted('members/{memberId}', as
   await deleteSouvenirsOf(getFirestore(), event.params.memberId);
   await deleteTreeDataOf(getFirestore(), event.params.memberId);
   await deleteJoinMeOf(getFirestore(), event.params.memberId);
+  await deleteDigestOf(getFirestore(), event.params.memberId);
 });
 
 // --- Sondages (récits 2 bis et 2 ter) ---------------------------------------------------------

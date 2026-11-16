@@ -6,6 +6,7 @@
 import type { Firestore } from 'firebase-admin/firestore';
 import { addDays, Notice, parisDay } from './logic';
 import { BankQuestion, QUESTION_BANK } from './questionBank';
+import { digestOn, queueDigest } from './digest';
 import { notify, Sender } from './store';
 
 /** The first question comes out on Monday 30 November 2026 (PRD rév. 174). */
@@ -113,7 +114,10 @@ export async function publishWeeklyQuestion(db: Firestore, send: Sender, now: Da
     throw e;
   });
   if (!created) return null;
-  await notify(db, send, await audience(db), questionNotice(weekId, question.text));
+  const told = await audience(db);
+  // With the résumé of the day (AVIS-14), the question waits for it; otherwise it is told at once.
+  if (await digestOn(db)) await queueDigest(db, told, { kind: 'weekly', weekId }, now);
+  else await notify(db, send, told, questionNotice(weekId, question.text));
   return weekId;
 }
 
