@@ -39,6 +39,11 @@ private class FakeNotifications(
     override suspend fun setRecap(memberId: String, enabled: Boolean) {
         recap.value = enabled
     }
+    val wishes = MutableStateFlow(true)
+    override fun observeBirthdayWishes(memberId: String): Flow<Boolean> = wishes
+    override suspend fun setBirthdayWishes(memberId: String, enabled: Boolean) {
+        wishes.value = enabled
+    }
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -82,6 +87,16 @@ class NotificationSettingsViewModelTest {
         vm.setRecap(false)
         assertEquals(NotificationSettingsUiState.Ready(dayBeforeReminder = true, recap = false), vm.uiState.value)
         assertEquals(false, repo.recap.value)
+    }
+
+    @Test
+    fun `the birthday wishes notices can be turned off (récit 36)`() = runTest {
+        val repo = FakeNotifications()
+        val vm = NotificationSettingsViewModel(repo, "adult1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        vm.setBirthdayWishes(false)
+        assertEquals(NotificationSettingsUiState.Ready(dayBeforeReminder = true, birthdayWishes = false), vm.uiState.value)
+        assertEquals(false, repo.wishes.value)
     }
 
     @Test
