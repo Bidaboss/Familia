@@ -159,7 +159,9 @@ import fr.familia.app.feature.recipes.RecipeEditRoute
 import fr.familia.app.feature.recipes.RecipesDestination
 import fr.familia.app.feature.recipes.RecipesRoute
 import fr.familia.app.feature.trips.TripDetailDestination
+import fr.familia.app.feature.expenses.ExpenseEditRoute
 import fr.familia.app.feature.expenses.ExpensesRoute
+import fr.familia.app.feature.expenses.TripExpenseEditDestination
 import fr.familia.app.feature.expenses.TripExpensesDestination
 import fr.familia.app.feature.trips.TripEditDestination
 import fr.familia.app.feature.trips.TripPhotosDestination
@@ -659,7 +661,19 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             tripId = entry.toRoute<TripExpensesDestination>().tripId,
+                            onAdd = { navController.navigate(TripExpenseEditDestination(entry.toRoute<TripExpensesDestination>().tripId)) },
+                            onEdit = { id -> navController.navigate(TripExpenseEditDestination(entry.toRoute<TripExpensesDestination>().tripId, id)) },
                             onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<TripExpenseEditDestination> { entry ->
+                        val route = entry.toRoute<TripExpenseEditDestination>()
+                        ExpenseEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            tripId = route.tripId,
+                            expenseId = route.expenseId,
+                            onDone = { navController.popBackStack() },
                         )
                     }
                     composable<TripPhotosDestination> { entry ->

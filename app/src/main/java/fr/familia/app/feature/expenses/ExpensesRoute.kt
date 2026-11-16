@@ -14,12 +14,18 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class TripExpensesDestination(val tripId: String)
 
+/** The form of an expense of [tripId]: a new one when [expenseId] is null. */
+@Serializable
+data class TripExpenseEditDestination(val tripId: String, val expenseId: String? = null)
+
 /** Connects the accounts of a trip to their ViewModel. */
 @Composable
 fun ExpensesRoute(
     container: AppContainer?,
     currentMember: Member,
     tripId: String,
+    onAdd: () -> Unit,
+    onEdit: (expenseId: String) -> Unit,
     onBack: () -> Unit,
 ) {
     val viewModel: ExpensesViewModel = viewModel(
@@ -31,5 +37,29 @@ fun ExpensesRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    ExpensesScreen(state = state, onRetry = viewModel::retry, onBack = onBack)
+    ExpensesScreen(state = state, onRetry = viewModel::retry, onBack = onBack, onAdd = onAdd, onEdit = onEdit)
+}
+
+/** Connects the expense form to its ViewModel. */
+@Composable
+fun ExpenseEditRoute(
+    container: AppContainer?,
+    currentMember: Member,
+    tripId: String,
+    expenseId: String?,
+    onDone: () -> Unit,
+) {
+    val viewModel: ExpenseEditViewModel = viewModel(
+        key = "expense-$tripId-${expenseId ?: "new"}",
+        factory = viewModelFactory {
+            initializer {
+                ExpenseEditViewModel(
+                    container?.expenseRepository, container?.tripRepository, container?.memberRepository,
+                    currentMember.id, tripId, expenseId,
+                )
+            }
+        },
+    )
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    ExpenseEditScreen(state = state, onChange = viewModel::update, onSave = viewModel::save, onDelete = viewModel::delete, onDone = onDone)
 }
