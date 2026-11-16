@@ -943,6 +943,7 @@
     <string name="event_comment_when_edited">%1$s · modifié</string>
     <string name="event_comments_mute">Ne plus être prévenu des commentaires</string>
     <string name="event_comments_unmute">Être à nouveau prévenu des commentaires</string>
+    <string name="event_comments_public">Tout le monde lit les commentaires, y compris la personne fêtée : garde les surprises pour toi.</string>
     <string name="event_comments_mute_failed">Le réglage n\'a pas pu être changé. Réessaie.</string>
     <string name="share_consent_title">Avant de partager</string>
     <string name="share_consent_body">Des enfants apparaissent peut-être sur ces photos. Pense à demander l\'accord de leurs parents avant d\'envoyer la vidéo hors de Familia.</string>
