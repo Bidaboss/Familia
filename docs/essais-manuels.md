@@ -338,3 +338,12 @@ Avec le module « La bienvenue » allumé, un membre ajouté qui ne s'est jamais
 ## Administration (DESIGN-11)
 1. Administration : les marges sur les côtés passent à 20 dp, dans toutes les sections.
 2. Les cartes « Consommation » et « Capsules restantes » ont leur titre avec la pastille en thème clair.
+
+## Le coin des petits (récit 43)
+
+Avec le module « Le coin des petits » allumé, un compte adulte qui a un enfant dans son foyer, et un autre compte.
+
+1. Publie une Bonne nouvelle « Pour moi ». **Attendu :** pas d'interrupteur « Les petits ».
+2. Publie-en une pour l'enfant, et allume « Dans « Les petits » ». **Attendu :** la carte porte l'étiquette « Les petits », dans le fil et sur sa page.
+3. Avec l'autre compte, ouvre les Bonnes nouvelles et touche le filtre « Les petits ». **Attendu :** seules celles des petits restent. Touche-le encore : tout revient.
+4. Éteins le module. **Attendu :** ni l'interrupteur, ni le filtre, ni l'étiquette pour les membres (l'admin principal voit toujours tout).

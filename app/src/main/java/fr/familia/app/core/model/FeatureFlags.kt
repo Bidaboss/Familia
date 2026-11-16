@@ -70,6 +70,8 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     Welcome("welcome", R.string.feature_welcome),
     /** Tailles, pointure, allergies et goûts sur la fiche d'un membre (PRD, récit 7 bis). */
     MemberCard("memberCard", R.string.feature_member_card),
+    /** Le coin des petits : l'étiquette « Les petits » et son filtre sur les Bonnes nouvelles (PRD, récit 43). */
+    LittleOnes("littleOnes", R.string.feature_little_ones),
 }
 
 /**

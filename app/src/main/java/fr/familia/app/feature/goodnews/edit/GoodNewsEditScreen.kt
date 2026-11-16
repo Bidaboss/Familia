@@ -86,6 +86,9 @@ fun GoodNewsEditScreen(
     onBack: () -> Unit,
     /** Links the good news to the challenge of a foyer (récit 35 bis). */
     onForChallenge: (Boolean) -> Unit = {},
+    /** « Les petits » (récit 43), offered when the module is on and the news is for a child. */
+    littleOnesOn: Boolean = false,
+    onLittleOnes: (Boolean) -> Unit = {},
 ) {
     val editing = state as? GoodNewsEditUiState.Editing
     val hasContent = editing != null && (editing.form.text.isNotBlank() || editing.form.photos.isNotEmpty())
@@ -109,7 +112,10 @@ fun GoodNewsEditScreen(
                     title = stringResource(R.string.goodnews_missing_title),
                     body = stringResource(R.string.goodnews_missing_body),
                 )
-                is GoodNewsEditUiState.Editing -> Form(state, onText, onAddPhotos, onRemovePhoto, onFor, onToggleMention, onSave, onForChallenge)
+                is GoodNewsEditUiState.Editing -> Form(
+                    state, onText, onAddPhotos, onRemovePhoto, onFor, onToggleMention, onSave, onForChallenge,
+                    littleOnes = if (littleOnesOn) onLittleOnes else null,
+                )
             }
         }
     }
@@ -152,6 +158,7 @@ private fun Form(
     onToggleMention: (String) -> Unit,
     onSave: () -> Unit,
     onForChallenge: (Boolean) -> Unit,
+    littleOnes: ((Boolean) -> Unit)?,
 ) {
     val form = state.form
     val errors = state.errors
@@ -207,22 +214,16 @@ private fun Form(
             MemberChips(state.candidates, form.mentionIds, enabled = !state.isSaving, onClick = onToggleMention) { it.firstName }
         }
 
+        if (littleOnes != null && state.isNew && form.forMemberId != state.targets.first().id) {
+            SwitchRow(stringResource(R.string.goodnews_little_ones_switch), form.littleOnes, !state.isSaving, littleOnes)
+        }
+
         val challenge = state.challenge
         if (state.isNew && challenge != null) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp)
-                    .toggleable(value = form.forChallenge, enabled = !state.isSaving, role = Role.Switch, onValueChange = onForChallenge),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    stringResource(R.string.goodnews_for_challenge, challenge.emoji, challenge.title),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.weight(1f),
-                )
-                Switch(checked = form.forChallenge, onCheckedChange = null, enabled = !state.isSaving)
-            }
+            SwitchRow(
+                stringResource(R.string.goodnews_for_challenge, challenge.emoji, challenge.title),
+                form.forChallenge, !state.isSaving, onForChallenge,
+            )
         }
 
         Button(onClick = onSave, enabled = !state.isSaving, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
@@ -324,4 +325,19 @@ internal fun previewGoodNewsEdit(errors: Set<GoodNewsFormError> = emptySet()): G
 @Composable
 private fun GoodNewsEditScreenPreview() {
     FamiliaTheme { Surface { GoodNewsEditScreen(previewGoodNewsEdit(setOf(GoodNewsFormError.NoPhoto)), {}, {}, {}, {}, {}, {}, {}, {}) } }
+}
+
+/** A line of 56 dp that the whole width switches on and off. */
+@Composable
+private fun SwitchRow(text: String, checked: Boolean, enabled: Boolean, onChange: (Boolean) -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onChange),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        Switch(checked = checked, onCheckedChange = null, enabled = enabled)
+    }
 }

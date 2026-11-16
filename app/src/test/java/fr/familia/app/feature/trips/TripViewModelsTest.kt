@@ -93,6 +93,18 @@ class TripViewModelsTest {
     }
 
     @Test
+    fun `a trip hidden from someone of the family cannot be shared`() = runTest {
+        val open = TripDetailViewModel(FakeTrips(), FakeMembers(), "adult1", "t1", today = flowOf(july))
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { open.uiState.collect {} }
+        assertTrue((open.uiState.value as TripDetailUiState.Success).canShare)
+
+        val surprise = FakeTrips(listOf(TestTrips.trip(readers = TestTrips.everyone - "kid2")))
+        val hidden = TripDetailViewModel(surprise, FakeMembers(), "adult1", "t1", today = flowOf(july))
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { hidden.uiState.collect {} }
+        assertFalse((hidden.uiState.value as TripDetailUiState.Success).canShare)
+    }
+
+    @Test
     fun `a refused bien arrive is said on screen`() = runTest {
         val trips = FakeTrips(steps = mapOf("t1" to listOf(TestTrips.step())), failWith = IOException("refused"))
         val vm = TripDetailViewModel(trips, FakeMembers(), "adult1", "t1", today = flowOf(july))

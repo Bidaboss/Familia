@@ -463,6 +463,7 @@ Une Bonne nouvelle a un texte court, une à trois photos et peut nommer des memb
 | `hiddenByIds` | liste de `memberId` (21 au plus) | Les membres concernés qui ont choisi « Masquer pour moi » (PRD rév. 158) : ils ne la voient plus dans le fil ni sur l'Accueil, les autres si |
 | `createdAt`, `updatedAt` | horodatage serveur | `updatedAt` change quand l'auteur modifie, pas pour une réaction |
 | `forChallenge` | `AAAA-MM`, facultatif | Compte pour le défi lancé par un foyer ce mois-là (récit 35 bis). Fixé à la publication, l'auteur ne le change pas en modifiant |
+| `littleOnes` | `true`, facultatif | « Les petits » (récit 43, module `littleOnes`) : le dessin ou la réussite d'un jeune enfant, publié pour lui par un adulte responsable. Seulement quand `forMemberId` n'est pas l'auteur, jamais écrit à `false`, fixé à la publication. Le fil des Bonnes nouvelles a un filtre « Les petits » |
 
 Le fil se lit par `orderBy('createdAt', 'desc')` et pages de 20 ; la carte d'accueil prend les 3 dernières des 14 derniers jours (même requête, filtrée par l'appli).
 
@@ -1082,4 +1083,4 @@ seul l'admin principal la reçoit.
 
 `at` (date). Écrit seulement par les fonctions, illisible par l'appli. Il marque qu'une bienvenue a été donnée, pour qu'elle ne parte qu'une fois.
 
-À la première connexion d'un membre (son `uid` passe de vide à rempli, `onMemberSignedIn`), si le module `welcome` est allumé, la famille qui a l'appli reçoit « Camille vient d'arriver », « Dis-lui bonjour ! » (canal `welcome`, donnée `welcomeOf` : l'appli ouvre la fiche). Rien ne part pour un membre sans foyer, ni pour un membre du foyer de test (`households/{id}.isTest == true`, lu par `functions/src/testHousehold.ts`). Si le module est éteint, rien n'est marqué : la bienvenue n'est pas perdue, mais elle ne partira qu'à une nouvelle première connexion.
+À la première connexion d'un membre (son `uid` passe de vide à rempli, `onMemberSignedIn`), si le module `welcome` est allumé, la famille qui a l'appli reçoit « Camille vient d'arriver », « Dis-lui bonjour ! » (canal `welcome`, donnée `welcomeOf` : l'appli ouvre la fiche). Rien ne part pour un membre sans foyer, ni pour un membre du foyer de test (`households/{id}.isTest == true`, lu par `functions/src/testHousehold.ts`). Si le module est éteint, rien n'est marqué : la bienvenue n'est pas perdue, mais elle ne partira qu'à une nouvelle première connexion. Quand un membre est supprimé, `onMemberDeleted` supprime aussi son `welcomes/{memberId}`.

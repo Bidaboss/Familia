@@ -53,6 +53,11 @@ sealed interface TripDetailUiState {
         val items: List<TripItem> = emptyList(),
         /** The participants, who can be put in charge of a line. */
         val assignees: List<ItemAssignee> = emptyList(),
+        /**
+         * « Partager » (récit 31): only when the whole family follows the trip. A surprise trip,
+         * hidden from someone, must never reach them through a family group.
+         */
+        val canShare: Boolean = false,
     ) : TripDetailUiState
 }
 
@@ -190,6 +195,7 @@ class TripDetailViewModel(
             assignees = trip.participantIds.mapNotNull { id -> family.members.firstOrNull { it.id == id } }
                 .map { ItemAssignee(it.id, it.firstName) }
                 .sortedBy { it.name.lowercase() },
+            canShare = trip.readerIds.isEmpty() || family.members.all { it.id in trip.readerIds },
         )
     }
 }

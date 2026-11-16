@@ -15,7 +15,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -58,6 +60,9 @@ fun GoodNewsFeedScreen(
     onRetry: () -> Unit,
     onDismissError: () -> Unit,
     onBack: () -> Unit,
+    /** The filter « Les petits » (récit 43), shown when the module is on. */
+    littleOnesOn: Boolean = false,
+    onLittleOnesOnly: (Boolean) -> Unit = {},
 ) {
     var removing by rememberSaveable { mutableStateOf<String?>(null) }
     Scaffold(
@@ -86,14 +91,17 @@ fun GoodNewsFeedScreen(
                     },
                 )
                 is GoodNewsFeedUiState.Success ->
-                    if (state.items.isEmpty()) {
+                    if (state.items.isEmpty() && !state.littleOnesOnly) {
                         EmptyState(
                             icon = Icons.Outlined.Celebration,
                             title = stringResource(R.string.goodnews_empty_title),
                             body = stringResource(R.string.goodnews_empty_body),
                         )
                     } else {
-                        Feed(state, onOpen, onEdit, onReact, { removing = it }, onHide, onLoadMore)
+                        Feed(
+                            state, onOpen, onEdit, onReact, { removing = it }, onHide, onLoadMore,
+                            littleOnesFilter = if (littleOnesOn || state.littleOnesOnly) onLittleOnesOnly else null,
+                        )
                     }
             }
         }
@@ -113,12 +121,28 @@ private fun Feed(
     onAskRemove: (String) -> Unit,
     onHide: (String) -> Unit,
     onLoadMore: () -> Unit,
+    littleOnesFilter: ((Boolean) -> Unit)?,
 ) {
     // The bottom padding keeps the last card above the « Publier » button.
     LazyColumn(
         contentPadding = PaddingValues(start = ClaySpacing.screen, top = 16.dp, end = ClaySpacing.screen, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
+        if (littleOnesFilter != null) {
+            item(key = "littleOnes") {
+                FilterChip(
+                    selected = state.littleOnesOnly,
+                    onClick = { littleOnesFilter(!state.littleOnesOnly) },
+                    label = { Text(stringResource(R.string.goodnews_little_ones_filter)) },
+                    modifier = Modifier.heightIn(min = 56.dp),
+                )
+            }
+            if (state.littleOnesOnly && state.items.isEmpty()) {
+                item(key = "littleOnesEmpty") {
+                    Text(stringResource(R.string.goodnews_little_ones_empty), style = MaterialTheme.typography.bodyLarge)
+                }
+            }
+        }
         items(state.items, key = { it.news.id }) { item ->
             val id = item.news.id
             GoodNewsCard(
