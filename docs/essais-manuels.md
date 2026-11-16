@@ -247,6 +247,11 @@ Pas d'interrupteur : le bouton est là pour tous les adultes, dans la version fa
 5. Avec un compte enfant, ouvre l'onglet Famille. **Attendu :** pas de bouton Partager Familia.
 6. En mode **Voir comme** un adulte. **Attendu :** pas de bouton Partager Familia (rien ne sort de l'appli dans ce mode).
 
+## Aucune surprise sur l'écran verrouillé (audit 2.2)
+
+1. Sur un téléphone neuf ou qui installe l'appli pour la première fois, réserve un cadeau pour ce membre depuis un autre compte, téléphone verrouillé. **Attendu :** l'écran verrouillé montre seulement « Familia » et le canal, sans le texte. Même chose pour une capsule qui s'ouvre.
+2. Refais l'essai sur un téléphone **qui avait déjà l'appli** avant cette version. Android ne change pas la visibilité d'un canal déjà créé, c'est le serveur qui la demande alors à chaque notification. **Attendu :** le texte reste caché sur l'écran verrouillé. S'il s'affiche, désinstalle et réinstalle l'appli sur ce téléphone avant le 21 (ou, dans les réglages Android de Familia, mets le canal Cadeaux sur « Masquer le contenu sensible »).
+
 ## La semaine de la famille (récit 36)
 
 Avec le module « Récap du dimanche » allumé, et deux comptes : un qui suit un voyage en cours, un autre décoché de ce voyage.
