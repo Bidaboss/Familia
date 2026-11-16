@@ -220,6 +220,7 @@
     <string name="feature_digest">Résumé du jour (souvenirs, défi, question)</string>
     <string name="feature_month_slideshow">Diaporama du mois</string>
     <string name="feature_recipes">Carnet de recettes</string>
+    <string name="feature_capsules">Capsule temporelle</string>
     <string name="household_rename_action">Renommer le foyer %1$s</string>
     <string name="household_rename_title">Renommer le foyer</string>
     <string name="household_rename_failed_title">Le nom n\'a pas changé</string>
@@ -485,6 +486,7 @@
     <string name="notebook_idea_for">Pour qui</string>
     <string name="notebook_idea_other">Ou quelqu\'un hors famille (prénom)</string>
     <string name="notebook_idea_occasion">Pour quelle occasion</string>
+    <string name="notebook_share_occasion">%1$s, choisi par le responsable du cadeau commun</string>
     <string name="notebook_idea_year">Année (facultative)</string>
     <string name="notebook_idea_status">Où en est-il</string>
     <string name="notebook_idea_delete">Retirer l\'idée</string>
@@ -748,6 +750,8 @@
     <string name="channel_tree_description">Quand la famille réussit le défi du mois.</string>
     <string name="channel_join_me">Rejoignez-moi</string>
     <string name="channel_join_me_description">Quand un proche t\'envoie l\'endroit où le rejoindre.</string>
+    <string name="channel_capsules">Capsules temporelles</string>
+    <string name="channel_capsules_description">Le jour où une capsule écrite pour toi s\'ouvre.</string>
     <string name="channel_trips_description">« Bien arrivé » des voyages que tu suis, et le rappel quand tu pars.</string>
     <string name="trips_add">Nouveau voyage</string>
     <string name="trips_open_action">ouvrir le voyage</string>
@@ -896,6 +900,8 @@
     <string name="error_recipe_too_long">Texte trop long : raccourcis-le un peu.</string>
     <string name="help_screen_recipes_title">Le carnet de recettes</string>
     <string name="help_screen_recipes_body">Les recettes de la famille, par ordre alphabétique. Cherche par nom, ingrédient, étiquette ou personne. Touche « Nouvelle recette » pour en noter une : un ingrédient par ligne, une étape par ligne. Seule la personne qui l\'a notée, ou l\'administrateur, peut la modifier, ajouter jusqu\'à 3 photos du plat ou la retirer. Chacun peut laisser un commentaire. Le bouton Partager envoie la recette en texte, sans les photos.</string>
+    <string name="help_screen_capsules_title">Les capsules temporelles</string>
+    <string name="help_screen_capsules_body">Une capsule, c\'est un message pour plus tard : un texte et jusqu\'à 3 photos, pour les personnes de ton choix, qui s\'ouvre le jour que tu choisis, entre un mois et cinq ans plus tard. Jusqu\'à ce jour-là, toi seul peux la lire : les destinataires ne savent même pas qu\'elle existe, et l\'administrateur non plus. Le jour venu, ils reçoivent une notification et la trouvent ici. Tu peux supprimer une de tes capsules à tout moment, mais jamais la modifier.</string>
     <string name="month_empty">Pas de photo ce mois-ci. Celles des voyages et des événements apparaissent ici.</string>
     <!-- Before a video leaves the app (carte EXPERT-6): the film, the album and the slideshow. -->
     <string name="share_consent_title">Avant de partager</string>
@@ -1299,6 +1305,23 @@
     <string name="notifications_tree_help">Quand la famille réussit le défi du mois.</string>
     <string name="help_topic_tree_title">L\'arbre de la famille et le défi du mois</string>
     <string name="help_topic_tree_body">L\'arbre, sur l\'Accueil, grandit avec les gestes de tous : une Bonne nouvelle, une réaction, un « Je viens », un coup de main ou un « bien arrivé » lui ajoutent chacun une feuille, 5 par jour au plus pour chaque personne. Il ne rétrécit jamais et change avec les saisons. Chaque mois a son défi, par exemple « 20 photos de Noël » : publie une Bonne nouvelle avec des photos et la jauge avance toute seule. Quand le défi est réussi, l\'arbre fleurit et toute la famille est prévenue. Personne ne voit qui a le plus aidé.</string>
+    <!-- Capsule temporelle (récit 39) -->
+    <string name="capsules_title">Capsules temporelles</string>
+    <string name="capsules_add">Nouvelle capsule</string>
+    <string name="capsules_open">Lire la capsule</string>
+    <string name="capsules_opened">Ouvertes</string>
+    <string name="capsules_sealed">Mes capsules scellées</string>
+    <string name="capsules_sealed_hint">Scellée : toi seul peux la lire jusqu\'à ce jour-là.</string>
+    <string name="capsules_empty_title">Aucune capsule pour l\'instant</string>
+    <string name="capsules_empty_body">Écris un message pour plus tard : il restera scellé jusqu\'au jour que tu choisis.</string>
+    <string name="capsules_error_title">Impossible d\'afficher les capsules</string>
+    <string name="capsules_error_body">Vérifie ta connexion, puis reviens sur cet écran.</string>
+    <string name="capsule_title">Capsule temporelle</string>
+    <string name="capsule_from">De %1$s</string>
+    <string name="capsule_for">Pour %1$s</string>
+    <string name="capsule_for_nobody">personne de la famille</string>
+    <string name="capsule_opened_on">Ouverte le %1$s</string>
+    <string name="capsule_opens_on">S\'ouvre le %1$s</string>
     <!-- Lieu et « Rejoignez-moi » (récit 33) -->
     <string name="place_position">Position partagée</string>
     <string name="place_directions">Itinéraire</string>
@@ -1340,4 +1363,13 @@
     <string name="joinme_send_hint">Ceux que tu as cochés sont prévenus et le voient sur l\'accueil pendant 24 h. Tu peux arrêter avant.</string>
     <string name="help_topic_joinme_title">Rejoignez-moi</string>
     <string name="help_topic_joinme_body">Sur l\'accueil, touche « Dire où je suis ». Prends ta position du moment, ou tape une adresse, ou colle un lien Google Maps. Coche ceux qui doivent te rejoindre, puis « Envoyer » : ils reçoivent une notification et une carte avec « Itinéraire », qui ouvre Google Maps ou Waze. Ta position n\'est prise qu\'au moment où tu touches le bouton, jamais en continu. Le partage s\'efface tout seul au bout de 24 h, ou dès que tu touches « Ne plus partager ».</string>
+    <string name="capsule_sealed_note">Encore scellée : les destinataires ne savent pas qu\'elle existe. Elle ne se modifie plus.</string>
+    <string name="capsule_photo">Photo %1$d sur %2$d de la capsule</string>
+    <string name="capsule_missing_title">Capsule introuvable</string>
+    <string name="capsule_missing_body">Elle a été supprimée, ou elle n\'est pas encore ouverte.</string>
+    <string name="capsule_remove">Supprimer la capsule</string>
+    <string name="capsule_remove_title">Supprimer cette capsule ?</string>
+    <string name="capsule_remove_body">Le message et ses photos seront effacés pour de bon. Les destinataires ne la recevront jamais.</string>
+    <string name="capsule_remove_confirm">Supprimer</string>
+    <string name="capsule_remove_failed">La suppression n\'a pas abouti. Réessaie plus tard.</string>
 </resources>

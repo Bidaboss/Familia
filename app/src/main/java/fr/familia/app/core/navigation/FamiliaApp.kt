@@ -47,6 +47,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
+import fr.familia.app.feature.capsules.CapsuleDetailDestination
+import fr.familia.app.feature.capsules.CapsuleDetailRoute
+import fr.familia.app.feature.capsules.CapsulesDestination
+import fr.familia.app.feature.capsules.CapsulesRoute
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpRoute
 import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
@@ -195,6 +199,9 @@ fun FamiliaApp(
     onPollOpened: () -> Unit = {},
     openJoinMe: Boolean = false,
     onJoinMeOpened: () -> Unit = {},
+    /** The time capsule of a tapped notification, to open once its module shows (récit 39). */
+    openCapsuleId: String? = null,
+    onCapsuleOpened: () -> Unit = {},
     /** A link shared from another app, to add to « Mes envies » once (récit 8 bis). */
     sharedWish: SharedWish? = null,
     onSharedWishOpened: () -> Unit = {},
@@ -369,6 +376,15 @@ fun FamiliaApp(
         if (openJoinMe && placesOn) {
             navController.navigateToTab(TopLevelDestination.Home)
             onJoinMeOpened()
+        }
+    }
+
+    // And for a time capsule that opened today (récit 39).
+    val capsulesOn = features.isOn(Feature.Capsules)
+    LaunchedEffect(openCapsuleId, capsulesOn) {
+        if (openCapsuleId != null && capsulesOn) {
+            navController.navigate(CapsuleDetailDestination(openCapsuleId))
+            onCapsuleOpened()
         }
     }
 
@@ -637,6 +653,22 @@ fun FamiliaApp(
                             onBack = { navController.popBackStack() },
                         )
                     }
+                    composable<CapsulesDestination> {
+                        CapsulesRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onOpen = { id -> navController.navigate(CapsuleDetailDestination(id)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<CapsuleDetailDestination> { entry ->
+                        CapsuleDetailRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            capsuleId = entry.toRoute<CapsuleDetailDestination>().capsuleId,
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
                     composable<RecipeDetailDestination> { entry ->
                         val recipeId = entry.toRoute<RecipeDetailDestination>().recipeId
                         RecipeDetailRoute(
@@ -886,6 +918,7 @@ fun FamiliaApp(
                             onOpenAppearance = if (themesOn) ({ navController.navigate(AppearanceDestination) }) else null,
                             onOpenChildrenUsage = if (features.isOn(Feature.Usage)) ({ navController.navigate(UsageDestination) }) else null,
                             onOpenRecipes = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipesDestination()) }) else null,
+                            onOpenCapsules = if (capsulesOn) ({ navController.navigate(CapsulesDestination) }) else null,
                             onOpenWishes = if (features.isOn(Feature.Gifts)) {
                                 { id -> navController.navigate(GiftListDestination(wishesListId(id))) }
                             } else {
