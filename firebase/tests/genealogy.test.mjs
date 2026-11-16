@@ -74,7 +74,7 @@ describe('family tree (récit 40)', () => {
     await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'kin/theirs')));
   });
 
-  test('links join two people of the tree, once, and a chef only touches their household', async () => {
+  test('links join two people of the tree, once; a chef joins partners on either side, a parent only to a child of their household', async () => {
     await seedKin('k1', 'h1');
     await seedKin('k2', 'h2');
     const chef = as(env, SECOND_ADMIN);
@@ -83,6 +83,9 @@ describe('family tree (récit 40)', () => {
     await assertFails(setDoc(doc(chef, 'kinLinks/parent_k2_adult3'), link(SECOND_ADMIN, 'parent', 'k2', 'adult3')));
     await assertSucceeds(setDoc(doc(as(env, ADMIN), 'kinLinks/parent_k2_adult3'), link(ADMIN, 'parent', 'k2', 'adult3')));
     await assertFails(setDoc(doc(as(env, ADULT), 'kinLinks/parent_adult1_adult2'), link(ADULT, 'parent', 'adult1', 'adult2')));
+    // PRD rév. 195: a chef never declares someone of their household parent of another household's child.
+    await assertFails(setDoc(doc(chef, 'kinLinks/parent_adult1_adult3'), link(SECOND_ADMIN, 'parent', 'adult1', 'adult3')));
+    await assertSucceeds(setDoc(doc(chef, 'kinLinks/parent_adult3_adult2'), link(SECOND_ADMIN, 'parent', 'adult3', 'adult2')));
 
     const admin = as(env, ADMIN);
     await assertFails(setDoc(doc(admin, 'kinLinks/partner_adult3_adult2'), link(ADMIN, 'partner', 'adult3', 'adult2')), 'partners in order');

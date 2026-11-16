@@ -117,6 +117,11 @@ class GenealogyTest {
         assertTrue(asChef.canEditPerson("adult1") && asChef.canEditPerson("jeanne"))
         assertTrue(!asChef.canEditPerson("adult2"))
         assertTrue(asChef.canEditLink(KinLink.partners("adult1", "adult2")))
+        // PRD rév. 195: a parent only for a child of my household.
+        assertTrue(asChef.canEditLink(KinLink.parent("adult2", "adult1")))
+        assertTrue(!asChef.canEditLink(KinLink.parent("adult1", "adult2")))
+        assertTrue(!asChef.canJoin("adult1", Relation.Child, "adult2"))
+        assertTrue(asChef.canJoin("adult1", Relation.Partner, "adult2"))
         val adult = ready(GenealogyViewModel(repo, FakeMembers(), "adult1"))
         assertTrue(!adult.canEdit)
     }

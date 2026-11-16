@@ -23,7 +23,16 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /** How the other person is joined to the one whose card is open. */
-enum class Relation { Parent, Child, Partner }
+enum class Relation {
+    Parent, Child, Partner;
+
+    /** The link that makes [otherId] the relation of [personId]. */
+    fun link(personId: String, otherId: String): KinLink = when (this) {
+        Parent -> KinLink.parent(otherId, personId)
+        Child -> KinLink.parent(personId, otherId)
+        Partner -> KinLink.partners(personId, otherId)
+    }
+}
 
 sealed interface GenealogyUiState {
     data object Loading : GenealogyUiState
@@ -50,8 +59,18 @@ sealed interface GenealogyUiState {
         fun canEditPerson(personId: String): Boolean =
             isOwner || (chefOf != null && tree.people[personId]?.householdId == chefOf)
 
-        /** The rules' managesLink: one side is in a household I manage. */
-        fun canEditLink(link: KinLink): Boolean = canEditPerson(link.aId) || canEditPerson(link.bId)
+        /**
+         * The rules' managesLink (PRD rév. 195): partners, when one side is in a household I
+         * manage; a parent, only when the child is.
+         */
+        fun canEditLink(link: KinLink): Boolean = when (link.kind) {
+            KinLinkKind.Partner -> canEditPerson(link.aId) || canEditPerson(link.bId)
+            KinLinkKind.Parent -> canEditPerson(link.bId)
+        }
+
+        /** I may make [otherId] the [relation] of [personId]: what the link dialog offers. */
+        fun canJoin(personId: String, relation: Relation, otherId: String): Boolean =
+            canEditLink(relation.link(personId, otherId))
     }
 }
 
@@ -105,18 +124,11 @@ class GenealogyViewModel(
 
     private val ready get() = uiState.value as? GenealogyUiState.Ready
 
-    /** The link that makes [otherId] the [relation] of [personId]. */
-    fun linkFor(personId: String, relation: Relation, otherId: String): KinLink = when (relation) {
-        Relation.Parent -> KinLink.parent(otherId, personId)
-        Relation.Child -> KinLink.parent(personId, otherId)
-        Relation.Partner -> KinLink.partners(personId, otherId)
-    }
-
     /** Joins [otherId] to [personId]; refused here when the rules would refuse it. */
     fun addLink(personId: String, relation: Relation, otherId: String) {
         val state = ready ?: return
         if (personId == otherId || otherId !in state.tree.people) return
-        val link = linkFor(personId, relation, otherId)
+        val link = relation.link(personId, otherId)
         if (!state.canEditLink(link) || state.tree.links.any { it.id == link.id }) return
         // A parent and a child the other way round would loop: refused.
         if (link.kind == KinLinkKind.Parent && state.tree.links.any { it.id == KinLink.parent(link.bId, link.aId).id }) return
@@ -148,7 +160,7 @@ class GenealogyViewModel(
         if (existing != null && !state.canEditPerson(kin.id)) return
         val id = if (existing != null) kin.id else genealogy?.newKinId() ?: return
         val saved = kin.copy(id = id, firstName = firstName, householdId = household, died = kin.died.takeUnless { kin.living })
-        val link = joinTo?.takeIf { existing == null }?.let { (personId, relation) -> linkFor(personId, relation, id) }
+        val link = joinTo?.takeIf { existing == null }?.let { (personId, relation) -> relation.link(personId, id) }
         write { saveKin(saved, currentMemberId, link) }
     }
 
