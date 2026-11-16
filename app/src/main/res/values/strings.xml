@@ -851,6 +851,8 @@
     <string name="help_screen_trip_step_body">Choisis le type, le lieu, le départ et l\'arrivée prévue. Avec une heure d\'arrivée, ceux qui partent reçoivent un rappel 3 h après s\'ils n\'ont pas dit « Bien arrivé ».</string>
     <string name="help_topic_trips_title">Les voyages</string>
     <string name="help_topic_trips_body">Touche « Voyages » en haut du planning. Un voyage a des dates, des personnes qui partent et des étapes. Il apparaît dans le planning de ceux qui le suivent. À chaque arrivée, une personne qui part touche « Bien arrivé » : ceux qui suivent le voyage sont prévenus. Sans « Bien arrivé » 3 h après l\'heure prévue, ceux qui partent reçoivent un rappel. Aucune position GPS n\'est collectée.</string>
+    <string name="help_topic_weekly_title">Répondre à la question de la semaine</string>
+    <string name="help_topic_weekly_body">Chaque lundi à 9 h, une question arrive pour toute la famille, sur l\'Accueil. Réponds en quelques mots, ou touche « Passer ». Tu vois les réponses des autres dès que tu as répondu ou passé, et tout le monde les voit le mercredi vers 9 h. Tu peux modifier ou retirer ta réponse. « Nos réponses » garde les questions des semaines passées. Pour ne plus être prévenu le lundi, va dans les réglages des notifications.</string>
     <!-- Accueil (PRD, récit 29, « Tableau de bord d'accueil ») -->
     <string name="nav_home">Accueil</string>
     <string name="home_empty_title">Rien de prévu pour l\'instant</string>
@@ -940,5 +942,8 @@
     <string name="weekly_failed_title">Ça n\'a pas marché</string>
     <string name="weekly_failed_body">Ta réponse n\'a pas été enregistrée. Vérifie ta connexion et réessaie.</string>
     <string name="weekly_open">Ouvrir la question de la semaine</string>
+    <string name="weekly_photo_add">Ajouter une photo</string>
+    <string name="weekly_photo_remove">Retirer la photo</string>
+    <string name="weekly_photo_description">Photo jointe à la réponse</string>
     <string name="weekly_see_answers">Voir les réponses</string>
 </resources>

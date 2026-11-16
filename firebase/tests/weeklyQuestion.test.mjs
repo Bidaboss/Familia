@@ -58,6 +58,15 @@ describe('answering', () => {
     await assertFails(setDoc(answerRef(db, ADULT), answer(ADULT, { text: '   ' })));
     await assertFails(setDoc(answerRef(db, ADULT), answer(ADULT, { text: 'x'.repeat(501) })));
     await assertFails(setDoc(answerRef(db, ADULT), answer(ADULT, { photo: 'p1' })));
+  });
+
+  test('an answer may name one photo, « Passer » never does', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(answerRef(db, ADULT), answer(ADULT, { photoId: 'Ab12' })));
+    await assertSucceeds(setDoc(answerRef(db, ADULT), answer(ADULT, { photoId: null })));
+    await assertFails(setDoc(answerRef(db, ADULT), answer(ADULT, { skipped: true, text: null, photoId: 'Ab12' })));
+    await assertFails(setDoc(answerRef(db, ADULT), answer(ADULT, { photoId: '../x' })));
+    await assertFails(setDoc(answerRef(db, ADULT), answer(ADULT, { photoId: 12 })));
     await assertFails(setDoc(answerRef(db, ADULT), answer(ADULT, { updatedAt: Timestamp.fromMillis(0) })));
   });
 

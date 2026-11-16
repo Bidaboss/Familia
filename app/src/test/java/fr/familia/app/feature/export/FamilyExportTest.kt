@@ -2,6 +2,7 @@ package fr.familia.app.feature.export
 
 import fr.familia.app.core.data.ExportAnswer
 import fr.familia.app.core.data.ExportDocument
+import fr.familia.app.core.data.ExportWeeklyAnswer
 import fr.familia.app.core.data.FamilyData
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
@@ -30,6 +31,11 @@ class FamilyExportTest {
             ExportAnswer("e1", "m1", mapOf("status" to "maybe", "answeredBy" to "m1")),
         ),
         helpRequests = listOf(ExportDocument("r1", mapOf("title" to "Garder Noé", "notifyIds" to listOf("m1")))),
+        weeklyQuestions = listOf(ExportDocument("2026-11-30", mapOf("text" to "Ton petit-déjeuner idéal ?", "answerCount" to 2L))),
+        weeklyAnswers = listOf(
+            ExportWeeklyAnswer("2026-11-30", "m2", mapOf("text" to null, "skipped" to true)),
+            ExportWeeklyAnswer("2026-11-30", "m1", mapOf("text" to "Des crêpes", "skipped" to false)),
+        ),
     )
 
     private val json = Json.parseToJsonElement(familyExportJson(data, Instant.parse("2026-11-14T10:00:00Z"), "1.2.0")).jsonObject
@@ -50,6 +56,10 @@ class FamilyExportTest {
         assertEquals(listOf("m1", "m2"), answers.map { it.getValue("memberId").jsonPrimitive.content })
         assertTrue(answers.all { it.getValue("eventId").jsonPrimitive.content == "e1" })
         assertEquals("Garder Noé", json.getValue("helpRequests").jsonArray.single().jsonObject.getValue("title").jsonPrimitive.content)
+        assertEquals("2026-11-30", json.getValue("weeklyQuestions").jsonArray.single().jsonObject.getValue("id").jsonPrimitive.content)
+        val weekly = json.getValue("weeklyAnswers").jsonArray.map { it.jsonObject }
+        assertEquals(listOf("m1", "m2"), weekly.map { it.getValue("memberId").jsonPrimitive.content })
+        assertEquals("Des crêpes", weekly.first().getValue("text").jsonPrimitive.content)
     }
 
     @Test

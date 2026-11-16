@@ -177,8 +177,10 @@ L'admin principal crée une sauvegarde depuis Famille, puis « Administration »
 | `app`, `formatVersion`, `appVersion`, `exportedAt` | « Familia », la version du format (1), la version de l'appli, l'heure de l'export (ISO 8601, UTC) |
 | `households`, `members`, `events` | Les documents tels qu'ils sont stockés, avec leur `id` |
 | `rsvps` | Les réponses, avec `eventId` et `memberId` |
+| `helpRequests` | Les demandes de coup de main, avec leur `id` |
+| `weeklyQuestions`, `weeklyAnswers` | Les questions de la semaine, et leurs réponses avec `questionId` et `memberId`. Les réponses d'une question n'y sont qu'à partir de son `revealAt` (48 h après sa publication), comme le veulent les règles |
 
-Les données sont lues sur le serveur, jamais dans le cache du téléphone. Hors ligne, aucune sauvegarde n'est faite et l'appli demande de se connecter : une sauvegarde est complète ou n'existe pas. L'appli lit les données avant d'ouvrir le sélecteur, et si l'écriture échoue, elle supprime le fichier créé. Les documents sont triés par identifiant, donc deux exports des mêmes données donnent le même fichier. Ne sont pas exportés : `memberEmails`, qui se reconstruit à partir des membres, et les téléphones et réglages de chacun, que seul le membre concerné peut lire. À partir de la V2, les cadeaux s'ajouteront au fichier, avec un `formatVersion` augmenté si sa forme change.
+Les données sont lues sur le serveur, jamais dans le cache du téléphone. Hors ligne, aucune sauvegarde n'est faite et l'appli demande de se connecter : une sauvegarde est complète ou n'existe pas. L'appli lit les données avant d'ouvrir le sélecteur, et si l'écriture échoue, elle supprime le fichier créé. Les documents sont triés par identifiant, donc deux exports des mêmes données donnent le même fichier. Ne sont pas exportés : `memberEmails`, qui se reconstruit à partir des membres, et les téléphones et réglages de chacun, que seul le membre concerné peut lire. À partir de la V2, les cadeaux s'ajouteront au fichier, avec un `formatVersion` augmenté si sa forme change. Ajouter une clé ne change pas la forme : `formatVersion` reste à 1.
 
 ### `config/app` (lot 10)
 
@@ -464,6 +466,7 @@ La liste « À prévoir » du voyage (récit 13) : ce qu'il faut apporter ou ré
 | `assigneeName` | texte ou null | Son prénom, gardé pour que la ligne reste lisible s'il quitte le voyage. Null avec `assigneeId` |
 | `done` | booléen | Coché quand c'est fait |
 | `updatedAt` | horodatage serveur | |
+| `photoId` | texte ou null, facultatif | La photo de la réponse, jamais pour « Passer ». Storage : `weeklyQuestions/{weekId}/{memberId}/{photoId}.jpg` (512 Ko au plus) et `{photoId}-thumb.jpg` (64 Ko au plus), envoyées par le membre avant la réponse. Tous les membres lisent les photos. |
 
 Droits : les lecteurs du voyage lisent la liste. Les participants, enfants compris, ajoutent, cochent, modifient et retirent les lignes. L'admin principal peut retirer une ligne. La personne en charge est forcément un participant. La suppression du voyage supprime sa liste sur le serveur. Tests : `firebase/tests/trips.test.mjs`.
 
@@ -527,10 +530,10 @@ Cloud Functions (`functions/src/weeklyQuestion.ts`) :
 | Fonction | Déclencheur | Rôle |
 |---|---|---|
 | `publishWeeklyQuestion`, appelée par `arrivalReminder` | toutes les 30 minutes, agit le lundi à partir de 9 h | Publie la question de la semaine et prévient chaque membre qui a l'appli, sauf ceux qui ont coupé `weekly`. Canal `weekly`, donnée `weeklyQuestionId`. Ne fait rien deux fois le même lundi. Pas de tâche planifiée à part : Cloud Scheduler n'en offre que 3 gratuites. |
-| `onWeeklyAnswerWritten` | réponse écrite ou retirée | Recompte `answerCount`. |
+| `onWeeklyAnswerWritten` | réponse écrite ou retirée | Recompte `answerCount`, et supprime de Storage la photo qu'une réponse ne nomme plus (photo changée ou retirée, « Passer », réponse retirée ou membre parti). |
 | `onMemberDeletedAnswers` | suppression d'un membre | Retire ses réponses (carte EXPERT-1). |
 
-Plus tard : la photo facultative d'une réponse, la sauvegarde JSON des questions et réponses, le choix et l'ajout de questions dans Administration, les questions proposées par les membres, la feuille de l'arbre (récit 35) et le regroupement avec les autres rendez-vous en une notification par jour (carte AVIS-14).
+Plus tard : le choix et l'ajout de questions dans Administration, les questions proposées par les membres, la feuille de l'arbre (récit 35) et le regroupement avec les autres rendez-vous en une notification par jour (carte AVIS-14).
 
 ## Utilisation (PRD, récit 1 nonies)
 

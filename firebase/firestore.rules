@@ -1155,10 +1155,13 @@ service cloud.firestore {
       return /databases/$(database)/documents/weeklyQuestions/$(weekId);
     }
 
-    // The 5 fields exactly. « Passer » is skipped with no text; an answer is a short text.
+    // The 5 fields, and an optional photoId. « Passer » is skipped with no text and no photo; an
+    // answer is a short text, with at most one photo in Storage (weeklyQuestions/{weekId}/{memberId}/).
     function isValidAnswer(a, memberId) {
       return a.keys().hasAll(['memberId', 'memberName', 'text', 'skipped', 'updatedAt'])
-        && a.keys().size() == 5
+        && a.keys().hasOnly(['memberId', 'memberName', 'text', 'skipped', 'updatedAt', 'photoId'])
+        && (!('photoId' in a) || a.photoId == null
+            || (!a.skipped && a.photoId is string && a.photoId.matches('^[A-Za-z0-9]{1,40}$')))
         && a.memberId == memberId
         && a.memberName == me().firstName
         && a.skipped is bool

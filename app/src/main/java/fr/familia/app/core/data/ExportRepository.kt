@@ -18,7 +18,13 @@ data class FamilyData(
     val answers: List<ExportAnswer>,
     /** Coups de main (spec, « Données et notifications »): the admin principal reads them all. */
     val helpRequests: List<ExportDocument> = emptyList(),
+    /** Question de la semaine (récit 37): the questions, and the answers once they show to everyone. */
+    val weeklyQuestions: List<ExportDocument> = emptyList(),
+    val weeklyAnswers: List<ExportWeeklyAnswer> = emptyList(),
 )
+
+/** An answer to the question of the week [questionId]: its id is the member's. */
+data class ExportWeeklyAnswer(val questionId: String, val memberId: String, val fields: Map<String, Any?>)
 
 /** The server could not be reached. A backup is complete or not made at all, never read from the cache. */
 class ExportOfflineException(cause: Throwable) : Exception(cause)

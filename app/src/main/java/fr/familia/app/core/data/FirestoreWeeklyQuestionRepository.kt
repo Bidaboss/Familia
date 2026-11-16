@@ -49,17 +49,20 @@ class FirestoreWeeklyQuestionRepository(private val db: FirebaseFirestore) : Wee
         awaitClose { registration.remove() }
     }
 
-    override suspend fun answer(questionId: String, memberId: String, memberName: String, text: String?) {
+    override suspend fun answer(questionId: String, memberId: String, memberName: String, text: String?, photoId: String?) {
         answers(questionId).document(memberId).set(
             mapOf(
                 "memberId" to memberId,
                 "memberName" to memberName,
                 "text" to text,
                 "skipped" to (text == null),
+                "photoId" to photoId?.takeIf { text != null },
                 "updatedAt" to FieldValue.serverTimestamp(),
             ),
         ).await()
     }
+
+    override fun newPhotoId(): String = db.collection(QUESTIONS).document().id
 
     override suspend fun removeAnswer(questionId: String, memberId: String) {
         answers(questionId).document(memberId).delete().await()
@@ -88,6 +91,7 @@ class FirestoreWeeklyQuestionRepository(private val db: FirebaseFirestore) : Wee
             skipped = getBoolean("skipped") == true,
             // Null while the server time of a fresh write is pending.
             updatedAt = (get("updatedAt") as? Timestamp)?.toInstant(),
+            photoId = getString("photoId"),
         )
     }
 
