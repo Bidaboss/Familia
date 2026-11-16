@@ -123,7 +123,13 @@ fun EventCommentsContent(
             value = state.draft,
             onValueChange = onType,
             label = { Text(stringResource(R.string.recipe_comment_field)) },
-            supportingText = { Text(stringResource(R.string.recipe_comment_count, state.draft.length, EventComment.MAX_TEXT)) },
+            supportingText = {
+                Column {
+                    // Carte RELECTURE (#110) : a surprise is easily spoilt under a birthday.
+                    Text(stringResource(R.string.event_comments_public))
+                    Text(stringResource(R.string.recipe_comment_count, state.draft.length, EventComment.MAX_TEXT))
+                }
+            },
             minLines = 2,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             modifier = Modifier.fillMaxWidth(),

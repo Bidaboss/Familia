@@ -2,6 +2,7 @@ package fr.familia.app.feature.goodnews.edit
 
 import fr.familia.app.core.model.GoodNews
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.MonthChallenge
 
 enum class PublishFailure { NeedsNetwork, PhotoUnreadable, Failed }
 
@@ -23,6 +24,8 @@ sealed interface GoodNewsEditUiState {
         /** While sending: the photo being sent (1, 2, 3), or 0 once the photos are sent. */
         val sendingPhoto: Int? = null,
         val failure: PublishFailure? = null,
+        /** The challenge of a foyer in progress, which a new good news can count for; null otherwise. */
+        val challenge: MonthChallenge? = null,
     ) : GoodNewsEditUiState {
         val isNew: Boolean get() = existing == null
         val isSaving: Boolean get() = sendingPhoto != null

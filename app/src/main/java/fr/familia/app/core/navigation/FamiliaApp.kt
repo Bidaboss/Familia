@@ -548,6 +548,7 @@ fun FamiliaApp(
                             onOpenWeeklyQuestion = { navController.navigate(WeeklyQuestionDestination()) },
                             onOpenMonth = { month -> navController.navigate(MonthSlideshowDestination(month.year, month.monthValue)) },
                             onJoinMe = { navController.navigate(JoinMeDestination) { launchSingleTop = true } },
+                            onJoinChallenge = { navController.navigate(GoodNewsEditDestination(forChallenge = true)) },
                             onPrepareChallenge = { month ->
                                 navController.navigate(HostChallengeDestination(month.year, month.monthValue)) { launchSingleTop = true }
                             },
@@ -945,6 +946,7 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             postId = entry.toRoute<GoodNewsEditDestination>().postId,
+                            forChallenge = entry.toRoute<GoodNewsEditDestination>().forChallenge,
                             onDone = { navController.popBackStack() },
                             onBack = { navController.popBackStack() },
                         )

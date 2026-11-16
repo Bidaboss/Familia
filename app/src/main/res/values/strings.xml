@@ -935,7 +935,15 @@
     <string name="share_poll_text">Sondage dans Familia : %1$s Réponds ici :</string>
     <string name="share_birthday_text">Anniversaire de %1$s : %2$s le %3$s. On se retrouve dans Familia :</string>
     <string name="feature_share">Partager vers une messagerie</string>
+    <string name="help_topic_view_as_title">Si tu as besoin d\'aide</string>
+    <string name="help_topic_view_as_body">L\'admin principal peut voir l\'appli comme toi, sans rien modifier, pour t\'aider. Il ne voit jamais ton carnet de cadeaux.</string>
+    <string name="view_as_title">Voir comme…</string>
+    <string name="view_as_help">L\'appli telle que la voit un membre, sans rien pouvoir modifier.</string>
+    <string name="view_as_banner">Tu vois l\'appli comme %1$s</string>
+    <string name="view_as_quit">Quitter</string>
+    <string name="view_as_read_only">Lecture seule en mode Voir comme</string>
     <string name="feature_comments">Commentaires sous les événements</string>
+    <string name="feature_expenses">Comptes du voyage</string>
     <string name="event_comments_title">Commentaires</string>
     <string name="event_comments_more">Voir les commentaires plus anciens</string>
     <string name="event_comments_empty">Pas encore de commentaire. Une question, une idée, un « j\'ai hâte » ?</string>
@@ -946,6 +954,7 @@
     <string name="event_comment_when_edited">%1$s · modifié</string>
     <string name="event_comments_mute">Ne plus être prévenu des commentaires</string>
     <string name="event_comments_unmute">Être à nouveau prévenu des commentaires</string>
+    <string name="event_comments_public">Tout le monde lit les commentaires, y compris la personne fêtée : garde les surprises pour toi.</string>
     <string name="event_comments_mute_failed">Le réglage n\'a pas pu être changé. Réessaie.</string>
     <string name="share_consent_title">Avant de partager</string>
     <string name="share_consent_body">Des enfants apparaissent peut-être sur ces photos. Pense à demander l\'accord de leurs parents avant d\'envoyer la vidéo hors de Familia.</string>
@@ -1348,6 +1357,8 @@
     <string name="tree_host_turn">C\'est à vous de lancer le défi %1$s !</string>
     <string name="tree_host_turn_help">Préparez-le ensemble : tout le foyer peut aider, un adulte le publie.</string>
     <string name="tree_host_prepare">Préparer le défi</string>
+    <string name="tree_join_challenge">Participer au défi</string>
+    <string name="goodnews_for_challenge">Pour le défi : %1$s %2$s</string>
     <string name="host_title">Défi %1$s</string>
     <string name="host_step">Étape %1$d sur 4</string>
     <string name="host_next">Suivant</string>

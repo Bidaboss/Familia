@@ -745,7 +745,7 @@ Quand l'objectif est atteint :
 
 - l'arbre fleurit (`bloomedMonths`) ;
 - si le module `tree` est allumé, toute la famille qui a l'appli reçoit « Défi réussi ! » (canal `tree`), sauf ceux qui ont coupé `tree` ;
-- Familia publie une Bonne nouvelle `goodNews/challenge-{AAAA-MM}`, une seule fois. Son auteur est `familia`, elle n'a pas de photo, elle porte `challengeMonth` et ne nomme personne.
+- Familia publie une Bonne nouvelle `goodNews/challenge-{AAAA-MM}`, une seule fois. Son auteur est `familia`, elle n'a pas de photo, elle porte `challengeMonth` et ne nomme personne. Pour le défi d'un foyer, elle et la notification citent le foyer hôte par son nom (« …, lancé par les Martin »), sans nommer de membre (récit 35 bis, avis [EXPERT] n° 6).
 
 Module éteint, l'arbre et la jauge avancent quand même, mais rien n'est envoyé ni publié.
 

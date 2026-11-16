@@ -13,6 +13,7 @@ import fr.familia.app.core.notifications.FamiliaMessagingService
 import fr.familia.app.core.share.ShareKind
 import fr.familia.app.core.share.parseSharedLink
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.viewas.ViewAsHost
 import fr.familia.app.feature.gifts.share.SharedWish
 import fr.familia.app.feature.gifts.share.sharedWish
 import fr.familia.app.feature.auth.SessionRoute
@@ -87,35 +88,38 @@ class MainActivity : ComponentActivity() {
             val memberToOpen by openMemberId
             FamiliaTheme {
                 SessionRoute(container = container) { member ->
-                    FamiliaApp(
-                        container,
-                        member,
-                        isOffline = !isOnline,
-                        openEventId = eventToOpen,
-                        onEventOpened = { openEventId.value = null },
-                        openListId = listToOpen,
-                        onListOpened = { openListId.value = null },
-                        openHelpRequestId = helpRequestToOpen,
-                        onHelpRequestOpened = { openHelpRequestId.value = null },
-                        openGoodNewsId = goodNewsToOpen,
-                        onGoodNewsOpened = { openGoodNewsId.value = null },
-                        openTripId = tripToOpen,
-                        onTripOpened = { openTripId.value = null },
-                        openWeeklyQuestionId = weeklyToOpen,
-                        onWeeklyQuestionOpened = { openWeeklyQuestionId.value = null },
-                        openSouvenir = souvenirToOpen,
-                        onSouvenirOpened = { openSouvenir.value = false },
-                        openPollId = pollToOpen,
-                        onPollOpened = { openPollId.value = null },
-                        openJoinMe = joinMeToOpen,
-                        onJoinMeOpened = { openJoinMe.value = false },
-                        openCapsuleId = capsuleToOpen,
-                        onCapsuleOpened = { openCapsuleId.value = null },
-                        sharedWish = wishToAdd,
-                        onSharedWishOpened = { sharedWish.value = null },
-                        openMemberId = memberToOpen,
-                        onMemberOpened = { openMemberId.value = null },
-                    )
+                    // « Voir comme »: the admin principal may look at the app as another member.
+                    ViewAsHost(container, member) { shownContainer, shownMember ->
+                        FamiliaApp(
+                            shownContainer,
+                            shownMember,
+                            isOffline = !isOnline,
+                            openEventId = eventToOpen,
+                            onEventOpened = { openEventId.value = null },
+                            openListId = listToOpen,
+                            onListOpened = { openListId.value = null },
+                            openHelpRequestId = helpRequestToOpen,
+                            onHelpRequestOpened = { openHelpRequestId.value = null },
+                            openGoodNewsId = goodNewsToOpen,
+                            onGoodNewsOpened = { openGoodNewsId.value = null },
+                            openTripId = tripToOpen,
+                            onTripOpened = { openTripId.value = null },
+                            openWeeklyQuestionId = weeklyToOpen,
+                            onWeeklyQuestionOpened = { openWeeklyQuestionId.value = null },
+                            openSouvenir = souvenirToOpen,
+                            onSouvenirOpened = { openSouvenir.value = false },
+                            openPollId = pollToOpen,
+                            onPollOpened = { openPollId.value = null },
+                            openJoinMe = joinMeToOpen,
+                            onJoinMeOpened = { openJoinMe.value = false },
+                            openCapsuleId = capsuleToOpen,
+                            onCapsuleOpened = { openCapsuleId.value = null },
+                            sharedWish = wishToAdd,
+                            onSharedWishOpened = { sharedWish.value = null },
+                            openMemberId = memberToOpen,
+                            onMemberOpened = { openMemberId.value = null },
+                        )
+                    }
                 }
             }
         }
