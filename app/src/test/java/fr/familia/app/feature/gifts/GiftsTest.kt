@@ -132,6 +132,25 @@ class GiftsTest {
     }
 
     @Test
+    fun `the card of a wishes list tells how many and the first titles, as the reader may see them`() = runTest {
+        val items = listOf("Vélo", "un atlas", "Lego", "Puzzle").mapIndexed { i, t ->
+            GiftItem("i$i", t, null, null, null, "adult1", "Adult1", visibleToBeneficiary = true)
+        }
+        assertEquals(WishPreview(4, listOf("Lego", "Puzzle", "un atlas")), wishPreview(items))
+        assertEquals(WishPreview(0, emptyList()), wishPreview(emptyList()))
+        // A surprise idea added by someone else enters neither the number nor the titles.
+        val surprise = GiftItem("s", "Montre", null, null, null, "adult2", "Adult2", visibleToBeneficiary = false)
+        assertEquals(WishPreview(4, listOf("Lego", "Puzzle", "un atlas")), wishPreview(items + surprise))
+
+        val gifts = FakeGifts(list("wishes-adult1", "adult1", kind = GiftListKind.Wishes, viewers = emptyList()))
+        val other = GiftsViewModel(gifts, FakeMembers(), "adult2", today = flowOf(today))
+        val seen = other.uiState.first { it is GiftsUiState.Success && it.wishPreviews.isNotEmpty() } as GiftsUiState.Success
+        assertEquals(1, seen.wishPreviews.getValue("wishes-adult1").count)
+        // Even for someone else, only what the beneficiary sees: the overview is shown to the whole family.
+        assertEquals(listOf(true), gifts.itemQueries)
+    }
+
+    @Test
     fun `the beneficiary never asks the server for the reservations`() = runTest {
         val gifts = FakeGifts(list("l", "adult1", viewers = listOf("adult1", "adult2")))
         val vm = GiftListViewModel(gifts, FakeMembers(), "adult1", "l", today = flowOf(today))
@@ -140,6 +159,23 @@ class GiftsTest {
         assertFalse(state.canReserve)
         assertEquals(listOf(true), gifts.itemQueries)
         assertEquals(0, gifts.claimQueries)
+    }
+
+    @Test
+    fun `in « Voir comme », a list for the admin reads as theirs, without reservations, and says why`() = runTest {
+        val gifts = FakeGifts(list("l", "adult1", viewers = listOf("adult1", "adult2")))
+        // adult1 is the admin principal looking as adult2: adult1 still reads, and is the beneficiary.
+        val vm = GiftListViewModel(gifts, FakeMembers(), "adult2", "l", today = flowOf(today), readerId = "adult1")
+        val state = vm.uiState.first { it is GiftListUiState.Success } as GiftListUiState.Success
+        assertTrue(state.keptFromReader)
+        assertFalse(state.keptFromMe)
+        assertFalse(state.canReserve)
+        assertEquals(listOf(true), gifts.itemQueries)
+        assertEquals(0, gifts.claimQueries)
+        // Someone else's list reads as usual.
+        val other = FakeGifts(list("m", "adult2", viewers = listOf("adult1", "adult2")))
+        val usual = GiftListViewModel(other, FakeMembers(), "adult1", "m", today = flowOf(today), readerId = "adult1")
+        assertFalse((usual.uiState.first { it is GiftListUiState.Success } as GiftListUiState.Success).keptFromReader)
     }
 
     @Test

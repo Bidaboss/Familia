@@ -83,6 +83,12 @@ sealed interface GiftListUiState {
         /** First name of the signed-in member, written with what they reserve. */
         val myName: String,
         val actionFailed: Boolean = false,
+        /**
+         * « Voir comme »: the admin principal, who reads with their own account, is the beneficiary of
+         * this list before its reveal. The rules keep its reservations and surprise ideas from them, so
+         * the list shows as they would see it, and says why.
+         */
+        val keptFromReader: Boolean = false,
     ) : GiftListUiState
 
     /** Deleted, or not one this member may see. */
@@ -103,6 +109,8 @@ class GiftListViewModel(
     private val listId: String,
     private val writeTimeoutMillis: Long = 4_000,
     private val today: Flow<LocalDate> = currentDayFlow(),
+    /** Who really reads: the admin principal in « Voir comme », else the member themselves. */
+    private val readerId: String = currentMemberId,
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
@@ -129,7 +137,7 @@ class GiftListViewModel(
         val me = family.members.firstOrNull { it.id == currentMemberId } ?: return flowOf(GiftListUiState.Missing)
         val list = stored ?: emptyWishes(family, me) ?: return flowOf(GiftListUiState.Missing)
         val beneficiary = family.members.firstOrNull { it.id == list.beneficiaryId } ?: return flowOf(GiftListUiState.Missing)
-        val kept = isKeptFrom(list, me)
+        val kept = isKeptFrom(list, me) || keptFromReader(list)
         val items = if (stored == null) flowOf(emptyList<GiftItem>()) else repo.observeItems(list.id, hiddenFromMe = kept)
         val claims = if (stored == null || kept) flowOf(emptyList<GiftClaim>()) else repo.observeClaims(list.id)
         val shares = claims
@@ -159,6 +167,9 @@ class GiftListViewModel(
         return GiftList(listId, GiftListKind.Wishes, "Mes envies", null, null, owner.id, emptyList(), me.id, me.firstName)
     }
 
+    /** The reader of « Voir comme » is the beneficiary, before the reveal: the rules keep the reservations from them. */
+    private fun keptFromReader(list: GiftList): Boolean = readerId != currentMemberId && list.beneficiaryId == readerId && !list.revealed
+
     private fun state(
         list: GiftList,
         exists: Boolean,
@@ -171,7 +182,7 @@ class GiftListViewModel(
         day: LocalDate,
         didFail: Boolean,
     ): GiftListUiState.Success {
-        val kept = isKeptFrom(list, me)
+        val kept = isKeptFrom(list, me) || keptFromReader(list)
         val claimById = claims.associateBy { it.itemId }
         val rows = items.sortedBy { it.title.lowercase() }.map { item ->
             val claim = claimById[item.id]
@@ -203,12 +214,14 @@ class GiftListViewModel(
             list = list,
             beneficiary = beneficiary,
             today = day,
-            keptFromMe = kept,
+            keptFromMe = isKeptFrom(list, me),
+            keptFromReader = keptFromReader(list) && !isKeptFrom(list, me),
             isMine = beneficiary.id == me.id,
             canManage = exists && canManageList(list, me, family),
             canAddItems = !list.revealed && (exists || keepsListsOf(me, beneficiary)),
-            canReserve = exists && canReserve(list, me),
-            canShare = exists && canShare(list, me),
+            // Nothing to reserve on a list whose reservations the reader may not see.
+            canReserve = exists && canReserve(list, me) && !kept,
+            canShare = exists && canShare(list, me) && !kept,
             items = rows,
             myName = me.firstName,
             actionFailed = didFail,

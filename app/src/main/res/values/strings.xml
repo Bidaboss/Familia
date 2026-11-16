@@ -544,6 +544,12 @@
     <string name="gifts_new_list">Nouvelle liste</string>
     <string name="gifts_open_list">ouvrir la liste</string>
     <string name="gifts_section_me">Moi</string>
+    <string name="gifts_wishes_none">Pas encore d\'envie</string>
+    <plurals name="gifts_wishes_preview">
+        <item quantity="one">%1$d envie : %2$s</item>
+        <item quantity="many">%1$d envies : %2$s</item>
+        <item quantity="other">%1$d envies : %2$s</item>
+    </plurals>
     <string name="gifts_wishes_empty">Encore vide : touche pour ajouter une envie</string>
     <string name="gifts_birthdays_title">Anniversaires à venir</string>
     <string name="gifts_birthday_of">Anniversaire de %1$s</string>
@@ -1076,6 +1082,7 @@
     <string name="view_as_title">Voir comme…</string>
     <string name="view_as_help">L\'appli telle que la voit un membre, sans rien pouvoir modifier.</string>
     <string name="view_as_banner">Tu vois l\'appli comme %1$s</string>
+    <string name="view_as_gift_list_kept">C\'est une liste pour toi : même en mode Voir comme, ses réservations et ses idées surprises restent cachées pour toi.</string>
     <string name="view_as_gifts_hidden">Les listes où tu n\'es pas invité restent cachées, même en mode Voir comme.</string>
     <string name="view_as_quit">Quitter</string>
     <string name="view_as_read_only">Lecture seule en mode Voir comme</string>
@@ -1121,7 +1128,12 @@
     <string name="expenses_shares_title">Parts de chacun</string>
     <string name="expenses_shares_body">Par défaut, chacun vaut 1 part, enfants compris. Le foyer compte la somme des parts de ses membres, et chaque dépense partagée « en parts » suit ces poids.</string>
     <string name="expenses_shares_error">De 0 à 10, par demi-part</string>
-    <string name="expenses_shares_household">%1$s : %2$s parts</string>
+    <string name="expenses_shares_legacy">Ces comptes ont été ouverts avec des parts par foyer. En enregistrant, chaque foyer prend la somme des parts de ses membres.</string>
+    <plurals name="expenses_shares_household">
+        <item quantity="one">%1$s : %2$s part</item>
+        <item quantity="many">%1$s : %2$s parts</item>
+        <item quantity="other">%1$s : %2$s parts</item>
+    </plurals>
     <string name="expenses_shares_household_empty">Un foyer compte au moins une demi-part.</string>
     <string name="expenses_export">Partager les comptes</string>
     <string name="expenses_export_csv">En tableau (pour un tableur)</string>
