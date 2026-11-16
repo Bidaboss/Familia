@@ -72,6 +72,7 @@ import fr.familia.app.feature.joinme.JoinMeHomeCard
 import fr.familia.app.feature.month.MonthSlideshowHomeCard
 import fr.familia.app.feature.month.isSlideshowTime
 import fr.familia.app.feature.tree.TreeHomeCard
+import fr.familia.app.feature.yearago.YearAgoHomeCard
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionHomeCard
 import fr.familia.app.feature.trips.tripDatesLabel
 import java.time.Instant
@@ -166,6 +167,18 @@ fun HomeRoute(
         } else {
             null
         },
+        yearAgo = if (flags.isOn(Feature.YearAgo)) {
+            {
+                YearAgoHomeCard(
+                    container,
+                    currentMember,
+                    onOpenGoodNews = onOpenGoodNews,
+                    onOpenTrip = actions.onOpenTrip,
+                )
+            }
+        } else {
+            null
+        },
     )
 }
 
@@ -186,6 +199,8 @@ fun HomeScreen(
     onOpenMonth: ((YearMonth) -> Unit)? = null,
     tree: (@Composable () -> Unit)? = null,
     joinMe: (@Composable () -> Unit)? = null,
+    /** « Il y a un an » (récit 36), while its module is on: it shows itself only on a day with a souvenir. */
+    yearAgo: (@Composable () -> Unit)? = null,
 ) {
     val ready = state as? HomeUiState.Ready
     if (ready == null) {
@@ -215,6 +230,7 @@ fun HomeScreen(
         if (ready.todos.isNotEmpty()) card("todo") { TodoCard(ready.todos, ready.today, actions) }
         if (ready.week.isNotEmpty()) card("week") { WeekCard(ready.week, ready.weekMore, ready.today, actions) }
         if (goodNews != null) card("goodNews") { goodNews() }
+        if (yearAgo != null) card("yearAgo") { yearAgo() }
         if (weeklyQuestion != null) card("weeklyQuestion") { weeklyQuestion() }
         if (tree != null) card("tree") { tree() }
         if (month != null && onOpenMonth != null) card("month") { MonthSlideshowHomeCard(month) { onOpenMonth(month) } }

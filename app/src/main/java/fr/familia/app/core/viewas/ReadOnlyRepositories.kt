@@ -216,6 +216,7 @@ class ReadOnlyCapsuleRepository(private val inner: CapsuleRepository, private va
 class ReadOnlyGoodNewsRepository(private val inner: GoodNewsRepository, private val guard: ViewAsGuard) : GoodNewsRepository {
     override fun observeLatest(count: Int): Flow<List<GoodNews>> = inner.observeLatest(count)
     override fun observePost(id: String): Flow<GoodNews?> = inner.observePost(id)
+    override fun observeBetween(from: java.time.Instant, to: java.time.Instant): Flow<List<GoodNews>> = inner.observeBetween(from, to)
     override fun newId(): String = inner.newId()
     override suspend fun publish(news: GoodNews) = guard.refuse()
     override suspend fun edit(id: String, text: String, mentionIds: List<String>) = guard.refuse()
