@@ -25,7 +25,7 @@ fun feedbackForClaude(item: Feedback, zone: ZoneId = ZoneId.systemDefault(), ima
         Feedback.Status.Done -> "Faite"
         Feedback.Status.Declined -> "Pas retenue"
     }
-    val screen = if (c.screen == FeedbackOrigin.Help) "l'Aide" else "l'onglet Famille"
+    val screen = if (c.screen == FeedbackOrigin.Help) "l'Aide" else "le menu de sa photo"
     val phone = listOfNotNull(
         c.appVersion.takeIf { it.isNotBlank() }?.let { "Familia $it" },
         c.android.takeIf { it.isNotBlank() }?.let { "Android $it" },

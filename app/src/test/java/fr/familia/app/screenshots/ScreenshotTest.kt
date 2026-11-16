@@ -436,8 +436,6 @@ class ScreenshotTest {
                 ),
                 onRetry = {},
                 onEditMember = {},
-                onOpenNotifications = {},
-                onOpenAdministration = {},
             )
         }
     }
@@ -456,8 +454,6 @@ class ScreenshotTest {
                 ),
                 onRetry = {},
                 onEditMember = {},
-                onOpenNotifications = {},
-                onOpenAdministration = {},
             )
         }
     }

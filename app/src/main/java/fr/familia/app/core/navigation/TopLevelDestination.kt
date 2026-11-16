@@ -111,7 +111,7 @@ data class EventEditDestination(val eventId: String? = null)
 @Serializable
 data class MemberEditDestination(val memberId: String? = null)
 
-/** Famille › Réglages › Apparence: the theme of this phone (DESIGN-7). */
+/** Ma photo › Apparence: the theme of this phone (DESIGN-7). */
 @Serializable
 data object AppearanceDestination
 
