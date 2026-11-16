@@ -31,7 +31,7 @@ sealed interface ClayShadow {
     data object Relief : ClayShadow
 
     /** A solid copy of the card, moved right and down, without blur (« 4px 4px 0 »). */
-    data class Hard(val offset: Dp, val color: Color) : ClayShadow
+    data class Hard(val offset: Dp, val color: Color, val emphasisOffset: Dp = offset) : ClayShadow
 
     /** A blurred shadow (« 0 8px 18px »), or a glow around the card when [elevation] is the blur alone. */
     data class Soft(val elevation: Dp, val color: Color) : ClayShadow
@@ -157,7 +157,7 @@ private fun scheme(p: Palette): ColorScheme {
     )
 }
 
-private fun clay(p: Palette, shadow: Color) = ClayColors(
+private fun clay(p: Palette, shadow: Color, tintAsDot: Boolean) = ClayColors(
     card = Color(p.card),
     household = Color(p.tintB),
     family = Color(p.tintC),
@@ -171,11 +171,13 @@ private fun clay(p: Palette, shadow: Color) = ClayColors(
     highlight = Color.Transparent,
     shade = Color.Transparent,
     tintAsStripe = false,
+    tintAsDot = tintAsDot,
 )
 
-private fun themed(p: Palette, style: ClayStyle, shadow: Color = Color.Transparent) = FamiliaThemeSpec(
+/** [strongTints] keeps the tinted cards (dark themes, Contraste fort: DESIGN-11). */
+private fun themed(p: Palette, style: ClayStyle, shadow: Color = Color.Transparent, strongTints: Boolean = p.dark) = FamiliaThemeSpec(
     light = scheme(p),
-    lightClay = clay(p, shadow),
+    lightClay = clay(p, shadow, tintAsDot = !strongTints),
     style = style.copy(dayColor = Color(p.accent), titleColor = Color(p.title)),
 )
 
@@ -187,7 +189,7 @@ fun themeSpec(id: FamiliaThemeId): FamiliaThemeSpec = when (id) {
         ClayStyle(
             cardRadius = 6.dp,
             border = ClayBorder(2.dp, Color(0xFF5B3DF5)),
-            shadow = ClayShadow.Hard(5.dp, Color(0xFF00B8CC)),
+            shadow = ClayShadow.Hard(3.dp, Color(0xFF00B8CC), emphasisOffset = 5.dp),
             titleFont = PressStart,
             dayFont = Silkscreen,
             titleScale = 0.8f,
@@ -199,7 +201,7 @@ fun themeSpec(id: FamiliaThemeId): FamiliaThemeSpec = when (id) {
         ClayStyle(
             cardRadius = 22.dp,
             border = ClayBorder(2.dp, Color(0xFF6B3E26)),
-            shadow = ClayShadow.Hard(4.dp, Color(0xFF6B3E26)),
+            shadow = ClayShadow.Hard(3.dp, Color(0xFF6B3E26), emphasisOffset = 4.dp),
             titleFont = Shrikhand,
             dayFont = Shrikhand,
             pattern = ThemePattern.Stripes70,
@@ -255,7 +257,7 @@ fun themeSpec(id: FamiliaThemeId): FamiliaThemeSpec = when (id) {
         ClayStyle(
             cardRadius = 18.dp,
             border = ClayBorder(2.dp, Color(0xFF1D4E89)),
-            shadow = ClayShadow.Hard(4.dp, Color(0xFFF2B33D)),
+            shadow = ClayShadow.Hard(3.dp, Color(0xFFF2B33D), emphasisOffset = 4.dp),
             titleFont = AbrilFatface,
             dayFont = AbrilFatface,
             pattern = ThemePattern.Azulejos,
@@ -268,6 +270,7 @@ fun themeSpec(id: FamiliaThemeId): FamiliaThemeSpec = when (id) {
             border = ClayBorder(2.dp, Color(0xFF1A1A1A)),
             shadow = ClayShadow.None,
         ),
+        strongTints = true,
     )
 }
 

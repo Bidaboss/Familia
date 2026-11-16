@@ -66,6 +66,8 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     YearAgo("yearAgo", R.string.feature_year_ago),
     /** Les vœux d'anniversaire : cartes de vœux le jour J (PRD, récit 36). */
     BirthdayWishes("birthdayWishes", R.string.feature_birthday_wishes),
+    /** La bienvenue : la famille est prévenue de l'arrivée d'un membre (PRD, récit 43). */
+    Welcome("welcome", R.string.feature_welcome),
 }
 
 /**

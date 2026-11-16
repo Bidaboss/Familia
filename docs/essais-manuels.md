@@ -300,3 +300,14 @@ Avant ces essais : « Publier Firebase » a publié les règles (Firestore et St
 10. Avec un compte qui n'est pas admin principal, ouvre le formulaire, touche **Ajouter une capture d'écran** et choisis une capture. **Attendu :** elle s'affiche sous le texte, avec **Retirer la capture**. Envoie. **Attendu :** dans **Retours**, la capture s'affiche dans la carte ; elle n'est visible ni pour un autre membre ni dans un autre compte.
 11. Mode avion, avec une capture. **Attendu :** au bout d'un moment, « L'envoi n'a pas marché », et le texte et la capture restent là. Sans capture, l'envoi part plus tard tout seul.
 12. Dans **Retours**, touche **Copier pour Claude**, puis colle dans une note. **Attendu :** le type, la date, l'écran, le téléphone, l'état et le texte, sans le prénom de l'auteur.
+
+## La bienvenue (récit 43)
+
+**À garder éteint pour la démo du 21/11** : ce jour-là, toute la famille se connecte pour la première fois, et chacun recevrait une notification par nouvel arrivant. Ne l'allume qu'après, pour ceux qui arrivent plus tard.
+
+Avec le module « La bienvenue » allumé, un membre ajouté qui ne s'est jamais connecté, et deux autres comptes.
+
+1. Connecte-toi pour la première fois avec le compte du nouveau membre. **Attendu :** les autres comptes reçoivent « … vient d'arriver », « Dis-lui bonjour ! ». Le nouveau membre ne la reçoit pas.
+2. Touche la notification. **Attendu :** la fiche du nouveau membre s'ouvre.
+3. Déconnecte-toi, puis reconnecte-toi avec ce compte. **Attendu :** aucune nouvelle notification.
+4. Fais de même avec un membre du foyer de test. **Attendu :** aucune notification.
