@@ -160,6 +160,7 @@
     <string name="feature_gift_notebook">Carnet de cadeaux</string>
     <string name="feature_share_to_wishes">Partager vers « Mes envies »</string>
     <string name="share_to_wishes">Mes envies Familia</string>
+    <string name="gift_item_preview_loading">Lecture de la page de la boutique…</string>
     <string name="feature_trips">Carnet de voyage</string>
     <string name="feature_good_news">Bonnes nouvelles</string>
     <string name="feature_themes">Thèmes au choix</string>

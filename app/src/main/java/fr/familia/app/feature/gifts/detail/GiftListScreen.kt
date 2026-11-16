@@ -48,6 +48,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -293,6 +296,15 @@ internal fun ItemSheetContent(row: ItemRow, state: GiftListUiState.Success, acti
         modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).navigationBarsPadding(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        item.imageUrl?.let { image ->
+            // The picture of the shop page of a shared link (récit 8 bis): decorative.
+            AsyncImage(
+                model = image,
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp).clip(MaterialTheme.shapes.medium),
+            )
+        }
         Text(item.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         ItemDetails(row, ClayTint.Plain)
         item.note?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }

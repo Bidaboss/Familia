@@ -30,6 +30,7 @@ fun GiftItemEditRoute(
                     container?.giftRepository, container?.memberRepository, currentMember.id, listId, itemId,
                     saved = createSavedStateHandle(),
                     shared = shared?.let { GiftItemForm(title = it.title, url = it.url) },
+                    previews = container?.linkPreviewRepository,
                 )
             }
         },

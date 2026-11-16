@@ -46,6 +46,9 @@ class AppContainer(context: Context) {
 
     val memberRepository: MemberRepository? by lazy { firestore?.let { FirestoreMemberRepository(it) } }
 
+    /** Reads the preview of a link shared to « Mes envies » (récit 8 bis), from the phone. */
+    val linkPreviewRepository: LinkPreviewRepository by lazy { HttpLinkPreviewRepository() }
+
     val memberPhotoRepository: MemberPhotoRepository? by lazy { firestore?.let { FirestoreMemberPhotoRepository(it) } }
 
     val eventRepository: EventRepository? by lazy { firestore?.let { FirestoreEventRepository(it) } }
