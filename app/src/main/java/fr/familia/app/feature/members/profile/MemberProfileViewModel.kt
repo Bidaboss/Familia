@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.Instant
 
 sealed interface MemberProfileUiState {
     data object Loading : MemberProfileUiState
@@ -83,7 +84,7 @@ class MemberProfileViewModel(
                         counters = count,
                         saveFailed = failed,
                         bravo = if (isMe && celebrations != null) {
-                            list.filter { it.key !in done && SouvenirKind.of(it.key) != null }.maxByOrNull { it.earnedAt }
+                            list.filter { it.key !in done && SouvenirKind.of(it.key) != null }.maxByOrNull { it.earnedAt ?: Instant.EPOCH }
                         } else {
                             null
                         },
