@@ -35,6 +35,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -118,6 +122,21 @@ private fun FormContent(
                 stringResource(R.string.gift_item_hidden_hint, state.beneficiaryName),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (state.previewLoading) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                CircularProgressIndicator(Modifier.size(24.dp))
+                Text(stringResource(R.string.gift_item_preview_loading), style = MaterialTheme.typography.bodyLarge)
+            }
+        }
+        state.imageUrl?.let { image ->
+            // The picture of the shop page: decorative, the title says what the gift is.
+            AsyncImage(
+                model = image,
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp).clip(MaterialTheme.shapes.medium),
             )
         }
         OutlinedTextField(

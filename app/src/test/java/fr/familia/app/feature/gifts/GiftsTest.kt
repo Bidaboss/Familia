@@ -2,6 +2,8 @@ package fr.familia.app.feature.gifts
 
 import androidx.lifecycle.SavedStateHandle
 import fr.familia.app.core.data.GiftRepository
+import fr.familia.app.core.data.LinkPreview
+import fr.familia.app.core.data.LinkPreviewRepository
 import fr.familia.app.core.model.ClaimType
 import fr.familia.app.core.model.GiftClaim
 import fr.familia.app.core.model.GiftItem
@@ -190,6 +192,20 @@ class GiftsTest {
         assertEquals(shared, state.form)
         assertTrue(state.isNew)
         assertTrue("leaving asks before dropping the link", state.hasChanges)
+    }
+
+    @Test
+    fun `the shop page fills what the member has not typed, and its picture goes with the link`() = runTest {
+        val shared = GiftItemForm(title = "", url = "https://boutique.example/echarpe")
+        val previews = LinkPreviewRepository { LinkPreview("Écharpe rouge", "https://cdn.boutique.example/e.jpg", 24.9) }
+        val vm = GiftItemEditViewModel(FakeGifts(null), FakeMembers(), "adult1", "wishes-adult1", null, shared = shared, previews = previews)
+        val state = vm.uiState.first { it is GiftItemEditUiState.Editing && !it.previewLoading } as GiftItemEditUiState.Editing
+        assertEquals("Écharpe rouge", state.form.title)
+        assertEquals("24,90", state.form.price)
+        assertEquals("https://cdn.boutique.example/e.jpg", state.imageUrl)
+
+        vm.update { it.copy(url = "https://autre.example/x") }
+        assertNull((vm.uiState.value as GiftItemEditUiState.Editing).imageUrl)
     }
 
     @Test
