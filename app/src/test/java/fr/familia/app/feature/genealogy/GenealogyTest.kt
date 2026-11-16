@@ -159,6 +159,18 @@ class GenealogyTest {
     }
 
     @Test
+    fun `a chef never gives a new parent to a child of another household (PRD rev 195)`() = runTest {
+        val repo = FakeGenealogy()
+        val chef = TestFamily.family.copy(ownerId = "someone-else")
+        val vm = GenealogyViewModel(repo, FakeMembers(chef), "admin1")
+        ready(vm)
+        vm.saveKin(Kin("", "Lucien", living = true, householdId = ""), "adult2" to Relation.Parent)
+        assertTrue(repo.kin.value.isEmpty() && repo.links.value.isEmpty())
+        vm.saveKin(Kin("", "Lucien", living = true, householdId = ""), "adult2" to Relation.Partner)
+        assertEquals("h1", repo.kin.value.single().householdId)
+    }
+
+    @Test
     fun `my words are mine, trimmed, and a blank one is taken away`() = runTest {
         val repo = FakeGenealogy(listOf(jeanne))
         val vm = GenealogyViewModel(repo, FakeMembers(), "kid1")

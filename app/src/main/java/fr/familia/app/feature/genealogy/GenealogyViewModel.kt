@@ -158,6 +158,8 @@ class GenealogyViewModel(
         } ?: return
         if (!state.isOwner && household != state.chefOf) return
         if (existing != null && !state.canEditPerson(kin.id)) return
+        // A new parent for a child of a household I do not manage: the rules would refuse the batch.
+        if (existing == null && joinTo?.second == Relation.Parent && !state.canEditPerson(joinTo.first)) return
         val id = if (existing != null) kin.id else genealogy?.newKinId() ?: return
         val saved = kin.copy(id = id, firstName = firstName, householdId = household, died = kin.died.takeUnless { kin.living })
         val link = joinTo?.takeIf { existing == null }?.let { (personId, relation) -> relation.link(personId, id) }

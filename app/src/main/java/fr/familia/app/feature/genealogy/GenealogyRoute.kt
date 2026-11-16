@@ -2,6 +2,7 @@ package fr.familia.app.feature.genealogy
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -22,5 +23,22 @@ fun GenealogyRoute(container: AppContainer?, currentMember: Member, onBack: () -
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    GenealogyScreen(state, onBack, onOpenProfile = onOpenProfile)
+    val failed by viewModel.actionFailed.collectAsStateWithLifecycle()
+    val actions = remember(viewModel) {
+        GenealogyActions(
+            onAddLink = viewModel::addLink,
+            onRemoveLink = viewModel::removeLink,
+            onSaveKin = viewModel::saveKin,
+            onDeleteKin = viewModel::deleteKin,
+            onSetWord = viewModel::setWord,
+        )
+    }
+    GenealogyScreen(
+        state,
+        onBack,
+        onOpenProfile = onOpenProfile,
+        actions = actions,
+        actionFailed = failed,
+        onFailureShown = viewModel::failureShown,
+    )
 }
