@@ -1,6 +1,7 @@
 package fr.familia.app.core.data
 
 import fr.familia.app.core.model.GiftStatus
+import fr.familia.app.core.model.NotebookBudget
 import fr.familia.app.core.model.NotebookEntry
 import fr.familia.app.core.model.NotebookOccasion
 import kotlinx.coroutines.flow.Flow
@@ -22,4 +23,9 @@ interface NotebookRepository {
 
     /** Removes a private idea; a reservation leaves the notebook when it is released. */
     suspend fun deleteIdea(memberId: String, entryId: String)
+
+    fun observeBudgets(memberId: String): Flow<List<NotebookBudget>>
+
+    /** Sets the budget of a person at an occasion; null removes it. */
+    suspend fun setBudget(memberId: String, budget: NotebookBudget, amount: Double?)
 }

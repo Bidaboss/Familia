@@ -6,8 +6,10 @@ import fr.familia.app.core.data.NotebookRepository
 import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftStatus
+import fr.familia.app.core.model.NotebookBudget
 import fr.familia.app.core.model.NotebookEntry
 import fr.familia.app.core.model.NotebookOccasion
+import fr.familia.app.core.model.notebookBudgetId
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -28,6 +30,9 @@ data class NotebookPerson(
     val key: String,
     val name: String,
     val entries: List<NotebookEntry>,
+    val personId: String? = null,
+    /** What the member means to spend for them at this occasion, if set. */
+    val budget: Double? = null,
 ) {
     val bought: Int get() = entries.count { it.status.isBought }
 
@@ -68,8 +73,8 @@ class NotebookViewModel(
     val uiState: StateFlow<NotebookUiState> = reload
         .flatMapLatest {
             val repo = notebook ?: return@flatMapLatest flowOf(NotebookUiState.Error)
-            combine(repo.observeEntries(currentMemberId), chosen, today, failed) { entries, pick, day, didFail ->
-                state(entries, pick, day, didFail) as NotebookUiState
+            combine(repo.observeEntries(currentMemberId), repo.observeBudgets(currentMemberId), chosen, today, failed) { entries, budgets, pick, day, didFail ->
+                state(entries, budgets, pick, day, didFail) as NotebookUiState
             }.catch { emit(NotebookUiState.Error) }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), NotebookUiState.Loading)
@@ -107,14 +112,47 @@ class NotebookViewModel(
         }
     }
 
-    private fun state(entries: List<NotebookEntry>, pick: NotebookOccasion?, today: LocalDate, didFail: Boolean): NotebookUiState.Success {
+    /** Sets or removes ([amount] null) the budget of [person] at the occasion shown. */
+    fun setBudget(person: NotebookPerson, occasion: NotebookOccasion, amount: Double?) {
+        val repo = notebook ?: return
+        failed.value = false
+        viewModelScope.launch {
+            val ok = try {
+                withTimeoutOrNull(writeTimeoutMillis) {
+                    repo.setBudget(currentMemberId, NotebookBudget(person.personId, person.name, occasion, amount ?: 0.0), amount)
+                }
+                true
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                false
+            }
+            failed.value = !ok
+        }
+    }
+
+    private fun state(
+        entries: List<NotebookEntry>,
+        budgets: List<NotebookBudget>,
+        pick: NotebookOccasion?,
+        today: LocalDate,
+        didFail: Boolean,
+    ): NotebookUiState.Success {
         val occasions = sortedOccasions(entries.map { it.occasion }.toSet(), today)
         val selected = pick?.takeIf { it in occasions } ?: defaultOccasion(occasions, today)
         val people = entries
             .filter { it.occasion == selected }
             .groupBy { personKey(it) }
             .map { (key, gifts) ->
-                NotebookPerson(key, gifts.first().personName, gifts.sortedWith(compareBy({ it.status.ordinal }, { it.title.lowercase() })))
+                val first = gifts.first()
+                val budgetId = notebookBudgetId(first.personId, first.personName, first.occasion)
+                NotebookPerson(
+                    key = key,
+                    name = first.personName,
+                    entries = gifts.sortedWith(compareBy({ it.status.ordinal }, { it.title.lowercase() })),
+                    personId = first.personId,
+                    budget = budgets.firstOrNull { notebookBudgetId(it.personId, it.personName, it.occasion) == budgetId }?.amount,
+                )
             }
             .sortedBy { it.name.lowercase() }
         return NotebookUiState.Success(occasions, selected, people, didFail)

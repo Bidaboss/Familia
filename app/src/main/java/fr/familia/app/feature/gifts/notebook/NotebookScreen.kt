@@ -20,9 +20,11 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CardGiftcard
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,10 +35,12 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -53,6 +57,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.GiftOccasion
@@ -69,6 +74,7 @@ import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.feature.gifts.formatEuros
 import fr.familia.app.feature.gifts.occasionLabel
+import fr.familia.app.feature.gifts.parseEuros
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpLink
 import fr.familia.app.feature.help.ScreenHelp
@@ -81,6 +87,8 @@ data class NotebookActions(
     val onSelect: (NotebookOccasion) -> Unit = {},
     val onSetStatus: (NotebookEntry, GiftStatus) -> Unit = { _, _ -> },
     val onSetOccasion: (NotebookEntry, NotebookOccasion) -> Unit = { _, _ -> },
+    /** Sets the budget of a person at an occasion; null removes it. */
+    val onSetBudget: (NotebookPerson, NotebookOccasion, Double?) -> Unit = { _, _, _ -> },
     val onOpenList: (listId: String) -> Unit = {},
     /** A new private idea, at the occasion shown. */
     val onAddIdea: (at: NotebookOccasion?) -> Unit = {},
@@ -169,7 +177,13 @@ private fun Content(state: NotebookUiState.Success, actions: NotebookActions) {
             }
         } else {
             item(key = "occasions") { OccasionPicker(state, actions.onSelect) }
-            items(state.people, key = { it.key }) { person -> PersonCard(person) { openEntryId = it.id } }
+            items(state.people, key = { it.key }) { person ->
+                PersonCard(
+                    person = person,
+                    onOpen = { openEntryId = it.id },
+                    onSetBudget = { amount -> state.selected?.let { actions.onSetBudget(person, it, amount) } },
+                )
+            }
         }
     }
     state.people.flatMap { it.entries }.firstOrNull { it.id == openEntryId }?.let { entry ->
@@ -209,27 +223,82 @@ internal fun occasionName(occasion: NotebookOccasion): String {
 
 /** One person: how many gifts are bought, what was spent, and each gift with where it stands. */
 @Composable
-private fun PersonCard(person: NotebookPerson, onOpen: (NotebookEntry) -> Unit) {
+private fun PersonCard(person: NotebookPerson, onOpen: (NotebookEntry) -> Unit, onSetBudget: (Double?) -> Unit) {
     val tint = if (person.bought == person.entries.size) ClayTint.Household else ClayTint.Plain
     val variant = FamiliaClay.colors.onTintVariant(tint)
+    var budgetDialog by rememberSaveable(person.key) { mutableStateOf(false) }
     ClayCard(modifier = Modifier.fillMaxWidth(), tint = tint) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(person.name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+            val budget = person.budget
             Text(
                 listOf(
                     stringResource(R.string.notebook_bought_of, person.bought, person.entries.size),
-                    stringResource(R.string.notebook_spent, formatEuros(person.spent)),
+                    if (budget != null) {
+                        stringResource(R.string.notebook_spent_of_budget, formatEuros(person.spent), formatEuros(budget))
+                    } else {
+                        stringResource(R.string.notebook_spent, formatEuros(person.spent))
+                    },
                 ).joinToString(" · "),
                 style = MaterialTheme.typography.bodyMedium,
-                color = variant,
+                color = if (budget != null && person.spent > budget) MaterialTheme.colorScheme.error else variant,
             )
+            // With a budget, the bar shows what is spent of it; without, how many gifts are bought.
             LinearProgressIndicator(
-                progress = { person.bought.toFloat() / person.entries.size.coerceAtLeast(1) },
+                progress = {
+                    if (budget != null) (person.spent / budget).toFloat().coerceIn(0f, 1f)
+                    else person.bought.toFloat() / person.entries.size.coerceAtLeast(1)
+                },
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
             )
             person.entries.forEach { entry -> GiftRow(entry, variant) { onOpen(entry) } }
+            TextButton(onClick = { budgetDialog = true }, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(if (budget == null) R.string.notebook_set_budget else R.string.notebook_change_budget))
+            }
         }
     }
+    if (budgetDialog) {
+        BudgetDialog(
+            name = person.name,
+            initial = person.budget,
+            onConfirm = { amount -> budgetDialog = false; onSetBudget(amount) },
+            onDismiss = { budgetDialog = false },
+        )
+    }
+}
+
+/** The budget for one person: an amount, or nothing to remove it. */
+@Composable
+private fun BudgetDialog(name: String, initial: Double?, onConfirm: (Double?) -> Unit, onDismiss: () -> Unit) {
+    var text by rememberSaveable { mutableStateOf(initial?.let { formatEuros(it).replace("€", "").trim() } ?: "") }
+    val amount = parseEuros(text)?.takeIf { it > 0 && it <= 100_000 }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.notebook_budget_title, name)) },
+        text = {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                label = { Text(stringResource(R.string.notebook_budget_amount)) },
+                suffix = { Text("€") },
+                isError = text.isNotBlank() && amount == null,
+                supportingText = { Text(stringResource(R.string.notebook_budget_hint)) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            )
+        },
+        confirmButton = {
+            // An empty field removes the budget.
+            TextButton(
+                onClick = { if (text.isBlank()) onConfirm(null) else amount?.let(onConfirm) },
+                enabled = text.isBlank() || amount != null,
+                modifier = Modifier.heightIn(min = 56.dp),
+            ) { Text(stringResource(R.string.action_ok)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
+        },
+    )
 }
 
 @Composable
@@ -368,7 +437,7 @@ internal fun previewNotebook(): NotebookUiState.Success {
     fun entry(id: String, person: String, title: String, price: Double?, status: GiftStatus, source: NotebookSource, personId: String? = person.lowercase()) =
         NotebookEntry(id, source, personId, person, christmas, title, null, price, null, status, listId = if (source == NotebookSource.Idea) null else "l1")
     val people = listOf(
-        NotebookPerson("ines", "Inès", listOf(
+        NotebookPerson("ines", "Inès", personId = "ines", budget = 60.0, entries = listOf(
             entry("e1", "Inès", "Un roman policier", 18.0, GiftStatus.Bought, NotebookSource.Claim),
             entry("e2", "Inès", "Une machine à pain", 40.0, GiftStatus.Idea, NotebookSource.Share),
         )),
