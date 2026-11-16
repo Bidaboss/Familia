@@ -1653,6 +1653,7 @@
     <string name="channel_welcome">Bienvenue</string>
     <string name="channel_welcome_description">Quand un membre de la famille arrive dans Familia</string>
     <string name="feature_little_ones">Le coin des petits</string>
+    <string name="feature_discover">À découvrir</string>
     <string name="goodnews_little_ones_switch">Dans « Les petits » : un dessin ou une réussite à garder</string>
     <string name="goodnews_little_ones_label">Les petits</string>
     <string name="goodnews_little_ones_filter">Les petits</string>
@@ -1815,4 +1816,22 @@
     <string name="notifications_quiet_hours">Calme la nuit</string>
     <string name="notifications_quiet_hours_help">Entre 22 h et 8 h, rien ne sonne. Ce qui arrive la nuit t\'attend à 8 h, regroupé. Ce qui te concerne directement arrive toujours.</string>
     <string name="notifications_details_title">Précisions</string>
+    <!-- À découvrir (AVIS-19) -->
+    <string name="discover_title">À découvrir</string>
+    <string name="discover_try">Essayer</string>
+    <string name="discover_later">Plus tard</string>
+    <string name="discover_weekly_question_title">La question de la semaine</string>
+    <string name="discover_weekly_question_body">Chaque lundi, une question pour toute la famille, et les réponses de chacun.</string>
+    <string name="discover_help_requests_title">L\'entraide</string>
+    <string name="discover_help_requests_body">Demande un coup de main à la famille, ou propose le tien.</string>
+    <string name="discover_polls_title">Sondages et Qui apporte quoi</string>
+    <string name="discover_polls_body">Trouve une date qui va à tout le monde, et répartis ce que chacun apporte au repas.</string>
+    <string name="discover_recipes_title">Les recettes</string>
+    <string name="discover_recipes_body">Garde les recettes de la famille au même endroit.</string>
+    <string name="discover_trips_title">Voyages et comptes</string>
+    <string name="discover_trips_body">Prépare un voyage ensemble, puis partage les dépenses sans faire de calculs.</string>
+    <string name="discover_capsules_title">La capsule temporelle</string>
+    <string name="discover_capsules_body">Écris un message qui ne s\'ouvrira que dans quelques années.</string>
+    <string name="discover_genealogy_title">L\'arbre généalogique</string>
+    <string name="discover_genealogy_body">Retrouve qui est qui dans la famille, génération après génération.</string>
 </resources>

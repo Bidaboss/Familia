@@ -366,3 +366,12 @@ Avec le module « Le petit geste du jour » allumé, deux comptes adultes.
 2. Touche « Voir la photo », puis réagis. **Attendu :** de retour sur l'Accueil, la ligne a disparu. Aucune notification n'est partie.
 3. En « Voir comme », ouvre l'Accueil d'un membre. **Attendu :** la ligne s'affiche pour lui, et rien n'est écrit.
 4. Éteins le module. **Attendu :** plus de ligne pour les membres.
+
+## À découvrir (AVIS-19)
+Avec l'interrupteur « À découvrir » allumé (l'admin principal le voit même éteint). Pour essayer avant le 30/11, mets la date du téléphone au lundi 30/11/2026 ou après.
+1. Lundi 30/11 : l'Accueil montre « À découvrir » en 4e bloc, après « Bonnes nouvelles », avec « La question de la semaine ». **Attendu :** « Essayer » ouvre la question de la semaine.
+2. Reviens sur l'Accueil. **Attendu :** la carte a disparu, et elle ne revient pas après avoir fermé l'appli.
+3. Avec un autre compte, touche « Plus tard ». **Attendu :** la carte disparaît pour ce compte seulement.
+4. Lundi 07/12 : **Attendu :** « Sondages et Qui apporte quoi ». L'Entraide est sautée, car le tuto la montre déjà.
+5. En Voir comme : **Attendu :** pas de « Plus tard », et « Essayer » ouvre le module sans cacher la carte du membre regardé.
+6. Avant le 30/11 ou interrupteur éteint : **Attendu :** pas de carte. Aucune notification n'est envoyée.
