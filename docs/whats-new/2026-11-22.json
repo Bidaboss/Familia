@@ -1,0 +1,25 @@
+{
+  "cards": [
+    {
+      "id": "question-de-la-semaine",
+      "title": "La question de la semaine",
+      "body": "Chaque lundi, une question pour mieux se connaître. Réponds quand tu veux, puis découvre les réponses des autres.",
+      "feature": "weeklyQuestion",
+      "open": "weeklyQuestion"
+    },
+    {
+      "id": "qui-est-ce",
+      "title": "Qui est-ce ?",
+      "body": "Une vieille photo, un visage : devine qui c'est ! Un petit jeu pour faire parler les souvenirs.",
+      "feature": "whoIsIt",
+      "open": "whoIsIt"
+    },
+    {
+      "id": "recettes-de-famille",
+      "title": "Nos recettes de famille",
+      "body": "Les recettes de chacun sont dans Famille, en haut, rubrique Nos trésors. Ajoute la tienne en photo ou en texte.",
+      "feature": "recipes",
+      "open": "recipes"
+    }
+  ]
+}

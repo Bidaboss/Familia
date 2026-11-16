@@ -1460,6 +1460,7 @@ private fun NavHostController.openWhatsNew(target: WhatsNewTarget) {
         WhatsNewTarget.GoodNews -> navigate(GoodNewsFeedDestination) { launchSingleTop = true }
         WhatsNewTarget.JoinMe -> navigate(JoinMeDestination) { launchSingleTop = true }
         WhatsNewTarget.Appearance -> navigate(AppearanceDestination) { launchSingleTop = true }
+        WhatsNewTarget.WhoIsIt -> navigate(WhoIsItDestination) { launchSingleTop = true }
     }
 }
 

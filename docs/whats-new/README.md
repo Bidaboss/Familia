@@ -38,7 +38,7 @@ Chaque fichier contient de 1 à 3 cartes. Les champs :
 - `body` (obligatoire) : une seule phrase, en tutoiement, 140 caractères au plus.
 - `childTitle` et `childBody` (facultatifs) : la variante pour un enfant. Sans elle, l'enfant lit le texte des adultes.
 - `feature` (facultatif) : la clé de l'interrupteur du module, par exemple `recipes` (voir `Feature.kt`). La carte attend tant que le module est éteint pour la famille. Elle apparaît à l'ouverture suivante quand l'admin l'allume, et « À découvrir » saute ensuite ce module.
-- `open` (facultatif) : l'écran qu'ouvre « Essayer ». Sans lui, la carte n'a pas de bouton. Les valeurs possibles sont `home`, `planning`, `gifts`, `helpRequests`, `members`, `recipes`, `trips`, `polls`, `capsules`, `genealogy`, `weeklyQuestion`, `goodNews`, `joinMe` et `appearance`. Elles donnent aussi l'illustration de la carte.
+- `open` (facultatif) : l'écran qu'ouvre « Essayer ». Sans lui, la carte n'a pas de bouton. Les valeurs possibles sont `home`, `planning`, `gifts`, `helpRequests`, `members`, `recipes`, `trips`, `polls`, `capsules`, `genealogy`, `weeklyQuestion`, `goodNews`, `joinMe`, `appearance` et `whoIsIt`. Elles donnent aussi l'illustration de la carte.
 - `adultsOnly` (facultatif) : `true` pour ne pas montrer la carte aux enfants.
 
 ## Ce que voit le membre
