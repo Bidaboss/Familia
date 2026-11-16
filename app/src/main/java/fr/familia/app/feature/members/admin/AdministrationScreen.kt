@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.QueryStats
 import androidx.compose.material.icons.outlined.SaveAlt
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -106,6 +107,8 @@ fun AdministrationScreen(
     /** « Voir comme » (PRD, rôles): the members to look through the eyes of; hidden when [onViewAs] is null. */
     viewAsMembers: List<Member> = emptyList(),
     onViewAs: ((Member) -> Unit)? = null,
+    /** « Partager Familia » (récit 1 bis bis): the install link for the whole family. */
+    onShareApp: (() -> Unit)? = null,
 ) {
     Scaffold(
         modifier = modifier,
@@ -138,7 +141,7 @@ fun AdministrationScreen(
                     ReadyContent(
                         state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport, features, onSetFeature, onRenameHousehold,
                         onOpenUsage, consumption, challenges, onPickChallenge, capsuleLeftovers, onDeleteCapsuleLeftovers,
-                        rotation, onSaveRotation, viewAsMembers, onViewAs,
+                        rotation, onSaveRotation, viewAsMembers, onViewAs, onShareApp,
                     )
             }
         }
@@ -177,6 +180,7 @@ private fun ReadyContent(
     onSaveRotation: ((YearMonth, List<String>) -> Unit)?,
     viewAsMembers: List<Member>,
     onViewAs: ((Member) -> Unit)?,
+    onShareApp: (() -> Unit)?,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
     var choosingViewAs by rememberSaveable { mutableStateOf(false) }
@@ -247,6 +251,30 @@ private fun ReadyContent(
                         Text(stringResource(R.string.view_as_title), style = MaterialTheme.typography.titleMedium)
                         Text(
                             stringResource(R.string.view_as_help),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
+        }
+        if (onShareApp != null) {
+            item(key = "share-app") {
+                HorizontalDivider(Modifier.padding(top = 8.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onShareApp)
+                        .heightIn(min = 56.dp)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Outlined.Share, contentDescription = null)
+                    Spacer(Modifier.width(16.dp))
+                    Column {
+                        Text(stringResource(R.string.share_app_title), style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            stringResource(R.string.share_app_help),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

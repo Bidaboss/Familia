@@ -3,6 +3,7 @@ package fr.familia.app.feature.members.admin
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -10,6 +11,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.share.shareApp
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.viewas.LocalViewAs
 import kotlinx.coroutines.flow.catch
@@ -54,6 +56,7 @@ fun AdministrationRoute(
     val viewAsMembers = family?.members.orEmpty()
         .filter { it.id != currentMember.id }
         .sortedWith(compareBy(Collator.getInstance(Locale.FRENCH)) { it.firstName })
+    val context = LocalContext.current
     AdministrationScreen(
         state = state,
         onBack = onBack,
@@ -77,5 +80,7 @@ fun AdministrationRoute(
         onSaveRotation = if (treeOn) viewModel::saveRotation else null,
         viewAsMembers = viewAsMembers,
         onViewAs = startViewAs,
+        // Only the admin principal opens Administration: the name in the message is their own.
+        onShareApp = { shareApp(context, currentMember.firstName) },
     )
 }

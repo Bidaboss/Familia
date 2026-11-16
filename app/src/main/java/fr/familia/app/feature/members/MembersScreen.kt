@@ -33,6 +33,7 @@ import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material.icons.outlined.PersonAdd
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -60,6 +61,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.OutlinedButton
 import fr.familia.app.R
+import fr.familia.app.core.share.canShareApp
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
@@ -109,6 +111,8 @@ fun MembersScreen(
     onOpenWishes: ((memberId: String) -> Unit)? = null,
     /** Set: every row opens the member's page, whose Modifier keeps the rights of [onEditMember]. */
     onOpenProfile: ((memberId: String) -> Unit)? = null,
+    /** « Partager Familia » (récit 1 bis bis), shown to adults, given the admin principal's first name. */
+    onShareApp: ((ownerFirstName: String?) -> Unit)? = null,
 ) {
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var photoOf by rememberSaveable { mutableStateOf<String?>(null) }
@@ -186,6 +190,11 @@ fun MembersScreen(
                 }
                 if (onOpenGenealogy != null) {
                     item(key = "genealogy") { SettingsRow(Icons.Outlined.AccountTree, R.string.genealogy_title, onOpenGenealogy) }
+                }
+                val everyone = state.groups.flatMap { it.members }
+                if (onShareApp != null && canShareApp(everyone.firstOrNull { it.id == state.currentMemberId })) {
+                    val ownerName = everyone.firstOrNull { it.id == state.ownerId }?.firstName
+                    item(key = "share-app") { SettingsRow(Icons.Outlined.Share, R.string.share_app_title) { onShareApp(ownerName) } }
                 }
                 item(key = "settings-title") {
                     Column {
