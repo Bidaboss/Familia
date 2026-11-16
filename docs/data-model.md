@@ -638,6 +638,8 @@ Les événements, les Bonnes nouvelles, les vœux et « Rejoignez-moi » restent
 
 Seules les fonctions s'en servent, aucune règle ne l'ouvre. Il est effacé avec le membre. Chaque réglage (`souvenirs`, `tree`, `weekly`) est vérifié au moment où la nouvelle entre dans le résumé.
 
+À savoir avant d'allumer le module (relecture de #100) : le résumé arrive sur le canal Android « Question de la semaine » (`weekly`). Un membre qui a coupé ce canal dans les réglages d'Android ne reçoit plus ses souvenirs. Il faudra le dire dans l'aide, ou donner au résumé son propre canal.
+
 ## L'arbre de la famille et le défi du mois (PRD, récit 35)
 
 Un arbre commun grandit avec les gestes de tous, et un défi par mois a sa jauge (`functions/src/tree.ts`). Le serveur seul écrit. Rien ne dit qui a le plus contribué (carte EXPERT-3).
