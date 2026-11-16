@@ -16,6 +16,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cake
+import androidx.compose.material.icons.outlined.EventAvailable
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -43,7 +46,13 @@ import java.time.LocalDate
 
 /** Birthdays tab: every member's next birthday, nearest first. Stateless. */
 @Composable
-fun BirthdaysScreen(state: BirthdaysUiState, onRetry: () -> Unit, modifier: Modifier = Modifier) {
+fun BirthdaysScreen(
+    state: BirthdaysUiState,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+    /** « Ajouter à mon agenda » on each birthday (PRD, récit 30); hidden when null. */
+    onAddToCalendar: ((Birthday) -> Unit)? = null,
+) {
     when (state) {
         BirthdaysUiState.Loading ->
             Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
@@ -68,7 +77,7 @@ fun BirthdaysScreen(state: BirthdaysUiState, onRetry: () -> Unit, modifier: Modi
         } else {
             LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 8.dp)) {
                 items(state.birthdays, key = { "birthday-${it.member.id}" }) { birthday ->
-                    BirthdayRow(birthday, state.today)
+                    BirthdayRow(birthday, state.today, onAddToCalendar?.let { add -> { add(birthday) } })
                 }
                 if (state.missingDate.isNotEmpty()) {
                     item(key = "missing") { MissingDates(state.missingDate) }
@@ -79,7 +88,7 @@ fun BirthdaysScreen(state: BirthdaysUiState, onRetry: () -> Unit, modifier: Modi
 }
 
 @Composable
-private fun BirthdayRow(birthday: Birthday, today: LocalDate) {
+private fun BirthdayRow(birthday: Birthday, today: LocalDate, onAddToCalendar: (() -> Unit)?) {
     val isToday = birthday.date == today
     Column {
         Row(
@@ -92,7 +101,7 @@ private fun BirthdayRow(birthday: Birthday, today: LocalDate) {
         ) {
             MemberAvatar(birthday.member)
             Spacer(Modifier.width(16.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     birthday.member.firstName,
                     style = MaterialTheme.typography.titleMedium,
@@ -107,6 +116,16 @@ private fun BirthdayRow(birthday: Birthday, today: LocalDate) {
                     style = MaterialTheme.typography.bodyLarge,
                     color = if (isToday) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+            if (onAddToCalendar != null) {
+                // 48 dp target; the label names the member for TalkBack.
+                IconButton(onClick = onAddToCalendar) {
+                    Icon(
+                        Icons.Outlined.EventAvailable,
+                        contentDescription = stringResource(R.string.calendar_add_birthday, birthday.member.firstName),
+                        tint = if (isToday) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
         }
         HorizontalDivider(Modifier.padding(start = 72.dp))

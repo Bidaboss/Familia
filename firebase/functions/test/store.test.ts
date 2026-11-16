@@ -64,6 +64,19 @@ test('a change reaches the phones of everyone but its author', async () => {
   assert.match(sent[0].notice.body, /^Camille a ajouté « Repas »/);
 });
 
+test('the calendar reminder follows the switch of config/app (récit 30)', async () => {
+  const data = (await db.doc('events/meal').get()).data() as never;
+  const off = fakeSender();
+  await db.doc('config/app').set({ features: { calendar: false } });
+  await notifyChange(db, off.send, 'edited', 'meal', data, 'uid-camille', now);
+  assert.doesNotMatch(off.sent[0].notice.body, /agenda/);
+  const on = fakeSender();
+  await db.doc('config/app').set({ features: { calendar: true } });
+  await notifyChange(db, on.send, 'edited', 'meal', data, 'uid-camille', now);
+  assert.match(on.sent[0].notice.body, /agenda/);
+  await db.doc('config/app').delete();
+});
+
 test('the token of an uninstalled app is forgotten', async () => {
   const { sent, send } = fakeSender(['token-old']);
   await notify(db, send, ['ines'], { channel: 'events', title: 't', body: 'b', eventId: 'meal' });

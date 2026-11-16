@@ -10,7 +10,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.compose.ui.platform.LocalContext
+import fr.familia.app.R
+import fr.familia.app.core.calendar.CalendarEntry
+import fr.familia.app.core.calendar.addToCalendar
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Feature
+import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.model.Member
 
 /** Connects the event view to its ViewModel, and closes it when the event is deleted meanwhile. */
@@ -42,8 +48,14 @@ fun EventDetailRoute(
         if (state is EventDetailUiState.Success) wasShown = true
         if (state == EventDetailUiState.Missing && wasShown) onBack()
     }
+    val context = LocalContext.current
+    val calendarOn = LocalFeatureFlags.current.isOn(Feature.Calendar)
+    val shown = state as? EventDetailUiState.Success
     EventDetailScreen(
         state = state,
+        onAddToCalendar = shown?.takeIf { calendarOn }?.let { success ->
+            { addToCalendar(context, CalendarEntry.forEvent(success.event, context.getString(R.string.calendar_created_from))) }
+        },
         onAnswer = viewModel::answer,
         onRetry = viewModel::retry,
         onEdit = onEdit,

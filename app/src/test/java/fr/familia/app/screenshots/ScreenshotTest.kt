@@ -150,7 +150,7 @@ class ScreenshotTest {
     fun clayCardsFontScale200() = capture("argile_cartes_police_200") { ClayCardSamples() }
 
     @Test
-    fun birthdaysLight() = capture("anniversaires_clair") { Surface { BirthdaysScreen(previewBirthdays(), onRetry = {}) } }
+    fun birthdaysLight() = capture("anniversaires_clair") { Surface { BirthdaysScreen(previewBirthdays(), onRetry = {}, onAddToCalendar = {}) } }
 
     @Test
     @Config(qualifiers = "+night")
@@ -307,13 +307,13 @@ class ScreenshotTest {
 
     @Test
     fun eventDetailLight() = capture("evenement_detail_clair") {
-        EventDetailScreen(previewEventDetail(), { _, _ -> }, {}, {}, {})
+        EventDetailScreen(previewEventDetail(), { _, _ -> }, {}, {}, {}, onAddToCalendar = {})
     }
 
     @Test
     @Config(qualifiers = "+night")
     fun eventDetailDark() = capture("evenement_detail_sombre", darkTheme = true) {
-        EventDetailScreen(previewEventDetail(canManage = false), { _, _ -> }, {}, {}, {})
+        EventDetailScreen(previewEventDetail(canManage = false), { _, _ -> }, {}, {}, {}, onAddToCalendar = {})
     }
 
     @Test
