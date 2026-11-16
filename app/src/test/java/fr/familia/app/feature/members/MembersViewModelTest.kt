@@ -75,7 +75,7 @@ class MembersViewModelTest {
         val vm = MembersViewModel(FakeMembers(source), currentMemberId = "1")
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         val chef = vm.uiState.value as MembersUiState.Success
-        assertTrue(chef.canAddMembers)
+        assertFalse(chef.canAddMembers)
         assertFalse(chef.isOwner)
         assertEquals(setOf("1"), chef.editableMemberIds)
         assertEquals(setOf("h1"), chef.renamableHouseholdIds)
