@@ -941,7 +941,7 @@ service cloud.firestore {
     // February: on 1 March, since the 15th birthday never falls on a 29 February. Without a birth
     // date the child counts as younger: the admin fills it in Administration.
     function isTeenOrOlder(memberId) {
-      let birth = get(memberPath(memberId)).data.birthDate;
+      let birth = get(memberPath(memberId)).data.get('birthDate', null);
       let leapDay = birth != null && birth[5:10] == '02-29';
       return birth != null
         && timestamp.date(int(birth[0:4]) + 15, leapDay ? 3 : int(birth[5:7]), leapDay ? 1 : int(birth[8:10])) <= request.time;
