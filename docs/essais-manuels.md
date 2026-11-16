@@ -112,7 +112,7 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 ## Thèmes au choix (DESIGN-7)
 
 1. Dans Administration > Modules, allume « Thèmes au choix ». Dans l'onglet Famille, **attendu :** une ligne « Apparence » apparaît sous les réglages.
-2. Ouvre « Apparence ». **Attendu :** les 9 thèmes, chacun montré dans ses couleurs et sa police. Touche « Espagne ». **Attendu :** l'appli change tout de suite : fond sable avec azulejos, titres en Abril Fatface, cartes à bordure bleue et ombre dorée.
+2. Ouvre « Apparence ». **Attendu :** les 9 thèmes, chacun montré dans ses couleurs et sa police. Touche « Espagne ». **Attendu :** l'appli change tout de suite : fond crème avec une bande rouge, jaune, rouge en haut, titres en Abril Fatface, cartes à bordure rouge et ombre jaune.
 3. Ferme complètement l'appli et rouvre-la. **Attendu :** le thème choisi est gardé. Sur un autre téléphone, le thème reste Classique.
 4. Passe le téléphone en mode sombre. **Attendu :** Classique devient sombre comme avant. Arcade et Cosmos restent sombres, et les autres thèmes restent clairs.
 5. Dans chaque thème, ouvre Planning, Accueil et Famille. **Attendu :** les textes restent en Nunito et lisibles, les boutons gardent leur place et leur taille, et la couleur de chaque membre ne change pas.
