@@ -159,9 +159,9 @@ Droits : seul le membre lui-même lit et modifie ses réglages. L'appli écrit c
 
 ### `weeklyRecaps/{AAAA-MM-JJ}` (récit 36)
 
-Un document par dimanche, posé par la tâche de 18 h quand elle envoie « La semaine de la famille » : il garantit un seul envoi par semaine (`sentAt`, `expireAt` à 40 jours). Aucune règle ne l'ouvre.
+Un document par dimanche, posé par la tâche de 18 h quand elle envoie « La semaine de la famille » : il garantit un seul envoi par semaine (`sentAt`, `expireAt` à 40 jours, effacé par le TTL de Firestore). Aucune règle ne l'ouvre.
 
-Le dimanche, si le module `recap` est allumé, chaque membre qui a l'appli et n'a pas coupé `recap` reçoit une notification (canal `recap`, discret, donnée `recapWeek`) qui résume la semaine : les photos des Bonnes nouvelles des 7 derniers jours, les anniversaires des 14 prochains jours, la jauge du défi (si le module `tree` est allumé) et les voyages en cours. Sans nouvelle, le texte reste simple : « Les nouvelles de la famille, en un coup d'œil. » L'écran qui s'ouvre au toucher vient dans une PR suivante.
+Le dimanche, si le module `recap` est allumé, chaque membre qui a l'appli et n'a pas coupé `recap` reçoit une notification (canal `recap`, discret, donnée `recapWeek`) qui résume la semaine : les photos des Bonnes nouvelles des 7 derniers jours, les anniversaires des 14 prochains jours, la jauge du défi (si le module `tree` est allumé) et les voyages en cours que ce membre peut voir (`readerIds` : un voyage surprise reste caché). Sans nouvelle, le texte reste simple : « Les nouvelles de la famille, en un coup d'œil. » L'écran qui s'ouvre au toucher vient dans une PR suivante.
 
 ## Cloud Functions (lot 8)
 

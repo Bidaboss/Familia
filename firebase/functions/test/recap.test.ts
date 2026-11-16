@@ -53,14 +53,16 @@ describe('the recap of Sunday against the emulator', () => {
     }
     batch.set(db.doc('goodNews/n1'), { photoIds: ['a', 'b'], createdAt: new Date('2026-11-20T10:00:00Z') });
     batch.set(db.doc('goodNews/n0'), { photoIds: ['c'], createdAt: new Date('2026-11-10T10:00:00Z') });
-    batch.set(db.doc('trips/t1'), { startDate: '2026-11-20', endDate: '2026-11-25' });
-    batch.set(db.doc('trips/t2'), { startDate: '2026-12-20', endDate: '2026-12-27' });
+    batch.set(db.doc('trips/t1'), { startDate: '2026-11-20', endDate: '2026-11-25', readerIds: ['camille', 'ines'] });
+    batch.set(db.doc('trips/t2'), { startDate: '2026-12-20', endDate: '2026-12-27', readerIds: ['camille', 'ines'] });
+    // A surprise for Inès: she is not among its readers.
+    batch.set(db.doc('trips/t3'), { startDate: '2026-11-21', endDate: '2026-11-23', readerIds: ['camille'] });
     batch.set(db.doc('challenges/2026-11'), { title: 'x', emoji: '', measure: 'goodNews', target: 10, progress: 4, achievedAt: null });
     await batch.commit();
   });
 
   test('the news of the week: its photos, the birthdays of the next 14 days, the gauge, the trips under way', async () => {
-    assert.deepEqual(await weekNews(db, sunday), { photos: 2, birthdays: 2, challengePercent: 40, challengeDone: false, trips: 1 });
+    assert.deepEqual(await weekNews(db, sunday, 'ines'), { photos: 2, birthdays: 2, challengePercent: 40, challengeDone: false, trips: 1 });
   });
 
   test('once a Sunday, to the members with the app, not those who turned it off', async () => {
@@ -69,9 +71,19 @@ describe('the recap of Sunday against the emulator', () => {
     assert.equal(await sendWeeklyRecap(db, send, new Date('2026-11-21T17:00:00Z')), null); // Saturday.
     assert.equal(await sendWeeklyRecap(db, send, sunday), 1);
     assert.deepEqual(sent.map((s) => s.token), ['token-camille']);
-    assert.equal(sent[0].notice.body, '2 photos, 2 anniversaires à venir, défi à 40 %, 1 voyage en cours.');
+    assert.equal(sent[0].notice.body, '2 photos, 2 anniversaires à venir, défi à 40 %, 2 voyages en cours.');
     assert.equal(await sendWeeklyRecap(db, send, new Date('2026-11-22T17:30:00Z')), null);
     assert.equal(sent.length, 1);
+  });
+
+  test('a trip is counted only for the members who may see it, so a surprise stays hidden', async () => {
+    assert.equal((await weekNews(db, sunday, 'camille')).trips, 2);
+    assert.equal((await weekNews(db, sunday, 'ines')).trips, 1);
+    const { sent, send } = fakeSender();
+    assert.equal(await sendWeeklyRecap(db, send, sunday), 2);
+    const byToken = Object.fromEntries(sent.map((s) => [s.token, s.notice.body]));
+    assert.equal(byToken['token-camille'], '2 photos, 2 anniversaires à venir, défi à 40 %, 2 voyages en cours.');
+    assert.equal(byToken['token-ines'], '2 photos, 2 anniversaires à venir, défi à 40 %, 1 voyage en cours.');
   });
 
   test('module off: nothing is sent', async () => {

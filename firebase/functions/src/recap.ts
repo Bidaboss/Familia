@@ -39,7 +39,13 @@ export function isSunday(now: Date): boolean {
   return new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', weekday: 'short' }).format(now) === 'Sun';
 }
 
-export async function weekNews(db: Firestore, now: Date): Promise<WeekNews> {
+/** The week as read once for the whole family; the trips keep who may see them (readerIds). */
+export interface Week {
+  family: Omit<WeekNews, 'trips'>;
+  tripReaders: string[][];
+}
+
+export async function loadWeek(db: Firestore, now: Date): Promise<Week> {
   const today = parisDay(now);
   const since = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
   const [news, members, config, challenge, trips] = await Promise.all([
@@ -62,8 +68,19 @@ export async function weekNews(db: Firestore, now: Date): Promise<WeekNews> {
   const done = treeOn && challenge.exists && Boolean(challenge.get('achievedAt'));
   const percent = treeOn && challenge.exists && !done && target > 0
     ? Math.floor((100 * Number(challenge.get('progress') ?? 0)) / target) : null;
-  const travelling = trips.docs.filter((t) => String(t.get('startDate') ?? '') <= today).length;
-  return { photos, birthdays, challengePercent: percent, challengeDone: done, trips: travelling };
+  const tripReaders = trips.docs
+    .filter((t) => String(t.get('startDate') ?? '') <= today)
+    .map((t) => (t.get('readerIds') as string[] | undefined) ?? []);
+  return { family: { photos, birthdays, challengePercent: percent, challengeDone: done }, tripReaders };
+}
+
+/** What [memberId] is told: a trip counts only if the member may see it (a surprise stays hidden). */
+export function newsFor(week: Week, memberId: string): WeekNews {
+  return { ...week.family, trips: week.tripReaders.filter((r) => r.includes(memberId)).length };
+}
+
+export async function weekNews(db: Firestore, now: Date, memberId: string): Promise<WeekNews> {
+  return newsFor(await loadWeek(db, now), memberId);
 }
 
 /**
@@ -85,6 +102,15 @@ export async function sendWeeklyRecap(db: Firestore, send: Sender, now: Date): P
   const settings = await db.getAll(...withApp.map((id) => db.doc(`members/${id}/settings/notifications`)));
   const muted = new Set(settings.filter((s) => s.exists && s.get('recap') === false).map((s) => s.ref.parent.parent!.id));
   const told = withApp.filter((id) => !muted.has(id));
-  await notify(db, send, told, recapNotice(sunday, await weekNews(db, now)));
+  // One notice per member, sent in groups of members who are told the same thing.
+  const week = await loadWeek(db, now);
+  const groups = new Map<string, { notice: Notice; ids: string[] }>();
+  for (const id of told) {
+    const notice = recapNotice(sunday, newsFor(week, id));
+    const group = groups.get(notice.body) ?? { notice, ids: [] };
+    group.ids.push(id);
+    groups.set(notice.body, group);
+  }
+  for (const { notice, ids } of groups.values()) await notify(db, send, ids, notice);
   return told.length;
 }
