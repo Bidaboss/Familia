@@ -357,3 +357,12 @@ Avec le module « Le coin des petits » allumé, un compte adulte qui a un enfan
 ## Voir comme : aucune écriture à l'ouverture
 1. Admin principal : Administration › Voir comme › un membre. Naviguer dans tous les onglets : aucun message « Lecture seule » n'apparaît tant qu'on ne touche aucun bouton d'action.
 2. Quitter Voir comme : les notifications arrivent toujours sur le téléphone de l'admin (il n'a pas été inscrit pour le membre regardé).
+
+## Le petit geste du jour (récit 43)
+
+Avec le module « Le petit geste du jour » allumé, deux comptes adultes.
+
+1. Avec le premier compte, publie une Bonne nouvelle avec une photo. **Attendu :** sur l'Accueil du second compte, le bloc « À faire pour moi » montre « La photo de … attend ta réaction » et « Voir la photo ».
+2. Touche « Voir la photo », puis réagis. **Attendu :** de retour sur l'Accueil, la ligne a disparu. Aucune notification n'est partie.
+3. En « Voir comme », ouvre l'Accueil d'un membre. **Attendu :** la ligne s'affiche pour lui, et rien n'est écrit.
+4. Éteins le module. **Attendu :** plus de ligne pour les membres.
