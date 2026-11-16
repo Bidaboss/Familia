@@ -11,7 +11,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.BirthdayCard
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.feature.wishes.BirthdayCardsSection
 
 /** Connects a good news to its ViewModel, and goes back once it is removed. */
 @Composable
@@ -31,6 +35,7 @@ fun GoodNewsDetailRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val wishesOn = LocalFeatureFlags.current.isOn(Feature.BirthdayWishes)
     var wasShown by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(state) {
         if (state is GoodNewsDetailUiState.Success) wasShown = true
@@ -44,5 +49,6 @@ fun GoodNewsDetailRoute(
         onHide = viewModel::setHidden,
         onDismissError = viewModel::dismissError,
         onBack = onBack,
+        wishes = if (wishesOn) ({ person -> BirthdayCardsSection(container, currentMember, person, BirthdayCard.yearOfNews(postId)) }) else null,
     )
 }

@@ -40,6 +40,8 @@ data class GoodNews(
     val challengeMonth: String? = null,
     /** Linked to the challenge of a foyer for that month (récit 35 bis): it moves its gauge. */
     val forChallenge: String? = null,
+    /** « Joyeux anniversaire », published by Familia on the birthday of this member (récit 36): no photo, no author. */
+    val birthdayOf: String? = null,
 ) {
     /** Changed by its author after it was published. */
     val isEdited: Boolean get() = createdAt != null && updatedAt != null && updatedAt.isAfter(createdAt.plusSeconds(60))
