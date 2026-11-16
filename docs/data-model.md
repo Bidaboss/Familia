@@ -489,7 +489,7 @@ Un message pour plus tard : un texte et jusqu'à 3 photos, pour des membres choi
 | `authorId`, `authorName` | texte | L'auteur et son prénom |
 | `createdAt` | horodatage | Heure du serveur |
 
-Droits : jusqu'au jour dit, seul l'auteur lit la capsule. Les destinataires ne savent même pas qu'elle existe, et l'admin principal ne la lit pas non plus. Le jour venu (heure de Paris), la tâche des 30 minutes (`openDueCapsules`, `functions/src/capsules.ts`) copie les destinataires dans `openedFor` et les prévient une fois (canal `capsules`), si le module « Capsules » est allumé. Ensuite, ils la lisent avec `openedFor array-contains <leur id>`, photos comprises. Une capsule ne se modifie jamais. Son auteur la supprime à tout moment, et `onCapsuleDeleted` efface alors ses photos.
+Droits : jusqu'au jour dit, seul l'auteur lit la capsule. Les destinataires ne savent même pas qu'elle existe, et l'admin principal ne la lit pas non plus. Le jour venu (heure de Paris), la tâche des 30 minutes (`openDueCapsules`, `functions/src/capsules.ts`) copie les destinataires dans `openedFor` et les prévient une fois (canal `capsules`), si le module « Capsules » est allumé. Ensuite, ils la lisent avec `openedFor array-contains <leur id>`, photos comprises. Une capsule ne se modifie jamais. Son auteur la supprime tant qu'elle est scellée (PRD rév. 187 : ouverte, elle devient un souvenir de ses destinataires), et `onCapsuleDeleted` efface alors ses photos. Si l'appli n'arrive pas à sceller la capsule après avoir envoyé des photos, elle les efface elle-même.
 
 ## Carnet de recettes (PRD, récit 38)
 

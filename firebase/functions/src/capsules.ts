@@ -44,6 +44,8 @@ export async function openDueCapsules(db: Firestore, send: Sender, now: Date): P
   const due = await db.collection('capsules').where('openAt', '<=', today).get();
   const opened: string[] = [];
   for (const snap of due.docs) {
+    // Already opened ones come back every run: skip them before any transaction (relecture #94, C1).
+    if ((snap.get('openedFor') ?? []).length > 0) continue;
     const ref = snap.ref;
     const capsule = await db.runTransaction(async (tx) => {
       const fresh = await tx.get(ref);
