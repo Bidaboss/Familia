@@ -16,6 +16,14 @@ PRD, récit 3 et cas limite « Pas de réseau » : le planning reste consultable
 8. Désactive le mode avion sur le premier téléphone. **Attendu :** le bandeau disparaît, et l'événement apparaît sur le deuxième téléphone en moins d'une minute.
 9. Supprime l'événement « Essai hors ligne ».
 
+Au lieu du repas, où le réseau peut être faible (passe hors ligne du 16/11). Toujours en mode avion, sur le premier téléphone :
+
+10. Accueil. **Attendu :** le bandeau « Hors ligne » et les dernières données, sans écran d'erreur.
+11. Sur un événement, réponds « Je viens », puis change pour « Peut-être », deux fois de suite. **Attendu :** la réponse change tout de suite et aucun message d'erreur ne s'affiche. Au retour du réseau, le deuxième téléphone montre une seule réponse, la dernière.
+12. « Qui apporte quoi » : ajoute « Essai gâteau ». **Attendu :** le champ se vide et la ligne apparaît tout de suite, une seule fois. Au retour du réseau, il n'y a qu'une ligne sur le deuxième téléphone.
+13. Bonnes nouvelles : écris un texte avec une photo et publie. **Attendu :** « Il faut du réseau pour envoyer les photos », sans rien publier. Ton texte et ta photo restent dans le formulaire. Désactive le mode avion puis publie : **Attendu :** une seule bonne nouvelle.
+14. Réactive le réseau. **Attendu :** le bandeau disparaît et tout arrive sur le deuxième téléphone, sans doublon.
+
 À noter si ça se passe mal : l'étape qui échoue, ce que tu vois à l'écran (une capture si possible) et la version de l'appli (en bas de l'onglet Famille).
 
 ## Passage de minuit (lot 5)
