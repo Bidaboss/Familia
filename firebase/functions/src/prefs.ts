@@ -35,6 +35,8 @@ export const FAMILY_OF: Readonly<Record<Channel, Family | null>> = {
   tree: 'weekly',
   recap: 'weekly',
   birthdays: 'weekly',
+  // « Pensez à moi » (récit 43): like the vœux, the invitation of the day.
+  thinkOfMe: 'weekly',
   joinMe: null,
   capsules: null,
   feedback: null,

@@ -32,7 +32,7 @@ export type RsvpStatus = 'yes' | 'maybe' | 'no';
 
 /** The ids of NotificationChannels in the app. `events` is the « Planning » channel. */
 // Each module adds its id here and its channel in the app, in the same pull request.
-export type Channel = 'events' | 'reminders' | 'gifts' | 'helpRequests' | 'goodNews' | 'trips' | 'comments' | 'weekly' | 'admin' | 'souvenirs' | 'tree' | 'joinMe' | 'capsules' | 'recap' | 'birthdays' | 'feedback' | 'welcome';
+export type Channel = 'events' | 'reminders' | 'gifts' | 'helpRequests' | 'goodNews' | 'trips' | 'comments' | 'weekly' | 'admin' | 'souvenirs' | 'tree' | 'joinMe' | 'capsules' | 'recap' | 'birthdays' | 'feedback' | 'welcome' | 'thinkOfMe';
 
 export interface Notice {
   /**
@@ -63,6 +63,8 @@ export interface Notice {
   birthdayOf?: string;
   /** La bienvenue (récit 43): the newcomer, the app opens their page. */
   welcomeOf?: string;
+  /** « Pensez à moi » (récit 43): the member of the moment, the app opens their page. */
+  thinkOfMeOf?: string;
   /** Aimed at the member directly (récit 6 quinquies): never muted, never held for the night. */
   direct?: boolean;
   /** Notices with the same tag replace each other on the phone (the cards of the day). */

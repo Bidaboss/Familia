@@ -72,6 +72,8 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     LittleOnes("littleOnes", R.string.feature_little_ones),
     /** Le petit geste du jour : une ligne de « À faire pour moi » sur l'Accueil, sans notification (PRD, récit 43). */
     DailyNudge("dailyNudge", R.string.feature_daily_nudge),
+    /** « Pensez à moi » : un moment important noté, la famille encourage le jour J (PRD, récit 43). */
+    ThinkOfMe("thinkOfMe", R.string.feature_think_of_me),
 }
 
 /**

@@ -33,6 +33,7 @@ object NotificationChannels {
     const val RECAP = "recap"
     const val BIRTHDAYS = "birthdays"
     const val WELCOME = "welcome"
+    const val THINK_OF_ME = "thinkOfMe"
     const val FEEDBACK = "feedback"
     const val JOIN_ME = "joinMe"
     const val CAPSULES = "capsules"
@@ -78,6 +79,7 @@ object NotificationChannels {
         // Vœux d'anniversaire (récit 36): « C'est l'anniversaire de … » and the cards received.
         Spec(BIRTHDAYS, R.string.channel_birthdays, R.string.channel_birthdays_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.BirthdayWishes),
         Spec(WELCOME, R.string.channel_welcome, R.string.channel_welcome_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.Welcome),
+        Spec(THINK_OF_ME, R.string.channel_think_of_me, R.string.channel_think_of_me_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.ThinkOfMe),
         // « Une idée ? Un souci ? » (récit 6 sexies): the answer to one's own request. No module switch.
         Spec(FEEDBACK, R.string.channel_feedback, R.string.channel_feedback_description, NotificationManager.IMPORTANCE_DEFAULT),
     )
