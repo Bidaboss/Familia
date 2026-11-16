@@ -195,7 +195,7 @@ class TripDetailViewModel(
             assignees = trip.participantIds.mapNotNull { id -> family.members.firstOrNull { it.id == id } }
                 .map { ItemAssignee(it.id, it.firstName) }
                 .sortedBy { it.name.lowercase() },
-            canShare = trip.readerIds.isEmpty() || family.members.all { it.id in trip.readerIds },
+            canShare = family.members.all { it.id in trip.readerIds },
         )
     }
 }

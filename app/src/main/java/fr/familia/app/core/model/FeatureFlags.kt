@@ -72,6 +72,8 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     MemberCard("memberCard", R.string.feature_member_card),
     /** Le coin des petits : l'étiquette « Les petits » et son filtre sur les Bonnes nouvelles (PRD, récit 43). */
     LittleOnes("littleOnes", R.string.feature_little_ones),
+    /** Le petit geste du jour : une ligne de « À faire pour moi » sur l'Accueil, sans notification (PRD, récit 43). */
+    DailyNudge("dailyNudge", R.string.feature_daily_nudge),
 }
 
 /**

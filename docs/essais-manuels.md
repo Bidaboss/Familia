@@ -339,6 +339,12 @@ Avec le module « La bienvenue » allumé, un membre ajouté qui ne s'est jamais
 1. Administration : les marges sur les côtés passent à 20 dp, dans toutes les sections.
 2. Les cartes « Consommation » et « Capsules restantes » ont leur titre avec la pastille en thème clair.
 
+## Une phrase d'aide par écran au plus (DESIGN-11)
+1. Administration : sous les titres de section, seule la phrase des modules reste (« Un module éteint est caché à la famille… »). Le « ? » en haut à droite explique les chefs, les foyers, le défi et le tour des foyers.
+2. Rejoignez-moi : une seule phrase sous « Envoyer » (« Ta position est prise une seule fois… ») ; le reste est dans le « ? ».
+3. Sauvegarde, Cadeaux reçus et « Une idée ? Un souci ? » : une seule phrase en tête.
+4. Accueil, « ? » : l'aide parle des blocs et des puces.
+
 ## Le coin des petits (récit 43)
 
 Avec le module « Le coin des petits » allumé, un compte adulte qui a un enfant dans son foyer, et un autre compte.
@@ -347,3 +353,12 @@ Avec le module « Le coin des petits » allumé, un compte adulte qui a un enfan
 2. Publie-en une pour l'enfant, et allume « Dans « Les petits » ». **Attendu :** la carte porte l'étiquette « Les petits », dans le fil et sur sa page.
 3. Avec l'autre compte, ouvre les Bonnes nouvelles et touche le filtre « Les petits ». **Attendu :** seules celles des petits restent. Touche-le encore : tout revient.
 4. Éteins le module. **Attendu :** ni l'interrupteur, ni le filtre, ni l'étiquette pour les membres (l'admin principal voit toujours tout).
+
+## Le petit geste du jour (récit 43)
+
+Avec le module « Le petit geste du jour » allumé, deux comptes adultes.
+
+1. Avec le premier compte, publie une Bonne nouvelle avec une photo. **Attendu :** sur l'Accueil du second compte, le bloc « À faire pour moi » montre « La photo de … attend ta réaction » et « Voir la photo ».
+2. Touche « Voir la photo », puis réagis. **Attendu :** de retour sur l'Accueil, la ligne a disparu. Aucune notification n'est partie.
+3. En « Voir comme », ouvre l'Accueil d'un membre. **Attendu :** la ligne s'affiche pour lui, et rien n'est écrit.
+4. Éteins le module. **Attendu :** plus de ligne pour les membres.

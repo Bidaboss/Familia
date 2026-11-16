@@ -180,7 +180,6 @@ private fun Form(
 @Composable
 private fun HereSection(lookup: PlaceLookup, onLocate: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Hint(stringResource(R.string.joinme_here_hint))
         when (lookup) {
             PlaceLookup.Searching -> Searching(stringResource(R.string.joinme_locating))
             is PlaceLookup.Found -> {
@@ -237,7 +236,6 @@ private fun ElsewhereSection(state: JoinMeUiState.Editing, onQuery: (String) -> 
 private fun RecipientsSection(state: JoinMeUiState.Editing, onToggle: (String) -> Unit, onShortcut: (RecipientShortcut) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         SectionTitle(stringResource(R.string.joinme_who))
-        Hint(stringResource(R.string.joinme_who_hint))
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
