@@ -47,6 +47,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
+import fr.familia.app.feature.capsules.CapsulesDestination
+import fr.familia.app.feature.capsules.CapsulesRoute
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpRoute
 import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
@@ -637,6 +639,13 @@ fun FamiliaApp(
                             onBack = { navController.popBackStack() },
                         )
                     }
+                    composable<CapsulesDestination> {
+                        CapsulesRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
                     composable<RecipeDetailDestination> { entry ->
                         val recipeId = entry.toRoute<RecipeDetailDestination>().recipeId
                         RecipeDetailRoute(
@@ -886,6 +895,7 @@ fun FamiliaApp(
                             onOpenAppearance = if (themesOn) ({ navController.navigate(AppearanceDestination) }) else null,
                             onOpenChildrenUsage = if (features.isOn(Feature.Usage)) ({ navController.navigate(UsageDestination) }) else null,
                             onOpenRecipes = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipesDestination()) }) else null,
+                            onOpenCapsules = if (features.isOn(Feature.Capsules)) ({ navController.navigate(CapsulesDestination) }) else null,
                             onOpenWishes = if (features.isOn(Feature.Gifts)) {
                                 { id -> navController.navigate(GiftListDestination(wishesListId(id))) }
                             } else {

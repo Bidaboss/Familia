@@ -41,6 +41,8 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     /** Sondage de date et sondage libre (PRD, récits 2 bis et 2 ter). */
     Polls("polls", R.string.feature_polls),
     Recipes("recipes", R.string.feature_recipes),
+    /** La capsule temporelle (PRD, récit 39); the server opens nothing while it is off. */
+    Capsules("capsules", R.string.feature_capsules),
     /** « Qui apporte quoi » on an event (PRD, récit 4 bis). */
     Bring("bring", R.string.feature_bring),
     /** The place component and « Rejoignez-moi » (PRD, récit 33). */

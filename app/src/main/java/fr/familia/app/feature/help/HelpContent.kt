@@ -32,6 +32,7 @@ enum class ScreenHelp(
     MonthSlideshow(R.string.help_screen_month_title, R.string.help_screen_month_body),
     Polls(R.string.help_topic_polls_title, R.string.help_topic_polls_body),
     Recipes(R.string.help_screen_recipes_title, R.string.help_screen_recipes_body),
+    Capsules(R.string.help_screen_capsules_title, R.string.help_screen_capsules_body),
     JoinMe(R.string.help_topic_joinme_title, R.string.help_topic_joinme_body),
 }
 
