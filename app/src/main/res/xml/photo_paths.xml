@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The only file shared with the camera app: the picture it takes for a profile photo. -->
+<!-- Files shared with other apps: the picture the camera takes for a profile photo, and the
+     film of a trip (récit 16) sent through the share sheet of Android. -->
 <paths>
     <cache-path name="photos" path="photos/" />
+    <cache-path name="films" path="films/" />
 </paths>
