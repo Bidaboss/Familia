@@ -15,7 +15,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
-import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
@@ -162,17 +161,14 @@ fun BringContent(
                     Text(stringResource(R.string.bring_join_recipe))
                 }
             } else {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.AutoMirrored.Outlined.MenuBook, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.width(8.dp))
-                    Text(
-                        stringResource(R.string.bring_recipe_joined, recipeTitle),
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.weight(1f),
-                    )
-                    IconButton(onClick = { recipeId = null }, modifier = Modifier.size(56.dp)) {
-                        Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.bring_recipe_remove))
-                    }
+                    Text(stringResource(R.string.bring_recipe_joined, recipeTitle), style = MaterialTheme.typography.bodyLarge)
+                }
+                // A written label for every action, never an icon alone.
+                TextButton(onClick = { recipeId = null }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.bring_recipe_remove))
                 }
             }
             if (picking) {
