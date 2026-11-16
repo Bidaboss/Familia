@@ -1079,7 +1079,7 @@ Module `thinkOfMe`. Canal `thinkOfMe` (famille de réglages « Rendez-vous de la
 | `createdAt` | date | |
 | `startedAt` | date, fonctions seulement | Posé à 10 h le jour J par `startMoments` (tâche `birthdayGiftReminders`), une seule fois ; ouvre les encouragements pendant 24 h |
 
-Lu par toute la famille. Supprimé par son auteur ou par le membre du moment. Le jour J, à 10 h, la famille qui a l'appli (pas le membre) reçoit « Pensez à Camille aujourd'hui », « « Examen de piano » : envoie-lui un encouragement. » Pas de relance le lendemain.
+Lu par toute la famille une fois accepté ; en `pending`, seulement par l'ado, l'auteur et les adultes responsables (l'appli des autres demande `status == 'accepted'`). L'âge vient de `birthDate` : né un 29 février, 15 ans le 1er mars ; sans date, l'enfant compte comme plus jeune. Supprimé par son auteur ou par le membre du moment. Le jour J, à 10 h, la famille qui a l'appli (pas le membre) reçoit « Pensez à Camille aujourd'hui », « « Examen de piano » : envoie-lui un encouragement. » Pas de relance le lendemain.
 
 ### `momentCheers/{momentId}-{authorId}`
 

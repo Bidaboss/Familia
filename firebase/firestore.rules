@@ -937,11 +937,14 @@ service cloud.firestore {
       return t is string && t.trim().size() > 0 && t.size() <= 80;
     }
 
-    // 15 years old today or before, from the birth date of the member (AAAA-MM-JJ).
+    // 15 years old today or before, from the birth date of the member (AAAA-MM-JJ). Born a 29
+    // February: on 1 March, since the 15th birthday never falls on a 29 February. Without a birth
+    // date the child counts as younger: the admin fills it in Administration.
     function isTeenOrOlder(memberId) {
       let birth = get(memberPath(memberId)).data.birthDate;
+      let leapDay = birth != null && birth[5:10] == '02-29';
       return birth != null
-        && timestamp.date(int(birth[0:4]) + 15, int(birth[5:7]), int(birth[8:10])) <= request.time;
+        && timestamp.date(int(birth[0:4]) + 15, leapDay ? 3 : int(birth[5:7]), leapDay ? 1 : int(birth[8:10])) <= request.time;
     }
 
     function momentStatusOnCreate(m) {
@@ -951,7 +954,13 @@ service cloud.firestore {
     }
 
     match /moments/{momentId} {
-      allow read: if isMember();
+      // Waiting for the teenager: only they, its author and their responsible adults read it. The
+      // others read the accepted ones (the app asks for status == 'accepted').
+      allow read: if isMember()
+        && (resource.data.status == 'accepted'
+            || resource.data.forMemberId == myMemberId()
+            || resource.data.authorId == myMemberId()
+            || isParentOf(resource.data.forMemberId));
 
       allow create: if isMember()
         && request.resource.data.keys().hasOnly(['forMemberId', 'authorId', 'authorName', 'title', 'day', 'status', 'createdAt'])

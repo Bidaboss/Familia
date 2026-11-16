@@ -2,7 +2,9 @@
 // old) and teen1 (16, with the app), both children of adult1.
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { Timestamp, deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import {
+  Timestamp, collection, deleteDoc, doc, getDoc, getDocs, query, serverTimestamp, setDoc, updateDoc, where,
+} from 'firebase/firestore';
 import { ADULT, OTHER_ADULT, STRANGER, adultDoc, as, createEnv, seed } from './helpers.mjs';
 
 let env;
@@ -76,6 +78,28 @@ describe('moments', () => {
     await assertSucceeds(updateDoc(doc(teen, 'moments/m1'), { status: 'accepted' }));
     await assertFails(updateDoc(doc(teen, 'moments/m1'), { status: 'pending' }));
     await assertSucceeds(deleteDoc(doc(teen, 'moments/m1')));
+  });
+
+  test('a moment waiting for the teenager stays between them, its author and their parents', async () => {
+    await stored(moment(ADULT, { forMemberId: TEEN.memberId, status: 'pending' }), 'm1');
+    await stored(moment(TEEN), 'm2');
+    await assertFails(getDoc(doc(as(env, OTHER_ADULT), 'moments/m1')));
+    await assertSucceeds(getDoc(doc(as(env, TEEN), 'moments/m1')));
+    await assertSucceeds(getDoc(doc(as(env, ADULT), 'moments/m1')));
+    const moments = collection(as(env, OTHER_ADULT), 'moments');
+    await assertFails(getDocs(query(moments, where('forMemberId', '==', TEEN.memberId))));
+    await assertSucceeds(getDocs(query(moments, where('forMemberId', '==', TEEN.memberId), where('status', '==', 'accepted'))));
+    await assertSucceeds(getDocs(query(collection(as(env, ADULT), 'moments'), where('forMemberId', '==', TEEN.memberId))));
+  });
+
+  test('born a 29 February: 15 years old on 1 March', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'members/kid1'), adultDoc({ memberId: 'kid1' }, {
+        email: null, profile: 'childWithoutApp', parentIds: ['adult1'], birthDate: '2008-02-29',
+      }));
+    });
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(doc(db, 'moments/m1'), moment(ADULT, { forMemberId: 'kid1', status: 'pending' })));
   });
 
   test('the family reads them; the author or the person removes one, nobody else', async () => {
