@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { after, beforeEach, describe, test } from 'node:test';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -28,6 +30,14 @@ describe('the tree, without the emulator', () => {
     for (const c of Object.values(CATALOG)) assert.ok(c.target > 0 && c.target <= 20 && c.title && c.emoji);
     // The rules (challengePicks) and the app (ChallengeCatalog.kt) keep the same 16 ids.
     assert.equal(Object.keys(CATALOG).length, 16);
+  });
+
+  test('the rules accept exactly the ids of the list (challengePicks)', () => {
+    const rules = readFileSync(join(__dirname, '..', '..', '..', 'firestore.rules'), 'utf8');
+    const block = rules.slice(rules.indexOf('match /challengePicks/{month}'));
+    const list = /choiceId in \[([^\]]*)\]/.exec(block)?.[1] ?? '';
+    const ids = [...list.matchAll(/'([^']+)'/g)].map((m) => m[1]);
+    assert.deepEqual([...ids].sort(), Object.keys(CATALOG).sort());
   });
 });
 
