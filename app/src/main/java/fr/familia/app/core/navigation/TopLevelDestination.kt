@@ -67,6 +67,10 @@ data class GoodNewsEditDestination(val postId: String? = null)
 @Serializable
 data class WeeklyQuestionDestination(val questionId: String? = null)
 
+/** The guide of the challenge of a foyer for a month (récit 35 bis), from the card of the tree. */
+@Serializable
+data class HostChallengeDestination(val year: Int, val month: Int)
+
 /** A member's page, read-only, opened from Famille while the Souvenirs module is on (récit 34). */
 @Serializable
 data class MemberProfileDestination(val memberId: String)

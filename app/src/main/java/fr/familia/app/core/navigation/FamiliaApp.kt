@@ -107,6 +107,7 @@ import fr.familia.app.feature.settings.appearance.AppIconSwitcher
 import fr.familia.app.feature.gifts.share.SharedWish
 import fr.familia.app.feature.gifts.share.ShareTargetSwitch
 import fr.familia.app.feature.usage.UsageRoute
+import fr.familia.app.feature.tree.HostChallengeRoute
 import fr.familia.app.feature.settings.appearance.AppearanceScreen
 import fr.familia.app.feature.settings.appearance.ThemePreferences
 import fr.familia.app.core.theme.FamiliaClay
@@ -547,6 +548,18 @@ fun FamiliaApp(
                             onOpenWeeklyQuestion = { navController.navigate(WeeklyQuestionDestination()) },
                             onOpenMonth = { month -> navController.navigate(MonthSlideshowDestination(month.year, month.monthValue)) },
                             onJoinMe = { navController.navigate(JoinMeDestination) { launchSingleTop = true } },
+                            onPrepareChallenge = { month ->
+                                navController.navigate(HostChallengeDestination(month.year, month.monthValue)) { launchSingleTop = true }
+                            },
+                        )
+                    }
+                    composable<HostChallengeDestination> { entry ->
+                        val route = entry.toRoute<HostChallengeDestination>()
+                        HostChallengeRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            month = YearMonth.of(route.year, route.month),
+                            onClose = { navController.popBackStack() },
                         )
                     }
                     composable<PlanningRoute> {
