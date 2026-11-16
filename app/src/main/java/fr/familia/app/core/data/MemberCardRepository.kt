@@ -1,0 +1,66 @@
+package fr.familia.app.core.data
+
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import fr.familia.app.core.model.MemberCard
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
+
+/** The card of each member (récit 7 bis), in `memberCards/{memberId}`. */
+interface MemberCardRepository {
+    /** The card of [memberId], updated live; null while nobody has filled it in. */
+    fun observeCard(memberId: String): Flow<MemberCard?>
+
+    /** Saves [card] as written by [byId]. An empty card removes the document. */
+    suspend fun saveCard(card: MemberCard, byId: String)
+}
+
+class FirestoreMemberCardRepository(private val db: FirebaseFirestore) : MemberCardRepository {
+
+    override fun observeCard(memberId: String): Flow<MemberCard?> = callbackFlow {
+        val registration = db.collection(MEMBER_CARDS).document(memberId).addSnapshotListener { doc, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
+            }
+            trySend(
+                doc?.takeIf { it.exists() }?.let {
+                    MemberCard(
+                        memberId = it.id,
+                        top = it.getString("top").orEmpty(),
+                        bottom = it.getString("bottom").orEmpty(),
+                        shoes = it.getString("shoes").orEmpty(),
+                        allergies = it.getString("allergies").orEmpty(),
+                        tastes = it.getString("tastes").orEmpty(),
+                    )
+                },
+            )
+        }
+        awaitClose { registration.remove() }
+    }
+
+    override suspend fun saveCard(card: MemberCard, byId: String) {
+        val doc = db.collection(MEMBER_CARDS).document(card.memberId)
+        if (card.isEmpty) {
+            doc.delete().await()
+            return
+        }
+        doc.set(
+            mapOf(
+                "top" to card.top,
+                "bottom" to card.bottom,
+                "shoes" to card.shoes,
+                "allergies" to card.allergies,
+                "tastes" to card.tastes,
+                "updatedBy" to byId,
+                "updatedAt" to FieldValue.serverTimestamp(),
+            ),
+        ).await()
+    }
+
+    companion object {
+        const val MEMBER_CARDS = "memberCards"
+    }
+}

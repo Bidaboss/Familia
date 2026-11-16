@@ -109,6 +109,8 @@ data class GiftListActions(
     val onMarkReceived: (itemId: String, memberId: String, received: Boolean) -> Unit = { _, _, _ -> },
     /** « On m'a offert », on one's own wishes; null while its module is off (récit 10 bis). */
     val onOpenReceived: (() -> Unit)? = null,
+    /** The page of the beneficiary, for their sizes and tastes (récit 7 bis); null while that module is off. */
+    val onOpenBeneficiary: ((memberId: String) -> Unit)? = null,
 )
 
 /** One gift list: its items, and the reservations for everyone but the beneficiary. Stateless. */
@@ -184,7 +186,7 @@ private fun Content(state: GiftListUiState.Success, actions: GiftListActions) {
         contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 16.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
-        item(key = "header") { Header(state, actions.onOpenReceived) }
+        item(key = "header") { Header(state, actions.onOpenReceived, actions.onOpenBeneficiary) }
         if (state.items.isEmpty()) {
             item(key = "empty") {
                 Text(
@@ -221,7 +223,7 @@ private fun Content(state: GiftListUiState.Success, actions: GiftListActions) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Header(state: GiftListUiState.Success, onOpenReceived: (() -> Unit)?) {
+private fun Header(state: GiftListUiState.Success, onOpenReceived: (() -> Unit)?, onOpenBeneficiary: ((String) -> Unit)? = null) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         val subtitle = listSubtitle(state.list, state.beneficiary.firstName, state.today)
         if (subtitle.isNotEmpty()) {
@@ -241,6 +243,13 @@ private fun Header(state: GiftListUiState.Success, onOpenReceived: (() -> Unit)?
         }
         if (onOpenReceived != null && state.isMine && state.list.kind == GiftListKind.Wishes) {
             ClayLink(stringResource(R.string.received_open), onClick = onOpenReceived)
+        }
+        // Someone else's list: their sizes and tastes are one touch away (récit 7 bis).
+        if (onOpenBeneficiary != null && !state.isMine) {
+            ClayLink(
+                stringResource(R.string.gift_list_beneficiary_card, state.beneficiary.firstName),
+                onClick = { onOpenBeneficiary(state.beneficiary.id) },
+            )
         }
         if (state.actionFailed) {
             Text(
