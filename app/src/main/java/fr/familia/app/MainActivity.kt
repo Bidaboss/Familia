@@ -49,6 +49,7 @@ class MainActivity : ComponentActivity() {
     private val openMemberId = mutableStateOf<String?>(null)
     /** The time capsule of a tapped notification (récit 39). */
     private val openCapsuleId = mutableStateOf<String?>(null)
+    private val openRecap = mutableStateOf(false)
 
     /** A link shared from another app, for « Mes envies » (récit 8 bis). */
     private val sharedWish = mutableStateOf<SharedWish?>(null)
@@ -67,6 +68,7 @@ class MainActivity : ComponentActivity() {
             openPollId.value = intent.pollId()
             openJoinMe.value = intent.hasJoinMe()
             openCapsuleId.value = intent.capsuleId()
+            openRecap.value = intent.hasRecap()
             sharedWish.value = intent.sharedWish()
             openSharedLink(intent)
         }
@@ -84,6 +86,7 @@ class MainActivity : ComponentActivity() {
             val pollToOpen by openPollId
             val joinMeToOpen by openJoinMe
             val capsuleToOpen by openCapsuleId
+            val recapToOpen by openRecap
             val wishToAdd by sharedWish
             val memberToOpen by openMemberId
             FamiliaTheme {
@@ -114,6 +117,8 @@ class MainActivity : ComponentActivity() {
                             onJoinMeOpened = { openJoinMe.value = false },
                             openCapsuleId = capsuleToOpen,
                             onCapsuleOpened = { openCapsuleId.value = null },
+                            openRecap = recapToOpen,
+                            onRecapOpened = { openRecap.value = false },
                             sharedWish = wishToAdd,
                             onSharedWishOpened = { sharedWish.value = null },
                             openMemberId = memberToOpen,
@@ -138,6 +143,7 @@ class MainActivity : ComponentActivity() {
         intent.pollId()?.let { openPollId.value = it }
         if (intent.hasJoinMe()) openJoinMe.value = true
         intent.capsuleId()?.let { openCapsuleId.value = it }
+        if (intent.hasRecap()) openRecap.value = true
         intent.sharedWish()?.let { sharedWish.value = it }
         openSharedLink(intent)
     }
@@ -176,4 +182,5 @@ class MainActivity : ComponentActivity() {
     private fun Intent.pollId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_POLL_ID)
     private fun Intent.hasJoinMe(): Boolean = getStringExtra(FamiliaMessagingService.EXTRA_JOIN_ME_ID) != null
     private fun Intent.capsuleId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_CAPSULE_ID)
+    private fun Intent.hasRecap(): Boolean = getStringExtra(FamiliaMessagingService.EXTRA_RECAP_WEEK) != null
 }
