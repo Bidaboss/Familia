@@ -45,6 +45,17 @@ describe('config/app', () => {
     await assertFails(updateDoc(doc(db, 'config/app'), { features: many }));
   });
 
+  test('the admin principal orders « À découvrir », a short list only', async () => {
+    const db = as(env, ADMIN);
+    await assertSucceeds(setDoc(doc(db, 'config/app'), { discoverOrder: ['recipes', 'polls'] }, { merge: true }));
+    await assertSucceeds(updateDoc(doc(db, 'config/app'), { discoverOrder: [] }));
+    await assertFails(updateDoc(doc(db, 'config/app'), { discoverOrder: 'recipes' }));
+    await assertFails(updateDoc(doc(db, 'config/app'), { discoverOrder: Array.from({ length: 21 }, (_, i) => `m${i}`) }));
+    await assertFails(updateDoc(doc(db, 'config/app'), { discoverOrder: ['recipes'], latestVersionCode: 99 }));
+    await assertFails(setDoc(doc(as(env, ADULT), 'config/app'), { discoverOrder: ['recipes'] }, { merge: true }));
+    await assertFails(setDoc(doc(as(env, SECOND_ADMIN), 'config/app'), { discoverOrder: ['recipes'] }, { merge: true }));
+  });
+
   test('a chef de famille or another member never switches a module', async () => {
     await assertFails(setDoc(doc(as(env, SECOND_ADMIN), 'config/app'), { features: { gifts: true } }, { merge: true }));
     await assertFails(setDoc(doc(as(env, ADULT), 'config/app'), { features: { gifts: true } }, { merge: true }));

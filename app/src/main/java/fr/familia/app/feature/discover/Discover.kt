@@ -2,6 +2,7 @@ package fr.familia.app.feature.discover
 
 import android.content.Context
 import androidx.annotation.StringRes
+import androidx.compose.runtime.compositionLocalOf
 import androidx.core.content.edit
 import fr.familia.app.R
 import fr.familia.app.core.model.Feature
@@ -71,10 +72,26 @@ object Discover {
         return module.takeIf { isOn(it.feature) && it.key !in dismissed }
     }
 
+    /**
+     * The order the admin principal chose ([keys] of config/app.discoverOrder, AVIS-19 partie 2): the
+     * known keys first, once each, then the modules left out in the default order. Empty: the default.
+     */
+    fun order(keys: List<String>): List<DiscoverModule> {
+        val chosen = keys.distinct().mapNotNull { key -> DiscoverModule.entries.firstOrNull { it.key == key } }
+        return chosen + DiscoverModule.entries.filterNot { it in chosen }
+    }
+
+    /** The Monday each module of [order] shows, or null for those the tutorial already shows. */
+    fun mondays(order: List<DiscoverModule>, inTutorial: Set<DiscoverModule>): Map<DiscoverModule, LocalDate> =
+        order.filterNot { it in inTutorial }.mapIndexed { i, module -> module to FIRST_MONDAY.plusWeeks(i.toLong()) }.toMap()
+
     /** The modules the tutorial already shows (AVIS-18): Entraide, while its module is on. */
     fun inTutorial(isOn: (Feature) -> Boolean): Set<DiscoverModule> =
         setOfNotNull(DiscoverModule.HelpRequests.takeIf { isOn(Feature.HelpRequests) })
 }
+
+/** The order of « À découvrir » from config/app, provided by FamiliaApp; the default elsewhere. */
+val LocalDiscoverOrder = compositionLocalOf { DiscoverModule.entries.toList() }
 
 /** The modules a member opened or put off, kept on the phone. */
 interface DismissedDiscoveries {

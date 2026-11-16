@@ -337,6 +337,7 @@ class ReadOnlyAppConfigRepository(private val inner: AppConfigRepository, privat
     override fun observeAppConfig(): Flow<AppConfig> = inner.observeAppConfig()
     override suspend fun fetchAppConfig(): AppConfig = inner.fetchAppConfig()
     override suspend fun setFeature(key: String, enabled: Boolean) = guard.refuse()
+    override suspend fun setDiscoverOrder(keys: List<String>) = guard.refuse()
 }
 
 /**

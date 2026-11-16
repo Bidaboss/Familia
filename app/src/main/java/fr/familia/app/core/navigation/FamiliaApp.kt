@@ -139,7 +139,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.ui.graphics.Color
 import fr.familia.app.feature.home.HomeRoute as HomeTab
+import fr.familia.app.feature.discover.Discover
 import fr.familia.app.feature.discover.DiscoverModule
+import fr.familia.app.feature.discover.LocalDiscoverOrder
 import fr.familia.app.feature.polls.rememberPollsToVote
 import fr.familia.app.core.share.canShareApp
 import fr.familia.app.core.share.shareApp
@@ -526,6 +528,7 @@ fun FamiliaApp(
         LocalOpenHelp provides { navController.navigate(HelpDestination) { launchSingleTop = true } },
         LocalMemberPhotos provides photos,
         LocalFeatureFlags provides features,
+        LocalDiscoverOrder provides remember(appConfig?.discoverOrder) { Discover.order(appConfig?.discoverOrder.orEmpty()) },
         LocalInAppUpdater provides updater,
         LocalSnackbarHost provides snackbar,
         LocalPhotoStorage provides container?.photoStorage,

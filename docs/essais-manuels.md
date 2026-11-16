@@ -445,3 +445,10 @@ Avec le module « Pensez à moi » allumé, un adulte parent d'un enfant de moin
 3. Avec le compte de l'ado, ouvre sa fiche. **Attendu :** « Noté par … » avec « Oui » et « Non merci ».
 4. Le jour J vers 10 h. **Attendu :** les autres reçoivent « Pensez à … aujourd'hui ». Sur la fiche, « Aujourd'hui : « … » » et un champ pour un mot. Le membre reçoit « … pense à toi. » à chaque mot. Rien le lendemain.
 5. En « Voir comme », ouvre une fiche. **Attendu :** ni champ ni bouton, la lecture seule.
+
+## L'ordre d'« À découvrir » (AVIS-19 partie 2)
+Avec le compte de l'admin principal et le module « À découvrir » allumé.
+1. Administration : **Attendu :** une section « Ordre d'« À découvrir » » avec les 7 modules, chacun avec sa semaine (« Semaine du 30 novembre »…). Entraide dit « Déjà dans le tuto, pas de semaine » tant que son module est allumé.
+2. Monte « Recettes » en premier. **Attendu :** les semaines se recalculent, et « Enregistrer l'ordre » apparaît. Touche-le.
+3. Dès le 30/11, sur un autre téléphone : **Attendu :** la carte de la première semaine est celle des recettes.
+

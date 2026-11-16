@@ -170,6 +170,9 @@
     <string name="administration_rotation_up">Monter %1$s</string>
     <string name="administration_rotation_down">Descendre %1$s</string>
     <string name="administration_rotation_save">Enregistrer l\'ordre</string>
+    <string name="administration_discover_title">Ordre d\'« À découvrir »</string>
+    <string name="administration_discover_week">Semaine du %1$s</string>
+    <string name="administration_discover_in_tutorial">Déjà dans le tuto, pas de semaine</string>
     <string name="administration_feature_on">Visible par la famille</string>
     <string name="administration_feature_off">Caché à la famille</string>
     <string name="feature_home">Accueil</string>
