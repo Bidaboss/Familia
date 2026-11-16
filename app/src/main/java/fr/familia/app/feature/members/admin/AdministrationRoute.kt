@@ -38,6 +38,7 @@ fun AdministrationRoute(
     val consumption by viewModel.consumption.collectAsStateWithLifecycle()
     val challenges by viewModel.challenges.collectAsStateWithLifecycle()
     val leftovers by viewModel.capsuleLeftovers.collectAsStateWithLifecycle()
+    val rotation by viewModel.rotation.collectAsStateWithLifecycle()
     // The card only shows when the tree is on for the admin principal (always, while in test).
     val treeOn = LocalFeatureFlags.current.isOn(Feature.Tree)
     AdministrationScreen(
@@ -59,5 +60,7 @@ fun AdministrationRoute(
         onPickChallenge = if (treeOn) viewModel::pickChallenge else null,
         capsuleLeftovers = leftovers,
         onDeleteCapsuleLeftovers = viewModel::deleteCapsuleLeftovers,
+        rotation = rotation,
+        onSaveRotation = if (treeOn) viewModel::saveRotation else null,
     )
 }

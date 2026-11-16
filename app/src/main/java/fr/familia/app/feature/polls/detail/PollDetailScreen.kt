@@ -54,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.share.ShareButton
 import fr.familia.app.core.model.DateAnswer
 import fr.familia.app.core.model.Poll
 import fr.familia.app.core.theme.FamiliaTheme
@@ -84,12 +85,17 @@ fun PollDetailScreen(
     onDismissError: () -> Unit,
     onBack: () -> Unit,
     today: LocalDate = LocalDate.now(),
+    /** « Partager » vers une messagerie (PRD, récit 31); hidden when null. */
+    onShare: (() -> Unit)? = null,
 ) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.polls_title)) },
                 navigationIcon = { BackButton(onClick = onBack) },
+                actions = {
+                    if (onShare != null && state is PollDetailUiState.Success) ShareButton(onClick = onShare)
+                },
             )
         },
     ) { padding ->

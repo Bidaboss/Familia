@@ -8,6 +8,7 @@ import fr.familia.app.core.data.ConsumptionRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.TreeRepository
 import fr.familia.app.core.model.CapsuleLeftover
+import fr.familia.app.core.model.ChallengeRotation
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Household
@@ -132,6 +133,43 @@ class AdministrationViewModel(
         }
     }
 
+    /** The order as last read, so that deleting a foyer takes it out of it. */
+    private var savedRotation: ChallengeRotation? = null
+
+    /**
+     * « Ordre des foyers » (récit 35 bis): who launches the challenge of each month, from this
+     * month or the next. Null without the tree repository, or when the reads are refused.
+     */
+    val rotation: StateFlow<ChallengeRotation.Schedule?> = (
+        tree?.let { repo ->
+            combine(repo.observeRotation(), uiState) { rotation, state ->
+                savedRotation = rotation
+                (state as? AdministrationUiState.Ready)?.let { ready ->
+                    ChallengeRotation.schedule(rotation, ready.households.map { it.household }, month)
+                }
+            }
+        } ?: emptyFlow()
+        )
+        .catch { e -> if (e is CancellationException) throw e }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** Saves the order shown: [householdIds] launch the challenge from [start], a month each. */
+    fun saveRotation(start: YearMonth, householdIds: List<String>) {
+        val repo = tree ?: return
+        val known = family.households.map { it.id }.toSet()
+        val ids = householdIds.distinct().filter { it in known }
+        if (ids.isEmpty() || (start != month && start != month.plusMonths(1))) return
+        viewModelScope.launch {
+            try {
+                repo.setRotation(ChallengeRotation(ids, start))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _actionFailed.value = true
+            }
+        }
+    }
+
     /** Picks the challenge of [month]; the server keeps the current one once its gauge has moved. */
     fun pickChallenge(month: YearMonth, choiceId: String) {
         val repo = tree ?: return
@@ -198,6 +236,12 @@ class AdministrationViewModel(
     fun deleteHousehold(household: Household) {
         if (family.members.any { it.householdId == household.id }) return
         write { deleteHousehold(householdId = household.id) }
+        // Out of the order of the challenge too (récit 35 bis): the next foyers move up a month.
+        val order = savedRotation ?: return
+        if (household.id !in order.householdIds) return
+        val schedule = ChallengeRotation.schedule(order, family.households, month)
+        val ids = schedule.households.map { it.id }.filter { it != household.id && it in order.householdIds }
+        if (ids.isNotEmpty()) saveRotation(schedule.start, ids)
     }
 
     fun failureShown() {

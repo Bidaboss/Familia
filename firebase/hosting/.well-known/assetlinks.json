@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "fr.familia.app",
+      "sha256_cert_fingerprints": [
+        "B3:57:19:49:C9:E8:7B:16:1C:1C:27:9D:4A:68:6D:AF:A2:AE:15:AA:C9:EA:B2:E6:B1:11:06:C8:83:40:1C:8E"
+      ]
+    }
+  }
+]

@@ -54,6 +54,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.model.ChallengeRotation
 import fr.familia.app.feature.members.RenameHouseholdDialog
 import fr.familia.app.core.model.CapsuleLeftover
 import fr.familia.app.core.model.Feature
@@ -98,6 +99,9 @@ fun AdministrationScreen(
     /** Sealed capsules of members who left (PRD rév. 184); hidden when empty. */
     capsuleLeftovers: List<CapsuleLeftover> = emptyList(),
     onDeleteCapsuleLeftovers: (String) -> Unit = {},
+    /** « Ordre des foyers » (récit 35 bis); hidden when [onSaveRotation] is null. */
+    rotation: ChallengeRotation.Schedule? = null,
+    onSaveRotation: ((YearMonth, List<String>) -> Unit)? = null,
 ) {
     Scaffold(
         modifier = modifier,
@@ -130,6 +134,7 @@ fun AdministrationScreen(
                     ReadyContent(
                         state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport, features, onSetFeature, onRenameHousehold,
                         onOpenUsage, consumption, challenges, onPickChallenge, capsuleLeftovers, onDeleteCapsuleLeftovers,
+                        rotation, onSaveRotation,
                     )
             }
         }
@@ -164,6 +169,8 @@ private fun ReadyContent(
     onPickChallenge: ((YearMonth, String) -> Unit)?,
     capsuleLeftovers: List<CapsuleLeftover>,
     onDeleteCapsuleLeftovers: (String) -> Unit,
+    rotation: ChallengeRotation.Schedule?,
+    onSaveRotation: ((YearMonth, List<String>) -> Unit)?,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
@@ -225,6 +232,12 @@ private fun ReadyContent(
         }
         if (capsuleLeftovers.isNotEmpty()) {
             item(key = "capsule-leftovers") { CapsuleLeftoversSection(capsuleLeftovers, onDeleteCapsuleLeftovers) }
+        }
+        if (onSaveRotation != null && rotation != null && rotation.households.isNotEmpty()) {
+            item(key = "rotation-title") {
+                SectionTitle(R.string.administration_rotation_title, R.string.administration_rotation_help)
+            }
+            item(key = "rotation") { ChallengeRotationSection(rotation, onSaveRotation) }
         }
         if (consumption != null) {
             item(key = "consumption") { ConsumptionSection(consumption) }

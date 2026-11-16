@@ -5,6 +5,7 @@ import fr.familia.app.core.data.ConsumptionRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.TreeRepository
 import fr.familia.app.core.model.CapsuleLeftover
+import fr.familia.app.core.model.ChallengeRotation
 import fr.familia.app.core.model.Consumption
 import fr.familia.app.feature.capsules.FakeCapsules
 import fr.familia.app.core.model.Family
@@ -115,6 +116,35 @@ class AdministrationViewModelTest {
         vm.pickChallenge(YearMonth.of(2027, 1), "1000 photos")
         assertEquals(listOf(YearMonth.of(2027, 1) to "pets"), picks)
         assertEquals("pets", vm.challenges.value[1].choice.id)
+    }
+
+    @Test
+    fun `the admin principal sets the order of the foyers, from next month the first time (récit 35 bis)`() = runTest {
+        val saved = MutableStateFlow<ChallengeRotation?>(null)
+        val tree = object : TreeRepository {
+            override fun observeTree(): Flow<FamilyTree> = flowOf(FamilyTree())
+            override fun observeChallenge(month: YearMonth): Flow<MonthChallenge?> = flowOf(null)
+            override fun observeRotation(): Flow<ChallengeRotation?> = saved
+            override suspend fun setRotation(rotation: ChallengeRotation) {
+                saved.value = rotation
+            }
+        }
+        val december = YearMonth.of(2026, 12)
+        val vm = AdministrationViewModel(FakeMembers(family), "o", tree = tree, month = december)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.rotation.collect {} }
+        // No order yet: every foyer by name, from January, to save.
+        assertEquals(listOf("h2", "h1", "h3"), vm.rotation.value?.households?.map { it.id })
+        assertEquals(YearMonth.of(2027, 1), vm.rotation.value?.start)
+        assertFalse(vm.rotation.value!!.isSaved)
+        // An unknown foyer, a month too far: left out or refused.
+        vm.saveRotation(YearMonth.of(2027, 3), listOf("h1"))
+        assertNull(saved.value)
+        vm.saveRotation(YearMonth.of(2027, 1), listOf("h1", "x", "h2", "h1", "h3"))
+        assertEquals(ChallengeRotation(listOf("h1", "h2", "h3"), YearMonth.of(2027, 1)), saved.value)
+        assertTrue(vm.rotation.value!!.isSaved)
+        // A foyer deleted leaves the order: the next ones move up a month.
+        vm.deleteHousehold(Household("h3", "Vide"))
+        assertEquals(ChallengeRotation(listOf("h1", "h2"), YearMonth.of(2027, 1)), saved.value)
     }
 
     @Test
