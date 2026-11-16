@@ -146,6 +146,10 @@ data object NotebookDestination
 @Serializable
 data class NotebookIdeaDestination(val entryId: String? = null, val occasion: String? = null, val year: Int? = null)
 
+/** « Proposer à la famille »: a private idea of the notebook becomes a surprise item. */
+@Serializable
+data class ProposeIdeaDestination(val entryId: String)
+
 /** "Vérifier les mises à jour", opened from the Famille tab (lot 10). */
 @Serializable
 data object UpdateCheckDestination

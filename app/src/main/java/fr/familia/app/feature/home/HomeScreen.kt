@@ -87,6 +87,8 @@ class HomeActions(
     val onOpenList: (String) -> Unit = {},
     val onOpenTrip: (String) -> Unit = {},
     val onNewTrip: () -> Unit = {},
+    /** « Tous les voyages »: set while the trips module is on; the card then always shows. */
+    val onOpenTrips: (() -> Unit)? = null,
 )
 
 /** Connects the Accueil tab to its ViewModel; each module feeds its card only while it shows. */
@@ -183,7 +185,10 @@ fun HomeScreen(
         if (month != null && onOpenMonth != null) card("month") { MonthSlideshowHomeCard(month) { onOpenMonth(month) } }
         if (ready.birthdays.isNotEmpty()) card("birthdays") { BirthdaysCard(ready.birthdays, ready.today, actions.onOpenWishes) }
         ready.occasion?.let { occasion -> card("occasion") { OccasionCard(occasion, ready.today) { actions.onOpenList(occasion.list.id) } } }
-        if (ready.trips.isNotEmpty()) card("trips") { TripsCard(ready.trips, ready.today, ready.canCreateTrip, actions) }
+        // While the module is on, the card always shows: it is the way to the trips (audit DESIGN n°4).
+        if (ready.trips.isNotEmpty() || actions.onOpenTrips != null) {
+            card("trips") { TripsCard(ready.trips, ready.today, ready.canCreateTrip, actions) }
+        }
     }
 }
 
@@ -336,7 +341,7 @@ private fun OccasionCard(occasion: HomeOccasion, today: LocalDate, onOpen: () ->
 @Composable
 private fun TripsCard(trips: List<HomeTrip>, today: LocalDate, canCreate: Boolean, actions: HomeActions) {
     ClayCard(modifier = Modifier.fillMaxWidth()) {
-        CardTitle(stringResource(R.string.home_trips_title))
+        CardTitle(stringResource(if (trips.isEmpty()) R.string.trips_title else R.string.home_trips_title))
         trips.forEach { item ->
             HomeRow(
                 title = item.trip.title,
@@ -349,9 +354,19 @@ private fun TripsCard(trips: List<HomeTrip>, today: LocalDate, canCreate: Boolea
             ) { RowIcon(Icons.Outlined.CardTravel) }
             item.lastArrival?.let { ArrivalLine(it, today) }
         }
-        if (canCreate) {
-            TextButton(onClick = actions.onNewTrip, modifier = Modifier.heightIn(min = 56.dp).align(Alignment.End)) {
-                Text(stringResource(R.string.trips_add))
+        if (trips.isEmpty()) {
+            Text(stringResource(R.string.home_trips_none), style = MaterialTheme.typography.bodyLarge)
+        }
+        Row(modifier = Modifier.align(Alignment.End)) {
+            if (canCreate) {
+                TextButton(onClick = actions.onNewTrip, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.trips_add))
+                }
+            }
+            actions.onOpenTrips?.let { open ->
+                TextButton(onClick = open, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.home_trips_all))
+                }
             }
         }
     }

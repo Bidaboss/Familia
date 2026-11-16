@@ -42,6 +42,7 @@ import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.MemberAvatar
+import fr.familia.app.feature.souvenirs.BravoSheet
 import fr.familia.app.feature.souvenirs.SouvenirKind
 import fr.familia.app.feature.souvenirs.SouvenirMedal
 import fr.familia.app.feature.souvenirs.nextSouvenirs
@@ -58,7 +59,21 @@ fun MemberProfileScreen(
     onBack: () -> Unit,
     onEdit: () -> Unit,
     onSetShown: (key: String, shown: Boolean) -> Unit,
+    onDismissBravo: () -> Unit = {},
 ) {
+    (state as? MemberProfileUiState.Ready)?.bravo?.let { souvenir ->
+        SouvenirKind.of(souvenir.key)?.let { kind ->
+            BravoSheet(
+                kind = kind,
+                souvenir = souvenir,
+                onShow = {
+                    onSetShown(souvenir.key, true)
+                    onDismissBravo()
+                },
+                onDismiss = onDismissBravo,
+            )
+        }
+    }
     Scaffold(
         topBar = {
             TopAppBar(

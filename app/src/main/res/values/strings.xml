@@ -321,6 +321,7 @@
     <string name="onboarding_not_now">Pas maintenant</string>
     <string name="onboarding_welcome_title">Bienvenue dans Familia</string>
     <string name="onboarding_welcome_body">Tout le monde voit le même planning : les événements et les anniversaires de la famille. Touche un événement pour voir le détail.</string>
+    <string name="onboarding_welcome_body_usage">Tout le monde voit le même planning : les événements et les anniversaires de la famille. Touche un événement pour voir le détail. L\'administrateur voit combien de temps chacun passe dans l\'appli, et les parents voient le temps de leurs enfants.</string>
     <string name="onboarding_add_title">Ajouter un événement</string>
     <string name="onboarding_add_body">Touche le bouton « Ajouter », donne un titre et une date. Toute la famille le voit aussitôt.</string>
     <string name="onboarding_answer_title">Dire si tu viens</string>
@@ -360,7 +361,7 @@
     <string name="help_screen_gift_item_edit_title">Une idée de cadeau</string>
     <string name="help_screen_gift_item_edit_body">Seul le titre est obligatoire. Ajoute un lien vers le site, un prix pour donner une idée et une note, comme une taille ou une couleur. Une idée que tu ajoutes sur la liste d\'un autre reste cachée à la personne qui la recevra.</string>
     <string name="help_screen_notebook_title">Mes cadeaux à offrir</string>
-    <string name="help_screen_notebook_body">Ton carnet est pour toi seul : personne d\'autre ne le voit, pas même la personne qui recevra ni l\'administrateur. Ce que tu réserves sur une liste et tes parts de cadeaux communs y arrivent tout seuls. Choisis l\'occasion en haut, puis touche un cadeau pour dire où il en est : idée, acheté, emballé ou offert.</string>
+    <string name="help_screen_notebook_body">Ton carnet est pour toi seul : personne d\'autre ne le voit, pas même la personne qui recevra ni l\'administrateur. Ce que tu réserves sur une liste et tes parts de cadeaux communs y arrivent tout seuls. Choisis l\'occasion en haut, puis touche un cadeau pour dire où il en est : idée, acheté, emballé ou offert. Une idée à toi peut être proposée à la famille : elle rejoint une liste de la personne, qui ne la voit pas.</string>
     <string name="help_topic_planning_title">Le planning</string>
     <string name="help_topic_planning_body">Il montre les événements à venir en liste ou par mois, et les anniversaires de chacun, chaque année. Il reste lisible sans réseau, avec les dernières données reçues.</string>
     <string name="help_topic_add_title">Ajouter un événement</string>
@@ -373,6 +374,8 @@
     <string name="help_topic_notifications_body">Tu es prévenu quand quelqu\'un ajoute, modifie ou supprime un événement qui te concerne (toute la famille, ton foyer, un enfant dont tu t\'occupes, ou un événement où tu viens), mais jamais pour tes propres changements. La veille à 18\u00A0h, un rappel part si tu as répondu « Je viens » ou « Peut-être ». Tu peux couper ce rappel dans l\'onglet Famille, ligne « Notifications ».</string>
     <string name="help_topic_family_title">La famille</string>
     <string name="help_topic_family_body">La liste des membres, rangés par foyer. Les anniversaires de chacun sont dans le planning, et en haut de l\'onglet Cadeaux.</string>
+    <string name="help_topic_usage_title">Ce que voit l\'administrateur</string>
+    <string name="help_topic_usage_body">L\'administrateur voit combien de temps chacun passe dans l\'appli, et les parents voient le temps de leurs enfants.</string>
     <string name="help_topic_wishes_title">Mes envies</string>
     <string name="help_topic_wishes_body">Chacun a sa liste « Mes envies », à remplir toute l\'année. Toute la famille peut la voir pour trouver une idée. Un parent remplit celle d\'un enfant qui n\'a pas l\'appli. Pour l\'ouvrir : onglet Cadeaux, ta section, « Mes envies ».</string>
     <string name="help_topic_gift_lists_title">Les listes d\'occasion</string>
@@ -449,6 +452,7 @@
     <string name="notebook_budget_title">Budget pour %1$s</string>
     <string name="notebook_budget_amount">Montant</string>
     <string name="notebook_budget_hint">Laisse vide pour ne pas avoir de budget.</string>
+    <string name="notebook_remove_budget">Retirer le budget</string>
     <string name="notebook_source_claim">Réservé sur sa liste</string>
     <string name="notebook_source_share">Cadeau commun</string>
     <string name="notebook_source_idea">Idée privée</string>
@@ -473,6 +477,13 @@
     <string name="notebook_idea_unavailable_title">Idée introuvable</string>
     <string name="notebook_idea_unavailable_body">Elle a été retirée entre-temps.</string>
     <string name="notebook_edit_idea">Modifier</string>
+    <string name="notebook_propose">Proposer à la famille</string>
+    <string name="notebook_propose_body">L\'idée rejoint une liste de %1$s, sans que %1$s la voie : la famille peut la prendre ou lancer un cadeau commun. Elle quitte ton carnet ; si tu la prends, elle y revient comme réservation.</string>
+    <string name="notebook_propose_where">Sur quelle liste ?</string>
+    <string name="notebook_propose_no_list">%1$s n\'a aucune liste où cette idée resterait cachée.</string>
+    <string name="notebook_propose_take_it">Je le prends moi-même</string>
+    <string name="notebook_propose_note_kept">Ta note privée n\'est pas recopiée.</string>
+    <string name="notebook_propose_confirm">Proposer</string>
     <string name="error_notebook_person_missing">Choisis une personne, ou écris son prénom.</string>
     <string name="error_notebook_name_too_long">40 caractères au plus.</string>
     <string name="error_notebook_bad_year">Indique une année, par exemple 2026.</string>
@@ -895,6 +906,8 @@
     <string name="help_topic_trips_body">Touche « Voyages » en haut du planning. Un voyage a des dates, des personnes qui partent et des étapes. Il apparaît dans le planning de ceux qui le suivent. À chaque arrivée, une personne qui part touche « Bien arrivé » : ceux qui suivent le voyage sont prévenus. Sans « Bien arrivé » 3 h après l\'heure prévue, ceux qui partent reçoivent un rappel. Aucune position GPS n\'est collectée.</string>
     <string name="help_topic_weekly_title">Répondre à la question de la semaine</string>
     <string name="help_topic_weekly_body">Chaque lundi à 9 h, une question arrive pour toute la famille, sur l\'Accueil. Réponds en quelques mots, ou touche « Passer ». Tu vois les réponses des autres dès que tu as répondu ou passé, et tout le monde les voit le mercredi vers 9 h. Tu peux modifier ou retirer ta réponse. « Nos réponses » garde les questions des semaines passées. Pour ne plus être prévenu le lundi, va dans les réglages des notifications.</string>
+    <string name="help_topic_souvenirs_title">Mes souvenirs</string>
+    <string name="help_topic_souvenirs_body">Familia te donne un souvenir pour certains gestes : ta première Bonne nouvelle, 10 réactions, 5 coups de main rendus, ton premier « bien arrivé » en voyage, tes réponses à la question de la semaine, et ta première année dans Familia. Tu les trouves sur ta fiche, dans l\'onglet Famille. Ils sont privés : touche « Montrer sur ma fiche » pour que la famille voie ceux que tu choisis. Il n\'y a ni classement ni score. Pour ne plus être prévenu d\'un nouveau souvenir, va dans les réglages des notifications.</string>
     <!-- Accueil (PRD, récit 29, « Tableau de bord d'accueil ») -->
     <string name="nav_home">Accueil</string>
     <string name="home_empty_title">Rien de prévu pour l\'instant</string>
@@ -929,6 +942,8 @@
         <item quantity="other">Tu as réservé %d idées.</item>
     </plurals>
     <string name="home_trips_title">En voyage</string>
+    <string name="home_trips_none">Aucun voyage en cours ni à venir.</string>
+    <string name="home_trips_all">Tous les voyages</string>
     <string name="home_trip_ongoing">En cours</string>
     <string name="help_screen_home_title">L\'accueil</string>
     <string name="help_screen_home_body">Ici, l\'essentiel du moment : ce que tu as à faire, les 7 prochains jours, les anniversaires, la prochaine occasion et les voyages. Une carte vide ne s\'affiche pas. Touche une ligne pour l\'ouvrir.</string>
@@ -1037,6 +1052,10 @@
     <string name="souvenir_hint_first_weekly_answer">Réponds à une question de la semaine.</string>
     <string name="souvenir_hint_first_arrival">Dis « bien arrivé » pendant un voyage.</string>
     <string name="souvenir_hint_one_year">Il viendra pour ton premier anniversaire dans Familia.</string>
+    <string name="souvenir_bravo_title">Bravo !</string>
+    <string name="souvenir_bravo_private">Ce souvenir est à toi. Personne ne le voit tant que tu ne le montres pas.</string>
+    <string name="souvenir_bravo_shown">La famille le voit sur ta fiche.</string>
+    <string name="souvenir_bravo_close">Fermer</string>
     <plurals name="souvenir_left_reactions">
         <item quantity="one">Encore %d réaction</item>
         <item quantity="many">Encore %d réactions</item>

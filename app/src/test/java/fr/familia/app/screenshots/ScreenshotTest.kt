@@ -86,9 +86,12 @@ import fr.familia.app.feature.gifts.item.previewGiftItemForm
 import fr.familia.app.feature.gifts.notebook.NotebookActions
 import fr.familia.app.feature.gifts.notebook.NotebookIdeaScreen
 import fr.familia.app.feature.gifts.notebook.NotebookScreen
+import fr.familia.app.feature.gifts.notebook.ProposeIdeaActions
+import fr.familia.app.feature.gifts.notebook.ProposeIdeaScreen
 import fr.familia.app.feature.gifts.notebook.StatusSheetContent
 import fr.familia.app.feature.gifts.notebook.previewNotebook
 import fr.familia.app.feature.gifts.notebook.previewNotebookIdea
+import fr.familia.app.feature.gifts.notebook.previewProposeIdea
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.feature.members.photo.PhotoCropContent
 import fr.familia.app.feature.members.photo.previewPicture
@@ -626,6 +629,12 @@ class ScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun notebookIdeaFontScale200() = capture("carnet_cadeaux_idee_police_200") { NotebookIdeaScreen(previewNotebookIdea(), {}, {}, {}, {}) }
+
+    @Test
+    @Config(fontScale = 2f)
+    fun proposeIdeaFontScale200() = capture("carnet_cadeaux_proposer_police_200") {
+        ProposeIdeaScreen(previewProposeIdea(), ProposeIdeaActions(), today = LocalDate.of(2026, 11, 16))
+    }
 
     @Test
     fun giftListFormLight() = capture("liste_cadeaux_formulaire_clair") { GiftListEditScreen(previewGiftListForm(), {}, {}, {}, {}) }

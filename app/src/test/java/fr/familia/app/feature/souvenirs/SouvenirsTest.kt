@@ -31,6 +31,12 @@ private class FakeSouvenirs(souvenirs: List<Souvenir>, private val counters: Sou
     }
 }
 
+/** The « Bravo » already shown, in memory instead of the phone's preferences. */
+private class FakeCelebrations(var keys: Set<String> = emptySet()) : SouvenirCelebrations {
+    override fun celebrated(memberId: String): Set<String> = keys
+    override fun markCelebrated(memberId: String, keys: Set<String>) { this.keys = this.keys + keys }
+}
+
 class SouvenirsTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -76,5 +82,28 @@ class SouvenirsTest {
         assertFalse(theirs.isMe)
         assertEquals(listOf("oneYear"), theirs.souvenirs.map { it.key })
         assertEquals(SouvenirCounters(), theirs.counters)
+    }
+
+    @Test
+    fun `the Bravo shows once, for the newest souvenir, and a new one shows it again`() = runTest {
+        val repo = FakeSouvenirs(listOf(Souvenir("firstGoodNews", at, shown = false), Souvenir("oneYear", at.plusSeconds(60), shown = false)))
+        val celebrations = FakeCelebrations()
+        val vm = MemberProfileViewModel(FakeMembers(), repo, "adult1", "adult1", celebrations)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        assertEquals("oneYear", (vm.uiState.value as MemberProfileUiState.Ready).bravo?.key)
+
+        vm.dismissBravo()
+        assertEquals(null, (vm.uiState.value as MemberProfileUiState.Ready).bravo)
+        assertEquals(setOf("firstGoodNews", "oneYear"), celebrations.keys)
+
+        repo.souvenirs.value = repo.souvenirs.value + Souvenir("helpGiven5", at.plusSeconds(120), shown = false)
+        assertEquals("helpGiven5", (vm.uiState.value as MemberProfileUiState.Ready).bravo?.key)
+    }
+
+    @Test
+    fun `no Bravo on someone else's page`() = runTest {
+        val vm = MemberProfileViewModel(FakeMembers(), FakeSouvenirs(earned), "adult2", "adult1", FakeCelebrations())
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        assertEquals(null, (vm.uiState.value as MemberProfileUiState.Ready).bravo)
     }
 }
