@@ -182,6 +182,17 @@ class GiftsTest {
     }
 
     @Test
+    fun `a link shared from another app starts a new wish, to save or drop`() = runTest {
+        // adult1 has no « Mes envies » yet: the first wish creates the list.
+        val shared = GiftItemForm(title = "Écharpe rouge", url = "https://boutique.example/echarpe")
+        val vm = GiftItemEditViewModel(FakeGifts(null), FakeMembers(), "adult1", "wishes-adult1", null, shared = shared)
+        val state = vm.uiState.first { it is GiftItemEditUiState.Editing } as GiftItemEditUiState.Editing
+        assertEquals(shared, state.form)
+        assertTrue(state.isNew)
+        assertTrue("leaving asks before dropping the link", state.hasChanges)
+    }
+
+    @Test
     fun `a list draft is checked again against the family`() = runTest {
         val saved = SavedStateHandle(
             mapOf(

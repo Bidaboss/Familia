@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import fr.familia.app.feature.gifts.share.SharedWish
 
 /** Connects the item form to its ViewModel; [onDone] closes it once saved or removed. */
 @Composable
@@ -19,6 +20,8 @@ fun GiftItemEditRoute(
     listId: String,
     itemId: String?,
     onDone: () -> Unit,
+    /** A link shared from another app, to start a new wish with. */
+    shared: SharedWish? = null,
 ) {
     val viewModel: GiftItemEditViewModel = viewModel(
         factory = viewModelFactory {
@@ -26,6 +29,7 @@ fun GiftItemEditRoute(
                 GiftItemEditViewModel(
                     container?.giftRepository, container?.memberRepository, currentMember.id, listId, itemId,
                     saved = createSavedStateHandle(),
+                    shared = shared?.let { GiftItemForm(title = it.title, url = it.url) },
                 )
             }
         },

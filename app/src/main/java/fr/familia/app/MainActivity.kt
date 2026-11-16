@@ -11,6 +11,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.familia.app.core.navigation.FamiliaApp
 import fr.familia.app.core.notifications.FamiliaMessagingService
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.feature.gifts.share.SharedWish
+import fr.familia.app.feature.gifts.share.sharedWish
 import fr.familia.app.feature.auth.SessionRoute
 
 class MainActivity : ComponentActivity() {
@@ -38,6 +40,9 @@ class MainActivity : ComponentActivity() {
     /** The poll of a tapped notification (récits 2 bis et 2 ter). */
     private val openPollId = mutableStateOf<String?>(null)
 
+    /** A link shared from another app, for « Mes envies » (récit 8 bis). */
+    private val sharedWish = mutableStateOf<SharedWish?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -50,6 +55,7 @@ class MainActivity : ComponentActivity() {
             openWeeklyQuestionId.value = intent.weeklyQuestionId()
             openSouvenir.value = intent.hasSouvenir()
             openPollId.value = intent.pollId()
+            sharedWish.value = intent.sharedWish()
         }
         val app = application as FamiliaApplication
         val container = app.container
@@ -63,6 +69,7 @@ class MainActivity : ComponentActivity() {
             val weeklyToOpen by openWeeklyQuestionId
             val souvenirToOpen by openSouvenir
             val pollToOpen by openPollId
+            val wishToAdd by sharedWish
             FamiliaTheme {
                 SessionRoute(container = container) { member ->
                     FamiliaApp(
@@ -85,6 +92,8 @@ class MainActivity : ComponentActivity() {
                         onSouvenirOpened = { openSouvenir.value = false },
                         openPollId = pollToOpen,
                         onPollOpened = { openPollId.value = null },
+                        sharedWish = wishToAdd,
+                        onSharedWishOpened = { sharedWish.value = null },
                     )
                 }
             }
@@ -102,6 +111,7 @@ class MainActivity : ComponentActivity() {
         intent.weeklyQuestionId()?.let { openWeeklyQuestionId.value = it }
         if (intent.hasSouvenir()) openSouvenir.value = true
         intent.pollId()?.let { openPollId.value = it }
+        intent.sharedWish()?.let { sharedWish.value = it }
     }
 
     private fun Intent.eventId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_EVENT_ID)
