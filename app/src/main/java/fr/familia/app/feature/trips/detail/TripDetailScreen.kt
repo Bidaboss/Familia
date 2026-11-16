@@ -1,5 +1,6 @@
 package fr.familia.app.feature.trips.detail
 
+import androidx.compose.ui.text.style.TextOverflow
 import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
@@ -96,7 +97,7 @@ fun TripDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(success?.trip?.title ?: stringResource(R.string.trip_title)) },
+                title = { Text(success?.trip?.title ?: stringResource(R.string.trip_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = {
                     if (success?.canManage == true) {

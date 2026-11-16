@@ -59,7 +59,7 @@ fun CapsulesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.capsules_title)) },
+                title = { Text(stringResource(R.string.capsules_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = { HelpButton(ScreenHelp.Capsules) },
             )
