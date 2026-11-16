@@ -39,6 +39,20 @@ class LinkPreviewTest {
     }
 
     @Test
+    fun `a price in another currency is left out`() {
+        val html = """<meta property="og:title" content="Montre"><meta property="product:price:amount" content="99">""" +
+            """<meta property="product:price:currency" content="USD">"""
+        assertNull(parseLinkPreview(html, base = "https://a.example")!!.price)
+    }
+
+    @Test
+    fun `a page in latin-1 is read in its own charset`() {
+        val bytes = """<meta charset="iso-8859-1"><title>Écharpe</title>""".toByteArray(Charsets.ISO_8859_1)
+        assertEquals("Écharpe", parseLinkPreview(decodePage(bytes, "text/html"), base = "https://a.example")!!.title)
+        assertEquals("Écharpe", decodePage("Écharpe".toByteArray(), "text/html; charset=UTF-8"))
+    }
+
+    @Test
     fun `a page with nothing to say gives no preview`() {
         assertNull(parseLinkPreview("<html><body>Bonjour</body></html>", base = "https://a.example"))
     }
