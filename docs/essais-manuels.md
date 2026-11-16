@@ -96,6 +96,7 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 
 1. Dans Administration > Modules, allume Cadeaux et Entraide. Sur un autre téléphone, avec un compte qui n'est pas admin, ouvre l'appli pour la première fois. **Attendu :** après « Dire si tu viens », les écrans « Les cadeaux » puis « L'entraide » s'affichent, et « Rester prévenu » reste le dernier (6 sur 6).
 2. Éteins Entraide, puis touche « Revoir le tuto » dans l'Aide. **Attendu :** l'écran « L'entraide » n'apparaît plus (5 écrans).
+3. Sur un téléphone neuf, en Wi-Fi lent (ou en mode avion juste après la connexion, puis réactivé), touche « Passer » dès le premier écran du tuto. **Attendu :** tu restes sur « Rester prévenu », même quand les écrans Cadeaux et Entraide s'ajoutent (le compteur passe de « 4 sur 4 » à « 6 sur 6 »).
 
 ## Écran d'Accueil (récit 29)
 
