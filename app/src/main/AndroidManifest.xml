@@ -55,16 +55,52 @@
             android:name=".feature.update.InstallResultReceiver"
             android:exported="false" />
 
-        <!-- singleTop: a tapped notification reuses the open app instead of stacking a second one. -->
+        <!-- singleTop: a tapped notification reuses the open app instead of stacking a second one.
+             No launcher entry of its own: the 3 icon aliases below open it. It stays exported so
+             that a shortcut made before the aliases still opens the app. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop">
+            android:launchMode="singleTop" />
+
+        <!-- The 3 app icons, chosen in Famille › Réglages › Apparence (AppIcon). Only one is
+             enabled at a time; Olivier is the default. -->
+        <activity-alias
+            android:name=".IconOlivier"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:targetActivity=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconTerre"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_terre"
+            android:roundIcon="@mipmap/ic_launcher_terre_round"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+        <activity-alias
+            android:name=".IconOr"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_or"
+            android:roundIcon="@mipmap/ic_launcher_or_round"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
     </application>
 
 </manifest>

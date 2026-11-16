@@ -88,6 +88,7 @@ import fr.familia.app.feature.events.edit.EventEditRoute
 import fr.familia.app.feature.planning.PlanningRoute
 import fr.familia.app.feature.home.HomeActions
 import fr.familia.app.feature.home.HomePreferences
+import fr.familia.app.feature.settings.appearance.AppIconSwitcher
 import fr.familia.app.feature.settings.appearance.AppearanceScreen
 import fr.familia.app.feature.settings.appearance.ThemePreferences
 import fr.familia.app.core.theme.FamiliaClay
@@ -177,6 +178,7 @@ fun FamiliaApp(
     val homePrefs = remember(context) { HomePreferences(context.applicationContext) }
     val themePrefs = remember(context) { ThemePreferences(context.applicationContext) }
     var chosenTheme by remember { mutableStateOf(themePrefs.theme) }
+    val iconSwitcher = remember(context) { AppIconSwitcher(context.applicationContext) }
     var showOnboarding by rememberSaveable { mutableStateOf(!onboarding.seen) }
     if (showOnboarding) {
         // The 4th screen mentions answering for one's children only to those who have some.
@@ -678,6 +680,7 @@ fun FamiliaApp(
                         ExportRoute(container = container, onBack = { navController.popBackStack() })
                     }
                     composable<AppearanceDestination> {
+                        var chosenIcon by remember { mutableStateOf(iconSwitcher.current) }
                         AppearanceScreen(
                             current = chosenTheme,
                             onChoose = { theme ->
@@ -685,6 +688,11 @@ fun FamiliaApp(
                                 themePrefs.theme = theme
                             },
                             onBack = { navController.popBackStack() },
+                            icon = chosenIcon,
+                            onChooseIcon = { icon ->
+                                chosenIcon = icon
+                                iconSwitcher.choose(icon)
+                            },
                         )
                     }
                     composable<NotificationSettingsDestination> {
