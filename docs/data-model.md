@@ -1070,3 +1070,21 @@ seul l'admin principal la reçoit.
 `at` (date). Écrit seulement par les fonctions, illisible par l'appli. Il marque qu'une bienvenue a été donnée, pour qu'elle ne parte qu'une fois.
 
 À la première connexion d'un membre (son `uid` passe de vide à rempli, `onMemberSignedIn`), si le module `welcome` est allumé, la famille qui a l'appli reçoit « Camille vient d'arriver », « Dis-lui bonjour ! » (canal `welcome`, donnée `welcomeOf` : l'appli ouvre la fiche). Rien ne part pour un membre sans foyer, ni pour un membre du foyer de test (`households/{id}.isTest == true`, lu par `functions/src/testHousehold.ts`). Si le module est éteint, rien n'est marqué : la bienvenue n'est pas perdue, mais elle ne partira qu'à une nouvelle première connexion. Quand un membre est supprimé, `onMemberDeleted` supprime aussi son `welcomes/{memberId}`.
+
+## « Qui est-ce ? » (PRD, récit 43)
+
+Module `whoIsIt`. Un membre publie une vieille photo scannée ; la famille devine qui est dessus et en quelle année, puis la réponse s'affiche. Pas de score. « Ne plus me montrer » se garde sur le téléphone, comme pour « Il y a un an ».
+
+### `whoIsIt/{postId}`
+
+`authorId`, `authorName`, `hint` (0 à 140 caractères, par exemple « Un mariage, au printemps »), `createdAt` (heure du serveur). Lu par toute la famille, jamais modifié. Son auteur ou l'admin principal le supprime ; `onWhoIsItDeleted` supprime alors la réponse, les devinettes et les fichiers.
+
+La photo est dans Storage à `whoIsIt/{authorId}/{postId}/photo.jpg` (512 Ko au plus) avec `photo-thumb.jpg` (64 Ko). L'auteur l'envoie avant la publication ; un dossier ne peut jamais servir au billet de quelqu'un d'autre.
+
+### `whoIsIt/{postId}/answer/main`
+
+`who` (1 à 80 caractères), `year` (entier de 1850 à 2100, ou null si on ne sait pas), `personId` facultatif : une personne de l'arbre (un membre ou un proche, récit 40). Écrit par l'auteur. Lu par l'auteur et par ceux qui ont déjà deviné : personne ne voit la réponse avant.
+
+### `whoIsIt/{postId}/guesses/{memberId}`
+
+`who` (0 à 80 caractères, vide pour « Je ne sais pas »), `year` (entier ou null), `name` (le prénom de celui qui devine), `createdAt`. Une seule par membre, à son nom, jamais modifiée ; l'auteur ne devine pas sa propre photo. Lues, comme la réponse, une fois qu'on a deviné.

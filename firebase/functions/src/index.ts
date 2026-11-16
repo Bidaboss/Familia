@@ -482,6 +482,19 @@ export const onRecipeDeleted = onDocumentDeleted('recipes/{recipeId}', async (ev
   if (failed) throw failed.reason;
 });
 
+/** « Qui est-ce ? » (récit 43): a removed photo takes its answer, its guesses and its files with it. */
+export const onWhoIsItDeleted = onDocumentDeleted('whoIsIt/{postId}', async (event) => {
+  const post = getFirestore().collection('whoIsIt').doc(event.params.postId);
+  const authorId = String(event.data?.get('authorId') ?? '');
+  const results = await Promise.allSettled([
+    getFirestore().recursiveDelete(post.collection('answer')),
+    getFirestore().recursiveDelete(post.collection('guesses')),
+    ...(authorId ? [getStorage().bucket().deleteFiles({ prefix: `whoIsIt/${authorId}/${event.params.postId}/` })] : []),
+  ]);
+  const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
+  if (failed) throw failed.reason;
+});
+
 /** A notice held during the quiet hours goes out with the sender it was made for. */
 const sendHeld = async (token: string, notice: Notice & { goodNewsId?: string; helpRequestId?: string }) => {
   if (notice.goodNewsId && (notice.channel === 'goodNews' || notice.channel === 'comments')) {

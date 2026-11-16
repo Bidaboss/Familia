@@ -166,6 +166,20 @@ service firebase.storage {
       return firestore.get(docPath('recipes/' + recipeId)).data;
     }
 
+    // « Qui est-ce ? » (récit 43): the old photo and its thumbnail, sent by its author before the
+    // post, which must then be theirs. The server removes them with the post.
+    match /whoIsIt/{authorId}/{postId}/{fileName} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && resource == null
+        && authorId == myMemberId()
+        && postId.matches('^[A-Za-z0-9]{1,40}$')
+        && (!firestore.exists(docPath('whoIsIt/' + postId)) || firestore.get(docPath('whoIsIt/' + postId)).data.authorId == authorId)
+        && ((fileName == 'photo.jpg' && isJpegUnder(512 * 1024))
+            || (fileName == 'photo-thumb.jpg' && isJpegUnder(64 * 1024)));
+      allow delete: if isMember() && (authorId == myMemberId() || isOwner());
+    }
+
     match /recipes/{recipeId}/{authorId}/{fileName} {
       allow read: if isMember();
       allow create, update: if isMember()
