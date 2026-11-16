@@ -35,6 +35,8 @@ fun MembersRoute(
     onOpenCapsules: (() -> Unit)? = null,
     /** The family tree, while its module is on (récit 40). */
     onOpenGenealogy: (() -> Unit)? = null,
+    /** « Une idée ? Un souci ? » (récit 6 sexies). */
+    onOpenFeedback: (() -> Unit)? = null,
 ) {
     val viewModel: MembersViewModel = viewModel(
         factory = viewModelFactory {
@@ -50,6 +52,7 @@ fun MembersRoute(
     MembersScreen(
         state = state,
         onShareApp = if (inViewAs) null else { ownerName -> shareApp(context, ownerName) },
+        onOpenFeedback = onOpenFeedback?.takeIf { !inViewAs },
         onRetry = viewModel::retry,
         onOpenNotifications = onOpenNotifications,
         onOpenUpdates = onOpenUpdates,
