@@ -84,7 +84,8 @@ export async function deleteEventAnswers(db: Firestore, eventId: string): Promis
 }
 
 /**
- * A member was removed (a separation, for example): their answers, phones and settings go too.
+ * A member was removed (a separation, for example): their answers, phones, settings and days of
+ * use (PRD, récit 1 nonies) go too.
  * The family has a few hundred events at most, so going through them all stays cheap.
  */
 export async function deleteMemberData(db: Firestore, memberId: string): Promise<void> {
@@ -97,6 +98,7 @@ export async function deleteMemberData(db: Firestore, memberId: string): Promise
   const member = db.collection('members').doc(memberId);
   await db.recursiveDelete(member.collection('devices'));
   await db.recursiveDelete(member.collection('settings'));
+  await db.recursiveDelete(db.collection('usage').doc(memberId).collection('days'));
 }
 
 /** PRD, récit 6 bis: at 18 h, the members coming tomorrow are reminded. */

@@ -531,4 +531,4 @@ Le temps passé dans l'appli par un membre, un jour donné. Le téléphone le co
 | `seconds` | map | Les secondes par partie de l'appli : `home`, `planning`, `gifts`, `help`, `goodNews`, `weeklyQuestion`, `trips`, `family`, `other` (0 à 86 400 chacune). |
 | `expireAt` | timestamp | Le jour plus 13 mois. La règle TTL de `firestore.indexes.json` efface le document à cette date. |
 
-Le document ne contient jamais ce que la personne a lu, écrit ou ouvert. Seul le membre écrit ses propres jours. L'admin principal lit les jours de tout le monde, et les adultes responsables d'un enfant (ses `parentIds`) lisent ceux de cet enfant (carte EXPERT-5). Personne ne supprime un jour : c'est le TTL qui s'en charge.
+Le document ne contient jamais ce que la personne a lu, écrit ou ouvert. Seul le membre écrit ses propres jours. L'admin principal lit les jours de tout le monde, et les adultes responsables d'un enfant (ses `parentIds`) lisent ceux de cet enfant (carte EXPERT-5). Personne ne supprime un jour depuis l'appli : le TTL s'en charge, et la fonction qui suit le retrait d'un membre efface aussi tous ses jours.
