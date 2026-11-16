@@ -54,6 +54,8 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     Places("places", R.string.feature_places),
     /** « Partager » vers une messagerie, et les liens qui ouvrent l'appli (PRD, récit 31). */
     Share("share", R.string.feature_share),
+    /** Les commentaires sous un événement (PRD, récit 28). */
+    Comments("comments", R.string.feature_comments),
 }
 
 /**

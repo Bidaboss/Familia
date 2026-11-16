@@ -756,7 +756,7 @@
     <string name="trips_title">Voyages</string>
     <string name="channel_trips">Voyages</string>
     <string name="channel_comments">Commentaires et réactions</string>
-    <string name="channel_comments_description">Quand la famille réagit à ce que tu as partagé.</string>
+    <string name="channel_comments_description">Quand la famille réagit à ce que tu as partagé, ou commente un événement que tu suis.</string>
     <string name="channel_weekly">Rendez-vous de la semaine</string>
     <string name="channel_weekly_description">La question de la semaine, chaque lundi.</string>
     <string name="channel_admin">Administration</string>
@@ -932,6 +932,18 @@
     <string name="share_poll_text">Sondage dans Familia : %1$s Réponds ici :</string>
     <string name="share_birthday_text">Anniversaire de %1$s : %2$s le %3$s. On se retrouve dans Familia :</string>
     <string name="feature_share">Partager vers une messagerie</string>
+    <string name="feature_comments">Commentaires sous les événements</string>
+    <string name="event_comments_title">Commentaires</string>
+    <string name="event_comments_more">Voir les commentaires plus anciens</string>
+    <string name="event_comments_empty">Pas encore de commentaire. Une question, une idée, un « j\'ai hâte » ?</string>
+    <string name="event_comment_edit">Modifier</string>
+    <string name="event_comment_edit_title">Modifier ton commentaire</string>
+    <string name="event_comment_edit_save">Enregistrer</string>
+    <string name="event_comment_edit_failed">Le commentaire n\'a pas pu être modifié. Réessaie.</string>
+    <string name="event_comment_when_edited">%1$s · modifié</string>
+    <string name="event_comments_mute">Ne plus être prévenu des commentaires</string>
+    <string name="event_comments_unmute">Être à nouveau prévenu des commentaires</string>
+    <string name="event_comments_mute_failed">Le réglage n\'a pas pu être changé. Réessaie.</string>
     <string name="share_consent_title">Avant de partager</string>
     <string name="share_consent_body">Des enfants apparaissent peut-être sur ces photos. Pense à demander l\'accord de leurs parents avant d\'envoyer la vidéo hors de Familia.</string>
     <string name="share_consent_continue">Continuer</string>
