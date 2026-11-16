@@ -940,6 +940,7 @@
     <string name="view_as_title">Voir comme…</string>
     <string name="view_as_help">L\'appli telle que la voit un membre, sans rien pouvoir modifier.</string>
     <string name="view_as_banner">Tu vois l\'appli comme %1$s</string>
+    <string name="view_as_gifts_hidden">Masqué : c\'est ta surprise. Les listes où tu n\'es pas invité restent cachées, même en mode Voir comme.</string>
     <string name="view_as_quit">Quitter</string>
     <string name="view_as_read_only">Lecture seule en mode Voir comme</string>
     <string name="feature_comments">Commentaires sous les événements</string>

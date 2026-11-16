@@ -1,6 +1,7 @@
 package fr.familia.app.feature.gifts
 
 import androidx.compose.runtime.Composable
+import fr.familia.app.core.viewas.LocalViewAs
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -27,6 +28,7 @@ fun GiftsRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val viewedAs = LocalViewAs.current.viewed
     GiftsScreen(
         state = state,
         onOpenList = onOpenList,
@@ -34,6 +36,8 @@ fun GiftsRoute(
         onRetry = viewModel::retry,
         onAllBirthdays = onAllBirthdays,
         onPrepareSurprise = onPrepareSurprise,
-        onOpenNotebook = onOpenNotebook,
+        // « Voir comme »: the notebook is never shown (PRD), and some lists may be kept from the admin.
+        onOpenNotebook = onOpenNotebook?.takeIf { viewedAs == null },
+        someListsHidden = viewedAs != null,
     )
 }

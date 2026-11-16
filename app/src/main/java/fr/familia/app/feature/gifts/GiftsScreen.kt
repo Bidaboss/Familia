@@ -63,6 +63,8 @@ fun GiftsScreen(
     onAllBirthdays: () -> Unit = {},
     onPrepareSurprise: (memberId: String) -> Unit = {},
     onOpenNotebook: (() -> Unit)? = null,
+    /** « Voir comme » (PRD, rôles): some lists of this member are kept from the admin. */
+    someListsHidden: Boolean = false,
 ) {
     Box(modifier.fillMaxSize()) {
         when (state) {
@@ -83,6 +85,15 @@ fun GiftsScreen(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                if (someListsHidden) {
+                    item(key = "view-as-hidden") {
+                        Text(
+                            stringResource(R.string.view_as_gifts_hidden),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
                 onOpenNotebook?.let { open ->
                     item(key = "notebook") {
                         ListCard(
