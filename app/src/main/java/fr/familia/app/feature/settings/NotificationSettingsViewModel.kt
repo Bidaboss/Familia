@@ -37,12 +37,13 @@ class NotificationSettingsViewModel(
             if (notifications == null) {
                 flowOf(NotificationSettingsUiState.Ready(dayBeforeReminder = true)) // Previews, no Firebase.
             } else {
-                combine<Boolean, Boolean, Boolean, Boolean, NotificationSettingsUiState>(
+                combine<Boolean, Boolean, Boolean, Boolean, Boolean, NotificationSettingsUiState>(
                     notifications.observeDayBeforeReminder(memberId),
                     notifications.observeGoodNews(memberId),
                     notifications.observeWeekly(memberId),
+                    notifications.observeSouvenirs(memberId),
                     saveFailed,
-                ) { on, goodNews, weekly, failed -> NotificationSettingsUiState.Ready(on, failed, goodNews, weekly) }
+                ) { on, goodNews, weekly, souvenirs, failed -> NotificationSettingsUiState.Ready(on, failed, goodNews, weekly, souvenirs) }
                     .onStart { if (n > 0) emit(NotificationSettingsUiState.Loading) }
                     .catch { e ->
                         if (e is CancellationException) throw e
@@ -63,6 +64,9 @@ class NotificationSettingsViewModel(
 
     /** Question de la semaine (récit 37): only the Monday notice, the question stays on the home screen. */
     fun setWeekly(enabled: Boolean) = save { it.setWeekly(memberId, enabled) }
+
+    /** Souvenirs (récit 34): only the « Nouveau souvenir » notice; the souvenirs are kept. */
+    fun setSouvenirs(enabled: Boolean) = save { it.setSouvenirs(memberId, enabled) }
 
     private fun save(write: suspend (NotificationRepository) -> Unit) {
         val repo = notifications ?: return

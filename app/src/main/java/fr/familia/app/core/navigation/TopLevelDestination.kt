@@ -67,6 +67,10 @@ data class GoodNewsEditDestination(val postId: String? = null)
 @Serializable
 data class WeeklyQuestionDestination(val questionId: String? = null)
 
+/** A member's page, read-only, opened from Famille while the Souvenirs module is on (récit 34). */
+@Serializable
+data class MemberProfileDestination(val memberId: String)
+
 /** « Nos réponses »: the questions of the week already asked (récit 37). */
 @Serializable
 data object WeeklyArchiveDestination

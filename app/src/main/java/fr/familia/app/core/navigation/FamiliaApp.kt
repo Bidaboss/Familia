@@ -51,6 +51,7 @@ import fr.familia.app.feature.help.HelpRoute
 import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
 import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
+import fr.familia.app.feature.members.profile.MemberProfileRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyArchiveRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionRoute
 import fr.familia.app.feature.help.LocalOpenHelp
@@ -165,6 +166,8 @@ fun FamiliaApp(
     /** The question of the week of a tapped notification, to open once (récit 37). */
     openWeeklyQuestionId: String? = null,
     onWeeklyQuestionOpened: () -> Unit = {},
+    openSouvenir: Boolean = false,
+    onSouvenirOpened: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
     // Each time the app opens, this phone is (re)registered for the notifications of this member.
@@ -287,6 +290,13 @@ fun FamiliaApp(
     }
     // And for the question of the week (récit 37).
     val weeklyOn = features.isOn(Feature.WeeklyQuestion)
+    val souvenirsOn = features.isOn(Feature.Souvenirs)
+    LaunchedEffect(openSouvenir, souvenirsOn) {
+        if (openSouvenir && souvenirsOn) {
+            navController.navigate(MemberProfileDestination(currentMember.id))
+            onSouvenirOpened()
+        }
+    }
     LaunchedEffect(openWeeklyQuestionId, weeklyOn) {
         if (openWeeklyQuestionId != null && weeklyOn) {
             navController.navigate(WeeklyQuestionDestination(openWeeklyQuestionId))
@@ -659,6 +669,16 @@ fun FamiliaApp(
                             onArchive = { navController.navigate(WeeklyArchiveDestination) { launchSingleTop = true } },
                         )
                     }
+                    composable<MemberProfileDestination> { entry ->
+                        val memberId = entry.toRoute<MemberProfileDestination>().memberId
+                        MemberProfileRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            memberId = memberId,
+                            onBack = { navController.popBackStack() },
+                            onEdit = { navController.navigate(MemberEditDestination(memberId)) },
+                        )
+                    }
                     composable<WeeklyArchiveDestination> {
                         WeeklyArchiveRoute(
                             container = container,
@@ -680,6 +700,7 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             onEditMember = { id -> navController.navigate(MemberEditDestination(id)) },
+                            onOpenProfile = if (souvenirsOn) ({ id -> navController.navigate(MemberProfileDestination(id)) }) else null,
                             onOpenNotifications = { navController.navigate(NotificationSettingsDestination) },
                             onOpenAdministration = { navController.navigate(AdministrationDestination) },
                             onOpenUpdates = { navController.navigate(UpdateCheckDestination) },

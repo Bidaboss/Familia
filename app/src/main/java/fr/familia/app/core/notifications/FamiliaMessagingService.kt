@@ -47,9 +47,12 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         // Question de la semaine: the question to open.
         val weeklyQuestionId = message.data[EXTRA_WEEKLY_QUESTION_ID]
         weeklyQuestionId?.let { open.putExtra(EXTRA_WEEKLY_QUESTION_ID, it) }
+        // Souvenirs: one's own page.
+        val souvenirKey = message.data[EXTRA_SOUVENIR_KEY]
+        souvenirKey?.let { open.putExtra(EXTRA_SOUVENIR_KEY, it) }
         val pending = PendingIntent.getActivity(
             this,
-            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId).hashCode(),
+            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey).hashCode(),
             open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -88,5 +91,6 @@ class FamiliaMessagingService : FirebaseMessagingService() {
 
         /** Same key as the `data` of functions/src/weeklyQuestion.ts. */
         const val EXTRA_WEEKLY_QUESTION_ID = "weeklyQuestionId"
+        const val EXTRA_SOUVENIR_KEY = "souvenirKey"
     }
 }
