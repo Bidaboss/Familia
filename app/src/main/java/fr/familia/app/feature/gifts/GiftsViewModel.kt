@@ -168,8 +168,10 @@ internal fun forMoment(state: GiftsUiState, chosen: GiftMoment?): GiftsUiState {
         is GiftMoment.BirthdayOf -> state.sections.filter { it.member.id == moment.member.id }
         else -> state.sections
     }
-    val previews = state.listItems.mapValues { (listId, items) ->
-        // A wish: only what its person sees, for the occasion. An idea of the family: all of them.
+    // Only « Mes envies », and only what its person sees, for the occasion: the ideas of the family
+    // never get a preview, whatever was read.
+    val wishesIds = state.sections.mapNotNull { it.wishes?.id }.toSet()
+    val previews = state.listItems.filterKeys { it in wishesIds }.mapValues { (_, items) ->
         wishPreview(items.filter { counts(it, moment) })
     }
     return state.copy(sections = kept, wishPreviews = previews, occasions = occasions, moment = moment)
