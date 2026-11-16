@@ -6,12 +6,15 @@ import fr.familia.app.core.data.EventRepository
 import fr.familia.app.core.data.GiftRepository
 import fr.familia.app.core.data.HelpRequestRepository
 import fr.familia.app.core.data.MemberRepository
+import fr.familia.app.core.data.PollRepository
 import fr.familia.app.core.data.RsvpRepository
 import fr.familia.app.core.data.TripRepository
 import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.HelpRequest
+import fr.familia.app.core.model.Poll
+import fr.familia.app.core.model.PollVote
 import fr.familia.app.core.model.Rsvp
 import fr.familia.app.core.model.TripArrival
 import kotlinx.coroutines.CancellationException
@@ -28,6 +31,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import java.time.Instant
 import java.time.LocalDate
 
 /**
@@ -45,6 +49,9 @@ class HomeViewModel(
     private val gifts: GiftRepository? = null,
     private val trips: TripRepository? = null,
     private val today: Flow<LocalDate> = currentDayFlow(),
+    /** Null while the polls module is off: no poll in « À faire pour moi ». */
+    private val polls: PollRepository? = null,
+    private val clock: () -> Instant = Instant::now,
 ) : ViewModel() {
 
     /** Read once and shared by the cards, so no card adds its own listener on the family. */
@@ -62,14 +69,16 @@ class HomeViewModel(
                     events.observeUpcoming(day),
                     bonus(rsvps?.observeAllRsvps(), emptyMap<String, List<Rsvp>>()),
                     bonus(helpRequests?.observeMine(currentMemberId), emptyList<HelpRequest>()),
-                    combine(nextOccasion(day), followedTrips(shared, day)) { o, t -> o to t },
+                    combine(nextOccasion(day), followedTrips(shared, day), openPolls()) { o, t, p -> Triple(o, t, p) },
                 ) { fam, list, answers, help, extras ->
                     val me = fam.members.firstOrNull { it.id == currentMemberId }
                     if (me == null) {
                         HomeUiState.Ready(day)
                     } else {
                         val next = extras.first?.let { (giftList, claims) -> occasion(giftList, me, fam, claims, day) }
-                        homeState(me, fam, day, list, answers, help, next, extras.second)
+                        val (asked, votes) = extras.third
+                        val toVote = pollsToVote(me, asked, votes, clock(), day)
+                        homeState(me, fam, day, list, answers, help, next, extras.second, toVote)
                     }
                 }.catch { e ->
                     if (e is CancellationException) throw e
@@ -110,6 +119,23 @@ class HomeViewModel(
                 }
             }
             combine(arrivals, family) { found, fam -> homeTrips(list, found, fam, day) }
+        }
+    }
+
+    /** The open polls that ask me, with their votes: one listener per such poll, a handful at most. */
+    private fun openPolls(): Flow<Pair<List<Poll>, Map<String, List<PollVote>>>> {
+        val repo = polls ?: return flowOf(emptyList<Poll>() to emptyMap())
+        val asked = bonus(repo.observeMine(currentMemberId), emptyList())
+            .map { list -> list.filter { it.isOpen(clock()) && currentMemberId in it.askedIds } }
+            .distinctUntilChanged()
+        return asked.flatMapLatest { list ->
+            if (list.isEmpty()) {
+                flowOf(list to emptyMap())
+            } else {
+                combine(list.map { poll -> bonus(repo.observeVotes(poll.id).map { poll.id to it }, poll.id to emptyList()) }) {
+                    list to it.toMap()
+                }
+            }
         }
     }
 

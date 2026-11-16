@@ -19,6 +19,9 @@ import fr.familia.app.feature.trips.canCreateTrip
 import fr.familia.app.feature.trips.firstNames
 import fr.familia.app.feature.trips.joinNames
 import java.time.Instant
+import java.time.ZoneId
+import fr.familia.app.core.model.Poll
+import fr.familia.app.core.model.PollVote
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
@@ -35,6 +38,9 @@ sealed interface HomeTodo {
     data class Help(val request: HelpRequest) : HomeTodo {
         override val date: LocalDate get() = request.date
     }
+
+    /** A poll that asks me and that I have not answered (PRD, récits 2 bis et 2 ter). */
+    data class Vote(val poll: Poll, override val date: LocalDate) : HomeTodo
 }
 
 /** A trip I follow, ongoing or to come, with the last « Bien arrivé » while it is ongoing. */
@@ -76,7 +82,15 @@ internal object HomeWindow {
 }
 
 /** What I still have to answer: my own answer only, never one for a child of someone else. */
-internal fun todos(me: Member, family: Family, events: List<Event>, answers: Map<String, List<Rsvp>>, help: List<HelpRequest>, today: LocalDate): List<HomeTodo> {
+internal fun todos(
+    me: Member,
+    family: Family,
+    events: List<Event>,
+    answers: Map<String, List<Rsvp>>,
+    help: List<HelpRequest>,
+    today: LocalDate,
+    toVote: List<HomeTodo.Vote> = emptyList(),
+): List<HomeTodo> {
     val last = today.plusDays(HomeWindow.TODO_DAYS)
     val toAnswer = events
         .filter { it.date in today..last && concerns(it.target, me, family) }
@@ -87,8 +101,22 @@ internal fun todos(me: Member, family: Family, events: List<Event>, answers: Map
     val toHelp = help
         .filter { it.date >= today && canVolunteer(it, me) && it.declinedBy != me.id }
         .map { HomeTodo.Help(it) }
-    return (toAnswer + toHelp).sortedBy { it.date }.take(HomeWindow.TODO_SHOWN)
+    return (toAnswer + toHelp + toVote).sortedBy { it.date }.take(HomeWindow.TODO_SHOWN)
 }
+
+/**
+ * The open polls that ask me and where I have not voted yet: my own vote only (a child with the
+ * app votes for themselves). A date poll sorts by its first date, a free poll by its end, or today.
+ */
+internal fun pollsToVote(me: Member, polls: List<Poll>, votes: Map<String, List<PollVote>>, now: Instant, today: LocalDate): List<HomeTodo.Vote> =
+    polls
+        .filter { it.isOpen(now) && me.id in it.askedIds }
+        .filterNot { poll -> votes[poll.id].orEmpty().any { it.memberId == me.id } }
+        .map { poll ->
+            val first = if (poll.kind == Poll.Kind.Date) poll.options.mapNotNull { Poll.dateOption(it)?.first }.minOrNull() else null
+            val ends = poll.closesAt?.atZone(ZoneId.of("Europe/Paris"))?.toLocalDate()
+            HomeTodo.Vote(poll, maxOf(first ?: ends ?: today, today))
+        }
 
 /** The events of the next 7 days that concern me, by date. */
 internal fun week(me: Member, family: Family, events: List<Event>, today: LocalDate): List<Event> {
@@ -136,11 +164,12 @@ internal fun homeState(
     help: List<HelpRequest>,
     occasion: HomeOccasion?,
     trips: List<HomeTrip>,
+    toVote: List<HomeTodo.Vote> = emptyList(),
 ): HomeUiState.Ready {
     val week = week(me, family, events, today)
     return HomeUiState.Ready(
         today = today,
-        todos = todos(me, family, events, answers, help, today),
+        todos = todos(me, family, events, answers, help, today, toVote),
         week = week.take(HomeWindow.WEEK_SHOWN),
         weekMore = (week.size - HomeWindow.WEEK_SHOWN).coerceAtLeast(0),
         birthdays = birthdays(family, today),

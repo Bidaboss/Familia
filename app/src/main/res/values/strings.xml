@@ -1120,6 +1120,8 @@
     <string name="home_todo_answer">%1$s · Dis si tu viens</string>
     <string name="home_todo_help">Demandé par %1$s · %2$s</string>
     <string name="home_open_event">ouvrir l\'événement</string>
+    <string name="home_todo_vote">Sondage de %1$s · à toi de répondre</string>
+    <string name="home_open_poll">ouvrir le sondage</string>
     <string name="home_open_help">ouvrir le coup de main</string>
     <string name="home_week_title">Les 7 prochains jours</string>
     <plurals name="home_week_more">

@@ -28,6 +28,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
+import fr.familia.app.core.model.Poll
+import fr.familia.app.core.model.PollVote
 import org.junit.Test
 import java.time.Instant
 import java.time.LocalDate
@@ -155,5 +157,22 @@ class HomeTest {
         val bare = off.uiState.first { it is HomeUiState.Ready && it.week.isNotEmpty() } as HomeUiState.Ready
         assertNull(bare.occasion)
         assertTrue(bare.trips.isEmpty())
+    }
+
+    @Test
+    fun `an open poll that asks me shows until I vote, by its first date`() {
+        fun poll(id: String, kind: Poll.Kind, options: List<String>, asked: List<String>, closed: Boolean = false) =
+            Poll(id, kind, "Question $id", options, false, asked, asked + "adult2", null, null, closed, null, null, "adult2", "Adult2", null)
+        val now = Instant.parse("2026-11-16T10:00:00Z")
+        val dates = poll("p1", Poll.Kind.Date, listOf(today.plusDays(9).toString(), "${today.plusDays(3)} 12:30"), listOf(me.id))
+        val free = poll("p2", Poll.Kind.Choice, listOf("Pizza", "Crêpes"), listOf(me.id))
+        val voted = poll("p3", Poll.Kind.Choice, listOf("A", "B"), listOf(me.id))
+        val notMe = poll("p4", Poll.Kind.Choice, listOf("A", "B"), listOf("kid1"))
+        val over = poll("p5", Poll.Kind.Choice, listOf("A", "B"), listOf(me.id), closed = true)
+        val votes = mapOf("p3" to listOf(PollVote(me.id, choices = listOf(0), votedBy = me.id)))
+        val shown = pollsToVote(me, listOf(dates, free, voted, notMe, over), votes, now, today)
+        assertEquals(listOf("p1", "p2"), shown.map { it.poll.id })
+        assertEquals(today.plusDays(3), shown[0].date)
+        assertEquals(today, shown[1].date)
     }
 }
