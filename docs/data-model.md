@@ -46,7 +46,7 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 
 ## Admin principal et chefs de famille (lot 3, carte DEV-8)
 
-- **L'admin principal** (Kévin) est nommé dans `config/family`, que seul le workflow GitHub « Créer le premier admin » écrit. Personne ne peut lui retirer ce rôle depuis l'appli. S'il perd l'accès, relancer ce workflow avec son adresse lui rend le rôle. Il a tous les droits sur toute la famille, y compris pour un foyer sans chef, et lui seul voit le menu « Administration » : nommer ou retirer les chefs, créer ou supprimer un foyer, sauvegarder les données (PRD, récit 1 ter).
+- **L'admin principal** est nommé dans `config/family`, que seul le workflow GitHub « Créer le premier admin » écrit. Personne ne peut lui retirer ce rôle depuis l'appli. S'il perd l'accès, relancer ce workflow avec son adresse lui rend le rôle. Il a tous les droits sur toute la famille, y compris pour un foyer sans chef, et lui seul voit le menu « Administration » : nommer ou retirer les chefs, créer ou supprimer un foyer, sauvegarder les données (PRD, récit 1 ter).
 - **Un chef de famille** (`isAdmin` à vrai) a les droits d'un adulte, plus ceux-ci, limités à son foyer (PRD, « Périmètre d'un chef de famille ») : ajouter, inviter, modifier ou retirer les membres de son foyer et changer leur profil ; choisir les adultes responsables des enfants de son foyer parmi les adultes de ce foyer ; renommer son foyer ; modifier ou supprimer les événements dont l'auteur est de son foyer.
 - Un chef ne peut pas : agir sur un autre foyer, déplacer un membre vers un autre foyer, créer ou supprimer un foyer, nommer ou retirer un chef (ni retirer un membre qui est chef), toucher à l'admin principal ou à son propre rôle, sauvegarder les données.
 - Si l'admin principal a choisi pour un enfant un adulte responsable d'un autre foyer, un chef peut modifier le reste de la fiche, mais plus les adultes responsables : les règles le refusent, et l'appli grise la liste.
@@ -289,17 +289,37 @@ Une part d'un cadeau commun, une par adulte. Aucun paiement ne passe par l'appli
 - **Modifier** : le membre change son montant ; le responsable marque la part reçue ou non. Personne d'autre.
 - **Retirer** : le membre ou le responsable.
 
+### `giftLists/{listId}/received/{itemId}` (« On m'a offert », PRD, récit 10 bis)
+
+Une envie offerte, sortie de « Mes envies » le lendemain de l'occasion de son bénéficiaire. Seule la liste `wishes-{memberId}` en a. Derrière l'interrupteur `config/app.features.wishesReveal`, en plus de `features.gifts`.
+
+| Champ | Type | Description |
+|---|---|---|
+| `title`, `url`, `imageUrl` | texte | Repris de l'article |
+| `givers` | liste de textes | Prénoms de ceux qui l'ont offerte : le responsable, puis les participants. Jamais les montants |
+| `joint` | booléen | Vrai pour un cadeau commun |
+| `occasion` | `birthday` ou `christmas` | L'occasion de la veille |
+| `year` | nombre | Année de l'occasion |
+| `thanked` | booléen | Faux à la création, vrai quand le bénéficiaire a dit merci |
+| `thankedAt` | horodatage serveur | Présent une fois le merci dit |
+| `revealedAt` | horodatage serveur | |
+
+- **Lire** : le bénéficiaire, et les adultes qui gardent ses listes (un enfant sans l'appli n'a rien de dévoilé).
+- **Modifier** : le bénéficiaire, seulement pour passer `thanked` à vrai avec `thankedAt`.
+- **Créer, supprimer** : le serveur seul.
+
 ### Cloud Functions des cadeaux (`firebase/functions/src/gifts.ts`)
 
 | Fonction | Quand | Ce qu'elle fait |
 |---|---|---|
 | `revealGifts` | Chaque jour à 7 h, heure de Paris | Passe `revealed` à vrai pour les listes dont l'occasion est passée (pas « Mes envies »), et prévient leur bénéficiaire s'il a l'appli (PRD, récit 10 bis) |
+| `revealGifts`, ensuite (`wishesReveal.ts`) | Chaque jour à 7 h, heure de Paris, après les listes | Le lendemain d'un anniversaire ou de Noël, passe chaque envie réservée dans `received`, efface l'article et sa réservation, et prévient le bénéficiaire. Le carnet des donateurs garde le cadeau, et personne ne reçoit « Réservation annulée ». Une envie non réservée reste |
 | `birthdayGiftReminders` | Chaque jour à 10 h, heure de Paris | À J-21 d'un anniversaire, prévient tous les adultes sauf le fêté, avec ses envies. À J-14, recommence si aucun article de ses listes n'est réservé (récit 10) |
 | `onGiftItemWritten` | Un article est modifié ou supprimé | S'il était réservé, prévient le réservant et les participants (jamais le bénéficiaire), et met à jour leur carnet. Une suppression efface aussi la réservation et ses parts |
 | `onGiftShareWritten` | Une part est ajoutée, modifiée ou retirée | Recalcule `sharesTotal` et `sharesCount` sur la réservation, et met à jour le carnet du participant |
 | `onGiftClaimCreated` | Une réservation est faite | La reprend dans le carnet de son auteur |
 | `onGiftClaimDeleted` | Une réservation est relâchée | Efface les parts du cadeau commun, et la retire du carnet de son auteur |
-| `onGiftListDeleted` | Une liste est supprimée | Efface ses articles, réservations et parts |
+| `onGiftListDeleted` | Une liste est supprimée | Efface ses articles, réservations, parts et cadeaux reçus |
 | `onMemberDeletedGifts` | Un membre est retiré | Efface les listes dont il est le bénéficiaire, et son carnet |
 
 Une notification des cadeaux porte `listId` dans ses données à la place de `eventId`. Le bénéficiaire ne reçoit jamais de notification sur ses cadeaux, sauf celle de la révélation.
@@ -383,7 +403,7 @@ Cloud Functions (`functions/src/goodNews.ts`) :
 
 | Fonction | Déclencheur | Rôle |
 |---|---|---|
-| `onGoodNewsCreated` | création | Prévient toute la famille qui a l'appli, sauf l'auteur et ceux qui ont coupé `goodNews`. Quand un enfant publie, ses adultes responsables reçoivent « Léa a publié une Bonne nouvelle », même s'ils ont coupé les autres (carte AVIS-12). Canal `goodNews`, donnée `goodNewsId`. |
+| `onGoodNewsCreated` | création | Prévient toute la famille qui a l'appli, sauf l'auteur et ceux qui ont coupé `goodNews`. Quand un enfant publie, ses adultes responsables reçoivent « Camille a publié une Bonne nouvelle », même s'ils ont coupé les autres (carte AVIS-12). Canal `goodNews`, donnée `goodNewsId`. |
 | `onGoodNewsUpdated` | modification | Efface dans Storage les photos que l'auteur a retirées. À la première nouvelle réaction, note dans `goodNewsDigests/{postId}` l'envoi groupé prévu une heure plus tard. |
 | `goodNewsReactionDigests` | toutes les 15 min | Envoie à l'auteur les avis groupés arrivés à échéance : « Inès et 3 autres ont réagi à ta Bonne nouvelle » (PRD rév. 174). Chaque personne n'est nommée qu'une fois. Canal `comments`, hors résumé du jour. |
 | `onGoodNewsDeleted` | suppression | Efface toutes les photos, quel que soit l'auteur du retrait, et l'avis groupé en attente. |
@@ -449,6 +469,25 @@ Cloud Functions (`functions/src/helpRequests.ts`), qui ne préviennent que les p
 
 Une demande passée ne prévient personne, sauf pour le « Merci ». La sauvegarde de l'admin principal inclut les demandes (`helpRequests`).
 
+## Capsule temporelle (PRD, récit 39)
+
+### `capsules/{capsuleId}`
+
+Un message pour plus tard : un texte et jusqu'à 3 photos, pour des membres choisis, scellé jusqu'à un jour donné.
+
+| Champ | Type | Description |
+|---|---|---|
+| `text` | texte | Le message, de 1 à 4 000 caractères |
+| `photoCount` | entier | De 0 à 3. Storage : `capsules/{authorId}/{capsuleId}/{n}.jpg` (512 Ko au plus) et `{n}-thumb.jpg` (64 Ko au plus), envoyées avant la capsule |
+| `recipientIds` | liste de textes | Les destinataires, de 1 à 13, sans doublon |
+| `openAt` | texte | Le jour d'ouverture, `AAAA-MM-JJ`, entre un mois et cinq ans après l'écriture |
+| `openedFor` | liste de textes | Vide jusqu'à l'ouverture, puis la copie de `recipientIds`, écrite par le serveur seul |
+| `openedAt` | horodatage | Ajouté par le serveur à l'ouverture |
+| `authorId`, `authorName` | texte | L'auteur et son prénom |
+| `createdAt` | horodatage | Heure du serveur |
+
+Droits : jusqu'au jour dit, seul l'auteur lit la capsule. Les destinataires ne savent même pas qu'elle existe, et l'admin principal ne la lit pas non plus. Le jour venu (heure de Paris), la tâche des 30 minutes (`openDueCapsules`, `functions/src/capsules.ts`) copie les destinataires dans `openedFor` et les prévient une fois (canal `capsules`), si le module « Capsules » est allumé. Ensuite, ils la lisent avec `openedFor array-contains <leur id>`, photos comprises. Une capsule ne se modifie jamais. Son auteur la supprime à tout moment, et `onCapsuleDeleted` efface alors ses photos.
+
 ## Carnet de recettes (PRD, récit 38)
 
 ### `recipes/{recipeId}`
@@ -465,13 +504,23 @@ Une demande passée ne prévient personne, sauf pour le « Merci ». La sauvegar
 | `authorId`, `authorName` | texte | Le membre qui l'a écrite et son prénom, qui ne changent jamais |
 | `createdAt`, `updatedAt` | horodatage | Heure du serveur |
 
-Droits : tous les membres lisent toutes les recettes, et chacun écrit les siennes. L'auteur et l'admin principal les modifient et les retirent. Le module se montre avec l'interrupteur « Carnet de recettes ». Les commentaires et le partage viendront ensuite. Une étiquette est un texte de 1 à 24 caractères. Si le membre nommé dans `originMemberId` quitte la famille, la recette garde son id et reste modifiable.
+Droits : tous les membres lisent toutes les recettes, et chacun écrit les siennes. L'auteur et l'admin principal les modifient et les retirent. Le module se montre avec l'interrupteur « Carnet de recettes ». Le partage envoie la recette en texte, sans photo. Depuis la fiche d'un membre, « Voir ses recettes » montre celles dont il est l'origine. Une étiquette est un texte de 1 à 24 caractères. Si le membre nommé dans `originMemberId` quitte la famille, la recette garde son id et reste modifiable.
 
 ### `recipes/{recipeId}/photos/{authorId}_{slot}`
 
 Les photos du plat, sur le modèle des photos d'un voyage (`authorId`, `authorName`, `slot`, `createdAt`), avec 3 places par personne (`slot` de 1 à 3). Les fichiers sont dans Storage, à `recipes/{recipeId}/{authorId}/{slot}.jpg` (512 Ko au plus) et `{slot}-thumb.jpg` (64 Ko au plus), envoyés avant la fiche.
 
-Droits : tous les membres les voient. L'auteur de la recette et l'admin principal les ajoutent et les retirent. Quand la recette est supprimée, la fonction `onRecipeDeleted` efface ses photos, les fiches comme les fichiers.
+Droits : tous les membres les voient. L'auteur de la recette et l'admin principal les ajoutent et les retirent. Quand la recette est supprimée, la fonction `onRecipeDeleted` efface ses photos et ses commentaires, les fiches comme les fichiers. Chaque partie est tentée même si une autre échoue.
+
+### `recipes/{recipeId}/comments/{commentId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `text` | texte | Le commentaire, de 1 à 500 caractères, jamais modifié |
+| `authorId`, `authorName` | texte | Le membre qui l'a écrit et son prénom |
+| `createdAt` | horodatage | Heure du serveur |
+
+Droits : tous les membres lisent les commentaires et en écrivent en leur nom. Son auteur, l'auteur de la recette ou l'admin principal retire un commentaire.
 
 ## Voyages (V3, récits 11 à 15)
 
@@ -618,7 +667,7 @@ Fonctions : il n'y a pas de nouvelle tâche planifiée. Ces déclencheurs, qui e
 
 ## Question de la semaine (PRD, récit 37)
 
-Chaque lundi à 9 h (heure de Paris), le serveur publie une question tirée de la banque de départ (`functions/src/questionBank.ts`, 60 questions validées par Kévin, [banque](https://claude.ai/artifact/SX2LFwekq2v8GzGeRJC8wF)). La première sort le lundi 30/11/2026, et c'est la première de la banque. Une question de saison sort d'abord pendant sa saison ; sinon le tirage se fait parmi les questions pas posées depuis 330 jours, toujours le même pour un lundi donné. Rien ne sort tant que le module `weeklyQuestion` est éteint dans `config/app.features`.
+Chaque lundi à 9 h (heure de Paris), le serveur publie une question tirée de la banque de départ (`functions/src/questionBank.ts`, 60 questions validées par l'admin principal, [banque](https://claude.ai/artifact/SX2LFwekq2v8GzGeRJC8wF)). La première sort le lundi 30/11/2026, et c'est la première de la banque. Une question de saison sort d'abord pendant sa saison ; sinon le tirage se fait parmi les questions pas posées depuis 330 jours, toujours le même pour un lundi donné. Rien ne sort tant que le module `weeklyQuestion` est éteint dans `config/app.features`.
 
 ### `weeklyQuestions/{weekId}`
 
@@ -629,7 +678,7 @@ Chaque lundi à 9 h (heure de Paris), le serveur publie une question tirée de l
 | `weekId` | texte | La date du lundi, aussi rangée en champ pour les requêtes |
 | `text` | texte | La question |
 | `bankId` | texte (`q01` à `q60`) | Sa place dans la banque, pour ne pas la reposer trop tôt |
-| `proposedByName` | texte ou null | Le prénom du membre qui l'a proposée (« Proposée par Timéo », plus tard) |
+| `proposedByName` | texte ou null | Le prénom du membre qui l'a proposée (« Proposée par Sam », plus tard) |
 | `publishedAt` | horodatage | Lundi 9 h |
 | `revealAt` | horodatage | 48 h plus tard : à partir de là, tout le monde lit les réponses |
 | `answerCount` | entier | Le nombre de réponses, sans « Passer », tenu par le serveur. La carte d'accueil montre ce nombre, jamais les noms (carte EXPERT-3) |
@@ -709,6 +758,36 @@ Cloud Functions (`functions/src/polls.ts`) :
 | `onMemberDeletedAnswers` | suppression d'un membre | Retire aussi ses réponses aux sondages (index `votes.memberId` en groupe de collections). |
 
 Plus tard : rattacher un sondage à un événement (`eventId`) et le rappel « À faire pour moi » sur l'Accueil.
+
+## Lieux et « Rejoignez-moi » (PRD, récit 33)
+
+Interrupteur `places`. Un lieu (`core/place/Place.kt`) a toujours une position (`lat`, `lng`), et peut avoir un nom choisi par le membre et une adresse trouvée par le géocodeur Android (gratuit). Il n'y a pas de carte dans l'appli, donc pas de clé d'API : « Itinéraire » passe un lien `geo:` à Google Maps ou Waze. Le même composant servira à une Bonne nouvelle, à un événement et à une étape de voyage. Pour l'instant, le lieu d'un événement (texte libre) gagne seulement un bouton « Itinéraire ».
+
+La position est lue une seule fois, quand le membre touche « Prendre ma position ». L'autorisation demandée est « pendant l'utilisation de l'appli » seulement (`ACCESS_FINE_LOCATION` et `ACCESS_COARSE_LOCATION`, jamais `ACCESS_BACKGROUND_LOCATION`). Le membre peut aussi taper une adresse, ou coller un lien Google Maps : un lien court `maps.app.goo.gl` est ouvert une fois par le téléphone pour lire le lien complet.
+
+### `joinMe/{shareId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `authorId`, `authorName` | `memberId` et texte | Qui l'envoie, et son prénom |
+| `recipientIds` | liste de `memberId` (1 à 30) | Ceux qui le reçoivent, cochés à chaque fois (personne au départ, carte AVIS-13). Jamais l'auteur |
+| `name` | texte (1 à 60) ou null | Le nom du lieu |
+| `address` | texte (1 à 200) ou null | L'adresse trouvée par le téléphone |
+| `lat`, `lng` | nombres | La position |
+| `note` | texte (1 à 200) ou null | Un mot (« On est près du poste de secours ») |
+| `createdAt` | horodatage serveur | |
+| `expireAt` | horodatage | 24 h après l'envoi, écrit par le téléphone (la règle accepte entre 22 h et 26 h, pour une horloge un peu fausse). Firestore supprime le document ensuite (TTL déclarée dans `firestore.indexes.json`) ; l'appli le cache dès `expireAt` |
+
+Droits : tout membre avec l'appli l'envoie, en son nom. Seuls l'auteur et les destinataires le lisent, pas même l'admin principal. Personne ne le modifie. Seul l'auteur le retire (« Ne plus partager »).
+
+À savoir : Firestore efface les documents expirés avec un retard qui peut aller jusqu'à environ 24 h. Pendant ce temps, un partage expiré reste lisible par l'auteur et les destinataires (les règles ne regardent pas `expireAt` à la lecture). L'appli le cache, mais quelqu'un qui lirait la base directement pourrait encore voir la position.
+
+Cloud Functions (`functions/src/joinMe.ts`) :
+
+| Fonction | Déclencheur | Rôle |
+|---|---|---|
+| `onJoinMeCreatedNotify` | partage créé | Prévient les destinataires tout de suite, sans regroupement (carte AVIS-14) : « Camille : rejoins-moi », le lieu et le mot. Canal `joinMe` (sonne), donnée `joinMeId` : un appui ouvre l'Accueil. Tant que le module est éteint pour la famille, seul l'admin principal est prévenu, et seulement s'il est coché. |
+| `onMemberDeletedAnswers` | suppression d'un membre | Retire aussi les partages qu'il avait envoyés. |
 
 ## Utilisation (PRD, récit 1 nonies)
 

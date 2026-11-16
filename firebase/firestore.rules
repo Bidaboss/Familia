@@ -1125,6 +1125,23 @@ service cloud.firestore {
       allow delete: if isMember() && (memberId == myMemberId() || claim().holderId == myMemberId());
     }
 
+    // giftLists/{listId}/received/{itemId}: « On m'a offert » (récit 10 bis), the wishes revealed
+    // the day after an occasion, written by the Cloud Function only. Its owner and the adults who
+    // keep their lists read it; the owner may only say thank you.
+    match /giftLists/{listId}/received/{itemId} {
+      function list() {
+        return get(giftListPath(listId)).data;
+      }
+
+      allow read: if isMember() && list().kind == 'wishes' && keepsListsOf(list().beneficiaryId);
+
+      allow update: if isMember()
+        && list().beneficiaryId == myMemberId()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['thanked', 'thankedAt'])
+        && request.resource.data.thanked == true
+        && request.resource.data.thankedAt == request.time;
+    }
+
     // --- Mon carnet de cadeaux (PRD, récit 9 bis) ----------------------------------------------
     //
     // notebooks/{memberId}: what a member plans to give. Only that member reads or writes it: not
@@ -1307,6 +1324,24 @@ service cloud.firestore {
         && (resource.data.authorId == myMemberId() || canManageRecipe(recipeOf(recipeId)));
     }
 
+    // recipes/{recipeId}/comments/{commentId} (récit 38): every member reads and writes comments in
+    // their own name, 1 to 500 characters, never edited. Its author, the author of the recipe or the
+    // admin principal removes one. Deleting the recipe deletes them on the server.
+    match /recipes/{recipeId}/comments/{commentId} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && exists(/databases/$(database)/documents/recipes/$(recipeId))
+        && request.resource.data.keys().hasAll(['text', 'authorId', 'authorName', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['text', 'authorId', 'authorName', 'createdAt'])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 500
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.createdAt == request.time;
+      allow delete: if isMember()
+        && (resource.data.authorId == myMemberId() || canManageRecipe(recipeOf(recipeId)));
+    }
+
     // --- Trips (V3, récits 11 à 15) ----------------------------------------------------------------
 
     function tripPath(tripId) {
@@ -1471,6 +1506,45 @@ service cloud.firestore {
         && (resource.data.authorId == myMemberId() || canManageTrip(tripOf(tripId)));
     }
 
+    // --- Capsule temporelle (PRD, récit 39) -------------------------------------------------------
+    //
+    // capsules/{capsuleId}: a text and up to 3 photos for chosen members, sealed until openAt (one
+    // month to five years ahead). Until then only the author reads it: the recipients do not even
+    // see that it exists. On the day, the server alone copies recipientIds into openedFor and tells
+    // them (functions/src/capsules.ts); they read it from then on. Never edited; the author removes
+    // it at any time. Photos in Storage at capsules/{authorId}/{capsuleId}/{n}.jpg, sent before.
+
+    function isCapsuleDay(day) {
+      return day is string && day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+
+    function capsuleOpensAt(day) {
+      let d = day.split('-');
+      return timestamp.date(int(d[0]), int(d[1]), int(d[2]));
+    }
+
+    function isValidCapsule(c) {
+      return c.keys().hasAll(['text', 'photoCount', 'recipientIds', 'openAt', 'openedFor', 'authorId', 'authorName', 'createdAt'])
+        && c.keys().hasOnly(['text', 'photoCount', 'recipientIds', 'openAt', 'openedFor', 'authorId', 'authorName', 'createdAt'])
+        && c.text is string && c.text.size() > 0 && c.text.size() <= 4000
+        && c.photoCount is int && c.photoCount >= 0 && c.photoCount <= 3
+        && isIdList(c.recipientIds, 1, 13)
+        && isCapsuleDay(c.openAt)
+        && capsuleOpensAt(c.openAt) >= request.time + duration.value(27, 'd')
+        && capsuleOpensAt(c.openAt) <= request.time + duration.value(5 * 366, 'd')
+        && c.openedFor == []
+        && c.authorId == myMemberId()
+        && c.authorName == me().firstName
+        && c.createdAt == request.time;
+    }
+
+    match /capsules/{capsuleId} {
+      allow read: if isMember()
+        && (resource.data.authorId == myMemberId() || myMemberId() in resource.data.openedFor);
+      allow create: if isMember() && isValidCapsule(request.resource.data);
+      allow delete: if isMember() && resource.data.authorId == myMemberId();
+    }
+
     // --- App updates (lot 10) ---------------------------------------------------------------------
 
     // --- Question de la semaine (récit 37) ------------------------------------------------------
@@ -1549,6 +1623,42 @@ service cloud.firestore {
         && memberId == myMemberId()
         && isValidUsageDay(request.resource.data, day);
       allow delete: if false;
+    }
+
+    // --- « Rejoignez-moi » (PRD, récit 33) ---------------------------------------------------------
+    //
+    // joinMe/{shareId}: a place sent by a member to the members they ticked (nobody is ticked at
+    // first, carte AVIS-13): their position of the moment, taken once when they touched the button,
+    // or a place they chose. It is never changed; its author takes it back by deleting it, and
+    // Firestore deletes it on its own 24 h later (TTL on expireAt). Only its author and its
+    // recipients read it.
+
+    function isValidJoinMe(d) {
+      return d.keys().hasOnly(['authorId', 'authorName', 'recipientIds', 'name', 'address', 'lat', 'lng', 'note', 'createdAt', 'expireAt'])
+        && d.keys().hasAll(['authorId', 'authorName', 'recipientIds', 'name', 'address', 'lat', 'lng', 'note', 'createdAt', 'expireAt'])
+        && d.recipientIds is list && d.recipientIds.size() >= 1 && d.recipientIds.size() <= 30
+        && !(d.authorId in d.recipientIds)
+        && (d.name == null || (d.name is string && d.name.size() >= 1 && d.name.size() <= 60))
+        && (d.address == null || (d.address is string && d.address.size() >= 1 && d.address.size() <= 200))
+        && d.lat is number && d.lat >= -90 && d.lat <= 90
+        && d.lng is number && d.lng >= -180 && d.lng <= 180
+        && (d.note == null || (d.note is string && d.note.size() >= 1 && d.note.size() <= 200));
+    }
+
+    match /joinMe/{shareId} {
+      allow read: if isMember()
+        && (resource.data.authorId == myMemberId() || myMemberId() in resource.data.recipientIds);
+      allow create: if isMember()
+        && isValidJoinMe(request.resource.data)
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.createdAt == request.time
+        // The phone writes « now + 24 h » from its own clock: a few hours of drift are let through.
+        && request.resource.data.expireAt is timestamp
+        && request.resource.data.expireAt > request.time + duration.value(22, 'h')
+        && request.resource.data.expireAt < request.time + duration.value(26, 'h');
+      allow update: if false;
+      allow delete: if isMember() && resource.data.authorId == myMemberId();
     }
 
     // consumption/{day}: the use of the database each day, read from Cloud Monitoring by the

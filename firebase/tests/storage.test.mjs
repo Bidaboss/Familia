@@ -252,3 +252,30 @@ describe('recipes folder (récit 38)', () => {
     await assertSucceeds(uploadString(ref(storageAs(ADMIN), file('admin1')), 'x', 'raw', jpeg));
   });
 });
+
+describe('capsules folder (récit 39)', () => {
+  const file = (author, capsule, name = '1.jpg') => `capsules/${author}/${capsule}/${name}`;
+
+  test('the author sends up to 3 photos and reads them; nobody else before the opening', async () => {
+    await assertSucceeds(uploadString(ref(storageAs(ADULT), file('adult1', 'c1')), 'x', 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storageAs(ADULT), file('adult1', 'c1', '3-thumb.jpg')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storageAs(ADULT), file('adult1', 'c1', '4.jpg')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storageAs(OTHER_ADULT), file('adult1', 'c1', '2.jpg')), 'x', 'raw', jpeg));
+    await assertSucceeds(getBytes(ref(storageAs(ADULT), file('adult1', 'c1'))));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'capsules/c1'), { authorId: 'adult1', openedFor: [] });
+    });
+    await assertFails(getBytes(ref(storageAs(OTHER_ADULT), file('adult1', 'c1'))));
+  });
+
+  test('once opened, the recipients see the photos; the author removes them', async () => {
+    await uploadString(ref(storageAs(ADULT), file('adult1', 'c2')), 'x', 'raw', jpeg);
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'capsules/c2'), { authorId: 'adult1', openedFor: ['adult2'] });
+    });
+    await assertSucceeds(getBytes(ref(storageAs(OTHER_ADULT), file('adult1', 'c2'))));
+    await assertFails(getBytes(ref(storageAs(NEIGHBOUR), file('adult1', 'c2'))));
+    await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), file('adult1', 'c2'))));
+    await assertSucceeds(deleteObject(ref(storageAs(ADULT), file('adult1', 'c2'))));
+  });
+});

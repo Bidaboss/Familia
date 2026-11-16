@@ -13,6 +13,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.pluralStringResource
+import fr.familia.app.core.model.Feature
+import fr.familia.app.core.place.DirectionsButton
+import fr.familia.app.core.place.directionsUri
+import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.ui.MemberAvatar
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -152,7 +156,11 @@ private fun Content(
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary,
         )
-        event.place?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
+        event.place?.let { place ->
+            Text(place, style = MaterialTheme.typography.bodyLarge)
+            // The common place component (récit 33): the route in Google Maps or Waze.
+            if (LocalFeatureFlags.current.isOn(Feature.Places)) DirectionsButton(directionsUri(place))
+        }
         Text(
             if (event.target is EventTarget.ForFamily) {
                 stringResource(R.string.planning_by, state.authorName)

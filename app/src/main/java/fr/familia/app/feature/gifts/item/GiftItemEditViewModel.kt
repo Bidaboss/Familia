@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.GiftRepository
+import fr.familia.app.core.data.LinkPreviewRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.GiftItem
@@ -42,6 +43,10 @@ sealed interface GiftItemEditUiState {
         val hasChanges: Boolean = false,
         val isSaving: Boolean = false,
         val saveFailed: Boolean = false,
+        /** The picture of the shop page, kept with the item while its link stays the same. */
+        val imageUrl: String? = null,
+        /** The preview of a shared link is being read. */
+        val previewLoading: Boolean = false,
     ) : GiftItemEditUiState
 
     data object Done : GiftItemEditUiState
@@ -62,7 +67,13 @@ class GiftItemEditViewModel(
     private val writeTimeoutMillis: Long = 4_000,
     /** A new item filled from a link shared by another app (récit 8 bis): a change to keep or drop. */
     private val shared: GiftItemForm? = null,
+    /** Reads the title, picture and price of a shared link (récit 8 bis). */
+    private val previews: LinkPreviewRepository? = null,
 ) : ViewModel() {
+
+    /** The picture read for [previewedUrl]: dropped if the member changes the link. */
+    private var previewImage: String? = null
+    private var previewedUrl: String? = null
 
     private val _uiState = MutableStateFlow<GiftItemEditUiState>(GiftItemEditUiState.Loading)
     val uiState: StateFlow<GiftItemEditUiState> = _uiState.asStateFlow()
@@ -117,7 +128,7 @@ class GiftItemEditViewModel(
             GiftItemForm(
                 title = it.title,
                 url = it.url.orEmpty(),
-                price = it.price?.let { p -> if (p % 1.0 == 0.0) p.toLong().toString() else p.toString().replace('.', ',') }.orEmpty(),
+                price = it.price?.let(::priceText).orEmpty(),
                 note = it.note.orEmpty(),
             )
         } ?: GiftItemForm()
@@ -128,7 +139,49 @@ class GiftItemEditViewModel(
             isNew = existing == null,
             hiddenFromBeneficiary = !visible && beneficiary.id != current.id,
             beneficiaryName = beneficiary.firstName,
+            imageUrl = existing?.imageUrl,
+            previewLoading = shared != null && existing == null && previews != null,
         )
+        if (shared != null && existing == null) readPreview(shared.url)
+    }
+
+    /** Fills what the member has not typed yet with what the shop page says. */
+    private suspend fun readPreview(url: String) {
+        val repo = previews ?: return
+        val preview = try {
+            repo.preview(url)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        }
+        val state = _uiState.value as? GiftItemEditUiState.Editing ?: return
+        if (preview == null) {
+            _uiState.value = state.copy(previewLoading = false)
+            return
+        }
+        previewImage = preview.imageUrl
+        previewedUrl = url
+        val form = state.form.copy(
+            title = state.form.title.ifBlank { preview.title.orEmpty() },
+            price = state.form.price.ifBlank { preview.price?.let(::priceText).orEmpty() },
+        )
+        _uiState.value = state.copy(
+            form = form,
+            hasChanges = form != initialForm,
+            imageUrl = imageFor(form),
+            previewLoading = false,
+        )
+    }
+
+    /** The picture goes with its link: none once the member types another one. */
+    private fun imageFor(form: GiftItemForm): String? {
+        val link = normalizeLink(form.url)
+        return if (link != null && previewedUrl != null && link == normalizeLink(previewedUrl.orEmpty())) {
+            previewImage
+        } else {
+            original?.imageUrl?.takeIf { link == original?.url }
+        }
     }
 
     private fun emptyWishes(family: Family, current: Member): GiftList? {
@@ -153,7 +206,13 @@ class GiftItemEditViewModel(
         saved[DRAFT_URL] = form.url
         saved[DRAFT_PRICE] = form.price
         saved[DRAFT_NOTE] = form.note
-        _uiState.value = state.copy(form = form, errors = errorsFor(form), hasChanges = form != initialForm, saveFailed = false)
+        _uiState.value = state.copy(
+            form = form,
+            errors = errorsFor(form),
+            hasChanges = form != initialForm,
+            saveFailed = false,
+            imageUrl = imageFor(form),
+        )
     }
 
     fun save() {
@@ -178,7 +237,7 @@ class GiftItemEditViewModel(
             authorId = original?.authorId ?: author.id,
             authorName = original?.authorName ?: author.firstName,
             visibleToBeneficiary = visible,
-            imageUrl = original?.imageUrl,
+            imageUrl = state.imageUrl,
         )
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
@@ -242,3 +301,7 @@ fun normalizeLink(text: String): String? {
     val host = withScheme.substringAfter("://").substringBefore('/')
     return withScheme.takeIf { host.contains('.') && withScheme.length <= 500 }
 }
+
+/** « 25 » or « 12,50 », as the member would type it. */
+internal fun priceText(price: Double): String =
+    if (price % 1.0 == 0.0) price.toLong().toString() else String.format(java.util.Locale.FRANCE, "%.2f", price)

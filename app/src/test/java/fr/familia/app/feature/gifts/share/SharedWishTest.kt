@@ -36,6 +36,14 @@ class SharedWishTest {
     }
 
     @Test
+    fun `tracking parameters past the limit of an item are dropped`() {
+        val page = "https://boutique.example/p/echarpe-rouge"
+        val shared = parseSharedWish("$page?utm_source=app&ref=" + "x".repeat(600), "Écharpe")
+        assertEquals(page, shared!!.url)
+        assertNull(parseSharedWish("https://boutique.example/" + "p".repeat(600), "Écharpe"))
+    }
+
+    @Test
     fun `a long title is cut to the limit of an item`() {
         assertEquals(80, parseSharedWish("https://a.example", "x".repeat(200))!!.title.length)
     }

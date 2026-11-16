@@ -23,12 +23,15 @@ sealed interface RecipesUiState {
     data object Loading : RecipesUiState
     data object Failed : RecipesUiState
 
-    /** [rows] already filtered by [query]; [total] counts the whole book. */
-    data class Ready(val rows: List<RecipeRow>, val query: String, val total: Int) : RecipesUiState
+    /**
+     * [rows] already filtered by [query]; [total] counts the whole book, or the recipes of
+     * [originName] when the list comes from the profile of a member.
+     */
+    data class Ready(val rows: List<RecipeRow>, val query: String, val total: Int, val originName: String? = null) : RecipesUiState
 }
 
-/** The recipe book, by title, filtered as the member types (PRD, récit 38). */
-class RecipesViewModel(recipes: RecipeRepository?, members: MemberRepository?) : ViewModel() {
+/** The recipe book, by title, filtered as the member types (PRD, récit 38), or only those of [originMemberId]. */
+class RecipesViewModel(recipes: RecipeRepository?, members: MemberRepository?, originMemberId: String? = null) : ViewModel() {
 
     private val query = MutableStateFlow("")
 
@@ -36,9 +39,15 @@ class RecipesViewModel(recipes: RecipeRepository?, members: MemberRepository?) :
         if (recipes == null || members == null) {
             MutableStateFlow(RecipesUiState.Ready(emptyList(), "", 0)) // Firebase not configured (previews).
         } else {
-            combine(recipes.observeRecipes(), members.observeFamily(), query) { list, family, q ->
-                val ready: RecipesUiState =
-                    RecipesUiState.Ready(list.filter { matches(it, q, family) }.map { RecipeRow(it, originLabel(it, family)) }, q, list.size)
+            combine(recipes.observeRecipes(), members.observeFamily(), query) { all, family, q ->
+                val book = if (originMemberId == null) all else all.filter { it.originMemberId == originMemberId }
+                val originName = originMemberId?.let { id -> family.members.firstOrNull { it.id == id }?.firstName }
+                val ready: RecipesUiState = RecipesUiState.Ready(
+                    rows = book.filter { matches(it, q, family) }.map { RecipeRow(it, originLabel(it, family)) },
+                    query = q,
+                    total = book.size,
+                    originName = originName,
+                )
                 ready
             }
                 .catch { e -> if (e is CancellationException) throw e else emit(RecipesUiState.Failed) }

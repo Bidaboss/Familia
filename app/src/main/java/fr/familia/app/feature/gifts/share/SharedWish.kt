@@ -17,7 +17,10 @@ private val LINK = Regex("""https?://\S+""")
 fun parseSharedWish(text: String?, subject: String?): SharedWish? {
     val body = text?.trim().orEmpty()
     val raw = LINK.find(body)?.value ?: return null
-    val url = raw.trimEnd('.', ',', ')', ']', '»', '"', '\'')
+    val full = raw.trimEnd('.', ',', ')', ']', '»', '"', '\'')
+    // Shops add long tracking parameters: past the limit of an item, the page alone is kept.
+    val url = if (full.length > URL_MAX) full.substringBefore('#').substringBefore('?') else full
+    if (url.length > URL_MAX) return null
     val around = body.replace(raw, " ").replace(Regex("""\s+"""), " ").trim().trim(':', '-', '–', ' ')
     val title = subject?.trim()?.takeIf { it.isNotEmpty() } ?: around
     return SharedWish(url, title.take(TITLE_MAX))
@@ -53,3 +56,6 @@ class ShareTargetSwitch(context: Context) {
 
 /** The title limit of an item, checked by the security rules. */
 private const val TITLE_MAX = 80
+
+/** The link limit of an item, checked by the security rules. */
+private const val URL_MAX = 500

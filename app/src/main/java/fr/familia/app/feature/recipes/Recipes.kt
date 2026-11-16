@@ -18,8 +18,9 @@ import java.text.Normalizer
  * (firestore.rules, « Carnet de recettes »). Hidden behind Feature.Recipes.
  */
 
+/** [originMemberId] set: only the recipes that come from this member (from their profile). */
 @Serializable
-data object RecipesDestination
+data class RecipesDestination(val originMemberId: String? = null)
 
 @Serializable
 data class RecipeDetailDestination(val recipeId: String)
@@ -60,6 +61,30 @@ fun matches(recipe: Recipe, query: String, family: Family): Boolean {
     val haystack = searchKey(listOfNotNull(recipe.title, originLabel(recipe, family), recipe.ingredients).plus(recipe.tags).joinToString(" "))
     return words.all { it in haystack }
 }
+
+/**
+ * The recipe as a plain text for the share sheet: title, origin, parts, ingredients and numbered
+ * steps. Never the photos, so no child appears outside the app (carte EXPERT-6).
+ */
+fun recipeShareText(recipe: Recipe, origin: String?, labels: RecipeShareLabels): String = buildString {
+    appendLine(recipe.title)
+    origin?.let { appendLine(labels.from(it)) }
+    recipe.servings?.let { appendLine(labels.servings(it)) }
+    appendLine()
+    appendLine(labels.ingredients)
+    recipe.ingredientLines.forEach { appendLine("• $it") }
+    appendLine()
+    appendLine(labels.steps)
+    recipe.stepLines.forEachIndexed { i, step -> appendLine("${i + 1}. $step") }
+}.trimEnd()
+
+/** The words of [recipeShareText], read from the resources by the screen. */
+data class RecipeShareLabels(
+    val ingredients: String,
+    val steps: String,
+    val from: (String) -> String,
+    val servings: (Int) -> String,
+)
 
 /** « dessert, Noël , dessert » → [dessert, Noël]: trimmed, without doubles, six at most. */
 fun parseTags(text: String): List<String> = text.split(',')

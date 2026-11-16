@@ -32,6 +32,7 @@ enum class ScreenHelp(
     MonthSlideshow(R.string.help_screen_month_title, R.string.help_screen_month_body),
     Polls(R.string.help_topic_polls_title, R.string.help_topic_polls_body),
     Recipes(R.string.help_screen_recipes_title, R.string.help_screen_recipes_body),
+    JoinMe(R.string.help_topic_joinme_title, R.string.help_topic_joinme_body),
 }
 
 /** Who sees a topic of the help page: the functions they can use. */
@@ -53,6 +54,7 @@ enum class HelpTopic(
     Calendar(R.string.help_topic_calendar_title, R.string.help_topic_calendar_body, feature = Feature.Calendar),
     Polls(R.string.help_topic_polls_title, R.string.help_topic_polls_body, feature = Feature.Polls),
     Bring(R.string.help_topic_bring_title, R.string.help_topic_bring_body, feature = Feature.Bring),
+    JoinMe(R.string.help_topic_joinme_title, R.string.help_topic_joinme_body, feature = Feature.Places),
     Notifications(R.string.help_topic_notifications_title, R.string.help_topic_notifications_body),
     HelpRequests(R.string.help_topic_help_requests_title, R.string.help_topic_help_requests_body, feature = Feature.HelpRequests),
     Family(R.string.help_topic_family_title, R.string.help_topic_family_body),
@@ -80,7 +82,7 @@ fun helpTopics(isChef: Boolean, isOwner: Boolean = false): List<HelpTopic> = Hel
     }
 }
 
-/** "Kévin", "Kévin ou Inès", "Kévin, Inès ou Sam": who to contact when something goes wrong. */
+/** "Camille", "Camille ou Inès", "Camille, Inès ou Sam": who to contact when something goes wrong. */
 fun adminNames(names: List<String>): String? = when (names.size) {
     0 -> null
     1 -> names[0]
