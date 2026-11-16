@@ -32,7 +32,9 @@ import androidx.compose.material.icons.outlined.Celebration
 import androidx.compose.material.icons.outlined.Poll
 import androidx.compose.material.icons.outlined.QuestionAnswer
 import androidx.compose.material3.IconButton
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -559,7 +561,7 @@ fun FamiliaApp(
                                     )
                                 }
                             },
-                            label = { Text(stringResource(destination.labelFor(currentMember))) },
+                            label = { TabLabel(stringResource(destination.labelFor(currentMember))) },
                         )
                     }
                 }
@@ -1273,6 +1275,28 @@ private fun TabTopBar(
         },
     )
 }
+
+/**
+ * A tab name always on one line: with a large font setting, a wide theme font or a narrow phone,
+ * « Planning » used to break into « Plannin / g ». The text shrinks a little until it fits.
+ */
+@Composable
+private fun TabLabel(text: String) {
+    val base = MaterialTheme.typography.labelMedium
+    var size by remember(text, base) { mutableStateOf(base.fontSize) }
+    Text(
+        text = text,
+        style = base.copy(fontSize = size),
+        maxLines = 1,
+        softWrap = false,
+        overflow = TextOverflow.Clip,
+        onTextLayout = { layout ->
+            if (layout.hasVisualOverflow && size.value > MIN_TAB_LABEL_SP) size = (size.value * 0.9f).sp
+        },
+    )
+}
+
+private const val MIN_TAB_LABEL_SP = 9f
 
 private fun NavDestination?.isOn(destination: TopLevelDestination): Boolean =
     this?.hierarchy?.any { it.hasRoute(destination.route::class) } == true
