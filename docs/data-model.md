@@ -81,8 +81,10 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 
 | Champ | Type | Rôle |
 |---|---|---|
-| `top`, `bottom`, `shoes` | texte, 20 caractères au plus | Taille du haut, taille du bas et pointure, en texte libre (« M », « 12 ans », « 39 »), vides si inconnues |
-| `allergies`, `tastes` | texte, 300 caractères au plus | Allergies et goûts, pour choisir un cadeau ou un menu |
+| `shoes` | texte, 20 caractères au plus, facultatif | Pointure (« 39 », « 30-31 ») |
+| `tastes` | texte, 300 caractères au plus | Goûts, pour choisir un cadeau |
+| `hobbies` | texte, 300 caractères au plus, facultatif | Loisirs et passions |
+| `top`, `bottom`, `allergies` | texte, facultatifs | Anciens champs (tailles, allergies) : encore acceptés d'une appli pas à jour, plus affichés ni écrits |
 | `updatedBy` | texte | Le membre qui a écrit la fiche |
 | `updatedAt` | timestamp | Heure du serveur |
 

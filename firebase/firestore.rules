@@ -1543,11 +1543,11 @@ service cloud.firestore {
 
     // --- Fiche membre (PRD, récit 7 bis) ------------------------------------------------------------
     //
-    // memberCards/{memberId} -> { tastes, hobbies, updatedBy, updatedAt }: the tastes and the
-    // hobbies or passions of a member, free texts, blank when unknown. The whole family reads it, to
+    // memberCards/{memberId} -> { shoes, tastes, hobbies, updatedBy, updatedAt }: the shoe size,
+    // tastes and hobbies or passions of a member, free texts, blank when unknown. The whole family reads it, to
     // pick a present. Those who change the photo change the card. An empty card is deleted; the
     // functions delete it with its member (onMemberDeletedCard). The sizes and allergies of the
-    // first version (top, bottom, shoes, allergies) are still accepted from an older app, never required.
+    // first version (top, bottom, allergies) are still accepted from an older app, never required.
     function isCardSize(v) {
       return v is string && v.size() <= 20;
     }

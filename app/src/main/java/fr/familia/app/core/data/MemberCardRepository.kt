@@ -29,6 +29,7 @@ class FirestoreMemberCardRepository(private val db: FirebaseFirestore) : MemberC
                 doc?.takeIf { it.exists() }?.let {
                     MemberCard(
                         memberId = it.id,
+                        shoes = it.getString("shoes").orEmpty(),
                         tastes = it.getString("tastes").orEmpty(),
                         hobbies = it.getString("hobbies").orEmpty(),
                     )
@@ -47,6 +48,7 @@ class FirestoreMemberCardRepository(private val db: FirebaseFirestore) : MemberC
         doc.set(
             mapOf(
                 // The whole document is replaced, so the sizes and allergies of an older version go.
+                "shoes" to card.shoes,
                 "tastes" to card.tastes,
                 "hobbies" to card.hobbies,
                 "updatedBy" to byId,

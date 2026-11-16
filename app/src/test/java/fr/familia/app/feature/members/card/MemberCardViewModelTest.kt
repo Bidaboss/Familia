@@ -41,6 +41,8 @@ class MemberCardViewModelTest {
         assertEquals(MemberCard("a", tastes = "Le thé", hobbies = "Le jardin"), MemberCard("a", tastes = "Le thé\n", hobbies = " Le jardin ").cleaned())
         assertNull(MemberCard("a", hobbies = "x".repeat(MemberCard.TEXT_MAX + 1)).cleaned())
         assertNull(MemberCard("a", tastes = "x".repeat(MemberCard.TEXT_MAX + 1)).cleaned())
+        assertNull(MemberCard("a", shoes = "x".repeat(MemberCard.SIZE_MAX + 1)).cleaned())
+        assertEquals("42", MemberCard("a", shoes = " 42 ").cleaned()!!.shoes)
         assertTrue(MemberCard("a", hobbies = "  ").cleaned()!!.isEmpty)
     }
 
