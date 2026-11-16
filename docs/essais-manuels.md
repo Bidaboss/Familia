@@ -452,3 +452,9 @@ Avec le compte de l'admin principal et le module « À découvrir » allumé.
 2. Monte « Recettes » en premier. **Attendu :** les semaines se recalculent, et « Enregistrer l'ordre » apparaît. Touche-le.
 3. Dès le 30/11, sur un autre téléphone : **Attendu :** la carte de la première semaine est celle des recettes.
 
+## Partager un anniversaire depuis la liste
+Avec le module Partager allumé.
+1. Cadeaux, « Tous les anniversaires » : **Attendu :** sur chaque ligne, un bouton Partager après « Ajouter à mon agenda ». TalkBack lit « Partager l'anniversaire de … ».
+2. Touche-le. **Attendu :** la feuille d'Android, avec l'image, « Anniversaire de … : … ans le … » et le lien. Rien sur les listes ni les cadeaux.
+3. Module éteint : **Attendu :** pas de bouton.
+
