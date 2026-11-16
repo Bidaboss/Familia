@@ -22,3 +22,7 @@ data class TripEditDestination(val tripId: String? = null)
 /** Step form: a new step of [tripId] when [stepId] is null. */
 @Serializable
 data class TripStepEditDestination(val tripId: String, val stepId: String? = null)
+
+/** All the photos of [tripId] (récit 15). */
+@Serializable
+data class TripPhotosDestination(val tripId: String)

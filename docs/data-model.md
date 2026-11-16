@@ -425,7 +425,7 @@ Cloud Functions (`functions/src/helpRequests.ts`), qui ne préviennent que les p
 
 Une demande passée ne prévient personne, sauf pour le « Merci ». La sauvegarde de l'admin principal inclut les demandes (`helpRequests`).
 
-## Voyages (V3, récits 11 à 14)
+## Voyages (V3, récits 11 à 15)
 
 ### `trips/{tripId}`
 
@@ -470,11 +470,25 @@ La liste « À prévoir » du voyage (récit 13) : ce qu'il faut apporter ou ré
 
 Droits : les lecteurs du voyage lisent la liste. Les participants, enfants compris, ajoutent, cochent, modifient et retirent les lignes. L'admin principal peut retirer une ligne. La personne en charge est forcément un participant. La suppression du voyage supprime sa liste sur le serveur. Tests : `firebase/tests/trips.test.mjs`.
 
+### `trips/{tripId}/photos/{authorId}_{slot}`
+
+Les photos du voyage (récit 15). Chaque participant a 30 places, numérotées de 1 à 30. L'identifiant du document est l'auteur suivi de la place, par exemple `m1_7`. Ainsi, les règles limitent les photos à 30 par personne sans avoir à les compter.
+
+| Champ | Type | Description |
+|---|---|---|
+| `authorId`, `authorName` | texte | L'auteur et son prénom, gardé s'il quitte le voyage |
+| `slot` | entier de 1 à 30 | La place, la même que dans l'identifiant |
+| `createdAt` | horodatage serveur | Les photos s'affichent de la plus récente à la plus ancienne |
+
+Photos dans Storage : `trips/{tripId}/{authorId}/{slot}.jpg` (1600 px au plus, environ 300 Ko, 512 Ko au plus) et `{slot}-thumb.jpg` (400 px, environ 30 Ko, 64 Ko au plus), sans données EXIF, donc sans lieu. L'appli envoie les deux fichiers avant d'écrire le document. Si un envoi a été coupé, l'auteur peut renvoyer une place dont le document n'existe pas.
+
+Droits : les lecteurs du voyage voient les photos, dans Firestore comme dans Storage. Chaque participant, enfant compris, ajoute les siennes. L'auteur, le créateur du voyage et l'admin principal les retirent, les fichiers d'abord, puis le document. Une photo n'est jamais modifiée : une fois son document écrit, ses fichiers ne peuvent plus être renvoyés. Tests : `firebase/tests/trips.test.mjs` et `firebase/tests/storage.test.mjs`.
+
 ### Cloud Functions des voyages
 
 - `onTripStepUpdated` : au premier « bien arrivé » d'une étape, chaque lecteur qui a l'appli reçoit « Arrivée à Ajaccio », sauf celui qui l'a touché. Le texte nomme tous les participants, sans accorder « arrivé » à un prénom.
 - `arrivalReminder`, toutes les 30 minutes : les étapes dont `remindAt` est passé et qui n'ont pas de « bien arrivé ». Les participants qui ont l'appli reçoivent un rappel, puis `remindAt` est effacé pour qu'il ne parte qu'une fois. La famille n'est pas alertée. La requête porte sur tous les `steps` (index de groupe de collections dans `firestore.indexes.json`).
-- `onTripDeleted` : un voyage supprimé emporte ses étapes.
+- `onTripDeleted` : un voyage supprimé emporte ses étapes, sa liste, ses photos et leurs fichiers dans Storage (tout le dossier `trips/{tripId}/`).
 
 Les notifications des voyages portent `tripId` au lieu de `eventId` : un appui ouvre le voyage.
 
@@ -520,3 +534,18 @@ Cloud Functions (`functions/src/weeklyQuestion.ts`) :
 | `onMemberDeletedAnswers` | suppression d'un membre | Retire ses réponses (carte EXPERT-1). |
 
 Plus tard : le choix et l'ajout de questions dans Administration, les questions proposées par les membres, la feuille de l'arbre (récit 35) et le regroupement avec les autres rendez-vous en une notification par jour (carte AVIS-14).
+
+## Utilisation (PRD, récit 1 nonies)
+
+### `usage/{memberId}/days/{day}`
+
+Le temps passé dans l'appli par un membre, un jour donné. Le téléphone le compte (appli au premier plan, partie par partie) et l'envoie lui-même : chaque jour terminé une fois, et le jour en cours au plus toutes les 3 heures. Rien n'est compté tant que le module « Utilisation » est éteint pour la famille.
+
+| Champ | Type | Sens |
+|---|---|---|
+| `day` | string `AAAA-MM-JJ` | Le jour, identique à l'id du document. |
+| `opens` | int (0 à 500) | Les ouvertures de l'appli. Un retour en moins de 5 minutes n'en compte pas une nouvelle. |
+| `seconds` | map | Les secondes par partie de l'appli : `home`, `planning`, `gifts`, `help`, `goodNews`, `weeklyQuestion`, `trips`, `family`, `other` (0 à 86 400 chacune). |
+| `expireAt` | timestamp | Le jour plus 13 mois. La règle TTL de `firestore.indexes.json` efface le document à cette date. |
+
+Le document ne contient jamais ce que la personne a lu, écrit ou ouvert. Seul le membre écrit ses propres jours. L'admin principal lit les jours de tout le monde, et les adultes responsables d'un enfant (ses `parentIds`) lisent ceux de cet enfant (carte EXPERT-5). Personne ne supprime un jour depuis l'appli : le TTL s'en charge, et la fonction qui suit le retrait d'un membre efface aussi tous ses jours.

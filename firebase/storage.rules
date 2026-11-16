@@ -72,6 +72,34 @@ service firebase.storage {
       allow delete: if isMember() && memberId == myMemberId();
     }
 
+    // Voyages (PRD, récit 15): trips/{tripId}/{authorId}/{slot}.jpg, about 300 KB, and its thumbnail
+    // {slot}-thumb.jpg, about 30 KB, with a slot from 1 to 30 (30 photos per participant, see the
+    // document trips/{tripId}/photos/{authorId}_{slot} in firestore.rules). The followers of the trip
+    // see them. A participant sends their own before writing the document, and may send a slot
+    // again if that document was never written. The author, the creator of the trip or the admin
+    // principal removes them; deleting the trip removes them on the server.
+    function tripData(tripId) {
+      return firestore.get(docPath('trips/' + tripId)).data;
+    }
+
+    // The owner of the family, as in firestore.rules (config/family.ownerMemberId).
+    function isOwner() {
+      return firestore.get(docPath('config/family')).data.ownerMemberId == myMemberId();
+    }
+
+    match /trips/{tripId}/{authorId}/{fileName} {
+      allow read: if isMember() && myMemberId() in tripData(tripId).readerIds;
+      // A slot whose record exists holds a photo already: its files never change.
+      allow create, update: if isMember()
+        && authorId == myMemberId()
+        && myMemberId() in tripData(tripId).participantIds
+        && !firestore.exists(docPath('trips/' + tripId + '/photos/' + authorId + '_' + fileName.split('[-.]')[0]))
+        && ((fileName.matches('^([1-9]|[12][0-9]|30)[.]jpg$') && isJpegUnder(512 * 1024))
+            || (fileName.matches('^([1-9]|[12][0-9]|30)-thumb[.]jpg$') && isJpegUnder(64 * 1024)));
+      allow delete: if isMember()
+        && (authorId == myMemberId() || tripData(tripId).creatorId == myMemberId() || isOwner());
+    }
+
     // --- Everything else is closed --------------------------------------------------------------
     match /{allPaths=**} {
       allow read, write: if false;

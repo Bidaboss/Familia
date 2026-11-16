@@ -161,6 +161,44 @@
     <string name="feature_trips">Carnet de voyage</string>
     <string name="feature_good_news">Bonnes nouvelles</string>
     <string name="feature_themes">Thèmes au choix</string>
+    <string name="feature_usage">Utilisation (temps passé)</string>
+    <string name="usage_title">Utilisation</string>
+    <string name="usage_children_title">Temps de mes enfants</string>
+    <string name="usage_children_empty">Aucun enfant avec l\'appli dont tu es responsable.</string>
+    <string name="usage_error_title">Utilisation indisponible</string>
+    <string name="usage_error_body">Vérifie ta connexion, puis réessaie.</string>
+    <string name="usage_family_title">La famille</string>
+    <string name="usage_active">Membres actifs : %1$d sur 7 jours, %2$d sur 30 jours (sur %3$d avec l\'appli).</string>
+    <string name="usage_opens_title">Ouvertures de l\'appli, 30 derniers jours</string>
+    <string name="usage_opens_none">Aucune ouverture sur 30 jours.</string>
+    <string name="usage_opens_description">%1$d ouvertures en 30 jours, au plus %2$d le %3$s.</string>
+    <string name="usage_screens_title">Temps par écran</string>
+    <string name="usage_nothing_yet">Rien de compté pour l\'instant.</string>
+    <string name="usage_7_days">7 jours</string>
+    <string name="usage_30_days">30 jours</string>
+    <string name="usage_screen_line">%1$s : %2$s sur 7 jours, %3$s sur 30 jours</string>
+    <string name="usage_health_title">Santé de la famille</string>
+    <string name="usage_health_week">Semaine du %1$s : %2$s, %3$s</string>
+    <plurals name="usage_health_posts">
+        <item quantity="one">%d bonne nouvelle</item>
+        <item quantity="other">%d bonnes nouvelles</item>
+    </plurals>
+    <plurals name="usage_health_reactions">
+        <item quantity="one">%d réaction</item>
+        <item quantity="other">%d réactions</item>
+    </plurals>
+    <string name="usage_people_title">Par personne</string>
+    <string name="usage_person_totals">Temps dans l\'appli : %1$s sur 7 jours, %2$s sur 30 jours</string>
+    <string name="usage_never">Jamais connecté</string>
+    <string name="usage_last_today">Dernière visite : aujourd\'hui</string>
+    <string name="usage_last_yesterday">Dernière visite : hier</string>
+    <string name="usage_last_on">Dernière visite : le %1$s</string>
+    <string name="usage_minutes">%1$d min</string>
+    <string name="usage_hours">%1$d h %2$s</string>
+    <string name="usage_screen_good_news">Bonnes nouvelles</string>
+    <string name="usage_screen_weekly_question">Question de la semaine</string>
+    <string name="usage_screen_trips">Voyages</string>
+    <string name="usage_screen_other">Autres écrans</string>
     <string name="feature_weekly_question">Question de la semaine</string>
     <string name="household_rename_action">Renommer le foyer %1$s</string>
     <string name="household_rename_title">Renommer le foyer</string>
@@ -711,6 +749,39 @@
     <string name="trip_checklist_delete_confirm">Retirer</string>
     <string name="trip_checklist_delete_keep">Garder</string>
     <string name="trip_checklist_save">Enregistrer</string>
+    <string name="trip_photos">Photos</string>
+    <string name="trip_photos_empty">Pas encore de photo.</string>
+    <string name="trip_photos_empty_participant">Ajoute tes photos du voyage : toute la famille qui le suit les verra.</string>
+    <!-- Photo albums, shared by the trips (récit 15) and later the events (récit 41). -->
+    <string name="album_photos_add">Ajouter des photos</string>
+    <string name="album_photos_full">Tu as ajouté tes %1$d photos. Retire-en une pour en mettre une autre.</string>
+    <string name="album_photos_send_failed">Une photo n\'a pas pu être envoyée. Vérifie la connexion et réessaie.</string>
+    <string name="album_photos_too_many">%1$d photos par personne au plus : seules les premières ont été gardées.</string>
+    <string name="album_photos_remove_failed">La photo n\'a pas pu être retirée. Réessaie.</string>
+    <string name="album_photos_ok">OK</string>
+    <string name="album_photo_by">Photo de %1$s</string>
+    <string name="album_photo_open">Agrandir</string>
+    <string name="album_photo_close">Fermer</string>
+    <string name="album_photo_position">%1$d sur %2$d</string>
+    <string name="album_photo_remove">Retirer</string>
+    <string name="album_photo_remove_title">Retirer cette photo ?</string>
+    <string name="album_photo_remove_body">Elle disparaît de l\'album pour tout le monde.</string>
+    <string name="album_photo_keep">Garder</string>
+    <plurals name="album_photos_see_all">
+        <item quantity="one">Voir la photo</item>
+        <item quantity="many">Voir les %1$d photos</item>
+        <item quantity="other">Voir les %1$d photos</item>
+    </plurals>
+    <plurals name="album_photos_sending">
+        <item quantity="one">Envoi de %1$d photo… Reste sur cet écran.</item>
+        <item quantity="many">Envoi de %1$d photos… Reste sur cet écran.</item>
+        <item quantity="other">Envoi de %1$d photos… Reste sur cet écran.</item>
+    </plurals>
+    <plurals name="album_photos_places_left">
+        <item quantity="one">Encore %1$d photo possible pour toi.</item>
+        <item quantity="many">Encore %1$d photos possibles pour toi.</item>
+        <item quantity="other">Encore %1$d photos possibles pour toi.</item>
+    </plurals>
     <string name="trip_no_steps">Aucune étape pour l\'instant.</string>
     <string name="trip_no_steps_participant">Aucune étape pour l\'instant. Touche « Ajouter une étape » : un vol, un train, la route, un hébergement ou une activité.</string>
     <string name="trip_missing_title">Ce voyage n\'est plus disponible</string>
@@ -743,7 +814,7 @@
     <string name="trip_leave_keep">Continuer</string>
     <string name="trip_delete">Supprimer le voyage</string>
     <string name="trip_delete_title">Supprimer « %1$s » ?</string>
-    <string name="trip_delete_body">Le voyage et toutes ses étapes seront supprimés pour tout le monde.</string>
+    <string name="trip_delete_body">Le voyage, ses étapes et ses photos seront supprimés pour tout le monde.</string>
     <string name="trip_step_add_title">Nouvelle étape</string>
     <string name="trip_step_edit_title">Modifier l\'étape</string>
     <string name="trip_step_field_type">Type d\'étape</string>
@@ -773,7 +844,7 @@
     <string name="help_screen_trips_title">Les voyages</string>
     <string name="help_screen_trips_body">Ici, les voyages que tu suis : en cours, à venir et passés. Touche un voyage pour voir ses étapes. Un adulte touche « Nouveau voyage » pour en préparer un.</string>
     <string name="help_screen_trip_detail_title">Le voyage</string>
-    <string name="help_screen_trip_detail_body">Les étapes du voyage, dans l\'ordre. Si tu pars, touche « Bien arrivé » à l\'arrivée : un seul geste suffit pour tout le monde, et la famille est prévenue. Aucune position n\'est envoyée. Dans « À prévoir », ceux qui partent notent ce qu\'il ne faut pas oublier, qui s\'en occupe, et cochent ce qui est fait. Seul celui qui a préparé le voyage peut le modifier.</string>
+    <string name="help_screen_trip_detail_body">Les étapes du voyage, dans l\'ordre. Si tu pars, touche « Bien arrivé » à l\'arrivée : un seul geste suffit pour tout le monde, et la famille est prévenue. Aucune position n\'est envoyée. Dans « À prévoir », ceux qui partent notent ce qu\'il ne faut pas oublier, qui s\'en occupe, et cochent ce qui est fait. Chacun ajoute jusqu\'à 30 photos, vues par ceux qui suivent le voyage. Seul celui qui a préparé le voyage peut le modifier.</string>
     <string name="help_screen_trip_edit_title">Préparer un voyage</string>
     <string name="help_screen_trip_edit_body">Donne un nom et des dates, puis coche qui part, dans tous les foyers. Toute la famille suit le voyage par défaut : décoche ceux qui ne doivent pas le voir. Ceux qui partent le suivent toujours.</string>
     <string name="help_screen_trip_step_title">Une étape</string>

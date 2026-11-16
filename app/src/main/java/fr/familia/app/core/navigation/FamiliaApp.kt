@@ -14,6 +14,7 @@ import fr.familia.app.feature.update.rememberInAppUpdater
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.notifications.NotificationChannels
 import fr.familia.app.core.model.FeatureFlags
+import fr.familia.app.core.model.UsageScreen
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.update.UpdateCheckRoute
 import kotlinx.coroutines.flow.catch
@@ -59,6 +60,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -90,6 +92,7 @@ import fr.familia.app.feature.planning.PlanningRoute
 import fr.familia.app.feature.home.HomeActions
 import fr.familia.app.feature.home.HomePreferences
 import fr.familia.app.feature.settings.appearance.AppIconSwitcher
+import fr.familia.app.feature.usage.UsageRoute
 import fr.familia.app.feature.settings.appearance.AppearanceScreen
 import fr.familia.app.feature.settings.appearance.ThemePreferences
 import fr.familia.app.core.theme.FamiliaClay
@@ -124,11 +127,13 @@ import androidx.compose.material3.BadgedBox
 import kotlinx.coroutines.flow.combine
 import fr.familia.app.feature.trips.TripDetailDestination
 import fr.familia.app.feature.trips.TripEditDestination
+import fr.familia.app.feature.trips.TripPhotosDestination
 import fr.familia.app.feature.trips.TripStepEditDestination
 import fr.familia.app.feature.trips.TripsDestination
 import fr.familia.app.feature.trips.detail.TripDetailRoute
 import fr.familia.app.feature.trips.edit.TripEditRoute
 import fr.familia.app.feature.trips.list.TripsRoute
+import fr.familia.app.feature.trips.photos.TripPhotosRoute
 import fr.familia.app.feature.trips.step.StepEditRoute
 import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material3.TextButton
@@ -317,6 +322,18 @@ fun FamiliaApp(
         scope.launch { snackbar.showConfirmation(context.getString(confirmation.textRes)) }
     }
 
+    // Time spent in the app (PRD, récit 1 nonies): counted on this phone only once the module is on
+    // for the family, the admin principal included, then sent once a day.
+    val usageTracker = container?.usageTracker
+    if (usageTracker != null && features.isOnForFamily(Feature.Usage)) {
+        val usageScreen = UsageScreen.forRoute(currentDestination?.route)
+        LifecycleStartEffect(usageTracker, currentMember.id) {
+            usageTracker.start(currentMember.id)
+            onStopOrDispose { usageTracker.stop() }
+        }
+        LaunchedEffect(usageTracker, usageScreen) { usageTracker.show(usageScreen) }
+    }
+
     // The theme chosen on this phone shows once the Thèmes module is on; before, Classique (DESIGN-7).
     val themesOn = features.isOn(Feature.Themes)
     FamiliaTheme(theme = if (themesOn) chosenTheme else FamiliaThemeId.Classic) {
@@ -439,6 +456,15 @@ fun FamiliaApp(
                             onEditTrip = { navController.navigate(TripEditDestination(tripId)) },
                             onAddStep = { navController.navigate(TripStepEditDestination(tripId)) },
                             onEditStep = { stepId -> navController.navigate(TripStepEditDestination(tripId, stepId)) },
+                            onSeePhotos = { navController.navigate(TripPhotosDestination(tripId)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<TripPhotosDestination> { entry ->
+                        TripPhotosRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            tripId = entry.toRoute<TripPhotosDestination>().tripId,
                             onBack = { navController.popBackStack() },
                         )
                     }
@@ -659,6 +685,7 @@ fun FamiliaApp(
                             onOpenUpdates = { navController.navigate(UpdateCheckDestination) },
                             onOpenHelp = { navController.navigate(HelpDestination) },
                             onOpenAppearance = if (themesOn) ({ navController.navigate(AppearanceDestination) }) else null,
+                            onOpenChildrenUsage = if (features.isOn(Feature.Usage)) ({ navController.navigate(UsageDestination) }) else null,
                             onOpenWishes = if (features.isOn(Feature.Gifts)) {
                                 { id -> navController.navigate(GiftListDestination(wishesListId(id))) }
                             } else {
@@ -683,7 +710,11 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             onOpenExport = { navController.navigate(ExportDestination) },
                             onBack = { navController.popBackStack() },
+                            onOpenUsage = { navController.navigate(UsageDestination) },
                         )
+                    }
+                    composable<UsageDestination> {
+                        UsageRoute(container = container, currentMember = currentMember, onBack = { navController.popBackStack() })
                     }
                     composable<ExportDestination> {
                         ExportRoute(container = container, onBack = { navController.popBackStack() })

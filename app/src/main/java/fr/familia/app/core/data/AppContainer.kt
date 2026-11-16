@@ -8,11 +8,14 @@ import com.google.firebase.firestore.firestoreSettings
 import com.google.firebase.firestore.persistentCacheSettings
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.FirebaseStorage
+import fr.familia.app.core.album.AlbumPhotoRepository
+import fr.familia.app.core.album.FirestoreAlbumPhotoRepository
 import fr.familia.app.core.photo.FirebasePhotoStorage
 import fr.familia.app.core.photo.PhotoEncoder
 import fr.familia.app.core.photo.PhotoStorage
 import fr.familia.app.core.photo.PhotoUploader
 import fr.familia.app.core.photo.StoragePhotoUploader
+import fr.familia.app.core.usage.UsageTracker
 import fr.familia.app.feature.auth.AuthRepository
 import fr.familia.app.feature.auth.FirebaseAuthRepository
 import fr.familia.app.feature.auth.GoogleCredentialProvider
@@ -63,10 +66,19 @@ class AppContainer(context: Context) {
         photoStorage?.let { StoragePhotoUploader(PhotoEncoder(appContext), it) }
     }
 
+    /** The photo records of the albums: the trips, and later the events. */
+    val albumPhotoRepository: AlbumPhotoRepository? by lazy { firestore?.let { FirestoreAlbumPhotoRepository(it) } }
+
     val appConfigRepository: AppConfigRepository? by lazy { firestore?.let { FirestoreAppConfigRepository(it) } }
 
     val giftRepository: GiftRepository? by lazy { firestore?.let { FirestoreGiftRepository(it) } }
     val notebookRepository: NotebookRepository? by lazy { firestore?.let { FirestoreNotebookRepository(it) } }
+
+    /** Time spent in the app (PRD, récit 1 nonies). */
+    val usageRepository: UsageRepository? by lazy { firestore?.let { FirestoreUsageRepository(it) } }
+
+    /** One counter for the whole app, so a rotation is not a new opening. */
+    val usageTracker: UsageTracker? by lazy { usageRepository?.let { UsageTracker(appContext, it) } }
 
     val exportRepository: ExportRepository? by lazy { firestore?.let { FirestoreExportRepository(it) } }
 
