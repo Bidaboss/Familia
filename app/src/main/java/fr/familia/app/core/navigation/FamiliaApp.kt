@@ -130,6 +130,12 @@ import fr.familia.app.feature.events.album.EventAlbumDestination
 import fr.familia.app.feature.events.album.EventAlbumRoute
 import fr.familia.app.feature.month.MonthSlideshowDestination
 import fr.familia.app.feature.month.MonthSlideshowRoute
+import fr.familia.app.feature.recipes.RecipeDetailDestination
+import fr.familia.app.feature.recipes.RecipeDetailRoute
+import fr.familia.app.feature.recipes.RecipeEditDestination
+import fr.familia.app.feature.recipes.RecipeEditRoute
+import fr.familia.app.feature.recipes.RecipesDestination
+import fr.familia.app.feature.recipes.RecipesRoute
 import fr.familia.app.feature.trips.TripDetailDestination
 import fr.familia.app.feature.trips.TripEditDestination
 import fr.familia.app.feature.trips.TripPhotosDestination
@@ -526,6 +532,41 @@ fun FamiliaApp(
                             onBack = { navController.popBackStack() },
                         )
                     }
+                    composable<RecipesDestination> {
+                        RecipesRoute(
+                            container = container,
+                            onOpen = { id -> navController.navigate(RecipeDetailDestination(id)) },
+                            onAdd = { navController.navigate(RecipeEditDestination()) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<RecipeDetailDestination> { entry ->
+                        val recipeId = entry.toRoute<RecipeDetailDestination>().recipeId
+                        RecipeDetailRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            recipeId = recipeId,
+                            onEdit = { navController.navigate(RecipeEditDestination(recipeId)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<RecipeEditDestination> { entry ->
+                        val recipeId = entry.toRoute<RecipeEditDestination>().recipeId
+                        RecipeEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            recipeId = recipeId,
+                            onSaved = { id ->
+                                // A new recipe opens at once; a changed one goes back to itself.
+                                if (recipeId == null) {
+                                    navController.navigate(RecipeDetailDestination(id)) { popUpTo<RecipeEditDestination> { inclusive = true } }
+                                } else {
+                                    navController.popBackStack()
+                                }
+                            },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
                     composable<MonthSlideshowDestination> { entry ->
                         val route = entry.toRoute<MonthSlideshowDestination>()
                         MonthSlideshowRoute(
@@ -731,6 +772,7 @@ fun FamiliaApp(
                             onOpenHelp = { navController.navigate(HelpDestination) },
                             onOpenAppearance = if (themesOn) ({ navController.navigate(AppearanceDestination) }) else null,
                             onOpenChildrenUsage = if (features.isOn(Feature.Usage)) ({ navController.navigate(UsageDestination) }) else null,
+                            onOpenRecipes = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipesDestination) }) else null,
                             onOpenWishes = if (features.isOn(Feature.Gifts)) {
                                 { id -> navController.navigate(GiftListDestination(wishesListId(id))) }
                             } else {
