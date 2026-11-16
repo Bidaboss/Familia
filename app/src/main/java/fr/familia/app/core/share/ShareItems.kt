@@ -1,5 +1,6 @@
 package fr.familia.app.core.share
 
+import fr.familia.app.core.model.Trip
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.material.icons.Icons
@@ -61,6 +62,25 @@ fun birthdayShare(context: Context, birthday: Birthday, today: LocalDate = Local
         lines = listOf(day, age),
         text = context.getString(R.string.share_birthday_text, name, age, lower(day)),
         link = shareLink(ShareKind.Birthday, birthday.member.id),
+    )
+}
+
+/**
+ * A trip: its title and its dates only. Neither the participants, the steps, the arrivals nor the
+ * photos go out; without a photo, the rule of carte EXPERT-2 has nothing to check.
+ */
+fun tripShare(context: Context, trip: Trip, today: LocalDate = LocalDate.now()): ShareContent {
+    val start = lower(formatDay(trip.startDate, today))
+    val dates = if (trip.startDate == trip.endDate) {
+        context.getString(R.string.trip_dates_one_day, start)
+    } else {
+        context.getString(R.string.trip_dates, start, lower(formatDay(trip.endDate, today)))
+    }
+    return ShareContent(
+        title = trip.title,
+        lines = listOf(dates),
+        text = context.getString(R.string.share_trip_text, trip.title, lower(dates)),
+        link = shareLink(ShareKind.Trip, trip.id),
     )
 }
 

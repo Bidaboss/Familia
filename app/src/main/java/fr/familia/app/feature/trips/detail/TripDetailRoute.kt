@@ -1,5 +1,10 @@
 package fr.familia.app.feature.trips.detail
 
+import fr.familia.app.core.share.tripShare
+import fr.familia.app.core.share.share
+import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.core.model.Feature
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -44,6 +49,9 @@ fun TripDetailRoute(
     val album = rememberTripAlbum(container, currentMember, tripId)
     val photos by album.uiState.collectAsStateWithLifecycle()
     val photoActions = rememberPhotoActions(album, onSeePhotos)
+    val context = LocalContext.current
+    val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)
+    val shown = state as? TripDetailUiState.Success
     TripDetailScreen(
         state = state,
         onRetry = viewModel::retry,
@@ -57,5 +65,6 @@ fun TripDetailRoute(
         photos = photos,
         photoActions = photoActions,
         onOpenExpenses = onOpenExpenses,
+        onShare = shown?.takeIf { shareOn }?.let { success -> { share(context, tripShare(context, success.trip, success.today)) } },
     )
 }
