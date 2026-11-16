@@ -51,7 +51,7 @@ test('a day keeps its shape: its own date, bounded counts, known screens only', 
   await assertFails(setDoc(doc(db, path), day('2026-11-22')));
   await assertFails(setDoc(doc(db, path), day('2026-11-21', { opens: -1 })));
   await assertFails(setDoc(doc(db, path), day('2026-11-21', { seconds: { home: 90000 } })));
-  await assertFails(setDoc(doc(db, path), day('2026-11-21', { seconds: { 'liste-cadeaux-vincent': 10 } })));
+  await assertFails(setDoc(doc(db, path), day('2026-11-21', { seconds: { 'liste-cadeaux-sam': 10 } })));
   await assertFails(setDoc(doc(db, path), day('2026-11-21', { readItems: ['a'] })));
   await assertFails(setDoc(doc(db, `usage/${ADULT.memberId}/days/hier`), day('hier')));
 });

@@ -13,6 +13,9 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     Gifts("gifts", R.string.feature_gifts),
     GiftNotebook("giftNotebook", R.string.feature_gift_notebook),
     ShareToWishes("shareToWishes", R.string.feature_share_to_wishes),
+
+    /** Les envies offertes passent dans « On m'a offert » le lendemain de l'occasion (PRD, récit 10 bis). */
+    WishesReveal("wishesReveal", R.string.feature_wishes_reveal),
     HelpRequests("helpRequests", R.string.feature_help_requests),
     Trips("trips", R.string.feature_trips),
     GoodNews("goodNews", R.string.feature_good_news),
@@ -21,7 +24,7 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     /**
      * Counting the time spent in the app (PRD, récit 1 nonies). Unlike the others, the switch
      * also governs the admin principal: nothing is counted until it is on for the family, once
-     * Kévin has announced it.
+     * the main admin has announced it.
      */
     Usage("usage", R.string.feature_usage),
     WeeklyQuestion("weeklyQuestion", R.string.feature_weekly_question),
@@ -42,6 +45,8 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     Capsules("capsules", R.string.feature_capsules),
     /** « Qui apporte quoi » on an event (PRD, récit 4 bis). */
     Bring("bring", R.string.feature_bring),
+    /** The place component and « Rejoignez-moi » (PRD, récit 33). */
+    Places("places", R.string.feature_places),
 }
 
 /**

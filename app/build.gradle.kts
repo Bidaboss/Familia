@@ -36,9 +36,12 @@ android {
         val releaseCode = (findProperty("familiaVersionCode") as String?)?.toInt()
         versionCode = releaseCode ?: 1
         versionName = if (releaseCode != null) "0.2.$releaseCode" else "0.2.0-dev"
-        // The Drive folder where Kévin puts each new APK (DEV-6). It is in the invitation and behind
-        // the "Mettre à jour" button. Not a secret: the APK holds no family data.
-        buildConfigField("String", "DOWNLOAD_URL", "\"https://drive.google.com/drive/folders/1oKY86bvVPm4xd4mZVhHlsoG8DLSjdxLY\"")
+        // The Drive folder where the main admin puts each new APK (DEV-6). It is in the invitation
+        // and behind the "Mettre à jour" button. It comes from the GitHub secret FAMILIA_DOWNLOAD_URL
+        // (or keystore.properties), so the public repository does not show it. Empty otherwise: the
+        // workflow « APK de publication » refuses to build without it.
+        val downloadUrl = signingValue("FAMILIA_DOWNLOAD_URL").orEmpty().trim()
+        buildConfigField("String", "DOWNLOAD_URL", "\"${downloadUrl.replace("\"", "")}\"")
     }
 
     signingConfigs {

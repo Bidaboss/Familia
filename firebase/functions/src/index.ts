@@ -17,6 +17,7 @@ import {
 } from './gifts';
 import { openDueCapsules } from './capsules';
 import { checkConsumptionIfDue } from './consumption';
+import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
 import { closeDuePolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
 import { cloudMonitoring } from './monitoring';
 import { deleteMemberNotebook, syncNotebookEntry, syncNotebookItem } from './notebook';
@@ -34,6 +35,7 @@ import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPh
 import {
   countGesture, countHelpGiven, deleteSouvenirsOf, giveSouvenir, giveYearSouvenirs, isNewWeeklyAnswer, souvenirMark,
 } from './souvenirs';
+import { revealWishes } from './wishesReveal';
 import { addLeaf, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
 initializeApp();
@@ -63,6 +65,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.tripId ? { tripId: notice.tripId } : {}),
         ...(notice.weeklyQuestionId ? { weeklyQuestionId: notice.weeklyQuestionId } : {}),
         ...(notice.pollId ? { pollId: notice.pollId } : {}),
+        ...(notice.joinMeId ? { joinMeId: notice.joinMeId } : {}),
         ...(notice.capsuleId ? { capsuleId: notice.capsuleId } : {}),
         ...(notice.souvenirKey ? { souvenirKey: notice.souvenirKey } : {}),
       },
@@ -212,9 +215,12 @@ export const onMemberDeletedGifts = onDocumentDeleted('members/{memberId}', asyn
   await deleteMemberNotebook(getFirestore(), event.params.memberId);
 });
 
-// The morning after an occasion, its lists are revealed (PRD, récit 10 bis).
+// The morning after an occasion, its lists are revealed, then the taken wishes of whoever had a
+// birthday or Christmas yesterday (PRD, récit 10 bis).
 export const revealGifts = onSchedule({ schedule: '0 7 * * *', timeZone: 'Europe/Paris' }, async () => {
-  await revealGiftLists(getFirestore(), send, new Date());
+  const now = new Date();
+  await revealGiftLists(getFirestore(), send, now);
+  await revealWishes(getFirestore(), send, now);
 });
 
 // D-21 and D-14 before a birthday (PRD, récit 10).
@@ -351,6 +357,7 @@ export const onMemberDeletedAnswers = onDocumentDeleted('members/{memberId}', as
   await deleteVotesOf(getFirestore(), event.params.memberId);
   await deleteSouvenirsOf(getFirestore(), event.params.memberId);
   await deleteTreeDataOf(getFirestore(), event.params.memberId);
+  await deleteJoinMeOf(getFirestore(), event.params.memberId);
 });
 
 // --- Sondages (récits 2 bis et 2 ter) ---------------------------------------------------------
@@ -372,4 +379,11 @@ export const onPollUpdated = onDocumentUpdatedWithAuthContext('polls/{pollId}', 
 
 export const onPollDeleted = onDocumentDeleted('polls/{pollId}', async (event) => {
   await deletePollVotes(getFirestore(), event.params.pollId);
+});
+
+// --- « Rejoignez-moi » (récit 33) -----------------------------------------------------------------
+
+export const onJoinMeCreatedNotify = onDocumentCreated('joinMe/{shareId}', async (event) => {
+  const data = event.data?.data() as JoinMeData | undefined;
+  if (data) await onJoinMeCreated(getFirestore(), send, event.params.shareId, data);
 });

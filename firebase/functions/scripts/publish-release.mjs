@@ -6,7 +6,7 @@
 //    the file is there, with the Drive file id, size and SHA-256 the app checks when it downloads
 //    the APK itself (PRD, récit 6 quater).
 // The Drive folder must be shared with the service account as editor, and hold exactly one APK,
-// uploaded once by Kévin. A service account has no Drive space of its own: it can replace the
+// uploaded once by the main admin. A service account has no Drive space of its own: it can replace the
 // content of a file someone shared, but not create one. No dependency besides firebase-admin.
 import { createHash, createSign } from 'node:crypto';
 import { readFileSync } from 'node:fs';
@@ -27,7 +27,7 @@ function fail(message) {
 
 if (!Number.isInteger(versionCode) || versionCode < 1) fail('Le numéro de version est introuvable (étape « Number the version »).');
 if (!versionName) fail("Le nom de version est introuvable dans l'APK.");
-if (!/^[A-Za-z0-9_-]{10,}$/.test(folderId)) fail("L'identifiant du dossier Drive est introuvable (DOWNLOAD_URL).");
+if (!/^[A-Za-z0-9_-]{10,}$/.test(folderId)) fail("L'identifiant du dossier Drive est introuvable (secret GitHub FAMILIA_DOWNLOAD_URL).");
 
 initializeApp({ projectId });
 const configApp = getFirestore().collection('config').doc('app');
