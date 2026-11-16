@@ -1013,7 +1013,7 @@ fun FamiliaApp(
                         UsageRoute(container = container, currentMember = currentMember, onBack = { navController.popBackStack() })
                     }
                     composable<ExportDestination> {
-                        ExportRoute(container = container, onBack = { navController.popBackStack() })
+                        ExportRoute(container = container, memberId = currentMember.id, onBack = { navController.popBackStack() })
                     }
                     composable<AppearanceDestination> {
                         var chosenIcon by remember { mutableStateOf(iconSwitcher.current) }

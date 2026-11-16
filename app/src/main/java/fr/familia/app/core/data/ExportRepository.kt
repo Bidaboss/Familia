@@ -21,6 +21,11 @@ data class FamilyData(
     /** Question de la semaine (récit 37): the questions, and the answers once they show to everyone. */
     val weeklyQuestions: List<ExportDocument> = emptyList(),
     val weeklyAnswers: List<ExportWeeklyAnswer> = emptyList(),
+    /**
+     * Capsules temporelles (PRD rév. 184): only those the admin principal can read, the ones they
+     * wrote and the ones opened for them. The others stay sealed, even in a backup.
+     */
+    val capsules: List<ExportDocument> = emptyList(),
 )
 
 /** An answer to the question of the week [questionId]: its id is the member's. */
@@ -31,5 +36,6 @@ class ExportOfflineException(cause: Throwable) : Exception(cause)
 
 /** PRD, récit 6 ter: everything the family wrote, for a backup or to leave Firebase. */
 interface ExportRepository {
-    suspend fun loadFamilyData(): FamilyData
+    /** [memberId] is the admin principal's: it decides which capsules they can read. */
+    suspend fun loadFamilyData(memberId: String): FamilyData
 }

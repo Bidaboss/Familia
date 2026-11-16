@@ -320,7 +320,7 @@
     <string name="channel_help_requests">Entraide</string>
     <string name="channel_help_requests_description">Coups de main demandés, proposés ou confirmés</string>
     <string name="export_title">Sauvegarde des données</string>
-    <string name="export_body">Un fichier avec toutes les données de la famille, à garder pour toi : sur ce téléphone ou dans ton Drive.</string>
+    <string name="export_body">Un fichier avec toutes les données de la famille, à garder pour toi : sur ce téléphone ou dans ton Drive. Les capsules temporelles des autres restent scellées : seules les tiennes, et celles déjà ouvertes pour toi, y sont.</string>
     <string name="export_action">Créer la sauvegarde</string>
     <string name="export_in_progress">Sauvegarde en cours…</string>
     <string name="export_done">Sauvegarde enregistrée.</string>
