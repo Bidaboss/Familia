@@ -311,6 +311,7 @@ Requêtes de l'appli, toutes acceptées par les règles : `viewerIds array-conta
 | `price` | nombre de 0 à 100 000 ou null | Prix indicatif, en euros |
 | `note` | texte (500 au plus) ou null | Taille, couleur… |
 | `imageUrl` | texte `https://` (1 000 au plus), null ou absent | Facultatif : image lue dans l'aperçu d'un lien partagé (carte PRODUIT-34). Familia ne stocke aucune image |
+| `photo` | texte, null ou absent | Facultatif (PRD, récit 44, module « Plus de photos ») : la photo envoyée par l'auteur, `giftLists/{listId}/{shared\|hidden}/{memberId}/{photoId}` sans « .jpg ». `shared` pour un article que la personne fêtée voit, `hidden` pour une idée qui lui est cachée : Storage ne lui donne jamais un fichier de `hidden` avant la révélation. Le serveur retire la photo avec l'article ou la liste |
 | `authorId`, `authorName` | `memberId`, texte | Qui l'a ajouté, jamais modifiés |
 | `visibleToBeneficiary` | booléen | Vrai seulement si l'auteur tient les listes du bénéficiaire et que la liste n'est ni une surprise ni « Idées de la famille ». Les règles l'imposent |
 | `occasion` | `christmas` \| `birthday`, null ou absent | Récit 9 ter : l'occasion pour laquelle une envie est notée. Null ou absent : « Quand tu veux » |

@@ -62,7 +62,7 @@ describe('single list migration', () => {
     await db.doc('members/ines').set({ firstName: 'Inès', profile: 'adult', householdId: 'h1', parentIds: [] });
     // Inès's own Christmas list: a wish she wrote, and a surprise idea Camille hid in it.
     await lists.doc('noel-ines').set(list('own', 'ines', 'christmas'));
-    await lists.doc('noel-ines').collection('items').doc('book').set(item('Un livre', true));
+    await lists.doc('noel-ines').collection('items').doc('book').set({ ...item('Un livre', true), photo: 'giftLists/noel-ines/shared/ines/p1' });
     await lists.doc('noel-ines').collection('items').doc('watch').set(item('Une montre', false, 'camille'));
     await lists.doc('noel-ines').collection('claims').doc('book').set({ type: 'shared', holderId: 'camille', holderName: 'Camille', createdAt: made });
     await lists.doc('noel-ines').collection('claims').doc('book').collection('shares').doc('jules').set({ amount: 10, memberName: 'Jules', received: false });
@@ -88,6 +88,8 @@ describe('single list migration', () => {
     assert.equal(book.get('title'), 'Un livre');
     assert.equal(book.get('occasion'), 'christmas');
     assert.equal(book.get('visibleToBeneficiary'), true);
+    // Its photo stays with the old list (récit 44).
+    assert.equal(book.get('photo'), undefined);
     const ideas = lists.doc('ideas-ines');
     assert.equal((await ideas.get()).get('kind'), 'ideas');
     assert.equal((await ideas.get()).get('creatorId'), 'camille');

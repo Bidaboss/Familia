@@ -24,6 +24,8 @@ export interface GiftItemData {
   note: string | null;
   authorId: string;
   visibleToBeneficiary: boolean;
+  /** The base of its photo in Storage (récit 44), without « .jpg ». */
+  photo?: string | null;
 }
 
 // --- Pure logic -------------------------------------------------------------------------------

@@ -522,3 +522,30 @@ describe('the ideas of the family (récit 9 ter)', () => {
     await assertFails(setDoc(doc(as(env, ADULT), 'giftLists/wishes-adult1/items/o3'), newItem(ADULT, { visibleToBeneficiary: true, occasion: 'easter' })));
   });
 });
+
+describe('the photo of a wish or an idea (récit 44)', () => {
+  test('a wish names a photo of my folder « shared », and keeps it when edited', async () => {
+    const db = as(env, ADULT);
+    const photo = 'giftLists/wishes-adult1/shared/adult1/p1';
+    await assertSucceeds(setDoc(doc(db, 'giftLists/wishes-adult1/items/p1'), newItem(ADULT, { visibleToBeneficiary: true, photo })));
+    await assertSucceeds(updateDoc(doc(db, 'giftLists/wishes-adult1/items/p1'), { title: 'Un autre jeu', updatedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(db, 'giftLists/wishes-adult1/items/p1'), { photo: null, updatedAt: serverTimestamp() }));
+  });
+
+  test('an idea kept from the person names only a photo of « hidden »', async () => {
+    const db = as(env, NEIGHBOUR);
+    await assertSucceeds(setDoc(doc(db, 'giftLists/surprise1/items/p2'),
+      newItem(NEIGHBOUR, { photo: 'giftLists/surprise1/hidden/adult3/p2' })));
+    await assertFails(setDoc(doc(db, 'giftLists/surprise1/items/p3'),
+      newItem(NEIGHBOUR, { photo: 'giftLists/surprise1/shared/adult3/p3' })));
+  });
+
+  test('never the photo of someone else, of another list, or a file name', async () => {
+    const db = as(env, ADULT);
+    const item = (photo) => newItem(ADULT, { visibleToBeneficiary: true, photo });
+    await assertFails(setDoc(doc(db, 'giftLists/wishes-adult1/items/p4'), item('giftLists/wishes-adult1/shared/adult2/p4')));
+    await assertFails(setDoc(doc(db, 'giftLists/wishes-adult1/items/p4'), item('giftLists/own1/shared/adult1/p4')));
+    await assertFails(setDoc(doc(db, 'giftLists/wishes-adult1/items/p4'), item('giftLists/wishes-adult1/shared/adult1/p4.jpg')));
+    await assertFails(setDoc(doc(db, 'giftLists/wishes-adult1/items/p4'), item(42)));
+  });
+});

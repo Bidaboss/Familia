@@ -104,9 +104,11 @@ async function copyItem(db: Firestore, list: DocumentSnapshot, item: DocumentSna
   const claim = await list.ref.collection('claims').doc(item.id).get();
   const shares = claim.exists ? await claim.ref.collection('shares').get() : null;
 
+  // Not the photo (récit 44): its path names the old list, whose deletion would take it away.
+  const { photo: _photo, ...fields } = item.data() ?? {};
   const batch = db.batch();
   batch.set(targetList.collection('items').doc(newId), {
-    ...item.data(),
+    ...fields,
     occasion,
     visibleToBeneficiary: target === 'wishes',
   });
