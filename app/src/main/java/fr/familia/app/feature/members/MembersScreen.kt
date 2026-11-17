@@ -70,6 +70,8 @@ import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.HouseholdGroup
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
+import java.time.LocalDate
+import java.time.ZoneId
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
@@ -114,8 +116,15 @@ fun MembersScreen(
      * members.
      */
     r1: Boolean = false,
+    /**
+     * « Famille par foyer » (récit 64, Kévin le 18/11): me first, my household, then the other
+     * households folded. Behind its switch, off for everyone until Kévin turns it on.
+     */
+    byHousehold: Boolean = false,
+    today: LocalDate = LocalDate.now(ZoneId.of("Europe/Paris")),
 ) {
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
+    var unfolded by rememberSaveable { mutableStateOf(listOf<String>()) }
     var photoOf by rememberSaveable { mutableStateOf<String?>(null) }
     var viewing by rememberSaveable { mutableStateOf<String?>(null) }
     val photos = LocalMemberPhotos.current
@@ -142,7 +151,48 @@ fun MembersScreen(
             ) {
                 // « Nos trésors » left the Famille tab (Kévin, 18/11): recettes, arbre, capsule and
                 // « Qui est-ce ? » are all in « Tout Familia ». The tab is the family only.
-                if (r1 && state.groups.isNotEmpty()) {
+                // One member's row, the same in every presentation: same clicks, same rights.
+                val memberRow: @Composable (Member) -> Unit = { member ->
+                    MemberRow(
+                        member = member,
+                        isMe = member.id == state.currentMemberId,
+                        isOwner = member.id == state.ownerId,
+                        onClick = onOpenProfile?.let { open -> { open(member.id) } }
+                            ?: onEditMember?.takeIf { member.id in state.editableMemberIds }?.let { edit -> { edit(member.id) } },
+                        hasPhoto = member.id in photos,
+                        onPhotoClick = when {
+                            member.id in photos -> { { viewing = member.id } }
+                            onSavePhoto != null && member.id in state.photoEditableMemberIds -> { { photoOf = member.id } }
+                            else -> null
+                        },
+                        onWishesClick = onOpenWishes?.let { open -> { open(member.id) } },
+                    )
+                }
+                if (byHousehold && state.groups.isNotEmpty()) {
+                    familyByHousehold(
+                        layout = familyTabLayout(state.groups, state.currentMemberId),
+                        today = today,
+                        onOpenMine = onOpenProfile ?: onEditMember?.takeIf { state.currentMemberId in state.editableMemberIds }?.let { edit -> { id: String -> edit(id) } },
+                        householdName = { group -> group.household?.name ?: stringResource(R.string.members_other_household) },
+                        header = { group ->
+                            val household = group.household
+                            HouseholdHeader(
+                                name = household?.name ?: stringResource(R.string.members_other_household),
+                                onRename = if (household != null && onRenameHousehold != null && !state.isOwner &&
+                                    household.id in state.renamableHouseholdIds
+                                ) {
+                                    { renaming = household.id }
+                                } else {
+                                    null
+                                },
+                            )
+                        },
+                        row = memberRow,
+                        open = unfolded,
+                        onToggle = { key -> unfolded = if (key in unfolded) unfolded - key else unfolded + key },
+                    )
+                }
+                if (!byHousehold && r1 && state.groups.isNotEmpty()) {
                     item(key = "count") {
                         val people = state.groups.sumOf { it.members.size }
                         val homes = state.groups.count { it.household != null }
@@ -162,7 +212,7 @@ fun MembersScreen(
                         )
                     }
                 }
-                if (r1) {
+                if (!byHousehold && r1) {
                     state.groups.forEachIndexed { index, group ->
                         item(key = "card-${group.household?.id ?: "other"}") {
                             val household = group.household
@@ -201,7 +251,7 @@ fun MembersScreen(
                         }
                     }
                 }
-                if (!r1) state.groups.forEach { group ->
+                if (!byHousehold && !r1) state.groups.forEach { group ->
                     item(key = "household-${group.household?.id ?: "other"}") {
                         val household = group.household
                         HouseholdHeader(

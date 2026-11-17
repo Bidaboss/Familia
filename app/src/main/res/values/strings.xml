@@ -136,6 +136,16 @@
     <string name="member_remove_owner_only">Seul l\'admin principal peut retirer %1$s.</string>
     <string name="administration_title">Administration</string>
     <string name="members_treasures">Nos trésors</string>
+    <string name="members_other_households">Les autres foyers</string>
+    <string name="members_me_birthday">Anniversaire le %1$s</string>
+    <string name="members_me_open">Voir et modifier ma fiche</string>
+    <string name="members_household_unfolded">déplié</string>
+    <plurals name="members_household_folded">
+        <item quantity="one">replié, %d membre</item>
+        <item quantity="other">replié, %d membres</item>
+    </plurals>
+    <string name="members_household_unfold">déplier</string>
+    <string name="members_household_fold">replier</string>
     <string name="members_treasure_recipes">Recettes</string>
     <string name="members_treasure_recipes_open">ouvrir les recettes</string>
     <string name="members_treasure_tree">Arbre</string>
@@ -252,7 +262,8 @@
     <string name="feature_help_turns">Dans Entraide, « À qui le tour ? » : un tour de rôle entre foyers, pour recevoir ou organiser.</string>
     <string name="feature_help_first_steps">Sur l\'Accueil, une carte propose à chacun 3 gestes pendant 14 jours : sa photo, ses goûts, une réaction.</string>
     <string name="feature_help_packing_list">Dans un voyage, « À emporter » : la liste pour tout le monde, et « Ma valise ».</string>
-    <string name="feature_help_opening_animation">À la première ouverture sur un téléphone, les fruits de l\'arbre deviennent la famille. À revoir dans Apparence.</string>
+    <string name="feature_help_family_tab_v2">L\'onglet Famille commence par ta fiche et ton foyer ; les autres foyers sont plus bas, repliés. Éteint, même toi tu gardes l\'onglet actuel.</string>
+    <string name="feature_help_opening_animation">À chaque ouverture, les fruits de l\'arbre deviennent la famille. Dans Apparence, chacun choisit l\'animation longue, courte ou aucune.</string>
     <string name="feature_home">Accueil</string>
     <string name="feature_gifts">Listes et cadeaux</string>
     <string name="feature_help_requests">Coups de main</string>
@@ -2770,6 +2781,7 @@
     <string name="first_steps_photo_failed">La photo n\'a pas pu être enregistrée. Vérifie ta connexion, puis réessaie. Si ça recommence, dis-le dans « Une idée ? Un souci ? ».</string>
     <string name="feature_packing_list">À emporter</string>
     <string name="feature_opening_animation">Animation de bienvenue</string>
+    <string name="feature_family_tab_v2">Famille par foyer</string>
     <string name="packing_title">À emporter</string>
     <string name="notifications_packing">Ma valise</string>
     <string name="notifications_packing_help">La veille d\'un voyage, à 18 h, s\'il reste des objets à mettre dans ta valise.</string>
