@@ -49,11 +49,14 @@ fun SessionRoute(
             state = state,
             onSignInClick = {
                 val provider = container.googleCredentialProvider
-                if (provider == null) {
-                    viewModel.onGoogleTokenResult(GoogleTokenResult.Failed)
-                } else {
-                    viewModel.onSignInStarted()
-                    scope.launch { viewModel.onGoogleTokenResult(provider.requestIdToken(context)) }
+                when {
+                    // A kept account: the family list is read again, without the picker.
+                    viewModel.retryKeptAccount() -> Unit
+                    provider == null -> viewModel.onGoogleTokenResult(GoogleTokenResult.Failed)
+                    else -> {
+                        viewModel.onSignInStarted()
+                        scope.launch { viewModel.onGoogleTokenResult(provider.requestIdToken(context)) }
+                    }
                 }
             },
             onUseAnotherAccountClick = viewModel::signOut,

@@ -852,3 +852,23 @@ Avec deux comptes : Camille (adulte) et Inès (adulte). « Publier Firebase » d
 6. Mode avion, ouvre l'arbre généalogique. **Attendu :** l'arbre déjà vu s'affiche, avec les photos de profil ou les initiales. Jamais d'écran vide qui tourne sans fin.
 7. Mode avion, ouvre « Qui est-ce ? » sur l'Accueil puis la page de la photo. **Attendu :** la roue tourne sur la photo si elle n'a jamais été vue, puis le dessin ; le reste de la carte s'affiche. Une réponse envoyée hors ligne affiche un message d'échec, et ce qui est tapé reste dans les cases.
 8. Remets le réseau normal et rouvre chaque écran. **Attendu :** tout est revenu, sans avoir fermé l'appli.
+
+## Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible
+
+À faire avec le deuxième téléphone de test, une fois en mode avion, puis une fois en « 2G seulement » (réglages du téléphone, Réseau mobile, Type de réseau préféré), Wi-Fi coupé.
+
+**Connexion (appli fraîchement installée, ou après « Utiliser un autre compte »)**
+1. Mode avion, touche « Se connecter avec Google ». **Attendu :** le message « Pas de réseau, ou il est trop lent… » et le bouton devient « Réessayer ». Jamais « Aucun compte Google sur ce téléphone ».
+2. 2G, touche « Se connecter avec Google », choisis le compte, puis passe en mode avion pendant que le bouton tourne. **Attendu :** au plus une vingtaine de secondes après, le même message et « Réessayer ». Jamais d'écran blanc ni de roue sans fin.
+3. Coupe le mode avion et touche « Réessayer ». **Attendu :** l'appli s'ouvre, sans redemander le compte si Google l'avait déjà accepté.
+4. Ferme l'appli pendant que le bouton tourne (glisse-la hors des applis récentes), puis rouvre-la avec le réseau. **Attendu :** elle reprend toute seule et s'ouvre sur l'Accueil.
+
+**Accueil, Planning et événement (sur un téléphone déjà connecté une fois avec le réseau)**
+5. Mode avion, ouvre l'appli. **Attendu :** le bandeau « Hors ligne » en haut, l'Accueil et le Planning déjà vus s'affichent. La vérification de version ne bloque rien : l'appli s'ouvre normalement.
+6. Mode avion, ouvre un événement et touche « Je viens ». **Attendu :** « Je viens » est coché tout de suite, avec sous la ligne « En attente du réseau : la réponse partira toute seule à son retour. ». Aucun message d'erreur.
+7. Coupe le mode avion, sans toucher l'écran. **Attendu :** la ligne « En attente » disparaît en quelques secondes. Sur ton téléphone, la réponse apparaît une seule fois dans « Qui vient ».
+
+**Mode présentation et « Voir comme » (sur ton téléphone)**
+8. Avec le réseau, allume le Mode présentation, puis passe en mode avion. **Attendu :** le bandeau « Mode présentation jusqu'à … » reste affiché.
+9. Mode avion, **Administration**, « Voir comme… », choisis un membre. **Attendu :** son Accueil et son Planning déjà vus s'affichent, avec le bandeau « Tu vois l'appli comme … ». « Quitter » marche aussi sans réseau.
+10. Remets le réseau et éteins le Mode présentation. **Attendu :** le résumé arrive comme d'habitude.

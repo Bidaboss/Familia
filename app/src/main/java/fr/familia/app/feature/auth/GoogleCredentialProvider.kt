@@ -1,6 +1,8 @@
 package fr.familia.app.feature.auth
 
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
@@ -15,6 +17,9 @@ sealed interface GoogleTokenResult {
     data class Success(val idToken: String) : GoogleTokenResult
     data object Cancelled : GoogleTokenResult
     data object NoAccount : GoogleTokenResult
+
+    /** No network: the picker could not reach Google. */
+    data object Offline : GoogleTokenResult
     data object Failed : GoogleTokenResult
 }
 
@@ -42,9 +47,16 @@ class GoogleCredentialProvider(private val webClientId: String) {
         } catch (e: GetCredentialCancellationException) {
             GoogleTokenResult.Cancelled
         } catch (e: NoCredentialException) {
-            GoogleTokenResult.NoAccount
+            // Without network, Android also says « no credential »: never tell then to add an account.
+            if (isOnline(activityContext)) GoogleTokenResult.NoAccount else GoogleTokenResult.Offline
         } catch (e: GetCredentialException) {
-            GoogleTokenResult.Failed
+            if (isOnline(activityContext)) GoogleTokenResult.Failed else GoogleTokenResult.Offline
         }
+    }
+
+    private fun isOnline(context: Context): Boolean {
+        val connectivity = context.getSystemService(ConnectivityManager::class.java) ?: return true
+        val capabilities = connectivity.getNetworkCapabilities(connectivity.activeNetwork) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
     }
 }

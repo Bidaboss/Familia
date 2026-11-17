@@ -291,6 +291,14 @@ private fun AnswerRow(answerer: Answerer, onAnswer: (String, RsvpStatus) -> Unit
                 )
             }
         }
+        if (answerer.pending) {
+            Text(
+                stringResource(R.string.rsvp_pending),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            )
+        }
     }
 }
 

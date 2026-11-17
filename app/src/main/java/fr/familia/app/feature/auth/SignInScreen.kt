@@ -91,7 +91,7 @@ fun SignInScreen(
                             strokeWidth = 2.dp,
                         )
                     } else {
-                        Text(stringResource(R.string.sign_in_with_google))
+                        Text(stringResource(if (error != null) R.string.sign_in_retry else R.string.sign_in_with_google))
                     }
                 }
             }

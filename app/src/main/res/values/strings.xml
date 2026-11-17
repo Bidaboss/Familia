@@ -31,6 +31,7 @@
     <string name="rsvp_maybe">Peut-être</string>
     <string name="rsvp_no">Je ne viens pas</string>
     <string name="rsvp_chip_description">%1$s&#160;: %2$s</string>
+    <string name="rsvp_pending">En attente du réseau : la réponse partira toute seule à son retour.</string>
     <string name="rsvp_send_failed">Ta réponse n\'est pas partie. Réessaie dans un moment.</string>
     <string name="rsvp_summary_coming">Viennent (%1$d)</string>
     <string name="rsvp_summary_maybe">Peut-être (%1$d)</string>
@@ -462,7 +463,8 @@
     <string name="sign_in_use_another_account">Essayer un autre compte</string>
     <string name="sign_in_firebase_missing">L\'appli n\'est pas encore reliée à la famille. Réessaie avec la prochaine version.</string>
     <string name="sign_in_error_no_account">Aucun compte Google sur ce téléphone. Ajoute ton compte dans les réglages d\'Android, puis réessaie.</string>
-    <string name="sign_in_error_network">Pas de connexion. Réessaie dans un moment.</string>
+    <string name="sign_in_error_network">Pas de réseau, ou il est trop lent. Rapproche-toi de la box ou passe en 4G, puis touche « Réessayer ».</string>
+    <string name="sign_in_retry">Réessayer</string>
     <string name="sign_in_error_unknown">La connexion n\'a pas marché. Réessaie dans un moment.</string>
     <string name="notifications_title">Notifications</string>
     <string name="notifications_events_help">Tu es prévenu quand quelqu\'un ajoute, modifie ou supprime un événement pour toute la famille, pour ton foyer ou pour un enfant dont tu t\'occupes, et quand change un événement où tu as dit que tu venais. Tes propres changements ne te préviennent pas. Chaque sorte de notification (Planning, Rappels, Cadeaux, Entraide…) se coupe à part dans les réglages Android.</string>
