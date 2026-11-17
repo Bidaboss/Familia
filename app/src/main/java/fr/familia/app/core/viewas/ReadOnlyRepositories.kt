@@ -30,6 +30,7 @@ import fr.familia.app.core.data.MomentRepository
 import fr.familia.app.core.data.GoodNewsRepository
 import fr.familia.app.core.data.GoodDealRepository
 import fr.familia.app.core.data.LendItemRepository
+import fr.familia.app.core.data.TurnRepository
 import fr.familia.app.core.data.HelpRequestRepository
 import fr.familia.app.core.data.JoinMeRepository
 import fr.familia.app.core.data.MemberCardRepository
@@ -81,6 +82,7 @@ import fr.familia.app.core.model.JoinMe
 import fr.familia.app.core.model.Kin
 import fr.familia.app.core.model.KinLink
 import fr.familia.app.core.model.LendItem
+import fr.familia.app.core.model.Turn
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Moment
 import fr.familia.app.core.model.MomentCheer
@@ -264,6 +266,20 @@ class ReadOnlyLendItemRepository(private val inner: LendItemRepository, private 
     override suspend fun ask(id: String, me: Member, from: Instant?, until: Instant?) = guard.refuse()
     override suspend fun accept(id: String) = guard.refuse()
     override suspend fun release(id: String) = guard.refuse()
+}
+
+class ReadOnlyTurnRepository(private val inner: TurnRepository, private val guard: ViewAsGuard) : TurnRepository {
+    override fun observeAll(): Flow<List<Turn>> = inner.observeAll()
+    override fun observe(id: String): Flow<Turn?> = inner.observe(id)
+    override fun newId(): String = inner.newId()
+    override suspend fun create(id: String, title: String, householdIds: List<String>, me: Member) = guard.refuse()
+    override suspend fun edit(id: String, title: String, householdIds: List<String>, current: Int) = guard.refuse()
+    override suspend fun done(turn: Turn, label: String) = guard.refuse()
+    override suspend fun skip(turn: Turn) = guard.refuse()
+    override suspend fun askSwap(turn: Turn, me: Member, toHouseholdId: String) = guard.refuse()
+    override suspend fun acceptSwap(turn: Turn) = guard.refuse()
+    override suspend fun dropSwap(id: String) = guard.refuse()
+    override suspend fun delete(id: String) = guard.refuse()
 }
 
 class ReadOnlyRecipeRepository(private val inner: RecipeRepository, private val guard: ViewAsGuard) : RecipeRepository {

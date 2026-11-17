@@ -840,3 +840,15 @@ Avec deux comptes : Camille (adulte) et Inès (adulte). « Publier Firebase » d
 8. Avec Inès, Notifications, « Rappels quand je viens » : coche « 1 h avant ». Réponds « Je viens » à un événement. **Attendu :** sa ligne dit « Par défaut : 1 h avant », et le rappel arrive. Réponds « Peut-être » : plus de rappel.
 9. Dans « Voir comme » : **Attendu :** pas de ligne « Me le rappeler », ni de « Rappels quand je viens ».
 10. Interrupteur éteint, avec un compte qui n'est pas l'admin principal : **Attendu :** ni la ligne ni la section, et aucun rappel n'arrive.
+
+## Démo du 21 : album, diaporama, recettes, arbre et Qui est-ce ? sur un réseau faible
+
+À faire sur un téléphone qui a déjà ouvert ces écrans une fois avec un bon réseau, puis sur un téléphone qui ne les a jamais ouverts. Pour un réseau bridé : réglages du téléphone, Réseau mobile, Type de réseau préféré « 2G seulement » (ou s'éloigner de la box), Wi-Fi coupé.
+1. Réseau bridé, ouvre l'album d'un voyage puis « Voir les photos ». **Attendu :** les miniatures déjà vues s'affichent tout de suite ; les autres montrent le fond argile, puis arrivent une à une. Jamais de case blanche ni de plantage.
+2. Touche une photo. **Attendu :** une petite roue tourne au milieu tant que la photo arrive, puis la photo s'affiche. Glisse vers la suivante : elle est souvent déjà là.
+3. Lance le diaporama. **Attendu :** chaque photo reste 4 secondes ; une photo qui ne vient pas montre la roue, et une photo qui ne peut pas charger montre le dessin d'une image puis laisse la place à la suivante au bout d'environ 1,5 seconde. Le diaporama ne se fige jamais.
+4. Passe en mode avion, diaporama ouvert. **Attendu :** les photos déjà vues continuent de défiler ; les autres montrent le dessin et sont sautées. Coupe le mode avion sans toucher l'écran : au tour suivant, les photos sautées s'affichent.
+5. Mode avion, ouvre Recettes, une recette et ses photos. **Attendu :** la liste et la recette déjà vues s'affichent, le bandeau « Hors ligne » est en haut, les photos déjà vues sont là, les autres montrent le dessin. Au retour du réseau, elles arrivent seules.
+6. Mode avion, ouvre l'arbre généalogique. **Attendu :** l'arbre déjà vu s'affiche, avec les photos de profil ou les initiales. Jamais d'écran vide qui tourne sans fin.
+7. Mode avion, ouvre « Qui est-ce ? » sur l'Accueil puis la page de la photo. **Attendu :** la roue tourne sur la photo si elle n'a jamais été vue, puis le dessin ; le reste de la carte s'affiche. Une réponse envoyée hors ligne affiche un message d'échec, et ce qui est tapé reste dans les cases.
+8. Remets le réseau normal et rouvre chaque écran. **Attendu :** tout est revenu, sans avoir fermé l'appli.

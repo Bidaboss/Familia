@@ -132,6 +132,8 @@ enum class Feature(
     YearInReview("yearInReview", R.string.feature_year_in_review),
     /** « Me le rappeler » : mes rappels privés sur un événement, et des rappels par défaut (PRD rév. 248, récit 56). */
     MyReminders("myReminders", R.string.feature_my_reminders),
+    /** « À qui le tour ? » : un tour de rôle entre foyers, dans Entraide (PRD rév. 249, récit 58). */
+    Turns("turns", R.string.feature_turns),
 }
 
 /**
