@@ -518,7 +518,9 @@ class FakeGifts(list: GiftList?) : GiftRepository {
         savedItems += item
     }
     override suspend fun deleteItem(listId: String, itemId: String) = Unit
-    override suspend fun claim(listId: String, claim: GiftClaim) = Unit
+    /** What the server does with a reservation: nothing by default, or a refusal. */
+    var onClaim: suspend (GiftClaim) -> Unit = {}
+    override suspend fun claim(listId: String, claim: GiftClaim) = onClaim(claim)
     override suspend fun release(listId: String, itemId: String) = Unit
     override suspend fun setShare(listId: String, itemId: String, share: GiftShare, isNew: Boolean) = Unit
     override suspend fun markShareReceived(listId: String, itemId: String, memberId: String, received: Boolean) = Unit

@@ -26,6 +26,7 @@ import fr.familia.app.feature.gifts.isKeptFrom
 import fr.familia.app.feature.gifts.keepsListsOf
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -67,6 +68,11 @@ data class ItemRow(
     val claim: ClaimView?,
 )
 
+/** Why a reservation did not hold, told gently rather than as a failure. */
+data class ClaimLost(val itemId: String, val reason: Reason) {
+    enum class Reason { Taken, Removed }
+}
+
 sealed interface GiftListUiState {
     data object Loading : GiftListUiState
 
@@ -86,6 +92,8 @@ sealed interface GiftListUiState {
         /** First name of the signed-in member, written with what they reserve. */
         val myName: String,
         val actionFailed: Boolean = false,
+        /** A reservation refused because someone came first, or the idea left the list (passe « en même temps »). */
+        val claimLost: ClaimLost? = null,
         /**
          * « Voir comme »: the admin principal, who reads with their own account, is the beneficiary of
          * this list before its reveal. The rules keep its reservations and surprise ideas from them, so
@@ -121,7 +129,13 @@ class GiftListViewModel(
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
-    private val failed = MutableStateFlow(false)
+    private val failed = MutableStateFlow<Failure?>(null)
+
+    /** The last write that did not hold: a reservation is told apart, to say why. */
+    private sealed interface Failure {
+        data object Write : Failure
+        data class Claim(val itemId: String) : Failure
+    }
 
     val uiState: StateFlow<GiftListUiState> = attempt
         .flatMapLatest { n ->
@@ -192,10 +206,19 @@ class GiftListViewModel(
         claims: List<GiftClaim>,
         shares: Map<String, List<GiftShare>>,
         day: LocalDate,
-        didFail: Boolean,
+        didFail: Failure?,
     ): GiftListUiState.Success {
         val kept = isKeptFrom(list, me) || keptFromReader(list)
         val claimById = claims.associateBy { it.itemId }
+        // Read from the live list: the server keeps one reservation per idea, so a refused one
+        // means another came first, or the idea was removed meanwhile.
+        val lost = (didFail as? Failure.Claim)?.let { failure ->
+            when {
+                items.none { it.id == failure.itemId } -> ClaimLost(failure.itemId, ClaimLost.Reason.Removed)
+                claimById[failure.itemId]?.let { it.holderId != me.id } == true -> ClaimLost(failure.itemId, ClaimLost.Reason.Taken)
+                else -> null
+            }
+        }
         val rows = items.sortedBy { it.title.lowercase() }.map { item ->
             val claim = claimById[item.id]
             val parts = shares[item.id].orEmpty().sortedBy { it.memberName.lowercase() }
@@ -238,7 +261,8 @@ class GiftListViewModel(
             canMarkReceived = exists && list.kind == GiftListKind.Wishes && !list.revealed && keepsListsOf(me, beneficiary),
             items = rows,
             myName = me.firstName,
-            actionFailed = didFail,
+            actionFailed = didFail != null && lost == null,
+            claimLost = lost,
         )
     }
 
@@ -252,7 +276,7 @@ class GiftListViewModel(
 
     private fun claim(itemId: String, type: ClaimType) {
         val me = currentSuccess()?.let { meOf(it) } ?: return
-        write { it.claim(listId, GiftClaim(itemId, type, me.first, me.second)) }
+        write(Failure.Claim(itemId)) { it.claim(listId, GiftClaim(itemId, type, me.first, me.second)) }
     }
 
     fun release(itemId: String) = write { it.release(listId, itemId) }
@@ -297,7 +321,7 @@ class GiftListViewModel(
     fun deleteList(onDone: () -> Unit) {
         val repo = gifts ?: return
         viewModelScope.launch {
-            if (send { repo.deleteList(listId) }) onDone() else failed.value = true
+            if (send { repo.deleteList(listId) }) onDone() else failed.value = Failure.Write
         }
     }
 
@@ -307,9 +331,27 @@ class GiftListViewModel(
     private fun meOf(state: GiftListUiState.Success): Pair<String, String>? =
         if (state.isMine) null else currentMemberId to state.myName
 
-    private fun write(block: suspend (GiftRepository) -> Unit) {
+    /**
+     * Sends [block]. Offline, it waits in the queue: after the timeout the screen goes on, but the
+     * write is still followed, so that a refusal when the network comes back is said too.
+     */
+    private fun write(failure: Failure = Failure.Write, block: suspend (GiftRepository) -> Unit) {
         val repo = gifts ?: return
-        viewModelScope.launch { failed.value = !send { block(repo) } }
+        viewModelScope.launch {
+            val sent = async {
+                try {
+                    block(repo)
+                    true
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    false
+                }
+            }
+            val early = withTimeoutOrNull(writeTimeoutMillis) { sent.await() }
+            failed.value = if (early == false) failure else null
+            if (early == null && !sent.await()) failed.value = failure
+        }
     }
 
     /** True once the write is accepted, or still pending after the timeout (queued offline). */

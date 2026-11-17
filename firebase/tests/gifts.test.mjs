@@ -455,6 +455,71 @@ describe('reservations and joint gifts (récit 9)', () => {
   });
 });
 
+// Pendant les fêtes, several people reserve at the same moment: the server lets one win, and
+// nothing half done stays behind. The app tells the other one gently (GiftListViewModel).
+describe('at the same moment (passe « en même temps »)', () => {
+  /** What the server holds, read without the rules (withSecurityRulesDisabled returns nothing). */
+  async function stored(read) {
+    let value;
+    await env.withSecurityRulesDisabled(async (ctx) => { value = await read(ctx.firestore()); });
+    return value;
+  }
+
+  test('two people reserve the same item in the same second: exactly one wins', async () => {
+    const results = await Promise.allSettled([
+      setDoc(doc(as(env, NEIGHBOUR), 'giftLists/own1/claims/idea'), newClaim(NEIGHBOUR)),
+      setDoc(doc(as(env, OTHER_ADULT), 'giftLists/own1/claims/idea'), newClaim(OTHER_ADULT)),
+    ]);
+    assert.equal(results.filter((r) => r.status === 'fulfilled').length, 1);
+    const claim = await stored(async (db) => (await getDoc(doc(db, 'giftLists/own1/claims/idea'))).data());
+    const winner = results[0].status === 'fulfilled' ? NEIGHBOUR : OTHER_ADULT;
+    assert.equal(claim.holderId, winner.memberId);
+  });
+
+  test('a reservation sent again after the network came back is refused when another came first', async () => {
+    await assertSucceeds(setDoc(doc(as(env, OTHER_ADULT), 'giftLists/own1/claims/idea'), newClaim(OTHER_ADULT)));
+    // The phone of the neighbour sends its queued reservation: the same write, now over the first.
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'giftLists/own1/claims/idea'), newClaim(NEIGHBOUR)));
+    const claim = await stored(async (db) => (await getDoc(doc(db, 'giftLists/own1/claims/idea'))).data());
+    assert.equal(claim.holderId, OTHER_ADULT.memberId);
+  });
+
+  test('two parts added together to a joint gift are both kept', async () => {
+    // A joint gift on « Mes envies » of adult1, which the whole family reads.
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'giftLists/wishes-adult1/claims/w1'), {
+        type: 'shared', holderId: 'admin1', holderName: 'admin1', createdAt: OLD,
+      });
+    });
+    const results = await Promise.allSettled([
+      setDoc(doc(as(env, NEIGHBOUR), 'giftLists/wishes-adult1/claims/w1/shares/adult3'), newShare(NEIGHBOUR, 15)),
+      setDoc(doc(as(env, OTHER_ADULT), 'giftLists/wishes-adult1/claims/w1/shares/adult2'), newShare(OTHER_ADULT, 25)),
+    ]);
+    assert.deepEqual(results.map((r) => r.status), ['fulfilled', 'fulfilled']);
+    const shares = await stored((db) => getDocs(collection(db, 'giftLists/wishes-adult1/claims/w1/shares')));
+    assert.deepEqual(shares.docs.map((d) => d.id).sort(), ['adult2', 'adult3']);
+  });
+
+  test('a wish removed by its author while someone reserves it: no reservation is left on nothing', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'giftLists/wishes-adult1/items/w2'), storedItem({ title: 'Un puzzle' }));
+    });
+    const results = await Promise.allSettled([
+      deleteDoc(doc(as(env, ADULT), 'giftLists/wishes-adult1/items/w2')),
+      setDoc(doc(as(env, NEIGHBOUR), 'giftLists/wishes-adult1/claims/w2'), newClaim(NEIGHBOUR)),
+    ]);
+    // The author may always remove their wish (a refusal would tell them it is reserved).
+    assert.equal(results[0].status, 'fulfilled');
+    const left = await stored(async (db) => (await getDoc(doc(db, 'giftLists/wishes-adult1/claims/w2'))).exists());
+    // Either the reservation was refused, or it came first and the Cloud Function removes it with
+    // the wish (onGiftItemChanged, tested in functions/test/gifts.test.ts).
+    assert.equal(left, results[1].status === 'fulfilled');
+    // Once the wish is gone, nobody reserves it any more.
+    await env.withSecurityRulesDisabled(async (ctx) => deleteDoc(doc(ctx.firestore(), 'giftLists/wishes-adult1/claims/w2')));
+    await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'giftLists/wishes-adult1/claims/w2'), newClaim(OTHER_ADULT)));
+  });
+});
+
 // Récit 9 ter: one list of wishes per person, and « Idées de la famille » (ideas-{member}), which
 // the whole family reads but the person, never revealed to them, « Voir comme » included.
 describe('the ideas of the family (récit 9 ter)', () => {
