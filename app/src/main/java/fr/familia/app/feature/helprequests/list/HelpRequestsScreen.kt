@@ -91,6 +91,9 @@ fun HelpRequestsScreen(
                         icon = Icons.Outlined.VolunteerActivism,
                         title = stringResource(R.string.helprequest_empty_title),
                         body = stringResource(R.string.helprequest_empty_body),
+                        action = {
+                            Button(onClick = onAsk, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.helprequest_empty_action)) }
+                        },
                     )
                 } else if (r1bis) {
                     R1bisRequestList(state, onOpenRequest, onTake, onDecline, showTitle)
@@ -98,7 +101,8 @@ fun HelpRequestsScreen(
                     RequestList(state, onOpenRequest)
                 }
         }
-        if (state !is HelpRequestsUiState.Loading) {
+        // Empty, the screen keeps a single action: the button of its message.
+        if (state !is HelpRequestsUiState.Loading && !(state is HelpRequestsUiState.Success && state.isEmpty)) {
             ExtendedFloatingActionButton(
                 onClick = onAsk,
                 icon = { Icon(Icons.Outlined.Add, contentDescription = null) },

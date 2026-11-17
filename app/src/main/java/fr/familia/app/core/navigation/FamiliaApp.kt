@@ -949,6 +949,7 @@ fun FamiliaApp(
                                 navController.navigate(HostChallengeDestination(month.year, month.monthValue)) { launchSingleTop = true }
                             },
                             onOpenWeekly = { navController.navigate(WeeklyQuestionDestination()) },
+                            onShareGoodNews = if (goodNewsOn) ({ navController.navigate(GoodNewsEditDestination()) }) else null,
                         )
                     }
                     composable<HostChallengeDestination> { entry ->
@@ -1575,6 +1576,7 @@ fun FamiliaApp(
                             questionId = entry.toRoute<WeeklyQuestionDestination>().questionId,
                             onBack = { navController.popBackStack() },
                             onArchive = { navController.navigate(WeeklyArchiveDestination) { launchSingleTop = true } },
+                            onShareGoodNews = if (goodNewsOn) ({ navController.navigate(GoodNewsEditDestination()) }) else null,
                         )
                     }
                     composable<MemberProfileDestination> { entry ->
@@ -1593,6 +1595,7 @@ fun FamiliaApp(
                             container = container,
                             onOpen = { id -> navController.navigate(WeeklyQuestionDestination(id)) },
                             onBack = { navController.popBackStack() },
+                            onShareGoodNews = if (goodNewsOn) ({ navController.navigate(GoodNewsEditDestination()) }) else null,
                         )
                     }
                     composable<GoodNewsEditDestination> { entry ->

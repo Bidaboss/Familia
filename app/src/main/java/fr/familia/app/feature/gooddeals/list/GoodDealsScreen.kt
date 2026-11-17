@@ -92,7 +92,9 @@ fun GoodDealsScreen(
                     EmptyState(
                         icon = Icons.Outlined.LocalOffer,
                         title = stringResource(R.string.gooddeal_empty_title),
-                        body = stringResource(R.string.gooddeal_empty_body),
+                        // A child cannot publish (the rules too): the message says who does, with no button.
+                        body = stringResource(if (state.canPublish) R.string.gooddeal_empty_body else R.string.gooddeal_empty_body_child),
+                        action = { if (state.canPublish && onPublish != null) Button(onClick = { choosing = true }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.gooddeal_empty_action)) } },
                     )
                 } else {
                     // The bottom padding keeps the last card above the « Publier » button.
@@ -117,7 +119,7 @@ fun GoodDealsScreen(
                     }
                 }
         }
-        if (state is GoodDealsUiState.Success && state.canPublish && onPublish != null) {
+        if (state is GoodDealsUiState.Success && state.canPublish && onPublish != null && !(state.deals.isEmpty() && !state.hasAddresses)) {
             ExtendedFloatingActionButton(
                 onClick = { choosing = true },
                 icon = { Icon(Icons.Outlined.Add, contentDescription = null) },

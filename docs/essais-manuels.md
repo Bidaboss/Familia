@@ -902,6 +902,13 @@ Il faut trois téléphones de test (A, B, C) et le module « La bienvenue » all
 4. Depuis B, publie cinq bonnes nouvelles en quelques minutes. **Attendu :** A reçoit les trois premières, puis plus rien. Une heure environ après la première, A reçoit une seule notification « Dans Familia », « 2 notifications : … ». Pendant ce temps, un « Rejoins-moi » de B arrive tout de suite.
 5. Allume le Mode présentation. Connecte un nouveau membre, publie deux bonnes nouvelles et réagis à une autre depuis B. Éteins le mode. **Attendu :** pendant le mode, rien ne sonne sur A. À la fin, A reçoit au plus trois notifications : « … personnes ont rejoint Familia », une seule « Pendant la présentation » pour tout le reste, et à part une notification Cadeaux s'il y en avait.
 
+## Écrans vides et profils enfant
+
+Sur une famille où rien n'a encore été publié, ou en « Voir comme » sur un membre. Le téléphone a le réseau.
+1. Ouvre Entraide, puis Coups de main, Bons plans, Prêts et À qui le tour ?, puis les Bonnes nouvelles. **Attendu :** chaque écran vide a une phrase et un seul bouton (« Demander le premier », « Partager le premier », « Ajouter un objet », « Créer le premier tour », « Partager la première »). Le bouton flottant n'apparaît pas en plus. Le toucher ouvre le formulaire. Défis et Question de la semaine, avant leur date : « Partager une bonne nouvelle en attendant », qui ouvre le formulaire d'une bonne nouvelle.
+2. Publie une première chose sur chacun. **Attendu :** la liste remplace le message, et le bouton flottant revient.
+3. Recommence en « Voir comme » sur un enfant de 11 ans, puis de 16 ans. **Attendu :** Coups de main et Bonnes nouvelles gardent leur bouton, car un enfant peut demander et publier. Bons plans, Prêts et À qui le tour ? disent que ce sont les adultes qui les remplissent, sans aucun bouton. Aucun bouton ne finit sur un refus.
+
 ## Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible
 
 À faire avec le deuxième téléphone de test, une fois en mode avion, puis une fois en « 2G seulement » (réglages du téléphone, Réseau mobile, Type de réseau préféré), Wi-Fi coupé.
