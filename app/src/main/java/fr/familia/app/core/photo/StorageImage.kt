@@ -24,12 +24,15 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.Coil
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 
 /** The Storage of the app, given once by FamiliaApp. Null in previews and screenshots. */
 val LocalPhotoStorage = staticCompositionLocalOf<PhotoStorage?> { null }
@@ -49,8 +52,12 @@ fun StorageImage(
     contentDescription: String?,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
-    /** A small wheel while the photo comes, for a photo shown big (viewer, slideshow) on a weak network. */
-    showLoading: Boolean = false,
+    /**
+     * A small wheel while the photo comes: always for a photo shown big (viewer, slideshow); null,
+     * the default, shows it for any photo of 96 dp or more that takes over 0.4 s (retour du 17/11,
+     * « des loaders quand un chargement est un peu long »), never on a small thumbnail.
+     */
+    showLoading: Boolean? = null,
     /** Told once the photo cannot load, so a slideshow can go on to the next one. */
     onFailed: () -> Unit = {},
     /** Told when the photo shows, even after a failure (the network came back). */
@@ -63,6 +70,14 @@ fun StorageImage(
     var failed by remember(path, storage) { mutableStateOf(false) }
     var loaded by remember(path, storage) { mutableStateOf(false) }
     val showFailed = failed || (asked && url == null)
+    var big by remember { mutableStateOf(false) }
+    var waited by remember(path, storage) { mutableStateOf(false) }
+    LaunchedEffect(path, storage) {
+        delay(LOADING_DELAY_MILLIS)
+        waited = true
+    }
+    val density = LocalDensity.current
+    val wheel = showLoading ?: (big && waited)
     val failedNow by rememberUpdatedState(onFailed)
     LaunchedEffect(showFailed) { if (showFailed) failedNow() }
     // Asked again when the network comes back: a photo never seen then shows without leaving the screen.
@@ -92,7 +107,13 @@ fun StorageImage(
     } else {
         Modifier
     }
-    Box(modifier.then(described).background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
+    Box(
+        modifier
+            .then(described)
+            .onSizeChanged { size -> big = with(density) { minOf(size.width, size.height).toDp() } >= LOADING_MIN_SIZE }
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+        contentAlignment = Alignment.Center,
+    ) {
         val shown = url
         if (shown != null && !failed) {
             AsyncImage(
@@ -110,11 +131,17 @@ fun StorageImage(
         } else if (showFailed) {
             PhotoMissing()
         }
-        if (showLoading && !loaded && !showFailed && storage != null) {
+        if (wheel && !loaded && !showFailed && storage != null) {
             CircularProgressIndicator(Modifier.size(32.dp), color = MaterialTheme.colorScheme.onSurfaceVariant, strokeWidth = 3.dp)
         }
     }
 }
+
+/** A photo already on the phone shows within this: no wheel that flashes. */
+private const val LOADING_DELAY_MILLIS = 400L
+
+/** Below this, a thumbnail of a grid or a list: the clay background is enough. */
+private val LOADING_MIN_SIZE = 96.dp
 
 /** What a photo that cannot load shows: a picture drawing in the soft ink of the theme. */
 @Composable
