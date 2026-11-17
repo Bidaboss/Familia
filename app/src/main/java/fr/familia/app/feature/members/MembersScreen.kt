@@ -1,6 +1,7 @@
 package fr.familia.app.feature.members
 
 import androidx.compose.ui.res.pluralStringResource
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.ui.SectionLabel
 import fr.familia.app.core.theme.ClayTint
 import androidx.compose.runtime.getValue
@@ -71,7 +72,6 @@ import fr.familia.app.core.model.HouseholdGroup
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import java.time.LocalDate
-import java.time.ZoneId
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
@@ -121,7 +121,7 @@ fun MembersScreen(
      * households folded. Behind its switch, off for everyone until Kévin turns it on.
      */
     byHousehold: Boolean = false,
-    today: LocalDate = LocalDate.now(ZoneId.of("Europe/Paris")),
+    today: LocalDate = familyToday(),
 ) {
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var unfolded by rememberSaveable { mutableStateOf(listOf<String>()) }
