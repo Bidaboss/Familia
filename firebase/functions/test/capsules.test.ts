@@ -34,8 +34,10 @@ describe('against the emulator', () => {
     return { sent, send };
   }
 
-  // Saturday 26 June 2027, 00:30 in Paris (22:30 UTC the day before).
-  const morning = new Date('2027-06-25T22:30:00Z');
+  // Saturday 26 June 2027, 8 h 30 in Paris (6:30 UTC).
+  const morning = new Date('2027-06-26T06:30:00Z');
+  // The same day at 0 h 30 in Paris (22:30 UTC the day before): still the night.
+  const night = new Date('2027-06-25T22:30:00Z');
 
   beforeEach(async () => {
     await db.recursiveDelete(db.collection('members'));
@@ -51,6 +53,13 @@ describe('against the emulator', () => {
     batch.set(db.doc('capsules/today'), { ...sealed, recipientIds: ['ines', 'noe'], openAt: '2027-06-26' });
     batch.set(db.doc('capsules/later'), { ...sealed, recipientIds: ['ines'], openAt: '2027-06-27' });
     await batch.commit();
+  });
+
+  test('the capsule of the day waits for 8 h: nothing opens nor rings in the night', async () => {
+    const { sent, send } = fakeSender();
+    assert.deepEqual(await openDueCapsules(db, send, night), []);
+    assert.deepEqual(sent, []);
+    assert.deepEqual((await db.doc('capsules/today').get()).get('openedFor'), []);
   });
 
   test('the capsule of the day opens for its recipients, who are told once', async () => {

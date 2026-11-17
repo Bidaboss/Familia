@@ -187,7 +187,7 @@ Droits : seul le membre lui-même lit, ajoute ou supprime ses téléphones. Les 
 | `tree` | booléen, facultatif | `false` coupe l'avis « Défi réussi » (récit 35). Sans valeur, il est actif. |
 | `weekly` | booléen, facultatif | `false` coupe la famille « Rendez-vous de la semaine » (récit 6 quinquies) : la question de la semaine (récit 37), les souvenirs, le défi, le récap du dimanche et les vœux. Sans valeur, elle est active. |
 | `planning`, `reminders`, `gifts`, `comments`, `helpRequests`, `trips` | booléens, facultatifs | Un interrupteur par famille (récit 6 quinquies), avec `goodNews` et `weekly` ci-dessus. `false` coupe la famille. Sans valeur, elle est active. Les trois niveaux en tête de l'écran « Notifications » règlent ces interrupteurs d'un coup : « Tout » les allume, « L'essentiel » ne garde que `planning` et `reminders`, « Presque rien » les éteint tous (il reste ce qui me vise directement). Un interrupteur changé ensuite compte toujours, et l'écran montre le niveau qui correspond, ou aucun. |
-| `quietHours` | booléen, facultatif | `true` garde ce qui arrive entre 22 h et 8 h (heure de Paris) et l'envoie à 8 h, regroupé (récit 6 quinquies). Sans valeur, les heures calmes sont éteintes. |
+| `quietHours` | booléen, facultatif | Garde ce qui arrive entre 22 h et 8 h (heure de Paris) et l'envoie à 8 h en une seule notification, les surprises à part (récit 6 quinquies, rév. 266). Allumé sans valeur : seul `false`, choisi par le membre, l'éteint. |
 
 Droits : seul le membre lui-même lit et modifie ses réglages. L'appli écrit chaque réglage en fusion, pour ne pas effacer l'autre.
 
@@ -195,7 +195,7 @@ Le filtre (`functions/src/prefs.ts`) s'applique côté serveur à chaque envoi, 
 
 ### `quietQueue/{memberId}` (récit 6 quinquies)
 
-Les notifications gardées pendant les heures calmes d'un membre (`items`, chacune avec son heure, `heldAt`). À partir de 8 h, la tâche des 30 minutes les envoie, puis efface le document. Elle fait une notification par canal : une seule part telle quelle, plusieurs partent en « Cette nuit dans Familia » avec leurs titres. Une surprise garde ainsi son canal privé (`gifts`, `capsules`). Le document part avec le membre. Aucune règle ne l'ouvre, seules les fonctions l'utilisent.
+Les notifications gardées pendant les heures calmes d'un membre (`items`, chacune avec son heure, `heldAt`). À partir de 8 h, la tâche des 30 minutes les envoie, puis efface le document. Toute la nuit part en une seule notification, « Cette nuit dans Familia » avec ses titres (une seule part telle quelle), et chaque surprise à part sur son canal privé (`gifts`, `capsules`) : pas d'avalanche au réveil (rév. 266). Le document part avec le membre. Aucune règle ne l'ouvre, seules les fonctions l'utilisent.
 
 ### `config/presentation` et `presentationQueue/{memberId}` (récit 48, mode présentation)
 
@@ -739,7 +739,7 @@ Un message pour plus tard : un texte et jusqu'à 3 photos, pour des membres choi
 | `authorId`, `authorName` | texte | L'auteur et son prénom |
 | `createdAt` | horodatage | Heure du serveur |
 
-Droits : jusqu'au jour dit, seul l'auteur lit la capsule. Les destinataires ne savent même pas qu'elle existe, et l'admin principal ne la lit pas non plus. Le jour venu (heure de Paris), la tâche des 30 minutes (`openDueCapsules`, `functions/src/capsules.ts`) copie les destinataires dans `openedFor` et les prévient une fois (canal `capsules`), si le module « Capsules » est allumé. Ensuite, ils la lisent avec `openedFor array-contains <leur id>`, photos comprises. Une capsule ne se modifie jamais. Son auteur la supprime tant qu'elle est scellée (PRD rév. 187 : ouverte, elle devient un souvenir de ses destinataires), et `onCapsuleDeleted` efface alors ses photos. Si l'appli n'arrive pas à sceller la capsule après avoir envoyé des photos, elle les efface elle-même.
+Droits : jusqu'au jour dit, seul l'auteur lit la capsule. Les destinataires ne savent même pas qu'elle existe, et l'admin principal ne la lit pas non plus. Le jour venu (heure de Paris), à partir de 8 h, la tâche des 30 minutes (`openDueCapsules`, `functions/src/capsules.ts`) copie les destinataires dans `openedFor` et les prévient une fois (canal `capsules`), si le module « Capsules » est allumé. Ensuite, ils la lisent avec `openedFor array-contains <leur id>`, photos comprises. Une capsule ne se modifie jamais. Son auteur la supprime tant qu'elle est scellée (PRD rév. 187 : ouverte, elle devient un souvenir de ses destinataires), et `onCapsuleDeleted` efface alors ses photos. Si l'appli n'arrive pas à sceller la capsule après avoir envoyé des photos, elle les efface elle-même.
 
 ### `capsuleLeftovers/{memberId}`
 

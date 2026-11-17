@@ -980,3 +980,13 @@ Avec ton téléphone et deux téléphones de test, A et B, déjà connectés. Su
 4. Mets A en économie d'énergie, écran éteint, et publie une deuxième bonne nouvelle. **Attendu :** A sonne dans la minute.
 5. Sur A, réagis à la photo. Puis, sur ton téléphone, éteins le Mode présentation. **Attendu :** sur A, le résumé ne parle jamais de ta photo : elle a déjà sonné, elle ne compte pas deux fois.
 
+
+## Démo du 21 : la nuit et le réveil du 22 (rév. 266)
+
+Avec le deuxième téléphone de test, sur un compte qui n'a jamais ouvert ses réglages de notifications.
+
+1. Ta photo en haut à droite, puis les réglages des notifications. **Attendu :** « Calme la nuit » est déjà allumé.
+2. Après 22 h, depuis ton téléphone, publie une bonne nouvelle et réagis à une autre. **Attendu :** le deuxième téléphone ne sonne pas.
+3. Le lendemain, entre 8 h et 8 h 30. **Attendu :** une seule notification « Cette nuit dans Familia » avec les titres de la nuit. Une surprise (cadeaux, capsule) arriverait à part.
+4. Sur un compte où tu as éteint « Calme la nuit » toi-même, refais l'étape 2. **Attendu :** il sonne tout de suite, comme avant.
+5. Une capsule prévue pour aujourd'hui. **Attendu :** elle s'ouvre et sonne à partir de 8 h, jamais en pleine nuit.

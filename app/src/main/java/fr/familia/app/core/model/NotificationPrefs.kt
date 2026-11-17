@@ -27,10 +27,10 @@ enum class NotificationLevel(val on: Set<NotificationFamily>) {
     Minimal(emptySet()),
 }
 
-/** What a member chose. Without a document, everything is on and the quiet hours are off. */
+/** What a member chose. Without a document, everything is on, « Calme la nuit » too (rév. 266). */
 data class NotificationPrefs(
     val off: Set<NotificationFamily> = emptySet(),
-    val quietHours: Boolean = false,
+    val quietHours: Boolean = true,
 ) {
     fun isOn(family: NotificationFamily): Boolean = family !in off
 
@@ -42,7 +42,8 @@ data class NotificationPrefs(
         /** Reads the settings document; anything else than `false` keeps a family on. */
         fun from(data: Map<String, Any?>?): NotificationPrefs = NotificationPrefs(
             off = NotificationFamily.entries.filter { data?.get(it.key) == false }.toSet(),
-            quietHours = data?.get("quietHours") == true,
+            // On unless the member turned it off themselves.
+            quietHours = data?.get("quietHours") != false,
         )
     }
 }
