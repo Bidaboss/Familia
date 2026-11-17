@@ -8,10 +8,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.outlined.AddAPhoto
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -181,7 +179,7 @@ private fun Form(
                 singleLine = false,
             )
         }
-        if (photos != null && state.isNew) Photos(state, photos, showChildToggle = showStory)
+        if (photos != null && state.isNew) Photos(state, photos)
         if (state.saveFailed) {
             Text(stringResource(R.string.recipe_save_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
         }
@@ -202,7 +200,6 @@ private fun Form(
 class RecipeEditPhotoActions(
     val onAdd: (List<String>) -> Unit,
     val onRemove: (String) -> Unit,
-    val onChildInPhotos: (Boolean) -> Unit,
 )
 
 /**
@@ -210,7 +207,7 @@ class RecipeEditPhotoActions(
  * (no permission to ask), sent right after the recipe is saved.
  */
 @Composable
-private fun Photos(state: RecipeEditUiState.Editing, actions: RecipeEditPhotoActions, showChildToggle: Boolean) {
+private fun Photos(state: RecipeEditUiState.Editing, actions: RecipeEditPhotoActions) {
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(RECIPE_PHOTOS)) { uris ->
         if (uris.isNotEmpty()) actions.onAdd(uris.map { it.toString() })
     }
@@ -240,26 +237,6 @@ private fun Photos(state: RecipeEditUiState.Editing, actions: RecipeEditPhotoAct
                 Icon(Icons.Outlined.AddAPhoto, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text(if (state.photos.isEmpty()) stringResource(R.string.recipe_edit_add_photo) else stringResource(R.string.capsule_edit_add_photos, left))
-            }
-        }
-        if (showChildToggle && state.photos.isNotEmpty()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp)
-                    .toggleable(value = state.childInPhotos, enabled = !state.isSaving, role = Role.Checkbox, onValueChange = actions.onChildInPhotos),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Checkbox(checked = state.childInPhotos, onCheckedChange = null)
-                Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.recipe_child_in_photos), style = MaterialTheme.typography.bodyLarge)
-                    Text(
-                        stringResource(R.string.recipe_child_in_photos_help),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
             }
         }
     }

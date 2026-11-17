@@ -139,6 +139,6 @@ fun RecipeEditRoute(container: AppContainer?, currentMember: Member, recipeId: S
         viewModel::save,
         onBack,
         showStory = LocalFeatureFlags.current.isOn(Feature.RecipeBook),
-        photos = RecipeEditPhotoActions(viewModel::addPhotos, viewModel::removePhoto, viewModel::setChildInPhotos),
+        photos = RecipeEditPhotoActions(viewModel::addPhotos, viewModel::removePhoto),
     )
 }

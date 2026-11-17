@@ -79,24 +79,6 @@ class RecipeEditPhotosTest {
     }
 
     @Test
-    fun `the child box goes with the photos, and is ignored without any`() = runTest {
-        val repo = FakeRecipes()
-        val vm = RecipeEditViewModel(repo, FakeMembers(), "adult2", recipeId = null, photos = FakeAlbum(), uploader = FakeUploader())
-        vm.fill()
-        vm.setChildInPhotos(true)
-        vm.save()
-        assertFalse(repo.saved.single().first.childInPhotos)
-
-        val withPhoto = FakeRecipes()
-        val other = RecipeEditViewModel(withPhoto, FakeMembers(), "adult2", recipeId = null, photos = FakeAlbum(), uploader = FakeUploader())
-        other.fill()
-        other.addPhotos(listOf("content://a"))
-        other.setChildInPhotos(true)
-        other.save()
-        assertTrue(withPhoto.saved.single().first.childInPhotos)
-    }
-
-    @Test
     fun `no photo field when editing a recipe that exists`() = runTest {
         val apple = FakeRecipes().also {
             it.saveRecipe(fr.familia.app.core.model.Recipe("r1", "Gâteau", "", null, null, "farine", "Cuire.", emptyList(), "adult1", "Adult1", null), true)

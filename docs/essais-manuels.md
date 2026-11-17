@@ -722,7 +722,6 @@ Avec deux comptes adultes de foyers différents, et un compte enfant.
 1. Onglet Famille > Recettes > « Ajouter une recette ». Remplis le titre, les ingrédients et les étapes.
 2. Plus bas, sous « Photos du plat », touche « Ajouter une photo du plat ». Le sélecteur de photos d'Android s'ouvre, sans demander de permission. Choisis 2 photos.
 3. Les 2 photos s'affichent en petit, chacune avec « Retirer la photo ». Le bouton dit maintenant « Ajouter des photos (encore 1) ». Après une 3e photo, il disparaît.
-4. Si l'interrupteur du livre de recettes est allumé, la case « Un enfant est sur une des photos » apparaît sous les photos. Coche-la si un enfant y est.
-5. Touche « Enregistrer ». Le bouton affiche « Envoi de la photo 1 sur 2… », puis la recette s'ouvre avec ses photos dans « Photos du plat ».
-6. Sans réseau : la recette s'enregistre quand même. Les photos ne partent pas ; tu peux les ajouter plus tard depuis la recette.
-7. Ouvre une recette existante et touche « Modifier » : pas de champ photo dans le formulaire, les photos se gèrent sur la recette elle-même.
+4. Touche « Enregistrer ». Le bouton affiche « Envoi de la photo 1 sur 2… », puis la recette s'ouvre avec ses photos dans « Photos du plat ».
+5. Sans réseau : la recette s'enregistre quand même. Les photos ne partent pas ; tu peux les ajouter plus tard depuis la recette.
+6. Ouvre une recette existante et touche « Modifier » : pas de champ photo dans le formulaire, les photos se gèrent sur la recette elle-même.

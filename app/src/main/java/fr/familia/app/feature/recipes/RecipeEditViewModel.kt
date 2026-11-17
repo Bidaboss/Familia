@@ -76,8 +76,6 @@ sealed interface RecipeEditUiState {
         val saveFailed: Boolean = false,
         /** A new recipe only: the photos of the dish chosen on the phone, sent once it is saved. */
         val photos: List<String> = emptyList(),
-        /** A new recipe only: « Un enfant est sur une des photos » (récit 47), with the switch recipeBook. */
-        val childInPhotos: Boolean = false,
         /** Sending photo n after the recipe is written; null otherwise. */
         val sendingPhoto: Int? = null,
     ) : RecipeEditUiState {
@@ -172,12 +170,6 @@ class RecipeEditViewModel(
         _uiState.value = state.copy(photos = state.photos - uri)
     }
 
-    fun setChildInPhotos(childInPhotos: Boolean) {
-        val state = _uiState.value as? RecipeEditUiState.Editing ?: return
-        if (!state.isNew || state.isSaving) return
-        _uiState.value = state.copy(childInPhotos = childInPhotos)
-    }
-
     private fun keepDraft(form: RecipeForm) {
         savedState[DRAFT_TITLE] = form.title
         savedState[DRAFT_ORIGIN_MEMBER] = form.originMemberId.orEmpty()
@@ -251,7 +243,7 @@ class RecipeEditViewModel(
             authorName = original?.authorName ?: author.firstName,
             createdAt = original?.createdAt,
             story = form.story.trim(),
-            childInPhotos = original?.childInPhotos ?: (state.childInPhotos && state.photos.isNotEmpty()),
+            childInPhotos = original?.childInPhotos == true,
         )
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
