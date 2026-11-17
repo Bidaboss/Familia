@@ -1054,6 +1054,7 @@ Avant de commencer : **Administration**, puis **Modules**, et allume « Animatio
 7. Dans Réglages, puis Accessibilité, allume « Supprimer les animations », et rejoue-la. **Attendu :** le cercle, le titre et la phrase s'affichent d'un coup, sans mouvement, pendant une seconde et demie. Éteins ensuite ce réglage.
 8. En mode avion, rejoue-la après avoir fermé l'appli. **Attendu :** si la famille n'est pas encore lue, l'appli s'ouvre normalement au bout de 2 secondes et demie au plus, et l'animation attend la prochaine ouverture.
 9. Éteins le module, puis ouvre « Apparence » sur le deuxième téléphone. **Attendu :** la ligne « Revoir l'animation de bienvenue » n'y est plus.
+10. Module éteint, sur un téléphone qui ne l'a jamais vue : ferme et rouvre Familia deux fois. **Attendu :** à la deuxième ouverture, l'Accueil arrive presque tout de suite, sans écran vide. Rallume le module, puis rouvre Familia. **Attendu :** l'animation se joue.
 
 ## Beaucoup de photos lourdes d'un coup, depuis un petit téléphone
 

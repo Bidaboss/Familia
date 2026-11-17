@@ -194,6 +194,8 @@ import fr.familia.app.feature.albums.AlbumsDestination
 import fr.familia.app.feature.albums.AlbumsRoute
 import fr.familia.app.feature.settings.appearance.AppearanceScreen
 import fr.familia.app.core.welcome.WelcomeHost
+import fr.familia.app.core.welcome.WELCOME_OFF_WAIT_MILLIS
+import fr.familia.app.core.welcome.WELCOME_WAIT_MILLIS
 import fr.familia.app.core.welcome.WelcomePreferences
 import fr.familia.app.feature.settings.appearance.ThemePreferences
 import fr.familia.app.core.theme.FamiliaClay
@@ -389,9 +391,14 @@ fun FamiliaApp(
             family = welcomeFamily,
             config = welcomeConfig,
             me = currentMember,
-            onPlayed = { welcome.seen = true },
+            onPlayed = {
+                welcome.seen = true
+                welcome.knownOff = false
+            },
             onDone = { showWelcome = false },
             photos = welcomePhotos,
+            waitMillis = if (welcome.knownOff) WELCOME_OFF_WAIT_MILLIS else WELCOME_WAIT_MILLIS,
+            onModuleOff = { welcome.knownOff = true },
         )
         return
     }
