@@ -535,3 +535,20 @@ Avec l'interrupteur « Partager » allumé :
 2. Sur un téléphone prévenu, ouvre la demande : la photo est entière, sans être coupée. Touche-la : elle s'ouvre en grand sur fond noir, prête à être scannée. « Fermer » revient à la demande.
 3. Sur le téléphone d'un membre non prévenu, la demande n'apparaît pas, et la photo non plus.
 4. Modifie la demande, touche « Retirer la photo », enregistre : elle disparaît pour tout le monde.
+
+## Nouvelle présentation « R1 bis » (spec DESIGN du 17/11)
+
+Interrupteur « Nouvelle présentation » (presentationR1bis), allumé par défaut, admin principal compris. L'éteindre dans Administration rend l'ancienne présentation à tout le monde.
+
+1. Ouvre l'**Accueil**. **Attendu :** « Bonjour » et ton prénom en titre, puis « + », « ? » et ta photo en haut ; la frise des 7 jours à partir d'aujourd'hui, aujourd'hui entouré.
+2. Touche un autre jour de la frise. **Attendu :** il passe en noir, aujourd'hui garde son contour, et la carte dessous montre ce jour : heure, trait de couleur, quoi. Un jour vide dit « Rien de prévu. Une journée tranquille. ».
+3. Un jour avec 2 événements ou plus. **Attendu :** un petit rond avec le nombre en haut à droite de la case. TalkBack lit « Mercredi 18, 2 événements ».
+4. Un événement auquel tu n'as pas répondu. **Attendu :** une carte dans « À faire » avec « J'y vais » et « Non ». Touche « J'y vais » : la carte disparaît, et l'événement te compte parmi ceux qui viennent.
+5. Touche « + ». **Attendu :** Un événement, Une bonne nouvelle, Une envie, Un coup de main (2 × 2), puis Annuler. Chaque choix ouvre son formulaire.
+6. Touche « Tout Familia ». **Attendu :** « Chercher un module », puis les modules en ronds sous S'organiser, Se faire plaisir et Se souvenir. Tape « ou je » : seul « Où je suis » reste.
+7. Onglet **Famille**. **Attendu :** « Nous N, en M foyers », une carte de couleur par foyer avec tous ses membres, puis « Nos trésors ». Deux prénoms qui commencent par la même lettre ont deux lettres dans leur pastille.
+8. Onglet **Planning**. **Attendu :** « Semaine » d'abord, la frise du lundi au dimanche, les flèches changent de semaine, « Aujourd'hui » revient à cette semaine.
+9. En Classique clair, regarde le fond. **Attendu :** de petits pépins discrets ; en Contraste fort, aucun motif. L'onglet allumé est dans une pilule jaune.
+10. Taille de police à 130 % puis 200 % : la frise défile de côté, rien ne passe sous la barre du bas.
+11. Sur une tablette (ou en paysage large) : le rail de navigation à gauche, « + » en tête sur l'Accueil, l'Accueil sur deux colonnes.
+12. Dans Administration, éteins « Nouvelle présentation ». **Attendu :** l'ancien Accueil revient, pour toi aussi. Rallume-la.
