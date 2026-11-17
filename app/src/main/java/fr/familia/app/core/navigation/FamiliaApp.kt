@@ -23,7 +23,9 @@ import fr.familia.app.feature.update.availableUpdate
 import fr.familia.app.feature.update.InAppUpdateDialogs
 import fr.familia.app.feature.update.LocalInAppUpdater
 import fr.familia.app.feature.update.rememberInAppUpdater
+import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Feature
+import fr.familia.app.core.model.memberInitials
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.notifications.NotificationChannels
 import fr.familia.app.core.model.FeatureFlags
@@ -32,7 +34,6 @@ import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.update.UpdateCheckRoute
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.Column
@@ -110,6 +111,7 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.ideasListId
 import fr.familia.app.core.model.NotebookOccasion
 import fr.familia.app.core.model.wishesListId
+import fr.familia.app.core.ui.LocalMemberInitials
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.OfflineBanner
 import fr.familia.app.core.ui.rememberMemberPhotos
@@ -366,10 +368,11 @@ fun FamiliaApp(
 
     // Modules still in test are shown to the admin principal only, until switched on in
     // Administration (config/app.features). The owner is read from the live family.
-    val ownerFlow = remember(container) {
-        container?.memberRepository?.observeFamily()?.map { it.ownerId }?.catch { emit(null) } ?: flowOf(null)
+    val liveFamilyFlow = remember(container) {
+        container?.memberRepository?.observeFamily()?.catch { emit(Family(emptyList(), emptyList())) } ?: flowOf(null)
     }
-    val ownerId by ownerFlow.collectAsStateWithLifecycle(initialValue = null)
+    val liveFamily by liveFamilyFlow.collectAsStateWithLifecycle(initialValue = null)
+    val ownerId = liveFamily?.ownerId
     val features = FeatureFlags(appConfig?.features.orEmpty(), isOwner = ownerId != null && ownerId == currentMember.id)
 
     // « Partager » to Familia (récit 8 bis): in the share menu only with its module, and a shared
@@ -551,6 +554,9 @@ fun FamiliaApp(
     CompositionLocalProvider(
         LocalOpenHelp provides { navController.navigate(HelpDestination) { launchSingleTop = true } },
         LocalMemberPhotos provides photos,
+        LocalMemberInitials provides remember(liveFamily?.members, features.isOn(Feature.PresentationR1bis)) {
+            if (features.isOn(Feature.PresentationR1bis)) memberInitials(liveFamily?.members.orEmpty()) else emptyMap()
+        },
         LocalFeatureFlags provides features,
         LocalDiscoverOrder provides remember(appConfig?.discoverOrder) { Discover.order(appConfig?.discoverOrder.orEmpty()) },
         LocalInAppUpdater provides updater,
