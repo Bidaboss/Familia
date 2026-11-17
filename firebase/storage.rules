@@ -259,6 +259,14 @@ service firebase.storage {
       allow delete: if isMember() && authorId == myMemberId();
     }
 
+    // giftLists/{listId}/received/{receivedId}/photo.jpg and photo-thumb.jpg (rév. 237): the photo of
+    // a wish revealed to « On m'a offert », copied there by the server only. The wish was already
+    // seen by the whole family, and an idea by all but the person, who now got it: every member
+    // reads it. Nobody writes or removes it; deleting the list removes it with the rest.
+    match /giftLists/{listId}/received/{receivedId}/{fileName} {
+      allow read: if isMember() && giftList(listId).kind == 'wishes';
+    }
+
     // Capsule temporelle (PRD, récit 39): capsules/{authorId}/{capsuleId}/{n}.jpg and {n}-thumb.jpg,
     // n from 1 to 3, sent by the author before the document capsules/{capsuleId}. The author reads
     // them; the recipients only once the server opened the capsule. Deleting it removes them.
