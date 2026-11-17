@@ -231,6 +231,8 @@ import fr.familia.app.feature.events.album.EventAlbumDestination
 import fr.familia.app.feature.events.album.EventAlbumRoute
 import fr.familia.app.feature.month.MonthSlideshowDestination
 import fr.familia.app.feature.month.MonthSlideshowRoute
+import fr.familia.app.feature.yearinreview.YearInReviewDestination
+import fr.familia.app.feature.yearinreview.YearInReviewRoute
 import fr.familia.app.feature.month.slideshowMonthOf
 import fr.familia.app.feature.recipes.RecipeDetailDestination
 import fr.familia.app.feature.recipes.RecipeDetailRoute
@@ -1434,6 +1436,15 @@ fun FamiliaApp(
                             onPublish = { navController.navigate(GoodNewsEditDestination()) },
                             onOpen = { id -> navController.navigate(GoodNewsDetailDestination(id)) },
                             onEdit = { id -> navController.navigate(GoodNewsEditDestination(id)) },
+                            onBack = { navController.popBackStack() },
+                            onOpenYear = { year -> navController.navigate(YearInReviewDestination(year)) { launchSingleTop = true } },
+                        )
+                    }
+                    composable<YearInReviewDestination> { entry ->
+                        YearInReviewRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            year = entry.toRoute<YearInReviewDestination>().year,
                             onBack = { navController.popBackStack() },
                         )
                     }

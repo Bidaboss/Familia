@@ -737,3 +737,15 @@ Avec deux comptes adultes de foyers différents, et un compte enfant.
 1. Entraide, « Demander un coup de main ». **Attendu :** sous « Qui prévenir », le raccourci « Tout le monde », puis les adultes rangés par foyer, ton foyer d'abord. Chaque foyer a sa propre case.
 2. Coche la case d'un foyer. **Attendu :** tous ses adultes sont cochés. Décoche un seul adulte : la case du foyer est à moitié cochée. Touche-la encore : tout le foyer est coché, puis décoché.
 3. Avec le compte enfant, demande un coup de main. **Attendu :** son parent est marqué « Toujours prévenu pour un enfant » et reste coché, même si tu décoches son foyer.
+
+## Notre année en famille (récit 55)
+
+Avec l'interrupteur « Notre année » allumé dans Administration. Avant le 26/12, seul l'admin principal voit le récit : il montre l'année en cours jusqu'à aujourd'hui (date simulée). Un autre membre ne voit rien avant le 26/12.
+
+1. Bonnes nouvelles, avec le compte de l'admin principal. **Attendu :** en haut du fil, « Revoir notre année 2026 ». Avec un autre compte, avant le 26/12 : pas de bouton.
+2. Touche-le. **Attendu :** un récit plein écran, avec des traits en haut pour les pages et « Page 1 sur … ». La première page dit « Notre année 2026 ».
+3. Touche la droite de l'écran. **Attendu :** la page suivante. La gauche revient en arrière, et le bouton retour d'Android aussi.
+4. Les pages, dans l'ordre et seulement s'il y a de quoi les remplir : les chiffres de la famille (bonnes nouvelles, moments vécus ensemble, coups de main rendus), au plus 4 photos parmi les plus aimées, le voyage le plus long déjà fini, les enfants nés dans l'année, une question de la semaine avec trois réponses, puis « Merci à toute la famille ». **Attendu :** aucun prénom n'est classé ni compté, et rien ne parle de cadeaux, de réservations ni de capsules.
+5. Masque pour toi une bonne nouvelle avec photo, très aimée, puis rouvre le récit. **Attendu :** sa photo n'y est plus.
+6. Dernière page, « Fermer ». **Attendu :** retour à Bonnes nouvelles.
+7. Interrupteur éteint. **Attendu :** pas de bouton « Revoir », même pour l'admin principal.

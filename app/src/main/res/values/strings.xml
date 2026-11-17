@@ -2525,4 +2525,35 @@
     <string name="carpool_need_title">Qui a besoin d\'une place ?</string>
     <string name="carpool_needs">Cherchent une place : %1$s</string>
     <string name="carpool_failed">Ça n\'a pas marché. Il n\'y a peut-être plus de place : regarde la fiche à nouveau.</string>
+    <!-- Récit 55 : Notre année en famille -->
+    <string name="feature_year_in_review">Notre année</string>
+    <string name="year_title">Notre année %1$d</string>
+    <string name="year_intro_body">Quelques images de l\'année de la famille. Touche la droite de l\'écran pour avancer, la gauche pour revenir.</string>
+    <string name="year_numbers_title">En %1$d, la famille a partagé</string>
+    <plurals name="year_numbers_good_news">
+        <item quantity="one">%d bonne nouvelle</item>
+        <item quantity="other">%d bonnes nouvelles</item>
+    </plurals>
+    <plurals name="year_numbers_events">
+        <item quantity="one">%d moment vécu ensemble</item>
+        <item quantity="other">%d moments vécus ensemble</item>
+    </plurals>
+    <plurals name="year_numbers_helps">
+        <item quantity="one">%d coup de main rendu</item>
+        <item quantity="other">%d coups de main rendus</item>
+    </plurals>
+    <string name="year_photos_title">Les photos qui vous ont plu</string>
+    <string name="year_photo_by">Photo publiée par %1$s</string>
+    <string name="year_trip_title">Le voyage de l\'année</string>
+    <string name="year_trip_dates">Du %1$s au %2$s</string>
+    <string name="year_newcomers_title">Bienvenue dans la famille</string>
+    <string name="year_question_title">Une question de la semaine</string>
+    <string name="year_answer">« %1$s », %2$s</string>
+    <string name="year_thanks_title">Merci à toute la famille</string>
+    <string name="year_thanks_body">Vivement l\'année prochaine.</string>
+    <string name="year_close">Fermer</string>
+    <string name="year_next">Page suivante</string>
+    <string name="year_previous">Page précédente</string>
+    <string name="year_page">Page %1$d sur %2$d</string>
+    <string name="year_again">Revoir notre année %1$d</string>
 </resources>
