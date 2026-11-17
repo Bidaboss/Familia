@@ -5,7 +5,7 @@
   "main": "lib/src/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "node --test --test-concurrency=1 lib/test/*.test.js"
+    "test": "node --test --test-concurrency=1 --require ./lib/test/setup.js lib/test/*.test.js"
   },
   "engines": {
     "node": "22"
