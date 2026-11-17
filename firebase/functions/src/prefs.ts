@@ -175,7 +175,13 @@ export async function presentingNow(db: Firestore, now: Date): Promise<boolean> 
 export async function deliver<N extends Filtered>(db: Firestore, send: AnySender<N>, memberIds: string[], notice: N, now: Date = new Date()): Promise<number> {
   const { now: ready, later } = await audience(db, memberIds, notice, now);
   // Every send looks at the mode présentation, so its end is seen at the first send that follows.
-  const presenting = await presentingNow(db, now);
+  // A failed read of config/presentation never stops a notice: it then goes as usual.
+  let presenting = false;
+  try {
+    presenting = await presentingNow(db, now);
+  } catch (e) {
+    console.error('presentation: read failed', e);
+  }
   if (presenting && heldByPresentation(notice) && ready.length + later.length > 0) {
     const item = { ...JSON.parse(JSON.stringify(notice)), heldAt: now.toISOString() };
     const batch = db.batch();
