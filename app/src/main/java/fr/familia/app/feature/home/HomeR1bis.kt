@@ -116,6 +116,8 @@ fun HomeR1bisScreen(
     goodDeal: (@Composable () -> Unit)? = null,
     /** « Notre année en famille », from 26/12 to 10/01, at the end of the list (it shows nothing otherwise). */
     yearInReview: (@Composable () -> Unit)? = null,
+    /** « Mes premiers pas » (récit 61), right after the chosen day, only while it has something to show. */
+    firstSteps: (@Composable () -> Unit)? = null,
 ) {
     val ready = state as? HomeUiState.Ready ?: return
     var chosen by rememberSaveable { mutableStateOf(ready.today.toEpochDay()) }
@@ -161,6 +163,7 @@ fun HomeR1bisScreen(
                     LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         item(key = "frise") { frise() }
                         item(key = "day") { detail() }
+                        if (firstSteps != null) item(key = "firstSteps") { firstSteps() }
                         item(key = "buttons") { buttons() }
                     }
                     LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -173,6 +176,7 @@ fun HomeR1bisScreen(
                 maxWidth >= 600.dp -> LazyColumn(contentPadding = padding, verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     item(key = "frise") { frise() }
                     item(key = "day") { detail() }
+                    if (firstSteps != null) item(key = "firstSteps") { firstSteps() }
                     item(key = "columns") {
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             Box(Modifier.weight(1f)) { todo() }
@@ -187,6 +191,7 @@ fun HomeR1bisScreen(
                 else -> LazyColumn(contentPadding = padding, verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     item(key = "frise") { frise() }
                     item(key = "day") { detail() }
+                    if (firstSteps != null) item(key = "firstSteps") { firstSteps() }
                     if (hasTodo || calm) item(key = "todo") { todo() }
                     if (goodNews != null || challenge != null) item(key = "news-challenge") { newsAndChallenge() }
                     if (nowTravelling != null) item(key = "now") { nowTravelling() }

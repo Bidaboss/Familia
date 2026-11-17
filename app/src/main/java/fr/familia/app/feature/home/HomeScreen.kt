@@ -1,5 +1,6 @@
 package fr.familia.app.feature.home
 
+import fr.familia.app.feature.firststeps.rememberFirstSteps
 import fr.familia.app.feature.gooddeals.GoodDealHomeChip
 
 import fr.familia.app.feature.helprequests.todo.rememberHelpRequestTodos
@@ -168,6 +169,8 @@ fun HomeRoute(
     onOpenGoodDeal: (String) -> Unit = {},
     /** « Notre année en famille », from 26/12 to 10/01: opens the year. */
     onOpenYear: (Int) -> Unit = {},
+    /** My profile, where « Goûts et passions » is filled (« Mes premiers pas », récit 61). */
+    onOpenMyProfile: () -> Unit = {},
 ) {
     val flags = LocalFeatureFlags.current
     val giftsOn = flags.isOn(Feature.Gifts)
@@ -278,6 +281,7 @@ fun HomeRoute(
         }
         HomeR1bisScreen(
             state = shownState,
+            firstSteps = rememberFirstSteps(container, currentMember, onOpenTastes = onOpenMyProfile, onOpenGoodNews = onOpenGoodNewsFeed),
             challenge = if (hasChallenge) {
                 { modifier, wide -> ChallengeHomeCard(container, currentMember, wide, onOpen = onOpenChallenges, onAddPhoto = onJoinChallenge, modifier = modifier) }
             } else {

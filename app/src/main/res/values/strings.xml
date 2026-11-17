@@ -2601,6 +2601,21 @@
     <string name="reminders_defaults_title">Rappels quand je viens</string>
     <string name="reminders_defaults_help">Quand tu réponds « Je viens », Familia te le rappelle à ces moments-là, sauf si tu choisis autre chose sur l\'événement. C\'est privé.</string>
     <string name="feature_turns">À qui le tour ?</string>
+    <string name="feature_first_steps">Mes premiers pas</string>
+    <!-- Mes premiers pas (récit 61) -->
+    <string name="first_steps_title">Mes premiers pas</string>
+    <string name="first_steps_body">Trois petits gestes pour bien commencer dans Familia.</string>
+    <string name="first_steps_photo">Mettre ma photo</string>
+    <string name="first_steps_tastes">Remplir « Goûts et passions »</string>
+    <string name="first_steps_reaction">Réagir à une bonne nouvelle</string>
+    <string name="first_steps_done">Fait</string>
+    <string name="first_steps_to_do">À faire</string>
+    <string name="first_steps_later">Plus tard</string>
+    <string name="first_steps_never">Ne plus afficher</string>
+    <string name="first_steps_bravo_title">Bravo, c\'est parti !</string>
+    <string name="first_steps_bravo_body">La famille te reconnaît déjà. Bonne découverte de Familia !</string>
+    <string name="first_steps_close">Fermer</string>
+    <string name="first_steps_photo_failed">La photo n\'a pas pu être enregistrée. Vérifie le réseau, puis réessaie.</string>
     <string name="feature_packing_list">À emporter</string>
     <string name="year_title">Notre année %1$d</string>
     <string name="year_intro_body">Quelques images de l\'année de la famille. Touche la droite de l\'écran pour avancer, la gauche pour revenir.</string>
