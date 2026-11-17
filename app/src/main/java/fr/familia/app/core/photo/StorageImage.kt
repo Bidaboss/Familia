@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,6 +27,9 @@ import kotlinx.coroutines.CancellationException
 
 /** The Storage of the app, given once by FamiliaApp. Null in previews and screenshots. */
 val LocalPhotoStorage = staticCompositionLocalOf<PhotoStorage?> { null }
+
+/** Whether the phone has the network, given once by MainActivity: a photo that failed tries again when it comes back. */
+val LocalOnline = compositionLocalOf { true }
 
 /**
  * A photo kept in Storage at [path]. A photo already seen shows at once from the phone, even with a
@@ -41,11 +45,14 @@ fun StorageImage(
     contentScale: ContentScale = ContentScale.Crop,
 ) {
     val storage = LocalPhotoStorage.current
+    val online = LocalOnline.current
     var url by remember(path, storage) { mutableStateOf(storage?.knownUrl(path)) }
     var asked by remember(path, storage) { mutableStateOf(false) }
     var failed by remember(path, storage) { mutableStateOf(false) }
-    LaunchedEffect(path, storage) {
+    // Asked again when the network comes back: a photo never seen then shows without leaving the screen.
+    LaunchedEffect(path, storage, online) {
         val photos = storage ?: return@LaunchedEffect
+        if (online) failed = false
         val link = try {
             photos.downloadUrl(path)
         } catch (e: CancellationException) {
