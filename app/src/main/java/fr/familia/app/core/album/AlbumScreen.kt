@@ -49,10 +49,10 @@ fun AlbumScreen(
     state: AlbumPhotosUiState,
     actions: PhotoActions,
     onBack: () -> Unit,
-    actionsBar: @Composable () -> Unit = {},
-    top: @Composable () -> Unit = {},
     /** Opened on this photo once it is there (« Il y a N ans », récit 36). */
     startPhotoId: String? = null,
+    actionsBar: @Composable () -> Unit = {},
+    top: @Composable () -> Unit = {},
 ) {
     var openedId by rememberSaveable { mutableStateOf<String?>(null) }
     var startDone by rememberSaveable { mutableStateOf(startPhotoId == null) }
