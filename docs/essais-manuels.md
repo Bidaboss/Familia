@@ -1115,3 +1115,13 @@ Avec le module « Voir le planning dans mon agenda » allumé (ou sur le télép
 2. Sur le téléphone de l'admin principal : **Administration**, puis la carte « Liens d'agenda ». **Attendu :** tous les adultes, rangés par foyer, chacun avec un bouton « Couper le lien de {prénom} ».
 3. Touche le bouton de cet adulte, puis « Couper ». **Attendu :** « Le lien de {prénom} est coupé. » s'affiche. Sur son téléphone, l'écran du lien d'agenda propose d'en créer un nouveau.
 4. Coupe le lien d'un adulte qui n'en avait pas. **Attendu :** le même message, et rien ne change pour lui.
+
+## Bon plan mis en avant sur l'Accueil
+
+Avec le module « Bons plans » allumé. Deux téléphones : celui qui publie, celui qui regarde.
+
+1. Sur le premier téléphone, publie un bon plan avec une photo. Sur le second, ouvre l'Accueil. **Attendu :** une carte « BON PLAN » avec la photo en large, coupée proprement aux bords arrondis, le titre, puis « {prénom} · Aujourd'hui à … ».
+2. Touche la carte. **Attendu :** le bon plan s'ouvre.
+3. Publie un bon plan sans photo. **Attendu :** la carte montre le titre, l'auteur et le début du texte, sans cadre vide.
+4. Sur le téléphone qui a publié. **Attendu :** pas de carte : on ne voit pas son propre bon plan.
+5. Deux jours plus tard, ou après la fin du bon plan. **Attendu :** la carte disparaît.
