@@ -128,8 +128,13 @@ export async function sendMyReminders(db: Firestore, send: AnySender<ReminderNot
   if (events.empty) return 0;
 
   const members = await db.collection('members').get();
+  const only = await featureAudience(db, MY_REMINDERS);
+  // Switch off: only the admin principal is read, not the settings of the whole family.
+  const audience = new Set(only(members.docs.map((m) => m.id)));
+  if (audience.size === 0) return 0;
   const choices = new Map<string, Choice>();
   for (const m of members.docs) {
+    if (!audience.has(m.id)) continue;
     const settings = await m.ref.collection('settings').doc('notifications').get();
     const defaults = offsetsFrom(settings.get('defaultReminders'));
     choices.set(m.id, { byEvent: new Map(), bySeries: new Map(), defaults, quietHours: prefsFrom(settings.data()).quietHours });
@@ -148,7 +153,8 @@ export async function sendMyReminders(db: Firestore, send: AnySender<ReminderNot
     else if (typeof seriesId === 'string' && doc.id === `series-${seriesId}`) choice.bySeries.set(seriesId, offsets);
   }
   const anyDefaults = [...choices.values()].some((c) => c.defaults.length > 0);
-  const only = await featureAudience(db, MY_REMINDERS);
+  // Nothing asked by anyone and no defaults: no event needs reading further.
+  if (!anyDefaults && ![...choices.values()].some((c) => c.byEvent.size > 0 || c.bySeries.size > 0)) return 0;
 
   let sent = 0;
   for (const eventDoc of events.docs) {
@@ -161,7 +167,6 @@ export async function sendMyReminders(db: Firestore, send: AnySender<ReminderNot
       rsvps.docs.forEach((r) => coming.add(r.id));
     }
     for (const [memberId, choice] of choices) {
-      if (only([memberId]).length === 0) continue;
       for (const offset of offsetsFor(choice, eventDoc.id, event.seriesId ?? null, coming.has(memberId))) {
         const planned = reminderAt(event.date, event.time ?? null, offset);
         const at = planned && shiftedAt(planned, offset, choice.quietHours === true);
@@ -187,4 +192,13 @@ export async function sendMyReminders(db: Firestore, send: AnySender<ReminderNot
 export async function deleteEventReminders(db: Firestore, eventId: string): Promise<void> {
   const asked = await db.collectionGroup('reminders').where('eventId', '==', eventId).get();
   await Promise.all(asked.docs.filter((d) => d.ref.parent.parent?.parent.id === 'members').map((d) => d.ref.delete()));
+}
+
+/**
+ * A deleted series takes its « toutes les fois » reminders with it, in every member's list. One
+ * document per member, by its known id: no index needed, a missing one is fine.
+ */
+export async function deleteSeriesReminders(db: Firestore, seriesId: string): Promise<void> {
+  const members = await db.collection('members').get();
+  await Promise.all(members.docs.map((m) => m.ref.collection('reminders').doc(`series-${seriesId}`).delete()));
 }

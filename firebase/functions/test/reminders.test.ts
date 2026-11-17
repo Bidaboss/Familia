@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import {
-  deleteEventReminders, myReminderNotice, offsetsFor, offsetsFrom, parisInstant, reminderAt, sendMyReminders, shiftedAt, type ReminderNotice,
+  deleteEventReminders, deleteSeriesReminders, myReminderNotice, offsetsFor, offsetsFrom, parisInstant, reminderAt, sendMyReminders, shiftedAt, type ReminderNotice,
 } from '../src/reminders';
 import type { EventData } from '../src/logic';
 
@@ -141,6 +141,24 @@ describe('sending, against the emulator', () => {
     const { sent, send } = collect();
     await sendMyReminders(db, send, at14);
     assert.deepEqual(sent.map(([t, n]) => [t, n.title]).sort(), [['phone-camille', 'Dans 1 h : Piscine'], ['phone-ines', 'Dans 1 h : Piscine']]);
+  });
+
+  test('a deleted series takes its reminders with it, the others stay', async () => {
+    await db.doc('members/camille/reminders/series-s1').set({ seriesId: 's1', offsets: ['h1'] });
+    await db.doc('members/ines/reminders/series-s1').set({ seriesId: 's1', offsets: [] });
+    await db.doc('members/ines/reminders/series-s2').set({ seriesId: 's2', offsets: ['h1'] });
+    await deleteSeriesReminders(db, 's1');
+    assert.equal((await db.doc('members/camille/reminders/series-s1').get()).exists, false);
+    assert.equal((await db.doc('members/ines/reminders/series-s1').get()).exists, false);
+    assert.equal((await db.doc('members/ines/reminders/series-s2').get()).exists, true);
+  });
+
+  test('nobody asked anything: nothing is sent and no answer is read', async () => {
+    await db.doc('events/e1').set(piscine());
+    await db.doc('events/e1/rsvps/camille').set({ status: 'yes' });
+    const { sent, send } = collect();
+    assert.equal(await sendMyReminders(db, send, at14), 0);
+    assert.equal(sent.length, 0);
   });
 
   test('switch off, only the admin principal, who tries it, is reminded', async () => {
