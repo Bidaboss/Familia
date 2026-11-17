@@ -189,6 +189,7 @@ class ReadOnlyHelpRequestRepository(private val inner: HelpRequestRepository, pr
     override suspend fun setVolunteerNote(id: String, note: String?) = guard.refuse()
     override suspend fun withdraw(id: String) = guard.refuse()
     override suspend fun decline(id: String, memberId: String) = guard.refuse()
+    override suspend fun markUnavailable(id: String, memberId: String) = guard.refuse()
     override suspend fun thank(id: String) = guard.refuse()
     override suspend fun cancel(id: String) = guard.refuse()
 }

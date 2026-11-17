@@ -185,6 +185,24 @@ service firebase.storage {
                 != 'helpRequests/' + requestId + '/' + authorId + '/' + fileName.split('[-.]')[0]);
     }
 
+    // The photo of a bon plan (récit 45): goodDeals/{dealId}/{authorId}/{photoId}.jpg and its
+    // {photoId}-thumb.jpg, sent to the sender's own folder before its name goes in the field photo
+    // of the deal, where firestore.rules checks that they may write it. Every member reads it, as
+    // the deal. Never replaced; its sender removes it, and anyone removes a photo the deal no longer
+    // names. The server removes them with the deal.
+    match /goodDeals/{dealId}/{authorId}/{fileName} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && resource == null
+        && authorId == myMemberId()
+        && ((fileName.matches('^[A-Za-z0-9]{1,40}[.]jpg$') && isJpegUnder(512 * 1024))
+            || (fileName.matches('^[A-Za-z0-9]{1,40}-thumb[.]jpg$') && isJpegUnder(64 * 1024)));
+      allow delete: if isMember()
+        && (authorId == myMemberId()
+            || firestore.get(docPath('goodDeals/' + dealId)).data.get('photo', null)
+                != 'goodDeals/' + dealId + '/' + authorId + '/' + fileName.split('[-.]')[0]);
+    }
+
     // Capsule temporelle (PRD, récit 39): capsules/{authorId}/{capsuleId}/{n}.jpg and {n}-thumb.jpg,
     // n from 1 to 3, sent by the author before the document capsules/{capsuleId}. The author reads
     // them; the recipients only once the server opened the capsule. Deleting it removes them.

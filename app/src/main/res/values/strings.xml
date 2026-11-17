@@ -877,6 +877,22 @@
     <string name="help_topic_help_requests_title">Les coups de main</string>
     <string name="help_topic_help_requests_body">Dans l\'onglet Entraide, demande de l\'aide pour une date : garder un enfant, un trajet ou autre chose. Seules les personnes que tu coches voient la demande, et les parents d\'un enfant sont toujours prévenus. Le premier adulte qui touche « Je m\'en occupe » la prend. Tu peux la modifier, l\'annuler, la dupliquer pour une autre date, et dire merci une fois le jour venu.</string>
     <string name="helprequest_error_needs_network">Il faut du réseau pour te proposer, pour qu\'il n\'y ait jamais deux volontaires. Réessaie une fois connecté.</string>
+    <string name="helprequest_todo_for">%1$s pour %2$s</string>
+    <string name="helprequest_todo_take">J\'y vais</string>
+    <string name="helprequest_todo_take_large">Je m\'en occupe</string>
+    <string name="helprequest_todo_decline">Non</string>
+    <string name="helprequest_todo_decline_large">Pas dispo</string>
+    <string name="helprequest_todo_already_taken_by">Trop tard : %1$s s\'en occupe déjà.</string>
+    <string name="helprequest_todo_already_taken">Quelqu\'un s\'en occupe déjà.</string>
+    <string name="helprequest_todo_needs_network">Il faut du réseau pour répondre. Réessaie une fois connecté.</string>
+    <string name="helprequest_todo_failed">Ça n\'a pas marché. Réessaie dans un instant.</string>
+    <string name="helprequest_r1bis_title">Coups de main</string>
+    <string name="helprequest_r1bis_needs_you">On a besoin de toi</string>
+    <string name="helprequest_r1bis_mine">Mes demandes</string>
+    <string name="helprequest_r1bis_handled">Déjà pris en charge</string>
+    <string name="helprequest_r1bis_said_no">Pas dispo cette fois</string>
+    <string name="helprequest_r1bis_handled_by">%1$s s\'en occupe, %2$s</string>
+    <string name="helprequest_r1bis_handled_by_me">Tu t\'en occupes, %1$s</string>
 
     <!-- Bonnes nouvelles (PRD, récit 32) : fil [DEV] coups de main -->
     <string name="goodnews_title">Bonnes nouvelles</string>
@@ -1052,6 +1068,17 @@
     <string name="album_photo_by">Photo de %1$s</string>
     <string name="album_photo_open">Agrandir</string>
     <string name="album_photo_close">Fermer</string>
+    <string name="album_slideshow_start">Lancer le diaporama</string>
+    <string name="album_slideshow_pause">Pause</string>
+    <string name="album_slideshow_resume">Reprendre</string>
+    <string name="albums_title">Albums</string>
+    <string name="albums_empty_title">Pas encore d\'album</string>
+    <string name="albums_empty_body">Les photos d\'un voyage ou d\'un événement apparaissent ici, avec leur diaporama.</string>
+    <string name="albums_months">Les mois</string>
+    <string name="albums_month">%1$s %2$d</string>
+    <string name="albums_row_detail">%1$s, %2$s %3$d</string>
+    <string name="albums_open">ouvrir l\'album</string>
+    <string name="albums_open_month">ouvrir le diaporama du mois</string>
     <string name="album_photo_position">%1$d sur %2$d</string>
     <string name="album_photo_remove">Retirer</string>
     <string name="album_photo_remove_title">Retirer cette photo ?</string>
@@ -1470,6 +1497,8 @@
     <string name="all_capsule">Capsule</string>
     <string name="all_souvenirs">Souvenirs</string>
     <string name="all_good_news">Bonnes nouvelles</string>
+    <string name="all_challenges">Défis</string>
+    <string name="all_albums">Albums</string>
     <string name="home_r1_add">Ajouter</string>
     <string name="home_r1_add_event">Un événement</string>
     <string name="home_r1_add_photo">Une photo</string>
@@ -1857,6 +1886,23 @@
     <string name="host_save_for_adults">Enregistrer pour le foyer</string>
     <string name="host_child_note">Un adulte du foyer le publiera.</string>
     <string name="tree_challenge_done">Défi réussi : l\'arbre est en fleurs !</string>
+    <!-- R1 bis, maquette R7 : l'écran Défis -->
+    <string name="challenges_title">Défis</string>
+    <string name="challenges_month_label">Défi %1$s</string>
+    <string name="challenges_none">Premier défi le 1er décembre.</string>
+    <string name="challenges_none_month">Pas de défi ce mois-ci.</string>
+    <string name="challenges_progress">%1$s. On le réussit ensemble, sans classement.</string>
+    <string name="challenges_add_photo">Ajouter ma photo</string>
+    <string name="challenges_weekly_label">Question du lundi</string>
+    <string name="challenges_weekly_answer_to_see">%1$s. Tu réponds pour les voir.</string>
+    <string name="challenges_weekly_none">Première question le lundi 30 novembre.</string>
+    <string name="challenges_weekly_none_week">Pas de question cette semaine.</string>
+    <string name="challenges_won_title">Nos souvenirs gagnés ensemble</string>
+    <string name="challenges_won_month">Défi %1$s réussi</string>
+    <string name="challenges_won_next">À venir</string>
+    <string name="challenge_home_label">Défi du mois</string>
+    <string name="challenge_home_host">Lancé par %1$s</string>
+    <string name="challenge_home_open">ouvrir les défis</string>
     <string name="notifications_tree">Défi du mois</string>
     <string name="notifications_tree_help">Quand la famille réussit le défi du mois.</string>
     <string name="notifications_recap">La semaine de la famille</string>

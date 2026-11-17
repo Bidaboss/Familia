@@ -932,6 +932,103 @@ service cloud.firestore {
       allow delete: if isMember() && canRemoveGoodNews(resource.data);
     }
 
+    // --- Bons plans et bonnes adresses (PRD, récit 45, PRODUIT-60) ------------------------------
+    //
+    // goodDeals/{dealId}: kind 'deal' (a bon plan: it leaves the list at endsAt, and the server
+    // deletes it 30 days later) or 'address' (a bonne adresse: lasting, in a category). The adults
+    // publish; the author and the admin principal change or remove. Every member reads them and
+    // adds or removes only their own id: interestedIds on a deal (« Ça m'intéresse », children
+    // too), recommendedIds on an address (« Je recommande aussi », adults but its author). The
+    // photo of a deal is in Storage at goodDeals/{dealId}/{authorId}/; the server removes it with
+    // the post. The audience is the whole family today (the circles change the read rule here).
+
+    function isGoodDealText(t, min, max) {
+      return t is string && t.trim().size() >= min && t.size() <= max;
+    }
+
+    function isGoodDealLink(l) {
+      return l == null || (l is string && l.size() <= 500 && l.matches('^https?://[^ ]+$'));
+    }
+
+    function isGoodDealPhone(p) {
+      return p == null || (p is string && p.matches('^[+]?[0-9 .()-]{4,20}$'));
+    }
+
+    // The photo of a deal: none, unchanged, or one the caller sent to their own folder of this deal.
+    function isGoodDealPhoto(dealId, d, before) {
+      return d.photo == null
+        || (before != null && d.photo == before.photo)
+        || (d.photo is string
+            && d.photo.matches('^goodDeals/' + dealId + '/[A-Za-z0-9]{1,40}/[A-Za-z0-9]{1,40}$')
+            && d.photo.split('/')[2] == myMemberId());
+    }
+
+    // A deal ends after now and within 3 months (92 days); an end left unchanged may have passed.
+    function isGoodDealEnd(d, before) {
+      return (before != null && d.endsAt == before.endsAt)
+        || (d.endsAt is timestamp && d.endsAt > request.time && d.endsAt <= request.time + duration.value(92, 'd'));
+    }
+
+    function isValidGoodDeal(dealId, d, before) {
+      return d.keys().hasAll(['kind', 'title', 'text', 'link', 'place', 'phone', 'category', 'endsAt', 'photo',
+                              'interestedIds', 'recommendedIds', 'authorId', 'authorName', 'createdAt', 'updatedAt'])
+        && d.keys().hasOnly(['kind', 'title', 'text', 'link', 'place', 'phone', 'category', 'endsAt', 'photo',
+                             'interestedIds', 'recommendedIds', 'authorId', 'authorName', 'createdAt', 'updatedAt'])
+        && isGoodDealText(d.title, 1, 80)
+        && isGoodDealText(d.text, 0, 500)
+        && isGoodDealLink(d.link)
+        && (d.place == null || isGoodDealText(d.place, 1, 80))
+        && d.interestedIds is list && d.recommendedIds is list
+        && d.authorName is string && d.authorName.size() > 0 && d.authorName.size() <= 40
+        && d.updatedAt == request.time
+        && ((d.kind == 'deal' && d.category == null && d.phone == null
+             && isGoodDealEnd(d, before) && isGoodDealPhoto(dealId, d, before))
+            || (d.kind == 'address' && d.endsAt == null && d.photo == null && isGoodDealPhone(d.phone)
+                && d.category in ['health', 'home', 'car', 'kids', 'outings', 'other']));
+    }
+
+    function canManageGoodDeal(d) {
+      return d.authorId == myMemberId() || isOwner();
+    }
+
+    // The caller adds or removes their own id in [field], and nothing else changes.
+    function isOwnGoodDealMark(field) {
+      let before = resource.data[field];
+      let after = request.resource.data[field];
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([field])
+        && after is list && after.size() <= 100
+        && ((after.toSet() == before.toSet().union([myMemberId()].toSet()) && after.size() == before.size() + 1)
+            || (after.toSet() == before.toSet().difference([myMemberId()].toSet()) && after.size() == before.size() - 1));
+    }
+
+    function isGoodDealEdit(dealId) {
+      return canManageGoodDeal(resource.data)
+        && isValidGoodDeal(dealId, request.resource.data, resource.data)
+        && request.resource.data.diff(resource.data).unchangedKeys()
+             .hasAll(['kind', 'authorId', 'authorName', 'createdAt', 'interestedIds', 'recommendedIds']);
+    }
+
+    match /goodDeals/{dealId} {
+      allow read: if isMember();
+
+      allow create: if isMember()
+        && me().profile == 'adult'
+        && isValidGoodDeal(dealId, request.resource.data, null)
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.interestedIds.size() == 0
+        && request.resource.data.recommendedIds.size() == 0
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if isMember()
+        && (isGoodDealEdit(dealId)
+            || (resource.data.kind == 'deal' && isOwnGoodDealMark('interestedIds'))
+            || (resource.data.kind == 'address' && resource.data.authorId != myMemberId()
+                && me().profile == 'adult' && isOwnGoodDealMark('recommendedIds')));
+
+      allow delete: if isMember() && canManageGoodDeal(resource.data);
+    }
+
     // --- Vœux d'anniversaire (PRD, récit 36, avis EXPERT n° 11) ---------------------------------
     //
     // birthdayCards/{year}-{forMemberId}-{authorId}: one card per member and per birthday, a short

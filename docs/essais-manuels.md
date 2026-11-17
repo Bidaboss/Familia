@@ -536,11 +536,35 @@ Avec l'interrupteur « Partager » allumé :
 3. Sur le téléphone d'un membre non prévenu, la demande n'apparaît pas, et la photo non plus.
 4. Modifie la demande, touche « Retirer la photo », enregistre : elle disparaît pour tout le monde.
 
+## L'écran Défis (R1 bis, maquette R7)
+
+1. Ouvre « Défis » depuis Tout Familia. En haut, la carte noire : « DÉFI DE DÉCEMBRE », le défi, la jauge jaune et « On le réussit ensemble, sans classement ». Avant décembre : « Premier défi le 1er décembre ».
+2. Défi lancé par un foyer : « Ajouter ma photo » ouvre une bonne nouvelle liée au défi. Si c'est au tour de ton foyer : « Préparer le défi ».
+3. Carte blanche « QUESTION DU LUNDI » : la question et le nombre de réponses, jamais qui. Sans réponse de ta part : « Tu réponds pour les voir » et « Répondre ». Avant le 30/11 : « Première question le lundi 30 novembre ».
+4. « Nos souvenirs gagnés ensemble » : l'arbre et ses feuilles, un souvenir par défi réussi, puis « À venir ». Rien n'appartient à une seule personne.
+5. Arbre ou question éteints dans Administration : leur carte disparaît de l'écran.
+6. Police à 200 % : tout défile.
+
 ## Les sondages d'un événement (récit 2 quater)
 Avec l'interrupteur « Sondages » allumé :
 1. Ouvre un événement de ton foyer et touche « Lancer un sondage » : les invités de l'événement sont déjà cochés. Envoie un sondage de date.
 2. Reviens sur la fiche : le sondage y apparaît, avec les réponses puis le résultat une fois terminé. Il est aussi dans la liste « Sondages ».
 3. Supprime l'événement : le sondage reste dans « Sondages », marqué Terminé, et personne ne reçoit de notification de résultat.
+
+## « Lancer le diaporama » dans chaque album (R1 bis, DESIGN-18)
+
+1. Ouvre l'album d'un voyage, d'un événement ou du mois avec au moins 2 photos : « Lancer le diaporama » est sous le titre. Avec une seule photo, il n'y est pas.
+2. Touche-le : les photos défilent sur fond noir, de la plus ancienne à la plus récente, toutes les 4 secondes, en fondu, puis recommencent. L'écran ne s'éteint pas pendant ce temps.
+3. « Pause » s'arrête sur la photo, « Reprendre » repart. « Fermer » ou le bouton retour revient à l'album.
+4. Interrupteur presentationR1bis éteint : le bouton disparaît.
+
+## L'écran Albums (R1 bis, Tout Familia)
+
+1. Ouvre « Albums » depuis Tout Familia : les voyages que tu suis et les événements qui te concernent, de la dernière année, avec au moins une photo, du plus récent au plus ancien. Chaque ligne montre la dernière photo, le nombre de photos et le mois.
+2. Touche un album : il s'ouvre, avec « Lancer le diaporama ».
+3. Sous « Les mois » : un mois par mois de ces albums. Touche-le : le diaporama du mois s'ouvre.
+4. Un voyage à venir, ou un album sans photo, n'apparaît pas. Sans aucun album : « Pas encore d'album ».
+5. Voyages ou albums d'événements éteints dans Administration : leurs albums disparaissent de la liste.
 
 ## Nouvelle présentation « R1 bis » (spec DESIGN du 17/11)
 

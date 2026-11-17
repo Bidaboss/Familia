@@ -1,5 +1,7 @@
 package fr.familia.app.core.navigation
 
+import androidx.compose.material.icons.outlined.PhotoLibrary
+import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.AutoStories
 import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.platform.LocalConfiguration
@@ -158,6 +160,10 @@ import fr.familia.app.feature.feedback.MyFeedbackDestination
 import fr.familia.app.feature.feedback.MyFeedbackRoute
 import fr.familia.app.core.model.FeedbackOrigin
 import fr.familia.app.feature.tree.HostChallengeRoute
+import fr.familia.app.feature.tree.challenges.ChallengesRoute
+import fr.familia.app.feature.albums.AlbumEntry
+import fr.familia.app.feature.albums.AlbumsDestination
+import fr.familia.app.feature.albums.AlbumsRoute
 import fr.familia.app.feature.settings.appearance.AppearanceScreen
 import fr.familia.app.feature.settings.appearance.ThemePreferences
 import fr.familia.app.core.theme.FamiliaClay
@@ -599,6 +605,8 @@ fun FamiliaApp(
             HomeAddSheet(
                 options = HomeAddOptions(
                     onEvent = { navController.navigate(EventEditDestination()) },
+                    // « Une photo » chooses its album (DESIGN, 17/11).
+                    onPhoto = if (features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums)) ({ navController.navigate(AlbumsDestination) }) else null,
                     onGoodNews = if (features.isOn(Feature.GoodNews)) ({ navController.navigate(GoodNewsEditDestination()) }) else null,
                     onWish = if (features.isOn(Feature.Gifts)) ({ navController.navigate(GiftItemEditDestination(wishesListId(currentMember.id))) }) else null,
                     onHelp = if (features.isOn(Feature.HelpRequests)) ({ navController.navigate(HelpRequestEditDestination()) }) else null,
@@ -774,6 +782,7 @@ fun FamiliaApp(
                             onOpenRecipe = { id -> navController.navigate(RecipeDetailDestination(id)) },
                             onOpenAll = { navController.navigate(AllFamiliaDestination) { launchSingleTop = true } },
                             allBadge = helpBadge,
+                            onOpenChallenges = { navController.navigate(ChallengesDestination) { launchSingleTop = true } },
                             onOpenDiscover = { module ->
                                 when (module) {
                                     DiscoverModule.WeeklyQuestion -> navController.navigate(WeeklyQuestionDestination())
@@ -800,6 +809,32 @@ fun FamiliaApp(
                             onBack = { navController.popBackStack() },
                             onOpenGoodNews = { id -> navController.navigate(GoodNewsDetailDestination(id)) },
                             onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
+                        )
+                    }
+                    composable<AlbumsDestination> {
+                        AlbumsRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onBack = { navController.popBackStack() },
+                            onOpenAlbum = { album ->
+                                when (album.kind) {
+                                    AlbumEntry.Kind.Trip -> navController.navigate(TripPhotosDestination(album.id))
+                                    AlbumEntry.Kind.Event -> navController.navigate(EventAlbumDestination(album.id))
+                                }
+                            },
+                            onOpenMonth = { month -> navController.navigate(MonthSlideshowDestination(month.year, month.monthValue)) },
+                        )
+                    }
+                    composable<ChallengesDestination> {
+                        ChallengesRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onBack = { navController.popBackStack() },
+                            onJoinChallenge = { navController.navigate(GoodNewsEditDestination(forChallenge = true)) },
+                            onPrepareChallenge = { month ->
+                                navController.navigate(HostChallengeDestination(month.year, month.monthValue)) { launchSingleTop = true }
+                            },
+                            onOpenWeekly = { navController.navigate(WeeklyQuestionDestination()) },
                         )
                     }
                     composable<HostChallengeDestination> { entry ->
@@ -1577,8 +1612,8 @@ private const val MIN_TAB_LABEL_SP = 9f
 private val R1_TAB_PILL = Color(0xFFF2C14E)
 
 /**
- * The modules of « Tout Familia » (R1 bis, §3), each only while it is on for me. Défis and Albums
- * join it with their own screen, Comptes stays out for the 21; the Entraide badge is the one of its tab.
+ * The modules of « Tout Familia » (R1 bis, §3), each only while it is on for me. Comptes stays out
+ * for the 21 (DESIGN); the Entraide badge is the one of its tab.
  */
 private fun allModules(features: FeatureFlags, helpBadge: Int, navController: NavHostController, meId: String): List<AllModule> = buildList {
     fun module(on: Boolean, key: String, label: Int, icon: ImageVector, family: ModuleFamily, badge: Int = 0, open: () -> Unit) {
@@ -1604,6 +1639,12 @@ private fun allModules(features: FeatureFlags, helpBadge: Int, navController: Na
     }
     module(features.isOn(Feature.Recipes), "recipes", R.string.all_recipes, Icons.Outlined.MenuBook, ModuleFamily.Treat) {
         navController.navigate(RecipesDestination()) { launchSingleTop = true }
+    }
+    module(features.isOn(Feature.Tree), "challenges", R.string.all_challenges, Icons.Outlined.EmojiEvents, ModuleFamily.Treat) {
+        navController.navigate(ChallengesDestination) { launchSingleTop = true }
+    }
+    module(features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums), "albums", R.string.all_albums, Icons.Outlined.PhotoLibrary, ModuleFamily.Remember) {
+        navController.navigate(AlbumsDestination) { launchSingleTop = true }
     }
     module(features.isOn(Feature.Genealogy), "tree", R.string.all_tree, Icons.Outlined.AccountTree, ModuleFamily.Remember) {
         navController.navigate(GenealogyDestination) { launchSingleTop = true }

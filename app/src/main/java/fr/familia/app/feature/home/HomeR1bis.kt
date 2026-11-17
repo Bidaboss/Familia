@@ -108,6 +108,8 @@ fun HomeR1bisScreen(
     challenge: (@Composable (Modifier, wide: Boolean) -> Unit)? = null,
     nowTravelling: (@Composable () -> Unit)? = null,
     allBadge: Int = 0,
+    /** The coups de main of « À faire », with their own « J'y vais » / « Non » (help-requests thread). */
+    helpTodos: (@Composable () -> Unit)? = null,
 ) {
     val ready = state as? HomeUiState.Ready ?: return
     var chosen by rememberSaveable { mutableStateOf(ready.today.toEpochDay()) }
@@ -115,11 +117,13 @@ fun HomeR1bisScreen(
     val day = days.firstOrNull { it.date.toEpochDay() == chosen } ?: days.first()
     val frise: @Composable () -> Unit = { WeekFrise(days, ready.today, day.date, onChoose = { chosen = it.toEpochDay() }) }
     val detail: @Composable () -> Unit = { DayDetail(day, ready.today, actions) }
-    val calm = ready.todos.isEmpty() && nowTravelling == null && challenge != null
+    val hasTodo = ready.todos.isNotEmpty() || helpTodos != null
+    val calm = !hasTodo && nowTravelling == null && challenge != null
     val todo: @Composable () -> Unit = {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            if (ready.todos.isNotEmpty()) SectionLabel(stringResource(R.string.home_r1_todo))
+            if (hasTodo) SectionLabel(stringResource(R.string.home_r1_todo))
             ready.todos.forEach { TodoR1Card(it, ready.today, actions, r1) }
+            helpTodos?.invoke()
             if (calm) Text(stringResource(R.string.home_r1_calm), style = MaterialTheme.typography.bodyLarge)
         }
     }
@@ -170,7 +174,7 @@ fun HomeR1bisScreen(
             else -> LazyColumn(contentPadding = padding, verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 item(key = "frise") { frise() }
                 item(key = "day") { detail() }
-                if (ready.todos.isNotEmpty() || calm) item(key = "todo") { todo() }
+                if (hasTodo || calm) item(key = "todo") { todo() }
                 if (goodNews != null || challenge != null) item(key = "news-challenge") { newsAndChallenge() }
                 if (nowTravelling != null) item(key = "now") { nowTravelling() }
                 item(key = "buttons") { buttons() }

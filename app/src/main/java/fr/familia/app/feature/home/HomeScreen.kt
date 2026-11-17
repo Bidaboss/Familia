@@ -1,5 +1,10 @@
 package fr.familia.app.feature.home
 
+import fr.familia.app.feature.helprequests.todo.rememberHelpRequestTodos
+import fr.familia.app.feature.helprequests.todo.helpActionErrorText
+import fr.familia.app.feature.helprequests.todo.HelpRequestTodoCard
+import fr.familia.app.feature.tree.challenges.rememberHasChallenge
+import fr.familia.app.feature.tree.challenges.ChallengeHomeCard
 import fr.familia.app.feature.trips.now.rememberNowTravelling
 import fr.familia.app.feature.trips.now.NowTravellingCard
 import androidx.compose.foundation.clickable
@@ -151,6 +156,8 @@ fun HomeRoute(
     /** « Tout Familia » of the R1 bis Accueil, and the sum of the badges of its drawer. */
     onOpenAll: () -> Unit = {},
     allBadge: Int = 0,
+    /** « Défis » (R1 bis), opened from the card of the challenge of the month. */
+    onOpenChallenges: () -> Unit = {},
 ) {
     val flags = LocalFeatureFlags.current
     val giftsOn = flags.isOn(Feature.Gifts)
@@ -237,8 +244,40 @@ fun HomeRoute(
                 viewModel.answerFailureShown()
             }
         }
+        val hasChallenge = rememberHasChallenge(container, currentMember)
+        // The coups de main answer right on their card (help-requests thread, #210).
+        val help = if (helpOn) rememberHelpRequestTodos(container, currentMember) else null
+        val helpError = help?.let { helpActionErrorText(it.error) }
+        LaunchedEffect(helpError) {
+            if (helpError != null && help != null) {
+                Toast.makeText(context, helpError, Toast.LENGTH_LONG).show()
+                help.onDismissError()
+            }
+        }
+        val shownState = if (help != null) {
+            (state as? HomeUiState.Ready)?.let { ready -> ready.copy(todos = ready.todos.filterNot { it is HomeTodo.Help }) } ?: state
+        } else {
+            state
+        }
         HomeR1bisScreen(
-            state = state,
+            state = shownState,
+            challenge = if (hasChallenge) {
+                { modifier, wide -> ChallengeHomeCard(container, currentMember, wide, onOpen = onOpenChallenges, onAddPhoto = onJoinChallenge, modifier = modifier) }
+            } else {
+                null
+            },
+            helpTodos = help?.todos?.takeIf { it.isNotEmpty() }?.let { todos ->
+                {
+                    todos.forEach { todo ->
+                        HelpRequestTodoCard(
+                            todo,
+                            onTake = { help.onTake(todo.request) },
+                            onDecline = { help.onDecline(todo.request) },
+                            onOpen = { actions.onOpenHelpRequest(todo.request.id) },
+                        )
+                    }
+                }
+            },
             actions = actions,
             r1 = HomeR1bisActions(onAnswer = viewModel::answer, onOpenAll = onOpenAll, onJoinMe = if (placesOn) onJoinMe else null),
             goodNews = if (flags.isOn(Feature.GoodNews)) {

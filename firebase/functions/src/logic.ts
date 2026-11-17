@@ -65,6 +65,8 @@ export interface Notice {
   welcomeOf?: string;
   /** « Pensez à moi » (récit 43): the member of the moment, the app opens their page. */
   thinkOfMeOf?: string;
+  /** The summary of the new bons plans (récit 45): the app opens the Bons plans of Entraide. */
+  goodDeals?: 'list';
   /** Aimed at the member directly (récit 6 quinquies): never muted, never held for the night. */
   direct?: boolean;
   /** Notices with the same tag replace each other on the phone (the cards of the day). */
