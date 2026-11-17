@@ -40,6 +40,19 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 
 **7. On installe ensemble (le reste du temps).** Quitte « Voir comme » (« Quitter » sur le bandeau). Envoie les invitations une par une, par WhatsApp ou SMS. Chacun installe, se connecte avec son compte Google. Grâce au Mode présentation, personne n'est bombardé de « vient d'arriver ».
 
+**8. La photo du repas, en direct (2 min).** Le moment fort : toute la table la reçoit.
+1. Avant de te tourner vers eux, prends la photo avec l'appareil photo du téléphone. Elle est ainsi gardée dans ta galerie quoi qu'il arrive.
+2. **Écran tourné vers toi**, ouvre le fil des Bonnes nouvelles (ton Accueil ne doit pas être montré) et touche « Publier » depuis le fil. Écris une phrase (« Joyeux anniversaire ! »), touche « Choisir des photos » et prends celle du repas. Tu peux nommer des membres. Ne parle pas du cadeau. Une fois le formulaire prêt, tourne l'écran vers la table.
+3. Touche « Publier pour toute la famille ». Une barre se remplit au-dessus du bouton. **Reste sur cet écran** jusqu'à ce qu'il se ferme : tant qu'il est ouvert, l'envoi continue.
+4. L'écran revient sur le fil des Bonnes nouvelles, où elle apparaît une seule fois. Fais ouvrir Familia à ceux qui l'ont déjà installée : elle est là, avec la photo.
+
+## Plan B si l'envoi de la photo bloque
+
+- **La phrase « Plus de réseau : l'envoi reprendra tout seul dès son retour » apparaît :** ne touche à rien. Active le partage de connexion 4G, ou rapproche-toi de la box. L'envoi repart seul, sans doublon.
+- **La barre n'avance plus et rien ne bouge depuis une minute :** touche « Annuler l'envoi ». Le texte et la photo restent, rien n'est publié. Passe en 4G, puis touche de nouveau « Publier » : une seule bonne nouvelle partira, et les photos déjà envoyées ne repartent pas.
+- **Un message dit que la bonne nouvelle n'a pas pu être publiée :** touche « OK », puis « Publier » de nouveau. Le texte et la photo sont gardés.
+- **Rien ne passe du tout :** écran tourné vers toi, ferme le formulaire, puis continue la présentation. Garde la photo dans ta galerie et publie-la en rentrant : chacun la recevra ce soir.
+
 ## À la fin
 
 1. **Administration**, « Éteindre » le Mode présentation (sur le bandeau ou dans la carte).
