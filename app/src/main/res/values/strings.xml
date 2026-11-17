@@ -2411,6 +2411,7 @@
     <string name="lend_status_available">Disponible</string>
     <string name="lend_status_asked">Demandé par %1$s</string>
     <string name="lend_status_lent">Chez %1$s</string>
+    <string name="lend_status_lent_hidden">Prêté</string>
     <string name="lend_status_lent_since">Chez %1$s depuis le %2$s</string>
     <string name="lend_status_mine">Chez moi</string>
     <string name="lend_status_mine_since">Chez moi depuis le %1$s</string>
