@@ -37,7 +37,7 @@ class HomeDaysTest {
     }
 
     @Test
-    fun `a help request open or taken by me shows, in green; taken by another, it does not`() {
+    fun `a help request open or taken by me shows, in green, and taken by another it does not`() {
         val open = helpRequest("h1", TestFamily.otherAdult, listOf(me.id), date = today).copy(title = "Garder Noé")
         val mine = helpRequest("h2", TestFamily.otherAdult, listOf(me.id), date = today, status = HelpStatus.Taken).copy(volunteerId = me.id)
         val other = helpRequest("h3", TestFamily.otherAdult, listOf(me.id), date = today, status = HelpStatus.Taken).copy(volunteerId = "x")
