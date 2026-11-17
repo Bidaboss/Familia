@@ -797,7 +797,7 @@ Avec l'interrupteur « Notre année » allumé dans Administration. Avant le 26/
 
 ## Photos orphelines des bonnes nouvelles (lecture seule)
 
-La fonction `orphanPhotosReport` tourne chaque dimanche à 4 h. Elle ne supprime rien.
-1. Console Firebase, **Functions**, `orphanPhotosReport`, **Journaux**.
+Le rapport part chaque dimanche vers 4 h, avec la tâche `arrivalReminder`. Il ne supprime rien.
+1. Console Firebase, **Functions**, `arrivalReminder`, **Journaux**, et chercher « orphanPhotos ».
 2. La ligne « orphanPhotos (lecture seule) : N photo(s) orpheline(s) sur M, X Ko, rien n'est supprimé » donne le bilan. Les lignes « serait supprimée … » donnent les chemins, 50 au plus.
 3. Attendu : quelques photos au plus, celles d'un envoi annulé. Une photo d'une bonne nouvelle visible dans l'appli ne doit jamais y figurer. Si c'est le cas, le signaler.

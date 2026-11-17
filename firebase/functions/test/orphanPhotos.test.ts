@@ -4,7 +4,7 @@ import { after, beforeEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { orphanGoodNewsPhotos, reportOrphanGoodNewsPhotos, type StoredFile } from '../src/orphanPhotos';
+import { orphanGoodNewsPhotos, orphanReportDue, reportOrphanGoodNewsPhotos, type StoredFile } from '../src/orphanPhotos';
 
 const NOW = new Date('2026-11-22T03:00:00Z');
 const OLD = new Date('2026-11-20T10:00:00Z');
@@ -35,6 +35,19 @@ describe('orphanGoodNewsPhotos', () => {
       file('trips/t1/camille/p1.jpg'),
     ];
     assert.deepEqual(orphanGoodNewsPhotos(files, posts, NOW), []);
+  });
+});
+
+describe('orphanReportDue', () => {
+  test('only the run of Sunday between 4 h 00 and 4 h 29 in Paris makes the report', () => {
+    // 22/11/2026 is a Sunday; Paris is at UTC+1 in November.
+    assert.equal(orphanReportDue(new Date('2026-11-22T03:00:00Z')), true);
+    assert.equal(orphanReportDue(new Date('2026-11-22T03:29:00Z')), true);
+    assert.equal(orphanReportDue(new Date('2026-11-22T03:30:00Z')), false);
+    assert.equal(orphanReportDue(new Date('2026-11-22T02:59:00Z')), false);
+    assert.equal(orphanReportDue(new Date('2026-11-21T03:00:00Z')), false);
+    // In summer Paris is at UTC+2: Sunday 28/06/2026 at 4 h is 2 h UTC.
+    assert.equal(orphanReportDue(new Date('2026-06-28T02:00:00Z')), true);
   });
 });
 

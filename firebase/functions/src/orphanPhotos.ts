@@ -2,7 +2,7 @@
 //
 // A good news photo whose send was cancelled, or whose thumbnail failed after the photo itself,
 // gets a new id at the next try: the file already sent stays in Storage, linked to nothing. Once a
-// week this function lists them in the logs, with their size. It deletes nothing: the deletion
+// week the report lists them in the logs, with their size. It deletes nothing: the deletion
 // comes after the 21/11, once the list has been read.
 
 import type { Firestore } from 'firebase-admin/firestore';
@@ -18,6 +18,18 @@ export interface StoredFile {
 export interface PostPhotos {
   authorId: string;
   photoIds: string[];
+}
+
+/**
+ * Whether [now] falls on Sunday between 4 h 00 and 4 h 29 in Paris: the run of `arrivalReminder`
+ * (every 30 minutes) that makes the report, once a week. No scheduled task of its own: Cloud
+ * Scheduler offers only 3 for free.
+ */
+export function orphanReportDue(now: Date): boolean {
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    .formatToParts(now);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
+  return get('weekday') === 'Sun' && Number(get('hour')) === 4 && Number(get('minute')) < 30;
 }
 
 /** A send in progress writes the photos before the good news: a day leaves it the time to end. */
