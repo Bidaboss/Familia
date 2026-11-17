@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.ui.formatTime
 import java.time.Instant
 import java.time.LocalDate
@@ -54,7 +55,7 @@ fun TripDateButton(date: LocalDate?, placeholder: String, onPick: (LocalDate) ->
         Text(date?.format(fullDate) ?: placeholder)
     }
     if (open) {
-        val pickerState = rememberDatePickerState(initialSelectedDateMillis = (date ?: initial ?: LocalDate.now()).toUtcMillis())
+        val pickerState = rememberDatePickerState(initialSelectedDateMillis = (date ?: initial ?: familyToday()).toUtcMillis())
         DatePickerDialog(
             onDismissRequest = { open = false },
             confirmButton = {

@@ -11,11 +11,11 @@ import fr.familia.app.R
 import fr.familia.app.core.calendar.CalendarEntry
 import fr.familia.app.core.calendar.addToCalendar
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.share.birthdayShare
 import fr.familia.app.core.share.share
 import fr.familia.app.core.ui.LocalFeatureFlags
-import java.time.LocalDate
 
 /** Connects the Birthdays tab to its ViewModel. */
 @Composable
@@ -45,6 +45,6 @@ fun BirthdaysRoute(container: AppContainer?) {
             null
         },
         // Only the name, the day and the age go out: no list, no gift (récit 31).
-        onShare = if (shareOn) ({ birthday -> share(context, birthdayShare(context, birthday, LocalDate.now())) }) else null,
+        onShare = if (shareOn) ({ birthday -> share(context, birthdayShare(context, birthday, familyToday())) }) else null,
     )
 }

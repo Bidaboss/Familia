@@ -37,10 +37,8 @@ import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.frenchDateTime
 import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 /** The comments inside an event (PRD, récit 28), with their own ViewModel. */
 @Composable
@@ -193,13 +191,11 @@ private fun problemText(problem: EventCommentProblem): Int = when (problem) {
     EventCommentProblem.MuteFailed -> R.string.event_comments_mute_failed
 }
 
-private val commentTimeFormat = DateTimeFormatter.ofPattern("d MMMM 'à' HH'h'mm", Locale.FRANCE)
-
-/** « 12 novembre à 14h05 », then « · modifié » when its author changed it. Null while being sent. */
+/** « 12 novembre à 14 h 05 », in Paris, then « · modifié » when its author changed it. Null while being sent. */
 @Composable
 private fun commentWhen(comment: EventComment): String? {
     val at = comment.createdAt ?: return null
-    val day = commentTimeFormat.format(at.atZone(ZoneId.systemDefault()))
+    val day = frenchDateTime(at)
     return if (comment.editedAt != null) stringResource(R.string.event_comment_when_edited, day) else day
 }
 

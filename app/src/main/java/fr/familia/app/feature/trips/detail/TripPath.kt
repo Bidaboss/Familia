@@ -52,12 +52,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.familia.app.R
+import fr.familia.app.core.ui.frenchDate
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 private val weekdayShort = DateTimeFormatter.ofPattern("EEE d", Locale.FRANCE)
-private val weekdayLong = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRANCE)
 
 /**
  * The days of the trip, side by side: « Jour 3 », « mar 17 ». The chosen one is black; today keeps a
@@ -77,7 +77,7 @@ fun TripDayStrip(days: List<LocalDate>, chosen: LocalDate, today: LocalDate, onC
         itemsIndexed(days, key = { _, day -> day.toEpochDay() }) { index, day ->
             val isChosen = day == chosen
             val shape = RoundedCornerShape(16.dp)
-            val spoken = stringResource(R.string.trip_day_spoken, index + 1, day.format(weekdayLong))
+            val spoken = stringResource(R.string.trip_day_spoken, index + 1, frenchDate(day, "EEEE d MMMM"))
             Column(
                 modifier = Modifier
                     .widthIn(min = 80.dp)
@@ -232,7 +232,7 @@ fun TripDayCard(
     modifier: Modifier = Modifier,
 ) {
     val title = if (places.isEmpty()) {
-        stringResource(R.string.trip_day_title, number, day.format(weekdayLong))
+        stringResource(R.string.trip_day_title, number, frenchDate(day, "EEEE d MMMM"))
     } else {
         stringResource(R.string.trip_day_title, number, places.joinToString(", "))
     }

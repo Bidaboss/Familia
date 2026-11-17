@@ -18,9 +18,9 @@ import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.Consumption
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.frenchDate
 import java.text.NumberFormat
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.roundToInt
 import fr.familia.app.core.ui.ClayCardTitle
@@ -45,7 +45,7 @@ internal fun ConsumptionSection(card: ConsumptionCard, modifier: Modifier = Modi
 
 @Composable
 private fun ReadyConsumption(consumption: Consumption) {
-    val day = consumption.day.format(DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH))
+    val day = frenchDate(consumption.day, "EEEE d MMMM")
     Text(
         stringResource(R.string.consumption_day, day),
         style = MaterialTheme.typography.bodyMedium,

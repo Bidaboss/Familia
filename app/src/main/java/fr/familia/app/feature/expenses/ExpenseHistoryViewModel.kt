@@ -3,6 +3,7 @@ package fr.familia.app.feature.expenses
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.ExpenseRepository
+import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.model.ExpenseContainer
 import fr.familia.app.core.model.ExpenseHistoryAction
 import fr.familia.app.core.model.ExpenseHistoryEntry
@@ -72,7 +73,7 @@ class ExpenseHistoryViewModel(
     private val expenses: ExpenseRepository?,
     container: ExpenseContainer,
     private val expenseId: String,
-    private val zone: ZoneId = ZoneId.systemDefault(),
+    private val zone: ZoneId = FAMILY_ZONE,
 ) : ViewModel() {
 
     private val bookId = container.bookId

@@ -60,6 +60,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.ui.HouseholdMemberPicker
 import fr.familia.app.core.ui.PickGroup
 import fr.familia.app.core.model.Member
@@ -90,7 +91,7 @@ fun PollEditScreen(
     onRemoveOption: (Int) -> Unit,
     onSave: () -> Unit,
     onBack: () -> Unit,
-    today: LocalDate = LocalDate.now(),
+    today: LocalDate = familyToday(),
 ) {
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
     val hasChanges = (state as? PollEditUiState.Editing)?.hasChanges == true

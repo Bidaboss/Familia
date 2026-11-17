@@ -26,12 +26,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.ui.ClaySpacing
+import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.feature.discover.Discover
 import fr.familia.app.feature.discover.DiscoverModule
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
-private val dayFormat = DateTimeFormatter.ofPattern("d MMMM", Locale.FRENCH)
 
 /**
  * « Ordre d'À découvrir » in Administration (AVIS-19 partie 2): one module a week from Monday
@@ -57,7 +55,7 @@ fun DiscoverOrderSection(saved: List<DiscoverModule>, inTutorial: Set<DiscoverMo
                     Text(name, style = MaterialTheme.typography.bodyLarge)
                     Text(
                         if (monday != null) {
-                            stringResource(R.string.administration_discover_week, monday.format(dayFormat))
+                            stringResource(R.string.administration_discover_week, frenchDate(monday, "d MMMM"))
                         } else {
                             stringResource(R.string.administration_discover_in_tutorial)
                         },
