@@ -2431,7 +2431,7 @@
     <string name="event_scope_save_title">Modifier un événement qui revient</string>
     <string name="event_scope_save_body">Ce changement vaut pour cette fois seulement, ou pour celle-ci et les suivantes ?</string>
     <string name="event_scope_delete_title">Supprimer un événement qui revient</string>
-    <string name="event_scope_delete_body">Ceux qui avaient dit qu\'ils venaient seront prévenus.</string>
+    <string name="event_scope_delete_body">Ceux qui avaient dit qu\'ils venaient seront prévenus. « Celle-ci et les suivantes » retire aussi les fois changées à la main.</string>
     <string name="event_scope_this">Cette fois seulement</string>
     <string name="event_scope_following">Celle-ci et les suivantes</string>
     <string name="carpool_title">On y va ensemble</string>
