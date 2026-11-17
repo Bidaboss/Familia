@@ -1,0 +1,31 @@
+{
+  "cards": [
+    {
+      "id": "livre-de-recettes",
+      "title": "Le livre de recettes",
+      "body": "Dans Recettes, touche « Faire le livre de recettes » : les recettes de la famille deviennent un vrai livre à imprimer ou à offrir.",
+      "childTitle": "Un livre de recettes",
+      "childBody": "Dans Recettes, fais un vrai livre avec les recettes de la famille, à imprimer pour ta cuisine.",
+      "feature": "recipeBook",
+      "open": "recipes"
+    },
+    {
+      "id": "affiche-de-l-arbre",
+      "title": "L'arbre en affiche",
+      "body": "Dans l'arbre généalogique, touche « Faire l'affiche de l'arbre » : prénoms et photos en PDF, à imprimer et à accrocher.",
+      "childTitle": "L'arbre en grand",
+      "childBody": "Dans l'arbre, touche « Faire l'affiche de l'arbre » et imprime-la pour ta chambre.",
+      "feature": "treePoster",
+      "open": "genealogy"
+    },
+    {
+      "id": "envie-depuis-le-partage",
+      "title": "Une envie en un geste",
+      "body": "Tu vois un cadeau sur un site ? Touche Partager, puis « Ajouter à mes envies », et il arrive dans ta liste.",
+      "childTitle": "Ajoute une envie vite",
+      "childBody": "Tu vois un cadeau qui te plaît sur un site ? Touche Partager puis « Ajouter à mes envies ».",
+      "feature": "wishFromShare",
+      "open": "gifts"
+    }
+  ]
+}

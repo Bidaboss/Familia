@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import {
-  alertNotice, alerts, checkConsumption, checkConsumptionIfDue, dayCost, DayUse, FREE, MonitoringReader, monthCost, monthDownloads, parisMidnight, pickMetrics,
+  alertNotice, alerts, checkConsumption, checkConsumptionIfDue, dayCost, DayUse, FREE, MonitoringReader, monthCost, monthCosts, monthDownloads, parisMidnight, pickMetrics,
 } from '../src/consumption';
 import { Notice } from '../src/logic';
 import { Sender } from '../src/store';
@@ -32,6 +32,22 @@ describe('the estimate and the alerts', () => {
     const busy = { ...quiet, reads: FREE.reads + 100_000 };
     const cost = monthCost([busy, { ...busy, day: '2026-11-21' }, { ...busy, day: '2026-10-31' }], '2026-11');
     assert.ok(Math.abs(cost - 0.12) < 1e-9);
+  });
+
+  test('the detail of the month, limit by limit, adds up to its cost', () => {
+    const days = [
+      { ...quiet, reads: FREE.reads + 100_000, photoBytes: 8e9 },
+      { ...quiet, day: '2026-11-21', downloadBytes: 110e9 },
+    ];
+    const costs = monthCosts(days, '2026-11');
+    assert.ok(Math.abs(costs.reads - 0.06) < 1e-9);
+    assert.equal(costs.writes, 0);
+    // 3 Go of photos beyond the 5 free, at 0,03 € the Go a month: one day of it.
+    assert.ok(Math.abs(costs.photos - (3 * 0.03) / 30) < 1e-9);
+    // 10 Go downloaded beyond the 100 free of the month, at 0,15 € the Go.
+    assert.ok(Math.abs(costs.downloads - 1.5) < 1e-9);
+    const sum = Object.values(costs).reduce((a, b) => a + b, 0);
+    assert.ok(Math.abs(sum - monthCost(days, '2026-11')) < 1e-9);
   });
 
   test('the notice says the figure in French, on the admin channel', () => {
@@ -121,6 +137,7 @@ describe('the daily check', () => {
     assert.equal(doc.deletes, 0);
     assert.equal(doc.storageBytes, null);
     assert.equal(doc.monthCost, 0);
+    assert.deepEqual(doc.monthCosts, { reads: 0, writes: 0, deletes: 0, storage: 0, photos: 0, downloads: 0 });
   });
 
   test('a busy day warns the admin principal only, once', async () => {

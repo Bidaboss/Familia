@@ -86,3 +86,22 @@ export async function sendPackingReminders(db: Firestore, send: AnySender<Notice
   }
   return sent;
 }
+
+/**
+ * Who left the trip between [before] and [after]: their bag has nothing more to do there. A
+ * member taken back later starts from their list again, like a new participant.
+ */
+export function leftTheTrip(before: unknown, after: unknown): string[] {
+  const ids = (raw: unknown) => (Array.isArray(raw) ? raw.filter((id): id is string => typeof id === 'string') : []);
+  const still = new Set(ids(after));
+  return [...new Set(ids(before))].filter((id) => !still.has(id)).sort();
+}
+
+/** Deletes the bags of [memberIds] for [tripId]; a bag never opened is simply not there. */
+export async function dropBags(db: Firestore, tripId: string, memberIds: string[]): Promise<number> {
+  if (memberIds.length === 0) return 0;
+  const batch = db.batch();
+  for (const id of memberIds) batch.delete(db.doc(`trips/${tripId}/bags/${id}`));
+  await batch.commit();
+  return memberIds.length;
+}

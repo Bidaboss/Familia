@@ -1,0 +1,18 @@
+{
+  "cards": [
+    {
+      "id": "me-le-rappeler",
+      "title": "Me le rappeler",
+      "body": "Sur la fiche d'un événement, touche « Me le rappeler » et choisis quand être prévenu : ce rappel n'est que pour toi.",
+      "feature": "myReminders",
+      "open": "planning"
+    },
+    {
+      "id": "evenements-qui-reviennent",
+      "title": "Les rendez-vous qui reviennent",
+      "body": "En créant un événement, touche « Se répète » : le repas du dimanche ou le foot du mercredi se mettent seuls dans le planning.",
+      "feature": "recurringEvents",
+      "open": "planning"
+    }
+  ]
+}
