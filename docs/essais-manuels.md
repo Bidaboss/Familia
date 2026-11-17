@@ -826,6 +826,21 @@ Le rapport part chaque dimanche vers 4 h, avec la tâche `arrivalReminder`. Il n
 2. La ligne « orphanPhotos (lecture seule) : N photo(s) orpheline(s) sur M, X Ko, rien n'est supprimé » donne le bilan. Les lignes « serait supprimée … » donnent les chemins, 50 au plus.
 3. Attendu : quelques photos au plus, celles d'un envoi annulé. Une photo d'une bonne nouvelle visible dans l'appli ne doit jamais y figurer. Si c'est le cas, le signaler.
 
+## Me le rappeler (récit 56)
+
+Avec deux comptes : Camille (adulte) et Inès (adulte). « Publier Firebase » doit être passé, et l'interrupteur « Mes rappels » allumé dans Administration (l'admin principal le voit toujours).
+
+1. Avec Camille, ouvre un événement à 15 h, demain. **Attendu :** sous les réponses, la ligne « Me le rappeler », « Aucun rappel ».
+2. Touche-la. **Attendu :** « C'est privé : toi seul le vois. », puis « 1 h avant », « 3 h avant », « Le matin à 8 h », « 2 jours avant », « 1 semaine avant ». Coche « 1 h avant » et « Le matin à 8 h », puis « Enregistrer ». **Attendu :** la ligne dit « 1 h avant, le matin à 8 h ».
+3. Avec Inès, ouvre le même événement. **Attendu :** « Aucun rappel » : elle ne voit pas les rappels de Camille.
+4. Le lendemain, à 8 h puis vers 14 h. **Attendu :** Camille reçoit « Aujourd'hui : … », puis « Dans 1 h : … », à 30 minutes près. Toucher la notification ouvre l'événement.
+5. Un événement « Journée » : **Attendu :** ni « 1 h avant » ni « 3 h avant ».
+6. Un événement qui revient : coche « 2 jours avant », choisis « Toutes les fois », puis « Enregistrer ». **Attendu :** les autres fois disent « Toutes les fois : 2 jours avant ». Sur l'une d'elles, décoche tout avec « Cette fois seulement » : elle dit « Aucun rappel », les autres gardent le leur.
+7. Change l'heure de l'événement de l'étape 2 à 17 h. **Attendu :** le rappel arrive vers 16 h, pas vers 14 h. Supprime l'événement : **Attendu :** aucun rappel.
+8. Avec Inès, Notifications, « Rappels quand je viens » : coche « 1 h avant ». Réponds « Je viens » à un événement. **Attendu :** sa ligne dit « Par défaut : 1 h avant », et le rappel arrive. Réponds « Peut-être » : plus de rappel.
+9. Dans « Voir comme » : **Attendu :** pas de ligne « Me le rappeler », ni de « Rappels quand je viens ».
+10. Interrupteur éteint, avec un compte qui n'est pas l'admin principal : **Attendu :** ni la ligne ni la section, et aucun rappel n'arrive.
+
 ## Démo du 21 : album, diaporama, recettes, arbre et Qui est-ce ? sur un réseau faible
 
 À faire sur un téléphone qui a déjà ouvert ces écrans une fois avec un bon réseau, puis sur un téléphone qui ne les a jamais ouverts. Pour un réseau bridé : réglages du téléphone, Réseau mobile, Type de réseau préféré « 2G seulement » (ou s'éloigner de la box), Wi-Fi coupé.

@@ -8,9 +8,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.notifications.openNotificationSettings
 import fr.familia.app.core.notifications.rememberNotificationPermission
+import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.feature.events.reminders.DefaultRemindersSection
 
 /** Connects the Notifications screen to its ViewModel and to the Android permission. */
 @Composable
@@ -38,5 +41,10 @@ fun NotificationSettingsRoute(container: AppContainer?, currentMember: Member, o
         onLevelChange = viewModel::setLevel,
         onFamilyChange = viewModel::setFamily,
         onQuietHoursChange = viewModel::setQuietHours,
+        defaultReminders = if (LocalFeatureFlags.current.isOn(Feature.MyReminders)) {
+            { DefaultRemindersSection(container, currentMember) }
+        } else {
+            null
+        },
     )
 }

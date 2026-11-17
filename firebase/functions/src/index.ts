@@ -58,6 +58,7 @@ import { deleteWelcomeOf, isFirstSignIn, welcomeMember } from './welcome';
 import { deleteCheersOf, deleteMomentsOf, onMomentCheerCreated, startMoments, type MomentCheer } from './thinkOfMe';
 import { keepReceivedPhoto, revealWishes, thankGivers } from './wishesReveal';
 import { migrateToSingleList } from './singleList';
+import { deleteEventReminders, sendMyReminders } from './reminders';
 import { deleteItemPhoto } from './itemPhoto';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
@@ -162,6 +163,7 @@ export const onEventDeleted = onDocumentDeletedWithAuthContext('events/{eventId}
       deleteEventComments(db, event.params.eventId),
       getStorage().bucket().deleteFiles({ prefix: `events/${event.params.eventId}/` }),
       closeEventPolls(db, event.params.eventId),
+      deleteEventReminders(db, event.params.eventId),
     ]);
     const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
     if (failed) throw failed.reason;
@@ -697,6 +699,12 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
     console.error('quietQueue', e);
   }
   await sendArrivalReminders(getFirestore(), send, new Date());
+  // And the reminders each one asked for on an event (récit 56). A failure waits for the next run.
+  try {
+    await sendMyReminders(getFirestore(), send, new Date());
+  } catch (e) {
+    console.error('myReminders', e);
+  }
   // Also the question of the week, on Monday from 9 h (récit 37): one task less to pay for.
   await publishWeeklyQuestion(getFirestore(), send, new Date());
   // And the consumption of the day before, once from 8 h (récit 1 sexies).

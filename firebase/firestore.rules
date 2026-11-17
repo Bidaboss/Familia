@@ -659,13 +659,36 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // members/{memberId}/reminders/{id} (PRD rév. 248, récit 56): « Me le rappeler » on an event
+    // (id = the event's id) or on every occurrence of a series (id = series-{seriesId}). Private:
+    // only the member reads or writes them, not even the admin principal in « Voir comme ». The
+    // functions send them; remindersSent stays closed.
+    function isReminderOffsets(offsets) {
+      return offsets is list && offsets.size() <= 5 && offsets.toSet().hasOnly(['h1', 'h3', 'morning', 'd2', 'w1']);
+    }
+
+    match /members/{memberId}/reminders/{reminderId} {
+      allow read, delete: if isMember() && myMemberId() == memberId;
+      allow create, update: if isMember()
+        && myMemberId() == memberId
+        && isReminderOffsets(request.resource.data.offsets)
+        && request.resource.data.updatedAt == request.time
+        && ((request.resource.data.keys().hasOnly(['eventId', 'offsets', 'updatedAt'])
+              && request.resource.data.eventId == reminderId)
+          || (request.resource.data.keys().hasOnly(['seriesId', 'offsets', 'updatedAt'])
+              && request.resource.data.seriesId is string
+              && reminderId == 'series-' + request.resource.data.seriesId));
+    }
+
     match /members/{memberId}/settings/{settingId} {
       allow read: if isMember() && myMemberId() == memberId;
       allow create, update: if isMember()
         && myMemberId() == memberId
         && settingId == 'notifications'
         && request.resource.data.keys().hasOnly(['dayBeforeReminder', 'goodNews', 'weekly', 'souvenirs', 'tree', 'recap', 'birthdayWishes',
-          'planning', 'reminders', 'gifts', 'comments', 'helpRequests', 'trips', 'quietHours'])
+          'planning', 'reminders', 'gifts', 'comments', 'helpRequests', 'trips', 'quietHours', 'defaultReminders'])
+        // Récit 56: the reminders given to the events I say « Je viens » to.
+        && (!('defaultReminders' in request.resource.data) || isReminderOffsets(request.resource.data.defaultReminders))
         // Récit 6 quinquies: one switch per family (the three levels set them at once), the quiet hours.
         && (!('planning' in request.resource.data) || request.resource.data.planning is bool)
         && (!('reminders' in request.resource.data) || request.resource.data.reminders is bool)
