@@ -304,4 +304,11 @@ class GoodDealsTest {
         assertEquals("new", newGoodDealFor(list, "adult1", now)?.id)
         assertNull(newGoodDealFor(list.filter { it.id != "new" }, "adult1", now))
     }
+
+    @Test
+    fun `the Accueil card shows the full photo of a bon plan, and none without one`() {
+        assertEquals("goodDeals/d1/adult2/p1.jpg", goodDealHomePhoto(deal("d1", "adult2", photo = "goodDeals/d1/adult2/p1")))
+        assertNull(goodDealHomePhoto(deal("d2", "adult2")))
+        assertNull(goodDealHomePhoto(deal("d3", "adult2", photo = " ")))
+    }
 }
