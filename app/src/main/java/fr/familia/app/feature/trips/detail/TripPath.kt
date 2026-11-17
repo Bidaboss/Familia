@@ -41,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -247,7 +248,7 @@ fun TripDayCard(
             title,
             style = MaterialTheme.typography.titleLarge,
             color = TripPathColors.Ink,
-            modifier = Modifier.semantics { androidx.compose.ui.semantics.heading() },
+            modifier = Modifier.semantics { heading() },
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             DayButton(pluralStringResource(R.plurals.trip_photo_count, photoCount, photoCount), onPhotos, Modifier.weight(1f))
