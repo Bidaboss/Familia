@@ -45,6 +45,9 @@ import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.model.Feature
+import fr.familia.app.core.photo.CoverBanner
+import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.gifts.occasionLabel
 import fr.familia.app.feature.trips.joinNames
 
@@ -114,7 +117,10 @@ private fun GiftsContent(state: ReceivedGiftsUiState.Success, onThank: (String) 
 @Composable
 private fun GiftCard(gift: ReceivedGift, onThank: () -> Unit) {
     ClayCard(tint = ClayTint.Birthday, contentPadding = ClaySpacing.card) {
-        gift.imageUrl?.let { image ->
+        // The photo of the wish (récit 44) comes before the picture of the shop page, as on the list.
+        val photo = gift.photo?.takeIf { LocalFeatureFlags.current.isOn(Feature.MorePhotos) }
+        if (photo != null) CoverBanner(photo, Modifier.padding(bottom = 8.dp))
+        gift.imageUrl?.takeIf { photo == null }?.let { image ->
             // The picture of the shop page (récit 8 bis): decorative.
             AsyncImage(
                 model = image,
