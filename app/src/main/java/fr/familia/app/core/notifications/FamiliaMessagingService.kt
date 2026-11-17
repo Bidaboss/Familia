@@ -141,7 +141,7 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         const val EXTRA_WELCOME_OF = "welcomeOf"
         const val EXTRA_THINK_OF_ME_OF = "thinkOfMeOf"
         const val EXTRA_NOTIFICATION_TAG = "notificationTag"
-        /** "list" or "mine", same key as functions/src/feedback.ts. */
+        /** "list", "mine" or "crashes", same key as functions/src/feedback.ts and crashes.ts. */
         const val EXTRA_FEEDBACK = "feedback"
     }
 }

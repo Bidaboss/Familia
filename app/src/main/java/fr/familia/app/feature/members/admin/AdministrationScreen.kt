@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.QueryStats
 import androidx.compose.material.icons.outlined.SaveAlt
@@ -119,6 +120,9 @@ fun AdministrationScreen(
     /** « Retours » (récit 6 sexies): the ideas and problems of the family; [feedbackUnseen] are new. */
     onOpenFeedback: (() -> Unit)? = null,
     feedbackUnseen: Int = 0,
+    /** « Plantages » (récit 6 sexies, rév. 220): the kinds of crash still to look at. */
+    onOpenCrashes: (() -> Unit)? = null,
+    crashCount: Int = 0,
     /** « Ordre d'À découvrir » (AVIS-19 partie 2): the order in force; hidden when [onSaveDiscoverOrder] is null. */
     discoverOrder: List<DiscoverModule> = DiscoverModule.entries,
     discoverInTutorial: Set<DiscoverModule> = emptySet(),
@@ -158,6 +162,7 @@ fun AdministrationScreen(
                         state, onSetChef, onAddHousehold, onDeleteHousehold, onOpenExport, features, onSetFeature, onRenameHousehold,
                         onOpenUsage, consumption, challenges, onPickChallenge, capsuleLeftovers, onDeleteCapsuleLeftovers,
                         rotation, onSaveRotation, viewAsMembers, onViewAs, onShareApp, onOpenFeedback, feedbackUnseen,
+                        onOpenCrashes, crashCount,
                         discoverOrder, discoverInTutorial, onSaveDiscoverOrder,
                     )
             }
@@ -200,6 +205,8 @@ private fun ReadyContent(
     onShareApp: (() -> Unit)?,
     onOpenFeedback: (() -> Unit)?,
     feedbackUnseen: Int,
+    onOpenCrashes: (() -> Unit)?,
+    crashCount: Int,
     discoverOrder: List<DiscoverModule>,
     discoverInTutorial: Set<DiscoverModule>,
     onSaveDiscoverOrder: ((List<DiscoverModule>) -> Unit)?,
@@ -304,6 +311,34 @@ private fun ReadyContent(
                     if (feedbackUnseen > 0) {
                         Spacer(Modifier.width(8.dp))
                         Badge { Text(stringResource(R.string.feedback_list_count, feedbackUnseen)) }
+                    }
+                }
+            }
+        }
+        if (onOpenCrashes != null) {
+            item(key = "crashes") {
+                HorizontalDivider(Modifier.padding(top = 8.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onOpenCrashes)
+                        .heightIn(min = 56.dp)
+                        .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Outlined.BugReport, contentDescription = null)
+                    Spacer(Modifier.width(16.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.crashes_title), style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            stringResource(R.string.crashes_help),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    if (crashCount > 0) {
+                        Spacer(Modifier.width(8.dp))
+                        Badge { Text(stringResource(R.string.crashes_count, crashCount)) }
                     }
                 }
             }

@@ -1036,6 +1036,27 @@ Cloud Functions (`functions/src/feedback.ts`) :
 
 Une demande reste quand son auteur quitte la famille : l'admin principal la voit toujours dans « Retours », avec le prénom écrit à l'envoi, et peut la supprimer avec sa capture. L'auteur parti ne la lit plus, car il n'est plus membre. Aucune notification ne part vers lui.
 
+### `crashReports/{reportId}` (« Plantages », PRD, récit 6 sexies, rév. 220)
+
+Une erreur que l'appli n'a pas rattrapée. Il n'y a pas de Crashlytics, rien ne part chez un tiers. Le gestionnaire (`core/crash/CrashCatcher.kt`, installé au tout début de `FamiliaApplication`) écrit le rapport sur le téléphone, puis laisse Android fermer l'appli. Au lancement suivant, une fois le membre connecté, l'appli l'envoie, puis l'oublie. L'id est tiré sur le téléphone : un deuxième envoi est refusé, donc rien n'est compté deux fois. Le téléphone garde 10 rapports au plus.
+
+| Champ | Type | Sens |
+|---|---|---|
+| `memberId` | string | celui qui a eu le plantage (pour compter les personnes, jamais montré à Claude) |
+| `appVersion` / `versionCode` | string (40 max) / int | la version installée |
+| `android` / `device` | string (20 max) / string (80 max) | « 14 », « Google Pixel 8 » |
+| `screen` | string (80 max) | le nom de l'écran affiché (« Home », « EventDetail »), jamais l'id avec lequel il a été ouvert |
+| `trace` | string (1 à 8 000) | la classe de l'erreur, ses causes et les lignes de code, **sans aucun message** : un message peut contenir un texte saisi. Jamais de photo ni de liste |
+| `signature` | string, 16 caractères hexadécimaux | la même pour la même erreur au même endroit (la classe de la cause la plus profonde et ses 3 premières lignes dans notre code) : les rapports sont regroupés par elle |
+| `crashedAt` | timestamp | le moment du plantage, sur le téléphone (jamais dans le futur) |
+| `createdAt` | timestamp serveur | l'arrivée |
+
+Droits : tout membre envoie le sien, en son nom, et jamais en mode Voir comme. Seul l'admin principal lit et supprime. Personne ne modifie un rapport.
+
+Dans Administration › Plantages, chaque sorte de plantage montre le nombre de fois et de personnes, la dernière fois, les versions et l'écran. Le badge compte les sortes encore là. « Copier pour Claude » (`feature/crashes/CrashForClaude.kt`) donne la trace du dernier rapport, sans aucun prénom. « Marquer comme réglé » supprime les rapports de cette sorte : si elle revient, elle compte comme nouvelle. « Faire un essai » ferme l'appli exprès (`CrashTestException`), pour vérifier que tout le chemin marche.
+
+Cloud Function (`functions/src/crashes.ts`) : `onCrashSent` prévient l'admin principal au premier rapport d'une nouvelle sorte, une fois par jour au plus, sur le canal `admin` avec `deliver()` (« Nouveau plantage », puis l'erreur, l'écran et la version). Le toucher ouvre Plantages (`feedback: crashes`). Le jour du dernier envoi est gardé dans `crashNotices/state` (`lastDay`, AAAA-MM-JJ à Paris), que seul le serveur lit et écrit. Il n'y a pas de tâche planifiée.
+
 ### `consumption/{day}`
 
 L'usage de la base un jour donné, lu une fois chaque matin à partir de 8 h dans Cloud Monitoring par la tâche des 30 minutes `arrivalReminder` (`checkConsumptionIfDue` de `firebase/functions/src/consumption.ts`), seulement si le document de la veille n'existe pas encore. Seul le serveur l'écrit ; seul l'admin principal le lit, dans Administration › Consommation.

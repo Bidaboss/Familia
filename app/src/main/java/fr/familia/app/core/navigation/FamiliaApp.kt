@@ -9,6 +9,12 @@ import fr.familia.app.BuildConfig
 import fr.familia.app.R
 import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.core.whatsnew.WhatsNewDestination
+import fr.familia.app.core.crash.CrashCatcher
+import fr.familia.app.core.crash.PendingCrashStore
+import fr.familia.app.core.crash.crashScreenName
+import fr.familia.app.core.crash.sendPendingCrashes
+import fr.familia.app.feature.crashes.CrashesDestination
+import fr.familia.app.feature.crashes.CrashesRoute
 import fr.familia.app.core.whatsnew.WhatsNewHost
 import fr.familia.app.core.whatsnew.WhatsNewRoute
 import fr.familia.app.core.whatsnew.WhatsNewTarget
@@ -481,10 +487,21 @@ fun FamiliaApp(
     }
 
     // And for an idea or a problem: Retours for the admin principal, « Mes demandes » for its author.
+    // « Plantages » (récit 6 sexies, rév. 220): the screen on display goes with a crash report, by
+    // the name of its destination only (never an id), and the crashes kept on the phone leave now.
+    LaunchedEffect(navController) {
+        navController.currentBackStackEntryFlow.collect { CrashCatcher.screen = crashScreenName(it.destination.route) }
+    }
+    LaunchedEffect(container, currentMember.id) {
+        val crashes = container?.crashRepository ?: return@LaunchedEffect
+        val store = PendingCrashStore(context.applicationContext)
+        sendPendingCrashes(store.all(), currentMember.id, crashes, store::remove)
+    }
     LaunchedEffect(openFeedback) {
         when (openFeedback) {
             "list" -> navController.navigate(FeedbackListDestination) { launchSingleTop = true }
             "mine" -> navController.navigate(MyFeedbackDestination) { launchSingleTop = true }
+            "crashes" -> navController.navigate(CrashesDestination) { launchSingleTop = true }
         }
         if (openFeedback != null) onFeedbackOpened()
     }
@@ -1244,7 +1261,11 @@ fun FamiliaApp(
                             onBack = { navController.popBackStack() },
                             onOpenUsage = { navController.navigate(UsageDestination) },
                             onOpenFeedback = { navController.navigate(FeedbackListDestination) },
+                            onOpenCrashes = { navController.navigate(CrashesDestination) { launchSingleTop = true } },
                         )
+                    }
+                    composable<CrashesDestination> {
+                        CrashesRoute(container = container, onBack = { navController.popBackStack() })
                     }
                     composable<FeedbackListDestination> {
                         FeedbackListRoute(container = container, onBack = { navController.popBackStack() })

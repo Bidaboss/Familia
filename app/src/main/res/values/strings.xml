@@ -106,7 +106,7 @@
     <string name="day_today_with_date">Aujourd\'hui, %1$s</string>
     <string name="day_tomorrow_with_date">Demain, %1$s</string>
     <string name="members_empty_title">La famille arrive bientôt</string>
-    <string name="members_empty_body">Les membres, leurs foyers et tes réglages apparaîtront ici.</string>
+    <string name="members_empty_body">Les membres de la famille et leurs foyers apparaîtront ici.</string>
     <string name="members_error_title">La famille ne s\'affiche pas</string>
     <string name="members_error_body">L\'appli n\'a pas pu lire la liste de la famille. Réessaie, et si ça continue, préviens un chef de famille.</string>
     <string name="members_add">Ajouter un membre</string>
@@ -381,6 +381,36 @@
     <string name="feedback_copy_for_claude">Copier pour Claude</string>
     <string name="feedback_copied">Copié</string>
     <string name="feedback_share_for_claude">Partager pour Claude</string>
+    <!-- « Plantages » (récit 6 sexies, rév. 220) -->
+    <string name="crashes_title">Plantages</string>
+    <string name="crashes_help">Les erreurs qui ont fermé l\'appli, envoyées au lancement suivant.</string>
+    <string name="crashes_count">%1$d à voir</string>
+    <string name="crashes_empty_title">Aucun plantage</string>
+    <string name="crashes_empty_body">Si l\'appli se ferme toute seule chez quelqu\'un, le rapport arrive ici au lancement suivant. Il ne contient ni texte saisi, ni photo, ni liste.</string>
+    <string name="crashes_error_title">Plantages indisponibles</string>
+    <string name="crashes_error_body">Vérifie ta connexion, puis rouvre cet écran. Les règles doivent aussi être publiées (« Publier Firebase »).</string>
+    <string name="crashes_place">Dans le code : %1$s</string>
+    <string name="crashes_counts">%1$s, chez %2$s</string>
+    <plurals name="crashes_times">
+        <item quantity="one">%1$d fois</item>
+        <item quantity="many">%1$d fois</item>
+        <item quantity="other">%1$d fois</item>
+    </plurals>
+    <plurals name="crashes_people">
+        <item quantity="one">%1$d personne</item>
+        <item quantity="many">%1$d personnes</item>
+        <item quantity="other">%1$d personnes</item>
+    </plurals>
+    <string name="crashes_last">Dernière fois le %1$s</string>
+    <string name="crashes_screen">écran %1$s</string>
+    <string name="crashes_settle">Marquer comme réglé</string>
+    <string name="crashes_settle_title">Marquer comme réglé ?</string>
+    <string name="crashes_settle_body">Les rapports de « %1$s » sont effacés. S\'il revient, il réapparaîtra comme nouveau et tu seras prévenu.</string>
+    <string name="crashes_test">Faire un essai</string>
+    <string name="crashes_test_title">Faire planter l\'appli ?</string>
+    <string name="crashes_test_body">L\'appli va se fermer exprès. Rouvre-la : un plantage « CrashTestException » apparaîtra ici, et tu recevras une notification s\'il n\'y en a pas eu d\'autre aujourd\'hui.</string>
+    <string name="crashes_test_confirm">Fermer l\'appli</string>
+    <string name="crashes_action_failed">Ça n\'a pas marché. Vérifie ta connexion et réessaie.</string>
     <string name="feedback_share_chooser">Envoyer la demande et sa capture avec</string>
     <string name="share_app_title">Partager Familia</string>
     <string name="share_app_help">Envoie le lien d\'installation à toute la famille, par WhatsApp ou SMS.</string>

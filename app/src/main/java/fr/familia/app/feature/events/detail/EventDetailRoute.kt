@@ -24,6 +24,7 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.share.eventShare
 import fr.familia.app.core.share.share
 import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.core.photo.CoverBanner
 import fr.familia.app.feature.events.album.EventAlbumSection
 import fr.familia.app.feature.events.bring.BringSection
 import fr.familia.app.feature.events.comments.EventCommentsSection
@@ -81,6 +82,12 @@ fun EventDetailRoute(
         onRetry = viewModel::retry,
         onEdit = onEdit,
         onBack = onBack,
+        header = {
+            val cover = (state as? EventDetailUiState.Success)?.event?.coverPhoto
+            if (cover != null && LocalFeatureFlags.current.isOn(Feature.MorePhotos)) {
+                CoverBanner(cover, Modifier.padding(bottom = 8.dp))
+            }
+        },
         album = {
             val success = state as? EventDetailUiState.Success
             // « Qui apporte quoi » (récit 4 bis), before the album.
