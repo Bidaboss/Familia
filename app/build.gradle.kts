@@ -136,3 +136,10 @@ dependencies {
     testImplementation(libs.roborazzi.compose)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
+
+// A failed test shows its whole message in the CI log (the contrast pass lists each text too pale there).
+tasks.withType<Test>().configureEach {
+    testLogging {
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+}
