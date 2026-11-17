@@ -5,9 +5,6 @@ import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material3.Checkbox
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -69,11 +66,8 @@ fun RecipeDetailScreen(
     /** The comments under the recipe, given by the route. */
     comments: @Composable () -> Unit = {},
     onShare: () -> Unit = {},
-    /** The switch recipeBook (récit 47): the little story and « Un enfant est sur une des photos ». */
+    /** The switch recipeBook (récit 47): the little story. */
     bookOn: Boolean = false,
-    onChildInPhotos: (Boolean) -> Unit = {},
-    /** The recipe has at least one photo: « Un enfant est sur une des photos » only makes sense then. */
-    hasPhotos: Boolean = false,
 ) {
     Scaffold(
         topBar = {
@@ -92,7 +86,7 @@ fun RecipeDetailScreen(
                     title = stringResource(R.string.recipe_missing_title),
                     body = stringResource(R.string.recipe_missing_body),
                 )
-                is RecipeDetailUiState.Ready -> Content(state, onEdit, onRemove, onShare, photos, comments, bookOn, onChildInPhotos, hasPhotos)
+                is RecipeDetailUiState.Ready -> Content(state, onEdit, onRemove, onShare, photos, comments, bookOn)
             }
         }
     }
@@ -107,8 +101,6 @@ private fun Content(
     photos: @Composable () -> Unit,
     comments: @Composable () -> Unit,
     bookOn: Boolean,
-    onChildInPhotos: (Boolean) -> Unit,
-    hasPhotos: Boolean,
 ) {
     val recipe = state.recipe
     val muted = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
@@ -130,7 +122,6 @@ private fun Content(
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             SectionTitle(stringResource(R.string.recipe_photos_title))
             photos()
-            if (bookOn && state.canManage && hasPhotos) ChildInPhotosRow(recipe.childInPhotos, onChildInPhotos)
         }
         // What to buy comes first in the kitchen: the point of the screen (DESIGN-11).
         ClayCard(modifier = Modifier.fillMaxWidth(), emphasis = true) {
@@ -156,29 +147,6 @@ private fun Content(
                 Text(stringResource(R.string.recipe_remove_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
             }
             RemoveButton(recipe.title, onRemove)
-        }
-    }
-}
-
-/** « Un enfant est sur une des photos », unticked at first (récit 47, carte EXPERT-2). */
-@Composable
-private fun ChildInPhotosRow(checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .toggleable(value = checked, role = Role.Checkbox, onValueChange = onChange),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Checkbox(checked = checked, onCheckedChange = null)
-        Column(Modifier.weight(1f)) {
-            Text(stringResource(R.string.recipe_child_in_photos), style = MaterialTheme.typography.bodyLarge)
-            Text(
-                stringResource(R.string.recipe_child_in_photos_help),
-                style = MaterialTheme.typography.bodyMedium,
-                color = FamiliaClay.colors.onTintVariant(ClayTint.Plain),
-            )
         }
     }
 }

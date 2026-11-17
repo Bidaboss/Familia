@@ -1213,8 +1213,6 @@
     <string name="recipe_book_other">Autres recettes</string>
     <string name="recipe_field_story">Sa petite histoire (facultatif)</string>
     <string name="recipe_field_story_help">Qui la faisait, pour quelle occasion… Elle sera dans le livre de recettes.</string>
-    <string name="recipe_child_in_photos">Un enfant est sur une des photos</string>
-    <string name="recipe_child_in_photos_help">Dans le livre de recettes, seule la personne qui a pris la photo la gardera. Les autres auront un dessin à la place.</string>
     <string name="recipe_field_tags_help">Séparées par des virgules, par exemple « dessert, Noël ». Six au plus.</string>
     <string name="recipe_save_failed">La recette n\'a pas pu être enregistrée. Vérifie la connexion et réessaie.</string>
     <string name="error_recipe_title_missing">Donne un nom à la recette.</string>

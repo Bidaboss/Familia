@@ -109,8 +109,6 @@ fun RecipeDetailRoute(container: AppContainer?, currentMember: Member, recipeId:
             (state as? RecipeDetailUiState.Ready)?.let { ready -> shareText(context, recipeShareText(ready.recipe, ready.origin, labels), chooser) }
         },
         bookOn = LocalFeatureFlags.current.isOn(Feature.RecipeBook),
-        onChildInPhotos = viewModel::setChildInPhotos,
-        hasPhotos = photos.photos.isNotEmpty(),
     )
 }
 

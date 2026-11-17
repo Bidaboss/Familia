@@ -62,12 +62,6 @@ class FirestoreRecipeRepository(private val db: FirebaseFirestore) : RecipeRepos
         }
     }
 
-    override suspend fun setChildInPhotos(id: String, childInPhotos: Boolean) {
-        db.collection(RECIPES).document(id)
-            .update(mapOf("childInPhotos" to childInPhotos, "updatedAt" to FieldValue.serverTimestamp()))
-            .await()
-    }
-
     override suspend fun deleteRecipe(id: String) {
         db.collection(RECIPES).document(id).delete().await()
     }
@@ -126,7 +120,6 @@ class FirestoreRecipeRepository(private val db: FirebaseFirestore) : RecipeRepos
             authorName = getString("authorName").orEmpty(),
             createdAt = getTimestamp("createdAt")?.toDate()?.toInstant(),
             story = getString("story").orEmpty(),
-            childInPhotos = getBoolean("childInPhotos") == true,
         )
     }
 

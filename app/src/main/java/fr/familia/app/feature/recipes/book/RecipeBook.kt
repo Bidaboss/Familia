@@ -49,12 +49,11 @@ private fun capitalized(tag: String): String = tag.replaceFirstChar { it.titleca
 
 /**
  * Carte EXPERT-2 in the book, which leaves the app: a photo counts as showing a child when a child
- * took it, when the recipe comes from a child, or when its author ticked « Un enfant est sur une des
- * photos ». Then only the adults of that child keep it, and for the box, only whoever took the
- * photo (nobody says which child it is). A member who left can no longer be checked: no photo.
+ * took it, or when the recipe comes from a child. Then only the adults of that child keep it. A
+ * member who left can no longer be checked: no photo. (The box « Un enfant est sur une des photos »
+ * was taken away on 17/11: the adults choose the recipes of their book themselves.)
  */
 fun bookPhotoAllowed(photo: AlbumPhoto, recipe: Recipe, makerId: String, family: Family): Boolean {
-    if (recipe.childInPhotos && photo.authorId != makerId) return false
     val shown = listOfNotNull(photo.authorId, recipe.originMemberId).distinct().map { id ->
         family.members.firstOrNull { it.id == id } ?: return false
     }
