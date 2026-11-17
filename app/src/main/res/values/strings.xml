@@ -32,7 +32,7 @@
     <string name="rsvp_no">Je ne viens pas</string>
     <string name="rsvp_chip_description">%1$s&#160;: %2$s</string>
     <string name="rsvp_pending">En attente du réseau : la réponse partira toute seule à son retour.</string>
-    <string name="rsvp_send_failed">Ta réponse n\'est pas partie. Réessaie dans un moment.</string>
+    <string name="rsvp_send_failed">Ta réponse n\'est pas partie. Vérifie ta connexion, puis réessaie.</string>
     <string name="rsvp_summary_coming">Viennent (%1$d)</string>
     <string name="rsvp_summary_maybe">Peut-être (%1$d)</string>
     <string name="rsvp_summary_not_coming">Ne viennent pas (%1$d)</string>
@@ -70,7 +70,7 @@
     <string name="event_for_household">Un foyer</string>
     <string name="event_for_me">Moi</string>
     <string name="event_for_child">Un enfant</string>
-    <string name="event_save_failed">L\'enregistrement n\'a pas été accepté. Vérifie l\'événement et réessaie.</string>
+    <string name="event_save_failed">L\'événement n\'est pas enregistré. Vérifie ta connexion, puis réessaie.</string>
     <string name="event_delete">Supprimer l\'événement</string>
     <string name="event_delete_title">Supprimer « %1$s » ?</string>
     <string name="event_delete_body">Il disparaît du planning de toute la famille.</string>
@@ -145,7 +145,7 @@
     <string name="members_treasure_who_is_it">Qui est-ce ?</string>
     <string name="members_treasure_who_is_it_open">ouvrir « Qui est-ce ? »</string>
     <string name="home_new_recipe">Nouvelle recette : %1$s</string>
-    <string name="administration_error_body">L\'appli n\'a pas pu lire la famille. Réessaie dans un moment.</string>
+    <string name="administration_error_body">L\'appli n\'a pas pu lire la famille. Vérifie ta connexion, puis réessaie.</string>
     <string name="administration_not_allowed_title">Réservé à l\'admin principal</string>
     <string name="administration_not_allowed_body">Ce menu sert à nommer les chefs de famille, gérer les foyers et sauvegarder les données.</string>
     <string name="administration_failed_title">Ça n\'a pas marché</string>
@@ -251,13 +251,13 @@
     <string name="received_intro">Les envies que la famille t\'a offertes, avec les prénoms de ceux qui les ont prises ; les montants restent secrets.</string>
     <string name="received_empty_title">Rien pour l\'instant</string>
     <string name="received_empty_body">Le lendemain de ton anniversaire et de Noël, les envies que la famille a prises pour toi arrivent ici.</string>
-    <string name="received_error_title">Impossible d\'afficher tes cadeaux</string>
+    <string name="received_error_title">Tes cadeaux ne s\'affichent pas</string>
     <string name="received_error_body">Vérifie ta connexion, puis rouvre cette page.</string>
     <string name="received_from">Offert par %1$s</string>
     <string name="received_from_joint">Cadeau commun de %1$s</string>
     <string name="received_thank">Merci</string>
     <string name="received_thanked">Merci envoyé</string>
-    <string name="received_thank_failed">Le merci n\'est pas parti. Réessaie dans un instant.</string>
+    <string name="received_thank_failed">Le merci n\'est pas parti. Vérifie ta connexion, puis réessaie.</string>
     <string name="share_to_wishes">Mes envies Familia</string>
     <string name="share_add_to_wishes">Ajouter à mes envies</string>
     <string name="gift_item_preview_loading">Lecture de la page de la boutique…</string>
@@ -268,7 +268,7 @@
     <string name="usage_title">Utilisation</string>
     <string name="usage_children_title">Temps de mes enfants</string>
     <string name="usage_children_empty">Aucun enfant avec l\'appli dont tu es responsable.</string>
-    <string name="usage_error_title">Utilisation indisponible</string>
+    <string name="usage_error_title">L\'utilisation ne s\'affiche pas</string>
     <string name="usage_error_body">Vérifie ta connexion, puis réessaie.</string>
     <string name="usage_family_title">La famille</string>
     <string name="usage_active">Membres actifs : %1$d sur 7 jours, %2$d sur 30 jours (sur %3$d avec l\'appli).</string>
@@ -407,7 +407,7 @@
     <string name="feedback_send">Envoyer</string>
     <string name="feedback_sent">Merci ! C\'est envoyé à l\'admin de la famille.</string>
     <string name="feedback_back">Retour</string>
-    <string name="feedback_failed">L\'envoi n\'a pas marché. Réessaie dans un moment.</string>
+    <string name="feedback_failed">Ton message n\'est pas parti. Vérifie ta connexion, puis réessaie.</string>
     <string name="feedback_list_title">Retours</string>
     <string name="feedback_list_help">Les idées et les problèmes envoyés par la famille.</string>
     <string name="feedback_list_count">%1$d nouvelle(s)</string>
@@ -434,7 +434,7 @@
     <string name="feedback_note_field">Un mot pour son auteur (facultatif)</string>
     <string name="feedback_answer_told">Son auteur reçoit une notification si l\'état change.</string>
     <string name="feedback_answer_save">Enregistrer</string>
-    <string name="feedback_action_failed">Ça n\'a pas marché. Réessaie dans un moment.</string>
+    <string name="feedback_action_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
     <string name="feedback_android">Android %1$s</string>
     <string name="feedback_from_family">depuis Mon compte</string>
     <string name="feedback_from_help">depuis l\'Aide</string>
@@ -492,7 +492,7 @@
     <string name="member_leave_body">Les changements de cette fiche ne sont pas enregistrés.</string>
     <string name="member_leave_keep">Continuer la fiche</string>
     <string name="member_leave_discard">Abandonner</string>
-    <string name="member_save_failed">L\'enregistrement n\'a pas été accepté. Vérifie la fiche et réessaie.</string>
+    <string name="member_save_failed">La fiche n\'est pas enregistrée. Vérifie ta connexion, puis réessaie.</string>
     <string name="error_first_name_missing">Écris un prénom.</string>
     <string name="error_first_name_too_long">40 caractères au plus.</string>
     <string name="error_email_invalid">Écris une adresse complète, par exemple prenom@gmail.com.</string>
@@ -525,11 +525,11 @@
     <string name="sign_in_not_a_member">Le compte %1$s ne fait pas partie de la famille. Demande à l\'admin de la famille de t\'ajouter, ou essaie un autre compte.</string>
     <string name="sign_in_in_progress">Connexion en cours</string>
     <string name="sign_in_use_another_account">Essayer un autre compte</string>
-    <string name="sign_in_firebase_missing">L\'appli n\'est pas encore reliée à la famille. Réessaie avec la prochaine version.</string>
+    <string name="sign_in_firebase_missing">Cette version de l\'appli n\'est pas encore prête. Installe la prochaine version depuis le Drive.</string>
     <string name="sign_in_error_no_account">Aucun compte Google sur ce téléphone. Ajoute ton compte dans les réglages d\'Android, puis réessaie.</string>
     <string name="sign_in_error_network">Pas de réseau, ou il est trop lent. Rapproche-toi de la box ou passe en 4G, puis touche « Réessayer ».</string>
     <string name="sign_in_retry">Réessayer</string>
-    <string name="sign_in_error_unknown">La connexion n\'a pas marché. Réessaie dans un moment.</string>
+    <string name="sign_in_error_unknown">La connexion à Familia n\'a pas marché. Vérifie ta connexion à Internet, puis touche « Réessayer ».</string>
     <string name="notifications_title">Notifications</string>
     <string name="notifications_events_help">Tu es prévenu quand quelqu\'un ajoute, modifie ou supprime un événement pour toute la famille, pour ton foyer ou pour un enfant dont tu t\'occupes, et quand change un événement où tu as dit que tu venais. Tes propres changements ne te préviennent pas. Chaque sorte de notification (Planning, Rappels, Cadeaux, Entraide…) se coupe à part dans les réglages Android.</string>
     <string name="notifications_reminder">Rappel la veille à 18\u00A0h</string>
@@ -537,9 +537,9 @@
     <string name="notifications_blocked">Les notifications de Familia sont bloquées sur ce téléphone. Tu ne seras prévenu de rien tant qu\'elles le restent.</string>
     <string name="notifications_allow">Autoriser les notifications</string>
     <string name="notifications_system_settings">Réglages Android des notifications</string>
-    <string name="notifications_save_failed">Le réglage n\'a pas été enregistré. Réessaie.</string>
-    <string name="notifications_error_title">Réglages indisponibles</string>
-    <string name="notifications_error_body">Tes réglages n\'ont pas pu être lus. Réessaie dans un instant.</string>
+    <string name="notifications_save_failed">Le réglage n\'a pas été enregistré. Vérifie ta connexion, puis réessaie.</string>
+    <string name="notifications_error_title">Tes réglages ne s\'affichent pas</string>
+    <string name="notifications_error_body">L\'appli n\'a pas pu lire tes réglages. Vérifie ta connexion, puis réessaie.</string>
     <string name="channel_events">Planning</string>
     <string name="channel_events_description">Un événement qui te concerne, ajouté, modifié ou supprimé</string>
     <string name="channel_reminders">Rappels</string>
@@ -572,7 +572,7 @@
     <string name="update_check_in_progress">Vérification en cours…</string>
     <string name="update_check_up_to_date">Tu as la dernière version.</string>
     <string name="update_check_offline">Connecte-toi à Internet pour vérifier les mises à jour.</string>
-    <string name="update_check_failed">La vérification n\'a pas abouti. Réessaie dans un instant.</string>
+    <string name="update_check_failed">Familia n\'a pas pu chercher de mise à jour. Vérifie ta connexion, puis réessaie.</string>
     <string name="update_check_again">Vérifier à nouveau</string>
     <!-- Tuto de démarrage (spec « tuto et aide », récit 25) -->
     <string name="onboarding_progress">%1$d sur %2$d</string>
@@ -659,7 +659,7 @@
     <!-- Listes et cadeaux (PRD, V2, récits 7 à 10 bis) -->
     <string name="nav_gifts">Cadeaux</string>
     <string name="nav_gifts_child">Mes envies</string>
-    <string name="gifts_error_title">Impossible d\'afficher les cadeaux</string>
+    <string name="gifts_error_title">Les cadeaux ne s\'affichent pas</string>
     <string name="gifts_error_body">L\'appli n\'a pas pu lire les cadeaux. Réessaie, et si ça continue, préviens un chef de famille.</string>
     <string name="gifts_new_list">Nouvelle liste</string>
     <string name="gifts_open_list">ouvrir la liste</string>
@@ -720,7 +720,7 @@
     <string name="gift_list_revealed">L\'occasion est passée : tout est révélé.</string>
     <string name="gift_add_item">Ajouter</string>
     <string name="gift_add_wish">Ajouter une envie</string>
-    <string name="gift_action_failed">Ça n\'a pas marché. Réessaie dans un instant.</string>
+    <string name="gift_action_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
     <string name="gift_item_price">Environ %1$s</string>
     <string name="gift_item_idea_of">Idée de %1$s</string>
     <string name="gift_item_open_link">Voir le lien</string>
@@ -827,7 +827,7 @@
     <string name="gift_list_delete">Supprimer la liste</string>
     <string name="gift_list_delete_title">Supprimer « %1$s » ?</string>
     <string name="gift_list_delete_body">Ses articles et ses réservations seront supprimés aussi.</string>
-    <string name="gift_save_failed">Enregistrement impossible. Vérifie ta connexion et réessaie.</string>
+    <string name="gift_save_failed">Ce n\'est pas enregistré. Vérifie ta connexion, puis réessaie.</string>
     <string name="gift_item_new_title">Nouvel article</string>
     <string name="gift_item_edit_title">Modifier l\'article</string>
     <string name="gift_item_hidden_hint">%1$s ne verra pas cet article : c\'est une idée surprise.</string>
@@ -860,7 +860,7 @@
     <string name="photo_zoom_in">Zoomer</string>
     <string name="photo_zoom_out">Dézoomer</string>
     <string name="photo_crop_confirm">Valider</string>
-    <string name="photo_unreadable_title">Impossible d\'ouvrir cette photo</string>
+    <string name="photo_unreadable_title">Cette photo ne s\'ouvre pas</string>
     <string name="photo_unreadable_body">Choisis-en une autre, ou prends une nouvelle photo.</string>
     <string name="photo_failed_title">La photo n\'a pas changé</string>
     <string name="photo_add">Ajouter une photo</string>
@@ -868,7 +868,7 @@
     <string name="photo_remove_confirm_body">La photo disparaîtra quand tu enregistreras.</string>
     <string name="photo_remove_confirm">Retirer</string>
     <string name="photo_chosen">Photo choisie</string>
-    <string name="photo_failed_body">Ça n\'a pas marché. Réessaie, et si ça recommence, demande à l\'admin principal.</string>
+    <string name="photo_failed_body">La photo n\'a pas été enregistrée. Vérifie ta connexion, puis réessaie.</string>
 
     <!-- Coups de main (PRD, récits 13 à 18) : fil [DEV] coups de main -->
     <string name="nav_help_requests">Entraide</string>
@@ -892,7 +892,7 @@
     <string name="helprequest_empty_title">Personne n\'a encore demandé de coup de main</string>
     <string name="helprequest_empty_body">Un trajet, une garde, un coup de main pour un meuble : la famille est là pour ça.</string>
     <string name="helprequest_empty_action">Demander le premier</string>
-    <string name="helprequest_error_title">Impossible d\'afficher les coups de main</string>
+    <string name="helprequest_error_title">Les coups de main ne s\'affichent pas</string>
     <string name="helprequest_error_body">L\'appli n\'a pas pu lire les demandes. Réessaie, et si ça continue, préviens un chef de famille.</string>
     <string name="helprequest_by_me">moi</string>
     <string name="helprequest_by">Demandé par %1$s</string>
@@ -972,7 +972,7 @@
     <string name="helprequest_late_taken_by">%1$s s\'en occupait déjà. Merci d\'avoir proposé ton aide !</string>
     <string name="helprequest_late_taken">Quelqu\'un s\'en occupait déjà. Merci d\'avoir proposé ton aide !</string>
     <string name="helprequest_todo_needs_network">Il faut du réseau pour répondre. Réessaie une fois connecté.</string>
-    <string name="helprequest_todo_failed">Ça n\'a pas marché. Réessaie dans un instant.</string>
+    <string name="helprequest_todo_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
     <string name="helprequest_r1bis_title">Coups de main</string>
     <string name="helprequest_r1bis_needs_you">On a besoin de toi</string>
     <string name="helprequest_r1bis_mine">Mes demandes</string>
@@ -1019,7 +1019,7 @@
     <string name="goodnews_empty_body">Une réussite, une photo du jour, un petit bonheur : toute la famille sera contente de la voir.</string>
     <string name="goodnews_empty_action">Partager la première</string>
     <string name="empty_share_good_news">Partager une bonne nouvelle en attendant</string>
-    <string name="goodnews_error_title">Impossible d\'afficher les bonnes nouvelles</string>
+    <string name="goodnews_error_title">Les bonnes nouvelles ne s\'affichent pas</string>
     <string name="goodnews_error_body">L\'appli n\'a pas pu les lire. Réessaie, et si ça continue, préviens un chef de famille.</string>
     <string name="goodnews_missing_title">Cette bonne nouvelle n\'existe plus</string>
     <string name="goodnews_missing_body">Elle a été retirée, ou elle n\'est pas encore arrivée sur ce téléphone.</string>
@@ -1152,9 +1152,9 @@
     <string name="album_photos_full">Tu as ajouté tes %1$d photos. Retire-en une pour en mettre une autre.</string>
     <string name="album_photos_send_failed">Une photo n\'a pas pu être envoyée. Vérifie la connexion et réessaie.</string>
     <string name="album_photos_unreadable">Une photo n\'a pas pu être lue sur le téléphone. Essaie avec une autre.</string>
-    <string name="album_photos_refused">Le serveur a refusé une photo. Réessayer ne changera rien : signale-le dans « Une idée ? Un souci ? ».</string>
+    <string name="album_photos_refused">Familia n\'a pas accepté cette photo. Réessayer ne changera rien : choisis-en une autre, ou dis-le dans « Une idée ? Un souci ? ».</string>
     <string name="album_photos_too_many">%1$d photos par personne au plus : seules les premières ont été gardées.</string>
-    <string name="album_photos_remove_failed">La photo n\'a pas pu être retirée. Réessaie.</string>
+    <string name="album_photos_remove_failed">La photo n\'a pas pu être retirée. Vérifie ta connexion, puis réessaie.</string>
     <string name="album_photos_ok">OK</string>
     <string name="album_photo_by">Photo de %1$s</string>
     <string name="album_photo_open">Agrandir</string>
@@ -1205,7 +1205,7 @@
     <string name="recipe_picker_cancel">Annuler</string>
     <string name="recipe_picker_empty">Le carnet est encore vide. Ajoute une recette depuis l\'onglet Famille.</string>
     <string name="recipe_picker_no_match">Aucune recette ne porte ce titre.</string>
-    <string name="recipe_picker_failed">Les recettes n\'ont pas pu être lues. Réessaie dans un instant.</string>
+    <string name="recipe_picker_failed">Les recettes ne s\'affichent pas. Vérifie ta connexion, puis réessaie.</string>
     <string name="recipes_add">Nouvelle recette</string>
     <string name="recipes_search">Recette, ingrédient ou prénom</string>
     <string name="recipes_none_found">Aucune recette ne correspond.</string>
@@ -1234,7 +1234,7 @@
     <string name="recipe_comment_send_failed">Le commentaire n\'a pas pu être envoyé. Vérifie la connexion et réessaie.</string>
     <string name="recipe_comment_remove">Retirer</string>
     <string name="recipe_comment_remove_title">Retirer ce commentaire ?</string>
-    <string name="recipe_comment_remove_failed">Le commentaire n\'a pas pu être retiré. Réessaie.</string>
+    <string name="recipe_comment_remove_failed">Le commentaire n\'a pas pu être retiré. Vérifie ta connexion, puis réessaie.</string>
     <string name="recipes_from_title">Recettes de %1$s</string>
     <string name="profile_recipes">Voir ses recettes</string>
     <string name="member_card_title">Goûts et passions</string>
@@ -1246,7 +1246,7 @@
     <string name="member_card_empty_other">%1$s n\'a encore rien noté.</string>
     <string name="member_card_fill">Remplir</string>
     <string name="member_card_edit">Modifier</string>
-    <string name="member_card_save_failed">La fiche n\'a pas pu être enregistrée. Réessaie dans un instant.</string>
+    <string name="member_card_save_failed">La fiche n\'est pas enregistrée. Vérifie ta connexion, puis réessaie.</string>
     <string name="recipe_ingredients">Ingrédients</string>
     <string name="recipe_steps">Étapes</string>
     <string name="recipe_written_by">Notée par %1$s</string>
@@ -1289,7 +1289,7 @@
     <string name="recipe_book_all">Tout cocher</string>
     <string name="recipe_book_none">Tout décocher</string>
     <string name="recipe_book_make">Faire le livre</string>
-    <string name="recipe_book_failed">Le livre n\'a pas pu être fait. Réessaie dans un instant.</string>
+    <string name="recipe_book_failed">Le livre n\'a pas pu être fait. Vérifie ta connexion, puis réessaie.</string>
     <string name="recipe_book_print_hint">Tu peux le faire imprimer dans une boutique photo : demande un livret au format A5.</string>
     <string name="recipe_book_share_chooser">Enregistrer, imprimer ou envoyer le livre</string>
     <!-- L'affiche de l'arbre (récit 53) -->
@@ -1312,7 +1312,7 @@
     <string name="photo_book_is_cover">Couverture</string>
     <string name="photo_book_is_big">Seule sur sa page</string>
     <string name="photo_book_make">Faire le livre photo</string>
-    <string name="photo_book_failed">Le livre n\'a pas pu être fait. Vérifie le réseau et réessaie.</string>
+    <string name="photo_book_failed">Le livre n\'a pas pu être fait. Vérifie ta connexion, puis réessaie.</string>
     <string name="photo_book_hint">Les photos sont téléchargées en pleine qualité, une seule fois. Une boutique photo peut l\'imprimer.</string>
     <string name="photo_book_share_chooser">Enregistrer, imprimer ou envoyer le livre photo</string>
     <string name="photo_book_consent_body">Des enfants apparaissent peut-être sur ces photos. Pense à demander l\'accord de leurs parents avant d\'envoyer le livre hors de Familia.</string>
@@ -1333,7 +1333,7 @@
     <string name="tree_poster_photos">Mettre les photos</string>
     <string name="tree_poster_photos_children">Un enfant dont tu n\'es pas un des adultes garde son initiale.</string>
     <string name="tree_poster_make">Faire l\'affiche</string>
-    <string name="tree_poster_failed">L\'affiche n\'a pas pu être faite. Réessaie dans un instant.</string>
+    <string name="tree_poster_failed">L\'affiche n\'a pas pu être faite. Vérifie ta connexion, puis réessaie.</string>
     <string name="tree_poster_print_hint">Seule l\'année de naissance apparaît, jamais la date. Une boutique photo peut l\'imprimer en grand.</string>
     <string name="tree_poster_share_chooser">Enregistrer, imprimer ou envoyer l\'affiche</string>
     <string name="tree_poster_empty_title">L\'arbre est encore vide</string>
@@ -1355,7 +1355,7 @@
     <string name="error_recipe_servings">Entre un nombre de 1 à 50.</string>
     <string name="error_recipe_ingredients_missing">Écris au moins un ingrédient.</string>
     <string name="error_recipe_steps_missing">Écris au moins une étape.</string>
-    <string name="error_recipe_too_long">Texte trop long : raccourcis-le un peu.</string>
+    <string name="error_recipe_too_long">Ce texte est trop long. Raccourcis-le un peu.</string>
     <string name="help_screen_recipes_title">Le carnet de recettes</string>
     <string name="help_screen_recipes_body">Les recettes de la famille, par ordre alphabétique. Cherche par nom, ingrédient, étiquette ou personne. Touche « Nouvelle recette » pour en noter une : un ingrédient par ligne, une étape par ligne. Seule la personne qui l\'a notée, ou l\'administrateur, peut la modifier, ajouter jusqu\'à 3 photos du plat ou la retirer. Chacun peut laisser un commentaire. Le bouton Partager envoie la recette en texte, sans les photos.</string>
     <string name="help_screen_genealogy_title">L\'arbre généalogique</string>
@@ -1418,8 +1418,8 @@
     <string name="expenses_not_allowed_title">Comptes réservés</string>
     <string name="expenses_not_allowed_body">Seuls les adultes qui partent voient les comptes du voyage.</string>
     <string name="expenses_not_allowed_body_event">Seuls les adultes qui ont répondu « Je viens » voient les comptes de l\'événement.</string>
-    <string name="expenses_error_title">Comptes indisponibles</string>
-    <string name="expenses_error_body">Impossible de charger les comptes pour l\'instant.</string>
+    <string name="expenses_error_title">Les comptes ne s\'affichent pas</string>
+    <string name="expenses_error_body">L\'appli n\'a pas pu lire les comptes. Vérifie ta connexion, puis réessaie.</string>
     <string name="expenses_shares">Parts : %1$s</string>
     <string name="expenses_settle">C\'est remboursé</string>
     <string name="expenses_settled_title">Déjà remboursé</string>
@@ -1453,7 +1453,7 @@
     <string name="expense_history_title_of">Historique · %1$s</string>
     <string name="expense_history_open">Voir l\'historique</string>
     <string name="expense_history_empty">Rien n\'est encore noté pour cette dépense. Chaque ajout et chaque modification s\'inscrivent ici.</string>
-    <string name="expense_history_error">Impossible de charger l\'historique pour l\'instant.</string>
+    <string name="expense_history_error">L\'historique ne s\'affiche pas. Vérifie ta connexion, puis réessaie.</string>
     <string name="expense_history_someone">Quelqu\'un</string>
     <string name="expense_history_created">%1$s l\'a ajoutée : %2$s</string>
     <string name="expense_history_edited">%1$s a changé %2$s : %3$s</string>
@@ -1467,7 +1467,7 @@
     <string name="expense_field_category">La catégorie</string>
     <string name="expense_field_split">Le partage</string>
     <string name="expense_field_currency">La devise</string>
-    <string name="expenses_write_failed">Ce changement n\'a pas été accepté. Réessaie.</string>
+    <string name="expenses_write_failed">Ce changement n\'est pas passé. Vérifie ta connexion, puis réessaie.</string>
     <string name="expense_category_lodging">Logement</string>
     <string name="expense_category_transport">Transport</string>
     <string name="expense_category_groceries">Courses</string>
@@ -1475,7 +1475,7 @@
     <string name="expense_category_activity">Activité</string>
     <string name="expense_category_other">Autre</string>
     <string name="expense_edit_title">Modifier la dépense</string>
-    <string name="expense_unavailable_title">Dépense indisponible</string>
+    <string name="expense_unavailable_title">Tu ne peux pas modifier cette dépense</string>
     <string name="expense_unavailable_body">Elle a été supprimée, les comptes sont clôturés, ou seul son auteur et le créateur du voyage peuvent la modifier.</string>
     <string name="expense_unavailable_body_event">Elle a été supprimée, les comptes sont clôturés, ou seul son auteur et l\'organisateur de l\'événement peuvent la modifier.</string>
     <string name="expense_title_field">Quoi ?</string>
@@ -1508,12 +1508,12 @@
     <string name="event_comment_edit">Modifier</string>
     <string name="event_comment_edit_title">Modifier ton commentaire</string>
     <string name="event_comment_edit_save">Enregistrer</string>
-    <string name="event_comment_edit_failed">Le commentaire n\'a pas pu être modifié. Réessaie.</string>
+    <string name="event_comment_edit_failed">Le commentaire n\'a pas pu être modifié. Vérifie ta connexion, puis réessaie.</string>
     <string name="event_comment_when_edited">%1$s · modifié</string>
     <string name="event_comments_mute">Ne plus être prévenu des commentaires</string>
     <string name="event_comments_unmute">Être à nouveau prévenu des commentaires</string>
     <string name="event_comments_public">Tout le monde lit les commentaires, y compris la personne fêtée : garde les surprises pour toi.</string>
-    <string name="event_comments_mute_failed">Le réglage n\'a pas pu être changé. Réessaie.</string>
+    <string name="event_comments_mute_failed">Le réglage n\'a pas pu être changé. Vérifie ta connexion, puis réessaie.</string>
     <string name="share_consent_title">Avant de partager</string>
     <string name="share_consent_body">Des enfants apparaissent peut-être sur ces photos. Pense à demander l\'accord de leurs parents avant d\'envoyer la vidéo hors de Familia.</string>
     <string name="share_consent_continue">Continuer</string>
@@ -1546,7 +1546,7 @@
     <string name="trip_arrived_by_at">Bien arrivé, signalé par %1$s le %2$s</string>
     <string name="trip_arrived_undo">Annuler « Bien arrivé »</string>
     <string name="trip_not_arrived">Pas encore signalé.</string>
-    <string name="trip_arrival_failed">Ce changement n\'a pas été accepté. Réessaie.</string>
+    <string name="trip_arrival_failed">Ce changement n\'est pas passé. Vérifie ta connexion, puis réessaie.</string>
     <string name="trip_add_title">Nouveau voyage</string>
     <string name="trip_edit_title">Modifier le voyage</string>
     <string name="trip_field_title">Nom du voyage</string>
@@ -1560,7 +1560,7 @@
     <string name="trip_field_readers">Qui suit le voyage ?</string>
     <string name="trip_field_readers_help">Toute la famille par défaut. Décoche ceux qui ne doivent pas le voir : ils ne verront ni le voyage, ni ses étapes.</string>
     <string name="trip_reader_participant">Part en voyage</string>
-    <string name="trip_save_failed">L\'enregistrement n\'a pas été accepté. Vérifie et réessaie.</string>
+    <string name="trip_save_failed">Le voyage n\'est pas enregistré. Vérifie ta connexion, puis réessaie.</string>
     <string name="trip_leave_title">Quitter sans enregistrer ?</string>
     <string name="trip_leave_body">Tes changements seront perdus.</string>
     <string name="trip_leave_keep">Continuer</string>
@@ -1778,7 +1778,7 @@
     <string name="weekly_answer_after_all">Répondre quand même</string>
     <string name="weekly_remove">Retirer</string>
     <string name="weekly_archive_title">Nos réponses</string>
-    <string name="weekly_archive_error_title">Impossible d\'ouvrir les questions</string>
+    <string name="weekly_archive_error_title">Les questions ne s\'affichent pas</string>
     <string name="weekly_archive_error_body">Vérifie ta connexion, puis reviens sur cet écran.</string>
     <plurals name="weekly_answer_count">
         <item quantity="one">%d réponse</item>
@@ -1787,7 +1787,7 @@
     </plurals>
     <string name="weekly_hidden_until">Les réponses des autres s\'affichent quand tu as répondu ou passé, et pour tout le monde %1$s.</string>
     <string name="weekly_no_other_answer">Personne d\'autre n\'a encore répondu.</string>
-    <string name="weekly_failed_title">Ça n\'a pas marché</string>
+    <string name="weekly_failed_title">Ta réponse n\'est pas partie</string>
     <string name="weekly_failed_body">Ta réponse n\'a pas été enregistrée. Vérifie ta connexion et réessaie.</string>
     <string name="weekly_open">Ouvrir la question de la semaine</string>
     <string name="weekly_photo_add">Ajouter une photo</string>
@@ -2031,7 +2031,7 @@
     <string name="host_skip_body">Le défi prévu par Familia sera celui du mois. Personne dans la famille n\'est prévenu.</string>
     <string name="host_skip_confirm">Passer notre tour</string>
     <string name="host_failed_title">Pas enregistré</string>
-    <string name="host_failed_body">Le défi n\'a pas pu être enregistré. Vérifiez la connexion, puis réessayez.</string>
+    <string name="host_failed_body">Le défi n\'a pas pu être enregistré. Vérifie ta connexion, puis réessaie.</string>
     <string name="host_kind_title">Quel genre de défi ?</string>
     <string name="host_kind_help">Choisissez un défi que tout le monde peut relever, petits et grands, sans rien acheter.</string>
     <string name="host_kind_photo">Photos</string>
@@ -2149,7 +2149,7 @@
     <string name="think_of_me_note_day">Choisir le jour</string>
     <string name="think_of_me_note_action">Noter</string>
     <string name="think_of_me_teen_hint">%1$s choisira de l\'accepter ou non.</string>
-    <string name="think_of_me_failed">Ça n\'a pas marché. Réessaie dans un moment.</string>
+    <string name="think_of_me_failed">Ça n\'est pas parti. Vérifie ta connexion, puis réessaie.</string>
     <string name="channel_think_of_me_description">Le jour d\'un moment important, et les encouragements reçus</string>
     <string name="feature_little_ones">Le coin des petits</string>
     <string name="feature_discover">À découvrir</string>
@@ -2181,7 +2181,7 @@
     <string name="year_ago_hide_all_title">Retirer ce souvenir pour toute la famille ?</string>
     <string name="year_ago_hide_all_text">Plus personne ne le verra dans « Il y a N ans ». La photo ou la Bonne nouvelle reste à sa place.</string>
     <string name="year_ago_hide_all_confirm">Retirer pour tous</string>
-    <string name="year_ago_hide_failed">Le souvenir n\'a pas pu être retiré. Réessaie dans un moment.</string>
+    <string name="year_ago_hide_failed">Le souvenir n\'a pas pu être retiré. Vérifie ta connexion, puis réessaie.</string>
     <string name="recap_photos">Les photos de la semaine</string>
     <string name="recap_birthdays">Les anniversaires à venir</string>
     <string name="recap_trips">Les voyages en cours</string>
@@ -2198,7 +2198,7 @@
     <string name="capsules_sealed_hint">Scellée : toi seul peux la lire jusqu\'à ce jour-là.</string>
     <string name="capsules_empty_title">Écris à la famille de demain</string>
     <string name="capsules_empty_body">Un mot pour un anniversaire, des souhaits pour dans dix ans… Touche « Nouvelle capsule » : elle restera scellée jusqu\'au jour que tu choisis.</string>
-    <string name="capsules_error_title">Impossible d\'afficher les capsules</string>
+    <string name="capsules_error_title">Les capsules ne s\'affichent pas</string>
     <string name="capsules_error_body">Vérifie ta connexion, puis reviens sur cet écran.</string>
     <string name="capsule_title">Capsule temporelle</string>
     <string name="capsule_from">De %1$s</string>
@@ -2254,7 +2254,7 @@
     <string name="capsule_remove_title">Supprimer cette capsule ?</string>
     <string name="capsule_remove_body">Le message et ses photos seront effacés pour de bon. Les destinataires ne la recevront jamais.</string>
     <string name="capsule_remove_confirm">Supprimer</string>
-    <string name="capsule_remove_failed">La suppression n\'a pas abouti. Réessaie plus tard.</string>
+    <string name="capsule_remove_failed">La capsule n\'a pas été supprimée. Vérifie ta connexion, puis réessaie.</string>
     <string name="capsule_edit_text">Ton message</string>
     <string name="capsule_edit_count">%1$d / %2$d</string>
     <string name="capsule_edit_who">Pour qui ?</string>
@@ -2268,7 +2268,7 @@
     <string name="capsule_edit_sealed_note">Une fois scellée, la capsule ne se modifie plus. Tu pourras la supprimer tant qu\'elle n\'est pas ouverte.</string>
     <string name="capsule_edit_needs_network">Les photos ont besoin d\'Internet. Reconnecte-toi, puis réessaie.</string>
     <string name="capsule_edit_photo_unreadable">Une photo n\'a pas pu être lue. Retire-la, puis réessaie.</string>
-    <string name="capsule_edit_failed">La capsule n\'a pas été scellée. Réessaie dans un moment.</string>
+    <string name="capsule_edit_failed">La capsule n\'a pas été scellée. Vérifie ta connexion, puis réessaie.</string>
     <string name="capsule_edit_sending_photo">Envoi de la photo %1$d sur %2$d…</string>
     <string name="capsule_edit_sealing">Scellement de la capsule…</string>
     <string name="capsule_edit_seal">Sceller la capsule</string>
@@ -2376,8 +2376,8 @@
     <string name="who_is_it_remove_body">La photo, sa réponse et ce que la famille a deviné disparaissent pour tout le monde.</string>
     <string name="who_is_it_missing_title">Photo introuvable</string>
     <string name="who_is_it_missing_body">Elle a peut-être été retirée.</string>
-    <string name="who_is_it_error_title">Photos indisponibles</string>
-    <string name="who_is_it_error_body">Les photos n\'ont pas pu être lues. Réessaie dans un instant.</string>
+    <string name="who_is_it_error_title">Les photos ne s\'affichent pas</string>
+    <string name="who_is_it_error_body">L\'appli n\'a pas pu lire les photos. Vérifie ta connexion, puis réessaie.</string>
     <string name="who_is_it_empty_title">Une vieille photo à deviner ?</string>
     <string name="who_is_it_empty_body">Scanne une vieille photo de famille : les autres devineront qui est dessus.</string>
     <string name="who_is_it_open">Ouvrir la photo</string>
@@ -2393,7 +2393,7 @@
     <string name="who_is_it_answer_year_label">En quelle année ? (facultatif)</string>
     <string name="who_is_it_needs_network">Il faut du réseau pour envoyer la photo.</string>
     <string name="who_is_it_photo_unreadable">Cette photo n\'a pas pu être lue. Choisis-en une autre.</string>
-    <string name="who_is_it_failed">La photo n\'a pas été publiée. Réessaie.</string>
+    <string name="who_is_it_failed">La photo n\'a pas été publiée. Vérifie ta connexion, puis réessaie.</string>
     <string name="who_is_it_sending">Envoi en cours…</string>
     <string name="who_is_it_publish">Publier</string>
     <!-- Bons plans et bonnes adresses (PRD, récit 45) -->
@@ -2479,7 +2479,7 @@
     <string name="gooddeal_error_body">Vérifie ta connexion, puis réessaie.</string>
     <string name="gooddeal_missing_title">Ce bon plan n\'est plus là</string>
     <string name="gooddeal_missing_body">Il a été retiré, ou il est terminé depuis longtemps.</string>
-    <string name="gooddeal_unavailable_title">Impossible de modifier ce bon plan</string>
+    <string name="gooddeal_unavailable_title">Tu ne peux pas modifier ce bon plan</string>
     <string name="gooddeal_unavailable_body">Seuls les adultes publient. Un bon plan se modifie par son auteur ou l\'admin principal.</string>
     <string name="gooddeal_until_today">Dernier jour aujourd\'hui</string>
     <string name="gooddeal_until_tomorrow">Jusqu\'à demain</string>
@@ -2502,7 +2502,7 @@
         <item quantity="one">%1$d personne intéressée : moi</item>
         <item quantity="other">%1$d personnes intéressées, dont moi</item>
     </plurals>
-    <string name="gooddeal_action_failed">Ça n\'a pas marché. Réessaie.</string>
+    <string name="gooddeal_action_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
     <string name="gooddeal_edit">Modifier</string>
     <string name="gooddeal_remove">Supprimer</string>
     <string name="gooddeal_remove_title">Supprimer ce bon plan ?</string>
@@ -2562,7 +2562,7 @@
     <string name="presentation_stop">Éteindre</string>
     <string name="presentation_banner_until">Mode présentation jusqu\'à %1$s</string>
     <string name="presentation_banner">Mode présentation allumé</string>
-    <string name="presentation_failed">Le mode présentation n\'a pas pu changer. Vérifie la connexion.</string>
+    <string name="presentation_failed">Le mode présentation n\'a pas changé. Vérifie ta connexion, puis réessaie.</string>
     <!-- Récit 49 : le planning dans Google Agenda -->
     <string name="feature_calendar_feed">Planning dans mon agenda</string>
     <string name="feature_tree_poster">Affiche de l\'arbre</string>
@@ -2592,7 +2592,7 @@
     <string name="calendar_feed_renew_confirm_title">Faire un nouveau lien ?</string>
     <string name="calendar_feed_renew_confirm_body">L\'ancien lien ne marchera plus. Il faudra ajouter le nouveau dans ton agenda.</string>
     <string name="calendar_feed_failed">Le lien n\'a pas pu être créé. Réessaie quand tu as du réseau.</string>
-    <string name="calendar_feed_error">Ton lien ne peut pas s\'afficher pour l\'instant. Réessaie plus tard.</string>
+    <string name="calendar_feed_error">Ton lien ne s\'affiche pas. Vérifie ta connexion, puis réessaie.</string>
     <!-- Récit 52 : On y va ensemble -->
     <string name="feature_carpool">Covoiturage</string>
     <string name="feature_recurring_events">Événements qui reviennent</string>
@@ -2674,7 +2674,7 @@
     <string name="reminders_this_time">Cette fois seulement</string>
     <string name="reminders_every_time">Toutes les fois</string>
     <string name="reminders_save">Enregistrer</string>
-    <string name="reminders_failed">Le rappel n\'a pas pu être enregistré. Vérifie la connexion.</string>
+    <string name="reminders_failed">Le rappel n\'est pas enregistré. Vérifie ta connexion, puis réessaie.</string>
     <string name="reminders_defaults_title">Rappels quand je viens</string>
     <string name="reminders_defaults_help">Quand tu réponds « Je viens », Familia te le rappelle à ces moments-là, sauf si tu choisis autre chose sur l\'événement. C\'est privé.</string>
     <string name="feature_turns">À qui le tour ?</string>
@@ -2713,7 +2713,7 @@
     <string name="packing_remove_confirm">Retirer</string>
     <string name="packing_keep">Garder comme ma liste de départ</string>
     <string name="packing_kept">Ta prochaine valise partira de cette liste.</string>
-    <string name="packing_failed">La valise n\'a pas pu être enregistrée. Réessaie dans un moment.</string>
+    <string name="packing_failed">La valise n\'est pas enregistrée. Vérifie ta connexion, puis réessaie.</string>
     <string-array name="packing_default">
         <item>Papiers d\'identité</item>
         <item>Chargeur de téléphone</item>
