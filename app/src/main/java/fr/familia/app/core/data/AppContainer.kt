@@ -66,6 +66,8 @@ interface AppContainer {
 
     /** Récit 49; null in « Voir comme », where nobody else's secret link shows. */
     val calendarFeedRepository: CalendarFeedRepository? get() = null
+    /** On se prête (récit 51). */
+    val lendItemRepository: LendItemRepository? get() = null
     val treeRepository: TreeRepository?
     val photoStorage: PhotoStorage?
     val photoUploader: PhotoUploader?
@@ -152,6 +154,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val momentRepository: MomentRepository? by lazy { firestore?.let { FirestoreMomentRepository(it) } }
     override val goodDealRepository: GoodDealRepository? by lazy { firestore?.let { FirestoreGoodDealRepository(it) } }
     override val calendarFeedRepository: CalendarFeedRepository? by lazy { firestore?.let { FirestoreCalendarFeedRepository(it) } }
+    override val lendItemRepository: LendItemRepository? by lazy { firestore?.let { FirestoreLendItemRepository(it) } }
     override val carpoolRepository: CarpoolRepository? by lazy { firestore?.let { FirestoreCarpoolRepository(it) } }
     override val treeRepository: TreeRepository? by lazy { firestore?.let { FirestoreTreeRepository(it) } }
 

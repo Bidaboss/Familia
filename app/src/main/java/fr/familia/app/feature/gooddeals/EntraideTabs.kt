@@ -1,5 +1,6 @@
 package fr.familia.app.feature.gooddeals
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,7 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -21,8 +22,8 @@ import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 
 /**
- * The Entraide tab with its « Bons plans » (PRD, récit 45): « Coups de main » and « Bons plans »
- * side by side. With the module off, only the coups de main, as before.
+ * The Entraide tab with its « Bons plans » (PRD, récit 45) and « On se prête » (récit 51): the
+ * coups de main first, then each module switched on. With both off, only the coups de main.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,28 +33,47 @@ fun EntraideTabs(
     goodDeals: @Composable () -> Unit,
     /** Each new value turns to the Bons plans (a touched notification). */
     showGoodDeals: Int = 0,
+    lendingOn: Boolean = false,
+    lending: @Composable () -> Unit = {},
 ) {
-    if (!goodDealsOn) {
+    val tabs = buildList {
+        add(EntraideTab.Help)
+        if (goodDealsOn) add(EntraideTab.GoodDeals)
+        if (lendingOn) add(EntraideTab.Lending)
+    }
+    if (tabs.size == 1) {
         help()
         return
     }
-    var selected by rememberSaveable { mutableIntStateOf(if (showGoodDeals > 0) 1 else 0) }
+    var selected by rememberSaveable { mutableStateOf(if (showGoodDeals > 0 && goodDealsOn) EntraideTab.GoodDeals else EntraideTab.Help) }
     LaunchedEffect(showGoodDeals) {
-        if (showGoodDeals > 0) selected = 1
+        if (showGoodDeals > 0 && goodDealsOn) selected = EntraideTab.GoodDeals
     }
+    // A module switched off while its tab was open: back to the coups de main.
+    val shown = selected.takeIf { it in tabs } ?: EntraideTab.Help
     Column(Modifier.fillMaxSize()) {
-        PrimaryTabRow(selectedTabIndex = selected, modifier = Modifier.fillMaxWidth()) {
-            listOf(R.string.entraide_tab_help, R.string.entraide_tab_good_deals).forEachIndexed { index, label ->
+        PrimaryTabRow(selectedTabIndex = tabs.indexOf(shown), modifier = Modifier.fillMaxWidth()) {
+            tabs.forEach { tab ->
                 Tab(
-                    selected = selected == index,
-                    onClick = { selected = index },
-                    text = { Text(stringResource(label)) },
+                    selected = shown == tab,
+                    onClick = { selected = tab },
+                    text = { Text(stringResource(tab.label)) },
                     modifier = Modifier.heightIn(min = 56.dp),
                 )
             }
         }
         Box(Modifier.weight(1f).fillMaxWidth()) {
-            if (selected == 0) help() else goodDeals()
+            when (shown) {
+                EntraideTab.Help -> help()
+                EntraideTab.GoodDeals -> goodDeals()
+                EntraideTab.Lending -> lending()
+            }
         }
     }
+}
+
+private enum class EntraideTab(@StringRes val label: Int) {
+    Help(R.string.entraide_tab_help),
+    GoodDeals(R.string.entraide_tab_good_deals),
+    Lending(R.string.entraide_tab_lending),
 }
