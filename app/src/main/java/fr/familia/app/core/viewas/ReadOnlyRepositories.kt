@@ -161,6 +161,7 @@ class ReadOnlyMemberCardRepository(private val inner: MemberCardRepository, priv
 
 class ReadOnlyEventRepository(private val inner: EventRepository, private val guard: ViewAsGuard) : EventRepository {
     override fun observeUpcoming(from: LocalDate): Flow<List<Event>> = inner.observeUpcoming(from)
+    override fun observeBetween(from: LocalDate, to: LocalDate): Flow<List<Event>> = inner.observeBetween(from, to)
     override suspend fun getEvent(id: String): Event? = inner.getEvent(id)
     override fun observeEvent(id: String): Flow<Event?> = inner.observeEvent(id)
     override fun observeOnDays(days: List<LocalDate>): Flow<List<Event>> = inner.observeOnDays(days)
@@ -172,6 +173,8 @@ class ReadOnlyEventRepository(private val inner: EventRepository, private val gu
 class ReadOnlyRsvpRepository(private val inner: RsvpRepository, private val guard: ViewAsGuard) : RsvpRepository {
     override fun observeRsvps(eventId: String): Flow<List<Rsvp>> = inner.observeRsvps(eventId)
     override fun observeAllRsvps(): Flow<Map<String, List<Rsvp>>> = inner.observeAllRsvps()
+    override fun observeAnswersOf(memberId: String, eventIds: List<String>): Flow<Map<String, List<Rsvp>>> =
+        inner.observeAnswersOf(memberId, eventIds)
     override suspend fun setRsvp(eventId: String, memberId: String, status: RsvpStatus, answeredBy: String) = guard.refuse()
 }
 

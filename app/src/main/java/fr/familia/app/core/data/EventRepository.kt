@@ -3,12 +3,20 @@ package fr.familia.app.core.data
 import fr.familia.app.core.model.Event
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 
 /** Access to the planning. Screens never talk to Firestore directly. */
 interface EventRepository {
     /** Events from [from] on, by date then time, updated live (and served from the offline cache). */
     fun observeUpcoming(from: LocalDate): Flow<List<Event>>
+
+    /**
+     * Events from [from] to [to] included, like [observeUpcoming] but bounded: a screen that only
+     * shows a few weeks does not read the 12 months of the events that repeat (lectures Firestore).
+     */
+    fun observeBetween(from: LocalDate, to: LocalDate): Flow<List<Event>> =
+        observeUpcoming(from).map { list -> list.filter { it.date <= to } }
 
     /** One event, or null if it was deleted. */
     suspend fun getEvent(id: String): Event?
