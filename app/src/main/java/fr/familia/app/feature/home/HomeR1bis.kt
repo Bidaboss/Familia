@@ -112,6 +112,8 @@ fun HomeR1bisScreen(
     allBadge: Int = 0,
     /** The coups de main of « À faire », with their own « J'y vais » / « Non » (help-requests thread). */
     helpTodos: (@Composable () -> Unit)? = null,
+    /** « Nouveau bon plan » (récit 45), just above « Tout Familia » and « Où je suis ». */
+    goodDeal: (@Composable () -> Unit)? = null,
 ) {
     val ready = state as? HomeUiState.Ready ?: return
     var chosen by rememberSaveable { mutableStateOf(ready.today.toEpochDay()) }
@@ -141,7 +143,12 @@ fun HomeR1bisScreen(
             challenge?.invoke(Modifier.fillMaxWidth(), true)
         }
     }
-    val buttons: @Composable () -> Unit = { HomeButtons(r1, allBadge) }
+    val buttons: @Composable () -> Unit = {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            goodDeal?.invoke()
+            HomeButtons(r1, allBadge)
+        }
+    }
     val padding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = 24.dp)
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         when {
