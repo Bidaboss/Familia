@@ -22,13 +22,13 @@ import java.io.File
  * album of an event (récit 41) and the slideshow of the month (récit 42).
  */
 
-/** The reminder shown before sharing, with its single button « Continuer ». Back closes it. */
+/** The reminder shown before sharing, with its single button « Continuer ». Back closes it. [body] says what goes out. */
 @Composable
-fun ShareConsentReminder(onContinue: () -> Unit, onDismiss: () -> Unit) {
+fun ShareConsentReminder(onContinue: () -> Unit, onDismiss: () -> Unit, body: String = stringResource(R.string.share_consent_body)) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.share_consent_title)) },
-        text = { Text(stringResource(R.string.share_consent_body)) },
+        text = { Text(body) },
         confirmButton = { TextButton(onClick = onContinue, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.share_consent_continue)) } },
     )
 }

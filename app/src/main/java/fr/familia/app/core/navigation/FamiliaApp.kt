@@ -102,6 +102,8 @@ import fr.familia.app.feature.genealogy.GenealogyDestination
 import fr.familia.app.feature.genealogy.GenealogyRoute
 import fr.familia.app.feature.genealogy.poster.TreePosterDestination
 import fr.familia.app.feature.genealogy.poster.TreePosterRoute
+import fr.familia.app.core.album.book.PhotoBookDestination
+import fr.familia.app.feature.albums.book.PhotoBookRoute
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpRoute
 import fr.familia.app.feature.gooddeals.EntraideTabs
@@ -1009,11 +1011,17 @@ fun FamiliaApp(
                         ExpenseHistoryRoute(container = container, tripId = route.tripId, expenseId = route.expenseId, onBack = { navController.popBackStack() })
                     }
                     composable<TripPhotosDestination> { entry ->
+                        val tripId = entry.toRoute<TripPhotosDestination>().tripId
                         TripPhotosRoute(
                             container = container,
                             currentMember = currentMember,
-                            tripId = entry.toRoute<TripPhotosDestination>().tripId,
+                            tripId = tripId,
                             onBack = { navController.popBackStack() },
+                            onMakeBook = if (features.isOn(Feature.PhotoBook) && !viewingAs) {
+                                { navController.navigate(PhotoBookDestination(PhotoBookDestination.TRIP, tripId)) }
+                            } else {
+                                null
+                            },
                         )
                     }
                     composable<TripEditDestination> { entry ->
@@ -1146,6 +1154,13 @@ fun FamiliaApp(
                             onMakePoster = { navController.navigate(TreePosterDestination) },
                         )
                     }
+                    composable<PhotoBookDestination> { entry ->
+                        PhotoBookRoute(
+                            container = container,
+                            album = entry.toRoute<PhotoBookDestination>(),
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
                     composable<TreePosterDestination> {
                         TreePosterRoute(container = container, currentMember = currentMember, onBack = { navController.popBackStack() })
                     }
@@ -1203,11 +1218,17 @@ fun FamiliaApp(
                         )
                     }
                     composable<EventAlbumDestination> { entry ->
+                        val eventId = entry.toRoute<EventAlbumDestination>().eventId
                         EventAlbumRoute(
                             container = container,
                             currentMember = currentMember,
-                            eventId = entry.toRoute<EventAlbumDestination>().eventId,
+                            eventId = eventId,
                             onBack = { navController.popBackStack() },
+                            onMakeBook = if (features.isOn(Feature.PhotoBook) && !viewingAs) {
+                                { navController.navigate(PhotoBookDestination(PhotoBookDestination.EVENT, eventId)) }
+                            } else {
+                                null
+                            },
                         )
                     }
                     composable<EventEditDestination> { entry ->
