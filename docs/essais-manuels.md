@@ -749,3 +749,12 @@ Avec l'interrupteur « Notre année » allumé dans Administration. Avant le 26/
 5. Masque pour toi une bonne nouvelle avec photo, très aimée, puis rouvre le récit. **Attendu :** sa photo n'y est plus.
 6. Dernière page, « Fermer ». **Attendu :** retour à Bonnes nouvelles.
 7. Interrupteur éteint. **Attendu :** pas de bouton « Revoir », même pour l'admin principal.
+
+## Une photo dès la création d'une recette
+
+1. Onglet Famille > Recettes > « Ajouter une recette ». Remplis le titre, les ingrédients et les étapes.
+2. Plus bas, sous « Photos du plat », touche « Ajouter une photo du plat ». Le sélecteur de photos d'Android s'ouvre, sans demander de permission. Choisis 2 photos.
+3. Les 2 photos s'affichent en petit, chacune avec « Retirer la photo ». Le bouton dit maintenant « Ajouter des photos (encore 1) ». Après une 3e photo, il disparaît.
+4. Touche « Enregistrer ». Le bouton affiche « Envoi de la photo 1 sur 2… », puis la recette s'ouvre avec ses photos dans « Photos du plat ».
+5. Sans réseau : la recette s'enregistre quand même. Les photos ne partent pas ; tu peux les ajouter plus tard depuis la recette.
+6. Ouvre une recette existante et touche « Modifier » : pas de champ photo dans le formulaire, les photos se gèrent sur la recette elle-même.
