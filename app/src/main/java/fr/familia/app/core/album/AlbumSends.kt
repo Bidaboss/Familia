@@ -50,7 +50,11 @@ class AlbumSends(private val scope: CoroutineScope) {
         all.update { it + (folder to change(it[folder] ?: Progress())) }
 
     companion object {
-        /** The one of the app: its sends outlive every screen. */
-        val shared: AlbumSends by lazy { AlbumSends(CoroutineScope(SupervisorJob() + Dispatchers.Default)) }
+        /**
+         * The one of the app: its sends outlive every screen. On the main thread, like the screen,
+         * so the loop and the screen never write the list of photos to send at the same time (the
+         * reduction of each photo and the upload still run off the main thread).
+         */
+        val shared: AlbumSends by lazy { AlbumSends(CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)) }
     }
 }
