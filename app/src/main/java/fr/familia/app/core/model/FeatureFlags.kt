@@ -109,6 +109,8 @@ enum class Feature(
     GoodDeals("goodDeals", R.string.feature_good_deals),
     /** « Voir dans mon agenda » : le planning dans Google Agenda, par un lien secret (PRD, récit 49). */
     CalendarFeed("calendarFeed", R.string.feature_calendar_feed),
+    /** « On y va ensemble » : le covoiturage d'un événement (PRD, récit 52). */
+    Carpool("carpool", R.string.feature_carpool),
 }
 
 /**
