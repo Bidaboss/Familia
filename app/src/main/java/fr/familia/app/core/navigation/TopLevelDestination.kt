@@ -59,6 +59,10 @@ data class GoodDealDetailDestination(val dealId: String)
 @Serializable
 data class GoodDealEditDestination(val dealId: String? = null, val kind: String = "deal")
 
+/** On se prête (récit 51): add a thing ([itemId] null) or change one. */
+@Serializable
+data class LendItemEditDestination(val itemId: String? = null)
+
 /** All the « Bonnes nouvelles », opened from the home card (récit 32). */
 @Serializable
 data object GoodNewsFeedDestination
