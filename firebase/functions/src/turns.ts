@@ -33,14 +33,14 @@ function notice(turnId: string, title: string, body: string): Notice {
   return { channel: 'helpRequests', title, body, turnId, direct: true, tag: `turn-${turnId}` };
 }
 
-/** « C'est votre tour », to the adults of the household whose turn it now is. */
+/** « C'est ton tour », to the adults of the household whose turn it now is. */
 export function yourTurnNotice(turnId: string, t: TurnData): Notice {
-  return notice(turnId, 'C\'est votre tour', `« ${t.title} » : c'est à votre foyer. Touchez pour créer l'événement.`);
+  return notice(turnId, 'C\'est ton tour', `« ${t.title} » : c'est à ton foyer. Touche pour créer l'événement.`);
 }
 
 /** An exchange proposed, to the adults of the other household. */
 export function swapAskNotice(turnId: string, t: TurnData, swap: TurnSwap): Notice {
-  return notice(turnId, 'Un échange de tour', `${swap.byName} propose d'échanger votre place pour « ${t.title} ».`);
+  return notice(turnId, 'Un échange de tour', `${swap.byName} propose d'échanger ta place pour « ${t.title} ».`);
 }
 
 /** The other household said no, to the one who proposed. */

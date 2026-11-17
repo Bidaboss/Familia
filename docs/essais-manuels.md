@@ -859,12 +859,24 @@ Avec l'interrupteur « À qui le tour ? » allumé (l'admin principal le voit to
 1. Entraide : **Attendu :** un onglet « À qui le tour ? » après les autres. Avec 4 onglets, la rangée défile de côté. Interrupteur éteint, pour un autre membre : pas d'onglet.
 2. Sans tour : **Attendu :** « Aucun tour pour l'instant », et un bouton « Créer un tour » pour un adulte. Un enfant n'a pas le bouton.
 3. « Créer un tour » : écris « Recevoir à Noël », coche deux foyers, change l'ordre avec les flèches. Sans titre ou avec un seul foyer : **Attendu :** « Écris pour quoi c'est le tour. » ou « Il faut au moins deux foyers. ». Les foyers sont rangés par nom.
-4. Enregistré : **Attendu :** la carte dit « C'est à votre foyer » (avec « À vous ») ou « C'est à … ». Les adultes du premier foyer reçoivent « C'est votre tour », sauf toi si tu es dans ce foyer.
+4. Enregistré : **Attendu :** la carte dit « C'est à ton foyer » (avec « À toi ») ou « C'est à … ». Les adultes du premier foyer reçoivent « C'est ton tour », sauf toi si tu es dans ce foyer.
 5. Ouvre le tour depuis le foyer dont c'est le tour. **Attendu :** « Ensuite : … », l'ordre, « Déjà fait : Rien encore. », et les boutons « Créer l'événement », « C'est fait », « On passe notre tour ».
 6. « Créer l'événement » : **Attendu :** le formulaire d'un nouvel événement du Planning, avec le titre déjà écrit. Reviens sans rien changer : il ne demande pas d'abandonner.
-7. « C'est fait », écris « Noël 2026 », valide. **Attendu :** « Noël 2026 : … » dans l'historique, et c'est au foyer suivant, qui reçoit « C'est votre tour ».
+7. « C'est fait », écris « Noël 2026 », valide. **Attendu :** « Noël 2026 : … » dans l'historique, et c'est au foyer suivant, qui reçoit « C'est ton tour ».
 8. « On passe notre tour » puis confirme. **Attendu :** c'est au foyer d'après, et ton foyer prend la place suivante dans l'ordre.
 9. Depuis un foyer, « Proposer un échange », choisis l'autre foyer, puis « Envoyer la proposition ». **Attendu :** l'autre foyer reçoit la notification, et voit « Accepter » et « Refuser ». Toi, tu vois « on attend sa réponse » et « Retirer la proposition ». « Accepter » : les deux places sont échangées. « Refuser » : tu reçois la réponse, rien ne change.
 10. Un enfant ouvre le tour. **Attendu :** il voit l'ordre et l'historique, sans aucun bouton.
-11. Touche une notification « C'est votre tour ». **Attendu :** le tour s'ouvre. Interrupteur éteint pour ce membre : rien ne s'ouvre.
+11. Touche une notification « C'est ton tour ». **Attendu :** le tour s'ouvre. Interrupteur éteint pour ce membre : rien ne s'ouvre.
 12. L'auteur ou l'admin principal : le crayon change le titre ou l'ordre, la corbeille supprime le tour après confirmation. **Attendu :** retour à la liste, le tour a disparu chez tout le monde.
+
+## Démo du 21 : Bonnes nouvelles et Entraide sur un réseau faible
+
+Passe chaque étape deux fois : d'abord en mode avion, puis en 2G (réglages du téléphone, Réseau mobile, Type de réseau préféré « 2G seulement », Wi-Fi coupé). Ouvre d'abord une fois le fil et Entraide avec un bon réseau. Il faut deux téléphones de deux foyers pour l'étape 6.
+1. Ouvre les Bonnes nouvelles. **Attendu :** le fil déjà vu s'affiche tout de suite, avec le bandeau « Hors ligne » en mode avion. Jamais d'écran vide ni de plantage. Sur un téléphone qui n'a jamais ouvert le fil : la roue, puis « Pas de réseau pour l'instant… » en mode avion, ou « Le réseau est lent, ça arrive… » en 2G après quelques secondes, mais jamais « Pas encore de bonne nouvelle ».
+2. Publie une bonne nouvelle sans photo. **Attendu :** l'écran se ferme et elle est en haut du fil avec « En attente du réseau ». Remets le réseau sans toucher l'écran : la mention disparaît, et l'autre téléphone la reçoit une seule fois. Avec une photo, l'écran reste ouvert et la phrase « Plus de réseau : l'envoi reprendra tout seul… » s'affiche (voir la section sur l'envoi de la photo).
+3. Ouvre une bonne nouvelle déjà vue et ajoute une réaction. **Attendu :** la fiche s'affiche, la réaction aussi, et elle part au retour du réseau.
+4. Ouvre Entraide, puis chaque onglet (Coups de main, Bons plans, Prêts, À qui le tour ?). **Attendu :** ce qui est déjà vu s'affiche. Sinon, la roue avec la phrase qui dit pourquoi. Jamais d'écran blanc.
+5. Sur une demande où on a besoin de toi, touche « Je m'en occupe ». **Attendu :** pas de message d'erreur, la demande passe dans « Déjà pris en charge » avec « En attente du réseau ». Remets le réseau : la mention disparaît, et l'auteur de la demande est prévenu une seule fois.
+6. Deux téléphones, une même demande ouverte. Le téléphone A en mode avion touche « Je m'en occupe ». Le téléphone B, avec le réseau, touche « Je m'en occupe » juste après. Remets le réseau sur A. **Attendu :** B l'a. Sur A, la demande montre que B s'en occupe, sans doublon.
+7. Sur « À qui le tour ? », touche « C'est fait » sur un tour où c'est à ton foyer. **Attendu :** le tour passe au foyer suivant avec « En attente du réseau », et les boutons restent utilisables. Au retour du réseau, la mention disparaît, et le foyer suivant reçoit « C'est ton tour » une seule fois.
+8. Remets le réseau normal et rouvre chaque écran. **Attendu :** tout est à jour, sans avoir fermé l'appli.

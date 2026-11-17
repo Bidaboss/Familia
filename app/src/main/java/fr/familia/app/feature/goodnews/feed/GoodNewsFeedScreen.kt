@@ -13,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddAPhoto
 import androidx.compose.material.icons.outlined.Celebration
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
@@ -34,12 +33,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.Reaction
+import fr.familia.app.core.photo.LocalOnline
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.feature.goodnews.GoodNewsActionFailedDialog
 import fr.familia.app.feature.goodnews.GoodNewsCard
 import fr.familia.app.feature.goodnews.RemoveGoodNewsDialog
@@ -84,7 +85,7 @@ fun GoodNewsFeedScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                GoodNewsFeedUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                GoodNewsFeedUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 GoodNewsFeedUiState.Error -> EmptyState(
                     icon = Icons.Outlined.Celebration,
                     title = stringResource(R.string.goodnews_error_title),
@@ -94,7 +95,10 @@ fun GoodNewsFeedScreen(
                     },
                 )
                 is GoodNewsFeedUiState.Success ->
-                    if (state.items.isEmpty() && !state.littleOnesOnly) {
+                    if (state.items.isEmpty() && !state.littleOnesOnly && !LocalOnline.current) {
+                        // Nothing on this phone yet and no network: not « no good news », they will come.
+                        LoadingState(Modifier.align(Alignment.Center))
+                    } else if (state.items.isEmpty() && !state.littleOnesOnly) {
                         EmptyState(
                             icon = Icons.Outlined.Celebration,
                             title = stringResource(R.string.goodnews_empty_title),

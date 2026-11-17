@@ -1351,7 +1351,7 @@ service cloud.firestore {
         && d.title is string && d.title.trim().size() >= 1 && d.title.size() <= 60
         && isTurnHouseholds(d.householdIds)
         && d.current is int && d.current >= 0 && d.current < d.householdIds.size()
-        && d.history is list && d.history.size() <= 100
+        && d.history is list
         && isTurnSwap(d.swap, d.householdIds)
         && d.updatedAt == request.time;
     }
@@ -1390,7 +1390,8 @@ service cloud.firestore {
         && last is map && last.keys().hasAll(['householdId', 'label', 'at']) && last.keys().hasOnly(['householdId', 'label', 'at'])
         && last.householdId == turnHouseholdNow()
         && last.label is string && last.label.size() <= 40
-        && last.at is timestamp && last.at > request.time - duration.value(10, 'm') && last.at < request.time + duration.value(10, 'm')
+        // The phone's time: a « C'est fait » said offline may reach the server days later.
+        && last.at is timestamp && last.at > request.time - duration.value(7, 'd') && last.at < request.time + duration.value(10, 'm')
         && d.current == (before.current + 1) % before.householdIds.size();
     }
 

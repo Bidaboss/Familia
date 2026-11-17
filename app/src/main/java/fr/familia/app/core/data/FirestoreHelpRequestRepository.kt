@@ -1,15 +1,21 @@
 package fr.familia.app.core.data
 
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.MetadataChanges
+import com.google.firebase.firestore.Source
 import fr.familia.app.core.model.HelpKind
 import fr.familia.app.core.model.HelpRequest
 import fr.familia.app.core.model.HelpStatus
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeoutOrNull
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -20,7 +26,8 @@ class FirestoreHelpRequestRepository(private val db: FirebaseFirestore) : HelpRe
         // The rules only let a member read the requests where they are in viewerIds.
         val registration = db.collection(REQUESTS)
             .whereArrayContains("viewerIds", memberId)
-            .addSnapshotListener { snapshot, error ->
+            // Told again once a write made offline reaches the server, for « En attente du réseau ».
+            .addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
                 if (error != null) {
                     close(error)
                 } else if (snapshot != null) {
@@ -31,7 +38,7 @@ class FirestoreHelpRequestRepository(private val db: FirebaseFirestore) : HelpRe
     }
 
     override fun observeRequest(id: String): Flow<HelpRequest?> = callbackFlow {
-        val registration = db.collection(REQUESTS).document(id).addSnapshotListener { snapshot, error ->
+        val registration = db.collection(REQUESTS).document(id).addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
             if (error != null) {
                 // Out of reach (no longer warned): shown as missing rather than as an error.
                 trySend(null)
@@ -80,38 +87,51 @@ class FirestoreHelpRequestRepository(private val db: FirebaseFirestore) : HelpRe
 
     override suspend fun take(id: String, volunteerId: String, volunteerName: String, note: String?) {
         val ref = db.collection(REQUESTS).document(id)
-        // A transaction only runs online: it reads the server, so two volunteers can never both win.
+        val fields = mapOf(
+            "status" to HelpStatus.Taken.firestoreValue,
+            "volunteerId" to volunteerId,
+            "volunteerName" to volunteerName,
+            "volunteerNote" to note,
+            "updatedAt" to FieldValue.serverTimestamp(),
+        )
+        // Online, a transaction reads the server first: of two volunteers only the first wins, and
+        // the other hears it at once. Without network, or on one too slow, the same write waits in
+        // the cache and goes by itself, once, when the network is back; the rules (isHelpTake: still
+        // open) refuse it then if someone took the request meanwhile, so never two volunteers.
         try {
-            runTake(ref, volunteerId, volunteerName, note)
+            val done = withTimeoutOrNull(TAKE_ONLINE_MILLIS) {
+                runTake(ref, fields)
+                true
+            }
+            if (done == null) queueTake(ref, fields)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             // Firestore may wrap the exception thrown inside the transaction.
             generateSequence<Throwable>(e) { it.cause }.filterIsInstance<AlreadyTakenException>().firstOrNull()?.let { throw it }
-            throw e
+            if (!e.isOffline()) throw e
+            queueTake(ref, fields)
         }
     }
 
-    private suspend fun runTake(
-        ref: com.google.firebase.firestore.DocumentReference,
-        volunteerId: String,
-        volunteerName: String,
-        note: String?,
-    ) {
+    private suspend fun runTake(ref: DocumentReference, fields: Map<String, Any?>) {
         db.runTransaction { tx ->
             val snapshot = tx.get(ref)
             if (snapshot.getString("status") != HelpStatus.Open.firestoreValue) {
                 throw AlreadyTakenException(snapshot.getString("volunteerName"))
             }
-            tx.update(
-                ref,
-                mapOf(
-                    "status" to HelpStatus.Taken.firestoreValue,
-                    "volunteerId" to volunteerId,
-                    "volunteerName" to volunteerName,
-                    "volunteerNote" to note,
-                    "updatedAt" to FieldValue.serverTimestamp(),
-                ),
-            )
+            tx.update(ref, fields)
         }.await()
+    }
+
+    /** « Je m'en occupe » kept on this phone: open as last seen here, it waits for the network. */
+    private suspend fun queueTake(ref: DocumentReference, fields: Map<String, Any?>) {
+        val cached = runCatching { ref.get(Source.CACHE).await() }.getOrNull()
+        if (cached != null && cached.exists() && cached.getString("status") != HelpStatus.Open.firestoreValue) {
+            throw AlreadyTakenException(cached.getString("volunteerName"))
+        }
+        // Not awaited: the task ends only once the server has it. The request shows « En attente ».
+        ref.update(fields)
     }
 
     override suspend fun withdraw(id: String) = update(
@@ -163,6 +183,7 @@ class FirestoreHelpRequestRepository(private val db: FirebaseFirestore) : HelpRe
             unavailableIds = (get("unavailableIds") as? List<*>)?.filterIsInstance<String>().orEmpty(),
             thankedAt = getTimestamp("thankedAt")?.toInstant(),
             createdAt = getTimestamp("createdAt")?.toInstant(),
+            pending = metadata.hasPendingWrites(),
             photo = getString("photo"),
         )
     }
@@ -173,5 +194,12 @@ class FirestoreHelpRequestRepository(private val db: FirebaseFirestore) : HelpRe
 
     private companion object {
         const val REQUESTS = "helpRequests"
+
+        /** Past this, a network too slow for the transaction is treated as none: the write waits in the cache. */
+        const val TAKE_ONLINE_MILLIS = 5_000L
     }
 }
+
+/** The client is offline: Firestore cannot reach the server for a read or a transaction. */
+private fun Throwable.isOffline(): Boolean =
+    generateSequence(this) { it.cause }.any { it is FirebaseFirestoreException && it.code == FirebaseFirestoreException.Code.UNAVAILABLE }

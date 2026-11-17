@@ -13,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Autorenew
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +33,8 @@ import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.LoadingState
+import fr.familia.app.core.ui.PendingSign
 
 /** A household's name, or « Foyer retiré » for one removed meanwhile. */
 @Composable
@@ -50,7 +51,7 @@ fun TurnsScreen(
 ) {
     Box(modifier.fillMaxSize()) {
         when (state) {
-            TurnsUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+            TurnsUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
             TurnsUiState.Error -> EmptyState(
                 icon = Icons.Outlined.Autorenew,
                 title = stringResource(R.string.turns_error_title),
@@ -107,6 +108,7 @@ private fun TurnCard(row: TurnRow, onOpen: (String) -> Unit) {
             style = MaterialTheme.typography.bodyMedium,
             color = muted,
         )
+        if (row.turn.pending) PendingSign(color = muted)
     }
 }
 

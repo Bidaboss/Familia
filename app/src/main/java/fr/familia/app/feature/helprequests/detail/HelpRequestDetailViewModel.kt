@@ -78,7 +78,7 @@ class HelpRequestDetailViewModel(
         )
     }
 
-    /** « Je m'en occupe »: only online, in a transaction (spec, cas limites). */
+    /** « Je m'en occupe »: online in a transaction; offline it waits on this phone, « En attente du réseau » (the repository). */
     fun take(note: String = "") {
         val state = uiState.value as? HelpRequestDetailUiState.Success ?: return
         val repo = requests ?: return
@@ -93,7 +93,7 @@ class HelpRequestDetailViewModel(
             } catch (e: AlreadyTakenException) {
                 Action(error = HelpActionError.AlreadyTaken(e.volunteerName))
             } catch (e: Exception) {
-                // Offline, the transaction fails at once.
+                // Refused by the server for another reason than the network.
                 Action(error = HelpActionError.NeedsNetwork)
             }
         }

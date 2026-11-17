@@ -64,6 +64,8 @@ import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.LoadingState
+import fr.familia.app.core.ui.PendingSign
 import fr.familia.app.feature.helprequests.kindLabel
 import fr.familia.app.feature.helprequests.whenLabel
 import java.time.LocalDate
@@ -105,7 +107,7 @@ fun HelpRequestDetailScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                HelpRequestDetailUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                HelpRequestDetailUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 HelpRequestDetailUiState.Missing -> EmptyState(
                     icon = Icons.Outlined.VolunteerActivism,
                     title = stringResource(R.string.helprequest_missing_title),
@@ -274,6 +276,7 @@ private fun StatusCard(state: HelpRequestDetailUiState.Success, onEdit: () -> Un
             else -> stringResource(R.string.helprequest_status_open)
         }
         Text(text, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+        if (request.pending) PendingSign()
         if (request.status == HelpStatus.Taken) {
             request.volunteerNote?.let {
                 Text(

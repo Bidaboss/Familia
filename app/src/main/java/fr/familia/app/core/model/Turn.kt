@@ -28,6 +28,8 @@ data class Turn(
     val history: List<TurnDone>,
     val swap: TurnSwap?,
     val createdBy: String,
+    /** Changed on this phone without network: it goes by itself, once, when the network is back. */
+    val pending: Boolean = false,
 ) {
     /** The household whose turn it is. */
     val currentHouseholdId: String? get() = householdIds.getOrNull(current)

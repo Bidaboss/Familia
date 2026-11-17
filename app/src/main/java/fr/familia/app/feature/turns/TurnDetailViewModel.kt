@@ -20,6 +20,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+
+/** Past this, a write is left in the cache: offline it goes by itself when the network is back. */
+internal const val WRITE_TIMEOUT_MS = 4_000L
 
 /** A household in the order, by name, with whether it is mine and whether its turn it is. */
 data class TurnPlace(val householdId: String, val name: String, val isMine: Boolean, val isNow: Boolean)
@@ -121,7 +125,8 @@ class TurnDetailViewModel(
         working.value = true
         viewModelScope.launch {
             try {
-                block(repo, s.turn)
+                // The write lands in the cache at once; offline it waits there and goes later.
+                withTimeoutOrNull(WRITE_TIMEOUT_MS) { block(repo, s.turn) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

@@ -4,6 +4,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.MetadataChanges
 import com.google.firebase.firestore.Query
 import fr.familia.app.core.model.GoodNews
 import fr.familia.app.core.model.Reaction
@@ -21,7 +22,8 @@ class FirestoreGoodNewsRepository(private val db: FirebaseFirestore) : GoodNewsR
         val registration = db.collection(GOOD_NEWS)
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .limit(count.toLong())
-            .addSnapshotListener { snapshot, error ->
+            // Told again once a good news published offline reaches the server, for « En attente ».
+            .addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
                 if (error != null) {
                     close(error)
                 } else if (snapshot != null) {
@@ -46,7 +48,7 @@ class FirestoreGoodNewsRepository(private val db: FirebaseFirestore) : GoodNewsR
     }
 
     override fun observePost(id: String): Flow<GoodNews?> = callbackFlow {
-        val registration = db.collection(GOOD_NEWS).document(id).addSnapshotListener { snapshot, error ->
+        val registration = db.collection(GOOD_NEWS).document(id).addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
             if (error != null) {
                 trySend(null)
             } else if (snapshot != null) {
@@ -136,5 +138,7 @@ private fun DocumentSnapshot.toGoodNews(): GoodNews? {
         forChallenge = getString("forChallenge"),
         birthdayOf = birthdayOf,
         littleOnes = getBoolean("littleOnes") == true,
+        // Not yet on the server: its creation time is still the one this phone will ask for.
+        pending = metadata.hasPendingWrites() && getTimestamp("createdAt") == null,
     )
 }

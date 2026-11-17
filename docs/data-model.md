@@ -576,7 +576,7 @@ Droits :
 
 - **Lire** : le demandeur et les personnes prévenues (`viewerIds`), donc aussi les adultes responsables de l'enfant aidé (carte PRODUIT-8). L'admin principal lit toutes les demandes, pour la sauvegarde et pour « modifier toutes » ; l'onglet ne lui montre pourtant que celles où il est dans `viewerIds`. Un chef de famille n'a pas de droit en plus.
 - **Créer** : un membre avec l'appli, pour lui ; un adulte, aussi pour un de ses enfants ; l'admin principal, pour n'importe qui. La demande naît ouverte, sans volontaire.
-- **« Je m'en occupe »** : un adulte prévenu, jamais le demandeur, sur une demande ouverte. L'appli l'écrit dans une transaction, qui demande le réseau : de deux volontaires en même temps, seul le premier l'emporte, l'autre voit « déjà prise ».
+- **« Je m'en occupe »** : un adulte prévenu, jamais le demandeur, sur une demande ouverte. Avec le réseau, l'appli l'écrit dans une transaction : de deux volontaires en même temps, seul le premier l'emporte, l'autre voit « déjà prise ». Sans réseau, ou s'il ne répond pas en 5 secondes, la même écriture attend sur le téléphone (« En attente du réseau ») et part une seule fois à son retour ; la règle (demande encore ouverte) la refuse alors si quelqu'un l'a prise entre-temps, et la demande montre ce volontaire.
 - **Se retirer** : le volontaire seulement ; la demande redevient ouverte.
 - **« Je ne peux pas »** : la seule personne prévenue, sur une demande ouverte.
 - **Modifier, élargir, annuler, « Merci », supprimer** : l'admin principal, le demandeur, et un adulte responsable du demandeur ou de l'enfant aidé. Le volontaire reste parmi les personnes prévenues ; le « Merci » n'existe que pour une demande prise.
@@ -663,7 +663,7 @@ Dans l'onglet Entraide, derrière l'interrupteur « À qui le tour » (`config/a
 | `title` | texte | Le nom du tour de rôle, de 1 à 60 caractères |
 | `householdIds` | liste de textes | Les foyers qui y participent, dans l'ordre, de 2 à 12, chacun une fois |
 | `current` | entier | La place dans `householdIds` du foyer dont c'est le tour |
-| `history` | liste | Les tours faits, le plus récent en dernier, 100 au plus : `{householdId, label, at}`. `label` (« Noël 2026 ») fait 40 caractères au plus et peut être vide. `at` est l'heure du téléphone, vérifiée à 10 minutes près, car Firestore n'a pas d'heure du serveur dans une liste |
+| `history` | liste | Les tours faits, le plus récent en dernier, sans limite (l'appli en montre 50, puis 50 de plus à chaque « Voir plus ») : `{householdId, label, at}`. `label` (« Noël 2026 ») fait 40 caractères au plus et peut être vide. `at` est l'heure du téléphone, car Firestore n'a pas d'heure du serveur dans une liste : au plus 10 minutes dans le futur, et jusqu'à 7 jours dans le passé, pour un « C'est fait » dit hors ligne qui part au retour du réseau |
 | `swap` | objet ou `null` | L'échange proposé : `{fromId, toId, fromIndex, toIndex, byId, byName}`, les deux foyers, leurs places, l'adulte qui propose et son prénom. Un seul à la fois |
 | `createdBy` | texte | L'adulte qui l'a créé |
 | `createdAt`, `updatedAt` | horodatage | Heure du serveur |
