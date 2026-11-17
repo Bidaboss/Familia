@@ -100,6 +100,10 @@ data class NotebookActions(
     val onEditIdea: (entryId: String) -> Unit = {},
     /** « Proposer à la famille »: the idea becomes a surprise item of a list. */
     val onProposeIdea: (entryId: String) -> Unit = {},
+    /** « Mon budget » (récit 57): sets the budget of the whole occasion; null removes it. */
+    val onSetOccasionBudget: (NotebookOccasion, Double?) -> Unit = { _, _ -> },
+    /** « Un achat fait ailleurs »: a gift bought outside the app, which reserves nothing. */
+    val onAddPurchase: (NotebookOccasion) -> Unit = {},
 )
 
 /** « Mes cadeaux à offrir »: one card per person for the chosen occasion. Stateless. */
@@ -184,6 +188,18 @@ private fun Content(state: NotebookUiState.Success, actions: NotebookActions) {
             }
         } else {
             item(key = "occasions") { OccasionPicker(state, actions.onSelect, actions.onToggleArchive) }
+            val budget = state.budget
+            val occasion = state.selected
+            if (budget != null && occasion != null) {
+                item(key = "budget") {
+                    OccasionBudgetCard(
+                        occasion = occasion,
+                        budget = budget,
+                        onSetBudget = { amount -> actions.onSetOccasionBudget(occasion, amount) },
+                        onAddPurchase = { actions.onAddPurchase(occasion) },
+                    )
+                }
+            }
             items(state.people, key = { it.key }) { person ->
                 PersonCard(
                     person = person,
@@ -235,6 +251,60 @@ internal fun occasionName(occasion: NotebookOccasion): String {
         kind != null -> kind
         occasion.year != null -> occasion.year.toString()
         else -> stringResource(R.string.notebook_no_occasion)
+    }
+}
+
+/**
+ * « Mon budget » (récit 57): what I mean to spend for the whole occasion, and a soft gauge of what
+ * my reservations, my parts and my purchases elsewhere already take. Beyond, it turns orange
+ * (the terracotta of the app), with no alert. Nobody else sees it.
+ */
+@Composable
+private fun OccasionBudgetCard(occasion: NotebookOccasion, budget: OccasionBudget, onSetBudget: (Double?) -> Unit, onAddPurchase: () -> Unit) {
+    var budgetDialog by rememberSaveable(occasion.occasion, occasion.year) { mutableStateOf(false) }
+    val variant = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
+    val over = MaterialTheme.colorScheme.primary
+    ClayCard(modifier = Modifier.fillMaxWidth(), contentPadding = ClaySpacing.card) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            ClayCardTitle(stringResource(R.string.notebook_my_budget, occasionName(occasion)), style = MaterialTheme.typography.titleMedium)
+            val amount = budget.amount
+            val left = budget.left
+            Text(
+                when {
+                    amount == null || left == null -> stringResource(R.string.notebook_budget_committed, formatEuros(budget.committed))
+                    left >= 0 -> stringResource(R.string.notebook_budget_left, formatEuros(left), formatEuros(amount))
+                    else -> stringResource(R.string.notebook_budget_over, formatEuros(-left), formatEuros(amount))
+                },
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (budget.isOver) over else variant,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            )
+            if (amount != null) {
+                LinearProgressIndicator(
+                    progress = { (budget.committed / amount).toFloat().coerceIn(0f, 1f) },
+                    color = if (budget.isOver) over else MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                )
+            }
+            Text(
+                stringResource(R.string.notebook_budget_private),
+                style = MaterialTheme.typography.bodyMedium,
+                color = variant,
+            )
+            ClayLink(
+                stringResource(if (amount == null) R.string.notebook_set_my_budget else R.string.notebook_change_budget),
+                onClick = { budgetDialog = true },
+            )
+            ClayLink(stringResource(R.string.notebook_add_purchase), onClick = onAddPurchase)
+        }
+    }
+    if (budgetDialog) {
+        BudgetDialog(
+            name = occasionName(occasion),
+            initial = budget.amount,
+            onConfirm = { value -> budgetDialog = false; onSetBudget(value) },
+            onDismiss = { budgetDialog = false },
+        )
     }
 }
 

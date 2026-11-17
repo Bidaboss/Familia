@@ -1259,6 +1259,7 @@ fun FamiliaApp(
                             onAddIdea = { at -> navController.navigate(NotebookIdeaDestination(occasion = at?.occasion?.name, year = at?.year)) },
                             onEditIdea = { id -> navController.navigate(NotebookIdeaDestination(entryId = id)) },
                             onProposeIdea = { id -> navController.navigate(ProposeIdeaDestination(id)) },
+                            onAddPurchase = { at -> navController.navigate(NotebookIdeaDestination(occasion = at.occasion?.name, year = at.year, bought = true)) },
                         )
                     }
                     composable<ProposeIdeaDestination> { entry ->
@@ -1283,6 +1284,7 @@ fun FamiliaApp(
                             entryId = route.entryId,
                             startOccasion = NotebookOccasion(GiftOccasion.entries.firstOrNull { it.name == route.occasion }, route.year),
                             onDone = { navController.popBackStack() },
+                            startBought = route.bought,
                         )
                     }
                     composable<GiftListDestination> { entry ->

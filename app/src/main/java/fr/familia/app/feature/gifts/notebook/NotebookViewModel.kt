@@ -11,6 +11,7 @@ import fr.familia.app.core.model.NotebookBudget
 import fr.familia.app.core.model.NotebookEntry
 import fr.familia.app.core.model.NotebookOccasion
 import fr.familia.app.core.model.NotebookSource
+import fr.familia.app.core.model.committed
 import fr.familia.app.core.model.notebookBudgetId
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -38,6 +39,9 @@ data class NotebookPerson(
 ) {
     val bought: Int get() = entries.count { it.status.isBought }
 
+    /** « Mon budget » (récit 57): my reservations with a price, my parts, and what I bought elsewhere. */
+    val committed: Double get() = entries.sumOf { it.committed() }
+
     /** What was bought, wrapped or given, at its price. */
     val spent: Double get() = entries.filter { it.status.isBought }.sumOf { it.price ?: 0.0 }
 }
@@ -56,7 +60,16 @@ sealed interface NotebookUiState {
         /** How many occasions are past: they wait in the archive, out of the way. */
         val archivedCount: Int = 0,
         val showArchive: Boolean = false,
+        /** « Mon budget » (récit 57), for an occasion with its year, when the switch is on. */
+        val budget: OccasionBudget? = null,
     ) : NotebookUiState
+}
+
+/** The budget of the occasion shown: [amount] if set, and what is already [committed]. */
+data class OccasionBudget(val amount: Double?, val committed: Double) {
+    /** What is left, negative beyond: the gauge turns orange, with no alert. */
+    val left: Double? get() = amount?.let { it - committed }
+    val isOver: Boolean get() = (left ?: 0.0) < 0
 }
 
 /**
@@ -73,6 +86,8 @@ class NotebookViewModel(
     private val gifts: GiftRepository? = null,
     /** Switch « Liste unique » (récit 9 ter): which of an entry and its copy shows, see [shownEntries]. */
     private val singleList: Boolean = false,
+    /** Switch « Mon budget » (récit 57), for an adult: the budget of a whole occasion. */
+    private val occasionBudget: Boolean = false,
 ) : ViewModel() {
 
     /** The occasion the member chose, and whether the archive is open. */
@@ -162,6 +177,26 @@ class NotebookViewModel(
         }
     }
 
+    /** Sets or removes ([amount] null) the budget of the whole [occasion] (récit 57). */
+    fun setOccasionBudget(occasion: NotebookOccasion, amount: Double?) {
+        if (!occasionBudget || occasion.occasion == null || occasion.year == null) return
+        val repo = notebook ?: return
+        failed.value = false
+        viewModelScope.launch {
+            val ok = try {
+                withTimeoutOrNull(writeTimeoutMillis) {
+                    repo.setBudget(currentMemberId, NotebookBudget(null, "", occasion, amount ?: 0.0, total = true), amount)
+                }
+                true
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                false
+            }
+            failed.value = !ok
+        }
+    }
+
     private fun state(
         entries: List<NotebookEntry>,
         budgets: List<NotebookBudget>,
@@ -185,11 +220,19 @@ class NotebookViewModel(
                     name = first.personName,
                     entries = gifts.sortedWith(compareBy({ it.status.ordinal }, { it.title.lowercase() })),
                     personId = first.personId,
-                    budget = budgets.firstOrNull { notebookBudgetId(it.personId, it.personName, it.occasion) == budgetId }?.amount,
+                    budget = budgets.firstOrNull { !it.total && notebookBudgetId(it.personId, it.personName, it.occasion) == budgetId }?.amount,
                 )
             }
             .sortedBy { it.name.lowercase() }
-        return NotebookUiState.Success(occasions, selected, people, didFail, archivedCount = past.size, showArchive = pick.archive)
+        val budget = selected?.takeIf { occasionBudget && it.occasion != null && it.year != null }?.let { occasion ->
+            OccasionBudget(
+                amount = budgets.firstOrNull { it.total && it.occasion == occasion }?.amount,
+                committed = people.sumOf { it.committed },
+            )
+        }
+        return NotebookUiState.Success(
+            occasions, selected, people, didFail, archivedCount = past.size, showArchive = pick.archive, budget = budget,
+        )
     }
 }
 
