@@ -29,6 +29,10 @@ class CalendarFeedViewModelTest {
             renewed++
             tokens.value = "t$renewed"
         }
+        override suspend fun remove(memberId: String) {
+            if (refuse) error("refused")
+            tokens.value = null
+        }
     }
 
     @Test
@@ -58,9 +62,30 @@ class CalendarFeedViewModelTest {
         val repo = object : CalendarFeedRepository {
             override fun observeToken(memberId: String): Flow<String?> = flow { error("denied") }
             override suspend fun renew(memberId: String) = Unit
+            override suspend fun remove(memberId: String) = Unit
         }
         val vm = CalendarFeedViewModel(repo, "m1")
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect {} }
         assertEquals(CalendarFeedState.Error, vm.state.value)
+    }
+
+    @Test
+    fun `removing my link leaves me without one`() = runTest {
+        val repo = FakeRepo()
+        val vm = CalendarFeedViewModel(repo, "m1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect {} }
+        vm.renew()
+        vm.remove()
+        assertEquals(CalendarFeedState.Ready(null), vm.state.value)
+        assertFalse(vm.busy.value)
+    }
+
+    @Test
+    fun `a link that could not be removed is said once`() = runTest {
+        val vm = CalendarFeedViewModel(FakeRepo(refuse = true), "m1")
+        vm.remove()
+        assertTrue(vm.removeFailed.value)
+        vm.failureShown()
+        assertFalse(vm.removeFailed.value)
     }
 }
