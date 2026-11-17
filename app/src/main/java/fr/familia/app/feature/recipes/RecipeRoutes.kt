@@ -18,16 +18,27 @@ import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.core.share.shareText
 
 @Composable
-fun RecipesRoute(container: AppContainer?, originMemberId: String?, onOpen: (String) -> Unit, onAdd: () -> Unit, onBack: () -> Unit) {
+fun RecipesRoute(
+    container: AppContainer?,
+    originMemberId: String?,
+    onOpen: (String) -> Unit,
+    onAdd: () -> Unit,
+    onBack: () -> Unit,
+    onMakeBook: () -> Unit = {},
+) {
     val viewModel: RecipesViewModel = viewModel(
         key = "recipes-$originMemberId",
         factory = viewModelFactory { initializer { RecipesViewModel(container?.recipeRepository, container?.memberRepository, originMemberId) } },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    RecipesScreen(state, viewModel::search, onOpen, onAdd, onBack)
+    // The whole book, so not on the list of one member's recipes.
+    // Not in « Voir comme »: the book would leave with the photo rights of the member looked at.
+    val bookOn = LocalFeatureFlags.current.isOn(Feature.RecipeBook) && originMemberId == null && LocalViewAs.current.viewed == null
+    RecipesScreen(state, viewModel::search, onOpen, onAdd, onBack, onMakeBook = if (bookOn) onMakeBook else null)
 }
 
 /** A removed recipe closes its page. */
