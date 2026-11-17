@@ -118,7 +118,7 @@ fun LendItemsScreen(
         if (state is LendItemsUiState.Success && state.canAdd && onAdd != null && state.hasItems) {
             ExtendedFloatingActionButton(
                 onClick = onAdd,
-                icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.lend_add)) },
                 text = { Text(stringResource(R.string.lend_add)) },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
             )
