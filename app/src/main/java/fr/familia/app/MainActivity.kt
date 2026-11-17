@@ -11,6 +11,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.familia.app.core.navigation.FamiliaApp
 import fr.familia.app.core.splash.holdStartScreen
+import fr.familia.app.core.welcome.OpeningStyle
+import fr.familia.app.core.welcome.WelcomePreferences
 import fr.familia.app.core.photo.LocalOnline
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.viewas.ViewAsHost
@@ -64,7 +66,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        holdStartScreen(restored = savedInstanceState != null)
+        // The tree of the start screen is held only for the short opening: the long one, the
+        // welcome, follows at once, and « Aucune » opens as soon as the app is ready (17/11).
+        if (WelcomePreferences(this).style == OpeningStyle.Short) holdStartScreen(restored = savedInstanceState != null)
         // One door for every link (audit): the same in onCreate and onNewIntent.
         if (savedInstanceState == null) open(intent)
         val app = application as FamiliaApplication

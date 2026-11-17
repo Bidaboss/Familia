@@ -70,7 +70,13 @@ import kotlin.math.min
 import kotlin.math.sin
 
 /** The whole welcome, in milliseconds (spec DESIGN « animation d'ouverture », part 2). */
-private const val END = 4_500f
+private const val END = 5_000f
+
+/**
+ * When the last picture starts to fade. Kévin, 17/11: it stays half a second more on the family
+ * and their photos before the Accueil, which also leaves the app time to load.
+ */
+private const val FADE = 4_600f
 
 /** Where the screen stays still when the animations are off on the phone: the circle and the words. */
 private const val STILL = 3_400f
@@ -78,8 +84,9 @@ private const val STILL = 3_400f
 /**
  * The welcome of the first opening (spec DESIGN, 17/11, DESIGN-22): the tree of the icon grows, its
  * fruits become the family around the sun, each in the member's color with their letters, then
- * « Bienvenue dans Familia » and « Bonjour {prénom}, tu es chez toi. ». About 4.5 s, a touch anywhere
- * goes straight on. Animations off on the phone: the last picture alone, for 1.5 s.
+ * « Bienvenue dans Familia » and « Bonjour {prénom}, tu es chez toi. ». About 5 s, the last picture
+ * held half a second; a touch anywhere goes straight on. Animations off on the phone: the last
+ * picture alone, for 2 s.
  */
 @Composable
 fun WelcomeAnimation(family: Family, me: Member, photos: Map<String, ImageBitmap> = emptyMap(), onDone: () -> Unit) {
@@ -92,7 +99,7 @@ fun WelcomeAnimation(family: Family, me: Member, photos: Map<String, ImageBitmap
     val time = remember { Animatable(if (still) STILL else 0f) }
     LaunchedEffect(still) {
         if (still) {
-            delay(1_500)
+            delay(2_000)
         } else {
             time.animateTo(END, tween(durationMillis = END.toInt(), easing = LinearEasing))
         }
@@ -135,7 +142,7 @@ internal fun WelcomePicture(
         modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .alpha(1f - phase(time, 4_100f, END)),
+            .alpha(1f - phase(time, FADE, END)),
     ) {
         // The circle shrinks on a narrow phone so that every fruit stays on screen.
         val ring: Dp = min(128f, maxWidth.value / 2f - 26f - 16f).dp
