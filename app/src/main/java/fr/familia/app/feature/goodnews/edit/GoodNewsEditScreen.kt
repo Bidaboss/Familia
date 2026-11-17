@@ -204,8 +204,8 @@ private fun Form(
         } else {
             val existing = state.existing!!
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                existing.photoIds.forEach { id ->
-                    StorageImage(existing.thumbnailPath(id), null, Modifier.size(96.dp).clip(RoundedCornerShape(16.dp)))
+                existing.photoIds.forEachIndexed { index, id ->
+                    StorageImage(existing.thumbnailPath(id), stringResource(R.string.goodnews_photo_number, index + 1), Modifier.size(96.dp).clip(RoundedCornerShape(16.dp)))
                 }
             }
             Text(stringResource(R.string.goodnews_photos_fixed), style = MaterialTheme.typography.bodyMedium)

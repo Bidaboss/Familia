@@ -63,6 +63,8 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.util.Locale
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
 
 private val PARIS: ZoneId = ZoneId.of("Europe/Paris")
 
@@ -136,7 +138,7 @@ private fun Content(
         if (item.note.isNotBlank()) Text(item.note, style = MaterialTheme.typography.bodyLarge)
         LoanCard(state, today, onAskClick = { asking = true }, onAccept = onAccept, onRelease = onRelease)
         if (state.actionFailed) {
-            Text(stringResource(R.string.lend_action_failed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+            Text(stringResource(R.string.lend_action_failed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
         }
         if (state.canManage) {
             OutlinedButton(onClick = onEdit, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {

@@ -139,7 +139,7 @@ private fun LendSearch(filter: LendFilter, onSearch: (String) -> Unit, onPickCat
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(
                 selected = filter.availableOnly,
                 onClick = onToggleAvailable,

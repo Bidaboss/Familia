@@ -39,6 +39,9 @@ import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.feature.lending.lendCategoryLabel
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
 
 /** The form of a thing to lend (PRD, récit 51). Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -113,7 +116,7 @@ private fun Form(state: LendItemEditUiState.Editing, onChange: ((LendItemForm) -
         )
         PhotoField(stored = state.storedPhoto, edit = form.photo, onEdit = { edit -> onChange { it.copy(photo = edit) } }, enabled = enabled)
         if (state.saveFailed) {
-            Text(stringResource(R.string.lend_save_failed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+            Text(stringResource(R.string.lend_save_failed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
         }
         Button(onClick = onSave, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Text(stringResource(if (state.isNew) R.string.lend_add else R.string.lend_save))

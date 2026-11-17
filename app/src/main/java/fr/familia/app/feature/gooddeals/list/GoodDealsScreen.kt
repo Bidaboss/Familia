@@ -171,7 +171,7 @@ private fun AddressSearch(filter: AddressFilter, onPickCategory: (GoodDealCatego
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             GoodDealCategory.entries.forEach { category ->
                 FilterChip(
                     selected = filter.category == category,

@@ -2,7 +2,6 @@ package fr.familia.app.feature.wishes
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.FilledTonalButton
@@ -36,6 +35,10 @@ import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.viewas.LocalViewAs
 import java.time.LocalDate
 import java.time.ZoneId
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 
 /** « Cartes de vœux » on a member's page (récit 36), while its module is on. Shows nothing on an ordinary day. */
 @Composable
@@ -78,6 +81,7 @@ fun WishCard(card: BirthdayCard) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Composer(state: BirthdayCardsState, firstName: String, onSend: (String) -> Unit, onRemove: () -> Unit) {
     var text by rememberSaveable { mutableStateOf("") }
@@ -93,9 +97,10 @@ private fun Composer(state: BirthdayCardsState, firstName: String, onSend: (Stri
             minLines = 2,
         )
         if (state.failed) {
-            Text(stringResource(R.string.wishes_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.wishes_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+        // FlowRow: at 200 % the two buttons go one under the other instead of squeezing.
+        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (state.mine != null) {
                 TextButton(onClick = onRemove, enabled = !state.saving, modifier = Modifier.heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.wishes_remove))
