@@ -143,4 +143,6 @@ data class ReceivedGift(
     val occasion: GiftOccasion?,
     val year: Int?,
     val thanked: Boolean,
+    /** The photo of the wish (récit 44), copied by the server at the reveal: a base path, null without one. */
+    val photo: String? = null,
 )

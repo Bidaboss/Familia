@@ -346,6 +346,7 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
             occasion = GiftOccasion.fromFirestore(getString("occasion")),
             year = getLong("year")?.toInt(),
             thanked = getBoolean("thanked") == true,
+            photo = getString("photo"),
         )
     }
 
