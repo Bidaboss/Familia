@@ -50,7 +50,7 @@ class GiftsAtTheSameTimeTest {
     private fun GiftListViewModel.shown() = uiState.value as GiftListUiState.Success
 
     @Test
-    fun `someone reserved it a second before: the message says so, gently`() = runTest {
+    fun `someone reserved it a second before, the message says so, gently`() = runTest {
         val gifts = FakeGifts(list)
         gifts.onClaim = {
             gifts.claims.value = listOf(otherClaim)
@@ -79,7 +79,7 @@ class GiftsAtTheSameTimeTest {
     }
 
     @Test
-    fun `reserved offline, then refused when the network comes back: said late, nothing stays waiting`() = runTest {
+    fun `reserved offline, then refused when the network comes back, said late, nothing stays waiting`() = runTest {
         val gifts = FakeGifts(list)
         gifts.onClaim = {
             delay(60_000)
