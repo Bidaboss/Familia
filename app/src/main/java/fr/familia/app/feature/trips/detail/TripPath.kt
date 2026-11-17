@@ -85,13 +85,14 @@ fun TripDayStrip(days: List<LocalDate>, chosen: LocalDate, today: LocalDate, onC
                     .background(if (isChosen) TripPathColors.Ink else Color.White)
                     .then(if (day == today && !isChosen) Modifier.border(2.dp, TripPathColors.Ink, shape) else Modifier)
                     .selectable(selected = isChosen, role = Role.Tab, onClick = { onChoose(day) })
-                    .clearAndSetSemantics { contentDescription = spoken }
+                    .semantics { contentDescription = spoken }
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 val ink = if (isChosen) Color.White else TripPathColors.Ink
-                Text(stringResource(R.string.trip_day_number, index + 1), color = ink, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                Text(day.format(weekdayShort), color = ink, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1)
+                // The column reads « Jour 3, mardi 17 novembre » as a whole.
+                Text(stringResource(R.string.trip_day_number, index + 1), color = ink, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clearAndSetSemantics { })
+                Text(day.format(weekdayShort), color = ink, fontSize = 16.sp, fontWeight = FontWeight.ExtraBold, maxLines = 1, modifier = Modifier.clearAndSetSemantics { })
             }
         }
     }
