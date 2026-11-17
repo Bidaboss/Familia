@@ -72,6 +72,7 @@ class ViewAsContainer(private val base: AppContainer, guard: ViewAsGuard, adminI
     override val momentRepository = base.momentRepository?.let { ReadOnlyMomentRepository(it, guard) }
     override val goodDealRepository = base.goodDealRepository?.let { ReadOnlyGoodDealRepository(it, guard) }
     override val lendItemRepository = base.lendItemRepository?.let { ReadOnlyLendItemRepository(it, guard) }
+    override val turnRepository = base.turnRepository?.let { ReadOnlyTurnRepository(it, guard) }
     override val carpoolRepository = base.carpoolRepository?.let { ReadOnlyCarpoolRepository(it, guard) }
     override val eventSeriesRepository = base.eventSeriesRepository?.let { ReadOnlyEventSeriesRepository(it, guard) }
     override val treeRepository = base.treeRepository?.let { ReadOnlyTreeRepository(it, guard) }

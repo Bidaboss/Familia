@@ -130,6 +130,8 @@ enum class Feature(
     PhotoBook("photoBook", R.string.feature_photo_book),
     /** « Notre année en famille » : le récit de l'année, du 26/12 au 10/01 (PRD rév. 245, récit 55). */
     YearInReview("yearInReview", R.string.feature_year_in_review),
+    /** « À qui le tour ? » : un tour de rôle entre foyers, dans Entraide (PRD rév. 249, récit 58). */
+    Turns("turns", R.string.feature_turns),
 }
 
 /**

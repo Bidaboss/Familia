@@ -2569,6 +2569,7 @@
     <string name="carpool_failed">Ça n\'a pas marché. Il n\'y a peut-être plus de place : regarde la fiche à nouveau.</string>
     <!-- Récit 55 : Notre année en famille -->
     <string name="feature_year_in_review">Notre année</string>
+    <string name="feature_turns">À qui le tour ?</string>
     <string name="year_title">Notre année %1$d</string>
     <string name="year_intro_body">Quelques images de l\'année de la famille. Touche la droite de l\'écran pour avancer, la gauche pour revenir.</string>
     <string name="year_numbers_title">En %1$d, la famille a partagé</string>
