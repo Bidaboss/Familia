@@ -27,11 +27,13 @@ class YearInReviewTest {
     private val now = Instant.parse("2026-12-27T10:00:00Z")
     private val me = TestFamily.adult
     private fun at(date: String) = Instant.parse("${date}T12:00:00Z")
-    private val zoneYear = { i: Instant -> i.atZone(ZoneOffset.UTC).year }
 
-    private fun news(id: String, date: String, likes: Int = 0, photos: List<String> = listOf("p1"), hiddenBy: List<String> = emptyList()) =
+    private fun news(
+        id: String, date: String, likes: Int = 0, photos: List<String> = listOf("p1"), hiddenBy: List<String> = emptyList(),
+        author: Member = TestFamily.otherAdult,
+    ) =
         GoodNews(
-            id = id, text = "Nouvelle $id", photoIds = photos, authorId = "adult2", authorName = "Inès",
+            id = id, text = "Nouvelle $id", photoIds = photos, authorId = author.id, authorName = author.firstName,
             forMemberId = "adult2", householdId = "h2",
             reactions = (1..likes).associate { "m$it" to Reaction.Heart },
             hiddenByIds = hiddenBy, createdAt = at(date),
@@ -58,7 +60,7 @@ class YearInReviewTest {
         answers: Map<String, List<WeeklyAnswer>> = emptyMap(),
     ) = buildYearInReview(
         2026, me, today, now, news, events, helps, trips, TestFamily.family.copy(members = members),
-        questions, answers, zoneYear,
+        questions, answers, ZoneOffset.UTC,
     )
 
     @Test
@@ -93,16 +95,39 @@ class YearInReviewTest {
     }
 
     @Test
-    fun `the photos are the most liked, never those I hid, at most four`() {
+    fun `one photo a month, never those I hid, never chosen by the reactions`() {
         val review = build(
             news = listOf(
-                news("a", "2026-01-01", likes = 1), news("b", "2026-02-01", likes = 5), news("c", "2026-03-01", likes = 3),
-                news("d", "2026-04-01", likes = 9, hiddenBy = listOf(me.id)), news("e", "2026-05-01", likes = 2),
-                news("f", "2026-06-01", likes = 8, photos = emptyList()), news("g", "2026-07-01"),
+                news("a", "2026-01-03", likes = 1), news("b", "2026-01-20", likes = 9),
+                news("c", "2026-03-01", likes = 3), news("d", "2026-04-01", likes = 9, hiddenBy = listOf(me.id)),
+                news("e", "2026-05-01", likes = 2), news("f", "2026-06-01", likes = 8, photos = emptyList()),
             ),
         )
-        assertEquals(listOf("b", "c", "e", "a"), review.photos.map { it.newsId })
-        assertEquals("goodNews/adult2/b/p1.jpg", review.photos.first().path)
+        // January: the first posted, not the most liked; April: hidden; June: no photo.
+        assertEquals(listOf("a", "c", "e"), review.photos.map { it.newsId })
+        assertEquals("goodNews/adult2/a/p1.jpg", review.photos.first().path)
+    }
+
+    @Test
+    fun `the authors vary so that every household shows in the year`() {
+        val sameHousehold = TestFamily.family.members.first { it.householdId == TestFamily.otherAdult.householdId && it.id != TestFamily.otherAdult.id }
+        val otherHousehold = TestFamily.family.members.first { it.householdId != TestFamily.otherAdult.householdId && it.profile == MemberProfile.Adult }
+        val review = build(
+            news = listOf(
+                news("jan", "2026-01-02"),
+                // February: the same household again posted first, the other household later.
+                news("feb1", "2026-02-01", author = sameHousehold), news("feb2", "2026-02-10", author = otherHousehold),
+                news("mar1", "2026-03-01"), news("mar2", "2026-03-05", author = sameHousehold),
+            ),
+        )
+        assertEquals(listOf("jan", "feb2"), review.photos.take(2).map { it.newsId })
+        assertEquals(3, review.photos.size)
+    }
+
+    @Test
+    fun `at most twelve photos, one for each month`() {
+        val review = build(news = (1..12).flatMap { m -> listOf(news("m$m", "2026-%02d-01".format(m)), news("n$m", "2026-%02d-02".format(m))) })
+        assertEquals((1..12).map { "m$it" }, review.photos.map { it.newsId })
     }
 
     @Test
