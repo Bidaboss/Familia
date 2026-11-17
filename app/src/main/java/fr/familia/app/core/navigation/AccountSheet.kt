@@ -49,6 +49,7 @@ import fr.familia.app.R
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
+import fr.familia.app.core.share.canShareApp
 import fr.familia.app.core.ui.MemberAvatar
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
@@ -67,7 +68,6 @@ class AccountActions(
     val onOpenFeedback: (() -> Unit)?,
     /** « Partager Familia », given the first name of the admin principal; null in « Voir comme ». */
     val onShareApp: ((ownerFirstName: String?) -> Unit)?,
-    val canShareApp: Boolean,
     val onOpenChildrenUsage: (() -> Unit)?,
     val onOpenAdministration: (() -> Unit)?,
 )
@@ -108,7 +108,8 @@ fun AccountSheet(container: AppContainer?, member: Member, actions: AccountActio
             AccountRow(Icons.Outlined.SystemUpdate, R.string.update_check_title, go(actions.onOpenUpdates))
             actions.onOpenFeedback?.let { AccountRow(Icons.Outlined.Lightbulb, R.string.feedback_title, go(it)) }
             val share = actions.onShareApp
-            if (share != null && actions.canShareApp) {
+            // Only the admin principal sends the install link (rév. 229).
+            if (share != null && canShareApp(member, family?.ownerId)) {
                 AccountRow(Icons.Outlined.Share, R.string.share_app_title, go { share(ownerName) })
             }
             // The admin principal finds everyone's time in Administration instead.

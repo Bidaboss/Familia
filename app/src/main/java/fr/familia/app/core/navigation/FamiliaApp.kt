@@ -150,7 +150,6 @@ import fr.familia.app.feature.discover.Discover
 import fr.familia.app.feature.discover.DiscoverModule
 import fr.familia.app.feature.discover.LocalDiscoverOrder
 import fr.familia.app.feature.polls.rememberPollsToVote
-import fr.familia.app.core.share.canShareApp
 import fr.familia.app.core.share.shareApp
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -579,7 +578,6 @@ fun FamiliaApp(
                     // Nothing leaves the app while the admin looks through a member's eyes.
                     onOpenFeedback = if (inViewAs) null else ({ navController.navigate(FeedbackFormDestination(FeedbackOrigin.Family.key)) }),
                     onShareApp = if (inViewAs) null else ({ owner -> shareApp(shareContext, owner) }),
-                    canShareApp = canShareApp(currentMember),
                     onOpenChildrenUsage = if (features.isOn(Feature.Usage)) ({ navController.navigate(UsageDestination) }) else null,
                     onOpenAdministration = { navController.navigate(AdministrationDestination) },
                 ),
