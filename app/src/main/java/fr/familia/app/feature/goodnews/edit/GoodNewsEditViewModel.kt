@@ -8,10 +8,14 @@ import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.TreeRepository
 import fr.familia.app.core.model.GoodNews
 import fr.familia.app.core.model.MonthChallenge
+import fr.familia.app.core.photo.PhotoRefusedException
 import fr.familia.app.core.photo.PhotoUploader
 import fr.familia.app.feature.goodnews.goodNewsTargets
 import fr.familia.app.feature.goodnews.mentionCandidates
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -46,8 +50,23 @@ class GoodNewsEditViewModel(
     private val state = MutableStateFlow<GoodNewsEditUiState>(GoodNewsEditUiState.Loading)
     val uiState: StateFlow<GoodNewsEditUiState> = state.asStateFlow()
 
+    /** The send in progress, which « Annuler l'envoi » stops. */
+    private var sending: Job? = null
+
+    /**
+     * Kept from one try to the next: the same id, so a retry never makes a second good news, and
+     * the photos already sent (by their content URI) are not sent again.
+     */
+    private var pendingId: String? = null
+    private val sentPhotos = mutableMapOf<String, String>()
+
     init {
-        viewModelScope.launch { state.value = runCatching { initial() }.getOrDefault(GoodNewsEditUiState.Unavailable) }
+        viewModelScope.launch {
+            state.value = runCatching { initial() }.getOrDefault(GoodNewsEditUiState.Unavailable)
+            isOnline.catch { }.collect { online ->
+                state.update { if (it is GoodNewsEditUiState.Editing) it.copy(offline = !online) else it }
+            }
+        }
     }
 
     private suspend fun initial(): GoodNewsEditUiState {
@@ -124,24 +143,78 @@ class GoodNewsEditViewModel(
             state.value = current.copy(errors = errors)
             return
         }
-        viewModelScope.launch {
+        sending = viewModelScope.launch {
             val existing = current.existing
             val result = if (existing == null) publish(current) else change(existing, current.form)
             state.value = result
         }
     }
 
+    /** « Annuler l'envoi »: the form stays as it was; what was already sent is kept for the next try. */
+    fun cancelSending() {
+        val current = state.value as? GoodNewsEditUiState.Editing ?: return
+        // Once the photos are sent, the write is already on its way: too late to stop it.
+        if (!current.isNew || (current.sendingPhoto ?: 0) == 0) return
+        sending?.cancel()
+        sending = null
+        state.value = current.copy(sendingPhoto = null, progress = null, failure = null)
+    }
+
+    /** The state while sending, keeping what the network collector has seen meanwhile. */
+    private fun sendingState(s: GoodNewsEditUiState.Editing, photo: Int, progress: Float?): GoodNewsEditUiState.Editing =
+        (state.value as? GoodNewsEditUiState.Editing ?: s).copy(sendingPhoto = photo, progress = progress, failure = null)
+
+    /**
+     * Sends one photo. Without network it waits for it to come back, then sends again on its own;
+     * with network, a failure is tried again [ONLINE_RETRIES] times before the screen says so.
+     */
+    private suspend fun sendPhoto(
+        s: GoodNewsEditUiState.Editing,
+        index: Int,
+        total: Int,
+        send: suspend (onProgress: (Float) -> Unit) -> Unit,
+    ) {
+        var failures = 0
+        while (true) {
+            if (!isOnline.first()) {
+                state.value = sendingState(s, index + 1, index.toFloat() / total).copy(offline = true)
+                isOnline.first { it }
+            }
+            state.value = sendingState(s, index + 1, index.toFloat() / total)
+            try {
+                send { done ->
+                    val part = done.coerceIn(0f, 1f)
+                    state.update { cur ->
+                        if (cur is GoodNewsEditUiState.Editing && cur.sendingPhoto == index + 1) cur.copy(progress = (index + part) / total) else cur
+                    }
+                }
+                return
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IOException) {
+                throw e
+            } catch (e: PhotoRefusedException) {
+                throw e
+            } catch (e: Exception) {
+                // Cut meanwhile: wait for the network at the top of the loop, as often as it takes.
+                if (!isOnline.first()) continue
+                if (++failures > ONLINE_RETRIES) throw e
+                delay(RETRY_DELAY_MS * failures)
+            }
+        }
+    }
+
     private suspend fun publish(s: GoodNewsEditUiState.Editing): GoodNewsEditUiState {
         val repo = goodNews ?: return s.copy(failure = PublishFailure.Failed)
         val upload = uploader ?: return s.copy(failure = PublishFailure.Failed)
-        // Photos need the network: say so at once rather than wait.
-        if (!isOnline.first()) return s.copy(failure = PublishFailure.NeedsNetwork)
         val me = s.targets.first()
         val forMember = s.targets.firstOrNull { it.id == s.form.forMemberId } ?: me
+        val newsId = pendingId ?: repo.newId().also { pendingId = it }
         val draft = GoodNews(
-            id = repo.newId(),
+            id = newsId,
             text = s.form.text.trim(),
-            photoIds = s.form.photos.map { repo.newId() },
+            // A photo not fully sent gets a new id: Storage never replaces a file half sent before.
+            photoIds = s.form.photos.map { uri -> sentPhotos[uri] ?: repo.newId() },
             authorId = me.id,
             authorName = me.firstName,
             forMemberId = forMember.id,
@@ -150,21 +223,25 @@ class GoodNewsEditViewModel(
             forChallenge = if (s.form.forChallenge && s.challenge != null) s.challenge.month.toString() else null,
             littleOnes = s.form.littleOnes && forMember.id != me.id,
         )
+        val total = s.form.photos.size
         return try {
             s.form.photos.zip(draft.photoIds).forEachIndexed { index, (uri, photoId) ->
-                state.value = s.copy(sendingPhoto = index + 1, failure = null)
-                upload.upload(uri, draft.photoPath(photoId), draft.thumbnailPath(photoId))
+                if (sentPhotos[uri] == photoId) return@forEachIndexed
+                sendPhoto(s, index, total) { onProgress ->
+                    upload.upload(uri, draft.photoPath(photoId), draft.thumbnailPath(photoId), onProgress)
+                }
+                sentPhotos[uri] = photoId
             }
-            state.value = s.copy(sendingPhoto = 0, failure = null)
+            state.value = sendingState(s, 0, 1f)
             // The write reaches the local cache at once; past 10 s it is queued and goes later.
             withTimeoutOrNull(WRITE_TIMEOUT_MS) { repo.publish(draft) }
             GoodNewsEditUiState.Done
         } catch (e: CancellationException) {
             throw e
         } catch (e: IOException) {
-            s.copy(sendingPhoto = null, failure = PublishFailure.PhotoUnreadable)
+            (state.value as? GoodNewsEditUiState.Editing ?: s).copy(sendingPhoto = null, progress = null, failure = PublishFailure.PhotoUnreadable)
         } catch (e: Exception) {
-            s.copy(sendingPhoto = null, failure = if (isOnline.first()) PublishFailure.Failed else PublishFailure.NeedsNetwork)
+            (state.value as? GoodNewsEditUiState.Editing ?: s).copy(sendingPhoto = null, progress = null, failure = PublishFailure.Failed)
         }
     }
 
@@ -184,5 +261,7 @@ class GoodNewsEditViewModel(
 
     private companion object {
         const val WRITE_TIMEOUT_MS = 10_000L
+        const val ONLINE_RETRIES = 2
+        const val RETRY_DELAY_MS = 3_000L
     }
 }

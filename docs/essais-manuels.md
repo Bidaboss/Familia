@@ -797,3 +797,11 @@ Avec l'interrupteur « Notre année en famille » allumé.
 2. Touche-la. **Attendu :** l'écran de l'année s'ouvre.
 3. Hors de ces dates, avec un compte qui n'est pas l'admin principal : **Attendu :** pas de puce. L'admin principal la voit toute l'année, pour l'essayer.
 4. Interrupteur éteint, avec un autre compte : **Attendu :** pas de puce.
+
+## Bonnes nouvelles : envoi de la photo sur un réseau faible ou coupé
+
+1. Publier une bonne nouvelle avec 2 photos, réseau normal. Une barre se remplit au-dessus du bouton « Envoi de la photo 1 sur 2… », puis la bonne nouvelle apparaît une seule fois dans le fil.
+2. Recommencer en mode avion avant de toucher « Publier ». La barre reste en attente et la phrase « Plus de réseau : l'envoi reprendra tout seul dès son retour » s'affiche. Couper le mode avion sans toucher l'écran : l'envoi repart seul et la bonne nouvelle arrive une seule fois.
+3. Recommencer et passer en mode avion pendant l'envoi de la photo 2. La phrase apparaît, puis l'envoi reprend tout seul au retour du réseau. Vérifier dans le fil : une seule bonne nouvelle, avec ses 2 photos.
+4. Pendant un envoi, toucher « Annuler l'envoi » : le formulaire revient avec le texte et les photos, rien n'est publié. Toucher « Publier » : la bonne nouvelle part une seule fois.
+5. Si l'envoi échoue avec le réseau (rare), le message dit que le texte et les photos sont gardés. Toucher « Publier » de nouveau : une seule bonne nouvelle au bout.

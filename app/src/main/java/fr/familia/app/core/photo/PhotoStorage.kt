@@ -16,6 +16,12 @@ interface PhotoStorage {
     /** Sends a JPEG. Storage refuses to replace a file that already exists. */
     suspend fun upload(path: String, jpeg: ByteArray)
 
+    /** The same, telling how much is sent, from 0 to 1. */
+    suspend fun upload(path: String, jpeg: ByteArray, onProgress: (Float) -> Unit) {
+        upload(path, jpeg)
+        onProgress(1f)
+    }
+
     /** A link the image loader can read, valid as long as the file exists. */
     suspend fun downloadUrl(path: String): String
 
@@ -35,9 +41,19 @@ class FirebasePhotoStorage(private val storage: FirebaseStorage) : PhotoStorage 
     // A photo never changes once sent, so its link is asked once per launch of the app.
     private val urls = ConcurrentHashMap<String, String>()
 
-    override suspend fun upload(path: String, jpeg: ByteArray) {
+    override suspend fun upload(path: String, jpeg: ByteArray) = upload(path, jpeg) { }
+
+    override suspend fun upload(path: String, jpeg: ByteArray, onProgress: (Float) -> Unit) {
+        val task = storage.reference.child(path).putBytes(jpeg, jpegMetadata)
+        task.addOnProgressListener { snapshot ->
+            if (snapshot.totalByteCount > 0) onProgress(snapshot.bytesTransferred.toFloat() / snapshot.totalByteCount)
+        }
         try {
-            storage.reference.child(path).putBytes(jpeg, jpegMetadata).await()
+            task.await()
+        } catch (e: CancellationException) {
+            // « Annuler l'envoi »: stop the transfer too, so no half photo arrives later.
+            task.cancel()
+            throw e
         } catch (e: StorageException) {
             if (e.errorCode == StorageException.ERROR_NOT_AUTHORIZED) throw PhotoRefusedException(e)
             throw e
