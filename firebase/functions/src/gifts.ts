@@ -7,7 +7,7 @@
 import type { DocumentSnapshot, Firestore } from 'firebase-admin/firestore';
 import { addDays, formatDay, Notice, parisDay, Profile } from './logic';
 import { notify, Sender } from './store';
-import { wasRevealed } from './wishesReveal';
+import { wasMarkedReceived, wasRevealed } from './wishesReveal';
 
 export interface GiftMember {
   id: string;
@@ -91,7 +91,15 @@ export function itemChanged(before: GiftItemData, after: GiftItemData): boolean 
   return keys.some((k) => (before[k] ?? null) !== (after[k] ?? null));
 }
 
-export function itemNotice(kind: 'edited' | 'deleted', listId: string, beneficiaryName: string, title: string): Notice {
+export function itemNotice(kind: 'edited' | 'deleted' | 'received', listId: string, beneficiaryName: string, title: string): Notice {
+  if (kind === 'received') {
+    return {
+      channel: 'gifts',
+      title: 'Réservation annulée',
+      body: `${beneficiaryName} a déjà reçu « ${title} ». Ta réservation est annulée.`,
+      listId,
+    };
+  }
   return kind === 'deleted'
     ? {
       channel: 'gifts',
@@ -244,7 +252,8 @@ export async function onGiftItemChanged(
     const audience = await giftAudience(db);
     const recipients = audience(ids.filter((id) => id !== beneficiaryId && id !== before.authorId));
     const title = (after ?? before).title;
-    if (recipients.length > 0) sent = await notify(db, send, recipients, itemNotice(after ? 'edited' : 'deleted', listId, name, title));
+    const kind = after ? 'edited' : (await wasMarkedReceived(db, listId, itemId)) ? 'received' : 'deleted';
+    if (recipients.length > 0) sent = await notify(db, send, recipients, itemNotice(kind, listId, name, title));
   }
   if (!after && claim.exists) await db.recursiveDelete(claim.ref);
   return sent;

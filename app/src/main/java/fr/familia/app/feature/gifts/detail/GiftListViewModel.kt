@@ -92,6 +92,8 @@ sealed interface GiftListUiState {
          * the list shows as they would see it, and says why.
          */
         val keptFromReader: Boolean = false,
+        /** « Je l'ai reçue » on a wish of « Mes envies »: whoever keeps the person's lists (rév. 232). */
+        val canMarkReceived: Boolean = false,
         /** « Partager » outside the app (récit 31): see [fr.familia.app.feature.gifts.canShareWishesOutside]. */
         val canSendOutside: Boolean = false,
     ) : GiftListUiState
@@ -233,6 +235,7 @@ class GiftListViewModel(
             canReserve = exists && canReserve(list, me) && !kept,
             canShare = exists && canShare(list, me) && !kept,
             canSendOutside = exists && canShareWishesOutside(list, me, family),
+            canMarkReceived = exists && list.kind == GiftListKind.Wishes && !list.revealed && keepsListsOf(me, beneficiary),
             items = rows,
             myName = me.firstName,
             actionFailed = didFail,
@@ -271,6 +274,9 @@ class GiftListViewModel(
         write { it.markShareReceived(listId, itemId, memberId, received) }
 
     fun deleteItem(itemId: String) = write { it.deleteItem(listId, itemId) }
+
+    /** « Je l'ai reçue » (rév. 232): the wish goes to « On m'a offert », without a giver. */
+    fun markWishReceived(item: GiftItem) = write { it.markWishReceived(listId, item) }
 
     fun deleteList(onDone: () -> Unit) {
         val repo = gifts ?: return

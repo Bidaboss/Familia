@@ -48,6 +48,12 @@ interface GiftRepository {
 
     suspend fun deleteItem(listId: String, itemId: String)
 
+    /**
+     * « Reçue » (récit 10 bis, rév. 232): [item] of « Mes envies » leaves the list for « On m'a
+     * offert », without a giver, in one write. A reservation of it is cancelled by the server.
+     */
+    suspend fun markWishReceived(listId: String, item: GiftItem) = deleteItem(listId, item.id)
+
     /** Reserves an item for [holderId] (« Je le prends », or opening a joint gift). */
     suspend fun claim(listId: String, claim: GiftClaim)
 

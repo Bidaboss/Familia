@@ -366,6 +366,7 @@ class ReadOnlyGiftRepository(
     override suspend fun deleteList(listId: String) = guard.refuse()
     override suspend fun saveItem(listId: String, item: GiftItem, isNew: Boolean) = guard.refuse()
     override suspend fun deleteItem(listId: String, itemId: String) = guard.refuse()
+    override suspend fun markWishReceived(listId: String, item: GiftItem) = guard.refuse()
     override suspend fun claim(listId: String, claim: GiftClaim) = guard.refuse()
     override suspend fun release(listId: String, itemId: String) = guard.refuse()
     override suspend fun setShare(listId: String, itemId: String, share: GiftShare, isNew: Boolean) = guard.refuse()

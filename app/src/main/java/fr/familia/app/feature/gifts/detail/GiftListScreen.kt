@@ -115,6 +115,8 @@ data class GiftListActions(
     val onOpenReceived: (() -> Unit)? = null,
     /** The page of the beneficiary, for their sizes and tastes (récit 7 bis); null while that module is off. */
     val onOpenBeneficiary: ((memberId: String) -> Unit)? = null,
+    /** « Je l'ai reçue » on a wish of « Mes envies » (rév. 232); null while the reveal is off. */
+    val onMarkWishReceived: ((GiftItem) -> Unit)? = null,
     /** « Partager » « Mes envies » outside the app (récit 31); null while that module is off. */
     val onShareOutside: (() -> Unit)? = null,
 )
@@ -392,6 +394,12 @@ internal fun ItemSheetContent(row: ItemRow, state: GiftListUiState.Success, acti
             if (row.canEdit) {
                 OutlinedButton(onClick = onEdit, modifier = Modifier.heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.event_detail_edit))
+                }
+            }
+            val markReceived = actions.onMarkWishReceived
+            if (markReceived != null && state.canMarkReceived && item.visibleToBeneficiary) {
+                OutlinedButton(onClick = { markReceived(item) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.gift_mark_received))
                 }
             }
         }
