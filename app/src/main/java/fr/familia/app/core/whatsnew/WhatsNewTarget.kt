@@ -12,6 +12,7 @@ import androidx.compose.material.icons.outlined.HourglassEmpty
 import androidx.compose.material.icons.outlined.HowToVote
 import androidx.compose.material.icons.outlined.Luggage
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.PhotoAlbum
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.QuestionAnswer
 import androidx.compose.material.icons.outlined.Restaurant
@@ -38,6 +39,7 @@ enum class WhatsNewTarget(val key: String, val icon: ImageVector) {
     GoodNews("goodNews", Icons.Outlined.Celebration),
     JoinMe("joinMe", Icons.Outlined.Place),
     Appearance("appearance", Icons.Outlined.Palette),
+    WhoIsIt("whoIsIt", Icons.Outlined.PhotoAlbum),
     ;
 
     companion object {

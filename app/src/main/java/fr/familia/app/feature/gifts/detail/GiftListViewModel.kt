@@ -21,6 +21,7 @@ import fr.familia.app.core.model.wishesListId
 import fr.familia.app.feature.gifts.canManageList
 import fr.familia.app.feature.gifts.canReserve
 import fr.familia.app.feature.gifts.canShare
+import fr.familia.app.feature.gifts.canShareWishesOutside
 import fr.familia.app.feature.gifts.isKeptFrom
 import fr.familia.app.feature.gifts.keepsListsOf
 import kotlinx.coroutines.CancellationException
@@ -91,6 +92,8 @@ sealed interface GiftListUiState {
          * the list shows as they would see it, and says why.
          */
         val keptFromReader: Boolean = false,
+        /** « Partager » outside the app (récit 31): see [fr.familia.app.feature.gifts.canShareWishesOutside]. */
+        val canSendOutside: Boolean = false,
     ) : GiftListUiState
 
     /** Deleted, or not one this member may see. */
@@ -229,6 +232,7 @@ class GiftListViewModel(
             // Nothing to reserve on a list whose reservations the reader may not see.
             canReserve = exists && canReserve(list, me) && !kept,
             canShare = exists && canShare(list, me) && !kept,
+            canSendOutside = exists && canShareWishesOutside(list, me, family),
             items = rows,
             myName = me.firstName,
             actionFailed = didFail,

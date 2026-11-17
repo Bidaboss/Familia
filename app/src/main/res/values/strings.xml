@@ -787,6 +787,11 @@
     <!-- Coups de main (PRD, récits 13 à 18) : fil [DEV] coups de main -->
     <string name="nav_help_requests">Entraide</string>
     <string name="helprequest_screen_title">Coups de main</string>
+    <string name="helprequest_photo_title">Photo</string>
+    <string name="helprequest_photo_hint">Un QR code de colis, ce qu\'il faut récupérer, l\'endroit : seuls ceux que tu préviens la voient.</string>
+    <string name="helprequest_photo_label">Photo jointe à la demande</string>
+    <string name="helprequest_photo_open">Voir la photo en grand</string>
+    <string name="helprequest_photo_close">Fermer</string>
     <string name="helprequest_kind_childcare">Garde</string>
     <string name="helprequest_kind_ride">Trajet</string>
     <string name="helprequest_kind_other">Autre</string>
@@ -1154,6 +1159,7 @@
     <string name="share_help_text">Coup de main demandé : %1$s, %2$s. Qui peut aider ? Réponds dans Familia :</string>
     <string name="share_birthday_button">Partager l\'anniversaire de %1$s</string>
     <string name="share_birthday_text">Anniversaire de %1$s : %2$s le %3$s. On se retrouve dans Familia :</string>
+    <string name="share_wishes_text">Les envies de %1$s sont dans Familia. Pour réserver, c\'est ici :</string>
     <string name="feature_share">Partager vers une messagerie</string>
     <string name="help_topic_view_as_title">Si tu as besoin d\'aide</string>
     <string name="help_topic_view_as_body">L\'admin principal peut voir l\'appli comme toi, sans rien modifier, pour t\'aider. Il ne voit jamais ton carnet de cadeaux.</string>
@@ -1852,6 +1858,7 @@
     <!-- Lieu et « Rejoignez-moi » (récit 33) -->
     <string name="place_position">Position partagée</string>
     <string name="place_directions">Itinéraire</string>
+    <string name="place_street_view">Voir la rue</string>
     <string name="place_no_maps_app">Aucune appli de cartes sur ce téléphone. Installe Google Maps ou Waze.</string>
     <string name="joinme_title">Rejoignez-moi</string>
     <string name="joinme_home_empty">Envoie l\'endroit où tu es à qui tu veux, pour qu\'on te rejoigne. Il s\'efface tout seul au bout de 24 h.</string>

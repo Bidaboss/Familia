@@ -9,6 +9,11 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.viewas.LocalViewAs
+import androidx.compose.ui.platform.LocalContext
+import fr.familia.app.core.model.Feature
+import fr.familia.app.core.share.share
+import fr.familia.app.core.share.wishesShare
+import fr.familia.app.core.ui.LocalFeatureFlags
 
 /** Connects a gift list to its ViewModel. */
 @Composable
@@ -36,6 +41,10 @@ fun GiftListRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    // « Voir comme »: the admin principal never sends a list out under someone else's name.
+    val shareOn = LocalFeatureFlags.current.isOn(Feature.Share) && readerId == currentMember.id
+    val shown = state as? GiftListUiState.Success
     GiftListScreen(
         state = state,
         actions = GiftListActions(
@@ -53,6 +62,9 @@ fun GiftListRoute(
             onMarkReceived = viewModel::markReceived,
             onOpenReceived = onOpenReceived,
             onOpenBeneficiary = onOpenBeneficiary,
+            onShareOutside = shown?.takeIf { shareOn && it.canSendOutside }?.let { success ->
+                { share(context, wishesShare(context, success.list.id, success.beneficiary.firstName)) }
+            },
         ),
     )
 }

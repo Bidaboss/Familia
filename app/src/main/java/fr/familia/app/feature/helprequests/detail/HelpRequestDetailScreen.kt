@@ -1,6 +1,18 @@
 package fr.familia.app.feature.helprequests.detail
 
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import fr.familia.app.core.photo.SinglePhoto
+import fr.familia.app.core.photo.StorageImage
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -162,6 +174,7 @@ private fun Content(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         request.note?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
+        request.photo?.let { HelpPhoto(it) }
         Text(
             stringResource(R.string.helprequest_warned, state.warnedNames.joinToString(", ")),
             style = MaterialTheme.typography.bodyMedium,
@@ -388,4 +401,46 @@ internal fun previewHelpRequestDetail(isMine: Boolean = false): HelpRequestDetai
 @Composable
 private fun HelpRequestDetailScreenPreview() {
     FamiliaTheme { Surface { HelpRequestDetailScreen(previewHelpRequestDetail(), {}, {}, {}, {}, {}, {}, {}, {}, {}) } }
+}
+
+/**
+ * The photo joined to a request, whole (a QR code must not be cropped), and full screen on a tap
+ * so that it can be scanned at the counter. Stateless but for the full-screen switch.
+ */
+@Composable
+private fun HelpPhoto(base: String) {
+    var full by rememberSaveable { mutableStateOf(false) }
+    val label = stringResource(R.string.helprequest_photo_label)
+    val open = stringResource(R.string.helprequest_photo_open)
+    StorageImage(
+        path = SinglePhoto.photoPath(base),
+        contentDescription = label,
+        contentScale = ContentScale.Fit,
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClickLabel = open) { full = true },
+    )
+    if (full) {
+        Dialog(onDismissRequest = { full = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+            Surface(Modifier.fillMaxSize(), color = Color.Black) {
+                Column(Modifier.fillMaxSize()) {
+                    TextButton(
+                        onClick = { full = false },
+                        modifier = Modifier.align(Alignment.End).padding(8.dp).heightIn(min = 56.dp),
+                    ) {
+                        Icon(Icons.Outlined.Close, contentDescription = null, tint = Color.White)
+                        Text(stringResource(R.string.helprequest_photo_close), color = Color.White, modifier = Modifier.padding(start = 8.dp))
+                    }
+                    StorageImage(
+                        path = SinglePhoto.photoPath(base),
+                        contentDescription = label,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.fillMaxWidth().weight(1f),
+                    )
+                }
+            }
+        }
+    }
 }

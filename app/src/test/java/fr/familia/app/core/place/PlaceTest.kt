@@ -53,5 +53,9 @@ class PlaceTest {
         assertEquals("geo:46.5,-1.8?q=46.5,-1.8", directionsUri(Place(46.5, -1.8)))
         assertEquals("geo:0,0?q=12%20rue%20des%20Lilas%2C%20Nantes", directionsUri(" 12 rue des Lilas, Nantes "))
         assertEquals("https://www.google.com/maps/search/?api=1&query=46.5%2C-1.8", webMapsLink(Place(46.5, -1.8)))
+        assertEquals(
+            "https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=46.4915%2C-1.7931",
+            streetViewUri(Place(46.4915, -1.7931, name = "Plage des Sables")),
+        )
     }
 }

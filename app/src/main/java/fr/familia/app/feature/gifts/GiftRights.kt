@@ -50,6 +50,18 @@ fun canReserve(list: GiftList, me: Member): Boolean = !list.revealed && list.ben
 fun canShare(list: GiftList, me: Member): Boolean = canReserve(list, me) && me.profile == MemberProfile.Adult
 
 /**
+ * « Partager » a list outside the app (récit 31, partie 2): only one's own « Mes envies », never the
+ * « Idées de la famille », a list of an occasion or a revealed list. The envies of a child are shared
+ * by their adults only, never by the child (carte EXPERT-2). The message carries the name and the
+ * link, never an item, a reservation or a part: see [fr.familia.app.core.share.wishesShareContent].
+ */
+fun canShareWishesOutside(list: GiftList, me: Member, family: Family): Boolean {
+    if (list.kind != GiftListKind.Wishes || list.revealed) return false
+    val beneficiary = family.members.firstOrNull { it.id == list.beneficiaryId } ?: return false
+    return if (beneficiary.profile == MemberProfile.Adult) beneficiary.id == me.id else me.id in beneficiary.parentIds
+}
+
+/**
  * Viewers of an own list always include its beneficiary and the responsible adults of a child;
  * a surprise list never includes its beneficiary. [creator] always sees what they make.
  */
