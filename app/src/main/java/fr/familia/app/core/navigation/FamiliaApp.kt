@@ -1,5 +1,8 @@
 package fr.familia.app.core.navigation
 
+import fr.familia.app.feature.presentation.PresentationBanner
+import fr.familia.app.feature.presentation.rememberPresentation
+
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.AutoStories
@@ -159,6 +162,7 @@ import fr.familia.app.feature.gifts.share.ShareEntry
 import fr.familia.app.feature.gifts.share.ShareTargetSwitch
 import fr.familia.app.feature.gifts.share.shareEntryFor
 import fr.familia.app.feature.usage.UsageRoute
+import fr.familia.app.feature.calendarfeed.CalendarFeedRoute
 import fr.familia.app.feature.feedback.FeedbackFormDestination
 import fr.familia.app.feature.feedback.FeedbackFormRoute
 import fr.familia.app.feature.feedback.FeedbackListDestination
@@ -227,6 +231,8 @@ import fr.familia.app.feature.recipes.RecipeDetailRoute
 import fr.familia.app.feature.recipes.RecipeEditDestination
 import fr.familia.app.feature.recipes.RecipeEditRoute
 import fr.familia.app.feature.recipes.RecipesDestination
+import fr.familia.app.feature.recipes.book.RecipeBookDestination
+import fr.familia.app.feature.recipes.book.RecipeBookRoute
 import fr.familia.app.feature.recipes.RecipesRoute
 import fr.familia.app.feature.trips.TripDetailDestination
 import fr.familia.app.feature.expenses.ExpenseEditRoute
@@ -412,6 +418,7 @@ fun FamiliaApp(
     val liveFamily by liveFamilyFlow.collectAsStateWithLifecycle(initialValue = null)
     val ownerId = liveFamily?.ownerId
     val features = FeatureFlags(appConfig?.features.orEmpty(), isOwner = ownerId != null && ownerId == currentMember.id)
+    val presentation = rememberPresentation(container, isOwner = ownerId != null && ownerId == currentMember.id)
 
     // « Partager » to Familia (récits 8 bis and 50): in the share menu only with its module, and a
     // shared link opens a new wish once the modules are known. Module off: the link is dropped.
@@ -554,13 +561,15 @@ fun FamiliaApp(
         }
         if (openFeedback != null) onFeedbackOpened()
     }
-    // The bons plans of the day (récit 45): Entraide, turned to its Bons plans.
+    // The bons plans of the day (récit 45): Entraide, turned to its Bons plans, once the modules
+    // are known. Module off: Entraide alone, and the tap is spent either way, so switching the
+    // module on later does not jump to Bons plans.
     var entraideOnGoodDeals by remember { mutableStateOf(0) }
     val goodDealsSwitchOn = features.isOn(Feature.GoodDeals)
-    LaunchedEffect(openGoodDeals, goodDealsSwitchOn) {
-        if (openGoodDeals && goodDealsSwitchOn) {
-            entraideOnGoodDeals++
-            navController.navigateToTab(TopLevelDestination.HelpRequests)
+    LaunchedEffect(openGoodDeals, appConfig, ownerId) {
+        if (openGoodDeals && appConfig != null && ownerId != null) {
+            if (goodDealsSwitchOn) entraideOnGoodDeals++
+            if (helpRequestsOn) navController.navigateToTab(TopLevelDestination.HelpRequests)
             onGoodDealsOpened()
         }
     }
@@ -661,6 +670,7 @@ fun FamiliaApp(
                     onShareApp = if (inViewAs) null else ({ owner -> shareApp(shareContext, owner) }),
                     onOpenChildrenUsage = if (features.isOn(Feature.Usage)) ({ navController.navigate(UsageDestination) }) else null,
                     onOpenAdministration = { navController.navigate(AdministrationDestination) },
+                    onOpenCalendarFeed = if (features.isOn(Feature.CalendarFeed) && !inViewAs) ({ navController.navigate(CalendarFeedDestination) }) else null,
                 ),
                 onDismiss = { accountOpen = false },
             )
@@ -760,6 +770,8 @@ fun FamiliaApp(
             }
             Column(Modifier.weight(1f)) {
                 AnimatedVisibility(visible = isOffline) { OfflineBanner() }
+                // Mode présentation (récit 48): a discreet reminder on the phone of the admin principal.
+                presentation?.let { PresentationBanner(it) }
                 val shownUpdate = update?.takeIf { onTab && !updateDismissed }
                 if (shownUpdate != null) {
                     UpdateBanner(
@@ -812,6 +824,7 @@ fun FamiliaApp(
                             onOpenAll = { navController.navigate(AllFamiliaDestination) { launchSingleTop = true } },
                             allBadge = helpBadge,
                             onOpenChallenges = { navController.navigate(ChallengesDestination) { launchSingleTop = true } },
+                            onOpenGoodDeal = { id -> navController.navigate(GoodDealDetailDestination(id)) },
                             onOpenDiscover = { module ->
                                 when (module) {
                                     DiscoverModule.WeeklyQuestion -> navController.navigate(WeeklyQuestionDestination())
@@ -1062,7 +1075,11 @@ fun FamiliaApp(
                             onOpen = { id -> navController.navigate(RecipeDetailDestination(id)) },
                             onAdd = { navController.navigate(RecipeEditDestination()) },
                             onBack = { navController.popBackStack() },
+                            onMakeBook = { navController.navigate(RecipeBookDestination) },
                         )
+                    }
+                    composable<RecipeBookDestination> {
+                        RecipeBookRoute(container = container, currentMember = currentMember, onBack = { navController.popBackStack() })
                     }
                     composable<CapsulesDestination> {
                         CapsulesRoute(
@@ -1455,6 +1472,9 @@ fun FamiliaApp(
                     }
                     composable<UpdateCheckDestination> {
                         UpdateCheckRoute(container = container, onBack = { navController.popBackStack() })
+                    }
+                    composable<CalendarFeedDestination> {
+                        CalendarFeedRoute(container = container, memberId = currentMember.id, onBack = { navController.popBackStack() })
                     }
                     composable<AdministrationDestination> {
                         AdministrationRoute(

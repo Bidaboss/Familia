@@ -10,6 +10,7 @@
 // for a member are revealed the same way, into the same « On m'a offert » of their « Mes envies »,
 // as received/idea-{itemId}. The idea list itself stays: it is permanent, like « Mes envies ».
 
+import { PhotoCopier, receivedPhoto, storageCopier } from './itemPhoto';
 import type { Firestore } from 'firebase-admin/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
 import { giftAudience, GiftMember, loadGiftMembers, nextBirthday } from './gifts';
@@ -78,9 +79,11 @@ export function wishesRevealNotice(listId: string, count: number): Notice {
  * off), is revealed. A gift meant for Christmas stays hidden after an earlier birthday. Returns
  * the number revealed.
  */
-export async function revealWishes(db: Firestore, send: Sender, now: Date): Promise<number> {
+export async function revealWishes(db: Firestore, send: Sender, now: Date, copyPhoto: PhotoCopier = storageCopier): Promise<number> {
   const config = await db.doc('config/app').get();
   if (config.get('features.gifts') !== true) return 0;
+  // Behind « Plus de photos » (récit 44, rév. 237): the photo of the wish goes to « On m'a offert ».
+  const photos = config.get('features.morePhotos') === true ? copyPhoto : undefined;
   const singleList = config.get('features.singleList') === true;
   // With the single list, the reveal is what tells the beneficiary: it goes with it.
   const sources: RevealSource[] = [
@@ -97,7 +100,7 @@ export async function revealWishes(db: Firestore, send: Sender, now: Date): Prom
     if (member.profile === 'childWithoutApp') continue;
     let count = 0;
     const asks: GivenAsk[] = [];
-    for (const source of sources) count += await revealWishesOf(db, member, members, today, source, asks);
+    for (const source of sources) count += await revealWishesOf(db, member, members, today, source, asks, photos);
     revealed += count;
     if (count > 0 && audience([member.id]).length > 0) await notify(db, send, [member.id], wishesRevealNotice(`wishes-${member.id}`, count));
     // « Tu l'as offert ? » (récit 10 bis, rév. 232): the one who reserved says it in their notebook.
@@ -140,7 +143,7 @@ export function receivedPath(listId: string, itemId: string): { listId: string; 
  */
 export async function revealWishesOf(
   db: Firestore, member: GiftMember, members: GiftMember[], today: string, source: RevealSource = 'wishes',
-  asks?: GivenAsk[],
+  asks?: GivenAsk[], copyPhoto?: PhotoCopier,
 ): Promise<number> {
   const list = db.collection('giftLists').doc(`${source}-${member.id}`);
   const wishes = db.collection('giftLists').doc(`wishes-${member.id}`);
@@ -174,12 +177,19 @@ export async function revealWishesOf(
     // was, never in both places. The triggers of the removal read the archive to keep the
     // notebooks of the givers and to warn nobody (see gifts.ts and notebook.ts); the parts go
     // after it, for the same reason.
-    const batch = db.batch();
     const archive = receivedPath(list.id, claim.id)!;
+    // Its photo is copied before the removal of the item, which deletes it; not copied, the
+    // archive goes without it.
+    const photo = item.get('photo');
+    const archivedPhoto = copyPhoto && typeof photo === 'string' && photo.startsWith(`giftLists/${list.id}/`)
+      && (await copyPhoto(photo, receivedPhoto(archive.listId, archive.receivedId)))
+      ? receivedPhoto(archive.listId, archive.receivedId) : null;
+    const batch = db.batch();
     batch.set(wishes.collection('received').doc(archive.receivedId), {
       title: String(item.get('title') ?? ''),
       url: (item.get('url') as string | null) ?? null,
       imageUrl: (item.get('imageUrl') as string | null) ?? null,
+      ...(archivedPhoto ? { photo: archivedPhoto } : {}),
       // Who to thank (rév. 189): ids, read by the server only to send the « Merci ».
       giverIds: [...new Set([String(claim.get('holderId') ?? ''), ...(joint ? shares.docs.map((s) => s.id) : [])])].filter((id) => id.length > 0),
       givers: giverNames(String(claim.get('holderId') ?? ''), joint ? shares.docs.map((s) => s.id) : [], members, String(claim.get('holderName') ?? '')),

@@ -11,6 +11,8 @@ import {
   onDocumentUpdatedWithAuthContext, onDocumentWritten, onDocumentWrittenWithAuthContext,
 } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { onRequest } from 'firebase-functions/v2/https';
+import { deleteCalendarFeedOf, feedFor } from './calendarFeed';
 import {
   deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
   sendBirthdayGiftReminders, updateSharesTotal,
@@ -22,6 +24,7 @@ import { checkConsumptionIfDue } from './consumption';
 import { CrashData, onCrashReported } from './crashes';
 import { FeedbackData, onFeedbackChanged, onFeedbackCreated, screenshotToDelete } from './feedback';
 import { deleteEndedGoodDeals, sendGoodDealsSummary } from './goodDeals';
+import { onLendItemUpdated, releaseLendItemsOf, sendLendReminders, type LendItemData } from './lendItems';
 import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
 import { closeDuePolls, closeEventPolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
 import { cloudMonitoring } from './monitoring';
@@ -45,12 +48,13 @@ import { queueAlbumInvitations } from './albumInvites';
 import { deleteDigestOf, sendDigests } from './digest';
 import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { sendWeeklyRecap } from './recap';
-import { deleteQuietQueueOf, sendHeldNotices } from './prefs';
+import { deleteQuietQueueOf, presentationFrom, presentingNow, sendHeldNotices, sendPresentationHeld } from './prefs';
 import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type BirthdayCard } from './birthdayWishes';
 import { deleteWelcomeOf, isFirstSignIn, welcomeMember } from './welcome';
 import { deleteCheersOf, deleteMomentsOf, onMomentCheerCreated, startMoments, type MomentCheer } from './thinkOfMe';
 import { revealWishes, thankGivers } from './wishesReveal';
 import { migrateToSingleList } from './singleList';
+import { deleteItemPhoto } from './itemPhoto';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
 initializeApp();
@@ -92,6 +96,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.welcomeOf ? { welcomeOf: notice.welcomeOf } : {}),
         ...(notice.thinkOfMeOf ? { thinkOfMeOf: notice.thinkOfMeOf } : {}),
         ...(notice.goodDeals ? { goodDeals: notice.goodDeals } : {}),
+        ...(notice.lendItemId ? { lendItemId: notice.lendItemId } : {}),
         ...(notice.tag ? { notificationTag: notice.tag } : {}),
       },
       // A surprise never shows on the lock screen (audit 2.2): only « Familia » and the channel.
@@ -171,6 +176,8 @@ export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (ev
   await deleteBirthdayCardsOf(getFirestore(), event.params.memberId);
   await deleteWelcomeOf(getFirestore(), event.params.memberId);
   await deleteMomentsOf(getFirestore(), event.params.memberId);
+  // « Voir dans mon agenda » (récit 49): their link stops working.
+  await deleteCalendarFeedOf(getFirestore(), event.params.memberId);
 });
 
 // Commentaires d'un événement (récit 28): those who follow the event are told.
@@ -262,6 +269,12 @@ export const helpRequestStillOpen = onSchedule({ schedule: '0 18 * * *', timeZon
   } catch (e) {
     console.error('good deals', e);
   }
+  // On se prête (récit 51): the one reminder, 3 days after the return date.
+  try {
+    await sendLendReminders(getFirestore(), send, now);
+  } catch (e) {
+    console.error('lend reminders', e);
+  }
 });
 
 // A bon plan removed (by its author, the admin principal or the cleanup) takes its photo with it.
@@ -269,9 +282,24 @@ export const onGoodDealDeleted = onDocumentDeleted('goodDeals/{dealId}', async (
   await getStorage().bucket().deleteFiles({ prefix: `goodDeals/${event.params.dealId}/` });
 });
 
+// On se prête (récit 51): an ask to the owner, the answer to the one who asked.
+export const onLendItemChanged = onDocumentUpdatedWithAuthContext('lendItems/{itemId}', async (event) => {
+  const before = event.data?.before.data() as LendItemData | undefined;
+  const after = event.data?.after.data() as LendItemData | undefined;
+  if (!before || !after) return;
+  await onLendItemUpdated(getFirestore(), send, event.params.itemId, before, after, actorUid(event), new Date());
+});
+
+// A thing removed takes its photo with it.
+export const onLendItemDeleted = onDocumentDeleted('lendItems/{itemId}', async (event) => {
+  await getStorage().bucket().deleteFiles({ prefix: `lendItems/${event.params.itemId}/` });
+});
+
 // Spec, cas limites: a volunteer removed from the family frees their upcoming requests.
 export const onMemberDeletedHelp = onDocumentDeleted('members/{memberId}', async (event) => {
   await reopenRequestsOf(getFirestore(), event.params.memberId, new Date());
+  // On se prête (récit 51): their things go, and what they asked for or had is free again.
+  await releaseLendItemsOf(getFirestore(), event.params.memberId);
 });
 
 // --- Listes et cadeaux (V2) --------------------------------------------------------------------
@@ -315,7 +343,7 @@ export const onGiftItemWritten = onDocumentWritten('giftLists/{listId}/items/{it
   // A photo the item no longer names (récit 44), whoever removed the item: « name.jpg » and « name-thumb.jpg ».
   const photo = typeof before?.photo === 'string' ? before.photo : null;
   if (photo && photo.startsWith(`giftLists/${event.params.listId}/`) && photo !== after?.photo) {
-    await getStorage().bucket().deleteFiles({ prefix: photo });
+    await deleteItemPhoto(photo);
   }
   if (before && after) await syncNotebookItem(getFirestore(), event.params.listId, event.params.itemId);
 });
@@ -571,7 +599,24 @@ const sendHeld = async (token: string, notice: Notice & { goodNewsId?: string; h
   return send(token, notice);
 };
 
+/**
+ * Mode présentation (récit 48): when it goes off (turned off in Administration, or its end seen by
+ * a send), what it held goes out as one summary per channel.
+ */
+export const onPresentationWritten = onDocumentWritten('config/presentation', async (event) => {
+  const before = presentationFrom(event.data?.before.data());
+  const after = presentationFrom(event.data?.after.data());
+  if (!before.on || after.on) return;
+  await sendPresentationHeld(getFirestore(), sendHeld, new Date());
+});
+
 export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/Paris' }, async () => {
+  // The end of a mode présentation is seen here too, even when nothing else is sent (récit 48).
+  try {
+    await presentingNow(getFirestore(), new Date());
+  } catch (e) {
+    console.error('presentation', e);
+  }
   // First what was held during the quiet hours (récit 6 quinquies), from 8 h. A failure waits
   // for the next run and never stops the rest.
   try {
@@ -648,4 +693,29 @@ export const onPollDeleted = onDocumentDeleted('polls/{pollId}', async (event) =
 export const onJoinMeCreatedNotify = onDocumentCreated('joinMe/{shareId}', async (event) => {
   const data = event.data?.data() as JoinMeData | undefined;
   if (data) await onJoinMeCreated(getFirestore(), send, event.params.shareId, data);
+});
+
+/**
+ * « Voir le planning dans mon agenda » (récit 49): https://…/calendarFeed?t=<token>, the secret link
+ * of one member, read by their calendar every few hours. A wrong or replaced link gets a 404.
+ */
+export const calendarFeed = onRequest({ cors: false }, async (req, res) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    res.status(405).send('');
+    return;
+  }
+  try {
+    const feed = await feedFor(getFirestore(), req.query.t, new Date());
+    if (feed === null) {
+      res.status(404).send('');
+      return;
+    }
+    res.set('Content-Type', 'text/calendar; charset=utf-8');
+    res.set('Cache-Control', 'private, max-age=900');
+    res.set('X-Robots-Tag', 'noindex');
+    res.status(200).send(feed);
+  } catch (e) {
+    console.error('calendarFeed', e);
+    res.status(500).send('');
+  }
 });

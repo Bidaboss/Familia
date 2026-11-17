@@ -306,6 +306,20 @@ describe('photos of the gift lists (récit 44)', () => {
     await assertFails(getBytes(ref(storageAs(ADULT), file('surprise', 'hidden', 'adult2'))));
   });
 
+  test('« On m\'a offert »: the photo copied by the server is read by the family, written by nobody (rév. 237)', async () => {
+    const received = `giftLists/wishes${n}/received/book/photo.jpg`;
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await uploadString(ref(ctx.storage(), received), 'x', 'raw', jpeg);
+    });
+    await assertSucceeds(getBytes(ref(storageAs(ADULT), received)));
+    await assertSucceeds(getBytes(ref(storageAs(OTHER_ADULT), received)));
+    await assertFails(getBytes(ref(storageAs(STRANGER), received)));
+    await assertFails(uploadString(ref(storageAs(ADULT), `giftLists/wishes${n}/received/lamp/photo.jpg`), 'x', 'raw', jpeg));
+    await assertFails(deleteObject(ref(storageAs(ADULT), received)));
+    // Only under « Mes envies ».
+    await assertFails(getBytes(ref(storageAs(OTHER_ADULT), `giftLists/ideas${n}/received/book/photo.jpg`)));
+  });
+
   test('only in my folder, a known folder, a small JPEG, never replaced; only its author removes it', async () => {
     const storage = storageAs(ADULT);
     await assertFails(uploadString(ref(storage, file('wishes', 'shared', 'adult2')), 'x', 'raw', jpeg));
@@ -499,6 +513,46 @@ describe('photo of a bon plan (récit 45)', () => {
   });
 
   test('its sender removes it; the others only a photo the deal no longer names', async () => {
+    const storage = storageAs(ADULT);
+    for (const name of ['p1.jpg', 'p1-thumb.jpg', 'p0.jpg']) {
+      await uploadString(ref(storage, photo('adult1', name)), 'x', 'raw', jpeg);
+    }
+    await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), photo('adult1', 'p1.jpg'))));
+    await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), photo('adult1', 'p1-thumb.jpg'))));
+    await assertSucceeds(deleteObject(ref(storageAs(OTHER_ADULT), photo('adult1', 'p0.jpg'))));
+    await assertSucceeds(deleteObject(ref(storage, photo('adult1', 'p1.jpg'))));
+  });
+});
+
+describe('photo of a thing to lend (récit 51)', () => {
+  // Each test has an item of its own, owned by adult1, whose photo is p1 of adult1.
+  let n = 0;
+  const photo = (author, name) => `lendItems/i${n}/${author}/${name}`;
+  beforeEach(async () => {
+    n += 1;
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `lendItems/i${n}`), { ownerId: 'adult1', photo: `lendItems/i${n}/adult1/p1` });
+    });
+  });
+
+  test('a member sends a photo and its thumbnail to their own folder, and the family sees it', async () => {
+    const storage = storageAs(ADULT);
+    await assertSucceeds(uploadString(ref(storage, photo('adult1', 'p1.jpg')), 'x'.repeat(300 * 1024), 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storage, photo('adult1', 'p1-thumb.jpg')), 'x'.repeat(30 * 1024), 'raw', jpeg));
+    await assertSucceeds(getBytes(ref(storageAs(NEIGHBOUR), photo('adult1', 'p1.jpg'))));
+    await assertFails(getBytes(ref(storageAs(STRANGER), photo('adult1', 'p1.jpg'))));
+  });
+
+  test('never to the folder of someone else, never replaced, only a small JPEG', async () => {
+    const storage = storageAs(ADULT);
+    await assertFails(uploadString(ref(storageAs(OTHER_ADULT), photo('adult1', 'p2.jpg')), 'x', 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storage, photo('adult1', 'p2.jpg')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, photo('adult1', 'p2.jpg')), 'y', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, photo('adult1', 'p3.jpg')), 'x'.repeat(513 * 1024), 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, photo('adult1', 'p3.png')), 'x', 'raw', { contentType: 'image/png' }));
+  });
+
+  test('its sender removes it; the others only a photo the item no longer names', async () => {
     const storage = storageAs(ADULT);
     for (const name of ['p1.jpg', 'p1-thumb.jpg', 'p0.jpg']) {
       await uploadString(ref(storage, photo('adult1', name)), 'x', 'raw', jpeg);

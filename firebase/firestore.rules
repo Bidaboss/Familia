@@ -1029,6 +1029,120 @@ service cloud.firestore {
       allow delete: if isMember() && canManageGoodDeal(resource.data);
     }
 
+    // --- On se prête (PRD, récit 51) ------------------------------------------------------------
+    //
+    // lendItems/{itemId}: a thing an adult is happy to lend (« l'appareil à raclette »), in a
+    // category, with an optional photo in Storage at lendItems/{itemId}/{ownerId}/. Every member
+    // reads them; the adults add theirs; the owner and the admin principal change or remove one.
+    // The loan moves in status: 'available', then 'asked' (an adult who is not the owner taps
+    // « Je voudrais l'emprunter », in their own name, with optional dates), then 'lent' (the owner
+    // says « D'accord ») or back to 'available' (« Pas cette fois », or the borrower drops the ask),
+    // and back to 'available' at « Rendu » (the owner or the borrower). A child reads, never asks.
+    // No money anywhere. remindedAt is the server's (the one reminder 3 days after « until »).
+    // The audience is the whole family today (the circles change the read rule here).
+
+    function isLendText(t, min, max) {
+      return t is string && t.trim().size() >= min && t.size() <= max;
+    }
+
+    // The photo: none, unchanged, or one the caller sent to their own folder of this item.
+    function isLendPhoto(itemId, d, before) {
+      return d.photo == null
+        || (before != null && d.photo == before.photo)
+        || (d.photo is string
+            && d.photo.matches('^lendItems/' + itemId + '/[A-Za-z0-9]{1,40}/[A-Za-z0-9]{1,40}$')
+            && d.photo.split('/')[2] == myMemberId());
+    }
+
+    function isLendFree(d) {
+      return d.status == 'available' && d.borrowerId == null && d.borrowerName == null
+        && d.from == null && d.until == null && d.askedAt == null && d.lentAt == null && d.remindedAt == null;
+    }
+
+    function isValidLendItem(itemId, d, before) {
+      return d.keys().hasAll(['name', 'note', 'category', 'photo', 'ownerId', 'ownerName', 'status', 'borrowerId',
+                              'borrowerName', 'from', 'until', 'askedAt', 'lentAt', 'remindedAt', 'createdAt', 'updatedAt'])
+        && d.keys().hasOnly(['name', 'note', 'category', 'photo', 'ownerId', 'ownerName', 'status', 'borrowerId',
+                             'borrowerName', 'from', 'until', 'askedAt', 'lentAt', 'remindedAt', 'createdAt', 'updatedAt'])
+        && isLendText(d.name, 1, 60)
+        && isLendText(d.note, 0, 300)
+        && d.category in ['kitchen', 'diy', 'baby', 'sport', 'travel', 'other']
+        && isLendPhoto(itemId, d, before)
+        && d.ownerName is string && d.ownerName.size() > 0 && d.ownerName.size() <= 40
+        && d.updatedAt == request.time;
+    }
+
+    // The optional dates of an ask: none, or within a year, and the return not before the start.
+    function isLendDates(d) {
+      return (d.from == null || (d.from is timestamp && d.from <= request.time + duration.value(366, 'd')))
+        && (d.until == null || (d.until is timestamp && d.until > request.time - duration.value(1, 'd')
+                                && d.until <= request.time + duration.value(366, 'd')))
+        && (d.from == null || d.until == null || d.until >= d.from);
+    }
+
+    function lendLoanKeys() {
+      return ['status', 'borrowerId', 'borrowerName', 'from', 'until', 'askedAt', 'lentAt', 'remindedAt', 'updatedAt'];
+    }
+
+    // The owner edits the thing itself; the loan stays as it is.
+    function isLendEdit(itemId) {
+      return (resource.data.ownerId == myMemberId() || isOwner())
+        && isValidLendItem(itemId, request.resource.data, resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'note', 'category', 'photo', 'updatedAt']);
+    }
+
+    // « Je voudrais l'emprunter »: an adult, not the owner, on a free thing, in their own name.
+    function isLendAsk() {
+      let d = request.resource.data;
+      return resource.data.status == 'available'
+        && me().profile == 'adult'
+        && resource.data.ownerId != myMemberId()
+        && d.diff(resource.data).affectedKeys().hasOnly(lendLoanKeys())
+        && d.status == 'asked'
+        && d.borrowerId == myMemberId()
+        && d.borrowerName == me().firstName
+        && isLendDates(d)
+        && d.askedAt == request.time
+        && d.lentAt == null && d.remindedAt == null
+        && d.updatedAt == request.time;
+    }
+
+    // « D'accord »: the owner lends to the one who asked, with their dates.
+    function isLendAccept() {
+      return resource.data.status == 'asked'
+        && resource.data.ownerId == myMemberId()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'lentAt', 'updatedAt'])
+        && request.resource.data.status == 'lent'
+        && request.resource.data.lentAt == request.time
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    // Back to free: « Pas cette fois » (the owner) or a dropped ask (the borrower) on an ask, and
+    // « Rendu » (the owner or the borrower) on a loan.
+    function isLendRelease() {
+      return resource.data.status in ['asked', 'lent']
+        && (resource.data.ownerId == myMemberId() || resource.data.borrowerId == myMemberId())
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(lendLoanKeys())
+        && isLendFree(request.resource.data)
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    match /lendItems/{itemId} {
+      allow read: if isMember();
+
+      allow create: if isMember()
+        && me().profile == 'adult'
+        && isValidLendItem(itemId, request.resource.data, null)
+        && isLendFree(request.resource.data)
+        && request.resource.data.ownerId == myMemberId()
+        && request.resource.data.ownerName == me().firstName
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if isMember() && (isLendEdit(itemId) || isLendAsk() || isLendAccept() || isLendRelease());
+
+      allow delete: if isMember() && (resource.data.ownerId == myMemberId() || isOwner());
+    }
+
     // --- Vœux d'anniversaire (PRD, récit 36, avis EXPERT n° 11) ---------------------------------
     //
     // birthdayCards/{year}-{forMemberId}-{authorId}: one card per member and per birthday, a short
@@ -2560,6 +2674,19 @@ service cloud.firestore {
     // fields of config/app and the workflow « Créer le premier admin » writes config/family,
     // neither bound by these rules. From the app, only the admin principal changes `features`,
     // and nothing else.
+    // « Voir dans mon agenda » (récit 49): the secret token of my calendar link. Only I read it and
+    // write it (a new one cuts the old link), never a child; the admin principal may cut it.
+    match /calendarFeeds/{memberId} {
+      allow read: if isMember() && memberId == myMemberId();
+      allow create, update: if isMember() && memberId == myMemberId()
+        && me().profile == 'adult'
+        && request.resource.data.keys().hasOnly(['token', 'updatedAt'])
+        && request.resource.data.token is string
+        && request.resource.data.token.matches('^[A-Za-z0-9_-]{43}$')
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if isMember() && (memberId == myMemberId() || isOwner());
+    }
+
     match /config/{docId} {
       allow read: if isMember() && docId in ['app', 'family'];
       // The admin principal switches modules (features) and orders « À découvrir » (discoverOrder,
@@ -2573,7 +2700,15 @@ service cloud.firestore {
         && (!('discoverOrder' in request.resource.data)
             || (request.resource.data.discoverOrder is list && request.resource.data.discoverOrder.size() <= 20))
         && isOwner();
-      allow create, delete: if false;
+      // Mode présentation (récit 48): only the admin principal reads and writes config/presentation.
+      // `on` turns it on or off, `until` is its end (null: until turned off), `since` when it began.
+      allow read: if docId == 'presentation' && isOwner();
+      allow create, update: if docId == 'presentation' && isOwner()
+        && request.resource.data.keys().hasOnly(['on', 'until', 'since'])
+        && request.resource.data.on is bool
+        && (!('until' in request.resource.data) || request.resource.data.until == null || request.resource.data.until is timestamp)
+        && (!('since' in request.resource.data) || request.resource.data.since is timestamp);
+      allow delete: if false;
     }
 
     // Everything else is closed until a lot opens it explicitly.

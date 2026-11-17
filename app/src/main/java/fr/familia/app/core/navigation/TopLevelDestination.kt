@@ -193,6 +193,10 @@ data object ReceivedGiftsDestination
 @Serializable
 data object UpdateCheckDestination
 
+/** « Voir dans mon agenda » (récit 49), from the sheet of the avatar, for an adult. */
+@Serializable
+data object CalendarFeedDestination
+
 /**
  * The tabs of the bottom navigation bar, in display order (design principles, "Navigation et structure").
  * Settings and app updates live inside the Famille tab, which stays last.

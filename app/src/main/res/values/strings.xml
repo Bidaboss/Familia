@@ -1184,6 +1184,32 @@
     <string name="recipe_field_steps">Étapes</string>
     <string name="recipe_field_lines_help">Un par ligne.</string>
     <string name="recipe_field_tags">Étiquettes (facultatif)</string>
+    <!-- Livre de recettes (récit 47) -->
+    <string name="recipe_book_open">Faire le livre de recettes</string>
+    <string name="recipe_book_title">Livre de recettes</string>
+    <string name="recipe_book_intro">Choisis les recettes à mettre dans le livre. Ton téléphone en fait un PDF au format A5, à garder, imprimer ou offrir.</string>
+    <string name="recipe_book_cover">Couverture</string>
+    <string name="recipe_book_field_title">Titre du livre</string>
+    <string name="recipe_book_default_title">Les recettes de la famille</string>
+    <string name="recipe_book_year">Année : %1$d</string>
+    <string name="recipe_book_cover_photo">Photo de la couverture</string>
+    <string name="recipe_book_cover_none">Un dessin, sans photo</string>
+    <string name="recipe_book_cover_of">La photo de : %1$s</string>
+    <plurals name="recipe_book_chosen">
+        <item quantity="one">%1$d recette sur %2$d</item>
+        <item quantity="many">%1$d recettes sur %2$d</item>
+        <item quantity="other">%1$d recettes sur %2$d</item>
+    </plurals>
+    <string name="recipe_book_all">Tout cocher</string>
+    <string name="recipe_book_none">Tout décocher</string>
+    <string name="recipe_book_make">Faire le livre</string>
+    <string name="recipe_book_failed">Le livre n\'a pas pu être fait. Réessaie dans un instant.</string>
+    <string name="recipe_book_print_hint">Tu peux le faire imprimer dans une boutique photo : demande un livret au format A5.</string>
+    <string name="recipe_book_share_chooser">Enregistrer, imprimer ou envoyer le livre</string>
+    <string name="recipe_book_empty_title">Pas encore de recette</string>
+    <string name="recipe_book_empty_body">Le livre se fera dès qu\'il y aura des recettes dans le carnet.</string>
+    <string name="recipe_book_contents">Sommaire</string>
+    <string name="recipe_book_other">Autres recettes</string>
     <string name="recipe_field_story">Sa petite histoire (facultatif)</string>
     <string name="recipe_field_story_help">Qui la faisait, pour quelle occasion… Elle sera dans le livre de recettes.</string>
     <string name="recipe_child_in_photos">Un enfant est sur une des photos</string>
@@ -2302,4 +2328,44 @@
     <string name="gooddeal_field_category">Catégorie</string>
     <string name="gooddeal_error_category">Choisis une catégorie.</string>
     <string name="gooddeal_error_phone">Ce numéro ne fonctionne pas : des chiffres, des espaces et + seulement.</string>
+    <!-- Mode présentation (récit 48) -->
+    <string name="presentation_title">Mode présentation</string>
+    <string name="presentation_help">Pendant que toute la famille installe l\'appli, les arrivées, les réactions, les cadeaux et les capsules attendent, puis partent en un seul résumé à la fin. « Rejoignez-moi », les retours et l\'admin passent toujours.</string>
+    <string name="presentation_two_hours">2 h</string>
+    <string name="presentation_four_hours">4 h</string>
+    <string name="presentation_until_off">Jusqu\'à ce que je l\'éteigne</string>
+    <string name="presentation_on_until">Allumé jusqu\'à %1$s. Le résumé partira à la fin.</string>
+    <string name="presentation_on">Allumé jusqu\'à ce que tu l\'éteignes. Le résumé partira à ce moment-là.</string>
+    <string name="presentation_stop">Éteindre</string>
+    <string name="presentation_banner_until">Mode présentation jusqu\'à %1$s</string>
+    <string name="presentation_banner">Mode présentation allumé</string>
+    <string name="presentation_failed">Le mode présentation n\'a pas pu changer. Vérifie la connexion.</string>
+    <!-- Récit 49 : le planning dans Google Agenda -->
+    <string name="feature_calendar_feed">Planning dans mon agenda</string>
+    <string name="account_calendar_feed">Voir dans mon agenda</string>
+    <string name="calendar_feed_title">Voir dans mon agenda</string>
+    <string name="calendar_feed_what_title">Le planning dans ton agenda</string>
+    <string name="calendar_feed_what_body">Les événements de Familia s\'affichent dans ton agenda Google, à côté des tiens. Tu y vois ce qui te concerne, comme sur ton Accueil : la famille, ton foyer, toi et tes enfants. Ils se mettent à jour tout seuls, avec quelques heures de retard. On ne peut rien changer depuis l\'agenda : pour répondre ou modifier, c\'est dans Familia.</string>
+    <string name="calendar_feed_link_title">Ton lien</string>
+    <string name="calendar_feed_none">Tu n\'as pas encore de lien. Il est rien qu\'à toi.</string>
+    <string name="calendar_feed_create">Créer mon lien</string>
+    <string name="calendar_feed_secret">Ce lien est secret : qui l\'a voit ton planning. Ne le donne à personne.</string>
+    <string name="calendar_feed_copy">Copier le lien</string>
+    <string name="calendar_feed_copied">Lien copié</string>
+    <string name="calendar_feed_share">M\'envoyer le lien</string>
+    <string name="calendar_feed_share_chooser">Envoyer le lien à moi-même</string>
+    <string name="calendar_feed_steps_title">L\'ajouter dans Google Agenda</string>
+    <string name="calendar_feed_step">%1$d. %2$s</string>
+    <string name="calendar_feed_step_1">Touche « Copier le lien ». Sur un ordinateur, c\'est plus simple : touche plutôt « M\'envoyer le lien » et ouvre-le là-bas.</string>
+    <string name="calendar_feed_step_2">Ouvre calendar.google.com dans Chrome. Sur le téléphone, touche le menu ⋮ puis coche « Version pour ordinateur ».</string>
+    <string name="calendar_feed_step_3">À gauche, à côté de « Autres agendas », touche « + » puis « À partir de l\'URL ».</string>
+    <string name="calendar_feed_step_4">Colle le lien, puis touche « Ajouter l\'agenda ». Il s\'appelle « Familia ».</string>
+    <string name="calendar_feed_step_5">Dans l\'appli Agenda du téléphone : menu ☰, Paramètres, « Familia », puis active « Synchroniser ».</string>
+    <string name="calendar_feed_renew_title">Changer de lien</string>
+    <string name="calendar_feed_renew_body">Si tu as donné ton lien par erreur, fais-en un nouveau : l\'ancien ne marchera plus.</string>
+    <string name="calendar_feed_renew">Nouveau lien</string>
+    <string name="calendar_feed_renew_confirm_title">Faire un nouveau lien ?</string>
+    <string name="calendar_feed_renew_confirm_body">L\'ancien lien ne marchera plus. Il faudra ajouter le nouveau dans ton agenda.</string>
+    <string name="calendar_feed_failed">Le lien n\'a pas pu être créé. Réessaie quand tu as du réseau.</string>
+    <string name="calendar_feed_error">Ton lien ne peut pas s\'afficher pour l\'instant. Réessaie plus tard.</string>
 </resources>

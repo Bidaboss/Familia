@@ -24,6 +24,7 @@
 import type { DocumentReference, DocumentSnapshot, Firestore } from 'firebase-admin/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
 import { notebookEntryId } from './notebook';
+import { copiedItemPhoto, PhotoCopier, storageCopier } from './itemPhoto';
 
 export type SingleListTarget = 'wishes' | 'ideas';
 
@@ -58,9 +59,11 @@ export function widenedAudience(beneficiaryId: string, viewerIds: unknown, membe
 }
 
 /** Copies every item still to copy. Returns the number of items copied. Does nothing while the switch is off. */
-export async function migrateToSingleList(db: Firestore): Promise<number> {
+export async function migrateToSingleList(db: Firestore, copyPhoto: PhotoCopier = storageCopier): Promise<number> {
   const config = await db.doc('config/app').get();
   if (config.get('features.singleList') !== true) return 0;
+  // Behind « Plus de photos » (récit 44, rév. 237): the photo follows the item.
+  const photos = config.get('features.morePhotos') === true ? copyPhoto : undefined;
   const lists = await db.collection('giftLists').where('kind', 'in', ['own', 'surprise']).get();
   const members = (await db.collection('members').get()).docs.map((m) => ({ id: m.id, profile: m.get('profile') }));
   let copied = 0;
@@ -80,7 +83,7 @@ export async function migrateToSingleList(db: Firestore): Promise<number> {
     let failed = false;
     for (const item of items.docs) {
       try {
-        if (await copyItem(db, list, item, beneficiaryId)) copied++;
+        if (await copyItem(db, list, item, beneficiaryId, photos)) copied++;
       } catch (e) {
         // One item that fails never holds back the others; the next run tries it again.
         failed = true;
@@ -93,7 +96,9 @@ export async function migrateToSingleList(db: Firestore): Promise<number> {
   return copied;
 }
 
-async function copyItem(db: Firestore, list: DocumentSnapshot, item: DocumentSnapshot, beneficiaryId: string): Promise<boolean> {
+async function copyItem(
+  db: Firestore, list: DocumentSnapshot, item: DocumentSnapshot, beneficiaryId: string, copyPhoto?: PhotoCopier,
+): Promise<boolean> {
   const mark = db.doc(`${MARKS}/${list.id}_${item.id}`);
   if ((await mark.get()).exists) return false;
   const target = singleListTarget(list.get('kind'), item.get('visibleToBeneficiary'));
@@ -104,13 +109,18 @@ async function copyItem(db: Firestore, list: DocumentSnapshot, item: DocumentSna
   const claim = await list.ref.collection('claims').doc(item.id).get();
   const shares = claim.exists ? await claim.ref.collection('shares').get() : null;
 
-  // Not the photo (récit 44): its path names the old list, whose deletion would take it away.
-  const { photo: _photo, ...fields } = item.data() ?? {};
+  // The photo (récit 44) names the old list, whose deletion would take it away: it is copied next
+  // to the new item first, in the folder of its new visibility. Not copied, the item goes without it.
+  const { photo, ...fields } = item.data() ?? {};
+  const visible = target === 'wishes';
+  const newPhoto = copyPhoto ? copiedItemPhoto(photo, targetList.id, visible) : null;
+  const keptPhoto = newPhoto && typeof photo === 'string' && (await copyPhoto!(photo, newPhoto)) ? newPhoto : null;
   const batch = db.batch();
   batch.set(targetList.collection('items').doc(newId), {
     ...fields,
     occasion,
-    visibleToBeneficiary: target === 'wishes',
+    visibleToBeneficiary: visible,
+    ...(keptPhoto ? { photo: keptPhoto } : {}),
   });
   if (claim.exists) {
     // The occasion of the list becomes the one of the reservation, and its date stays the day of

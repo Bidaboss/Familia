@@ -185,6 +185,18 @@ Le filtre (`functions/src/prefs.ts`) s'applique côté serveur à chaque envoi, 
 
 Les notifications gardées pendant les heures calmes d'un membre (`items`, chacune avec son heure, `heldAt`). À partir de 8 h, la tâche des 30 minutes les envoie, puis efface le document. Elle fait une notification par canal : une seule part telle quelle, plusieurs partent en « Cette nuit dans Familia » avec leurs titres. Une surprise garde ainsi son canal privé (`gifts`, `capsules`). Le document part avec le membre. Aucune règle ne l'ouvre, seules les fonctions l'utilisent.
 
+### `config/presentation` et `presentationQueue/{memberId}` (récit 48, mode présentation)
+
+`config/presentation` est écrit depuis Administration par l'admin principal, seul à le lire et à l'écrire. Il contient `on` (booléen), `until` (la fin, ou `null` pour « jusqu'à ce que je l'éteigne ») et `since` (le début). Les champs sont vérifiés par les règles. Il n'y a pas de suppression : on éteint le mode avec `on: false`.
+
+Pendant que le mode est allumé, `deliver()` garde dans `presentationQueue/{memberId}` (`items`, chacun avec `heldAt`) les arrivées (canal `welcome`), les réactions groupées (`reaction: true`), les cadeaux (`gifts`) et les capsules (`capsules`). « Rejoignez-moi », les retours et l'admin passent toujours, comme tout le reste.
+
+À la fin du mode, la fonction `onPresentationWritten` envoie un résumé par canal et par membre, par exemple « 9 personnes ont rejoint Familia ». La fin arrive de deux façons :
+- l'admin éteint le mode ;
+- un envoi, ou la tâche des 30 minutes, voit que `until` est passé et remet `on: false`.
+
+Le résumé passe par `quietQueue` dans deux cas : la nuit, pour un membre qui a les heures calmes, ou quand il n'a atteint aucun téléphone (il est alors réessayé pendant une journée). Aucune nouvelle tâche planifiée n'est ajoutée. `presentationQueue` part avec le membre, et aucune règle ne l'ouvre.
+
 ### `weeklyRecaps/{AAAA-MM-JJ}` (récit 36)
 
 Un document par dimanche, posé par la tâche de 18 h quand elle envoie « La semaine de la famille » : il garantit un seul envoi par semaine (`sentAt`, `expireAt` à 40 jours, effacé par le TTL de Firestore). Aucune règle ne l'ouvre.
@@ -371,6 +383,7 @@ Une envie offerte, sortie de « Mes envies » le lendemain de l'occasion de son 
 | `thankedAt` | horodatage serveur | Présent une fois le merci dit |
 | `revealedAt` | horodatage serveur | |
 | `self` | booléen, facultatif | Vrai pour « Je l'ai reçue » (rév. 232) : la personne l'a marquée elle-même, sans donneur. `occasion` et `year` sont alors nuls |
+| `photo` | texte, facultatif | Avec « Plus de photos » (rév. 237) : la photo de l'envie, copiée par le serveur avant la suppression de l'article, à `giftLists/{listId}/received/{itemId}/photo` (+ `.jpg` et `-thumb.jpg`). Lue par tous les membres, écrite par le serveur seul. Absente si la copie a échoué. « Je l'ai reçue » ne la garde pas encore |
 
 - **Lire** : le bénéficiaire, et les adultes qui gardent ses listes (un enfant sans l'appli n'a rien de dévoilé).
 - **Modifier** : le bénéficiaire, seulement pour passer `thanked` à vrai avec `thankedAt`.
@@ -598,6 +611,30 @@ Dans l'onglet Entraide, derrière l'interrupteur « Bons plans » (`config/app.f
 Droits : tous les membres lisent tout. Seuls les adultes publient. L'auteur et l'admin principal modifient et retirent. Un bon plan terminé peut encore être modifié, mais sa fin ne recule pas dans le passé.
 
 Serveur (`firebase/functions/src/goodDeals.ts`), dans la tâche de 18 h des coups de main : le résumé des bons plans publiés dans les dernières 24 h et pas encore terminés (« Nouveau bon plan » ou « 2 nouveaux bons plans »), sur le canal Coups de main, via `deliver()`. Une adresse n'envoie rien. Tant que l'interrupteur est éteint, seul l'admin principal le reçoit. La même tâche supprime les bons plans terminés depuis plus de 30 jours, et `onGoodDealDeleted` supprime leur photo.
+
+## On se prête (PRD, récit 51)
+
+Dans l'onglet Entraide, derrière l'interrupteur « On se prête » (`config/app.features.lending`). Jamais d'argent ni de caution.
+
+### `lendItems/{itemId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `name` | texte | Le nom de l'objet, de 1 à 60 caractères |
+| `note` | texte | Une note (« à rendre propre »), 300 caractères au plus (peut être vide) |
+| `category` | texte | `kitchen`, `diy`, `baby`, `sport`, `travel` ou `other` |
+| `photo` | texte ou `null` | La base de sa photo dans Storage, `lendItems/{itemId}/{memberId}/{photoId}` (`.jpg` et `-thumb.jpg`) |
+| `ownerId`, `ownerName` | texte | L'adulte qui le prête et son prénom, qui ne changent jamais |
+| `status` | `available`, `asked` ou `lent` | Libre, demandé, ou prêté |
+| `borrowerId`, `borrowerName` | texte ou `null` | Celui qui a demandé ou qui l'a, et son prénom. `null` quand l'objet est libre |
+| `from`, `until` | horodatage ou `null` | Les dates facultatives de la demande, dans l'année, le retour pas avant le début |
+| `askedAt`, `lentAt` | horodatage ou `null` | Heure du serveur de la demande et du « D'accord » |
+| `remindedAt` | horodatage ou `null` | Écrit par le serveur seul, au rappel |
+| `createdAt`, `updatedAt` | horodatage | Heure du serveur |
+
+Droits : tous les membres lisent tout. Seuls les adultes ajoutent un objet. Le propriétaire et l'admin principal modifient l'objet lui-même (le prêt ne change pas) et le retirent. « Je voudrais l'emprunter » : un adulte qui n'est pas le propriétaire, sur un objet libre, en son nom (`asked`). « D'accord » : le propriétaire (`lent`). « Pas cette fois » (le propriétaire) ou une demande retirée (l'emprunteur), puis « Rendu » (l'un ou l'autre) : retour à `available`, tous les champs du prêt à `null`. Un enfant voit la liste et ne demande pas.
+
+Serveur (`firebase/functions/src/lendItems.ts`) : `onLendItemChanged` prévient directement le propriétaire d'une demande, puis celui qui a demandé de la réponse. Une demande retirée et « Rendu » ne préviennent personne. Dans la tâche de 18 h des coups de main, un seul rappel doux part à l'emprunteur 3 jours après la date de retour (`remindedAt`). Le canal est Coups de main, et un tap ouvre l'objet (`lendItemId`). `onLendItemDeleted` supprime la photo. Un membre retiré de la famille (`onMemberDeletedHelp`) : ses objets sont supprimés, et ceux qu'il avait demandés ou empruntés redeviennent libres.
 
 ## Arbre généalogique (PRD, récit 40)
 
@@ -1197,3 +1234,13 @@ La photo est dans Storage à `whoIsIt/{authorId}/{postId}/photo.jpg` (512 Ko au 
 ### `whoIsIt/{postId}/guesses/{memberId}`
 
 `who` (0 à 80 caractères, vide pour « Je ne sais pas »), `year` (entier ou null), `name` (le prénom de celui qui devine), `createdAt`. Une seule par membre, à son nom, jamais modifiée ; l'auteur ne devine pas sa propre photo. Lues, comme la réponse, une fois qu'on a deviné.
+
+## Le planning dans mon agenda (PRD, récit 49)
+
+Module `calendarFeed`, éteint par défaut. Interrupteur éteint : seul l'admin principal a son lien qui marche.
+
+### `calendarFeeds/{memberId}`
+
+`token` (texte, 43 caractères `A-Z a-z 0-9 _ -`, 32 octets tirés au hasard par l'appli), `updatedAt` (heure du serveur). Seul ce membre, adulte, le lit et l'écrit ; un enfant n'en a pas. L'admin principal peut le supprimer, ce qui coupe le lien. Écrire un nouveau `token` coupe l'ancien lien. Le document part avec le membre (`onMemberDeleted`).
+
+La fonction HTTP `calendarFeed` (europe-west1, GET `?t=<token>`) cherche le document dont le `token` est celui-là, vérifie que le membre existe encore et qu'il est adulte, puis sert les événements du planning qui le concernent, comme sur son Accueil (`concerns` de `logic.ts`), d'un mois avant à un an après aujourd'hui, en `text/calendar`. Jamais une occasion de cadeau ni une réservation. Lien inconnu : 404.

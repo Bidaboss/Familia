@@ -643,3 +643,36 @@ Interrupteur « Ajouter une envie depuis une autre appli » (wishFromShare) allu
 5. Avec le compte de cette personne, ouvre Cadeaux : l'idée n'apparaît nulle part.
 6. Avec le compte d'un enfant, partage un lien : il n'y a pas « C'est pour qui ? », l'envie va dans ses propres envies.
 7. Éteins l'interrupteur, ouvre Familia puis reviens au navigateur : Familia n'est plus dans « Partager ».
+
+## Faire le livre de recettes (récit 47, partie 2)
+
+Interrupteur « Livre de recettes » allumé, avec des recettes dont certaines ont une photo, une étiquette et une histoire.
+
+1. Recettes : en haut de la liste, « Faire le livre de recettes ». Il n'apparaît pas sur la liste « Ses recettes » d'un membre.
+2. L'écran montre la couverture (titre « Les recettes de la famille », modifiable, et l'année), le choix de la photo de couverture, puis toutes les recettes cochées. « Tout décocher » puis « Tout cocher » marchent ; sans recette cochée ou sans titre, « Faire le livre » est grisé.
+3. Touche « Faire le livre » : la feuille de partage d'Android s'ouvre avec livre-de-recettes-2026.pdf. Enregistre-le et ouvre-le.
+4. **Attendu dans le PDF :** une couverture, un sommaire par étiquette (la première de chaque recette, « Autres recettes » à la fin) avec les numéros de page, puis une recette par page : titre, « De … · Notée par … · Pour 6 personnes », l'histoire en italique, la photo, les ingrédients et les étapes. Une longue recette continue sur la page suivante.
+5. EXPERT-2 : une recette avec « Un enfant est sur une des photos » cochée, faite en livre par un autre compte que celui qui a pris la photo : un dessin de bol à la place de la photo. Même chose pour une photo prise par un enfant, ou une recette qui vient d'un enfant, quand tu n'es pas un de ses adultes.
+6. Mode avion avec des photos jamais vues : le livre se fait quand même, avec des dessins.
+
+## Mode présentation (récit 48)
+
+Avec le compte de l'admin principal, plus deux autres comptes qui n'ont pas encore ouvert l'appli. « Publier Firebase » doit être passé.
+
+1. Ouvre **Administration**. **Attendu :** la carte « Mode présentation » est tout en haut, avec « 2 h », « 4 h » et « Jusqu'à ce que je l'éteigne ».
+2. Touche « 2 h ». **Attendu :** la carte dit « Allumé jusqu'à » suivi de l'heure de fin, et le bandeau « Mode présentation jusqu'à » avec l'heure apparaît au-dessus des onglets. Il n'apparaît que sur ton téléphone.
+3. Fais se connecter les deux autres comptes pour la première fois. **Attendu :** aucune notification « vient d'arriver » sur les téléphones de la famille.
+4. Envoie un « Rejoignez-moi » depuis un autre compte. **Attendu :** il sonne tout de suite.
+5. Touche « Éteindre », sur le bandeau ou dans la carte. **Attendu :** en moins d'une minute, chacun reçoit une seule notification « 2 personnes ont rejoint Familia », avec les deux prénoms. Le bandeau disparaît.
+6. Rallume le mode pour 2 h et laisse passer l'heure de fin. **Attendu :** le bandeau disparaît de lui-même. Le résumé part au premier envoi qui suit l'heure de fin, ou au plus tard 30 minutes après.
+7. Avec un compte qui n'est pas l'admin principal, et dans « Voir comme » : **Attendu :** ni la carte ni le bandeau.
+
+## Le planning dans mon agenda (récit 49)
+
+Avec un compte adulte, un compte enfant et un ordinateur. « Publier Firebase » doit être passé, et l'interrupteur « Planning dans mon agenda » allumé dans Administration.
+
+1. Touche ta photo en haut à droite. **Attendu :** « Voir dans mon agenda » apparaît sous « Notifications ». Avec le compte enfant, et dans « Voir comme », il n'apparaît pas.
+2. Touche-le, puis « Créer mon lien ». **Attendu :** le lien s'affiche, avec « Copier le lien », « M'envoyer le lien » et les étapes pour Google Agenda.
+3. Touche « M'envoyer le lien » et envoie-le-toi par mail. Sur l'ordinateur, suis les étapes 2 à 4. **Attendu :** un agenda « Familia » apparaît avec les événements du planning, aux bonnes heures. Seulement ce qui te concerne (toute la famille, ton foyer, toi et tes enfants) : pas les rendez-vous d'un autre foyer. Aucune occasion de cadeau, aucune réservation.
+4. Dans Familia, crée un événement. **Attendu :** il arrive dans Google Agenda dans les heures qui suivent (Google décide quand il relit).
+5. Touche « Nouveau lien », puis confirme. **Attendu :** le lien change. Colle l'ancien dans la barre d'adresse de l'ordinateur : il répond « 404 ». L'agenda ajouté avec l'ancien lien ne se met plus à jour.
