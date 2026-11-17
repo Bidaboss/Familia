@@ -565,3 +565,17 @@ Avec l'interrupteur « Sondages » allumé :
 3. Sous « Les mois » : un mois par mois de ces albums. Touche-le : le diaporama du mois s'ouvre.
 4. Un voyage à venir, ou un album sans photo, n'apparaît pas. Sans aucun album : « Pas encore d'album ».
 5. Voyages ou albums d'événements éteints dans Administration : leurs albums disparaissent de la liste.
+
+## Le voyage en chemin illustré (R1 bis, maquette R6)
+
+Interrupteur « presentationR1bis » allumé (c'est le réglage par défaut).
+
+1. Ouvre un voyage en cours. En haut, sur le ciel bleu : le nom du voyage et qui part, puis la frise des jours (« Jour 1 », « dim 15 »…). Le jour d'aujourd'hui est en noir.
+2. Dessous, le paysage : le chemin passe par 4 jours au plus. Les jours passés sont des ronds noirs, le jour choisi est jaune avec l'étiquette « Aujourd'hui, » et le lieu de sa première étape, les jours à venir sont en pointillés.
+3. Touche un autre jour dans la frise : le chemin, la carte du jour et le carnet suivent. Aujourd'hui garde un contour noir.
+4. Carte du jour : « Jour 3 : » et les lieux du jour, puis « 18 photos » (ouvre l'album), « Carnet » (descend au carnet du jour) et « Comptes » (seulement si tu pars et que les comptes sont allumés).
+5. Le carnet du jour montre les étapes de ce jour, avec « Bien arrivé ». Un hébergement de plusieurs nuits apparaît chaque jour. Un jour sans étape dit « Rien de noté ce jour-là ».
+6. Un voyage pas encore commencé s'ouvre sur son premier jour, un voyage fini sur son dernier.
+7. TalkBack : chaque jour de la frise se lit « Jour 3, mardi 17 novembre » ; le paysage n'est pas lu.
+8. Police du téléphone à 200 % : tout défile, rien ne passe sous le bouton « Ajouter une étape ».
+9. Interrupteur éteint : l'écran du voyage revient à l'ancienne présentation.
