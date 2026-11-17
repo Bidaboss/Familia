@@ -1,5 +1,6 @@
 package fr.familia.app.feature.gifts.item
 
+import fr.familia.app.core.photo.PhotoField
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
@@ -192,6 +193,15 @@ private fun FormContent(
         )
         if (state.showOccasion) {
             WishOccasionChoice(form.occasion, state.forMe) { value -> onChange { it.copy(occasion = value) } }
+        }
+        if (state.showPhoto) {
+            // The product, or a screenshot (récit 44).
+            PhotoField(
+                stored = state.storedPhoto,
+                edit = form.photo,
+                onEdit = { photo -> onChange { it.copy(photo = photo) } },
+                enabled = !state.isSaving,
+            )
         }
         if (state.saveFailed) {
             Text(stringResource(R.string.gift_save_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)

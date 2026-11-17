@@ -19,6 +19,8 @@ data class PlanningItem(
     /** "Qui vient": members of the family who answered yes, and maybe. */
     val coming: Int = 0,
     val maybe: Int = 0,
+    /** Those who said yes, for their small avatars in the week of the R1 bis presentation. */
+    val comers: List<Member> = emptyList(),
 )
 
 /** The birthdays and events of one day. Birthdays come first: they last the whole day. */

@@ -135,6 +135,8 @@ class PlanningViewModelTest {
         val item = (vm.uiState.value as PlanningUiState.Success).days.single().items.single()
         assertEquals(2, item.coming)
         assertEquals(1, item.maybe)
+        // The R1 bis week shows their avatars, without the one who has left.
+        assertEquals(listOf("adult1", "kid1"), item.comers.map { it.id })
 
         rsvps.setRsvp("meal", "adult2", RsvpStatus.Yes, "adult2")
         val updated = (vm.uiState.value as PlanningUiState.Success).days.single().items.single()

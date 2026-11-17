@@ -1,5 +1,7 @@
 package fr.familia.app.feature.home
 
+import fr.familia.app.core.theme.FamiliaClay
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -212,7 +214,8 @@ private fun DayBox(day: HomeDay, today: LocalDate, chosen: Boolean, width: Dp, o
     val surface = MaterialTheme.colorScheme.surface
     val ink = MaterialTheme.colorScheme.onSurface
     val shape = RoundedCornerShape(16.dp)
-    val background = if (chosen) ink else surface
+    // The boxes are cards (spec §2: « 7 cases blanches »): in the dark themes the background is the card of the theme.
+    val background = if (chosen) ink else FamiliaClay.colors.card
     val text = if (chosen) surface else ink
     val first = day.first
     val count = day.items.size

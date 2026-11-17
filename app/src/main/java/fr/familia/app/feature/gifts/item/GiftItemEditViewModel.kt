@@ -14,6 +14,9 @@ import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.ideasListId
 import fr.familia.app.core.model.wishesListId
+import fr.familia.app.core.photo.PhotoEdit
+import fr.familia.app.core.photo.SinglePhoto
+import fr.familia.app.core.photo.SinglePhotoSaver
 import fr.familia.app.feature.gifts.addsVisibleItem
 import fr.familia.app.feature.gifts.isKeptFrom
 import fr.familia.app.feature.gifts.keepsListsOf
@@ -33,6 +36,8 @@ data class GiftItemForm(
     val note: String = "",
     /** Récit 9 ter: Christmas or a birthday; null for « Quand tu veux ». */
     val occasion: GiftOccasion? = null,
+    /** The photo (récit 44): sent by the ViewModel before the item, not kept in the draft. */
+    val photo: PhotoEdit = PhotoEdit.Unchanged,
 )
 
 enum class GiftItemFormError { TitleMissing, TitleTooLong, BadLink, BadPrice, NoteTooLong }
@@ -60,6 +65,9 @@ sealed interface GiftItemEditUiState {
         val showOccasion: Boolean = false,
         /** The wish is for the member themselves: « mon anniversaire », else « son anniversaire ». */
         val forMe: Boolean = true,
+        /** « Plus de photos » is on: the form shows the photo, [storedPhoto] being the saved one. */
+        val showPhoto: Boolean = false,
+        val storedPhoto: String? = null,
     ) : GiftItemEditUiState
 
     data object Done : GiftItemEditUiState
@@ -84,6 +92,8 @@ class GiftItemEditViewModel(
     private val previews: LinkPreviewRepository? = null,
     /** The switch « Liste unique » (récit 9 ter): a wish then says what it is for. */
     private val singleList: Boolean = false,
+    /** Sends and removes the photo (PRD, récit 44); null hides it, as when « Plus de photos » is off. */
+    private val photos: SinglePhotoSaver? = null,
 ) : ViewModel() {
 
     /** The picture read for [previewedUrl]: dropped if the member changes the link. */
@@ -159,6 +169,8 @@ class GiftItemEditViewModel(
             previewLoading = shared != null && existing == null && previews != null,
             showOccasion = singleList && target.kind == GiftListKind.Wishes,
             forMe = beneficiary.id == current.id,
+            showPhoto = photos != null,
+            storedPhoto = existing?.photo,
         )
         if (shared != null && existing == null) readPreview(shared.url)
     }
@@ -266,14 +278,31 @@ class GiftItemEditViewModel(
             // Only a wish says what it is for; an idea keeps none.
             occasion = form.occasion?.takeIf { state.showOccasion } ?: original?.occasion?.takeIf { !state.showOccasion },
         )
+        val before = original?.photo
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
-            val ok = write {
-                // Two writes in order: the rules of the item read the list, which must exist first.
-                if (!listExists) repo.saveList(target, isNew = true)
-                repo.saveItem(listId, item, isNew = original == null)
+            // In order: the rules of the photo and of the item read the list, which must exist first,
+            // and the item names only a photo already sent.
+            if (!listExists) {
+                if (!write { repo.saveList(target, isNew = true) }) return@launch markFailed()
+                listExists = true
             }
-            if (ok) _uiState.value = GiftItemEditUiState.Done else markFailed()
+            val photo = try {
+                // A removed photo gives null, which must stay null: no « ?: before » here.
+                photos?.prepare(before, form.photo) { SinglePhoto.giftItem(listId, visible, author.id) }
+                    ?: before.takeIf { photos == null }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                return@launch markFailed()
+            }
+            if (write { repo.saveItem(listId, item.copy(photo = photo), isNew = original == null) }) {
+                photos?.cleanUp(previous = before, saved = photo)
+                _uiState.value = GiftItemEditUiState.Done
+            } else {
+                photos?.cleanUp(previous = photo, saved = before)
+                markFailed()
+            }
         }
     }
 

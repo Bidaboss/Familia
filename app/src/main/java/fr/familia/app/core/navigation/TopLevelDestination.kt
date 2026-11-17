@@ -51,6 +51,10 @@ data class HelpRequestDetailDestination(val requestId: String)
 @Serializable
 data class HelpRequestEditDestination(val requestId: String? = null, val duplicateOf: String? = null)
 
+/** One bon plan, opened from the « Bons plans » of Entraide (récit 45). */
+@Serializable
+data class GoodDealDetailDestination(val dealId: String)
+
 /** All the « Bonnes nouvelles », opened from the home card (récit 32). */
 @Serializable
 data object GoodNewsFeedDestination

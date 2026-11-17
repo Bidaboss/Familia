@@ -11,6 +11,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Feature
+import fr.familia.app.core.photo.SinglePhotoSaver
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.gifts.share.SharedWish
 
@@ -26,6 +27,7 @@ fun GiftItemEditRoute(
     shared: SharedWish? = null,
 ) {
     val singleList = LocalFeatureFlags.current.isOn(Feature.SingleList)
+    val morePhotos = LocalFeatureFlags.current.isOn(Feature.MorePhotos)
     val viewModel: GiftItemEditViewModel = viewModel(
         factory = viewModelFactory {
             initializer {
@@ -35,6 +37,7 @@ fun GiftItemEditRoute(
                     shared = shared?.let { GiftItemForm(title = it.title, url = it.url) },
                     previews = container?.linkPreviewRepository,
                     singleList = singleList,
+                    photos = if (morePhotos) photoSaver(container) else null,
                 )
             }
         },
@@ -50,4 +53,10 @@ fun GiftItemEditRoute(
         onDelete = viewModel::delete,
         onBack = onDone,
     )
+}
+
+private fun photoSaver(container: AppContainer?): SinglePhotoSaver? {
+    val uploader = container?.photoUploader ?: return null
+    val storage = container.photoStorage ?: return null
+    return SinglePhotoSaver(uploader, storage)
 }

@@ -1,8 +1,12 @@
 package fr.familia.app.feature.gooddeals
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -11,6 +15,9 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.core.model.Member
+import fr.familia.app.feature.gooddeals.detail.GoodDealDetailScreen
+import fr.familia.app.feature.gooddeals.detail.GoodDealDetailUiState
+import fr.familia.app.feature.gooddeals.detail.GoodDealDetailViewModel
 import fr.familia.app.feature.gooddeals.list.GoodDealsScreen
 import fr.familia.app.feature.gooddeals.list.GoodDealsViewModel
 import java.time.LocalDate
@@ -39,4 +46,27 @@ fun GoodDealsRoute(
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     GoodDealsScreen(state, parisToday(), onPublish, onOpenDeal, viewModel::retry, modifier)
+}
+
+@Composable
+fun GoodDealDetailRoute(
+    container: AppContainer?,
+    currentMember: Member,
+    dealId: String,
+    onEdit: (() -> Unit)?,
+    onBack: () -> Unit,
+) {
+    val viewModel: GoodDealDetailViewModel = viewModel(
+        factory = viewModelFactory {
+            initializer { GoodDealDetailViewModel(container?.goodDealRepository, container?.memberRepository, currentMember.id, dealId) }
+        },
+    )
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    // Removed here or elsewhere once it was shown: back to the list.
+    var wasShown by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(state) {
+        if (state is GoodDealDetailUiState.Ready) wasShown = true
+        if (state == GoodDealDetailUiState.Missing && wasShown) onBack()
+    }
+    GoodDealDetailScreen(state, parisToday(), viewModel::toggleInterest, onEdit, viewModel::remove, onBack)
 }

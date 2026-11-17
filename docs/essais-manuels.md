@@ -589,6 +589,16 @@ Interrupteur « Livre de recettes » allumé dans Administration, après « Publ
 3. Sous « Photos du plat », la case « Un enfant est sur une des photos » (décochée au début). Coche-la, quitte et reviens : elle est toujours cochée. Avec un autre compte qui n'est pas l'auteur : pas de case.
 4. Interrupteur éteint : ni le champ, ni l'histoire, ni la case. Une histoire déjà écrite n'est pas perdue quand on modifie la recette.
 
+## La photo d'une envie (récit 44)
+
+Avec les modules « Plus de photos » et « Liste unique » allumés, après « Publier Firebase », et le compte d'une autre personne.
+
+1. Dans « Mes envies », ajoute une envie avec « Ajouter une photo ». **Attendu :** une vignette sur la carte de l'envie, et la photo en large quand on l'ouvre. L'autre compte la voit aussi.
+2. Avec l'autre compte, ajoute une idée avec une photo dans « Idées de la famille » de la première personne. **Attendu :** la famille voit la photo, mais la personne fêtée ne voit ni l'idée ni la photo.
+3. Modifie l'envie et retire sa photo, après confirmation. **Attendu :** plus de vignette.
+4. Supprime une envie qui avait une photo. **Attendu :** elle disparaît, et sa photo aussi (le serveur la retire).
+5. Module éteint. **Attendu :** ni bouton photo, ni vignette.
+
 ## Nouvelle présentation « R1 bis » (spec DESIGN du 17/11)
 
 Interrupteur « Nouvelle présentation » (presentationR1bis), allumé par défaut, admin principal compris. L'éteindre dans Administration rend l'ancienne présentation à tout le monde.
@@ -600,7 +610,7 @@ Interrupteur « Nouvelle présentation » (presentationR1bis), allumé par défa
 5. Touche « + ». **Attendu :** Un événement, Une photo, Une bonne nouvelle, Une envie (2 × 2), Un coup de main sur toute la largeur, puis Annuler. « Une photo » ouvre le choix de l'album ; les autres choix ouvrent leur formulaire. Voyages et albums d'événements éteints : « Une photo » disparaît et « Un coup de main » rejoint la grille.
 6. Touche « Tout Familia ». **Attendu :** « Chercher un module », puis les modules en ronds sous S'organiser, Se faire plaisir et Se souvenir. Défis et Albums y sont quand leur module est allumé. Tape « ou je » : seul « Où je suis » reste.
 7. Onglet **Famille**. **Attendu :** « Nous N, en M foyers », une carte de couleur par foyer avec tous ses membres, puis « Nos trésors ». Deux prénoms qui commencent par la même lettre ont deux lettres dans leur pastille.
-8. Onglet **Planning**. **Attendu :** « Semaine » d'abord, la frise du lundi au dimanche, les flèches changent de semaine, « Aujourd'hui » revient à cette semaine.
+8. Onglet **Planning**. **Attendu :** « Semaine » d'abord, la frise du lundi au dimanche, les flèches changent de semaine, « Aujourd'hui » revient à cette semaine. Sous un événement avec des « oui » : les petites pastilles de ceux qui viennent (6 au plus, puis « +N »).
 9. En Classique clair, regarde le fond. **Attendu :** de petits pépins discrets ; en Contraste fort, aucun motif. L'onglet allumé est dans une pilule jaune.
 10. Taille de police à 130 % puis 200 % : la frise défile de côté, rien ne passe sous la barre du bas.
 11. Sur une tablette (ou en paysage large) : le rail de navigation à gauche, « + » en tête sur l'Accueil, l'Accueil sur deux colonnes.

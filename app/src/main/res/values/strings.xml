@@ -2212,17 +2212,28 @@
     <string name="feature_good_deals">Bons plans</string>
     <string name="entraide_tab_help">Coups de main</string>
     <string name="entraide_tab_good_deals">Bons plans</string>
+    <string name="gooddeal_title">Bon plan</string>
     <string name="gooddeal_publish">Publier</string>
     <string name="gooddeal_open">Voir le bon plan</string>
     <string name="gooddeal_empty_title">Pas encore de bon plan</string>
     <string name="gooddeal_empty_body">Une promo, une cueillette, une sortie à ne pas rater ? Partage-la ici. Elle disparaît toute seule à sa date de fin.</string>
     <string name="gooddeal_error_title">Les bons plans ne s\'affichent pas</string>
     <string name="gooddeal_error_body">Vérifie ta connexion, puis réessaie.</string>
+    <string name="gooddeal_missing_title">Ce bon plan n\'est plus là</string>
+    <string name="gooddeal_missing_body">Il a été retiré, ou il est terminé depuis longtemps.</string>
     <string name="gooddeal_until_today">Dernier jour aujourd\'hui</string>
     <string name="gooddeal_until_tomorrow">Jusqu\'à demain</string>
     <string name="gooddeal_until">Jusqu\'au %1$s</string>
     <string name="gooddeal_by">Par %1$s</string>
     <string name="gooddeal_by_me">Publié par moi</string>
+    <string name="gooddeal_me">Moi</string>
+    <string name="gooddeal_place">Où : %1$s</string>
+    <string name="gooddeal_open_link">Ouvrir %1$s</string>
+    <string name="gooddeal_photo_label">Photo du bon plan</string>
+    <string name="gooddeal_interested">Ça m\'intéresse</string>
+    <string name="gooddeal_not_interested">Ça ne m\'intéresse plus</string>
+    <string name="gooddeal_interested_nobody">Personne n\'est encore intéressé.</string>
+    <string name="gooddeal_interested_names">Intéressés : %1$s</string>
     <plurals name="gooddeal_interested_count">
         <item quantity="one">%1$d personne intéressée</item>
         <item quantity="other">%1$d personnes intéressées</item>
@@ -2231,4 +2242,9 @@
         <item quantity="one">%1$d personne intéressée : moi</item>
         <item quantity="other">%1$d personnes intéressées, dont moi</item>
     </plurals>
+    <string name="gooddeal_action_failed">Ça n\'a pas marché. Réessaie.</string>
+    <string name="gooddeal_edit">Modifier</string>
+    <string name="gooddeal_remove">Supprimer</string>
+    <string name="gooddeal_remove_title">Supprimer ce bon plan ?</string>
+    <string name="gooddeal_remove_body">Il disparaît pour toute la famille.</string>
 </resources>
