@@ -62,10 +62,14 @@ fun GiftListRoute(
             onMarkReceived = viewModel::markReceived,
             onOpenReceived = onOpenReceived,
             onOpenBeneficiary = onOpenBeneficiary,
-            onMarkWishReceived = if (showClaimOccasion && readerId == currentMember.id) viewModel::markWishReceived else null,
+            onMarkWishReceived = if (showClaimOccasion && readerId == currentMember.id) viewModel::askWishReceived else null,
             onShareOutside = shown?.takeIf { shareOn && it.canSendOutside }?.let { success ->
                 { share(context, wishesShare(context, success.list.id, success.beneficiary.firstName)) }
             },
         ),
     )
+    val toConfirm by viewModel.receivedToConfirm.collectAsStateWithLifecycle()
+    if (toConfirm != null) {
+        WishReceivedDialog(onConfirm = viewModel::confirmWishReceived, onDismiss = viewModel::cancelWishReceived)
+    }
 }

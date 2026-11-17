@@ -559,6 +559,26 @@ private fun ShareRow(itemId: String, share: GiftShare, canMark: Boolean, actions
     }
 }
 
+/** « Je l'ai reçue » cannot be undone, so it is confirmed. It never says anything about a reservation. */
+@Composable
+internal fun WishReceivedDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.gift_mark_received_title)) },
+        text = { Text(stringResource(R.string.gift_mark_received_text)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.gift_mark_received_confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.action_cancel))
+            }
+        },
+    )
+}
+
 @Composable
 private fun AmountDialog(initial: Double?, onConfirm: (Double) -> Unit, onDismiss: () -> Unit) {
     var text by rememberSaveable { mutableStateOf(initial?.let { formatEuros(it).replace("€", "").trim() } ?: "") }

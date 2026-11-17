@@ -276,7 +276,23 @@ class GiftListViewModel(
     fun deleteItem(itemId: String) = write { it.deleteItem(listId, itemId) }
 
     /** « Je l'ai reçue » (rév. 232): the wish goes to « On m'a offert », without a giver. */
-    fun markWishReceived(item: GiftItem) = write { it.markWishReceived(listId, item) }
+    /** The wish waiting for « Oui, reçue »: the gesture cannot be undone, so it is confirmed first. */
+    private val _receivedToConfirm = MutableStateFlow<GiftItem?>(null)
+    val receivedToConfirm: StateFlow<GiftItem?> = _receivedToConfirm
+
+    fun askWishReceived(item: GiftItem) {
+        _receivedToConfirm.value = item
+    }
+
+    fun cancelWishReceived() {
+        _receivedToConfirm.value = null
+    }
+
+    fun confirmWishReceived() {
+        val item = _receivedToConfirm.value ?: return
+        _receivedToConfirm.value = null
+        write { it.markWishReceived(listId, item) }
+    }
 
     fun deleteList(onDone: () -> Unit) {
         val repo = gifts ?: return
