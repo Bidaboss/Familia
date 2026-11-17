@@ -32,7 +32,7 @@ export const cloudMonitoring: MonitoringReader = {
     let pageToken = '';
     do {
       const page = await get('metricDescriptors', {
-        filter: 'metric.type = starts_with("firestore.googleapis.com/")',
+        filter: 'metric.type = starts_with("firestore.googleapis.com/") OR metric.type = starts_with("storage.googleapis.com/")',
         ...(pageToken ? { pageToken } : {}),
       });
       for (const d of (page.metricDescriptors as { type: string }[] | undefined) ?? []) types.push(d.type);

@@ -14,6 +14,10 @@ data class Consumption(
     val writes: Long = 0,
     val deletes: Long = 0,
     val storageBytes: Long? = null,
+    /** The photos kept in Cloud Storage; null when Monitoring gave no figure that day. */
+    val photoBytes: Long? = null,
+    /** What the phones downloaded from Cloud Storage since the 1st of the month. */
+    val monthDownloadBytes: Long? = null,
     val monthCost: Double = 0.0,
     val failed: Boolean = false,
 ) {
@@ -25,21 +29,25 @@ data class Consumption(
         val near: Boolean get() = used >= limit.free * ALERT_SHARE
     }
 
-    /** The free quotas of Firestore, as in FREE of firebase/functions/src/consumption.ts. */
+    /** The free quotas of Firestore and Cloud Storage, as in FREE of firebase/functions/src/consumption.ts. */
     enum class Limit(val free: Long) {
         Reads(50_000),
         Writes(20_000),
         Deletes(20_000),
         Storage(1024L * 1024 * 1024),
+        Photos(5_000_000_000),
+        Downloads(100_000_000_000),
     }
 
-    /** The four limits, the size only when Monitoring gave it. */
+    /** The limits, the sizes and the downloads only when Monitoring gave them. */
     val gauges: List<Gauge>
         get() = listOfNotNull(
             Gauge(Limit.Reads, reads),
             Gauge(Limit.Writes, writes),
             Gauge(Limit.Deletes, deletes),
             storageBytes?.let { Gauge(Limit.Storage, it) },
+            photoBytes?.let { Gauge(Limit.Photos, it) },
+            monthDownloadBytes?.let { Gauge(Limit.Downloads, it) },
         )
 
     /** Past 0,50 € in the month, the function warns too (COST_ALERT_EUROS). */

@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import {
-  alertNotice, alerts, checkConsumption, checkConsumptionIfDue, dayCost, DayUse, FREE, MonitoringReader, monthCost, parisMidnight, pickMetrics,
+  alertNotice, alerts, checkConsumption, checkConsumptionIfDue, dayCost, DayUse, FREE, MonitoringReader, monthCost, monthDownloads, parisMidnight, pickMetrics,
 } from '../src/consumption';
 import { Notice } from '../src/logic';
 import { Sender } from '../src/store';
@@ -47,6 +47,31 @@ describe('the estimate and the alerts', () => {
     assert.equal(picked.writes, `${p}document/write_count`);
     assert.equal(picked.deletes, undefined);
     assert.equal(picked.storage, `${p}storage/data_and_index_storage_bytes`);
+  });
+
+  test('the photos of Cloud Storage count too: their size, and the downloads of the month (démo du 21)', () => {
+    // The album of the 21: 13 people, 20 photos each of about 300 Ko, thumbnails of 30 Ko; each of
+    // the 13 sees every thumbnail and every photo once, the image cache does the rest.
+    const album = 13 * 20 * (300_000 + 30_000);
+    const day21 = { ...quiet, day: '2026-11-21', photoBytes: album, downloadBytes: 13 * album };
+    assert.equal(dayCost(day21), 0);
+    assert.equal(monthCost([day21], '2026-11'), 0);
+    assert.deepEqual(alerts(day21, 0, monthDownloads([day21], '2026-11')), []);
+
+    assert.deepEqual(alerts({ ...quiet, photoBytes: 4.2e9 }, 0), ['photos']);
+    const heavy = [{ ...quiet, downloadBytes: 50e9 }, { ...quiet, day: '2026-11-21', downloadBytes: 60e9 }];
+    assert.equal(monthDownloads(heavy, '2026-11'), 110e9);
+    assert.deepEqual(alerts(heavy[1], 0, 110e9), ['downloads']);
+    // 10 Go beyond the 100 free, at 0,15 € the Go.
+    assert.ok(Math.abs(monthCost(heavy, '2026-11') - 1.5) < 1e-9);
+    assert.match(alertNotice('downloads', heavy[1], 0, 110e9).body, /110 Go sur 100 Go gratuits \(110 %\)/);
+    assert.match(alertNotice('photos', { ...quiet, photoBytes: 4.2e9 }, 0).body, /4,2 Go sur 5 Go gratuits \(84 %\)/);
+
+    const s = 'storage.googleapis.com/';
+    const picked = pickMetrics([`${s}storage/total_bytes`, `${s}storage/v2/total_bytes`, `${s}network/sent_bytes_count`]);
+    assert.equal(picked.photos, `${s}storage/v2/total_bytes`);
+    assert.equal(picked.downloads, `${s}network/sent_bytes_count`);
+    assert.equal(pickMetrics([]).photos, undefined);
   });
 
   test('a Paris day starts at 23 h UTC in winter, 22 h in summer', () => {
@@ -114,6 +139,21 @@ describe('the daily check', () => {
     assert.deepEqual(found, ['cost']);
     assert.ok(Math.abs((await db.doc('consumption/2026-11-20').get()).get('monthCost') - 0.6) < 1e-9);
     assert.equal(sent[0].notice.title, 'Familia commence à coûter');
+  });
+
+  test('the photos are kept with the day, and their downloads add up over the month', async () => {
+    const s = 'storage.googleapis.com/';
+    const figures: Record<string, number> = { [`${s}storage/v2/total_bytes`]: 90e6, [`${s}network/sent_bytes_count`]: 1.2e9 };
+    const reader: MonitoringReader = { metricTypes: async () => Object.keys(figures), total: async (type) => figures[type] ?? null };
+    await db.doc('consumption/2026-11-20').set({ day: '2026-11-20', reads: 0, writes: 0, deletes: 0, storageBytes: null, downloadBytes: 0.8e9 });
+    const { sent, send } = fakeSender();
+    assert.deepEqual(await checkConsumption(db, reader, send, '2026-11-21'), []);
+    const doc = (await db.doc('consumption/2026-11-21').get()).data()!;
+    assert.equal(doc.photoBytes, 90e6);
+    assert.equal(doc.downloadBytes, 1.2e9);
+    assert.equal(doc.monthDownloadBytes, 2e9);
+    assert.equal(doc.monthCost, 0);
+    assert.equal(sent.length, 0);
   });
 
   test('without the Monitoring role, the day is kept with an error', async () => {

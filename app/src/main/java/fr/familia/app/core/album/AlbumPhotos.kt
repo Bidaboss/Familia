@@ -202,7 +202,8 @@ fun PhotoViewer(state: AlbumPhotosUiState, startId: String, onRemove: (AlbumPhot
                         }
                     }
                 }
-                HorizontalPager(pager, Modifier.weight(1f).fillMaxWidth(), key = { photos[it].id }) { page ->
+                // The photos on either side load too, so swiping on a weak network shows them at once.
+                HorizontalPager(pager, Modifier.weight(1f).fillMaxWidth(), key = { photos[it].id }, beyondViewportPageCount = 1) { page ->
                     val photo = photos[page]
                     StorageImage(
                         path = photo.photoPath,

@@ -53,6 +53,27 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 - **Un message dit que la bonne nouvelle n'a pas pu être publiée :** touche « OK », puis « Publier » de nouveau. Le texte et la photo sont gardés.
 - **Rien ne passe du tout :** écran tourné vers toi, ferme le formulaire, puis continue la présentation. Garde la photo dans ta galerie et publie-la en rentrant : chacun la recevra ce soir.
 
+## Les photos : l'album du repas, le diaporama et l'arbre (3 min, après la photo du repas)
+
+**La veille, en plus de la liste plus haut**
+1. **Administration**, **Modules** : allume « Albums des événements », « Diaporama du mois » et « Arbre généalogique » si tu veux les montrer.
+2. En « Voir comme » un membre qui n'est **pas** la personne fêtée, ouvre l'événement du repas : vérifie que rien n'y parle du cadeau.
+3. Ajoute 3 ou 4 de tes photos dans l'album d'un événement passé, puis touche une fois « Lancer le diaporama », avec le réseau. Les photos restent alors sur ton téléphone : elles s'afficheront même si le réseau tombe demain.
+4. Ouvre une fois l'arbre, avec le réseau.
+
+**Pendant le repas**
+1. **L'album du repas.** Ouvre l'événement du jour, section « Photos » : l'album s'ouvre le jour même. Ajoute la photo de la table prise à l'étape 8. Elle apparaît chez tous ceux qui voient l'événement. Invite chacun à ajouter les siennes une fois installé.
+2. **Le diaporama.** Touche « Lancer le diaporama ». Une photo passe toutes les 4 secondes, et la suivante se charge pendant que la photo en cours s'affiche. Pose le téléphone au milieu de la table.
+3. **L'arbre.** **Famille**, « Arbre généalogique » : montre une branche, et que l'on peut ajouter un parent ou un grand-parent qui n'a pas de compte.
+
+**Ce que ça coûte.** Avec 13 personnes et 20 photos chacune, l'album pèse environ 86 Mo. Si tout le monde regarde tout, on télécharge environ 1,1 Go. Le gratuit de Google donne 5 Go gardés et 100 Go téléchargés par mois : le repas coûte 0 €. La carte « Consommation » de l'Administration montre ces deux chiffres le lendemain matin.
+
+## Plan B pour les albums et le diaporama
+
+- **Le réseau est faible :** les photos déjà vues viennent du téléphone, sans réseau. Une photo jamais vue montre un dessin de photo à la place. Continue : elle s'affichera au retour du réseau.
+- **Une photo ne part pas dans l'album :** elle reste dans la galerie de la personne, qui l'ajoutera en rentrant.
+- **Plus de réseau du tout :** lance le diaporama de l'album préparé la veille (étape 3). Il marche hors ligne.
+
 ## À la fin
 
 1. **Administration**, « Éteindre » le Mode présentation (sur le bandeau ou dans la carte).

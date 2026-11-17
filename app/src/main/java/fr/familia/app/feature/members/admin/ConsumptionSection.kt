@@ -73,12 +73,15 @@ private fun GaugeLine(gauge: Consumption.Gauge) {
             Consumption.Limit.Writes -> R.string.consumption_writes
             Consumption.Limit.Deletes -> R.string.consumption_deletes
             Consumption.Limit.Storage -> R.string.consumption_storage
+            Consumption.Limit.Photos -> R.string.consumption_photos
+            Consumption.Limit.Downloads -> R.string.consumption_downloads
         },
     )
-    val figures = if (gauge.limit == Consumption.Limit.Storage) {
-        stringResource(R.string.consumption_storage_figures, integer(gauge.used / (1024 * 1024)))
-    } else {
-        stringResource(R.string.consumption_figures, integer(gauge.used), integer(gauge.limit.free))
+    val figures = when (gauge.limit) {
+        Consumption.Limit.Storage -> stringResource(R.string.consumption_storage_figures, integer(gauge.used / (1024 * 1024)))
+        Consumption.Limit.Photos -> stringResource(R.string.consumption_photos_figures, megabytes(gauge.used))
+        Consumption.Limit.Downloads -> stringResource(R.string.consumption_downloads_figures, megabytes(gauge.used))
+        else -> stringResource(R.string.consumption_figures, integer(gauge.used), integer(gauge.limit.free))
     }
     val percent = (gauge.share * 100).roundToInt()
     val color = if (gauge.near) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
@@ -94,6 +97,9 @@ private fun GaugeLine(gauge: Consumption.Gauge) {
 
 private fun integer(n: Long): String = NumberFormat.getIntegerInstance(Locale.FRANCE).format(n)
 
+/** Cloud Storage counts in decimal megabytes. */
+private fun megabytes(bytes: Long): String = integer(bytes / 1_000_000)
+
 /** Fictional figures for previews and screenshots. */
 internal fun previewConsumption(): ConsumptionCard = ConsumptionCard.Ready(
     Consumption(
@@ -102,6 +108,8 @@ internal fun previewConsumption(): ConsumptionCard = ConsumptionCard.Ready(
         writes = 1_850,
         deletes = 40,
         storageBytes = 12L * 1024 * 1024,
+        photoBytes = 86_000_000,
+        monthDownloadBytes = 1_200_000_000,
         monthCost = 0.0,
     ),
 )
