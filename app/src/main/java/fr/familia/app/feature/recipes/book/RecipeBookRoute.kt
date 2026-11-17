@@ -45,6 +45,9 @@ fun RecipeBookRoute(container: AppContainer?, currentMember: Member, onBack: () 
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val made by viewModel.made.collectAsStateWithLifecycle()
     val chooser = stringResource(R.string.recipe_book_share_chooser)
+    // The share sheet reads the file after we hand it over, so it cannot go at once: an old book
+    // is removed the next time the screen opens, and at most one is kept in the cache.
+    LaunchedEffect(Unit) { withContext(Dispatchers.IO) { oldBooks(app).forEach { it.delete() } } }
     LaunchedEffect(made) {
         made?.let { file ->
             sharePdf(context, file, chooser)
@@ -71,11 +74,16 @@ private suspend fun printBook(context: Context, content: BookContent, container:
         servings = { res.getQuantityString(R.plurals.recipe_servings, it, it) },
     )
     val folder = File(context.cacheDir, "shares").apply { mkdirs() }
+    oldBooks(context).forEach { it.delete() }
     val file = File(folder, bookFileName(content.year))
     val storage = container?.photoStorage
     writeRecipeBook(content, labels, file) { path -> storage?.bytes(path) }
     file
 }
+
+/** The books left in the cache folder shares/ by an earlier « Faire le livre ». */
+private fun oldBooks(context: Context): List<File> =
+    File(context.cacheDir, "shares").listFiles { f -> f.name.startsWith("livre-de-recettes-") && f.name.endsWith(".pdf") }?.toList().orEmpty()
 
 /** Opens the share sheet of Android: save it, print it or send it. */
 private fun sharePdf(context: Context, file: File, chooserTitle: String) {
