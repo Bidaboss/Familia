@@ -44,6 +44,19 @@ class TripRightsTest {
     }
 
     @Test
+    fun `picked by household, a newcomer follows, and a participant always stays a follower`() {
+        val form = fr.familia.app.feature.trips.edit.TripForm(participantIds = setOf("adult1"), readerIds = setOf("adult1"))
+            .withParticipantSet(setOf("adult1", "adult2", "kid2"))
+        assertEquals(setOf("adult1", "adult2", "kid2"), form.participantIds)
+        assertEquals(setOf("adult1", "adult2", "kid2"), form.readerIds)
+        // Unticked from the trip, adult2 still follows it.
+        val fewer = form.withParticipantSet(setOf("adult1", "kid2"))
+        assertTrue("adult2" in fewer.readerIds)
+        // Unticking the whole household of followers keeps those who take part.
+        assertEquals(setOf("adult1", "kid2"), fewer.withReaderSet(emptySet()).readerIds)
+    }
+
+    @Test
     fun `only an adult creates a trip`() {
         assertTrue(canCreateTrip(TestFamily.adult))
         assertTrue(canCreateTrip(TestFamily.admin))
