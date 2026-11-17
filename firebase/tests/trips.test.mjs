@@ -335,6 +335,16 @@ describe('trip photos (récit 15)', () => {
     await assertFails(setDoc(doc(db, 'trips/t1/photos/adult3_2'), photo(NEIGHBOUR, 2.5)));
   });
 
+  test('a photo may say when it was taken, never in the future nor before 2001', async () => {
+    const db = as(env, NEIGHBOUR);
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/photos/adult3_1'), photo(NEIGHBOUR, 1, { takenAt: Timestamp.fromDate(new Date('2025-08-04T16:30:00Z')) })));
+    await assertFails(setDoc(doc(db, 'trips/t1/photos/adult3_2'), photo(NEIGHBOUR, 2, { takenAt: Timestamp.fromMillis(Date.now() + 2 * 86400000) })));
+    // A phone a few minutes ahead of the server still sends the photo of the meal.
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/photos/adult3_5'), photo(NEIGHBOUR, 5, { takenAt: Timestamp.fromMillis(Date.now() + 5 * 60000) })));
+    await assertFails(setDoc(doc(db, 'trips/t1/photos/adult3_3'), photo(NEIGHBOUR, 3, { takenAt: Timestamp.fromDate(new Date('1999-12-31T00:00:00Z')) })));
+    await assertFails(setDoc(doc(db, 'trips/t1/photos/adult3_4'), photo(NEIGHBOUR, 4, { takenAt: '2025-08-04' })));
+  });
+
   test('a photo is signed by its author, never in the name of someone else, and never edited', async () => {
     await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult1_1'), photo(ADULT, 1)));
     await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/photos/adult3_1'), photo(NEIGHBOUR, 1, { authorName: 'Lou' })));

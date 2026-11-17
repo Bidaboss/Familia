@@ -19,6 +19,8 @@ data class AlbumPhoto(
     val slot: Int,
     /** Null just after this phone sent it, until the server time arrives. */
     val createdAt: Instant?,
+    /** When it was taken, from the EXIF of the file sent; null for older photos or without EXIF. */
+    val takenAt: Instant? = null,
 ) {
     val id: String get() = photoId(authorId, slot)
     val photoPath: String get() = "$folder/$authorId/$slot.jpg"
@@ -35,6 +37,9 @@ data class AlbumPhoto(
     }
 }
 
+/** The day it was taken, else the day it was added (récit 36). */
+val AlbumPhoto.shotAt: Instant? get() = takenAt ?: createdAt
+
 /** Newest first; a photo just sent from this phone, with no server time yet, comes first. */
 val albumPhotoOrder: Comparator<AlbumPhoto> =
     compareByDescending<AlbumPhoto> { it.createdAt ?: Instant.MAX }.thenBy { it.id }
@@ -46,6 +51,9 @@ interface AlbumPhotoRepository {
 
     /** Records a photo whose files are already in Storage, signed by [me]. */
     suspend fun addPhoto(folder: String, slot: Int, me: Member)
+
+    /** The same, with the moment it was taken when the file said so. */
+    suspend fun addPhoto(folder: String, slot: Int, me: Member, takenAt: Instant?) = addPhoto(folder, slot, me)
 
     /** Removes the record of a photo. The caller removes its two files from Storage first. */
     suspend fun deletePhoto(photo: AlbumPhoto)
