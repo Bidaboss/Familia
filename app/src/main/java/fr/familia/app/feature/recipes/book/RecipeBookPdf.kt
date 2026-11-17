@@ -1,17 +1,23 @@
 package fr.familia.app.feature.recipes.book
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
-import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
+import fr.familia.app.core.print.PRINT_CLAY
+import fr.familia.app.core.print.PRINT_CLAY_DEEP
+import fr.familia.app.core.print.PRINT_INK
+import fr.familia.app.core.print.PRINT_INK_SOFT
+import fr.familia.app.core.print.PRINT_PAPER
+import fr.familia.app.core.print.PRINT_STEAM
+import fr.familia.app.core.print.decodeForPrint
+import fr.familia.app.core.print.drawCroppedPhoto
 import java.io.File
 import java.io.FileOutputStream
 
@@ -41,12 +47,12 @@ private const val PHOTO_HEIGHT = 190f
 private const val COVER_PHOTO_HEIGHT = 250f
 
 // Warm Argile colours, fixed so the printed book looks the same in light and dark theme.
-private const val INK = 0xFF2B2420.toInt()
-private const val INK_SOFT = 0xFF6B5A4E.toInt()
-private const val PAPER = 0xFFFDF8F2.toInt()
-private const val CLAY = 0xFFF3E1CF.toInt()
-private const val CLAY_DEEP = 0xFFC9764B.toInt()
-private const val STEAM = 0xFF8A5A3B.toInt()
+private const val INK = PRINT_INK
+private const val INK_SOFT = PRINT_INK_SOFT
+private const val PAPER = PRINT_PAPER
+private const val CLAY = PRINT_CLAY
+private const val CLAY_DEEP = PRINT_CLAY_DEEP
+private const val STEAM = PRINT_STEAM
 
 /** Writes the book to [file]. [photo] gives the bytes of a photo, or null when it cannot be read. */
 suspend fun writeRecipeBook(content: BookContent, labels: BookLabels, file: File, photo: suspend (path: String) -> ByteArray?) {
@@ -81,13 +87,7 @@ suspend fun writeRecipeBook(content: BookContent, labels: BookLabels, file: File
 }
 
 /** A photo of the app is at most 512 Ko; a quarter of its size is plenty for an A5 page. */
-private fun decode(bytes: ByteArray): Bitmap? {
-    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
-    var sample = 1
-    while (bounds.outWidth / (sample * 2) >= 900) sample *= 2
-    return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })
-}
+private fun decode(bytes: ByteArray): Bitmap? = decodeForPrint(bytes)
 
 /** A line of the contents: a part's name, or a recipe and its page. */
 private sealed interface ContentsRow {
@@ -274,17 +274,8 @@ private class Pages(private val content: BookContent, private val labels: BookLa
     }
 
     /** The photo, cropped to fill [area], with rounded corners. */
-    private fun drawPhoto(canvas: Canvas, photo: Bitmap, area: RectF) {
-        val scale = maxOf(area.width() / photo.width, area.height() / photo.height)
-        val w = (area.width() / scale).toInt()
-        val h = (area.height() / scale).toInt()
-        val left = (photo.width - w) / 2
-        val top = (photo.height - h) / 2
-        canvas.save()
-        canvas.clipPath(Path().apply { addRoundRect(area, 14f, 14f, Path.Direction.CW) })
-        canvas.drawBitmap(photo, Rect(left, top, left + w, top + h), area, Paint(Paint.FILTER_BITMAP_FLAG))
-        canvas.restore()
-    }
+    private fun drawPhoto(canvas: Canvas, photo: Bitmap, area: RectF) =
+        drawCroppedPhoto(canvas, photo, area, Path().apply { addRoundRect(area, 14f, 14f, Path.Direction.CW) })
 
     /** A bowl on a clay background with a little steam: in place of a photo. */
     private fun drawIllustration(canvas: Canvas, area: RectF) {
