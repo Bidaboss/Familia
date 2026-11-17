@@ -3,7 +3,7 @@
 // Firestore, sends and deletes in Storage.
 
 import { FieldValue, Timestamp, type Firestore } from 'firebase-admin/firestore';
-import { deliver } from './prefs';
+import { deliver, noticeTime } from './prefs';
 
 export interface GoodNewsData {
   text: string;
@@ -135,7 +135,7 @@ async function loadMembers(db: Firestore): Promise<GoodNewsMember[]> {
   }));
 }
 
-export async function onGoodNewsPublished(db: Firestore, send: GoodNewsSender, id: string, n: GoodNewsData, now: Date = new Date()): Promise<number> {
+export async function onGoodNewsPublished(db: Firestore, send: GoodNewsSender, id: string, n: GoodNewsData, now: Date = noticeTime()): Promise<number> {
   const members = await loadMembers(db);
   // During the mode présentation, only the admin principal's good news rings at once (récit 48).
   const owner = (await db.doc('config/family').get()).get('ownerMemberId');
