@@ -137,9 +137,14 @@ async function loadMembers(db: Firestore): Promise<GoodNewsMember[]> {
 
 export async function onGoodNewsPublished(db: Firestore, send: GoodNewsSender, id: string, n: GoodNewsData, now: Date = new Date()): Promise<number> {
   const members = await loadMembers(db);
+  // During the mode présentation, only the admin principal's good news rings at once (récit 48).
+  const owner = (await db.doc('config/family').get()).get('ownerMemberId');
+  const fromOwner = typeof owner === 'string' && owner === n.authorId;
   let sent = 0;
   // The switch « Bonnes nouvelles » is read by deliver (récit 6 quinquies), like every family.
-  for (const { recipientIds, notice } of goodNewsMessages(id, n, members)) sent += await deliver(db, send, recipientIds, notice, now);
+  for (const { recipientIds, notice } of goodNewsMessages(id, n, members)) {
+    sent += await deliver(db, send, recipientIds, fromOwner ? { ...notice, fromOwner } : notice, now);
+  }
   return sent;
 }
 

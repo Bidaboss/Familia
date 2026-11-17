@@ -678,6 +678,8 @@ Avec le compte de l'admin principal, plus deux autres comptes qui n'ont pas enco
 5. Touche « Éteindre », sur le bandeau ou dans la carte. **Attendu :** en moins d'une minute, chacun reçoit une seule notification « 2 personnes ont rejoint Familia », avec les deux prénoms. Le bandeau disparaît.
 6. Rallume le mode pour 2 h et laisse passer l'heure de fin. **Attendu :** le bandeau disparaît de lui-même. Le résumé part au premier envoi qui suit l'heure de fin, ou au plus tard 30 minutes après.
 7. Avec un compte qui n'est pas l'admin principal, et dans « Voir comme » : **Attendu :** ni la carte ni le bandeau.
+8. Mode allumé, avec un autre compte : publie une bonne nouvelle, commente un événement et demande un coup de main. **Attendu :** aucun téléphone ne sonne. À l'extinction, chacun reçoit un résumé « Pendant la présentation » par sorte d'avis.
+9. Mode allumé, avec le compte de l'admin principal : publie une bonne nouvelle avec une photo. **Attendu :** elle sonne tout de suite sur les téléphones de la famille.
 
 ## Le planning dans mon agenda (récit 49)
 

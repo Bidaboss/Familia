@@ -134,6 +134,26 @@ describe('sending, against the emulator', () => {
     assert.equal((await db.collection('members').doc('noe').collection('devices').get()).size, 0);
   });
 
+  test('mode présentation: only the good news of the admin principal rings at once, the others wait for the summary', async () => {
+    await db.recursiveDelete(db.collection('presentationQueue'));
+    await db.doc('config/family').set({ ownerMemberId: 'jules' }, { merge: true });
+    await db.doc('config/presentation').set({ on: true, until: null });
+    const meal = new Date('2026-11-21T13:00:00Z');
+    try {
+      const sent: string[] = [];
+      const send: GoodNewsSender = async (token) => { sent.push(token); return 'ok'; };
+      await onGoodNewsPublished(db, send, 'n1', news(), meal);
+      assert.deepEqual(sent, []);
+      assert.equal((await db.collection('presentationQueue').doc('jules').get()).get('items').length, 1);
+
+      await onGoodNewsPublished(db, send, 'n2', news({ authorId: 'jules', authorName: 'Jules', forMemberId: 'jules' }), meal);
+      assert.deepEqual(sent, ['phone-camille', 'phone-noe']);
+    } finally {
+      await db.doc('config/presentation').delete();
+      await db.recursiveDelete(db.collection('presentationQueue'));
+    }
+  });
+
   test('a grouped notice an hour after the first reaction, once per reactor, and gone with the post', async () => {
     await db.recursiveDelete(db.collection('goodNews'));
     await db.recursiveDelete(db.collection('goodNewsDigests'));

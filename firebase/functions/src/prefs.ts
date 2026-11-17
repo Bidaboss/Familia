@@ -55,6 +55,8 @@ export interface Filtered {
   direct?: boolean;
   /** A reaction (« Inès a réagi »): held during the mode présentation like the arrivals. */
   reaction?: boolean;
+  /** Sent by the admin principal (a good news of the meal): rings even during the mode présentation. */
+  fromOwner?: boolean;
 }
 
 export interface Prefs {
@@ -147,10 +149,13 @@ export function isPresenting(p: Presentation, now: Date): boolean {
 }
 
 /** Channels that wait during the mode présentation; joinMe, feedback and admin never wait. */
-const HELD_WHILE_PRESENTING: ReadonlySet<Channel> = new Set<Channel>(['welcome', 'gifts', 'capsules']);
+// While the whole family tries the app at the same table, what everyone posts waits for the summary
+// (coups de main, comments, good news). Only the admin principal's good news rings at once.
+const HELD_WHILE_PRESENTING: ReadonlySet<Channel> = new Set<Channel>(['welcome', 'gifts', 'capsules', 'helpRequests', 'comments', 'goodNews']);
 
 export function heldByPresentation(notice: Filtered): boolean {
   if (notice.channel === 'joinMe' || notice.channel === 'feedback' || notice.channel === 'admin') return false;
+  if (notice.channel === 'goodNews' && notice.fromOwner === true) return false;
   return HELD_WHILE_PRESENTING.has(notice.channel) || notice.reaction === true;
 }
 
