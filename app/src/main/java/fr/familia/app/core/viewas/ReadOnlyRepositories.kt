@@ -354,6 +354,9 @@ class ReadOnlyAppConfigRepository(private val inner: AppConfigRepository, privat
     override suspend fun fetchAppConfig(): AppConfig = inner.fetchAppConfig()
     override suspend fun setFeature(key: String, enabled: Boolean) = guard.refuse()
     override suspend fun setDiscoverOrder(keys: List<String>) = guard.refuse()
+    override fun observePresentation(): Flow<fr.familia.app.core.model.PresentationMode?> = inner.observePresentation()
+    override suspend fun startPresentation(until: java.time.Instant?, now: java.time.Instant) = guard.refuse()
+    override suspend fun stopPresentation() = guard.refuse()
 }
 
 /**
