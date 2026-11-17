@@ -50,6 +50,7 @@ import { queueAlbumInvitations } from './albumInvites';
 import { deleteDigestOf, sendDigests } from './digest';
 import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { sendWeeklyRecap } from './recap';
+import { reportOrphanGoodNewsPhotos, type StoredFile } from './orphanPhotos';
 import { deleteQuietQueueOf, presentationFrom, presentingNow, sendHeldNotices, sendPresentationHeld } from './prefs';
 import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type BirthdayCard } from './birthdayWishes';
 import { deleteWelcomeOf, isFirstSignIn, welcomeMember } from './welcome';
@@ -775,5 +776,24 @@ export const calendarFeed = onRequest({ cors: false }, async (req, res) => {
   } catch (e) {
     console.error('calendarFeed', e);
     res.status(500).send('');
+  }
+});
+
+// Note C de #263 : chaque dimanche à 4 h, la liste des photos de bonnes nouvelles reliées à rien.
+// Lecture seule : rien n'est supprimé avant le 21/11.
+export const orphanPhotosReport = onSchedule({ schedule: '0 4 * * 0', timeZone: 'Europe/Paris' }, async () => {
+  const bucket = getStorage().bucket();
+  const listFiles = async (prefix: string): Promise<StoredFile[]> => {
+    const [files] = await bucket.getFiles({ prefix });
+    return files.map((f) => ({
+      name: f.name,
+      updated: new Date(f.metadata.updated ?? f.metadata.timeCreated ?? 0),
+      size: Number(f.metadata.size ?? 0),
+    }));
+  };
+  try {
+    await reportOrphanGoodNewsPhotos(getFirestore(), listFiles, new Date());
+  } catch (e) {
+    console.error('orphanPhotos', e);
   }
 });
