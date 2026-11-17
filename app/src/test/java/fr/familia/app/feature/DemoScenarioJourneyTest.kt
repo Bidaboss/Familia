@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.AlbumPhotoRepository
@@ -230,7 +231,8 @@ class DemoScenarioJourneyTest {
             }
         }
         waitForText("Publier pour toute la famille")
-        compose.onNodeWithText("Publier pour toute la famille").performClick()
+        // The button is under the photos and the pickers: scrolled to, as a finger would.
+        compose.onNodeWithText("Publier pour toute la famille").performScrollTo().performClick()
 
         compose.waitUntil(TIMEOUT) { edit.uiState.value == GoodNewsEditUiState.Done }
         val news = repo.published.single()
