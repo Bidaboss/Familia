@@ -40,6 +40,7 @@ import fr.familia.app.core.model.GenealogyTree
 import fr.familia.app.core.model.KinLink
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
+import fr.familia.app.core.print.printFailedText
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
@@ -151,7 +152,7 @@ private fun Choosing(state: TreePosterUiState.Choosing, actions: TreePosterActio
         item(key = "make") {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (state.failed) {
-                    Text(stringResource(R.string.tree_poster_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+                    Text(printFailedText(state.problem, R.string.tree_poster_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
                 }
                 Button(onClick = actions.onMake, enabled = state.canMake, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                     if (state.isMaking) {
