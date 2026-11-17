@@ -21,6 +21,7 @@ import { deleteLinksOf, removeMemberFromTree } from './genealogy';
 import { checkConsumptionIfDue } from './consumption';
 import { CrashData, onCrashReported } from './crashes';
 import { FeedbackData, onFeedbackChanged, onFeedbackCreated, screenshotToDelete } from './feedback';
+import { deleteEndedGoodDeals, sendGoodDealsSummary } from './goodDeals';
 import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
 import { closeDuePolls, closeEventPolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
 import { cloudMonitoring } from './monitoring';
@@ -90,6 +91,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.birthdayOf ? { birthdayOf: notice.birthdayOf } : {}),
         ...(notice.welcomeOf ? { welcomeOf: notice.welcomeOf } : {}),
         ...(notice.thinkOfMeOf ? { thinkOfMeOf: notice.thinkOfMeOf } : {}),
+        ...(notice.goodDeals ? { goodDeals: notice.goodDeals } : {}),
         ...(notice.tag ? { notificationTag: notice.tag } : {}),
       },
       // A surprise never shows on the lock screen (audit 2.2): only « Familia » and the channel.
@@ -253,6 +255,18 @@ export const helpRequestStillOpen = onSchedule({ schedule: '0 18 * * *', timeZon
   } catch (e) {
     console.error('weekly recap', e);
   }
+  // Bons plans (récit 45): the summary of the day, then the bons plans ended 30 days ago.
+  try {
+    await sendGoodDealsSummary(getFirestore(), send, now);
+    await deleteEndedGoodDeals(getFirestore(), now);
+  } catch (e) {
+    console.error('good deals', e);
+  }
+});
+
+// A bon plan removed (by its author, the admin principal or the cleanup) takes its photo with it.
+export const onGoodDealDeleted = onDocumentDeleted('goodDeals/{dealId}', async (event) => {
+  await getStorage().bucket().deleteFiles({ prefix: `goodDeals/${event.params.dealId}/` });
 });
 
 // Spec, cas limites: a volunteer removed from the family frees their upcoming requests.
