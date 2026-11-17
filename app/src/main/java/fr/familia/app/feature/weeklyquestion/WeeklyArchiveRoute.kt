@@ -10,10 +10,10 @@ import fr.familia.app.core.data.AppContainer
 
 /** Connects « Nos réponses » to its ViewModel. */
 @Composable
-fun WeeklyArchiveRoute(container: AppContainer?, onOpen: (String) -> Unit, onBack: () -> Unit) {
+fun WeeklyArchiveRoute(container: AppContainer?, onOpen: (String) -> Unit, onBack: () -> Unit, onShareGoodNews: (() -> Unit)? = null) {
     val viewModel: WeeklyArchiveViewModel = viewModel(
         factory = viewModelFactory { initializer { WeeklyArchiveViewModel(container?.weeklyQuestionRepository) } },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    WeeklyArchiveScreen(state = state, onOpen = onOpen, onBack = onBack)
+    WeeklyArchiveScreen(state = state, onOpen = onOpen, onBack = onBack, onShareGoodNews = onShareGoodNews)
 }

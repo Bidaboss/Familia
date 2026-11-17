@@ -45,6 +45,11 @@ interface NotificationRepository {
 
     suspend fun setBirthdayWishes(memberId: String, enabled: Boolean) = Unit
 
+    /** « Ma valise » (récit 62): the reminder of the day before a trip, when the bag is not ready. */
+    fun observePackingReminder(memberId: String): Flow<Boolean> = flowOf(true)
+
+    suspend fun setPackingReminder(memberId: String, enabled: Boolean) = Unit
+
     /** The families and the quiet hours (récit 6 quinquies). */
     fun observePrefs(memberId: String): Flow<NotificationPrefs> = flowOf(NotificationPrefs())
 

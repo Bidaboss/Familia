@@ -3,10 +3,12 @@ package fr.familia.app.core.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Event
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -56,6 +58,15 @@ fun EmptyState(
         )
         action?.invoke()
     }
+}
+
+/**
+ * The fallback of a screen with nothing to do yet (a question or a challenge still to come): never
+ * a dead end, the family can always share a bonne nouvelle.
+ */
+@Composable
+fun ShareGoodNewsButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Button(onClick = onClick, modifier = modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.empty_share_good_news)) }
 }
 
 @FamiliaPreviews

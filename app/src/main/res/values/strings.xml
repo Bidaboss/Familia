@@ -889,8 +889,9 @@
     <string name="helprequest_open">ouvrir la demande</string>
     <string name="helprequest_section_open">À prendre</string>
     <string name="helprequest_section_taken">Déjà prises</string>
-    <string name="helprequest_empty_title">Aucun coup de main en cours</string>
-    <string name="helprequest_empty_body">Besoin d\'aide pour garder un enfant ou faire un trajet ? Touche « Demander » et choisis qui prévenir.</string>
+    <string name="helprequest_empty_title">Personne n\'a encore demandé de coup de main</string>
+    <string name="helprequest_empty_body">Un trajet, une garde, un coup de main pour un meuble : la famille est là pour ça.</string>
+    <string name="helprequest_empty_action">Demander le premier</string>
     <string name="helprequest_error_title">Impossible d\'afficher les coups de main</string>
     <string name="helprequest_error_body">L\'appli n\'a pas pu lire les demandes. Réessaie, et si ça continue, préviens un chef de famille.</string>
     <string name="helprequest_by_me">moi</string>
@@ -1014,8 +1015,10 @@
     <string name="goodnews_reaction_wow">la surprise</string>
     <string name="goodnews_reaction_thumbs_up">un pouce levé</string>
     <string name="goodnews_load_more">Voir les plus anciennes</string>
-    <string name="goodnews_empty_title">Pas encore de bonne nouvelle</string>
-    <string name="goodnews_empty_body">Un anniversaire, une réussite, une photo du repas ? Touche « Publier » pour la partager avec toute la famille.</string>
+    <string name="goodnews_empty_title">Le fil attend sa première bonne nouvelle</string>
+    <string name="goodnews_empty_body">Une réussite, une photo du jour, un petit bonheur : toute la famille sera contente de la voir.</string>
+    <string name="goodnews_empty_action">Partager la première</string>
+    <string name="empty_share_good_news">Partager une bonne nouvelle en attendant</string>
     <string name="goodnews_error_title">Impossible d\'afficher les bonnes nouvelles</string>
     <string name="goodnews_error_body">L\'appli n\'a pas pu les lire. Réessaie, et si ça continue, préviens un chef de famille.</string>
     <string name="goodnews_missing_title">Cette bonne nouvelle n\'existe plus</string>
@@ -2410,11 +2413,12 @@
     <string name="lend_owner_me">À moi</string>
     <string name="lend_search">Chercher un objet</string>
     <string name="lend_filter_available">Disponible</string>
-    <string name="lend_none">Aucun objet ne correspond.</string>
+    <string name="lend_none">Rien ne correspond à ta recherche.</string>
     <string name="lend_add">Ajouter un objet</string>
     <string name="lend_open">Ouvrir l\'objet</string>
     <string name="lend_empty_title">Rien à se prêter pour l\'instant</string>
     <string name="lend_empty_body">L\'appareil à raclette, la remorque, le lit parapluie : ajoute ce que tu veux bien prêter, et la famille saura qui l\'a.</string>
+    <string name="lend_empty_body_child">Ici, les adultes de la famille montrent ce qu\'ils veulent bien prêter : l\'appareil à raclette, la remorque… Reviens bientôt voir !</string>
     <string name="lend_error_title">Les objets ne s\'affichent pas</string>
     <string name="lend_error_body">Vérifie ta connexion, puis réessaie.</string>
     <string name="lend_new_title">Un objet à prêter</string>
@@ -2464,6 +2468,8 @@
     <string name="gooddeal_open">Voir le bon plan</string>
     <string name="gooddeal_empty_title">Pas encore de bon plan</string>
     <string name="gooddeal_empty_body">Une promo, une cueillette, une sortie à ne pas rater ? Partage-la ici. Elle disparaît toute seule à sa date de fin.</string>
+    <string name="gooddeal_empty_body_child">Les adultes de la famille partagent ici leurs promos, cueillettes et sorties. Reviens bientôt voir !</string>
+    <string name="gooddeal_empty_action">Partager le premier</string>
     <string name="gooddeal_error_title">Les bons plans ne s\'affichent pas</string>
     <string name="gooddeal_error_body">Vérifie ta connexion, puis réessaie.</string>
     <string name="gooddeal_missing_title">Ce bon plan n\'est plus là</string>
@@ -2513,7 +2519,7 @@
     <string name="gooddeal_kind_deal">Un bon plan (promo, sortie…)</string>
     <string name="gooddeal_kind_address">Une bonne adresse (médecin, artisan…)</string>
     <string name="gooddeal_address_search">Chercher un nom ou une ville</string>
-    <string name="gooddeal_address_none">Aucune adresse ne correspond.</string>
+    <string name="gooddeal_address_none">Rien ne correspond à ta recherche.</string>
     <string name="gooddeal_open_address">Voir l\'adresse</string>
     <string name="gooddeal_category_health">Santé</string>
     <string name="gooddeal_category_home">Maison et artisans</string>
@@ -2684,6 +2690,8 @@
     <string name="first_steps_photo_failed">La photo n\'a pas pu être enregistrée. Vérifie le réseau, puis réessaie.</string>
     <string name="feature_packing_list">À emporter</string>
     <string name="packing_title">À emporter</string>
+    <string name="notifications_packing">Ma valise</string>
+    <string name="notifications_packing_help">La veille d\'un voyage, à 18 h, s\'il reste des objets à mettre dans ta valise.</string>
     <string name="packing_everyone">Pour tout le monde</string>
     <string name="packing_take">Je m\'en charge</string>
     <string name="packing_release">Je ne peux plus</string>
@@ -2745,8 +2753,10 @@
     <string name="turns_household_removed">Foyer retiré</string>
     <string name="turns_error_title">Impossible d\'afficher les tours</string>
     <string name="turns_error_body">Vérifie le réseau, puis réessaie.</string>
-    <string name="turns_empty_title">Aucun tour pour l\'instant</string>
+    <string name="turns_empty_title">Pas encore de tour</string>
     <string name="turns_empty_body">Qui reçoit à Noël, qui organise les vacances : crée un tour entre les foyers, l\'appli dira à chacun quand c\'est à lui.</string>
+    <string name="turns_empty_body_child">Qui reçoit à Noël, qui organise les vacances : quand les adultes créeront un tour, tu verras ici à qui c\'est.</string>
+    <string name="turns_empty_action">Créer le premier tour</string>
     <string name="turns_create">Créer un tour</string>
     <string name="turns_open">Ouvrir le tour</string>
     <string name="turns_badge_yours">À toi</string>

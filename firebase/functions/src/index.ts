@@ -59,6 +59,7 @@ import { deleteCheersOf, deleteMomentsOf, onMomentCheerCreated, startMoments, ty
 import { keepReceivedPhoto, revealWishes, thankGivers } from './wishesReveal';
 import { migrateToSingleList } from './singleList';
 import { deleteEventReminders, sendMyReminders } from './reminders';
+import { sendPackingReminders } from './packing';
 import { deleteItemPhoto } from './itemPhoto';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
@@ -712,6 +713,12 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
     await sendMyReminders(getFirestore(), send, new Date());
   } catch (e) {
     console.error('myReminders', e);
+  }
+  // And « Ma valise » the day before a trip, from 18 h (récit 62). A failure waits for the next run.
+  try {
+    await sendPackingReminders(getFirestore(), send, new Date());
+  } catch (e) {
+    console.error('packing', e);
   }
   // Also the question of the week, on Monday from 9 h (récit 37): one task less to pay for.
   await publishWeeklyQuestion(getFirestore(), send, new Date());

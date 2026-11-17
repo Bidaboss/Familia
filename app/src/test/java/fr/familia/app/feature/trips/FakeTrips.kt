@@ -44,6 +44,7 @@ class FakeTrips(
     val items = MutableStateFlow(items)
     val savedItems = mutableListOf<Pair<TripItem, Boolean>>()
     val ticked = mutableListOf<Pair<String, Boolean>>()
+    val assigned = mutableListOf<Triple<String, String?, String?>>()
     val deletedItems = mutableListOf<String>()
     val trips = MutableStateFlow(initial)
     val steps = MutableStateFlow(steps)
@@ -100,6 +101,12 @@ class FakeTrips(
     override suspend fun saveItem(tripId: String, item: TripItem, isNew: Boolean) {
         failWith?.let { throw it }
         savedItems += item to isNew
+    }
+
+    override suspend fun setItemAssignee(tripId: String, itemId: String, expectedId: String?, assignee: Member?): Boolean {
+        failWith?.let { throw it }
+        assigned += Triple(itemId, expectedId, assignee?.id)
+        return true
     }
 
     override suspend fun setItemDone(tripId: String, itemId: String, done: Boolean) {
