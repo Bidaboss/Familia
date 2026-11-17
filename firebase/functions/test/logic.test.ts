@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  addDays, changeNotice, changeRecipients, concerns, EventData, formatWhen, hasVisibleChange, Member, parisDay, reminders, RsvpStatus,
+  actorUid, addDays, changeNotice, changeRecipients, concerns, EventData, formatWhen, hasVisibleChange, Member, parisDay, reminders, RsvpStatus,
 } from '../src/logic';
 
 const NBSP = ' ';
@@ -137,4 +137,15 @@ test('« Qui apporte quoi » (récit 4 bis): the reminder says what each one bri
   assert.deepEqual(result.map((r) => r.recipientId), ['camille', 'jade']); // Sam said no; a member who left gets nothing
   assert.equal(result[0].notice.body, `10${NBSP}h${NBSP}00 · Centre aquatique\nTu apportes : Le pain, Le fromage`);
   assert.equal(result[1].notice.body, `10${NBSP}h${NBSP}00 · Centre aquatique\nTu apportes : Les boissons`);
+});
+
+test('the author of a change is read from authId, whatever authType says (« api_key » in production)', () => {
+  assert.equal(actorUid({ authType: 'api_key', authId: 'uid-camille' }), 'uid-camille');
+  assert.equal(actorUid({ authType: 'app_user', authId: 'uid-camille' }), 'uid-camille');
+  assert.equal(actorUid({ authType: 'unauthenticated' }), undefined);
+  assert.equal(actorUid({ authType: 'unknown', authId: '' }), undefined);
+  // So the author of a new event is not told of it.
+  const to = changeRecipients(members, 'camille', event, '2026-12-01');
+  assert.ok(!to.includes('camille'));
+  assert.ok(to.includes('ines'));
 });
