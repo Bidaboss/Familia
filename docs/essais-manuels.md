@@ -882,6 +882,16 @@ Passe chaque étape deux fois : d'abord en mode avion, puis en 2G (réglages du 
 7. Sur « À qui le tour ? », touche « C'est fait » sur un tour où c'est à ton foyer. **Attendu :** le tour passe au foyer suivant avec « En attente du réseau », et les boutons restent utilisables. Au retour du réseau, la mention disparaît, et le foyer suivant reçoit « C'est ton tour » une seule fois.
 8. Remets le réseau normal et rouvre chaque écran. **Attendu :** tout est à jour, sans avoir fermé l'appli.
 
+## Mes premiers pas (récit 61)
+
+Avec l'interrupteur « Mes premiers pas » allumé pour la famille. Éteint, personne ne voit la carte, pas même l'admin principal. Prends un membre qui n'a ni photo, ni « Goûts et passions », ni réaction.
+1. Ouvre l'Accueil. **Attendu :** la carte « Mes premiers pas » juste après la carte du jour, avec trois gestes à faire. Pas de nombre, pas de pourcentage. Avec « Goûts et passions » éteint : deux gestes.
+2. Touche « Mettre ma photo », choisis et cadre une photo. **Attendu :** la photo est enregistrée, et la ligne se coche toute seule.
+3. Touche « Remplir « Goûts et passions » », écris un goût sur ta fiche, reviens. **Attendu :** la ligne est cochée.
+4. Touche « Réagir à une bonne nouvelle », mets un cœur sur une bonne nouvelle, reviens. **Attendu :** la carte dit « Bravo, c'est parti ! ». Le lendemain, ou après « Fermer », elle a disparu.
+5. Sur un autre membre, touche « Plus tard ». **Attendu :** la carte disparaît pour la journée, et revient le lendemain. « Ne plus afficher » : elle ne revient plus sur ce téléphone.
+6. Allume le Mode présentation. **Attendu :** pas de carte. Éteins-le : elle revient. En « Voir comme » : jamais de carte.
+7. Aucune notification n'arrive pour ces gestes. Au bout de 14 jours après sa première apparition sur le téléphone, la carte ne s'affiche plus.
 ## Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible
 
 À faire avec le deuxième téléphone de test, une fois en mode avion, puis une fois en « 2G seulement » (réglages du téléphone, Réseau mobile, Type de réseau préféré), Wi-Fi coupé.
