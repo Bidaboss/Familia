@@ -120,7 +120,14 @@ fun GiftsScreen(
                 }
                 // Once an occasion is chosen, its people come first: the birthdays wait.
                 if (state.moment == null) birthdaysSection(state, onAllBirthdays, onPrepareSurprise)
-                state.sections.forEach { section -> personSection(section, state.today, state.wishPreviews, onOpenList, state.singleList) }
+                state.sections.filter { it.keptByMe }.forEach { section ->
+                    personSection(section, state.today, state.wishPreviews, onOpenList, state.singleList)
+                }
+                // The others under their household, as in the Famille tab.
+                householdRuns(state.sections.filter { !it.keptByMe }).forEach { (name, section) ->
+                    if (name != null) item(key = "household-${section.member.id}") { HouseholdLabel(name) }
+                    personSection(section, state.today, state.wishPreviews, onOpenList, state.singleList)
+                }
                 if (state.archived.isNotEmpty()) archivedSection(state.archived, state.today, onOpenList)
             }
         }

@@ -61,7 +61,8 @@ class WishFromShareTest {
         val state = viewModel("adult1").editing()
         assertEquals(shared, state.form)
         assertNull("« Pour moi » by default", state.targetId)
-        assertEquals(listOf(null, "admin1", "adult2", "kid1", "kid2"), state.targets.map { it.memberId })
+        // By household, as in Famille: « Foyer Deux » (adult2, kid2), then « Foyer Un » (admin1, kid1).
+        assertEquals(listOf(null, "adult2", "kid2", "admin1", "kid1"), state.targets.map { it.memberId })
         assertFalse(state.hiddenFromBeneficiary)
     }
 
