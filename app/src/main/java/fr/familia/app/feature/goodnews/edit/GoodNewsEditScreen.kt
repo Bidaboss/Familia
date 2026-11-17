@@ -55,6 +55,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -66,6 +67,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import fr.familia.app.R
+import fr.familia.app.core.photo.keepPhotoAccess
 import fr.familia.app.core.ui.HouseholdMemberPicker
 import fr.familia.app.core.ui.pickGroups
 import fr.familia.app.core.model.GoodNews
@@ -288,7 +290,9 @@ private fun SendingProgress(state: GoodNewsEditUiState.Editing, onCancel: () -> 
 @Composable
 private fun NewPhotos(state: GoodNewsEditUiState.Editing, onAddPhotos: (List<String>) -> Unit, onRemovePhoto: (String) -> Unit) {
     // The Android photo picker: no permission to ask, and it works on every phone of the family.
+    val context = LocalContext.current
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(GoodNews.PHOTOS_MAX)) { uris ->
+        keepPhotoAccess(context, uris)
         onAddPhotos(uris.map { it.toString() })
     }
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

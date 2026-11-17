@@ -38,6 +38,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.pluralStringResource
@@ -50,6 +51,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import fr.familia.app.R
+import fr.familia.app.core.photo.keepPhotoAccess
 import fr.familia.app.core.model.WEEKLY_ANSWER_MAX
 import fr.familia.app.core.model.WeeklyAnswer
 import fr.familia.app.core.model.WeeklyQuestion
@@ -258,7 +260,11 @@ private fun PhotoPicker(
     onPick: (String) -> Unit,
     onRemove: () -> Unit,
 ) {
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> uri?.let { onPick(it.toString()) } }
+    val context = LocalContext.current
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let { keepPhotoAccess(context, listOf(it)) }
+        uri?.let { onPick(it.toString()) }
+    }
     val description = stringResource(R.string.weekly_photo_description)
     val thumb = Modifier.size(96.dp).clip(MaterialTheme.shapes.medium)
     if (newPhoto != null || (sentId != null && memberId != null)) {

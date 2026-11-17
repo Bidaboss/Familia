@@ -75,6 +75,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.FileProvider
 import fr.familia.app.R
+import fr.familia.app.core.photo.keepPhotoAccess
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.photo.PhotoProcessing
 import fr.familia.app.core.photo.SquareCrop
@@ -107,7 +108,12 @@ fun MemberPhotoEditor(
     val cameraFile = remember { cameraUri(context) }
 
     val gallery = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        if (uri != null) picture = uri else onDismiss()
+        if (uri != null) {
+            keepPhotoAccess(context, listOf(uri))
+            picture = uri
+        } else {
+            onDismiss()
+        }
     }
     val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { taken ->
         if (taken) picture = cameraFile else onDismiss()
