@@ -20,13 +20,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Replay
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -58,6 +52,7 @@ import fr.familia.app.core.theme.dayHeaderTextStyle
 import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.welcome.OpeningStyle
 import fr.familia.app.core.ui.FamiliaPreviews
 import androidx.compose.foundation.isSystemInDarkTheme
 import fr.familia.app.core.theme.ClayTint
@@ -74,8 +69,9 @@ fun AppearanceScreen(
     onBack: () -> Unit,
     icon: AppIcon = AppIcon.Default,
     onChooseIcon: (AppIcon) -> Unit = {},
-    /** « Revoir l'animation de bienvenue », while its module shows; null hides the line. */
-    onReplayWelcome: (() -> Unit)? = null,
+    /** What plays at each opening (Kévin, 17/11): the welcome, the tree, or nothing. */
+    opening: OpeningStyle = OpeningStyle.Long,
+    onChooseOpening: (OpeningStyle) -> Unit = {},
 ) {
     var iconChanged by rememberSaveable { mutableStateOf(false) }
     Scaffold(
@@ -116,13 +112,46 @@ fun AppearanceScreen(
                     }
                 }
             }
-            if (onReplayWelcome != null) {
-                item(key = "welcome") {
-                    OutlinedButton(onClick = onReplayWelcome, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                        Icon(Icons.Outlined.Replay, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.appearance_replay_welcome))
-                    }
+            item(key = "opening") {
+                OpeningSection(opening, onChooseOpening)
+            }
+        }
+    }
+}
+
+/** « Animation d'ouverture »: the welcome (default), the tree alone, or none. */
+@Composable
+internal fun OpeningSection(current: OpeningStyle, onChoose: (OpeningStyle) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+        Text(
+            stringResource(R.string.appearance_opening_title),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.semantics { heading() },
+        )
+        Text(
+            stringResource(R.string.appearance_opening_help),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Column(Modifier.selectableGroup()) {
+            OpeningStyle.entries.forEach { style ->
+                val label = when (style) {
+                    OpeningStyle.Long -> R.string.appearance_opening_long
+                    OpeningStyle.Short -> R.string.appearance_opening_short
+                    OpeningStyle.None -> R.string.appearance_opening_none
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp)
+                        .clip(MaterialTheme.shapes.large)
+                        .selectable(selected = style == current, role = Role.RadioButton) { onChoose(style) }
+                        .padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    RadioButton(selected = style == current, onClick = null)
+                    Text(stringResource(label), style = MaterialTheme.typography.bodyLarge)
                 }
             }
         }

@@ -13,11 +13,31 @@ import kotlin.math.PI
 import kotlin.math.atan2
 
 /**
- * Whether this phone has played the welcome of the first opening (spec DESIGN « animation
- * d'ouverture », 17/11). Kept on the phone only: each phone plays it once, whoever signs in.
+ * What plays at each opening (retour de Kévin, 17/11), chosen in Apparence and kept on the phone.
+ * [Long] is the welcome with the family (the default), [Short] the tree of the start screen alone,
+ * [None] nothing: the app opens as soon as it is ready.
+ */
+enum class OpeningStyle(val key: String) {
+    Long("long"),
+    Short("short"),
+    None("none"),
+    ;
+
+    companion object {
+        fun of(key: String?): OpeningStyle = entries.firstOrNull { it.key == key } ?: Long
+    }
+}
+
+/**
+ * The opening chosen on this phone, and what the welcome last learned (spec DESIGN « animation
+ * d'ouverture », 17/11). Kept on the phone only, whoever signs in.
  */
 class WelcomePreferences(context: Context) {
     private val prefs = context.getSharedPreferences("familia", Context.MODE_PRIVATE)
+
+    var style: OpeningStyle
+        get() = OpeningStyle.of(prefs.getString(STYLE_KEY, null))
+        set(value) = prefs.edit { putString(STYLE_KEY, value.key) }
 
     var seen: Boolean
         get() = prefs.getBoolean(KEY, false)
@@ -31,6 +51,7 @@ class WelcomePreferences(context: Context) {
     private companion object {
         const val KEY = "welcomeAnimationSeen"
         const val OFF_KEY = "welcomeAnimationOff"
+        const val STYLE_KEY = "openingStyle"
     }
 }
 
