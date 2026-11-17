@@ -1440,6 +1440,17 @@
         <item quantity="other">%d nouveautés</item>
     </plurals>
     <string name="home_r1_where">Où je suis</string>
+    <plurals name="members_r1_count">
+        <item quantity="one">Nous %1$d, en %2$s</item>
+        <item quantity="many">Nous %1$d, en %2$s</item>
+        <item quantity="other">Nous %1$d, en %2$s</item>
+    </plurals>
+    <plurals name="members_r1_homes">
+        <item quantity="one">%d foyer</item>
+        <item quantity="many">%d de foyers</item>
+        <item quantity="other">%d foyers</item>
+    </plurals>
+    <string name="members_r1_treasures">Nos trésors</string>
     <string name="all_search">Chercher un module</string>
     <string name="all_none">Aucun module ne porte ce nom.</string>
     <string name="all_family_organise">S\'organiser</string>
