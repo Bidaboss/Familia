@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.MemberPhotoRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Family
+import fr.familia.app.core.model.HouseholdGroup
+import fr.familia.app.core.model.householdGroups
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
@@ -137,27 +139,7 @@ class MembersViewModel(
     companion object {
         const val MAX_HOUSEHOLD_NAME = 40
 
-        private val memberOrder = compareBy<Member>({ it.profile != MemberProfile.Adult }, { it.firstName.lowercase() })
-
-        /**
-         * Households in name order; inside each, adults then children, by first name. Members whose
-         * household does not exist come last, in a group without household ("Autres").
-         */
-        fun group(family: Family): List<HouseholdGroup> {
-            val known = family.households.map { it.id }.toSet()
-            val households = family.households
-                .sortedBy { it.name.lowercase() }
-                .map { household ->
-                    HouseholdGroup(
-                        household = household,
-                        members = family.members.filter { it.householdId == household.id }.sortedWith(memberOrder),
-                    )
-                }
-            val others = HouseholdGroup(
-                household = null,
-                members = family.members.filter { it.householdId !in known }.sortedWith(memberOrder),
-            )
-            return (households + others).filter { it.members.isNotEmpty() }
-        }
+        /** See [householdGroups], shared by every list of members. */
+        fun group(family: Family): List<HouseholdGroup> = householdGroups(family)
     }
 }

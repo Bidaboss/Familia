@@ -5,6 +5,7 @@ import fr.familia.app.core.data.MemberPhotoRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Household
+import fr.familia.app.core.model.HouseholdGroup
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.testing.MainDispatcherRule
