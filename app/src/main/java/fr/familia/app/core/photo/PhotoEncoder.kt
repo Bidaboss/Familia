@@ -10,6 +10,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.time.DateTimeException
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 /**
  * Turns a photo chosen on the phone into the two JPEG files sent to Storage: the photo (longest
@@ -37,6 +44,27 @@ class PhotoEncoder(private val context: Context) {
             }
         } finally {
             source.recycle()
+        }
+    }
+
+    /**
+     * When the photo was taken, read from its EXIF (DateTimeOriginal, with its offset when the
+     * phone wrote one, else the time of France), or null. Only the date is kept, never the place.
+     */
+    suspend fun takenAt(uri: Uri): Instant? = withContext(Dispatchers.IO) {
+        try {
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+                val exif = ExifInterface(stream)
+                exifTakenAt(
+                    exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL) ?: exif.getAttribute(ExifInterface.TAG_DATETIME),
+                    exif.getAttribute(ExifInterface.TAG_OFFSET_TIME_ORIGINAL),
+                )
+            }
+        } catch (e: IOException) {
+            null
+        } catch (e: RuntimeException) {
+            // A damaged EXIF block: the photo still goes, without its date.
+            null
         }
     }
 
@@ -128,4 +156,23 @@ class PhotoEncoder(private val context: Context) {
             bitmap.compress(Bitmap.CompressFormat.JPEG, quality, out)
             out.toByteArray()
         }
+}
+
+private val exifFormat = DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ss")
+
+/** « 2025:08:04 18:30:12 » and « +02:00 » as an instant; null when absent, damaged or after [now]. */
+fun exifTakenAt(dateTime: String?, offset: String?, now: Instant = Instant.now()): Instant? {
+    val local = try {
+        LocalDateTime.parse(dateTime?.trim() ?: return null, exifFormat)
+    } catch (e: DateTimeParseException) {
+        return null
+    }
+    val zone = try {
+        offset?.trim()?.let { ZoneOffset.of(it) } ?: ZoneId.of("Europe/Paris")
+    } catch (e: DateTimeException) {
+        ZoneId.of("Europe/Paris")
+    }
+    val instant = local.atZone(zone).toInstant()
+    // A clock never set (1970, 2000) or a date to come says nothing about the day of the photo.
+    return instant.takeIf { local.year >= 2001 && !it.isAfter(now) }
 }

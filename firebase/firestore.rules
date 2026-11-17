@@ -2394,9 +2394,14 @@ service cloud.firestore {
     // the id of the document is the author and the place (« m1_7 »), so the rules cap the photos
     // per person without counting them. The files are in Storage (firebase/storage.rules), at
     // trips/{tripId}/{authorId}/{slot}.jpg and {slot}-thumb.jpg, sent before this document.
+    // takenAt (récit 36, « Il y a N ans »): optional, when the photo was taken, read by the phone
+    // from the EXIF of the file; never after now, never before 2001 (a clock never set).
     function isValidAlbumPhoto(p, photoId) {
       return p.keys().hasAll(['authorId', 'authorName', 'slot', 'createdAt'])
-        && p.keys().hasOnly(['authorId', 'authorName', 'slot', 'createdAt'])
+        && p.keys().hasOnly(['authorId', 'authorName', 'slot', 'createdAt', 'takenAt'])
+        && (!('takenAt' in p) || (p.takenAt is timestamp
+            && p.takenAt <= request.time
+            && p.takenAt >= timestamp.date(2001, 1, 1)))
         && p.authorId == myMemberId()
         && p.authorName == me().firstName
         && p.slot is int && p.slot >= 1 && p.slot <= 30

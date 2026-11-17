@@ -1,5 +1,6 @@
 package fr.familia.app.core.album
 
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -10,6 +11,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.time.Instant
 
 /** Photo records in `{folder}/photos/{authorId}_{slot}` (docs/data-model.md). */
 class FirestoreAlbumPhotoRepository(private val db: FirebaseFirestore) : AlbumPhotoRepository {
@@ -29,16 +31,18 @@ class FirestoreAlbumPhotoRepository(private val db: FirebaseFirestore) : AlbumPh
         awaitClose { registration.remove() }
     }
 
-    override suspend fun addPhoto(folder: String, slot: Int, me: Member) {
+    override suspend fun addPhoto(folder: String, slot: Int, me: Member) = addPhoto(folder, slot, me, null)
+
+    override suspend fun addPhoto(folder: String, slot: Int, me: Member, takenAt: Instant?) {
+        val record = buildMap<String, Any> {
+            put("authorId", me.id)
+            put("authorName", me.firstName)
+            put("slot", slot)
+            put("createdAt", FieldValue.serverTimestamp())
+            takenAt?.let { put("takenAt", Timestamp(it.epochSecond, 0)) }
+        }
         try {
-            photos(folder).document(AlbumPhoto.photoId(me.id, slot)).set(
-                mapOf(
-                    "authorId" to me.id,
-                    "authorName" to me.firstName,
-                    "slot" to slot,
-                    "createdAt" to FieldValue.serverTimestamp(),
-                ),
-            ).await()
+            photos(folder).document(AlbumPhoto.photoId(me.id, slot)).set(record).await()
         } catch (e: FirebaseFirestoreException) {
             if (e.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) throw PhotoRefusedException(e)
             throw e
@@ -60,6 +64,7 @@ class FirestoreAlbumPhotoRepository(private val db: FirebaseFirestore) : AlbumPh
             authorName = getString("authorName").orEmpty(),
             slot = slot,
             createdAt = getTimestamp("createdAt")?.toDate()?.toInstant(),
+            takenAt = getTimestamp("takenAt")?.toDate()?.toInstant(),
         )
     }
 
