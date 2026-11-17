@@ -27,6 +27,8 @@ class PhotoSizingTest {
     fun `the photo is decoded at a power of two still above 1600 px`() {
         assertEquals(2, PhotoSizing.inSampleSize(4000, 3000, 1600))
         assertEquals(4, PhotoSizing.inSampleSize(8000, 6000, 1600))
+        // A 50 Mpx photo (8160 × 6120) is read at 2040 × 1530: about 12 MB, never 200.
+        assertEquals(4, PhotoSizing.inSampleSize(8160, 6120, 1600))
         assertEquals(1, PhotoSizing.inSampleSize(1600, 1200, 1600))
         assertEquals(1, PhotoSizing.inSampleSize(800, 600, 1600))
         assertTrue(8000 / PhotoSizing.inSampleSize(8000, 6000, 1600) >= 1600)

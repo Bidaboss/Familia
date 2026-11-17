@@ -24,6 +24,7 @@ import fr.familia.app.core.album.AlbumFilmViewModel
 import fr.familia.app.core.album.AlbumPhotosSection
 import fr.familia.app.core.album.AlbumPhotosViewModel
 import fr.familia.app.core.album.AlbumScreen
+import fr.familia.app.core.album.AlbumSends
 import fr.familia.app.core.album.FilmActions
 import fr.familia.app.core.album.book.PhotoBookButton
 import fr.familia.app.core.album.rememberPhotoActions
@@ -55,6 +56,7 @@ fun rememberEventAlbum(container: AppContainer?, currentMember: Member, eventId:
                 currentMemberId = currentMember.id,
                 folder = eventAlbumFolder(eventId),
                 savedState = createSavedStateHandle(),
+                sends = AlbumSends.shared,
             )
         }
     },

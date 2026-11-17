@@ -1,6 +1,9 @@
 package fr.familia.app.core.album
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.photo.PhotoRefusedException
 import fr.familia.app.core.photo.PhotoStorage
@@ -11,12 +14,16 @@ import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.trips.FakeTrips
 import fr.familia.app.feature.trips.photos.tripAlbumRights
 import fr.familia.app.testing.MainDispatcherRule
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -240,5 +247,99 @@ class AlbumPhotosViewModelTest {
         val vm = album("kid1", FakeAlbum(listOf(photo("adult2", 1), photo("adult1", 5), photo("adult2", 3))))
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         assertEquals(listOf("adult1_5", "adult2_3", "adult2_1"), vm.uiState.value.photos.map { it.id })
+    }
+
+    /** Sends each photo only when [gate] lets one through: the test says when a photo is done. */
+    private class GatedUploader(private val failing: Set<String> = emptySet()) : PhotoUploader {
+        val gate = Channel<Unit>(Channel.UNLIMITED)
+        val sent = mutableListOf<String>()
+        override suspend fun upload(source: String, photoPath: String, thumbnailPath: String) {
+            gate.receive()
+            if (source in failing) throw UnreadablePhotoException("a video")
+            sent += source
+        }
+    }
+
+    private fun TestScope.appSends() = AlbumSends(CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher(testScheduler)))
+
+    private fun album(me: String, photos: FakeAlbum, uploader: PhotoUploader, sends: AlbumSends) =
+        AlbumPhotosViewModel(
+            photos,
+            tripAlbumRights(FakeTrips(), FakeMembers(TestFamily.family), "t1", me),
+            uploader,
+            FakeStorage(),
+            me,
+            "trips/t1",
+            sends = sends,
+        )
+
+    @Test
+    fun `30 photos chosen at once go one after the other, and the bar counts them`() = runTest {
+        val photos = FakeAlbum()
+        val uploader = GatedUploader()
+        val sends = appSends()
+        val vm = album("adult2", photos, uploader, sends)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+
+        vm.addPhotos((1..30).map { "content://p$it" })
+        assertEquals(30, vm.uiState.value.sending)
+        assertEquals(0f, vm.uiState.value.sendProgress)
+
+        repeat(10) { uploader.gate.send(Unit) }
+        assertEquals(10, vm.uiState.value.sent)
+        assertEquals(20, vm.uiState.value.sending)
+        assertEquals(1f / 3, vm.uiState.value.sendProgress, 0.001f)
+
+        repeat(20) { uploader.gate.send(Unit) }
+        assertEquals((1..30).toList(), photos.added.map { it.first })
+        assertEquals(0, vm.uiState.value.sending)
+        assertEquals(0, vm.uiState.value.sent)
+        assertNull(vm.uiState.value.problem)
+    }
+
+    @Test
+    fun `a video chosen by mistake among the photos is skipped, the others go`() = runTest {
+        val photos = FakeAlbum()
+        val uploader = GatedUploader(failing = setOf("content://video"))
+        val vm = album("adult2", photos, uploader, appSends())
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+
+        vm.addPhotos(listOf("content://a", "content://video", "content://b"))
+        repeat(3) { uploader.gate.send(Unit) }
+
+        assertEquals(listOf("content://a", "content://b"), uploader.sent)
+        assertEquals(2, photos.added.size)
+        assertEquals(PhotoProblem.Unreadable, vm.uiState.value.problem)
+    }
+
+    @Test
+    fun `leaving the album does not stop the photos, and coming back shows them still going`() = runTest {
+        val photos = FakeAlbum()
+        val uploader = GatedUploader()
+        val sends = appSends()
+        val store = ViewModelStore()
+        val first = album("adult2", photos, uploader, sends)
+        ViewModelProvider(store, object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T = first as T
+        })[AlbumPhotosViewModel::class.java]
+        val collecting = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { first.uiState.collect {} }
+        first.addPhotos(listOf("content://a", "content://b", "content://c"))
+        uploader.gate.send(Unit)
+
+        // The member goes back: the screen and its ViewModel are gone.
+        collecting.cancel()
+        store.clear()
+
+        val again = album("adult2", photos, uploader, sends)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { again.uiState.collect {} }
+        assertEquals(2, again.uiState.value.sending)
+        assertEquals(1, again.uiState.value.sent)
+        // A new choice never takes a place still being sent.
+        again.addPhotos(listOf("content://d"))
+
+        repeat(3) { uploader.gate.send(Unit) }
+        assertEquals(listOf(1, 2, 3, 4), photos.added.map { it.first }.sorted())
+        assertEquals(0, again.uiState.value.sending)
     }
 }

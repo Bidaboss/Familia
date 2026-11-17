@@ -18,6 +18,7 @@ import fr.familia.app.core.album.AlbumFilmPart
 import fr.familia.app.core.album.AlbumFilmViewModel
 import fr.familia.app.core.album.AlbumPhotosViewModel
 import fr.familia.app.core.album.AlbumScreen
+import fr.familia.app.core.album.AlbumSends
 import fr.familia.app.core.album.FilmActions
 import fr.familia.app.core.album.book.PhotoBookButton
 import fr.familia.app.core.album.rememberPhotoActions
@@ -43,6 +44,7 @@ fun rememberTripAlbum(container: AppContainer?, currentMember: Member, tripId: S
                 currentMemberId = currentMember.id,
                 folder = tripAlbumFolder(tripId),
                 savedState = createSavedStateHandle(),
+                sends = AlbumSends.shared,
             )
         }
     },

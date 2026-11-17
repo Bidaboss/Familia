@@ -29,8 +29,17 @@ class PhotoEncoder(private val context: Context) {
 
     /** (photo, thumbnail). Throws [IOException] when the file cannot be read as a picture. */
     suspend fun encodeForUpload(uri: Uri): Pair<ByteArray, ByteArray> = withContext(Dispatchers.IO) {
-        val source = decode(uri)
+        // Short of memory even at a small size: this photo is skipped, the others go on.
         try {
+            encodeNow(uri)
+        } catch (e: OutOfMemoryError) {
+            throw UnreadablePhotoException("Too big for this phone: $uri")
+        }
+    }
+
+    private fun encodeNow(uri: Uri): Pair<ByteArray, ByteArray> {
+        val source = decode(uri)
+        return try {
             val photo = scaled(source, PhotoSizing.PHOTO_MAX_SIDE)
             try {
                 val photoBytes = compress(photo, PhotoSizing.PHOTO_TARGET_BYTES, PhotoSizing.PHOTO_LIMIT_BYTES)
@@ -74,7 +83,7 @@ class PhotoEncoder(private val context: Context) {
      * of « Une idée ? Un souci ? » (récit 6 sexies). Throws [IOException] when it is not a picture.
      */
     suspend fun encodeSingle(uri: Uri, maxSide: Int, target: Int, limit: Int): ByteArray = withContext(Dispatchers.IO) {
-        val source = decode(uri)
+        val source = decode(uri, maxOf(maxSide, 1))
         try {
             val picture = scaled(source, maxSide)
             try {
@@ -87,24 +96,45 @@ class PhotoEncoder(private val context: Context) {
         }
     }
 
-    /** Decodes [uri] a little above 1600 px, turned the right way up. */
-    private fun decode(uri: Uri): Bitmap {
+    /**
+     * Decodes [uri] with its longest side at most [maxSide], turned the right way up. The picture is
+     * made smaller before it is turned, so a 50 Mpx photo never holds more than two small copies in
+     * memory; a phone short of memory gets it at half the size again, rather than a crash.
+     */
+    private fun decode(uri: Uri, maxSide: Int = PhotoSizing.PHOTO_MAX_SIDE): Bitmap {
         val resolver = context.contentResolver
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         // With inJustDecodeBounds the decoder returns null and only fills [bounds].
+        // A video or a file the phone cannot read as a picture has no size: another photo is needed.
         val stream = resolver.openInputStream(uri) ?: throw UnreadablePhotoException("Cannot open $uri")
         stream.use { BitmapFactory.decodeStream(it, null, bounds) }
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) throw UnreadablePhotoException("Not a picture: $uri")
 
-        val options = BitmapFactory.Options().apply {
-            inSampleSize = PhotoSizing.inSampleSize(bounds.outWidth, bounds.outHeight, PhotoSizing.PHOTO_MAX_SIDE)
+        var sample = PhotoSizing.inSampleSize(bounds.outWidth, bounds.outHeight, maxSide)
+        var bitmap: Bitmap? = null
+        for (attempt in 0 until MEMORY_ATTEMPTS) {
+            val options = BitmapFactory.Options().apply { inSampleSize = sample }
+            try {
+                bitmap = resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, options) }
+                break
+            } catch (e: OutOfMemoryError) {
+                sample *= 2
+            }
         }
-        val bitmap = resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, options) }
-            ?: throw UnreadablePhotoException("Not a picture: $uri")
-        val orientation = resolver.openInputStream(uri)?.use {
-            ExifInterface(it).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
-        } ?: ExifInterface.ORIENTATION_NORMAL
-        return rotated(bitmap, orientation)
+        val decoded = bitmap ?: throw UnreadablePhotoException("Not a picture, or too big for this phone: $uri")
+        val orientation = try {
+            resolver.openInputStream(uri)?.use {
+                ExifInterface(it).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+            } ?: ExifInterface.ORIENTATION_NORMAL
+        } catch (e: IOException) {
+            ExifInterface.ORIENTATION_NORMAL
+        } catch (e: RuntimeException) {
+            // A damaged EXIF block: the photo still goes, as it was taken.
+            ExifInterface.ORIENTATION_NORMAL
+        }
+        val small = scaled(decoded, maxSide)
+        if (small !== decoded) decoded.recycle()
+        return rotated(small, orientation)
     }
 
     private fun rotated(bitmap: Bitmap, orientation: Int): Bitmap {
@@ -158,6 +188,9 @@ class PhotoEncoder(private val context: Context) {
             out.toByteArray()
         }
 }
+
+/** Tries to decode a picture, at half the size each time, before giving up on a phone short of memory. */
+private const val MEMORY_ATTEMPTS = 3
 
 private val exifFormat = DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ss")
 
