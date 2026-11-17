@@ -978,5 +978,5 @@ Avec ton téléphone et deux téléphones de test, A et B, déjà connectés. Su
 2. Sur B, rien ne sonne. Ouvre Familia. **Attendu :** la photo est sur l'Accueil, dans « Bonnes nouvelles ».
 3. Sur un troisième téléphone, ou sur B après « Utiliser un autre compte », connecte un membre qui ne s'était jamais connecté, puis finis le tuto. **Attendu :** la photo est sur son Accueil, sans notification.
 4. Mets A en économie d'énergie, écran éteint, et publie une deuxième bonne nouvelle. **Attendu :** A sonne dans la minute.
-5. Sur A, réagis à la photo. Puis, sur ton téléphone, éteins le Mode présentation. **Attendu :** le résumé arrive. Il parle des arrivées et des réactions, jamais de ta photo : elle a déjà sonné, elle ne compte pas deux fois.
+5. Sur A, réagis à la photo. Puis, sur ton téléphone, éteins le Mode présentation. **Attendu :** sur A, le résumé ne parle jamais de ta photo : elle a déjà sonné, elle ne compte pas deux fois.
 
