@@ -32,7 +32,7 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 
 **3. L'Entraide (2 min).** Les coups de main, et les autres rubriques si tu les as allumées.
 
-**4. La Famille (2 min).** Les foyers et les fiches. Montre où se trouve « Vérifier les mises à jour ».
+**4. La Famille (2 min).** Les foyers et les fiches. Puis touche la photo en haut à droite : montre « Vérifier les mises à jour ».
 
 **5. Les Cadeaux (1 min, avec prudence).** Ne montre **pas** ton propre onglet Cadeaux, ni celui d'un autre membre : l'occasion de la personne fêtée et ses réservations y apparaissent. Si tu veux le montrer, passe en « Voir comme » la personne fêtée, comme vérifié la veille. Sinon, explique-le en deux phrases sans l'ouvrir.
 
@@ -52,6 +52,16 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 - **La barre n'avance plus et rien ne bouge depuis une minute :** touche « Annuler l'envoi ». Le texte et la photo restent, rien n'est publié. Passe en 4G, puis touche de nouveau « Publier » : une seule bonne nouvelle partira, et les photos déjà envoyées ne repartent pas.
 - **Un message dit que la bonne nouvelle n'a pas pu être publiée :** touche « OK », puis « Publier » de nouveau. Le texte et la photo sont gardés.
 - **Rien ne passe du tout :** écran tourné vers toi, ferme le formulaire, puis continue la présentation. Garde la photo dans ta galerie et publie-la en rentrant : chacun la recevra ce soir.
+
+## Les petits pièges, et quoi faire
+
+- **Tu touches deux fois un bouton :** un seul écran s'ouvre. Juste après un changement d'écran, un toucher peut ne rien faire pendant moins d'une seconde : touche de nouveau.
+- **En « Voir comme », tu touches « Retour » sur l'Accueil du membre :** Familia ne se ferme pas, un message te rappelle de toucher « Quitter » sur le bandeau.
+- **Le téléphone tourne, ou tu reviens dans Familia après un appel :** le bandeau « Voir comme » reste, un rond tourne un instant, puis l'appli du membre revient, sur son Accueil. Ton propre Accueil ne s'affiche pas.
+- **Ne ferme pas Familia depuis les applis récentes pendant « Voir comme » :** à la réouverture, c'est ton propre Accueil. Si ça arrive, tourne l'écran vers toi et relance « Voir comme ».
+- **Sur l'Accueil d'un membre, ne touche pas la pastille « Anniversaire de … » :** elle ouvre la liste de la personne fêtée, avec ce qui est déjà réservé.
+- **Un téléphone d'enfant suivi par Family Link** peut refuser d'installer une appli qui ne vient pas du Play Store. Essaie avant le 21 sur le téléphone d'un enfant de ton foyer. Si ça bloque le jour J, l'enfant découvre l'appli sur le téléphone d'un parent, et on règle son installation après le repas.
+- **Police très grande chez quelqu'un :** les écrans s'adaptent (essayés jusqu'à 200 %). Si un texte paraît coupé, fais défiler l'écran.
 
 ## Les photos : l'album du repas, le diaporama et l'arbre (3 min, après la photo du repas)
 

@@ -97,6 +97,8 @@ fun ChallengesScreen(
     onJoinChallenge: () -> Unit,
     onPrepareChallenge: (YearMonth) -> Unit,
     onOpenWeekly: () -> Unit,
+    /** Before the first challenge, the fallback « Partager une bonne nouvelle en attendant »; null while Bonnes nouvelles is off. */
+    onShareGoodNews: (() -> Unit)? = null,
 ) {
     Scaffold(
         topBar = {
@@ -112,7 +114,7 @@ fun ChallengesScreen(
             verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
         ) {
             if (tree != null) {
-                item(key = "challenge") { MonthChallengeCard(tree, onJoinChallenge, onPrepareChallenge) }
+                item(key = "challenge") { MonthChallengeCard(tree, onJoinChallenge, onPrepareChallenge, onShareGoodNews) }
             }
             if (weekly != null && weekly !is WeeklyQuestionUiState.Loading) {
                 item(key = "weekly") { WeeklyCard(weekly, onOpenWeekly) }
@@ -141,7 +143,7 @@ private fun Label(text: String, color: Color) {
  * for a challenge of a foyer. Before the first one, the day it starts.
  */
 @Composable
-private fun MonthChallengeCard(state: TreeUiState, onJoin: () -> Unit, onPrepare: (YearMonth) -> Unit) {
+private fun MonthChallengeCard(state: TreeUiState, onJoin: () -> Unit, onPrepare: (YearMonth) -> Unit, onShareGoodNews: (() -> Unit)?) {
     val challenge = state.challenge
     Column(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(ChallengeColors.Ink).padding(20.dp),
@@ -151,6 +153,8 @@ private fun MonthChallengeCard(state: TreeUiState, onJoin: () -> Unit, onPrepare
         if (challenge == null) {
             val none = if (state.month < FIRST_CHALLENGE) R.string.challenges_none else R.string.challenges_none_month
             Text(stringResource(none), color = Color.White, style = MaterialTheme.typography.titleLarge)
+            // Never a dead end: something to do while the challenge waits.
+            if (onShareGoodNews != null) YellowButton(stringResource(R.string.empty_share_good_news), onShareGoodNews)
         } else {
             Text("${challenge.emoji} ${challenge.title}", color = Color.White, style = MaterialTheme.typography.titleLarge)
             Gauge(challenge)

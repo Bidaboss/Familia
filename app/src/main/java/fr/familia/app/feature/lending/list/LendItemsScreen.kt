@@ -97,7 +97,9 @@ fun LendItemsScreen(
                     EmptyState(
                         icon = Icons.Outlined.Category,
                         title = stringResource(R.string.lend_empty_title),
-                        body = stringResource(R.string.lend_empty_body),
+                        // A child cannot add an object (the rules too): the message says who does, with no button.
+                        body = stringResource(if (state.canAdd) R.string.lend_empty_body else R.string.lend_empty_body_child),
+                        action = { if (state.canAdd && onAdd != null) Button(onClick = onAdd, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.lend_add)) } },
                     )
                 } else {
                     // The bottom padding keeps the last card above the « Ajouter un objet » button.
@@ -113,7 +115,7 @@ fun LendItemsScreen(
                     }
                 }
         }
-        if (state is LendItemsUiState.Success && state.canAdd && onAdd != null) {
+        if (state is LendItemsUiState.Success && state.canAdd && onAdd != null && state.hasItems) {
             ExtendedFloatingActionButton(
                 onClick = onAdd,
                 icon = { Icon(Icons.Outlined.Add, contentDescription = null) },

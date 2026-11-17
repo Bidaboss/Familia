@@ -902,6 +902,13 @@ Il faut trois téléphones de test (A, B, C) et le module « La bienvenue » all
 4. Depuis B, publie cinq bonnes nouvelles en quelques minutes. **Attendu :** A reçoit les trois premières, puis plus rien. Une heure environ après la première, A reçoit une seule notification « Dans Familia », « 2 notifications : … ». Pendant ce temps, un « Rejoins-moi » de B arrive tout de suite.
 5. Allume le Mode présentation. Connecte un nouveau membre, publie deux bonnes nouvelles et réagis à une autre depuis B. Éteins le mode. **Attendu :** pendant le mode, rien ne sonne sur A. À la fin, A reçoit au plus trois notifications : « … personnes ont rejoint Familia », une seule « Pendant la présentation » pour tout le reste, et à part une notification Cadeaux s'il y en avait.
 
+## Écrans vides et profils enfant
+
+Sur une famille où rien n'a encore été publié, ou en « Voir comme » sur un membre. Le téléphone a le réseau.
+1. Ouvre Entraide, puis Coups de main, Bons plans, Prêts et À qui le tour ?, puis les Bonnes nouvelles. **Attendu :** chaque écran vide a une phrase et un seul bouton (« Demander le premier », « Partager le premier », « Ajouter un objet », « Créer le premier tour », « Partager la première »). Le bouton flottant n'apparaît pas en plus. Le toucher ouvre le formulaire. Défis et Question de la semaine, avant leur date : « Partager une bonne nouvelle en attendant », qui ouvre le formulaire d'une bonne nouvelle.
+2. Publie une première chose sur chacun. **Attendu :** la liste remplace le message, et le bouton flottant revient.
+3. Recommence en « Voir comme » sur un enfant de 11 ans, puis de 16 ans. **Attendu :** Coups de main et Bonnes nouvelles gardent leur bouton, car un enfant peut demander et publier. Bons plans, Prêts et À qui le tour ? disent que ce sont les adultes qui les remplissent, sans aucun bouton. Aucun bouton ne finit sur un refus.
+
 ## Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible
 
 À faire avec le deuxième téléphone de test, une fois en mode avion, puis une fois en « 2G seulement » (réglages du téléphone, Réseau mobile, Type de réseau préféré), Wi-Fi coupé.
@@ -937,3 +944,18 @@ Le soir du 21, la famille ouvre ces écrans encore vides. Aucun ne doit rester b
    - Recettes et Capsule : le bouton d'ajout est là, puisqu'un enfant peut écrire les siens. Qui est-ce ? n'en montre pas en Voir comme, c'est voulu.
    Un bouton visible qui finirait sur un refus est un défaut : note l'écran et le bouton.
 7. Toucher un bouton en Voir comme donne « Lecture seule en mode Voir comme ». C'est normal : l'essai vérifie seulement quels boutons s'affichent.
+
+## Démo du 21 : double toucher, retour, rotation et retour dans l'appli
+
+Sur ton téléphone, avec la rotation automatique allumée (volet des réglages rapides).
+
+**Double toucher**
+1. Planning, touche deux fois très vite un événement. **Attendu :** il s'ouvre une seule fois : un seul « Retour » ramène au Planning.
+2. Fil des Bonnes nouvelles, touche deux fois très vite « Publier ». **Attendu :** un seul formulaire. Ferme-le : tu es sur le fil, pas sur un deuxième formulaire.
+3. Juste après avoir changé d'onglet, touche tout de suite un bouton. **Attendu :** pendant moins d'une seconde, le toucher peut ne rien faire. Ensuite tout répond normalement.
+
+**« Voir comme »**
+4. **Administration**, « Voir comme… », choisis un membre. Ouvre son Planning, puis tourne le téléphone à l'horizontale, puis à la verticale. **Attendu :** le bandeau « Tu vois l'appli comme … » ne disparaît jamais. Un rond peut tourner un instant sous le bandeau. Ton propre Accueil ne s'affiche à aucun moment.
+5. Toujours en « Voir comme », touche « Accueil » du téléphone, attends une minute, puis rouvre Familia. **Attendu :** le même membre, avec son bandeau, jamais ton propre Accueil.
+6. Toujours en « Voir comme », sur son Accueil, touche « Retour » du téléphone. **Attendu :** l'appli ne se ferme pas, et le message « Pour sortir de « Voir comme », touche « Quitter » sur le bandeau. » s'affiche. Dans un écran ouvert (un événement), « Retour » revient en arrière comme d'habitude.
+7. Touche « Quitter » sur le bandeau. **Attendu :** ton propre appli revient, et « Retour » sur ton Accueil ferme Familia comme avant.

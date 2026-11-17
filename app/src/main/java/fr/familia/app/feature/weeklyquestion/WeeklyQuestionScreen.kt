@@ -1,6 +1,5 @@
 package fr.familia.app.feature.weeklyquestion
 
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -47,6 +46,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import fr.familia.app.R
@@ -61,6 +61,7 @@ import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.ShareGoodNewsButton
 import fr.familia.app.core.ui.formatTime
 import java.time.Instant
 import java.time.ZoneId
@@ -78,6 +79,8 @@ fun WeeklyQuestionScreen(
     onDismissError: () -> Unit,
     onBack: () -> Unit,
     onArchive: () -> Unit = {},
+    /** No question yet: the fallback « Partager une bonne nouvelle en attendant »; null while Bonnes nouvelles is off. */
+    onShareGoodNews: (() -> Unit)? = null,
 ) {
     Scaffold(
         topBar = {
@@ -99,6 +102,7 @@ fun WeeklyQuestionScreen(
                     icon = Icons.Outlined.QuestionAnswer,
                     title = stringResource(R.string.weekly_none_title),
                     body = stringResource(R.string.weekly_none_body),
+                    action = { if (onShareGoodNews != null) ShareGoodNewsButton(onShareGoodNews) },
                 )
                 is WeeklyQuestionUiState.Success -> Content(state, onAnswer, onSkip, onRemove)
             }
