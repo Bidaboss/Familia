@@ -5,6 +5,8 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.semantics.SemanticsActions
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.GiftOccasion
@@ -177,7 +179,8 @@ class ProfileGiftsTest {
     fun `a surprise idea shows on the birthday card and opens the ideas`() {
         val opened = mutableListOf<String>()
         showBirthdays(presenting = false, opened)
-        compose.onNodeWithText("Une surprise est déjà en préparation").performClick()
+        // The link may sit under the bottom edge of the test screen: its action, not a touch.
+        compose.onNodeWithText("Une surprise est déjà en préparation").performSemanticsAction(SemanticsActions.OnClick)
         assertEquals(listOf("ideas-b"), opened)
         compose.onNodeWithText("Préparer une surprise").assertExists()
     }
