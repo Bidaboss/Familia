@@ -28,20 +28,25 @@ fun GiftsRoute(
     onOpenNotebook: (() -> Unit)? = null,
     /** « Mes envies » live on the member's page (retour d'essai, 17/11); null keeps them in the tab. */
     onOpenMyPage: (() -> Unit)? = null,
+    /** « Préparer une surprise » (récit 63): the choice of the person. */
+    onOpenSurprisePicker: () -> Unit = {},
 ) {
     val singleList = LocalFeatureFlags.current.isOn(Feature.SingleList)
     val presentation = LocalFeatureFlags.current.isOn(Feature.PresentationR1bis)
+    // For the whole family only (récit 63): off, the admin principal keeps the tab as it was.
+    val surpriseButton = LocalFeatureFlags.current.isOnForFamily(Feature.SurpriseButton)
     val viewedAs = LocalViewAs.current.viewed
     val context = LocalContext.current
     val visits = remember { GiftSeenPreferences(context.applicationContext) }
     val viewModel: GiftsViewModel = viewModel(
         // A new ViewModel when a switch moves: the lists shown change with it.
-        key = "gifts-$singleList-$presentation",
+        key = "gifts-$singleList-$presentation-$surpriseButton",
         factory = viewModelFactory {
             initializer {
                 GiftsViewModel(
                     container?.giftRepository, container?.memberRepository, currentMember.id,
                     singleList = singleList, presentation = presentation, seen = visits.seen,
+                    surpriseButton = surpriseButton,
                 )
             }
         },
@@ -69,5 +74,6 @@ fun GiftsRoute(
         someListsHidden = viewedAs != null,
         onSelectMoment = viewModel::selectMoment,
         onOpenMyPage = onOpenMyPage,
+        onOpenSurprisePicker = onOpenSurprisePicker,
     )
 }

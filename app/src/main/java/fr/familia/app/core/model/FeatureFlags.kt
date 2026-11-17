@@ -107,6 +107,12 @@ enum class Feature(
      * « Liste unique ». Le serveur ne fait rien avant le 22/11 ni sans « Liste unique » (singleList.ts).
      */
     OldListsCleanup("oldListsCleanup", R.string.feature_old_lists_cleanup),
+    /**
+     * « Préparer une surprise » depuis un seul bouton de Cadeaux, et « Surprises en préparation » en
+     * haut de l'onglet (PRD rév. 287, récit 63). Lu avec isOnForFamily : éteint, même l'admin principal
+     * garde l'écran d'avant.
+     */
+    SurpriseButton("surpriseButton", R.string.feature_surprise_button),
     /** Une photo de couverture sur un événement et une photo sur une envie (PRD, récit 44). */
     MorePhotos("morePhotos", R.string.feature_more_photos),
     /**

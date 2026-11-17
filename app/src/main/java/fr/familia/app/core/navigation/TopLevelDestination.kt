@@ -179,7 +179,12 @@ data class GiftListDestination(val listId: String)
 
 /** Gift list form: a new list when [listId] is null, for [forMemberId] when it is set (a birthday). */
 @Serializable
-data class GiftListEditDestination(val listId: String? = null, val forMemberId: String? = null)
+data class GiftListEditDestination(
+    val listId: String? = null,
+    val forMemberId: String? = null,
+    /** From « Préparer une surprise » (récit 63): the nearest occasion of the person is already chosen. */
+    val nearestOccasion: Boolean = false,
+)
 
 /** Item form of a gift list: a new item when [itemId] is null, filled with a shared link if any. */
 @Serializable
@@ -206,6 +211,10 @@ data class NotebookIdeaDestination(
     /** A new idea from the page of this member (retour d'essai, 17/11). */
     val personId: String? = null,
 )
+
+/** « Préparer une surprise » (récit 63): who the surprise is for. */
+@Serializable
+data object SurprisePickDestination
 
 /** « Proposer à la famille »: a private idea of the notebook becomes a surprise item. */
 @Serializable
