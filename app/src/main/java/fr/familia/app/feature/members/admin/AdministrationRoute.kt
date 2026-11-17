@@ -1,6 +1,7 @@
 package fr.familia.app.feature.members.admin
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -38,6 +39,8 @@ fun AdministrationRoute(
     onOpenFeedback: (() -> Unit)? = null,
     /** « Plantages » (récit 6 sexies, rév. 220). */
     onOpenCrashes: (() -> Unit)? = null,
+    /** « Voir où » under a module switch: the screen that shows it, or null. */
+    seeWhere: (Feature) -> (() -> Unit)? = { null },
 ) {
     val viewModel: AdministrationViewModel = viewModel(
         factory = viewModelFactory {
@@ -79,39 +82,41 @@ fun AdministrationRoute(
     val crashCount by crashKinds.collectAsStateWithLifecycle(initialValue = 0)
     // Only the admin principal opens Administration; the Voir comme copy refuses the write.
     val presentation = rememberPresentation(container, isOwner = true)
-    AdministrationScreen(
-        state = state,
-        onBack = onBack,
-        onRetry = viewModel::retry,
-        onSetChef = viewModel::setChef,
-        onAddHousehold = viewModel::addHousehold,
-        onDeleteHousehold = viewModel::deleteHousehold,
-        onOpenExport = onOpenExport,
-        onOpenUsage = onOpenUsage,
-        actionFailed = failed,
-        onFailureShown = viewModel::failureShown,
-        features = features,
-        onSetFeature = viewModel::setFeature,
-        onRenameHousehold = viewModel::renameHousehold,
-        consumption = consumption,
-        challenges = if (treeOn) challenges else emptyList(),
-        onPickChallenge = if (treeOn) viewModel::pickChallenge else null,
-        capsuleLeftovers = leftovers,
-        onDeleteCapsuleLeftovers = viewModel::deleteCapsuleLeftovers,
-        rotation = rotation,
-        onSaveRotation = if (treeOn) viewModel::saveRotation else null,
-        viewAsMembers = viewAsMembers,
-        onViewAs = startViewAs,
-        // Only the admin principal opens Administration: the name in the message is their own.
-        onShareApp = if (hasInstallLink()) { { shareApp(context, currentMember.firstName) } } else null,
-        onOpenFeedback = onOpenFeedback,
-        feedbackUnseen = newCount(feedback),
-        onOpenCrashes = onOpenCrashes.takeIf { container?.crashRepository != null },
-        crashCount = crashCount,
-        // Shown while « À découvrir » is on (always for the admin principal while in test).
-        discoverOrder = Discover.order(discoverKeys),
-        discoverInTutorial = Discover.inTutorial(flags::isOn),
-        onSaveDiscoverOrder = if (flags.isOn(Feature.Discover)) viewModel::saveDiscoverOrder else null,
-        presentation = presentation?.let { p -> { PresentationSection(p) } },
-    )
+    CompositionLocalProvider(LocalFeatureSeeWhere provides seeWhere) {
+        AdministrationScreen(
+            state = state,
+            onBack = onBack,
+            onRetry = viewModel::retry,
+            onSetChef = viewModel::setChef,
+            onAddHousehold = viewModel::addHousehold,
+            onDeleteHousehold = viewModel::deleteHousehold,
+            onOpenExport = onOpenExport,
+            onOpenUsage = onOpenUsage,
+            actionFailed = failed,
+            onFailureShown = viewModel::failureShown,
+            features = features,
+            onSetFeature = viewModel::setFeature,
+            onRenameHousehold = viewModel::renameHousehold,
+            consumption = consumption,
+            challenges = if (treeOn) challenges else emptyList(),
+            onPickChallenge = if (treeOn) viewModel::pickChallenge else null,
+            capsuleLeftovers = leftovers,
+            onDeleteCapsuleLeftovers = viewModel::deleteCapsuleLeftovers,
+            rotation = rotation,
+            onSaveRotation = if (treeOn) viewModel::saveRotation else null,
+            viewAsMembers = viewAsMembers,
+            onViewAs = startViewAs,
+            // Only the admin principal opens Administration: the name in the message is their own.
+            onShareApp = if (hasInstallLink()) { { shareApp(context, currentMember.firstName) } } else null,
+            onOpenFeedback = onOpenFeedback,
+            feedbackUnseen = newCount(feedback),
+            onOpenCrashes = onOpenCrashes.takeIf { container?.crashRepository != null },
+            crashCount = crashCount,
+            // Shown while « À découvrir » is on (always for the admin principal while in test).
+            discoverOrder = Discover.order(discoverKeys),
+            discoverInTutorial = Discover.inTutorial(flags::isOn),
+            onSaveDiscoverOrder = if (flags.isOn(Feature.Discover)) viewModel::saveDiscoverOrder else null,
+            presentation = presentation?.let { p -> { PresentationSection(p) } },
+        )
+    }
 }

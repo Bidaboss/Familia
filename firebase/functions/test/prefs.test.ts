@@ -3,7 +3,7 @@ import { after, beforeEach, describe, test } from 'node:test';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { Notice } from '../src/logic';
-import { allows, deliver, heldByPresentation, isPresenting, isQuietHour, morningNotices, prefsFrom, presentationNotices, presentingNow, sendHeldNotices, sendPresentationHeld } from '../src/prefs';
+import { allows, burstNotices, capBursts, cappable, deliver, heldByPresentation, isPresenting, isQuietHour, morningNotices, prefsFrom, presentationNotices, presentingNow, sendBurstHeld, sendHeldNotices, sendPresentationHeld } from '../src/prefs';
 import { Sender } from '../src/store';
 
 describe('my notification settings, without the emulator', () => {
@@ -81,7 +81,7 @@ describe('the mode présentation, without the emulator', () => {
     assert.equal(isPresenting({ on: false, until: null }, now), false);
   });
 
-  test('the summary names who arrived, one notice per channel', () => {
+  test('the summary names who arrived, the rest in one notice, a surprise apart', () => {
     const gift: Notice = { channel: 'gifts', title: 'Cadeau réservé', body: '…' };
     const out = presentationNotices([welcome('Inès'), welcome('Sam'), welcome('Noé'), welcome('Lou'), welcome('Jules'), gift]);
     assert.equal(out.length, 2);
@@ -92,6 +92,52 @@ describe('the mode présentation, without the emulator', () => {
     assert.deepEqual(presentationNotices([welcome('Inès')]), [welcome('Inès')]);
     const reactions = presentationNotices([{ channel: 'comments', title: 'Inès a réagi', body: 'a' }, { channel: 'comments', title: 'Sam a réagi', body: 'b' }]);
     assert.equal(reactions[0].title, 'Pendant la présentation');
+    // Avalanche du 21: the good news, the reactions and the coups de main are one notice, not three.
+    const mixed = presentationNotices([
+      { channel: 'goodNews', title: 'Bonne nouvelle de Inès', body: 'a' }, { channel: 'comments', title: 'Sam a réagi', body: 'b' },
+      { channel: 'helpRequests', title: 'Coup de main', body: 'c' }, { channel: 'goodNews', title: 'Bonne nouvelle de Noé', body: 'd' }, gift,
+    ]);
+    assert.deepEqual(mixed.map((n) => n.channel), ['goodNews', 'gifts']);
+    assert.equal(mixed[0].body, '4 notifications : Bonne nouvelle de Inès · Sam a réagi · Coup de main · Bonne nouvelle de Noé');
+    // A grouped bienvenue held by the mode counts each of its names.
+    const grouped = presentationNotices([{ ...welcome('Inès'), title: "Inès et Sam viennent d'arriver", welcomeNames: ['Inès', 'Sam'] } as Notice, welcome('Noé')]);
+    assert.equal(grouped[0].title, '3 personnes ont rejoint Familia');
+  });
+});
+
+describe('the avalanche du 21, without the emulator', () => {
+  test('what waited is one notice; the cards of the day keep the last, a surprise its own channel', () => {
+    const out = burstNotices<Notice>([
+      { channel: 'goodNews', title: 'Bonne nouvelle de Inès', body: 'a' },
+      { channel: 'birthdays', title: 'Joyeux anniversaire !', body: 'Inès t\'a envoyé une carte de vœux.', tag: 'cards' },
+      { channel: 'gifts', title: 'Cadeau réservé', body: '…' },
+      { channel: 'goodNews', title: 'Bonne nouvelle de Noé', body: 'b' },
+      { channel: 'birthdays', title: 'Joyeux anniversaire !', body: 'Inès et Noé t\'ont envoyé une carte de vœux.', tag: 'cards' },
+    ]);
+    assert.equal(out.length, 2);
+    assert.equal(out[0].title, 'Dans Familia');
+    assert.equal(out[0].channel, 'goodNews');
+    assert.equal(out[0].body, '3 notifications : Bonne nouvelle de Inès · Bonne nouvelle de Noé · Joyeux anniversaire !');
+    assert.equal(out[1].channel, 'gifts');
+    const cards = burstNotices<Notice>([
+      { channel: 'birthdays', title: 'Joyeux anniversaire !', body: 'Inès', tag: 'cards' },
+      { channel: 'birthdays', title: 'Joyeux anniversaire !', body: 'Inès et Noé', tag: 'cards' },
+    ]);
+    assert.deepEqual(cards.map((n) => n.body), ['Inès et Noé']);
+    // A turn to take is never lost in the group: it comes first and the group says so.
+    const turn = burstNotices<Notice>([
+      { channel: 'goodNews', title: 'Bonne nouvelle de Inès', body: 'a' },
+      { channel: 'helpRequests', title: "C'est ton tour", body: 'Poubelles', direct: true, turnId: 't1' },
+    ]);
+    assert.equal(turn[0].body, "Une demande attend ta réponse. 2 notifications : C'est ton tour · Bonne nouvelle de Inès");
+    // And it stays aimed at me, so the night does not hold it until 8 h (note C de #295).
+    assert.equal(turn[0].direct, true);
+    assert.equal(burstNotices<Notice>([{ channel: 'goodNews', title: 'a', body: 'a' }, { channel: 'goodNews', title: 'b', body: 'b' }])[0].direct, undefined);
+    assert.equal(cappable({ channel: 'goodNews' }), true);
+    assert.equal(cappable({ channel: 'birthdays', direct: true }), true);
+    for (const never of [{ channel: 'joinMe' }, { channel: 'reminders', direct: true }, { channel: 'feedback' }, { channel: 'admin' }, { channel: 'goodNews', fromOwner: true }] as const) {
+      assert.equal(cappable(never), false);
+    }
   });
 });
 
@@ -113,7 +159,7 @@ describe('my notification settings against the emulator', () => {
   }
 
   beforeEach(async () => {
-    for (const c of ['members', 'quietQueue', 'presentationQueue', 'config']) await db.recursiveDelete(db.collection(c));
+    for (const c of ['members', 'quietQueue', 'presentationQueue', 'config', 'burstQueue', 'notifyLog']) await db.recursiveDelete(db.collection(c));
     const batch = db.batch();
     for (const id of ['camille', 'noe', 'lou']) {
       batch.set(db.doc(`members/${id}`), { firstName: id, profile: 'adult', parentIds: [] });
@@ -220,5 +266,46 @@ describe('my notification settings against the emulator', () => {
     const { sent, send } = fakeSender();
     assert.equal(await sendHeldNotices(db, send, new Date('2026-11-21T11:30:00Z')), 1);
     assert.equal(sent[0].notice.title, "Inès vient d'arriver");
+  });
+  test('no phone rings more than 3 times an hour: the rest goes out grouped, never « Rejoins-moi »', async () => {
+    capBursts(true);
+    try {
+      const { sent, send } = fakeSender();
+      const noon = new Date('2026-11-21T11:00:00Z');
+      for (const name of ['Inès', 'Noé', 'Sam', 'Jules', 'Lou']) {
+        await deliver(db, send, ['camille'], { ...news, title: `Bonne nouvelle de ${name}` }, noon);
+      }
+      assert.equal(sent.length, 3);
+      assert.equal((await db.doc('burstQueue/camille').get()).get('items').length, 2);
+      assert.equal(await deliver(db, send, ['camille'], { channel: 'joinMe', title: 'Noé : rejoins-moi', body: 'Au parc' } as Notice, noon), 1);
+      // Still 3 in the hour: the grouped notice waits.
+      assert.equal(await sendBurstHeld(db, send, new Date('2026-11-21T11:30:00Z')), 0);
+      assert.equal(await sendBurstHeld(db, send, new Date('2026-11-21T12:01:00Z')), 1);
+      assert.equal(sent[4].notice.title, 'Dans Familia');
+      assert.equal(sent[4].notice.body, '2 notifications : Bonne nouvelle de Jules · Bonne nouvelle de Lou');
+      assert.equal((await db.doc('burstQueue/camille').get()).exists, false);
+      // The grouped notice took a place: two more go at once, the third waits.
+      for (const name of ['A', 'B', 'C']) await deliver(db, send, ['camille'], { ...news, title: name }, new Date('2026-11-21T12:02:00Z'));
+      assert.equal(sent.length, 7);
+    } finally {
+      capBursts(false);
+    }
+  });
+
+  test('what waited past the cap waits for the summary during the mode présentation', async () => {
+    capBursts(true);
+    try {
+      const { sent, send } = fakeSender();
+      const noon = new Date('2026-11-21T11:00:00Z');
+      const planning: Notice = { channel: 'events', title: 'Nouvel événement', body: 'Galette' };
+      for (let i = 0; i < 4; i++) await deliver(db, send, ['camille'], { ...planning, title: `É${i}` }, noon);
+      for (let i = 0; i < 2; i++) await deliver(db, send, ['camille'], { ...news, title: `N${i}` }, noon);
+      assert.equal(sent.length, 3);
+      await db.doc('config/presentation').set({ on: true, until: null });
+      assert.equal(await sendBurstHeld(db, send, new Date('2026-11-21T12:01:00Z')), 0);
+      assert.equal((await db.doc('presentationQueue/camille').get()).get('items')[0].title, 'Dans Familia');
+    } finally {
+      capBursts(false);
+    }
   });
 });

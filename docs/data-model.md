@@ -203,11 +203,20 @@ Les notifications gardées pendant les heures calmes d'un membre (`items`, chacu
 
 Pendant que le mode est allumé, `deliver()` garde dans `presentationQueue/{memberId}` (`items`, chacun avec `heldAt`) les arrivées (canal `welcome`), les réactions groupées (`reaction: true`), les cadeaux (`gifts`) et les capsules (`capsules`). « Rejoignez-moi », les retours et l'admin passent toujours, comme tout le reste.
 
-À la fin du mode, la fonction `onPresentationWritten` envoie un résumé par canal et par membre, par exemple « 9 personnes ont rejoint Familia ». La fin arrive de deux façons :
+À la fin du mode, la fonction `onPresentationWritten` envoie à chaque membre au plus trois notifications : les arrivées (« 9 personnes ont rejoint Familia »), tout le reste en une seule « Pendant la présentation », et les cadeaux ou capsules à part sur leur canal privé. La fin arrive de deux façons :
 - l'admin éteint le mode ;
 - un envoi, ou la tâche des 30 minutes, voit que `until` est passé et remet `on: false`.
 
 Le résumé passe par `quietQueue` dans deux cas : la nuit, pour un membre qui a les heures calmes, ou quand il n'a atteint aucun téléphone (il est alors réessayé pendant une journée). Aucune nouvelle tâche planifiée n'est ajoutée. `presentationQueue` part avec le membre, et aucune règle ne l'ouvre.
+
+### `welcomeQueue/family`, `notifyLog/{memberId}` et `burstQueue/{memberId}` (avalanche du 21)
+
+Pour qu'aucun téléphone ne sonne sans arrêt quand toute la famille arrive dans la même heure :
+- **La bienvenue** : `welcomeQueue/family` garde `lastSentAt` (la dernière bienvenue envoyée) et `pending` (les arrivants qui attendent). La première arrivée part tout de suite. Celles des 30 minutes suivantes attendent, puis la tâche des 30 minutes les envoie en une seule notification, « Inès et 3 autres viennent d'arriver ». Chaque arrivant n'entend parler que des autres. Pendant le mode présentation, rien ne passe par cette file : chaque arrivée attend le résumé, comme avant.
+- **Au plus 3 notifications par heure et par membre** : `deliver()` note dans `notifyLog/{memberId}` (`at`, les heures des envois de la dernière heure) ce qui part. Au-delà de 3, la notification attend dans `burstQueue/{memberId}` (`items`, chacun avec `heldAt`). La tâche des 30 minutes l'envoie dès qu'une place se libère, en une seule notification « Dans Familia » qui compte comme un envoi. Une demande qui attend ma réponse (`direct` sur le Planning ou l'Entraide : un passager, un tour, un prêt) passe en tête, et la notification commence par « Une demande attend ta réponse. ». Elle est alors `direct`, et sonne la nuit comme la demande seule l'aurait fait. Deux notifications de même `tag` (les cartes de vœux du jour) ne gardent que la dernière, et une surprise garde son canal privé.
+- Ne sont jamais comptés ni retenus : « Rejoins-moi », les rappels (`reminders`), les retours, l'admin et la bonne nouvelle de l'admin principal (la photo du repas). Ce que la nuit ou le mode présentation retiennent n'est pas compté, ni quand c'est retenu, ni quand ça part (le matin ou à la fin du mode).
+
+Seules les fonctions lisent et écrivent ces trois collections, aucune règle ne les ouvre. `notifyLog` et `burstQueue` partent avec le membre.
 
 ### `weeklyRecaps/{AAAA-MM-JJ}` (récit 36)
 
