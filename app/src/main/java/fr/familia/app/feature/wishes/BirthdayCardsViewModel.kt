@@ -62,8 +62,9 @@ class BirthdayCardsViewModel(
     mayWrite: Boolean = true,
     /** The year of the birthday shown; the last one when null (on the member's page). */
     birthdayYear: Int? = null,
-    private val clock: () -> Instant = Instant::now,
     private val writeTimeoutMillis: Long = WRITE_WAIT_MILLIS,
+    /** Last, so the tests can give it as a trailing lambda. */
+    private val clock: () -> Instant = Instant::now,
 ) : ViewModel() {
     private val year = birthdayYear ?: BirthdayWishes.lastBirthdayYear(person.birthDate, today)
     private val saving = MutableStateFlow(false)

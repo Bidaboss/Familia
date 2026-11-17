@@ -57,8 +57,9 @@ class ThinkOfMeViewModel(
     private val mayWrite: Boolean = true,
     /** Who reads with their own account: [me], or the admin principal in « Voir comme ». */
     readerId: String = me.id,
-    private val clock: () -> Instant = Instant::now,
     private val writeTimeoutMillis: Long = WRITE_WAIT_MILLIS,
+    /** Last, so the tests can give it as a trailing lambda. */
+    private val clock: () -> Instant = Instant::now,
 ) : ViewModel() {
     private val saving = MutableStateFlow(false)
     private val failed = MutableStateFlow(false)
