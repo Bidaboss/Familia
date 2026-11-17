@@ -140,6 +140,8 @@ private suspend fun cachedPhoto(folder: File, photo: AlbumPhoto, storage: PhotoS
         // Removed meanwhile: downloaded again below.
     }
     val bytes = storage?.bytes(photo.photoPath) ?: return null
+    // Capped: a very big album keeps the room of the phone for the PDF itself.
+    if (!PhotoBookCache.hasRoomFor(folder, bytes.size)) return bytes
     try {
         cached.writeBytes(bytes)
     } catch (e: IOException) {

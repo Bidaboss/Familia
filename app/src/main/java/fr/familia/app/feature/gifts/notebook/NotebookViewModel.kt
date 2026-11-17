@@ -280,5 +280,14 @@ internal fun shownEntries(entries: List<NotebookEntry>, singleList: Boolean): Li
         entries.filter { it.itemId?.startsWith(COPIED_ITEM_PREFIX) != true }
     }
 
+/**
+ * « Ce que je lui offre » on the page of [personId] (retour d'essai, 17/11): every gift of the
+ * notebook for them, whatever the occasion, the ones still to give first.
+ */
+internal fun giftsFor(entries: List<NotebookEntry>, personId: String, singleList: Boolean): List<NotebookEntry> =
+    shownEntries(entries, singleList)
+        .filter { it.personId == personId }
+        .sortedWith(compareBy<NotebookEntry> { it.status == GiftStatus.Given }.thenBy { it.title.lowercase() })
+
 /** The items copied by « Liste unique » (firebase/functions/src/singleList.ts). */
 private const val COPIED_ITEM_PREFIX = "from-"

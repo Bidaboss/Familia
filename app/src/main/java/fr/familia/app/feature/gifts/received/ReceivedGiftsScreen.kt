@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Favorite
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -50,6 +49,7 @@ import fr.familia.app.core.photo.CoverBanner
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.gifts.occasionLabel
 import fr.familia.app.feature.trips.joinNames
+import fr.familia.app.core.ui.LoadingState
 
 /** « On m'a offert »: the wishes the family gave, and a « Merci » for each. Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,7 +65,7 @@ fun ReceivedGiftsScreen(state: ReceivedGiftsUiState, onBack: () -> Unit = {}, on
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                ReceivedGiftsUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                ReceivedGiftsUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 ReceivedGiftsUiState.Error -> EmptyState(
                     icon = Icons.Outlined.CardGiftcard,
                     title = stringResource(R.string.received_error_title),

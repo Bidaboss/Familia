@@ -464,6 +464,8 @@ Ce que le membre prévoit d'offrir. Seul ce membre lit et écrit son carnet : ni
 
 Écrit par la fonction seule, jamais lu par l'appli. Une liste n'est copiée que si tous ceux qui liraient sa copie la voient déjà (ses `viewerIds` couvrent toute la famille sauf la personne, les enfants sans l'appli mis à part). Sinon elle reste telle quelle : `status: 'skipped'`, `reason: 'audience'`, `missing` (le nombre de membres qui la verraient en plus). Une liste copiée porte `status: 'copied'`, ou `'partial'` si un article a échoué (il est repris au prochain allumage) : tant que l'interrupteur est allumé, la révélation du matin des anciennes listes la laisse de côté dans les deux cas, puisque ses cadeaux sont dévoilés un par un depuis « Mes envies » et les idées. Champ commun : `at`.
 
+Après le 21 (PRODUIT-58), l'interrupteur `oldListsCleanup`, allumé à la main dans Administration avec « Liste unique », efface les listes `copied` dont chaque article a sa copie (et sa photo quand il en avait une). Rien ne se passe avant le 22/11 (heure de Paris). La marque passe d'abord à `status: 'deleted'` (`deletedAt`) : les articles effacés ne préviennent alors personne, et les anciennes entrées de carnet (`movedTo`) partent aussi. Une liste gardée reçoit `cleanup` : `'item not copied'` ou `'photo not copied'`.
+
 ### `notebooks/{memberId}/budgets/{budgetId}`
 
 Ce que le membre compte dépenser pour une personne et une occasion : `personId` (ou null), `personName`, `occasion`, `year`, `amount` (de 0 exclu à 100 000 euros), `updatedAt`. Seul le membre le lit et l'écrit.
@@ -853,7 +855,7 @@ Droits : les lecteurs du voyage lisent la liste. Les participants, enfants compr
 
 ### `trips/{tripId}/bags/{memberId}` (récit 62, « Ma valise », module `packingList`)
 
-La valise d'un participant pour ce voyage : une liste à cocher privée. Seuls le membre et ses adultes responsables (la valise d'un enfant) la lisent et l'écrivent, et seulement pour un participant du voyage. Ni l'admin principal ni « Voir comme » ne la lisent. Supprimée avec le voyage, et avec le membre quand il est retiré de la famille.
+La valise d'un participant pour ce voyage : une liste à cocher privée. Seuls le membre et ses adultes responsables (la valise d'un enfant) la lisent et l'écrivent, et seulement pour un participant du voyage. Ni l'admin principal ni « Voir comme » ne la lisent. Supprimée avec le voyage, quand le membre est retiré du voyage (fonction `onTripParticipantsChanged`), et avec le membre quand il est retiré de la famille.
 
 | Champ | Type | Description |
 |---|---|---|
@@ -1222,6 +1224,7 @@ L'usage de la base un jour donné, lu une fois chaque matin à partir de 8 h dan
 | `reads`, `writes`, `deletes` | int | Les opérations de la journée, heure de Paris. |
 | `storageBytes` | int ou null | La taille de la base ce jour-là, si Monitoring la donne. |
 | `monthCost` | number | Le coût estimé du mois jusqu'à ce jour, en euros, au-delà des parts gratuites (prix volontairement hauts). |
+| `monthCosts` | map | Le même coût, limite par limite : `reads`, `writes`, `deletes`, `storage`, `photos`, `downloads`, en euros. Absent pour un jour relevé avant le détail : la carte n'affiche alors que le total. |
 | `alerts` | liste | Les limites atteintes à 80 % (`reads`, `writes`, `deletes`, `storage`) et `cost` au-delà de 0,50 €. Une alerte n'est envoyée qu'une fois par jour. |
 | `checkedAt` | timestamp | L'heure du relevé. |
 | `error` | string | `monitoring` quand Monitoring n'a pas pu être lu (rôle « Lecteur Monitoring » manquant, docs/deploiement.md). Les autres champs manquent alors. |

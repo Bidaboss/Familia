@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -43,6 +42,7 @@ import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
+import fr.familia.app.core.ui.LoadingState
 
 /** The recipe book: a search field, the recipes by title, and « Nouvelle recette ». Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,7 +78,7 @@ fun RecipesScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                RecipesUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                RecipesUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 RecipesUiState.Failed -> EmptyState(
                     icon = Icons.Outlined.Restaurant,
                     title = stringResource(R.string.recipes_error_title),

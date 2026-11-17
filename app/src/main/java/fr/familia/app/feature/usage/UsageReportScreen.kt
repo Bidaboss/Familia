@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.QueryStats
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -51,6 +50,7 @@ import fr.familia.app.core.ui.MemberAvatar
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import fr.familia.app.core.ui.LoadingState
 
 /**
  * « Utilisation » (PRD, récit 1 nonies): for the admin principal, the family then each person; for
@@ -70,7 +70,7 @@ fun UsageReportScreen(state: UsageUiState, onRetry: () -> Unit, onBack: () -> Un
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                UsageUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                UsageUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 UsageUiState.Error -> EmptyState(
                     icon = Icons.Outlined.QueryStats,
                     title = stringResource(R.string.usage_error_title),

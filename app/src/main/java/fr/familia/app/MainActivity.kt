@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.familia.app.core.navigation.FamiliaApp
+import fr.familia.app.core.splash.holdStartScreen
 import fr.familia.app.core.photo.LocalOnline
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.viewas.ViewAsHost
@@ -63,6 +64,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        holdStartScreen(restored = savedInstanceState != null)
         // One door for every link (audit): the same in onCreate and onNewIntent.
         if (savedInstanceState == null) open(intent)
         val app = application as FamiliaApplication

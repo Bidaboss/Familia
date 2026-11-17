@@ -198,7 +198,14 @@ data object NotebookDestination
 
 /** A private idea of the notebook: a new one when [entryId] is null, at the occasion chosen on the notebook. */
 @Serializable
-data class NotebookIdeaDestination(val entryId: String? = null, val occasion: String? = null, val year: Int? = null, val bought: Boolean = false)
+data class NotebookIdeaDestination(
+    val entryId: String? = null,
+    val occasion: String? = null,
+    val year: Int? = null,
+    val bought: Boolean = false,
+    /** A new idea from the page of this member (retour d'essai, 17/11). */
+    val personId: String? = null,
+)
 
 /** « Proposer à la famille »: a private idea of the notebook becomes a surprise item. */
 @Serializable

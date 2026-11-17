@@ -9,6 +9,6 @@
     <style name="Theme.Familia" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowSplashScreenBackground">@color/splash_background</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_tree</item>
-        <item name="android:windowSplashScreenAnimationDuration">900</item>
+        <item name="android:windowSplashScreenAnimationDuration">1350</item>
     </style>
 </resources>

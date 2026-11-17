@@ -27,7 +27,6 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
@@ -83,6 +82,7 @@ import fr.familia.app.feature.gifts.parseEuros
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpLink
 import fr.familia.app.feature.help.ScreenHelp
+import fr.familia.app.core.ui.LoadingState
 
 /** What the notebook screen can ask for. */
 data class NotebookActions(
@@ -132,7 +132,7 @@ fun NotebookScreen(state: NotebookUiState, actions: NotebookActions, modifier: M
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                NotebookUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                NotebookUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 NotebookUiState.Error -> EmptyState(
                     icon = Icons.Outlined.CardGiftcard,
                     title = stringResource(R.string.gifts_error_title),
@@ -398,7 +398,7 @@ private fun BudgetDialog(name: String, initial: Double?, onConfirm: (Double?) ->
 }
 
 @Composable
-private fun GiftRow(entry: NotebookEntry, variant: Color, onClick: () -> Unit) {
+internal fun GiftRow(entry: NotebookEntry, variant: Color, onClick: () -> Unit) {
     val details = listOfNotNull(
         statusLabel(entry.status),
         entry.price?.let { formatEuros(it) },
@@ -438,7 +438,7 @@ private fun sourceLabel(source: NotebookSource): String = stringResource(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun StatusSheet(entry: NotebookEntry, actions: NotebookActions, onDismiss: () -> Unit) {
+internal fun StatusSheet(entry: NotebookEntry, actions: NotebookActions, onDismiss: () -> Unit) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         StatusSheetContent(
             entry = entry,

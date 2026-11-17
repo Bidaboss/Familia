@@ -31,7 +31,6 @@ import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -80,6 +79,7 @@ import fr.familia.app.feature.members.MembersViewModel.Companion.MAX_HOUSEHOLD_N
 import fr.familia.app.feature.tree.MonthPick
 import java.time.YearMonth
 import fr.familia.app.core.ui.ClaySpacing
+import fr.familia.app.core.ui.LoadingState
 
 /** The Administration menu of the admin principal (PRD, récit 1 ter). Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -130,6 +130,8 @@ fun AdministrationScreen(
     onSaveDiscoverOrder: ((List<DiscoverModule>) -> Unit)? = null,
     /** « Mode présentation » (récit 48), first of the screen for the day of the demo; hidden when null. */
     presentation: (@Composable () -> Unit)? = null,
+    /** « Liens d'agenda » (audit du 17/11): cut an adult's calendar link; hidden when null. */
+    calendarLinks: (@Composable () -> Unit)? = null,
 ) {
     Scaffold(
         modifier = modifier,
@@ -144,7 +146,7 @@ fun AdministrationScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                AdministrationUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                AdministrationUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 AdministrationUiState.Error -> EmptyState(
                     icon = Icons.Outlined.AdminPanelSettings,
                     title = stringResource(R.string.members_error_title),
@@ -166,7 +168,7 @@ fun AdministrationScreen(
                         onOpenUsage, consumption, challenges, onPickChallenge, capsuleLeftovers, onDeleteCapsuleLeftovers,
                         rotation, onSaveRotation, viewAsMembers, onViewAs, onShareApp, onOpenFeedback, feedbackUnseen,
                         onOpenCrashes, crashCount,
-                        discoverOrder, discoverInTutorial, onSaveDiscoverOrder, presentation,
+                        discoverOrder, discoverInTutorial, onSaveDiscoverOrder, presentation, calendarLinks,
                     )
             }
         }
@@ -214,6 +216,7 @@ private fun ReadyContent(
     discoverInTutorial: Set<DiscoverModule>,
     onSaveDiscoverOrder: ((List<DiscoverModule>) -> Unit)?,
     presentation: (@Composable () -> Unit)?,
+    calendarLinks: (@Composable () -> Unit)?,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
     var choosingViewAs by rememberSaveable { mutableStateOf(false) }
@@ -398,6 +401,7 @@ private fun ReadyContent(
         if (consumption != null) {
             item(key = "consumption") { ConsumptionSection(consumption) }
         }
+        if (calendarLinks != null) item(key = "calendar-links") { calendarLinks() }
         item(key = "backup") {
             HorizontalDivider(Modifier.padding(top = 8.dp))
             Row(
@@ -515,11 +519,33 @@ private fun AdultSwitchRow(row: AdultRow, onSetChef: (Member, Boolean) -> Unit) 
 private fun FeatureSwitchRow(feature: Feature, on: Boolean, onSetFeature: (Feature, Boolean) -> Unit) {
     val name = stringResource(feature.labelRes)
     val seeWhere = LocalFeatureSeeWhere.current(feature)
+    // Erasing the old lists cannot be undone: it is confirmed first.
+    var confirming by rememberSaveable { mutableStateOf(false) }
+    if (confirming) {
+        AlertDialog(
+            onDismissRequest = { confirming = false },
+            title = { Text(stringResource(R.string.old_lists_cleanup_confirm_title)) },
+            text = { Text(stringResource(R.string.old_lists_cleanup_confirm_body)) },
+            confirmButton = {
+                TextButton(
+                    onClick = { onSetFeature(feature, true); confirming = false },
+                    modifier = Modifier.heightIn(min = 56.dp),
+                ) { Text(stringResource(R.string.old_lists_cleanup_confirm), color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirming = false }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.action_keep))
+                }
+            },
+        )
+    }
     Column(Modifier.fillMaxWidth().padding(bottom = 4.dp)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .toggleable(on, role = Role.Switch) { onSetFeature(feature, it) }
+                .toggleable(on, role = Role.Switch) {
+                    if (it && feature == Feature.OldListsCleanup) confirming = true else onSetFeature(feature, it)
+                }
                 .heightIn(min = 56.dp)
                 .padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,

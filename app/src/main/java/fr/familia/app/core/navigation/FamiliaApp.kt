@@ -127,6 +127,7 @@ import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
 import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
 import fr.familia.app.feature.members.profile.MemberProfileRoute
+import fr.familia.app.feature.members.profile.ProfileGiftActions
 import fr.familia.app.feature.weeklyquestion.WeeklyArchiveRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionRoute
 import fr.familia.app.feature.help.LocalOpenHelp
@@ -194,6 +195,8 @@ import fr.familia.app.feature.albums.AlbumsDestination
 import fr.familia.app.feature.albums.AlbumsRoute
 import fr.familia.app.feature.settings.appearance.AppearanceScreen
 import fr.familia.app.core.welcome.WelcomeHost
+import fr.familia.app.core.welcome.WELCOME_OFF_WAIT_MILLIS
+import fr.familia.app.core.welcome.WELCOME_WAIT_MILLIS
 import fr.familia.app.core.welcome.WelcomePreferences
 import fr.familia.app.feature.settings.appearance.ThemePreferences
 import fr.familia.app.core.theme.FamiliaClay
@@ -383,12 +386,20 @@ fun FamiliaApp(
     if (showWelcome && !viewingAs) {
         val welcomeFamily = remember(container) { container?.memberRepository?.observeFamily() }
         val welcomeConfig = remember(container) { container?.appConfigRepository?.observeAppConfig() }
+        // The profile photos already on the phone go in the fruits; the others keep their letters.
+        val welcomePhotos by rememberMemberPhotos(container?.memberPhotoRepository)
         WelcomeHost(
             family = welcomeFamily,
             config = welcomeConfig,
             me = currentMember,
-            onPlayed = { welcome.seen = true },
+            onPlayed = {
+                welcome.seen = true
+                welcome.knownOff = false
+            },
             onDone = { showWelcome = false },
+            photos = welcomePhotos,
+            waitMillis = if (welcome.knownOff) WELCOME_OFF_WAIT_MILLIS else WELCOME_WAIT_MILLIS,
+            onModuleOff = { welcome.knownOff = true },
         )
         return
     }
@@ -1351,6 +1362,7 @@ fun FamiliaApp(
                             } else {
                                 null
                             },
+                            onOpenMyPage = { navController.navigate(MemberProfileDestination(currentMember.id)) },
                         )
                     }
                     composable<NotebookDestination> {
@@ -1388,6 +1400,7 @@ fun FamiliaApp(
                             startOccasion = NotebookOccasion(GiftOccasion.entries.firstOrNull { it.name == route.occasion }, route.year),
                             onDone = { navController.popBackStack() },
                             startBought = route.bought,
+                            startPersonId = route.personId,
                         )
                     }
                     composable<GiftListDestination> { entry ->
@@ -1616,6 +1629,14 @@ fun FamiliaApp(
                             onBack = { navController.popBackStack() },
                             onEdit = { navController.navigate(MemberEditDestination(memberId)) },
                             onOpenRecipes = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipesDestination(memberId)) }) else null,
+                            giftActions = ProfileGiftActions(
+                                onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
+                                onAddWish = { id -> navController.navigate(GiftItemEditDestination(id)) },
+                                onOpenNotebook = { navController.navigate(NotebookDestination) },
+                                onAddIdea = { id -> navController.navigate(NotebookIdeaDestination(personId = id)) },
+                                onEditIdea = { id -> navController.navigate(NotebookIdeaDestination(entryId = id)) },
+                                onProposeIdea = { id -> navController.navigate(ProposeIdeaDestination(id)) },
+                            ),
                         )
                     }
                     composable<WeeklyArchiveDestination> {

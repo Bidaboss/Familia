@@ -26,6 +26,8 @@ fun GiftsRoute(
     onPrepareSurprise: (memberId: String) -> Unit,
     /** Null while the notebook module is off for this member. */
     onOpenNotebook: (() -> Unit)? = null,
+    /** « Mes envies » live on the member's page (retour d'essai, 17/11); null keeps them in the tab. */
+    onOpenMyPage: (() -> Unit)? = null,
 ) {
     val singleList = LocalFeatureFlags.current.isOn(Feature.SingleList)
     val presentation = LocalFeatureFlags.current.isOn(Feature.PresentationR1bis)
@@ -66,5 +68,6 @@ fun GiftsRoute(
         onOpenNotebook = onOpenNotebook?.takeIf { viewedAs == null },
         someListsHidden = viewedAs != null,
         onSelectMoment = viewModel::selectMoment,
+        onOpenMyPage = onOpenMyPage,
     )
 }

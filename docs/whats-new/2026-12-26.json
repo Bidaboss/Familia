@@ -1,0 +1,29 @@
+{
+  "cards": [
+    {
+      "id": "notre-annee",
+      "title": "Notre année en famille",
+      "body": "Voyages, photos et bons moments de l'année se racontent page après page, sur l'Accueil jusqu'au 10 janvier puis sous « Se souvenir ».",
+      "childTitle": "Notre année",
+      "childBody": "Revois les voyages, les photos et les fêtes de l'année en famille, comme dans un petit livre.",
+      "feature": "yearInReview",
+      "open": "home"
+    },
+    {
+      "id": "il-y-a-n-ans",
+      "title": "Il y a un an… ou dix",
+      "body": "Sur l'Accueil, une photo prise ce jour-là il y a un à dix ans revient : touche-la pour rouvrir tout l'album du voyage ou de la fête.",
+      "feature": "yearAgo",
+      "open": "home"
+    },
+    {
+      "id": "a-emporter",
+      "title": "À emporter pour le voyage",
+      "body": "Dans un voyage, « À emporter » : prends en charge ce qui sert à tous, coche ta valise, et un rappel arrive la veille du départ.",
+      "childTitle": "Ta valise",
+      "childBody": "Dans un voyage, coche ce que tu mets dans ta valise : tes parents t'aident à ne rien oublier.",
+      "feature": "packingList",
+      "open": "trips"
+    }
+  ]
+}

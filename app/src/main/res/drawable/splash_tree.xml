@@ -447,7 +447,7 @@
                     android:valueTo="1"
                     android:valueType="floatType"
                     android:startOffset="0"
-                    android:duration="350"
+                    android:duration="525"
                     android:interpolator="@android:interpolator/decelerate_quad" />
                 <objectAnimator
                     android:propertyName="scaleY"
@@ -455,7 +455,7 @@
                     android:valueTo="1"
                     android:valueType="floatType"
                     android:startOffset="0"
-                    android:duration="350"
+                    android:duration="525"
                     android:interpolator="@android:interpolator/decelerate_quad" />
             </set>
         </aapt:attr>
@@ -468,8 +468,8 @@
                     android:valueFrom="0"
                     android:valueTo="1"
                     android:valueType="floatType"
-                    android:startOffset="150"
-                    android:duration="300"
+                    android:startOffset="225"
+                    android:duration="450"
                     android:interpolator="@android:interpolator/decelerate_quad" />
             </set>
         </aapt:attr>
@@ -482,16 +482,16 @@
                     android:valueFrom="0"
                     android:valueTo="1"
                     android:valueType="floatType"
-                    android:startOffset="300"
-                    android:duration="350"
+                    android:startOffset="450"
+                    android:duration="525"
                     android:interpolator="@android:interpolator/overshoot" />
                 <objectAnimator
                     android:propertyName="scaleY"
                     android:valueFrom="0"
                     android:valueTo="1"
                     android:valueType="floatType"
-                    android:startOffset="300"
-                    android:duration="350"
+                    android:startOffset="450"
+                    android:duration="525"
                     android:interpolator="@android:interpolator/overshoot" />
             </set>
         </aapt:attr>
@@ -504,16 +504,16 @@
                     android:valueFrom="0"
                     android:valueTo="1"
                     android:valueType="floatType"
-                    android:startOffset="550"
-                    android:duration="80"
+                    android:startOffset="825"
+                    android:duration="120"
                     android:interpolator="@android:interpolator/overshoot" />
                 <objectAnimator
                     android:propertyName="scaleY"
                     android:valueFrom="0"
                     android:valueTo="1"
                     android:valueType="floatType"
-                    android:startOffset="550"
-                    android:duration="80"
+                    android:startOffset="825"
+                    android:duration="120"
                     android:interpolator="@android:interpolator/overshoot" />
             </set>
         </aapt:attr>
@@ -526,16 +526,16 @@
                     android:valueFrom="0"
                     android:valueTo="1"
                     android:valueType="floatType"
-                    android:startOffset="640"
-                    android:duration="80"
+                    android:startOffset="960"
+                    android:duration="120"
                     android:interpolator="@android:interpolator/overshoot" />
                 <objectAnimator
                     android:propertyName="scaleY"
                     android:valueFrom="0"
                     android:valueTo="1"
                     android:valueType="floatType"
-                    android:startOffset="640"
-                    android:duration="80"
+                    android:startOffset="960"
+                    android:duration="120"
                     android:interpolator="@android:interpolator/overshoot" />
             </set>
         </aapt:attr>
@@ -548,16 +548,16 @@
                     android:valueFrom="0"
                     android:valueTo="1"
                     android:valueType="floatType"
-                    android:startOffset="730"
-                    android:duration="80"
+                    android:startOffset="1095"
+                    android:duration="120"
                     android:interpolator="@android:interpolator/overshoot" />
                 <objectAnimator
                     android:propertyName="scaleY"
                     android:valueFrom="0"
                     android:valueTo="1"
                     android:valueType="floatType"
-                    android:startOffset="730"
-                    android:duration="80"
+                    android:startOffset="1095"
+                    android:duration="120"
                     android:interpolator="@android:interpolator/overshoot" />
             </set>
         </aapt:attr>
@@ -570,16 +570,16 @@
                     android:valueFrom="0"
                     android:valueTo="1"
                     android:valueType="floatType"
-                    android:startOffset="820"
-                    android:duration="80"
+                    android:startOffset="1230"
+                    android:duration="120"
                     android:interpolator="@android:interpolator/overshoot" />
                 <objectAnimator
                     android:propertyName="scaleY"
                     android:valueFrom="0"
                     android:valueTo="1"
                     android:valueType="floatType"
-                    android:startOffset="820"
-                    android:duration="80"
+                    android:startOffset="1230"
+                    android:duration="120"
                     android:interpolator="@android:interpolator/overshoot" />
             </set>
         </aapt:attr>

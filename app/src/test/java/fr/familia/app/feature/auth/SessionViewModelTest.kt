@@ -253,6 +253,41 @@ class SessionViewModelTest {
         assertEquals(SessionUiState.SignedOut(), vm.uiState.value)
     }
 
+    @Test
+    fun `a kept account opens at once from the phone copy while the server drags`() {
+        val members = FakeMembers(member, hangOnFind = true).apply { cached = member.copy(uid = "uid-1") }
+        val vm = SessionViewModel(FakeAuth(current = user("alex@example.com")), members)
+        assertEquals(SessionUiState.SignedIn(member.copy(uid = "uid-1")), vm.uiState.value)
+    }
+
+    @Test
+    fun `the server copy replaces the phone copy when it changed`() {
+        val members = FakeMembers(member.copy(uid = "uid-1", firstName = "Alexia")).apply {
+            cached = member.copy(uid = "uid-1")
+        }
+        val vm = SessionViewModel(FakeAuth(current = user("alex@example.com")), members)
+        val shown = vm.uiState.value as SessionUiState.SignedIn
+        assertEquals("Alexia", shown.member.firstName)
+    }
+
+    @Test
+    fun `a phone copy of another account is not used and the server decides`() {
+        val members = FakeMembers(member, hangOnFind = true).apply { cached = member.copy(uid = "uid-other") }
+        val vm = SessionViewModel(FakeAuth(current = user("alex@example.com")), members)
+        assertEquals(SessionUiState.Loading, vm.uiState.value)
+    }
+
+    @Test
+    fun `a member removed since the phone copy is signed out by the server`() {
+        val members = FakeMembers(member).apply { cached = member.copy(uid = "uid-1") }
+        members.remove()
+        members.refuseFamily = true
+        val auth = FakeAuth(current = user("alex@example.com"))
+        val vm = SessionViewModel(auth, members)
+        assertEquals(SessionUiState.NotAMember("alex@example.com"), vm.uiState.value)
+        assertNull(auth.currentUser())
+    }
+
     private fun user(email: String, verified: Boolean = true) =
         AuthUser(uid = "uid-1", email = email, emailVerified = verified)
 
@@ -284,6 +319,9 @@ class SessionViewModelTest {
         val family = MutableStateFlow<Family?>(null)
         /** The rules refuse the family list (the address left it). */
         var refuseFamily = false
+        /** The phone's copy of the member, read without the network; null: never read here. */
+        var cached: Member? = null
+        override suspend fun findCachedByEmail(email: String): Member? = cached
         override suspend fun findByEmail(email: String): Member? {
             failWith?.let { throw it }
             if (hangOnFind) awaitCancellation()

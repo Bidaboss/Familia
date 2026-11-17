@@ -221,6 +221,7 @@
     <string name="feature_help_daily_nudge">Sur l\'Accueil, un « petit geste du jour » dans À faire, sans notification.</string>
     <string name="feature_help_think_of_me">« Pensez à moi » : on note un moment important, et la famille encourage le jour J.</string>
     <string name="feature_help_who_is_it">« Qui est-ce ? » sur l\'Accueil : une vieille photo, la famille devine qui c\'est et en quelle année.</string>
+    <string name="feature_help_old_lists_cleanup">Après le 21/11 : efface les anciennes listes déjà copiées dans « Mes envies » et les idées. Rien de ce qu\'elles contiennent ne se perd.</string>
     <string name="feature_help_single_list">Une seule liste d\'envies par personne et « Idées de la famille », à la place des listes d\'occasion.</string>
     <string name="feature_help_more_photos">Une photo de couverture sur un événement, et une photo sur une envie.</string>
     <string name="feature_help_recipe_book">Dans Recettes, « Faire le livre » : toutes les recettes dans un PDF à imprimer.</string>
@@ -721,6 +722,12 @@
     <string name="gift_list_revealed">L\'occasion est passée : tout est révélé.</string>
     <string name="gift_add_item">Ajouter</string>
     <string name="gift_add_wish">Ajouter une envie</string>
+    <string name="profile_wishes_open">Voir toute la liste</string>
+    <string name="profile_giving_title">Ce que j\'offre à %1$s</string>
+    <string name="profile_giving_empty">Rien pour l\'instant. Ajoute une idée, ou réserve une envie sur sa liste.</string>
+    <string name="profile_giving_surprise">Surprise en cours : %1$s</string>
+    <string name="profile_giving_all">Tout voir dans Cadeaux</string>
+    <string name="gifts_my_wishes_on_page">Elles sont sur ta fiche. Touche ici pour y aller.</string>
     <string name="gift_action_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
     <string name="gift_claim_taken">Quelqu\'un vient de la réserver, juste avant toi.</string>
     <string name="gift_claim_removed">Son auteur vient de la retirer de la liste.</string>
@@ -1815,14 +1822,15 @@
     <string name="consumption_deletes">Suppressions</string>
     <string name="consumption_storage">Taille de la base</string>
     <string name="consumption_figures">%1$s sur %2$s gratuites</string>
-    <string name="consumption_storage_figures">%1$s Mo sur 1 Go gratuit</string>
+    <string name="consumption_storage_figures">%1$s sur 1 Go gratuit</string>
     <string name="consumption_photos">Photos gardées</string>
-    <string name="consumption_photos_figures">%1$s Mo sur 5 Go gratuits</string>
+    <string name="consumption_photos_figures">%1$s sur 5 Go gratuits</string>
     <string name="consumption_downloads">Photos téléchargées ce mois-ci</string>
-    <string name="consumption_downloads_figures">%1$s Mo sur 100 Go gratuits</string>
+    <string name="consumption_downloads_figures">%1$s sur 100 Go gratuits</string>
     <string name="consumption_gauge_description">%1$s : %2$s, %3$d pour cent</string>
+    <string name="consumption_line_cost">%1$s depuis le 1er du mois</string>
     <string name="consumption_cost">Coût estimé du mois : %1$s</string>
-    <string name="consumption_cost_help">Ce coût est une estimation, pas la facture. Familia te prévient à 80 % d\'une limite ou au-delà de 0,50 €. Le vrai garde-fou reste l\'alerte de Google, par e-mail à 1 €.</string>
+    <string name="consumption_cost_help">Ce coût est une estimation, pas la facture : les prix sont comptés un peu au-dessus de ceux de Google, pour ne jamais te rassurer à tort. Familia te prévient à 80 % d\'une limite ou au-delà de 0,50 €. Le vrai garde-fou reste l\'alerte de Google, par e-mail à 1 €.</string>
     <!-- Ajouter à mon agenda (PRD, récit 30) -->
     <string name="calendar_add">Ajouter à mon agenda</string>
     <string name="calendar_add_birthday">Ajouter l\'anniversaire de %1$s à mon agenda</string>
@@ -2101,6 +2109,10 @@
     <string name="channel_birthdays">Vœux d\'anniversaire</string>
     <string name="feature_welcome">La bienvenue</string>
     <string name="feature_single_list">Une seule liste d\'envies par personne</string>
+    <string name="feature_old_lists_cleanup">Effacer les anciennes listes</string>
+    <string name="old_lists_cleanup_confirm_title">Effacer les anciennes listes ?</string>
+    <string name="old_lists_cleanup_confirm_body">Les listes d\'occasion déjà copiées seront effacées pour de bon. Leurs envies, réservations et parts restent dans « Mes envies » et les idées. Avant le 22 novembre, rien ne se passe : rallume-le après le 22.</string>
+    <string name="old_lists_cleanup_confirm">Effacer</string>
     <string name="gift_mark_received">Je l\'ai reçue</string>
     <string name="gift_mark_received_title">Tu l\'as déjà reçue ?</string>
     <string name="gift_mark_received_text">Elle passera dans « On m\'a offert ».</string>
@@ -2338,6 +2350,12 @@
     <!-- Quoi de neuf ? (PRD, récit 6 septies) -->
     <string name="whats_new_title">Quoi de neuf ?</string>
     <string name="whats_new_position">%1$d sur %2$d</string>
+    <string name="whats_new_previous">Nouveauté précédente</string>
+    <string name="whats_new_next">Nouveauté suivante</string>
+    <plurals name="whats_new_swipe_hint">
+        <item quantity="one">Fais glisser la carte vers la gauche : encore %1$d nouveauté →</item>
+        <item quantity="other">Fais glisser la carte vers la gauche : encore %1$d nouveautés →</item>
+    </plurals>
     <string name="whats_new_try">Essayer</string>
     <string name="whats_new_go">C\'est parti</string>
     <string name="whats_new_later">Plus tard</string>
@@ -2616,6 +2634,15 @@
     <string name="calendar_feed_remove">Supprimer mon lien</string>
     <string name="calendar_feed_remove_confirm_title">Supprimer ton lien ?</string>
     <string name="calendar_feed_remove_body">Le lien ne marchera plus, et l\'agenda Familia ne se mettra plus à jour. Google garde ce qu\'il a déjà lu : retire aussi l\'agenda Familia de Google Agenda.</string>
+    <string name="calendar_links_title">Liens d\'agenda</string>
+    <string name="calendar_links_help">Si un adulte a perdu son téléphone ou donné son lien d\'agenda à quelqu\'un, coupe son lien ici : son agenda Familia ne se mettra plus à jour. Il pourra en créer un nouveau.</string>
+    <string name="calendar_links_cut">Couper le lien de %1$s</string>
+    <string name="calendar_links_confirm_title">Couper le lien de %1$s ?</string>
+    <string name="calendar_links_confirm_body">Son agenda Familia ne se mettra plus à jour. S\'il n\'avait pas de lien, rien ne change.</string>
+    <string name="calendar_links_confirm">Couper</string>
+    <string name="calendar_links_cut_done">Le lien de %1$s est coupé.</string>
+    <string name="calendar_links_cut_queued">Le lien de %1$s sera coupé dès que le réseau revient.</string>
+    <string name="calendar_links_cut_failed">Le lien n\'a pas pu être coupé. Réessaie quand tu as du réseau.</string>
     <string name="calendar_feed_remove_failed">Le lien n\'a pas pu être supprimé. Réessaie quand tu as du réseau.</string>
     <string name="calendar_feed_failed">Le lien n\'a pas pu être créé. Réessaie quand tu as du réseau.</string>
     <string name="calendar_feed_error">Ton lien ne s\'affiche pas. Vérifie ta connexion, puis réessaie.</string>

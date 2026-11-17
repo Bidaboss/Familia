@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -52,6 +51,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import fr.familia.app.core.ui.LoadingState
 
 /** What the screen shows: the kinds of crash, the one that crashed last first. */
 sealed interface CrashesState {
@@ -91,7 +91,7 @@ fun CrashesScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                CrashesState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                CrashesState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 CrashesState.Error -> EmptyState(
                     icon = Icons.Outlined.BugReport,
                     title = stringResource(R.string.crashes_error_title),

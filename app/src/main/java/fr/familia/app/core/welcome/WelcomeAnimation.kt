@@ -27,6 +27,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import kotlin.math.roundToInt
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -76,7 +82,7 @@ private const val STILL = 3_400f
  * goes straight on. Animations off on the phone: the last picture alone, for 1.5 s.
  */
 @Composable
-fun WelcomeAnimation(family: Family, me: Member, onDone: () -> Unit) {
+fun WelcomeAnimation(family: Family, me: Member, photos: Map<String, ImageBitmap> = emptyMap(), onDone: () -> Unit) {
     val fruits = remember(family, me) { welcomeFruits(family, me) }
     val context = LocalContext.current
     val still = remember(context) {
@@ -97,6 +103,7 @@ fun WelcomeAnimation(family: Family, me: Member, onDone: () -> Unit) {
     val skip = stringResource(R.string.welcome_animation_skip)
     WelcomePicture(
         fruits = fruits,
+        photos = photos,
         time = time.value,
         title = title,
         hello = hello,
@@ -112,7 +119,14 @@ fun WelcomeAnimation(family: Family, me: Member, onDone: () -> Unit) {
 
 /** The picture at [time] ms: drawn apart from the clock, for the previews. */
 @Composable
-internal fun WelcomePicture(fruits: List<WelcomeFruit>, time: Float, title: String, hello: String, modifier: Modifier = Modifier) {
+internal fun WelcomePicture(
+    fruits: List<WelcomeFruit>,
+    time: Float,
+    title: String,
+    hello: String,
+    modifier: Modifier = Modifier,
+    photos: Map<String, ImageBitmap> = emptyMap(),
+) {
     val sunColor = Color(0xFFF6D27A)
     val wood = Color(0xFF5A3A22)
     val leaf = Color(0xFF8A9A5B)
@@ -171,7 +185,12 @@ internal fun WelcomePicture(fruits: List<WelcomeFruit>, time: Float, title: Stri
                 if (radius <= 0f) return@forEach
                 drawCircle(sunColor, radius = radius + 0.9f * unit, center = at)
                 drawCircle(lerp(fruit.tree?.color ?: fruit.color, fruit.color, tint), radius = radius, center = at)
-                if (letters > 0f) {
+                val photo = photos[fruit.memberId]
+                if (photo != null && letters > 0f) {
+                    // A member with a profile photo (retour de Kévin, 17/11): the photo, round, inside
+                    // a rim of their color; the letters otherwise.
+                    drawPhoto(photo, at, radius - 3.dp.toPx(), letters)
+                } else if (letters > 0f) {
                     val layout = measurer.measure(
                         fruit.initials,
                         TextStyle(fontFamily = Fredoka, fontWeight = FontWeight.SemiBold, fontSize = 18.sp, color = Color.White.copy(alpha = letters)),
@@ -204,6 +223,23 @@ internal fun WelcomePicture(fruits: List<WelcomeFruit>, time: Float, title: Stri
                 textAlign = TextAlign.Center,
             )
         }
+    }
+}
+
+/** [photo] cropped to its center square, in a circle of [radius] around [center]. */
+private fun DrawScope.drawPhoto(photo: ImageBitmap, center: Offset, radius: Float, alpha: Float) {
+    if (radius <= 0f) return
+    val side = min(photo.width, photo.height)
+    val circle = Path().apply { addOval(Rect(center, radius)) }
+    clipPath(circle) {
+        drawImage(
+            image = photo,
+            srcOffset = IntOffset((photo.width - side) / 2, (photo.height - side) / 2),
+            srcSize = IntSize(side, side),
+            dstOffset = IntOffset((center.x - radius).roundToInt(), (center.y - radius).roundToInt()),
+            dstSize = IntSize((2 * radius).roundToInt(), (2 * radius).roundToInt()),
+            alpha = alpha,
+        )
     }
 }
 

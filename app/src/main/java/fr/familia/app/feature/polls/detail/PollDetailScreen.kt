@@ -24,7 +24,6 @@ import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Poll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
@@ -71,6 +70,7 @@ import fr.familia.app.feature.polls.optionLabel
 import fr.familia.app.feature.polls.shortDateLabel
 import java.time.Instant
 import java.time.LocalDate
+import fr.familia.app.core.ui.LoadingState
 
 /** One poll: answer, results, and for its author « Terminer » and « Choisir cette date ». Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,7 +103,7 @@ fun PollDetailScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                PollDetailUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                PollDetailUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 PollDetailUiState.Missing -> EmptyState(
                     icon = Icons.Outlined.Poll,
                     title = stringResource(R.string.poll_unavailable_title),

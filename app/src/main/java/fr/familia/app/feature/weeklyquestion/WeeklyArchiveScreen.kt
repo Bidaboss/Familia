@@ -11,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.QuestionAnswer
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -33,6 +32,7 @@ import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.ShareGoodNewsButton
+import fr.familia.app.core.ui.LoadingState
 
 /** « Nos réponses »: every question already asked, newest first (récit 37). Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,7 +48,7 @@ fun WeeklyArchiveScreen(state: WeeklyArchiveUiState, onOpen: (String) -> Unit, o
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                WeeklyArchiveUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                WeeklyArchiveUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 WeeklyArchiveUiState.Empty -> EmptyState(
                     icon = Icons.Outlined.QuestionAnswer,
                     title = stringResource(R.string.weekly_none_title),

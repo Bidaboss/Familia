@@ -25,6 +25,7 @@ import type { DocumentReference, DocumentSnapshot, Firestore } from 'firebase-ad
 import { FieldValue } from 'firebase-admin/firestore';
 import { notebookEntryId } from './notebook';
 import { copiedItemPhoto, PhotoCopier, storageCopier } from './itemPhoto';
+import { parisDay } from './logic';
 
 export type SingleListTarget = 'wishes' | 'ideas';
 
@@ -163,4 +164,79 @@ async function ensureList(ref: DocumentReference, kind: SingleListTarget, benefi
     // Created between the read and the create (6, ALREADY_EXISTS): nothing to do.
     if (e?.code !== 6) throw e;
   });
+}
+
+// --- After the 21st: the old lists go (PRODUIT-58) ------------------------------------------------
+//
+// Behind its own switch, config/app.features.oldListsCleanup, turned on by hand in Administration,
+// never by itself, and only with « Liste unique » on. The admin chose that nothing is deleted before the
+// party: before CLEANUP_NOT_BEFORE (Paris), the switch does nothing, and turning it on again later
+// runs it. A list goes only when nothing would be lost:
+// - it was copied whole (mark « copied »), never one skipped, partly copied or already revealed;
+// - every item it holds now has its copy (an item added after the copy keeps the list);
+// - an item with a photo has a copy with a photo (« Plus de photos » off at the copy keeps the list).
+// The mark says « deleted » before the deletion: the triggers of the items then tell nobody
+// (onGiftItemChanged), and the old notebook entries, which only point to their copy, go too.
+
+export const CLEANUP_NOT_BEFORE = '2026-11-22';
+
+export interface CleanupResult { deleted: number; kept: number }
+
+/** Deletes the old lists whose copy is whole. Does nothing while a switch is off, or before the 22nd. */
+export async function cleanupOldLists(db: Firestore, now: Date): Promise<CleanupResult> {
+  const result: CleanupResult = { deleted: 0, kept: 0 };
+  const config = await db.doc('config/app').get();
+  if (config.get('features.singleList') !== true || config.get('features.oldListsCleanup') !== true) return result;
+  if (parisDay(now) < CLEANUP_NOT_BEFORE) {
+    console.warn(`oldListsCleanup: not before ${CLEANUP_NOT_BEFORE}, nothing deleted`);
+    return result;
+  }
+  const marks = await db.collection(LIST_MARKS).where('status', '==', 'copied').get();
+  for (const mark of marks.docs) {
+    const list = await db.collection('giftLists').doc(mark.id).get();
+    if (!list.exists || list.get('revealed') === true) continue;
+    const reason = await keepReason(db, list);
+    if (reason) {
+      console.warn(`oldListsCleanup: ${list.id} kept (${reason})`);
+      await mark.ref.update({ cleanup: reason });
+      result.kept++;
+      continue;
+    }
+    const items = await list.ref.collection('items').get();
+    await mark.ref.update({ status: 'deleted', deletedAt: FieldValue.serverTimestamp() });
+    for (const item of items.docs) {
+      // Who reserved it or took part: their old entry only points to the copy.
+      const claim = await list.ref.collection('claims').doc(item.id).get();
+      const shares = claim.exists ? await claim.ref.collection('shares').get() : null;
+      const givers = new Set([String(claim.get('holderId') ?? ''), ...(shares?.docs.map((d) => d.id) ?? [])]);
+      for (const giver of givers) {
+        if (!giver) continue;
+        const entry = db.collection('notebooks').doc(giver).collection('entries').doc(notebookEntryId(list.id, item.id));
+        const old = await entry.get();
+        if (old.exists && old.get('movedTo')) await entry.delete();
+      }
+    }
+    await db.recursiveDelete(list.ref);
+    result.deleted++;
+  }
+  return result;
+}
+
+/** Why [list] must stay, or null when everything it holds lives on in its copies. */
+async function keepReason(db: Firestore, list: DocumentSnapshot): Promise<string | null> {
+  const items = await list.ref.collection('items').get();
+  for (const item of items.docs) {
+    const mark = await db.doc(`${MARKS}/${list.id}_${item.id}`).get();
+    if (!mark.exists) return 'item not copied';
+    const copy = await db.collection('giftLists').doc(String(mark.get('target') ?? '')).collection('items')
+      .doc(String(mark.get('copiedId') ?? '')).get();
+    // A copy deleted since is the choice of its author: the old item goes with its list.
+    if (copy.exists && typeof item.get('photo') === 'string' && typeof copy.get('photo') !== 'string') return 'photo not copied';
+  }
+  return null;
+}
+
+/** True when the old list [listId] is being removed after the 21st: its items go without a word. */
+export async function cleanedUp(db: Firestore, listId: string): Promise<boolean> {
+  return (await db.doc(`${LIST_MARKS}/${listId}`).get()).get('status') === 'deleted';
 }

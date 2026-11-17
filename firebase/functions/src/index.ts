@@ -57,9 +57,9 @@ import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type Birt
 import { deleteWelcomeOf, isFirstSignIn, sendQueuedWelcomes, welcomeMember } from './welcome';
 import { deleteCheersOf, deleteMomentsOf, onMomentCheerCreated, startMoments, type MomentCheer } from './thinkOfMe';
 import { keepReceivedPhoto, revealWishes, thankGivers } from './wishesReveal';
-import { migrateToSingleList } from './singleList';
-import { deleteEventReminders, sendMyReminders } from './reminders';
-import { sendPackingReminders } from './packing';
+import { cleanupOldLists, migrateToSingleList } from './singleList';
+import { deleteEventReminders, deleteSeriesReminders, sendMyReminders } from './reminders';
+import { dropBags, leftTheTrip, sendPackingReminders } from './packing';
 import { deleteItemPhoto } from './itemPhoto';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
@@ -174,7 +174,10 @@ export const onSeriesWritten = onDocumentWrittenWithAuthContext('eventSeries/{se
   const result = await syncSeries(db, event.params.seriesId, parisDay(now));
   const before = event.data?.before.data() as SeriesData | undefined;
   const after = event.data?.after.data() as SeriesData | undefined;
-  if (!after) return;
+  if (!after) {
+    await deleteSeriesReminders(db, event.params.seriesId);
+    return;
+  }
   const repeat = ` Puis ${ruleLabel(after.rule)}.`;
   // recurringEvents off: the admin principal tries it alone, nobody else is told.
   const only = await featureAudience(db, RECURRING_EVENTS);
@@ -435,6 +438,15 @@ export const onSingleListSwitched = onDocumentWritten({ document: 'config/app', 
   console.log(`singleList: ${copied} items copied`);
 });
 
+// After the 21st (PRODUIT-58): turned on by hand, its switch removes the old lists whose copy is whole.
+export const onOldListsCleanupSwitched = onDocumentWritten({ document: 'config/app', timeoutSeconds: 540 }, async (event) => {
+  const before = event.data?.before.get('features.oldListsCleanup') === true;
+  const after = event.data?.after.get('features.oldListsCleanup') === true;
+  if (before || !after) return;
+  const { deleted, kept } = await cleanupOldLists(getFirestore(), new Date());
+  console.log(`oldListsCleanup: ${deleted} lists deleted, ${kept} kept`);
+});
+
 export const onMemberDeletedGifts = onDocumentDeleted('members/{memberId}', async (event) => {
   await deleteMemberGiftLists(getFirestore(), event.params.memberId);
   await deleteMemberNotebook(getFirestore(), event.params.memberId);
@@ -511,7 +523,7 @@ const sendGoodNews: GoodNewsSender = async (token: string, notice: GoodNewsNotic
   }
 };
 
-// The default bucket of the project (familia-93286.firebasestorage.app, US-EAST1): no region to set.
+// The default bucket of the project (familia-93286.firebasestorage.app, US-WEST1): no region to set.
 const removeFiles: FileRemover = async (paths: string[]) => {
   const bucket = getStorage().bucket();
   await Promise.all(paths.map((path) => bucket.file(path).delete({ ignoreNotFound: true })));
@@ -584,6 +596,13 @@ export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) =
   await deleteTripContents(getFirestore(), event.params.tripId);
   // The photos of the trip and their thumbnails (récit 15), all under trips/{tripId}/.
   await getStorage().bucket().deleteFiles({ prefix: `trips/${event.params.tripId}/` });
+});
+
+// « Ma valise » (récit 62): a participant taken off the trip leaves their bag behind. It goes,
+// so it never comes back to them nor stays in the database for nothing.
+export const onTripParticipantsChanged = onDocumentUpdated('trips/{tripId}', async (event) => {
+  const gone = leftTheTrip(event.data?.before.get('participantIds'), event.data?.after.get('participantIds'));
+  await dropBags(getFirestore(), event.params.tripId, gone);
 });
 
 // Les comptes du voyage (récit 16 bis) live out of the trip: they go with it.

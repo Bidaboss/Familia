@@ -128,20 +128,36 @@ class GenealogyTree(members: List<Member>, kin: List<Kin>, links: List<KinLink>)
         gen
     }
 
-    /** By generation, eldest first; within one, partners next to each other, then by first name. */
-    val rows: List<List<String>> = generations.entries
-        .groupBy({ it.value }, { it.key })
-        .toSortedMap()
-        .values
-        .map { ids -> orderRow(ids) }
-
-    private fun orderRow(ids: List<String>): List<String> {
-        val sorted = ids.sortedBy { people.getValue(it).firstName.lowercase() }
-        val placed = LinkedHashSet<String>()
-        for (id in sorted) {
-            if (!placed.add(id)) continue
-            partnersOf(id).filter { it in ids }.sortedBy { people.getValue(it).firstName.lowercase() }.forEach { placed.add(it) }
+    /**
+     * By generation, eldest first. Within one, partners next to each other, and brothers and
+     * sisters together under their parents (retour du 17/11: the children of two sisters were
+     * mixed), then by first name.
+     */
+    val rows: List<List<String>> = run {
+        val byGeneration = generations.entries.groupBy({ it.value }, { it.key }).toSortedMap().values
+        // Where each one stands in their row, from 0 to 1, so rows of different lengths compare.
+        val place = HashMap<String, Double>()
+        byGeneration.map { ids ->
+            val row = orderRow(ids, place)
+            row.forEachIndexed { i, id -> place[id] = (i + 0.5) / row.size }
+            row
         }
-        return placed.toList()
+    }
+
+    private fun orderRow(ids: List<String>, place: Map<String, Double>): List<String> {
+        val sorted = ids.sortedBy { people.getValue(it).firstName.lowercase() }
+        val placed = HashSet<String>()
+        val groups = mutableListOf<List<String>>()
+        for (id in sorted) {
+            if (id in placed) continue
+            val group = listOf(id) + partnersOf(id).filter { it in ids && it !in placed }.sortedBy { people.getValue(it).firstName.lowercase() }
+            placed += group
+            groups += group
+        }
+        // Under the middle of their parents; those without parents drawn keep their place by name.
+        return groups.withIndex().sortedBy { (index, group) ->
+            val above = group.flatMap { parentsOf(it) }.mapNotNull { place[it] }
+            if (above.isEmpty()) (index + 0.5) / groups.size else above.average()
+        }.flatMap { it.value }
     }
 }

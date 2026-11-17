@@ -38,7 +38,7 @@ class SessionViewModel(
             if (user == null) {
                 _uiState.value = SessionUiState.SignedOut()
             } else {
-                viewModelScope.launch { resolveMember(user) }
+                viewModelScope.launch { resolveMember(user, keptAccount = true) }
             }
         }
     }
@@ -89,7 +89,7 @@ class SessionViewModel(
         _uiState.value = SessionUiState.SignedOut()
     }
 
-    private suspend fun resolveMember(user: AuthUser) {
+    private suspend fun resolveMember(user: AuthUser, keptAccount: Boolean = false) {
         val auth = auth ?: return
         val members = members ?: return
         val email = user.email
@@ -98,6 +98,7 @@ class SessionViewModel(
             _uiState.value = SessionUiState.NotAMember(email.orEmpty())
             return
         }
+        if (keptAccount && openFromCache(members, auth, user, email)) return
         try {
             // A network that drags never leaves a spinner for good: after a while, « Réessayer ».
             val member = withTimeout(READ_TIMEOUT_MS) { members.findByEmail(email) }
@@ -121,6 +122,41 @@ class SessionViewModel(
         } catch (e: Exception) {
             // Offline on first launch, or Firestore unreachable: stay signed in and let the person retry.
             _uiState.value = SessionUiState.SignedOut(SignInError.Network)
+        }
+    }
+
+    /**
+     * An account kept from a previous session, already linked on this phone: the app opens at once
+     * from the phone's copy of the family list, without waiting for a slow network. The server copy
+     * is read just after and replaces it if it changed; a removal still signs out through
+     * [watchMembership]. False when the phone has no such copy: the server is read as before.
+     */
+    private suspend fun openFromCache(members: MemberRepository, auth: AuthRepository, user: AuthUser, email: String): Boolean {
+        val cached = try {
+            members.findCachedByEmail(email)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        }
+        if (cached == null || cached.uid != user.uid) return false
+        _uiState.value = SessionUiState.SignedIn(cached)
+        watchMembership(members, auth, cached, email)
+        viewModelScope.launch { refreshFromServer(members, cached, email) }
+        return true
+    }
+
+    private suspend fun refreshFromServer(members: MemberRepository, cached: Member, email: String) {
+        val fresh = try {
+            withTimeoutOrNull(READ_TIMEOUT_MS) { members.findByEmail(email) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        } ?: return
+        val shown = _uiState.value
+        if (fresh.id == cached.id && fresh != cached && shown is SessionUiState.SignedIn && shown.member.id == cached.id) {
+            _uiState.value = SessionUiState.SignedIn(fresh.copy(uid = cached.uid))
         }
     }
 

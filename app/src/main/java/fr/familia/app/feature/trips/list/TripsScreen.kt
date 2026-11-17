@@ -14,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -47,6 +46,7 @@ import fr.familia.app.feature.trips.TripSectionTitle
 import fr.familia.app.feature.trips.joinNames
 import fr.familia.app.feature.trips.tripDatesLabel
 import java.time.LocalDate
+import fr.familia.app.core.ui.LoadingState
 
 /** The trips the member follows, and « Nouveau voyage ». Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,7 +80,7 @@ fun TripsScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                TripsUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                TripsUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 TripsUiState.Error -> EmptyState(
                     icon = Icons.Outlined.CardTravel,
                     title = stringResource(R.string.trips_error_title),

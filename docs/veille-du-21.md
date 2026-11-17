@@ -81,6 +81,7 @@ Passe chaque essai d'abord en mode avion, puis en « 2G seulement ». Pour la 2G
 - [ ] Envoie les invitations, puis laisse chacun se connecter et suivre le tuto sur son téléphone.
 - [ ] Fais la visite guidée de 5 minutes : Accueil, un événement (« Je viens », « Qui apporte quoi »), Cadeaux.
 - [ ] Ne tourne jamais **ton propre** Accueil ni **ton propre** onglet Cadeaux vers la table : l'occasion de la personne fêtée y apparaît.
+- [ ] N'ouvre pas la fiche de la personne fêtée (ni d'un autre membre) hors mode présentation : sa fiche montre « Ce que j'offre à … », avec tes réservations et les surprises en cours.
 - [ ] Publie la photo du repas depuis le fil des Bonnes nouvelles, **écran tourné vers toi**, puis ajoute-la à l'album de l'événement (étape 6 de [scenario-demo.md](scenario-demo.md)).
 - [ ] « Voir comme » ne sert qu'à aider quelqu'un de perdu. Touche « Quitter » sur le bandeau ensuite.
 

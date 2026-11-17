@@ -15,7 +15,6 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -63,6 +62,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import fr.familia.app.core.ui.LoadingState
 
 /** How long a write may hold the buttons before the screen lets go (it goes on in the background). */
 private const val WRITE_TIMEOUT_MILLIS = 4_000L
@@ -177,7 +177,7 @@ fun CalendarFeedScreen(state: CalendarFeedState, busy: Boolean, onRenew: () -> U
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                CalendarFeedState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                CalendarFeedState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 CalendarFeedState.Error -> Text(
                     stringResource(R.string.calendar_feed_error),
                     style = MaterialTheme.typography.bodyLarge,

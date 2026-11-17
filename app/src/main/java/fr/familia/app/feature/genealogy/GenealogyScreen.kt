@@ -24,7 +24,6 @@ import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -63,7 +62,9 @@ import fr.familia.app.core.model.GenealogyTree
 import fr.familia.app.core.model.Kin
 import fr.familia.app.core.model.KinLink
 import fr.familia.app.core.model.KinLinkKind
+import fr.familia.app.core.model.TreeBox
 import fr.familia.app.core.model.TreePerson
+import fr.familia.app.core.model.treeParentLines
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayLink
@@ -71,6 +72,7 @@ import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
+import fr.familia.app.core.ui.LoadingState
 
 private const val MIN_ZOOM = 0.5f
 private const val MAX_ZOOM = 2.5f
@@ -107,7 +109,7 @@ fun GenealogyScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                GenealogyUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                GenealogyUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 GenealogyUiState.Failed -> EmptyState(
                     icon = Icons.Outlined.CloudOff,
                     title = stringResource(R.string.genealogy_failed_title),
@@ -309,22 +311,16 @@ internal fun TreeDrawing(tree: GenealogyTree, words: Map<String, String>, onOpen
             .drawBehind {
                 val stroke = 2.dp.toPx()
                 for (link in tree.links) {
+                    if (link.kind != KinLinkKind.Partner) continue
                     val a = boxes[link.aId] ?: continue
                     val b = boxes[link.bId] ?: continue
-                    when (link.kind) {
-                        KinLinkKind.Parent -> {
-                            val from = Offset(a.center.x, a.bottom)
-                            val to = Offset(b.center.x, b.top)
-                            val middle = (from.y + to.y) / 2
-                            drawLine(line, from, Offset(from.x, middle), stroke)
-                            drawLine(line, Offset(from.x, middle), Offset(to.x, middle), stroke)
-                            drawLine(line, Offset(to.x, middle), to, stroke)
-                        }
-                        KinLinkKind.Partner -> {
-                            val (left, right) = if (a.center.x < b.center.x) a to b else b to a
-                            drawLine(line, Offset(left.right, left.center.y), Offset(right.left, right.center.y), stroke * 2)
-                        }
-                    }
+                    val (left, right) = if (a.center.x < b.center.x) a to b else b to a
+                    drawLine(line, Offset(left.right, left.center.y), Offset(right.left, right.center.y), stroke * 2)
+                }
+                // One drop per couple or parent, one bar per family (retour du 17/11).
+                val placed = boxes.mapValues { (_, r) -> TreeBox(r.left, r.top, r.right, r.bottom) }
+                for (piece in treeParentLines(tree.links, placed)) {
+                    drawLine(line, Offset(piece.x1, piece.y1), Offset(piece.x2, piece.y2), stroke)
                 }
             }
             .padding(24.dp),

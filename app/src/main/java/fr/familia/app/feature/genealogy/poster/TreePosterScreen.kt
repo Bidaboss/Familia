@@ -52,6 +52,7 @@ import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import java.time.LocalDate
+import fr.familia.app.core.ui.LoadingState
 
 /** What the screen can ask, so the route stays short. */
 data class TreePosterActions(
@@ -79,7 +80,7 @@ fun TreePosterScreen(state: TreePosterUiState, actions: TreePosterActions, onBac
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                TreePosterUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                TreePosterUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 TreePosterUiState.Empty -> EmptyState(
                     icon = Icons.Outlined.AccountTree,
                     title = stringResource(R.string.tree_poster_empty_title),
