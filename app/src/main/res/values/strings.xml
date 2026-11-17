@@ -70,7 +70,7 @@
     <string name="event_for_household">Un foyer</string>
     <string name="event_for_me">Moi</string>
     <string name="event_for_child">Un enfant</string>
-    <string name="event_save_failed">L\'événement n\'est pas enregistré. Vérifie ta connexion, puis réessaie.</string>
+    <string name="event_save_failed">L\'événement n\'est pas enregistré. Vérifie ta connexion, puis réessaie. Si ça recommence, dis-le dans « Une idée ? Un souci ? ».</string>
     <string name="event_delete">Supprimer l\'événement</string>
     <string name="event_delete_title">Supprimer « %1$s » ?</string>
     <string name="event_delete_body">Il disparaît du planning de toute la famille.</string>
@@ -492,7 +492,7 @@
     <string name="member_leave_body">Les changements de cette fiche ne sont pas enregistrés.</string>
     <string name="member_leave_keep">Continuer la fiche</string>
     <string name="member_leave_discard">Abandonner</string>
-    <string name="member_save_failed">La fiche n\'est pas enregistrée. Vérifie ta connexion, puis réessaie.</string>
+    <string name="member_save_failed">La fiche n\'est pas enregistrée. Vérifie ta connexion, puis réessaie. Si ça recommence, dis-le dans « Une idée ? Un souci ? ».</string>
     <string name="error_first_name_missing">Écris un prénom.</string>
     <string name="error_first_name_too_long">40 caractères au plus.</string>
     <string name="error_email_invalid">Écris une adresse complète, par exemple prenom@gmail.com.</string>
@@ -868,7 +868,7 @@
     <string name="photo_remove_confirm_body">La photo disparaîtra quand tu enregistreras.</string>
     <string name="photo_remove_confirm">Retirer</string>
     <string name="photo_chosen">Photo choisie</string>
-    <string name="photo_failed_body">La photo n\'a pas été enregistrée. Vérifie ta connexion, puis réessaie.</string>
+    <string name="photo_failed_body">La photo n\'a pas été enregistrée. Vérifie ta connexion, puis réessaie. Si ça recommence, dis-le dans « Une idée ? Un souci ? ».</string>
 
     <!-- Coups de main (PRD, récits 13 à 18) : fil [DEV] coups de main -->
     <string name="nav_help_requests">Entraide</string>
@@ -1150,7 +1150,7 @@
     <!-- Photo albums, shared by the trips (récit 15) and later the events (récit 41). -->
     <string name="album_photos_add">Ajouter des photos</string>
     <string name="album_photos_full">Tu as ajouté tes %1$d photos. Retire-en une pour en mettre une autre.</string>
-    <string name="album_photos_send_failed">Une photo n\'a pas pu être envoyée. Vérifie la connexion et réessaie.</string>
+    <string name="album_photos_send_failed">Une photo n\'a pas pu être envoyée. Vérifie ta connexion, puis réessaie. Si ça recommence, dis-le dans « Une idée ? Un souci ? ».</string>
     <string name="album_photos_unreadable">Une photo n\'a pas pu être lue sur le téléphone. Essaie avec une autre.</string>
     <string name="album_photos_refused">Familia n\'a pas accepté cette photo. Réessayer ne changera rien : choisis-en une autre, ou dis-le dans « Une idée ? Un souci ? ».</string>
     <string name="album_photos_too_many">%1$d photos par personne au plus : seules les premières ont été gardées.</string>
@@ -1467,7 +1467,7 @@
     <string name="expense_field_category">La catégorie</string>
     <string name="expense_field_split">Le partage</string>
     <string name="expense_field_currency">La devise</string>
-    <string name="expenses_write_failed">Ce changement n\'est pas passé. Vérifie ta connexion, puis réessaie.</string>
+    <string name="expenses_write_failed">Ce changement n\'est pas passé. Vérifie ta connexion, puis réessaie. Si ça recommence, dis-le dans « Une idée ? Un souci ? ».</string>
     <string name="expense_category_lodging">Logement</string>
     <string name="expense_category_transport">Transport</string>
     <string name="expense_category_groceries">Courses</string>
@@ -1546,7 +1546,7 @@
     <string name="trip_arrived_by_at">Bien arrivé, signalé par %1$s le %2$s</string>
     <string name="trip_arrived_undo">Annuler « Bien arrivé »</string>
     <string name="trip_not_arrived">Pas encore signalé.</string>
-    <string name="trip_arrival_failed">Ce changement n\'est pas passé. Vérifie ta connexion, puis réessaie.</string>
+    <string name="trip_arrival_failed">Ce changement n\'est pas passé. Vérifie ta connexion, puis réessaie. Si ça recommence, dis-le dans « Une idée ? Un souci ? ».</string>
     <string name="trip_add_title">Nouveau voyage</string>
     <string name="trip_edit_title">Modifier le voyage</string>
     <string name="trip_field_title">Nom du voyage</string>
@@ -1560,7 +1560,7 @@
     <string name="trip_field_readers">Qui suit le voyage ?</string>
     <string name="trip_field_readers_help">Toute la famille par défaut. Décoche ceux qui ne doivent pas le voir : ils ne verront ni le voyage, ni ses étapes.</string>
     <string name="trip_reader_participant">Part en voyage</string>
-    <string name="trip_save_failed">Le voyage n\'est pas enregistré. Vérifie ta connexion, puis réessaie.</string>
+    <string name="trip_save_failed">Le voyage n\'est pas enregistré. Vérifie ta connexion, puis réessaie. Si ça recommence, dis-le dans « Une idée ? Un souci ? ».</string>
     <string name="trip_leave_title">Quitter sans enregistrer ?</string>
     <string name="trip_leave_body">Tes changements seront perdus.</string>
     <string name="trip_leave_keep">Continuer</string>
@@ -2149,7 +2149,7 @@
     <string name="think_of_me_note_day">Choisir le jour</string>
     <string name="think_of_me_note_action">Noter</string>
     <string name="think_of_me_teen_hint">%1$s choisira de l\'accepter ou non.</string>
-    <string name="think_of_me_failed">Ça n\'est pas parti. Vérifie ta connexion, puis réessaie.</string>
+    <string name="think_of_me_failed">Ce n\'est pas parti. Vérifie ta connexion, puis réessaie.</string>
     <string name="channel_think_of_me_description">Le jour d\'un moment important, et les encouragements reçus</string>
     <string name="feature_little_ones">Le coin des petits</string>
     <string name="feature_discover">À découvrir</string>
@@ -2393,7 +2393,7 @@
     <string name="who_is_it_answer_year_label">En quelle année ? (facultatif)</string>
     <string name="who_is_it_needs_network">Il faut du réseau pour envoyer la photo.</string>
     <string name="who_is_it_photo_unreadable">Cette photo n\'a pas pu être lue. Choisis-en une autre.</string>
-    <string name="who_is_it_failed">La photo n\'a pas été publiée. Vérifie ta connexion, puis réessaie.</string>
+    <string name="who_is_it_failed">La photo n\'a pas été publiée. Vérifie ta connexion, puis réessaie. Si ça recommence, dis-le dans « Une idée ? Un souci ? ».</string>
     <string name="who_is_it_sending">Envoi en cours…</string>
     <string name="who_is_it_publish">Publier</string>
     <!-- Bons plans et bonnes adresses (PRD, récit 45) -->
@@ -2480,7 +2480,7 @@
     <string name="gooddeal_missing_title">Ce bon plan n\'est plus là</string>
     <string name="gooddeal_missing_body">Il a été retiré, ou il est terminé depuis longtemps.</string>
     <string name="gooddeal_unavailable_title">Tu ne peux pas modifier ce bon plan</string>
-    <string name="gooddeal_unavailable_body">Seuls les adultes publient. Un bon plan se modifie par son auteur ou l\'admin principal.</string>
+    <string name="gooddeal_unavailable_body">Il a peut-être été retiré. Sinon, seul son auteur ou l\'admin principal peut le modifier, et seuls les adultes publient.</string>
     <string name="gooddeal_until_today">Dernier jour aujourd\'hui</string>
     <string name="gooddeal_until_tomorrow">Jusqu\'à demain</string>
     <string name="gooddeal_until">Jusqu\'au %1$s</string>
@@ -2692,7 +2692,7 @@
     <string name="first_steps_bravo_title">Bravo, c\'est parti !</string>
     <string name="first_steps_bravo_body">La famille te reconnaît déjà. Bonne découverte de Familia !</string>
     <string name="first_steps_close">Fermer</string>
-    <string name="first_steps_photo_failed">La photo n\'a pas pu être enregistrée. Vérifie le réseau, puis réessaie.</string>
+    <string name="first_steps_photo_failed">La photo n\'a pas pu être enregistrée. Vérifie ta connexion, puis réessaie. Si ça recommence, dis-le dans « Une idée ? Un souci ? ».</string>
     <string name="feature_packing_list">À emporter</string>
     <string name="packing_title">À emporter</string>
     <string name="notifications_packing">Ma valise</string>
