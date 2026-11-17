@@ -53,6 +53,16 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 - **Un message dit que la bonne nouvelle n'a pas pu être publiée :** touche « OK », puis « Publier » de nouveau. Le texte et la photo sont gardés.
 - **Rien ne passe du tout :** écran tourné vers toi, ferme le formulaire, puis continue la présentation. Garde la photo dans ta galerie et publie-la en rentrant : chacun la recevra ce soir.
 
+## Les petits pièges, et quoi faire
+
+- **Tu touches deux fois un bouton :** un seul écran s'ouvre. Juste après un changement d'écran, un toucher peut ne rien faire pendant moins d'une seconde : touche de nouveau.
+- **En « Voir comme », tu touches « Retour » sur l'Accueil du membre :** Familia ne se ferme pas, un message te rappelle de toucher « Quitter » sur le bandeau.
+- **Le téléphone tourne, ou tu reviens dans Familia après un appel :** le bandeau « Voir comme » reste, un rond tourne un instant, puis l'appli du membre revient, sur son Accueil. Ton propre Accueil ne s'affiche pas.
+- **Ne ferme pas Familia depuis les applis récentes pendant « Voir comme » :** à la réouverture, c'est ton propre Accueil. Si ça arrive, tourne l'écran vers toi et relance « Voir comme ».
+- **Sur l'Accueil d'un membre, ne touche pas la pastille « Anniversaire de … » :** elle ouvre la liste de la personne fêtée, avec ce qui est déjà réservé.
+- **Un téléphone d'enfant suivi par Family Link** peut refuser d'installer une appli qui ne vient pas du Play Store. Essaie avant le 21 sur le téléphone d'un enfant de ton foyer. Si ça bloque le jour J, l'enfant découvre l'appli sur le téléphone d'un parent, et on règle son installation après le repas.
+- **Police très grande chez quelqu'un :** les écrans s'adaptent (essayés jusqu'à 200 %). Si un texte paraît coupé, fais défiler l'écran.
+
 ## Les photos : l'album du repas, le diaporama et l'arbre (3 min, après la photo du repas)
 
 **La veille, en plus de la liste plus haut**

@@ -3,6 +3,9 @@ package fr.familia.app.core.viewas
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -13,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -56,13 +60,29 @@ fun ViewAsHost(
     content: @Composable (container: AppContainer?, member: Member) -> Unit,
 ) {
     var viewedId by rememberSaveable { mutableStateOf<String?>(null) }
+    var viewedName by rememberSaveable { mutableStateOf("") }
     val families = remember(container) { container?.memberRepository?.observeFamily()?.catch { } ?: flowOf(null) }
     val family by families.collectAsStateWithLifecycle(initialValue = null)
+    // After a rotation or a return to the app, the family is read again: until then the admin's own
+    // app must not show (their own Accueil and Cadeaux), only the banner and a wait.
+    if (viewedId != null && family == null && container != null) {
+        ViewAsWaiting(viewedName, onQuit = { viewedId = null })
+        return
+    }
     // Only the admin principal, read from the live family; a member removed meanwhile ends it.
     val owner = family?.isOwner(me) == true
     val viewed = family?.members?.firstOrNull { it.id == viewedId }?.takeIf { owner && it.id != me.id }
     if (viewed == null || container == null) {
-        val control = ViewAsControl(start = if (owner && container != null) { member -> viewedId = member.id } else null)
+        val control = ViewAsControl(
+            start = if (owner && container != null) {
+                { member ->
+                    viewedName = member.firstName
+                    viewedId = member.id
+                }
+            } else {
+                null
+            },
+        )
         CompositionLocalProvider(LocalViewAs provides control) { content(container, me) }
         return
     }
@@ -74,6 +94,10 @@ fun ViewAsHost(
         ViewAsContainer(container, guard, me.id, viewed.id)
     }
     val control = ViewAsControl(viewed = viewed, stop = { viewedId = null }, readerId = me.id)
+    // Back on the first screen would close Familia, and opening it again shows the admin's own app:
+    // here it only says where « Quitter » is. The screens' own back comes first (added after this one).
+    val backHint = stringResource(R.string.view_as_back_hint)
+    BackHandler { Toast.makeText(context, backHint, Toast.LENGTH_SHORT).show() }
     Column(Modifier.fillMaxSize()) {
         ViewAsBanner(viewed.firstName, onQuit = { viewedId = null }, modifier = Modifier.statusBarsPadding())
         // A new app for each member looked at: its own screens, back stack and state.
@@ -83,6 +107,15 @@ fun ViewAsHost(
                 CompositionLocalProvider(LocalViewAs provides control) { content(viewContainer, viewed) }
             }
         }
+    }
+}
+
+/** While the family is read again in « Voir comme »: the banner, and nothing of the admin's own app. */
+@Composable
+private fun ViewAsWaiting(firstName: String, onQuit: () -> Unit) {
+    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        ViewAsBanner(firstName, onQuit = onQuit, modifier = Modifier.statusBarsPadding())
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
     }
 }
 
