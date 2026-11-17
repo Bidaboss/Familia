@@ -93,4 +93,11 @@ class WelcomeTest {
         assertEquals(WelcomeChoice.Skip, chooseWelcome(flowOf(family), never, ines, WELCOME_OFF_WAIT_MILLIS))
         assertEquals(WELCOME_OFF_WAIT_MILLIS, testScheduler.currentTime - started)
     }
+
+    @Test
+    fun `the long opening, the welcome, is the default, and an unknown choice goes back to it`() {
+        assertEquals(OpeningStyle.Long, OpeningStyle.of(null))
+        assertEquals(OpeningStyle.Long, OpeningStyle.of("autre"))
+        OpeningStyle.entries.forEach { assertEquals(it, OpeningStyle.of(it.key)) }
+    }
 }
