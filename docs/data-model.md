@@ -827,11 +827,11 @@ Droits : les lecteurs du voyage lisent la liste. Les participants, enfants compr
 
 ### `trips/{tripId}/bags/{memberId}` (récit 62, « Ma valise », module `packingList`)
 
-La valise d'un participant pour ce voyage : une liste à cocher privée. Seuls le membre et ses adultes responsables (la valise d'un enfant) la lisent et l'écrivent, et seulement pour un participant du voyage. Ni l'admin principal ni « Voir comme » ne la lisent. Supprimée avec le voyage.
+La valise d'un participant pour ce voyage : une liste à cocher privée. Seuls le membre et ses adultes responsables (la valise d'un enfant) la lisent et l'écrivent, et seulement pour un participant du voyage. Ni l'admin principal ni « Voir comme » ne la lisent. Supprimée avec le voyage, et avec le membre quand il est retiré de la famille.
 
 | Champ | Type | Description |
 |---|---|---|
-| `items` | liste (80 au plus) de `{ label, done }` | `label` : texte de 1 à 60 caractères, `done` : booléen. Toute la liste est réécrite à chaque changement |
+| `items` | liste (80 au plus) de `{ label, done }` | Les règles bornent la liste à 80. L'appli garantit le reste : `label` de 1 à 60 caractères, `done` booléen, et elle ignore à la lecture une ligne mal formée. Toute la liste est réécrite à chaque changement |
 | `updatedAt` | horodatage serveur | |
 | `updatedBy` | `memberId` | Qui l'a changée en dernier : le membre ou l'un de ses adultes |
 
@@ -843,7 +843,7 @@ La liste de départ de « Ma valise », modifiable par le membre seul (« Garder
 
 | Champ | Type | Description |
 |---|---|---|
-| `labels` | liste de textes (80 au plus) | Les objets, sans case cochée |
+| `labels` | liste de textes (80 au plus) | Les objets, sans case cochée. Les règles bornent la liste, l'appli garantit les 60 caractères par objet |
 | `updatedAt` | horodatage serveur | |
 
 `members/{memberId}/settings/notifications.packingReminder` (booléen, facultatif) : `false` coupe le rappel de la veille du départ quand il reste des objets non cochés.
