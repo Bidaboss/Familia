@@ -190,13 +190,18 @@ class MemberEditViewModelTest {
     )
 
     @Test
-    fun `a chef adds members to their own household only, without creating households`() {
-        val state = vm(FakeMembers(twoHouseholds), me = chef).editing()
+    fun `a chef never adds a member, only the admin principal does`() {
+        assertEquals(MemberEditUiState.NotFound, vm(FakeMembers(twoHouseholds), me = chef).uiState.value)
+    }
+
+    @Test
+    fun `a chef edits within their own household only, without creating households`() {
+        val state = vm(FakeMembers(twoHouseholds), memberId = "adult2", me = chef).editing()
         assertEquals(listOf("h2"), state.households.map { it.id })
         assertEquals("h2", state.form.householdId)
         assertFalse(state.canAddHousehold)
-        // Responsible adults come from the chef's household.
-        assertEquals(listOf("Inès", "Lou"), state.adults.map { it.firstName })
+        // Responsible adults come from the chef's household, without the edited member.
+        assertEquals(listOf("Inès"), state.adults.map { it.firstName })
     }
 
     @Test

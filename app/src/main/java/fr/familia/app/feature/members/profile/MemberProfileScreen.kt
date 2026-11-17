@@ -65,7 +65,7 @@ fun MemberProfileScreen(
     onOpenRecipes: (() -> Unit)? = null,
     /** The cards of vœux (récit 36), while their module is on. */
     wishes: (@Composable (Member) -> Unit)? = null,
-    /** Tailles, pointure, allergies et goûts (récit 7 bis), while their module is on. */
+    /** Pointure, goûts et passions (récit 7 bis), while their module is on. */
     card: (@Composable (Member) -> Unit)? = null,
     /** « Pensez à moi » (récit 43), while its module is on. */
     thinkOfMe: (@Composable (Member) -> Unit)? = null,
