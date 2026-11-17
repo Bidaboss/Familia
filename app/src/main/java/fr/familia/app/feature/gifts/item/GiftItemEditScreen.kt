@@ -316,7 +316,7 @@ private fun ShareTargetChoice(targets: List<ShareTarget>, selected: String?, ena
                             },
                         )
                     },
-                    modifier = Modifier.heightIn(min = 48.dp),
+                    modifier = Modifier.heightIn(min = 56.dp),
                 )
             }
         }
