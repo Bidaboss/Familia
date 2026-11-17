@@ -85,7 +85,7 @@ internal fun LazyListScope.presentationContent(
             }
         }
     }
-    if (state.moment == null) birthdaysSection(state, onAllBirthdays, onPrepareSurprise)
+    if (state.moment == null) birthdaysSection(state, onAllBirthdays, onPrepareSurprise, onOpenList)
     onOpenNotebook?.let { open ->
         item(key = "notebook") {
             Spacer(Modifier.padding(top = 8.dp))

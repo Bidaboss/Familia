@@ -611,6 +611,10 @@
     <string name="gifts_birthdays_title">Anniversaires à venir</string>
     <string name="gifts_birthday_of">Anniversaire de %1$s</string>
     <string name="gifts_prepare_surprise">Préparer une surprise</string>
+    <plurals name="gifts_surprises_in_progress">
+        <item quantity="one">%d surprise en préparation</item>
+        <item quantity="other">%d surprises en préparation</item>
+    </plurals>
     <string name="gifts_all_birthdays">Tous les anniversaires</string>
     <string name="gifts_archived_title">Listes passées</string>
     <string name="gifts_archived_for">Pour %1$s · %2$s</string>

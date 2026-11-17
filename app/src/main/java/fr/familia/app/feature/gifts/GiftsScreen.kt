@@ -119,7 +119,7 @@ fun GiftsScreen(
                     item(key = "moments") { MomentChoice(state.occasions, state.moment, onSelectMoment) }
                 }
                 // Once an occasion is chosen, its people come first: the birthdays wait.
-                if (state.moment == null) birthdaysSection(state, onAllBirthdays, onPrepareSurprise)
+                if (state.moment == null) birthdaysSection(state, onAllBirthdays, onPrepareSurprise, onOpenList)
                 state.sections.filter { it.keptByMe }.forEach { section ->
                     personSection(section, state.today, state.wishPreviews, onOpenList, state.singleList)
                 }
@@ -208,6 +208,7 @@ internal fun LazyListScope.birthdaysSection(
     state: GiftsUiState.Success,
     onAllBirthdays: () -> Unit,
     onPrepareSurprise: (String) -> Unit,
+    onOpenList: (String) -> Unit = {},
 ) {
     item(key = "birthdays-title") {
         Text(
@@ -243,7 +244,18 @@ internal fun LazyListScope.birthdaysSection(
                     )
                 }
             }
-            if (state.canPrepareSurprise && state.sections.none { it.isMe && it.member.id == birthday.member.id }) {
+            val isMine = state.sections.any { it.isMe && it.member.id == birthday.member.id }
+            // A surprise already prepared for them (retour d'essai du 17/11). Their own phone never gets
+            // it, nor « Voir comme » them: the server, and listsSeenBy, keep a surprise list from its person.
+            val surprises = if (isMine) emptyList() else surprisesFor(state, birthday.member.id)
+            if (surprises.isNotEmpty()) {
+                ClayLink(
+                    pluralStringResource(R.plurals.gifts_surprises_in_progress, surprises.size, surprises.size),
+                    onClick = { onOpenList(surprises.first().id) },
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+            if (state.canPrepareSurprise && !isMine) {
                 ClayLink(
                     stringResource(R.string.gifts_prepare_surprise),
                     onClick = { onPrepareSurprise(birthday.member.id) },
@@ -256,6 +268,15 @@ internal fun LazyListScope.birthdaysSection(
         ClayLink(stringResource(R.string.gifts_all_birthdays), onClick = onAllBirthdays)
     }
 }
+
+/**
+ * The surprise lists for [memberId] not revealed yet, nearest first, as this member sees them. Empty
+ * with the single list, where a surprise is an idea of the family and the tab never says how many.
+ */
+internal fun surprisesFor(state: GiftsUiState.Success, memberId: String): List<GiftList> =
+    state.sections.firstOrNull { it.member.id == memberId && !it.isMe }
+        ?.lists.orEmpty()
+        .filter { it.kind == GiftListKind.Surprise && !it.revealed && it.beneficiaryId == memberId }
 
 internal fun LazyListScope.archivedSection(archived: List<Pair<GiftList, String>>, today: LocalDate, onOpenList: (String) -> Unit) {
     item(key = "archived-title") {
