@@ -51,7 +51,7 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 - **La phrase « Plus de réseau : l'envoi reprendra tout seul dès son retour » apparaît :** ne touche à rien. Active le partage de connexion 4G, ou rapproche-toi de la box. L'envoi repart seul, sans doublon.
 - **La barre n'avance plus et rien ne bouge depuis une minute :** touche « Annuler l'envoi ». Le texte et la photo restent, rien n'est publié. Passe en 4G, puis touche de nouveau « Publier » : une seule bonne nouvelle partira, et les photos déjà envoyées ne repartent pas.
 - **Un message dit que la bonne nouvelle n'a pas pu être publiée :** touche « OK », puis « Publier » de nouveau. Le texte et la photo sont gardés.
-- **Rien ne passe du tout :** continue la présentation. Garde la photo dans ta galerie et publie-la en rentrant : chacun la recevra ce soir.
+- **Rien ne passe du tout :** écran tourné vers toi, ferme le formulaire, puis continue la présentation. Garde la photo dans ta galerie et publie-la en rentrant : chacun la recevra ce soir.
 
 ## À la fin
 
