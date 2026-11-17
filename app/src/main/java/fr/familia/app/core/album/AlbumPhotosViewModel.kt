@@ -2,6 +2,7 @@ package fr.familia.app.core.album
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.model.Member
@@ -78,7 +79,23 @@ class AlbumPhotosViewModel(
     private val folder: String,
     private val writeTimeoutMillis: Long = 4_000,
     private val maxPerMember: Int = AlbumPhoto.MAX_PER_MEMBER,
+    private val savedState: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
+
+    private val queueKey = "album_queue_$folder"
+
+    /**
+     * Photos chosen and not sent yet, kept with the screen: Android may stop the app while the
+     * gallery is open, or while a long list of photos goes. They leave once sent, or refused.
+     */
+    private var queue: List<String>
+        get() = savedState.get<ArrayList<String>>(queueKey).orEmpty()
+        set(value) {
+            savedState[queueKey] = ArrayList(value)
+        }
+
+    /** Photos of [queue] that wait for the album to be read (the app has just been reopened). */
+    private var waiting: List<String> = queue
 
     private val sending = MutableStateFlow(0)
     private val problem = MutableStateFlow<PhotoProblem?>(null)
@@ -94,6 +111,11 @@ class AlbumPhotosViewModel(
         } else {
             combine(photos.observePhotos(folder), rights, sending, problem) { list, r, n, p ->
                 me = r.me
+                if (r.me != null && r.canAdd && waiting.isNotEmpty()) {
+                    val ready = waiting
+                    waiting = emptyList()
+                    send(ready, list, r.me)
+                }
                 if (r.me == null) empty else AlbumPhotosUiState(list, currentMemberId, r.canAdd, r.canManage, n, p, maxPerMember)
             }
                 // The screen of the module says when it cannot be read; here, simply no photos.
@@ -106,13 +128,25 @@ class AlbumPhotosViewModel(
      * in a free place of this member. Beyond the places left, the extra photos are not sent.
      */
     fun addPhotos(sources: List<String>) {
+        if (photos == null || uploader == null || sources.isEmpty()) return
+        val member = me
+        if (member == null) {
+            // The album is not read yet (the app has just been reopened on the gallery's answer).
+            queue = (queue + sources).distinct()
+            waiting = (waiting + sources).distinct()
+            return
+        }
+        val state = uiState.value
+        if (!state.canAdd) return
+        send(sources, state.photos, member)
+    }
+
+    private fun send(sources: List<String>, album: List<AlbumPhoto>, member: Member) {
         val repo = photos ?: return
         val upload = uploader ?: return
-        val member = me ?: return
-        val state = uiState.value
-        if (sources.isEmpty() || !state.canAdd) return
-        val taken = state.photos.filter { it.authorId == member.id }.map { it.slot }.toSet() + reserved
+        val taken = album.filter { it.authorId == member.id }.map { it.slot }.toSet() + reserved
         val chosen = sources.zip(AlbumPhoto.freeSlots(taken, maxPerMember))
+        queue = (queue + chosen.map { it.first }).distinct() - sources.drop(chosen.size).toSet()
         if (chosen.isEmpty()) {
             problem.value = PhotoProblem.TooMany
             return
@@ -137,6 +171,7 @@ class AlbumPhotosViewModel(
                         else -> PhotoProblem.SendFailed
                     }
                 } finally {
+                    queue = queue - source
                     reserved -= slot
                     sending.update { it - 1 }
                 }

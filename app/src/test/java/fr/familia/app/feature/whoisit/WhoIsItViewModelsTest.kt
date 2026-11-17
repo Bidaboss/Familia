@@ -159,4 +159,17 @@ class WhoIsItViewModelsTest {
         assertEquals(WhoIsItAnswer("Mamie Jeanne", 1961), repo.published.single().second)
         assertEquals("Un mariage", repo.published.single().first.hint)
     }
+
+    @Test
+    fun `the chosen photo survives Android stopping the app with the rest of the draft`() = runTest {
+        val saved = SavedStateHandle()
+        val first = WhoIsItEditViewModel(FakeWhoIsIt("adult1"), { _, _, _ -> }, "adult1", "Camille", saved, thisYear = 2026)
+        first.setPhoto("content://photo")
+        first.setWho("Tonton Paul")
+
+        val form = (WhoIsItEditViewModel(FakeWhoIsIt("adult1"), { _, _, _ -> }, "adult1", "Camille", saved, thisYear = 2026).uiState.value as WhoIsItEditUiState.Editing).form
+
+        assertEquals("content://photo", form.photo)
+        assertEquals("Tonton Paul", form.who)
+    }
 }

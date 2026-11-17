@@ -1025,3 +1025,16 @@ Les étapes :
 À la fin, éteins **Ne pas conserver les activités**.
 
 Une limite connue : la position « Ici » revient telle qu'elle était au départ. Si tu as bougé entre-temps, touche à nouveau « Ici ».
+
+## L'appli arrêtée par Android pendant l'appareil photo ou la galerie
+
+Sur un téléphone de test, une seule fois : Paramètres > À propos du téléphone, touche 7 fois « Numéro de build ». Puis Paramètres > Système > Options pour les développeurs, et allume « Ne pas conserver les activités ». Android arrête alors Familia dès qu'elle passe en arrière-plan, comme il le fait sur un téléphone qui manque de mémoire. À la fin, éteins cette option.
+
+1. Voyages, « Nouveau voyage » : écris un nom, choisis les dates et deux personnes. Appuie sur le bouton rond du téléphone, puis rouvre Familia depuis les applis récentes. **Attendu :** le formulaire est rempli comme tu l'as laissé. Touche « Enregistrer ». **Attendu :** un seul voyage dans la liste.
+2. Dans ce voyage, « Ajouter une étape » : choisis le type, le lieu et une heure, puis fais la même chose qu'à l'étape 1. **Attendu :** l'étape est intacte, et il n'y en a qu'une une fois enregistrée.
+3. Dans l'album du voyage, « Ajouter des photos », et choisis 5 photos. **Attendu :** au retour de la galerie, les 5 photos partent, même si Familia a été arrêtée. Choisis-en encore 10, puis quitte Familia pendant l'envoi et rouvre-la. **Attendu :** les photos restantes repartent toutes seules, et aucune n'apparaît deux fois.
+4. Carnet de recettes, « Nouvelle recette » : écris le titre, deux ingrédients, une étape, puis ajoute 2 photos du plat. Quitte Familia et rouvre-la. **Attendu :** le texte et les 2 photos sont là. Touche « Enregistrer ». **Attendu :** une seule recette, avec ses 2 photos.
+5. Capsule, « Nouvelle capsule » : un mot, un destinataire, une date, et une photo de la galerie. Quitte et rouvre. **Attendu :** tout est là, photo comprise. Scelle-la. **Attendu :** une seule capsule.
+6. Qui est-ce ? : « Publier une photo », choisis la photo, écris qui c'est, quitte et rouvre. **Attendu :** la photo et le nom sont là.
+7. Arbre : ajoute une personne, écris son prénom et son année de naissance, quitte et rouvre. **Attendu :** la fenêtre est encore ouverte avec ce que tu as écrit.
+8. Ma valise : commence à écrire une ligne, quitte et rouvre. **Attendu :** le texte de la ligne est encore là.

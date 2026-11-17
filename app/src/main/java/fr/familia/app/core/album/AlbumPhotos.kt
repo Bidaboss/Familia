@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -46,6 +47,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import fr.familia.app.R
 import fr.familia.app.core.photo.StorageImage
+import fr.familia.app.core.photo.keepPhotoAccess
 
 /** What the photo views can ask for. The defaults do nothing, for previews and screenshots. */
 data class PhotoActions(
@@ -145,7 +147,9 @@ fun PhotoStatus(state: AlbumPhotosUiState, onDismiss: () -> Unit) {
 @Composable
 fun AddPhotosButton(placesLeft: Int, onAdd: (List<String>) -> Unit, max: Int = AlbumPhoto.MAX_PER_MEMBER) {
     // The picker needs a limit of 2 or more; the ViewModel keeps only what fits.
+    val context = LocalContext.current
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(maxOf(2, placesLeft))) { uris ->
+        keepPhotoAccess(context, uris)
         onAdd(uris.map { it.toString() })
     }
     FilledTonalButton(
