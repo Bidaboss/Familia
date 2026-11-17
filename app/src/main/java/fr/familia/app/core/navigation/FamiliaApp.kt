@@ -139,6 +139,9 @@ import fr.familia.app.feature.feedback.MyFeedbackRoute
 import fr.familia.app.core.model.FeedbackOrigin
 import fr.familia.app.feature.tree.HostChallengeRoute
 import fr.familia.app.feature.tree.challenges.ChallengesRoute
+import fr.familia.app.feature.albums.AlbumEntry
+import fr.familia.app.feature.albums.AlbumsDestination
+import fr.familia.app.feature.albums.AlbumsRoute
 import fr.familia.app.feature.settings.appearance.AppearanceScreen
 import fr.familia.app.feature.settings.appearance.ThemePreferences
 import fr.familia.app.core.theme.FamiliaClay
@@ -716,6 +719,20 @@ fun FamiliaApp(
                             onBack = { navController.popBackStack() },
                             onOpenGoodNews = { id -> navController.navigate(GoodNewsDetailDestination(id)) },
                             onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
+                        )
+                    }
+                    composable<AlbumsDestination> {
+                        AlbumsRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onBack = { navController.popBackStack() },
+                            onOpenAlbum = { album ->
+                                when (album.kind) {
+                                    AlbumEntry.Kind.Trip -> navController.navigate(TripPhotosDestination(album.id))
+                                    AlbumEntry.Kind.Event -> navController.navigate(EventAlbumDestination(album.id))
+                                }
+                            },
+                            onOpenMonth = { month -> navController.navigate(MonthSlideshowDestination(month.year, month.monthValue)) },
                         )
                     }
                     composable<ChallengesDestination> {
