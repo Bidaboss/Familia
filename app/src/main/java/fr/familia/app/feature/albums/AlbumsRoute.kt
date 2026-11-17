@@ -26,6 +26,7 @@ fun AlbumsRoute(
     onBack: () -> Unit,
     onOpenAlbum: (AlbumEntry) -> Unit,
     onOpenMonth: (YearMonth) -> Unit,
+    onOpenTrips: (() -> Unit)? = null,
 ) {
     val flags = LocalFeatureFlags.current
     val tripsOn = flags.isOn(Feature.Trips)
@@ -49,5 +50,5 @@ fun AlbumsRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    AlbumsScreen(state, onBack, onOpenAlbum, onOpenMonth)
+    AlbumsScreen(state, onBack, onOpenAlbum, onOpenMonth, onOpenTrips)
 }

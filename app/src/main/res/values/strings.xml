@@ -318,8 +318,8 @@
     <string name="feature_genealogy">Arbre généalogique</string>
     <!-- Arbre généalogique (PRD, récit 40) -->
     <string name="genealogy_title">Arbre généalogique</string>
-    <string name="genealogy_empty_title">L\'arbre est encore vide</string>
-    <string name="genealogy_empty_body">L\'admin principal et les chefs de famille y ajoutent les liens : parents, enfants, conjoints. Les proches sans compte, comme les arrière-grands-parents, peuvent y figurer aussi.</string>
+    <string name="genealogy_empty_title">L\'arbre de la famille prend racine ici</string>
+    <string name="genealogy_empty_body">Bientôt, tu y verras qui est le parent de qui, des arrière-grands-parents aux plus petits. L\'admin principal et les chefs de famille ajoutent les liens.</string>
     <string name="genealogy_failed_title">L\'arbre ne s\'affiche pas</string>
     <string name="genealogy_failed_body">Vérifie ta connexion, puis reviens sur cet écran.</string>
     <string name="genealogy_zoom_in">Agrandir</string>
@@ -1085,9 +1085,10 @@
     <string name="trips_ongoing">En cours</string>
     <string name="trips_upcoming">À venir</string>
     <string name="trips_past">Passés</string>
-    <string name="trips_empty_title">Aucun voyage pour l\'instant</string>
-    <string name="trips_empty_body">Touche « Nouveau voyage » pour préparer un départ et rassurer la famille avec « Bien arrivé ».</string>
-    <string name="trips_empty_body_child">Quand un adulte t\'ajoute à un voyage, il apparaît ici.</string>
+    <string name="trips_empty_title">Le prochain départ s\'écrit ici</string>
+    <string name="trips_empty_body">Touche « Nouveau voyage » : tu prépares les étapes, et la famille sait quand tu es bien arrivé.</string>
+    <string name="trips_empty_body_child">Quand un adulte t\'emmène en voyage, il apparaît ici. En attendant, va voir les photos de la famille.</string>
+    <string name="trips_empty_albums">Voir les albums photo</string>
     <string name="trips_error_title">Les voyages ne s\'affichent pas</string>
     <string name="trips_error_body">Vérifie ta connexion, puis réessaie.</string>
     <string name="trip_title">Voyage</string>
@@ -1123,7 +1124,7 @@
     <string name="trip_checklist_delete_keep">Garder</string>
     <string name="trip_checklist_save">Enregistrer</string>
     <string name="trip_photos">Photos</string>
-    <string name="trip_photos_empty">Pas encore de photo.</string>
+    <string name="trip_photos_empty">Pas encore de photo. Elles arrivent dès que les voyageurs en ajoutent.</string>
     <string name="trip_photos_empty_participant">Ajoute tes photos du voyage : toute la famille qui le suit les verra.</string>
     <!-- R1 bis, maquette R6 : le voyage en chemin illustré -->
     <string name="trip_day_number">Jour %1$d</string>
@@ -1162,8 +1163,10 @@
     <string name="album_slideshow_pause">Pause</string>
     <string name="album_slideshow_resume">Reprendre</string>
     <string name="albums_title">Albums</string>
-    <string name="albums_empty_title">Pas encore d\'album</string>
-    <string name="albums_empty_body">Les photos d\'un voyage ou d\'un événement apparaissent ici, avec leur diaporama.</string>
+    <string name="albums_empty_title">Les premiers souvenirs arrivent bientôt</string>
+    <string name="albums_empty_body">Les photos des voyages et des événements se rangent ici, chacune avec son diaporama.</string>
+    <string name="albums_empty_trips">Voir les voyages</string>
+    <string name="empty_go_back">Revenir en arrière</string>
     <string name="albums_months">Les mois</string>
     <string name="albums_month">%1$s %2$d</string>
     <string name="albums_row_detail">%1$s, %2$s %3$d</string>
@@ -1207,8 +1210,8 @@
     <string name="recipes_search">Recette, ingrédient ou prénom</string>
     <string name="recipes_none_found">Aucune recette ne correspond.</string>
     <string name="recipes_open">Voir la recette</string>
-    <string name="recipes_empty_title">Pas encore de recette</string>
-    <string name="recipes_empty_body">Note ici les recettes de la famille, pour les garder et les partager. Touche « Nouvelle recette ».</string>
+    <string name="recipes_empty_title">Le carnet attend sa première recette</string>
+    <string name="recipes_empty_body">Le gâteau dont tout le monde parle, la sauce de toujours… Touche « Nouvelle recette » pour la garder et la partager.</string>
     <string name="recipes_error_title">Le carnet ne s\'ouvre pas</string>
     <string name="recipes_error_body">Vérifie la connexion, puis reviens sur cet écran.</string>
     <string name="recipe_title">Recette</string>
@@ -1335,8 +1338,10 @@
     <string name="tree_poster_share_chooser">Enregistrer, imprimer ou envoyer l\'affiche</string>
     <string name="tree_poster_empty_title">L\'arbre est encore vide</string>
     <string name="tree_poster_empty_body">Relie d\'abord des personnes dans l\'arbre généalogique, puis reviens faire l\'affiche.</string>
-    <string name="recipe_book_empty_title">Pas encore de recette</string>
-    <string name="recipe_book_empty_body">Le livre se fera dès qu\'il y aura des recettes dans le carnet.</string>
+    <string name="tree_poster_empty_back">Revenir à l\'arbre</string>
+    <string name="recipe_book_empty_title">Le carnet attend sa première recette</string>
+    <string name="recipe_book_empty_body">Le livre se fera dès qu\'il y aura des recettes dans le carnet. Note la première, les autres suivront.</string>
+    <string name="recipe_book_empty_back">Revenir au carnet</string>
     <string name="recipe_book_contents">Sommaire</string>
     <string name="recipe_book_other">Autres recettes</string>
     <string name="recipe_field_story">Sa petite histoire (facultatif)</string>
@@ -1357,7 +1362,7 @@
     <string name="help_screen_genealogy_body">L\'arbre montre qui est qui dans la famille : les plus anciens en haut, puis chaque génération en dessous. Un trait relie un parent à son enfant, un trait épais relie deux conjoints. Pince l\'écran ou utilise les boutons pour zoomer, « Recentrer » remet l\'arbre à sa place, et touche une personne pour ouvrir sa fiche. L\'arbre peut aussi montrer des proches sans compte, comme des arrière-grands-parents. Sur la fiche d\'une personne, tu peux choisir ton propre mot pour elle (« Mamie », « bonus-maman »…) : toi seul le vois. L\'admin principal complète tout l\'arbre, et un chef de famille les liens et les proches de son foyer.</string>
     <string name="help_screen_capsules_title">Les capsules temporelles</string>
     <string name="help_screen_capsules_body">Une capsule, c\'est un message pour plus tard : un texte et jusqu\'à 3 photos, pour les personnes de ton choix, qui s\'ouvre le jour que tu choisis, entre un mois et cinq ans plus tard. Jusqu\'à ce jour-là, toi seul peux la lire : les destinataires ne savent même pas qu\'elle existe, et l\'administrateur non plus. Le jour venu, ils reçoivent une notification et la trouvent ici. Tu peux supprimer une de tes capsules tant qu\'elle n\'est pas ouverte, mais jamais la modifier. Une fois ouverte, elle devient un souvenir de ceux qui l\'ont reçue.</string>
-    <string name="month_empty">Pas de photo ce mois-ci. Celles des voyages et des événements apparaissent ici.</string>
+    <string name="month_empty">Pas encore de photo ce mois-ci. Celles des voyages et des événements viendront se ranger ici.</string>
     <!-- Before a video leaves the app (carte EXPERT-6): the film, the album and the slideshow. -->
     <!-- Partager vers une messagerie (récit 31) -->
     <string name="share_button">Partager</string>
@@ -1722,7 +1727,7 @@
         <item quantity="other">Tu as réservé %d idées.</item>
     </plurals>
     <string name="home_trips_title">En voyage</string>
-    <string name="home_trips_none">Aucun voyage en cours ni à venir.</string>
+    <string name="home_trips_none">Pas de départ prévu pour l\'instant.</string>
     <string name="home_trips_all">Tous les voyages</string>
     <string name="home_trip_ongoing">En cours</string>
     <string name="help_screen_home_title">L\'accueil</string>
@@ -2191,8 +2196,8 @@
     <string name="capsules_opened">Ouvertes</string>
     <string name="capsules_sealed">Mes capsules scellées</string>
     <string name="capsules_sealed_hint">Scellée : toi seul peux la lire jusqu\'à ce jour-là.</string>
-    <string name="capsules_empty_title">Aucune capsule pour l\'instant</string>
-    <string name="capsules_empty_body">Écris un message pour plus tard : il restera scellé jusqu\'au jour que tu choisis.</string>
+    <string name="capsules_empty_title">Écris à la famille de demain</string>
+    <string name="capsules_empty_body">Un mot pour un anniversaire, des souhaits pour dans dix ans… Touche « Nouvelle capsule » : elle restera scellée jusqu\'au jour que tu choisis.</string>
     <string name="capsules_error_title">Impossible d\'afficher les capsules</string>
     <string name="capsules_error_body">Vérifie ta connexion, puis reviens sur cet écran.</string>
     <string name="capsule_title">Capsule temporelle</string>
@@ -2373,7 +2378,7 @@
     <string name="who_is_it_missing_body">Elle a peut-être été retirée.</string>
     <string name="who_is_it_error_title">Photos indisponibles</string>
     <string name="who_is_it_error_body">Les photos n\'ont pas pu être lues. Réessaie dans un instant.</string>
-    <string name="who_is_it_empty_title">Pas encore de photo</string>
+    <string name="who_is_it_empty_title">Une vieille photo à deviner ?</string>
     <string name="who_is_it_empty_body">Scanne une vieille photo de famille : les autres devineront qui est dessus.</string>
     <string name="who_is_it_open">Ouvrir la photo</string>
     <string name="who_is_it_add">Publier une photo</string>

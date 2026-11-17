@@ -1,8 +1,5 @@
 package fr.familia.app.feature.trips.list
 
-import androidx.compose.ui.text.style.TextOverflow
-import fr.familia.app.core.ui.ClayCardTitle
-import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -30,16 +27,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.Trip
+import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClayLink
+import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
-import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 import fr.familia.app.feature.trips.TripSectionTitle
@@ -56,6 +57,7 @@ fun TripsScreen(
     onOpenTrip: (tripId: String) -> Unit,
     onAddTrip: () -> Unit,
     onBack: () -> Unit,
+    onOpenAlbums: (() -> Unit)? = null,
 ) {
     Scaffold(
         topBar = {
@@ -93,6 +95,12 @@ fun TripsScreen(
                         icon = Icons.Outlined.CardTravel,
                         title = stringResource(R.string.trips_empty_title),
                         body = stringResource(if (state.canCreate) R.string.trips_empty_body else R.string.trips_empty_body_child),
+                        // « Nouveau voyage » is the button below; a child, who has none, gets the albums instead.
+                        action = if (onOpenAlbums != null && !state.canCreate) {
+                            { ClayLink(stringResource(R.string.trips_empty_albums), onClick = onOpenAlbums) }
+                        } else {
+                            null
+                        },
                     )
                 } else {
                     LazyColumn(

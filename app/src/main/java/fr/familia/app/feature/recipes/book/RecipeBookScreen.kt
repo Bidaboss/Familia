@@ -82,6 +82,7 @@ fun RecipeBookScreen(state: RecipeBookUiState, actions: RecipeBookActions, onBac
                     icon = Icons.Outlined.Restaurant,
                     title = stringResource(R.string.recipe_book_empty_title),
                     body = stringResource(R.string.recipe_book_empty_body),
+                    action = { ClayLink(stringResource(R.string.recipe_book_empty_back), onClick = onBack) },
                 )
                 is RecipeBookUiState.Choosing -> Choosing(state, actions)
             }

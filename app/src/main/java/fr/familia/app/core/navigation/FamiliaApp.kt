@@ -941,6 +941,7 @@ fun FamiliaApp(
                                 }
                             },
                             onOpenMonth = { month -> navController.navigate(MonthSlideshowDestination(month.year, month.monthValue)) },
+                            onOpenTrips = if (features.isOn(Feature.Trips)) ({ navController.navigate(TripsDestination) { launchSingleTop = true } }) else null,
                         )
                     }
                     composable<ChallengesDestination> {
@@ -1015,6 +1016,7 @@ fun FamiliaApp(
                             onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
                             onAddTrip = { navController.navigate(TripEditDestination()) },
                             onBack = { navController.popBackStack() },
+                            onOpenAlbums = { navController.navigate(AlbumsDestination) { launchSingleTop = true } },
                         )
                     }
                     composable<TripDetailDestination> { entry ->
