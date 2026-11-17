@@ -722,6 +722,12 @@
     <string name="gift_list_revealed">L\'occasion est passée : tout est révélé.</string>
     <string name="gift_add_item">Ajouter</string>
     <string name="gift_add_wish">Ajouter une envie</string>
+    <string name="profile_wishes_open">Voir toute la liste</string>
+    <string name="profile_giving_title">Ce que j\'offre à %1$s</string>
+    <string name="profile_giving_empty">Rien pour l\'instant. Ajoute une idée, ou réserve une envie sur sa liste.</string>
+    <string name="profile_giving_surprise">Surprise en cours : %1$s</string>
+    <string name="profile_giving_all">Tout voir dans Cadeaux</string>
+    <string name="gifts_my_wishes_on_page">Elles sont sur ta fiche. Touche ici pour y aller.</string>
     <string name="gift_action_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
     <string name="gift_claim_taken">Quelqu\'un vient de la réserver, juste avant toi.</string>
     <string name="gift_claim_removed">Son auteur vient de la retirer de la liste.</string>

@@ -76,6 +76,8 @@ class NotebookIdeaViewModel(
     private val startOccasion: NotebookOccasion = NotebookOccasion(null, null),
     /** « Un achat fait ailleurs » (récit 57): a new idea that starts as bought. */
     private val startBought: Boolean = false,
+    /** A new idea from the page of a member: that member is already chosen. */
+    private val startPersonId: String? = null,
     private val saved: SavedStateHandle = SavedStateHandle(),
     private val writeTimeoutMillis: Long = 4_000,
 ) : ViewModel() {
@@ -123,6 +125,7 @@ class NotebookIdeaViewModel(
                 status = e.status,
             )
         } ?: NotebookIdeaForm(
+            personId = startPersonId?.takeIf { id -> people.any { it.id == id } },
             occasion = startOccasion.occasion,
             year = startOccasion.year?.toString().orEmpty(),
             status = if (startBought) GiftStatus.Bought else GiftStatus.Idea,

@@ -127,6 +127,7 @@ import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
 import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
 import fr.familia.app.feature.members.profile.MemberProfileRoute
+import fr.familia.app.feature.members.profile.ProfileGiftActions
 import fr.familia.app.feature.weeklyquestion.WeeklyArchiveRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionRoute
 import fr.familia.app.feature.help.LocalOpenHelp
@@ -1361,6 +1362,7 @@ fun FamiliaApp(
                             } else {
                                 null
                             },
+                            onOpenMyPage = { navController.navigate(MemberProfileDestination(currentMember.id)) },
                         )
                     }
                     composable<NotebookDestination> {
@@ -1398,6 +1400,7 @@ fun FamiliaApp(
                             startOccasion = NotebookOccasion(GiftOccasion.entries.firstOrNull { it.name == route.occasion }, route.year),
                             onDone = { navController.popBackStack() },
                             startBought = route.bought,
+                            startPersonId = route.personId,
                         )
                     }
                     composable<GiftListDestination> { entry ->
@@ -1626,6 +1629,14 @@ fun FamiliaApp(
                             onBack = { navController.popBackStack() },
                             onEdit = { navController.navigate(MemberEditDestination(memberId)) },
                             onOpenRecipes = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipesDestination(memberId)) }) else null,
+                            giftActions = ProfileGiftActions(
+                                onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
+                                onAddWish = { id -> navController.navigate(GiftItemEditDestination(id)) },
+                                onOpenNotebook = { navController.navigate(NotebookDestination) },
+                                onAddIdea = { id -> navController.navigate(NotebookIdeaDestination(personId = id)) },
+                                onEditIdea = { id -> navController.navigate(NotebookIdeaDestination(entryId = id)) },
+                                onProposeIdea = { id -> navController.navigate(ProposeIdeaDestination(id)) },
+                            ),
                         )
                     }
                     composable<WeeklyArchiveDestination> {
