@@ -6,6 +6,7 @@ import type { Firestore } from 'firebase-admin/firestore';
 import {
   changeNotice, changeRecipients, ChangeKind, EventData, Member, Notice, parisDay, addDays, reminders, RsvpStatus,
 } from './logic';
+import { CARPOOL, loadRides, rideLines } from './carpool';
 import { deliver } from './prefs';
 
 /** Sends one notification to one phone. "unregistered" means the app was uninstalled. */
@@ -88,6 +89,9 @@ export async function comingMembers(db: Firestore, eventId: string, members?: Me
 export async function deleteEventAnswers(db: Firestore, eventId: string): Promise<void> {
   await db.recursiveDelete(db.collection('events').doc(eventId).collection('rsvps'));
   await db.recursiveDelete(db.collection('events').doc(eventId).collection('bring'));
+  // « On y va ensemble » (récit 52): its cars and requests for a seat.
+  await db.recursiveDelete(db.collection('events').doc(eventId).collection('rides'));
+  await db.recursiveDelete(db.collection('events').doc(eventId).collection('rideNeeds'));
 }
 
 /** « Qui apporte quoi » (récit 4 bis): what a member who left had taken is free again. */
@@ -126,6 +130,7 @@ export async function sendDayBeforeReminders(db: Firestore, send: Sender, now: D
   const members = await loadMembers(db);
   // « Qui apporte quoi » (récit 4 bis): the reminder says what each one brings.
   const bringOn = await featureOn(db, 'bring');
+  const carpoolOn = await featureOn(db, CARPOOL);
   let sent = 0;
   for (const event of events.docs) {
     const answers = new Map<string, RsvpStatus>();
@@ -139,7 +144,9 @@ export async function sendDayBeforeReminders(db: Firestore, send: Sender, now: D
         .sort((a, b) => String(a.get('label')).localeCompare(String(b.get('label')), 'fr'))
         .forEach((i) => bringing.set(i.get('takerId'), [...(bringing.get(i.get('takerId')) ?? []), i.get('label')]));
     }
-    const all = reminders(members, event.id, event.data() as EventData, answers, new Set(), bringing);
+    // « On y va ensemble » (récit 52): who each one takes, or goes with.
+    const rides = carpoolOn ? rideLines(await loadRides(db, event.id), members) : new Map<string, string[]>();
+    const all = reminders(members, event.id, event.data() as EventData, answers, new Set(), bringing, rides);
     const off = await remindersOff(db, all.map((r) => r.recipientId));
     for (const reminder of all) {
       if (off.has(reminder.recipientId)) continue;

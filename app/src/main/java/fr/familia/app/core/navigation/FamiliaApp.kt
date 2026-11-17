@@ -104,6 +104,7 @@ import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpRoute
 import fr.familia.app.feature.gooddeals.EntraideTabs
 import fr.familia.app.feature.gooddeals.GoodDealDetailRoute
+import fr.familia.app.feature.lending.LendItemsRoute
 import fr.familia.app.feature.gooddeals.GoodDealEditRoute
 import fr.familia.app.feature.gooddeals.GoodDealsRoute
 import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
@@ -1314,6 +1315,7 @@ fun FamiliaApp(
                     composable<HelpRequestsRoute> {
                         // Récit 45: the « Bons plans » beside the coups de main, behind their switch.
                         val goodDealsOn = LocalFeatureFlags.current.isOn(Feature.GoodDeals)
+                        val lendingOn = LocalFeatureFlags.current.isOn(Feature.Lending)
                         EntraideTabs(
                             goodDealsOn = goodDealsOn,
                             help = {
@@ -1322,7 +1324,7 @@ fun FamiliaApp(
                                     currentMember = currentMember,
                                     onAsk = { navController.navigate(HelpRequestEditDestination()) },
                                     onOpenRequest = { id -> navController.navigate(HelpRequestDetailDestination(id)) },
-                                    showTitle = !goodDealsOn,
+                                    showTitle = !goodDealsOn && !lendingOn,
                                 )
                             },
                             goodDeals = {
@@ -1334,6 +1336,9 @@ fun FamiliaApp(
                                 )
                             },
                             showGoodDeals = entraideOnGoodDeals,
+                            // Récit 51: « On se prête », behind its switch. The form and the sheet come next.
+                            lendingOn = lendingOn,
+                            lending = { LendItemsRoute(container = container, currentMember = currentMember, onAdd = null, onOpen = null) },
                         )
                     }
                     composable<GoodDealDetailDestination> { entry ->

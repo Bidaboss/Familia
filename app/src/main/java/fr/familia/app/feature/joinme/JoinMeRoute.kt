@@ -42,7 +42,7 @@ fun JoinMeRoute(container: AppContainer?, currentMember: Member, onDone: () -> U
         onSearch = viewModel::search,
         onName = viewModel::changeName,
         onNote = viewModel::changeNote,
-        onToggle = viewModel::toggle,
+        onRecipients = viewModel::setRecipients,
         onShortcut = viewModel::applyShortcut,
         onSend = viewModel::send,
         onBack = onDone,

@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -25,7 +24,6 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -42,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -51,6 +48,8 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.ui.HouseholdMemberPicker
+import fr.familia.app.core.ui.PickGroup
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.place.Place
@@ -73,7 +72,7 @@ fun JoinMeScreen(
     onSearch: () -> Unit,
     onName: (String) -> Unit,
     onNote: (String) -> Unit,
-    onToggle: (String) -> Unit,
+    onRecipients: (Set<String>) -> Unit,
     onShortcut: (RecipientShortcut) -> Unit,
     onSend: () -> Unit,
     onBack: () -> Unit,
@@ -95,7 +94,7 @@ fun JoinMeScreen(
                     title = stringResource(R.string.joinme_unavailable_title),
                     body = stringResource(R.string.joinme_unavailable_body),
                 )
-                is JoinMeUiState.Editing -> Form(state, onLocate, onSource, onQuery, onSearch, onName, onNote, onToggle, onShortcut, onSend)
+                is JoinMeUiState.Editing -> Form(state, onLocate, onSource, onQuery, onSearch, onName, onNote, onRecipients, onShortcut, onSend)
             }
         }
     }
@@ -111,7 +110,7 @@ private fun Form(
     onSearch: () -> Unit,
     onName: (String) -> Unit,
     onNote: (String) -> Unit,
-    onToggle: (String) -> Unit,
+    onRecipients: (Set<String>) -> Unit,
     onShortcut: (RecipientShortcut) -> Unit,
     onSend: () -> Unit,
 ) {
@@ -162,7 +161,7 @@ private fun Form(
             modifier = Modifier.fillMaxWidth(),
         )
 
-        RecipientsSection(state, onToggle, onShortcut)
+        RecipientsSection(state, onRecipients, onShortcut)
 
         if (state.sendFailed) {
             Text(stringResource(R.string.joinme_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
@@ -234,7 +233,7 @@ private fun ElsewhereSection(state: JoinMeUiState.Editing, onQuery: (String) -> 
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun RecipientsSection(state: JoinMeUiState.Editing, onToggle: (String) -> Unit, onShortcut: (RecipientShortcut) -> Unit) {
+private fun RecipientsSection(state: JoinMeUiState.Editing, onRecipients: (Set<String>) -> Unit, onShortcut: (RecipientShortcut) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         SectionTitle(stringResource(R.string.joinme_who))
         FlowRow(
@@ -260,25 +259,12 @@ private fun RecipientsSection(state: JoinMeUiState.Editing, onToggle: (String) -
                 )
             }
         }
-        state.groups.forEach { group ->
-            Text(
-                group.name,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 8.dp).semantics { heading() },
-            )
-            group.members.forEach { member ->
-                val checked = member.id in state.recipientIds
-                Row(
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).toggleable(value = checked, role = Role.Checkbox) { onToggle(member.id) },
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Checkbox(checked = checked, onCheckedChange = null)
-                    Spacer(Modifier.width(16.dp))
-                    Text(member.firstName, style = MaterialTheme.typography.bodyLarge)
-                }
-            }
-        }
+        // By household, a box per household ticks all of its members (règle de Kévin, 17/11).
+        HouseholdMemberPicker(
+            groups = state.groups.map { PickGroup(it.name, it.members) },
+            selected = state.recipientIds,
+            onChange = onRecipients,
+        )
     }
 }
 
