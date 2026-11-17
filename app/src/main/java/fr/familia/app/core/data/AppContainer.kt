@@ -71,6 +71,9 @@ interface AppContainer {
     val consumptionRepository: ConsumptionRepository?
     val pollRepository: PollRepository?
     val feedbackRepository: FeedbackRepository?
+
+    /** « Plantages » (récit 6 sexies, rév. 220). Null in the fakes of the tests. */
+    val crashRepository: CrashRepository? get() = null
     val joinMeRepository: JoinMeRepository?
     val placeLocator: AndroidPlaceLocator
     val exportRepository: ExportRepository?
@@ -175,6 +178,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
 
     /** « Une idée ? Un souci ? » (PRD, récit 6 sexies). */
     override val feedbackRepository: FeedbackRepository? by lazy { firestore?.let { FirestoreFeedbackRepository(it, photoStorage) } }
+    override val crashRepository: CrashRepository? by lazy { firestore?.let { FirestoreCrashRepository(it) } }
 
     /** « Rejoignez-moi » (PRD, récit 33). */
     override val joinMeRepository: JoinMeRepository? by lazy { firestore?.let { FirestoreJoinMeRepository(it) } }

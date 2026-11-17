@@ -2272,6 +2272,31 @@ service cloud.firestore {
       allow delete: if isMember() && (resource.data.authorId == myMemberId() || isOwner());
     }
 
+    // --- « Plantages » (récit 6 sexies, rév. 220) ----------------------------------------------------
+    // crashReports/{reportId}: an error the app did not catch, kept on the phone and sent at the next
+    // launch by the member who had it. Never a typed text, a photo or a list: the trace holds only
+    // class names and lines, no message. Only the admin principal reads them, and « Marquer comme
+    // réglé » removes the reports of one kind. The id is chosen on the phone: sent twice, it is
+    // refused the second time, never counted twice.
+    match /crashReports/{reportId} {
+      allow read, delete: if isOwner();
+      allow create: if isMember()
+        && reportId.size() <= 64
+        && request.resource.data.keys().hasAll(['memberId', 'appVersion', 'versionCode', 'android', 'device', 'screen', 'trace', 'signature', 'crashedAt', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['memberId', 'appVersion', 'versionCode', 'android', 'device', 'screen', 'trace', 'signature', 'crashedAt', 'createdAt'])
+        && request.resource.data.memberId == myMemberId()
+        && request.resource.data.appVersion is string && request.resource.data.appVersion.size() <= 40
+        && request.resource.data.versionCode is int
+        && request.resource.data.android is string && request.resource.data.android.size() <= 20
+        && request.resource.data.device is string && request.resource.data.device.size() <= 80
+        && request.resource.data.screen is string && request.resource.data.screen.size() <= 80
+        && request.resource.data.trace is string
+        && request.resource.data.trace.size() > 0 && request.resource.data.trace.size() <= 8000
+        && request.resource.data.signature is string && request.resource.data.signature.matches('^[0-9a-f]{16}$')
+        && request.resource.data.crashedAt is timestamp && request.resource.data.crashedAt <= request.time
+        && request.resource.data.createdAt == request.time;
+    }
+
     // --- « Qui est-ce ? » (récit 43) -----------------------------------------------------------------
     // whoIsIt/{postId}: an old photo scanned by a member, file in Storage at
     // whoIsIt/{authorId}/{postId}/photo.jpg. Every member sees the photo and its hint; nobody sees
