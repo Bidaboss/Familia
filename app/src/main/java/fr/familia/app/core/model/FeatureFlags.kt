@@ -113,6 +113,8 @@ enum class Feature(
     Lending("lending", R.string.feature_lending),
     /** « On y va ensemble » : le covoiturage d'un événement (PRD, récit 52). */
     Carpool("carpool", R.string.feature_carpool),
+    /** L'affiche de l'arbre : un PDF paysage A4 ou A3 de l'arbre généalogique (PRD rév. 243, récit 53). */
+    TreePoster("treePoster", R.string.feature_tree_poster),
 }
 
 /**
