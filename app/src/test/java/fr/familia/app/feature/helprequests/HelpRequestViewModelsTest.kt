@@ -100,6 +100,31 @@ class HelpRequestViewModelsTest {
     }
 
     @Test
+    fun `the adults to warn are sorted by household, mine first`() {
+        val groups = edit(FakeHelpRequests()).editing().groups
+        assertEquals(listOf("Foyer Un", "Foyer Deux"), groups.map { it.name })
+        assertEquals(listOf(listOf("admin1"), listOf("adult2")), groups.map { g -> g.members.map { it.id } })
+    }
+
+    @Test
+    fun `ticking a household warns all its adults`() {
+        val viewModel = edit(FakeHelpRequests())
+        viewModel.setNotify(setOf("adult2"))
+        assertEquals(setOf("adult2"), viewModel.editing().form.notifyIds)
+        viewModel.setNotify(emptySet())
+        assertEquals(emptySet<String>(), viewModel.editing().form.notifyIds)
+    }
+
+    @Test
+    fun `a parent stays warned when their household is unticked`() {
+        val viewModel = edit(FakeHelpRequests(), me = "kid1")
+        viewModel.setNotify(setOf("adult1", "admin1"))
+        assertEquals(setOf("admin1"), viewModel.editing().form.notifyIds)
+        viewModel.setNotify(emptySet())
+        assertEquals(setOf("adult1"), viewModel.editing().warnedIds)
+    }
+
+    @Test
     fun `a child's request always warns their parents`() {
         val repo = FakeHelpRequests()
         val viewModel = edit(repo, me = "kid1")

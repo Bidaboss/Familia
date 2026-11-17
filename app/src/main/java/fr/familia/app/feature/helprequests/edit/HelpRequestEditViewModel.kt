@@ -11,6 +11,7 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.helpRequestPhotoBase
 import fr.familia.app.core.photo.PhotoEdit
 import fr.familia.app.core.photo.SinglePhotoSaver
+import fr.familia.app.core.ui.PickGroup
 import fr.familia.app.feature.helprequests.canManageHelp
 import fr.familia.app.feature.helprequests.helpTargets
 import fr.familia.app.feature.helprequests.notifiableAdults
@@ -112,7 +113,8 @@ class HelpRequestEditViewModel(
             isNew = existing == null,
             targets = targets,
             adults = adults,
-            shortcuts = shortcuts(adults, loaded.family),
+            shortcuts = shortcuts(adults),
+            groups = notifyGroups(adults, loaded.family, current),
             lockedIds = locked(authorId, initialForm.forMemberId, existing),
             errors = emptySet(),
             storedPhoto = existing?.photo,
@@ -121,14 +123,8 @@ class HelpRequestEditViewModel(
 
     private data class Loaded(val family: Family, val existing: HelpRequest?, val source: HelpRequest?, val previous: HelpRequest?)
 
-    private fun shortcuts(adults: List<Member>, family: Family): List<NotifyShortcut> {
-        val all = NotifyShortcut(null, adults.map { it.id }.toSet())
-        val byHousehold = family.households.mapNotNull { household ->
-            val ids = adults.filter { it.householdId == household.id }.map { it.id }.toSet()
-            ids.takeIf { it.isNotEmpty() }?.let { NotifyShortcut(household.name, it) }
-        }
-        return listOf(all) + byHousehold
-    }
+    private fun shortcuts(adults: List<Member>): List<NotifyShortcut> =
+        listOf(NotifyShortcut(null, adults.map { it.id }.toSet()))
 
     private fun locked(authorId: String, forMemberId: String, existing: HelpRequest?): Set<String> {
         val f = family ?: return emptySet()
@@ -150,6 +146,15 @@ class HelpRequestEditViewModel(
     /** Ticks or unticks one person. */
     fun toggle(memberId: String) = update { form ->
         form.copy(notifyIds = if (memberId in form.notifyIds) form.notifyIds - memberId else form.notifyIds + memberId)
+    }
+
+    /**
+     * The picker's new choice (one person, or a whole household). The people always warned stay warned
+     * whatever is ticked: they are added back on saving, so they are left out of the form.
+     */
+    fun setNotify(memberIds: Set<String>) = update { form ->
+        val state = _uiState.value as? HelpRequestEditUiState.Editing
+        form.copy(notifyIds = memberIds - state?.lockedIds.orEmpty())
     }
 
     /** A shortcut ticks its whole group, or unticks it when it is already all ticked. */
@@ -240,4 +245,21 @@ class HelpRequestEditViewModel(
     } catch (e: Exception) {
         false
     }
+}
+
+/**
+ * The adults who can be warned, by household: mine first, then the others by name; in each, by first
+ * name. An adult whose household is unknown comes last, in a group with a blank name that the screen
+ * shows as « Autres ».
+ */
+internal fun notifyGroups(adults: List<Member>, family: Family, me: Member): List<PickGroup> {
+    val households = family.households.sortedWith(compareBy({ it.id != me.householdId }, { it.name.lowercase() }))
+    val known = households.map { it.id }.toSet()
+    val byName = compareBy<Member> { it.firstName.lowercase() }
+    val groups = households.mapNotNull { household ->
+        adults.filter { it.householdId == household.id }.sortedWith(byName)
+            .takeIf { it.isNotEmpty() }?.let { PickGroup(household.name, it) }
+    }
+    val rest = adults.filter { it.householdId !in known }.sortedWith(byName)
+    return if (rest.isEmpty()) groups else groups + PickGroup("", rest)
 }
