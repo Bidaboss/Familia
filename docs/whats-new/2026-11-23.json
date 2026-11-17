@@ -1,0 +1,14 @@
+{
+  "cards": [
+    {
+      "id": "lending",
+      "title": "On se prête",
+      "body": "Raclette, perceuse, lit parapluie : dis ce que tu veux bien prêter, et emprunte sans racheter. Tout est dans Entraide.",
+      "childTitle": "On se prête",
+      "childBody": "Regarde ce que la famille peut prêter, des jeux au matériel de sport. C'est dans Entraide.",
+      "feature": "lending",
+      "open": "helpRequests",
+      "adultsOnly": false
+    }
+  ]
+}

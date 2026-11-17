@@ -586,8 +586,8 @@ Interrupteur « Livre de recettes » allumé dans Administration, après « Publ
 
 1. Modifie une de tes recettes : sous les étiquettes, « Sa petite histoire (facultatif) ». Écris deux phrases et enregistre. **Attendu :** l'histoire apparaît en italique sous le titre de la recette.
 2. Plus de 600 caractères : « Texte trop long ». La recette n'est pas enregistrée.
-3. Sous « Photos du plat », la case « Un enfant est sur une des photos » (décochée au début). Coche-la, quitte et reviens : elle est toujours cochée. Avec un autre compte qui n'est pas l'auteur : pas de case.
-4. Interrupteur éteint : ni le champ, ni l'histoire, ni la case. Une histoire déjà écrite n'est pas perdue quand on modifie la recette.
+3. Sous « Photos du plat », aucune case « Un enfant est sur une des photos » (retirée le 17/11), avec ou sans photo.
+4. Interrupteur éteint : ni le champ, ni l'histoire. Une histoire déjà écrite n'est pas perdue quand on modifie la recette.
 
 ## La photo d'une envie (récit 44)
 
@@ -652,7 +652,7 @@ Interrupteur « Livre de recettes » allumé, avec des recettes dont certaines o
 2. L'écran montre la couverture (titre « Les recettes de la famille », modifiable, et l'année), le choix de la photo de couverture, puis toutes les recettes cochées. « Tout décocher » puis « Tout cocher » marchent ; sans recette cochée ou sans titre, « Faire le livre » est grisé.
 3. Touche « Faire le livre » : la feuille de partage d'Android s'ouvre avec livre-de-recettes-2026.pdf. Enregistre-le et ouvre-le.
 4. **Attendu dans le PDF :** une couverture, un sommaire par étiquette (la première de chaque recette, « Autres recettes » à la fin) avec les numéros de page, puis une recette par page : titre, « De … · Notée par … · Pour 6 personnes », l'histoire en italique, la photo, les ingrédients et les étapes. Une longue recette continue sur la page suivante.
-5. EXPERT-2 : une recette avec « Un enfant est sur une des photos » cochée, faite en livre par un autre compte que celui qui a pris la photo : un dessin de bol à la place de la photo. Même chose pour une photo prise par un enfant, ou une recette qui vient d'un enfant, quand tu n'es pas un de ses adultes.
+5. EXPERT-2 : une recette qui vient d'un enfant, quand tu n'es pas un de ses adultes : un dessin de bol à la place de la photo. Une photo prise par un enfant, elle, va dans le livre de tout le monde.
 6. Mode avion avec des photos jamais vues : le livre se fait quand même, avec des dessins.
 
 ## Faire l'affiche de l'arbre (récit 53)
@@ -695,6 +695,12 @@ Avec l'interrupteur « On se prête » allumé (l'admin principal le voit toujou
 2. Sans objet : **Attendu :** « Rien à se prêter pour l'instant ».
 3. Avec des objets : **Attendu :** chaque carte dit la catégorie, le nom, puis « Prêté par … » (ou « À moi ») et « Disponible », « Demandé par … » ou « Chez … depuis le 12/12 ». Tape « racl » : seul l'appareil à raclette reste. « Disponible » ne garde que les objets libres.
 4. « Ajouter un objet » (adulte) : nom, catégorie, note, photo facultative. Sans nom ni catégorie : **Attendu :** « Donne un nom à l'objet. » et « Choisis une catégorie. ». Enregistré : **Attendu :** la carte « À moi · Disponible ». Un enfant n'a pas le bouton.
+5. Un autre adulte ouvre l'objet, touche « Je voudrais l'emprunter », choisit ou non des dates, puis « Demander ». **Attendu :** le propriétaire reçoit tout de suite « On voudrait t'emprunter quelque chose » ; la fiche dit « Tu l'as demandé. … va te répondre. » et propose « Retirer ma demande ».
+6. Le propriétaire ouvre la fiche. **Attendu :** « … voudrait te l'emprunter. », avec « D'accord » et « Pas cette fois ». « D'accord » : l'autre reçoit « C'est d'accord » et la carte dit « Chez … depuis le … ». « Pas cette fois » : l'autre reçoit « Pas cette fois », et l'objet redevient disponible.
+7. Prêté : le propriétaire ou l'emprunteur touche « Rendu ». **Attendu :** « Disponible », sans notification.
+8. Un enfant ouvre un objet. **Attendu :** il voit où il est, sans aucun bouton.
+9. Une date de retour dépassée de 3 jours : **Attendu :** vers 18 h, un seul « Petit rappel » à l'emprunteur, jamais un second.
+10. Touche une notification d'emprunt (demande, réponse ou rappel). **Attendu :** la fiche de l'objet s'ouvre. Interrupteur éteint pour ce membre : rien ne s'ouvre.
 
 ## On y va ensemble (récit 52)
 
@@ -708,6 +714,21 @@ Avec trois comptes : Camille (adulte), Inès (adulte, responsable de Noé, enfan
 6. Avec Inès, réponds « Je ne viens pas ». **Attendu :** Inès disparaît de la voiture, et Camille reçoit « Inès ne monte plus avec toi ».
 7. Le soir à 18 h, la veille. **Attendu :** le rappel de Camille dit « Tu emmènes… », et celui de chaque passager « Tu pars avec Camille ».
 8. Avec Camille, touche « Retirer ma proposition », puis confirme. **Attendu :** les passagers reçoivent « Camille ne prend plus sa voiture ».
+
+## Événements qui reviennent (récit 54)
+
+Avec deux comptes : Camille (adulte) et Inès (adulte). « Publier Firebase » doit être passé, et l'interrupteur « Événements qui reviennent » allumé dans Administration.
+
+1. Avec Camille, ajoute « Piscine » un mardi, puis touche « Se répète ». **Attendu :** les choix « Chaque semaine, le mardi », « Toutes les 2 semaines, le mardi », « Chaque mois, le 12 » (selon la date), « Chaque mois, le 2e mardi », « Chaque année, le 12 … ».
+2. Choisis « Chaque semaine », puis « Se termine » : « Après un nombre de fois », 1. Touche « Enregistrer ». **Attendu :** le message rouge sur la fin. Mets 6, puis « Enregistrer ».
+3. **Attendu :** le Planning montre 6 mardis « Piscine ». Inès reçoit une seule notification, qui finit par « Puis chaque semaine. ».
+4. Avec Inès, réponds « Je viens » au deuxième mardi seulement. **Attendu :** les autres mardis n'ont pas sa réponse.
+5. Avec Camille, ouvre le troisième mardi, change le lieu, « Enregistrer », puis « Cette fois seulement ». **Attendu :** seul ce mardi a le nouveau lieu.
+6. Ouvre le quatrième mardi, change l'heure, « Enregistrer », puis « Celle-ci et les suivantes ». **Attendu :** les mardis 4 à 6 ont la nouvelle heure, le troisième garde son lieu à lui.
+7. Ouvre le deuxième mardi, « Supprimer », puis « Cette fois seulement ». **Attendu :** il disparaît du Planning, et Inès, qui venait, reçoit qu'il est annulé.
+8. Ouvre le cinquième mardi, « Supprimer », puis « Celle-ci et les suivantes ». **Attendu :** les mardis 5 et 6 disparaissent, les autres restent.
+9. Dans « Voir dans mon agenda », mets à jour Google Agenda. **Attendu :** chaque mardi restant y est un événement à lui.
+10. Éteins l'interrupteur. **Attendu :** « Se répète » ne s'affiche plus sur un nouvel événement, mais un mardi existant demande toujours « Cette fois seulement » ou « Celle-ci et les suivantes ».
 
 ## « Qui prévenir » rangé par foyer (règle du 17/11)
 

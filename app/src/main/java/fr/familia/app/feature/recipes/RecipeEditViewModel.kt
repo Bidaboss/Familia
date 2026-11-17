@@ -243,7 +243,6 @@ class RecipeEditViewModel(
             authorName = original?.authorName ?: author.firstName,
             createdAt = original?.createdAt,
             story = form.story.trim(),
-            childInPhotos = original?.childInPhotos == true,
         )
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {

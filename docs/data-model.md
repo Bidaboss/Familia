@@ -127,6 +127,18 @@ Droits (PRD, « Droits par profil ») :
   - Un nouveau destinataire doit être un de ceux que la personne a le droit de choisir.
 - Un membre retiré : ses événements restent visibles, et seul l'admin principal peut encore les modifier ou les supprimer.
 
+### `eventSeries/{seriesId}` (« Événements qui reviennent », PRD, récit 54)
+
+Derrière l'interrupteur `recurringEvents`. Ce qui se répète, et comment. L'appli n'écrit que la série ; le serveur (`functions/src/series.ts`) écrit ses occurrences comme des événements ordinaires, `events/{seriesId}_{AAAAMMJJ}`, pour les 12 mois à venir. Le rappel de 18 h complète l'horizon chaque soir, sans nouvelle tâche planifiée.
+
+- `title`, `time`, `place`, `note`, `targetType`, `targetMemberId`, `householdId`, `authorId`, `authorName`, `createdAt`, `updatedAt` : comme un événement.
+- `rule` : `freq` (`weekly`, `monthly`, `yearly`), `interval` (1, ou 2 pour « toutes les 2 semaines »), `monthlyBy` (`date` ou `weekday` pour un mensuel, sinon null), `start` (AAAA-MM-JJ), `until` (jour ou null), `count` (2 à 200, ou null). Jamais `until` et `count` ensemble. Comme le RFC 5545 : un 31 ou un 29 février seulement là où il existe, un 5e dimanche seulement dans les mois qui en ont un, et `count` compte aussi les jours retirés.
+- `exdates` : les jours retirés un par un (« Cette fois seulement » supprimé), 100 au plus.
+- `applyFrom` : « Celle-ci et les suivantes », le premier jour où les textes s'appliquent, ou null.
+- Droits : lecture par tout membre ; création par l'auteur, avec `exdates` vide et un destinataire qu'il peut choisir ; modification et suppression avec les mêmes droits qu'un événement.
+
+Une occurrence porte en plus `seriesId`, `occurrence` (son jour dans la série), `bySeries` (la marque du serveur) et, une fois changée à la main (« Cette fois seulement »), `detached: true` : la série ne la réécrit plus. Les règles gardent `seriesId`, `occurrence` et `bySeries` inchangés. Chaque occurrence a ses réponses, son « Qui apporte quoi », son covoiturage, ses commentaires, son rappel de la veille et sa ligne dans l'agenda. Une occurrence retirée par la série est marquée `cancelledBySeries` avant d'être supprimée : seuls ceux qui avaient répondu sont prévenus, et une seule fois quand plusieurs occurrences partent ensemble (`seriesTold` : ceux déjà prévenus par une occurrence plus tôt). La série d'un membre retiré garde ses occurrences mais n'en écrit plus de nouvelles. Une série qui échoue au complément du soir est seulement notée dans le journal : les rappels de la veille partent quand même.
+
 ### `events/{eventId}/rsvps/{memberId}` (lot 6)
 
 Une réponse par membre et par événement (PRD, récit 4). L'identifiant du document est celui du membre concerné, donc il ne peut y avoir qu'une réponse par personne.
@@ -721,7 +733,7 @@ Droits : l'admin principal lit la fiche, jamais les capsules, et ne peut que pas
 | `steps` | texte | Une étape par ligne, de 1 à 6 000 caractères |
 | `tags` | liste de textes | 6 au plus (« dessert », « Noël ») |
 | `story` | texte, facultatif | Sa petite histoire pour le livre de recettes (récit 47), 600 caractères au plus |
-| `childInPhotos` | booléen, facultatif | « Un enfant est sur une des photos », coché par l'auteur ou l'admin principal : dans le livre, la règle EXPERT-2 s'applique à ses photos |
+| `childInPhotos` | booléen, facultatif | Ancien champ « Un enfant est sur une des photos », retiré de l'appli le 17/11/2026 : plus écrit ni lu, les règles l'acceptent encore pour les anciennes recettes |
 | `authorId`, `authorName` | texte | Le membre qui l'a écrite et son prénom, qui ne changent jamais |
 | `createdAt`, `updatedAt` | horodatage | Heure du serveur |
 

@@ -1,5 +1,6 @@
 package fr.familia.app.feature.goodnews.edit
 
+import fr.familia.app.core.ui.pickGroups
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.GoodNewsRepository
@@ -54,15 +55,16 @@ class GoodNewsEditViewModel(
         val me = family.members.firstOrNull { it.id == currentMemberId } ?: return GoodNewsEditUiState.Unavailable
         val targets = goodNewsTargets(me, family)
         val candidates = mentionCandidates(me, family)
+        val groups = pickGroups(candidates, family, me.householdId)
         if (postId == null) {
             val challenge = linkableChallenge()
             val form = GoodNewsForm(forMemberId = me.id, forChallenge = linkToChallenge && challenge != null)
-            return GoodNewsEditUiState.Editing(form, null, targets, candidates, challenge = challenge)
+            return GoodNewsEditUiState.Editing(form, null, targets, candidates, groups, challenge = challenge)
         }
         val news = goodNews?.observePost(postId)?.first()
         if (news == null || news.authorId != me.id) return GoodNewsEditUiState.Unavailable
         val form = GoodNewsForm(text = news.text, forMemberId = news.forMemberId, mentionIds = news.mentionIds.toSet())
-        return GoodNewsEditUiState.Editing(form, news, targets, candidates)
+        return GoodNewsEditUiState.Editing(form, news, targets, candidates, groups)
     }
 
     private suspend fun linkableChallenge(): MonthChallenge? = try {
@@ -94,6 +96,9 @@ class GoodNewsEditViewModel(
             else -> s.copy(form = s.form.copy(forMemberId = memberId))
         }
     }
+
+    /** Who is named, as the picker by household gives them. */
+    fun setMentions(ids: Set<String>) = edit { it.copy(form = it.form.copy(mentionIds = ids)) }
 
     fun toggleMention(memberId: String) = edit {
         val ids = it.form.mentionIds

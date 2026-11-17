@@ -20,9 +20,6 @@ interface RecipeRepository {
 
     suspend fun deleteRecipe(id: String)
 
-    /** Says whether a child is on one of the photos of the recipe (récit 47, carte EXPERT-2). */
-    suspend fun setChildInPhotos(id: String, childInPhotos: Boolean)
-
     /** The comments of a recipe, oldest first, updated live. */
     fun observeComments(recipeId: String): Flow<List<RecipeComment>>
 

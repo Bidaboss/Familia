@@ -31,7 +31,7 @@ fun PollEditRoute(container: AppContainer?, currentMember: Member, onDone: () ->
     PollEditScreen(
         state = state,
         onChange = viewModel::update,
-        onToggle = viewModel::toggle,
+        onAsked = viewModel::setAsked,
         onShortcut = viewModel::applyShortcut,
         onAddOption = viewModel::addOption,
         onRemoveOption = viewModel::removeOption,

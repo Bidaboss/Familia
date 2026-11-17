@@ -15,7 +15,7 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.isPermanent
 import fr.familia.app.core.model.upcomingBirthdays
-import fr.familia.app.feature.members.MembersViewModel
+import fr.familia.app.core.model.householdGroups
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -287,7 +287,7 @@ internal fun giftsState(
     val keptIds = kept.map { it.id }.toSet()
     // With the single list, everyone shows: the family can note an idea for anybody.
     // The others by household, in the order of the Famille tab: households by name, adults then children.
-    val others = MembersViewModel.group(family).flatMap { group ->
+    val others = householdGroups(family).flatMap { group ->
         group.members.filter { it.id !in keptIds && (singleList || active.any { list -> list.beneficiaryId == it.id }) }
     }
     val householdNames = family.households.associate { it.id to it.name }

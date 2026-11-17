@@ -77,6 +77,7 @@ fun CapsuleEditRoute(container: AppContainer?, currentMember: Member, onSealed: 
     val actions = CapsuleEditActions(
         onText = viewModel::setText,
         onToggleRecipient = viewModel::toggleRecipient,
+        onRecipients = viewModel::setRecipients,
         onOpenAt = viewModel::setOpenAt,
         onAddPhotos = viewModel::addPhotos,
         onRemovePhoto = viewModel::removePhoto,

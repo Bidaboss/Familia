@@ -23,8 +23,15 @@ sealed interface EventEditUiState {
         /** « Plus de photos » is on: the form shows the cover, [storedCover] being the saved one. */
         val showPhoto: Boolean = false,
         val storedCover: String? = null,
+        /** « Se répète » shows (récit 54): a new event, or one of a series, with recurringEvents on. */
+        val showRepeat: Boolean = false,
+        /** One of a series: saving and deleting ask « Cette fois seulement » or « Celle-ci et les suivantes ». */
+        val isOccurrence: Boolean = false,
     ) : EventEditUiState
 
     /** Saved or deleted (or queued until the network is back): the screen closes. */
     data class Done(val confirmation: Confirmation) : EventEditUiState
 }
+
+/** What a change to one event of a series applies to (récit 54). */
+enum class SeriesScope { ThisOnly, ThisAndFollowing }

@@ -4,6 +4,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.EventRepository
+import fr.familia.app.core.data.EventSeriesRepository
+import fr.familia.app.core.model.EventSeries
+import fr.familia.app.core.model.RepeatChoice
+import fr.familia.app.core.model.RepeatEnd
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventTarget
@@ -40,12 +44,18 @@ class EventEditViewModel(
     private val savedState: SavedStateHandle? = null,
     /** Sends and removes the cover (PRD, récit 44); null hides it, as when « Plus de photos » is off. */
     private val photos: SinglePhotoSaver? = null,
+    /** « Événements qui reviennent » (récit 54); null when the app has no series at all. */
+    private val series: EventSeriesRepository? = null,
+    /** recurringEvents is on: « Se répète » shows. An event of a series is handled as one either way. */
+    private val recurring: Boolean = false,
+    private val today: () -> LocalDate = LocalDate::now,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<EventEditUiState>(EventEditUiState.Loading)
     val uiState: StateFlow<EventEditUiState> = _uiState.asStateFlow()
 
     private var original: Event? = null
+    private var originalSeries: EventSeries? = null
     private var me: Member? = null
     private var allowed: List<EventTarget> = emptyList()
     private var editedId = ""
@@ -69,12 +79,23 @@ class EventEditViewModel(
         }
         val family: Family = loaded?.first ?: return unavailable()
         val existing = loaded.second
+        // A series gone (all deleted) leaves its past events as plain ones.
+        val ofSeries = existing?.seriesId?.let { id ->
+            try {
+                series?.getSeries(id)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                return unavailable()
+            }
+        }
         // Read live: rights follow the family as it is now, not as it was at sign-in.
         val current = family.members.firstOrNull { it.id == currentMemberId } ?: return unavailable()
         if (eventId != null && (existing == null || !canManage(existing, current, family))) return unavailable()
 
         me = current
         original = existing
+        originalSeries = ofSeries?.takeIf { existing?.occurrence != null }
         editedId = existing?.id ?: savedState?.get<String>(KEY_ID) ?: eventRepo.newEventId()
         savedState?.set(KEY_ID, editedId)
         allowed = allowedTargets(current, family)
@@ -84,8 +105,16 @@ class EventEditViewModel(
                 val isMe = target is EventTarget.ForSelf && target.memberId == current.id
                 TargetChoice(target, if (isMe) null else targetName(target, family))
             }
-        initialForm = existing?.let { EventForm.from(it) } ?: EventForm(target = allowed.first())
-        val draft = savedState?.let { restoreDraft(it) }?.takeIf { d -> d.target == null || choices.any { it.target == d.target } }
+        val occurrenceOf = originalSeries
+        initialForm = when {
+            existing != null && occurrenceOf != null -> EventForm.from(existing, occurrenceOf)
+            existing != null -> EventForm.from(existing)
+            else -> EventForm(target = allowed.first())
+        }
+        val draft = savedState?.let { restoreDraft(it) }
+            ?.takeIf { d -> d.target == null || choices.any { it.target == d.target } }
+            // The end of a series is not in the draft: it stays the one loaded while the rhythm does.
+            ?.let { d -> d.copy(end = if (d.repeat == initialForm.repeat) initialForm.end else RepeatEnd.Never) }
         val form = draft ?: initialForm
         _uiState.value = EventEditUiState.Editing(
             form = form,
@@ -95,6 +124,8 @@ class EventEditViewModel(
             hasChanges = form != initialForm,
             showPhoto = photos != null,
             storedCover = existing?.coverPhoto,
+            showRepeat = recurring && series != null && (existing == null || occurrenceOf != null),
+            isOccurrence = occurrenceOf != null,
         )
     }
 
@@ -114,7 +145,8 @@ class EventEditViewModel(
         )
     }
 
-    fun save() {
+    /** Saves; [scope] only counts for an event of a series. */
+    fun save(scope: SeriesScope = SeriesScope.ThisOnly) {
         val state = _uiState.value as? EventEditUiState.Editing ?: return
         val repo = events ?: return
         val author = me ?: return
@@ -123,6 +155,19 @@ class EventEditViewModel(
         val errors = errorsFor(state.form, state)
         if (errors.isNotEmpty()) {
             _uiState.value = state.copy(errors = errors)
+            return
+        }
+        val ofSeries = originalSeries
+        val newRule = state.form.rule()
+        if (ofSeries != null && scope == SeriesScope.ThisAndFollowing) return saveFollowing(state, ofSeries)
+        if (original == null && newRule != null && state.showRepeat) {
+            val seriesRepo = series ?: return
+            _uiState.value = state.copy(isSaving = true, saveFailed = false)
+            viewModelScope.launch {
+                val created = state.form.toSeries(seriesRepo.newSeriesId(), author.id, author.firstName, newRule)
+                val sent = write { seriesRepo.saveSeries(created, isNew = true) }
+                if (sent != null) _uiState.value = EventEditUiState.Done(sent.or(Confirmation.Saved)) else markFailed()
+            }
             return
         }
         val before = original?.coverPhoto
@@ -143,7 +188,7 @@ class EventEditViewModel(
                 authorId = original?.authorId ?: author.id,
                 authorName = original?.authorName ?: author.firstName,
                 coverPhoto = cover,
-            )
+            ).copy(seriesId = original?.seriesId, occurrence = original?.occurrence)
             val sent = write { repo.saveEvent(event, isNew = original == null) }
             if (sent != null) {
                 photos?.cleanUp(previous = before, saved = cover)
@@ -155,16 +200,74 @@ class EventEditViewModel(
         }
     }
 
-    /** Deletes the event, after the screen asked for confirmation. */
-    fun delete() {
+    /**
+     * Deletes the event, after the screen asked for confirmation. One of a series is taken out of it
+     * (an exdate), or ends the series the day before ([SeriesScope.ThisAndFollowing]): a deleted
+     * occurrence would otherwise be written again by the server.
+     */
+    fun delete(scope: SeriesScope = SeriesScope.ThisOnly) {
         val state = _uiState.value as? EventEditUiState.Editing ?: return
         val repo = events ?: return
         val event = original ?: return
         if (state.isSaving) return
+        val ofSeries = originalSeries
+        val day = event.occurrence
+        val seriesRepo = series
+        if (ofSeries != null && day != null && seriesRepo != null) {
+            if (scope == SeriesScope.ThisOnly && ofSeries.exdates.size >= EventSeries.MAX_EXDATES) return markFailed()
+            _uiState.value = state.copy(isSaving = true, saveFailed = false)
+            viewModelScope.launch {
+                val sent = write {
+                    when {
+                        scope == SeriesScope.ThisOnly ->
+                            seriesRepo.saveSeries(ofSeries.copy(exdates = (ofSeries.exdates + day).distinct()), isNew = false)
+                        ofSeries.rule.days(day.minusDays(1)).isEmpty() -> seriesRepo.deleteSeries(ofSeries.id)
+                        else -> seriesRepo.saveSeries(ofSeries.endingBefore(day), isNew = false)
+                    }
+                }
+                if (sent != null) _uiState.value = EventEditUiState.Done(sent.or(Confirmation.Deleted)) else markFailed()
+            }
+            return
+        }
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
             val sent = write { repo.deleteEvent(event.id) }
             if (sent != null) _uiState.value = EventEditUiState.Done(sent.or(Confirmation.Deleted)) else markFailed()
+        }
+    }
+
+    /**
+     * « Celle-ci et les suivantes »: the texts apply from this day on. A new rhythm or a new day keeps
+     * the same series when nothing of it is still to come before this day; otherwise the series ends
+     * the day before, and a new one starts here.
+     */
+    private fun saveFollowing(state: EventEditUiState.Editing, ofSeries: EventSeries) {
+        val repo = series ?: return
+        val author = me ?: return
+        val event = original ?: return
+        val day = event.occurrence ?: return
+        val form = state.form
+        val rule = form.rule() ?: return
+        val sameRhythm = form.date == day && rule.copy(start = ofSeries.rule.start) == ofSeries.rule
+        _uiState.value = state.copy(isSaving = true, saveFailed = false)
+        viewModelScope.launch {
+            val sent = write {
+                when {
+                    sameRhythm -> repo.saveSeries(
+                        form.toSeries(ofSeries.id, ofSeries.authorId, ofSeries.authorName, ofSeries.rule, ofSeries).copy(applyFrom = day),
+                        isNew = false,
+                    )
+                    ofSeries.comingBefore(day, today()).isEmpty() -> repo.saveSeries(
+                        form.toSeries(ofSeries.id, ofSeries.authorId, ofSeries.authorName, rule, ofSeries).copy(applyFrom = null),
+                        isNew = false,
+                    )
+                    else -> {
+                        repo.saveSeries(form.toSeries(repo.newSeriesId(), author.id, author.firstName, rule), isNew = true)
+                        repo.saveSeries(ofSeries.endingBefore(day), isNew = false)
+                    }
+                }
+            }
+            if (sent != null) _uiState.value = EventEditUiState.Done(sent.or(Confirmation.Saved)) else markFailed()
         }
     }
 
@@ -187,6 +290,7 @@ class EventEditViewModel(
         const val KEY_PLACE = "eventDraft.place"
         const val KEY_NOTE = "eventDraft.note"
         const val KEY_TARGET = "eventDraft.target"
+        const val KEY_REPEAT = "eventDraft.repeat"
 
         fun saveDraft(handle: SavedStateHandle, form: EventForm) {
             handle[KEY_TITLE] = form.title
@@ -195,6 +299,7 @@ class EventEditViewModel(
             handle[KEY_PLACE] = form.place
             handle[KEY_NOTE] = form.note
             handle[KEY_TARGET] = form.target?.let(::encodeTarget)
+            handle[KEY_REPEAT] = form.repeat.name
         }
 
         fun restoreDraft(handle: SavedStateHandle): EventForm? {
@@ -206,10 +311,16 @@ class EventEditViewModel(
                 place = handle.get<String>(KEY_PLACE).orEmpty(),
                 note = handle.get<String>(KEY_NOTE).orEmpty(),
                 target = handle.get<String>(KEY_TARGET)?.let(::decodeTarget),
+                repeat = handle.get<String>(KEY_REPEAT)?.let { name -> RepeatChoice.entries.firstOrNull { it.name == name } }
+                    ?: RepeatChoice.None,
             )
         }
     }
 }
+
+/** The series stopped on the day before [day]: what came before stays as it was. */
+private fun EventSeries.endingBefore(day: LocalDate): EventSeries =
+    copy(rule = rule.copy(until = day.minusDays(1), count = null))
 
 internal fun encodeTarget(target: EventTarget): String = when (target) {
     EventTarget.ForFamily -> "family"

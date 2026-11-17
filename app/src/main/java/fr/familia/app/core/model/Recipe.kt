@@ -21,8 +21,6 @@ data class Recipe(
     val createdAt: Instant?,
     /** Its little story (« Mamie la faisait chaque dimanche »), for the book of récit 47; may be empty. */
     val story: String = "",
-    /** Its author said a child is on one of its photos: carte EXPERT-2 holds in the book (récit 47). */
-    val childInPhotos: Boolean = false,
 ) {
     val ingredientLines: List<String> get() = lines(ingredients)
     val stepLines: List<String> get() = lines(steps)

@@ -28,6 +28,7 @@ fun EventEditRoute(
     onBack: () -> Unit,
 ) {
     val morePhotos = LocalFeatureFlags.current.isOn(Feature.MorePhotos)
+    val recurring = LocalFeatureFlags.current.isOn(Feature.RecurringEvents)
     val viewModel: EventEditViewModel = viewModel(
         factory = viewModelFactory {
             initializer {
@@ -38,6 +39,8 @@ fun EventEditRoute(
                     eventId,
                     savedState = createSavedStateHandle(),
                     photos = if (morePhotos) photoSaver(container) else null,
+                    series = container?.eventSeriesRepository,
+                    recurring = recurring,
                 )
             }
         },
@@ -49,8 +52,8 @@ fun EventEditRoute(
     EventEditScreen(
         state = state,
         onChange = viewModel::update,
-        onSave = viewModel::save,
-        onDelete = viewModel::delete,
+        onSave = { scope -> viewModel.save(scope) },
+        onDelete = { scope -> viewModel.delete(scope) },
         onBack = onBack,
     )
 }

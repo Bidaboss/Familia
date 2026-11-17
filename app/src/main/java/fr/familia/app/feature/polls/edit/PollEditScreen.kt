@@ -27,7 +27,6 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Poll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -61,6 +60,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.ui.HouseholdMemberPicker
+import fr.familia.app.core.ui.PickGroup
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.Poll
@@ -83,7 +84,7 @@ import java.time.ZoneOffset
 fun PollEditScreen(
     state: PollEditUiState,
     onChange: ((PollForm) -> PollForm) -> Unit,
-    onToggle: (String) -> Unit,
+    onAsked: (Set<String>) -> Unit,
     onShortcut: (AskShortcut) -> Unit,
     onAddOption: () -> Unit,
     onRemoveOption: (Int) -> Unit,
@@ -123,7 +124,7 @@ fun PollEditScreen(
                     title = stringResource(R.string.poll_unavailable_title),
                     body = stringResource(R.string.poll_unavailable_body),
                 )
-                is PollEditUiState.Editing -> FormContent(state, today, onChange, onToggle, onShortcut, onAddOption, onRemoveOption, onSave)
+                is PollEditUiState.Editing -> FormContent(state, today, onChange, onAsked, onShortcut, onAddOption, onRemoveOption, onSave)
             }
         }
     }
@@ -135,7 +136,7 @@ private fun FormContent(
     state: PollEditUiState.Editing,
     today: LocalDate,
     onChange: ((PollForm) -> PollForm) -> Unit,
-    onToggle: (String) -> Unit,
+    onAsked: (Set<String>) -> Unit,
     onShortcut: (AskShortcut) -> Unit,
     onAddOption: () -> Unit,
     onRemoveOption: (Int) -> Unit,
@@ -204,7 +205,7 @@ private fun FormContent(
             }
         }
 
-        AskedSection(state, onToggle, onShortcut)
+        AskedSection(state, onAsked, onShortcut)
         ClosesSection(form, errors, today, onChange)
 
         if (state.saveFailed) {
@@ -339,7 +340,7 @@ private fun ChoicesSection(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun AskedSection(state: PollEditUiState.Editing, onToggle: (String) -> Unit, onShortcut: (AskShortcut) -> Unit) {
+private fun AskedSection(state: PollEditUiState.Editing, onAsked: (Set<String>) -> Unit, onShortcut: (AskShortcut) -> Unit) {
     val asked = state.form.askedIds
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         SectionTitle(stringResource(R.string.poll_asked))
@@ -349,7 +350,7 @@ private fun AskedSection(state: PollEditUiState.Editing, onToggle: (String) -> U
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.padding(vertical = 4.dp),
         ) {
-            state.shortcuts.forEach { shortcut ->
+            state.shortcuts.filter { it.label == null }.forEach { shortcut ->
                 val selected = asked == shortcut.memberIds
                 FilterChip(
                     selected = selected,
@@ -360,28 +361,12 @@ private fun AskedSection(state: PollEditUiState.Editing, onToggle: (String) -> U
                 )
             }
         }
-        state.groups.forEach { group ->
-            Text(
-                group.name,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 8.dp).semantics { heading() },
-            )
-            group.members.forEach { member ->
-                val checked = member.id in asked
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 56.dp)
-                        .toggleable(value = checked, role = Role.Checkbox) { onToggle(member.id) },
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Checkbox(checked = checked, onCheckedChange = null)
-                    Spacer(Modifier.width(16.dp))
-                    Text(member.firstName, style = MaterialTheme.typography.bodyLarge)
-                }
-            }
-        }
+        // Each household ticks all its members (règle de Kévin, 17/11): the chips keep « Tout le monde ».
+        HouseholdMemberPicker(
+            groups = state.groups.map { PickGroup(it.name, it.members) },
+            selected = asked,
+            onChange = onAsked,
+        )
         errorText(state.errors, PollFormError.NobodyAsked)?.invoke()
     }
 }

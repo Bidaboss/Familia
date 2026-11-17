@@ -67,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material3.OutlinedButton
 import fr.familia.app.R
 import fr.familia.app.core.model.Household
+import fr.familia.app.core.model.HouseholdGroup
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.theme.FamiliaTheme

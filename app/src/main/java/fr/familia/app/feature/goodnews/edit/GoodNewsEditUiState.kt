@@ -3,6 +3,7 @@ package fr.familia.app.feature.goodnews.edit
 import fr.familia.app.core.model.GoodNews
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MonthChallenge
+import fr.familia.app.core.ui.PickGroup
 
 enum class PublishFailure { NeedsNetwork, PhotoUnreadable, Failed }
 
@@ -20,6 +21,8 @@ sealed interface GoodNewsEditUiState {
         val targets: List<Member>,
         /** Who can be named. */
         val candidates: List<Member>,
+        /** [candidates] by household, for the picker (règle de Kévin, 17/11). */
+        val mentionGroups: List<PickGroup> = emptyList(),
         val errors: Set<GoodNewsFormError> = emptySet(),
         /** While sending: the photo being sent (1, 2, 3), or 0 once the photos are sent. */
         val sendingPhoto: Int? = null,

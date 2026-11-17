@@ -10,6 +10,8 @@ import fr.familia.app.core.data.AppConfig
 import fr.familia.app.core.data.AppConfigRepository
 import fr.familia.app.core.data.BringRepository
 import fr.familia.app.core.data.CarpoolRepository
+import fr.familia.app.core.data.EventSeriesRepository
+import fr.familia.app.core.model.EventSeries
 import fr.familia.app.core.model.Ride
 import fr.familia.app.core.model.RideNeed
 import java.time.LocalTime
@@ -234,6 +236,13 @@ class ReadOnlyCarpoolRepository(private val inner: CarpoolRepository, private va
     override suspend fun cancelAsk(eventId: String, memberId: String) = guard.refuse()
 }
 
+class ReadOnlyEventSeriesRepository(private val inner: EventSeriesRepository, private val guard: ViewAsGuard) : EventSeriesRepository {
+    override suspend fun getSeries(id: String): EventSeries? = inner.getSeries(id)
+    override fun newSeriesId(): String = inner.newSeriesId()
+    override suspend fun saveSeries(series: EventSeries, isNew: Boolean) = guard.refuse()
+    override suspend fun deleteSeries(id: String) = guard.refuse()
+}
+
 class ReadOnlyGoodDealRepository(private val inner: GoodDealRepository, private val guard: ViewAsGuard) : GoodDealRepository {
     override fun observeAll(): Flow<List<GoodDeal>> = inner.observeAll()
     override fun observe(id: String): Flow<GoodDeal?> = inner.observe(id)
@@ -264,7 +273,6 @@ class ReadOnlyRecipeRepository(private val inner: RecipeRepository, private val 
     override fun newRecipeId(): String = inner.newRecipeId()
     override suspend fun saveRecipe(recipe: Recipe, isNew: Boolean) = guard.refuse()
     override suspend fun deleteRecipe(id: String) = guard.refuse()
-    override suspend fun setChildInPhotos(id: String, childInPhotos: Boolean) = guard.refuse()
     override fun observeComments(recipeId: String): Flow<List<RecipeComment>> = inner.observeComments(recipeId)
     override suspend fun addComment(recipeId: String, text: String, me: Member) = guard.refuse()
     override suspend fun deleteComment(recipeId: String, commentId: String) = guard.refuse()
