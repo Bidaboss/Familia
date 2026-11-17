@@ -1967,6 +1967,15 @@
         <item quantity="one">%d liste d\'envies ouverte</item>
         <item quantity="other">%d listes d\'envies ouvertes</item>
     </plurals>
+    <string name="gifts_next_no_wish">Pas encore d\'envie</string>
+    <plurals name="gifts_next_my_wishes">
+        <item quantity="one">%d envie dans ta liste</item>
+        <item quantity="other">%d envies dans ta liste</item>
+    </plurals>
+    <plurals name="gifts_next_their_wishes">
+        <item quantity="one">%d envie dans sa liste</item>
+        <item quantity="other">%d envies dans sa liste</item>
+    </plurals>
     <string name="gifts_see_ideas">Voir les idées</string>
     <string name="gifts_my_wish_list">Ma liste d\'envies</string>
     <string name="gifts_family_wishes_title">Les envies de la famille</string>
