@@ -128,6 +128,7 @@ class FirestoreNotebookRepository(private val db: FirebaseFirestore) : NotebookR
             status = GiftStatus.fromFirestore(getString("status")) ?: GiftStatus.Idea,
             listId = getString("listId"),
             itemId = getString("itemId"),
+            movedTo = getString("movedTo"),
         )
     }
 

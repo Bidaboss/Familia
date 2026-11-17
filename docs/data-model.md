@@ -329,6 +329,7 @@ La réservation d'un article. Son identifiant est celui de l'article, donc un ar
 | `createdAt` | horodatage serveur | |
 | `sharesTotal`, `sharesCount` | nombre, entier | Cadeau commun : total et nombre des parts, tenus par une Cloud Function (absents tant qu'aucune part n'a changé) |
 | `occasion` | `birthday` \| `christmas`, facultatif | « Mes envies » seulement (PRD rév. 186) : le prochain anniversaire ou le prochain Noël du bénéficiaire après la réservation, choisi par le réservant depuis son carnet. Absent, c'est celui des deux qui vient en premier. L'envie est dévoilée le lendemain. Les parts d'un cadeau commun suivent le choix du responsable |
+| `revealAfter` | texte `AAAA-MM-JJ`, facultatif | Écrit par la copie « Liste unique » seulement : la date de la liste d'origine. La réservation est alors dévoilée le lendemain de cette date, quelle que soit son `occasion` |
 
 - **Lire** : ceux qui voient la liste, sauf le bénéficiaire avant la révélation.
 - **Réserver** : ceux qui voient la liste, sauf le bénéficiaire. Un enfant réserve seul, jamais en cadeau commun (carte PRODUIT-19).
@@ -406,10 +407,19 @@ Ce que le membre prévoit d'offrir. Seul ce membre lit et écrit son carnet : ni
 | `title`, `url`, `price` | comme un article | Le prix d'une réservation est celui de l'article ; celui d'une part, le montant du membre |
 | `note` | texte de 500 caractères au plus, ou null | Pour soi |
 | `status` | `idea`, `bought`, `wrapped` ou `given` | Idée, Acheté, Emballé, Offert |
+| `movedTo` | texte, facultatif | Écrit par la copie « Liste unique » : l'identifiant de l'entrée du cadeau copié. L'appli ne montre que l'une des deux |
 | `createdAt`, `updatedAt` | horodatage serveur | |
 
 - **Idée privée** : le membre la crée, la modifie et la retire. Elle ne réserve rien.
 - **Réservation ou part reprise** : écrite par la fonction, qui garde le titre, le lien, le prix et la personne à jour. Le membre ne change que `status`, `occasion`, `year` et `note`, et ne la retire pas : elle part quand la réservation ou la part est retirée.
+
+### `migrations/singleList/items/{listId}_{itemId}` (récit 9 ter, « Liste unique »)
+
+Écrit par la fonction seule, jamais lu par l'appli. Quand l'interrupteur `singleList` s'allume, chaque article d'une liste d'occasion non révélée est copié, sans rien effacer : dans « Mes envies » s'il est visible par la personne (avec l'occasion de sa liste si c'est Noël ou un anniversaire), sinon dans ses « Idées de la famille ». La copie a l'identifiant `from-{listId}-{itemId}` ; sa réservation, ses parts et les entrées de carnet des offrants suivent. Cette marque, écrite dans le même lot, empêche toute seconde copie : rallumer l'interrupteur ne copie que les nouveaux articles. Champs : `listId`, `itemId`, `target`, `copiedId`, `copiedAt`.
+
+### `migrations/singleList/lists/{listId}` (récit 9 ter, « Liste unique »)
+
+Écrit par la fonction seule, jamais lu par l'appli. Une liste n'est copiée que si tous ceux qui liraient sa copie la voient déjà (ses `viewerIds` couvrent toute la famille sauf la personne, les enfants sans l'appli mis à part). Sinon elle reste telle quelle : `status: 'skipped'`, `reason: 'audience'`, `missing` (le nombre de membres qui la verraient en plus). Une liste copiée sans erreur porte `status: 'copied'` : tant que l'interrupteur est allumé, la révélation du matin des anciennes listes la laisse de côté, puisque ses cadeaux sont dévoilés un par un depuis « Mes envies » et les idées. Champ commun : `at`.
 
 ### `notebooks/{memberId}/budgets/{budgetId}`
 

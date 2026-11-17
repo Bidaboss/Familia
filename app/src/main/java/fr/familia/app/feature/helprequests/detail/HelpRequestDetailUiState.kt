@@ -33,6 +33,8 @@ sealed interface HelpRequestDetailUiState {
         val canWithdraw: Boolean,
         val canManage: Boolean,
         val canThank: Boolean,
+        /** The whole family reads it (author and people warned): only then may it leave Familia. */
+        val seenByWholeFamily: Boolean = false,
         val isBusy: Boolean = false,
         val error: HelpActionError? = null,
     ) : HelpRequestDetailUiState

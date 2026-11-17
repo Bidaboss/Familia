@@ -136,7 +136,9 @@ export async function revealWishesOf(
   let count = 0;
   for (const claim of claims.docs) {
     const meant = claimOccasion(claim.data(), member.birthDate, today);
-    const day = occasionDay(meant, member.birthDate);
+    // A reservation copied from a list of an occasion (récit 9 ter) keeps the date of that list.
+    const after = claim.get('revealAfter');
+    const day = typeof after === 'string' ? after : occasionDay(meant, member.birthDate);
     if (!day || day >= today) continue;
     const item = await list.collection('items').doc(claim.id).get();
     if (!item.exists) {

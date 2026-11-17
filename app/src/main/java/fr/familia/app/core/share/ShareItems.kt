@@ -2,6 +2,14 @@ package fr.familia.app.core.share
 
 import fr.familia.app.core.model.Trip
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import fr.familia.app.core.photo.PhotoStorage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import fr.familia.app.core.model.GoodNews
+import fr.familia.app.core.model.HelpKind
+import fr.familia.app.core.model.HelpRequest
 import android.widget.Toast
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Share
@@ -82,6 +90,67 @@ fun tripShare(context: Context, trip: Trip, today: LocalDate = LocalDate.now()):
         text = context.getString(R.string.share_trip_text, trip.title, lower(dates)),
         link = shareLink(ShareKind.Trip, trip.id),
     )
+}
+
+/** A good news: whose it is and its text; [photo] only once [goodNewsPhotoAllowed] said yes (carte EXPERT-2). */
+fun goodNewsShare(context: Context, news: GoodNews, whoseName: String, photo: Bitmap? = null): ShareContent {
+    val title = context.getString(R.string.share_goodnews_title, whoseName)
+    val text = news.text.trim()
+    val excerpt = if (text.length > SHARE_EXCERPT_MAX) text.take(SHARE_EXCERPT_MAX).trimEnd() + "…" else text
+    return ShareContent(
+        title = title,
+        lines = listOf(excerpt),
+        text = context.getString(R.string.share_goodnews_text, title, excerpt),
+        link = shareLink(ShareKind.GoodNews, news.id),
+        photo = photo,
+    )
+}
+
+/**
+ * A coup de main still open: its kind, its title and when. Neither the place, the note, the
+ * child helped nor who was warned goes out; the link opens it only for those it was asked to.
+ */
+fun helpRequestShare(context: Context, request: HelpRequest, today: LocalDate = LocalDate.now()): ShareContent {
+    val day = formatDay(request.date, today)
+    val start = request.startTime
+    val end = request.endTime
+    val whenText = when {
+        start != null && end != null -> context.getString(R.string.helprequest_when_range, day, formatTime(start), formatTime(end))
+        start != null -> context.getString(R.string.helprequest_when_from, day, formatTime(start))
+        end != null -> context.getString(R.string.helprequest_when_until, day, formatTime(end))
+        else -> day
+    }
+    val kind = context.getString(
+        when (request.kind) {
+            HelpKind.Childcare -> R.string.helprequest_kind_childcare
+            HelpKind.Ride -> R.string.helprequest_kind_ride
+            HelpKind.Other -> R.string.helprequest_kind_other
+        },
+    )
+    return ShareContent(
+        title = request.title,
+        lines = listOf(context.getString(R.string.share_help_line, kind), whenText),
+        text = context.getString(R.string.share_help_text, request.title, lower(whenText)),
+        link = shareLink(ShareKind.HelpRequest, request.id),
+    )
+}
+
+/** Enough of a good news to read on the image and in the message: the rest is in Familia. */
+private const val SHARE_EXCERPT_MAX = 160
+
+/**
+ * The photo at [path], made small enough for the 1080 px image of a share, or null: the share
+ * then goes without it rather than not at all.
+ */
+suspend fun sharePhoto(storage: PhotoStorage?, path: String): Bitmap? {
+    val bytes = storage?.bytes(path) ?: return null
+    return withContext(Dispatchers.Default) {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+        var sample = 1
+        while (minOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= 1080) sample *= 2
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })
+    }
 }
 
 /** Opens the share sheet for [content], or says that the phone has no app to share with. */

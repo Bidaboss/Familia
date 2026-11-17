@@ -49,6 +49,7 @@ import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type Birt
 import { deleteWelcomeOf, isFirstSignIn, welcomeMember } from './welcome';
 import { deleteCheersOf, deleteMomentsOf, onMomentCheerCreated, startMoments, type MomentCheer } from './thinkOfMe';
 import { revealWishes, thankGivers } from './wishesReveal';
+import { migrateToSingleList } from './singleList';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
 initializeApp();
@@ -290,6 +291,17 @@ export const onGiftItemWritten = onDocumentWritten('giftLists/{listId}/items/{it
   const after = event.data?.after.data() as GiftItemData | undefined;
   await onGiftItemChanged(getFirestore(), send, event.params.listId, event.params.itemId, before, after);
   if (before && after) await syncNotebookItem(getFirestore(), event.params.listId, event.params.itemId);
+});
+
+// « Liste unique » (récit 9 ter): when its switch is turned on in Administration, the open lists of an occasion
+// are copied into « Mes envies » and the ideas of the family, without deleting anything. Turned on
+// again, it copies only what was not copied yet.
+export const onSingleListSwitched = onDocumentWritten({ document: 'config/app', timeoutSeconds: 300 }, async (event) => {
+  const before = event.data?.before.get('features.singleList') === true;
+  const after = event.data?.after.get('features.singleList') === true;
+  if (before || !after) return;
+  const copied = await migrateToSingleList(getFirestore());
+  console.log(`singleList: ${copied} items copied`);
 });
 
 export const onMemberDeletedGifts = onDocumentDeleted('members/{memberId}', async (event) => {

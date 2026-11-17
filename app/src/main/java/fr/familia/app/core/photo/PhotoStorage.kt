@@ -3,6 +3,7 @@ package fr.familia.app.core.photo
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageException
 import com.google.firebase.storage.StorageMetadata
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 import java.util.concurrent.ConcurrentHashMap
 
@@ -19,7 +20,13 @@ interface PhotoStorage {
     suspend fun downloadUrl(path: String): String
 
     suspend fun delete(path: String)
+
+    /** The file itself, for a share that carries the photo (récit 31); null when it is too big or unreadable. */
+    suspend fun bytes(path: String, maxBytes: Long = SHARE_PHOTO_MAX_BYTES): ByteArray? = null
 }
+
+/** A photo of the app is about 1 Mo once compressed: 3 Mo leaves room without filling the memory. */
+const val SHARE_PHOTO_MAX_BYTES = 3_000_000L
 
 class FirebasePhotoStorage(private val storage: FirebaseStorage) : PhotoStorage {
 
@@ -43,5 +50,14 @@ class FirebasePhotoStorage(private val storage: FirebaseStorage) : PhotoStorage 
     override suspend fun delete(path: String) {
         storage.reference.child(path).delete().await()
         urls.remove(path)
+    }
+
+    override suspend fun bytes(path: String, maxBytes: Long): ByteArray? = try {
+        storage.reference.child(path).getBytes(maxBytes).await()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        // Too big, deleted meanwhile, no network: the share goes without its photo.
+        null
     }
 }

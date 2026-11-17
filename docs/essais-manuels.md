@@ -511,3 +511,9 @@ Avec le module Partager allumé.
 ## Le Planning à 200 %
 1. Réglages Android, taille de police au maximum. Planning : **Attendu :** « Sondages » devient son icône seule, avec la pastille du nombre. Le titre « Planning », le « ? » et ta photo tiennent sur la barre. TalkBack lit « Sondages » et le nombre en attente.
 2. Taille normale : **Attendu :** le bouton « Sondages » écrit, comme avant.
+
+## Partager une bonne nouvelle ou un coup de main (récit 31)
+Avec l'interrupteur « Partager » allumé :
+1. Ouvre une bonne nouvelle d'un adulte avec une photo, touche Partager en haut : l'image porte la photo, le message donne le début du texte et le lien.
+2. Ouvre la bonne nouvelle d'un enfant d'un autre foyer : l'image part sans la photo. Celle de ton enfant part avec.
+3. Ouvre un coup de main que tu as demandé à toute la famille, encore ouvert : Partager donne le titre et le moment, sans le lieu ni la note. Le bouton n'apparaît pas sur une demande faite à quelques personnes seulement, ni une fois la demande prise, ni sur celle de quelqu'un d'autre.
