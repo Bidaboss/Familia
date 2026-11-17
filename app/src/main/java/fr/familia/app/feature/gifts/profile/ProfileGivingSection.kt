@@ -39,7 +39,6 @@ import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.viewas.LocalViewAs
-import fr.familia.app.feature.gifts.keepsListsOf
 import fr.familia.app.feature.gifts.notebook.GiftRow
 import fr.familia.app.feature.gifts.notebook.NotebookActions
 import fr.familia.app.feature.gifts.notebook.NotebookUiState
@@ -77,8 +76,6 @@ class ProfileGivingViewModel(
     singleList: Boolean,
     /** Off with the notebook module: only the surprises then. */
     notebookOn: Boolean,
-    /** Their ideas are kept from me (my own child without the app): nothing to read there. */
-    keptByMe: Boolean = false,
 ) : ViewModel() {
     private val entries = (notebook?.takeIf { notebookOn }?.observeEntries(currentMemberId) ?: flowOf(emptyList()))
         .map { giftsFor(it, memberId, singleList) }
@@ -95,7 +92,7 @@ class ProfileGivingViewModel(
         }
 
     // With the single list a surprise is an idea of the family (retour d'essai du 17/11).
-    private val surpriseIdea = (gifts?.takeIf { singleList && !keptByMe }?.observeItems(ideasListId(memberId), hiddenFromMe = false) ?: flowOf(emptyList()))
+    private val surpriseIdea = (gifts?.takeIf { singleList }?.observeItems(ideasListId(memberId), hiddenFromMe = false) ?: flowOf(emptyList()))
         .map { items -> items.any { !it.visibleToBeneficiary } }
         .catch { e ->
             if (e is CancellationException) throw e
@@ -137,7 +134,6 @@ fun ProfileGivingSection(
             initializer {
                 ProfileGivingViewModel(
                     container?.notebookRepository, container?.giftRepository, currentMember.id, member.id, singleList, notebookOn,
-                    keptByMe = keepsListsOf(currentMember, member),
                 )
             }
         },

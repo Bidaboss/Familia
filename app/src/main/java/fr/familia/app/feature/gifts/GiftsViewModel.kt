@@ -70,8 +70,8 @@ sealed interface GiftsUiState {
         val listItems: Map<String, List<GiftItem>> = emptyMap(),
         /**
          * With the single list (récit 9 ter): the people of [birthdays] whose ideas of the family hold
-         * a surprise idea, kept from them (retour d'essai du 17/11). Never this member nor the
-         * children whose lists they keep: those ideas are kept from them too.
+         * a surprise idea, kept from them (retour d'essai du 17/11). Never this member; the adults of
+         * a child without the app see it, as the rules let them read the child's ideas.
          */
         val surprisePreparedFor: Set<String> = emptySet(),
         /** One list of wishes per person, and the ideas of the family (récit 9 ter): no list for an occasion. */
@@ -188,14 +188,14 @@ class GiftsViewModel(
 
 /**
  * The people of the birthdays shown whose ideas of the family to read for a surprise in progress:
- * with the single list only, never this member nor the children whose lists they keep.
+ * with the single list only, never this member (« Voir comme » them included: they are « me » then).
  */
 internal fun surpriseIdeasToRead(state: GiftsUiState.Success): List<String> =
     if (!state.singleList) {
         emptyList()
     } else {
         state.birthdays.map { it.member.id }.distinct()
-            .filter { id -> state.sections.none { it.member.id == id && it.keptByMe } }
+            .filter { id -> state.sections.none { it.member.id == id && it.isMe } }
     }
 
 /**

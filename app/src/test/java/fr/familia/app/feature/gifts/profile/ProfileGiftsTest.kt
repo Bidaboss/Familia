@@ -155,6 +155,10 @@ class ProfileGiftsTest {
         assertTrue(surpriseIdeasToRead(previewGifts()).isEmpty())
         val mine = state.copy(birthdays = state.birthdays.map { it.copy(member = state.sections.first { s -> s.isMe }.member) })
         assertTrue(surpriseIdeasToRead(mine).isEmpty())
+        // A child without the app whose lists I keep: their adults see a surprise for them (retour du 18/11).
+        val kid = state.sections.first { it.member.id == "c" }.member
+        val forKid = state.copy(birthdays = state.birthdays.map { it.copy(member = kid) })
+        assertEquals(listOf("c"), surpriseIdeasToRead(forKid))
     }
 
     private fun showBirthdays(presenting: Boolean, opened: MutableList<String>) {
