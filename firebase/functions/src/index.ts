@@ -52,9 +52,9 @@ import { deleteDigestOf, sendDigests } from './digest';
 import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { sendWeeklyRecap } from './recap';
 import { orphanReportDue, reportOrphanGoodNewsPhotos, type StoredFile } from './orphanPhotos';
-import { deleteQuietQueueOf, presentationFrom, presentingNow, sendHeldNotices, sendPresentationHeld } from './prefs';
+import { capBursts, deleteQuietQueueOf, presentationFrom, presentingNow, PRIVATE_CHANNELS, sendBurstHeld, sendHeldNotices, sendPresentationHeld } from './prefs';
 import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type BirthdayCard } from './birthdayWishes';
-import { deleteWelcomeOf, isFirstSignIn, welcomeMember } from './welcome';
+import { deleteWelcomeOf, isFirstSignIn, sendQueuedWelcomes, welcomeMember } from './welcome';
 import { deleteCheersOf, deleteMomentsOf, onMomentCheerCreated, startMoments, type MomentCheer } from './thinkOfMe';
 import { keepReceivedPhoto, revealWishes, thankGivers } from './wishesReveal';
 import { migrateToSingleList } from './singleList';
@@ -76,10 +76,11 @@ async function grow(what: string, work: () => Promise<unknown>): Promise<void> {
 // A family of 13: one instance is plenty, and caps the cost if something loops.
 setGlobalOptions({ region: 'europe-west1', maxInstances: 1 });
 
+// Avalanche du 21: no phone rings more than 3 times an hour, the rest goes out grouped (prefs.ts).
+capBursts();
+
 const UNREGISTERED = new Set(['messaging/registration-token-not-registered', 'messaging/invalid-registration-token']);
 
-/** Channels whose notifications may hold a surprise (gifts, time capsules). Same list in NotificationChannels.kt. */
-const PRIVATE_CHANNELS: ReadonlySet<string> = new Set(['gifts', 'capsules']);
 
 const send: Sender = async (token: string, notice: Notice) => {
   try {
@@ -670,7 +671,7 @@ const sendHeld = async (token: string, notice: Notice & { goodNewsId?: string; h
 
 /**
  * Mode présentation (récit 48): when it goes off (turned off in Administration, or its end seen by
- * a send), what it held goes out as one summary per channel.
+ * a send), what it held goes out as one summary per member.
  */
 export const onPresentationWritten = onDocumentWritten('config/presentation', async (event) => {
   const before = presentationFrom(event.data?.before.data());
@@ -692,6 +693,18 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
     await sendHeldNotices(getFirestore(), sendHeld, new Date());
   } catch (e) {
     console.error('quietQueue', e);
+  }
+  // Then the bienvenues that waited, and what went past 3 notices an hour (avalanche du 21). A
+  // failure waits for the next run and never stops the rest.
+  try {
+    await sendQueuedWelcomes(getFirestore(), send, new Date());
+  } catch (e) {
+    console.error('welcomeQueue', e);
+  }
+  try {
+    await sendBurstHeld(getFirestore(), sendHeld, new Date());
+  } catch (e) {
+    console.error('burstQueue', e);
   }
   await sendArrivalReminders(getFirestore(), send, new Date());
   // And the reminders each one asked for on an event (récit 56). A failure waits for the next run.

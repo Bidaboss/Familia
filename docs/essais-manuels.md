@@ -893,6 +893,15 @@ Avec l'interrupteur « Mes premiers pas » allumé pour la famille. Éteint, per
 5. Sur un autre membre, touche « Plus tard ». **Attendu :** la carte disparaît pour la journée, et revient le lendemain. « Ne plus afficher » : elle ne revient plus sur ce téléphone.
 6. Allume le Mode présentation. **Attendu :** pas de carte. Éteins-le : elle revient. En « Voir comme » : jamais de carte.
 7. Aucune notification n'arrive pour ces gestes. Au bout de 14 jours après sa première apparition sur le téléphone, la carte ne s'affiche plus.
+## Démo du 21 : avalanche de notifications
+
+Il faut trois téléphones de test (A, B, C) et le module « La bienvenue » allumé. Mode présentation éteint, sauf à l'étape 5. Les heures sont celles de la tâche des 30 minutes (à l'heure pile et à la demie, à une ou deux minutes près).
+1. Connecte A pour la première fois. **Attendu :** B et C reçoivent tout de suite « … vient d'arriver ».
+2. Dans les 30 minutes, connecte B, puis C pour la première fois. **Attendu :** rien n'arrive tout de suite.
+3. Attends le passage suivant de la tâche, au moins 30 minutes après l'étape 1. **Attendu :** A reçoit une seule notification « B et C viennent d'arriver ». B ne reçoit que « C vient d'arriver », et C que « B vient d'arriver ».
+4. Depuis B, publie cinq bonnes nouvelles en quelques minutes. **Attendu :** A reçoit les trois premières, puis plus rien. Une heure environ après la première, A reçoit une seule notification « Dans Familia », « 2 notifications : … ». Pendant ce temps, un « Rejoins-moi » de B arrive tout de suite.
+5. Allume le Mode présentation. Connecte un nouveau membre, publie deux bonnes nouvelles et réagis à une autre depuis B. Éteins le mode. **Attendu :** pendant le mode, rien ne sonne sur A. À la fin, A reçoit au plus trois notifications : « … personnes ont rejoint Familia », une seule « Pendant la présentation » pour tout le reste, et à part une notification Cadeaux s'il y en avait.
+
 ## Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible
 
 À faire avec le deuxième téléphone de test, une fois en mode avion, puis une fois en « 2G seulement » (réglages du téléphone, Réseau mobile, Type de réseau préféré), Wi-Fi coupé.
