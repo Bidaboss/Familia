@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.GiftRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Family
+import fr.familia.app.core.model.familyAudience
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.GiftOccasion
@@ -147,7 +148,7 @@ class GiftListEditViewModel(
     private fun defaultForm(fam: Family, current: Member, beneficiaryId: String): GiftListForm {
         val beneficiary = fam.members.firstOrNull { it.id == beneficiaryId } ?: current
         val surprise = !keepsListsOf(current, beneficiary)
-        val all = fam.members.map { it.id }.toSet()
+        val all = familyAudience(fam).map { it.id }.toSet()
         return GiftListForm(
             occasion = if (surprise) GiftOccasion.Birthday else GiftOccasion.Christmas,
             beneficiaryId = beneficiary.id,

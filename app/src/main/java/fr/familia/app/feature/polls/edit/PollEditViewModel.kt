@@ -6,6 +6,7 @@ import fr.familia.app.core.data.EventRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.PollRepository
 import fr.familia.app.core.model.Family
+import fr.familia.app.core.model.familyAudience
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.Poll
@@ -63,7 +64,7 @@ class PollEditViewModel(
         if (!canAskPoll(current)) return unavailable()
         family = loaded
         me = current
-        val everyone = loaded.members.map { it.id }.toSet()
+        val everyone = familyAudience(loaded).map { it.id }.toSet()
         initialForm = PollForm(askedIds = eventGuests(loaded) ?: everyone)
         // My household first, then the others; in each, the adults then the children.
         val households = loaded.households.sortedWith(compareBy({ it.id != current.householdId }, { it.name.lowercase() }))

@@ -1,6 +1,7 @@
 package fr.familia.app.core.model
 
 import fr.familia.app.feature.events.TestFamily
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -44,5 +45,41 @@ class AudienceTest {
     @Test
     fun `a member who left the family is in nobody's scope but their own`() {
         assertFalse(concerns(EventTarget.ForSelf("ghost"), me, family))
+    }
+
+    // --- Cercles, étape 1 (PRD rév. 238): one audience, no change. « Famille A » and « Famille B ».
+
+    @Test
+    fun `naming no circle is the circle « principal »`() {
+        assertEquals(listOf(MAIN_CIRCLE), circlesOf(null))
+        assertEquals(listOf(MAIN_CIRCLE), circlesOf(emptyList()))
+        assertEquals(listOf(MAIN_CIRCLE), circlesOf(listOf("")))
+        assertEquals(listOf("familleA", "familleB"), circlesOf(listOf("familleA", "familleB")))
+    }
+
+    @Test
+    fun `with the circles off everyone reaches everyone, with them on only a shared circle`() {
+        assertTrue(inAudience(listOf("familleA"), listOf("familleB"), circlesOn = false))
+        assertFalse(inAudience(listOf("familleA"), listOf("familleB"), circlesOn = true))
+        assertTrue(inAudience(listOf("familleA", "familleB"), listOf("familleB"), circlesOn = true))
+        assertTrue(inAudience(null, null, circlesOn = true))
+        assertFalse(inAudience(listOf("familleA"), null, circlesOn = true))
+    }
+
+    @Test
+    fun `« toute la famille » is today every member`() {
+        assertEquals(family.members, familyAudience(family))
+    }
+
+    @Test
+    fun `a gift list is read as the rule canSeeList says`() {
+        fun list(kind: GiftListKind, beneficiary: String, viewers: List<String> = emptyList(), revealed: Boolean = false) =
+            GiftList("l", kind, "Liste", null, null, beneficiary, viewers, beneficiary, beneficiary, revealed = revealed)
+        assertTrue(canSeeList(list(GiftListKind.Wishes, "adult1"), "adult1"))
+        assertTrue(canSeeList(list(GiftListKind.Ideas, "adult1"), "adult2"))
+        assertFalse(canSeeList(list(GiftListKind.Ideas, "adult1"), "adult1"))
+        assertFalse(canSeeList(list(GiftListKind.Surprise, "adult1", listOf("adult2")), "adult1"))
+        assertTrue(canSeeList(list(GiftListKind.Surprise, "adult1", listOf("adult2")), "adult2"))
+        assertTrue(canSeeList(list(GiftListKind.Surprise, "adult1", listOf("adult2"), revealed = true), "adult1"))
     }
 }

@@ -60,7 +60,7 @@ import fr.familia.app.core.model.FeedbackContext
 import fr.familia.app.core.model.GiftClaim
 import fr.familia.app.core.model.GiftItem
 import fr.familia.app.core.model.GiftList
-import fr.familia.app.core.model.GiftListKind
+import fr.familia.app.core.model.canSeeList
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftShare
 import fr.familia.app.core.model.GiftStatus
@@ -496,10 +496,5 @@ class ReadOnlyExpenseRepository(private val inner: ExpenseRepository, private va
  */
 fun listSeenBy(list: GiftList?, memberId: String): GiftList? = list?.takeIf { listsSeenBy(listOf(it), memberId).isNotEmpty() }
 
-/** The lists of [lists] that [memberId] sees, by the rule of canSeeList (firebase/firestore.rules). */
-fun listsSeenBy(lists: List<GiftList>, memberId: String): List<GiftList> = lists.filter { list ->
-    list.kind == GiftListKind.Wishes
-        // The ideas of the family stay hidden from their person, « Voir comme » included (récit 9 ter).
-        || (list.kind == GiftListKind.Ideas && list.beneficiaryId != memberId)
-        || memberId in list.viewerIds || (list.beneficiaryId == memberId && list.revealed)
-}
+/** The lists of [lists] that [memberId] sees, by [canSeeList] (the rule of firebase/firestore.rules). */
+fun listsSeenBy(lists: List<GiftList>, memberId: String): List<GiftList> = lists.filter { canSeeList(it, memberId) }
