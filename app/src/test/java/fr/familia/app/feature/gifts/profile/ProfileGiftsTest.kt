@@ -164,7 +164,9 @@ class ProfileGiftsTest {
     }
 
     private fun showBirthdays(presenting: Boolean, opened: MutableList<String>) {
-        val state = previewGifts().copy(singleList = true, surprisePreparedFor = setOf("b"))
+        // With the single list there is no list for an occasion: only the ideas of the family.
+        val preview = previewGifts()
+        val state = preview.copy(singleList = true, surprisePreparedFor = setOf("b"), sections = preview.sections.map { it.copy(lists = emptyList()) })
         compose.setContent {
             FamiliaTheme {
                 CompositionLocalProvider(LocalPresenting provides presenting) {
