@@ -87,6 +87,8 @@ fun PhotoSlideshow(photos: List<AlbumPhoto>, onClose: () -> Unit) {
     LaunchedEffect(shown, paused, photos.size, skip) {
         if (paused) return@LaunchedEffect
         delay(if (skip) SKIP_MILLIS else SLIDE_MILLIS)
+        // Forgotten for the next round: a photo that loads then keeps its 4 seconds.
+        failedId = null
         index = (shown + 1) % photos.size
     }
     val view = LocalView.current
@@ -122,6 +124,7 @@ fun PhotoSlideshow(photos: List<AlbumPhoto>, onClose: () -> Unit) {
                         contentScale = ContentScale.Fit,
                         showLoading = true,
                         onFailed = { failedId = photo.id },
+                        onLoaded = { if (failedId == photo.id) failedId = null },
                     )
                 }
             }

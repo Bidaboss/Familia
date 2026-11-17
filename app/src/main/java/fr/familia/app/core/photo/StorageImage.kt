@@ -49,6 +49,8 @@ fun StorageImage(
     showLoading: Boolean = false,
     /** Told once the photo cannot load, so a slideshow can go on to the next one. */
     onFailed: () -> Unit = {},
+    /** Told when the photo shows, even after a failure (the network came back). */
+    onLoaded: () -> Unit = {},
 ) {
     val storage = LocalPhotoStorage.current
     val online = LocalOnline.current
@@ -88,6 +90,7 @@ fun StorageImage(
                 onSuccess = {
                     failed = false
                     loaded = true
+                    onLoaded()
                 },
             )
         } else if (showFailed) {
