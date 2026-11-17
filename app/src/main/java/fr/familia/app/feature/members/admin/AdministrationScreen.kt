@@ -243,7 +243,7 @@ private fun ReadyContent(
                 SectionTitle(R.string.administration_features_title, R.string.administration_features_help)
             }
             items(Feature.entries, key = { "feature-${it.key}" }) { feature ->
-                FeatureSwitchRow(feature, on = features[feature.key] == true, onSetFeature = onSetFeature)
+                FeatureSwitchRow(feature, on = features[feature.key] ?: feature.onByDefault, onSetFeature = onSetFeature)
             }
         }
         if (onOpenUsage != null) {

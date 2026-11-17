@@ -7,14 +7,13 @@ import android.content.pm.PackageManager
 import fr.familia.app.BuildConfig
 import fr.familia.app.R
 import fr.familia.app.core.model.Member
-import fr.familia.app.core.model.MemberProfile
 
 /**
- * « Partager Familia » (PRD, récit 1 bis bis): any adult may send the whole family the install
- * link. The link carries no token, so it adds nobody: the admin principal still enters each address.
+ * « Partager Familia » (PRD, récit 1 bis bis, rév. 229): only the admin principal sends the whole
+ * family the install link, from the sheet of the avatar and from Administration. The link carries no token, so it adds nobody: the admin principal still enters each address.
  */
-fun canShareApp(me: Member?, link: String = BuildConfig.DOWNLOAD_URL): Boolean =
-    me?.profile == MemberProfile.Adult && hasInstallLink(link)
+fun canShareApp(me: Member?, ownerId: String?, link: String = BuildConfig.DOWNLOAD_URL): Boolean =
+    me != null && ownerId != null && me.id == ownerId && hasInstallLink(link)
 
 /** A build without the FAMILIA_DOWNLOAD_URL secret (a local one) has no link to send. */
 fun hasInstallLink(link: String = BuildConfig.DOWNLOAD_URL): Boolean = link.isNotBlank()
