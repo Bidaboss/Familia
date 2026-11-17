@@ -37,7 +37,12 @@ fun openNotificationSettings(context: Context) {
  * settings, and how to ask. Asking shows the Android dialog; once refused twice, Android no longer
  * shows it, so the Android settings open instead.
  */
-class NotificationPermissionState(val allowed: Boolean, val ask: () -> Unit)
+class NotificationPermissionState(
+    val allowed: Boolean,
+    /** True once the Android dialog has answered here, yes or no. */
+    val answered: Boolean = false,
+    val ask: () -> Unit,
+)
 
 @Composable
 fun rememberNotificationPermission(): NotificationPermissionState {
@@ -49,7 +54,7 @@ fun rememberNotificationPermission(): NotificationPermissionState {
         asked = true
     }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { allowed = notificationsAllowed(context) }
-    return NotificationPermissionState(allowed) {
+    return NotificationPermissionState(allowed, answered = asked) {
         val canAsk = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED &&
             !asked

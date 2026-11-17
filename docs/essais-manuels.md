@@ -943,3 +943,13 @@ Sur ton téléphone, avec la rotation automatique allumée (volet des réglages 
 5. Toujours en « Voir comme », touche « Accueil » du téléphone, attends une minute, puis rouvre Familia. **Attendu :** le même membre, avec son bandeau, jamais ton propre Accueil.
 6. Toujours en « Voir comme », sur son Accueil, touche « Retour » du téléphone. **Attendu :** l'appli ne se ferme pas, et le message « Pour sortir de « Voir comme », touche « Quitter » sur le bandeau. » s'affiche. Dans un écran ouvert (un événement), « Retour » revient en arrière comme d'habitude.
 7. Touche « Quitter » sur le bandeau. **Attendu :** ton propre appli revient, et « Retour » sur ton Accueil ferme Familia comme avant.
+
+## Démo du 21 : arrivée d'un nouveau membre, de l'invitation à l'Accueil
+
+Avec le deuxième téléphone de test, sous Android 13 ou plus, et Familia désinstallée.
+
+1. Sur ton téléphone, **Famille**, une fiche, « Envoyer l'invitation », par SMS vers le deuxième téléphone. **Attendu :** le message dit en trois étapes quoi faire : ouvrir le lien et toucher le fichier, « Télécharger » puis « Installer » (avec quoi faire si c'est bloqué), puis se connecter avec l'adresse Google notée.
+2. Sur le deuxième téléphone, suis le message. Si Android dit que l'installation est bloquée, touche « Paramètres », autorise la source, puis reviens. **Attendu :** l'installation se termine.
+3. Ouvre Familia et connecte-toi. Va jusqu'au dernier écran du tuto, « Rester prévenu », et touche « Autoriser ». Dans la fenêtre d'Android, touche « Ne pas autoriser ». **Attendu :** l'appli s'ouvre sur l'Accueil. Tu ne restes pas bloqué sur le tuto.
+4. Ta photo en haut à droite, puis les réglages des notifications. **Attendu :** le message « Les notifications de Familia sont bloquées sur ce téléphone… », avec un bouton vers les réglages d'Android.
+5. Recommence sur un téléphone où Familia vient d'être réinstallée, et touche « Autoriser » dans la fenêtre d'Android. **Attendu :** l'appli s'ouvre aussi sur l'Accueil.

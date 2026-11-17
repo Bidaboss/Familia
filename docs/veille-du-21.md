@@ -54,6 +54,7 @@ Passe chaque essai d'abord en mode avion, puis en « 2G seulement ». Pour la 2G
 - [ ] « Bonnes nouvelles : envoi de la photo sur un réseau faible ou coupé ».
 - [ ] « Voir comme » sur un enfant : **Administration**, puis « Voir comme… », puis un enfant d'environ 11 ans. Parcours Accueil, Planning, Entraide et Bonnes nouvelles. **Attendu :** aucun bouton qui finit sur un refus, et aucun texte d'adulte. Recommence avec un enfant d'environ 16 ans. C'est l'étape 3 de « Écrans vides et profils enfant ».
 - [ ] Touche « Quitter » sur le bandeau « Tu vois l'appli comme … ».
+- [ ] Un enfant suivi par Family Link : installe Familia sur son téléphone et connecte son compte, avec le parent qui le suit à côté. C'est « Un enfant suivi par Family Link se connecte (avant le 21) », dans [essais-manuels.md](essais-manuels.md). **Si ça bloque**, ne retente pas le jour J : sur sa fiche, passe son profil à « Enfant, sans l'appli ». Ses parents répondent pour lui, et on retente après le repas, au calme.
 
 ## 5. Préparer le repas, encore ce soir
 
