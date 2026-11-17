@@ -71,11 +71,16 @@ class GiftsTest {
     }
 
     @Test
-    fun `the wishes of a child are shared by their adults only (EXPERT-2)`() {
+    fun `a child with the app shares their own wishes, and their adults do too`() {
         val kidWishes = list("wishes-kid1", "kid1", kind = GiftListKind.Wishes, viewers = emptyList())
-        assertFalse(canShareWishesOutside(kidWishes, TestFamily.kid, family)) // Never the child, even with the app.
+        assertTrue(canShareWishesOutside(kidWishes, TestFamily.kid, family))
         assertTrue(canShareWishesOutside(kidWishes, TestFamily.adult, family))
         assertFalse(canShareWishesOutside(kidWishes, TestFamily.otherAdult, family))
+        assertFalse(canShareWishesOutside(list("wishes-adult1", "adult1", kind = GiftListKind.Wishes, viewers = emptyList()), TestFamily.kid, family))
+    }
+
+    @Test
+    fun `the wishes of a child without the app are shared by their adults only`() {
         val babyWishes = list("wishes-kid2", "kid2", kind = GiftListKind.Wishes, viewers = emptyList())
         assertTrue(canShareWishesOutside(babyWishes, TestFamily.otherAdult, family))
         assertFalse(canShareWishesOutside(babyWishes, TestFamily.adult, family))
