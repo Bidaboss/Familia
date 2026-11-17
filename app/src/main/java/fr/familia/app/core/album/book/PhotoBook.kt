@@ -18,6 +18,9 @@ import java.util.Locale
 /** Which album the book is made from: [kind] is « trip » or « event », [id] its id. */
 @Serializable
 data class PhotoBookDestination(val kind: String, val id: String) {
+    /** A trip or an event; any other kind (an old or a hand-made link) is refused by the route. */
+    val isKnown: Boolean get() = kind == TRIP || kind == EVENT
+
     companion object {
         const val TRIP = "trip"
         const val EVENT = "event"

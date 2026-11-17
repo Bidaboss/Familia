@@ -45,6 +45,13 @@ class PhotoBookTest {
     }
 
     @Test
+    fun `only a trip or an event can make a book`() {
+        assertEquals(true, PhotoBookDestination(PhotoBookDestination.TRIP, "t1").isKnown)
+        assertEquals(true, PhotoBookDestination(PhotoBookDestination.EVENT, "e1").isKnown)
+        assertEquals(false, PhotoBookDestination("recipe", "r1").isKnown)
+    }
+
+    @Test
     fun `dates captions and file names read well`() {
         assertEquals("4 août 2026", bookDates(LocalDate.of(2026, 8, 4)))
         assertEquals("du 3 au 9 août 2026", bookDates(LocalDate.of(2026, 8, 3), LocalDate.of(2026, 8, 9)))
