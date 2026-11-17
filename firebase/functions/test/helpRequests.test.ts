@@ -70,6 +70,11 @@ describe('who is told what', () => {
     assert.equal(messages[0].notice.title, 'Inès ne peut pas');
   });
 
+  test('« Pas dispo » among several people warned tells nobody', () => {
+    const before = request();
+    assert.deepEqual(to(helpMessages('r1', before, { ...before, unavailableIds: ['ines'] }, 'ines', members, today)), []);
+  });
+
   test('widening tells only the new people', () => {
     const before = request({ notifyIds: ['ines'], forMemberId: 'camille', declinedBy: 'ines' });
     const after = { ...before, notifyIds: ['ines', 'jules'], declinedBy: null };
