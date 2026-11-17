@@ -16,7 +16,10 @@ import java.time.Instant
 import java.util.Date
 
 /** Good news live in `goodNews/{id}`. See docs/data-model.md for the fields and the rights. */
-class FirestoreGoodNewsRepository(private val db: FirebaseFirestore) : GoodNewsRepository {
+class FirestoreGoodNewsRepository(
+    private val db: FirebaseFirestore,
+    private val journal: SendJournal? = null,
+) : GoodNewsRepository {
 
     override fun observeLatest(count: Int): Flow<List<GoodNews>> = callbackFlow {
         val registration = db.collection(GOOD_NEWS)
@@ -61,25 +64,28 @@ class FirestoreGoodNewsRepository(private val db: FirebaseFirestore) : GoodNewsR
     override fun newId(): String = db.collection(GOOD_NEWS).document().id
 
     override suspend fun publish(news: GoodNews) {
-        db.collection(GOOD_NEWS).document(news.id).set(
-            mapOf(
-                "text" to news.text,
-                "photoIds" to news.photoIds,
-                "authorId" to news.authorId,
-                "authorName" to news.authorName,
-                "forMemberId" to news.forMemberId,
-                "householdId" to news.householdId,
-                "mentionIds" to news.mentionIds,
-                "reactions" to emptyMap<String, String>(),
-                "hiddenByIds" to emptyList<String>(),
-                "createdAt" to FieldValue.serverTimestamp(),
-                "updatedAt" to FieldValue.serverTimestamp(),
-            ) + listOfNotNull(
-                news.forChallenge?.let { "forChallenge" to it },
-                // Only on a news for a child (the rules check it), and never written as false.
-                ("littleOnes" to true).takeIf { news.littleOnes && news.forMemberId != news.authorId },
-            ),
-        ).await()
+        val ref = db.collection(GOOD_NEWS).document(news.id)
+        journal.track(SendEntry(ref.path, SendKind.GoodNews, news.text.replace(Regex("\\s+"), " ").trim().take(40), news.authorId)) {
+            ref.set(
+                mapOf(
+                    "text" to news.text,
+                    "photoIds" to news.photoIds,
+                    "authorId" to news.authorId,
+                    "authorName" to news.authorName,
+                    "forMemberId" to news.forMemberId,
+                    "householdId" to news.householdId,
+                    "mentionIds" to news.mentionIds,
+                    "reactions" to emptyMap<String, String>(),
+                    "hiddenByIds" to emptyList<String>(),
+                    "createdAt" to FieldValue.serverTimestamp(),
+                    "updatedAt" to FieldValue.serverTimestamp(),
+                ) + listOfNotNull(
+                    news.forChallenge?.let { "forChallenge" to it },
+                    // Only on a news for a child (the rules check it), and never written as false.
+                    ("littleOnes" to true).takeIf { news.littleOnes && news.forMemberId != news.authorId },
+                ),
+            )
+        }
     }
 
     override suspend fun edit(id: String, text: String, mentionIds: List<String>) {
@@ -101,6 +107,8 @@ class FirestoreGoodNewsRepository(private val db: FirebaseFirestore) : GoodNewsR
     }
 
     override suspend fun remove(id: String) {
+        // Removed on purpose: not a send to tell about.
+        journal?.settled(db.collection(GOOD_NEWS).document(id).path)
         db.collection(GOOD_NEWS).document(id).delete().await()
     }
 

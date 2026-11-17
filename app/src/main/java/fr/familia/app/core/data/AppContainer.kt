@@ -89,6 +89,9 @@ interface AppContainer {
 
     /** Another member signs in on this phone: their predecessor's photo links and caches go. */
     val localTraces: LocalTraces? get() = null
+
+    /** The creations sent without network, checked after sign-in (note C de #331). */
+    val sendJournal: SendJournal? get() = null
     val albumPhotoRepository: AlbumPhotoRepository?
     val filmMaker: PhotoFilmMaker
     val appConfigRepository: AppConfigRepository?
@@ -155,7 +158,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     /** The comments of an event (PRD, récit 28). */
     override val eventCommentRepository: EventCommentRepository? by lazy { firestore?.let { FirestoreEventCommentRepository(it) } }
 
-    override val helpRequestRepository: HelpRequestRepository? by lazy { firestore?.let { FirestoreHelpRequestRepository(it) } }
+    override val helpRequestRepository: HelpRequestRepository? by lazy { firestore?.let { FirestoreHelpRequestRepository(it, sendJournal) } }
     override val tripRepository: TripRepository? by lazy { firestore?.let { FirestoreTripRepository(it) } }
 
     /** The accounts of a trip (récit 16 bis). */
@@ -167,7 +170,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     /** The time capsules (récit 39). */
     override val capsuleRepository: CapsuleRepository? by lazy { firestore?.let { FirestoreCapsuleRepository(it) } }
 
-    override val goodNewsRepository: GoodNewsRepository? by lazy { firestore?.let { FirestoreGoodNewsRepository(it) } }
+    override val goodNewsRepository: GoodNewsRepository? by lazy { firestore?.let { FirestoreGoodNewsRepository(it, sendJournal) } }
 
     /** L'arbre généalogique (récit 40). */
     override val genealogyRepository: GenealogyRepository? by lazy { firestore?.let { FirestoreGenealogyRepository(it) } }
@@ -178,10 +181,10 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val souvenirRepository: SouvenirRepository? by lazy { firestore?.let { FirestoreSouvenirRepository(it) } }
     override val birthdayCardRepository: BirthdayCardRepository? by lazy { firestore?.let { FirestoreBirthdayCardRepository(it) } }
     override val momentRepository: MomentRepository? by lazy { firestore?.let { FirestoreMomentRepository(it) } }
-    override val goodDealRepository: GoodDealRepository? by lazy { firestore?.let { FirestoreGoodDealRepository(it) } }
+    override val goodDealRepository: GoodDealRepository? by lazy { firestore?.let { FirestoreGoodDealRepository(it, sendJournal) } }
     override val calendarFeedRepository: CalendarFeedRepository? by lazy { firestore?.let { FirestoreCalendarFeedRepository(it) } }
-    override val lendItemRepository: LendItemRepository? by lazy { firestore?.let { FirestoreLendItemRepository(it) } }
-    override val turnRepository: TurnRepository? by lazy { firestore?.let { FirestoreTurnRepository(it) } }
+    override val lendItemRepository: LendItemRepository? by lazy { firestore?.let { FirestoreLendItemRepository(it, sendJournal) } }
+    override val turnRepository: TurnRepository? by lazy { firestore?.let { FirestoreTurnRepository(it, sendJournal) } }
     override val carpoolRepository: CarpoolRepository? by lazy { firestore?.let { FirestoreCarpoolRepository(it) } }
     override val eventReminderRepository: EventReminderRepository? by lazy { firestore?.let { FirestoreEventReminderRepository(it) } }
     override val eventSeriesRepository: EventSeriesRepository? by lazy { firestore?.let { FirestoreEventSeriesRepository(it) } }
@@ -198,6 +201,14 @@ class FirebaseAppContainer(context: Context) : AppContainer {
 
     private val photoLinks: PhotoLinks by lazy {
         PhotoLinks(PreferencesLinks(appContext.getSharedPreferences("photo-links", Context.MODE_PRIVATE)))
+    }
+
+    override val sendJournal: SendJournal? by lazy {
+        firestore?.let { db ->
+            SendJournal(PreferencesSendStore(appContext.getSharedPreferences("send-journal", Context.MODE_PRIVATE))) { paths ->
+                missingOnServer(db, paths)
+            }
+        }
     }
 
     override val localTraces: LocalTraces by lazy {

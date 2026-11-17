@@ -2454,6 +2454,13 @@
     <string name="lend_photo_label">Photo de l\'objet</string>
     <string name="lend_missing_title">Cet objet n\'est plus là</string>
     <string name="lend_missing_body">Celui qui le prêtait l\'a retiré.</string>
+    <string name="send_lost_title">Pas parti</string>
+    <string name="send_lost_body">Ce que tu avais préparé sans réseau n\'a pas été accepté. Tu peux le refaire :</string>
+    <string name="send_lost_help">Le coup de main « %1$s »</string>
+    <string name="send_lost_good_news">La Bonne nouvelle « %1$s »</string>
+    <string name="send_lost_good_deal">Le bon plan « %1$s »</string>
+    <string name="send_lost_lend">L\'objet à prêter « %1$s »</string>
+    <string name="send_lost_turn">Le tour « %1$s »</string>
     <string name="lend_asked_first">Quelqu\'un vient de le demander, juste avant toi.</string>
     <string name="lend_changed_first">Ce prêt vient de changer, juste avant toi. La fiche est à jour.</string>
     <string name="lend_action_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>

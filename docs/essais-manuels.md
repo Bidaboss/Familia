@@ -23,6 +23,7 @@ Au lieu du repas, où le réseau peut être faible (passe hors ligne du 16/11). 
 12. « Qui apporte quoi » : ajoute « Essai gâteau ». **Attendu :** le champ se vide et la ligne apparaît tout de suite, une seule fois. Au retour du réseau, il n'y a qu'une ligne sur le deuxième téléphone.
 13. Bonnes nouvelles : écris un texte avec une photo et publie. **Attendu :** « Il faut du réseau pour envoyer les photos », sans rien publier. Ton texte et ta photo restent dans le formulaire. Désactive le mode avion puis publie : **Attendu :** une seule bonne nouvelle.
 14. Réactive le réseau. **Attendu :** le bandeau disparaît et tout arrive sur le deuxième téléphone, sans doublon.
+15. Remets le mode avion, crée un coup de main « Essai fermé », puis ferme l'appli (balaye-la des applis récentes). Réactive le réseau et rouvre Familia. **Attendu :** le coup de main arrive sur le deuxième téléphone, et aucune fenêtre « Pas parti » ne s'ouvre. Elle ne s'ouvre que si le serveur a refusé ce qui avait été préparé sans réseau, et elle le nomme. Annule ensuite « Essai fermé ».
 
 À noter si ça se passe mal : l'étape qui échoue, ce que tu vois à l'écran (une capture si possible) et la version de l'appli (en bas de l'onglet Famille).
 
