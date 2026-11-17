@@ -47,7 +47,7 @@ fun GoodNewsEditRoute(
         onAddPhotos = viewModel::addPhotos,
         onRemovePhoto = viewModel::removePhoto,
         onFor = viewModel::setFor,
-        onToggleMention = viewModel::toggleMention,
+        onMentions = viewModel::setMentions,
         onForChallenge = viewModel::setForChallenge,
         littleOnesOn = LocalFeatureFlags.current.isOn(Feature.LittleOnes),
         onLittleOnes = viewModel::setLittleOnes,

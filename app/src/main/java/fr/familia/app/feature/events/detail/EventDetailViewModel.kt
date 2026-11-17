@@ -1,5 +1,6 @@
 package fr.familia.app.feature.events.detail
 
+import fr.familia.app.core.ui.householdOrder
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.EventRepository
@@ -98,9 +99,11 @@ class EventDetailViewModel(
         val me = family.members.firstOrNull { it.id == currentMemberId } ?: return EventDetailUiState.Missing
         val byMember = answers.associateBy { it.memberId }
         // Answers of removed members are not shown: they are cleaned up on the server (lot 8).
+        // By household, mine first (règle de Kévin, 17/11).
+        val order = householdOrder(family.households, me.householdId)
         fun members(status: RsvpStatus) = family.members
             .filter { byMember[it.id]?.status == status }
-            .sortedBy { it.firstName.lowercase() }
+            .sortedWith(order)
         fun names(status: RsvpStatus) = members(status).map { it.firstName }
         val isMe = event.target is EventTarget.ForSelf && event.target.memberId == currentMemberId
         return EventDetailUiState.Success(

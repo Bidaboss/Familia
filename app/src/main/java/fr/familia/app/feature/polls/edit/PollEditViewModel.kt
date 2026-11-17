@@ -109,6 +109,9 @@ class PollEditViewModel(
         )
     }
 
+    /** The members asked, as the picker by household gives them. */
+    fun setAsked(ids: Set<String>) = update { form -> form.copy(askedIds = ids) }
+
     fun toggle(memberId: String) = update { form ->
         form.copy(askedIds = if (memberId in form.askedIds) form.askedIds - memberId else form.askedIds + memberId)
     }

@@ -63,6 +63,8 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import fr.familia.app.R
+import fr.familia.app.core.ui.HouseholdMemberPicker
+import fr.familia.app.core.ui.pickGroups
 import fr.familia.app.core.model.GoodNews
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.photo.StorageImage
@@ -81,7 +83,7 @@ fun GoodNewsEditScreen(
     onAddPhotos: (List<String>) -> Unit,
     onRemovePhoto: (String) -> Unit,
     onFor: (String) -> Unit,
-    onToggleMention: (String) -> Unit,
+    onMentions: (Set<String>) -> Unit,
     onSave: () -> Unit,
     onDismissFailure: () -> Unit,
     onBack: () -> Unit,
@@ -114,7 +116,7 @@ fun GoodNewsEditScreen(
                     body = stringResource(R.string.goodnews_missing_body),
                 )
                 is GoodNewsEditUiState.Editing -> Form(
-                    state, onText, onAddPhotos, onRemovePhoto, onFor, onToggleMention, onSave, onForChallenge,
+                    state, onText, onAddPhotos, onRemovePhoto, onFor, onMentions, onSave, onForChallenge,
                     littleOnes = if (littleOnesOn) onLittleOnes else null,
                 )
             }
@@ -156,7 +158,7 @@ private fun Form(
     onAddPhotos: (List<String>) -> Unit,
     onRemovePhoto: (String) -> Unit,
     onFor: (String) -> Unit,
-    onToggleMention: (String) -> Unit,
+    onMentions: (Set<String>) -> Unit,
     onSave: () -> Unit,
     onForChallenge: (Boolean) -> Unit,
     littleOnes: ((Boolean) -> Unit)?,
@@ -212,7 +214,7 @@ private fun Form(
 
         if (state.candidates.isNotEmpty()) {
             SectionTitle(stringResource(R.string.goodnews_mentions))
-            MemberChips(state.candidates, form.mentionIds, enabled = !state.isSaving, onClick = onToggleMention) { it.firstName }
+            HouseholdMemberPicker(state.mentionGroups, form.mentionIds, onChange = onMentions, enabled = !state.isSaving)
         }
 
         if (littleOnes != null && state.isNew && form.forMemberId != state.targets.first().id) {
@@ -318,6 +320,7 @@ internal fun previewGoodNewsEdit(errors: Set<GoodNewsFormError> = emptySet()): G
         existing = null,
         targets = listOf(me, family.members.first { it.id == "noe" }),
         candidates = family.members.filter { it.id != me.id },
+        mentionGroups = pickGroups(family.members.filter { it.id != me.id }, family, me.householdId),
         errors = errors,
     )
 }

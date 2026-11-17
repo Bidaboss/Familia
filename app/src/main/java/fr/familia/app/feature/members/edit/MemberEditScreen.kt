@@ -33,7 +33,6 @@ import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -71,6 +70,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.clickable
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.R
+import fr.familia.app.core.ui.HouseholdMemberPicker
+import fr.familia.app.core.ui.pickGroups
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
@@ -253,22 +254,13 @@ private fun MemberFormContent(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                state.adults.forEach { adult ->
-                    val checked = adult.id in form.parentIds
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 56.dp)
-                            .toggleable(checked, enabled = state.canEditParents, role = Role.Checkbox) { on ->
-                                onChange { it.copy(parentIds = if (on) it.parentIds + adult.id else it.parentIds - adult.id) }
-                            },
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Checkbox(checked = checked, onCheckedChange = null, enabled = state.canEditParents)
-                        Spacer(Modifier.width(16.dp))
-                        Text(adult.firstName, style = MaterialTheme.typography.bodyLarge)
-                    }
-                }
+                // By household, the child's first; a household ticks its adults (règle de Kévin, 17/11).
+                HouseholdMemberPicker(
+                    groups = pickGroups(state.adults, state.households, form.householdId),
+                    selected = form.parentIds,
+                    onChange = { ids -> onChange { it.copy(parentIds = ids) } },
+                    enabled = state.canEditParents,
+                )
                 errorText(errors, FormError.SoleParentOfChild, FormError.ParentsMissing, FormError.TooManyParents)?.invoke()
             }
         }
