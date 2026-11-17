@@ -7,7 +7,8 @@ import fr.familia.app.feature.events.edit.TargetChoice
 import java.time.LocalDate
 
 /** One person this member may answer for, with their current answer (null: not answered yet). */
-data class Answerer(val member: Member, val status: RsvpStatus?, val isMe: Boolean)
+/** [pending]: the answer was given without network and leaves by itself when it is back. */
+data class Answerer(val member: Member, val status: RsvpStatus?, val isMe: Boolean, val pending: Boolean = false)
 
 sealed interface EventDetailUiState {
     data object Loading : EventDetailUiState

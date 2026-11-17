@@ -806,10 +806,11 @@ Avec l'interrupteur « Notre année » allumé dans Administration. Avant le 26/
 
 Avec l'interrupteur « Notre année en famille » allumé.
 
-1. Entre le 26/12 et le 10/01, ouvre l'Accueil. **Attendu :** la puce « Notre année 2026 » en tête, avant « Anniversaires ». Avec la nouvelle présentation, elle est juste au-dessus de « Tout Familia ».
+1. Entre le 26/12 et le 10/01, ouvre l'Accueil. **Attendu :** la puce « Notre année 2026 » en tête, avant « Anniversaires ». Avec la nouvelle présentation, elle est en fin de liste, juste au-dessus de la barre « Tout Familia ».
 2. Touche-la. **Attendu :** l'écran de l'année s'ouvre.
-3. Hors de ces dates, avec un compte qui n'est pas l'admin principal : **Attendu :** pas de puce. L'admin principal la voit toute l'année, pour l'essayer.
-4. Interrupteur éteint, avec un autre compte : **Attendu :** pas de puce.
+3. Hors de ces dates, avec n'importe quel compte, l'admin principal compris : **Attendu :** pas de puce sur l'Accueil (PRD rév. 259).
+4. « Tout Familia », famille « Se souvenir ». **Attendu :** « Notre année ». L'admin principal l'y trouve toute l'année, pour l'essayer. Les autres l'y trouvent à partir du 26/12.
+5. Interrupteur éteint, avec un autre compte : **Attendu :** ni puce, ni entrée dans le tiroir.
 
 ## Bonnes nouvelles : envoi de la photo sur un réseau faible ou coupé
 
@@ -880,3 +881,23 @@ Passe chaque étape deux fois : d'abord en mode avion, puis en 2G (réglages du 
 6. Deux téléphones, une même demande ouverte. Le téléphone A en mode avion touche « Je m'en occupe ». Le téléphone B, avec le réseau, touche « Je m'en occupe » juste après. Remets le réseau sur A. **Attendu :** B l'a. Sur A, la demande montre que B s'en occupe, sans doublon, et un message en bas dit « … s'en occupait déjà. Merci d'avoir proposé ton aide ! », sans erreur rouge.
 7. Sur « À qui le tour ? », touche « C'est fait » sur un tour où c'est à ton foyer. **Attendu :** le tour passe au foyer suivant avec « En attente du réseau », et les boutons restent utilisables. Au retour du réseau, la mention disparaît, et le foyer suivant reçoit « C'est ton tour » une seule fois.
 8. Remets le réseau normal et rouvre chaque écran. **Attendu :** tout est à jour, sans avoir fermé l'appli.
+
+## Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible
+
+À faire avec le deuxième téléphone de test, une fois en mode avion, puis une fois en « 2G seulement » (réglages du téléphone, Réseau mobile, Type de réseau préféré), Wi-Fi coupé.
+
+**Connexion (appli fraîchement installée, ou après « Utiliser un autre compte »)**
+1. Mode avion, touche « Se connecter avec Google ». **Attendu :** le message « Pas de réseau, ou il est trop lent… » et le bouton devient « Réessayer ». Jamais « Aucun compte Google sur ce téléphone ».
+2. 2G, touche « Se connecter avec Google », choisis le compte, puis passe en mode avion pendant que le bouton tourne. **Attendu :** au plus une vingtaine de secondes après, le même message et « Réessayer ». Jamais d'écran blanc ni de roue sans fin.
+3. Coupe le mode avion et touche « Réessayer ». **Attendu :** l'appli s'ouvre, sans redemander le compte si Google l'avait déjà accepté.
+4. Ferme l'appli pendant que le bouton tourne (glisse-la hors des applis récentes), puis rouvre-la avec le réseau. **Attendu :** elle reprend toute seule et s'ouvre sur l'Accueil.
+
+**Accueil, Planning et événement (sur un téléphone déjà connecté une fois avec le réseau)**
+5. Mode avion, ouvre l'appli. **Attendu :** le bandeau « Hors ligne » en haut, l'Accueil et le Planning déjà vus s'affichent. La vérification de version ne bloque rien : l'appli s'ouvre normalement.
+6. Mode avion, ouvre un événement et touche « Je viens ». **Attendu :** « Je viens » est coché tout de suite, avec sous la ligne « En attente du réseau : la réponse partira toute seule à son retour. ». Aucun message d'erreur.
+7. Coupe le mode avion, sans toucher l'écran. **Attendu :** la ligne « En attente » disparaît en quelques secondes. Sur ton téléphone, la réponse apparaît une seule fois dans « Qui vient ».
+
+**Mode présentation et « Voir comme » (sur ton téléphone)**
+8. Avec le réseau, allume le Mode présentation, puis passe en mode avion. **Attendu :** le bandeau « Mode présentation jusqu'à … » reste affiché.
+9. Mode avion, **Administration**, « Voir comme… », choisis un membre. **Attendu :** son Accueil et son Planning déjà vus s'affichent, avec le bandeau « Tu vois l'appli comme … ». « Quitter » marche aussi sans réseau.
+10. Remets le réseau et éteins le Mode présentation. **Attendu :** le résumé arrive comme d'habitude.

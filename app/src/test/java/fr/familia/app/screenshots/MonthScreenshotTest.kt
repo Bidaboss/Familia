@@ -8,7 +8,6 @@ import fr.familia.app.core.album.FilmState
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.theme.FamiliaTheme
-import fr.familia.app.feature.month.MonthSlideshowHomeCard
 import fr.familia.app.feature.month.MonthSlideshowScreen
 import fr.familia.app.feature.month.previewMonthSlideshow
 import org.junit.Test
@@ -32,7 +31,6 @@ class MonthScreenshotTest {
     private val screen: @Composable () -> Unit = {
         Surface { MonthSlideshowScreen(month, previewMonthSlideshow(listOf(camille)), FilmState.Idle, FilmActions(), {}) }
     }
-    private val card: @Composable () -> Unit = { Surface { MonthSlideshowHomeCard(month) {} } }
 
     @Test
     fun monthLight() = capture("mois_clair", content = screen)
@@ -44,9 +42,6 @@ class MonthScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun monthFontScale200() = capture("mois_police_200", content = screen)
-
-    @Test
-    fun monthCardLight() = capture("mois_carte_clair", content = card)
 
     private fun capture(name: String, darkTheme: Boolean = false, content: @Composable () -> Unit) {
         captureRoboImage("build/outputs/roborazzi/$name.png") {

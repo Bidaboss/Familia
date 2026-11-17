@@ -31,6 +31,7 @@
     <string name="rsvp_maybe">Peut-être</string>
     <string name="rsvp_no">Je ne viens pas</string>
     <string name="rsvp_chip_description">%1$s&#160;: %2$s</string>
+    <string name="rsvp_pending">En attente du réseau : la réponse partira toute seule à son retour.</string>
     <string name="rsvp_send_failed">Ta réponse n\'est pas partie. Réessaie dans un moment.</string>
     <string name="rsvp_summary_coming">Viennent (%1$d)</string>
     <string name="rsvp_summary_maybe">Peut-être (%1$d)</string>
@@ -465,7 +466,8 @@
     <string name="sign_in_use_another_account">Essayer un autre compte</string>
     <string name="sign_in_firebase_missing">L\'appli n\'est pas encore reliée à la famille. Réessaie avec la prochaine version.</string>
     <string name="sign_in_error_no_account">Aucun compte Google sur ce téléphone. Ajoute ton compte dans les réglages d\'Android, puis réessaie.</string>
-    <string name="sign_in_error_network">Pas de connexion. Réessaie dans un moment.</string>
+    <string name="sign_in_error_network">Pas de réseau, ou il est trop lent. Rapproche-toi de la box ou passe en 4G, puis touche « Réessayer ».</string>
+    <string name="sign_in_retry">Réessayer</string>
     <string name="sign_in_error_unknown">La connexion n\'a pas marché. Réessaie dans un moment.</string>
     <string name="notifications_title">Notifications</string>
     <string name="notifications_events_help">Tu es prévenu quand quelqu\'un ajoute, modifie ou supprime un événement pour toute la famille, pour ton foyer ou pour un enfant dont tu t\'occupes, et quand change un événement où tu as dit que tu venais. Tes propres changements ne te préviennent pas. Chaque sorte de notification (Planning, Rappels, Cadeaux, Entraide…) se coupe à part dans les réglages Android.</string>
@@ -1121,8 +1123,6 @@
     <string name="event_album_empty">Pas encore de photo. Ceux qui ont dit « Je viens » peuvent en ajouter.</string>
     <!-- Diaporama du mois (récit 42) -->
     <string name="month_title">%1$s en famille</string>
-    <string name="month_home_body">Les photos du mois, les anniversaires, et une vidéo à partager.</string>
-    <string name="month_home_open">Voir le diaporama</string>
     <string name="month_birthdays">Anniversaires du mois</string>
     <string name="month_birthday_day">Le %1$d</string>
     <string name="month_birthday_first">Le 1er</string>
@@ -1566,7 +1566,6 @@
         <item quantity="many">%d de nouveautés</item>
         <item quantity="other">%d nouveautés</item>
     </plurals>
-    <string name="home_r1_where">Où je suis</string>
     <plurals name="members_r1_count">
         <item quantity="one">Nous %1$d, en %2$s</item>
         <item quantity="many">Nous %1$d, en %2$s</item>
@@ -1594,9 +1593,11 @@
     <string name="all_capsule">Capsule</string>
     <string name="all_souvenirs">Souvenirs</string>
     <string name="all_good_news">Bonnes nouvelles</string>
+    <string name="all_year_in_review">Notre année</string>
     <string name="all_challenges">Défis</string>
     <string name="all_albums">Albums</string>
     <string name="home_r1_add">Ajouter</string>
+    <string name="home_r1_add_where">Dire où je suis</string>
     <string name="home_r1_add_event">Un événement</string>
     <string name="home_r1_add_photo">Une photo</string>
     <string name="home_r1_add_good_news">Une bonne nouvelle</string>

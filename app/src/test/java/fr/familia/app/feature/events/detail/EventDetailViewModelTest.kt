@@ -62,6 +62,17 @@ class EventDetailViewModelTest {
     }
 
     @Test
+    fun `an answer waiting for the network says so, and no longer once it left`() = runTest {
+        val rsvps = FakeRsvps()
+        rsvps.answers.value = mapOf("e1" to listOf(Rsvp("adult1", RsvpStatus.Yes, "adult1", pending = true)))
+        val vm = viewModel("adult1", rsvps = rsvps)
+        assertEquals(listOf(true, false), vm.success().answerers.map { it.pending })
+        assertEquals(RsvpStatus.Yes, vm.success().answerers.first().status)
+        rsvps.answers.value = mapOf("e1" to listOf(Rsvp("adult1", RsvpStatus.Yes, "adult1")))
+        assertFalse(vm.success().answerers.first().pending)
+    }
+
+    @Test
     fun `changing one's mind replaces the answer`() = runTest {
         val vm = viewModel("adult1")
         vm.answer("adult1", RsvpStatus.Yes)
