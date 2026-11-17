@@ -23,6 +23,7 @@ import fr.familia.app.core.data.BirthdayCardRepository
 import fr.familia.app.core.data.MomentRepository
 import fr.familia.app.core.data.GoodNewsRepository
 import fr.familia.app.core.data.GoodDealRepository
+import fr.familia.app.core.data.LendItemRepository
 import fr.familia.app.core.data.HelpRequestRepository
 import fr.familia.app.core.data.JoinMeRepository
 import fr.familia.app.core.data.MemberCardRepository
@@ -73,6 +74,7 @@ import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.JoinMe
 import fr.familia.app.core.model.Kin
 import fr.familia.app.core.model.KinLink
+import fr.familia.app.core.model.LendItem
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Moment
 import fr.familia.app.core.model.MomentCheer
@@ -226,6 +228,18 @@ class ReadOnlyGoodDealRepository(private val inner: GoodDealRepository, private 
     override suspend fun delete(id: String) = guard.refuse()
     override suspend fun setInterested(id: String, memberId: String, interested: Boolean) = guard.refuse()
     override suspend fun setRecommended(id: String, memberId: String, recommended: Boolean) = guard.refuse()
+}
+
+class ReadOnlyLendItemRepository(private val inner: LendItemRepository, private val guard: ViewAsGuard) : LendItemRepository {
+    override fun observeAll(): Flow<List<LendItem>> = inner.observeAll()
+    override fun observe(id: String): Flow<LendItem?> = inner.observe(id)
+    override suspend fun get(id: String): LendItem? = inner.get(id)
+    override fun newId(): String = inner.newId()
+    override suspend fun save(item: LendItem, isNew: Boolean) = guard.refuse()
+    override suspend fun delete(id: String) = guard.refuse()
+    override suspend fun ask(id: String, me: Member, from: Instant?, until: Instant?) = guard.refuse()
+    override suspend fun accept(id: String) = guard.refuse()
+    override suspend fun release(id: String) = guard.refuse()
 }
 
 class ReadOnlyRecipeRepository(private val inner: RecipeRepository, private val guard: ViewAsGuard) : RecipeRepository {

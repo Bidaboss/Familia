@@ -664,3 +664,9 @@ Avec un compte adulte, un compte enfant et un ordinateur. « Publier Firebase »
 3. Touche « M'envoyer le lien » et envoie-le-toi par mail. Sur l'ordinateur, suis les étapes 2 à 4. **Attendu :** un agenda « Familia » apparaît avec les événements du planning, aux bonnes heures. Aucune occasion de cadeau, aucune réservation.
 4. Dans Familia, crée un événement. **Attendu :** il arrive dans Google Agenda dans les heures qui suivent (Google décide quand il relit).
 5. Touche « Nouveau lien », puis confirme. **Attendu :** le lien change. Colle l'ancien dans la barre d'adresse de l'ordinateur : il répond « 404 ». L'agenda ajouté avec l'ancien lien ne se met plus à jour.
+
+## On se prête dans Entraide (récit 51)
+Avec l'interrupteur « On se prête » allumé (l'admin principal le voit toujours) :
+1. Entraide : **Attendu :** un onglet « On se prête » après « Coups de main » (et « Bons plans » s'il est allumé). Interrupteur éteint, pour un autre membre : pas d'onglet « On se prête ».
+2. Sans objet : **Attendu :** « Rien à se prêter pour l'instant ».
+3. Avec des objets : **Attendu :** chaque carte dit la catégorie, le nom, puis « Prêté par … » (ou « À moi ») et « Disponible », « Demandé par … » ou « Chez … depuis le 12/12 ». Tape « racl » : seul l'appareil à raclette reste. « Disponible » ne garde que les objets libres.
