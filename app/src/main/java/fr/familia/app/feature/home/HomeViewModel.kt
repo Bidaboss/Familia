@@ -190,9 +190,10 @@ class HomeViewModel(
         return window.map { list -> list.map { it.id } }
             .distinctUntilChanged()
             .flatMapLatest { ids ->
+                // Unreadable: every answer stays unknown rather than « à répondre » (note C de #317).
                 repo.observeAnswersOf(currentMemberId, ids).catch { e ->
                     if (e is CancellationException) throw e
-                    emit(emptyMap())
+                    emit(ids.associateWith { emptyList<Rsvp>() })
                 }
             }
             .onStart { emit(emptyMap()) }

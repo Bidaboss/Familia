@@ -11,6 +11,7 @@ import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -66,5 +67,28 @@ class HomeReadsTest {
         assertEquals(listOf("soon"), ready.todos.map { (it as HomeTodo.Answer).event.id })
         assertEquals(listOf("soon", "answered"), spy.asked.last())
         assertEquals(0, spy.allCalls)
+    }
+
+    @Test
+    fun `answers that cannot be read never show the events as still to answer`() = runTest {
+        val events = FakeEvents(listOf(TestFamily.event("soon", TestFamily.admin, date = today.plusDays(2))))
+        val broken = object : RsvpRepository by FakeRsvps() {
+            override fun observeAnswersOf(memberId: String, eventIds: List<String>): Flow<Map<String, List<Rsvp>>> =
+                flow { throw IllegalStateException("refusé") }
+        }
+        val vm = HomeViewModel(FakeMembers(), events, me.id, broken, today = flowOf(today))
+        vm.uiState.launchIn(backgroundScope)
+
+        val ready = vm.uiState.first { it is HomeUiState.Ready && it.week.isNotEmpty() && it.todos.isEmpty() } as HomeUiState.Ready
+        assertEquals(listOf("soon"), ready.week.map { it.id })
+    }
+
+    @Test
+    fun `an unknown answer keeps the event out of the list, a missing one keeps it in`() {
+        val family = TestFamily.family
+        val soon = TestFamily.event("soon", TestFamily.admin, date = today.plusDays(2))
+        val other = TestFamily.event("other", TestFamily.admin, date = today.plusDays(3))
+        val shown = todos(me, family, listOf(soon, other), mapOf("soon" to emptyList()), emptyList(), today)
+        assertEquals(listOf("other"), shown.map { (it as HomeTodo.Answer).event.id })
     }
 }

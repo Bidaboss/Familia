@@ -16,6 +16,8 @@ interface RsvpRepository {
     /**
      * The answers of [memberId] alone to [eventIds], by event id, for « À faire » of the home
      * screen: one document per event instead of every answer of the family since the start.
+     * An event left out has no answer. An event whose answer cannot be read comes with an empty
+     * list: « À faire » then does not ask again, as if the answer was lost (note C de #317).
      */
     fun observeAnswersOf(memberId: String, eventIds: List<String>): Flow<Map<String, List<Rsvp>>> =
         observeAllRsvps().map { all ->
