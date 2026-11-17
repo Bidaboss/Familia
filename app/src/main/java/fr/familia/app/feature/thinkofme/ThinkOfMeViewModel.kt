@@ -3,6 +3,8 @@ package fr.familia.app.feature.thinkofme
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.MomentRepository
+import fr.familia.app.core.data.WRITE_WAIT_MILLIS
+import fr.familia.app.core.data.writeOrQueue
 import fr.familia.app.core.model.Moment
 import fr.familia.app.core.model.MomentCheer
 import fr.familia.app.core.model.Member
@@ -55,6 +57,8 @@ class ThinkOfMeViewModel(
     private val mayWrite: Boolean = true,
     /** Who reads with their own account: [me], or the admin principal in « Voir comme ». */
     readerId: String = me.id,
+    private val writeTimeoutMillis: Long = WRITE_WAIT_MILLIS,
+    /** Last, so the tests can give it as a trailing lambda. */
     private val clock: () -> Instant = Instant::now,
 ) : ViewModel() {
     private val saving = MutableStateFlow(false)
@@ -135,15 +139,11 @@ class ThinkOfMeViewModel(
         saving.value = true
         failed.value = false
         viewModelScope.launch {
-            try {
-                block()
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                failed.value = true
-            } finally {
-                saving.value = false
-            }
+            // Offline the write waits for the network and shows at once: the buttons come back after
+            // a few seconds rather than staying « en cours » until the network returns.
+            val ok = writeOrQueue(viewModelScope, writeTimeoutMillis, onLateFailure = { failed.value = true }) { block() }
+            if (!ok) failed.value = true
+            saving.value = false
         }
     }
 }

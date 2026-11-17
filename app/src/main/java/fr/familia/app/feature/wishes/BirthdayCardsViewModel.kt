@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.BirthdayCardRepository
 import fr.familia.app.core.data.GoodNewsRepository
+import fr.familia.app.core.data.WRITE_WAIT_MILLIS
+import fr.familia.app.core.data.writeOrQueue
 import fr.familia.app.core.model.BirthdayCard
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.nextBirthday
@@ -60,6 +62,8 @@ class BirthdayCardsViewModel(
     mayWrite: Boolean = true,
     /** The year of the birthday shown; the last one when null (on the member's page). */
     birthdayYear: Int? = null,
+    private val writeTimeoutMillis: Long = WRITE_WAIT_MILLIS,
+    /** Last, so the tests can give it as a trailing lambda. */
     private val clock: () -> Instant = Instant::now,
 ) : ViewModel() {
     private val year = birthdayYear ?: BirthdayWishes.lastBirthdayYear(person.birthDate, today)
@@ -102,15 +106,11 @@ class BirthdayCardsViewModel(
         saving.value = true
         failed.value = false
         viewModelScope.launch {
-            try {
-                block()
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                failed.value = true
-            } finally {
-                saving.value = false
-            }
+            // Offline the card waits for the network and shows at once: « Envoyer » comes back after
+            // a few seconds rather than staying « en cours » until the network returns.
+            val ok = writeOrQueue(viewModelScope, writeTimeoutMillis, onLateFailure = { failed.value = true }) { block() }
+            if (!ok) failed.value = true
+            saving.value = false
         }
     }
 }
