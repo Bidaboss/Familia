@@ -59,6 +59,7 @@ import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import java.time.LocalDate
+import fr.familia.app.core.ui.LoadingState
 
 /** What the screen can ask, so the route stays short. */
 data class PhotoBookActions(
@@ -89,7 +90,7 @@ fun PhotoBookScreen(state: PhotoBookUiState, actions: PhotoBookActions, onBack: 
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                PhotoBookUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                PhotoBookUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 PhotoBookUiState.Empty -> EmptyState(
                     icon = Icons.Outlined.PhotoLibrary,
                     title = stringResource(R.string.photo_book_empty_title),

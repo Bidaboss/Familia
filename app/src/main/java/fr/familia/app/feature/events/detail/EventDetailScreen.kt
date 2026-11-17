@@ -30,7 +30,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -73,6 +72,7 @@ import fr.familia.app.feature.events.edit.TargetChoice
 import fr.familia.app.feature.events.edit.targetLabel
 import java.time.LocalDate
 import java.time.LocalTime
+import fr.familia.app.core.ui.LoadingState
 
 /**
  * « Comptes de l'événement » (PRODUIT-57) opens for an adult who answered « Je viens », or for the
@@ -120,7 +120,7 @@ fun EventDetailScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                EventDetailUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                EventDetailUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 EventDetailUiState.Missing -> EmptyState(
                     icon = Icons.Outlined.Event,
                     title = stringResource(R.string.event_detail_missing_title),

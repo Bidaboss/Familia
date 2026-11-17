@@ -45,11 +45,9 @@ class SplashTreeTest {
     }
 
     @Test
-    fun `a cold start keeps the screen from the start of the process, a warm one from now`() {
-        assertEquals(1_000L + START_SCREEN_MILLIS, startScreenUntil(now = 1_400L, processStart = 1_000L, coldStart = true))
-        assertEquals(90_000L + START_SCREEN_MILLIS, startScreenUntil(now = 90_000L, processStart = 1_000L, coldStart = false))
-        // A slow cold start: the time is already over, nothing waits more.
-        assertTrue(startScreenUntil(now = 2_400L, processStart = 1_000L, coldStart = true) < 2_400L)
+    fun `the start screen always stays the whole length of the tree, even after a slow start`() {
+        assertEquals(1_400L + START_SCREEN_MILLIS, startScreenUntil(now = 1_400L))
+        assertEquals(90_000L + START_SCREEN_MILLIS, startScreenUntil(now = 90_000L))
     }
 
     @Test

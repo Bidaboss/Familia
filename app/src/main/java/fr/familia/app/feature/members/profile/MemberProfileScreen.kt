@@ -16,7 +16,6 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
@@ -51,6 +50,7 @@ import fr.familia.app.feature.souvenirs.SouvenirMedal
 import fr.familia.app.feature.souvenirs.nextSouvenirs
 import fr.familia.app.feature.souvenirs.previewSouvenirs
 import java.time.LocalDate
+import fr.familia.app.core.ui.LoadingState
 
 /** A member's page (récit 34): who they are, and the souvenirs they show. Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -102,7 +102,7 @@ fun MemberProfileScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                MemberProfileUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                MemberProfileUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 MemberProfileUiState.NotFound -> EmptyState(
                     icon = Icons.Outlined.Person,
                     title = stringResource(R.string.member_not_found_title),

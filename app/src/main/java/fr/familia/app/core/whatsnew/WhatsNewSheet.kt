@@ -46,6 +46,18 @@ import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.discover.DiscoverModule
 import fr.familia.app.feature.discover.DiscoverPreferences
+import kotlinx.coroutines.launch
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.draw.clip
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.background
+import androidx.compose.ui.res.pluralStringResource
 
 /**
  * Opens « Quoi de neuf ? » once per opening, when there are cards for [currentMember] (PRD, récit
@@ -109,17 +121,61 @@ fun WhatsNewSheetContent(cards: List<ShownCard>, child: Boolean, onGo: () -> Uni
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.semantics { heading() },
         )
-        HorizontalPager(pager, pageSpacing = 16.dp, verticalAlignment = Alignment.Top) { page ->
+        // The next card peeks out on the right (retour du 17/11 : faire comprendre qu'il faut glisser).
+        val peek = if (cards.size > 1) 40.dp else 0.dp
+        HorizontalPager(
+            pager,
+            contentPadding = PaddingValues(end = peek),
+            pageSpacing = 12.dp,
+            verticalAlignment = Alignment.Top,
+        ) { page ->
             WhatsNewCardView(cards[page].card, child, onTry, Modifier.padding(vertical = 8.dp))
         }
         if (cards.size > 1) {
-            Text(
-                stringResource(R.string.whats_new_position, pager.currentPage + 1, cards.size),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            val scope = rememberCoroutineScope()
+            val page = pager.currentPage
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(
+                    onClick = { scope.launch { pager.animateScrollToPage(page - 1) } },
+                    enabled = page > 0,
+                    modifier = Modifier.size(56.dp),
+                ) {
+                    Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = stringResource(R.string.whats_new_previous))
+                }
+                val position = stringResource(R.string.whats_new_position, page + 1, cards.size)
+                Row(
+                    Modifier.weight(1f).semantics { contentDescription = position },
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    repeat(cards.size) { index ->
+                        Box(
+                            Modifier
+                                .size(if (index == page) 10.dp else 8.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (index == page) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                ),
+                        )
+                    }
+                }
+                IconButton(
+                    onClick = { scope.launch { pager.animateScrollToPage(page + 1) } },
+                    enabled = page < cards.size - 1,
+                    modifier = Modifier.size(56.dp),
+                ) {
+                    Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = stringResource(R.string.whats_new_next))
+                }
+            }
+            if (page < cards.size - 1) {
+                Text(
+                    pluralStringResource(R.plurals.whats_new_swipe_hint, cards.size - page - 1, cards.size - page - 1),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
         Button(onClick = onGo, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Text(stringResource(R.string.whats_new_go))

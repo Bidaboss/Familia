@@ -2350,6 +2350,12 @@
     <!-- Quoi de neuf ? (PRD, récit 6 septies) -->
     <string name="whats_new_title">Quoi de neuf ?</string>
     <string name="whats_new_position">%1$d sur %2$d</string>
+    <string name="whats_new_previous">Nouveauté précédente</string>
+    <string name="whats_new_next">Nouveauté suivante</string>
+    <plurals name="whats_new_swipe_hint">
+        <item quantity="one">Fais glisser la carte vers la gauche : encore %1$d nouveauté →</item>
+        <item quantity="other">Fais glisser la carte vers la gauche : encore %1$d nouveautés →</item>
+    </plurals>
     <string name="whats_new_try">Essayer</string>
     <string name="whats_new_go">C\'est parti</string>
     <string name="whats_new_later">Plus tard</string>

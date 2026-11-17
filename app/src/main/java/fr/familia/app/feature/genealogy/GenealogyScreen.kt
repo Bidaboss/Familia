@@ -24,7 +24,6 @@ import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -71,6 +70,7 @@ import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
+import fr.familia.app.core.ui.LoadingState
 
 private const val MIN_ZOOM = 0.5f
 private const val MAX_ZOOM = 2.5f
@@ -107,7 +107,7 @@ fun GenealogyScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                GenealogyUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                GenealogyUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 GenealogyUiState.Failed -> EmptyState(
                     icon = Icons.Outlined.CloudOff,
                     title = stringResource(R.string.genealogy_failed_title),

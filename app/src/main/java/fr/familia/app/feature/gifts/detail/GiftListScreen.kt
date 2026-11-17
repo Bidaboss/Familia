@@ -33,7 +33,6 @@ import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
@@ -88,6 +87,7 @@ import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.feature.gifts.formatEuros
 import fr.familia.app.feature.gifts.occasionLabel
 import fr.familia.app.feature.gifts.listSubtitle
@@ -174,7 +174,7 @@ fun GiftListScreen(state: GiftListUiState, actions: GiftListActions, modifier: M
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                GiftListUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                GiftListUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 GiftListUiState.Missing -> EmptyState(
                     icon = Icons.Outlined.CardGiftcard,
                     title = stringResource(R.string.gift_list_missing_title),

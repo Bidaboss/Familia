@@ -31,7 +31,6 @@ import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -80,6 +79,7 @@ import fr.familia.app.feature.members.MembersViewModel.Companion.MAX_HOUSEHOLD_N
 import fr.familia.app.feature.tree.MonthPick
 import java.time.YearMonth
 import fr.familia.app.core.ui.ClaySpacing
+import fr.familia.app.core.ui.LoadingState
 
 /** The Administration menu of the admin principal (PRD, récit 1 ter). Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -146,7 +146,7 @@ fun AdministrationScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                AdministrationUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                AdministrationUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 AdministrationUiState.Error -> EmptyState(
                     icon = Icons.Outlined.AdminPanelSettings,
                     title = stringResource(R.string.members_error_title),

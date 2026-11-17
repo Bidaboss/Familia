@@ -54,7 +54,6 @@ import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -100,6 +99,7 @@ import fr.familia.app.feature.events.edit.TargetChoice
 import fr.familia.app.feature.events.edit.targetLabel
 import java.time.LocalDate
 import java.time.LocalTime
+import fr.familia.app.core.ui.LoadingState
 
 /** Planning tab: upcoming events day by day, and the button to add one. Stateless. */
 @Composable
@@ -122,7 +122,7 @@ fun PlanningScreen(
     var mode by rememberSaveable { mutableStateOf(if (r1) PlanningMode.Week else initialMode) }
     Box(modifier.fillMaxSize()) {
         when (state) {
-            PlanningUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+            PlanningUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
             PlanningUiState.Error -> EmptyState(
                 icon = Icons.Outlined.Event,
                 title = stringResource(R.string.planning_error_title),

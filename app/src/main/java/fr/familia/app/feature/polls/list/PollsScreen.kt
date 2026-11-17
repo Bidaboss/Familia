@@ -14,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Poll
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -48,6 +47,7 @@ import fr.familia.app.feature.polls.lastDayOf
 import fr.familia.app.feature.polls.optionLabel
 import java.time.Instant
 import java.time.LocalDate
+import fr.familia.app.core.ui.LoadingState
 
 /** « Sondages », opened from the Planning (récits 2 bis et 2 ter). Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,7 +81,7 @@ fun PollsScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                PollsUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                PollsUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 PollsUiState.Error -> EmptyState(
                     icon = Icons.Outlined.Poll,
                     title = stringResource(R.string.polls_error_title),

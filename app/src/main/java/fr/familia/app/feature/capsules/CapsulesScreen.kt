@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.HourglassEmpty
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -43,6 +42,7 @@ import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 import java.time.LocalDate
+import fr.familia.app.core.ui.LoadingState
 
 /** « Capsules temporelles »: those opened for me, then mine still sealed. Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,7 +76,7 @@ fun CapsulesScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                CapsulesUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                CapsulesUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 CapsulesUiState.Failed -> EmptyState(
                     icon = Icons.Outlined.HourglassEmpty,
                     title = stringResource(R.string.capsules_error_title),
