@@ -2571,7 +2571,7 @@
     <string name="account_calendar_feed">Voir dans mon agenda</string>
     <string name="calendar_feed_title">Voir dans mon agenda</string>
     <string name="calendar_feed_what_title">Le planning dans ton agenda</string>
-    <string name="calendar_feed_what_body">Les événements de Familia s\'affichent dans ton agenda Google, à côté des tiens. Tu y vois ce qui te concerne, comme sur ton Accueil : la famille, ton foyer, toi et tes enfants. Ils se mettent à jour tout seuls, avec quelques heures de retard. On ne peut rien changer depuis l\'agenda : pour répondre ou modifier, c\'est dans Familia.</string>
+    <string name="calendar_feed_what_body">Les événements de Familia s\'affichent dans ton agenda Google, à côté des tiens. Tu y vois ce qui te concerne, comme sur ton Accueil : la famille, ton foyer, toi et tes enfants. Pour tes enfants, seuls le titre et l\'heure y sont, jamais le lieu ni la note. Ils se mettent à jour tout seuls, avec quelques heures de retard. On ne peut rien changer depuis l\'agenda : pour répondre ou modifier, c\'est dans Familia.</string>
     <string name="calendar_feed_link_title">Ton lien</string>
     <string name="calendar_feed_none">Tu n\'as pas encore de lien. Il est rien qu\'à toi.</string>
     <string name="calendar_feed_create">Créer mon lien</string>
@@ -2592,6 +2592,11 @@
     <string name="calendar_feed_renew">Nouveau lien</string>
     <string name="calendar_feed_renew_confirm_title">Faire un nouveau lien ?</string>
     <string name="calendar_feed_renew_confirm_body">L\'ancien lien ne marchera plus. Il faudra ajouter le nouveau dans ton agenda.</string>
+    <string name="calendar_feed_remove_title">Supprimer mon lien</string>
+    <string name="calendar_feed_remove">Supprimer mon lien</string>
+    <string name="calendar_feed_remove_confirm_title">Supprimer ton lien ?</string>
+    <string name="calendar_feed_remove_body">Le lien ne marchera plus, et l\'agenda Familia ne se mettra plus à jour. Google garde ce qu\'il a déjà lu : retire aussi l\'agenda Familia de Google Agenda.</string>
+    <string name="calendar_feed_remove_failed">Le lien n\'a pas pu être supprimé. Réessaie quand tu as du réseau.</string>
     <string name="calendar_feed_failed">Le lien n\'a pas pu être créé. Réessaie quand tu as du réseau.</string>
     <string name="calendar_feed_error">Ton lien ne s\'affiche pas. Vérifie ta connexion, puis réessaie.</string>
     <!-- Récit 52 : On y va ensemble -->

@@ -7,7 +7,7 @@
 // every event (rules), until the single audience function says otherwise.
 
 import type { Firestore } from 'firebase-admin/firestore';
-import type { EventData } from './logic';
+import type { EventData, Member } from './logic';
 import { addDays, concerns, parisDay } from './logic';
 import { featureOn, loadMembers } from './store';
 
@@ -115,11 +115,34 @@ export async function feedFor(db: Firestore, token: unknown, now: Date): Promise
     .where('date', '>=', addDays(today, -DAYS_BACK))
     .where('date', '<=', addDays(today, DAYS_AHEAD))
     .get();
-  // Only what concerns me, as on my Accueil (concerns of logic.ts): not every household's errands.
-  const mine = events.docs
-    .map((doc) => ({ id: doc.id, data: doc.data() as EventData }))
-    .filter((e) => concerns(e.data, me, members));
-  return icsFeed(mine, now);
+  const all = events.docs.map((doc) => ({ id: doc.id, data: doc.data() as EventData }));
+  return icsFeed(feedEvents(all, me, members), now);
+}
+
+/**
+ * What my link may carry (PRD rév. 267, audit of 17/11). Only what concerns me, as on my Accueil
+ * (concerns of logic.ts), but a child's event goes only to the child's responsible adults, never to
+ * another adult of the household, and with its title and its time alone: no place, no note, so a
+ * link pasted in the wrong place never tells where a child will be.
+ */
+export function feedEvents(
+  events: { id: string; data: EventData }[], me: Member, members: Member[],
+): { id: string; data: EventData }[] {
+  return events.flatMap((e) => {
+    const child = childOf(e.data, members);
+    if (child) {
+      if (!child.parentIds.includes(me.id)) return [];
+      return [{ id: e.id, data: { ...e.data, place: null, note: null } }];
+    }
+    return concerns(e.data, me, members) ? [e] : [];
+  });
+}
+
+/** The child an event is for (« Pour un enfant », or « Pour moi » written for a child), or null. */
+function childOf(event: EventData, members: Member[]): Member | null {
+  if (event.targetType !== 'child' && event.targetType !== 'self') return null;
+  const target = members.find((m) => m.id === event.targetMemberId);
+  return target && target.profile !== 'adult' ? target : null;
 }
 
 /** A member who leaves takes their link with them. */
