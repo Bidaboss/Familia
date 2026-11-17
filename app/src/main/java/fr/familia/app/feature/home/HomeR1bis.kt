@@ -385,10 +385,10 @@ private fun TodoR1Card(todo: HomeTodo, today: LocalDate, actions: HomeActions, r
             detail = todo.event.time?.let { "${dayShortLabel(todo.event.date, today)} · ${formatTime(it)}" } ?: dayShortLabel(todo.event.date, today),
             onOpen = { actions.onOpenEvent(todo.event.id) },
         ) {
-            FilledTonalButton(onClick = { r1.onAnswer(todo.event.id, true) }, modifier = Modifier.heightIn(min = 48.dp)) {
+            FilledTonalButton(onClick = { r1.onAnswer(todo.event.id, true) }, modifier = Modifier.heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.home_r1_going))
             }
-            OutlinedButton(onClick = { r1.onAnswer(todo.event.id, false) }, modifier = Modifier.heightIn(min = 48.dp)) {
+            OutlinedButton(onClick = { r1.onAnswer(todo.event.id, false) }, modifier = Modifier.heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.home_r1_not_going))
             }
         }
@@ -397,7 +397,7 @@ private fun TodoR1Card(todo: HomeTodo, today: LocalDate, actions: HomeActions, r
             detail = stringResource(R.string.home_todo_help, todo.request.authorName, whenLabel(todo.request, today)),
             onOpen = { actions.onOpenHelpRequest(todo.request.id) },
         ) {
-            FilledTonalButton(onClick = { actions.onOpenHelpRequest(todo.request.id) }, modifier = Modifier.heightIn(min = 48.dp)) {
+            FilledTonalButton(onClick = { actions.onOpenHelpRequest(todo.request.id) }, modifier = Modifier.heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.home_r1_help_open))
             }
         }
@@ -406,7 +406,7 @@ private fun TodoR1Card(todo: HomeTodo, today: LocalDate, actions: HomeActions, r
             detail = stringResource(R.string.home_r1_poll_by, todo.poll.authorName),
             onOpen = { actions.onOpenPoll(todo.poll.id) },
         ) {
-            FilledTonalButton(onClick = { actions.onOpenPoll(todo.poll.id) }, modifier = Modifier.heightIn(min = 48.dp)) {
+            FilledTonalButton(onClick = { actions.onOpenPoll(todo.poll.id) }, modifier = Modifier.heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.home_r1_vote))
             }
         }
