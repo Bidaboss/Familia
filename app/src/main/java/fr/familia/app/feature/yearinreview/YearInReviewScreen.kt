@@ -103,7 +103,9 @@ fun YearInReviewScreen(state: YearInReviewUiState, year: Int, onClose: () -> Uni
                     }
                     // At 200 % a page can be taller than the screen: it scrolls, and a tap on its left or
                     // right half still turns the page (the halves behind it do not get the touch any more).
-                    // TalkBack keeps « Précédent » and « Suivant » from the halves.
+                    // TalkBack keeps « Précédent » and « Suivant » from the halves. On the last page a tap
+                    // does not close the screen: « Fermer » and the cross do it, so a stray tap while
+                    // scrolling at 200 % does not lose the page.
                     BoxWithConstraints(
                         Modifier.weight(1f).fillMaxWidth().pointerInput(current, last) {
                             detectTapGestures { offset ->
@@ -111,8 +113,6 @@ fun YearInReviewScreen(state: YearInReviewUiState, year: Int, onClose: () -> Uni
                                     if (current > 0) index = current - 1
                                 } else if (current < last) {
                                     index = current + 1
-                                } else {
-                                    onClose()
                                 }
                             }
                         },
