@@ -1049,6 +1049,9 @@
     <string name="album_photo_by">Photo de %1$s</string>
     <string name="album_photo_open">Agrandir</string>
     <string name="album_photo_close">Fermer</string>
+    <string name="album_slideshow_start">Lancer le diaporama</string>
+    <string name="album_slideshow_pause">Pause</string>
+    <string name="album_slideshow_resume">Reprendre</string>
     <string name="album_photo_position">%1$d sur %2$d</string>
     <string name="album_photo_remove">Retirer</string>
     <string name="album_photo_remove_title">Retirer cette photo ?</string>

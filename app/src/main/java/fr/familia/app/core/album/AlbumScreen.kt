@@ -2,6 +2,8 @@ package fr.familia.app.core.album
 
 import androidx.compose.ui.text.style.TextOverflow
 import fr.familia.app.core.ui.ClaySpacing
+import fr.familia.app.core.model.Feature
+import fr.familia.app.core.ui.LocalFeatureFlags
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -71,6 +73,7 @@ fun AlbumScreen(
             item(key = "top", span = { GridItemSpan(maxLineSpan) }) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     top()
+                    if (LocalFeatureFlags.current.isOn(Feature.PresentationR1bis)) SlideshowButton(state.photos)
                     PhotoStatus(state, actions.onDismissProblem)
                     if (state.canAdd) AddPhotosButton(state.placesLeft, actions.onAdd, max = state.maxPerMember)
                 }

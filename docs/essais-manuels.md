@@ -550,3 +550,10 @@ Avec l'interrupteur « Sondages » allumé :
 1. Ouvre un événement de ton foyer et touche « Lancer un sondage » : les invités de l'événement sont déjà cochés. Envoie un sondage de date.
 2. Reviens sur la fiche : le sondage y apparaît, avec les réponses puis le résultat une fois terminé. Il est aussi dans la liste « Sondages ».
 3. Supprime l'événement : le sondage reste dans « Sondages », marqué Terminé, et personne ne reçoit de notification de résultat.
+
+## « Lancer le diaporama » dans chaque album (R1 bis, DESIGN-18)
+
+1. Ouvre l'album d'un voyage, d'un événement ou du mois avec au moins 2 photos : « Lancer le diaporama » est sous le titre. Avec une seule photo, il n'y est pas.
+2. Touche-le : les photos défilent sur fond noir, de la plus ancienne à la plus récente, toutes les 4 secondes, en fondu, puis recommencent. L'écran ne s'éteint pas pendant ce temps.
+3. « Pause » s'arrête sur la photo, « Reprendre » repart. « Fermer » ou le bouton retour revient à l'album.
+4. Interrupteur presentationR1bis éteint : le bouton disparaît.
