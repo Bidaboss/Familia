@@ -202,7 +202,8 @@ private fun crashLine(group: CrashGroup): String {
     val latest = group.latest
     return listOfNotNull(
         stringResource(R.string.crashes_last, crashTimeFormat.format(latest.crashedAt.atZone(ZoneId.systemDefault()))),
-        group.versions.joinToString(", ") { stringResource(R.string.feedback_version, it) },
+        // map is inline, so stringResource may be called in it (joinToString takes a plain lambda).
+        group.versions.map { stringResource(R.string.feedback_version, it) }.joinToString(", "),
         latest.screen.takeIf { it.isNotBlank() }?.let { stringResource(R.string.crashes_screen, it) },
     ).joinToString(" · ")
 }
