@@ -49,6 +49,7 @@ import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.ui.MemberAvatar
+import fr.familia.app.core.ui.PendingSign
 import fr.familia.app.feature.souvenirs.SouvenirFamily
 import java.time.Instant
 
@@ -91,6 +92,7 @@ fun GoodNewsCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = FamiliaClay.colors.onTintVariant(tint),
                 )
+                if (item.news.pending) PendingSign(color = FamiliaClay.colors.onTintVariant(tint))
                 if (item.news.littleOnes && LocalFeatureFlags.current.isOn(Feature.LittleOnes)) {
                     Text(
                         stringResource(R.string.goodnews_little_ones_label),

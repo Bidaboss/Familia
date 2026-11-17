@@ -4,6 +4,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.MetadataChanges
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Turn
 import fr.familia.app.core.model.TurnDone
@@ -19,14 +20,14 @@ import java.util.Date
 class FirestoreTurnRepository(private val db: FirebaseFirestore) : TurnRepository {
 
     override fun observeAll(): Flow<List<Turn>> = callbackFlow {
-        val registration = db.collection(TURNS).addSnapshotListener { snapshot, error ->
+        val registration = db.collection(TURNS).addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
             if (error != null) close(error) else if (snapshot != null) trySend(snapshot.documents.mapNotNull { it.toTurn() })
         }
         awaitClose { registration.remove() }
     }
 
     override fun observe(id: String): Flow<Turn?> = callbackFlow {
-        val registration = db.collection(TURNS).document(id).addSnapshotListener { snapshot, error ->
+        val registration = db.collection(TURNS).document(id).addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
             if (error != null) close(error) else trySend(snapshot?.takeIf { it.exists() }?.toTurn())
         }
         awaitClose { registration.remove() }
@@ -142,5 +143,6 @@ internal fun DocumentSnapshot.toTurn(): Turn? {
         history = history,
         swap = swap,
         createdBy = getString("createdBy") ?: "",
+        pending = metadata.hasPendingWrites(),
     )
 }

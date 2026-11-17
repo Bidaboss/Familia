@@ -12,7 +12,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Celebration
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -36,6 +35,7 @@ import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.feature.goodnews.GoodNewsActionFailedDialog
 import fr.familia.app.feature.goodnews.GoodNewsCard
 import fr.familia.app.feature.goodnews.RemoveGoodNewsDialog
@@ -69,7 +69,7 @@ fun GoodNewsDetailScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                GoodNewsDetailUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                GoodNewsDetailUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 GoodNewsDetailUiState.Missing -> EmptyState(
                     icon = Icons.Outlined.Celebration,
                     title = stringResource(R.string.goodnews_missing_title),

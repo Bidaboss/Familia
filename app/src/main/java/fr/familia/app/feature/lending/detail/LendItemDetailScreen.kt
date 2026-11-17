@@ -15,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,6 +54,7 @@ import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.core.ui.formatDay
 import fr.familia.app.feature.lending.lendCategoryLabel
 import fr.familia.app.feature.lending.list.lendWhereLabel
@@ -87,7 +87,7 @@ fun LendItemDetailScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                LendItemDetailUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                LendItemDetailUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 LendItemDetailUiState.Missing -> EmptyState(
                     icon = Icons.Outlined.Category,
                     title = stringResource(R.string.lend_missing_title),

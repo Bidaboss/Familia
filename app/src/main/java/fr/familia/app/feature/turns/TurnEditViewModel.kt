@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /** The form: a title, and the households that take part, in their order. */
 data class TurnForm(val title: String = "", val order: List<String> = emptyList())
@@ -120,10 +121,11 @@ class TurnEditViewModel(
                 val before = original
                 if (before == null) {
                     val me = members?.observeFamily()?.first()?.members?.firstOrNull { it.id == currentMemberId } ?: error("No member")
-                    repo.create(repo.newId(), title, current.form.order, me)
+                    // The write lands in the cache at once; offline it waits there and goes later.
+                    withTimeoutOrNull(WRITE_TIMEOUT_MS) { repo.create(repo.newId(), title, current.form.order, me) }
                 } else {
                     val keep = current.form.order.indexOf(before.currentHouseholdId).takeIf { it >= 0 } ?: 0
-                    repo.edit(before.id, title, current.form.order, keep)
+                    withTimeoutOrNull(WRITE_TIMEOUT_MS) { repo.edit(before.id, title, current.form.order, keep) }
                 }
                 TurnEditUiState.Done
             } catch (e: CancellationException) {

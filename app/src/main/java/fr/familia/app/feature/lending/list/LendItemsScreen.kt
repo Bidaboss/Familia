@@ -17,7 +17,6 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -42,6 +41,7 @@ import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.feature.lending.lendCategoryLabel
 import java.time.Instant
 import java.time.ZoneId
@@ -81,7 +81,7 @@ fun LendItemsScreen(
 ) {
     Box(modifier.fillMaxSize()) {
         when (state) {
-            LendItemsUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+            LendItemsUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
             LendItemsUiState.Error -> EmptyState(
                 icon = Icons.Outlined.Category,
                 title = stringResource(R.string.lend_error_title),
