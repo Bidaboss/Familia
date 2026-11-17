@@ -8,7 +8,7 @@ import {
 } from './logic';
 import { CARPOOL, loadRides, rideLines } from './carpool';
 import { topUpSeries } from './series';
-import { deliver } from './prefs';
+import { deliver, noticeTime } from './prefs';
 
 /** Sends one notification to one phone. "unregistered" means the app was uninstalled. */
 export type Sender = (token: string, notice: Notice) => Promise<'ok' | 'unregistered' | 'error'>;
@@ -35,7 +35,7 @@ export function memberForUid(members: Member[], uid: string | undefined): Member
  * Sends [notice] to every phone of [memberIds]. Phones live in members/{id}/devices/{token};
  * the token of an uninstalled app is deleted so it is not tried again.
  */
-export async function notify(db: Firestore, send: Sender, memberIds: string[], notice: Notice, now: Date = new Date()): Promise<number> {
+export async function notify(db: Firestore, send: Sender, memberIds: string[], notice: Notice, now: Date = noticeTime()): Promise<number> {
   // Each member's settings (récit 6 quinquies) decide: now, at 8 h, or not at all.
   return deliver(db, send, memberIds, notice, now);
 }

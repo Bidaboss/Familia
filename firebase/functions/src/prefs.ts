@@ -178,8 +178,24 @@ export async function presentingNow(db: Firestore, now: Date): Promise<boolean> 
   return false;
 }
 
+/**
+ * The clock of [deliver] when no `now` is given: the real time in production. The tests fix it to
+ * the afternoon (test/setup.ts), so a suite run at night is not held by « Calme la nuit ».
+ */
+let clock: () => Date = () => new Date();
+
+/** The time a notice takes when it is not given one: see [setClockForTests]. */
+export function noticeTime(): Date {
+  return clock();
+}
+
+/** Tests only: the time [deliver] takes when it is not given one. */
+export function setClockForTests(next: () => Date): void {
+  clock = next;
+}
+
 /** The single way out for a notice: filtered by each member's settings, held during quiet hours. */
-export async function deliver<N extends Filtered>(db: Firestore, send: AnySender<N>, memberIds: string[], notice: N, now: Date = new Date()): Promise<number> {
+export async function deliver<N extends Filtered>(db: Firestore, send: AnySender<N>, memberIds: string[], notice: N, now: Date = noticeTime()): Promise<number> {
   const { now: ready, later } = await audience(db, memberIds, notice, now);
   // Every send looks at the mode présentation, so its end is seen at the first send that follows.
   // A failed read of config/presentation never stops a notice: it then goes as usual.
