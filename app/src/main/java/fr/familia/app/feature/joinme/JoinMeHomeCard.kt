@@ -2,6 +2,8 @@ package fr.familia.app.feature.joinme
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -23,7 +25,9 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.place.DirectionsButton
 import fr.familia.app.core.place.Place
 import fr.familia.app.core.place.PlaceLines
+import fr.familia.app.core.place.StreetViewButton
 import fr.familia.app.core.place.directionsUri
+import fr.familia.app.core.place.streetViewUri
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.ClayCard
@@ -62,6 +66,7 @@ fun rememberJoinMeHome(container: AppContainer?, currentMember: Member): JoinMeH
 }
 
 /** The shares, without a card: the home screen puts them at the top of its « À faire » block. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun JoinMeHomeContent(
     state: JoinMeHomeUiState.Ready,
@@ -83,7 +88,11 @@ fun JoinMeHomeContent(
                 )
                 PlaceLines(share.place)
                 share.note?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
-                DirectionsButton(directionsUri(share.place))
+                // Side by side when they fit, one under the other at a large font size.
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    DirectionsButton(directionsUri(share.place))
+                    StreetViewButton(streetViewUri(share.place))
+                }
             }
         }
         state.sent.forEach { share ->

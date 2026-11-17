@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Directions
 import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Streetview
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -30,7 +31,7 @@ import fr.familia.app.R
  * which opens Google Maps, Waze or whichever app the member chooses. No map in the app, no API key.
  */
 
-/** Opens the route to [uri] (a geo: link); false when the phone has no app for it. */
+/** Opens [uri] (a geo: link, or a Google Maps link); false when the phone has no app for it. */
 fun openDirections(context: Context, uri: String): Boolean = try {
     // No chooser of ours: Android asks once between Maps and Waze, and can remember the choice.
     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
@@ -64,5 +65,19 @@ fun DirectionsButton(uri: String, modifier: Modifier = Modifier) {
     ) {
         Icon(Icons.Outlined.Directions, contentDescription = null)
         Text(stringResource(R.string.place_directions), modifier = Modifier.padding(start = 8.dp))
+    }
+}
+
+/** « Voir la rue »: Google Street View at the point of a shared place (retour d'essai, 17/11). */
+@Composable
+fun StreetViewButton(uri: String, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val noApp = stringResource(R.string.place_no_maps_app)
+    OutlinedButton(
+        onClick = { if (!openDirections(context, uri)) Toast.makeText(context, noApp, Toast.LENGTH_LONG).show() },
+        modifier = modifier.heightIn(min = 56.dp),
+    ) {
+        Icon(Icons.Outlined.Streetview, contentDescription = null)
+        Text(stringResource(R.string.place_street_view), modifier = Modifier.padding(start = 8.dp))
     }
 }
