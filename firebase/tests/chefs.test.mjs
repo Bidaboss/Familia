@@ -32,13 +32,13 @@ function removeMember(db, m) {
 const NEW = { memberId: 'new1', email: 'new1@example.com' };
 
 describe('members', () => {
-  test('a chef adds a member to their own household, but not to another one', async () => {
-    await assertSucceeds(addMember(chef(), NEW));
-    await assertFails(addMember(chef(), { memberId: 'new2', email: 'new2@example.com' }, { householdId: 'h2' }));
+  test('only the admin principal adds a member, a chef never does', async () => {
+    await assertSucceeds(addMember(as(env, ADMIN), NEW));
+    await assertFails(addMember(chef(), { memberId: 'new2', email: 'new2@example.com' }));
+    await assertFails(addMember(chef(), { memberId: 'new3', email: 'new3@example.com' }, { householdId: 'h2' }));
   });
 
-  test('a chef never names a chef, even when adding a member', async () => {
-    await assertFails(addMember(chef(), NEW, { isAdmin: true }));
+  test('a chef never names a chef', async () => {
     await assertFails(updateDoc(doc(chef(), 'members/adult1'), { isAdmin: true }));
   });
 
@@ -87,8 +87,10 @@ describe('members', () => {
   test('a chef picks responsible adults in their household only', async () => {
     const kid = { memberId: 'kid9', email: null };
     const child = (parentIds) => ({ ...adultDoc(kid, { profile: 'childWithoutApp', email: null, parentIds }) });
-    await assertSucceeds(setDoc(doc(chef(), 'members/kid9'), child(['adult1'])));
-    await assertFails(setDoc(doc(chef(), 'members/kid8'), child(['adult3'])));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'members/kid9'), child(['adult1']));
+    });
+    await assertSucceeds(updateDoc(doc(chef(), 'members/kid9'), { firstName: 'Noa' }));
     await assertFails(updateDoc(doc(chef(), 'members/kid9'), { parentIds: ['adult1', 'adult3'] }));
   });
 

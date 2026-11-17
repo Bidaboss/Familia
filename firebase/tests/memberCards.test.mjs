@@ -1,4 +1,4 @@
-// La fiche membre (PRD, récit 7 bis): sizes, shoe size, allergies and tastes. The whole family
+// La fiche membre (PRD, récit 7 bis): shoe size, tastes and hobbies. The whole family
 // reads it; the member, an adult of the same household for a child, or the admin principal
 // changes it, like the photo. Fictional family of helpers.mjs, plus child1 (with the app, h1).
 import { after, afterEach, before, beforeEach, test } from 'node:test';
@@ -19,12 +19,12 @@ beforeEach(async () => {
     const db = ctx.firestore();
     await setDoc(doc(db, `memberEmails/${CHILD.email}`), { memberId: CHILD.memberId });
     await setDoc(doc(db, `members/${CHILD.memberId}`), adultDoc(CHILD, { profile: 'childWithApp', parentIds: [ADULT.memberId] }));
-    await setDoc(doc(db, 'memberCards/adult2'), { top: 'M', bottom: '40', shoes: '39', allergies: '', tastes: 'Le thé', updatedBy: 'adult2', updatedAt: new Date() });
+    await setDoc(doc(db, 'memberCards/adult2'), { tastes: 'Le thé', hobbies: 'Le jardin', updatedBy: 'adult2', updatedAt: new Date() });
   });
 });
 
 function card(by, overrides = {}) {
-  return { top: 'S', bottom: '38', shoes: '37', allergies: 'Arachides', tastes: 'Les polars', updatedBy: by.memberId, updatedAt: serverTimestamp(), ...overrides };
+  return { shoes: '37', tastes: 'Les polars', hobbies: 'La randonnée', updatedBy: by.memberId, updatedAt: serverTimestamp(), ...overrides };
 }
 
 test('the whole family reads a card, nobody else', async () => {
@@ -49,14 +49,22 @@ test('an adult of the household for a child, or the admin principal; never anoth
   await assertSucceeds(deleteDoc(doc(as(env, OTHER_ADULT), 'memberCards/adult2')));
 });
 
-test('short sizes, bounded texts, no other field, and no card for a member who does not exist', async () => {
+test('bounded texts, no other field, and no card for a member who does not exist', async () => {
   const me = doc(as(env, ADULT), 'memberCards/adult1');
-  await assertSucceeds(setDoc(me, card(ADULT, { top: 'x'.repeat(20), allergies: 'x'.repeat(300) })));
-  await assertFails(setDoc(me, card(ADULT, { shoes: 'x'.repeat(21) })));
+  await assertSucceeds(setDoc(me, card(ADULT, { tastes: 'x'.repeat(300), hobbies: 'x'.repeat(300) })));
+  await assertFails(setDoc(me, card(ADULT, { hobbies: 'x'.repeat(301) })));
   await assertFails(setDoc(me, card(ADULT, { tastes: 'x'.repeat(301) })));
-  await assertFails(setDoc(me, card(ADULT, { shoes: 39 })));
+  await assertFails(setDoc(me, card(ADULT, { hobbies: 39 })));
+  await assertFails(setDoc(me, card(ADULT, { shoes: 'x'.repeat(21) })));
   await assertFails(setDoc(me, card(ADULT, { birthday: '01/01' })));
   const { tastes, ...missing } = card(ADULT);
   await assertFails(setDoc(me, missing));
   await assertFails(setDoc(doc(as(env, ADMIN), 'memberCards/ghost'), card(ADMIN)));
+});
+
+test('an older app still saves the sizes and allergies of the first version', async () => {
+  const me = doc(as(env, ADULT), 'memberCards/adult1');
+  const { hobbies, ...old } = card(ADULT, { top: 'S', bottom: '38', allergies: 'Arachides' });
+  await assertSucceeds(setDoc(me, old));
+  await assertFails(setDoc(me, { ...old, top: 'x'.repeat(21) }));
 });

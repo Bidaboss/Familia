@@ -13,8 +13,8 @@ fun Family.isOwner(me: Member): Boolean = ownerId != null && ownerId == me.id
 fun Family.managesHousehold(me: Member, householdId: String): Boolean =
     isOwner(me) || (me.isAdmin && me.householdId == householdId)
 
-/** True when [me] may add members (to their own household for a chef). */
-fun Family.canAddMembers(me: Member): Boolean = isOwner(me) || me.isAdmin
+/** True when [me] may add members: the admin principal only, the family rarely grows. */
+fun Family.canAddMembers(me: Member): Boolean = isOwner(me)
 
 /** True when [me] may edit [member]: the admin principal anyone, a chef the members of their household. */
 fun Family.canEditMember(me: Member, member: Member): Boolean =
