@@ -930,7 +930,7 @@ Un adulte pose une question à toute la famille ou aux membres qu'il coche : « 
 | `multiple` | booléen | Plusieurs réponses permises (choix libre seulement) |
 | `askedIds` | liste de `memberId` (1 à 30) | Qui répond |
 | `viewerIds` | liste de `memberId` | L'auteur en premier, puis ceux qui répondent et les adultes responsables des enfants interrogés. L'appli lit ses sondages par `array-contains` |
-| `eventId` | `eventId` ou null | L'événement auquel le sondage est rattaché (plus tard) |
+| `eventId` | `eventId` ou null | L'événement d'où le sondage a été lancé (récit 2 quater) : il s'affiche sur sa fiche, ses invités sont cochés au départ. L'événement doit exister à la création ; supprimé, il ferme ses sondages sans les effacer ni envoyer de résultat |
 | `closesAt` | horodatage ou null | Fin des réponses : minuit (heure de Paris) après le dernier jour choisi |
 | `closed` | booléen | Terminé par l'auteur, ou par le serveur à `closesAt` |
 | `chosen` | entier ou null | La date retenue (son rang dans `options`) |

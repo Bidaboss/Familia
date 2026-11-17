@@ -416,6 +416,7 @@ class ReadOnlyPollRepository(private val inner: PollRepository, private val guar
         closesAt: Instant?,
         authorId: String,
         authorName: String,
+        eventId: String?,
     ): String = guard.refuse()
     override suspend fun vote(pollId: String, vote: PollVote) = guard.refuse()
     override suspend fun close(pollId: String) = guard.refuse()

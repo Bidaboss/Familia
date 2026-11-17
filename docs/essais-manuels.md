@@ -535,3 +535,9 @@ Avec l'interrupteur « Partager » allumé :
 2. Sur un téléphone prévenu, ouvre la demande : la photo est entière, sans être coupée. Touche-la : elle s'ouvre en grand sur fond noir, prête à être scannée. « Fermer » revient à la demande.
 3. Sur le téléphone d'un membre non prévenu, la demande n'apparaît pas, et la photo non plus.
 4. Modifie la demande, touche « Retirer la photo », enregistre : elle disparaît pour tout le monde.
+
+## Les sondages d'un événement (récit 2 quater)
+Avec l'interrupteur « Sondages » allumé :
+1. Ouvre un événement de ton foyer et touche « Lancer un sondage » : les invités de l'événement sont déjà cochés. Envoie un sondage de date.
+2. Reviens sur la fiche : le sondage y apparaît, avec les réponses puis le résultat une fois terminé. Il est aussi dans la liste « Sondages ».
+3. Supprime l'événement : le sondage reste dans « Sondages », marqué Terminé, et personne ne reçoit de notification de résultat.

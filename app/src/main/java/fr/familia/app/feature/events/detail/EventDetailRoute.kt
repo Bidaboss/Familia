@@ -29,6 +29,7 @@ import fr.familia.app.feature.events.album.EventAlbumSection
 import fr.familia.app.feature.events.bring.BringSection
 import fr.familia.app.feature.events.comments.EventCommentsSection
 import fr.familia.app.feature.events.album.isAlbumOpen
+import fr.familia.app.feature.polls.event.EventPollsSection
 
 /** Connects the event view to its ViewModel, and closes it when the event is deleted meanwhile. */
 @Composable
@@ -43,6 +44,9 @@ fun EventDetailRoute(
     onOpenExpenses: (() -> Unit)? = null,
     /** Opens a recipe joined to a line of « Qui apporte quoi », while the Recettes module is on. */
     onOpenRecipe: ((recipeId: String) -> Unit)? = null,
+    /** « Lancer un sondage » and its polls (récit 2 quater). */
+    onNewPoll: () -> Unit = {},
+    onOpenPoll: (pollId: String) -> Unit = {},
 ) {
     val viewModel: EventDetailViewModel = viewModel(
         factory = viewModelFactory {
@@ -98,6 +102,11 @@ fun EventDetailRoute(
             if (success != null && LocalFeatureFlags.current.isOn(Feature.EventAlbums)) {
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
                 EventAlbumSection(container, currentMember, eventId, isAlbumOpen(success.event, success.today), onOpenAlbum)
+            }
+            // Its polls (récit 2 quater): a date, a menu, a place, asked to its guests.
+            if (success != null && LocalFeatureFlags.current.isOn(Feature.Polls)) {
+                HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                EventPollsSection(container, currentMember, eventId, success.today, onNewPoll, onOpenPoll)
             }
             // The comments (récit 28), last: they can grow long.
             if (success != null && LocalFeatureFlags.current.isOn(Feature.Comments)) {
