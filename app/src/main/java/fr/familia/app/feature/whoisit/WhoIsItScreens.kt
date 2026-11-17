@@ -217,7 +217,7 @@ fun WhoIsItListScreen(state: WhoIsItListUiState, onOpen: (String) -> Unit, onAdd
             if (onAdd != null) {
                 ExtendedFloatingActionButton(
                     onClick = onAdd,
-                    icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                    icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.who_is_it_add)) },
                     text = { Text(stringResource(R.string.who_is_it_add)) },
                 )
             }

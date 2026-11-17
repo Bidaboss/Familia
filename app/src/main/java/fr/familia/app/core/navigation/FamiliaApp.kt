@@ -1016,7 +1016,7 @@ fun FamiliaApp(
                             onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
                             onAddTrip = { navController.navigate(TripEditDestination()) },
                             onBack = { navController.popBackStack() },
-                            onOpenAlbums = { navController.navigate(AlbumsDestination) { launchSingleTop = true } },
+                            onOpenAlbums = if (features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums)) ({ navController.navigate(AlbumsDestination) { launchSingleTop = true } }) else null,
                         )
                     }
                     composable<TripDetailDestination> { entry ->

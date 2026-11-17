@@ -4,7 +4,8 @@
 //   `helpRequests`, `trips`, `weekly`): `false` turns it off. The three levels of the screen
 //   (« Tout », « L'essentiel », « Presque rien ») only set these switches at once, so a switch
 //   changed afterwards always counts;
-// - `quietHours`: `true` holds what comes between 22 h and 8 h (Paris) until 8 h, grouped.
+// - `quietHours`: holds what comes between 22 h and 8 h (Paris) until 8 h, grouped. On unless
+//   set to `false` (nuit du 21 : a member who never opened their settings sleeps too).
 // What aims at the member directly never goes quiet: a « Rejoignez-moi », a coup de main they
 // took, the Bonne nouvelle of a child they are responsible for (AVIS-12), a capsule opened for
 // them, an answer to « Mes demandes », the consumption alert of the admin principal.
@@ -65,12 +66,12 @@ export interface Prefs {
   quietHours: boolean;
 }
 
-export const DEFAULT_PREFS: Prefs = { off: new Set(), quietHours: false };
+export const DEFAULT_PREFS: Prefs = { off: new Set(), quietHours: true };
 
 /** The settings document as the app writes it; anything unknown keeps the default. */
 export function prefsFrom(data: Record<string, unknown> | undefined): Prefs {
   if (!data) return DEFAULT_PREFS;
-  return { off: new Set(FAMILIES.filter((f) => data[f] === false)), quietHours: data.quietHours === true };
+  return { off: new Set(FAMILIES.filter((f) => data[f] === false)), quietHours: data.quietHours !== false };
 }
 
 /** Whether [notice] may reach a member with [prefs] at all. */
@@ -384,7 +385,7 @@ const MAX_HELD_MS = 24 * 60 * 60 * 1000;
  * A channel that reached none of the member's phones (an error, the network) goes back to the
  * queue and is tried again by the next run, for a day at most.
  */
-export async function sendHeldNotices<N extends Filtered & { title: string; body: string }>(db: Firestore, send: AnySender<N>, now: Date): Promise<number> {
+export async function sendHeldNotices<N extends Filtered & { title: string; body: string; tag?: string }>(db: Firestore, send: AnySender<N>, now: Date): Promise<number> {
   if (isQuietHour(now)) return 0;
   const queues = await db.collection('quietQueue').get();
   let sent = 0;
@@ -395,11 +396,16 @@ export async function sendHeldNotices<N extends Filtered & { title: string; body
       tx.delete(queue.ref);
       return ((doc.get('items') as (N & { heldAt?: string })[] | undefined) ?? []);
     });
-    const byChannel = new Map<Channel, (N & { heldAt?: string })[]>();
-    for (const item of items) byChannel.set(item.channel, [...(byChannel.get(item.channel) ?? []), item]);
+    // One notice for the whole night, a surprise apart on its own channel (no avalanche at 8 h):
+    // the shared items go together, each private channel by itself.
+    const shared = items.filter((n) => !PRIVATE_CHANNELS.has(n.channel));
+    const groups: (N & { heldAt?: string })[][] = shared.length > 0 ? [shared] : [];
+    for (const channel of new Set(items.map((n) => n.channel).filter((c) => PRIVATE_CHANNELS.has(c)))) {
+      groups.push(items.filter((n) => n.channel === channel));
+    }
     const again: (N & { heldAt?: string })[] = [];
-    for (const group of byChannel.values()) {
-      const [notice] = morningNotices(group.map(({ heldAt: _heldAt, ...n }) => n as unknown as N));
+    for (const group of groups) {
+      const [notice] = burstNotices(group.map(({ heldAt: _heldAt, ...n }) => n as unknown as N), 'Cette nuit dans Familia');
       let result = { sent: 0, failed: 0 };
       try {
         result = await sendCounting(db, send, [queue.id], notice);

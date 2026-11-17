@@ -165,7 +165,9 @@ describe('my notification settings against the emulator', () => {
       batch.set(db.doc(`members/${id}`), { firstName: id, profile: 'adult', parentIds: [] });
       batch.set(db.doc(`members/${id}/devices/token-${id}`), { updatedAt: night });
     }
-    batch.set(db.doc('members/noe/settings/notifications'), { planning: false, reminders: false, gifts: false, goodNews: false, comments: false, helpRequests: false, trips: false, weekly: false });
+    // Camille and Noé turned « Calme la nuit » off themselves; Lou keeps it on, as everyone by default (rév. 266).
+    batch.set(db.doc('members/camille/settings/notifications'), { quietHours: false });
+    batch.set(db.doc('members/noe/settings/notifications'), { planning: false, reminders: false, gifts: false, goodNews: false, comments: false, helpRequests: false, trips: false, weekly: false, quietHours: false });
     batch.set(db.doc('members/lou/settings/notifications'), { quietHours: true });
     await batch.commit();
   });
@@ -207,6 +209,31 @@ describe('my notification settings against the emulator', () => {
     down = true;
     assert.equal(await sendHeldNotices(db, flaky, new Date('2026-11-25T08:00:00Z')), 0); // More than a day later.
     assert.equal((await db.doc('quietQueue/lou').get()).exists, false);
+  });
+
+  test('« Calme la nuit » is on for a member who never set it, off only when turned off (rév. 266)', async () => {
+    assert.equal(prefsFrom(undefined).quietHours, true);
+    assert.equal(prefsFrom({ goodNews: true }).quietHours, true);
+    assert.equal(prefsFrom({ quietHours: false }).quietHours, false);
+    await db.doc('members/sam').set({ firstName: 'sam', profile: 'adult', parentIds: [] });
+    await db.doc('members/sam/devices/token-sam').set({ updatedAt: night });
+    const { sent, send } = fakeSender();
+    assert.equal(await deliver(db, send, ['sam', 'camille'], news, night), 1);
+    assert.deepEqual(sent.map((s) => s.token), ['token-camille']);
+    assert.equal((await db.doc('quietQueue/sam').get()).get('items').length, 1);
+  });
+
+  test('at 8 h the whole night is one notice, a surprise apart: no avalanche on waking up', async () => {
+    const { sent, send } = fakeSender();
+    await deliver(db, send, ['lou'], news, night);
+    await deliver(db, send, ['lou'], { channel: 'welcome', title: 'Inès vient d’arriver', body: 'Dis-lui bonjour !' }, night);
+    await deliver(db, send, ['lou'], { channel: 'comments', title: 'Sam a commenté', body: 'Bravo' }, night);
+    await deliver(db, send, ['lou'], { channel: 'gifts', title: 'Une surprise', body: '…' }, night);
+    assert.equal(sent.length, 0);
+    assert.equal(await sendHeldNotices(db, send, morning), 2);
+    assert.equal(sent[0].notice.title, 'Cette nuit dans Familia');
+    assert.match(sent[0].notice.body, /^3 notifications : /);
+    assert.equal(sent[1].notice.channel, 'gifts');
   });
 
   test('at night, what aims at me is not held', async () => {

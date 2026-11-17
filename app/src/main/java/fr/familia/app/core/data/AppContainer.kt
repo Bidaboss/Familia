@@ -1,6 +1,8 @@
 package fr.familia.app.core.data
 
 import android.content.Context
+import coil.annotation.ExperimentalCoilApi
+import coil.imageLoader
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -24,6 +26,7 @@ import fr.familia.app.core.video.PhotoFilmMaker
 import fr.familia.app.feature.auth.AuthRepository
 import fr.familia.app.feature.auth.FirebaseAuthRepository
 import fr.familia.app.feature.auth.GoogleCredentialProvider
+import java.io.File
 
 /**
  * Manual dependency injection: everything the screens reach, built once by
@@ -83,6 +86,9 @@ interface AppContainer {
     val treeRepository: TreeRepository?
     val photoStorage: PhotoStorage?
     val photoUploader: PhotoUploader?
+
+    /** Another member signs in on this phone: their predecessor's photo links and caches go. */
+    val localTraces: LocalTraces? get() = null
     val albumPhotoRepository: AlbumPhotoRepository?
     val filmMaker: PhotoFilmMaker
     val appConfigRepository: AppConfigRepository?
@@ -177,10 +183,26 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     /** Photos of the good news and the trips, in Cloud Storage (firebase/storage.rules). */
     override val photoStorage: PhotoStorage? by lazy {
         if (firebaseReady) {
-            val prefs = appContext.getSharedPreferences("photo-links", Context.MODE_PRIVATE)
-            FirebasePhotoStorage(FirebaseStorage.getInstance(), PhotoLinks(PreferencesLinks(prefs)))
+            FirebasePhotoStorage(FirebaseStorage.getInstance(), photoLinks)
         } else {
             null
+        }
+    }
+
+    private val photoLinks: PhotoLinks by lazy {
+        PhotoLinks(PreferencesLinks(appContext.getSharedPreferences("photo-links", Context.MODE_PRIVATE)))
+    }
+
+    override val localTraces: LocalTraces by lazy {
+        LocalTraces(PreferencesTraceOwner(appContext.getSharedPreferences("local-traces", Context.MODE_PRIVATE))) {
+            photoLinks.forgetAll()
+            val images = appContext.imageLoader
+            images.memoryCache?.clear()
+            @OptIn(ExperimentalCoilApi::class)
+            images.diskCache?.clear()
+            // The last PDF shared (recipe book, tree poster, photo book…) and the photos of a book.
+            File(appContext.cacheDir, "shares").deleteRecursively()
+            File(appContext.cacheDir, "photo-book").deleteRecursively()
         }
     }
 

@@ -81,7 +81,7 @@ fun TurnsScreen(
         if (state is TurnsUiState.Success && state.canCreate && state.rows.isNotEmpty()) {
             ExtendedFloatingActionButton(
                 onClick = onCreate,
-                icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.turns_create)) },
                 text = { Text(stringResource(R.string.turns_create)) },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
             )

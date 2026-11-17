@@ -122,7 +122,7 @@ fun GoodDealsScreen(
         if (state is GoodDealsUiState.Success && state.canPublish && onPublish != null && !(state.deals.isEmpty() && !state.hasAddresses)) {
             ExtendedFloatingActionButton(
                 onClick = { choosing = true },
-                icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.gooddeal_publish)) },
                 text = { Text(stringResource(R.string.gooddeal_publish)) },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
             )

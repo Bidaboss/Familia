@@ -13,7 +13,9 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
 import fr.familia.app.feature.gifts.share.ShareTargetSwitch
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Gate in front of the app: shows [SignInScreen] until a family member is signed in,
@@ -38,6 +40,13 @@ fun SessionRoute(
         if (state is SessionUiState.SignedOut || state is SessionUiState.NotAMember) {
             ShareTargetSwitch(context.applicationContext).set(null)
         }
+    }
+
+    // A shared phone: the photos and files of the member before go (note C de #264).
+    val signedInId = (state as? SessionUiState.SignedIn)?.member?.id
+    LaunchedEffect(signedInId) {
+        val id = signedInId ?: return@LaunchedEffect
+        withContext(Dispatchers.IO) { container.localTraces?.signedIn(id) }
     }
 
     (state as? SessionUiState.SignedIn)?.let {

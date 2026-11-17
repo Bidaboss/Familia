@@ -156,6 +156,10 @@ class NotificationSettingsViewModelTest {
         assertEquals(true, prefs().isOn(NotificationFamily.Gifts))
         assertEquals(null, prefs().level) // Set one by one: no level is ticked.
 
+        // On by default (rév. 266): the member may turn it off, then on again.
+        assertEquals(true, prefs().quietHours)
+        vm.setQuietHours(false)
+        assertEquals(false, prefs().quietHours)
         vm.setQuietHours(true)
         assertEquals(true, prefs().quietHours)
     }
