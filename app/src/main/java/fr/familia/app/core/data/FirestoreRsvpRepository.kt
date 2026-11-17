@@ -58,6 +58,31 @@ class FirestoreRsvpRepository(private val db: FirebaseFirestore) : RsvpRepositor
         awaitClose { registration.remove() }
     }
 
+    override fun observeRsvpsOf(eventIds: List<String>): Flow<Map<String, List<Rsvp>>> {
+        if (eventIds.isEmpty()) return flowOf(emptyMap())
+        val one: List<Flow<Pair<String, List<Rsvp>>>> = eventIds.distinct().map { eventId ->
+            callbackFlow<Pair<String, List<Rsvp>>> {
+                val registration = db.collection("events").document(eventId).collection("rsvps")
+                    .addSnapshotListener { snapshot, error ->
+                        if (error != null) {
+                            close(error)
+                        } else if (snapshot != null) {
+                            trySend(
+                                eventId to snapshot.documents.mapNotNull { doc ->
+                                    val status = RsvpStatus.fromFirestore(doc.getString("status")) ?: return@mapNotNull null
+                                    Rsvp(doc.id, status, doc.getString("answeredBy").orEmpty())
+                                },
+                            )
+                        }
+                    }
+                awaitClose { registration.remove() }
+            }
+                // One event whose answers cannot be read shows without counters, the others still do.
+                .catch { e -> if (e is CancellationException) throw e else emit(eventId to emptyList()) }
+        }
+        return combine(one) { pairs -> pairs.filter { it.second.isNotEmpty() }.toMap() }
+    }
+
     override fun observeAnswersOf(memberId: String, eventIds: List<String>): Flow<Map<String, List<Rsvp>>> {
         if (eventIds.isEmpty()) return flowOf(emptyMap())
         // Per event: null when there is no answer, an empty list when it cannot be read.

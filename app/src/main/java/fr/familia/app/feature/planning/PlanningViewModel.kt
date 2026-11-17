@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -62,13 +63,12 @@ class PlanningViewModel(
             if (events == null || members == null) {
                 scope.map { PlanningUiState.Success(emptyList(), day, it) } // Firebase not configured (previews).
             } else {
-                combine<List<Event>, Family, Map<String, List<Rsvp>>, PlanningScope, List<Trip>, PlanningUiState>(
-                    events.observeUpcoming(day),
+                combine<Pair<List<Event>, Map<String, List<Rsvp>>>, Family, PlanningScope, List<Trip>, PlanningUiState>(
+                    events.observeUpcoming(day).withAnswers(),
                     members.observeFamily(),
-                    answers(),
                     scope,
                     followedTrips(),
-                ) { list, family, answers, scope, trips ->
+                ) { (list, answers), family, scope, trips ->
                     val upcoming = trips.filter { it.endDate >= day }
                     PlanningUiState.Success(
                         days = days(list, family, answers, day, scope, upcoming),
@@ -97,9 +97,19 @@ class PlanningViewModel(
         saveScope(value)
     }
 
-    /** The counters are a bonus: if they cannot load, the planning still shows, without them. */
-    private fun answers(): Flow<Map<String, List<Rsvp>>> =
-        (rsvps?.observeAllRsvps() ?: flowOf(emptyMap()))
+    /**
+     * The answers to the events shown only, listened to again only when the events themselves come
+     * or go (an edited title keeps them). The same query is listened to twice: the Firestore SDK
+     * shares one listener for identical queries, so it is read once. The counters are a bonus: if
+     * they cannot load, the planning still shows, without them.
+     */
+    private fun Flow<List<Event>>.withAnswers(): Flow<Pair<List<Event>, Map<String, List<Rsvp>>>> =
+        combine(this, map { list -> list.map { it.id } }.distinctUntilChanged().flatMapLatest(::answers)) { list, answers ->
+            list to answers
+        }
+
+    private fun answers(eventIds: List<String>): Flow<Map<String, List<Rsvp>>> =
+        (rsvps?.observeRsvpsOf(eventIds) ?: flowOf(emptyMap()))
             .onStart { emit(emptyMap()) }
             .catch { e ->
                 if (e is CancellationException) throw e

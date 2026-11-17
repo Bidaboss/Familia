@@ -23,8 +23,14 @@ class WelcomePreferences(context: Context) {
         get() = prefs.getBoolean(KEY, false)
         set(value) = prefs.edit { putBoolean(KEY, value) }
 
+    /** The module was last read off for this member: the next opening waits less for it. */
+    var knownOff: Boolean
+        get() = prefs.getBoolean(OFF_KEY, false)
+        set(value) = prefs.edit { putBoolean(OFF_KEY, value) }
+
     private companion object {
         const val KEY = "welcomeAnimationSeen"
+        const val OFF_KEY = "welcomeAnimationOff"
     }
 }
 

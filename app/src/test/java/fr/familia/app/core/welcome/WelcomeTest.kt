@@ -70,7 +70,7 @@ class WelcomeTest {
 
     @Test
     fun `the welcome stays away while its module is in test, except for the admin principal`() = runTest {
-        assertEquals(WelcomeChoice.Skip, chooseWelcome(flowOf(family), flowOf(config(on = false)), ines))
+        assertEquals(WelcomeChoice.Off, chooseWelcome(flowOf(family), flowOf(config(on = false)), ines))
         assertNotNull(chooseWelcome(flowOf(family), flowOf(config(on = false)), camille) as? WelcomeChoice.Play)
     }
 
@@ -84,5 +84,13 @@ class WelcomeTest {
     fun `a family read that fails does not block the opening`() = runTest {
         val broken = flow<Family> { throw IllegalStateException("hors ligne") }
         assertEquals(WelcomeChoice.Skip, chooseWelcome(broken, flowOf(config(on = true)), ines))
+    }
+
+    @Test
+    fun `once seen off, the opening waits half a second at most for the modules`() = runTest {
+        val never = flow<AppConfig> { awaitCancellation() }
+        val started = testScheduler.currentTime
+        assertEquals(WelcomeChoice.Skip, chooseWelcome(flowOf(family), never, ines, WELCOME_OFF_WAIT_MILLIS))
+        assertEquals(WELCOME_OFF_WAIT_MILLIS, testScheduler.currentTime - started)
     }
 }
