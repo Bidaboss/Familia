@@ -11,8 +11,9 @@ import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -100,8 +101,9 @@ class TurnsTest {
         assertTrue(mine.done && mine.skip && mine.createEvent && mine.askSwap)
         assertFalse(mine.edit)
         val other = turnRights(turn(), TestFamily.otherAdult, family.ownerId)
-        assertFalse(other.done || other.skip || other.createEvent)
-        assertTrue(other.edit)
+        // adult2 wrote it: they may change it and say « C'est fait », not pass the turn of another household.
+        assertTrue(other.edit && other.done)
+        assertFalse(other.skip || other.createEvent)
         val kid = turnRights(turn(), TestFamily.kid, family.ownerId)
         assertFalse(kid.done || kid.skip || kid.askSwap || kid.edit)
         assertTrue(turnRights(turn(), TestFamily.admin, family.ownerId).edit)
@@ -121,13 +123,13 @@ class TurnsTest {
     fun `the list shows whose turn it is, mine first`() = runTest {
         val repo = FakeTurns(listOf(turn().copy(id = "a", title = "Anniversaires", current = 1), turn().copy(id = "z", title = "Zoo")))
         val vm = TurnsViewModel(repo, FakeMembers(family), "adult1")
-        vm.uiState.launchIn(backgroundScope)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         val state = vm.uiState.value as TurnsUiState.Success
         assertEquals(listOf("z", "a"), state.rows.map { it.turn.id })
         assertEquals("Foyer Un", state.rows.first().nowName)
         assertTrue(state.canCreate)
         val kid = TurnsViewModel(repo, FakeMembers(family), "kid1")
-        kid.uiState.launchIn(backgroundScope)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { kid.uiState.collect {} }
         assertFalse((kid.uiState.value as TurnsUiState.Success).canCreate)
     }
 
@@ -166,7 +168,7 @@ class TurnsTest {
     fun `the detail says whose turn it is and who comes next, the history newest first`() = runTest {
         val repo = FakeTurns(listOf(turn().done("Noël 2025", Instant.EPOCH)))
         val vm = TurnDetailViewModel(repo, FakeMembers(family), "adult2", "t1")
-        vm.uiState.launchIn(backgroundScope)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         val s = vm.uiState.value as TurnDetailUiState.Success
         assertEquals("Foyer Deux", s.nowName)
         assertEquals("Foyer Trois", s.nextName)
@@ -182,11 +184,11 @@ class TurnsTest {
     fun `an exchange proposed, then accepted by the other household`() = runTest {
         val repo = FakeTurns(listOf(turn()))
         val asker = TurnDetailViewModel(repo, FakeMembers(family), "adult2", "t1")
-        asker.uiState.launchIn(backgroundScope)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { asker.uiState.collect {} }
         asker.askSwap("h1")
         assertEquals("Foyer Un", (asker.uiState.value as TurnDetailUiState.Success).swapOtherName)
         val other = TurnDetailViewModel(repo, FakeMembers(family), "adult1", "t1")
-        other.uiState.launchIn(backgroundScope)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { other.uiState.collect {} }
         assertTrue((other.uiState.value as TurnDetailUiState.Success).rights.answerSwap)
         other.acceptSwap()
         val s = other.uiState.value as TurnDetailUiState.Success
@@ -197,7 +199,7 @@ class TurnsTest {
     @Test
     fun `a rotation removed meanwhile says so`() = runTest {
         val vm = TurnDetailViewModel(FakeTurns(emptyList()), FakeMembers(family), "adult1", "t1")
-        vm.uiState.launchIn(backgroundScope)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         assertEquals(TurnDetailUiState.Missing, vm.uiState.value)
     }
 }
