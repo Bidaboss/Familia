@@ -78,12 +78,14 @@ private fun ComposeContentTestRule.lowContrast(): List<String> {
     val root = Rect(0f, 0f, width.toFloat(), height.toFloat())
     val iconMax = with(density) { 48.dp.toPx() }
     val found = mutableListOf<String>()
+    var measured = 0
 
     val texts = onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.Text), useUnmergedTree = true).fetchSemanticsNodes()
     for (node in texts) {
         val text = node.config.getOrNull(SemanticsProperties.Text).orEmpty().joinToString(" ") { it.text }
         if (text.none(Char::isLetterOrDigit) || node.isDisabled()) continue
         val m = measure(pixels, width, node.boundsInRoot.intersect(root)) ?: continue
+        measured++
         val need = if (node.isLargeText()) 3f else 4.5f
         if (m.ratio < need) found += "« ${text.take(40)} » $m (il faut $need)"
     }
@@ -96,6 +98,8 @@ private fun ComposeContentTestRule.lowContrast(): List<String> {
         val m = measure(pixels, width, node.boundsInRoot.intersect(root)) ?: continue
         if (m.ratio < 3f) found += "icône « ${label.take(40)} » $m (il faut 3)"
     }
+    // A blank picture would let every screen pass: at least one text must have been measured.
+    if (texts.isNotEmpty() && measured == 0) found += "aucun texte mesuré : l'image est vide"
     return found
 }
 
