@@ -1119,5 +1119,5 @@ Avec le module « Voir le planning dans mon agenda » allumé (ou sur le télép
 ## Arbre vide : relier deux membres (retour d'essai du 17/11)
 1. En admin principal, avec un arbre sans aucun lien ni proche, ouvre Famille › Nos trésors › Arbre généalogique. **Attendu :** l'écran vide propose « Relier deux membres » (bouton plein) et « Ajouter un proche sans compte ».
 2. Touche « Relier deux membres ». **Attendu :** « Qui veux-tu relier ? » liste les membres, ton foyer d'abord. Choisis-en un, puis « Suivant ».
-3. Choisis « Conjoint ou conjointe » (ou parent, enfant), puis la seconde personne, et « Relier ». **Attendu :** l'arbre s'affiche avec tous les membres et le lien tracé.
+3. Choisis « Le conjoint ou la conjointe de … » (ou un parent, un enfant), puis la seconde personne, et « Relier ». **Attendu :** l'arbre s'affiche avec tous les membres et le lien tracé.
 4. En chef de famille (ou « Voir comme » un chef), même écran vide. **Attendu :** « Qui veux-tu relier ? » ne liste que son foyer. En simple adulte, aucun de ces boutons, seulement « Revenir ».
