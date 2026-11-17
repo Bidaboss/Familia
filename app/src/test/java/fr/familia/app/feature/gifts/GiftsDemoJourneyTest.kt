@@ -16,6 +16,7 @@ import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftShare
+import fr.familia.app.core.model.wishesListId
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.viewas.ReadOnlyGiftRepository
 import fr.familia.app.core.viewas.ViewAsGuard
