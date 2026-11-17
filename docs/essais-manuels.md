@@ -586,8 +586,8 @@ Interrupteur « Livre de recettes » allumé dans Administration, après « Publ
 
 1. Modifie une de tes recettes : sous les étiquettes, « Sa petite histoire (facultatif) ». Écris deux phrases et enregistre. **Attendu :** l'histoire apparaît en italique sous le titre de la recette.
 2. Plus de 600 caractères : « Texte trop long ». La recette n'est pas enregistrée.
-3. Sous « Photos du plat », la case « Un enfant est sur une des photos » (décochée au début). Coche-la, quitte et reviens : elle est toujours cochée. Avec un autre compte qui n'est pas l'auteur : pas de case.
-4. Interrupteur éteint : ni le champ, ni l'histoire, ni la case. Une histoire déjà écrite n'est pas perdue quand on modifie la recette.
+3. Sous « Photos du plat », aucune case « Un enfant est sur une des photos » (retirée le 17/11), avec ou sans photo.
+4. Interrupteur éteint : ni le champ, ni l'histoire. Une histoire déjà écrite n'est pas perdue quand on modifie la recette.
 
 ## La photo d'une envie (récit 44)
 
@@ -652,7 +652,7 @@ Interrupteur « Livre de recettes » allumé, avec des recettes dont certaines o
 2. L'écran montre la couverture (titre « Les recettes de la famille », modifiable, et l'année), le choix de la photo de couverture, puis toutes les recettes cochées. « Tout décocher » puis « Tout cocher » marchent ; sans recette cochée ou sans titre, « Faire le livre » est grisé.
 3. Touche « Faire le livre » : la feuille de partage d'Android s'ouvre avec livre-de-recettes-2026.pdf. Enregistre-le et ouvre-le.
 4. **Attendu dans le PDF :** une couverture, un sommaire par étiquette (la première de chaque recette, « Autres recettes » à la fin) avec les numéros de page, puis une recette par page : titre, « De … · Notée par … · Pour 6 personnes », l'histoire en italique, la photo, les ingrédients et les étapes. Une longue recette continue sur la page suivante.
-5. EXPERT-2 : une recette avec « Un enfant est sur une des photos » cochée, faite en livre par un autre compte que celui qui a pris la photo : un dessin de bol à la place de la photo. Même chose pour une photo prise par un enfant, ou une recette qui vient d'un enfant, quand tu n'es pas un de ses adultes.
+5. EXPERT-2 : une recette qui vient d'un enfant, quand tu n'es pas un de ses adultes : un dessin de bol à la place de la photo. Une photo prise par un enfant, elle, va dans le livre de tout le monde.
 6. Mode avion avec des photos jamais vues : le livre se fait quand même, avec des dessins.
 
 ## Faire l'affiche de l'arbre (récit 53)

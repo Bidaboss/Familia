@@ -11,8 +11,8 @@ import org.junit.Test
 /** The book of récit 47, with the fictional test family (see TestFamily). */
 class RecipeBookTest {
 
-    private fun recipe(id: String, title: String, tags: List<String> = emptyList(), origin: String? = null, author: String = "adult1", child: Boolean = false) =
-        Recipe(id, title, "", origin, null, "farine", "Cuire.", tags, author, author, null, childInPhotos = child)
+    private fun recipe(id: String, title: String, tags: List<String> = emptyList(), origin: String? = null, author: String = "adult1") =
+        Recipe(id, title, "", origin, null, "farine", "Cuire.", tags, author, author, null)
 
     private fun photo(recipeId: String, author: String) = AlbumPhoto("recipes/$recipeId", author, author, 1, null)
 
@@ -39,22 +39,15 @@ class RecipeBookTest {
     }
 
     @Test
-    fun `a photo taken by a child, or of a recipe from a child, stays with the adults of that child`() {
+    fun `a photo taken by a child goes to everyone, a recipe from a child stays with the adults of that child`() {
         val family = TestFamily.family
         val byKid = photo("1", "kid1")
         assertTrue(bookPhotoAllowed(byKid, recipe("1", "Tarte", author = "kid1"), "adult1", family))
-        assertFalse(bookPhotoAllowed(byKid, recipe("1", "Tarte", author = "kid1"), "adult2", family))
+        assertTrue(bookPhotoAllowed(byKid, recipe("1", "Tarte", author = "kid1"), "adult2", family))
 
         val fromKid = recipe("2", "Gâteau de Kid2", origin = "kid2")
         assertTrue(bookPhotoAllowed(photo("2", "adult2"), fromKid, "adult2", family))
         assertFalse(bookPhotoAllowed(photo("2", "adult2"), fromKid, "admin1", family))
-    }
-
-    @Test
-    fun `with « Un enfant est sur une des photos », only whoever took the photo keeps it`() {
-        val ticked = recipe("1", "Tarte", child = true)
-        assertTrue(bookPhotoAllowed(photo("1", "adult1"), ticked, "adult1", TestFamily.family))
-        assertFalse(bookPhotoAllowed(photo("1", "adult1"), ticked, "adult2", TestFamily.family))
     }
 
     @Test

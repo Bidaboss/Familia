@@ -733,7 +733,7 @@ Droits : l'admin principal lit la fiche, jamais les capsules, et ne peut que pas
 | `steps` | texte | Une étape par ligne, de 1 à 6 000 caractères |
 | `tags` | liste de textes | 6 au plus (« dessert », « Noël ») |
 | `story` | texte, facultatif | Sa petite histoire pour le livre de recettes (récit 47), 600 caractères au plus |
-| `childInPhotos` | booléen, facultatif | « Un enfant est sur une des photos », coché par l'auteur ou l'admin principal : dans le livre, la règle EXPERT-2 s'applique à ses photos |
+| `childInPhotos` | booléen, facultatif | Ancien champ « Un enfant est sur une des photos », retiré de l'appli le 17/11/2026 : plus écrit ni lu, les règles l'acceptent encore pour les anciennes recettes |
 | `authorId`, `authorName` | texte | Le membre qui l'a écrite et son prénom, qui ne changent jamais |
 | `createdAt`, `updatedAt` | horodatage | Heure du serveur |
 

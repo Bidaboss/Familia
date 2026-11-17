@@ -273,7 +273,6 @@ class ReadOnlyRecipeRepository(private val inner: RecipeRepository, private val 
     override fun newRecipeId(): String = inner.newRecipeId()
     override suspend fun saveRecipe(recipe: Recipe, isNew: Boolean) = guard.refuse()
     override suspend fun deleteRecipe(id: String) = guard.refuse()
-    override suspend fun setChildInPhotos(id: String, childInPhotos: Boolean) = guard.refuse()
     override fun observeComments(recipeId: String): Flow<List<RecipeComment>> = inner.observeComments(recipeId)
     override suspend fun addComment(recipeId: String, text: String, me: Member) = guard.refuse()
     override suspend fun deleteComment(recipeId: String, commentId: String) = guard.refuse()

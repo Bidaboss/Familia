@@ -39,9 +39,6 @@ class FakeRecipes(initial: List<Recipe> = emptyList()) : RecipeRepository {
     override suspend fun deleteRecipe(id: String) {
         recipes.value = recipes.value.filterNot { it.id == id }
     }
-    override suspend fun setChildInPhotos(id: String, childInPhotos: Boolean) {
-        recipes.value = recipes.value.map { if (it.id == id) it.copy(childInPhotos = childInPhotos) else it }
-    }
 
     val comments = MutableStateFlow<List<RecipeComment>>(emptyList())
     override fun observeComments(recipeId: String): Flow<List<RecipeComment>> = comments
@@ -155,8 +152,8 @@ class RecipesTest {
     }
 
     @Test
-    fun `the little story is kept, 600 characters at most, and the child box is not lost on save (récit 47)`() = runTest {
-        val repo = FakeRecipes(listOf(apple.copy(childInPhotos = true)))
+    fun `the little story is kept, 600 characters at most (récit 47)`() = runTest {
+        val repo = FakeRecipes(listOf(apple))
         val vm = RecipeEditViewModel(repo, FakeMembers(), "adult1", recipeId = "r1")
         vm.update { it.copy(story = "x".repeat(601)) }
         vm.save()
@@ -167,20 +164,6 @@ class RecipesTest {
 
         val saved = repo.saved.single().first
         assertEquals("Le gâteau des dimanches.", saved.story)
-        assertTrue(saved.childInPhotos)
-    }
-
-    @Test
-    fun `only the author or the admin principal ticks « Un enfant est sur une des photos »`() = runTest {
-        val repo = FakeRecipes(listOf(apple))
-        fun detail(me: String) = RecipeDetailViewModel(repo, FakeMembers(), me, "r1").also { vm ->
-            backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
-        }
-        detail("adult2").setChildInPhotos(true)
-        assertFalse(repo.recipes.value.single().childInPhotos)
-
-        detail("adult1").setChildInPhotos(true)
-        assertTrue(repo.recipes.value.single().childInPhotos)
     }
 
     @Test
