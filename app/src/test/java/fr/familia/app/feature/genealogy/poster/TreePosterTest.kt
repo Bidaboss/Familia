@@ -50,7 +50,7 @@ class TreePosterTest {
     }
 
     @Test
-    fun `from a person: them, their descendants and the partners, and the generations start again`() {
+    fun `from a person, them, their descendants and the partners, and the generations start again`() {
         val rows = content(PosterStart.DescendantsOf("admin1")).rows.map { row -> row.map { it.id } }
         assertEquals(listOf(listOf("admin1", "adult1"), listOf("kid1")), rows)
         assertEquals(setOf("kin-granny", "admin1", "adult1", "adult2", "kid1", "kid2"), posterIds(tree, PosterStart.DescendantsOf("kin-granny")))
@@ -78,7 +78,7 @@ class TreePosterTest {
     }
 
     @Test
-    fun `without photos, or without a profile photo, and for a relative: the initial`() {
+    fun `without photos, or without a profile photo, and for a relative, the initial`() {
         assertEquals(listOf<String?>(null), content(photos = false).rows.flatten().map { it.photoOf }.distinct())
         val none = posterContent(tree, PosterStart.Everyone, "adult1", true, { false }, "T", 2026, PosterFormat.A3)
         assertEquals(listOf<String?>(null), none.rows.flatten().map { it.photoOf }.distinct())
