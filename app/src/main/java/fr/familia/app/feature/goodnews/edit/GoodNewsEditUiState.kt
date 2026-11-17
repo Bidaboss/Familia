@@ -5,7 +5,7 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MonthChallenge
 import fr.familia.app.core.ui.PickGroup
 
-enum class PublishFailure { NeedsNetwork, PhotoUnreadable, Failed }
+enum class PublishFailure { PhotoUnreadable, Failed }
 
 sealed interface GoodNewsEditUiState {
     data object Loading : GoodNewsEditUiState
@@ -26,6 +26,10 @@ sealed interface GoodNewsEditUiState {
         val errors: Set<GoodNewsFormError> = emptySet(),
         /** While sending: the photo being sent (1, 2, 3), or 0 once the photos are sent. */
         val sendingPhoto: Int? = null,
+        /** While sending photos: how much is sent, from 0 to 1, for the progress bar. */
+        val progress: Float? = null,
+        /** No network: a send in progress waits for it and goes on by itself. */
+        val offline: Boolean = false,
         val failure: PublishFailure? = null,
         /** The challenge of a foyer in progress, which a new good news can count for; null otherwise. */
         val challenge: MonthChallenge? = null,

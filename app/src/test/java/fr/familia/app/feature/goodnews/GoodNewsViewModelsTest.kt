@@ -185,15 +185,7 @@ class GoodNewsViewModelsTest {
     }
 
     @Test
-    fun `offline, or with a photo that cannot be read, nothing is published`() = runTest {
-        val offlineRepo = FakeGoodNews()
-        val offline = editor(offlineRepo, online = false)
-        offline.setText("Bravo")
-        offline.addPhotos(listOf("content://a"))
-        offline.save()
-        assertEquals(PublishFailure.NeedsNetwork, (offline.uiState.value as GoodNewsEditUiState.Editing).failure)
-        assertTrue(offlineRepo.published.isEmpty())
-
+    fun `with a photo that cannot be read, nothing is published`() = runTest {
         val repo = FakeGoodNews()
         val broken = editor(repo, FakeUploader(unreadable = true))
         broken.setText("Bravo")
