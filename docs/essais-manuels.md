@@ -580,6 +580,15 @@ Interrupteur « presentationR1bis » allumé (c'est le réglage par défaut).
 8. Police du téléphone à 200 % : tout défile, rien ne passe sous le bouton « Ajouter une étape ».
 9. Interrupteur éteint : l'écran du voyage revient à l'ancienne présentation.
 
+## La petite histoire d'une recette (récit 47, partie 1)
+
+Interrupteur « Livre de recettes » allumé dans Administration, après « Publier Firebase ».
+
+1. Modifie une de tes recettes : sous les étiquettes, « Sa petite histoire (facultatif) ». Écris deux phrases et enregistre. **Attendu :** l'histoire apparaît en italique sous le titre de la recette.
+2. Plus de 600 caractères : « Texte trop long ». La recette n'est pas enregistrée.
+3. Sous « Photos du plat », la case « Un enfant est sur une des photos » (décochée au début). Coche-la, quitte et reviens : elle est toujours cochée. Avec un autre compte qui n'est pas l'auteur : pas de case.
+4. Interrupteur éteint : ni le champ, ni l'histoire, ni la case. Une histoire déjà écrite n'est pas perdue quand on modifie la recette.
+
 ## La photo d'une envie (récit 44)
 
 Avec les modules « Plus de photos » et « Liste unique » allumés, après « Publier Firebase », et le compte d'une autre personne.
@@ -615,6 +624,13 @@ Avec l'interrupteur « Bons plans » allumé (l'admin principal le voit toujours
 4. Avec un enfant qui a l'appli : **Attendu :** il voit les bons plans et touche « Ça m'intéresse », mais n'a pas de bouton « Publier ».
 5. L'auteur ou l'admin principal : « Modifier » et « Supprimer » (demande confirmation). Les autres n'ont pas ces boutons.
 6. Le lendemain vers 18 h : **Attendu :** une notification « Nouveau bon plan » (ou « 2 nouveaux bons plans ») sur le canal Coups de main, pour les autres membres seulement.
+
+## Bonnes adresses (récit 45)
+Avec l'interrupteur « Bons plans » allumé :
+1. Bons plans, « Publier » : **Attendu :** le choix « Un bon plan » ou « Une bonne adresse ». Choisis l'adresse : nom, catégorie (obligatoire), ville, téléphone, lien, « Pourquoi je la recommande ». Pas de date ni de photo.
+2. **Attendu :** la section « Bonnes adresses » sous les bons plans, avec la recherche et les catégories. « ecully » trouve « Écully » ; toucher deux fois une catégorie les montre toutes.
+3. Avec un autre adulte, ouvre l'adresse : « Recommandée par » l'auteur, puis « Je recommande aussi » ajoute « Moi ». « Appeler le … » ouvre le téléphone.
+4. Avec l'auteur ou un enfant : **Attendu :** pas de bouton « Je recommande aussi ». Aucune notification pour une bonne adresse.
 
 ## Mode présentation (récit 48)
 

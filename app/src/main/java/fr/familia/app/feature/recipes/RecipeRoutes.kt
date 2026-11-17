@@ -15,7 +15,9 @@ import fr.familia.app.core.album.AlbumPhotosSection
 import fr.familia.app.core.album.AlbumPhotosViewModel
 import fr.familia.app.core.album.rememberPhotoActions
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.share.shareText
 
 @Composable
@@ -95,6 +97,8 @@ fun RecipeDetailRoute(container: AppContainer?, currentMember: Member, recipeId:
         onShare = {
             (state as? RecipeDetailUiState.Ready)?.let { ready -> shareText(context, recipeShareText(ready.recipe, ready.origin, labels), chooser) }
         },
+        bookOn = LocalFeatureFlags.current.isOn(Feature.RecipeBook),
+        onChildInPhotos = viewModel::setChildInPhotos,
     )
 }
 
@@ -116,5 +120,5 @@ fun RecipeEditRoute(container: AppContainer?, currentMember: Member, recipeId: S
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(state) { (state as? RecipeEditUiState.Done)?.let { onSaved(it.recipeId) } }
-    RecipeEditScreen(state, viewModel::update, viewModel::save, onBack)
+    RecipeEditScreen(state, viewModel::update, viewModel::save, onBack, showStory = LocalFeatureFlags.current.isOn(Feature.RecipeBook))
 }

@@ -6,6 +6,7 @@ import fr.familia.app.core.data.GoodDealRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.GoodDeal
+import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.feature.gooddeals.canManageGoodDeal
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -35,6 +36,11 @@ sealed interface GoodDealDetailUiState {
         /** The first names of those interested, me first (« Moi » on screen), then by name. */
         val interestedNames: List<String>,
         val actionFailed: Boolean = false,
+        /** A bonne adresse: its author first, then those who recommend it too, me as « Moi » on screen. */
+        val recommendedNames: List<String> = emptyList(),
+        val iRecommend: Boolean = false,
+        /** An adult but the author may add their name (récit 45). */
+        val canRecommend: Boolean = false,
     ) : GoodDealDetailUiState
 }
 
@@ -68,6 +74,9 @@ class GoodDealDetailViewModel(
         val others = deal.interestedIds.filter { it != me.id }
             .mapNotNull { id -> family.members.firstOrNull { it.id == id }?.firstName }
             .sortedBy { it.lowercase() }
+        val recommenders = deal.recommendedIds.filter { it != me.id && it != deal.authorId }
+            .mapNotNull { id -> family.members.firstOrNull { it.id == id }?.firstName }
+            .sortedBy { it.lowercase() }
         return GoodDealDetailUiState.Ready(
             deal = deal,
             isMine = deal.authorId == me.id,
@@ -75,6 +84,9 @@ class GoodDealDetailViewModel(
             iAmInterested = me.id in deal.interestedIds,
             interestedNames = others,
             actionFailed = didFail,
+            recommendedNames = listOfNotNull(deal.authorName.takeIf { deal.authorId != me.id }) + recommenders,
+            iRecommend = me.id in deal.recommendedIds,
+            canRecommend = me.profile == MemberProfile.Adult && deal.authorId != me.id,
         )
     }
 
@@ -83,6 +95,14 @@ class GoodDealDetailViewModel(
         val state = uiState.value as? GoodDealDetailUiState.Ready ?: return
         val repo = deals ?: return
         perform { repo.setInterested(dealId, currentMemberId, !state.iAmInterested) }
+    }
+
+    /** « Je recommande aussi », or taken back. */
+    fun toggleRecommend() {
+        val state = uiState.value as? GoodDealDetailUiState.Ready ?: return
+        if (!state.canRecommend) return
+        val repo = deals ?: return
+        perform { repo.setRecommended(dealId, currentMemberId, !state.iRecommend) }
     }
 
     fun remove() {

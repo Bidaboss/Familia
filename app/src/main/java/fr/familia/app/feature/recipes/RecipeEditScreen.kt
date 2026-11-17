@@ -59,6 +59,8 @@ fun RecipeEditScreen(
     onChange: ((RecipeForm) -> RecipeForm) -> Unit,
     onSave: () -> Unit,
     onBack: () -> Unit,
+    /** The field « Sa petite histoire », with the switch recipeBook (récit 47). */
+    showStory: Boolean = false,
 ) {
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
     val editing = state as? RecipeEditUiState.Editing
@@ -96,14 +98,14 @@ fun RecipeEditScreen(
                     title = stringResource(R.string.recipe_missing_title),
                     body = stringResource(R.string.recipe_unavailable_body),
                 )
-                is RecipeEditUiState.Editing -> Form(state, onChange, onSave)
+                is RecipeEditUiState.Editing -> Form(state, onChange, onSave, showStory)
             }
         }
     }
 }
 
 @Composable
-private fun Form(state: RecipeEditUiState.Editing, onChange: ((RecipeForm) -> RecipeForm) -> Unit, onSave: () -> Unit) {
+private fun Form(state: RecipeEditUiState.Editing, onChange: ((RecipeForm) -> RecipeForm) -> Unit, onSave: () -> Unit, showStory: Boolean) {
     val form = state.form
     val errors = state.errors
     Column(
@@ -144,6 +146,17 @@ private fun Form(state: RecipeEditUiState.Editing, onChange: ((RecipeForm) -> Re
             singleLine = false,
         )
         Field(form.tags, { v -> onChange { it.copy(tags = v) } }, R.string.recipe_field_tags, errors, help = R.string.recipe_field_tags_help)
+        if (showStory) {
+            Field(
+                form.story,
+                { v -> onChange { it.copy(story = v) } },
+                R.string.recipe_field_story,
+                errors,
+                RecipeFormError.StoryTooLong,
+                help = R.string.recipe_field_story_help,
+                singleLine = false,
+            )
+        }
         if (state.saveFailed) {
             Text(stringResource(R.string.recipe_save_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
         }
@@ -192,7 +205,7 @@ private fun errorRes(error: RecipeFormError): Int = when (error) {
     RecipeFormError.ServingsInvalid -> R.string.error_recipe_servings
     RecipeFormError.IngredientsMissing -> R.string.error_recipe_ingredients_missing
     RecipeFormError.StepsMissing -> R.string.error_recipe_steps_missing
-    RecipeFormError.IngredientsTooLong, RecipeFormError.StepsTooLong -> R.string.error_recipe_too_long
+    RecipeFormError.IngredientsTooLong, RecipeFormError.StepsTooLong, RecipeFormError.StoryTooLong -> R.string.error_recipe_too_long
 }
 
 /** « De qui vient la recette ? »: a member of the family, or nobody in particular (then a free origin). */

@@ -96,6 +96,11 @@ enum class Feature(
     /** Une photo de couverture sur un événement et une photo sur une envie (PRD, récit 44). */
     MorePhotos("morePhotos", R.string.feature_more_photos),
     /**
+     * Le livre de recettes de la famille (PRD, récit 47) : la petite histoire d'une recette, la case
+     * « Un enfant est sur la photo », puis « Faire le livre » en PDF A5 dans Recettes.
+     */
+    RecipeBook("recipeBook", R.string.feature_recipe_book),
+    /**
      * La présentation « R1 bis » (spec DESIGN du 17/11) : frise de l'Accueil, Tout Familia, pastilles
      * à deux lettres, motif du thème… Allumée par défaut ; l'éteindre rend l'ancienne présentation.
      */
