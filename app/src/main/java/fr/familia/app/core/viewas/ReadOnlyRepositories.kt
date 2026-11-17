@@ -225,6 +225,7 @@ class ReadOnlyTripRepository(private val inner: TripRepository, private val guar
     override fun newItemId(tripId: String): String = inner.newItemId(tripId)
     override suspend fun saveItem(tripId: String, item: TripItem, isNew: Boolean) = guard.refuse()
     override suspend fun setItemDone(tripId: String, itemId: String, done: Boolean) = guard.refuse()
+    override suspend fun setItemAssignee(tripId: String, itemId: String, expectedId: String?, assignee: Member?): Boolean = guard.refuse()
     override suspend fun deleteItem(tripId: String, itemId: String) = guard.refuse()
 }
 
