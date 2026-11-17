@@ -15,6 +15,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.album.rememberPhotoActions
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import fr.familia.app.feature.trips.packing.PackingSection
 import fr.familia.app.feature.trips.photos.rememberTripAlbum
 
 /** Connects the trip view to its ViewModel. */
@@ -44,8 +45,14 @@ fun TripDetailRoute(
             onEdit = viewModel::editItem,
             onDone = viewModel::setItemDone,
             onDelete = viewModel::deleteItem,
+            onTake = viewModel::takeItem,
+            onRelease = viewModel::releaseItem,
+            myId = currentMember.id,
         )
     }
+    // « À emporter » (récit 62): « Je m'en charge » and « Ma valise » only while packingList is on.
+    val packingOn = LocalFeatureFlags.current.isOn(Feature.PackingList)
+    val shownChecklist = if (packingOn) checklist else ChecklistActions(checklist.onAdd, checklist.onEdit, checklist.onDone, checklist.onDelete)
     val album = rememberTripAlbum(container, currentMember, tripId)
     val photos by album.uiState.collectAsStateWithLifecycle()
     val photoActions = rememberPhotoActions(album, onSeePhotos)
@@ -61,7 +68,8 @@ fun TripDetailRoute(
         onArrived = viewModel::markArrived,
         onClearArrival = viewModel::clearArrival,
         onBack = onBack,
-        checklist = checklist,
+        checklist = shownChecklist,
+        packing = if (packingOn) ({ PackingSection(container, currentMember, tripId) }) else null,
         photos = photos,
         photoActions = photoActions,
         onOpenExpenses = onOpenExpenses,

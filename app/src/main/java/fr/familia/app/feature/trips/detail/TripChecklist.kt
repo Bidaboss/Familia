@@ -54,6 +54,12 @@ data class ChecklistActions(
     val onEdit: (item: TripItem, label: String, assigneeId: String?) -> Unit = { _, _, _ -> },
     val onDone: (itemId: String, done: Boolean) -> Unit = { _, _ -> },
     val onDelete: (itemId: String) -> Unit = {},
+    /** « Je m'en charge » on a free line (récit 62); null while packingList is off. */
+    val onTake: ((TripItem) -> Unit)? = null,
+    /** « Je ne peux plus » on a line I took. */
+    val onRelease: ((TripItem) -> Unit)? = null,
+    /** Who I am, to offer « Je ne peux plus » on my lines only. */
+    val myId: String? = null,
 )
 
 /** In the dialog: a new line, or the id of the line being edited. Saved, so a rotation keeps it open. */
@@ -81,6 +87,7 @@ internal fun TripChecklist(
         }
         items.forEach { item ->
             ItemRow(item, isParticipant, onDone = { actions.onDone(item.id, it) }, onEdit = { editingId = item.id })
+            if (isParticipant && !item.done) TakeButton(item, actions)
         }
         if (isParticipant) {
             ClayLink(stringResource(R.string.trip_checklist_add), onClick = { editingId = NEW_ITEM }, modifier = Modifier.padding(top = 8.dp))
@@ -104,6 +111,23 @@ internal fun TripChecklist(
                 onDismiss = { editingId = null },
             )
         }
+    }
+}
+
+/** « Je m'en charge » on a free line, « Je ne peux plus » on mine: one tap, no dialog (récit 62). */
+@Composable
+private fun TakeButton(item: TripItem, actions: ChecklistActions) {
+    val take = actions.onTake
+    val release = actions.onRelease
+    when {
+        item.assigneeId == null && take != null ->
+            TextButton(onClick = { take(item) }, modifier = Modifier.heightIn(min = 56.dp).padding(start = 36.dp)) {
+                Text(stringResource(R.string.packing_take))
+            }
+        item.assigneeId != null && item.assigneeId == actions.myId && release != null ->
+            TextButton(onClick = { release(item) }, modifier = Modifier.heightIn(min = 56.dp).padding(start = 36.dp)) {
+                Text(stringResource(R.string.packing_release))
+            }
     }
 }
 

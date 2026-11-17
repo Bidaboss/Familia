@@ -155,6 +155,22 @@ class TripViewModelsTest {
         assertEquals(listOf("i2"), trips.deletedItems)
     }
 
+    @Test
+    fun `Je m'en charge takes a free line in one tap, Je ne peux plus gives back only my own`() = runTest {
+        val free = TripItem("i2", "Tente", null, null, done = false)
+        val theirs = TripItem("i3", "Barbecue", "adult1", "Adult1", done = false)
+        val trips = FakeTrips(items = mapOf("t1" to listOf(free, theirs)))
+        val vm = TripDetailViewModel(trips, FakeMembers(), "adult2", "t1", today = flowOf(july))
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        vm.takeItem(free)
+        assertEquals(free.copy(assigneeId = "adult2", assigneeName = "Adult2") to false, trips.savedItems.single())
+        vm.takeItem(theirs) // already in someone's charge
+        vm.releaseItem(theirs) // not mine
+        assertEquals(1, trips.savedItems.size)
+        vm.releaseItem(free.copy(assigneeId = "adult2", assigneeName = "Adult2"))
+        assertEquals(free to false, trips.savedItems.last())
+    }
+
     // --- Trip form --------------------------------------------------------------------------------
 
     private fun TripEditViewModel.editing() = uiState.value as TripEditUiState.Editing

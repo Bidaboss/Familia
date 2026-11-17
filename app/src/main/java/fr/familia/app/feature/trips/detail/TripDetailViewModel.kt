@@ -138,6 +138,21 @@ class TripDetailViewModel(
         write { repo.saveItem(tripId, edited, isNew = false) }
     }
 
+    /** « Je m'en charge » (récit 62): a free line is now mine. */
+    fun takeItem(item: TripItem) {
+        val repo = trips ?: return
+        val member = me ?: return
+        if (item.assigneeId != null) return
+        write { repo.saveItem(tripId, item.copy(assigneeId = member.id, assigneeName = member.firstName), isNew = false) }
+    }
+
+    /** « Je ne peux plus »: a line I took is free again. */
+    fun releaseItem(item: TripItem) {
+        val repo = trips ?: return
+        if (item.assigneeId != currentMemberId) return
+        write { repo.saveItem(tripId, item.copy(assigneeId = null, assigneeName = null), isNew = false) }
+    }
+
     fun setItemDone(itemId: String, done: Boolean) {
         val repo = trips ?: return
         write { repo.setItemDone(tripId, itemId, done) }
