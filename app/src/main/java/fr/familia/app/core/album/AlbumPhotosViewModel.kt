@@ -124,9 +124,10 @@ class AlbumPhotosViewModel(
             for ((source, slot) in chosen) {
                 val photo = AlbumPhoto(folder, member.id, member.firstName, slot, createdAt = null)
                 try {
+                    val takenAt = upload.takenAt(source)
                     upload.upload(source, photo.photoPath, photo.thumbnailPath)
                     // The files are there: the record may wait offline, Firestore sends it later.
-                    withTimeoutOrNull(writeTimeoutMillis) { repo.addPhoto(folder, slot, member) }
+                    withTimeoutOrNull(writeTimeoutMillis) { repo.addPhoto(folder, slot, member, takenAt) }
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {

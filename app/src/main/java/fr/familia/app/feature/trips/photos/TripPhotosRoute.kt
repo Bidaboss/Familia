@@ -48,7 +48,7 @@ fun rememberTripAlbum(container: AppContainer?, currentMember: Member, tripId: S
 
 /** « Voir les photos » of a trip, with its film (récit 16). */
 @Composable
-fun TripPhotosRoute(container: AppContainer?, currentMember: Member, tripId: String, onBack: () -> Unit, onMakeBook: (() -> Unit)? = null) {
+fun TripPhotosRoute(container: AppContainer?, currentMember: Member, tripId: String, onBack: () -> Unit, onMakeBook: (() -> Unit)? = null, startPhotoId: String? = null) {
     val album = rememberTripAlbum(container, currentMember, tripId)
     val state by album.uiState.collectAsStateWithLifecycle()
     val filmsDir = File(LocalContext.current.cacheDir, "films")
@@ -63,6 +63,7 @@ fun TripPhotosRoute(container: AppContainer?, currentMember: Member, tripId: Str
         FilmActions(onMake = { filmViewModel.make(album.uiState.value.photos) }, onCancel = filmViewModel::cancel)
     }
     AlbumScreen(
+        startPhotoId = startPhotoId,
         title = stringResource(R.string.trip_photos),
         state = state,
         actions = rememberPhotoActions(album),

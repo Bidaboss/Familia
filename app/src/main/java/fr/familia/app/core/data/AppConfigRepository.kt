@@ -24,6 +24,8 @@ data class AppConfig(
     val whatsNew: List<WhatsNewRelease> = emptyList(),
     /** The order of « À découvrir » chosen by the admin principal (config/app.discoverOrder, AVIS-19). */
     val discoverOrder: List<String> = emptyList(),
+    /** The souvenirs of « Il y a N ans » the admin principal took away for everyone (récit 36). */
+    val memoriesHidden: List<String> = emptyList(),
 )
 
 interface AppConfigRepository {
@@ -41,6 +43,9 @@ interface AppConfigRepository {
 
     /** The admin principal sets the order of « À découvrir » (the module keys; the rules check it). */
     suspend fun setDiscoverOrder(keys: List<String>)
+
+    /** The admin principal takes a souvenir of « Il y a N ans » away for everyone (the rules check it). */
+    suspend fun hideMemory(key: String) = Unit
 
     /**
      * config/presentation (récit 48), readable by the admin principal only: only observe it for them.
