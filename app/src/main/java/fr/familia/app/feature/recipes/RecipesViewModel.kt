@@ -115,4 +115,23 @@ class RecipeDetailViewModel(
             }
         }
     }
+
+    /**
+     * « Un enfant est sur une des photos » (récit 47): the photos then follow carte EXPERT-2 in the
+     * book. Offline, the change waits in Firestore; the screen follows the recipe as stored.
+     */
+    fun setChildInPhotos(childInPhotos: Boolean) {
+        val repo = recipes ?: return
+        val ready = uiState.value as? RecipeDetailUiState.Ready ?: return
+        if (!ready.canManage || ready.recipe.childInPhotos == childInPhotos) return
+        viewModelScope.launch {
+            try {
+                withTimeoutOrNull(writeTimeoutMillis) { repo.setChildInPhotos(recipeId, childInPhotos) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // The box goes back to what is stored, which says it did not work.
+            }
+        }
+    }
 }

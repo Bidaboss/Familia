@@ -1762,7 +1762,7 @@ service cloud.firestore {
       return r.keys().hasAll(['title', 'origin', 'originMemberId', 'servings', 'ingredients', 'steps', 'tags',
                               'authorId', 'authorName', 'createdAt', 'updatedAt'])
         && r.keys().hasOnly(['title', 'origin', 'originMemberId', 'servings', 'ingredients', 'steps', 'tags',
-                             'authorId', 'authorName', 'createdAt', 'updatedAt'])
+                             'authorId', 'authorName', 'createdAt', 'updatedAt', 'story', 'childInPhotos'])
         && r.title is string && r.title.size() > 0 && r.title.size() <= 80
         && r.origin is string && r.origin.size() <= 80
         && (r.originMemberId == null
@@ -1776,6 +1776,10 @@ service cloud.firestore {
         && (r.tags.size() < 3 || isRecipeTag(r.tags[2])) && (r.tags.size() < 4 || isRecipeTag(r.tags[3]))
         && (r.tags.size() < 5 || isRecipeTag(r.tags[4])) && (r.tags.size() < 6 || isRecipeTag(r.tags[5]))
         && r.authorName is string && r.authorName.size() > 0 && r.authorName.size() <= 40
+        // Récit 47, both optional: its little story for the book, and « Un enfant est sur une des
+        // photos », which makes the book follow carte EXPERT-2 for its photos.
+        && (!('story' in r) || (r.story is string && r.story.size() <= 600))
+        && (!('childInPhotos' in r) || r.childInPhotos is bool)
         && r.updatedAt == request.time;
     }
 

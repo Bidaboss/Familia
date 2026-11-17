@@ -75,6 +75,19 @@ describe('recipes (récit 38)', () => {
     await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'recipes/r1')));
   });
 
+  test('a recipe may have a little story and say a child is on its photos (récit 47)', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(doc(db, 'recipes/r1'), recipe(ADULT, { story: 'Le gâteau des dimanches.' })));
+    await assertFails(setDoc(doc(db, 'recipes/r2'), recipe(ADULT, { story: 'x'.repeat(601) })));
+    await assertFails(setDoc(doc(db, 'recipes/r3'), recipe(ADULT, { story: 12 })));
+    await stored('r4', ADULT);
+    const child = { childInPhotos: true, updatedAt: serverTimestamp() };
+    await assertFails(updateDoc(doc(as(env, OTHER_ADULT), 'recipes/r4'), child));
+    await assertSucceeds(updateDoc(doc(db, 'recipes/r4'), child));
+    await assertSucceeds(updateDoc(doc(as(env, ADMIN), 'recipes/r4'), { childInPhotos: false, updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db, 'recipes/r4'), { childInPhotos: 'oui', updatedAt: serverTimestamp() }));
+  });
+
   test('every tag is a short text', async () => {
     const db = as(env, ADULT);
     await assertSucceeds(setDoc(doc(db, 'recipes/r1'), recipe(ADULT, { tags: ['dessert', 'Noël', 'x'.repeat(24)] })));

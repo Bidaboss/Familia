@@ -52,11 +52,20 @@ class FirestoreRecipeRepository(private val db: FirebaseFirestore) : RecipeRepos
             "updatedAt" to FieldValue.serverTimestamp(),
         )
         val ref = db.collection(RECIPES).document(recipe.id)
+        // Its little story (récit 47) only when there is one: rules older than the field accept
+        // the recipe as long as it does not name it.
+        val story = recipe.story.takeIf { it.isNotEmpty() }
         if (isNew) {
-            ref.set(fields + ("createdAt" to FieldValue.serverTimestamp())).await()
+            ref.set(fields + ("createdAt" to FieldValue.serverTimestamp()) + listOfNotNull(story?.let { "story" to it })).await()
         } else {
-            ref.set(fields, SetOptions.merge()).await()
+            ref.set(fields + ("story" to (story ?: FieldValue.delete())), SetOptions.merge()).await()
         }
+    }
+
+    override suspend fun setChildInPhotos(id: String, childInPhotos: Boolean) {
+        db.collection(RECIPES).document(id)
+            .update(mapOf("childInPhotos" to childInPhotos, "updatedAt" to FieldValue.serverTimestamp()))
+            .await()
     }
 
     override suspend fun deleteRecipe(id: String) {
@@ -116,6 +125,8 @@ class FirestoreRecipeRepository(private val db: FirebaseFirestore) : RecipeRepos
             authorId = getString("authorId").orEmpty(),
             authorName = getString("authorName").orEmpty(),
             createdAt = getTimestamp("createdAt")?.toDate()?.toInstant(),
+            story = getString("story").orEmpty(),
+            childInPhotos = getBoolean("childInPhotos") == true,
         )
     }
 
