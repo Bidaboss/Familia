@@ -2337,6 +2337,7 @@
     <string name="presentation_failed">Le mode présentation n\'a pas pu changer. Vérifie la connexion.</string>
     <!-- Récit 49 : le planning dans Google Agenda -->
     <string name="feature_calendar_feed">Planning dans mon agenda</string>
+    <string name="feature_tree_poster">Affiche de l\'arbre</string>
     <string name="account_calendar_feed">Voir dans mon agenda</string>
     <string name="calendar_feed_title">Voir dans mon agenda</string>
     <string name="calendar_feed_what_title">Le planning dans ton agenda</string>

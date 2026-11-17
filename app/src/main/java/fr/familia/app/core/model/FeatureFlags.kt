@@ -109,6 +109,8 @@ enum class Feature(
     GoodDeals("goodDeals", R.string.feature_good_deals),
     /** « Voir dans mon agenda » : le planning dans Google Agenda, par un lien secret (PRD, récit 49). */
     CalendarFeed("calendarFeed", R.string.feature_calendar_feed),
+    /** L'affiche de l'arbre : un PDF paysage A4 ou A3 de l'arbre généalogique (PRD rév. 243, récit 53). */
+    TreePoster("treePoster", R.string.feature_tree_poster),
 }
 
 /**
