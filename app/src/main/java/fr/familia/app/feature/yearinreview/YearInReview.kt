@@ -13,6 +13,7 @@ import fr.familia.app.core.model.WeeklyQuestion
 import java.time.Instant
 import java.time.LocalDate
 import java.time.MonthDay
+import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
 /*
@@ -29,8 +30,8 @@ val YEAR_IN_REVIEW_CARD_END: MonthDay = MonthDay.of(1, 10)
 /** The first year told: Familia started in November 2026. */
 const val FIRST_REVIEW_YEAR = 2026
 
-/** At most this many photos, the most liked first. */
-const val REVIEW_MAX_PHOTOS = 4
+/** One photo a month at most (EXPERT-11, PRD rév. 269). */
+const val REVIEW_MAX_PHOTOS = 12
 
 /** At most this many answers to the question of the year. */
 const val REVIEW_MAX_ANSWERS = 3
@@ -85,15 +86,12 @@ fun buildYearInReview(
     family: Family,
     questions: List<WeeklyQuestion>,
     answers: Map<String, List<WeeklyAnswer>>,
-    zoneYear: (Instant) -> Int,
+    zone: ZoneId,
 ): YearInReview {
+    val zoneYear = { i: Instant -> i.atZone(zone).year }
     val inYear = { date: LocalDate -> date.year == year && date <= today }
     val myNews = news.filter { n -> n.createdAt?.let { zoneYear(it) == year && it <= now } == true && me.id !in n.hiddenByIds }
-    val photos = myNews
-        .filter { it.photoIds.isNotEmpty() }
-        .sortedWith(compareByDescending<GoodNews> { it.reactions.size }.thenBy { it.createdAt })
-        .take(REVIEW_MAX_PHOTOS)
-        .map { ReviewPhoto(it.id, it.photoPath(it.photoIds.first()), it.authorName) }
+    val photos = photoPerMonth(myNews, family, zone)
     val trip = trips
         .filter { it.startDate.year == year && it.endDate <= today }
         .sortedWith(compareByDescending<Trip> { ChronoUnit.DAYS.between(it.startDate, it.endDate) }.thenBy { it.startDate })
@@ -119,6 +117,33 @@ fun buildYearInReview(
         question = question.takeIf { shown.isNotEmpty() },
         answers = shown,
     )
+}
+
+/**
+ * One photo a month, January first (EXPERT-11, PRD rév. 269): in each month, the photo of the
+ * household seen least so far, then of the author seen least, then the first posted. So every
+ * household shows in the year when it can. Never chosen by the number of reactions.
+ */
+internal fun photoPerMonth(news: List<GoodNews>, family: Family, zone: ZoneId): List<ReviewPhoto> {
+    val householdOf = family.members.associate { it.id to it.householdId }
+    val byMonth = news
+        .filter { it.photoIds.isNotEmpty() && it.createdAt != null }
+        .groupBy { it.createdAt!!.atZone(zone).monthValue }
+        .toSortedMap()
+    val households = mutableMapOf<String, Int>()
+    val authors = mutableMapOf<String, Int>()
+    return byMonth.values.map { month ->
+        val pick = month.minWith(
+            compareBy<GoodNews> { households[householdOf[it.authorId] ?: it.authorId] ?: 0 }
+                .thenBy { authors[it.authorId] ?: 0 }
+                .thenBy { it.createdAt }
+                .thenBy { it.id },
+        )
+        val household = householdOf[pick.authorId] ?: pick.authorId
+        households[household] = (households[household] ?: 0) + 1
+        authors[pick.authorId] = (authors[pick.authorId] ?: 0) + 1
+        ReviewPhoto(pick.id, pick.photoPath(pick.photoIds.first()), pick.authorName)
+    }.take(REVIEW_MAX_PHOTOS)
 }
 
 /** The pages of the story, in order. A page with nothing to show is left out. */

@@ -1,3 +1,4 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import java.util.Properties
 
 plugins {
@@ -137,9 +138,11 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
 
-// A failed test shows its whole message in the CI log (the contrast pass lists each text too pale there).
+// A failing test prints its message in the CI log (which screen, which button), not only its line:
+// the reports of the CI cannot be downloaded from here.
 tasks.withType<Test>().configureEach {
     testLogging {
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        exceptionFormat = TestExceptionFormat.FULL
+        showStackTraces = false
     }
 }

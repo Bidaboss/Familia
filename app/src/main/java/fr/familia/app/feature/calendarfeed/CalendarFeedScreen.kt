@@ -62,6 +62,10 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+
+/** How long a write may hold the buttons before the screen lets go (it goes on in the background). */
+private const val WRITE_TIMEOUT_MILLIS = 4_000L
 
 /** What the screen shows: waiting, my link (null while I have none), or the link cannot be read. */
 sealed interface CalendarFeedState {
@@ -93,7 +97,8 @@ class CalendarFeedViewModel(private val repo: CalendarFeedRepository?, private v
         _busy.value = true
         viewModelScope.launch {
             try {
-                r.renew(memberId)
+                // Offline, the write waits in Firestore's queue: the screen does not stay blocked.
+                withTimeoutOrNull(WRITE_TIMEOUT_MILLIS) { r.renew(memberId) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -104,7 +109,31 @@ class CalendarFeedViewModel(private val repo: CalendarFeedRepository?, private v
         }
     }
 
+    private val _removeFailed = MutableStateFlow(false)
+
+    /** True when the link could not be removed: the screen says so once. */
+    val removeFailed: StateFlow<Boolean> = _removeFailed.asStateFlow()
+
+    /** « Supprimer mon lien »: the old link stops working, and no new one is made. */
+    fun remove() {
+        val r = repo ?: return
+        if (_busy.value) return
+        _busy.value = true
+        viewModelScope.launch {
+            try {
+                withTimeoutOrNull(WRITE_TIMEOUT_MILLIS) { r.remove(memberId) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _removeFailed.value = true
+            } finally {
+                _busy.value = false
+            }
+        }
+    }
+
     fun failureShown() {
+        _removeFailed.value = false
         _failed.value = false
     }
 }
@@ -117,21 +146,24 @@ fun CalendarFeedRoute(container: AppContainer?, memberId: String, onBack: () -> 
     val state by viewModel.state.collectAsStateWithLifecycle()
     val busy by viewModel.busy.collectAsStateWithLifecycle()
     val failed by viewModel.failed.collectAsStateWithLifecycle()
+    val removeFailed by viewModel.removeFailed.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val refused = stringResource(R.string.calendar_feed_failed)
-    LaunchedEffect(failed) {
-        if (failed) {
-            Toast.makeText(context, refused, Toast.LENGTH_LONG).show()
+    val notRemoved = stringResource(R.string.calendar_feed_remove_failed)
+    LaunchedEffect(failed, removeFailed) {
+        if (failed || removeFailed) {
+            Toast.makeText(context, if (removeFailed) notRemoved else refused, Toast.LENGTH_LONG).show()
             viewModel.failureShown()
         }
     }
-    CalendarFeedScreen(state = state, busy = busy, onRenew = viewModel::renew, onBack = onBack)
+    CalendarFeedScreen(state = state, busy = busy, onRenew = viewModel::renew, onBack = onBack, onRemove = viewModel::remove)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalendarFeedScreen(state: CalendarFeedState, busy: Boolean, onRenew: () -> Unit, onBack: () -> Unit) {
+fun CalendarFeedScreen(state: CalendarFeedState, busy: Boolean, onRenew: () -> Unit, onBack: () -> Unit, onRemove: () -> Unit = {}) {
     var confirmRenew by rememberSaveable { mutableStateOf(false) }
+    var confirmRemove by rememberSaveable { mutableStateOf(false) }
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
     val copied = stringResource(R.string.calendar_feed_copied)
@@ -203,10 +235,33 @@ fun CalendarFeedScreen(state: CalendarFeedState, busy: Boolean, onRenew: () -> U
                                 Text(stringResource(R.string.calendar_feed_renew))
                             }
                         }
+                        Section(stringResource(R.string.calendar_feed_remove_title)) {
+                            Text(stringResource(R.string.calendar_feed_remove_body), style = MaterialTheme.typography.bodyMedium)
+                            OutlinedButton(onClick = { confirmRemove = true }, enabled = !busy, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                                Text(stringResource(R.string.calendar_feed_remove))
+                            }
+                        }
                     }
                 }
             }
         }
+    }
+    if (confirmRemove) {
+        AlertDialog(
+            onDismissRequest = { confirmRemove = false },
+            title = { Text(stringResource(R.string.calendar_feed_remove_confirm_title)) },
+            text = { Text(stringResource(R.string.calendar_feed_remove_body)) },
+            confirmButton = {
+                TextButton(onClick = { confirmRemove = false; onRemove() }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.calendar_feed_remove), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmRemove = false }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        )
     }
     if (confirmRenew) {
         AlertDialog(

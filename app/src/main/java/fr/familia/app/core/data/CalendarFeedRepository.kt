@@ -19,6 +19,9 @@ interface CalendarFeedRepository {
 
     /** Writes a fresh token: the old link stops working at once. */
     suspend fun renew(memberId: String)
+
+    /** « Supprimer mon lien »: the link stops working, and none is made in its place. */
+    suspend fun remove(memberId: String)
 }
 
 /** The address Google Agenda subscribes to (europe-west1, like every function of Familia). */
@@ -45,5 +48,9 @@ class FirestoreCalendarFeedRepository(private val db: FirebaseFirestore) : Calen
 
     override suspend fun renew(memberId: String) {
         ref(memberId).set(mapOf("token" to newCalendarFeedToken(), "updatedAt" to FieldValue.serverTimestamp())).await()
+    }
+
+    override suspend fun remove(memberId: String) {
+        ref(memberId).delete().await()
     }
 }

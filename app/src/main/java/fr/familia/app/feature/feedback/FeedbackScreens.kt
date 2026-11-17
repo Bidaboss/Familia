@@ -49,6 +49,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.stringResource
@@ -59,6 +60,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.photo.keepPhotoAccess
 import fr.familia.app.core.model.Feedback
 import fr.familia.app.core.model.FeedbackContext
 import fr.familia.app.core.model.FeedbackOrigin
@@ -92,7 +94,9 @@ fun FeedbackFormScreen(
     onScreenshot: (String?) -> Unit = {},
 ) {
     // The Android photo picker: no permission to ask.
+    val context = LocalContext.current
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) keepPhotoAccess(context, listOf(uri))
         if (uri != null) onScreenshot(uri.toString())
     }
     Scaffold(

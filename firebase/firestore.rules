@@ -1219,15 +1219,25 @@ service cloud.firestore {
     // lendItems/{itemId}: a thing an adult is happy to lend (« l'appareil à raclette »), in a
     // category, with an optional photo in Storage at lendItems/{itemId}/{ownerId}/. Every member
     // reads them; the adults add theirs; the owner and the admin principal change or remove one.
-    // The loan moves in status: 'available', then 'asked' (an adult who is not the owner taps
-    // « Je voudrais l'emprunter », in their own name, with optional dates), then 'lent' (the owner
-    // says « D'accord ») or back to 'available' (« Pas cette fois », or the borrower drops the ask),
-    // and back to 'available' at « Rendu » (the owner or the borrower). A child reads, never asks.
-    // No money anywhere. remindedAt is the server's (the one reminder 3 days after « until »).
-    // The audience is the whole family today (the circles change the read rule here).
+    // Everyone sees only `lent`: who asked or has it, and since when, live apart in
+    // lendLoans/{itemId}, which only the owner, the borrower and the admin principal (for the
+    // export) read (EXPERT-9, PRD rév. 268). The loan: an adult who is not the owner asks, in their
+    // own name, with optional dates (the loan created and `lent` set to true, in one batch); the
+    // owner says « D'accord » ('asked' to 'lent'); « Pas cette fois » (the owner), a dropped ask
+    // (the borrower) or « Rendu » (either) remove the loan and set `lent` back to false, in one
+    // batch. A child reads, never asks. No money anywhere. remindedAt is the server's (the one
+    // reminder 3 days after « until »). The server removes the loan of a thing removed.
 
     function isLendText(t, min, max) {
       return t is string && t.trim().size() >= min && t.size() <= max;
+    }
+
+    function lendItemPath(itemId) {
+      return /databases/$(database)/documents/lendItems/$(itemId);
+    }
+
+    function lendLoanPath(itemId) {
+      return /databases/$(database)/documents/lendLoans/$(itemId);
     }
 
     // The photo: none, unchanged, or one the caller sent to their own folder of this item.
@@ -1239,21 +1249,15 @@ service cloud.firestore {
             && d.photo.split('/')[2] == myMemberId());
     }
 
-    function isLendFree(d) {
-      return d.status == 'available' && d.borrowerId == null && d.borrowerName == null
-        && d.from == null && d.until == null && d.askedAt == null && d.lentAt == null && d.remindedAt == null;
-    }
-
     function isValidLendItem(itemId, d, before) {
-      return d.keys().hasAll(['name', 'note', 'category', 'photo', 'ownerId', 'ownerName', 'status', 'borrowerId',
-                              'borrowerName', 'from', 'until', 'askedAt', 'lentAt', 'remindedAt', 'createdAt', 'updatedAt'])
-        && d.keys().hasOnly(['name', 'note', 'category', 'photo', 'ownerId', 'ownerName', 'status', 'borrowerId',
-                             'borrowerName', 'from', 'until', 'askedAt', 'lentAt', 'remindedAt', 'createdAt', 'updatedAt'])
+      return d.keys().hasAll(['name', 'note', 'category', 'photo', 'ownerId', 'ownerName', 'lent', 'createdAt', 'updatedAt'])
+        && d.keys().hasOnly(['name', 'note', 'category', 'photo', 'ownerId', 'ownerName', 'lent', 'createdAt', 'updatedAt'])
         && isLendText(d.name, 1, 60)
         && isLendText(d.note, 0, 300)
         && d.category in ['kitchen', 'diy', 'baby', 'sport', 'travel', 'other']
         && isLendPhoto(itemId, d, before)
         && d.ownerName is string && d.ownerName.size() > 0 && d.ownerName.size() <= 40
+        && d.lent is bool
         && d.updatedAt == request.time;
     }
 
@@ -1265,51 +1269,34 @@ service cloud.firestore {
         && (d.from == null || d.until == null || d.until >= d.from);
     }
 
-    function lendLoanKeys() {
-      return ['status', 'borrowerId', 'borrowerName', 'from', 'until', 'askedAt', 'lentAt', 'remindedAt', 'updatedAt'];
+    // Only `lent` and the time change.
+    function isLendFlip(from, to) {
+      return resource.data.lent == from && request.resource.data.lent == to
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lent', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time;
     }
 
-    // The owner edits the thing itself; the loan stays as it is.
+    // The owner edits the thing itself; `lent` stays as it is.
     function isLendEdit(itemId) {
       return (resource.data.ownerId == myMemberId() || isOwner())
         && isValidLendItem(itemId, request.resource.data, resource.data)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'note', 'category', 'photo', 'updatedAt']);
     }
 
-    // « Je voudrais l'emprunter »: an adult, not the owner, on a free thing, in their own name.
-    function isLendAsk() {
-      let d = request.resource.data;
-      return resource.data.status == 'available'
-        && me().profile == 'adult'
-        && resource.data.ownerId != myMemberId()
-        && d.diff(resource.data).affectedKeys().hasOnly(lendLoanKeys())
-        && d.status == 'asked'
-        && d.borrowerId == myMemberId()
-        && d.borrowerName == me().firstName
-        && isLendDates(d)
-        && d.askedAt == request.time
-        && d.lentAt == null && d.remindedAt == null
-        && d.updatedAt == request.time;
+    // The thing taken by an ask, created in the same batch in the caller's name.
+    function isLendTaken(itemId) {
+      return isLendFlip(false, true)
+        && !exists(lendLoanPath(itemId))
+        && existsAfter(lendLoanPath(itemId))
+        && getAfter(lendLoanPath(itemId)).data.borrowerId == myMemberId();
     }
 
-    // « D'accord »: the owner lends to the one who asked, with their dates.
-    function isLendAccept() {
-      return resource.data.status == 'asked'
-        && resource.data.ownerId == myMemberId()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'lentAt', 'updatedAt'])
-        && request.resource.data.status == 'lent'
-        && request.resource.data.lentAt == request.time
-        && request.resource.data.updatedAt == request.time;
-    }
-
-    // Back to free: « Pas cette fois » (the owner) or a dropped ask (the borrower) on an ask, and
-    // « Rendu » (the owner or the borrower) on a loan.
-    function isLendRelease() {
-      return resource.data.status in ['asked', 'lent']
-        && (resource.data.ownerId == myMemberId() || resource.data.borrowerId == myMemberId())
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(lendLoanKeys())
-        && isLendFree(request.resource.data)
-        && request.resource.data.updatedAt == request.time;
+    // The thing free again, its loan removed in the same batch, by the owner or the borrower.
+    function isLendFreed(itemId) {
+      return isLendFlip(true, false)
+        && !existsAfter(lendLoanPath(itemId))
+        && (resource.data.ownerId == myMemberId()
+            || (exists(lendLoanPath(itemId)) && get(lendLoanPath(itemId)).data.borrowerId == myMemberId()));
     }
 
     match /lendItems/{itemId} {
@@ -1318,14 +1305,61 @@ service cloud.firestore {
       allow create: if isMember()
         && me().profile == 'adult'
         && isValidLendItem(itemId, request.resource.data, null)
-        && isLendFree(request.resource.data)
+        && request.resource.data.lent == false
         && request.resource.data.ownerId == myMemberId()
         && request.resource.data.ownerName == me().firstName
         && request.resource.data.createdAt == request.time;
 
-      allow update: if isMember() && (isLendEdit(itemId) || isLendAsk() || isLendAccept() || isLendRelease());
+      allow update: if isMember() && (isLendEdit(itemId) || isLendTaken(itemId) || isLendFreed(itemId));
 
       allow delete: if isMember() && (resource.data.ownerId == myMemberId() || isOwner());
+    }
+
+    // lendLoans/{itemId}: the ask, then the loan, of one thing. `parties` is [ownerId, borrowerId],
+    // for the app to read its own with one query.
+    function isValidLendAsk(itemId, d) {
+      let item = get(lendItemPath(itemId)).data;
+      return d.keys().hasAll(['ownerId', 'parties', 'status', 'borrowerId', 'borrowerName', 'from', 'until',
+                              'askedAt', 'lentAt', 'remindedAt', 'updatedAt'])
+        && d.keys().hasOnly(['ownerId', 'parties', 'status', 'borrowerId', 'borrowerName', 'from', 'until',
+                             'askedAt', 'lentAt', 'remindedAt', 'updatedAt'])
+        && me().profile == 'adult'
+        && item.lent == false
+        && getAfter(lendItemPath(itemId)).data.lent == true
+        && item.ownerId != myMemberId()
+        && d.ownerId == item.ownerId
+        && d.borrowerId == myMemberId()
+        && d.borrowerName == me().firstName
+        && d.parties == [item.ownerId, myMemberId()]
+        && d.status == 'asked'
+        && isLendDates(d)
+        && d.askedAt == request.time
+        && d.lentAt == null && d.remindedAt == null
+        && d.updatedAt == request.time;
+    }
+
+    match /lendLoans/{itemId} {
+      allow read: if isMember() && (myMemberId() in resource.data.parties || isOwner());
+
+      // « Je voudrais l'emprunter », with the thing taken in the same batch.
+      allow create: if isMember() && exists(lendItemPath(itemId)) && isValidLendAsk(itemId, request.resource.data);
+
+      // « D'accord »: the owner lends to the one who asked, with their dates.
+      allow update: if isMember()
+        && resource.data.status == 'asked'
+        && resource.data.ownerId == myMemberId()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'lentAt', 'updatedAt'])
+        && request.resource.data.status == 'lent'
+        && request.resource.data.lentAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      // « Pas cette fois », a dropped ask or « Rendu », with the thing freed in the same batch. A
+      // loan already gone (a thing left « Prêté » with none) deletes as nothing, so the owner can
+      // still free the thing: isLendFreed lets them.
+      allow delete: if isMember()
+        && (resource == null || resource.data.ownerId == myMemberId() || resource.data.borrowerId == myMemberId())
+        && existsAfter(lendItemPath(itemId))
+        && getAfter(lendItemPath(itemId)).data.lent == false;
     }
 
     // --- À qui le tour ? (PRD, récit 58) ----------------------------------------------------------

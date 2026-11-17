@@ -53,6 +53,11 @@ class MemberEditViewModel(
     }
 
     private suspend fun load() {
+        // Stopped by Android while the write was leaving: it is in Firestore's queue, never sent twice.
+        sentBefore()?.let { done ->
+            _uiState.value = done
+            return
+        }
         val repo = members ?: return
         family = try {
             repo.observeFamily().first()
@@ -179,6 +184,7 @@ class MemberEditViewModel(
         val member = withEmail.toMember(editedId, original?.uid)
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
+            savedState?.let { markSent(it, if (original == null) SENT_ADDED else SENT_SAVED, member) }
             val sent = write { repo.saveMember(member, original?.email) }
             if (sent == null) return@launch markFailed()
             _uiState.value = if (original == null) {
@@ -203,6 +209,7 @@ class MemberEditViewModel(
             .map { it.copy(parentIds = it.parentIds - member.id) }
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
+            savedState?.let { markSent(it, SENT_REMOVED, member) }
             val sent = write { repo.removeMember(member, children) }
             if (sent != null) _uiState.value = MemberEditUiState.Saved(sent.or(Confirmation.MemberRemoved)) else markFailed()
         }
@@ -215,7 +222,23 @@ class MemberEditViewModel(
     private fun errorsFor(form: MemberForm): Set<FormError> =
         if (showErrors) validate(form, family, editedId, today(), emailRequired = original?.uid != null) else emptySet()
 
+    /** What the screen showed once the write left, when Android stopped the app right then. */
+    private fun sentBefore(): MemberEditUiState? {
+        val handle = savedState ?: return null
+        return when (handle.get<String>(KEY_SENT)) {
+            SENT_ADDED -> MemberEditUiState.Added(
+                handle.get<String>(KEY_SENT + ".firstName").orEmpty(),
+                handle.get<String>(KEY_SENT + ".email"),
+                hasApp = handle.get<Boolean>(KEY_SENT + ".hasApp") ?: true,
+            )
+            SENT_SAVED -> MemberEditUiState.Saved(Confirmation.Saved)
+            SENT_REMOVED -> MemberEditUiState.Saved(Confirmation.MemberRemoved)
+            else -> null
+        }
+    }
+
     private fun markFailed() {
+        savedState?.remove<String>(KEY_SENT)
         val state = _uiState.value as? MemberEditUiState.Editing ?: return
         _uiState.value = state.copy(isSaving = false, saveFailed = true)
     }
@@ -225,6 +248,18 @@ class MemberEditViewModel(
 }
 
 private const val KEY_ID = "memberDraft.id"
+private const val KEY_SENT = "memberDraft.sent"
+private const val SENT_ADDED = "added"
+private const val SENT_SAVED = "saved"
+private const val SENT_REMOVED = "removed"
+
+/** The write leaves: noted, so a restart after Android stopped the app does not offer it again. */
+private fun markSent(handle: SavedStateHandle, kind: String, member: Member) {
+    handle[KEY_SENT + ".firstName"] = member.firstName
+    handle[KEY_SENT + ".email"] = member.email
+    handle[KEY_SENT + ".hasApp"] = member.profile != MemberProfile.ChildWithoutApp
+    handle[KEY_SENT] = kind
+}
 private const val KEY_DRAFT = "memberDraft."
 
 /** The form as plain values, the only kind a SavedStateHandle keeps across the end of the process. */

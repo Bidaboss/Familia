@@ -645,6 +645,8 @@ Dans l'onglet Entraide, derrière l'interrupteur « On se prête » (`config/app
 
 ### `lendItems/{itemId}`
 
+Ce que toute la famille lit. Le nom de celui qui a demandé ou qui a l'objet, et les dates, n'y sont pas : ils sont dans `lendLoans/{itemId}` (EXPERT-9, PRD rév. 268).
+
 | Champ | Type | Description |
 |---|---|---|
 | `name` | texte | Le nom de l'objet, de 1 à 60 caractères |
@@ -652,16 +654,29 @@ Dans l'onglet Entraide, derrière l'interrupteur « On se prête » (`config/app
 | `category` | texte | `kitchen`, `diy`, `baby`, `sport`, `travel` ou `other` |
 | `photo` | texte ou `null` | La base de sa photo dans Storage, `lendItems/{itemId}/{memberId}/{photoId}` (`.jpg` et `-thumb.jpg`) |
 | `ownerId`, `ownerName` | texte | L'adulte qui le prête et son prénom, qui ne changent jamais |
-| `status` | `available`, `asked` ou `lent` | Libre, demandé, ou prêté |
-| `borrowerId`, `borrowerName` | texte ou `null` | Celui qui a demandé ou qui l'a, et son prénom. `null` quand l'objet est libre |
+| `lent` | booléen | `true` dès qu'il est demandé ou prêté. Les autres voient « Prêté », sans nom ni date |
+| `createdAt`, `updatedAt` | horodatage | Heure du serveur |
+
+### `lendLoans/{itemId}`
+
+La demande, puis le prêt, d'un objet. Il n'existe que tant que l'objet n'est pas libre. Seuls le propriétaire, l'emprunteur et l'admin principal (pour l'export, et pour « Voir comme ») le lisent. L'appli lit les siens avec une seule requête sur `parties`.
+
+| Champ | Type | Description |
+|---|---|---|
+| `ownerId` | texte | Le propriétaire de l'objet |
+| `parties` | liste de textes | `[ownerId, borrowerId]` |
+| `status` | `asked` ou `lent` | Demandé, ou prêté |
+| `borrowerId`, `borrowerName` | texte | Celui qui a demandé ou qui l'a, et son prénom |
 | `from`, `until` | horodatage ou `null` | Les dates facultatives de la demande, dans l'année, le retour pas avant le début |
 | `askedAt`, `lentAt` | horodatage ou `null` | Heure du serveur de la demande et du « D'accord » |
 | `remindedAt` | horodatage ou `null` | Écrit par le serveur seul, au rappel |
-| `createdAt`, `updatedAt` | horodatage | Heure du serveur |
+| `updatedAt` | horodatage | Heure du serveur |
 
-Droits : tous les membres lisent tout. Seuls les adultes ajoutent un objet. Le propriétaire et l'admin principal modifient l'objet lui-même (le prêt ne change pas) et le retirent. « Je voudrais l'emprunter » : un adulte qui n'est pas le propriétaire, sur un objet libre, en son nom (`asked`). « D'accord » : le propriétaire (`lent`). « Pas cette fois » (le propriétaire) ou une demande retirée (l'emprunteur), puis « Rendu » (l'un ou l'autre) : retour à `available`, tous les champs du prêt à `null`. Un enfant voit la liste et ne demande pas.
+Droits : tous les membres lisent les objets, mais pas les prêts. Seuls les adultes ajoutent un objet, libre (`lent` à `false`). Le propriétaire et l'admin principal modifient l'objet lui-même (`lent` ne change pas) et le retirent. « Je voudrais l'emprunter » : un adulte qui n'est pas le propriétaire, sur un objet libre, en son nom. Le prêt est créé (`asked`) et `lent` passe à `true` dans le même lot d'écritures. « D'accord » : le propriétaire (`lent`). « Pas cette fois » (le propriétaire), une demande retirée (l'emprunteur), puis « Rendu » (l'un ou l'autre) : le prêt est supprimé et `lent` repasse à `false`, dans le même lot. Un enfant voit la liste et ne demande pas.
 
-Serveur (`firebase/functions/src/lendItems.ts`) : `onLendItemChanged` prévient directement le propriétaire d'une demande, puis celui qui a demandé de la réponse. Une demande retirée et « Rendu » ne préviennent personne. Dans la tâche de 18 h des coups de main, un seul rappel doux part à l'emprunteur 3 jours après la date de retour (`remindedAt`). Le canal est Coups de main, et un tap ouvre l'objet (`lendItemId`). `onLendItemDeleted` supprime la photo. Un membre retiré de la famille (`onMemberDeletedHelp`) : ses objets sont supprimés, et ceux qu'il avait demandés ou empruntés redeviennent libres.
+Serveur (`firebase/functions/src/lendItems.ts`) : `onLendLoanChanged` prévient directement le propriétaire d'une demande, puis celui qui a demandé de la réponse. Une demande retirée, « Rendu » et un prêt qui part avec son objet ne préviennent personne. `onLendItemChanged` reste vide, sous son ancien nom, pour que la publication n'ait pas de fonction à supprimer. Dans la tâche de 18 h des coups de main, un seul rappel doux part à l'emprunteur 3 jours après la date de retour (`remindedAt`). Le canal est Coups de main, et un tap ouvre l'objet (`lendItemId`). `onLendItemDeleted` supprime le prêt et la photo. Un membre retiré de la famille (`onMemberDeletedHelp`) : ses objets sont supprimés avec leurs prêts, et ceux qu'il avait demandés ou empruntés redeviennent libres.
+
+Un objet écrit avant le 17/11 (avec `status` et `borrowerId`) se lit comme libre, et l'appli ne peut plus le modifier : il faut le retirer et le remettre. Le module est éteint, donc seul l'admin principal a pu en créer.
 
 ## À qui le tour ? (PRD, récit 58)
 
