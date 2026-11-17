@@ -5,6 +5,7 @@ import fr.familia.app.core.model.GoodNews
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Reaction
 import fr.familia.app.core.photo.PhotoUploader
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -59,12 +60,27 @@ class FakeGoodNews(initial: List<GoodNews> = emptyList(), private val failWith: 
     }
 }
 
-/** Remembers what was sent; [unreadable] makes the encoder fail like a broken file. */
+/**
+ * Remembers what was sent; [unreadable] makes the encoder fail like a broken file. [failures] are
+ * thrown by the next sends, one each, like a network that drops; [gate], when set, holds each send
+ * after it has told [halfway] of its progress.
+ */
 class FakeUploader(private val unreadable: Boolean = false) : PhotoUploader {
     val sent = mutableListOf<Triple<String, String, String>>()
+    val tries = mutableListOf<String>()
+    val failures = ArrayDeque<Exception>()
+    var gate: CompletableDeferred<Unit>? = null
+    var halfway: Float = 0.5f
 
-    override suspend fun upload(source: String, photoPath: String, thumbnailPath: String) {
+    override suspend fun upload(source: String, photoPath: String, thumbnailPath: String) =
+        upload(source, photoPath, thumbnailPath) { }
+
+    override suspend fun upload(source: String, photoPath: String, thumbnailPath: String, onProgress: (Float) -> Unit) {
         if (unreadable) throw IOException("Not a picture")
+        tries += source
+        failures.removeFirstOrNull()?.let { throw it }
+        gate?.let { onProgress(halfway); it.await() }
+        onProgress(1f)
         sent += Triple(source, photoPath, thumbnailPath)
     }
 }

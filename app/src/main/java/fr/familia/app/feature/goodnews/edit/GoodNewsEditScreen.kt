@@ -32,6 +32,7 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
@@ -57,7 +58,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
@@ -92,6 +95,8 @@ fun GoodNewsEditScreen(
     /** « Les petits » (récit 43), offered when the module is on and the news is for a child. */
     littleOnesOn: Boolean = false,
     onLittleOnes: (Boolean) -> Unit = {},
+    /** « Annuler l'envoi », while the photos are on their way. */
+    onCancelSending: () -> Unit = {},
 ) {
     val editing = state as? GoodNewsEditUiState.Editing
     val hasContent = editing != null && (editing.form.text.isNotBlank() || editing.form.photos.isNotEmpty())
@@ -118,6 +123,7 @@ fun GoodNewsEditScreen(
                 is GoodNewsEditUiState.Editing -> Form(
                     state, onText, onAddPhotos, onRemovePhoto, onFor, onMentions, onSave, onForChallenge,
                     littleOnes = if (littleOnesOn) onLittleOnes else null,
+                    onCancelSending = onCancelSending,
                 )
             }
         }
@@ -138,7 +144,6 @@ fun GoodNewsEditScreen(
                 Text(
                     stringResource(
                         when (failure) {
-                            PublishFailure.NeedsNetwork -> R.string.goodnews_needs_network
                             PublishFailure.PhotoUnreadable -> R.string.goodnews_photo_unreadable
                             PublishFailure.Failed -> R.string.goodnews_publish_failed
                         },
@@ -162,6 +167,7 @@ private fun Form(
     onSave: () -> Unit,
     onForChallenge: (Boolean) -> Unit,
     littleOnes: ((Boolean) -> Unit)?,
+    onCancelSending: () -> Unit,
 ) {
     val form = state.form
     val errors = state.errors
@@ -229,6 +235,8 @@ private fun Form(
             )
         }
 
+        SendingProgress(state, onCancelSending)
+
         Button(onClick = onSave, enabled = !state.isSaving, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             if (state.isSaving) {
                 CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
@@ -241,6 +249,36 @@ private fun Form(
                 )
             } else {
                 Text(stringResource(if (state.isNew) R.string.goodnews_publish_action else R.string.goodnews_save_action))
+            }
+        }
+    }
+}
+
+/**
+ * While the photos go: a bar that fills, a line when the network is gone (the send waits and
+ * goes on by itself), and « Annuler l'envoi » to get the form back.
+ */
+@Composable
+private fun SendingProgress(state: GoodNewsEditUiState.Editing, onCancel: () -> Unit) {
+    val photo = state.sendingPhoto ?: return
+    if (!state.isNew) return
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        val progress = state.progress
+        if (progress == null) {
+            LinearProgressIndicator(Modifier.fillMaxWidth())
+        } else {
+            LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
+        }
+        if (state.offline) {
+            Text(
+                stringResource(R.string.goodnews_waiting_network),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            )
+        }
+        if (photo > 0) {
+            TextButton(onClick = onCancel, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.goodnews_cancel_sending))
             }
         }
     }
