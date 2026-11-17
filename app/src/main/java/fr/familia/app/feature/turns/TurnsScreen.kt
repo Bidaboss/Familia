@@ -65,7 +65,9 @@ fun TurnsScreen(
                     EmptyState(
                         icon = Icons.Outlined.Autorenew,
                         title = stringResource(R.string.turns_empty_title),
-                        body = stringResource(R.string.turns_empty_body),
+                        // A child cannot create a turn (the rules too): the message says who does, with no button.
+                        body = stringResource(if (state.canCreate) R.string.turns_empty_body else R.string.turns_empty_body_child),
+                        action = { if (state.canCreate) Button(onClick = onCreate, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.turns_empty_action)) } },
                     )
                 } else {
                     LazyColumn(
@@ -76,7 +78,7 @@ fun TurnsScreen(
                     }
                 }
         }
-        if (state is TurnsUiState.Success && state.canCreate) {
+        if (state is TurnsUiState.Success && state.canCreate && state.rows.isNotEmpty()) {
             ExtendedFloatingActionButton(
                 onClick = onCreate,
                 icon = { Icon(Icons.Outlined.Add, contentDescription = null) },

@@ -74,7 +74,8 @@ fun GoodNewsFeedScreen(
             TopAppBar(title = { Text(stringResource(R.string.goodnews_title), maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) })
         },
         floatingActionButton = {
-            if (state is GoodNewsFeedUiState.Success) {
+            // Empty, the screen keeps a single action: the button of its message.
+            if (state is GoodNewsFeedUiState.Success && !(state.items.isEmpty() && !state.littleOnesOnly)) {
                 ExtendedFloatingActionButton(
                     onClick = onPublish,
                     icon = { Icon(Icons.Outlined.AddAPhoto, contentDescription = null) },
@@ -103,6 +104,9 @@ fun GoodNewsFeedScreen(
                             icon = Icons.Outlined.Celebration,
                             title = stringResource(R.string.goodnews_empty_title),
                             body = stringResource(R.string.goodnews_empty_body),
+                            action = {
+                                Button(onClick = onPublish, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.goodnews_empty_action)) }
+                            },
                         )
                     } else {
                         Feed(
