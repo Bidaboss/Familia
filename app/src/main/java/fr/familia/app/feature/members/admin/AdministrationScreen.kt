@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.selection.toggleable
@@ -22,6 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.ExpandLess
+import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.QueryStats
@@ -57,6 +60,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
@@ -222,199 +226,228 @@ private fun ReadyContent(
     var choosingViewAs by rememberSaveable { mutableStateOf(false) }
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var deleting by rememberSaveable { mutableStateOf<String?>(null) }
+    // Retour de Kévin, 17/11 : « l'onglet administration est trop grand ». Everything is grouped
+    // under a few headers, all closed at first: one touch opens a group.
+    var open by rememberSaveable { mutableStateOf(listOf<String>()) }
+    fun toggle(key: String) {
+        open = if (key in open) open - key else open + key
+    }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 8.dp)) {
-        if (presentation != null) item(key = "presentation") { presentation() }
-        item(key = "chefs-title") {
-            SectionTitle(R.string.administration_chefs_title)
+        if (presentation != null || (onViewAs != null && viewAsMembers.isNotEmpty())) {
+            adminGroup("demo", R.string.administration_group_demo, R.string.administration_group_demo_help, open, ::toggle) {
+                if (presentation != null) item(key = "presentation") { presentation() }
+                if (onViewAs != null && viewAsMembers.isNotEmpty()) {
+                    item(key = "view-as") {
+                        HorizontalDivider(Modifier.padding(top = 8.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(onClick = { choosingViewAs = true })
+                                .heightIn(min = 56.dp)
+                                .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(Icons.Outlined.Visibility, contentDescription = null)
+                            Spacer(Modifier.width(16.dp))
+                            Column {
+                                Text(stringResource(R.string.view_as_title), style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    stringResource(R.string.view_as_help),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
-        items(state.adults, key = { "adult-${it.member.id}" }) { row -> AdultSwitchRow(row, onSetChef) }
-        item(key = "households-title") {
-            HorizontalDivider(Modifier.padding(top = 8.dp))
-            SectionTitle(R.string.administration_households_title)
+        if (onOpenFeedback != null || onOpenCrashes != null) {
+            adminGroup(
+                "feedback", R.string.administration_group_feedback, R.string.administration_group_feedback_help, open, ::toggle,
+                badge = (if (onOpenFeedback != null) feedbackUnseen else 0) + (if (onOpenCrashes != null) crashCount else 0),
+            ) {
+                if (onOpenFeedback != null) {
+                    item(key = "feedback") {
+                        HorizontalDivider(Modifier.padding(top = 8.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(onClick = onOpenFeedback)
+                                .heightIn(min = 56.dp)
+                                .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(Icons.Outlined.Lightbulb, contentDescription = null)
+                            Spacer(Modifier.width(16.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(stringResource(R.string.feedback_list_title), style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    stringResource(R.string.feedback_list_help),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            if (feedbackUnseen > 0) {
+                                Spacer(Modifier.width(8.dp))
+                                Badge { Text(stringResource(R.string.feedback_list_count, feedbackUnseen)) }
+                            }
+                        }
+                    }
+                }
+                if (onOpenCrashes != null) {
+                    item(key = "crashes") {
+                        HorizontalDivider(Modifier.padding(top = 8.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(onClick = onOpenCrashes)
+                                .heightIn(min = 56.dp)
+                                .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(Icons.Outlined.BugReport, contentDescription = null)
+                            Spacer(Modifier.width(16.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(stringResource(R.string.crashes_title), style = MaterialTheme.typography.titleMedium)
+                                Text(
+                                    stringResource(R.string.crashes_help),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            if (crashCount > 0) {
+                                Spacer(Modifier.width(8.dp))
+                                Badge { Text(stringResource(R.string.crashes_count, crashCount)) }
+                            }
+                        }
+                    }
+                }
+            }
         }
-        items(state.households, key = { "household-${it.household.id}" }) { row ->
-            HouseholdLine(
-                row,
-                onRename = onRenameHousehold?.let { { renaming = row.household.id } },
-                onDelete = { deleting = row.household.id },
-            )
-        }
-        item(key = "household-add") {
-            OutlinedButton(
-                onClick = { adding = true },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = ClaySpacing.screen, vertical = 8.dp).heightIn(min = 56.dp),
-            ) { Text(stringResource(R.string.administration_household_add)) }
+        adminGroup("family", R.string.administration_group_family, R.string.administration_group_family_help, open, ::toggle) {
+            item(key = "chefs-title") {
+                SectionTitle(R.string.administration_chefs_title)
+            }
+            items(state.adults, key = { "adult-${it.member.id}" }) { row -> AdultSwitchRow(row, onSetChef) }
+            item(key = "households-title") {
+                HorizontalDivider(Modifier.padding(top = 8.dp))
+                SectionTitle(R.string.administration_households_title)
+            }
+            items(state.households, key = { "household-${it.household.id}" }) { row ->
+                HouseholdLine(
+                    row,
+                    onRename = onRenameHousehold?.let { { renaming = row.household.id } },
+                    onDelete = { deleting = row.household.id },
+                )
+            }
+            item(key = "household-add") {
+                OutlinedButton(
+                    onClick = { adding = true },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = ClaySpacing.screen, vertical = 8.dp).heightIn(min = 56.dp),
+                ) { Text(stringResource(R.string.administration_household_add)) }
+            }
+            if (onShareApp != null) {
+                item(key = "share-app") {
+                    HorizontalDivider(Modifier.padding(top = 8.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(onClick = onShareApp)
+                            .heightIn(min = 56.dp)
+                            .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(Icons.Outlined.Share, contentDescription = null)
+                        Spacer(Modifier.width(16.dp))
+                        Column {
+                            Text(stringResource(R.string.share_app_title), style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                stringResource(R.string.share_app_help),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
         }
         if (onSetFeature != null) {
-            item(key = "features-title") {
-                HorizontalDivider(Modifier.padding(top = 8.dp))
-                SectionTitle(R.string.administration_features_title, R.string.administration_features_help)
-            }
-            items(Feature.entries, key = { "feature-${it.key}" }) { feature ->
-                FeatureSwitchRow(feature, on = features[feature.key] ?: feature.onByDefault, onSetFeature = onSetFeature)
+            adminGroup("features", R.string.administration_features_title, R.string.administration_features_help, open, ::toggle) {
+                items(Feature.entries, key = { "feature-${it.key}" }) { feature ->
+                    FeatureSwitchRow(feature, on = features[feature.key] ?: feature.onByDefault, onSetFeature = onSetFeature)
+                }
             }
         }
-        if (onOpenUsage != null) {
-            item(key = "usage") {
+        if ((onPickChallenge != null && challenges.isNotEmpty()) || capsuleLeftovers.isNotEmpty() ||
+            (onSaveRotation != null && rotation != null && rotation.households.isNotEmpty()) || onSaveDiscoverOrder != null
+        ) {
+            adminGroup("life", R.string.administration_group_life, R.string.administration_group_life_help, open, ::toggle) {
+                if (onPickChallenge != null && challenges.isNotEmpty()) {
+                    item(key = "challenge-title") {
+                        HorizontalDivider(Modifier.padding(top = 8.dp))
+                        SectionTitle(R.string.administration_challenge_title)
+                    }
+                    item(key = "challenge") { ChallengePickSection(challenges, onPickChallenge) }
+                }
+                if (capsuleLeftovers.isNotEmpty()) {
+                    item(key = "capsule-leftovers") { CapsuleLeftoversSection(capsuleLeftovers, onDeleteCapsuleLeftovers) }
+                }
+                if (onSaveRotation != null && rotation != null && rotation.households.isNotEmpty()) {
+                    item(key = "rotation-title") {
+                        SectionTitle(R.string.administration_rotation_title)
+                    }
+                    item(key = "rotation") { ChallengeRotationSection(rotation, onSaveRotation) }
+                }
+                if (onSaveDiscoverOrder != null) {
+                    item(key = "discover-title") {
+                        HorizontalDivider(Modifier.padding(top = 8.dp))
+                        SectionTitle(R.string.administration_discover_title)
+                    }
+                    item(key = "discover") { DiscoverOrderSection(discoverOrder, discoverInTutorial, onSaveDiscoverOrder) }
+                }
+            }
+        }
+        if (onOpenUsage != null || consumption != null) {
+            adminGroup("follow", R.string.administration_group_follow, R.string.administration_group_follow_help, open, ::toggle) {
+                if (onOpenUsage != null) {
+                    item(key = "usage") {
+                        HorizontalDivider(Modifier.padding(top = 8.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(onClick = onOpenUsage)
+                                .heightIn(min = 56.dp)
+                                .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(Icons.Outlined.QueryStats, contentDescription = null)
+                            Spacer(Modifier.width(16.dp))
+                            Text(stringResource(R.string.usage_title), style = MaterialTheme.typography.titleMedium)
+                        }
+                    }
+                }
+                if (consumption != null) {
+                    item(key = "consumption") { ConsumptionSection(consumption) }
+                }
+            }
+        }
+        adminGroup("data", R.string.administration_group_data, R.string.administration_group_data_help, open, ::toggle) {
+            if (calendarLinks != null) item(key = "calendar-links") { calendarLinks() }
+            item(key = "backup") {
                 HorizontalDivider(Modifier.padding(top = 8.dp))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable(onClick = onOpenUsage)
+                        .clickable(onClick = onOpenExport)
                         .heightIn(min = 56.dp)
                         .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(Icons.Outlined.QueryStats, contentDescription = null)
+                    Icon(Icons.Outlined.SaveAlt, contentDescription = null)
                     Spacer(Modifier.width(16.dp))
-                    Text(stringResource(R.string.usage_title), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.export_title), style = MaterialTheme.typography.titleMedium)
                 }
-            }
-        }
-        if (onViewAs != null && viewAsMembers.isNotEmpty()) {
-            item(key = "view-as") {
-                HorizontalDivider(Modifier.padding(top = 8.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(onClick = { choosingViewAs = true })
-                        .heightIn(min = 56.dp)
-                        .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(Icons.Outlined.Visibility, contentDescription = null)
-                    Spacer(Modifier.width(16.dp))
-                    Column {
-                        Text(stringResource(R.string.view_as_title), style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            stringResource(R.string.view_as_help),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            }
-        }
-        if (onOpenFeedback != null) {
-            item(key = "feedback") {
-                HorizontalDivider(Modifier.padding(top = 8.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(onClick = onOpenFeedback)
-                        .heightIn(min = 56.dp)
-                        .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(Icons.Outlined.Lightbulb, contentDescription = null)
-                    Spacer(Modifier.width(16.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(stringResource(R.string.feedback_list_title), style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            stringResource(R.string.feedback_list_help),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    if (feedbackUnseen > 0) {
-                        Spacer(Modifier.width(8.dp))
-                        Badge { Text(stringResource(R.string.feedback_list_count, feedbackUnseen)) }
-                    }
-                }
-            }
-        }
-        if (onOpenCrashes != null) {
-            item(key = "crashes") {
-                HorizontalDivider(Modifier.padding(top = 8.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(onClick = onOpenCrashes)
-                        .heightIn(min = 56.dp)
-                        .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(Icons.Outlined.BugReport, contentDescription = null)
-                    Spacer(Modifier.width(16.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(stringResource(R.string.crashes_title), style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            stringResource(R.string.crashes_help),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    if (crashCount > 0) {
-                        Spacer(Modifier.width(8.dp))
-                        Badge { Text(stringResource(R.string.crashes_count, crashCount)) }
-                    }
-                }
-            }
-        }
-        if (onShareApp != null) {
-            item(key = "share-app") {
-                HorizontalDivider(Modifier.padding(top = 8.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(onClick = onShareApp)
-                        .heightIn(min = 56.dp)
-                        .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(Icons.Outlined.Share, contentDescription = null)
-                    Spacer(Modifier.width(16.dp))
-                    Column {
-                        Text(stringResource(R.string.share_app_title), style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            stringResource(R.string.share_app_help),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            }
-        }
-        if (onPickChallenge != null && challenges.isNotEmpty()) {
-            item(key = "challenge-title") {
-                HorizontalDivider(Modifier.padding(top = 8.dp))
-                SectionTitle(R.string.administration_challenge_title)
-            }
-            item(key = "challenge") { ChallengePickSection(challenges, onPickChallenge) }
-        }
-        if (capsuleLeftovers.isNotEmpty()) {
-            item(key = "capsule-leftovers") { CapsuleLeftoversSection(capsuleLeftovers, onDeleteCapsuleLeftovers) }
-        }
-        if (onSaveRotation != null && rotation != null && rotation.households.isNotEmpty()) {
-            item(key = "rotation-title") {
-                SectionTitle(R.string.administration_rotation_title)
-            }
-            item(key = "rotation") { ChallengeRotationSection(rotation, onSaveRotation) }
-        }
-        if (onSaveDiscoverOrder != null) {
-            item(key = "discover-title") {
-                HorizontalDivider(Modifier.padding(top = 8.dp))
-                SectionTitle(R.string.administration_discover_title)
-            }
-            item(key = "discover") { DiscoverOrderSection(discoverOrder, discoverInTutorial, onSaveDiscoverOrder) }
-        }
-        if (consumption != null) {
-            item(key = "consumption") { ConsumptionSection(consumption) }
-        }
-        if (calendarLinks != null) item(key = "calendar-links") { calendarLinks() }
-        item(key = "backup") {
-            HorizontalDivider(Modifier.padding(top = 8.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onOpenExport)
-                    .heightIn(min = 56.dp)
-                    .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(Icons.Outlined.SaveAlt, contentDescription = null)
-                Spacer(Modifier.width(16.dp))
-                Text(stringResource(R.string.export_title), style = MaterialTheme.typography.titleMedium)
             }
         }
     }
@@ -455,6 +488,56 @@ private fun ReadyContent(
             },
         )
     }
+}
+
+/**
+ * A group of Administration: a header of 56 dp that opens or closes it, then, open, its lines.
+ * [badge] shows on the header what waits inside (new retours, plantages), even closed.
+ */
+private fun LazyListScope.adminGroup(
+    key: String,
+    titleRes: Int,
+    helpRes: Int,
+    open: List<String>,
+    onToggle: (String) -> Unit,
+    badge: Int = 0,
+    content: LazyListScope.() -> Unit,
+) {
+    val expanded = key in open
+    item(key = "group-$key") {
+        val state = stringResource(if (expanded) R.string.administration_group_open else R.string.administration_group_closed)
+        Column {
+            HorizontalDivider()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClickLabel = state) { onToggle(key) }
+                    .heightIn(min = 56.dp)
+                    .padding(horizontal = ClaySpacing.screen, vertical = 12.dp)
+                    .semantics {
+                        heading()
+                        stateDescription = state
+                    },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(stringResource(titleRes), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                    Text(
+                        stringResource(helpRes),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (badge > 0) {
+                    Spacer(Modifier.width(8.dp))
+                    Badge { Text(badge.toString()) }
+                }
+                Spacer(Modifier.width(8.dp))
+                Icon(if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, contentDescription = null)
+            }
+        }
+    }
+    if (expanded) content()
 }
 
 @Composable
