@@ -293,4 +293,15 @@ class GoodDealsTest {
         assertFalse(dealDayAllowed(today.minusDays(1), today))
         assertFalse(dealDayAllowed(today.plusDays(91), today))
     }
+
+    // --- The Accueil -----------------------------------------------------------------------------
+
+    @Test
+    fun `the chip shows the newest bon plan of someone else for 2 days`() {
+        fun posted(id: String, author: String, hoursAgo: Long, days: Long = 3) =
+            deal(id, author = author, days = days).copy(createdAt = now.minus(hoursAgo, ChronoUnit.HOURS))
+        val list = listOf(posted("old", "adult2", 49), posted("mine", "adult1", 1), posted("new", "adult2", 5), posted("ended", "adult2", 2, days = -1))
+        assertEquals("new", newGoodDealFor(list, "adult1", now)?.id)
+        assertNull(newGoodDealFor(list.filter { it.id != "new" }, "adult1", now))
+    }
 }

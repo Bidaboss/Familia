@@ -10,6 +10,7 @@ import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -29,13 +30,17 @@ fun EntraideTabs(
     goodDealsOn: Boolean,
     help: @Composable () -> Unit,
     goodDeals: @Composable () -> Unit,
-    startOnGoodDeals: Boolean = false,
+    /** Each new value turns to the Bons plans (a touched notification). */
+    showGoodDeals: Int = 0,
 ) {
     if (!goodDealsOn) {
         help()
         return
     }
-    var selected by rememberSaveable { mutableIntStateOf(if (startOnGoodDeals) 1 else 0) }
+    var selected by rememberSaveable { mutableIntStateOf(if (showGoodDeals > 0) 1 else 0) }
+    LaunchedEffect(showGoodDeals) {
+        if (showGoodDeals > 0) selected = 1
+    }
     Column(Modifier.fillMaxSize()) {
         PrimaryTabRow(selectedTabIndex = selected, modifier = Modifier.fillMaxWidth()) {
             listOf(R.string.entraide_tab_help, R.string.entraide_tab_good_deals).forEachIndexed { index, label ->

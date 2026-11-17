@@ -2212,6 +2212,7 @@
     <string name="feature_good_deals">Bons plans</string>
     <string name="entraide_tab_help">Coups de main</string>
     <string name="entraide_tab_good_deals">Bons plans</string>
+    <string name="home_new_good_deal">Nouveau bon plan : %1$s</string>
     <string name="gooddeal_title">Bon plan</string>
     <string name="gooddeal_new_title">Nouveau bon plan</string>
     <string name="gooddeal_edit_title">Modifier le bon plan</string>
