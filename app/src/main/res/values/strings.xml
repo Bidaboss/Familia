@@ -2740,7 +2740,7 @@
         <item quantity="one">%d coup de main rendu</item>
         <item quantity="other">%d coups de main rendus</item>
     </plurals>
-    <string name="year_photos_title">Les photos qui vous ont plu</string>
+    <string name="year_photos_title">Une photo par mois</string>
     <string name="year_photo_by">Photo publiée par %1$s</string>
     <string name="year_trip_title">Le voyage de l\'année</string>
     <string name="year_trip_dates">Du %1$s au %2$s</string>

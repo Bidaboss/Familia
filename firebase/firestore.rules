@@ -1353,9 +1353,11 @@ service cloud.firestore {
         && request.resource.data.lentAt == request.time
         && request.resource.data.updatedAt == request.time;
 
-      // « Pas cette fois », a dropped ask or « Rendu », with the thing freed in the same batch.
+      // « Pas cette fois », a dropped ask or « Rendu », with the thing freed in the same batch. A
+      // loan already gone (a thing left « Prêté » with none) deletes as nothing, so the owner can
+      // still free the thing: isLendFreed lets them.
       allow delete: if isMember()
-        && (resource.data.ownerId == myMemberId() || resource.data.borrowerId == myMemberId())
+        && (resource == null || resource.data.ownerId == myMemberId() || resource.data.borrowerId == myMemberId())
         && existsAfter(lendItemPath(itemId))
         && getAfter(lendItemPath(itemId)).data.lent == false;
     }

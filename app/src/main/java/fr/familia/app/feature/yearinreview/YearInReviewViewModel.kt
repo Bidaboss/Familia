@@ -81,7 +81,7 @@ class YearInReviewViewModel(
             combine(members.observeFamily(), ofYear, withQuestion) { family, parts, (qs, answers) ->
                 val me = family.members.firstOrNull { it.id == currentMemberId }
                     ?: return@combine YearInReviewUiState(loading = false, pages = listOf(ReviewPage.Intro(year), ReviewPage.Thanks))
-                val review = buildYearInReview(year, me, today, now, parts.news, parts.events, parts.helps, parts.trips, family, qs, answers, zoneYear)
+                val review = buildYearInReview(year, me, today, now, parts.news, parts.events, parts.helps, parts.trips, family, qs, answers, zone)
                 YearInReviewUiState(loading = false, pages = reviewPages(review))
             }
                 .catch { e -> if (e is CancellationException) throw e else emit(YearInReviewUiState(loading = false, pages = listOf(ReviewPage.Intro(year), ReviewPage.Thanks))) }
