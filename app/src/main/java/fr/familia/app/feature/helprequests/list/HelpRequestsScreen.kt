@@ -2,7 +2,9 @@ package fr.familia.app.feature.helprequests.list
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -12,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.VolunteerActivism
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -19,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,12 +42,21 @@ import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.MemberAvatar
+import fr.familia.app.core.ui.SectionLabel
+import fr.familia.app.feature.helprequests.detail.HelpActionError
+import fr.familia.app.feature.helprequests.todo.HelpRequestTodo
+import fr.familia.app.feature.helprequests.todo.HelpRequestTodoCard
+import fr.familia.app.feature.helprequests.todo.helpActionErrorText
 import fr.familia.app.feature.helprequests.kindLabel
 import fr.familia.app.feature.helprequests.whenLabel
 import java.time.LocalDate
 import java.time.LocalTime
 
-/** The « Coups de main » tab (PRD, récit 15). Stateless. */
+/**
+ * The « Coups de main » tab (PRD, récit 15). Stateless. With [r1bis] (présentation R1 bis, §4),
+ * the requests that wait for me come first, in big, with their buttons on the card.
+ */
 @Composable
 fun HelpRequestsScreen(
     state: HelpRequestsUiState,
@@ -51,6 +64,11 @@ fun HelpRequestsScreen(
     onOpenRequest: (String) -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
+    r1bis: Boolean = false,
+    error: HelpActionError? = null,
+    onTake: (HelpRequest) -> Unit = {},
+    onDecline: (HelpRequest) -> Unit = {},
+    onDismissError: () -> Unit = {},
 ) {
     Box(modifier.fillMaxSize()) {
         when (state) {
@@ -72,6 +90,8 @@ fun HelpRequestsScreen(
                         title = stringResource(R.string.helprequest_empty_title),
                         body = stringResource(R.string.helprequest_empty_body),
                     )
+                } else if (r1bis) {
+                    R1bisRequestList(state, onOpenRequest, onTake, onDecline)
                 } else {
                     RequestList(state, onOpenRequest)
                 }
@@ -83,6 +103,92 @@ fun HelpRequestsScreen(
                 text = { Text(stringResource(R.string.helprequest_ask)) },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
             )
+        }
+    }
+    helpActionErrorText(error)?.let { text ->
+        AlertDialog(
+            onDismissRequest = onDismissError,
+            title = { Text(stringResource(R.string.helprequest_error_dialog_title)) },
+            text = { Text(text) },
+            confirmButton = { TextButton(onClick = onDismissError) { Text(stringResource(R.string.action_ok)) } },
+        )
+    }
+}
+
+/**
+ * R1 bis (maquette R4Entraide): « Coups de main », then « On a besoin de toi » with « Je m'en
+ * occupe » / « Pas dispo », my own requests, « Déjà pris en charge », and last the ones I said no to.
+ */
+@Composable
+private fun R1bisRequestList(
+    state: HelpRequestsUiState.Success,
+    onOpenRequest: (String) -> Unit,
+    onTake: (HelpRequest) -> Unit,
+    onDecline: (HelpRequest) -> Unit,
+) {
+    LazyColumn(
+        contentPadding = PaddingValues(start = ClaySpacing.screen, top = 16.dp, end = ClaySpacing.screen, bottom = 96.dp),
+        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
+    ) {
+        item(key = "title") {
+            Text(
+                stringResource(R.string.helprequest_r1bis_title),
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.semantics { heading() },
+            )
+        }
+        if (state.forMe.isNotEmpty()) {
+            item(key = "needsYou") { SectionLabel(stringResource(R.string.helprequest_r1bis_needs_you)) }
+            items(state.forMe, key = { "forMe-" + it.request.id }) { todo: HelpRequestTodo ->
+                HelpRequestTodoCard(
+                    todo = todo,
+                    onTake = { onTake(todo.request) },
+                    onDecline = { onDecline(todo.request) },
+                    onOpen = { onOpenRequest(todo.request.id) },
+                    large = true,
+                )
+            }
+        }
+        if (state.mine.isNotEmpty()) {
+            item(key = "mine") { SectionLabel(stringResource(R.string.helprequest_r1bis_mine)) }
+            items(state.mine, key = { "mine-" + it.request.id }) { row -> RequestCard(row, state.today, onOpenRequest) }
+        }
+        if (state.taken.isNotEmpty()) {
+            item(key = "handled") { SectionLabel(stringResource(R.string.helprequest_r1bis_handled)) }
+            items(state.taken, key = { "taken-" + it.request.id }) { row -> HandledRow(row, state.today, onOpenRequest) }
+        }
+        if (state.saidNo.isNotEmpty()) {
+            item(key = "saidNo") { SectionLabel(stringResource(R.string.helprequest_r1bis_said_no)) }
+            items(state.saidNo, key = { "no-" + it.request.id }) { row -> RequestCard(row, state.today, onOpenRequest) }
+        }
+    }
+}
+
+/** « Déjà pris en charge »: the volunteer's avatar, the title and « Camille s'en occupe, demain ». */
+@Composable
+private fun HandledRow(row: HelpRequestRow, today: LocalDate, onOpenRequest: (String) -> Unit) {
+    val request = row.request
+    val tint = ClayTint.Plain
+    ClayCard(
+        modifier = Modifier.fillMaxWidth(),
+        tint = tint,
+        onClick = { onOpenRequest(request.id) },
+        onClickLabel = stringResource(R.string.helprequest_open),
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            row.volunteer?.let { MemberAvatar(it, size = 40.dp) }
+            Column {
+                ClayCardTitle(request.title, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    if (row.iAmVolunteer) {
+                        stringResource(R.string.helprequest_r1bis_handled_by_me, whenLabel(request, today))
+                    } else {
+                        stringResource(R.string.helprequest_r1bis_handled_by, request.volunteerName.orEmpty(), whenLabel(request, today))
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = FamiliaClay.colors.onTintVariant(tint),
+                )
+            }
         }
     }
 }
@@ -190,4 +296,12 @@ internal fun previewHelpRequests(): HelpRequestsUiState.Success {
 @Composable
 private fun HelpRequestsScreenPreview() {
     FamiliaTheme { Surface { HelpRequestsScreen(previewHelpRequests(), {}, {}, {}) } }
+}
+
+@FamiliaPreviews
+@Composable
+private fun HelpRequestsScreenR1bisPreview() {
+    val state = previewHelpRequests()
+    val forMe = state.open.filter { !it.isMine }.map { HelpRequestTodo(it.request, null, it.helpedName, state.today) }
+    FamiliaTheme { Surface { HelpRequestsScreen(state.copy(forMe = forMe), {}, {}, {}, r1bis = true) } }
 }

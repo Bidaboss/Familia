@@ -32,6 +32,9 @@ interface HelpRequestRepository {
     /** « Je ne peux pas », by the only person warned. */
     suspend fun decline(id: String, memberId: String)
 
+    /** « Pas dispo » (R1 bis) when others were warned too: only [memberId] stops seeing it as for them. */
+    suspend fun markUnavailable(id: String, memberId: String)
+
     /** « Merci », once. */
     suspend fun thank(id: String)
 
