@@ -2,6 +2,8 @@ package fr.familia.app.feature.yearago
 
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.AlbumPhotoRepository
+import fr.familia.app.core.data.AppConfig
+import fr.familia.app.core.data.AppConfigRepository
 import fr.familia.app.core.data.GoodNewsRepository
 import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.model.GoodNews
@@ -13,11 +15,13 @@ import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -213,6 +217,54 @@ class YearAgoTest {
         assertEquals(MemoryAlbum(MemoryAlbum.Kind.Event, "e1", "Repas e1"), memory.album)
         assertEquals(2, memory.years)
         assertEquals("event-e1-camille_1", memory.key)
+    }
+
+    private class Config(hidden: List<String> = emptyList(), private val refuse: Boolean = false) : AppConfigRepository {
+        val config = MutableStateFlow(AppConfig(null, null, memoriesHidden = hidden))
+        override fun observeAppConfig(): Flow<AppConfig> = config
+        override suspend fun fetchAppConfig(): AppConfig = config.value
+        override suspend fun setFeature(key: String, enabled: Boolean) = Unit
+        override suspend fun setDiscoverOrder(keys: List<String>) = Unit
+        override suspend fun hideMemory(key: String) {
+            if (refuse) throw IllegalStateException("rules")
+            config.value = config.value.copy(memoriesHidden = config.value.memoriesHidden + key)
+        }
+    }
+
+    private val two = News(listOf(news("a", lastYear(10), reactions = 2), news("b", lastYear(11))))
+
+    @Test
+    fun `a souvenir the admin principal took away shows to nobody`() = runTest {
+        val vm = YearAgoViewModel(two, null, null, "ines", today, Store(), config = Config(listOf("news-a")))
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.memory.collect {} }
+        assertEquals("news-b", vm.memory.value?.key)
+    }
+
+    @Test
+    fun `Retirer ce souvenir pour tous writes it for the family, and only the admin principal can`() = runTest {
+        val config = Config()
+        val vm = YearAgoViewModel(two, null, null, "admin", today, Store(), config = config, canHideForAll = true)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.memory.collect {} }
+        vm.hideForAll(vm.memory.value!!)
+        assertEquals(listOf("news-a"), config.config.value.memoriesHidden)
+        assertEquals("news-b", vm.memory.value?.key)
+
+        val other = Config()
+        val member = YearAgoViewModel(two, null, null, "ines", today, Store(), config = other)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { member.memory.collect {} }
+        member.hideForAll(member.memory.value!!)
+        assertTrue(other.config.value.memoriesHidden.isEmpty())
+    }
+
+    @Test
+    fun `a refusal of the server brings the souvenir back and is said`() = runTest {
+        val vm = YearAgoViewModel(two, null, null, "admin", today, Store(), config = Config(refuse = true), canHideForAll = true)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.memory.collect {} }
+        vm.hideForAll(vm.memory.value!!)
+        assertEquals("news-a", vm.memory.value?.key)
+        assertTrue(vm.hideFailed.value)
+        vm.hideFailureShown()
+        assertFalse(vm.hideFailed.value)
     }
 
     @Test

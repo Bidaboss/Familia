@@ -2990,14 +2990,17 @@ service cloud.firestore {
       allow read: if isMember() && docId in ['app', 'family'];
       // The admin principal switches modules (features) and orders « À découvrir » (discoverOrder,
       // AVIS-19 partie 2: the module keys, 20 at most). `features` is never removed once there:
-      // it may only be missing on a config/app that never had it.
+      // it may only be missing on a config/app that never had it. memoriesHidden (récit 36): the
+      // souvenirs of « Il y a N ans » the admin principal took away for everyone, 300 at most.
       allow update: if docId == 'app'
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['features', 'discoverOrder'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['features', 'discoverOrder', 'memoriesHidden'])
         && (('features' in request.resource.data
                 && request.resource.data.features is map && request.resource.data.features.size() <= 60)
             || (!('features' in request.resource.data) && !('features' in resource.data)))
         && (!('discoverOrder' in request.resource.data)
             || (request.resource.data.discoverOrder is list && request.resource.data.discoverOrder.size() <= 20))
+        && (!('memoriesHidden' in request.resource.data)
+            || (request.resource.data.memoriesHidden is list && request.resource.data.memoriesHidden.size() <= 300))
         && isOwner();
       // Mode présentation (récit 48): only the admin principal reads and writes config/presentation.
       // `on` turns it on or off, `until` is its end (null: until turned off), `since` when it began.

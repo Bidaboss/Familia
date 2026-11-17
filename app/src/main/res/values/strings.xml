@@ -2097,6 +2097,11 @@
     <string name="year_ago_trip">Une photo de voyage de %1$s</string>
     <string name="year_ago_event">Une photo de %1$s</string>
     <string name="year_ago_dismiss">Ne plus me montrer ce souvenir</string>
+    <string name="year_ago_hide_all">Retirer ce souvenir pour tous</string>
+    <string name="year_ago_hide_all_title">Retirer ce souvenir pour toute la famille ?</string>
+    <string name="year_ago_hide_all_text">Plus personne ne le verra dans « Il y a N ans ». La photo ou la Bonne nouvelle reste à sa place.</string>
+    <string name="year_ago_hide_all_confirm">Retirer pour tous</string>
+    <string name="year_ago_hide_failed">Le souvenir n\'a pas pu être retiré. Réessaie dans un moment.</string>
     <string name="recap_photos">Les photos de la semaine</string>
     <string name="recap_birthdays">Les anniversaires à venir</string>
     <string name="recap_trips">Les voyages en cours</string>
