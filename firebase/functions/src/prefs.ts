@@ -294,15 +294,22 @@ export async function sendPresentationHeld<N extends Filtered & { title: string;
     const notices = presentationNotices(items.map(({ heldAt: _heldAt, ...n }) => n as unknown as N));
     const prefs = (await loadPrefs(db, [queue.id])).get(queue.id) ?? DEFAULT_PREFS;
     for (const notice of notices) {
-      if (isQuietHour(now) && prefs.quietHours && !notice.direct && FAMILY_OF[notice.channel] !== null) {
+      // The night waits for 8 h; a summary that reached none of the phones is tried again by the
+      // morning queue (every 30 min, for a day at most), so it is never lost.
+      const quiet = isQuietHour(now) && prefs.quietHours && !notice.direct && FAMILY_OF[notice.channel] !== null;
+      let result = { sent: 0, failed: 0 };
+      if (!quiet) {
+        try {
+          result = await sendCounting(db, send, [queue.id], notice);
+        } catch (e) {
+          console.error('presentationQueue: send failed', queue.id, e);
+          result = { sent: 0, failed: 1 };
+        }
+      }
+      sent += result.sent;
+      if (quiet || (result.sent === 0 && result.failed > 0)) {
         const item = { ...JSON.parse(JSON.stringify(notice)), heldAt: now.toISOString() };
         await db.collection('quietQueue').doc(queue.id).set({ items: FieldValue.arrayUnion(item) }, { merge: true });
-        continue;
-      }
-      try {
-        sent += await sendToDevices(db, send, [queue.id], notice);
-      } catch (e) {
-        console.error('presentationQueue: send failed', queue.id, e);
       }
     }
   }

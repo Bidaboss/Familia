@@ -195,7 +195,7 @@ Pendant que le mode est allumé, `deliver()` garde dans `presentationQueue/{memb
 - l'admin éteint le mode ;
 - un envoi, ou la tâche des 30 minutes, voit que `until` est passé et remet `on: false`.
 
-La nuit, pour un membre qui a les heures calmes, le résumé passe par `quietQueue`. Aucune nouvelle tâche planifiée n'est ajoutée. `presentationQueue` part avec le membre, et aucune règle ne l'ouvre.
+Le résumé passe par `quietQueue` dans deux cas : la nuit, pour un membre qui a les heures calmes, ou quand il n'a atteint aucun téléphone (il est alors réessayé pendant une journée). Aucune nouvelle tâche planifiée n'est ajoutée. `presentationQueue` part avec le membre, et aucune règle ne l'ouvre.
 
 ### `weeklyRecaps/{AAAA-MM-JJ}` (récit 36)
 

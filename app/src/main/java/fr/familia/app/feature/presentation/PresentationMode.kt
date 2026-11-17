@@ -148,7 +148,7 @@ fun PresentationBanner(state: PresentationState, modifier: Modifier = Modifier) 
         modifier = modifier.fillMaxWidth().semantics { liveRegion = LiveRegionMode.Polite },
     ) {
         Row(
-            modifier = Modifier.heightIn(min = 48.dp).padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+            modifier = Modifier.heightIn(min = 56.dp).padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(Icons.Outlined.Slideshow, contentDescription = null)
@@ -158,7 +158,7 @@ fun PresentationBanner(state: PresentationState, modifier: Modifier = Modifier) 
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f),
             )
-            TextButton(onClick = state.onStop, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.presentation_stop)) }
+            TextButton(onClick = state.onStop, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.presentation_stop)) }
         }
     }
 }

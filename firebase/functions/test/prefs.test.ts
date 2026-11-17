@@ -201,4 +201,17 @@ describe('my notification settings against the emulator', () => {
     assert.equal(sent.length, 0);
     assert.equal((await db.doc('quietQueue/lou').get()).get('items').length, 1);
   });
+  test('a summary of the mode présentation that reaches no phone waits in the morning queue', async () => {
+    await db.doc('config/presentation').set({ on: true, until: null });
+    const noon = new Date('2026-11-21T11:00:00Z');
+    await deliver(db, fakeSender().send, ['camille'], { channel: 'welcome', title: "Inès vient d'arriver", body: 'Dis-lui bonjour !' }, noon);
+    await db.doc('config/presentation').set({ on: false }, { merge: true });
+    const down: Sender = async () => 'error';
+    assert.equal(await sendPresentationHeld(db, down, noon), 0);
+    assert.equal((await db.doc('presentationQueue/camille').get()).exists, false);
+    assert.equal((await db.doc('quietQueue/camille').get()).get('items').length, 1);
+    const { sent, send } = fakeSender();
+    assert.equal(await sendHeldNotices(db, send, new Date('2026-11-21T11:30:00Z')), 1);
+    assert.equal(sent[0].notice.title, "Inès vient d'arriver");
+  });
 });
