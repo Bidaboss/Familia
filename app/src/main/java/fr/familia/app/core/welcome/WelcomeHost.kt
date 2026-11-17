@@ -12,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import fr.familia.app.core.data.AppConfig
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Feature
@@ -46,6 +47,7 @@ fun WelcomeHost(
     me: Member,
     onPlayed: () -> Unit,
     onDone: () -> Unit,
+    photos: Map<String, ImageBitmap> = emptyMap(),
 ) {
     val done by rememberUpdatedState(onDone)
     val played by rememberUpdatedState(onPlayed)
@@ -58,7 +60,7 @@ fun WelcomeHost(
         WelcomeChoice.Skip -> LaunchedEffect(Unit) { done() }
         is WelcomeChoice.Play -> {
             LaunchedEffect(Unit) { played() }
-            WelcomeAnimation(shown.family, me) { done() }
+            WelcomeAnimation(shown.family, me, photos) { done() }
         }
     }
 }

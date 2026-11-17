@@ -383,12 +383,15 @@ fun FamiliaApp(
     if (showWelcome && !viewingAs) {
         val welcomeFamily = remember(container) { container?.memberRepository?.observeFamily() }
         val welcomeConfig = remember(container) { container?.appConfigRepository?.observeAppConfig() }
+        // The profile photos already on the phone go in the fruits; the others keep their letters.
+        val welcomePhotos by rememberMemberPhotos(container?.memberPhotoRepository)
         WelcomeHost(
             family = welcomeFamily,
             config = welcomeConfig,
             me = currentMember,
             onPlayed = { welcome.seen = true },
             onDone = { showWelcome = false },
+            photos = welcomePhotos,
         )
         return
     }

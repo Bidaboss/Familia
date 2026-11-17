@@ -1045,6 +1045,7 @@ Avant de commencer : **Administration**, puis **Modules**, et allume « Animatio
 
 1. Sur le deuxième téléphone, installe la nouvelle version et ouvre Familia. **Attendu :** l'arbre de l'icône pousse, puis ses fruits glissent en cercle autour du soleil, chacun de la couleur d'un membre avec ses lettres. Puis « Bienvenue dans Familia » et « Bonjour {prénom}, tu es chez toi. » apparaissent. Vers 4 secondes et demie, l'appli continue : le tuto sur une nouvelle installation, l'Accueil sinon.
 2. **Attendu :** il y a autant de fruits que de membres, ton foyer en premier, en partant du haut.
+   - Pour un membre qui a une photo de profil, **attendu :** sa photo apparaît dans son fruit, ronde, avec un bord de sa couleur. Les membres sans photo gardent leurs lettres.
 3. Ferme et rouvre Familia. **Attendu :** l'animation ne revient pas.
 4. Touche ta photo en haut à droite, puis « Apparence », puis « Revoir l'animation de bienvenue » tout en bas. **Attendu :** elle se rejoue, puis tu reviens sur Apparence.
 5. Pendant qu'elle se joue, touche l'écran n'importe où. **Attendu :** elle s'arrête tout de suite.
@@ -1080,9 +1081,11 @@ Une limite connue : un téléphone sous Android 8 ne sait pas ouvrir les photos 
 Sur un téléphone en Android 12 ou plus récent. Pour le savoir : Paramètres, puis « À propos du téléphone », puis « Version d'Android ».
 
 1. Ferme Familia complètement : ouvre les applis récentes et balaie Familia vers le haut.
-2. Touche l'icône de Familia. **Attendu :** sur le fond crème, le soleil apparaît, puis le tronc pousse de bas en haut, le feuillage s'ouvre avec un petit rebond, et les fruits sortent en quatre vagues. Ensuite, l'appli s'ouvre comme d'habitude, sans attendre plus longtemps qu'avant.
+2. Touche l'icône de Familia. **Attendu :** sur le fond crème, le soleil apparaît, puis le tronc pousse de bas en haut, le feuillage s'ouvre avec un petit rebond, et les fruits sortent en quatre vagues, en un peu moins d'une seconde et demie. L'arbre va jusqu'au bout avant que l'appli s'ouvre.
+   - Tourne le téléphone une fois l'appli ouverte. **Attendu :** l'écran se redessine tout de suite, sans revoir l'arbre ni attendre.
+   - Mets Familia en arrière-plan avec le bouton d'accueil, puis rouvre-la. **Attendu :** l'appli revient tout de suite.
 3. Recommence en mode sombre (Paramètres, puis Affichage, puis « Thème sombre »). **Attendu :** le même arbre, sur un fond brun foncé.
-4. Dans Paramètres, puis Accessibilité, allume « Supprimer les animations », puis recommence l'étape 1. **Attendu :** l'arbre entier s'affiche d'un coup, sans mouvement. Éteins ensuite ce réglage.
+4. Dans Paramètres, puis Accessibilité, allume « Supprimer les animations », puis recommence l'étape 1. **Attendu :** l'arbre entier s'affiche d'un coup, sans mouvement, et l'appli s'ouvre sans attendre. Éteins ensuite ce réglage.
 5. Sur un téléphone en Android 11 ou plus ancien, s'il y en a un dans la famille. **Attendu :** le démarrage est le même qu'avant.
 
 Si quelque chose ne va pas le 20 au soir, préviens [DEV] : on revient à l'icône fixe en retirant un seul changement.
