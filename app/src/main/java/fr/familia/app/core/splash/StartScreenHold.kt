@@ -2,7 +2,6 @@ package fr.familia.app.core.splash
 
 import android.app.Activity
 import android.os.Build
-import android.os.Process
 import android.os.SystemClock
 import android.provider.Settings
 import android.view.View
@@ -12,30 +11,23 @@ import android.view.ViewTreeObserver
 const val START_SCREEN_MILLIS = 1_350L
 
 /**
- * Until when the start screen stays, in uptime milliseconds: [START_SCREEN_MILLIS] after it showed.
- * On a cold start ([coldStart], the first activity of the process) it showed when the process
- * started, so a slow start waits less, or not at all; on a warm start (process kept), about now.
+ * Until when the start screen stays, in uptime milliseconds: a whole [START_SCREEN_MILLIS] from
+ * when the app is ready to draw. Kévin, 17/11: « même si l'appli démarre plus tard, je veux voir
+ * l'animation en entier ». So a slow start no longer cuts the tree: it waits the full length from
+ * here, cold or warm, even if the tree already grew a little during the start.
  */
-internal fun startScreenUntil(now: Long, processStart: Long, coldStart: Boolean, length: Long = START_SCREEN_MILLIS): Long =
-    (if (coldStart) processStart else now) + length
-
-/** True until the first activity of the process asks: that one is the cold start. */
-private var firstInProcess = true
+internal fun startScreenUntil(now: Long, length: Long = START_SCREEN_MILLIS): Long = now + length
 
 /**
- * Android 12 and later: keeps the start screen until its tree has grown, at most
- * [START_SCREEN_MILLIS] after it showed, so the tree is not cut by a quick first frame (retour de
- * Kévin, 17/11). Only on a real opening (no saved state: never after a rotation), and never when the
+ * Android 12 and later: keeps the start screen [START_SCREEN_MILLIS] from now, so its tree is
+ * never cut, by a quick first frame or by a slow start (retours de Kévin, 17/11). Only on a real opening (no saved state: never after a rotation), and never when the
  * animations of the phone are off, where the tree does not grow. To go back: remove the call.
  */
 fun Activity.holdStartScreen(restored: Boolean) {
-    val coldStart = firstInProcess
-    firstInProcess = false
     if (restored || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
     val off = Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
     if (off) return
-    val until = startScreenUntil(SystemClock.uptimeMillis(), Process.getStartUptimeMillis(), coldStart)
-    if (SystemClock.uptimeMillis() >= until) return
+    val until = startScreenUntil(SystemClock.uptimeMillis())
     val content = findViewById<View>(android.R.id.content)
     content.viewTreeObserver.addOnPreDrawListener(
         object : ViewTreeObserver.OnPreDrawListener {
