@@ -80,6 +80,7 @@ internal fun LinkDialog(
     onDismiss: () -> Unit,
     /** Whom I may join this way: a child only from my household (PRD rév. 195). */
     canJoin: (Relation, String) -> Boolean = { _, _ -> true },
+    householdNames: Map<String, String> = emptyMap(),
 ) {
     var relation by rememberSaveable { mutableStateOf(Relation.Parent) }
     var other by rememberSaveable { mutableStateOf<String?>(null) }
@@ -106,7 +107,8 @@ internal fun LinkDialog(
                 )
                 Column(Modifier.selectableGroup()) {
                     Choice(stringResource(R.string.genealogy_link_new_kin), selected = picked == NEW_KIN) { other = NEW_KIN }
-                    others.forEach { p -> Choice(p.firstName, selected = picked == p.id) { other = p.id } }
+                    val label = rememberPickLabel(tree.people.values, householdNames)
+                    others.forEach { p -> Choice(label(p), selected = picked == p.id) { other = p.id } }
                 }
             }
         },
@@ -128,14 +130,21 @@ internal fun LinkDialog(
  * among [people] (the ones I may edit, by household, mine first); the link dialog follows.
  */
 @Composable
-internal fun PickPersonDialog(people: List<TreePerson>, onPick: (String) -> Unit, onDismiss: () -> Unit) {
+internal fun PickPersonDialog(
+    people: List<TreePerson>,
+    onPick: (String) -> Unit,
+    onDismiss: () -> Unit,
+    everyone: Collection<TreePerson> = people,
+    householdNames: Map<String, String> = emptyMap(),
+) {
     var picked by rememberSaveable { mutableStateOf<String?>(null) }
+    val label = rememberPickLabel(everyone, householdNames)
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.genealogy_join_title)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()).selectableGroup()) {
-                people.forEach { p -> Choice(p.firstName, selected = picked == p.id) { picked = p.id } }
+                people.forEach { p -> Choice(label(p), selected = picked == p.id) { picked = p.id } }
             }
         },
         confirmButton = {
@@ -149,6 +158,14 @@ internal fun PickPersonDialog(people: List<TreePerson>, onPick: (String) -> Unit
             TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
         },
     )
+}
+
+/** [pickLabel] with the words of the screen: two people of the same first name are told apart. */
+@Composable
+private fun rememberPickLabel(everyone: Collection<TreePerson>, householdNames: Map<String, String>): (TreePerson) -> String {
+    val remembered = stringResource(R.string.genealogy_remembered)
+    val noAccount = stringResource(R.string.genealogy_pick_no_account)
+    return { p -> pickLabel(p, everyone, householdNames, remembered, noAccount) }
 }
 
 private fun relationLabel(relation: Relation): Int = when (relation) {

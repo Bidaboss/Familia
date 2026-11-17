@@ -277,7 +277,7 @@ private fun ReadyTree(state: GenealogyUiState.Ready, onOpenProfile: ((String) ->
         PickPersonDialog(state.joinable, onPick = { id ->
             pickFirst = false
             linkFor = id
-        }, onDismiss = { pickFirst = false })
+        }, onDismiss = { pickFirst = false }, everyone = state.tree.people.values, householdNames = state.householdNames)
     }
     linkFor?.let { people[it] }?.let { person ->
         LinkDialog(person, state.tree, onPick = { relation, other ->
@@ -289,7 +289,7 @@ private fun ReadyTree(state: GenealogyUiState.Ready, onOpenProfile: ((String) ->
             } else {
                 editing?.onAddLink(person.id, relation, other)
             }
-        }, onDismiss = { linkFor = null }, canJoin = { relation, other -> state.canJoin(person.id, relation, other) })
+        }, onDismiss = { linkFor = null }, canJoin = { relation, other -> state.canJoin(person.id, relation, other) }, householdNames = state.householdNames)
     }
     editKin?.let { id ->
         val kin = (people[id] as? TreePerson.OfKin)?.kin

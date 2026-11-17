@@ -48,6 +48,8 @@ sealed interface GenealogyUiState {
         val me: String,
         val isOwner: Boolean = false,
         val chefOf: String? = null,
+        /** The name of each household, to tell two people of the same first name apart. */
+        val householdNames: Map<String, String> = emptyMap(),
     ) : GenealogyUiState {
         /** Nobody joined to anyone, and no relative yet: the screen says how the tree fills up. */
         val isEmpty: Boolean get() = tree.links.isEmpty() && tree.people.values.none { it is TreePerson.OfKin }
@@ -118,6 +120,7 @@ class GenealogyViewModel(
                     me = currentMemberId,
                     isOwner = me != null && family.isOwner(me),
                     chefOf = me?.takeIf { it.isAdmin }?.householdId,
+                    householdNames = family.households.associate { it.id to it.name },
                 )
                 ready
             }
@@ -212,4 +215,28 @@ class GenealogyViewModel(
     companion object {
         const val MAX_WORD = 30
     }
+}
+
+/**
+ * The line of [person] in a list to pick from (retour d'essai du 17/11, deux « José ») : the first
+ * name alone when nobody else in [among] has it, else with what tells them apart. A relative: their
+ * last name, else their years, else « en souvenir » ([remembered]) or « sans compte » ([noAccount]).
+ * A member: the name of their household (a member has no last name).
+ */
+internal fun pickLabel(
+    person: TreePerson,
+    among: Collection<TreePerson>,
+    householdNames: Map<String, String>,
+    remembered: String,
+    noAccount: String,
+): String {
+    val same = among.count { it.firstName.trim().equals(person.firstName.trim(), ignoreCase = true) }
+    if (same <= 1) return person.firstName
+    val detail = when (person) {
+        is TreePerson.OfKin -> person.kin.lastName?.takeIf { it.isNotBlank() }
+            ?: listOfNotNull(person.kin.born?.take(4), person.kin.died?.take(4)).joinToString("–").takeIf { it.isNotEmpty() }
+            ?: if (person.kin.living) noAccount else remembered
+        is TreePerson.OfMember -> householdNames[person.householdId]
+    }
+    return if (detail == null) person.firstName else "${person.firstName} · $detail"
 }
