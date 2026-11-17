@@ -34,6 +34,11 @@ describe('packing, without the emulator', () => {
     const msgs = packingMessages('t1', 'Corse', ['noe', 'camille'], new Map([['noe', 2]]), MEMBERS);
     assert.deepEqual(msgs, []);
   });
+
+  test('a bag left behind by someone no longer on the trip says nothing', () => {
+    const msgs = packingMessages('t1', 'Corse', ['camille'], new Map([['camille', 0], ['ines', 3]]), MEMBERS);
+    assert.deepEqual(msgs, []);
+  });
 });
 
 describe('packing against the emulator', () => {
