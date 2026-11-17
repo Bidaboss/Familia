@@ -114,6 +114,8 @@ fun HomeR1bisScreen(
     helpTodos: (@Composable () -> Unit)? = null,
     /** « Nouveau bon plan » (récit 45), just above « Tout Familia » and « Où je suis ». */
     goodDeal: (@Composable () -> Unit)? = null,
+    /** « Notre année en famille », from 26/12 to 10/01, first above the buttons (it shows nothing otherwise). */
+    yearInReview: (@Composable () -> Unit)? = null,
 ) {
     val ready = state as? HomeUiState.Ready ?: return
     var chosen by rememberSaveable { mutableStateOf(ready.today.toEpochDay()) }
@@ -145,6 +147,7 @@ fun HomeR1bisScreen(
     }
     val buttons: @Composable () -> Unit = {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            yearInReview?.invoke()
             goodDeal?.invoke()
             HomeButtons(r1, allBadge)
         }

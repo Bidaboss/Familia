@@ -788,3 +788,12 @@ Avec l'interrupteur « Notre année » allumé dans Administration. Avant le 26/
 4. Touche « Enregistrer ». Le bouton affiche « Envoi de la photo 1 sur 2… », puis la recette s'ouvre avec ses photos dans « Photos du plat ».
 5. Sans réseau : la recette s'enregistre quand même. Les photos ne partent pas ; tu peux les ajouter plus tard depuis la recette.
 6. Ouvre une recette existante et touche « Modifier » : pas de champ photo dans le formulaire, les photos se gèrent sur la recette elle-même.
+
+## « Notre année en famille » sur l'Accueil
+
+Avec l'interrupteur « Notre année en famille » allumé.
+
+1. Entre le 26/12 et le 10/01, ouvre l'Accueil. **Attendu :** la puce « Notre année 2026 » en tête, avant « Anniversaires ». Avec la nouvelle présentation, elle est juste au-dessus de « Tout Familia ».
+2. Touche-la. **Attendu :** l'écran de l'année s'ouvre.
+3. Hors de ces dates, avec un compte qui n'est pas l'admin principal : **Attendu :** pas de puce. L'admin principal la voit toute l'année, pour l'essayer.
+4. Interrupteur éteint, avec un autre compte : **Attendu :** pas de puce.

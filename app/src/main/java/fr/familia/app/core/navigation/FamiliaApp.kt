@@ -847,6 +847,7 @@ fun FamiliaApp(
                             allBadge = helpBadge,
                             onOpenChallenges = { navController.navigate(ChallengesDestination) { launchSingleTop = true } },
                             onOpenGoodDeal = { id -> navController.navigate(GoodDealDetailDestination(id)) },
+                            onOpenYear = { year -> navController.navigate(YearInReviewDestination(year)) { launchSingleTop = true } },
                             onOpenDiscover = { module ->
                                 when (module) {
                                     DiscoverModule.WeeklyQuestion -> navController.navigate(WeeklyQuestionDestination())
