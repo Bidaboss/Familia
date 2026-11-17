@@ -10,6 +10,11 @@
 // them, an answer to « Mes demandes », the consumption alert of the admin principal.
 //
 // quietQueue/{memberId} holds the notices kept for the morning (`items`); only the functions use it.
+//
+// Mode présentation (récit 48): while config/presentation is on, the arrivals (bienvenue), the
+// reactions, the gifts and the capsules wait in presentationQueue/{memberId}, then go out as one
+// summary per channel when it ends: turned off in the app, or at the first send after its end.
+// « Rejoignez-moi », the retours and the admin always go. No scheduled task of its own.
 
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import type { Channel } from './logic';
@@ -48,6 +53,8 @@ export interface Filtered {
   channel: Channel;
   /** Aimed at the member directly: never muted, whatever the settings. */
   direct?: boolean;
+  /** A reaction (« Inès a réagi »): held during the mode présentation like the arrivals. */
+  reaction?: boolean;
 }
 
 export interface Prefs {
@@ -121,9 +128,61 @@ async function sendCounting<N>(db: Firestore, send: AnySender<N>, memberIds: str
   return { sent, failed };
 }
 
+/** config/presentation, written by the admin principal from Administration. */
+export const PRESENTATION_DOC = 'config/presentation';
+
+/** The mode présentation: [until] null means « jusqu'à ce que je l'éteigne ». */
+export interface Presentation {
+  on: boolean;
+  until: Date | null;
+}
+
+export function presentationFrom(data: Record<string, unknown> | undefined): Presentation {
+  const until = data?.until as { toDate?: () => Date } | null | undefined;
+  return { on: data?.on === true, until: typeof until?.toDate === 'function' ? until.toDate() : null };
+}
+
+export function isPresenting(p: Presentation, now: Date): boolean {
+  return p.on && (p.until === null || p.until.getTime() > now.getTime());
+}
+
+/** Channels that wait during the mode présentation; joinMe, feedback and admin never wait. */
+const HELD_WHILE_PRESENTING: ReadonlySet<Channel> = new Set<Channel>(['welcome', 'gifts', 'capsules']);
+
+export function heldByPresentation(notice: Filtered): boolean {
+  if (notice.channel === 'joinMe' || notice.channel === 'feedback' || notice.channel === 'admin') return false;
+  return HELD_WHILE_PRESENTING.has(notice.channel) || notice.reaction === true;
+}
+
+/**
+ * Turns off a mode présentation whose end has passed, once (a transaction): the trigger on
+ * config/presentation then sends the summary. Returns whether the mode is on at [now].
+ */
+export async function presentingNow(db: Firestore, now: Date): Promise<boolean> {
+  const ref = db.doc(PRESENTATION_DOC);
+  const p = presentationFrom((await ref.get()).data());
+  if (isPresenting(p, now)) return true;
+  if (p.on) {
+    await db.runTransaction(async (tx) => {
+      const again = presentationFrom((await tx.get(ref)).data());
+      if (again.on && !isPresenting(again, now)) tx.set(ref, { on: false }, { merge: true });
+    });
+  }
+  return false;
+}
+
 /** The single way out for a notice: filtered by each member's settings, held during quiet hours. */
 export async function deliver<N extends Filtered>(db: Firestore, send: AnySender<N>, memberIds: string[], notice: N, now: Date = new Date()): Promise<number> {
   const { now: ready, later } = await audience(db, memberIds, notice, now);
+  // Every send looks at the mode présentation, so its end is seen at the first send that follows.
+  const presenting = await presentingNow(db, now);
+  if (presenting && heldByPresentation(notice) && ready.length + later.length > 0) {
+    const item = { ...JSON.parse(JSON.stringify(notice)), heldAt: now.toISOString() };
+    const batch = db.batch();
+    for (const id of [...ready, ...later]) batch.set(db.collection('presentationQueue').doc(id), { items: FieldValue.arrayUnion(item) }, { merge: true });
+    await batch.commit();
+    return 0;
+  }
   if (later.length > 0) {
     // Firestore refuses undefined fields: the notice is kept as plain JSON.
     const item = { ...JSON.parse(JSON.stringify(notice)), heldAt: now.toISOString() };
@@ -140,14 +199,14 @@ const MAX_BODY = 180;
  * The notices of the night, one per channel so that a surprise keeps its private channel: a
  * single one as it came, several as « Cette nuit dans Familia » with their titles.
  */
-export function morningNotices<N extends Filtered & { title: string; body: string }>(items: N[]): N[] {
+export function morningNotices<N extends Filtered & { title: string; body: string }>(items: N[], heading = 'Cette nuit dans Familia'): N[] {
   const byChannel = new Map<Channel, N[]>();
   for (const item of items) byChannel.set(item.channel, [...(byChannel.get(item.channel) ?? []), item]);
   return [...byChannel.values()].map((group) => {
     if (group.length === 1) return group[0];
     const titles = [...new Set(group.map((n) => n.title))].join(' · ');
     const body = `${group.length} notifications : ${titles}`;
-    return { channel: group[0].channel, title: 'Cette nuit dans Familia', body: body.length > MAX_BODY ? `${body.slice(0, MAX_BODY - 1)}…` : body } as N;
+    return { channel: group[0].channel, title: heading, body: body.length > MAX_BODY ? `${body.slice(0, MAX_BODY - 1)}…` : body } as N;
   });
 }
 
@@ -195,4 +254,57 @@ export async function sendHeldNotices<N extends Filtered & { title: string; body
 /** A member who leaves takes their held notices with them. */
 export async function deleteQuietQueueOf(db: Firestore, memberId: string): Promise<void> {
   await db.collection('quietQueue').doc(memberId).delete();
+  await db.collection('presentationQueue').doc(memberId).delete();
+}
+
+/** « Bienvenue » titles end with this (welcome.ts): the summary names those who arrived. */
+const ARRIVED = " vient d'arriver";
+
+/**
+ * The summary of the mode présentation for one member, one notice per channel (a surprise keeps
+ * its private channel): the arrivals as « 9 personnes ont rejoint Familia », the rest grouped.
+ */
+export function presentationNotices<N extends Filtered & { title: string; body: string }>(items: N[]): N[] {
+  const welcome = items.filter((n) => n.channel === 'welcome');
+  const others = morningNotices(items.filter((n) => n.channel !== 'welcome'), 'Pendant la présentation');
+  if (welcome.length <= 1) return [...welcome, ...others];
+  const names = [...new Set(welcome.map((n) => (n.title.endsWith(ARRIVED) ? n.title.slice(0, -ARRIVED.length) : n.title)))];
+  const shown = names.length <= 3
+    ? `${names.slice(0, -1).join(', ')} et ${names[names.length - 1]}`
+    : `${names.slice(0, 3).join(', ')} et ${names.length - 3} autres`;
+  const body = `${shown}. Dis-leur bonjour !`;
+  const summary = { channel: 'welcome' as Channel, title: `${names.length} personnes ont rejoint Familia`, body: body.length > MAX_BODY ? `${body.slice(0, MAX_BODY - 1)}…` : body } as N;
+  return [summary, ...others];
+}
+
+/**
+ * Once the mode présentation is off, what it held goes out: one summary per channel and member,
+ * held again until 8 h for a member with quiet hours at night. Returns how many phones got something.
+ */
+export async function sendPresentationHeld<N extends Filtered & { title: string; body: string }>(db: Firestore, send: AnySender<N>, now: Date): Promise<number> {
+  const queues = await db.collection('presentationQueue').get();
+  let sent = 0;
+  for (const queue of queues.docs) {
+    // Taken and emptied at once, so two triggers never send the same summary twice.
+    const items = await db.runTransaction(async (tx) => {
+      const doc = await tx.get(queue.ref);
+      tx.delete(queue.ref);
+      return ((doc.get('items') as (N & { heldAt?: string })[] | undefined) ?? []);
+    });
+    const notices = presentationNotices(items.map(({ heldAt: _heldAt, ...n }) => n as unknown as N));
+    const prefs = (await loadPrefs(db, [queue.id])).get(queue.id) ?? DEFAULT_PREFS;
+    for (const notice of notices) {
+      if (isQuietHour(now) && prefs.quietHours && !notice.direct && FAMILY_OF[notice.channel] !== null) {
+        const item = { ...JSON.parse(JSON.stringify(notice)), heldAt: now.toISOString() };
+        await db.collection('quietQueue').doc(queue.id).set({ items: FieldValue.arrayUnion(item) }, { merge: true });
+        continue;
+      }
+      try {
+        sent += await sendToDevices(db, send, [queue.id], notice);
+      } catch (e) {
+        console.error('presentationQueue: send failed', queue.id, e);
+      }
+    }
+  }
+  return sent;
 }

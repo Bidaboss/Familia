@@ -185,6 +185,18 @@ Le filtre (`functions/src/prefs.ts`) s'applique côté serveur à chaque envoi, 
 
 Les notifications gardées pendant les heures calmes d'un membre (`items`, chacune avec son heure, `heldAt`). À partir de 8 h, la tâche des 30 minutes les envoie, puis efface le document. Elle fait une notification par canal : une seule part telle quelle, plusieurs partent en « Cette nuit dans Familia » avec leurs titres. Une surprise garde ainsi son canal privé (`gifts`, `capsules`). Le document part avec le membre. Aucune règle ne l'ouvre, seules les fonctions l'utilisent.
 
+### `config/presentation` et `presentationQueue/{memberId}` (récit 48, mode présentation)
+
+`config/presentation` est écrit depuis Administration par l'admin principal, seul à le lire et à l'écrire. Il contient `on` (booléen), `until` (la fin, ou `null` pour « jusqu'à ce que je l'éteigne ») et `since` (le début). Les champs sont vérifiés par les règles. Il n'y a pas de suppression : on éteint le mode avec `on: false`.
+
+Pendant que le mode est allumé, `deliver()` garde dans `presentationQueue/{memberId}` (`items`, chacun avec `heldAt`) les arrivées (canal `welcome`), les réactions groupées (`reaction: true`), les cadeaux (`gifts`) et les capsules (`capsules`). « Rejoignez-moi », les retours et l'admin passent toujours, comme tout le reste.
+
+À la fin du mode, la fonction `onPresentationWritten` envoie un résumé par canal et par membre, par exemple « 9 personnes ont rejoint Familia ». La fin arrive de deux façons :
+- l'admin éteint le mode ;
+- un envoi, ou la tâche des 30 minutes, voit que `until` est passé et remet `on: false`.
+
+La nuit, pour un membre qui a les heures calmes, le résumé passe par `quietQueue`. Aucune nouvelle tâche planifiée n'est ajoutée. `presentationQueue` part avec le membre, et aucune règle ne l'ouvre.
+
 ### `weeklyRecaps/{AAAA-MM-JJ}` (récit 36)
 
 Un document par dimanche, posé par la tâche de 18 h quand elle envoie « La semaine de la famille » : il garantit un seul envoi par semaine (`sentAt`, `expireAt` à 40 jours, effacé par le TTL de Firestore). Aucune règle ne l'ouvre.

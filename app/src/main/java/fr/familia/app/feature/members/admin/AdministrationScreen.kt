@@ -127,6 +127,8 @@ fun AdministrationScreen(
     discoverOrder: List<DiscoverModule> = DiscoverModule.entries,
     discoverInTutorial: Set<DiscoverModule> = emptySet(),
     onSaveDiscoverOrder: ((List<DiscoverModule>) -> Unit)? = null,
+    /** « Mode présentation » (récit 48), first of the screen for the day of the demo; hidden when null. */
+    presentation: (@Composable () -> Unit)? = null,
 ) {
     Scaffold(
         modifier = modifier,
@@ -163,7 +165,7 @@ fun AdministrationScreen(
                         onOpenUsage, consumption, challenges, onPickChallenge, capsuleLeftovers, onDeleteCapsuleLeftovers,
                         rotation, onSaveRotation, viewAsMembers, onViewAs, onShareApp, onOpenFeedback, feedbackUnseen,
                         onOpenCrashes, crashCount,
-                        discoverOrder, discoverInTutorial, onSaveDiscoverOrder,
+                        discoverOrder, discoverInTutorial, onSaveDiscoverOrder, presentation,
                     )
             }
         }
@@ -210,12 +212,14 @@ private fun ReadyContent(
     discoverOrder: List<DiscoverModule>,
     discoverInTutorial: Set<DiscoverModule>,
     onSaveDiscoverOrder: ((List<DiscoverModule>) -> Unit)?,
+    presentation: (@Composable () -> Unit)?,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
     var choosingViewAs by rememberSaveable { mutableStateOf(false) }
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var deleting by rememberSaveable { mutableStateOf<String?>(null) }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 8.dp)) {
+        if (presentation != null) item(key = "presentation") { presentation() }
         item(key = "chefs-title") {
             SectionTitle(R.string.administration_chefs_title)
         }
