@@ -237,6 +237,7 @@
     <string name="feature_help_turns">Dans Entraide, « À qui le tour ? » : un tour de rôle entre foyers, pour recevoir ou organiser.</string>
     <string name="feature_help_first_steps">Sur l\'Accueil, une carte propose à chacun 3 gestes pendant 14 jours : sa photo, ses goûts, une réaction.</string>
     <string name="feature_help_packing_list">Dans un voyage, « À emporter » : la liste pour tout le monde, et « Ma valise ».</string>
+    <string name="feature_help_opening_animation">À la première ouverture sur un téléphone, les fruits de l\'arbre deviennent la famille. À revoir dans Apparence.</string>
     <string name="feature_home">Accueil</string>
     <string name="feature_gifts">Listes et cadeaux</string>
     <string name="feature_help_requests">Coups de main</string>
@@ -1749,6 +1750,10 @@
     <string name="app_icon_or">Or</string>
     <string name="app_icon_changed">L\'icône change dans quelques secondes. Si elle était sur ton écran d\'accueil, elle peut disparaître de cet endroit : retrouve-la dans la liste des applis.</string>
     <string name="appearance_sample_event">Repas de famille · 12 h 30</string>
+    <string name="appearance_replay_welcome">Revoir l\'animation de bienvenue</string>
+    <string name="welcome_animation_title">Bienvenue dans Familia</string>
+    <string name="welcome_animation_hello">Bonjour %1$s, tu es chez toi.</string>
+    <string name="welcome_animation_skip">Passer</string>
     <string name="theme_classic">Classique</string>
     <string name="theme_arcade">Arcade</string>
     <string name="theme_retro">Rétro 70</string>
@@ -2704,6 +2709,7 @@
     <string name="first_steps_close">Fermer</string>
     <string name="first_steps_photo_failed">La photo n\'a pas pu être enregistrée. Vérifie ta connexion, puis réessaie. Si ça recommence, dis-le dans « Une idée ? Un souci ? ».</string>
     <string name="feature_packing_list">À emporter</string>
+    <string name="feature_opening_animation">Animation de bienvenue</string>
     <string name="packing_title">À emporter</string>
     <string name="notifications_packing">Ma valise</string>
     <string name="notifications_packing_help">La veille d\'un voyage, à 18 h, s\'il reste des objets à mettre dans ta valise.</string>
