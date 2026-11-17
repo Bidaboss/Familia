@@ -132,7 +132,8 @@ fun ExpensesScreen(
             if (onAdd != null && success != null && !success.closed) {
                 ExtendedFloatingActionButton(
                     onClick = onAdd,
-                    icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                    // The text of an extended button is hidden from TalkBack (Material 3): the icon says it.
+                    icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.expenses_add)) },
                     text = { Text(stringResource(R.string.expenses_add)) },
                 )
             }

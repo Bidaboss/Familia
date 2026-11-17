@@ -169,7 +169,8 @@ fun PlanningScreen(
         if (state !is PlanningUiState.Loading) {
             ExtendedFloatingActionButton(
                 onClick = onAddEvent,
-                icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                // The text of an extended button is hidden from TalkBack (Material 3): the icon says it.
+                icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.planning_add)) },
                 text = { Text(stringResource(R.string.planning_add)) },
                 modifier = Modifier.align(Alignment.BottomEnd).aboveSnackbar().padding(16.dp),
             )
