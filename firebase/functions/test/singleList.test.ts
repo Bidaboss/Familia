@@ -178,6 +178,15 @@ describe('single list migration', () => {
     assert.equal(await revealGiftLists(db, send, new Date('2026-12-26T06:00:00Z')), 2);
   });
 
+  test('a list copied in part is not revealed by the old lists either', async () => {
+    await db.doc('migrations/singleList/lists/noel-ines').set({ status: 'partial' });
+    const send: Sender = async () => 'ok';
+    // Only the surprise list, never marked, is revealed the old way.
+    assert.equal(await revealGiftLists(db, send, new Date('2026-12-26T06:00:00Z')), 1);
+    assert.equal((await lists.doc('noel-ines').get()).get('revealed'), false);
+    assert.equal((await lists.doc('surprise-ines').get()).get('revealed'), true);
+  });
+
   test('nothing while the switch is off', async () => {
     await db.doc('config/app').set({ features: { gifts: true } });
     assert.equal(await migrateToSingleList(db), 0);

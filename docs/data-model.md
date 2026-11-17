@@ -421,7 +421,7 @@ Ce que le membre prévoit d'offrir. Seul ce membre lit et écrit son carnet : ni
 
 ### `migrations/singleList/lists/{listId}` (récit 9 ter, « Liste unique »)
 
-Écrit par la fonction seule, jamais lu par l'appli. Une liste n'est copiée que si tous ceux qui liraient sa copie la voient déjà (ses `viewerIds` couvrent toute la famille sauf la personne, les enfants sans l'appli mis à part). Sinon elle reste telle quelle : `status: 'skipped'`, `reason: 'audience'`, `missing` (le nombre de membres qui la verraient en plus). Une liste copiée sans erreur porte `status: 'copied'` : tant que l'interrupteur est allumé, la révélation du matin des anciennes listes la laisse de côté, puisque ses cadeaux sont dévoilés un par un depuis « Mes envies » et les idées. Champ commun : `at`.
+Écrit par la fonction seule, jamais lu par l'appli. Une liste n'est copiée que si tous ceux qui liraient sa copie la voient déjà (ses `viewerIds` couvrent toute la famille sauf la personne, les enfants sans l'appli mis à part). Sinon elle reste telle quelle : `status: 'skipped'`, `reason: 'audience'`, `missing` (le nombre de membres qui la verraient en plus). Une liste copiée porte `status: 'copied'`, ou `'partial'` si un article a échoué (il est repris au prochain allumage) : tant que l'interrupteur est allumé, la révélation du matin des anciennes listes la laisse de côté dans les deux cas, puisque ses cadeaux sont dévoilés un par un depuis « Mes envies » et les idées. Champ commun : `at`.
 
 ### `notebooks/{memberId}/budgets/{budgetId}`
 
