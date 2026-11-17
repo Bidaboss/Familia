@@ -63,6 +63,7 @@ private val HELP: Map<Feature, Int> = mapOf(
     Feature.MyReminders to R.string.feature_help_my_reminders,
     Feature.Turns to R.string.feature_help_turns,
     Feature.PackingList to R.string.feature_help_packing_list,
+    Feature.FirstSteps to R.string.feature_help_first_steps,
 )
 
 @StringRes

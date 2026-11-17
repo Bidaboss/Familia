@@ -235,6 +235,7 @@
     <string name="feature_help_year_in_review">Le récit de l\'année : sur l\'Accueil du 26/12 au 10/01, et toute l\'année dans le tiroir, sous Se souvenir.</string>
     <string name="feature_help_my_reminders">Sur la fiche d\'un événement, « Me le rappeler » : un rappel privé. Les rappels par défaut sont dans Notifications.</string>
     <string name="feature_help_turns">Dans Entraide, « À qui le tour ? » : un tour de rôle entre foyers, pour recevoir ou organiser.</string>
+    <string name="feature_help_first_steps">Sur l\'Accueil, une carte propose à chacun 3 gestes pendant 14 jours : sa photo, ses goûts, une réaction.</string>
     <string name="feature_help_packing_list">Dans un voyage, « À emporter » : la liste pour tout le monde, et « Ma valise ».</string>
     <string name="feature_home">Accueil</string>
     <string name="feature_gifts">Listes et cadeaux</string>
