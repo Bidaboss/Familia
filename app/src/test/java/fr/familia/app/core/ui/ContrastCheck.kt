@@ -13,6 +13,7 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.test.ComposeTimeoutException
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
@@ -48,15 +49,22 @@ val allLooks: List<Look> = listOf(Look("Classique clair", FamiliaThemeId.Classic
  */
 fun ComposeContentTestRule.checkContrast(look: Look, screens: List<Pair<String, @Composable () -> Unit>>) {
     var shown by mutableIntStateOf(0)
+    // The clock moves only when told to: a slideshow or a spinner never stops, and would keep the test waiting.
+    mainClock.autoAdvance = false
     setContent {
         FamiliaTheme(darkTheme = look.dark, theme = look.theme) { Surface { screens[shown].second() } }
     }
     val problems = mutableListOf<String>()
     screens.forEachIndexed { index, (name, _) ->
         shown = index
-        waitForIdle()
-        problems += lowContrast().map { "${look.name} › $name › $it" }
+        mainClock.advanceTimeBy(SETTLE_MS)
+        problems += try {
+            lowContrast().map { "${look.name} › $name › $it" }
+        } catch (e: ComposeTimeoutException) {
+            listOf("${look.name} › $name › l'écran ne se pose pas : ${e.message?.take(120)}")
+        }
     }
+    mainClock.autoAdvance = true
     assertTrue("contraste trop faible :\n" + problems.joinToString("\n"), problems.isEmpty())
 }
 
@@ -112,6 +120,9 @@ private fun measure(pixels: IntArray, width: Int, box: Rect): Measure? {
 }
 
 private const val MIN_PIXELS = 3
+
+/** Time given to a screen to finish its entrance animations before it is measured. */
+private const val SETTLE_MS = 1_500L
 
 private fun SemanticsNode.isDisabled(): Boolean {
     var node: SemanticsNode? = this
