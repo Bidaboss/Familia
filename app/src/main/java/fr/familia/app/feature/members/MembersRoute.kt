@@ -1,5 +1,7 @@
 package fr.familia.app.feature.members
 
+import fr.familia.app.core.model.Feature
+import fr.familia.app.core.ui.LocalFeatureFlags
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -52,5 +54,6 @@ fun MembersRoute(
         photoFailed = photoFailed,
         onPhotoFailureShown = viewModel::photoFailureShown,
         onOpenWishes = onOpenWishes,
+        r1 = LocalFeatureFlags.current.isOn(Feature.PresentationR1bis),
     )
 }

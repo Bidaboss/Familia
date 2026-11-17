@@ -16,10 +16,12 @@ import fr.familia.app.core.model.HelpRequest
 import fr.familia.app.core.model.Poll
 import fr.familia.app.core.model.PollVote
 import fr.familia.app.core.model.Rsvp
+import fr.familia.app.core.model.RsvpStatus
 import fr.familia.app.core.model.TripArrival
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -31,6 +33,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import java.time.Instant
 import java.time.LocalDate
 
@@ -147,6 +152,35 @@ class HomeViewModel(
     }
 
     /** A card that cannot load shows nothing, and the others still show. */
+    private val _answerFailed = MutableStateFlow(false)
+
+    /** Set when an answer from the Accueil (« J'y vais » / « Non ») did not reach the server. */
+    val answerFailed: StateFlow<Boolean> = _answerFailed.asStateFlow()
+
+    /**
+     * My own answer to an event, straight from « À faire » (R1 bis). The card leaves the list once
+     * the answer is read back, as if it was given on the event.
+     */
+    fun answer(eventId: String, going: Boolean) {
+        val repo = rsvps ?: return
+        viewModelScope.launch {
+            try {
+                // Offline, the write waits in the cache and is sent later: not a failure.
+                withTimeoutOrNull(ANSWER_TIMEOUT_MILLIS) {
+                    repo.setRsvp(eventId, currentMemberId, if (going) RsvpStatus.Yes else RsvpStatus.No, answeredBy = currentMemberId)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _answerFailed.value = true
+            }
+        }
+    }
+
+    fun answerFailureShown() {
+        _answerFailed.value = false
+    }
+
     private fun <T> bonus(source: Flow<T>?, empty: T): Flow<T> =
         (source ?: flowOf(empty))
             .onStart { emit(empty) }
@@ -155,3 +189,5 @@ class HomeViewModel(
                 emit(empty)
             }
 }
+
+private const val ANSWER_TIMEOUT_MILLIS = 10_000L
