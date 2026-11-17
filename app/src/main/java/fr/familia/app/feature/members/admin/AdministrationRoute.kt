@@ -12,6 +12,7 @@ import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Feature
 import fr.familia.app.feature.discover.Discover
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.crashGroups
 import fr.familia.app.core.model.newCount
 import fr.familia.app.core.share.hasInstallLink
 import fr.familia.app.core.share.shareApp
@@ -19,6 +20,7 @@ import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.viewas.LocalViewAs
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import java.text.Collator
 import java.util.Locale
 
@@ -32,6 +34,8 @@ fun AdministrationRoute(
     onOpenUsage: (() -> Unit)? = null,
     /** « Retours » (récit 6 sexies). */
     onOpenFeedback: (() -> Unit)? = null,
+    /** « Plantages » (récit 6 sexies, rév. 220). */
+    onOpenCrashes: (() -> Unit)? = null,
 ) {
     val viewModel: AdministrationViewModel = viewModel(
         factory = viewModelFactory {
@@ -66,6 +70,11 @@ fun AdministrationRoute(
     val context = LocalContext.current
     val feedbacks = remember(container) { container?.feedbackRepository?.observeAll()?.catch { emit(emptyList()) } ?: flowOf(emptyList()) }
     val feedback by feedbacks.collectAsStateWithLifecycle(initialValue = emptyList())
+    // Each kind still there is to look at: « Marquer comme réglé » removes it.
+    val crashKinds = remember(container) {
+        container?.crashRepository?.observeAll()?.map { crashGroups(it).size }?.catch { emit(0) } ?: flowOf(0)
+    }
+    val crashCount by crashKinds.collectAsStateWithLifecycle(initialValue = 0)
     AdministrationScreen(
         state = state,
         onBack = onBack,
@@ -93,6 +102,8 @@ fun AdministrationRoute(
         onShareApp = if (hasInstallLink()) { { shareApp(context, currentMember.firstName) } } else null,
         onOpenFeedback = onOpenFeedback,
         feedbackUnseen = newCount(feedback),
+        onOpenCrashes = onOpenCrashes.takeIf { container?.crashRepository != null },
+        crashCount = crashCount,
         // Shown while « À découvrir » is on (always for the admin principal while in test).
         discoverOrder = Discover.order(discoverKeys),
         discoverInTutorial = Discover.inTutorial(flags::isOn),

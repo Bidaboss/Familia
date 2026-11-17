@@ -55,8 +55,8 @@ export interface Notice {
   pollId?: string;
   /** A time capsule that just opened (récit 39). */
   capsuleId?: string;
-  /** « Une idée ? Un souci ? » (récit 6 sexies): `list` opens Retours, `mine` opens « Mes demandes ». */
-  feedback?: 'list' | 'mine';
+  /** « Une idée ? Un souci ? » (récit 6 sexies): `list` opens Retours, `mine` opens « Mes demandes », `crashes` opens Plantages. */
+  feedback?: 'list' | 'mine' | 'crashes';
   /** « La semaine de la famille » (récit 36): the Sunday of the week, the app opens its screen. */
   recapWeek?: string;
   /** Vœux d'anniversaire (récit 36): the member celebrated, the app opens their page. */

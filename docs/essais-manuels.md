@@ -16,6 +16,14 @@ PRD, récit 3 et cas limite « Pas de réseau » : le planning reste consultable
 8. Désactive le mode avion sur le premier téléphone. **Attendu :** le bandeau disparaît, et l'événement apparaît sur le deuxième téléphone en moins d'une minute.
 9. Supprime l'événement « Essai hors ligne ».
 
+Au lieu du repas, où le réseau peut être faible (passe hors ligne du 16/11). Toujours en mode avion, sur le premier téléphone :
+
+10. Accueil. **Attendu :** le bandeau « Hors ligne » et les dernières données, sans écran d'erreur.
+11. Sur un événement, réponds « Je viens », puis change pour « Peut-être », deux fois de suite. **Attendu :** la réponse change tout de suite et aucun message d'erreur ne s'affiche. Au retour du réseau, le deuxième téléphone montre une seule réponse, la dernière.
+12. « Qui apporte quoi » : ajoute « Essai gâteau ». **Attendu :** le champ se vide et la ligne apparaît tout de suite, une seule fois. Au retour du réseau, il n'y a qu'une ligne sur le deuxième téléphone.
+13. Bonnes nouvelles : écris un texte avec une photo et publie. **Attendu :** « Il faut du réseau pour envoyer les photos », sans rien publier. Ton texte et ta photo restent dans le formulaire. Désactive le mode avion puis publie : **Attendu :** une seule bonne nouvelle.
+14. Réactive le réseau. **Attendu :** le bandeau disparaît et tout arrive sur le deuxième téléphone, sans doublon.
+
 À noter si ça se passe mal : l'étape qui échoue, ce que tu vois à l'écran (une capture si possible) et la version de l'appli (en bas de l'onglet Famille).
 
 ## Passage de minuit (lot 5)
@@ -92,10 +100,44 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 2. Active « Mon foyer ». **Attendu :** l'interrupteur s'allume et seuls les événements de ton foyer restent. Éteins-le : toute la famille revient.
 3. En police à 200 %, **attendu :** rien n'est coupé, et les boutons gardent au moins la hauteur d'un doigt.
 
+## Plantages (récit 6 sexies, rév. 220)
+
+Avec le compte de l'admin principal, après « Publier Firebase ».
+
+1. Administration : **Attendu :** une ligne « Plantages », sans badge.
+2. Ouvre-la. **Attendu :** « Aucun plantage », et « Faire un essai » en bas.
+3. Touche « Faire un essai », puis « Fermer l'appli ». **Attendu :** l'appli se ferme.
+4. Rouvre l'appli. **Attendu :** dans la minute, une notification « Nouveau plantage » qui parle de CrashTestException. La toucher ouvre Plantages, avec une carte « CrashTestException », « 1 fois, chez 1 personne », la version et l'écran « Crashes ».
+5. Refais l'essai, puis rouvre. **Attendu :** la même carte passe à « 2 fois », et aucune notification de plus (même sorte, et une seule par jour).
+6. « Copier pour Claude », puis colle le texte dans une note. **Attendu :** l'erreur, le nombre de fois, les versions, le téléphone et la trace. Aucun prénom.
+7. « Marquer comme réglé », puis confirme. **Attendu :** la carte disparaît, et le badge d'Administration aussi.
+8. Avec le compte d'un autre adulte : **Attendu :** pas de ligne « Plantages » dans son menu, puisqu'il n'a pas Administration.
+
+## Un enfant suivi par Family Link se connecte (avant le 21)
+
+À faire une fois avant le repas, avec le téléphone d'un enfant suivi par Family Link et le téléphone du parent qui le suit. Si ça bloque, il reste une solution simple pour le jour J (voir le repli à la fin).
+
+Avant de commencer :
+- Dans Familia, sur ton téléphone : onglet Famille, fiche de l'enfant. **Attendu :** son profil est « Enfant, avec l'appli », et son adresse Google est notée exactement comme sur son téléphone (Réglages Android > Google > le nom en haut).
+- Le parent a l'appli Family Link ouverte et connectée.
+
+1. Sur le téléphone de l'enfant, ouvre le lien de téléchargement et touche le fichier de Familia. **Attendu :** Android propose d'installer. S'il dit que l'installation est bloquée ou demande l'accord d'un parent, passe au repli A.
+2. Ouvre Familia et touche « Se connecter avec Google », puis choisis le compte de l'enfant. **Attendu :** Google dit qu'il faut l'accord d'un parent. Selon la version, c'est le parent qui tape son mot de passe sur le téléphone de l'enfant, ou une demande qui arrive dans Family Link sur le téléphone du parent.
+3. Le parent accepte, avec son mot de passe ou dans Family Link (la demande est en général dans les notifications de Family Link, ou sur la fiche de l'enfant). **Attendu :** l'enfant revient dans Familia et voit le tuto.
+4. Fin du tuto. **Attendu :** l'enfant arrive sur l'appli avec son prénom, et rien de ce qui est réservé aux adultes.
+5. Si l'écran dit « Le compte … ne fait pas partie de la famille », compare l'adresse affichée avec celle de la fiche, corrige-la dans Familia, puis touche « Essayer un autre compte » et recommence.
+6. Si Google refuse sans proposer l'accord d'un parent, le parent regarde dans Family Link, sur la fiche de l'enfant, les réglages du compte et ceux des applis et services tiers liés au compte Google. Il autorise la connexion, puis recommence l'étape 2.
+
+Repli si ça bloque :
+- **A. L'installation est bloquée** (Family Link bloque souvent les applis qui ne viennent pas du Play Store) : sur ce téléphone, l'enfant n'aura pas l'appli pour le 21. Sur ta fiche de l'enfant, passe son profil à « Enfant, sans l'appli » (retire l'adresse Google). Ses parents répondent pour lui à « Je viens », et il est montré aux autres comme tous les enfants sans téléphone.
+- **B. La connexion ne passe pas avant le repas** : même chose, profil « Enfant, sans l'appli » pour le 21, et on retente après, au calme, avec le parent.
+- **Pendant la démo** : ne tente pas la connexion d'un enfant Family Link devant tout le monde. Fais-la avant, ou garde-la pour après.
+
 ## Tuto : écrans Cadeaux et Entraide (AVIS-18)
 
 1. Dans Administration > Modules, allume Cadeaux et Entraide. Sur un autre téléphone, avec un compte qui n'est pas admin, ouvre l'appli pour la première fois. **Attendu :** après « Dire si tu viens », les écrans « Les cadeaux » puis « L'entraide » s'affichent, et « Rester prévenu » reste le dernier (6 sur 6).
 2. Éteins Entraide, puis touche « Revoir le tuto » dans l'Aide. **Attendu :** l'écran « L'entraide » n'apparaît plus (5 écrans).
+3. Sur un téléphone neuf, en Wi-Fi lent (ou en mode avion juste après la connexion, puis réactivé), touche « Passer » dès le premier écran du tuto. **Attendu :** tu restes sur « Rester prévenu », même quand les écrans Cadeaux et Entraide s'ajoutent (le compteur passe de « 4 sur 4 » à « 6 sur 6 »).
 
 ## Écran d'Accueil (récit 29)
 

@@ -51,3 +51,18 @@ fun onboardingPages(
     OnboardingPage.HelpRequests.takeIf { helpRequests },
     OnboardingPage.Notifications,
 )
+
+/**
+ * Where [current] sits in [pages]. On a new phone the tutorial opens before the family and
+ * config/app are read, so Cadeaux and Entraide can join the list while it shows: the member keeps
+ * the screen they are on (a « Passer » stays on Notifications) instead of jumping to another one.
+ * Welcome and Answer count as the same screen whatever their variant.
+ */
+fun positionOf(pages: List<OnboardingPage>, current: OnboardingPage): Int =
+    pages.indexOfFirst { it.slot() == current.slot() }.coerceAtLeast(0)
+
+private fun OnboardingPage.slot(): OnboardingPage = when (this) {
+    OnboardingPage.WelcomeUsage -> OnboardingPage.Welcome
+    OnboardingPage.AnswerSelf -> OnboardingPage.Answer
+    else -> this
+}
