@@ -6,6 +6,7 @@ import fr.familia.app.core.model.Poll
 import fr.familia.app.core.model.PollVote
 import fr.familia.app.feature.events.FakeEvents
 import fr.familia.app.feature.events.FakeMembers
+import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.polls.detail.PollDetailUiState
 import fr.familia.app.feature.polls.detail.PollDetailViewModel
 import fr.familia.app.feature.polls.edit.AskShortcut
@@ -75,6 +76,32 @@ class PollViewModelsTest {
         val state = viewModel.uiState.value as PollsUiState.Success
         assertFalse(state.canAsk)
         assertTrue(state.open.single().meToAnswer)
+    }
+
+    // --- The polls of an event (récit 2 quater) ---------------------------------------------------
+
+    @Test
+    fun `a poll launched from an event asks its guests and is linked to it`() = runTest {
+        val repo = FakePolls()
+        val events = FakeEvents(listOf(TestFamily.event("e1", TestFamily.adult, EventTarget.ForHousehold("h1"))))
+        val viewModel = PollEditViewModel(repo, FakeMembers(), "adult1", today = { today }, eventId = "e1", events = events)
+        val editing = viewModel.uiState.value as PollEditUiState.Editing
+        assertEquals(setOf("admin1", "adult1", "kid1"), editing.form.askedIds)
+        viewModel.update { it.copy(question = "Quel jour ?", dates = listOf(DateChoice(today.plusDays(3)), DateChoice(today.plusDays(4)))) }
+        viewModel.save()
+        assertEquals("e1", repo.created.single().eventId)
+    }
+
+    @Test
+    fun `the page of an event lists only its own polls`() = runTest {
+        val repo = FakePolls(listOf(poll("free"), poll("ofEvent").copy(eventId = "e1"), poll("ofOther").copy(eventId = "e2")))
+        val viewModel = PollsViewModel(repo, FakeMembers(), "adult1", now = { now }, today = flowOf(today), eventId = "e1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+        val state = viewModel.uiState.value as PollsUiState.Success
+        assertEquals(listOf("ofEvent"), (state.open + state.closed).map { it.poll.id })
+        val all = PollsViewModel(repo, FakeMembers(), "adult1", now = { now }, today = flowOf(today))
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { all.uiState.collect {} }
+        assertEquals(3, (all.uiState.value as PollsUiState.Success).let { it.open.size + it.closed.size })
     }
 
     // --- The form --------------------------------------------------------------------------------

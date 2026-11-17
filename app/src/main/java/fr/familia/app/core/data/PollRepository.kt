@@ -25,6 +25,8 @@ interface PollRepository {
         closesAt: Instant?,
         authorId: String,
         authorName: String,
+        /** The event it is asked from (récit 2 quater), or null. */
+        eventId: String? = null,
     ): String
 
     /** The vote of [memberId], written by [votedBy] (themselves or one of their adults). */

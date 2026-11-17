@@ -124,8 +124,9 @@ private fun SectionTitle(text: String) {
     Text(text, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
 }
 
+/** One poll of a list: its kind, its question, who asked, what is left to answer or its result. Stateless. */
 @Composable
-private fun PollCard(row: PollRow, today: LocalDate, onOpen: (String) -> Unit) {
+internal fun PollCard(row: PollRow, today: LocalDate, onOpen: (String) -> Unit) {
     val poll = row.poll
     ClayCard(
         modifier = Modifier.fillMaxWidth(),
