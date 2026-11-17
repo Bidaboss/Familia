@@ -126,6 +126,8 @@ class FirestoreHelpRequestRepository(private val db: FirebaseFirestore) : HelpRe
 
     override suspend fun decline(id: String, memberId: String) = update(id, "declinedBy" to memberId)
 
+    override suspend fun markUnavailable(id: String, memberId: String) = update(id, "unavailableIds" to FieldValue.arrayUnion(memberId))
+
     override suspend fun thank(id: String) = update(id, "thankedAt" to FieldValue.serverTimestamp())
 
     override suspend fun cancel(id: String) = update(id, "status" to HelpStatus.Cancelled.firestoreValue)
@@ -158,6 +160,7 @@ class FirestoreHelpRequestRepository(private val db: FirebaseFirestore) : HelpRe
             volunteerName = getString("volunteerName"),
             volunteerNote = getString("volunteerNote"),
             declinedBy = getString("declinedBy"),
+            unavailableIds = (get("unavailableIds") as? List<*>)?.filterIsInstance<String>().orEmpty(),
             thankedAt = getTimestamp("thankedAt")?.toInstant(),
             createdAt = getTimestamp("createdAt")?.toInstant(),
             photo = getString("photo"),

@@ -62,6 +62,7 @@ class FakeHelpRequests(
     override suspend fun setVolunteerNote(id: String, note: String?) = change(id) { it.copy(volunteerNote = note) }
 
     override suspend fun decline(id: String, memberId: String) = change(id) { it.copy(declinedBy = memberId) }
+    override suspend fun markUnavailable(id: String, memberId: String) = change(id) { it.copy(unavailableIds = it.unavailableIds + memberId) }
 
     override suspend fun thank(id: String) = change(id) { it.copy(thankedAt = java.time.Instant.EPOCH) }
 

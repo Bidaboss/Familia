@@ -52,6 +52,8 @@ data class HelpRequest(
     /** The volunteer's short word, 200 characters at most (récit 16, spec rév. 8). */
     val volunteerNote: String? = null,
     val declinedBy: String? = null,
+    /** « Pas dispo » of the others warned (R1 bis): the request leaves their « On a besoin de toi ». */
+    val unavailableIds: List<String> = emptyList(),
     val thankedAt: Instant? = null,
     val createdAt: Instant? = null,
     /**
