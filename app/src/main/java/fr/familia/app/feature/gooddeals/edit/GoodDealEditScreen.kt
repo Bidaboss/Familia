@@ -58,6 +58,9 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.util.Locale
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
 
 /** The form of a bon plan (PRD, récit 45). Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -192,7 +195,7 @@ private fun Form(state: GoodDealEditUiState.Editing, onChange: ((GoodDealForm) -
             PhotoField(stored = state.storedPhoto, edit = form.photo, onEdit = { edit -> onChange { it.copy(photo = edit) } }, enabled = enabled)
         }
         if (state.saveFailed) {
-            Text(stringResource(R.string.gooddeal_save_failed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+            Text(stringResource(R.string.gooddeal_save_failed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
         }
         Button(onClick = onSave, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Text(stringResource(if (state.isNew) R.string.gooddeal_publish else R.string.gooddeal_save))

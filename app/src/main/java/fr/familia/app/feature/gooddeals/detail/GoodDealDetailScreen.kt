@@ -58,6 +58,8 @@ import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 import java.time.Instant
 import java.time.LocalDate
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
 
 /** One bon plan or bonne adresse (PRD, récit 45). Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -151,7 +153,7 @@ private fun Content(
             InterestCard(state, onToggleInterest)
         }
         if (state.actionFailed) {
-            Text(stringResource(R.string.gooddeal_action_failed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+            Text(stringResource(R.string.gooddeal_action_failed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
         }
         if (state.canManage) {
             if (onEdit != null) {

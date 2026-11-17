@@ -40,6 +40,10 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 
 private val dayLabel = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
 
@@ -95,7 +99,7 @@ fun ThinkOfMeContent(
             NoteForm(state, today, notedForTeen, firstName, onNote)
         }
         if (state.failed) {
-            Text(stringResource(R.string.think_of_me_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.think_of_me_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
         }
     }
 }
@@ -136,6 +140,7 @@ private fun CheerCard(cheer: MomentCheer) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun UpcomingLine(moment: Moment, state: ThinkOfMeState, firstName: String, onAccept: (Moment) -> Unit, onRemove: (Moment) -> Unit) {
     ClayCard(Modifier.fillMaxWidth()) {
@@ -148,7 +153,7 @@ private fun UpcomingLine(moment: Moment, state: ThinkOfMeState, firstName: Strin
         when {
             moment.pending && state.canAccept -> {
                 Text(stringResource(R.string.think_of_me_noted_by, moment.authorName), style = MaterialTheme.typography.bodyMedium)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilledTonalButton(onClick = { onAccept(moment) }, enabled = !state.saving, modifier = Modifier.heightIn(min = 56.dp)) {
                         Text(stringResource(R.string.think_of_me_accept))
                     }

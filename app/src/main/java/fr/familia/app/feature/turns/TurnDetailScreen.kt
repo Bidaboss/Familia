@@ -61,6 +61,9 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import fr.familia.app.core.model.TurnSwap
 
 private val DONE_DAY = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.FRENCH).withZone(ZoneId.of("Europe/Paris"))
 
@@ -184,6 +187,7 @@ private fun Detail(state: TurnDetailUiState.Success, actions: TurnDetailActions)
             val line = stringResource(R.string.turns_order_line, index + 1, name)
             Text(
                 when {
+                    place.isNow && place.isMine -> stringResource(R.string.turns_order_now_us, line)
                     place.isNow -> stringResource(R.string.turns_order_now, line)
                     else -> line
                 },
@@ -227,6 +231,7 @@ private fun Detail(state: TurnDetailUiState.Success, actions: TurnDetailActions)
 }
 
 /** The pending exchange, as each household sees it, or « Proposer un échange ». */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SwapCard(state: TurnDetailUiState.Success, actions: TurnDetailActions, onPick: () -> Unit) {
     val rights = state.rights
@@ -235,7 +240,7 @@ private fun SwapCard(state: TurnDetailUiState.Success, actions: TurnDetailAction
     when {
         swap != null && rights.answerSwap -> ClayCard(Modifier.fillMaxWidth(), tint = ClayTint.Household) {
             Text(stringResource(R.string.turns_swap_for_us, swap.byName, other), style = MaterialTheme.typography.bodyLarge)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = actions.onAcceptSwap, enabled = !state.isWorking, modifier = Modifier.heightIn(min = 48.dp)) {
                     Text(stringResource(R.string.turns_swap_accept))
                 }
@@ -307,11 +312,11 @@ private fun SwapDialog(targets: List<Household>, onDismiss: () -> Unit, onPick: 
     )
 }
 
-@FamiliaPreviews
-@Composable
-private fun TurnDetailScreenPreview() {
-    val turn = Turn("t1", "Qui reçoit Noël", listOf("h1", "h2", "h3"), 0, listOf(TurnDone("h3", "Noël 2025", Instant.parse("2025-12-26T10:00:00Z"))), null, "camille")
-    val state = TurnDetailUiState.Success(
+/** Fictional data for previews and screenshots; [swapForUs]: another household asks us to swap. */
+internal fun previewTurnDetail(swapForUs: Boolean = false): TurnDetailUiState.Success {
+    val swap = if (swapForUs) TurnSwap("h2", "h1", 1, 0, "ines", "Inès") else null
+    val turn = Turn("t1", "Qui reçoit Noël", listOf("h1", "h2", "h3"), 0, listOf(TurnDone("h3", "Noël 2025", Instant.parse("2025-12-26T10:00:00Z"))), swap, "camille")
+    return TurnDetailUiState.Success(
         turn = turn,
         nowName = "Foyer Camille",
         nextName = "Foyer Inès",
@@ -321,8 +326,14 @@ private fun TurnDetailScreenPreview() {
             TurnPlace("h3", "Foyer Noé", isMine = false, isNow = false),
         ),
         history = listOf(TurnHistoryLine(turn.history.first(), "Foyer Noé")),
-        rights = TurnRights(edit = true, done = true, skip = true, askSwap = true, answerSwap = false, withdrawSwap = false, createEvent = true),
+        rights = TurnRights(edit = true, done = true, skip = true, askSwap = !swapForUs, answerSwap = swapForUs, withdrawSwap = false, createEvent = true),
         swapTargets = listOf(Household("h2", "Foyer Inès"), Household("h3", "Foyer Noé")),
+        swapOtherName = if (swapForUs) "Foyer Inès" else "",
     )
-    FamiliaTheme { Surface { TurnDetailScreen(state, TurnDetailActions(), {}) } }
+}
+
+@FamiliaPreviews
+@Composable
+private fun TurnDetailScreenPreview() {
+    FamiliaTheme { Surface { TurnDetailScreen(previewTurnDetail(), TurnDetailActions(), {}) } }
 }

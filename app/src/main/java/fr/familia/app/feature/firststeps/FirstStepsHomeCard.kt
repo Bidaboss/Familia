@@ -165,7 +165,9 @@ private fun StepLine(line: FirstStepLine, onOpen: () -> Unit) {
     )
     val state = stringResource(if (line.done) R.string.first_steps_done else R.string.first_steps_to_do)
     Row(
-        Modifier.fillMaxWidth().heightIn(min = 48.dp).semantics { stateDescription = state },
+        // A gesture done is read as one line with its state; one to do keeps its link, which says it.
+        Modifier.fillMaxWidth().heightIn(min = 48.dp)
+            .then(if (line.done) Modifier.semantics(mergeDescendants = true) { stateDescription = state } else Modifier),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -178,7 +180,7 @@ private fun StepLine(line: FirstStepLine, onOpen: () -> Unit) {
         if (line.done) {
             Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
         } else {
-            ClayLink(label, onOpen, Modifier.weight(1f))
+            ClayLink(label, onOpen, Modifier.weight(1f).semantics { stateDescription = state })
         }
     }
 }

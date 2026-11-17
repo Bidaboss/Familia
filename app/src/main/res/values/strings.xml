@@ -2789,6 +2789,7 @@
     <string name="turns_done">C\'est fait</string>
     <string name="turns_skip">On passe notre tour</string>
     <string name="turns_order_now">%1$s, c\'est son tour</string>
+    <string name="turns_order_now_us">%1$s, c\'est ton tour</string>
     <string name="turns_history_title">Déjà fait</string>
     <string name="turns_history_empty">Rien encore.</string>
     <string name="turns_history_more">Voir plus</string>

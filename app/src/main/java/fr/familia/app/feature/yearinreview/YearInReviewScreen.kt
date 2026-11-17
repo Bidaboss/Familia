@@ -50,6 +50,11 @@ import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.FamiliaPreviews
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.input.pointer.pointerInput
 
 private val dayMonth = DateTimeFormatter.ofPattern("d MMMM", Locale.FRANCE)
 
@@ -96,8 +101,31 @@ fun YearInReviewScreen(state: YearInReviewUiState, year: Int, onClose: () -> Uni
                             Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.year_close))
                         }
                     }
-                    Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Page(pages[current], year, onClose)
+                    // At 200 % a page can be taller than the screen: it scrolls, and a tap on its left or
+                    // right half still turns the page (the halves behind it do not get the touch any more).
+                    // TalkBack keeps « Précédent » and « Suivant » from the halves.
+                    BoxWithConstraints(
+                        Modifier.weight(1f).fillMaxWidth().pointerInput(current, last) {
+                            detectTapGestures { offset ->
+                                if (offset.x < size.width / 2) {
+                                    if (current > 0) index = current - 1
+                                } else if (current < last) {
+                                    index = current + 1
+                                } else {
+                                    onClose()
+                                }
+                            }
+                        },
+                    ) {
+                        val pageHeight = maxHeight
+                        val scroll = remember(current) { ScrollState(0) }
+                        Column(
+                            Modifier.fillMaxWidth().verticalScroll(scroll).heightIn(min = pageHeight),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Page(pages[current], year, onClose)
+                        }
                     }
                 }
             }
