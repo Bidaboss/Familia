@@ -2576,6 +2576,24 @@
     <string name="carpool_failed">Ça n\'a pas marché. Il n\'y a peut-être plus de place : regarde la fiche à nouveau.</string>
     <!-- Récit 55 : Notre année en famille -->
     <string name="feature_year_in_review">Notre année</string>
+    <string name="feature_my_reminders">Mes rappels</string>
+    <!-- « Me le rappeler » (PRD rév. 248, récit 56). -->
+    <string name="reminder_h1">1 h avant</string>
+    <string name="reminder_h3">3 h avant</string>
+    <string name="reminder_morning">le matin à 8 h</string>
+    <string name="reminder_d2">2 jours avant</string>
+    <string name="reminder_w1">1 semaine avant</string>
+    <string name="reminders_title">Me le rappeler</string>
+    <string name="reminders_none">Aucun rappel</string>
+    <string name="reminders_by_default">Par défaut : %1$s</string>
+    <string name="reminders_every_time_summary">Toutes les fois : %1$s</string>
+    <string name="reminders_private">C\'est privé : toi seul le vois.</string>
+    <string name="reminders_this_time">Cette fois seulement</string>
+    <string name="reminders_every_time">Toutes les fois</string>
+    <string name="reminders_save">Enregistrer</string>
+    <string name="reminders_failed">Le rappel n\'a pas pu être enregistré. Vérifie la connexion.</string>
+    <string name="reminders_defaults_title">Rappels quand je viens</string>
+    <string name="reminders_defaults_help">Quand tu réponds « Je viens », Familia te le rappelle à ces moments-là, sauf si tu choisis autre chose sur l\'événement. C\'est privé.</string>
     <string name="feature_turns">À qui le tour ?</string>
     <string name="year_title">Notre année %1$d</string>
     <string name="year_intro_body">Quelques images de l\'année de la famille. Touche la droite de l\'écran pour avancer, la gauche pour revenir.</string>

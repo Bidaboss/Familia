@@ -67,6 +67,14 @@ data class LendItemDetailDestination(val itemId: String)
 @Serializable
 data class LendItemEditDestination(val itemId: String? = null)
 
+/** À qui le tour ? (récit 58): one rotation, its order and history. */
+@Serializable
+data class TurnDetailDestination(val turnId: String)
+
+/** À qui le tour ? (récit 58): a new rotation ([turnId] null) or a change to one. */
+@Serializable
+data class TurnEditDestination(val turnId: String? = null)
+
 /** All the « Bonnes nouvelles », opened from the home card (récit 32). */
 @Serializable
 data object GoodNewsFeedDestination
@@ -127,9 +135,12 @@ data class EventPollEditDestination(val eventId: String)
 @Serializable
 data object JoinMeDestination
 
-/** Event form opened from the Planning tab: a new event when [eventId] is null. */
+/**
+ * Event form opened from the Planning tab: a new event when [eventId] is null, its title already
+ * written when [title] is set (« Créer l'événement » of « À qui le tour ? », récit 58).
+ */
 @Serializable
-data class EventEditDestination(val eventId: String? = null)
+data class EventEditDestination(val eventId: String? = null, val title: String? = null)
 
 /** Admin form opened from the Famille tab: a new member when [memberId] is null. */
 @Serializable

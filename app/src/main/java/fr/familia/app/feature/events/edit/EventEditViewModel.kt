@@ -49,6 +49,8 @@ class EventEditViewModel(
     /** recurringEvents is on: « Se répète » shows. An event of a series is handled as one either way. */
     private val recurring: Boolean = false,
     private val today: () -> LocalDate = LocalDate::now,
+    /** A new event's title already written (« Créer l'événement » of « À qui le tour ? », récit 58). */
+    private val prefillTitle: String? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<EventEditUiState>(EventEditUiState.Loading)
@@ -109,7 +111,7 @@ class EventEditViewModel(
         initialForm = when {
             existing != null && occurrenceOf != null -> EventForm.from(existing, occurrenceOf)
             existing != null -> EventForm.from(existing)
-            else -> EventForm(target = allowed.first())
+            else -> EventForm(title = prefillTitle.orEmpty().take(MAX_TITLE), target = allowed.first())
         }
         val draft = savedState?.let { restoreDraft(it) }
             ?.takeIf { d -> d.target == null || choices.any { it.target == d.target } }

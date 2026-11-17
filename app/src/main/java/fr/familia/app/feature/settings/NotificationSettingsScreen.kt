@@ -74,6 +74,8 @@ fun NotificationSettingsScreen(
     onLevelChange: (NotificationLevel) -> Unit = {},
     onFamilyChange: (NotificationFamily, Boolean) -> Unit = { _, _ -> },
     onQuietHoursChange: (Boolean) -> Unit = {},
+    /** « Rappels quand je viens » (récit 56), shown only with its switch on. */
+    defaultReminders: (@Composable () -> Unit)? = null,
 ) {
     Scaffold(
         modifier = modifier,
@@ -133,6 +135,10 @@ fun NotificationSettingsScreen(
                         checked = state.prefs.quietHours,
                         onChange = onQuietHoursChange,
                     )
+                    if (defaultReminders != null) {
+                        HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                        defaultReminders()
+                    }
                     HorizontalDivider(Modifier.padding(vertical = 8.dp))
                     SectionTitle(stringResource(R.string.notifications_details_title))
                     // The finer switches inside a family, as before.

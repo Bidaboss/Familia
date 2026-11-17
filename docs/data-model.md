@@ -1295,3 +1295,16 @@ La voiture d'un adulte qui a répondu « Je viens » : `seats` (1 à 8), `from` 
 « J'ai besoin d'une place » : `askedBy`, `updatedAt`. Effacé par le serveur quand ce membre monte dans une voiture.
 
 Côté serveur : `onRideWritten` prévient le conducteur de qui monte ou descend (avec les places restantes), et les passagers quand la voiture est retirée ou que le conducteur les fait descendre (un enfant sans l'appli, par ses adultes). « Je ne viens plus » (`onRsvpWritten`) retire la voiture du membre, le fait descendre de celle où il était, et efface sa demande. Le rappel de la veille ajoute « Tu emmènes A et B », « Tu pars avec C » ou « Noé part avec C ». Monter dans une voiture fait descendre de toute autre voiture du même événement. Un membre qui quitte la famille sort des voitures des événements à venir. Supprimer l'événement supprime ses voitures et ses demandes, sans autre notification que celle de la suppression.
+
+## Mes rappels (PRD rév. 248, récit 56)
+
+Derrière l'interrupteur `myReminders`, éteint par défaut. Interrupteur éteint, seul l'admin principal reçoit ses rappels.
+
+- `members/{memberId}/reminders/{eventId}` : `{ eventId, offsets, updatedAt }`, le choix d'un événement. Une liste `offsets` vide veut dire « pas de rappel », même si la série ou les rappels par défaut en ont.
+- `members/{memberId}/reminders/series-{seriesId}` : `{ seriesId, offsets, updatedAt }`, valable pour toutes les fois d'une série. Le choix d'un événement passe avant celui de sa série.
+- `members/{memberId}/settings/notifications.defaultReminders` : les rappels donnés aux événements où le membre a répondu « Je viens », quand il n'a rien choisi d'autre.
+- `offsets` : `h1` (1 h avant), `h3` (3 h avant), `morning` (le matin à 8 h), `d2` (2 jours avant), `w1` (1 semaine avant). Un événement « Journée » n'a ni `h1` ni `h3`, et ses autres rappels sonnent à 8 h.
+- Privé : seul le membre lit ou écrit ses rappels, même pas l'admin principal en « Voir comme ».
+- `arrivalReminder` les envoie toutes les 30 minutes sur le canal `reminders`, avec `direct: true` et par `deliver()`. Comme il a été demandé, il sonne même pendant le Mode présentation, comme « Rejoignez-moi ». Avec les heures calmes, « 2 jours avant » et « 1 semaine avant » attendent 8 h ; « 1 h avant », « 3 h avant » et « le matin » gardent leur heure. Il n'y a aucune nouvelle tâche planifiée.
+- `remindersSent/{membre_événement_rappel_date+heure}`, fermé à l'appli : chaque rappel part une seule fois. Un changement d'heure en fait un nouveau. Le TTL `expireAt` l'efface deux jours après l'événement.
+- Un événement supprimé emporte ses rappels.

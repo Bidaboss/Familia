@@ -826,6 +826,21 @@ Le rapport part chaque dimanche vers 4 h, avec la tâche `arrivalReminder`. Il n
 2. La ligne « orphanPhotos (lecture seule) : N photo(s) orpheline(s) sur M, X Ko, rien n'est supprimé » donne le bilan. Les lignes « serait supprimée … » donnent les chemins, 50 au plus.
 3. Attendu : quelques photos au plus, celles d'un envoi annulé. Une photo d'une bonne nouvelle visible dans l'appli ne doit jamais y figurer. Si c'est le cas, le signaler.
 
+## Me le rappeler (récit 56)
+
+Avec deux comptes : Camille (adulte) et Inès (adulte). « Publier Firebase » doit être passé, et l'interrupteur « Mes rappels » allumé dans Administration (l'admin principal le voit toujours).
+
+1. Avec Camille, ouvre un événement à 15 h, demain. **Attendu :** sous les réponses, la ligne « Me le rappeler », « Aucun rappel ».
+2. Touche-la. **Attendu :** « C'est privé : toi seul le vois. », puis « 1 h avant », « 3 h avant », « Le matin à 8 h », « 2 jours avant », « 1 semaine avant ». Coche « 1 h avant » et « Le matin à 8 h », puis « Enregistrer ». **Attendu :** la ligne dit « 1 h avant, le matin à 8 h ».
+3. Avec Inès, ouvre le même événement. **Attendu :** « Aucun rappel » : elle ne voit pas les rappels de Camille.
+4. Le lendemain, à 8 h puis vers 14 h. **Attendu :** Camille reçoit « Aujourd'hui : … », puis « Dans 1 h : … », à 30 minutes près. Toucher la notification ouvre l'événement.
+5. Un événement « Journée » : **Attendu :** ni « 1 h avant » ni « 3 h avant ».
+6. Un événement qui revient : coche « 2 jours avant », choisis « Toutes les fois », puis « Enregistrer ». **Attendu :** les autres fois disent « Toutes les fois : 2 jours avant ». Sur l'une d'elles, décoche tout avec « Cette fois seulement » : elle dit « Aucun rappel », les autres gardent le leur.
+7. Change l'heure de l'événement de l'étape 2 à 17 h. **Attendu :** le rappel arrive vers 16 h, pas vers 14 h. Supprime l'événement : **Attendu :** aucun rappel.
+8. Avec Inès, Notifications, « Rappels quand je viens » : coche « 1 h avant ». Réponds « Je viens » à un événement. **Attendu :** sa ligne dit « Par défaut : 1 h avant », et le rappel arrive. Réponds « Peut-être » : plus de rappel.
+9. Dans « Voir comme » : **Attendu :** pas de ligne « Me le rappeler », ni de « Rappels quand je viens ».
+10. Interrupteur éteint, avec un compte qui n'est pas l'admin principal : **Attendu :** ni la ligne ni la section, et aucun rappel n'arrive.
+
 ## Démo du 21 : album, diaporama, recettes, arbre et Qui est-ce ? sur un réseau faible
 
 À faire sur un téléphone qui a déjà ouvert ces écrans une fois avec un bon réseau, puis sur un téléphone qui ne les a jamais ouverts. Pour un réseau bridé : réglages du téléphone, Réseau mobile, Type de réseau préféré « 2G seulement » (ou s'éloigner de la box), Wi-Fi coupé.
@@ -837,3 +852,19 @@ Le rapport part chaque dimanche vers 4 h, avec la tâche `arrivalReminder`. Il n
 6. Mode avion, ouvre l'arbre généalogique. **Attendu :** l'arbre déjà vu s'affiche, avec les photos de profil ou les initiales. Jamais d'écran vide qui tourne sans fin.
 7. Mode avion, ouvre « Qui est-ce ? » sur l'Accueil puis la page de la photo. **Attendu :** la roue tourne sur la photo si elle n'a jamais été vue, puis le dessin ; le reste de la carte s'affiche. Une réponse envoyée hors ligne affiche un message d'échec, et ce qui est tapé reste dans les cases.
 8. Remets le réseau normal et rouvre chaque écran. **Attendu :** tout est revenu, sans avoir fermé l'appli.
+
+## À qui le tour ? dans Entraide (récit 58)
+
+Avec l'interrupteur « À qui le tour ? » allumé (l'admin principal le voit toujours). Il faut deux téléphones de deux foyers différents.
+1. Entraide : **Attendu :** un onglet « À qui le tour ? » après les autres. Avec 4 onglets, la rangée défile de côté. Interrupteur éteint, pour un autre membre : pas d'onglet.
+2. Sans tour : **Attendu :** « Aucun tour pour l'instant », et un bouton « Créer un tour » pour un adulte. Un enfant n'a pas le bouton.
+3. « Créer un tour » : écris « Recevoir à Noël », coche deux foyers, change l'ordre avec les flèches. Sans titre ou avec un seul foyer : **Attendu :** « Écris pour quoi c'est le tour. » ou « Il faut au moins deux foyers. ». Les foyers sont rangés par nom.
+4. Enregistré : **Attendu :** la carte dit « C'est à votre foyer » (avec « À vous ») ou « C'est à … ». Les adultes du premier foyer reçoivent « C'est votre tour », sauf toi si tu es dans ce foyer.
+5. Ouvre le tour depuis le foyer dont c'est le tour. **Attendu :** « Ensuite : … », l'ordre, « Déjà fait : Rien encore. », et les boutons « Créer l'événement », « C'est fait », « On passe notre tour ».
+6. « Créer l'événement » : **Attendu :** le formulaire d'un nouvel événement du Planning, avec le titre déjà écrit. Reviens sans rien changer : il ne demande pas d'abandonner.
+7. « C'est fait », écris « Noël 2026 », valide. **Attendu :** « Noël 2026 : … » dans l'historique, et c'est au foyer suivant, qui reçoit « C'est votre tour ».
+8. « On passe notre tour » puis confirme. **Attendu :** c'est au foyer d'après, et ton foyer prend la place suivante dans l'ordre.
+9. Depuis un foyer, « Proposer un échange », choisis l'autre foyer, puis « Envoyer la proposition ». **Attendu :** l'autre foyer reçoit la notification, et voit « Accepter » et « Refuser ». Toi, tu vois « on attend sa réponse » et « Retirer la proposition ». « Accepter » : les deux places sont échangées. « Refuser » : tu reçois la réponse, rien ne change.
+10. Un enfant ouvre le tour. **Attendu :** il voit l'ordre et l'historique, sans aucun bouton.
+11. Touche une notification « C'est votre tour ». **Attendu :** le tour s'ouvre. Interrupteur éteint pour ce membre : rien ne s'ouvre.
+12. L'auteur ou l'admin principal : le crayon change le titre ou l'ordre, la corbeille supprime le tour après confirmation. **Attendu :** retour à la liste, le tour a disparu chez tout le monde.

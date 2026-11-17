@@ -83,3 +83,48 @@ describe('settings', () => {
     await assertFails(setDoc(doc(db, 'quietQueue/adult1'), { items: [] }));
   });
 });
+
+// « Mes rappels sur un événement » (PRD rév. 248, récit 56).
+describe('my reminders', () => {
+  const reminder = (db, memberId, id) => doc(db, `members/${memberId}/reminders/${id}`);
+
+  test('a member asks for reminders on an event and on a whole series, then takes them back', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(reminder(db, 'adult1', 'e1'), { eventId: 'e1', offsets: ['h1', 'w1'], updatedAt: serverTimestamp() }));
+    await assertSucceeds(setDoc(reminder(db, 'adult1', 'series-s1'), { seriesId: 's1', offsets: ['morning'], updatedAt: serverTimestamp() }));
+    await assertSucceeds(setDoc(reminder(db, 'adult1', 'e2'), { eventId: 'e2', offsets: [], updatedAt: serverTimestamp() }));
+    await assertSucceeds(getDoc(reminder(db, 'adult1', 'e1')));
+    await assertSucceeds(deleteDoc(reminder(db, 'adult1', 'e1')));
+  });
+
+  test('they stay private, even from the admin principal', async () => {
+    await env.withSecurityRulesDisabled((ctx) => setDoc(reminder(ctx.firestore(), 'adult1', 'e1'), { eventId: 'e1', offsets: ['h1'] }));
+    await assertFails(getDoc(reminder(as(env, ADMIN), 'adult1', 'e1')));
+    await assertFails(getDoc(reminder(as(env, OTHER_ADULT), 'adult1', 'e1')));
+    await assertFails(setDoc(reminder(as(env, ADMIN), 'adult1', 'e3'), { eventId: 'e3', offsets: ['h1'], updatedAt: serverTimestamp() }));
+    await assertFails(deleteDoc(reminder(as(env, ADMIN), 'adult1', 'e1')));
+  });
+
+  test('only the five choices, under the right name, and nothing else', async () => {
+    const db = as(env, ADULT);
+    await assertFails(setDoc(reminder(db, 'adult1', 'e1'), { eventId: 'e1', offsets: ['h2'], updatedAt: serverTimestamp() }));
+    await assertFails(setDoc(reminder(db, 'adult1', 'e1'), { eventId: 'e9', offsets: ['h1'], updatedAt: serverTimestamp() }));
+    await assertFails(setDoc(reminder(db, 'adult1', 's1'), { seriesId: 's1', offsets: ['h1'], updatedAt: serverTimestamp() }));
+    await assertFails(setDoc(reminder(db, 'adult1', 'e1'), { eventId: 'e1', offsets: ['h1'], updatedAt: Timestamp.fromMillis(0) }));
+    await assertFails(setDoc(reminder(db, 'adult1', 'e1'), { eventId: 'e1', offsets: ['h1'], note: 'x', updatedAt: serverTimestamp() }));
+    await assertFails(setDoc(reminder(db, 'adult1', 'e1'), { eventId: 'e1', seriesId: 's1', offsets: ['h1'], updatedAt: serverTimestamp() }));
+  });
+
+  test('the default reminders, in the settings', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(settings(db, 'adult1'), { defaultReminders: ['h1', 'd2'] }));
+    await assertSucceeds(setDoc(settings(db, 'adult1'), { defaultReminders: [] }));
+    await assertFails(setDoc(settings(db, 'adult1'), { defaultReminders: ['tomorrow'] }));
+    await assertFails(setDoc(settings(db, 'adult1'), { defaultReminders: 'h1' }));
+  });
+
+  test('what went out stays closed to the app', async () => {
+    await assertFails(getDoc(doc(as(env, ADULT), 'remindersSent/adult1_e1_h1')));
+    await assertFails(setDoc(doc(as(env, ADULT), 'remindersSent/adult1_e1_h1'), {}));
+  });
+});

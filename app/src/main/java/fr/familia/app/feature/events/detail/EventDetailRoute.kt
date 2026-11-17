@@ -28,6 +28,7 @@ import fr.familia.app.core.photo.CoverBanner
 import fr.familia.app.feature.events.album.EventAlbumSection
 import fr.familia.app.feature.events.bring.BringSection
 import fr.familia.app.feature.events.carpool.CarpoolSection
+import fr.familia.app.feature.events.reminders.EventRemindersSection
 import fr.familia.app.core.model.RsvpStatus
 import fr.familia.app.feature.events.comments.EventCommentsSection
 import fr.familia.app.feature.events.album.isAlbumOpen
@@ -96,6 +97,14 @@ fun EventDetailRoute(
         },
         album = {
             val success = state as? EventDetailUiState.Success
+            // « Me le rappeler » (récit 56), private, right under « Je viens ».
+            if (success != null && LocalFeatureFlags.current.isOn(Feature.MyReminders) && container?.eventReminderRepository != null) {
+                HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                EventRemindersSection(
+                    container, currentMember, success.event,
+                    coming = success.answerers.any { it.isMe && it.status == RsvpStatus.Yes },
+                )
+            }
             // « On y va ensemble » (récit 52), right under « Je viens »: me and the children I answer for.
             if (success != null && LocalFeatureFlags.current.isOn(Feature.Carpool)) {
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))

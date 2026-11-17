@@ -66,6 +66,9 @@ interface AppContainer {
     /** « On y va ensemble » (récit 52). */
     val carpoolRepository: CarpoolRepository? get() = null
 
+    /** « Me le rappeler » (récit 56): private, so « Voir comme » keeps it null. */
+    val eventReminderRepository: EventReminderRepository? get() = null
+
     /** « Événements qui reviennent » (récit 54). */
     val eventSeriesRepository: EventSeriesRepository? get() = null
 
@@ -163,6 +166,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val lendItemRepository: LendItemRepository? by lazy { firestore?.let { FirestoreLendItemRepository(it) } }
     override val turnRepository: TurnRepository? by lazy { firestore?.let { FirestoreTurnRepository(it) } }
     override val carpoolRepository: CarpoolRepository? by lazy { firestore?.let { FirestoreCarpoolRepository(it) } }
+    override val eventReminderRepository: EventReminderRepository? by lazy { firestore?.let { FirestoreEventReminderRepository(it) } }
     override val eventSeriesRepository: EventSeriesRepository? by lazy { firestore?.let { FirestoreEventSeriesRepository(it) } }
     override val treeRepository: TreeRepository? by lazy { firestore?.let { FirestoreTreeRepository(it) } }
 
