@@ -68,6 +68,8 @@ fun GiftItemEditScreen(
     onSave: () -> Unit,
     onDelete: () -> Unit,
     onBack: () -> Unit,
+    /** Récit 50: my wishes (null) or an idea for that member. */
+    onChooseTarget: (String?) -> Unit = {},
 ) {
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
     val hasChanges = (state as? GiftItemEditUiState.Editing)?.hasChanges == true
@@ -108,7 +110,7 @@ fun GiftItemEditScreen(
                     title = stringResource(R.string.gift_item_unavailable_title),
                     body = stringResource(R.string.gift_item_unavailable_body),
                 )
-                is GiftItemEditUiState.Editing -> FormContent(state, onChange, onSave, onDelete)
+                is GiftItemEditUiState.Editing -> FormContent(state, onChange, onSave, onDelete, onChooseTarget)
             }
         }
     }
@@ -120,6 +122,7 @@ private fun FormContent(
     onChange: ((GiftItemForm) -> GiftItemForm) -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
+    onChooseTarget: (String?) -> Unit,
 ) {
     val form = state.form
     val errors = state.errors
@@ -127,6 +130,9 @@ private fun FormContent(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding().padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
+        if (state.targets.isNotEmpty()) {
+            ShareTargetChoice(state.targets, state.targetId, enabled = !state.isSaving, onSelect = onChooseTarget)
+        }
         if (state.hiddenFromBeneficiary) {
             Text(
                 stringResource(R.string.gift_item_hidden_hint, state.beneficiaryName),
@@ -284,4 +290,52 @@ private fun WishOccasionChoice(selected: GiftOccasion?, forMe: Boolean, onSelect
             }
         }
     }
+}
+
+/**
+ * Récit 50: where a link shared from another app goes. « Pour moi » adds it to my wishes; a name
+ * makes it an idea for that person, in their « Idées de la famille », that they never see.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ShareTargetChoice(targets: List<ShareTarget>, selected: String?, enabled: Boolean, onSelect: (String?) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(stringResource(R.string.gift_item_target_label), style = MaterialTheme.typography.titleSmall)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            targets.forEach { target ->
+                FilterChip(
+                    selected = selected == target.memberId,
+                    onClick = { onSelect(target.memberId) },
+                    enabled = enabled,
+                    label = {
+                        Text(
+                            if (target.memberId == null) {
+                                stringResource(R.string.gift_item_target_me)
+                            } else {
+                                stringResource(R.string.gift_item_target_idea, target.name)
+                            },
+                        )
+                    },
+                    modifier = Modifier.heightIn(min = 48.dp),
+                )
+            }
+        }
+    }
+}
+
+/** Fictional form of récit 50: a shared link, which an adult may make an idea for someone. */
+internal fun previewSharedWishForm() = GiftItemEditUiState.Editing(
+    form = GiftItemForm("Un puzzle de 1000 pièces", "https://example.com/puzzle"),
+    isNew = true,
+    hiddenFromBeneficiary = true,
+    beneficiaryName = "Inès",
+    hasChanges = true,
+    targets = listOf(ShareTarget(null, "Camille"), ShareTarget("m2", "Inès"), ShareTarget("m3", "Noé")),
+    targetId = "m2",
+)
+
+@FamiliaPreviews
+@Composable
+private fun SharedWishPreview() {
+    FamiliaTheme { Surface { GiftItemEditScreen(previewSharedWishForm(), {}, {}, {}, {}) } }
 }

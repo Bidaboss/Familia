@@ -169,6 +169,8 @@ data class GiftItemEditDestination(
     val itemId: String? = null,
     val sharedUrl: String? = null,
     val sharedTitle: String? = null,
+    /** Récit 50: opened from « Ajouter à mes envies », with « Une idée pour… » and no reading of the page. */
+    val fromShare: Boolean = false,
 )
 
 /** « Mes cadeaux à offrir », the member's private gift notebook (PRD, récit 9 bis). */

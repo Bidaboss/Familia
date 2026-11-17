@@ -631,3 +631,15 @@ Avec l'interrupteur « Bons plans » allumé :
 2. **Attendu :** la section « Bonnes adresses » sous les bons plans, avec la recherche et les catégories. « ecully » trouve « Écully » ; toucher deux fois une catégorie les montre toutes.
 3. Avec un autre adulte, ouvre l'adresse : « Recommandée par » l'auteur, puis « Je recommande aussi » ajoute « Moi ». « Appeler le … » ouvre le téléphone.
 4. Avec l'auteur ou un enfant : **Attendu :** pas de bouton « Je recommande aussi ». Aucune notification pour une bonne adresse.
+
+## Ajouter une envie depuis une autre appli (récit 50)
+
+Interrupteur « Ajouter une envie depuis une autre appli » (wishFromShare) allumé, avec « Cadeaux ».
+
+1. Dans le navigateur, sur une page de boutique, touche « Partager ». « Ajouter à mes envies » apparaît dans la liste des applis. Touche-le.
+2. La feuille s'ouvre avec le titre et le lien de la page. Rien n'est lu sur la boutique : pas de photo ni de prix pré-remplis.
+3. Sous « C'est pour qui ? », « Pour moi » est choisi. Enregistre : l'envie est dans « Mes envies ».
+4. Recommence et choisis « Une idée pour… » quelqu'un d'autre. La phrase « … ne verra pas cet article » s'affiche. Enregistre : l'idée est dans ses « Idées de la famille ».
+5. Avec le compte de cette personne, ouvre Cadeaux : l'idée n'apparaît nulle part.
+6. Avec le compte d'un enfant, partage un lien : il n'y a pas « C'est pour qui ? », l'envie va dans ses propres envies.
+7. Éteins l'interrupteur, ouvre Familia puis reviens au navigateur : Familia n'est plus dans « Partager ».

@@ -183,6 +183,7 @@
     <string name="feature_help_requests">Coups de main</string>
     <string name="feature_gift_notebook">Carnet de cadeaux</string>
     <string name="feature_share_to_wishes">Partager vers « Mes envies »</string>
+    <string name="feature_wish_from_share">Ajouter une envie depuis une autre appli</string>
     <string name="feature_wishes_reveal">Dévoiler les envies offertes</string>
     <string name="received_title">On m\'a offert</string>
     <string name="received_open">On m\'a offert</string>
@@ -198,6 +199,7 @@
     <string name="received_thanked">Merci envoyé</string>
     <string name="received_thank_failed">Le merci n\'est pas parti. Réessaie dans un instant.</string>
     <string name="share_to_wishes">Mes envies Familia</string>
+    <string name="share_add_to_wishes">Ajouter à mes envies</string>
     <string name="gift_item_preview_loading">Lecture de la page de la boutique…</string>
     <string name="feature_trips">Carnet de voyage</string>
     <string name="feature_good_news">Bonnes nouvelles</string>
@@ -613,6 +615,9 @@
     <string name="gift_wishes_subtitle">Toute la famille la voit</string>
     <string name="gift_surprise_for">Surprise pour %1$s</string>
     <string name="gift_item_occasion_label">C\'est pour quand ?</string>
+    <string name="gift_item_target_label">C\'est pour qui ?</string>
+    <string name="gift_item_target_me">Pour moi</string>
+    <string name="gift_item_target_idea">Une idée pour %1$s</string>
     <string name="gift_wish_anytime">Quand tu veux</string>
     <string name="gift_wish_for_christmas">Pour Noël</string>
     <string name="gift_wish_for_my_birthday">Pour mon anniversaire</string>

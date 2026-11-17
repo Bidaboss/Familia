@@ -22,6 +22,12 @@ enum class Feature(
     GiftNotebook("giftNotebook", R.string.feature_gift_notebook),
     ShareToWishes("shareToWishes", R.string.feature_share_to_wishes),
 
+    /**
+     * « Ajouter à mes envies » from the share menu of another app (PRD, récit 50): no reading of the
+     * shop page, and an adult may make it « Une idée pour… » someone else.
+     */
+    WishFromShare("wishFromShare", R.string.feature_wish_from_share),
+
     /** Les envies offertes passent dans « On m'a offert » le lendemain de l'occasion (PRD, récit 10 bis). */
     WishesReveal("wishesReveal", R.string.feature_wishes_reveal),
     HelpRequests("helpRequests", R.string.feature_help_requests),
