@@ -69,6 +69,8 @@ export interface Notice {
   goodDeals?: 'list';
   /** On se prête (récit 51): an ask, its answer or the reminder, the app opens the thing. */
   lendItemId?: string;
+  /** À qui le tour ? (récit 58): the turn of a household, or an exchange, the app opens the rotation. */
+  turnId?: string;
   /** Aimed at the member directly (récit 6 quinquies): never muted, never held for the night. */
   direct?: boolean;
   /** Notices with the same tag replace each other on the phone (the cards of the day). */

@@ -26,6 +26,7 @@ import { checkConsumptionIfDue } from './consumption';
 import { CrashData, onCrashReported } from './crashes';
 import { FeedbackData, onFeedbackChanged, onFeedbackCreated, screenshotToDelete } from './feedback';
 import { deleteEndedGoodDeals, sendGoodDealsSummary } from './goodDeals';
+import { onTurnWritten, type TurnData } from './turns';
 import { onLendItemUpdated, releaseLendItemsOf, sendLendReminders, type LendItemData } from './lendItems';
 import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
 import { closeDuePolls, closeEventPolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
@@ -100,6 +101,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.thinkOfMeOf ? { thinkOfMeOf: notice.thinkOfMeOf } : {}),
         ...(notice.goodDeals ? { goodDeals: notice.goodDeals } : {}),
         ...(notice.lendItemId ? { lendItemId: notice.lendItemId } : {}),
+        ...(notice.turnId ? { turnId: notice.turnId } : {}),
         ...(notice.tag ? { notificationTag: notice.tag } : {}),
       },
       // A surprise never shows on the lock screen (audit 2.2): only « Familia » and the channel.
@@ -345,6 +347,17 @@ export const onLendItemChanged = onDocumentUpdatedWithAuthContext('lendItems/{it
   const after = event.data?.after.data() as LendItemData | undefined;
   if (!before || !after) return;
   await onLendItemUpdated(getFirestore(), send, event.params.itemId, before, after, actorUid(event), new Date());
+});
+
+// --- À qui le tour ? (récit 58) -------------------------------------------------------------
+
+export const onTurnChanged = onDocumentWrittenWithAuthContext('turns/{turnId}', async (event) => {
+  const db = getFirestore();
+  const before = event.data?.before.data() as TurnData | undefined;
+  const after = event.data?.after.data() as TurnData | undefined;
+  // turns off: the admin principal tries it alone, nobody else is told.
+  const only = await featureAudience(db, 'turns');
+  await onTurnWritten(db, send, event.params.turnId, before, after, actorUid(event), new Date(), only);
 });
 
 // A thing removed takes its photo with it.
