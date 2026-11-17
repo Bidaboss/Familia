@@ -569,6 +569,32 @@ Cloud Functions (`functions/src/helpRequests.ts`), qui ne préviennent que les p
 
 Une demande passée ne prévient personne, sauf pour le « Merci ». La sauvegarde de l'admin principal inclut les demandes (`helpRequests`).
 
+## Bons plans et bonnes adresses (PRD, récit 45)
+
+Dans l'onglet Entraide, derrière l'interrupteur « Bons plans » (`config/app.features.goodDeals`).
+
+### `goodDeals/{dealId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `kind` | `deal` ou `address` | Un bon plan (éphémère) ou une bonne adresse (durable). Ne change jamais |
+| `title` | texte | Le titre du bon plan ou le nom de l'adresse, de 1 à 80 caractères |
+| `text` | texte | La phrase du bon plan, ou « pourquoi je la recommande », 500 caractères au plus (peut être vide) |
+| `link` | texte ou `null` | Un lien `http(s)://`, 500 caractères au plus |
+| `place` | texte ou `null` | Le lieu du bon plan, ou la ville de l'adresse, 80 caractères au plus |
+| `phone` | texte ou `null` | Le téléphone d'une adresse (chiffres, espaces, `+ . ( ) -`). Toujours `null` sur un bon plan |
+| `category` | texte ou `null` | Une adresse : `health`, `home`, `car`, `kids`, `outings` ou `other`. `null` sur un bon plan |
+| `endsAt` | horodatage ou `null` | La fin d'un bon plan, après maintenant et dans 92 jours au plus. `null` sur une adresse |
+| `photo` | texte ou `null` | Un bon plan : la base de sa photo dans Storage, `goodDeals/{dealId}/{memberId}/{photoId}` (`.jpg` et `-thumb.jpg`). `null` sur une adresse |
+| `interestedIds` | liste de `memberId` | « Ça m'intéresse » sur un bon plan : chacun ajoute ou retire seulement son id, enfants compris |
+| `recommendedIds` | liste de `memberId` | « Je recommande aussi » sur une adresse : chaque adulte sauf l'auteur ajoute ou retire seulement son id |
+| `authorId`, `authorName` | texte | L'adulte qui l'a publiée et son prénom, qui ne changent jamais |
+| `createdAt`, `updatedAt` | horodatage | Heure du serveur |
+
+Droits : tous les membres lisent tout. Seuls les adultes publient. L'auteur et l'admin principal modifient et retirent. Un bon plan terminé peut encore être modifié, mais sa fin ne recule pas dans le passé.
+
+Serveur (`firebase/functions/src/goodDeals.ts`), dans la tâche de 18 h des coups de main : le résumé des bons plans publiés dans les dernières 24 h et pas encore terminés (« Nouveau bon plan » ou « 2 nouveaux bons plans »), sur le canal Coups de main, via `deliver()`. Une adresse n'envoie rien. Tant que l'interrupteur est éteint, seul l'admin principal le reçoit. La même tâche supprime les bons plans terminés depuis plus de 30 jours, et `onGoodDealDeleted` supprime leur photo.
+
 ## Arbre généalogique (PRD, récit 40)
 
 L'arbre se dessine à partir des membres, des proches sans compte (`kin`) et de leurs liens (`kinLinks`). Tout membre le lit. L'admin principal le modifie en entier, et un chef de famille modifie les proches de son foyer et les liens qui touchent son foyer : un conjoint d'un côté ou de l'autre, mais un parent seulement pour un enfant de son foyer (PRD rév. 195). Il est derrière le module « Arbre généalogique » (`genealogy`), à ne pas confondre avec l'arbre des feuilles du récit 35.
