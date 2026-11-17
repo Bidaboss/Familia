@@ -10,6 +10,9 @@ import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.feature.yearinreview.YearInReviewAgainButton
+import fr.familia.app.feature.yearinreview.openableReviewYear
+import java.time.LocalDate
 
 /** Connects the feed of the « Bonnes nouvelles » to its ViewModel. */
 @Composable
@@ -20,6 +23,8 @@ fun GoodNewsFeedRoute(
     onOpen: (String) -> Unit,
     onEdit: (String) -> Unit,
     onBack: () -> Unit,
+    /** Opens the story of a year (récit 55). */
+    onOpenYear: (Int) -> Unit = {},
 ) {
     val viewModel: GoodNewsFeedViewModel = viewModel(
         factory = viewModelFactory {
@@ -27,6 +32,9 @@ fun GoodNewsFeedRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val today = LocalDate.now()
+    val yearAgain: (@Composable () -> Unit)? =
+        if (openableReviewYear(today, forCard = false) != null) { { YearInReviewAgainButton(today, onOpenYear) } } else null
     GoodNewsFeedScreen(
         state = state,
         onPublish = onPublish,
@@ -41,5 +49,6 @@ fun GoodNewsFeedRoute(
         onBack = onBack,
         littleOnesOn = LocalFeatureFlags.current.isOn(Feature.LittleOnes),
         onLittleOnesOnly = viewModel::showLittleOnesOnly,
+        yearAgain = yearAgain,
     )
 }

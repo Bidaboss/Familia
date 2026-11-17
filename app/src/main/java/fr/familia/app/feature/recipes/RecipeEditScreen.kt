@@ -1,6 +1,5 @@
 package fr.familia.app.feature.recipes
 
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -54,8 +53,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.theme.FamiliaTheme
@@ -298,10 +300,18 @@ private fun OriginPicker(state: RecipeEditUiState.Editing, onChange: ((RecipeFor
                         onChange { it.copy(originMemberId = null) }
                         open = false
                     }
-                    state.members.forEach { member ->
-                        OriginRow(member.firstName, member.id == state.form.originMemberId) {
-                            onChange { it.copy(originMemberId = member.id) }
-                            open = false
+                    // By household (règle de Kévin, 17/11): one choice, so no box for the household.
+                    state.groups.forEach { group ->
+                        Text(
+                            group.name,
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(top = 12.dp, bottom = 4.dp).semantics { heading() },
+                        )
+                        group.members.forEach { member ->
+                            OriginRow(member.firstName, member.id == state.form.originMemberId) {
+                                onChange { it.copy(originMemberId = member.id) }
+                                open = false
+                            }
                         }
                     }
                 }

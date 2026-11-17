@@ -19,6 +19,15 @@ data class TripForm(
     fun withParticipants(ids: Collection<String>): TripForm =
         copy(participantIds = participantIds + ids, readerIds = readerIds + ids)
 
+    /**
+     * The participants picked by household (règle de Kévin, 17/11): a newcomer also follows the trip,
+     * like [withParticipant]; someone unticked keeps following it.
+     */
+    fun withParticipantSet(ids: Set<String>): TripForm = copy(participantIds = ids, readerIds = readerIds + (ids - participantIds))
+
+    /** The followers picked by household; a participant always stays one. */
+    fun withReaderSet(ids: Set<String>): TripForm = copy(readerIds = ids + participantIds)
+
     /** Ticks or unticks a follower; a participant cannot be unticked. */
     fun withReader(id: String, following: Boolean): TripForm = when {
         following -> copy(readerIds = readerIds + id)

@@ -8,10 +8,13 @@ import fr.familia.app.core.data.TripRepository
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Trip
+import fr.familia.app.core.ui.PickGroup
+import fr.familia.app.core.ui.pickGroups
 import fr.familia.app.feature.trips.canCreateTrip
 import fr.familia.app.feature.trips.canManageTrip
 import fr.familia.app.feature.trips.participantChoices
 import fr.familia.app.feature.trips.tripAudience
+import java.time.LocalDate
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +22,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import java.time.LocalDate
 
 /** A member offered in the form, with their household name to tell two namesakes apart. */
 data class MemberChoice(val id: String, val firstName: String, val householdName: String?, val locked: Boolean = false, val householdId: String? = null)
@@ -37,6 +39,9 @@ sealed interface TripEditUiState {
         val participants: List<MemberChoice>,
         /** The whole family: who follows the trip. */
         val readers: List<MemberChoice>,
+        /** [participants] and [readers] by household, for the pickers (règle de Kévin, 17/11). */
+        val participantGroups: List<PickGroup> = emptyList(),
+        val readerGroups: List<PickGroup> = emptyList(),
         val errors: Set<TripFormError>,
         val hasChanges: Boolean = false,
         val isSaving: Boolean = false,
@@ -111,6 +116,8 @@ class TripEditViewModel(
             isNew = existing == null,
             participants = (offered + kept).map(::choice),
             readers = tripAudience(family).sortedBy { it.firstName.lowercase() }.map { choice(it).copy(locked = false) },
+            participantGroups = pickGroups(offered + kept, family, current.householdId),
+            readerGroups = pickGroups(tripAudience(family), family, current.householdId),
             errors = emptySet(),
         )
     }

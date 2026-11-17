@@ -10,6 +10,8 @@ import fr.familia.app.core.data.RecipeRepository
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Recipe
 import fr.familia.app.core.photo.PhotoUploader
+import fr.familia.app.core.ui.PickGroup
+import fr.familia.app.core.ui.pickGroups
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -70,6 +72,8 @@ sealed interface RecipeEditUiState {
         val form: RecipeForm,
         val isNew: Boolean,
         val members: List<OriginChoice>,
+        /** The same members by household, for « De qui vient la recette ? » (règle de Kévin, 17/11). */
+        val groups: List<PickGroup> = emptyList(),
         val errors: Set<RecipeFormError>,
         val hasChanges: Boolean = false,
         val isSaving: Boolean = false,
@@ -137,6 +141,7 @@ class RecipeEditViewModel(
             hasChanges = form != initialForm,
             isNew = existing == null,
             members = family.members.sortedBy { it.firstName.lowercase() }.map { OriginChoice(it.id, it.firstName) },
+            groups = pickGroups(family.members, family, current.householdId),
             errors = emptySet(),
         )
     }
