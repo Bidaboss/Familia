@@ -50,6 +50,7 @@ import { queueAlbumInvitations } from './albumInvites';
 import { deleteDigestOf, sendDigests } from './digest';
 import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { sendWeeklyRecap } from './recap';
+import { orphanReportDue, reportOrphanGoodNewsPhotos, type StoredFile } from './orphanPhotos';
 import { deleteQuietQueueOf, presentationFrom, presentingNow, sendHeldNotices, sendPresentationHeld } from './prefs';
 import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type BirthdayCard } from './birthdayWishes';
 import { deleteWelcomeOf, isFirstSignIn, welcomeMember } from './welcome';
@@ -702,7 +703,26 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
   await closeDuePolls(getFirestore(), new Date());
   // And the day's notice of the accounts of each trip, once from 20 h (récit 16 bis).
   await sendExpenseNotices(getFirestore(), send, new Date());
+  // And, on Sunday at 4 h, the list of the good news photos linked to nothing (note C de #263).
+  // Read only: nothing is deleted before the 21/11. A failure never stops the rest.
+  if (orphanReportDue(new Date())) {
+    try {
+      await reportOrphanGoodNewsPhotos(getFirestore(), listStoredFiles, new Date());
+    } catch (e) {
+      console.error('orphanPhotos', e);
+    }
+  }
 });
+
+/** The files under a prefix of the default bucket, with their date and size. */
+const listStoredFiles = async (prefix: string): Promise<StoredFile[]> => {
+  const [files] = await getStorage().bucket().getFiles({ prefix });
+  return files.map((f) => ({
+    name: f.name,
+    updated: new Date(f.metadata.updated ?? f.metadata.timeCreated ?? 0),
+    size: Number(f.metadata.size ?? 0),
+  }));
+};
 
 // --- Question de la semaine (récit 37) --------------------------------------------------------
 
@@ -777,3 +797,4 @@ export const calendarFeed = onRequest({ cors: false }, async (req, res) => {
     res.status(500).send('');
   }
 });
+

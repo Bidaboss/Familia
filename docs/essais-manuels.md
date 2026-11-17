@@ -805,3 +805,10 @@ Avec l'interrupteur « Notre année en famille » allumé.
 3. Recommencer et passer en mode avion pendant l'envoi de la photo 2. La phrase apparaît, puis l'envoi reprend tout seul au retour du réseau. Vérifier dans le fil : une seule bonne nouvelle, avec ses 2 photos.
 4. Pendant un envoi, toucher « Annuler l'envoi » : le formulaire revient avec le texte et les photos, rien n'est publié. Toucher « Publier » : la bonne nouvelle part une seule fois.
 5. Si l'envoi échoue avec le réseau (rare), le message dit que le texte et les photos sont gardés. Toucher « Publier » de nouveau : une seule bonne nouvelle au bout.
+
+## Photos orphelines des bonnes nouvelles (lecture seule)
+
+Le rapport part chaque dimanche vers 4 h, avec la tâche `arrivalReminder`. Il ne supprime rien.
+1. Console Firebase, **Functions**, `arrivalReminder`, **Journaux**, et chercher « orphanPhotos ».
+2. La ligne « orphanPhotos (lecture seule) : N photo(s) orpheline(s) sur M, X Ko, rien n'est supprimé » donne le bilan. Les lignes « serait supprimée … » donnent les chemins, 50 au plus.
+3. Attendu : quelques photos au plus, celles d'un envoi annulé. Une photo d'une bonne nouvelle visible dans l'appli ne doit jamais y figurer. Si c'est le cas, le signaler.
