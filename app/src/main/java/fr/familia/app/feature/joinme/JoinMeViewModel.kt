@@ -126,6 +126,9 @@ class JoinMeViewModel(
         it.copy(recipientIds = if (memberId in it.recipientIds) it.recipientIds - memberId else it.recipientIds + memberId)
     }
 
+    /** The picker's new selection (a member, or a whole household). */
+    fun setRecipients(memberIds: Set<String>) = update { it.copy(recipientIds = memberIds) }
+
     /** A shortcut ticks its group; tapped again while it is exactly what is ticked, it unticks it. */
     fun applyShortcut(shortcut: RecipientShortcut) = update {
         it.copy(recipientIds = if (it.recipientIds == shortcut.memberIds) emptySet() else shortcut.memberIds)
