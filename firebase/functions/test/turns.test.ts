@@ -17,15 +17,15 @@ const ASK = { fromId: 'h2', toId: 'h1', byId: 'ines', byName: 'Inès' };
 describe('texts of a rotation', () => {
   test('the turn of a household goes directly, and opens the rotation', () => {
     const n = yourTurnNotice('t1', turn());
-    assert.equal(n.title, 'C\'est votre tour');
-    assert.equal(n.body, '« Qui reçoit Noël » : c\'est à votre foyer. Touchez pour créer l\'événement.');
+    assert.equal(n.title, 'C\'est ton tour');
+    assert.equal(n.body, '« Qui reçoit Noël » : c\'est à ton foyer. Touche pour créer l\'événement.');
     assert.equal(n.direct, true);
     assert.equal(n.turnId, 't1');
     assert.equal(n.channel, 'helpRequests');
   });
 
   test('an exchange, and its refusal', () => {
-    assert.equal(swapAskNotice('t1', turn(), ASK).body, 'Inès propose d\'échanger votre place pour « Qui reçoit Noël ».');
+    assert.equal(swapAskNotice('t1', turn(), ASK).body, 'Inès propose d\'échanger ta place pour « Qui reçoit Noël ».');
     assert.equal(swapRefusedNotice('t1', turn()).title, 'Pas d\'échange cette fois');
   });
 
@@ -73,7 +73,7 @@ describe('against the emulator', () => {
     const { sent, send } = fakeSender();
     await onTurnWritten(db, send, 't1', turn(), turn({ current: 1 }), 'uid-noe', now);
     assert.deepEqual(tokens(sent), ['token-ines']);
-    assert.equal(sent[0].notice.title, 'C\'est votre tour');
+    assert.equal(sent[0].notice.title, 'C\'est ton tour');
   });
 
   test('a pass: the household that is now first hears it', async () => {
@@ -101,7 +101,7 @@ describe('against the emulator', () => {
     const accepted = fakeSender();
     await onTurnWritten(db, accepted.send, 't1', turn({ swap: ASK }), turn({ householdIds: ['h2', 'h1', 'h3'] }), 'uid-camille', now);
     assert.deepEqual(tokens(accepted.sent), ['token-ines']);
-    assert.equal(accepted.sent[0].notice.title, 'C\'est votre tour');
+    assert.equal(accepted.sent[0].notice.title, 'C\'est ton tour');
   });
 
   test('a proposal dropped by the proposer\'s own household, or by an edit, is no refusal', async () => {

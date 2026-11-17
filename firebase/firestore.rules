@@ -1351,7 +1351,7 @@ service cloud.firestore {
         && d.title is string && d.title.trim().size() >= 1 && d.title.size() <= 60
         && isTurnHouseholds(d.householdIds)
         && d.current is int && d.current >= 0 && d.current < d.householdIds.size()
-        && d.history is list && d.history.size() <= 100
+        && d.history is list
         && isTurnSwap(d.swap, d.householdIds)
         && d.updatedAt == request.time;
     }

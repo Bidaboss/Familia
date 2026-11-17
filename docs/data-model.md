@@ -662,7 +662,7 @@ Dans l'onglet Entraide, derrière l'interrupteur « À qui le tour » (`config/a
 | `title` | texte | Le nom du tour de rôle, de 1 à 60 caractères |
 | `householdIds` | liste de textes | Les foyers qui y participent, dans l'ordre, de 2 à 12, chacun une fois |
 | `current` | entier | La place dans `householdIds` du foyer dont c'est le tour |
-| `history` | liste | Les tours faits, le plus récent en dernier, 100 au plus : `{householdId, label, at}`. `label` (« Noël 2026 ») fait 40 caractères au plus et peut être vide. `at` est l'heure du téléphone, vérifiée à 10 minutes près, car Firestore n'a pas d'heure du serveur dans une liste |
+| `history` | liste | Les tours faits, le plus récent en dernier, sans limite (l'appli en montre 50, puis 50 de plus à chaque « Voir plus ») : `{householdId, label, at}`. `label` (« Noël 2026 ») fait 40 caractères au plus et peut être vide. `at` est l'heure du téléphone, vérifiée à 10 minutes près, car Firestore n'a pas d'heure du serveur dans une liste |
 | `swap` | objet ou `null` | L'échange proposé : `{fromId, toId, fromIndex, toIndex, byId, byName}`, les deux foyers, leurs places, l'adulte qui propose et son prénom. Un seul à la fois |
 | `createdBy` | texte | L'adulte qui l'a créé |
 | `createdAt`, `updatedAt` | horodatage | Heure du serveur |
