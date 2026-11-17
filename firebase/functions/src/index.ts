@@ -26,6 +26,7 @@ import { checkConsumptionIfDue } from './consumption';
 import { CrashData, onCrashReported } from './crashes';
 import { FeedbackData, onFeedbackChanged, onFeedbackCreated, screenshotToDelete } from './feedback';
 import { deleteEndedGoodDeals, sendGoodDealsSummary } from './goodDeals';
+import { onTurnWritten, type TurnData } from './turns';
 import { onLendItemUpdated, releaseLendItemsOf, sendLendReminders, type LendItemData } from './lendItems';
 import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
 import { closeDuePolls, closeEventPolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
@@ -100,6 +101,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.thinkOfMeOf ? { thinkOfMeOf: notice.thinkOfMeOf } : {}),
         ...(notice.goodDeals ? { goodDeals: notice.goodDeals } : {}),
         ...(notice.lendItemId ? { lendItemId: notice.lendItemId } : {}),
+        ...(notice.turnId ? { turnId: notice.turnId } : {}),
         ...(notice.tag ? { notificationTag: notice.tag } : {}),
       },
       // A surprise never shows on the lock screen (audit 2.2): only « Familia » and the channel.
@@ -348,6 +350,14 @@ export const onLendItemChanged = onDocumentUpdatedWithAuthContext('lendItems/{it
 });
 
 // A thing removed takes its photo with it.
+// --- À qui le tour ? (récit 58) -------------------------------------------------------------
+
+export const onTurnChanged = onDocumentWrittenWithAuthContext('turns/{turnId}', async (event) => {
+  const before = event.data?.before.data() as TurnData | undefined;
+  const after = event.data?.after.data() as TurnData | undefined;
+  await onTurnWritten(getFirestore(), send, event.params.turnId, before, after, actorUid(event), new Date());
+});
+
 export const onLendItemDeleted = onDocumentDeleted('lendItems/{itemId}', async (event) => {
   await getStorage().bucket().deleteFiles({ prefix: `lendItems/${event.params.itemId}/` });
 });
