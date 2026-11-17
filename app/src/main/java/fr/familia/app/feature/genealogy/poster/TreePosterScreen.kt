@@ -115,9 +115,15 @@ private fun Choosing(state: TreePosterUiState.Choosing, actions: TreePosterActio
             ClayCard(modifier = Modifier.fillMaxWidth()) {
                 ClayCardTitle(stringResource(R.string.tree_poster_start), style = MaterialTheme.typography.titleMedium)
                 ChoiceRow(stringResource(R.string.tree_poster_start_all), state.start == PosterStart.Everyone) { actions.onStart(PosterStart.Everyone) }
-                state.starts.forEach { choice ->
-                    val start = PosterStart.DescendantsOf(choice.id)
-                    ChoiceRow(stringResource(R.string.tree_poster_start_from, choice.firstName), state.start == start) { actions.onStart(start) }
+                // By household (règle de Kévin, 17/11): one choice, so no box for the household.
+                state.starts.forEach { group ->
+                    if (group.name.isNotBlank()) {
+                        Text(group.name, style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp).semantics { heading() })
+                    }
+                    group.choices.forEach { choice ->
+                        val start = PosterStart.DescendantsOf(choice.id)
+                        ChoiceRow(stringResource(R.string.tree_poster_start_from, choice.firstName), state.start == start) { actions.onStart(start) }
+                    }
                 }
             }
         }
@@ -184,7 +190,7 @@ private fun TreePosterPreview() {
     FamiliaTheme {
         Surface {
             TreePosterScreen(
-                TreePosterUiState.Choosing(tree, listOf(PosterChoice("p1", "Camille")), "L'arbre de la famille", 2026),
+                TreePosterUiState.Choosing(tree, listOf(PosterChoiceGroup("Les Martin", listOf(PosterChoice("p1", "Camille")))), "L'arbre de la famille", 2026),
                 TreePosterActions({}, {}, {}, {}, {}),
                 onBack = {},
             )

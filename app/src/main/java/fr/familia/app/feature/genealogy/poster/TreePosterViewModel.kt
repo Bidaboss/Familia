@@ -20,6 +20,9 @@ import java.util.Locale
 /** Someone the poster may start from, as the list shows them. */
 data class PosterChoice(val id: String, val firstName: String)
 
+/** The people who may start the poster, under the name of their household (règle de Kévin, 17/11). */
+data class PosterChoiceGroup(val name: String, val choices: List<PosterChoice>)
+
 sealed interface TreePosterUiState {
     data object Loading : TreePosterUiState
 
@@ -28,8 +31,8 @@ sealed interface TreePosterUiState {
 
     data class Choosing(
         val tree: GenealogyTree,
-        /** The people with descendants, by first name: they may start the poster. */
-        val starts: List<PosterChoice>,
+        /** The people with descendants, by household (mine first), then by first name: they may start the poster. */
+        val starts: List<PosterChoiceGroup>,
         val title: String,
         val year: Int,
         val start: PosterStart = PosterStart.Everyone,
@@ -75,9 +78,10 @@ class TreePosterViewModel(
     private suspend fun load() {
         val genealogyRepo = genealogy
         val memberRepo = members
-        val tree = if (genealogyRepo == null || memberRepo == null) null else try {
+        val loaded = if (genealogyRepo == null || memberRepo == null) null else try {
             withTimeoutOrNull(readTimeoutMillis) {
-                GenealogyTree(memberRepo.observeFamily().first().members, genealogyRepo.observeKin().first(), genealogyRepo.observeLinks().first())
+                val family = memberRepo.observeFamily().first()
+                family to GenealogyTree(family.members, genealogyRepo.observeKin().first(), genealogyRepo.observeLinks().first())
             }
         } catch (e: CancellationException) {
             throw e
@@ -85,15 +89,22 @@ class TreePosterViewModel(
             null
         }
         photoBytes = readPhotos()
-        _uiState.value = if (tree == null || tree.links.isEmpty()) {
+        val (family, tree) = loaded ?: (null to null)
+        _uiState.value = if (family == null || tree == null || tree.links.isEmpty()) {
             TreePosterUiState.Empty
         } else {
             val collator = Collator.getInstance(Locale.FRENCH)
-            val starts = tree.people.values
-                .filter { tree.childrenOf(it.id).isNotEmpty() }
-                .map { PosterChoice(it.id, it.firstName) }
-                .sortedWith(compareBy(collator) { it.firstName })
-            TreePosterUiState.Choosing(tree, starts, defaultTitle, year)
+            val mine = family.members.firstOrNull { it.id == currentMemberId }?.householdId
+            val parents = tree.people.values.filter { tree.childrenOf(it.id).isNotEmpty() }.groupBy { it.householdId }
+            val starts = family.households.sortedBy { if (it.id == mine) 0 else 1 }.mapNotNull { household ->
+                parents[household.id]?.let { people ->
+                    PosterChoiceGroup(household.name, people.map { PosterChoice(it.id, it.firstName) }.sortedWith(compareBy(collator) { it.firstName }))
+                }
+            }
+            // Someone of a household that is gone stays on the poster, at the end of the list.
+            val known = family.households.map { it.id }.toSet()
+            val lost = parents.filterKeys { it !in known }.values.flatten().map { PosterChoice(it.id, it.firstName) }.sortedWith(compareBy(collator) { it.firstName })
+            TreePosterUiState.Choosing(tree, if (lost.isEmpty()) starts else starts + PosterChoiceGroup("", lost), defaultTitle, year)
         }
     }
 

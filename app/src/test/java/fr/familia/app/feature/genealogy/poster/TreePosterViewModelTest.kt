@@ -51,7 +51,9 @@ class TreePosterViewModelTest {
         assertEquals(PosterFormat.A4, state.format)
         assertTrue(state.withPhotos)
         assertEquals("L'arbre de la famille", state.title)
-        assertEquals(listOf("adult1", "adult2"), state.starts.map { it.id })
+        // By household, mine first (adult1 is in Foyer Un).
+        assertEquals(listOf("Foyer Un", "Foyer Deux"), state.starts.map { it.name })
+        assertEquals(listOf(listOf("adult1"), listOf("adult2")), state.starts.map { g -> g.choices.map { it.id } })
     }
 
     @Test
