@@ -1852,6 +1852,7 @@
     <!-- Lieu et « Rejoignez-moi » (récit 33) -->
     <string name="place_position">Position partagée</string>
     <string name="place_directions">Itinéraire</string>
+    <string name="place_street_view">Voir la rue</string>
     <string name="place_no_maps_app">Aucune appli de cartes sur ce téléphone. Installe Google Maps ou Waze.</string>
     <string name="joinme_title">Rejoignez-moi</string>
     <string name="joinme_home_empty">Envoie l\'endroit où tu es à qui tu veux, pour qu\'on te rejoigne. Il s\'efface tout seul au bout de 24 h.</string>

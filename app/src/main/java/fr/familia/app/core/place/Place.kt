@@ -67,6 +67,13 @@ fun directionsUri(place: Place): String {
     return "geo:$point?q=$point$label"
 }
 
+/**
+ * Google Street View at [place]: the Maps app opens the panorama nearest to the point, a browser does
+ * the same without it. Free, no key. Where the street has no images, Maps shows the closest one.
+ */
+fun streetViewUri(place: Place): String =
+    "https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${coord(place.lat)}%2C${coord(place.lng)}"
+
 /** The same, for a place known only by its text (the « Lieu » of an event). */
 fun directionsUri(address: String): String = "geo:0,0?q=${encode(address.trim())}"
 
