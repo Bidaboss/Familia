@@ -9,6 +9,7 @@ import fr.familia.app.core.model.NotebookEntry
 import fr.familia.app.core.model.NotebookOccasion
 import fr.familia.app.core.model.NotebookSource
 import fr.familia.app.core.model.notebookBudgetId
+import fr.familia.app.core.model.notebookTotalBudgetId
 import fr.familia.app.feature.gifts.FakeGifts
 import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.Flow
@@ -189,6 +190,53 @@ class NotebookTest {
         assertTrue(notebook.budgets.value.isEmpty())
     }
 
+    private fun reserved(id: String, person: String, price: Double?, source: NotebookSource = NotebookSource.Claim, occasion: NotebookOccasion = christmas) =
+        NotebookEntry(id, source, person, person, occasion, "Cadeau $id", null, price, null, GiftStatus.Idea, listId = "l", itemId = id)
+
+    @Test
+    fun `my budget counts my reservations with a price, my parts and what I bought elsewhere`() = runTest {
+        val notebook = FakeNotebook(
+            listOf(
+                reserved("r1", "adult2", 30.0),
+                reserved("r2", "adult2", null),
+                reserved("s1", "adult3", 25.0, source = NotebookSource.Share),
+                // Bought outside the app: an idea marked bought. An idea not bought spends nothing.
+                entry("p1", "adult3", price = 15.0, status = GiftStatus.Bought),
+                entry("i1", "adult3", price = 99.0),
+                reserved("r3", "adult2", 50.0, occasion = birthday),
+            ),
+        )
+        val vm = NotebookViewModel(notebook, "adult1", today = flowOf(today), occasionBudget = true)
+        val state = vm.uiState.first { it is NotebookUiState.Success } as NotebookUiState.Success
+        assertEquals(OccasionBudget(amount = null, committed = 70.0), state.budget)
+        vm.setOccasionBudget(christmas, 100.0)
+        val set = vm.uiState.first { (it as? NotebookUiState.Success)?.budget?.amount == 100.0 } as NotebookUiState.Success
+        assertEquals(30.0, set.budget!!.left!!, 0.001)
+        assertEquals(false, set.budget!!.isOver)
+        // The person budgets do not see the total.
+        assertTrue(set.people.all { it.budget == null })
+        vm.setOccasionBudget(christmas, 60.0)
+        val over = vm.uiState.first { (it as? NotebookUiState.Success)?.budget?.amount == 60.0 } as NotebookUiState.Success
+        assertTrue(over.budget!!.isOver)
+        vm.setOccasionBudget(christmas, null)
+        vm.uiState.first { (it as? NotebookUiState.Success)?.budget?.amount == null }
+        assertTrue(notebook.budgets.value.isEmpty())
+    }
+
+    @Test
+    fun `no budget card with the switch off, or for an occasion without a year`() = runTest {
+        val notebook = FakeNotebook(listOf(reserved("r1", "adult2", 30.0), entry("n", "adult2", occasion = none)))
+        val off = NotebookViewModel(notebook, "adult1", today = flowOf(today))
+        assertEquals(null, (off.uiState.first { it is NotebookUiState.Success } as NotebookUiState.Success).budget)
+        off.setOccasionBudget(christmas, 50.0)
+        assertTrue(notebook.budgets.value.isEmpty())
+        val on = NotebookViewModel(notebook, "adult1", today = flowOf(today), occasionBudget = true)
+        on.uiState.first { it is NotebookUiState.Success }
+        on.select(none)
+        val noYear = on.uiState.first { (it as? NotebookUiState.Success)?.selected == none } as NotebookUiState.Success
+        assertEquals(null, noYear.budget)
+    }
+
     @Test
     fun `a budget id is safe for Firestore and ignores the case of a first name`() {
         assertEquals(
@@ -234,10 +282,12 @@ class FakeNotebook(entries: List<NotebookEntry> = emptyList()) : NotebookReposit
 
     override suspend fun setBudget(memberId: String, budget: NotebookBudget, amount: Double?) {
         askedFor += memberId
-        val id = notebookBudgetId(budget.personId, budget.personName, budget.occasion)
+        val id = idOf(budget)
         budgets.update { all ->
-            all.filterNot { notebookBudgetId(it.personId, it.personName, it.occasion) == id } +
+            all.filterNot { idOf(it) == id } +
                 listOfNotNull(amount?.let { budget.copy(amount = it) })
         }
     }
+
+    private fun idOf(b: NotebookBudget) = if (b.total) notebookTotalBudgetId(b.occasion) else notebookBudgetId(b.personId, b.personName, b.occasion)
 }

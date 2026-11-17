@@ -456,6 +456,8 @@ Ce que le membre prévoit d'offrir. Seul ce membre lit et écrit son carnet : ni
 
 Ce que le membre compte dépenser pour une personne et une occasion : `personId` (ou null), `personName`, `occasion`, `year`, `amount` (de 0 exclu à 100 000 euros), `updatedAt`. Seul le membre le lit et l'écrit.
 
+« Mon budget » (PRD, récit 57, interrupteur `giftBudget`) : le budget d'une occasion entière, à l'identifiant `total_{occasion}_{year}`, porte `total: true`, `personId` et `personName` à null, une occasion et une année. Seul un adulte l'écrit ; comme tout le carnet, personne d'autre ne le lit, l'admin principal non plus. La jauge additionne, pour l'occasion montrée, le prix de mes réservations et le montant de mes parts (quel que soit leur état), et le prix des idées privées marquées achetées, emballées ou offertes : c'est ainsi qu'on note un achat fait hors de l'appli (« Ajouter un achat fait ailleurs »), sans réservation et sans rien révéler. Au-delà du montant, elle passe en orange, sans alerte.
+
 ### `events/{eventId}/bring/{itemId}` (« Qui apporte quoi », PRD, récit 4 bis)
 
 Une chose à apporter à l'événement. Visible dans l'événement une fois le module `bring` allumé.
@@ -648,6 +650,26 @@ Dans l'onglet Entraide, derrière l'interrupteur « On se prête » (`config/app
 Droits : tous les membres lisent tout. Seuls les adultes ajoutent un objet. Le propriétaire et l'admin principal modifient l'objet lui-même (le prêt ne change pas) et le retirent. « Je voudrais l'emprunter » : un adulte qui n'est pas le propriétaire, sur un objet libre, en son nom (`asked`). « D'accord » : le propriétaire (`lent`). « Pas cette fois » (le propriétaire) ou une demande retirée (l'emprunteur), puis « Rendu » (l'un ou l'autre) : retour à `available`, tous les champs du prêt à `null`. Un enfant voit la liste et ne demande pas.
 
 Serveur (`firebase/functions/src/lendItems.ts`) : `onLendItemChanged` prévient directement le propriétaire d'une demande, puis celui qui a demandé de la réponse. Une demande retirée et « Rendu » ne préviennent personne. Dans la tâche de 18 h des coups de main, un seul rappel doux part à l'emprunteur 3 jours après la date de retour (`remindedAt`). Le canal est Coups de main, et un tap ouvre l'objet (`lendItemId`). `onLendItemDeleted` supprime la photo. Un membre retiré de la famille (`onMemberDeletedHelp`) : ses objets sont supprimés, et ceux qu'il avait demandés ou empruntés redeviennent libres.
+
+## À qui le tour ? (PRD, récit 58)
+
+Dans l'onglet Entraide, derrière l'interrupteur « À qui le tour » (`config/app.features.turns`), éteint le 21. Un tour de rôle entre foyers (« Qui reçoit Noël », « Repas du dimanche »). Aucun compteur ni classement.
+
+### `turns/{turnId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `title` | texte | Le nom du tour de rôle, de 1 à 60 caractères |
+| `householdIds` | liste de textes | Les foyers qui y participent, dans l'ordre, de 2 à 12, chacun une fois |
+| `current` | entier | La place dans `householdIds` du foyer dont c'est le tour |
+| `history` | liste | Les tours faits, le plus récent en dernier, 100 au plus : `{householdId, label, at}`. `label` (« Noël 2026 ») fait 40 caractères au plus et peut être vide. `at` est l'heure du téléphone, vérifiée à 10 minutes près, car Firestore n'a pas d'heure du serveur dans une liste |
+| `swap` | objet ou `null` | L'échange proposé : `{fromId, toId, fromIndex, toIndex, byId, byName}`, les deux foyers, leurs places, l'adulte qui propose et son prénom. Un seul à la fois |
+| `createdBy` | texte | L'adulte qui l'a créé |
+| `createdAt`, `updatedAt` | horodatage | Heure du serveur |
+
+Droits : tous les membres lisent tout, les enfants ne modifient rien. Un adulte crée un tour de rôle, qui commence au premier foyer, sans historique. Son auteur et l'admin principal changent le titre, les foyers, leur ordre et le foyer dont c'est le tour, et le suppriment. Un échange en attente tombe alors. Un adulte du foyer dont c'est le tour, l'auteur ou l'admin principal dit « C'est fait » : une ligne s'ajoute à la fin de l'historique et le tour passe au foyer suivant. Un adulte du foyer dont c'est le tour dit « On passe notre tour » : son foyer change de place avec le suivant. Un adulte propose d'échanger la place de son foyer avec un autre. Les adultes de l'autre foyer acceptent (les deux changent de place) ou refusent, et le foyer qui a proposé peut retirer sa proposition.
+
+Serveur (`firebase/functions/src/turns.ts`) : `onTurnChanged` prévient directement les adultes du foyer dont c'est le tour, chaque fois qu'il change (création, « C'est fait », tour passé, échange, modification), sauf l'adulte qui a fait le changement. Une proposition d'échange va aux adultes de l'autre foyer. Un refus, c'est-à-dire un adulte de l'autre foyer qui retire la proposition sans échanger, revient à celui qui a proposé. Une proposition retirée par son propre foyer, ou effacée par une modification de l'auteur ou de l'admin principal, ne prévient personne. Interrupteur éteint, seul l'admin principal est prévenu (`featureAudience`). Le canal est Coups de main (`direct`), donc ces avis sont retenus pendant le Mode présentation et partent dans le résumé de la fin. Un tap ouvre le tour de rôle (`turnId`), avec « Créer l'événement ».
 
 ## Arbre généalogique (PRD, récit 40)
 

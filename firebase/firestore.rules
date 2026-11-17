@@ -1292,6 +1292,139 @@ service cloud.firestore {
       allow delete: if isMember() && (resource.data.ownerId == myMemberId() || isOwner());
     }
 
+    // --- À qui le tour ? (PRD, récit 58) ----------------------------------------------------------
+    //
+    // turns/{turnId}: a rotation between households (« Qui reçoit Noël »), in the order an adult
+    // chose. `current` is the index in householdIds of the household whose turn it is; `history`
+    // lists the turns done, the newest last ({householdId, label, at}; `at` is the phone's clock, since
+    // Firestore has no server time inside a list, so it is checked within 10 minutes). Every member reads; an
+    // adult creates one; its author and the admin principal change or remove it. An adult of the
+    // household whose turn it is says « C'est fait » (the next household's turn) or « On passe
+    // notre tour » (it changes place with the next one). An adult proposes to change places with
+    // another household (`swap`), whose adults accept or refuse; the proposer can also withdraw
+    // it. A child reads, never writes. No counter, no ranking. The audience is the whole family
+    // today (the circles change the read rule here).
+
+    function myHouseholdId() {
+      return me().householdId;
+    }
+
+    function isTurnHouseholds(ids) {
+      return ids is list && ids.size() >= 2 && ids.size() <= 12 && ids.toSet().size() == ids.size();
+    }
+
+    function isTurnSwap(s, ids) {
+      return s == null
+        || (s is map && s.keys().hasAll(['fromId', 'toId', 'fromIndex', 'toIndex', 'byId', 'byName'])
+            && s.keys().hasOnly(['fromId', 'toId', 'fromIndex', 'toIndex', 'byId', 'byName'])
+            && s.fromIndex is int && s.toIndex is int && s.fromIndex != s.toIndex
+            && s.fromIndex >= 0 && s.fromIndex < ids.size() && s.toIndex >= 0 && s.toIndex < ids.size()
+            && ids[s.fromIndex] == s.fromId && ids[s.toIndex] == s.toId);
+    }
+
+    function isValidTurn(d) {
+      return d.keys().hasAll(['title', 'householdIds', 'current', 'history', 'swap', 'createdBy', 'createdAt', 'updatedAt'])
+        && d.keys().hasOnly(['title', 'householdIds', 'current', 'history', 'swap', 'createdBy', 'createdAt', 'updatedAt'])
+        && d.title is string && d.title.trim().size() >= 1 && d.title.size() <= 60
+        && isTurnHouseholds(d.householdIds)
+        && d.current is int && d.current >= 0 && d.current < d.householdIds.size()
+        && d.history is list && d.history.size() <= 100
+        && isTurnSwap(d.swap, d.householdIds)
+        && d.updatedAt == request.time;
+    }
+
+    function turnHouseholdNow() {
+      return resource.data.householdIds[resource.data.current];
+    }
+
+    // The same households, in an order where only positions [i] and [j] changed places.
+    function isTurnExchange(i, j) {
+      let before = resource.data.householdIds;
+      let after = request.resource.data.householdIds;
+      return after.size() == before.size() && after.toSet() == before.toSet()
+        && after[i] == before[j] && after[j] == before[i];
+    }
+
+    // The author or the admin principal: the title, the households and their order, whose turn it
+    // is. A pending exchange is dropped, since the places may have changed.
+    function isTurnEdit() {
+      return (resource.data.createdBy == myMemberId() || isOwner())
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'householdIds', 'current', 'swap', 'updatedAt'])
+        && request.resource.data.swap == null;
+    }
+
+    // « C'est fait »: one entry more at the end of the history, for the household whose turn it
+    // was, and the turn goes to the next one.
+    function isTurnDone() {
+      let before = resource.data;
+      let d = request.resource.data;
+      let n = before.history.size();
+      let last = d.history[n];
+      return me().profile == 'adult'
+        && (myHouseholdId() == turnHouseholdNow() || before.createdBy == myMemberId() || isOwner())
+        && d.diff(before).affectedKeys().hasOnly(['history', 'current', 'updatedAt'])
+        && d.history.size() == n + 1 && d.history[0:n] == before.history
+        && last is map && last.keys().hasAll(['householdId', 'label', 'at']) && last.keys().hasOnly(['householdId', 'label', 'at'])
+        && last.householdId == turnHouseholdNow()
+        && last.label is string && last.label.size() <= 40
+        && last.at is timestamp && last.at > request.time - duration.value(10, 'm') && last.at < request.time + duration.value(10, 'm')
+        && d.current == (before.current + 1) % before.householdIds.size();
+    }
+
+    // « On passe notre tour »: the household whose turn it is changes place with the next one,
+    // without a word to the family.
+    function isTurnSkip() {
+      let c = resource.data.current;
+      return me().profile == 'adult' && myHouseholdId() == turnHouseholdNow()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['householdIds', 'swap', 'updatedAt'])
+        && isTurnExchange(c, (c + 1) % resource.data.householdIds.size())
+        && request.resource.data.swap == null;
+    }
+
+    // An adult of a household of the rotation proposes to change places with another one.
+    function isTurnSwapAsk() {
+      let s = request.resource.data.swap;
+      return me().profile == 'adult'
+        && resource.data.swap == null
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['swap', 'updatedAt'])
+        && s != null && s.fromId == myHouseholdId() && s.byId == myMemberId() && s.byName == me().firstName;
+    }
+
+    // The other household says yes: the two change places, and the proposal is done.
+    function isTurnSwapAccept() {
+      let s = resource.data.swap;
+      return me().profile == 'adult' && s != null && myHouseholdId() == s.toId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['householdIds', 'swap', 'updatedAt'])
+        && isTurnExchange(s.fromIndex, s.toIndex)
+        && request.resource.data.swap == null;
+    }
+
+    // No: the other household refuses, or the proposer's household withdraws it.
+    function isTurnSwapDrop() {
+      let s = resource.data.swap;
+      return me().profile == 'adult' && s != null && (myHouseholdId() == s.toId || myHouseholdId() == s.fromId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['swap', 'updatedAt'])
+        && request.resource.data.swap == null;
+    }
+
+    match /turns/{turnId} {
+      allow read: if isMember();
+
+      allow create: if isMember()
+        && me().profile == 'adult'
+        && isValidTurn(request.resource.data)
+        && request.resource.data.current == 0
+        && request.resource.data.history.size() == 0
+        && request.resource.data.swap == null
+        && request.resource.data.createdBy == myMemberId()
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if isMember() && isValidTurn(request.resource.data)
+        && (isTurnEdit() || isTurnDone() || isTurnSkip() || isTurnSwapAsk() || isTurnSwapAccept() || isTurnSwapDrop());
+
+      allow delete: if isMember() && (resource.data.createdBy == myMemberId() || isOwner());
+    }
+
     // --- Vœux d'anniversaire (PRD, récit 36, avis EXPERT n° 11) ---------------------------------
     //
     // birthdayCards/{year}-{forMemberId}-{authorId}: one card per member and per birthday, a short
@@ -1924,6 +2057,16 @@ service cloud.firestore {
       allow delete: if isNotebookOwner(memberId) && resource.data.source == 'idea';
     }
 
+    // « Mon budget » (récit 57): the budget of a whole occasion, no person, an occasion and its
+    // year, at its one id. Adults only: the children do not have it.
+    function isTotalBudget(b, budgetId) {
+      return b.total == true
+        && b.personId == null && b.personName == null
+        && b.occasion != null && b.year != null
+        && budgetId == 'total_' + b.occasion + '_' + string(b.year)
+        && me().profile == 'adult';
+    }
+
     // notebooks/{memberId}/budgets/{budgetId}: what the member means to spend for one person and
     // one occasion. The id is chosen by the app, one per person and occasion.
     match /notebooks/{memberId}/budgets/{budgetId} {
@@ -1931,10 +2074,12 @@ service cloud.firestore {
 
       allow create, update: if isNotebookOwner(memberId)
         && request.resource.data.keys().hasAll(['personId', 'personName', 'occasion', 'year', 'amount', 'updatedAt'])
-        && request.resource.data.keys().hasOnly(['personId', 'personName', 'occasion', 'year', 'amount', 'updatedAt'])
-        && (request.resource.data.personId == null || request.resource.data.personId is string)
-        && request.resource.data.personName is string
-        && request.resource.data.personName.size() > 0 && request.resource.data.personName.size() <= 40
+        && request.resource.data.keys().hasOnly(['personId', 'personName', 'occasion', 'year', 'amount', 'updatedAt', 'total'])
+        && (isTotalBudget(request.resource.data, budgetId)
+            || (request.resource.data.get('total', false) == false
+                && (request.resource.data.personId == null || request.resource.data.personId is string)
+                && request.resource.data.personName is string
+                && request.resource.data.personName.size() > 0 && request.resource.data.personName.size() <= 40))
         && (request.resource.data.occasion == null
             || request.resource.data.occasion in ['christmas', 'birthday', 'birth', 'other'])
         && (request.resource.data.year == null

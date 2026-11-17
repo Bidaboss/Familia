@@ -58,13 +58,31 @@ data class NotebookEntry(
     val movedTo: String? = null,
 )
 
-/** What the member means to spend for one person at one occasion. */
+/**
+ * What the member means to spend for one person at one occasion, or for the whole occasion when
+ * [total] (« Mon budget », récit 57: then no person, and an occasion with its year).
+ */
 data class NotebookBudget(
     val personId: String?,
     val personName: String,
     val occasion: NotebookOccasion,
     val amount: Double,
+    val total: Boolean = false,
 )
+
+/** The id of the budget of a whole occasion: one per occasion and year. */
+fun notebookTotalBudgetId(occasion: NotebookOccasion): String =
+    "total_${occasion.occasion?.firestoreValue ?: "none"}_${occasion.year ?: "none"}"
+
+/**
+ * What counts in « Mon budget » (récit 57): my reservations with a price and my parts of joint
+ * gifts, whatever their status, and what I bought outside the app (a private idea marked bought).
+ * An idea not bought yet spends nothing.
+ */
+fun NotebookEntry.committed(): Double = when (source) {
+    NotebookSource.Idea -> if (status.isBought) price ?: 0.0 else 0.0
+    NotebookSource.Claim, NotebookSource.Share -> price ?: 0.0
+}
 
 /**
  * The id of a budget: one per person and occasion. A person outside the family is known by their
