@@ -124,6 +124,7 @@ fun PhotoSlideshow(photos: List<AlbumPhoto>, onClose: () -> Unit) {
                         contentScale = ContentScale.Fit,
                         showLoading = true,
                         onFailed = { failedId = photo.id },
+                        onLoaded = { if (failedId == photo.id) failedId = null },
                     )
                 }
             }
