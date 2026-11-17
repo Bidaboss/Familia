@@ -64,6 +64,8 @@ fun GoodNewsFeedScreen(
     /** The filter « Les petits » (récit 43), shown when the module is on. */
     littleOnesOn: Boolean = false,
     onLittleOnesOnly: (Boolean) -> Unit = {},
+    /** « Revoir notre année » (récit 55), above the feed while it can be opened. */
+    yearAgain: (@Composable () -> Unit)? = null,
 ) {
     var removing by rememberSaveable { mutableStateOf<String?>(null) }
     Scaffold(
@@ -102,6 +104,7 @@ fun GoodNewsFeedScreen(
                         Feed(
                             state, onOpen, onEdit, onReact, { removing = it }, onHide, onLoadMore,
                             littleOnesFilter = if (littleOnesOn || state.littleOnesOnly) onLittleOnesOnly else null,
+                            yearAgain = yearAgain,
                         )
                     }
             }
@@ -123,12 +126,14 @@ private fun Feed(
     onHide: (String) -> Unit,
     onLoadMore: () -> Unit,
     littleOnesFilter: ((Boolean) -> Unit)?,
+    yearAgain: (@Composable () -> Unit)? = null,
 ) {
     // The bottom padding keeps the last card above the « Publier » button.
     LazyColumn(
         contentPadding = PaddingValues(start = ClaySpacing.screen, top = 16.dp, end = ClaySpacing.screen, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
+        if (yearAgain != null) item(key = "yearAgain") { yearAgain() }
         if (littleOnesFilter != null) {
             item(key = "littleOnes") {
                 FilterChip(
