@@ -22,7 +22,10 @@ import java.util.Date
  * one, and the dates, live in `lendLoans/{itemId}`, read by the owner and the borrower (EXPERT-9).
  * The two always change together, in one batch. See docs/data-model.md for the fields and the rights.
  */
-class FirestoreLendItemRepository(private val db: FirebaseFirestore) : LendItemRepository {
+class FirestoreLendItemRepository(
+    private val db: FirebaseFirestore,
+    private val journal: SendJournal? = null,
+) : LendItemRepository {
 
     private fun things(): Flow<List<DocumentSnapshot>> = callbackFlow {
         val registration = db.collection(LEND_ITEMS).addSnapshotListener { snapshot, error ->
@@ -68,9 +71,11 @@ class FirestoreLendItemRepository(private val db: FirebaseFirestore) : LendItemR
         )
         val ref = db.collection(LEND_ITEMS).document(item.id)
         if (isNew) {
-            ref.set(
-                fields + mapOf("lent" to false, "ownerId" to item.ownerId, "ownerName" to item.ownerName, "createdAt" to FieldValue.serverTimestamp()),
-            ).await()
+            journal.track(SendEntry(ref.path, SendKind.LendItem, item.name, item.ownerId)) {
+                ref.set(
+                    fields + mapOf("lent" to false, "ownerId" to item.ownerId, "ownerName" to item.ownerName, "createdAt" to FieldValue.serverTimestamp()),
+                )
+            }
         } else {
             // An edit leaves the loan, the owner and the creation alone.
             ref.set(fields, SetOptions.merge()).await()
@@ -79,6 +84,7 @@ class FirestoreLendItemRepository(private val db: FirebaseFirestore) : LendItemR
 
     /** The server removes its loan too (onLendItemDeleted). */
     override suspend fun delete(id: String) {
+        journal?.settled(db.collection(LEND_ITEMS).document(id).path)
         db.collection(LEND_ITEMS).document(id).delete().await()
     }
 
