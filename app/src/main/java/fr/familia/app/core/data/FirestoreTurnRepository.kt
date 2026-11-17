@@ -17,7 +17,10 @@ import java.time.Instant
 import java.util.Date
 
 /** Rotations live in `turns/{turnId}`. See docs/data-model.md for the fields and the rights. */
-class FirestoreTurnRepository(private val db: FirebaseFirestore) : TurnRepository {
+class FirestoreTurnRepository(
+    private val db: FirebaseFirestore,
+    private val journal: SendJournal? = null,
+) : TurnRepository {
 
     override fun observeAll(): Flow<List<Turn>> = callbackFlow {
         val registration = db.collection(TURNS).addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
@@ -36,18 +39,21 @@ class FirestoreTurnRepository(private val db: FirebaseFirestore) : TurnRepositor
     override fun newId(): String = db.collection(TURNS).document().id
 
     override suspend fun create(id: String, title: String, householdIds: List<String>, me: Member) {
-        db.collection(TURNS).document(id).set(
-            mapOf(
-                "title" to title,
-                "householdIds" to householdIds,
-                "current" to 0,
-                "history" to emptyList<Any>(),
-                "swap" to null,
-                "createdBy" to me.id,
-                "createdAt" to FieldValue.serverTimestamp(),
-                "updatedAt" to FieldValue.serverTimestamp(),
-            ),
-        ).await()
+        val ref = db.collection(TURNS).document(id)
+        journal.track(SendEntry(ref.path, SendKind.Turn, title, me.id)) {
+            ref.set(
+                mapOf(
+                    "title" to title,
+                    "householdIds" to householdIds,
+                    "current" to 0,
+                    "history" to emptyList<Any>(),
+                    "swap" to null,
+                    "createdBy" to me.id,
+                    "createdAt" to FieldValue.serverTimestamp(),
+                    "updatedAt" to FieldValue.serverTimestamp(),
+                ),
+            )
+        }
     }
 
     override suspend fun edit(id: String, title: String, householdIds: List<String>, current: Int) {
@@ -107,6 +113,7 @@ class FirestoreTurnRepository(private val db: FirebaseFirestore) : TurnRepositor
     }
 
     override suspend fun delete(id: String) {
+        journal?.settled(db.collection(TURNS).document(id).path)
         db.collection(TURNS).document(id).delete().await()
     }
 

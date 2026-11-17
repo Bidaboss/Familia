@@ -22,7 +22,10 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 /** Requests live in `helpRequests/{id}`. See docs/data-model.md for the fields and the rights. */
-class FirestoreHelpRequestRepository(private val db: FirebaseFirestore) : HelpRequestRepository {
+class FirestoreHelpRequestRepository(
+    private val db: FirebaseFirestore,
+    private val journal: SendJournal? = null,
+) : HelpRequestRepository {
 
     private val refusals = MutableSharedFlow<String?>(extraBufferCapacity = 4)
 
@@ -74,18 +77,20 @@ class FirestoreHelpRequestRepository(private val db: FirebaseFirestore) : HelpRe
             "updatedAt" to FieldValue.serverTimestamp(),
         )
         if (isNew) {
-            ref.set(
-                fields + mapOf(
-                    "authorId" to request.authorId,
-                    "authorName" to request.authorName,
-                    "forMemberId" to request.forMemberId,
-                    "status" to HelpStatus.Open.firestoreValue,
-                    "volunteerId" to null,
-                    "volunteerName" to null,
-                    "thankedAt" to null,
-                    "createdAt" to FieldValue.serverTimestamp(),
-                ),
-            ).await()
+            journal.track(SendEntry(ref.path, SendKind.HelpRequest, request.title, request.authorId)) {
+                ref.set(
+                    fields + mapOf(
+                        "authorId" to request.authorId,
+                        "authorName" to request.authorName,
+                        "forMemberId" to request.forMemberId,
+                        "status" to HelpStatus.Open.firestoreValue,
+                        "volunteerId" to null,
+                        "volunteerName" to null,
+                        "thankedAt" to null,
+                        "createdAt" to FieldValue.serverTimestamp(),
+                    ),
+                )
+            }
         } else {
             ref.update(fields).await()
         }
