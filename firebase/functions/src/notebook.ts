@@ -8,6 +8,7 @@ import type { Firestore } from 'firebase-admin/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
 import { parisDay } from './logic';
 import { claimOccasion, wasRevealed } from './wishesReveal';
+import { cleanedUp } from './singleList';
 
 export type NotebookSource = 'claim' | 'share';
 
@@ -93,6 +94,9 @@ async function takenUpBy(db: Firestore, listId: string, itemId: string, memberId
 /** Brings the notebook entry of [memberId] for this item in line with the list. */
 export async function syncNotebookEntry(db: Firestore, listId: string, itemId: string, memberId: string): Promise<void> {
   if (!memberId) return;
+  // An old list removed after the 21st: its entries live on with the copies, none is made again
+  // while its parts and reservations go one by one (note B1 de #345).
+  if (await cleanedUp(db, listId)) return;
   const ref = db.collection('notebooks').doc(memberId).collection('entries').doc(notebookEntryId(listId, itemId));
   const [taken, current] = await Promise.all([takenUpBy(db, listId, itemId, memberId), ref.get()]);
   if (!taken) {

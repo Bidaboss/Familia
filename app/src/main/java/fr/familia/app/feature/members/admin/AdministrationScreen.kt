@@ -519,11 +519,33 @@ private fun AdultSwitchRow(row: AdultRow, onSetChef: (Member, Boolean) -> Unit) 
 private fun FeatureSwitchRow(feature: Feature, on: Boolean, onSetFeature: (Feature, Boolean) -> Unit) {
     val name = stringResource(feature.labelRes)
     val seeWhere = LocalFeatureSeeWhere.current(feature)
+    // Erasing the old lists cannot be undone: it is confirmed first.
+    var confirming by rememberSaveable { mutableStateOf(false) }
+    if (confirming) {
+        AlertDialog(
+            onDismissRequest = { confirming = false },
+            title = { Text(stringResource(R.string.old_lists_cleanup_confirm_title)) },
+            text = { Text(stringResource(R.string.old_lists_cleanup_confirm_body)) },
+            confirmButton = {
+                TextButton(
+                    onClick = { onSetFeature(feature, true); confirming = false },
+                    modifier = Modifier.heightIn(min = 56.dp),
+                ) { Text(stringResource(R.string.old_lists_cleanup_confirm), color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirming = false }, modifier = Modifier.heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.action_keep))
+                }
+            },
+        )
+    }
     Column(Modifier.fillMaxWidth().padding(bottom = 4.dp)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .toggleable(on, role = Role.Switch) { onSetFeature(feature, it) }
+                .toggleable(on, role = Role.Switch) {
+                    if (it && feature == Feature.OldListsCleanup) confirming = true else onSetFeature(feature, it)
+                }
                 .heightIn(min = 56.dp)
                 .padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
