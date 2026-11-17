@@ -23,6 +23,7 @@ Au lieu du repas, où le réseau peut être faible (passe hors ligne du 16/11). 
 12. « Qui apporte quoi » : ajoute « Essai gâteau ». **Attendu :** le champ se vide et la ligne apparaît tout de suite, une seule fois. Au retour du réseau, il n'y a qu'une ligne sur le deuxième téléphone.
 13. Bonnes nouvelles : écris un texte avec une photo et publie. **Attendu :** « Il faut du réseau pour envoyer les photos », sans rien publier. Ton texte et ta photo restent dans le formulaire. Désactive le mode avion puis publie : **Attendu :** une seule bonne nouvelle.
 14. Réactive le réseau. **Attendu :** le bandeau disparaît et tout arrive sur le deuxième téléphone, sans doublon.
+15. Remets le mode avion, crée un coup de main « Essai fermé », puis ferme l'appli (balaye-la des applis récentes). Réactive le réseau et rouvre Familia. **Attendu :** le coup de main arrive sur le deuxième téléphone, et aucune fenêtre « Pas parti » ne s'ouvre. Elle ne s'ouvre que si le serveur a refusé ce qui avait été préparé sans réseau, et elle le nomme. Annule ensuite « Essai fermé ».
 
 À noter si ça se passe mal : l'étape qui échoue, ce que tu vois à l'écran (une capture si possible) et la version de l'appli (en bas de l'onglet Famille).
 
@@ -972,6 +973,8 @@ Sur ton téléphone, avec la rotation automatique allumée (volet des réglages 
 1. Sur un téléphone, connecte-toi avec le compte A, puis ouvre un album et un livre de recettes pour remplir le cache.
 2. Touche « Utiliser un autre compte » (par exemple depuis l'écran « Cette adresse n'est pas dans la famille ») et connecte-toi avec le compte B. **Attendu :** les photos se rechargent depuis le réseau, puis s'affichent normalement. Le dernier PDF de A n'est plus proposé.
 3. Reconnecte-toi avec B. **Attendu :** les photos s'affichent tout de suite, sans nouveau chargement, puisque c'est le même membre.
+4. Toujours connecté avec B, ferme Familia depuis les applis récentes, coupe le Wi-Fi et les données, puis rouvre-la. **Attendu :** aucun document de A ne s'affiche (ses voyages ou ses listes que B ne voit pas). L'appli s'ouvre comme sans réseau. Remets le réseau : tout ce que B voit revient.
+5. Avec B, ouvre un très gros album (plusieurs centaines de photos) et touche « Faire le livre photo ». **Attendu :** le livre se fait. Dans les réglages d'Android, le stockage de Familia (cache) ne dépasse pas environ 150 Mo pendant que l'écran est ouvert, et redescend quand tu le quittes.
 
 ## Démo du 21 : arrivée d'un nouveau membre, de l'invitation à l'Accueil
 
@@ -1045,6 +1048,7 @@ Avant de commencer : **Administration**, puis **Modules**, et allume « Animatio
 
 1. Sur le deuxième téléphone, installe la nouvelle version et ouvre Familia. **Attendu :** l'arbre de l'icône pousse, puis ses fruits glissent en cercle autour du soleil, chacun de la couleur d'un membre avec ses lettres. Puis « Bienvenue dans Familia » et « Bonjour {prénom}, tu es chez toi. » apparaissent. Vers 4 secondes et demie, l'appli continue : le tuto sur une nouvelle installation, l'Accueil sinon.
 2. **Attendu :** il y a autant de fruits que de membres, ton foyer en premier, en partant du haut.
+   - Pour un membre qui a une photo de profil, **attendu :** sa photo apparaît dans son fruit, ronde, avec un bord de sa couleur. Les membres sans photo gardent leurs lettres.
 3. Ferme et rouvre Familia. **Attendu :** l'animation ne revient pas.
 4. Touche ta photo en haut à droite, puis « Apparence », puis « Revoir l'animation de bienvenue » tout en bas. **Attendu :** elle se rejoue, puis tu reviens sur Apparence.
 5. Pendant qu'elle se joue, touche l'écran n'importe où. **Attendu :** elle s'arrête tout de suite.
@@ -1080,9 +1084,17 @@ Une limite connue : un téléphone sous Android 8 ne sait pas ouvrir les photos 
 Sur un téléphone en Android 12 ou plus récent. Pour le savoir : Paramètres, puis « À propos du téléphone », puis « Version d'Android ».
 
 1. Ferme Familia complètement : ouvre les applis récentes et balaie Familia vers le haut.
-2. Touche l'icône de Familia. **Attendu :** sur le fond crème, le soleil apparaît, puis le tronc pousse de bas en haut, le feuillage s'ouvre avec un petit rebond, et les fruits sortent en quatre vagues. Ensuite, l'appli s'ouvre comme d'habitude, sans attendre plus longtemps qu'avant.
+2. Touche l'icône de Familia. **Attendu :** sur le fond crème, le soleil apparaît, puis le tronc pousse de bas en haut, le feuillage s'ouvre avec un petit rebond, et les fruits sortent en quatre vagues, en un peu moins d'une seconde et demie. L'arbre va jusqu'au bout avant que l'appli s'ouvre.
+   - Tourne le téléphone une fois l'appli ouverte. **Attendu :** l'écran se redessine tout de suite, sans revoir l'arbre ni attendre.
+   - Mets Familia en arrière-plan avec le bouton d'accueil, puis rouvre-la. **Attendu :** l'appli revient tout de suite.
 3. Recommence en mode sombre (Paramètres, puis Affichage, puis « Thème sombre »). **Attendu :** le même arbre, sur un fond brun foncé.
-4. Dans Paramètres, puis Accessibilité, allume « Supprimer les animations », puis recommence l'étape 1. **Attendu :** l'arbre entier s'affiche d'un coup, sans mouvement. Éteins ensuite ce réglage.
+4. Dans Paramètres, puis Accessibilité, allume « Supprimer les animations », puis recommence l'étape 1. **Attendu :** l'arbre entier s'affiche d'un coup, sans mouvement, et l'appli s'ouvre sans attendre. Éteins ensuite ce réglage.
 5. Sur un téléphone en Android 11 ou plus ancien, s'il y en a un dans la famille. **Attendu :** le démarrage est le même qu'avant.
 
 Si quelque chose ne va pas le 20 au soir, préviens [DEV] : on revient à l'icône fixe en retirant un seul changement.
+
+## Ouverture rapide d'un compte déjà connecté
+
+1. Sur un téléphone déjà connecté, ferme Familia en la balayant des applis récentes. Coupe le Wi-Fi et la 4G, puis rouvre Familia. **Attendu :** l'Accueil s'ouvre tout de suite, sans écran de connexion ni « Réessayer ».
+2. Remets le réseau. Depuis un autre téléphone d'admin, change le prénom de ce membre. Ferme et rouvre Familia sur le premier téléphone. **Attendu :** l'appli s'ouvre tout de suite, et le nouveau prénom apparaît quelques secondes après au plus (par exemple dans Mon profil).
+3. Sur un téléphone partagé, déconnecte-toi puis connecte un autre membre. **Attendu :** c'est bien l'autre membre qui entre, jamais le précédent.

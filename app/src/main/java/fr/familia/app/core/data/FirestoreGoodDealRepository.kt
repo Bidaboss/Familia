@@ -15,7 +15,10 @@ import kotlinx.coroutines.tasks.await
 import java.util.Date
 
 /** Posts live in `goodDeals/{dealId}`. See docs/data-model.md for the fields and the rights. */
-class FirestoreGoodDealRepository(private val db: FirebaseFirestore) : GoodDealRepository {
+class FirestoreGoodDealRepository(
+    private val db: FirebaseFirestore,
+    private val journal: SendJournal? = null,
+) : GoodDealRepository {
 
     override fun observeAll(): Flow<List<GoodDeal>> = callbackFlow {
         val registration = db.collection(GOOD_DEALS).addSnapshotListener { snapshot, error ->
@@ -57,13 +60,15 @@ class FirestoreGoodDealRepository(private val db: FirebaseFirestore) : GoodDealR
         )
         val ref = db.collection(GOOD_DEALS).document(deal.id)
         if (isNew) {
-            ref.set(
-                fields + mapOf(
-                    "interestedIds" to emptyList<String>(),
-                    "recommendedIds" to emptyList<String>(),
-                    "createdAt" to FieldValue.serverTimestamp(),
-                ),
-            ).await()
+            journal.track(SendEntry(ref.path, SendKind.GoodDeal, deal.title, deal.authorId)) {
+                ref.set(
+                    fields + mapOf(
+                        "interestedIds" to emptyList<String>(),
+                        "recommendedIds" to emptyList<String>(),
+                        "createdAt" to FieldValue.serverTimestamp(),
+                    ),
+                )
+            }
         } else {
             // An update leaves the names (interestedIds, recommendedIds) and the creation alone.
             ref.set(fields, SetOptions.merge()).await()
@@ -71,6 +76,7 @@ class FirestoreGoodDealRepository(private val db: FirebaseFirestore) : GoodDealR
     }
 
     override suspend fun delete(id: String) {
+        journal?.settled(db.collection(GOOD_DEALS).document(id).path)
         db.collection(GOOD_DEALS).document(id).delete().await()
     }
 

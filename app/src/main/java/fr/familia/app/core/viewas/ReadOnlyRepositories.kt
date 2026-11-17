@@ -138,6 +138,7 @@ class ReadOnlyAuthRepository(private val inner: AuthRepository, private val guar
 
 class ReadOnlyMemberRepository(private val inner: MemberRepository, private val guard: ViewAsGuard) : MemberRepository {
     override suspend fun findByEmail(email: String): Member? = inner.findByEmail(email)
+    override suspend fun findCachedByEmail(email: String): Member? = inner.findCachedByEmail(email)
     override suspend fun linkAccount(memberId: String, uid: String) = guard.refuse()
     override fun observeFamily(): Flow<Family> = inner.observeFamily()
     override fun newMemberId(): String = inner.newMemberId()

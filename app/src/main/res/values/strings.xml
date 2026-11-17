@@ -1816,14 +1816,15 @@
     <string name="consumption_deletes">Suppressions</string>
     <string name="consumption_storage">Taille de la base</string>
     <string name="consumption_figures">%1$s sur %2$s gratuites</string>
-    <string name="consumption_storage_figures">%1$s Mo sur 1 Go gratuit</string>
+    <string name="consumption_storage_figures">%1$s sur 1 Go gratuit</string>
     <string name="consumption_photos">Photos gardées</string>
-    <string name="consumption_photos_figures">%1$s Mo sur 5 Go gratuits</string>
+    <string name="consumption_photos_figures">%1$s sur 5 Go gratuits</string>
     <string name="consumption_downloads">Photos téléchargées ce mois-ci</string>
-    <string name="consumption_downloads_figures">%1$s Mo sur 100 Go gratuits</string>
+    <string name="consumption_downloads_figures">%1$s sur 100 Go gratuits</string>
     <string name="consumption_gauge_description">%1$s : %2$s, %3$d pour cent</string>
+    <string name="consumption_line_cost">%1$s depuis le 1er du mois</string>
     <string name="consumption_cost">Coût estimé du mois : %1$s</string>
-    <string name="consumption_cost_help">Ce coût est une estimation, pas la facture. Familia te prévient à 80 % d\'une limite ou au-delà de 0,50 €. Le vrai garde-fou reste l\'alerte de Google, par e-mail à 1 €.</string>
+    <string name="consumption_cost_help">Ce coût est une estimation, pas la facture : les prix sont comptés un peu au-dessus de ceux de Google, pour ne jamais te rassurer à tort. Familia te prévient à 80 % d\'une limite ou au-delà de 0,50 €. Le vrai garde-fou reste l\'alerte de Google, par e-mail à 1 €.</string>
     <!-- Ajouter à mon agenda (PRD, récit 30) -->
     <string name="calendar_add">Ajouter à mon agenda</string>
     <string name="calendar_add_birthday">Ajouter l\'anniversaire de %1$s à mon agenda</string>
@@ -2459,6 +2460,13 @@
     <string name="lend_photo_label">Photo de l\'objet</string>
     <string name="lend_missing_title">Cet objet n\'est plus là</string>
     <string name="lend_missing_body">Celui qui le prêtait l\'a retiré.</string>
+    <string name="send_lost_title">Pas parti</string>
+    <string name="send_lost_body">Ce que tu avais préparé sans réseau n\'a pas été accepté. Tu peux le refaire :</string>
+    <string name="send_lost_help">Le coup de main « %1$s »</string>
+    <string name="send_lost_good_news">La Bonne nouvelle « %1$s »</string>
+    <string name="send_lost_good_deal">Le bon plan « %1$s »</string>
+    <string name="send_lost_lend">L\'objet à prêter « %1$s »</string>
+    <string name="send_lost_turn">Le tour « %1$s »</string>
     <string name="lend_asked_first">Quelqu\'un vient de le demander, juste avant toi.</string>
     <string name="lend_changed_first">Ce prêt vient de changer, juste avant toi. La fiche est à jour.</string>
     <string name="lend_action_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>

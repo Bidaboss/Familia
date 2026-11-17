@@ -33,7 +33,7 @@ class SplashTreeTest {
 
     @Test
     @Config(sdk = [31, 34])
-    fun `the start screen of the theme shows the growing tree for at most 900 ms`() {
+    fun `the start screen of the theme shows the growing tree for at most 1350 ms`() {
         val context = RuntimeEnvironment.getApplication()
         context.setTheme(R.style.Theme_Familia)
         val icon = TypedValue()
@@ -41,7 +41,15 @@ class SplashTreeTest {
         assertEquals(R.drawable.splash_tree, icon.resourceId)
         val duration = TypedValue()
         assertTrue(context.theme.resolveAttribute(android.R.attr.windowSplashScreenAnimationDuration, duration, true))
-        assertTrue(duration.data in 1..900)
+        assertTrue(duration.data in 1..START_SCREEN_MILLIS.toInt())
+    }
+
+    @Test
+    fun `a cold start keeps the screen from the start of the process, a warm one from now`() {
+        assertEquals(1_000L + START_SCREEN_MILLIS, startScreenUntil(now = 1_400L, processStart = 1_000L, coldStart = true))
+        assertEquals(90_000L + START_SCREEN_MILLIS, startScreenUntil(now = 90_000L, processStart = 1_000L, coldStart = false))
+        // A slow cold start: the time is already over, nothing waits more.
+        assertTrue(startScreenUntil(now = 2_400L, processStart = 1_000L, coldStart = true) < 2_400L)
     }
 
     @Test

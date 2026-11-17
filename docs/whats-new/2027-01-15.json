@@ -1,0 +1,19 @@
+{
+  "cards": [
+    {
+      "id": "covoiturage",
+      "title": "On y va ensemble ?",
+      "body": "Sur un événement, dis si tu as des places dans ta voiture ou s'il t'en faut une, et partez ensemble.",
+      "feature": "carpool",
+      "open": "planning",
+      "adultsOnly": true
+    },
+    {
+      "id": "planning-dans-mon-agenda",
+      "title": "Le planning dans ton agenda",
+      "body": "Touche ta photo en haut à droite, puis « Voir dans mon agenda » : le planning arrive dans Google Agenda.",
+      "feature": "calendarFeed",
+      "adultsOnly": true
+    }
+  ]
+}

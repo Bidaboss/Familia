@@ -59,7 +59,7 @@ import { deleteCheersOf, deleteMomentsOf, onMomentCheerCreated, startMoments, ty
 import { keepReceivedPhoto, revealWishes, thankGivers } from './wishesReveal';
 import { cleanupOldLists, migrateToSingleList } from './singleList';
 import { deleteEventReminders, sendMyReminders } from './reminders';
-import { sendPackingReminders } from './packing';
+import { dropBags, leftTheTrip, sendPackingReminders } from './packing';
 import { deleteItemPhoto } from './itemPhoto';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
@@ -520,7 +520,7 @@ const sendGoodNews: GoodNewsSender = async (token: string, notice: GoodNewsNotic
   }
 };
 
-// The default bucket of the project (familia-93286.firebasestorage.app, US-EAST1): no region to set.
+// The default bucket of the project (familia-93286.firebasestorage.app, US-WEST1): no region to set.
 const removeFiles: FileRemover = async (paths: string[]) => {
   const bucket = getStorage().bucket();
   await Promise.all(paths.map((path) => bucket.file(path).delete({ ignoreNotFound: true })));
@@ -593,6 +593,13 @@ export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) =
   await deleteTripContents(getFirestore(), event.params.tripId);
   // The photos of the trip and their thumbnails (récit 15), all under trips/{tripId}/.
   await getStorage().bucket().deleteFiles({ prefix: `trips/${event.params.tripId}/` });
+});
+
+// « Ma valise » (récit 62): a participant taken off the trip leaves their bag behind. It goes,
+// so it never comes back to them nor stays in the database for nothing.
+export const onTripParticipantsChanged = onDocumentUpdated('trips/{tripId}', async (event) => {
+  const gone = leftTheTrip(event.data?.before.get('participantIds'), event.data?.after.get('participantIds'));
+  await dropBags(getFirestore(), event.params.tripId, gone);
 });
 
 // Les comptes du voyage (récit 16 bis) live out of the trip: they go with it.
