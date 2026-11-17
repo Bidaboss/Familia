@@ -534,6 +534,7 @@ Avec l'interrupteur « Partager » allumé :
 2. Sur un téléphone prévenu, ouvre la demande : la photo est entière, sans être coupée. Touche-la : elle s'ouvre en grand sur fond noir, prête à être scannée. « Fermer » revient à la demande.
 3. Sur le téléphone d'un membre non prévenu, la demande n'apparaît pas, et la photo non plus.
 4. Modifie la demande, touche « Retirer la photo », enregistre : elle disparaît pour tout le monde.
+
 ## L'écran Défis (R1 bis, maquette R7)
 
 1. Ouvre « Défis » depuis Tout Familia. En haut, la carte noire : « DÉFI DE DÉCEMBRE », le défi, la jauge jaune et « On le réussit ensemble, sans classement ». Avant décembre : « Premier défi le 1er décembre ».

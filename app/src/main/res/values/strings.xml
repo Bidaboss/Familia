@@ -1807,6 +1807,9 @@
     <string name="challenges_won_title">Nos souvenirs gagnés ensemble</string>
     <string name="challenges_won_month">Défi %1$s réussi</string>
     <string name="challenges_won_next">À venir</string>
+    <string name="challenge_home_label">Défi du mois</string>
+    <string name="challenge_home_host">Lancé par %1$s</string>
+    <string name="challenge_home_open">ouvrir les défis</string>
     <string name="notifications_tree">Défi du mois</string>
     <string name="notifications_tree_help">Quand la famille réussit le défi du mois.</string>
     <string name="notifications_recap">La semaine de la famille</string>
