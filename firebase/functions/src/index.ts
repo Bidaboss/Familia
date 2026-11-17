@@ -511,7 +511,7 @@ const sendGoodNews: GoodNewsSender = async (token: string, notice: GoodNewsNotic
   }
 };
 
-// The default bucket of the project (familia-93286.firebasestorage.app, US-EAST1): no region to set.
+// The default bucket of the project (familia-93286.firebasestorage.app, US-WEST1): no region to set.
 const removeFiles: FileRemover = async (paths: string[]) => {
   const bucket = getStorage().bucket();
   await Promise.all(paths.map((path) => bucket.file(path).delete({ ignoreNotFound: true })));

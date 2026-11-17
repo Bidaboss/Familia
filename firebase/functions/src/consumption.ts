@@ -12,7 +12,7 @@ export type Limit = 'reads' | 'writes' | 'deletes' | 'storage' | 'photos' | 'dow
 
 /**
  * The free quotas: of Firestore per day for the operations, stored for the size; of Cloud Storage
- * in US-EAST1 (docs/firebase-setup.md), 5 Go stored and 100 Go downloaded a month, counted in
+ * in US-WEST1 (docs/firebase-setup.md), 5 Go stored and 100 Go downloaded a month, counted in
  * decimal gigabytes so the estimate errs on the safe side.
  */
 export const FREE: Record<Limit, number> = {
