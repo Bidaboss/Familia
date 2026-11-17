@@ -1103,3 +1103,12 @@ Si quelque chose ne va pas le 20 au soir, préviens [DEV] : on revient à l'icô
 2. Sur un autre téléphone, réponds « Je viens » à un événement. **Attendu :** le compteur du premier téléphone monte en quelques secondes, sans rouvrir le Planning.
 3. Crée un nouvel événement, puis réponds-y. **Attendu :** son compteur apparaît aussi.
 4. Coupe le réseau et rouvre le Planning. **Attendu :** les événements s'affichent, avec les compteurs déjà lus.
+
+## Liens d'agenda dans Administration
+
+Avec le module « Voir le planning dans mon agenda » allumé (ou sur le téléphone de l'admin principal, qui le voit toujours).
+
+1. Sur le téléphone d'un adulte, crée son lien d'agenda et ajoute-le à Google Agenda.
+2. Sur le téléphone de l'admin principal : **Administration**, puis la carte « Liens d'agenda ». **Attendu :** tous les adultes, rangés par foyer, chacun avec un bouton « Couper le lien de {prénom} ».
+3. Touche le bouton de cet adulte, puis « Couper ». **Attendu :** « Le lien de {prénom} est coupé. » s'affiche. Sur son téléphone, l'écran du lien d'agenda propose d'en créer un nouveau.
+4. Coupe le lien d'un adulte qui n'en avait pas. **Attendu :** le même message, et rien ne change pour lui.

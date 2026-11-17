@@ -2616,6 +2616,14 @@
     <string name="calendar_feed_remove">Supprimer mon lien</string>
     <string name="calendar_feed_remove_confirm_title">Supprimer ton lien ?</string>
     <string name="calendar_feed_remove_body">Le lien ne marchera plus, et l\'agenda Familia ne se mettra plus à jour. Google garde ce qu\'il a déjà lu : retire aussi l\'agenda Familia de Google Agenda.</string>
+    <string name="calendar_links_title">Liens d\'agenda</string>
+    <string name="calendar_links_help">Si un adulte a perdu son téléphone ou donné son lien d\'agenda à quelqu\'un, coupe son lien ici : son agenda Familia ne se mettra plus à jour. Il pourra en créer un nouveau.</string>
+    <string name="calendar_links_cut">Couper le lien de %1$s</string>
+    <string name="calendar_links_confirm_title">Couper le lien de %1$s ?</string>
+    <string name="calendar_links_confirm_body">Son agenda Familia ne se mettra plus à jour. S\'il n\'avait pas de lien, rien ne change.</string>
+    <string name="calendar_links_confirm">Couper</string>
+    <string name="calendar_links_cut_done">Le lien de %1$s est coupé.</string>
+    <string name="calendar_links_cut_failed">Le lien n\'a pas pu être coupé. Réessaie quand tu as du réseau.</string>
     <string name="calendar_feed_remove_failed">Le lien n\'a pas pu être supprimé. Réessaie quand tu as du réseau.</string>
     <string name="calendar_feed_failed">Le lien n\'a pas pu être créé. Réessaie quand tu as du réseau.</string>
     <string name="calendar_feed_error">Ton lien ne s\'affiche pas. Vérifie ta connexion, puis réessaie.</string>

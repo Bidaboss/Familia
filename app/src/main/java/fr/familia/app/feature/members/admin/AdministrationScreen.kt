@@ -130,6 +130,8 @@ fun AdministrationScreen(
     onSaveDiscoverOrder: ((List<DiscoverModule>) -> Unit)? = null,
     /** « Mode présentation » (récit 48), first of the screen for the day of the demo; hidden when null. */
     presentation: (@Composable () -> Unit)? = null,
+    /** « Liens d'agenda » (audit du 17/11): cut an adult's calendar link; hidden when null. */
+    calendarLinks: (@Composable () -> Unit)? = null,
 ) {
     Scaffold(
         modifier = modifier,
@@ -398,6 +400,7 @@ private fun ReadyContent(
         if (consumption != null) {
             item(key = "consumption") { ConsumptionSection(consumption) }
         }
+        if (calendarLinks != null) item(key = "calendar-links") { calendarLinks() }
         item(key = "backup") {
             HorizontalDivider(Modifier.padding(top = 8.dp))
             Row(

@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Feature
 import fr.familia.app.feature.discover.Discover
 import fr.familia.app.core.model.Member
@@ -117,6 +118,14 @@ fun AdministrationRoute(
             discoverInTutorial = Discover.inTutorial(flags::isOn),
             onSaveDiscoverOrder = if (flags.isOn(Feature.Discover)) viewModel::saveDiscoverOrder else null,
             presentation = presentation?.let { p -> { PresentationSection(p) } },
+            calendarLinks = calendarLinks(container, family, flags.isOn(Feature.CalendarFeed)),
         )
     }
+}
+
+/** « Liens d'agenda » once the calendar link is on (always for the admin principal, who tries it). */
+private fun calendarLinks(container: AppContainer?, family: Family?, on: Boolean): (@Composable () -> Unit)? {
+    val repository = container?.calendarFeedRepository ?: return null
+    if (!on || family == null) return null
+    return { CalendarLinksSection(family, repository) }
 }
