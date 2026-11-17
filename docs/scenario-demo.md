@@ -32,7 +32,7 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 
 **3. L'Entraide (2 min).** Les coups de main, et les autres rubriques si tu les as allumées.
 
-**4. La Famille (2 min).** Les foyers et les fiches. Montre où se trouve « Vérifier les mises à jour ».
+**4. La Famille (2 min).** Les foyers et les fiches. Puis touche la photo en haut à droite : montre « Vérifier les mises à jour ».
 
 **5. Les Cadeaux (1 min, avec prudence).** Ne montre **pas** ton propre onglet Cadeaux, ni celui d'un autre membre : l'occasion de la personne fêtée et ses réservations y apparaissent. Si tu veux le montrer, passe en « Voir comme » la personne fêtée, comme vérifié la veille. Sinon, explique-le en deux phrases sans l'ouvrir.
 
