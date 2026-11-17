@@ -78,3 +78,35 @@ describe('config/app', () => {
     await assertFails(getDoc(doc(as(env, ADULT), 'config/other')));
   });
 });
+
+describe('config/presentation (mode présentation, récit 48)', () => {
+  const until = new Date('2026-11-21T15:00:00Z');
+
+  test('the admin principal turns it on for a time or until turned off, then off', async () => {
+    const db = as(env, ADMIN);
+    await assertSucceeds(setDoc(doc(db, 'config/presentation'), { on: true, until, since: new Date() }));
+    await assertSucceeds(getDoc(doc(db, 'config/presentation')));
+    await assertSucceeds(setDoc(doc(db, 'config/presentation'), { on: true, until: null, since: new Date() }));
+    await assertSucceeds(updateDoc(doc(db, 'config/presentation'), { on: false }));
+    await assertFails(deleteDoc(doc(db, 'config/presentation')));
+  });
+
+  test('only on, until and since, of their kind', async () => {
+    const db = as(env, ADMIN);
+    await assertFails(setDoc(doc(db, 'config/presentation'), { on: 'yes' }));
+    await assertFails(setDoc(doc(db, 'config/presentation'), { on: true, until: 'ce soir' }));
+    await assertFails(setDoc(doc(db, 'config/presentation'), { on: true, until, by: 'admin' }));
+  });
+
+  test('nobody else reads or writes it, not even a chef de famille', async () => {
+    await env.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), 'config/presentation'), { on: true, until: null }));
+    for (const who of [ADULT, SECOND_ADMIN, STRANGER]) {
+      await assertFails(getDoc(doc(as(env, who), 'config/presentation')));
+      await assertFails(updateDoc(doc(as(env, who), 'config/presentation'), { on: false }));
+    }
+  });
+
+  test('its queue stays with the functions', async () => {
+    await assertFails(getDoc(doc(as(env, ADMIN), 'presentationQueue/adult1')));
+  });
+});

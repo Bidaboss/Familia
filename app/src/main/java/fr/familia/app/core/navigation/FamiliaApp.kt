@@ -1,5 +1,8 @@
 package fr.familia.app.core.navigation
 
+import fr.familia.app.feature.presentation.PresentationBanner
+import fr.familia.app.feature.presentation.rememberPresentation
+
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.AutoStories
@@ -410,6 +413,7 @@ fun FamiliaApp(
     val liveFamily by liveFamilyFlow.collectAsStateWithLifecycle(initialValue = null)
     val ownerId = liveFamily?.ownerId
     val features = FeatureFlags(appConfig?.features.orEmpty(), isOwner = ownerId != null && ownerId == currentMember.id)
+    val presentation = rememberPresentation(container, isOwner = ownerId != null && ownerId == currentMember.id)
 
     // « Partager » to Familia (récit 8 bis): in the share menu only with its module, and a shared
     // link opens a new wish once the modules are known. Module off: the link is dropped.
@@ -751,6 +755,8 @@ fun FamiliaApp(
             }
             Column(Modifier.weight(1f)) {
                 AnimatedVisibility(visible = isOffline) { OfflineBanner() }
+                // Mode présentation (récit 48): a discreet reminder on the phone of the admin principal.
+                presentation?.let { PresentationBanner(it) }
                 val shownUpdate = update?.takeIf { onTab && !updateDismissed }
                 if (shownUpdate != null) {
                     UpdateBanner(

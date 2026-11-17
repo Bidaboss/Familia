@@ -2573,7 +2573,15 @@ service cloud.firestore {
         && (!('discoverOrder' in request.resource.data)
             || (request.resource.data.discoverOrder is list && request.resource.data.discoverOrder.size() <= 20))
         && isOwner();
-      allow create, delete: if false;
+      // Mode présentation (récit 48): only the admin principal reads and writes config/presentation.
+      // `on` turns it on or off, `until` is its end (null: until turned off), `since` when it began.
+      allow read: if docId == 'presentation' && isOwner();
+      allow create, update: if docId == 'presentation' && isOwner()
+        && request.resource.data.keys().hasOnly(['on', 'until', 'since'])
+        && request.resource.data.on is bool
+        && (!('until' in request.resource.data) || request.resource.data.until == null || request.resource.data.until is timestamp)
+        && (!('since' in request.resource.data) || request.resource.data.since is timestamp);
+      allow delete: if false;
     }
 
     // Everything else is closed until a lot opens it explicitly.
