@@ -2626,9 +2626,9 @@
     <string name="turns_empty_body">Qui reçoit à Noël, qui organise les vacances : crée un tour entre les foyers, l\'appli dira à chacun quand c\'est à lui.</string>
     <string name="turns_create">Créer un tour</string>
     <string name="turns_open">Ouvrir le tour</string>
-    <string name="turns_badge_yours">À vous</string>
+    <string name="turns_badge_yours">À toi</string>
     <string name="turns_badge_swap">Échange proposé</string>
-    <string name="turns_now_us">C\'est à votre foyer</string>
+    <string name="turns_now_us">C\'est à ton foyer</string>
     <string name="turns_now">C\'est à %1$s</string>
     <string name="turns_next">Ensuite : %1$s</string>
     <string name="turns_edit_title">Modifier le tour</string>
@@ -2659,11 +2659,12 @@
     <string name="turns_order_now">%1$s, c\'est son tour</string>
     <string name="turns_history_title">Déjà fait</string>
     <string name="turns_history_empty">Rien encore.</string>
+    <string name="turns_history_more">Voir plus</string>
     <string name="turns_history_line">%1$s, le %2$s</string>
     <string name="turns_history_line_label">%1$s : %2$s</string>
-    <string name="turns_skip_title">Passer votre tour ?</string>
-    <string name="turns_skip_body">Ce sera à %1$s, et votre foyer prendra la place suivante.</string>
-    <string name="turns_swap_for_us">%1$s propose d\'échanger : votre foyer passe à la place de %2$s.</string>
+    <string name="turns_skip_title">Passer ton tour ?</string>
+    <string name="turns_skip_body">Ce sera à %1$s, et ton foyer prendra la place suivante.</string>
+    <string name="turns_swap_for_us">%1$s propose d\'échanger : ton foyer passe à la place de %2$s.</string>
     <string name="turns_swap_accept">Accepter</string>
     <string name="turns_swap_refuse">Refuser</string>
     <string name="turns_swap_waiting">Échange proposé à %1$s : on attend sa réponse.</string>

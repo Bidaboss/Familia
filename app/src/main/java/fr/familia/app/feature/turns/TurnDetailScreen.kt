@@ -32,6 +32,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -76,6 +77,9 @@ data class TurnDetailActions(
     val onDismissFailure: () -> Unit = {},
     val onRetry: () -> Unit = {},
 )
+
+/** The lines of the history shown at first, and added by each « Voir plus ». */
+internal const val HISTORY_PAGE = 50
 
 /** One rotation: whose turn it is, what comes next, the order and the history. Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -140,6 +144,8 @@ private fun Detail(state: TurnDetailUiState.Success, actions: TurnDetailActions)
     var askLabel by rememberSaveable { mutableStateOf(false) }
     var pickSwap by rememberSaveable { mutableStateOf(false) }
     var confirmSkip by rememberSaveable { mutableStateOf(false) }
+    // The newest lines first, then more with « Voir plus », with no limit on the whole.
+    var historyShown by rememberSaveable { mutableIntStateOf(HISTORY_PAGE) }
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
@@ -187,7 +193,7 @@ private fun Detail(state: TurnDetailUiState.Success, actions: TurnDetailActions)
         if (state.history.isEmpty()) {
             Text(stringResource(R.string.turns_history_empty), style = MaterialTheme.typography.bodyMedium, color = muted)
         }
-        state.history.forEach { line ->
+        state.history.take(historyShown).forEach { line ->
             val name = householdLabel(line.name)
             Text(
                 if (line.done.label.isBlank()) {
@@ -197,6 +203,11 @@ private fun Detail(state: TurnDetailUiState.Success, actions: TurnDetailActions)
                 },
                 style = MaterialTheme.typography.bodyLarge,
             )
+        }
+        if (state.history.size > historyShown) {
+            TextButton(onClick = { historyShown += HISTORY_PAGE }, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.turns_history_more))
+            }
         }
     }
 

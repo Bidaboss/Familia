@@ -859,12 +859,12 @@ Avec l'interrupteur « À qui le tour ? » allumé (l'admin principal le voit to
 1. Entraide : **Attendu :** un onglet « À qui le tour ? » après les autres. Avec 4 onglets, la rangée défile de côté. Interrupteur éteint, pour un autre membre : pas d'onglet.
 2. Sans tour : **Attendu :** « Aucun tour pour l'instant », et un bouton « Créer un tour » pour un adulte. Un enfant n'a pas le bouton.
 3. « Créer un tour » : écris « Recevoir à Noël », coche deux foyers, change l'ordre avec les flèches. Sans titre ou avec un seul foyer : **Attendu :** « Écris pour quoi c'est le tour. » ou « Il faut au moins deux foyers. ». Les foyers sont rangés par nom.
-4. Enregistré : **Attendu :** la carte dit « C'est à votre foyer » (avec « À vous ») ou « C'est à … ». Les adultes du premier foyer reçoivent « C'est votre tour », sauf toi si tu es dans ce foyer.
+4. Enregistré : **Attendu :** la carte dit « C'est à ton foyer » (avec « À toi ») ou « C'est à … ». Les adultes du premier foyer reçoivent « C'est ton tour », sauf toi si tu es dans ce foyer.
 5. Ouvre le tour depuis le foyer dont c'est le tour. **Attendu :** « Ensuite : … », l'ordre, « Déjà fait : Rien encore. », et les boutons « Créer l'événement », « C'est fait », « On passe notre tour ».
 6. « Créer l'événement » : **Attendu :** le formulaire d'un nouvel événement du Planning, avec le titre déjà écrit. Reviens sans rien changer : il ne demande pas d'abandonner.
-7. « C'est fait », écris « Noël 2026 », valide. **Attendu :** « Noël 2026 : … » dans l'historique, et c'est au foyer suivant, qui reçoit « C'est votre tour ».
+7. « C'est fait », écris « Noël 2026 », valide. **Attendu :** « Noël 2026 : … » dans l'historique, et c'est au foyer suivant, qui reçoit « C'est ton tour ».
 8. « On passe notre tour » puis confirme. **Attendu :** c'est au foyer d'après, et ton foyer prend la place suivante dans l'ordre.
 9. Depuis un foyer, « Proposer un échange », choisis l'autre foyer, puis « Envoyer la proposition ». **Attendu :** l'autre foyer reçoit la notification, et voit « Accepter » et « Refuser ». Toi, tu vois « on attend sa réponse » et « Retirer la proposition ». « Accepter » : les deux places sont échangées. « Refuser » : tu reçois la réponse, rien ne change.
 10. Un enfant ouvre le tour. **Attendu :** il voit l'ordre et l'historique, sans aucun bouton.
-11. Touche une notification « C'est votre tour ». **Attendu :** le tour s'ouvre. Interrupteur éteint pour ce membre : rien ne s'ouvre.
+11. Touche une notification « C'est ton tour ». **Attendu :** le tour s'ouvre. Interrupteur éteint pour ce membre : rien ne s'ouvre.
 12. L'auteur ou l'admin principal : le crayon change le titre ou l'ordre, la corbeille supprime le tour après confirmation. **Attendu :** retour à la liste, le tour a disparu chez tout le monde.
