@@ -71,6 +71,7 @@ fun NotificationSettingsScreen(
     onTreeChange: (Boolean) -> Unit = {},
     onRecapChange: (Boolean) -> Unit = {},
     onBirthdayWishesChange: (Boolean) -> Unit = {},
+    onPackingReminderChange: (Boolean) -> Unit = {},
     onLevelChange: (NotificationLevel) -> Unit = {},
     onFamilyChange: (NotificationFamily, Boolean) -> Unit = { _, _ -> },
     onQuietHoursChange: (Boolean) -> Unit = {},
@@ -183,6 +184,15 @@ fun NotificationSettingsScreen(
                                 onChange = onBirthdayWishesChange,
                             )
                         }
+                    }
+                    // « Ma valise » (récit 62): a trips notice, so it follows the switch of the trips.
+                    if (flags.isOn(Feature.PackingList) && state.prefs.isOn(NotificationFamily.Trips)) {
+                        SettingSwitch(
+                            title = stringResource(R.string.notifications_packing),
+                            help = stringResource(R.string.notifications_packing_help),
+                            checked = state.packingReminder,
+                            onChange = onPackingReminderChange,
+                        )
                     }
                     if (state.saveFailed) {
                         Text(

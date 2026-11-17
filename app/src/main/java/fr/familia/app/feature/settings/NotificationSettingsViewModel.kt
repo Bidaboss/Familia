@@ -49,10 +49,11 @@ class NotificationSettingsViewModel(
                         notifications.observeTree(memberId),
                         notifications.observeRecap(memberId),
                         notifications.observeBirthdayWishes(memberId),
-                    ) { s, t, r, b -> listOf(s, t, r, b) },
+                        notifications.observePackingReminder(memberId),
+                    ) { s, t, r, b, p -> listOf(s, t, r, b, p) },
                     saveFailed,
-                ) { (on, prefs), goodNews, weekly, (souvenirs, tree, recap, wishes), failed ->
-                    NotificationSettingsUiState.Ready(on, failed, goodNews, weekly, souvenirs, tree, recap, wishes, prefs)
+                ) { (on, prefs), goodNews, weekly, (souvenirs, tree, recap, wishes, packing), failed ->
+                    NotificationSettingsUiState.Ready(on, failed, goodNews, weekly, souvenirs, tree, recap, wishes, prefs, packing)
                 }
                     .onStart { if (n > 0) emit(NotificationSettingsUiState.Loading) }
                     .catch { e ->
@@ -86,6 +87,9 @@ class NotificationSettingsViewModel(
 
     /** Vœux d'anniversaire (récit 36): the notices of the day; the cards stay on the member's page. */
     fun setBirthdayWishes(enabled: Boolean) = save { it.setBirthdayWishes(memberId, enabled) }
+
+    /** « Ma valise » (récit 62): the reminder of the day before a trip; the bag stays. */
+    fun setPackingReminder(enabled: Boolean) = save { it.setPackingReminder(memberId, enabled) }
 
     /** « Tout », « L'essentiel » or « Presque rien » (récit 6 quinquies): sets every family at once. */
     fun setLevel(level: NotificationLevel) = save { repo -> repo.setFamilies(memberId, NotificationFamily.entries.associateWith { it in level.on }) }

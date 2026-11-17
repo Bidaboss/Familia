@@ -37,6 +37,11 @@ private class FakeNotifications(
     override suspend fun setWeekly(memberId: String, enabled: Boolean) {
         weekly.value = enabled
     }
+    val packing = MutableStateFlow(true)
+    override fun observePackingReminder(memberId: String): Flow<Boolean> = packing
+    override suspend fun setPackingReminder(memberId: String, enabled: Boolean) {
+        packing.value = enabled
+    }
     val recap = MutableStateFlow(true)
     override fun observeRecap(memberId: String): Flow<Boolean> = recap
     override suspend fun setRecap(memberId: String, enabled: Boolean) {
@@ -101,6 +106,16 @@ class NotificationSettingsViewModelTest {
         vm.setRecap(false)
         assertEquals(NotificationSettingsUiState.Ready(dayBeforeReminder = true, recap = false), vm.uiState.value)
         assertEquals(false, repo.recap.value)
+    }
+
+    @Test
+    fun `the reminder of the bag can be turned off (récit 62)`() = runTest {
+        val repo = FakeNotifications()
+        val vm = NotificationSettingsViewModel(repo, "adult1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        vm.setPackingReminder(false)
+        assertEquals(NotificationSettingsUiState.Ready(dayBeforeReminder = true, packingReminder = false), vm.uiState.value)
+        assertEquals(false, repo.packing.value)
     }
 
     @Test

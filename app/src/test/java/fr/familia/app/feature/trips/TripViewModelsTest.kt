@@ -163,12 +163,13 @@ class TripViewModelsTest {
         val vm = TripDetailViewModel(trips, FakeMembers(), "adult2", "t1", today = flowOf(july))
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
         vm.takeItem(free)
-        assertEquals(free.copy(assigneeId = "adult2", assigneeName = "Adult2") to false, trips.savedItems.single())
+        assertEquals(Triple(free.id, null, "adult2"), trips.assigned.single())
         vm.takeItem(theirs) // already in someone's charge
         vm.releaseItem(theirs) // not mine
-        assertEquals(1, trips.savedItems.size)
+        assertEquals(1, trips.assigned.size)
         vm.releaseItem(free.copy(assigneeId = "adult2", assigneeName = "Adult2"))
-        assertEquals(free to false, trips.savedItems.last())
+        assertEquals(Triple(free.id, "adult2", null), trips.assigned.last())
+        assertTrue(trips.savedItems.isEmpty())
     }
 
     // --- Trip form --------------------------------------------------------------------------------

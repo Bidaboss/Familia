@@ -2683,6 +2683,8 @@
     <string name="first_steps_photo_failed">La photo n\'a pas pu être enregistrée. Vérifie le réseau, puis réessaie.</string>
     <string name="feature_packing_list">À emporter</string>
     <string name="packing_title">À emporter</string>
+    <string name="notifications_packing">Ma valise</string>
+    <string name="notifications_packing_help">La veille d\'un voyage, à 18 h, s\'il reste des objets à mettre dans ta valise.</string>
     <string name="packing_everyone">Pour tout le monde</string>
     <string name="packing_take">Je m\'en charge</string>
     <string name="packing_release">Je ne peux plus</string>

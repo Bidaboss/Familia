@@ -143,14 +143,15 @@ class TripDetailViewModel(
         val repo = trips ?: return
         val member = me ?: return
         if (item.assigneeId != null) return
-        write { repo.saveItem(tripId, item.copy(assigneeId = member.id, assigneeName = member.firstName), isNew = false) }
+        // Only the two fields, and only if the line is still free: two taps at once, one wins.
+        write { repo.setItemAssignee(tripId, item.id, expectedId = null, assignee = member) }
     }
 
     /** « Je ne peux plus »: a line I took is free again. */
     fun releaseItem(item: TripItem) {
         val repo = trips ?: return
         if (item.assigneeId != currentMemberId) return
-        write { repo.saveItem(tripId, item.copy(assigneeId = null, assigneeName = null), isNew = false) }
+        write { repo.setItemAssignee(tripId, item.id, expectedId = currentMemberId, assignee = null) }
     }
 
     fun setItemDone(itemId: String, done: Boolean) {

@@ -182,6 +182,16 @@ class FirestoreTripRepository(private val db: FirebaseFirestore) : TripRepositor
         if (isNew) ref.set(fields).await() else ref.update(fields - "done").await()
     }
 
+    override suspend fun setItemAssignee(tripId: String, itemId: String, expectedId: String?, assignee: Member?): Boolean {
+        val ref = items(tripId).document(itemId)
+        return db.runTransaction { tx ->
+            val line = tx.get(ref)
+            if (!line.exists() || line.getString("assigneeId") != expectedId) return@runTransaction false
+            tx.update(ref, mapOf("assigneeId" to assignee?.id, "assigneeName" to assignee?.firstName, "updatedAt" to FieldValue.serverTimestamp()))
+            true
+        }.await()
+    }
+
     override suspend fun setItemDone(tripId: String, itemId: String, done: Boolean) {
         items(tripId).document(itemId).update(mapOf("done" to done, "updatedAt" to FieldValue.serverTimestamp())).await()
     }

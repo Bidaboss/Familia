@@ -54,6 +54,12 @@ interface TripRepository {
     /** Creates a line of the checklist, or updates its label and who is in charge (never whether it is done). */
     suspend fun saveItem(tripId: String, item: TripItem, isNew: Boolean)
 
+    /**
+     * « Je m'en charge » / « Je ne peux plus » (récit 62): sets who is in charge of the line, only
+     * when it is still [expectedId] (null: free). Touches nothing else. False when someone was faster.
+     */
+    suspend fun setItemAssignee(tripId: String, itemId: String, expectedId: String?, assignee: Member?): Boolean
+
     /** Ticks or unticks a line, without touching the rest. */
     suspend fun setItemDone(tripId: String, itemId: String, done: Boolean)
 

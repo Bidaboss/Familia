@@ -38,6 +38,7 @@ fun NotificationSettingsRoute(container: AppContainer?, currentMember: Member, o
         onTreeChange = viewModel::setTree,
         onRecapChange = viewModel::setRecap,
         onBirthdayWishesChange = viewModel::setBirthdayWishes,
+        onPackingReminderChange = viewModel::setPackingReminder,
         onLevelChange = viewModel::setLevel,
         onFamilyChange = viewModel::setFamily,
         onQuietHoursChange = viewModel::setQuietHours,
