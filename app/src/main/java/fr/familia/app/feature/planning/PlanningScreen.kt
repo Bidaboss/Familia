@@ -1,5 +1,16 @@
 package fr.familia.app.feature.planning
 
+import fr.familia.app.feature.home.DayItem
+import fr.familia.app.feature.home.DayOpen
+import fr.familia.app.feature.home.DayTone
+import fr.familia.app.feature.home.HomeDay
+import fr.familia.app.feature.home.WeekFrise
+import fr.familia.app.feature.home.isFestive
+import fr.familia.app.feature.home.shortWord
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.IconButton
 import fr.familia.app.core.ui.aboveSnackbar
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
@@ -105,8 +116,10 @@ fun PlanningScreen(
     onOpenTrip: (tripId: String) -> Unit = {},
     /** « Partager » on a birthday (PRD, récit 31); hidden when null. */
     onShareBirthday: ((Birthday) -> Unit)? = null,
+    /** R1 bis (§4, R3): the frise of the week first, with « Semaine » beside « Mois » and « Liste ». */
+    r1: Boolean = false,
 ) {
-    var mode by rememberSaveable { mutableStateOf(initialMode) }
+    var mode by rememberSaveable { mutableStateOf(if (r1) PlanningMode.Week else initialMode) }
     Box(modifier.fillMaxSize()) {
         when (state) {
             PlanningUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -127,7 +140,7 @@ fun PlanningScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    ModeSwitch(mode, onModeChange = { mode = it }, modifier = Modifier.weight(1f))
+                    ModeSwitch(mode, onModeChange = { mode = it }, modifier = Modifier.weight(1f), withWeek = r1)
                     if (onScopeChange != null) ScopeChip(state.scope, onScopeChange)
                 }
                 when (mode) {
@@ -149,6 +162,7 @@ fun PlanningScreen(
                         }
                     }
                     PlanningMode.Month -> MonthView(state, onOpenEvent, onOpenTrip, onShareBirthday)
+                    PlanningMode.Week -> WeekView(state, onOpenEvent, onOpenTrip, onShareBirthday)
                 }
             }
         }
@@ -166,8 +180,12 @@ fun PlanningScreen(
 /** "Mois" or "Liste": two labelled buttons, always visible, 56 dp high, the month first (16/11). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ModeSwitch(mode: PlanningMode, onModeChange: (PlanningMode) -> Unit, modifier: Modifier = Modifier) {
-    val labels = listOf(PlanningMode.Month to R.string.planning_mode_month, PlanningMode.List to R.string.planning_mode_list)
+private fun ModeSwitch(mode: PlanningMode, onModeChange: (PlanningMode) -> Unit, modifier: Modifier = Modifier, withWeek: Boolean = false) {
+    val labels = listOfNotNull(
+        (PlanningMode.Week to R.string.planning_mode_week).takeIf { withWeek },
+        PlanningMode.Month to R.string.planning_mode_month,
+        PlanningMode.List to R.string.planning_mode_list,
+    )
     SingleChoiceSegmentedButtonRow(modifier) {
         labels.forEachIndexed { index, (value, label) ->
             SegmentedButton(
@@ -563,3 +581,78 @@ private fun PlanningScreenMonthPreview() {
 private fun PlanningScreenEmptyPreview() {
     FamiliaTheme { Surface { PlanningScreen(PlanningUiState.Success(emptyList(), LocalDate.of(2026, 12, 19)), {}, {}, {}) } }
 }
+
+/**
+ * The week (R1 bis, §4, R3): the frise of the Accueil from Monday, « Aujourd'hui » to come back to
+ * this week, and the chosen day under it. The arrows go a week back or forward.
+ */
+@Composable
+private fun WeekView(
+    state: PlanningUiState.Success,
+    onOpenEvent: (String) -> Unit,
+    onOpenTrip: (String) -> Unit,
+    onShareBirthday: ((Birthday) -> Unit)?,
+) {
+    var start by rememberSaveable { mutableStateOf(weekStart(state.today).toEpochDay()) }
+    var chosen by rememberSaveable { mutableStateOf(state.today.toEpochDay()) }
+    val monday = LocalDate.ofEpochDay(start)
+    val byDate = state.days.associateBy { it.date }
+    val week = (0L until 7L).map { offset ->
+        val date = monday.plusDays(offset)
+        HomeDay(date, byDate[date]?.let { planningDayItems(it) }.orEmpty())
+    }
+    val chosenDate = LocalDate.ofEpochDay(chosen).takeIf { it in monday..monday.plusDays(6) } ?: monday
+    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 96.dp)) {
+        item(key = "week-nav") {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = ClaySpacing.screen),
+            ) {
+                IconButton(onClick = { start = monday.minusWeeks(1).toEpochDay() }, modifier = Modifier.size(56.dp)) {
+                    Icon(Icons.AutoMirrored.Outlined.KeyboardArrowLeft, contentDescription = stringResource(R.string.planning_week_previous))
+                }
+                Spacer(Modifier.weight(1f))
+                FilledTonalButton(
+                    onClick = {
+                        start = weekStart(state.today).toEpochDay()
+                        chosen = state.today.toEpochDay()
+                    },
+                    modifier = Modifier.heightIn(min = 48.dp),
+                ) { Text(stringResource(R.string.day_today)) }
+                Spacer(Modifier.weight(1f))
+                IconButton(onClick = { start = monday.plusWeeks(1).toEpochDay() }, modifier = Modifier.size(56.dp)) {
+                    Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = stringResource(R.string.planning_week_next))
+                }
+            }
+        }
+        item(key = "week-frise") {
+            Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) {
+                WeekFrise(week, state.today, chosenDate, onChoose = { chosen = it.toEpochDay() })
+            }
+        }
+        val day = byDate[chosenDate]
+        if (day == null) {
+            item(key = "week-empty") {
+                Column {
+                    DayHeader(chosenDate, state.today)
+                    Text(
+                        stringResource(R.string.home_r1_day_empty),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
+                    )
+                }
+            }
+        } else {
+            dayItems(listOf(day), state.today, onOpenEvent, onOpenTrip, onShareBirthday)
+        }
+    }
+}
+
+/** A day of the planning as the frise shows it: the birthdays, then the events by hour. */
+internal fun planningDayItems(day: PlanningDay): List<DayItem> =
+    day.birthdays.map {
+        DayItem(null, it.member.firstName, null, shortWord(it.member.firstName), DayTone.Party, DayOpen.Birthday(it.member.id))
+    } + day.items.map {
+        DayItem(it.event.time, it.event.title, null, shortWord(it.event.title), if (isFestive(it.event.title)) DayTone.Party else DayTone.Organise, DayOpen.Event(it.event.id))
+    }.sortedWith(compareBy(nullsLast()) { it.time })
