@@ -64,7 +64,7 @@ class YearInReviewViewModel(
             val zoneYear = { i: Instant -> i.atZone(zone).year }
             val ofYear = combine(
                 goodNews?.observeBetween(from, to).orEmpty(),
-                events?.observeUpcoming(start)?.map { list -> list.filter { it.date.year == year } }.orEmpty(),
+                events?.observeBetween(start, start.withDayOfYear(start.lengthOfYear())).orEmpty(),
                 helps?.observeMine(currentMemberId).orEmpty(),
                 trips?.observeFollowedTrips(currentMemberId).orEmpty(),
             ) { n, e, h, t -> Parts(n, e, h, t) }

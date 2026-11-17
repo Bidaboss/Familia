@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.time.YearMonth
 import java.time.ZoneId
@@ -59,7 +58,7 @@ class MonthSlideshowViewModel(
         } else {
             val family = members.observeFamily()
             val followed = trips.observeFollowedTrips(currentMemberId)
-            val ofMonth = events.observeUpcoming(month.atDay(1)).map { list -> list.filter { YearMonth.from(it.date) == month } }
+            val ofMonth = events.observeBetween(month.atDay(1), month.atEndOfMonth())
             combine(family, ofMonth, followed) { fam, evts, trs ->
                 val me = fam.members.firstOrNull { it.id == currentMemberId }
                 val folders = if (me == null) MonthAlbums(emptyList(), emptyList()) else monthAlbums(month, me, fam, evts, trs)
