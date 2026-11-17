@@ -91,6 +91,7 @@ import fr.familia.app.feature.gifts.edit.GiftListEditScreen
 import fr.familia.app.feature.gifts.edit.previewGiftListForm
 import fr.familia.app.feature.gifts.item.GiftItemEditScreen
 import fr.familia.app.feature.gifts.item.previewGiftItemForm
+import fr.familia.app.feature.gifts.item.previewSharedWishForm
 import fr.familia.app.feature.gifts.notebook.NotebookActions
 import fr.familia.app.feature.gifts.notebook.NotebookIdeaScreen
 import fr.familia.app.feature.gifts.notebook.NotebookScreen
@@ -697,6 +698,9 @@ class ScreenshotTest {
     @Test
     @Config(fontScale = 2f)
     fun giftItemFormFontScale200() = capture("article_formulaire_police_200") { GiftItemEditScreen(previewGiftItemForm(), {}, {}, {}, {}) }
+
+    @Test
+    fun sharedWishForm() = capture("article_partage_une_idee_pour") { GiftItemEditScreen(previewSharedWishForm(), {}, {}, {}, {}) }
 
     // --- Coups de main (fil [DEV] coups de main) ---------------------------------------------------
 
