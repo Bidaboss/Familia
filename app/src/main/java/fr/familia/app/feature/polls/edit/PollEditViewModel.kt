@@ -2,12 +2,14 @@ package fr.familia.app.feature.polls.edit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.familia.app.core.data.EventRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.PollRepository
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.Poll
+import fr.familia.app.core.model.concerns
 import fr.familia.app.core.model.pollViewers
 import fr.familia.app.feature.polls.canAskPoll
 import fr.familia.app.feature.polls.closesAtFor
@@ -31,6 +33,9 @@ class PollEditViewModel(
     private val currentMemberId: String,
     private val today: () -> LocalDate = LocalDate::now,
     private val writeTimeoutMillis: Long = 4_000,
+    /** Asked from the page of this event (récit 2 quater): its guests are ticked, and the poll is linked to it. */
+    private val eventId: String? = null,
+    private val events: EventRepository? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<PollEditUiState>(PollEditUiState.Loading)
@@ -59,7 +64,7 @@ class PollEditViewModel(
         family = loaded
         me = current
         val everyone = loaded.members.map { it.id }.toSet()
-        initialForm = PollForm(askedIds = everyone)
+        initialForm = PollForm(askedIds = eventGuests(loaded) ?: everyone)
         // My household first, then the others; in each, the adults then the children.
         val households = loaded.households.sortedWith(compareBy({ it.id != current.householdId }, { it.name.lowercase() }))
         val groups = households.mapNotNull { household ->
@@ -74,6 +79,19 @@ class PollEditViewModel(
             groups = groups,
             shortcuts = listOf(AskShortcut(null, everyone)) + groups.map { g -> AskShortcut(g.name, g.members.map { it.id }.toSet()) },
         )
+    }
+
+    /** Those the event concerns, or null outside an event; an event gone meanwhile ticks nobody. */
+    private suspend fun eventGuests(family: Family): Set<String>? {
+        val id = eventId ?: return null
+        val event = try {
+            events?.getEvent(id)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        } ?: return emptySet()
+        return family.members.filter { concerns(event.target, it, family) }.map { it.id }.toSet()
     }
 
     private fun unavailable() {
@@ -151,6 +169,7 @@ class PollEditViewModel(
                         closesAt = form.closesOn?.let(::closesAtFor),
                         authorId = author.id,
                         authorName = author.firstName,
+                        eventId = eventId,
                     )
                 }
                 // Still pending after the timeout: queued offline, sent when the network is back.

@@ -536,6 +536,12 @@ Avec l'interrupteur « Partager » allumé :
 3. Sur le téléphone d'un membre non prévenu, la demande n'apparaît pas, et la photo non plus.
 4. Modifie la demande, touche « Retirer la photo », enregistre : elle disparaît pour tout le monde.
 
+## Les sondages d'un événement (récit 2 quater)
+Avec l'interrupteur « Sondages » allumé :
+1. Ouvre un événement de ton foyer et touche « Lancer un sondage » : les invités de l'événement sont déjà cochés. Envoie un sondage de date.
+2. Reviens sur la fiche : le sondage y apparaît, avec les réponses puis le résultat une fois terminé. Il est aussi dans la liste « Sondages ».
+3. Supprime l'événement : le sondage reste dans « Sondages », marqué Terminé, et personne ne reçoit de notification de résultat.
+
 ## Nouvelle présentation « R1 bis » (spec DESIGN du 17/11)
 
 Interrupteur « Nouvelle présentation » (presentationR1bis), allumé par défaut, admin principal compris. L'éteindre dans Administration rend l'ancienne présentation à tout le monde.

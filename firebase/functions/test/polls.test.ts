@@ -6,7 +6,7 @@ import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { formatTime, Notice } from '../src/logic';
 import {
-  closeDuePolls, deletePollVotes, deleteVotesOf, formatOption, newPollNotice, onPollClosed, onPollCreated, PollData,
+  closeDuePolls, closeEventPolls, deletePollVotes, deleteVotesOf, formatOption, newPollNotice, onPollClosed, onPollCreated, PollData,
   resultNotice, VoteData, winners,
 } from '../src/polls';
 import { Sender } from '../src/store';
@@ -98,6 +98,38 @@ describe('against the emulator', () => {
     assert.equal((await db.doc('polls/due').get()).get('closed'), true);
     assert.equal((await db.doc('polls/later').get()).get('closed'), false);
     assert.equal(await closeDuePolls(db, new Date('2026-11-21T08:30:00Z')), 0);
+  });
+
+  test('an event deleted closes its open polls, and keeps them', async () => {
+    await db.doc('polls/ofEvent').set({ ...poll(), eventId: 'e1' });
+    await db.doc('polls/ofEventClosed').set({ ...poll(), eventId: 'e1', closed: true, chosen: 1 });
+    await db.doc('polls/other').set({ ...poll(), eventId: 'e2' });
+    await db.doc('polls/free').set({ ...poll(), eventId: null });
+    assert.equal(await closeEventPolls(db, 'e1'), 1);
+    assert.equal((await db.doc('polls/ofEvent').get()).get('closed'), true);
+    assert.equal((await db.doc('polls/ofEventClosed').get()).get('chosen'), 1);
+    assert.equal((await db.doc('polls/other').get()).get('closed'), false);
+    assert.equal((await db.doc('polls/free').get()).get('closed'), false);
+    assert.equal(await closeEventPolls(db, 'e1'), 0);
+  });
+
+  test('a poll closed with its event tells nobody', async () => {
+    await db.doc('polls/p1/votes/ines').set(vote('ines', [1]));
+    const { sent, send } = fakeSender();
+    const p = poll({ eventId: 'gone' });
+    await onPollClosed(db, send, 'p1', p, { ...p, closed: true }, null);
+    const d = poll({ kind: 'date', options: ['2026-12-19', '2026-12-20'], eventId: 'gone' });
+    await onPollClosed(db, send, 'p1', d, { ...d, closed: true }, null);
+    assert.equal(sent.length, 0);
+  });
+
+  test('a poll of an event still there gives its result as before', async () => {
+    await db.doc('events/e1').set({ title: 'Repas' });
+    await db.doc('polls/p1/votes/ines').set(vote('ines', [1]));
+    const { sent, send } = fakeSender();
+    const p = poll({ eventId: 'e1' });
+    await onPollClosed(db, send, 'p1', p, { ...p, closed: true }, 'camille');
+    assert.deepEqual(sent.map((s) => s.token).sort(), ['token-ines', 'token-noe']);
   });
 
   test('a free poll closed by its author: the others get the result', async () => {

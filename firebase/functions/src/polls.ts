@@ -15,6 +15,8 @@ export interface PollData {
   closed: boolean;
   chosen: number | null;
   createdEventId: string | null;
+  /** The event it was asked from (récit 2 quater), or null. */
+  eventId?: string | null;
   authorId: string;
   authorName: string;
 }
@@ -111,6 +113,8 @@ export async function onPollClosed(
     return;
   }
   if (before.closed || !after.closed) return;
+  // Closed because its event was deleted: nobody is told of a result that no longer matters.
+  if (after.eventId && !(await db.collection('events').doc(after.eventId).get()).exists) return;
   const audience = await pollAudience(db);
   if (after.kind === 'choice') {
     const to = audience(after.viewerIds.filter((id) => id !== actorId));
@@ -134,6 +138,16 @@ export async function closeDuePolls(db: Firestore, now: Date): Promise<number> {
     .get();
   for (const doc of due.docs) await doc.ref.update({ closed: true, updatedAt: Timestamp.now() });
   return due.size;
+}
+
+/**
+ * An event deleted (récit 2 quater): its polls are closed, not deleted, so that what was answered
+ * stays readable. Returns how many were closed.
+ */
+export async function closeEventPolls(db: Firestore, eventId: string): Promise<number> {
+  const open = await db.collection('polls').where('eventId', '==', eventId).where('closed', '==', false).get();
+  for (const doc of open.docs) await doc.ref.update({ closed: true, updatedAt: Timestamp.now() });
+  return open.size;
 }
 
 export async function deletePollVotes(db: Firestore, pollId: string): Promise<void> {

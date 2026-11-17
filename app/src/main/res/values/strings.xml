@@ -1692,6 +1692,9 @@
     <string name="poll_open_one">Ouvrir le sondage</string>
     <!-- Form -->
     <string name="poll_new_title">Nouveau sondage</string>
+    <string name="event_polls_title">Sondages</string>
+    <string name="event_polls_new">Lancer un sondage</string>
+    <string name="event_polls_hint">Une date, un menu, un lieu : les invités répondent.</string>
     <string name="poll_kind">Type de sondage</string>
     <string name="poll_question">Question</string>
     <string name="poll_question_hint_date">Quand fait-on le repas de Noël ?</string>
