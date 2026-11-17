@@ -288,4 +288,19 @@ describe('single list migration', () => {
     assert.equal(await onGiftItemChanged(db, send, 'noel-ines', 'book', book, undefined), 0);
     assert.equal(sent.length, 0);
   });
+
+  test('while an old list goes, its reservations never make an old notebook entry again (note B1 de #345)', async () => {
+    await db.doc('migrations/singleList/lists/noel-ines').set({ status: 'deleted' });
+    // The cleanup removed the old entries first; the reservation and the part are still there.
+    const holder = db.doc(`notebooks/camille/entries/${notebookEntryId('noel-ines', 'book')}`);
+    await holder.delete();
+    await syncNotebookEntry(db, 'noel-ines', 'book', 'camille');
+    await syncNotebookEntry(db, 'noel-ines', 'book', 'jules');
+    assert.equal((await holder.get()).exists, false);
+    assert.equal((await db.doc(`notebooks/jules/entries/${notebookEntryId('noel-ines', 'book')}`).get()).exists, false);
+    // Turned back to an ordinary list, the same call makes them as before.
+    await db.doc('migrations/singleList/lists/noel-ines').set({ status: 'copied' });
+    await syncNotebookEntry(db, 'noel-ines', 'book', 'camille');
+    assert.equal((await holder.get()).exists, true);
+  });
 });

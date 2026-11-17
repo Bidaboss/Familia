@@ -2104,7 +2104,7 @@
     <string name="feature_single_list">Une seule liste d\'envies par personne</string>
     <string name="feature_old_lists_cleanup">Effacer les anciennes listes</string>
     <string name="old_lists_cleanup_confirm_title">Effacer les anciennes listes ?</string>
-    <string name="old_lists_cleanup_confirm_body">Les listes d\'occasion déjà copiées seront effacées pour de bon. Leurs envies, réservations et parts restent dans « Mes envies » et les idées. Rien ne se passe avant le 22 novembre.</string>
+    <string name="old_lists_cleanup_confirm_body">Les listes d\'occasion déjà copiées seront effacées pour de bon. Leurs envies, réservations et parts restent dans « Mes envies » et les idées. Avant le 22 novembre, rien ne se passe : rallume-le après le 22.</string>
     <string name="old_lists_cleanup_confirm">Effacer</string>
     <string name="gift_mark_received">Je l\'ai reçue</string>
     <string name="gift_mark_received_title">Tu l\'as déjà reçue ?</string>
