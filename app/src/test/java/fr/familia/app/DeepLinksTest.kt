@@ -32,6 +32,7 @@ class DeepLinksTest {
         assertEquals(listOf(DeepLink.Recap("2026-11-15")), fromExtras("recapWeek" to "2026-11-15"))
         assertEquals(listOf(DeepLink.Feedback("list")), fromExtras("feedback" to "list"))
         assertEquals(listOf(DeepLink.Feedback("crashes")), fromExtras("feedback" to "crashes"))
+        assertEquals(listOf(DeepLink.GoodDeals), fromExtras("goodDeals" to "list"))
     }
 
     @Test

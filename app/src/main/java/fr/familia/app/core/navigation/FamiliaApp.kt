@@ -303,6 +303,9 @@ fun FamiliaApp(
     /** « Une idée ? Un souci ? » of a tapped notification: "list" (Retours) or "mine" (récit 6 sexies). */
     openFeedback: String? = null,
     onFeedbackOpened: () -> Unit = {},
+    /** The summary of the new bons plans was touched: Entraide, on its Bons plans (récit 45). */
+    openGoodDeals: Boolean = false,
+    onGoodDealsOpened: () -> Unit = {},
     /** A link shared from another app, to add to « Mes envies » once (récit 8 bis). */
     sharedWish: SharedWish? = null,
     onSharedWishOpened: () -> Unit = {},
@@ -539,6 +542,16 @@ fun FamiliaApp(
             "crashes" -> navController.navigate(CrashesDestination) { launchSingleTop = true }
         }
         if (openFeedback != null) onFeedbackOpened()
+    }
+    // The bons plans of the day (récit 45): Entraide, turned to its Bons plans.
+    var entraideOnGoodDeals by remember { mutableStateOf(0) }
+    val goodDealsSwitchOn = features.isOn(Feature.GoodDeals)
+    LaunchedEffect(openGoodDeals, goodDealsSwitchOn) {
+        if (openGoodDeals && goodDealsSwitchOn) {
+            entraideOnGoodDeals++
+            navController.navigateToTab(TopLevelDestination.HelpRequests)
+            onGoodDealsOpened()
+        }
     }
 
     var updateDismissed by rememberSaveable { mutableStateOf(false) }
@@ -1291,6 +1304,7 @@ fun FamiliaApp(
                                     onOpenDeal = { id -> navController.navigate(GoodDealDetailDestination(id)) },
                                 )
                             },
+                            showGoodDeals = entraideOnGoodDeals,
                         )
                     }
                     composable<GoodDealDetailDestination> { entry ->

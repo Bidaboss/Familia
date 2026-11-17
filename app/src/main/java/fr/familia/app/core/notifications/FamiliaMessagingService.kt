@@ -73,9 +73,12 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         // « Une idée ? Un souci ? » (récit 6 sexies): Retours or « Mes demandes ».
         val feedback = message.data[EXTRA_FEEDBACK]
         feedback?.let { open.putExtra(EXTRA_FEEDBACK, it) }
+        // Bons plans (récit 45): the summary of the day opens the Bons plans of Entraide.
+        val goodDeals = message.data[EXTRA_GOOD_DEALS]
+        goodDeals?.let { open.putExtra(EXTRA_GOOD_DEALS, it) }
         val pending = PendingIntent.getActivity(
             this,
-            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId ?: joinMeId ?: capsuleId ?: recapWeek ?: birthdayOf ?: welcomeOf ?: thinkOfMeOf ?: feedback).hashCode(),
+            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId ?: joinMeId ?: capsuleId ?: recapWeek ?: birthdayOf ?: welcomeOf ?: thinkOfMeOf ?: feedback ?: goodDeals).hashCode(),
             open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -143,5 +146,7 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         const val EXTRA_NOTIFICATION_TAG = "notificationTag"
         /** "list", "mine" or "crashes", same key as functions/src/feedback.ts and crashes.ts. */
         const val EXTRA_FEEDBACK = "feedback"
+        /** "list", same key as functions/src/goodDeals.ts (récit 45). */
+        const val EXTRA_GOOD_DEALS = "goodDeals"
     }
 }
