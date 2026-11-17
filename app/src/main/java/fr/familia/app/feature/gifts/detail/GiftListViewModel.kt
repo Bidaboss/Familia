@@ -337,6 +337,8 @@ class GiftListViewModel(
      */
     private fun write(failure: Failure = Failure.Write, block: suspend (GiftRepository) -> Unit) {
         val repo = gifts ?: return
+        // Only the last write tells: a late refusal of an older one never covers a newer one.
+        val ticket = ++writes
         viewModelScope.launch {
             val sent = async {
                 try {
@@ -349,10 +351,13 @@ class GiftListViewModel(
                 }
             }
             val early = withTimeoutOrNull(writeTimeoutMillis) { sent.await() }
-            failed.value = if (early == false) failure else null
-            if (early == null && !sent.await()) failed.value = failure
+            if (ticket == writes) failed.value = if (early == false) failure else null
+            if (early == null && !sent.await() && ticket == writes) failed.value = failure
         }
     }
+
+    /** How many writes this screen sent: the number of the last one. */
+    private var writes = 0
 
     /** True once the write is accepted, or still pending after the timeout (queued offline). */
     private suspend fun send(block: suspend () -> Unit): Boolean = try {
