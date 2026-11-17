@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -27,7 +26,6 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -68,6 +66,8 @@ import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.HouseholdMemberPicker
+import fr.familia.app.core.ui.PickGroup
 import fr.familia.app.core.ui.formatTime
 import fr.familia.app.feature.helprequests.kindLabel
 import java.time.Instant
@@ -84,7 +84,7 @@ import java.util.Locale
 fun HelpRequestEditScreen(
     state: HelpRequestEditUiState,
     onChange: ((HelpRequestForm) -> HelpRequestForm) -> Unit,
-    onToggle: (String) -> Unit,
+    onPick: (Set<String>) -> Unit,
     onShortcut: (NotifyShortcut) -> Unit,
     onSave: () -> Unit,
     onBack: () -> Unit,
@@ -132,7 +132,7 @@ fun HelpRequestEditScreen(
                     title = stringResource(R.string.helprequest_unavailable_title),
                     body = stringResource(R.string.helprequest_unavailable_body),
                 )
-                is HelpRequestEditUiState.Editing -> FormContent(state, onChange, onToggle, onShortcut, onSave, photoOn)
+                is HelpRequestEditUiState.Editing -> FormContent(state, onChange, onPick, onShortcut, onSave, photoOn)
             }
         }
     }
@@ -143,7 +143,7 @@ fun HelpRequestEditScreen(
 private fun FormContent(
     state: HelpRequestEditUiState.Editing,
     onChange: ((HelpRequestForm) -> HelpRequestForm) -> Unit,
-    onToggle: (String) -> Unit,
+    onPick: (Set<String>) -> Unit,
     onShortcut: (NotifyShortcut) -> Unit,
     onSave: () -> Unit,
     photoOn: Boolean,
@@ -248,7 +248,7 @@ private fun FormContent(
             }
         }
 
-        NotifySection(state, onToggle, onShortcut)
+        NotifySection(state, onPick, onShortcut)
 
         if (state.saveFailed) {
             Text(
@@ -275,7 +275,7 @@ private fun FormContent(
 @Composable
 private fun NotifySection(
     state: HelpRequestEditUiState.Editing,
-    onToggle: (String) -> Unit,
+    onPick: (Set<String>) -> Unit,
     onShortcut: (NotifyShortcut) -> Unit,
 ) {
     val warned = state.warnedIds
@@ -307,30 +307,16 @@ private fun NotifySection(
                 )
             }
         }
-        state.adults.forEach { adult ->
-            val locked = adult.id in state.lockedIds
-            val checked = adult.id in warned
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp)
-                    .toggleable(value = checked, enabled = !locked, role = Role.Checkbox) { onToggle(adult.id) },
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Checkbox(checked = checked, onCheckedChange = null, enabled = !locked)
-                Spacer(Modifier.width(16.dp))
-                Column {
-                    Text(adult.firstName, style = MaterialTheme.typography.bodyLarge)
-                    if (locked) {
-                        Text(
-                            stringResource(R.string.helprequest_notify_always),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            }
-        }
+        // By household, a box per household ticks all of its adults (règle du 17/11). The people
+        // always warned stay ticked: they are warned whatever is picked.
+        val always = stringResource(R.string.helprequest_notify_always)
+        val others = stringResource(R.string.helprequest_notify_others)
+        HouseholdMemberPicker(
+            groups = state.groups.map { if (it.name.isBlank()) it.copy(name = others) else it },
+            selected = warned,
+            onChange = onPick,
+            label = { adult -> if (adult.id in state.lockedIds) "${adult.firstName} · $always" else adult.firstName },
+        )
         errorText(state.errors, HelpFormError.NobodyWarned)?.invoke()
     }
 }
@@ -450,11 +436,8 @@ internal fun previewHelpRequestEdit(errors: Set<HelpFormError> = emptySet()): He
         isNew = true,
         targets = listOf(me, kid),
         adults = adults,
-        shortcuts = listOf(
-            NotifyShortcut(null, adults.map { it.id }.toSet()),
-            NotifyShortcut("Foyer Martin", setOf("jules")),
-            NotifyShortcut("Foyer Petit", setOf("ines", "lou")),
-        ),
+        shortcuts = listOf(NotifyShortcut(null, adults.map { it.id }.toSet())),
+        groups = listOf(PickGroup("Foyer Martin", listOf(adults[1])), PickGroup("Foyer Petit", listOf(adults[0], adults[2]))),
         lockedIds = setOf("jules"),
         errors = errors,
     )

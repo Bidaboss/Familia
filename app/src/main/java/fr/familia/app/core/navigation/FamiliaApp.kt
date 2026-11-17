@@ -183,6 +183,7 @@ import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.theme.FamiliaThemeId
 import fr.familia.app.core.theme.themeBackground
+import fr.familia.app.core.theme.themeTopBand
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -670,7 +671,7 @@ fun FamiliaApp(
         }
         Scaffold(
             // The theme's background and its pattern show behind the tabs.
-            modifier = Modifier.themeBackground().nestedScroll(topBarScroll.nestedScrollConnection),
+            modifier = Modifier.themeBackground(withTopBand = false).themeTopBand().nestedScroll(topBarScroll.nestedScrollConnection),
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onBackground,
             snackbarHost = { SnackbarHost(snackbar) },
