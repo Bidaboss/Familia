@@ -15,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LocalOffer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -52,6 +51,7 @@ import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.feature.gooddeals.categoryLabel
 import fr.familia.app.feature.gooddeals.dealUntilLabel
 import fr.familia.app.feature.help.HelpButton
@@ -84,7 +84,7 @@ fun GoodDealDetailScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                GoodDealDetailUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                GoodDealDetailUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 GoodDealDetailUiState.Missing -> EmptyState(
                     icon = Icons.Outlined.LocalOffer,
                     title = stringResource(R.string.gooddeal_missing_title),

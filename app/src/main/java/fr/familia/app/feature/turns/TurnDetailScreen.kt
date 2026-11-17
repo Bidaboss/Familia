@@ -17,7 +17,6 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,6 +55,8 @@ import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.LoadingState
+import fr.familia.app.core.ui.PendingSign
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -103,7 +104,7 @@ fun TurnDetailScreen(state: TurnDetailUiState, actions: TurnDetailActions, onBac
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                TurnDetailUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                TurnDetailUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 TurnDetailUiState.Missing -> EmptyState(
                     icon = Icons.Outlined.Autorenew,
                     title = stringResource(R.string.turns_missing_title),
@@ -157,6 +158,7 @@ private fun Detail(state: TurnDetailUiState.Success, actions: TurnDetailActions)
                 style = MaterialTheme.typography.titleLarge,
             )
             Text(stringResource(R.string.turns_next, householdLabel(state.nextName)), style = MaterialTheme.typography.bodyMedium)
+            if (state.turn.pending) PendingSign()
             if (rights.createEvent) {
                 Button(onClick = { actions.onCreateEvent(state.turn.title) }, enabled = !state.isWorking, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                     Text(stringResource(R.string.turns_create_event))

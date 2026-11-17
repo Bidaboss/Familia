@@ -23,7 +23,7 @@ fun needsMe(request: HelpRequest, me: Member, today: LocalDate): Boolean =
 fun iSaidNo(request: HelpRequest, me: Member): Boolean =
     canVolunteer(request, me) && (request.declinedBy == me.id || me.id in request.unavailableIds)
 
-/** « Je m'en occupe »: online only, so that there are never two volunteers. Null when done. */
+/** « Je m'en occupe »: offline it waits on this phone and goes once the network is back (the repository). Null when done. */
 suspend fun takeHelp(repo: HelpRequestRepository, request: HelpRequest, me: Member, timeoutMillis: Long = 8_000): HelpActionError? = try {
     val done = withTimeoutOrNull(timeoutMillis) { repo.take(request.id, me.id, me.firstName) }
     if (done == null) HelpActionError.NeedsNetwork else null

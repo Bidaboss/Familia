@@ -116,6 +116,14 @@ describe('« C\'est fait » and « On passe notre tour »', () => {
     await assertSucceeds(updateDoc(doc(as(env, OTHER_ADULT), 'turns/t1'), done(1)));
   });
 
+  test('said offline, it may reach the server days later, 6 days later yes, 8 days no, nor in the future', async () => {
+    const at = (ms) => ({ history: arrayUnion({ householdId: 'h1', label: '', at: Timestamp.fromMillis(Date.now() + ms) }), current: 1, updatedAt: serverTimestamp() });
+    const day = 24 * 3600 * 1000;
+    await assertFails(updateDoc(doc(as(env, OTHER_ADULT), 'turns/t1'), at(-8 * day)));
+    await assertFails(updateDoc(doc(as(env, OTHER_ADULT), 'turns/t1'), at(11 * 60 * 1000)));
+    await assertSucceeds(updateDoc(doc(as(env, OTHER_ADULT), 'turns/t1'), at(-6 * day)));
+  });
+
   test('the author of the rotation can say it for the household', async () => {
     await assertSucceeds(updateDoc(doc(as(env, NEIGHBOUR), 'turns/t1'), done(1)));
   });

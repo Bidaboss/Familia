@@ -446,6 +446,9 @@
     <string name="confirm_member_removed">Fiche retirée de la famille.</string>
     <string name="confirm_queued">Enregistré, envoi au retour du réseau.</string>
     <string name="offline_banner">Hors ligne. Tu vois la dernière version enregistrée sur ce téléphone.</string>
+    <string name="loading_slow">Le réseau est lent, ça arrive…</string>
+    <string name="loading_offline">Pas de réseau pour l\'instant. L\'écran se remplira tout seul dès son retour.</string>
+    <string name="pending_network">En attente du réseau</string>
     <string name="members_me">%1$s (toi)</string>
     <string name="profile_adult">Adulte</string>
     <string name="profile_child_with_app">Enfant, avec l\'appli</string>
