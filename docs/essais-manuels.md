@@ -905,7 +905,7 @@ Il faut trois téléphones de test (A, B, C) et le module « La bienvenue » all
 ## Écrans vides et profils enfant
 
 Sur une famille où rien n'a encore été publié, ou en « Voir comme » sur un membre. Le téléphone a le réseau.
-1. Ouvre Entraide, puis Coups de main, Bons plans, Prêts et À qui le tour ?, puis les Bonnes nouvelles. **Attendu :** chaque écran vide a une phrase et un seul bouton (« Demander le premier », « Partager le premier », « Ajouter un objet », « Créer le premier tour », « Publier la première »). Le bouton flottant n'apparaît pas en plus. Le toucher ouvre le formulaire.
+1. Ouvre Entraide, puis Coups de main, Bons plans, Prêts et À qui le tour ?, puis les Bonnes nouvelles. **Attendu :** chaque écran vide a une phrase et un seul bouton (« Demander le premier », « Partager le premier », « Ajouter un objet », « Créer le premier tour », « Partager la première »). Le bouton flottant n'apparaît pas en plus. Le toucher ouvre le formulaire. Défis et Question de la semaine, avant leur date : « Partager une bonne nouvelle en attendant », qui ouvre le formulaire d'une bonne nouvelle.
 2. Publie une première chose sur chacun. **Attendu :** la liste remplace le message, et le bouton flottant revient.
 3. Recommence en « Voir comme » sur un enfant de 11 ans, puis de 16 ans. **Attendu :** Coups de main et Bonnes nouvelles gardent leur bouton, car un enfant peut demander et publier. Bons plans, Prêts et À qui le tour ? disent que ce sont les adultes qui les remplissent, sans aucun bouton. Aucun bouton ne finit sur un refus.
 

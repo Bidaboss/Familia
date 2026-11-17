@@ -25,6 +25,7 @@ fun ChallengesRoute(
     onJoinChallenge: () -> Unit,
     onPrepareChallenge: (YearMonth) -> Unit,
     onOpenWeekly: () -> Unit,
+    onShareGoodNews: (() -> Unit)? = null,
 ) {
     val flags = LocalFeatureFlags.current
     val today = LocalDate.now(ZoneId.of("Europe/Paris"))
@@ -47,5 +48,6 @@ fun ChallengesRoute(
         onJoinChallenge = onJoinChallenge,
         onPrepareChallenge = onPrepareChallenge,
         onOpenWeekly = onOpenWeekly,
+        onShareGoodNews = onShareGoodNews,
     )
 }

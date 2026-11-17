@@ -1,6 +1,5 @@
 package fr.familia.app.feature.weeklyquestion
 
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.WeeklyQuestion
@@ -32,11 +32,12 @@ import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.ShareGoodNewsButton
 
 /** « Nos réponses »: every question already asked, newest first (récit 37). Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WeeklyArchiveScreen(state: WeeklyArchiveUiState, onOpen: (String) -> Unit, onBack: () -> Unit) {
+fun WeeklyArchiveScreen(state: WeeklyArchiveUiState, onOpen: (String) -> Unit, onBack: () -> Unit, onShareGoodNews: (() -> Unit)? = null) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -52,6 +53,7 @@ fun WeeklyArchiveScreen(state: WeeklyArchiveUiState, onOpen: (String) -> Unit, o
                     icon = Icons.Outlined.QuestionAnswer,
                     title = stringResource(R.string.weekly_none_title),
                     body = stringResource(R.string.weekly_none_body),
+                    action = { if (onShareGoodNews != null) ShareGoodNewsButton(onShareGoodNews) },
                 )
                 WeeklyArchiveUiState.Error -> EmptyState(
                     icon = Icons.Outlined.QuestionAnswer,

@@ -1017,7 +1017,8 @@
     <string name="goodnews_load_more">Voir les plus anciennes</string>
     <string name="goodnews_empty_title">Le fil attend sa première bonne nouvelle</string>
     <string name="goodnews_empty_body">Une réussite, une photo du jour, un petit bonheur : toute la famille sera contente de la voir.</string>
-    <string name="goodnews_empty_action">Publier la première</string>
+    <string name="goodnews_empty_action">Partager la première</string>
+    <string name="empty_share_good_news">Partager une bonne nouvelle en attendant</string>
     <string name="goodnews_error_title">Impossible d\'afficher les bonnes nouvelles</string>
     <string name="goodnews_error_body">L\'appli n\'a pas pu les lire. Réessaie, et si ça continue, préviens un chef de famille.</string>
     <string name="goodnews_missing_title">Cette bonne nouvelle n\'existe plus</string>
