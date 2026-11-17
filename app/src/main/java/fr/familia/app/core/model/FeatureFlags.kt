@@ -126,6 +126,8 @@ enum class Feature(
     RecurringEvents("recurringEvents", R.string.feature_recurring_events),
     /** L'affiche de l'arbre : un PDF paysage A4 ou A3 de l'arbre généalogique (PRD rév. 243, récit 53). */
     TreePoster("treePoster", R.string.feature_tree_poster),
+    /** Le livre photo d'un album : un PDF A4 paysage ou carré d'un voyage ou d'un événement (PRD rév. 253, récit 59). */
+    PhotoBook("photoBook", R.string.feature_photo_book),
     /** « Notre année en famille » : le récit de l'année, du 26/12 au 10/01 (PRD rév. 245, récit 55). */
     YearInReview("yearInReview", R.string.feature_year_in_review),
     /** « À qui le tour ? » : un tour de rôle entre foyers, dans Entraide (PRD rév. 249, récit 58). */
