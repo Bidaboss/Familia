@@ -1851,6 +1851,10 @@
     <string name="channel_birthdays">Vœux d\'anniversaire</string>
     <string name="feature_welcome">La bienvenue</string>
     <string name="feature_single_list">Une seule liste d\'envies par personne</string>
+    <string name="gift_mark_received">Je l\'ai reçue</string>
+    <string name="gift_mark_received_title">Tu l\'as déjà reçue ?</string>
+    <string name="gift_mark_received_text">Elle passera dans « On m\'a offert ».</string>
+    <string name="gift_mark_received_confirm">Oui, reçue</string>
     <string name="feature_more_photos">Plus de photos</string>
     <string name="feature_who_is_it">Qui est-ce ?</string>
     <string name="feature_presentation_r1bis">Nouvelle présentation</string>

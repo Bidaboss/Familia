@@ -5,7 +5,18 @@ import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.share.ShareButton
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -92,16 +103,42 @@ fun TripDetailScreen(
     onOpenExpenses: (() -> Unit)? = null,
     /** « Partager » (récit 31): null while the switch is off. */
     onShare: (() -> Unit)? = null,
+    /** The illustrated path of R1 bis (maquette R6), while the switch presentationR1bis is on. */
+    illustrated: Boolean = false,
+    /** « 18 photos » of the illustrated path: the album of the trip. */
+    onSeePhotos: () -> Unit = {},
 ) {
     val success = state as? TripDetailUiState.Success
+    val path = illustrated && success != null
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(success?.trip?.title ?: stringResource(R.string.trip_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                title = {
+                    if (path && success != null) {
+                        PathTitle(success)
+                    } else {
+                        Text(success?.trip?.title ?: stringResource(R.string.trip_title), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                },
                 navigationIcon = { BackButton(onClick = onBack) },
+                colors = if (path) {
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = TripPathColors.Sky,
+                        scrolledContainerColor = TripPathColors.Sky,
+                        navigationIconContentColor = TripPathColors.Ink,
+                        titleContentColor = TripPathColors.Ink,
+                        actionIconContentColor = TripPathColors.Ink,
+                    )
+                } else {
+                    TopAppBarDefaults.topAppBarColors()
+                },
                 actions = {
                     if (success?.canManage == true) {
-                        TextButton(onClick = onEditTrip, modifier = Modifier.heightIn(min = 56.dp)) {
+                        TextButton(
+                            onClick = onEditTrip,
+                            modifier = Modifier.heightIn(min = 56.dp),
+                            colors = if (path) ButtonDefaults.textButtonColors(contentColor = TripPathColors.Ink) else ButtonDefaults.textButtonColors(),
+                        ) {
                             Text(stringResource(R.string.trip_edit))
                         }
                     }
@@ -138,7 +175,11 @@ fun TripDetailScreen(
                         }
                     },
                 )
-                is TripDetailUiState.Success -> Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses)
+                is TripDetailUiState.Success -> if (illustrated) {
+                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos)
+                } else {
+                    Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses)
+                }
             }
         }
     }
@@ -207,6 +248,141 @@ private fun Content(
     }
 }
 
+/** « Séville », and under it who goes: « Avec Camille, Inès et Noé ». */
+@Composable
+private fun PathTitle(state: TripDetailUiState.Success) {
+    Column {
+        Text(state.trip.title, style = MaterialTheme.typography.headlineSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(
+            joinNames(state.participants),
+            style = MaterialTheme.typography.labelLarge,
+            color = TripPathColors.InkSoft,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+/**
+ * The trip as an illustrated path (R1 bis, maquette R6): the strip of the days on the sky, the path
+ * through the days around the chosen one, then the chosen day with « Photos », « Carnet » and
+ * « Comptes ». The carnet below holds the steps of that day, what to bring and the photos.
+ */
+@Composable
+private fun PathContent(
+    state: TripDetailUiState.Success,
+    onEditStep: (String) -> Unit,
+    onArrived: (String) -> Unit,
+    onClearArrival: (String) -> Unit,
+    checklist: ChecklistActions,
+    photos: AlbumPhotosUiState,
+    photoActions: PhotoActions,
+    onOpenExpenses: (() -> Unit)?,
+    onSeePhotos: () -> Unit,
+) {
+    val days = remember(state.trip.startDate, state.trip.endDate) { TripDays.of(state.trip) }
+    var chosenEpoch by rememberSaveable(state.trip.id) { mutableStateOf<Long?>(null) }
+    val chosen = chosenEpoch?.let(LocalDate::ofEpochDay)?.takeIf { it in days } ?: TripDays.firstShown(days, state.today)
+    val number = days.indexOf(chosen) + 1
+    val daySteps = TripDays.stepsOf(state.steps, chosen, days)
+    val places = daySteps.map { it.place }.distinct()
+    val label = when {
+        chosen == state.today && places.isNotEmpty() -> stringResource(R.string.trip_day_today_place, places.first())
+        chosen == state.today -> stringResource(R.string.day_today)
+        else -> places.firstOrNull()
+    }
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val notebookIndex = if (state.sendFailed) 4 else 3
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        state = listState,
+        // Room at the bottom so the add button never hides the last line.
+        contentPadding = PaddingValues(bottom = 96.dp),
+    ) {
+        item(key = "strip") {
+            TripDayStrip(
+                days = days,
+                chosen = chosen,
+                today = state.today,
+                onChoose = { chosenEpoch = it.toEpochDay() },
+                modifier = Modifier.background(TripPathColors.Sky).padding(bottom = 8.dp),
+            )
+        }
+        item(key = "path") { TripPathIllustration(days, chosen, state.today, label) }
+        item(key = "day") {
+            // The card sits on the bottom of the landscape, as on the maquette.
+            Box(Modifier.fillMaxWidth().background(TripPathColors.DuneNear).padding(horizontal = ClaySpacing.screen, vertical = 12.dp)) {
+                TripDayCard(
+                    number = number,
+                    places = places,
+                    day = chosen,
+                    photoCount = photos.photos.size,
+                    onPhotos = onSeePhotos,
+                    onNotebook = { scope.launch { listState.animateScrollToItem(notebookIndex) } },
+                    onExpenses = onOpenExpenses?.takeIf { state.isParticipant },
+                )
+            }
+        }
+        if (state.sendFailed) {
+            item(key = "failed") {
+                Text(
+                    stringResource(R.string.trip_arrival_failed),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
+                )
+            }
+        }
+        item(key = "notebook-title") {
+            TripSectionTitle(stringResource(R.string.trip_notebook_day, number), Modifier.padding(horizontal = ClaySpacing.screen))
+        }
+        if (daySteps.isEmpty()) {
+            item(key = "no-steps") {
+                val empty = when {
+                    state.steps.isNotEmpty() -> R.string.trip_day_no_steps
+                    state.isParticipant -> R.string.trip_no_steps_participant
+                    else -> R.string.trip_no_steps
+                }
+                Text(
+                    stringResource(empty),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
+                )
+            }
+        }
+        items(daySteps, key = { "step-${it.id}" }) { step ->
+            StepCard(
+                step = step,
+                today = state.today,
+                isParticipant = state.isParticipant,
+                onEdit = { onEditStep(step.id) },
+                onArrived = { onArrived(step.id) },
+                onClearArrival = { onClearArrival(step.id) },
+                modifier = Modifier.padding(horizontal = ClaySpacing.screen, vertical = ClaySpacing.between / 2),
+            )
+        }
+        item(key = "checklist-title") {
+            TripSectionTitle(stringResource(R.string.trip_checklist), Modifier.padding(horizontal = ClaySpacing.screen))
+        }
+        item(key = "checklist") {
+            Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) {
+                TripChecklist(state.items, state.assignees, state.isParticipant, checklist)
+            }
+        }
+        item(key = "photos-title") {
+            TripSectionTitle(stringResource(R.string.trip_photos), Modifier.padding(horizontal = ClaySpacing.screen))
+        }
+        item(key = "photos") {
+            val empty = if (photos.canAdd) R.string.trip_photos_empty_participant else R.string.trip_photos_empty
+            Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) {
+                AlbumPhotosSection(photos, photoActions, stringResource(empty))
+            }
+        }
+    }
+}
+
 @Composable
 private fun Summary(state: TripDetailUiState.Success) {
     val variant = FamiliaClay.colors.onTintVariant(ClayTint.Family)
@@ -239,10 +415,11 @@ private fun StepCard(
     onEdit: () -> Unit,
     onArrived: () -> Unit,
     onClearArrival: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val variant = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
     ClayCard(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         onClick = if (isParticipant) onEdit else null,
         onClickLabel = stringResource(R.string.trip_step_edit_action),
     ) {
@@ -343,4 +520,20 @@ internal fun previewTripDetail(isParticipant: Boolean = true): TripDetailUiState
 @Composable
 private fun TripDetailScreenPreview() {
     FamiliaTheme { Surface { TripDetailScreen(previewTripDetail(), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos()) } }
+}
+
+@FamiliaPreviews
+@Composable
+private fun TripDetailPathPreview() {
+    FamiliaTheme {
+        Surface {
+            TripDetailScreen(
+                previewTripDetail().copy(today = LocalDate.of(2027, 8, 3)),
+                {}, {}, {}, {}, {}, {}, {},
+                photos = previewAlbumPhotos(),
+                onOpenExpenses = {},
+                illustrated = true,
+            )
+        }
+    }
 }

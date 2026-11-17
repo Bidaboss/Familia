@@ -369,10 +369,13 @@ Une envie offerte, sortie de « Mes envies » le lendemain de l'occasion de son 
 | `thanked` | booléen | Faux à la création, vrai quand le bénéficiaire a dit merci |
 | `thankedAt` | horodatage serveur | Présent une fois le merci dit |
 | `revealedAt` | horodatage serveur | |
+| `self` | booléen, facultatif | Vrai pour « Je l'ai reçue » (rév. 232) : la personne l'a marquée elle-même, sans donneur. `occasion` et `year` sont alors nuls |
 
 - **Lire** : le bénéficiaire, et les adultes qui gardent ses listes (un enfant sans l'appli n'a rien de dévoilé).
 - **Modifier** : le bénéficiaire, seulement pour passer `thanked` à vrai avec `thankedAt`.
-- **Créer, supprimer** : le serveur seul.
+- **Créer** : le serveur, à la révélation. Et « Je l'ai reçue » (rév. 232) : celui qui garde les listes de la personne, pour une envie qu'elle voit, dans le même lot que la suppression de l'envie, avec `self: true`, sans donneur, `thanked` faux. Une réservation de cette envie est annulée par le serveur, qui prévient son réservant (« … a déjà reçu … ») sans rien dire à la personne.
+- **Supprimer** : le serveur seul.
+- **« Tu l'as offert ? »** : le matin de la révélation, le réservant de chaque envie dévoilée est invité à passer son carnet à « Offert », sauf s'il l'a déjà fait.
 
 ### Cloud Functions des cadeaux (`firebase/functions/src/gifts.ts`)
 

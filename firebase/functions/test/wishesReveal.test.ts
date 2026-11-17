@@ -10,7 +10,7 @@ import { Notice } from '../src/logic';
 import { notebookEntryId, syncNotebookEntry } from '../src/notebook';
 import { Sender } from '../src/store';
 import { Timestamp } from 'firebase-admin/firestore';
-import { claimOccasion, defaultWishOccasion, giverNames, occasionDay, receivedPath, revealWishes, thankGivers, wasRevealed } from '../src/wishesReveal';
+import { claimOccasion, defaultWishOccasion, giverNames, occasionDay, receivedPath, revealWishes, thankGivers, wasMarkedReceived, wasRevealed } from '../src/wishesReveal';
 
 const ines: GiftMember = { id: 'ines', firstName: 'Inès', profile: 'adult', parentIds: [], birthDate: '1990-03-14' };
 const camille: GiftMember = { id: 'camille', firstName: 'Camille', profile: 'adult', parentIds: [], birthDate: '1988-12-09' };
@@ -177,6 +177,34 @@ describe('wishes reveal', () => {
     await db.doc('members/camille/devices/token-camille').set({});
     assert.equal(await onGiftItemChanged(db, send, LIST, 'book', before, undefined), 0);
     assert.equal(sent.length, 0);
+  });
+
+  test('« Tu l\'as offert ? » asks each holder whose notebook does not say « Offert » yet', async () => {
+    for (const id of ['camille', 'jules']) await db.doc(`members/${id}/devices/token-${id}`).set({});
+    await db.doc(`notebooks/camille/entries/${notebookEntryId(LIST, 'book')}`).set({ status: 'given' });
+    const { sent, send } = fakeSender();
+    await revealWishes(db, send, DAY_AFTER);
+    const asks = sent.filter((s) => s.notice.title === 'Tu l\'as offert ?');
+    // Camille already said « Offert »; Jules, responsible of the joint gift, is asked; never Inès.
+    assert.deepEqual(asks.map((s) => s.token), ['token-jules']);
+    assert.match(asks[0].notice.body, /Une écharpe/);
+    assert.match(asks[0].notice.body, /Inès/);
+  });
+
+  test('a wish the person marked « Reçue » cancels its reservation, and says why', async () => {
+    await db.doc('members/camille/devices/token-camille').set({});
+    await list().collection('claims').doc('lamp').set({ type: 'solo', holderId: 'camille', holderName: 'Camille', createdAt: Timestamp.now() });
+    const before = (await list().collection('items').doc('lamp').get()).data() as never;
+    // What the app writes in one batch: the archive, without a giver, and the removal.
+    await list().collection('received').doc('lamp').set({ title: 'Une lampe', givers: [], giverIds: [], self: true });
+    await list().collection('items').doc('lamp').delete();
+    assert.equal(await wasRevealed(db, LIST, 'lamp'), false);
+    assert.equal(await wasMarkedReceived(db, LIST, 'lamp'), true);
+    const { sent, send } = fakeSender();
+    assert.equal(await onGiftItemChanged(db, send, LIST, 'lamp', before, undefined), 1);
+    assert.deepEqual(sent.map((s) => s.token), ['token-camille']);
+    assert.match(sent[0].notice.body, /a déjà reçu « Une lampe »/);
+    assert.equal((await list().collection('claims').doc('lamp').get()).exists, false);
   });
 
   test('a removed list takes its « On m\'a offert » with it', async () => {
