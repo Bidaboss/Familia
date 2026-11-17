@@ -136,7 +136,8 @@ fun GiftsScreen(
         if (state is GiftsUiState.Success && !state.singleList) {
             ExtendedFloatingActionButton(
                 onClick = onNewList,
-                icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                // The text of an extended button is hidden from TalkBack (Material 3): the icon says it.
+                icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.gifts_new_list)) },
                 text = { Text(stringResource(R.string.gifts_new_list)) },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
             )
