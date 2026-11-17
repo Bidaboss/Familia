@@ -17,8 +17,6 @@ import fr.familia.app.R
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.Member
-import fr.familia.app.core.print.PRINT_BYTES_PER_PHOTO
-import fr.familia.app.core.print.writePdfSafely
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -68,12 +66,13 @@ private suspend fun printPoster(context: Context, content: PosterContent, photo:
     val folder = File(context.cacheDir, "shares").apply { mkdirs() }
     oldPosters(context).forEach { it.delete() }
     val file = File(folder, posterFileName(content.year))
-    writePdfSafely(file, content.photoCount * PRINT_BYTES_PER_PHOTO) { part -> writeTreePoster(content, part) { photo(it) } }
+    writeTreePoster(content, file) { photo(it) }
+    file
 }
 
 /** The posters left in the cache folder shares/ by an earlier « Faire l'affiche ». */
 private fun oldPosters(context: Context): List<File> =
-    File(context.cacheDir, "shares").listFiles { f -> f.name.startsWith("arbre-de-la-famille-") && (f.name.endsWith(".pdf") || f.name.endsWith(".pdf.part")) }?.toList().orEmpty()
+    File(context.cacheDir, "shares").listFiles { f -> f.name.startsWith("arbre-de-la-famille-") && f.name.endsWith(".pdf") }?.toList().orEmpty()
 
 /** Opens the share sheet of Android: save it, print it or send it. */
 private fun sharePdf(context: Context, file: File, chooserTitle: String) {

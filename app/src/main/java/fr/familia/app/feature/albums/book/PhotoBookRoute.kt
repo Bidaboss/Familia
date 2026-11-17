@@ -28,10 +28,7 @@ import fr.familia.app.core.album.book.photoBookFileName
 import fr.familia.app.core.album.book.writePhotoBook
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.StepType
-import fr.familia.app.core.photo.PhotoSizing
 import fr.familia.app.core.photo.PhotoStorage
-import fr.familia.app.core.print.PRINT_BYTES_PER_PHOTO
-import fr.familia.app.core.print.writePdfSafely
 import fr.familia.app.core.share.ShareConsentReminder
 import fr.familia.app.feature.events.album.eventAlbumFolder
 import fr.familia.app.feature.trips.photos.tripAlbumFolder
@@ -124,9 +121,8 @@ private suspend fun printBook(context: Context, content: PhotoBookContent, stora
     oldBooks(context).forEach { it.delete() }
     val photos = bookPhotos(context).apply { mkdirs() }
     val file = File(shares, photoBookFileName(content.title))
-    // Each photo is kept once in photo-book/ (about 300 KB) and drawn in the PDF.
-    val needed = content.photos.size * (PRINT_BYTES_PER_PHOTO + PhotoSizing.PHOTO_TARGET_BYTES)
-    writePdfSafely(file, needed) { part -> writePhotoBook(content, part) { photo -> cachedPhoto(photos, photo, storage) } }
+    writePhotoBook(content, file) { photo -> cachedPhoto(photos, photo, storage) }
+    file
 }
 
 /** The full photos of the book being made, removed when the screen closes. */
@@ -150,7 +146,7 @@ private suspend fun cachedPhoto(folder: File, photo: AlbumPhoto, storage: PhotoS
 
 /** The books left in the cache folder shares/ by an earlier « Faire le livre photo ». */
 private fun oldBooks(context: Context): List<File> =
-    File(context.cacheDir, "shares").listFiles { f -> f.name.startsWith("livre-photo") && (f.name.endsWith(".pdf") || f.name.endsWith(".pdf.part")) }?.toList().orEmpty()
+    File(context.cacheDir, "shares").listFiles { f -> f.name.startsWith("livre-photo") && f.name.endsWith(".pdf") }?.toList().orEmpty()
 
 /** Opens the share sheet of Android: save it, print it or send it to a photo shop. */
 private fun sharePdf(context: Context, file: File, chooserTitle: String) {

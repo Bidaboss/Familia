@@ -17,8 +17,6 @@ import fr.familia.app.R
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.Member
-import fr.familia.app.core.print.PRINT_BYTES_PER_PHOTO
-import fr.familia.app.core.print.writePdfSafely
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -79,12 +77,13 @@ private suspend fun printBook(context: Context, content: BookContent, container:
     oldBooks(context).forEach { it.delete() }
     val file = File(folder, bookFileName(content.year))
     val storage = container?.photoStorage
-    writePdfSafely(file, content.photoCount * PRINT_BYTES_PER_PHOTO) { part -> writeRecipeBook(content, labels, part) { path -> storage?.bytes(path) } }
+    writeRecipeBook(content, labels, file) { path -> storage?.bytes(path) }
+    file
 }
 
 /** The books left in the cache folder shares/ by an earlier « Faire le livre ». */
 private fun oldBooks(context: Context): List<File> =
-    File(context.cacheDir, "shares").listFiles { f -> f.name.startsWith("livre-de-recettes-") && (f.name.endsWith(".pdf") || f.name.endsWith(".pdf.part")) }?.toList().orEmpty()
+    File(context.cacheDir, "shares").listFiles { f -> f.name.startsWith("livre-de-recettes-") && f.name.endsWith(".pdf") }?.toList().orEmpty()
 
 /** Opens the share sheet of Android: save it, print it or send it. */
 private fun sharePdf(context: Context, file: File, chooserTitle: String) {

@@ -39,7 +39,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.album.AlbumPhoto
-import fr.familia.app.core.print.printFailedText
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
@@ -140,7 +139,7 @@ private fun Choosing(state: RecipeBookUiState.Choosing, actions: RecipeBookActio
         item(key = "make") {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (state.failed) {
-                    Text(printFailedText(state.problem, R.string.recipe_book_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.recipe_book_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
                 }
                 Button(onClick = actions.onMake, enabled = state.canMake, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                     if (state.isMaking) {

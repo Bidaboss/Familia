@@ -46,9 +46,7 @@ data class PosterContent(
     val format: PosterFormat,
     val rows: List<List<PosterPerson>>,
     val links: List<KinLink>,
-) {
-    val photoCount: Int get() = rows.sumOf { row -> row.count { it.photoOf != null } }
-}
+)
 
 /** The people of [start]: everyone, or the person, their descendants and the partners of all of them. */
 fun posterIds(tree: GenealogyTree, start: PosterStart): Set<String> = when (start) {

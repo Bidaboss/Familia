@@ -3,8 +3,6 @@ package fr.familia.app.core.album.book
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.AlbumPhotoRepository
 import fr.familia.app.core.model.Member
-import fr.familia.app.core.print.PrintException
-import fr.familia.app.core.print.PrintProblem
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -16,7 +14,6 @@ import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
-import java.io.IOException
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -110,34 +107,5 @@ class PhotoBookTest {
         assertEquals(PhotoBookUiState.Empty, vm.uiState.value)
         val gone = PhotoBookViewModel(FakeAlbum(listOf(photo(TestFamily.adult, 1))), source = { null }, print = { null })
         assertEquals(PhotoBookUiState.Empty, gone.uiState.value)
-    }
-
-    @Test
-    fun `a phone without room or memory is said so, not the connection`() = runTest {
-        val album = FakeAlbum((1..2).map { photo(TestFamily.adult, it) })
-        var problem: PrintProblem = PrintProblem.NoRoom
-        val vm = PhotoBookViewModel(album, source = { BookSource("trips/t1", "Vacances", "") }, print = { throw PrintException(problem) })
-
-        vm.make()
-        var state = vm.uiState.value as PhotoBookUiState.Choosing
-        assertEquals(true, state.failed)
-        assertEquals(PrintProblem.NoRoom, state.problem)
-        assertNull(vm.made.value)
-
-        problem = PrintProblem.TooBig
-        vm.make()
-        state = vm.uiState.value as PhotoBookUiState.Choosing
-        assertEquals(PrintProblem.TooBig, state.problem)
-
-        // Another failure (the network): the usual message, with no problem of the phone.
-        val offline = PhotoBookViewModel(album, source = { BookSource("trips/t1", "Vacances", "") }, print = { throw IOException("offline") })
-        offline.make()
-        val off = offline.uiState.value as PhotoBookUiState.Choosing
-        assertEquals(true, off.failed)
-        assertNull(off.problem)
-
-        // Changing the book clears the message.
-        vm.toggle("adult1_1")
-        assertNull((vm.uiState.value as PhotoBookUiState.Choosing).problem)
     }
 }

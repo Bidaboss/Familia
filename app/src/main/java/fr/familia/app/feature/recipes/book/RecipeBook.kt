@@ -26,10 +26,7 @@ data class BookRecipe(val recipe: Recipe, val origin: String?, val photo: AlbumP
 data class BookSection(val name: String?, val recipes: List<BookRecipe>)
 
 /** What the printer needs; [coverPhoto] is one of the photos of the book, or none. */
-data class BookContent(val title: String, val year: Int, val coverPhoto: AlbumPhoto?, val sections: List<BookSection>) {
-    /** The photos drawn in the book, the cover included: the room to ask for before writing it. */
-    val photoCount: Int get() = sections.sumOf { section -> section.recipes.count { it.photo != null } } + if (coverPhoto != null) 1 else 0
-}
+data class BookContent(val title: String, val year: Int, val coverPhoto: AlbumPhoto?, val sections: List<BookSection>)
 
 /**
  * The parts of the book: each recipe goes under its first tag (« dessert » and « Dessert » are one

@@ -1051,12 +1051,3 @@ Sur un téléphone de test, une seule fois : Paramètres > À propos du téléph
 6. Recommence l'étape 1 dans l'album d'un événement, puis avec 3 photos dans une recette. **Attendu :** pareil.
 
 Une limite connue : un téléphone sous Android 8 ne sait pas ouvrir les photos HEIC. Elles sont refusées avec le message « n'a pas pu être lue », les autres partent.
-
-## Livre photo, livre de recettes et affiche : gros fichiers et coupures
-
-1. Dans un album d'au moins 100 photos (ou le plus gros que tu aies), touche « Faire le livre photo », garde toutes les photos et touche « Faire le livre ». **Attendu :** le livre se fait sans que Familia se ferme, puis le rappel sur l'accord des parents s'affiche avant le partage.
-2. Recommence, et touche la flèche retour pendant que le livre se fait. Rouvre « Faire le livre photo » et fais-le jusqu'au bout. **Attendu :** le nouveau livre s'ouvre normalement dans l'appli de partage, jamais un fichier abîmé.
-3. Sur le rappel « Avant de partager », touche « Continuer », puis ferme l'appli de partage sans rien choisir. **Attendu :** retour sur l'écran du livre, sans message d'erreur ; « Faire le livre » refait un livre.
-4. Mode avion, puis « Faire le livre » avec des photos jamais ouvertes sur ce téléphone. **Attendu :** « Le livre n'a pas pu être fait. Vérifie ta connexion, puis réessaie. »
-5. Sur un téléphone presque plein (moins de 100 Mo libres), « Faire le livre photo ». **Attendu :** « Il n'y a plus assez de place sur le téléphone pour ce fichier… ». Libère de la place, puis réessaie : le livre se fait.
-6. Fais aussi le livre de recettes et l'affiche de l'arbre avec photos. **Attendu :** les deux se font et s'ouvrent dans l'appli de partage, et les photos d'enfants n'y sont que pour leurs parents.
