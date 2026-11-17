@@ -1220,10 +1220,6 @@
         <item quantity="one">%1$d photo choisie, %2$d pages</item>
         <item quantity="other">%1$d photos choisies, %2$d pages</item>
     </plurals>
-    <plurals name="photo_book_children_removed">
-        <item quantity="one">%1$d photo mise par un enfant n\'est pas dans le livre : seuls ses adultes peuvent l\'y mettre.</item>
-        <item quantity="other">%1$d photos mises par des enfants ne sont pas dans le livre : seuls leurs adultes peuvent les y mettre.</item>
-    </plurals>
     <string name="photo_book_earlier">Plus tôt</string>
     <string name="photo_book_later">Plus tard</string>
     <string name="photo_book_big">En grand</string>

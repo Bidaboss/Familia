@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.AlbumPhotoRepository
-import fr.familia.app.core.data.MemberRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,19 +20,17 @@ data class BookSource(val folder: String, val title: String, val dates: String, 
 sealed interface PhotoBookUiState {
     data object Loading : PhotoBookUiState
 
-    /** No photo the member may put in a book, or the album could not be read. */
-    data class Empty(val removedForChildren: Int = 0) : PhotoBookUiState
+    /** No photo in the album yet, or the album could not be read. */
+    data object Empty : PhotoBookUiState
 
     data class Choosing(
-        /** Every photo the member may use, in the order of the book: oldest first, then as moved. */
+        /** Every photo of the album, in the order of the book: oldest first, then as moved. */
         val photos: List<BookPhoto>,
         val chosen: Set<String>,
         val coverId: String?,
         val title: String,
         val dates: String,
         val steps: List<BookStep>,
-        /** The photos left out by the rule of the children (carte EXPERT-2), said on the screen. */
-        val removedForChildren: Int,
         val format: PhotoBookFormat = PhotoBookFormat.Landscape,
         val isMaking: Boolean = false,
         val failed: Boolean = false,
@@ -45,13 +42,11 @@ sealed interface PhotoBookUiState {
 }
 
 /**
- * Le livre photo (récit 59): reads the album and the family once, keeps the photos the member may
- * print, lets them choose, order and enlarge, then [print] writes the PDF.
+ * Le livre photo (récit 59): reads the album once, lets the member choose, order and enlarge its
+ * photos, then [print] writes the PDF.
  */
 class PhotoBookViewModel(
     private val photos: AlbumPhotoRepository?,
-    private val members: MemberRepository?,
-    private val currentMemberId: String,
     /** The title, the dates and the steps of the album, or null when they cannot be read. */
     private val source: suspend () -> BookSource?,
     private val caption: (AlbumPhoto) -> String = { bookCaption(it) },
@@ -74,11 +69,10 @@ class PhotoBookViewModel(
 
     private suspend fun load() {
         val albumRepo = photos
-        val memberRepo = members
-        val loaded = if (albumRepo == null || memberRepo == null) null else try {
+        val loaded = if (albumRepo == null) null else try {
             withTimeoutOrNull(readTimeoutMillis) {
                 val book = source() ?: return@withTimeoutOrNull null
-                Triple(book, memberRepo.observeFamily().first(), albumRepo.observePhotos(book.folder).first())
+                book to albumRepo.observePhotos(book.folder).first()
             }
         } catch (e: CancellationException) {
             throw e
@@ -86,14 +80,13 @@ class PhotoBookViewModel(
             null
         }
         if (loaded == null) {
-            _uiState.value = PhotoBookUiState.Empty()
+            _uiState.value = PhotoBookUiState.Empty
             return
         }
-        val (book, family, all) = loaded
-        val (kept, removed) = all.partition { bookPhotoAllowed(it, currentMemberId, family) }
-        val ordered = kept.sortedWith(compareBy<AlbumPhoto> { it.createdAt ?: Instant.MAX }.thenBy { it.id })
+        val (book, all) = loaded
+        val ordered = all.sortedWith(compareBy<AlbumPhoto> { it.createdAt ?: Instant.MAX }.thenBy { it.id })
         _uiState.value = if (ordered.isEmpty()) {
-            PhotoBookUiState.Empty(removed.size)
+            PhotoBookUiState.Empty
         } else {
             PhotoBookUiState.Choosing(
                 photos = ordered.map { BookPhoto(it, caption(it)) },
@@ -102,7 +95,6 @@ class PhotoBookViewModel(
                 title = book.title.take(PHOTO_BOOK_TITLE_MAX),
                 dates = book.dates,
                 steps = book.steps,
-                removedForChildren = removed.size,
             )
         }
     }

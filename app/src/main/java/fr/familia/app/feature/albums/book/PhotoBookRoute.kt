@@ -25,7 +25,6 @@ import fr.familia.app.core.album.book.bookDates
 import fr.familia.app.core.album.book.photoBookFileName
 import fr.familia.app.core.album.book.writePhotoBook
 import fr.familia.app.core.data.AppContainer
-import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.StepType
 import fr.familia.app.core.photo.PhotoStorage
 import fr.familia.app.core.share.ShareConsentReminder
@@ -39,7 +38,7 @@ import java.io.File
 
 /** « Faire le livre photo » of the album of a trip or an event (récit 59). */
 @Composable
-fun PhotoBookRoute(container: AppContainer?, currentMember: Member, album: PhotoBookDestination, onBack: () -> Unit) {
+fun PhotoBookRoute(container: AppContainer?, album: PhotoBookDestination, onBack: () -> Unit) {
     val context = LocalContext.current
     val app = context.applicationContext
     val labels = StepType.entries.associateWith { stepTypeLabel(it) }
@@ -49,8 +48,6 @@ fun PhotoBookRoute(container: AppContainer?, currentMember: Member, album: Photo
             initializer {
                 PhotoBookViewModel(
                     photos = container?.albumPhotoRepository,
-                    members = container?.memberRepository,
-                    currentMemberId = currentMember.id,
                     source = { bookSource(container, album, labels) },
                     print = { content -> printBook(app, content, container?.photoStorage) },
                 )

@@ -1157,7 +1157,6 @@ fun FamiliaApp(
                     composable<PhotoBookDestination> { entry ->
                         PhotoBookRoute(
                             container = container,
-                            currentMember = currentMember,
                             album = entry.toRoute<PhotoBookDestination>(),
                             onBack = { navController.popBackStack() },
                         )

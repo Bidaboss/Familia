@@ -1,9 +1,6 @@
 package fr.familia.app.core.album.book
 
 import fr.familia.app.core.album.AlbumPhoto
-import fr.familia.app.core.model.Family
-import fr.familia.app.core.model.MemberProfile
-import fr.familia.app.core.share.photoAllowed
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
 import java.time.ZoneId
@@ -14,6 +11,8 @@ import java.util.Locale
  * Le livre photo d'un album (PRD rév. 253, récit 59), behind Feature.PhotoBook: from the album of
  * a trip or an event, the member picks the photos, their order and the ones shown big; the phone
  * makes a PDF (A4 landscape or square) with the engine of récits 47 and 53, and the share sheet opens.
+ * Every photo of the album goes in, as the family already sees them (PRD rév. 254); only the
+ * reminder of carte EXPERT-6 comes before a share outside Familia.
  */
 
 /** Which album the book is made from: [kind] is « trip » or « event », [id] its id. */
@@ -75,17 +74,6 @@ fun bookPages(photos: List<BookPhoto>): List<List<BookPhoto>> {
     }
     flush()
     return pages
-}
-
-/**
- * Carte EXPERT-2, as in récits 47 and 53: the book leaves the app, so a photo put in the album by a
- * child goes in only when the maker is one of that child's adults. The author of a photo always
- * keeps it. A member who left can no longer be checked: their photo stays out.
- */
-fun bookPhotoAllowed(photo: AlbumPhoto, makerId: String, family: Family): Boolean {
-    if (photo.authorId == makerId) return true
-    val author = family.members.firstOrNull { it.id == photo.authorId } ?: return false
-    return author.profile == MemberProfile.Adult || photoAllowed(makerId, listOf(author.parentIds))
 }
 
 private val dayFormat = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.FRENCH)

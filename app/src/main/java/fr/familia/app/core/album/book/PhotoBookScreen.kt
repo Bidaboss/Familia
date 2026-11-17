@@ -89,14 +89,10 @@ fun PhotoBookScreen(state: PhotoBookUiState, actions: PhotoBookActions, onBack: 
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
                 PhotoBookUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-                is PhotoBookUiState.Empty -> EmptyState(
+                PhotoBookUiState.Empty -> EmptyState(
                     icon = Icons.Outlined.PhotoLibrary,
                     title = stringResource(R.string.photo_book_empty_title),
-                    body = if (state.removedForChildren > 0) {
-                        pluralStringResource(R.plurals.photo_book_children_removed, state.removedForChildren, state.removedForChildren)
-                    } else {
-                        stringResource(R.string.photo_book_empty_body)
-                    },
+                    body = stringResource(R.string.photo_book_empty_body),
                 )
                 is PhotoBookUiState.Choosing -> Choosing(state, actions)
             }
@@ -113,16 +109,7 @@ private fun Choosing(state: PhotoBookUiState.Choosing, actions: PhotoBookActions
         verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
         item(key = "intro") {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.photo_book_intro), style = MaterialTheme.typography.bodyLarge)
-                if (state.removedForChildren > 0) {
-                    Text(
-                        pluralStringResource(R.plurals.photo_book_children_removed, state.removedForChildren, state.removedForChildren),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = muted,
-                    )
-                }
-            }
+            Text(stringResource(R.string.photo_book_intro), style = MaterialTheme.typography.bodyLarge)
         }
         item(key = "title") {
             OutlinedTextField(
@@ -256,7 +243,6 @@ private fun PhotoBookPreview() {
                     title = "Vacances à la mer",
                     dates = bookDates(LocalDate.of(2027, 8, 2), LocalDate.of(2027, 8, 9)),
                     steps = emptyList(),
-                    removedForChildren = 1,
                 ),
                 PhotoBookActions(),
                 onBack = {},

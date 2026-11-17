@@ -3,7 +3,6 @@ package fr.familia.app.core.album.book
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.AlbumPhotoRepository
 import fr.familia.app.core.model.Member
-import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -11,9 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.io.File
@@ -48,19 +45,6 @@ class PhotoBookTest {
     }
 
     @Test
-    fun `a photo put by a child stays with the adults of that child and its author`() {
-        val family = TestFamily.family
-        val byKid = photo(TestFamily.kid, 1)
-        assertTrue(bookPhotoAllowed(byKid, "adult1", family))
-        assertTrue(bookPhotoAllowed(byKid, "kid1", family))
-        assertFalse(bookPhotoAllowed(byKid, "adult2", family))
-        assertTrue(bookPhotoAllowed(photo(TestFamily.otherAdult, 2), "kid1", family))
-        val gone = Member("gone", "Lou", null, null, "h1", fr.familia.app.core.model.MemberProfile.Adult, false, emptyList(), null)
-        assertFalse(bookPhotoAllowed(photo(gone, 3), "adult1", family))
-        assertTrue(bookPhotoAllowed(photo(gone, 3), "gone", family))
-    }
-
-    @Test
     fun `dates captions and file names read well`() {
         assertEquals("4 août 2026", bookDates(LocalDate.of(2026, 8, 4)))
         assertEquals("du 3 au 9 août 2026", bookDates(LocalDate.of(2026, 8, 3), LocalDate.of(2026, 8, 9)))
@@ -73,12 +57,11 @@ class PhotoBookTest {
     }
 
     @Test
-    fun `the book keeps the photos I may print, oldest first, and says how many went out`() = runTest {
+    fun `the book takes every photo of the album, children's ones too, oldest first`() = runTest {
         val album = FakeAlbum(listOf(photo(TestFamily.adult, 2), photo(TestFamily.otherKid, 3), photo(TestFamily.adult, 1)))
-        val vm = PhotoBookViewModel(album, FakeMembers(), "adult1", source = { BookSource("trips/t1", "Vacances", "du 3 au 9 août 2026") }, print = { null })
+        val vm = PhotoBookViewModel(album, source = { BookSource("trips/t1", "Vacances", "du 3 au 9 août 2026") }, print = { null })
         val state = vm.uiState.value as PhotoBookUiState.Choosing
-        assertEquals(listOf("adult1_1", "adult1_2"), state.photos.map { it.photo.id })
-        assertEquals(1, state.removedForChildren)
+        assertEquals(listOf("adult1_1", "adult1_2", "kid2_3"), state.photos.map { it.photo.id })
         assertEquals("adult1_1", state.coverId)
         assertEquals(2, state.pageCount)
     }
@@ -89,8 +72,6 @@ class PhotoBookTest {
         var printed: PhotoBookContent? = null
         val vm = PhotoBookViewModel(
             album,
-            FakeMembers(),
-            "adult1",
             source = { BookSource("trips/t1", "Vacances", "4 août 2026", listOf(BookStep("Train", "Gare", LocalDate.of(2026, 8, 4)))) },
             print = { printed = it; File("livre.pdf") },
         )
@@ -114,10 +95,10 @@ class PhotoBookTest {
     }
 
     @Test
-    fun `no photo for me gives the empty screen`() = runTest {
-        val vm = PhotoBookViewModel(FakeAlbum(listOf(photo(TestFamily.otherKid, 1))), FakeMembers(), "adult1", source = { BookSource("trips/t1", "V", "") }, print = { null })
-        assertEquals(PhotoBookUiState.Empty(removedForChildren = 1), vm.uiState.value)
-        val gone = PhotoBookViewModel(FakeAlbum(emptyList()), FakeMembers(), "adult1", source = { null }, print = { null })
-        assertEquals(PhotoBookUiState.Empty(), gone.uiState.value)
+    fun `an empty album or one that cannot be read gives the empty screen`() = runTest {
+        val vm = PhotoBookViewModel(FakeAlbum(emptyList()), source = { BookSource("trips/t1", "V", "") }, print = { null })
+        assertEquals(PhotoBookUiState.Empty, vm.uiState.value)
+        val gone = PhotoBookViewModel(FakeAlbum(listOf(photo(TestFamily.adult, 1))), source = { null }, print = { null })
+        assertEquals(PhotoBookUiState.Empty, gone.uiState.value)
     }
 }
