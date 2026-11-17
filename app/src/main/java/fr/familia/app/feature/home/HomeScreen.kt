@@ -312,7 +312,7 @@ fun HomeRoute(
             actions = actions,
             r1 = HomeR1bisActions(onAnswer = viewModel::answer, onOpenAll = onOpenAll),
             goodNews = if (flags.isOn(Feature.GoodNews)) {
-                { modifier -> GoodNewsHomeCard(container, currentMember, onOpenGoodNewsFeed, onOpenGoodNews, onPublishGoodNews, modifier) }
+                { modifier, compact -> GoodNewsHomeCard(container, currentMember, onOpenGoodNewsFeed, onOpenGoodNews, onPublishGoodNews, modifier, compact) }
             } else {
                 null
             },

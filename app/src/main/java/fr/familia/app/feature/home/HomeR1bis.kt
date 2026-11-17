@@ -106,7 +106,8 @@ fun HomeR1bisScreen(
     state: HomeUiState,
     actions: HomeActions,
     r1: HomeR1bisActions,
-    goodNews: (@Composable (Modifier) -> Unit)? = null,
+    /** The good news card; [compact] beside the challenge (DESIGN-20), full width alone. */
+    goodNews: (@Composable (Modifier, compact: Boolean) -> Unit)? = null,
     challenge: (@Composable (Modifier, wide: Boolean) -> Unit)? = null,
     nowTravelling: (@Composable () -> Unit)? = null,
     allBadge: Int = 0,
@@ -141,16 +142,16 @@ fun HomeR1bisScreen(
             // and the good news under it, full width (DESIGN, 17/11).
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 challenge(Modifier.fillMaxWidth(), true)
-                goodNews?.invoke(Modifier.fillMaxWidth())
+                goodNews?.invoke(Modifier.fillMaxWidth(), false)
             }
         } else if (goodNews != null && challenge != null) {
             // Both cards take the height of the taller one (DESIGN, 17/11).
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-                goodNews(Modifier.weight(1f).fillMaxHeight())
+                goodNews(Modifier.weight(1f).fillMaxHeight(), true)
                 challenge(Modifier.weight(1f).fillMaxHeight(), false)
             }
         } else if (goodNews != null) {
-            goodNews(Modifier.fillMaxWidth())
+            goodNews(Modifier.fillMaxWidth(), false)
         } else {
             challenge?.invoke(Modifier.fillMaxWidth(), true)
         }

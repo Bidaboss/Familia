@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,6 +36,7 @@ import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.SectionLabel
 import fr.familia.app.feature.goodnews.GoodNewsItem
 import fr.familia.app.feature.goodnews.postedLabel
 import fr.familia.app.feature.goodnews.previewGoodNewsItems
@@ -53,6 +55,8 @@ fun GoodNewsHomeCard(
     onOpen: (postId: String) -> Unit,
     onPublish: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Beside the challenge on the Accueil (DESIGN-20): one news, the whole card opens the feed. */
+    compact: Boolean = false,
 ) {
     val viewModel: GoodNewsHomeViewModel = viewModel(
         key = "goodNewsHome",
@@ -61,7 +65,7 @@ fun GoodNewsHomeCard(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    GoodNewsHomeContent(state, onOpenFeed, onOpen, onPublish, modifier)
+    if (compact) GoodNewsCompactContent(state, onOpenFeed, onPublish, modifier) else GoodNewsHomeContent(state, onOpenFeed, onOpen, onPublish, modifier)
 }
 
 @Composable
@@ -94,6 +98,52 @@ fun GoodNewsHomeContent(
     }
 }
 
+/**
+ * The half-width card beside the challenge (DESIGN-20): the small label, the photo of the last news
+ * if it has one, who and when on one line, the text on two lines at most. The whole card opens the
+ * feed. Empty: a short sentence and « Publier ».
+ */
+@Composable
+fun GoodNewsCompactContent(
+    state: GoodNewsHomeUiState,
+    onOpenFeed: () -> Unit,
+    onPublish: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val tint = ClayTint.Plain
+    val ready = state as? GoodNewsHomeUiState.Ready
+    val last = ready?.items?.firstOrNull()
+    val openLabel = stringResource(R.string.goodnews_home_all)
+    val clickable = if (last != null) Modifier.clickable(onClickLabel = openLabel, onClick = onOpenFeed) else Modifier
+    ClayCard(modifier = modifier.fillMaxWidth().then(clickable), tint = tint) {
+        SectionLabel(stringResource(R.string.goodnews_home_compact_label))
+        if (ready == null) return@ClayCard
+        if (last == null) {
+            Text(
+                stringResource(R.string.goodnews_home_compact_empty),
+                style = MaterialTheme.typography.bodyMedium,
+                color = FamiliaClay.colors.onTintVariant(tint),
+            )
+            FilledTonalButton(onClick = onPublish, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.goodnews_publish))
+            }
+        } else {
+            val news = last.news
+            news.photoIds.firstOrNull()?.let {
+                StorageImage(news.thumbnailPath(it), null, Modifier.fillMaxWidth().height(96.dp).clip(RoundedCornerShape(12.dp)))
+            }
+            Text(
+                stringResource(R.string.goodnews_home_row_title, whoLabel(last), postedLabel(news.createdAt, ready.now)),
+                style = MaterialTheme.typography.labelLarge,
+                color = FamiliaClay.colors.onTintVariant(tint),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(news.text, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+    }
+}
+
 @Composable
 private fun NewsRow(item: GoodNewsItem, now: Instant, tint: ClayTint, onClick: () -> Unit) {
     val openLabel = stringResource(R.string.goodnews_open)
@@ -121,6 +171,16 @@ private fun GoodNewsHomeCardPreview() {
     FamiliaTheme {
         Surface {
             GoodNewsHomeContent(GoodNewsHomeUiState.Ready(previewGoodNewsItems(), Instant.parse("2026-11-21T16:00:00Z")), {}, {}, {})
+        }
+    }
+}
+
+@FamiliaPreviews
+@Composable
+private fun GoodNewsCompactPreview() {
+    FamiliaTheme {
+        Surface {
+            GoodNewsCompactContent(GoodNewsHomeUiState.Ready(previewGoodNewsItems(), Instant.parse("2026-11-21T16:00:00Z")), {}, {})
         }
     }
 }
