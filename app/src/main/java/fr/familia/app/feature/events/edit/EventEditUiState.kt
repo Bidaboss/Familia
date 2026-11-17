@@ -20,6 +20,9 @@ sealed interface EventEditUiState {
         val hasChanges: Boolean = false,
         val isSaving: Boolean = false,
         val saveFailed: Boolean = false,
+        /** « Plus de photos » is on: the form shows the cover, [storedCover] being the saved one. */
+        val showPhoto: Boolean = false,
+        val storedCover: String? = null,
     ) : EventEditUiState
 
     /** Saved or deleted (or queued until the network is back): the screen closes. */

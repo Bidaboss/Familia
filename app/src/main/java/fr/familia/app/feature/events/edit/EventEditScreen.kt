@@ -61,6 +61,7 @@ import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.model.EventTarget
+import fr.familia.app.core.photo.PhotoField
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
@@ -183,6 +184,15 @@ private fun EventFormContent(
             modifier = Modifier.fillMaxWidth(),
         )
         NoteField(form, errors, onChange)
+
+        if (state.showPhoto) {
+            PhotoField(
+                stored = state.storedCover,
+                edit = form.photo,
+                onEdit = { photo -> onChange { it.copy(photo = photo) } },
+                enabled = !state.isSaving,
+            )
+        }
 
         TargetLine(state, onChange)
 

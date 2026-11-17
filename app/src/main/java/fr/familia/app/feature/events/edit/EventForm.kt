@@ -2,6 +2,7 @@ package fr.familia.app.feature.events.edit
 
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventTarget
+import fr.familia.app.core.photo.PhotoEdit
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -13,8 +14,10 @@ data class EventForm(
     val place: String = "",
     val note: String = "",
     val target: EventTarget? = null,
+    /** The cover (récit 44): sent by the ViewModel before the event, not kept in the draft. */
+    val photo: PhotoEdit = PhotoEdit.Unchanged,
 ) {
-    fun toEvent(id: String, authorId: String, authorName: String): Event = Event(
+    fun toEvent(id: String, authorId: String, authorName: String, coverPhoto: String? = null): Event = Event(
         id = id,
         title = title.trim(),
         date = requireNotNull(date),
@@ -24,6 +27,7 @@ data class EventForm(
         target = requireNotNull(target),
         authorId = authorId,
         authorName = authorName,
+        coverPhoto = coverPhoto,
     )
 
     companion object {

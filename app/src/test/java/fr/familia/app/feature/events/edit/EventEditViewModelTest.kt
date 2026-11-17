@@ -2,6 +2,9 @@ package fr.familia.app.feature.events.edit
 
 import fr.familia.app.core.ui.Confirmation
 import fr.familia.app.core.model.EventTarget
+import fr.familia.app.core.photo.PhotoEdit
+import fr.familia.app.core.photo.PhotoStorage
+import fr.familia.app.core.photo.SinglePhotoSaver
 import fr.familia.app.feature.events.FakeEvents
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
@@ -145,5 +148,73 @@ class EventEditViewModelTest {
         listOf(EventTarget.ForFamily, EventTarget.ForHousehold("h1"), EventTarget.ForSelf("a"), EventTarget.ForChild("k"))
             .forEach { assertEquals(it, decodeTarget(encodeTarget(it))) }
         assertNull(decodeTarget("other:x"))
+    }
+
+    private class Photos(private val failUpload: Boolean = false) {
+        val sent = mutableListOf<String>()
+        val deleted = mutableListOf<String>()
+        val saver = SinglePhotoSaver(
+            uploader = { _, photo, _ ->
+                if (failUpload) throw IOException("offline")
+                sent += photo
+            },
+            storage = object : PhotoStorage {
+                override suspend fun upload(path: String, jpeg: ByteArray) = Unit
+                override suspend fun downloadUrl(path: String) = path
+                override suspend fun delete(path: String) { deleted += path }
+            },
+        )
+    }
+
+    @Test
+    fun `without « Plus de photos » the form shows no cover`() {
+        assertFalse(vm(FakeEvents()).editing().showPhoto)
+    }
+
+    @Test
+    fun `a chosen cover is sent before the event, in my folder, and named by it`() {
+        val events = FakeEvents()
+        val photos = Photos()
+        val viewModel = EventEditViewModel(events, FakeMembers(), "adult1", null, photos = photos.saver)
+        assertTrue(viewModel.editing().showPhoto)
+        viewModel.update { it.copy(title = "Repas", date = LocalDate.of(2026, 12, 24), photo = PhotoEdit.Picked("content://photo/1")) }
+        viewModel.save()
+        val cover = events.saved.single().first.coverPhoto!!
+        assertTrue(cover.startsWith("events/e-new/cover/adult1/"))
+        assertEquals(listOf("$cover.jpg"), photos.sent)
+        assertTrue(photos.deleted.isEmpty())
+    }
+
+    @Test
+    fun `changing the cover of an event keeps nothing of the old one`() {
+        val old = "events/e1/cover/adult2/old"
+        val events = FakeEvents(listOf(TestFamily.event("e1", TestFamily.adult).copy(coverPhoto = old)))
+        val photos = Photos()
+        val viewModel = EventEditViewModel(events, FakeMembers(), "adult1", "e1", photos = photos.saver)
+        assertEquals(old, viewModel.editing().storedCover)
+        viewModel.update { it.copy(photo = PhotoEdit.Removed) }
+        viewModel.save()
+        assertNull(events.saved.single().first.coverPhoto)
+        assertEquals(listOf("$old.jpg", "$old-thumb.jpg"), photos.deleted)
+    }
+
+    @Test
+    fun `editing the rest keeps the cover`() {
+        val old = "events/e1/cover/adult1/old"
+        val events = FakeEvents(listOf(TestFamily.event("e1", TestFamily.adult).copy(coverPhoto = old)))
+        val viewModel = EventEditViewModel(events, FakeMembers(), "adult1", "e1", photos = Photos().saver)
+        viewModel.update { it.copy(title = "Goûter") }
+        viewModel.save()
+        assertEquals(old, events.saved.single().first.coverPhoto)
+    }
+
+    @Test
+    fun `a cover that cannot be sent keeps the form open and writes nothing`() {
+        val events = FakeEvents()
+        val viewModel = EventEditViewModel(events, FakeMembers(), "adult1", null, photos = Photos(failUpload = true).saver)
+        viewModel.update { it.copy(title = "Repas", date = LocalDate.of(2026, 12, 24), photo = PhotoEdit.Picked("content://photo/1")) }
+        viewModel.save()
+        assertTrue(viewModel.editing().saveFailed)
+        assertTrue(events.saved.isEmpty())
     }
 }
