@@ -42,6 +42,8 @@ private const val CUT_TIMEOUT_MILLIS = 4_000L
 /** What the last « Couper » gave, for the line under the buttons. */
 private sealed interface CutResult {
     data class Done(val firstName: String) : CutResult
+    /** No answer in time: the deletion waits on the phone and leaves with the network. */
+    data class Queued(val firstName: String) : CutResult
     data object Failed : CutResult
 }
 
@@ -76,6 +78,7 @@ internal fun CalendarLinksSection(family: Family, repository: CalendarFeedReposi
                 Text(
                     when (shown) {
                         is CutResult.Done -> stringResource(R.string.calendar_links_cut_done, shown.firstName)
+                        is CutResult.Queued -> stringResource(R.string.calendar_links_cut_queued, shown.firstName)
                         CutResult.Failed -> stringResource(R.string.calendar_links_cut_failed)
                     },
                     style = MaterialTheme.typography.bodyMedium,
@@ -98,8 +101,8 @@ internal fun CalendarLinksSection(family: Family, repository: CalendarFeedReposi
                         busy = true
                         scope.launch {
                             result = try {
-                                withTimeoutOrNull(CUT_TIMEOUT_MILLIS) { repository.remove(asked.id) }
-                                CutResult.Done(asked.firstName)
+                                val answered = withTimeoutOrNull(CUT_TIMEOUT_MILLIS) { repository.remove(asked.id) } != null
+                                if (answered) CutResult.Done(asked.firstName) else CutResult.Queued(asked.firstName)
                             } catch (e: CancellationException) {
                                 throw e
                             } catch (e: Exception) {

@@ -2624,6 +2624,7 @@
     <string name="calendar_links_confirm_body">Son agenda Familia ne se mettra plus à jour. S\'il n\'avait pas de lien, rien ne change.</string>
     <string name="calendar_links_confirm">Couper</string>
     <string name="calendar_links_cut_done">Le lien de %1$s est coupé.</string>
+    <string name="calendar_links_cut_queued">Le lien de %1$s sera coupé dès que le réseau revient.</string>
     <string name="calendar_links_cut_failed">Le lien n\'a pas pu être coupé. Réessaie quand tu as du réseau.</string>
     <string name="calendar_feed_remove_failed">Le lien n\'a pas pu être supprimé. Réessaie quand tu as du réseau.</string>
     <string name="calendar_feed_failed">Le lien n\'a pas pu être créé. Réessaie quand tu as du réseau.</string>
