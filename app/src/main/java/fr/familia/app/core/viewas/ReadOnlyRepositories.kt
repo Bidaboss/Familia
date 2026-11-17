@@ -10,6 +10,8 @@ import fr.familia.app.core.data.AppConfig
 import fr.familia.app.core.data.AppConfigRepository
 import fr.familia.app.core.data.BringRepository
 import fr.familia.app.core.data.CarpoolRepository
+import fr.familia.app.core.data.EventSeriesRepository
+import fr.familia.app.core.model.EventSeries
 import fr.familia.app.core.model.Ride
 import fr.familia.app.core.model.RideNeed
 import java.time.LocalTime
@@ -232,6 +234,13 @@ class ReadOnlyCarpoolRepository(private val inner: CarpoolRepository, private va
     override suspend fun getOut(eventId: String, driverId: String, memberId: String) = guard.refuse()
     override suspend fun askSeat(eventId: String, memberId: String, askedBy: String) = guard.refuse()
     override suspend fun cancelAsk(eventId: String, memberId: String) = guard.refuse()
+}
+
+class ReadOnlyEventSeriesRepository(private val inner: EventSeriesRepository, private val guard: ViewAsGuard) : EventSeriesRepository {
+    override suspend fun getSeries(id: String): EventSeries? = inner.getSeries(id)
+    override fun newSeriesId(): String = inner.newSeriesId()
+    override suspend fun saveSeries(series: EventSeries, isNew: Boolean) = guard.refuse()
+    override suspend fun deleteSeries(id: String) = guard.refuse()
 }
 
 class ReadOnlyGoodDealRepository(private val inner: GoodDealRepository, private val guard: ViewAsGuard) : GoodDealRepository {

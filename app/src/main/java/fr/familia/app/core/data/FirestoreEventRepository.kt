@@ -54,12 +54,8 @@ class FirestoreEventRepository(private val db: FirebaseFirestore) : EventReposit
             "place" to event.place,
             "note" to event.note,
             "targetType" to event.target.type(),
-            "targetMemberId" to when (val t = event.target) {
-                is EventTarget.ForSelf -> t.memberId
-                is EventTarget.ForChild -> t.memberId
-                else -> null
-            },
-            "householdId" to (event.target as? EventTarget.ForHousehold)?.householdId,
+            "targetMemberId" to event.target.targetMemberId(),
+            "householdId" to event.target.targetHouseholdId(),
             "updatedAt" to FieldValue.serverTimestamp(),
         )
         if (isNew) {
@@ -73,8 +69,10 @@ class FirestoreEventRepository(private val db: FirebaseFirestore) : EventReposit
                 ),
             ).await()
         } else {
-            // Removing a field that is not there changes nothing, under the old rules too.
-            ref.update(fields + ("coverPhoto" to (event.coverPhoto ?: FieldValue.delete()))).await()
+            // Removing a field that is not there changes nothing, under the old rules too. An event of a
+            // series changed by hand is « Cette fois seulement » (récit 54): the series leaves it be.
+            val detached = if (event.seriesId != null) mapOf("detached" to true) else emptyMap()
+            ref.update(fields + detached + ("coverPhoto" to (event.coverPhoto ?: FieldValue.delete()))).await()
         }
     }
 
@@ -85,14 +83,7 @@ class FirestoreEventRepository(private val db: FirebaseFirestore) : EventReposit
     /** Null for a document that does not have the expected shape (never shown rather than crash). */
     private fun DocumentSnapshot.toEvent(): Event? {
         val date = getString("date")?.let { runCatching { LocalDate.parse(it) }.getOrNull() } ?: return null
-        val memberId = getString("targetMemberId")
-        val target = when (getString("targetType")) {
-            "self" -> memberId?.let { EventTarget.ForSelf(it) }
-            "child" -> memberId?.let { EventTarget.ForChild(it) }
-            "household" -> getString("householdId")?.let { EventTarget.ForHousehold(it) }
-            "family" -> EventTarget.ForFamily
-            else -> null
-        } ?: return null
+        val target = readTarget() ?: return null
         return Event(
             id = id,
             title = getString("title").orEmpty(),
@@ -104,17 +95,39 @@ class FirestoreEventRepository(private val db: FirebaseFirestore) : EventReposit
             authorId = getString("authorId").orEmpty(),
             authorName = getString("authorName").orEmpty(),
             coverPhoto = getString("coverPhoto"),
+            seriesId = getString("seriesId"),
+            occurrence = getString("occurrence")?.let { runCatching { LocalDate.parse(it) }.getOrNull() },
         )
-    }
-
-    private fun EventTarget.type() = when (this) {
-        is EventTarget.ForSelf -> "self"
-        is EventTarget.ForChild -> "child"
-        is EventTarget.ForHousehold -> "household"
-        EventTarget.ForFamily -> "family"
     }
 
     private companion object {
         const val EVENTS = "events"
+    }
+}
+
+/** How an event or a series names who it is for (targetType, targetMemberId, householdId). */
+internal fun EventTarget.type() = when (this) {
+    is EventTarget.ForSelf -> "self"
+    is EventTarget.ForChild -> "child"
+    is EventTarget.ForHousehold -> "household"
+    EventTarget.ForFamily -> "family"
+}
+
+internal fun EventTarget.targetMemberId(): String? = when (this) {
+    is EventTarget.ForSelf -> memberId
+    is EventTarget.ForChild -> memberId
+    else -> null
+}
+
+internal fun EventTarget.targetHouseholdId(): String? = (this as? EventTarget.ForHousehold)?.householdId
+
+internal fun DocumentSnapshot.readTarget(): EventTarget? {
+    val memberId = getString("targetMemberId")
+    return when (getString("targetType")) {
+        "self" -> memberId?.let { EventTarget.ForSelf(it) }
+        "child" -> memberId?.let { EventTarget.ForChild(it) }
+        "household" -> getString("householdId")?.let { EventTarget.ForHousehold(it) }
+        "family" -> EventTarget.ForFamily
+        else -> null
     }
 }

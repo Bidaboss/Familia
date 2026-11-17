@@ -655,6 +655,18 @@ Interrupteur « Livre de recettes » allumé, avec des recettes dont certaines o
 5. EXPERT-2 : une recette qui vient d'un enfant, quand tu n'es pas un de ses adultes : un dessin de bol à la place de la photo. Une photo prise par un enfant, elle, va dans le livre de tout le monde.
 6. Mode avion avec des photos jamais vues : le livre se fait quand même, avec des dessins.
 
+## Faire l'affiche de l'arbre (récit 53)
+
+Interrupteur « Affiche de l'arbre » allumé, avec un arbre qui relie au moins trois générations, dont un enfant de ton foyer et un enfant d'un autre foyer, chacun avec une photo de profil.
+
+1. Arbre généalogique : en haut, « Faire l'affiche de l'arbre ». **Attendu :** absent quand l'interrupteur est éteint, et en « Voir comme ».
+2. L'écran montre le titre « L'arbre de la famille » (modifiable) et l'année, puis « À partir de qui ? » avec « Toute la famille » et une ligne par personne qui a des enfants, et enfin la feuille (A4 ou A3) et « Mettre les photos », cochée. Sans titre, « Faire l'affiche » est grisé.
+3. Touche « Faire l'affiche » : la feuille de partage d'Android s'ouvre avec arbre-de-la-famille-2026.pdf. Enregistre-le et ouvre-le.
+4. **Attendu dans le PDF :** une seule page en paysage. En haut, un bandeau argile avec le titre et l'année. Ensuite, une rangée par génération, les plus âgés en haut : un rond par personne (sa photo, ou son initiale), son prénom et son **année** de naissance seulement. Les couples sont côte à côte, reliés par un trait, et des traits descendent des parents vers leurs enfants.
+5. EXPERT-2 : l'enfant de ton foyer a sa photo, et l'enfant de l'autre foyer a son initiale. Refais l'affiche avec un adulte de l'autre foyer : c'est l'inverse.
+6. « … et ses descendants » : seuls la personne, ses descendants et leurs partenaires apparaissent, et la personne est tout en haut. Décoche « Mettre les photos » : il ne reste que des initiales. Choisis A3 : même dessin, sur une page plus grande.
+7. Mode avion avec des photos jamais vues : l'affiche se fait quand même, avec des initiales.
+
 ## Mode présentation (récit 48)
 
 Avec le compte de l'admin principal, plus deux autres comptes qui n'ont pas encore ouvert l'appli. « Publier Firebase » doit être passé.
@@ -696,6 +708,21 @@ Avec trois comptes : Camille (adulte), Inès (adulte, responsable de Noé, enfan
 6. Avec Inès, réponds « Je ne viens pas ». **Attendu :** Inès disparaît de la voiture, et Camille reçoit « Inès ne monte plus avec toi ».
 7. Le soir à 18 h, la veille. **Attendu :** le rappel de Camille dit « Tu emmènes… », et celui de chaque passager « Tu pars avec Camille ».
 8. Avec Camille, touche « Retirer ma proposition », puis confirme. **Attendu :** les passagers reçoivent « Camille ne prend plus sa voiture ».
+
+## Événements qui reviennent (récit 54)
+
+Avec deux comptes : Camille (adulte) et Inès (adulte). « Publier Firebase » doit être passé, et l'interrupteur « Événements qui reviennent » allumé dans Administration.
+
+1. Avec Camille, ajoute « Piscine » un mardi, puis touche « Se répète ». **Attendu :** les choix « Chaque semaine, le mardi », « Toutes les 2 semaines, le mardi », « Chaque mois, le 12 » (selon la date), « Chaque mois, le 2e mardi », « Chaque année, le 12 … ».
+2. Choisis « Chaque semaine », puis « Se termine » : « Après un nombre de fois », 1. Touche « Enregistrer ». **Attendu :** le message rouge sur la fin. Mets 6, puis « Enregistrer ».
+3. **Attendu :** le Planning montre 6 mardis « Piscine ». Inès reçoit une seule notification, qui finit par « Puis chaque semaine. ».
+4. Avec Inès, réponds « Je viens » au deuxième mardi seulement. **Attendu :** les autres mardis n'ont pas sa réponse.
+5. Avec Camille, ouvre le troisième mardi, change le lieu, « Enregistrer », puis « Cette fois seulement ». **Attendu :** seul ce mardi a le nouveau lieu.
+6. Ouvre le quatrième mardi, change l'heure, « Enregistrer », puis « Celle-ci et les suivantes ». **Attendu :** les mardis 4 à 6 ont la nouvelle heure, le troisième garde son lieu à lui.
+7. Ouvre le deuxième mardi, « Supprimer », puis « Cette fois seulement ». **Attendu :** il disparaît du Planning, et Inès, qui venait, reçoit qu'il est annulé.
+8. Ouvre le cinquième mardi, « Supprimer », puis « Celle-ci et les suivantes ». **Attendu :** les mardis 5 et 6 disparaissent, les autres restent.
+9. Dans « Voir dans mon agenda », mets à jour Google Agenda. **Attendu :** chaque mardi restant y est un événement à lui.
+10. Éteins l'interrupteur. **Attendu :** « Se répète » ne s'affiche plus sur un nouvel événement, mais un mardi existant demande toujours « Cette fois seulement » ou « Celle-ci et les suivantes ».
 
 ## « Qui prévenir » rangé par foyer (règle du 17/11)
 

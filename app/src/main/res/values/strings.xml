@@ -1207,6 +1207,27 @@
     <string name="recipe_book_failed">Le livre n\'a pas pu être fait. Réessaie dans un instant.</string>
     <string name="recipe_book_print_hint">Tu peux le faire imprimer dans une boutique photo : demande un livret au format A5.</string>
     <string name="recipe_book_share_chooser">Enregistrer, imprimer ou envoyer le livre</string>
+    <!-- L'affiche de l'arbre (récit 53) -->
+    <string name="tree_poster_open">Faire l\'affiche de l\'arbre</string>
+    <string name="tree_poster_title">L\'affiche de l\'arbre</string>
+    <string name="tree_poster_intro">Choisis ce que montre l\'affiche. Ton téléphone en fait un PDF en paysage, à garder, imprimer ou accrocher.</string>
+    <string name="tree_poster_default_title">L\'arbre de la famille</string>
+    <string name="tree_poster_field_title">Titre de l\'affiche</string>
+    <string name="tree_poster_year">Année : %1$d</string>
+    <string name="tree_poster_start">À partir de qui ?</string>
+    <string name="tree_poster_start_all">Toute la famille</string>
+    <string name="tree_poster_start_from">%1$s et ses descendants</string>
+    <string name="tree_poster_sheet">La feuille</string>
+    <string name="tree_poster_a4">A4, pour une imprimante à la maison</string>
+    <string name="tree_poster_a3">A3, deux fois plus grand, pour une boutique photo</string>
+    <string name="tree_poster_photos">Mettre les photos</string>
+    <string name="tree_poster_photos_children">Un enfant dont tu n\'es pas un des adultes garde son initiale.</string>
+    <string name="tree_poster_make">Faire l\'affiche</string>
+    <string name="tree_poster_failed">L\'affiche n\'a pas pu être faite. Réessaie dans un instant.</string>
+    <string name="tree_poster_print_hint">Seule l\'année de naissance apparaît, jamais la date. Une boutique photo peut l\'imprimer en grand.</string>
+    <string name="tree_poster_share_chooser">Enregistrer, imprimer ou envoyer l\'affiche</string>
+    <string name="tree_poster_empty_title">L\'arbre est encore vide</string>
+    <string name="tree_poster_empty_body">Relie d\'abord des personnes dans l\'arbre généalogique, puis reviens faire l\'affiche.</string>
     <string name="recipe_book_empty_title">Pas encore de recette</string>
     <string name="recipe_book_empty_body">Le livre se fera dès qu\'il y aura des recettes dans le carnet.</string>
     <string name="recipe_book_contents">Sommaire</string>
@@ -1965,6 +1986,15 @@
         <item quantity="one">%d liste d\'envies ouverte</item>
         <item quantity="other">%d listes d\'envies ouvertes</item>
     </plurals>
+    <string name="gifts_next_no_wish">Pas encore d\'envie</string>
+    <plurals name="gifts_next_my_wishes">
+        <item quantity="one">%d envie dans ta liste</item>
+        <item quantity="other">%d envies dans ta liste</item>
+    </plurals>
+    <plurals name="gifts_next_their_wishes">
+        <item quantity="one">%d envie dans sa liste</item>
+        <item quantity="other">%d envies dans sa liste</item>
+    </plurals>
     <string name="gifts_see_ideas">Voir les idées</string>
     <string name="gifts_my_wish_list">Ma liste d\'envies</string>
     <string name="gifts_family_wishes_title">Les envies de la famille</string>
@@ -2407,6 +2437,31 @@
     <string name="calendar_feed_error">Ton lien ne peut pas s\'afficher pour l\'instant. Réessaie plus tard.</string>
     <!-- Récit 52 : On y va ensemble -->
     <string name="feature_carpool">Covoiturage</string>
+    <string name="feature_recurring_events">Événements qui reviennent</string>
+    <string name="event_repeat">Se répète</string>
+    <string name="event_repeat_none">Ne se répète pas</string>
+    <string name="event_repeat_weekly">Chaque semaine, le %1$s</string>
+    <string name="event_repeat_biweekly">Toutes les 2 semaines, le %1$s</string>
+    <string name="event_repeat_monthly_date">Chaque mois, le %1$d</string>
+    <string name="event_repeat_monthly_weekday">Chaque mois, le %1$s %2$s</string>
+    <string name="event_repeat_first">1er</string>
+    <string name="event_repeat_nth">%1$de</string>
+    <string name="event_repeat_yearly">Chaque année, le %1$s</string>
+    <string name="event_repeat_date_first">Choisis d\'abord le premier jour.</string>
+    <string name="event_repeat_each_own">Chaque fois a ses propres réponses, son « Qui apporte quoi », son covoiturage et ses commentaires.</string>
+    <string name="event_repeat_ends">Se termine</string>
+    <string name="event_repeat_end_never">Jamais</string>
+    <string name="event_repeat_end_on_pick">À une date</string>
+    <string name="event_repeat_end_on">Le %1$s</string>
+    <string name="event_repeat_end_after_pick">Après un nombre de fois</string>
+    <string name="event_repeat_end_times">Nombre de fois</string>
+    <string name="error_event_repeat_end">La fin doit venir après le premier jour, et le nombre de fois aller de 2 à 200.</string>
+    <string name="event_scope_save_title">Modifier un événement qui revient</string>
+    <string name="event_scope_save_body">Ce changement vaut pour cette fois seulement, ou pour celle-ci et les suivantes ?</string>
+    <string name="event_scope_delete_title">Supprimer un événement qui revient</string>
+    <string name="event_scope_delete_body">Ceux qui avaient dit qu\'ils venaient seront prévenus. « Celle-ci et les suivantes » retire aussi les fois changées à la main.</string>
+    <string name="event_scope_this">Cette fois seulement</string>
+    <string name="event_scope_following">Celle-ci et les suivantes</string>
     <string name="carpool_title">On y va ensemble</string>
     <string name="carpool_empty">Personne ne propose de places pour l\'instant. Si tu prends ta voiture, dis combien de places il te reste.</string>
     <string name="carpool_offer">J\'ai des places</string>

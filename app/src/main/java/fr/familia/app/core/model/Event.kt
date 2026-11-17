@@ -14,7 +14,8 @@ sealed interface EventTarget {
 /**
  * One event of the planning. [authorName] is the author's first name when the event was created,
  * shown only once the author has been removed from the family. [coverPhoto]: the base of its cover
- * in Storage (core/photo/SinglePhoto, PRD récit 44), or null.
+ * in Storage (core/photo/SinglePhoto, PRD récit 44), or null. [seriesId] and [occurrence]: for an
+ * event that comes back (récit 54), its series and the day of the series it stands for.
  */
 data class Event(
     val id: String,
@@ -27,4 +28,6 @@ data class Event(
     val authorId: String,
     val authorName: String,
     val coverPhoto: String? = null,
+    val seriesId: String? = null,
+    val occurrence: LocalDate? = null,
 )
