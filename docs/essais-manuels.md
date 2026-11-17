@@ -972,6 +972,8 @@ Sur ton téléphone, avec la rotation automatique allumée (volet des réglages 
 1. Sur un téléphone, connecte-toi avec le compte A, puis ouvre un album et un livre de recettes pour remplir le cache.
 2. Touche « Utiliser un autre compte » (par exemple depuis l'écran « Cette adresse n'est pas dans la famille ») et connecte-toi avec le compte B. **Attendu :** les photos se rechargent depuis le réseau, puis s'affichent normalement. Le dernier PDF de A n'est plus proposé.
 3. Reconnecte-toi avec B. **Attendu :** les photos s'affichent tout de suite, sans nouveau chargement, puisque c'est le même membre.
+4. Toujours connecté avec B, ferme Familia depuis les applis récentes, coupe le Wi-Fi et les données, puis rouvre-la. **Attendu :** aucun document de A ne s'affiche (ses voyages ou ses listes que B ne voit pas). L'appli s'ouvre comme sans réseau. Remets le réseau : tout ce que B voit revient.
+5. Avec B, ouvre un très gros album (plusieurs centaines de photos) et touche « Faire le livre photo ». **Attendu :** le livre se fait. Dans les réglages d'Android, le stockage de Familia (cache) ne dépasse pas environ 150 Mo pendant que l'écran est ouvert, et redescend quand tu le quittes.
 
 ## Démo du 21 : arrivée d'un nouveau membre, de l'invitation à l'Accueil
 
