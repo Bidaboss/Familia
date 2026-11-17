@@ -9,6 +9,8 @@ import fr.familia.app.core.photo.PhotoStorage
 import fr.familia.app.core.photo.SinglePhotoSaver
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
+import fr.familia.app.feature.lending.detail.LendItemDetailUiState
+import fr.familia.app.feature.lending.detail.LendItemDetailViewModel
 import fr.familia.app.feature.lending.edit.LendFormError
 import fr.familia.app.feature.lending.edit.LendItemEditUiState
 import fr.familia.app.feature.lending.edit.LendItemEditViewModel
@@ -21,6 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -30,6 +33,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
+import java.time.LocalDate
 
 /** Things to lend kept in memory, as Firestore would. */
 class FakeLendItems(initial: List<LendItem> = emptyList()) : LendItemRepository {
@@ -168,5 +172,61 @@ class LendingTest {
         assertEquals(LendItemEditUiState.Unavailable, edit(FakeLendItems(), me = "kid1").uiState.value)
         assertEquals(LendItemEditUiState.Unavailable, edit(FakeLendItems(family), me = "adult2", itemId = "i1").uiState.value)
         assertTrue(edit(FakeLendItems(family), me = "admin1", itemId = "i1").uiState.value is LendItemEditUiState.Editing)
+    }
+
+    // --- One thing and its loan ------------------------------------------------------------------
+
+    private fun TestScope.detail(repo: FakeLendItems, me: String, itemId: String): LendItemDetailViewModel {
+        val viewModel = LendItemDetailViewModel(repo, FakeMembers(), me, itemId)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+        return viewModel
+    }
+
+    private fun LendItemDetailViewModel.ready() = uiState.value as LendItemDetailUiState.Ready
+
+    @Test
+    fun `an adult asks with dates, the owner says D'accord, then Rendu frees it`() = runTest {
+        val repo = FakeLendItems(family)
+        val asker = detail(repo, "adult2", "i1")
+        assertTrue(asker.ready().canAsk)
+        asker.ask(LocalDate.of(2026, 12, 12), LocalDate.of(2026, 12, 15))
+        var item = repo.items.value.first { it.id == "i1" }
+        assertEquals(LendStatus.Asked, item.status)
+        assertEquals("adult2", item.borrowerId)
+        assertEquals(Instant.parse("2026-12-11T23:00:00Z"), item.from)
+        assertEquals(Instant.parse("2026-12-14T23:00:00Z"), item.until)
+        assertTrue(asker.ready().canDropAsk)
+        val owner = detail(repo, "adult1", "i1")
+        assertTrue(owner.ready().canAnswer)
+        owner.accept()
+        assertEquals(LendStatus.Lent, repo.items.value.first { it.id == "i1" }.status)
+        assertTrue(asker.ready().canReturn)
+        asker.release()
+        item = repo.items.value.first { it.id == "i1" }
+        assertEquals(LendStatus.Available, item.status)
+        assertNull(item.borrowerId)
+    }
+
+    @Test
+    fun `Pas cette fois frees it, and a return before the start is dropped`() = runTest {
+        val repo = FakeLendItems(family)
+        detail(repo, "adult2", "i1").ask(LocalDate.of(2026, 12, 12), LocalDate.of(2026, 12, 10))
+        assertNull(repo.items.value.first { it.id == "i1" }.until)
+        val owner = detail(repo, "adult1", "i1")
+        owner.release()
+        assertEquals(LendStatus.Available, repo.items.value.first { it.id == "i1" }.status)
+    }
+
+    @Test
+    fun `a child and the owner never ask, and nobody else answers or returns`() = runTest {
+        val repo = FakeLendItems(family)
+        assertFalse(detail(repo, "kid1", "i1").ready().canAsk)
+        assertFalse(detail(repo, "adult1", "i1").ready().canAsk)
+        val admin = detail(repo, "admin1", "i3")
+        assertFalse(admin.ready().canAnswer)
+        assertTrue(admin.ready().canManage)
+        admin.release()
+        assertEquals(LendStatus.Asked, repo.items.value.first { it.id == "i3" }.status)
+        assertFalse(detail(repo, "admin1", "i2").ready().canReturn)
     }
 }

@@ -695,6 +695,12 @@ Avec l'interrupteur « On se prête » allumé (l'admin principal le voit toujou
 2. Sans objet : **Attendu :** « Rien à se prêter pour l'instant ».
 3. Avec des objets : **Attendu :** chaque carte dit la catégorie, le nom, puis « Prêté par … » (ou « À moi ») et « Disponible », « Demandé par … » ou « Chez … depuis le 12/12 ». Tape « racl » : seul l'appareil à raclette reste. « Disponible » ne garde que les objets libres.
 4. « Ajouter un objet » (adulte) : nom, catégorie, note, photo facultative. Sans nom ni catégorie : **Attendu :** « Donne un nom à l'objet. » et « Choisis une catégorie. ». Enregistré : **Attendu :** la carte « À moi · Disponible ». Un enfant n'a pas le bouton.
+5. Un autre adulte ouvre l'objet, touche « Je voudrais l'emprunter », choisit ou non des dates, puis « Demander ». **Attendu :** le propriétaire reçoit tout de suite « On voudrait t'emprunter quelque chose » ; la fiche dit « Tu l'as demandé. … va te répondre. » et propose « Retirer ma demande ».
+6. Le propriétaire ouvre la fiche. **Attendu :** « … voudrait te l'emprunter. », avec « D'accord » et « Pas cette fois ». « D'accord » : l'autre reçoit « C'est d'accord » et la carte dit « Chez … depuis le … ». « Pas cette fois » : l'autre reçoit « Pas cette fois », et l'objet redevient disponible.
+7. Prêté : le propriétaire ou l'emprunteur touche « Rendu ». **Attendu :** « Disponible », sans notification.
+8. Un enfant ouvre un objet. **Attendu :** il voit où il est, sans aucun bouton.
+9. Une date de retour dépassée de 3 jours : **Attendu :** vers 18 h, un seul « Petit rappel » à l'emprunteur, jamais un second.
+10. Touche une notification d'emprunt (demande, réponse ou rappel). **Attendu :** la fiche de l'objet s'ouvre. Interrupteur éteint pour ce membre : rien ne s'ouvre.
 
 ## On y va ensemble (récit 52)
 
