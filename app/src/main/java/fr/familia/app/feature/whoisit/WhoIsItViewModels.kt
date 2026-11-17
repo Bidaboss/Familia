@@ -266,8 +266,7 @@ sealed interface WhoIsItEditUiState {
 
 /**
  * « Publier une photo »: the photo first, then the post and its answer, so a post never shows
- * without its photo. The text of the draft survives Android stopping the app; the photo is chosen
- * again.
+ * without its photo. The draft, its photo included, survives Android stopping the app.
  */
 class WhoIsItEditViewModel(
     private val repo: WhoIsItRepository?,
@@ -282,7 +281,7 @@ class WhoIsItEditViewModel(
 ) : ViewModel() {
 
     private val state = MutableStateFlow<WhoIsItEditUiState>(
-        WhoIsItEditUiState.Editing(WhoIsItForm(hint = savedState[HINT] ?: "", who = savedState[WHO] ?: "", year = savedState[YEAR] ?: "")),
+        WhoIsItEditUiState.Editing(WhoIsItForm(hint = savedState[HINT] ?: "", who = savedState[WHO] ?: "", year = savedState[YEAR] ?: "", photo = savedState[PHOTO])),
     )
     val uiState: StateFlow<WhoIsItEditUiState> = state.asStateFlow()
     private var showErrors = false
@@ -299,6 +298,7 @@ class WhoIsItEditViewModel(
         savedState[HINT] = form.hint
         savedState[WHO] = form.who
         savedState[YEAR] = form.year
+        savedState[PHOTO] = form.photo
         current.copy(form = form, errors = if (showErrors) validate(form) else emptySet(), failure = null)
     }
 
@@ -330,7 +330,7 @@ class WhoIsItEditViewModel(
         return try {
             upload.upload(photo, post.photoPath, post.thumbPath)
             withTimeoutOrNull(writeTimeoutMillis) { r.publish(post, answer) } ?: throw IOException("timeout")
-            listOf(HINT, WHO, YEAR).forEach { savedState.remove<Any>(it) }
+            listOf(HINT, WHO, YEAR, PHOTO).forEach { savedState.remove<Any>(it) }
             WhoIsItEditUiState.Done(post.id)
         } catch (e: CancellationException) {
             throw e
@@ -363,5 +363,6 @@ class WhoIsItEditViewModel(
         const val HINT = "whoIsIt_hint"
         const val WHO = "whoIsIt_who"
         const val YEAR = "whoIsIt_year"
+        const val PHOTO = "whoIsIt_photo"
     }
 }

@@ -51,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -62,6 +63,7 @@ import fr.familia.app.core.model.WhoIsItAnswer
 import fr.familia.app.core.model.WhoIsItGuess
 import fr.familia.app.core.model.WhoIsItPost
 import fr.familia.app.core.photo.StorageImage
+import fr.familia.app.core.photo.keepPhotoAccess
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
@@ -286,7 +288,13 @@ data class WhoIsItEditActions(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WhoIsItEditScreen(state: WhoIsItEditUiState.Editing, actions: WhoIsItEditActions, onBack: () -> Unit) {
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> uri?.let { actions.onPhoto(it.toString()) } }
+    val context = LocalContext.current
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let {
+            keepPhotoAccess(context, listOf(it))
+            actions.onPhoto(it.toString())
+        }
+    }
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.who_is_it_add), maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) }) },
     ) { padding ->

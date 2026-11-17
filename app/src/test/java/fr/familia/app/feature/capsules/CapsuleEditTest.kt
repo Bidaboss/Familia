@@ -83,12 +83,14 @@ class CapsuleEditTest {
         first.setText("Un mot")
         first.toggleRecipient("adult2")
         first.setOpenAt(LocalDate.of(2027, 12, 24))
+        first.addPhotos(listOf("content://a"))
 
         val form = editing(vm(FakeCapsules(), saved = saved)).form
 
         assertEquals("Un mot", form.text)
         assertEquals(setOf("adult2"), form.recipientIds)
         assertEquals(LocalDate.of(2027, 12, 24), form.openAt)
+        assertEquals(listOf("content://a"), form.photos)
     }
 
     @Test

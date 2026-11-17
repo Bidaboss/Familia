@@ -75,7 +75,7 @@ sealed interface CapsuleEditUiState {
 /**
  * « Nouvelle capsule » (PRD, récit 39): a text, up to 3 photos, the recipients and the opening
  * day. The photos go to Storage first, then the capsule is written, so it never opens with a
- * photo missing. A capsule never changes once sealed. The draft (not the photos) survives Android
+ * photo missing. A capsule never changes once sealed. The draft, its photos included, survives Android
  * stopping the app.
  */
 class CapsuleEditViewModel(
@@ -109,6 +109,7 @@ class CapsuleEditViewModel(
             text = savedState[TEXT] ?: "",
             recipientIds = savedState.get<ArrayList<String>>(RECIPIENTS).orEmpty().filter { it in known }.toSet(),
             openAt = savedState.get<String>(OPEN_AT)?.let { runCatching { LocalDate.parse(it) }.getOrNull() },
+            photos = savedState.get<ArrayList<String>>(PHOTOS).orEmpty().take(Capsule.MAX_PHOTOS),
         )
         val choices = family.members.sortedBy { it.firstName.lowercase() }.map { RecipientChoice(it.id, it.firstName) }
         return CapsuleEditUiState.Editing(form, today(), choices, groups = pickGroups(family.members, family, me?.householdId))
@@ -121,6 +122,7 @@ class CapsuleEditViewModel(
             savedState[TEXT] = form.text
             savedState[RECIPIENTS] = ArrayList(form.recipientIds)
             savedState[OPEN_AT] = form.openAt?.toString()
+            savedState[PHOTOS] = ArrayList(form.photos)
             current.copy(form = form, errors = if (showErrors) validate(form, current.today) else emptySet(), failure = null)
         }
     }
@@ -176,7 +178,7 @@ class CapsuleEditViewModel(
             state.value = s.copy(sendingPhoto = 0, failure = null)
             // Without photos, the write reaches the local cache at once and goes later when offline.
             withTimeoutOrNull(writeTimeoutMillis) { repo.createCapsule(capsule) }
-            listOf(TEXT, RECIPIENTS, OPEN_AT).forEach { savedState.remove<Any>(it) }
+            listOf(TEXT, RECIPIENTS, OPEN_AT, PHOTOS).forEach { savedState.remove<Any>(it) }
             CapsuleEditUiState.Done(capsule.id)
         } catch (e: CancellationException) {
             throw e
@@ -211,5 +213,6 @@ class CapsuleEditViewModel(
         const val TEXT = "capsule_text"
         const val RECIPIENTS = "capsule_recipients"
         const val OPEN_AT = "capsule_open_at"
+        const val PHOTOS = "capsule_photos"
     }
 }

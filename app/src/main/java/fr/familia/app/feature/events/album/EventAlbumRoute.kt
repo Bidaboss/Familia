@@ -14,6 +14,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -53,6 +54,7 @@ fun rememberEventAlbum(container: AppContainer?, currentMember: Member, eventId:
                 storage = container?.photoStorage,
                 currentMemberId = currentMember.id,
                 folder = eventAlbumFolder(eventId),
+                savedState = createSavedStateHandle(),
             )
         }
     },

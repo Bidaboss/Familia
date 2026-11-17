@@ -66,6 +66,7 @@ fun RecipeDetailRoute(container: AppContainer?, currentMember: Member, recipeId:
                     currentMemberId = currentMember.id,
                     folder = recipePhotoFolder(recipeId),
                     maxPerMember = RECIPE_PHOTOS,
+                    savedState = createSavedStateHandle(),
                 )
             }
         },
