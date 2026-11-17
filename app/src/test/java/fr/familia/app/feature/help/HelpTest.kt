@@ -59,4 +59,11 @@ class HelpTest {
         assertEquals("Admin1 ou Adult1", vm.uiState.first { it.admins != null }.admins)
         assertEquals(helpTopics(isChef = false), vm.uiState.value.topics)
     }
+
+    @Test
+    fun `the topic of a module that can be off waits for its switch`() {
+        // Démo du 21: a module off leaves no trace, not even in the help.
+        assertEquals(fr.familia.app.core.model.Feature.Trips, HelpTopic.Trips.feature)
+        assertEquals(fr.familia.app.core.model.Feature.Gifts, HelpTopic.Wishes.feature)
+    }
 }
