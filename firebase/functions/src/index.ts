@@ -13,8 +13,8 @@ import {
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onRequest } from 'firebase-functions/v2/https';
 import { deleteCalendarFeedOf, feedFor } from './calendarFeed';
-import { ruleLabel, syncSeries, writtenBySeries, type SeriesData } from './series';
-import { clearRidesOf, clearRidesOfMember, onRideChanged, type RideData } from './carpool';
+import { RECURRING_EVENTS, ruleLabel, syncSeries, writtenBySeries, type SeriesData } from './series';
+import { CARPOOL, clearRidesOf, clearRidesOfMember, onRideChanged, type RideData } from './carpool';
 import {
   deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
   sendBirthdayGiftReminders, updateSharesTotal,
@@ -39,7 +39,7 @@ import {
   HelpNotice, HelpRequestData, HelpSender, onHelpRequestWritten, reopenRequestsOf, sendStillOpenReminders,
 } from './helpRequests';
 import { addDays, changeNotice, EventData, hasVisibleChange, Notice, parisDay } from './logic';
-import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, memberForUid, notify, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
+import { comingMembers, deleteEventAnswers, featureAudience, loadMembers, deleteMemberData, memberForUid, notify, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
 import { deleteExpenseBook, ExpenseData, historyEntry, sendExpenseNotices, writeExpenseHistory } from './expenses';
 import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
@@ -144,7 +144,9 @@ export const onEventDeleted = onDocumentDeletedWithAuthContext('events/{eventId}
     const answered = await comingMembers(db, event.params.eventId, members, told);
     if (data && (data as { cancelledBySeries?: boolean }).cancelledBySeries) {
       // An occurrence taken out of its series (récit 54): only those who were coming hear of it.
-      if (answered.size > 0) await notify(db, send, [...answered], changeNotice('deleted', event.params.eventId, data, null));
+      const only = await featureAudience(db, RECURRING_EVENTS);
+      const to = only([...answered]);
+      if (to.length > 0) await notify(db, send, to, changeNotice('deleted', event.params.eventId, data, null));
     } else if (data) {
       await notifyChange(db, send, 'deleted', event.params.eventId, data, actorUid(event), new Date(), answered, members);
     }
@@ -172,16 +174,18 @@ export const onSeriesWritten = onDocumentWrittenWithAuthContext('eventSeries/{se
   const after = event.data?.after.data() as SeriesData | undefined;
   if (!after) return;
   const repeat = ` Puis ${ruleLabel(after.rule)}.`;
+  // recurringEvents off: the admin principal tries it alone, nobody else is told.
+  const only = await featureAudience(db, RECURRING_EVENTS);
   if (!before && result.created.length > 0) {
     const first = [...result.created].sort()[0];
     const data = (await db.collection('events').doc(first).get()).data() as EventData;
-    await notifyChange(db, send, 'added', first, data, actorUid(event), now, new Set(), undefined, repeat);
+    await notifyChange(db, send, 'added', first, data, actorUid(event), now, new Set(), undefined, repeat, only);
   } else if (before && result.updated.length > 0) {
     const first = [...result.updated].sort()[0];
     const data = (await db.collection('events').doc(first).get()).data() as EventData;
     const members = await loadMembers(db);
     const answered = await comingMembers(db, first, members);
-    await notifyChange(db, send, 'edited', first, data, actorUid(event), now, answered, members, ` Et les suivantes.`);
+    await notifyChange(db, send, 'edited', first, data, actorUid(event), now, answered, members, ` Et les suivantes.`, only);
   }
 });
 
@@ -205,7 +209,9 @@ export const onRideWritten = onDocumentWrittenWithAuthContext('events/{eventId}/
   const before = (event.data?.before.data() as RideData | undefined) ?? null;
   const after = (event.data?.after.data() as RideData | undefined) ?? null;
   const actorId = memberForUid(members, actorUid(event))?.id ?? null;
-  await onRideChanged(db, (ids, notice) => notify(db, send, ids, notice), event.params.eventId, event.params.driverId, before, after, actorId, members);
+  // carpool off: the admin principal tries it alone, nobody else is told.
+  const only = await featureAudience(db, CARPOOL);
+  await onRideChanged(db, (ids, notice) => (only(ids).length > 0 ? notify(db, send, only(ids), notice) : Promise.resolve(0)), event.params.eventId, event.params.driverId, before, after, actorId, members);
 });
 
 // Album d'un événement (récit 41): each photo adds a leaf for its author, once per slot, so taking

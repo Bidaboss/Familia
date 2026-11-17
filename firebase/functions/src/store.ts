@@ -46,6 +46,17 @@ export async function featureOn(db: Firestore, key: string): Promise<boolean> {
   return features?.[key] === true;
 }
 
+/**
+ * Who may hear of a module (config/app.features[key]): everyone once it is switched on for the
+ * family; before that, the admin principal only, the one member the app already shows it to, so a
+ * try never reaches the family (démo du 21).
+ */
+export async function featureAudience(db: Firestore, key: string): Promise<(ids: string[]) => string[]> {
+  if (await featureOn(db, key)) return (ids) => ids;
+  const owner = (await db.doc('config/family').get()).get('ownerMemberId');
+  return (ids) => ids.filter((id) => typeof owner === 'string' && id === owner);
+}
+
 /** Whether « Ajouter à mon agenda » (récit 30) is switched on for the family. */
 async function calendarOn(db: Firestore): Promise<boolean> {
   return featureOn(db, 'calendar');
@@ -57,11 +68,11 @@ async function calendarOn(db: Firestore): Promise<boolean> {
  */
 export async function notifyChange(
   db: Firestore, send: Sender, kind: ChangeKind, eventId: string, event: EventData, actorUid: string | undefined, now: Date,
-  answered: Set<string> = new Set(), loaded?: Member[], repeat = '',
+  answered: Set<string> = new Set(), loaded?: Member[], repeat = '', only: (ids: string[]) => string[] = (ids) => ids,
 ): Promise<number> {
   const members = loaded ?? await loadMembers(db);
   const actor = memberForUid(members, actorUid);
-  const recipients = changeRecipients(members, actor?.id ?? null, event, parisDay(now), answered);
+  const recipients = only(changeRecipients(members, actor?.id ?? null, event, parisDay(now), answered));
   if (recipients.length === 0) return 0;
   const calendarHint = kind !== 'added' && await calendarOn(db);
   return notify(db, send, recipients, changeNotice(kind, eventId, event, actor?.firstName ?? null, calendarHint, repeat));

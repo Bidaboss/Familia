@@ -53,6 +53,7 @@ fun GoodNewsEditRoute(
         onLittleOnes = viewModel::setLittleOnes,
         onSave = viewModel::save,
         onDismissFailure = viewModel::dismissFailure,
+        onCancelSending = viewModel::cancelSending,
         onBack = onBack,
     )
 }

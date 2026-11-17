@@ -738,6 +738,34 @@ Avec deux comptes adultes de foyers différents, et un compte enfant.
 2. Coche la case d'un foyer. **Attendu :** tous ses adultes sont cochés. Décoche un seul adulte : la case du foyer est à moitié cochée. Touche-la encore : tout le foyer est coché, puis décoché.
 3. Avec le compte enfant, demande un coup de main. **Attendu :** son parent est marqué « Toujours prévenu pour un enfant » et reste coché, même si tu décoches son foyer.
 
+## Mise à jour du 20 au soir (démo du 21)
+
+But : passer le téléphone de l'admin principal de la version installée aujourd'hui à la version figée du 20 au soir, sans rien perdre. Fais-le d'abord sur le deuxième téléphone de test, puis sur le tien.
+
+Ce que dit le code, vérifié le 17/11 :
+- L'appli n'a aucune migration au démarrage. Les données sont dans Firebase, et le téléphone n'en garde qu'une copie pour le mode hors ligne.
+- La seule migration côté serveur (la liste unique) ne part que quand l'interrupteur « Liste unique » change dans Administration. Une mise à jour de l'appli ne la déclenche pas, et « Publier Firebase » non plus.
+- La nouvelle version a le même nom (`fr.familia.app`) et la même clé de signature : Android l'installe par-dessus et garde la connexion. L'APK de test (`fr.familia.app.test`) est une autre appli : il ne remplace rien.
+
+Avant de commencer :
+1. Note la version installée : onglet **Famille**, tout en bas.
+2. Note trois repères : le nombre d'événements de la semaine dans Planning, une liste d'envies avec ses lignes, et la dernière bonne nouvelle.
+3. Dans **Administration**, note quels modules sont allumés.
+
+La mise à jour :
+4. Lance « APK de publication » (voir [mise-a-jour.md](mise-a-jour.md)), puis « Publier Firebase » s'il y a eu des fusions qui touchent Firebase.
+5. Ferme Familia, puis rouvre-la. **Attendu :** l'encadré « Nouvelle version disponible ». S'il n'apparaît pas, onglet **Famille**, « Vérifier les mises à jour ».
+6. Touche « Mettre à jour », puis « Mettre à jour » dans la fenêtre d'Android. **Attendu :** la barre d'avancement, puis l'installation. Aucune demande de connexion Google après l'installation.
+7. Rouvre Familia. **Attendu :** tu arrives directement sur l'Accueil, connecté, sans écran de connexion.
+8. Onglet **Famille**, tout en bas. **Attendu :** le nouveau numéro de version.
+9. Vérifie tes trois repères. **Attendu :** les mêmes événements, les mêmes lignes, la même bonne nouvelle.
+10. **Administration**. **Attendu :** les mêmes modules allumés qu'à l'étape 3. Aucun ne s'est allumé tout seul.
+11. **Attendu :** s'il y a des nouveautés, la feuille « Quoi de neuf ? » s'ouvre une fois. Touche « C'est parti ». Ferme et rouvre l'appli : elle ne revient pas.
+12. Sur le deuxième téléphone, encore en ancienne version, ouvre Familia. **Attendu :** il voit les mêmes données et peut toujours répondre à un événement. Puis mets-le à jour à son tour.
+13. Coupe le réseau (mode avion), rouvre Familia. **Attendu :** le bandeau « Hors ligne » et les données, sans écran d'erreur.
+
+Si quelque chose ne va pas à l'étape 7 (écran de connexion) ou 9 (données absentes), ne désinstalle pas l'appli : note la version, fais une capture et préviens [DEV]. Désinstaller effacerait la copie hors ligne, mais pas les données, qui restent dans Firebase.
+
 ## Notre année en famille (récit 55)
 
 Avec l'interrupteur « Notre année » allumé dans Administration. Avant le 26/12, seul l'admin principal voit le récit : il montre l'année en cours jusqu'à aujourd'hui (date simulée). Un autre membre ne voit rien avant le 26/12.
@@ -758,3 +786,11 @@ Avec l'interrupteur « Notre année » allumé dans Administration. Avant le 26/
 4. Touche « Enregistrer ». Le bouton affiche « Envoi de la photo 1 sur 2… », puis la recette s'ouvre avec ses photos dans « Photos du plat ».
 5. Sans réseau : la recette s'enregistre quand même. Les photos ne partent pas ; tu peux les ajouter plus tard depuis la recette.
 6. Ouvre une recette existante et touche « Modifier » : pas de champ photo dans le formulaire, les photos se gèrent sur la recette elle-même.
+
+## Bonnes nouvelles : envoi de la photo sur un réseau faible ou coupé
+
+1. Publier une bonne nouvelle avec 2 photos, réseau normal. Une barre se remplit au-dessus du bouton « Envoi de la photo 1 sur 2… », puis la bonne nouvelle apparaît une seule fois dans le fil.
+2. Recommencer en mode avion avant de toucher « Publier ». La barre reste en attente et la phrase « Plus de réseau : l'envoi reprendra tout seul dès son retour » s'affiche. Couper le mode avion sans toucher l'écran : l'envoi repart seul et la bonne nouvelle arrive une seule fois.
+3. Recommencer et passer en mode avion pendant l'envoi de la photo 2. La phrase apparaît, puis l'envoi reprend tout seul au retour du réseau. Vérifier dans le fil : une seule bonne nouvelle, avec ses 2 photos.
+4. Pendant un envoi, toucher « Annuler l'envoi » : le formulaire revient avec le texte et les photos, rien n'est publié. Toucher « Publier » : la bonne nouvelle part une seule fois.
+5. Si l'envoi échoue avec le réseau (rare), le message dit que le texte et les photos sont gardés. Toucher « Publier » de nouveau : une seule bonne nouvelle au bout.

@@ -3,6 +3,7 @@ import { after, beforeEach, describe, test } from 'node:test';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { changeNotice } from '../src/logic';
+import { featureAudience } from '../src/store';
 import {
   toldBefore,
   occurrenceDays, occurrenceId, ruleDays, ruleLabel, syncSeries, writtenBySeries, type SeriesData, type SeriesRule,
@@ -76,6 +77,16 @@ describe('the occurrences against the emulator', () => {
     await db.recursiveDelete(db.collection('events'));
     await db.recursiveDelete(db.collection('eventSeries'));
     await db.doc('members/camille').set({ firstName: 'Camille', profile: 'adult', householdId: 'h1', parentIds: [] });
+  });
+
+  test('recurringEvents off: only the admin principal hears of a series', async () => {
+    await db.doc('config/family').set({ ownerMemberId: 'camille' });
+    await db.doc('config/app').set({ features: {} });
+    assert.deepEqual((await featureAudience(db, 'recurringEvents'))(['camille', 'ines']), ['camille']);
+    await db.doc('config/app').set({ features: { recurringEvents: true } });
+    assert.deepEqual((await featureAudience(db, 'recurringEvents'))(['camille', 'ines']), ['camille', 'ines']);
+    await db.doc('config/app').delete();
+    await db.doc('config/family').delete();
   });
 
   test('a series whose author was removed writes no new day, and keeps the others', async () => {
