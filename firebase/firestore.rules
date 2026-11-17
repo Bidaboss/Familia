@@ -33,6 +33,14 @@ service cloud.firestore {
       return get(emailIndexPath(myEmail())).data.memberId;
     }
 
+    // The single audience of a family content (PRD, « élargir la famille par cercles », étape 1):
+    // every read « toute la famille » goes through it, never through isMember() alone, so that the
+    // circles touch one place only. Étape 1 changes nothing: the whole family. [doc] is the resource
+    // read (null when it does not exist yet); étape 2 will compare its circleIds with mine.
+    function inAudience(doc) {
+      return isMember();
+    }
+
     function memberPath(memberId) {
       return /databases/$(database)/documents/members/$(memberId);
     }
@@ -151,7 +159,7 @@ service cloud.firestore {
 
     // members/{memberId}. Readable by the whole family.
     match /members/{memberId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
 
       // First sign-in: a member links their own Firebase UID, once, and nothing else.
       allow update: if isMember()
@@ -211,7 +219,7 @@ service cloud.firestore {
     // households/{householdId}. Readable by the whole family. The admin principal creates and
     // deletes them (the app only offers to delete an empty one); a chef renames their own.
     match /households/{householdId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
       allow create: if isOwner() && isValidHousehold(request.resource.data);
       allow update: if managesHousehold(householdId) && isValidHousehold(request.resource.data);
       allow delete: if isOwner();
@@ -289,7 +297,7 @@ service cloud.firestore {
 
     // events/{eventId}. The whole family sees the planning.
     match /events/{eventId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
 
       allow create: if isMember()
         && isValidEvent(request.resource.data)
@@ -334,7 +342,7 @@ service cloud.firestore {
     // their responsible adults. When an event is deleted, its answers are cleaned up on the server
     // (lot 8), which also warns the members who said they were coming.
     match /events/{eventId}/rsvps/{memberId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
       allow create, update: if isMember()
         && exists(/databases/$(database)/documents/events/$(eventId))
         && exists(memberPath(memberId))
@@ -369,7 +377,7 @@ service cloud.firestore {
     }
 
     match /events/{eventId}/bring/{itemId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
 
       allow create: if isMember()
         && exists(eventPath(eventId))
@@ -411,7 +419,7 @@ service cloud.firestore {
     // said « je viens » adds photos of their own from the day of the event. The author removes
     // them, as do the author of the event and the admin principal. Deleting the event deletes them.
     match /events/{eventId}/photos/{photoId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
       allow create: if isMember()
         && albumIsOpen(eventId)
         && saidComing(eventId)
@@ -432,7 +440,7 @@ service cloud.firestore {
     }
 
     match /events/{eventId}/comments/{commentId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
       allow create: if isMember()
         && exists(/databases/$(database)/documents/events/$(eventId))
         && request.resource.data.keys().hasAll(['text', 'authorId', 'authorName', 'createdAt', 'expireAt'])
@@ -469,7 +477,7 @@ service cloud.firestore {
     // The answers of all events at once, for the counters of the planning (collectionGroup query).
     // Read only: writes go through events/{eventId}/rsvps/{memberId} above.
     match /{path=**}/rsvps/{memberId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
     }
 
     // --- Notifications (lot 8) --------------------------------------------------------------------
@@ -539,12 +547,12 @@ service cloud.firestore {
     // hold no name: nobody sees who gave the most (carte EXPERT-3). treeMarks and treeDays stay
     // closed: only the functions use them, for the cap of 5 leaves a day.
     match /familyTree/{treeId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
       allow write: if false;
     }
 
     match /challenges/{month} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
       allow write: if false;
     }
 
@@ -561,7 +569,7 @@ service cloud.firestore {
     // challengeRotation/current: the order in which the foyers launch the challenge, a month each
     // from startMonth. The admin principal sets it in Administration; the family reads it.
     match /challengeRotation/{rotationId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
       allow write: if isOwner() && rotationId == 'current'
         && request.resource.data.keys().hasOnly(['householdIds', 'startMonth', 'updatedAt'])
         && request.resource.data.householdIds is list
@@ -601,7 +609,7 @@ service cloud.firestore {
     // published or passed it no longer changes from the app: the admin principal replaces it with
     // challengePicks. The functions turn it into challenges/{month}.
     match /householdChallenges/{month} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
       allow create, update: if isMember() && isMonthId(month) && isNowOrNext(month)
         && month >= get(/databases/$(database)/documents/challengeRotation/current).data.startMonth
         && (resource == null || resource.data.status == 'draft')
@@ -916,7 +924,7 @@ service cloud.firestore {
     }
 
     match /goodNews/{postId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
 
       allow create: if isMember()
         && isValidGoodNews(request.resource.data)
@@ -1009,7 +1017,7 @@ service cloud.firestore {
     }
 
     match /goodDeals/{dealId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
 
       allow create: if isMember()
         && me().profile == 'adult'
@@ -1048,7 +1056,7 @@ service cloud.firestore {
     }
 
     match /birthdayCards/{cardId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
 
       allow create: if isMember()
         && request.resource.data.keys().hasOnly(['forMemberId', 'authorId', 'authorName', 'text', 'year', 'createdAt', 'updatedAt'])
@@ -1104,7 +1112,7 @@ service cloud.firestore {
     match /moments/{momentId} {
       // Waiting for the teenager: only they, its author and their responsible adults read it. The
       // others read the accepted ones (the app asks for status == 'accepted').
-      allow read: if isMember()
+      allow read: if inAudience(resource)
         && (resource.data.status == 'accepted'
             || resource.data.forMemberId == myMemberId()
             || resource.data.authorId == myMemberId()
@@ -1142,7 +1150,7 @@ service cloud.firestore {
     }
 
     match /momentCheers/{cheerId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
 
       allow create: if isMember()
         && request.resource.data.keys().hasOnly(['momentId', 'forMemberId', 'authorId', 'authorName', 'text', 'createdAt'])
@@ -1363,7 +1371,7 @@ service cloud.firestore {
 
     // giftLists/{listId}. « Mes envies » of a member has the id wishes-{memberId}, so there is one.
     match /giftLists/{listId} {
-      allow read: if isMember() && canSeeList(resource.data);
+      allow read: if inAudience(resource) && canSeeList(resource.data);
 
       allow create: if isMember()
         && isValidGiftList(request.resource.data)
@@ -1441,7 +1449,7 @@ service cloud.firestore {
         return /databases/$(database)/documents/giftLists/$(listId)/claims/$(itemId);
       }
 
-      allow read: if isMember()
+      allow read: if inAudience(list())
         && canSeeList(list())
         && (!isKeptFromMe(list()) || resource.data.visibleToBeneficiary == true);
 
@@ -1486,7 +1494,7 @@ service cloud.firestore {
         return get(giftListPath(listId)).data;
       }
 
-      allow read: if isMember() && canSeeList(list()) && !isKeptFromMe(list());
+      allow read: if inAudience(list()) && canSeeList(list()) && !isKeptFromMe(list());
 
       allow create: if isMember()
         && exists(giftListPath(listId))
@@ -1538,7 +1546,7 @@ service cloud.firestore {
         return get(/databases/$(database)/documents/giftLists/$(listId)/claims/$(itemId)).data;
       }
 
-      allow read: if isMember() && canSeeList(list()) && !isKeptFromMe(list())
+      allow read: if inAudience(list()) && canSeeList(list()) && !isKeptFromMe(list())
         && (memberId == myMemberId() || claim().holderId == myMemberId());
 
       allow create: if isMember()
@@ -1585,7 +1593,7 @@ service cloud.firestore {
         return get(giftListPath(listId)).data;
       }
 
-      allow read: if isMember() && list().kind == 'wishes' && keepsListsOf(list().beneficiaryId);
+      allow read: if inAudience(list()) && list().kind == 'wishes' && keepsListsOf(list().beneficiaryId);
 
       // « Reçue » (rév. 232): whoever keeps the lists of the person archives a wish of « Mes envies »
       // they say they got, in the same batch as its removal. Nobody gave it through the list: no
@@ -1701,7 +1709,7 @@ service cloud.firestore {
     // the offline cache like the rest, and these rules stay the only ones to check. Only the
     // family reads them. Removing the photo deletes the document.
     match /memberPhotos/{memberId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
       allow create, update: if canChangePhoto(memberId)
         && exists(memberPath(memberId))
         && request.resource.data.keys().hasOnly(['jpeg', 'updatedAt'])
@@ -1729,7 +1737,7 @@ service cloud.firestore {
     }
 
     match /memberCards/{memberId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
       allow create, update: if canChangePhoto(memberId)
         && exists(memberPath(memberId))
         && request.resource.data.keys().hasOnly(['tastes', 'hobbies', 'top', 'bottom', 'shoes', 'allergies', 'updatedBy', 'updatedAt'])
@@ -1784,7 +1792,7 @@ service cloud.firestore {
     }
 
     match /recipes/{recipeId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
 
       allow create: if isMember()
         && isValidRecipe(request.resource.data, null)
@@ -1811,7 +1819,7 @@ service cloud.firestore {
     }
 
     match /recipes/{recipeId}/photos/{photoId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
       allow create: if isMember()
         && canManageRecipe(recipeOf(recipeId))
         && isValidAlbumPhoto(request.resource.data, photoId)
@@ -1824,7 +1832,7 @@ service cloud.firestore {
     // their own name, 1 to 500 characters, never edited. Its author, the author of the recipe or the
     // admin principal removes one. Deleting the recipe deletes them on the server.
     match /recipes/{recipeId}/comments/{commentId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
       allow create: if isMember()
         && exists(/databases/$(database)/documents/recipes/$(recipeId))
         && request.resource.data.keys().hasAll(['text', 'authorId', 'authorName', 'createdAt'])
@@ -2240,7 +2248,7 @@ service cloud.firestore {
     }
 
     match /kin/{kinId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
       allow create: if isMember() && isValidKin(request.resource.data)
         && managesHousehold(request.resource.data.householdId);
       allow update: if isMember() && isValidKin(request.resource.data)
@@ -2275,7 +2283,7 @@ service cloud.firestore {
     }
 
     match /kinLinks/{linkId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
       allow create: if isMember() && isValidKinLink(request.resource.data, linkId) && managesLink(request.resource.data);
       allow delete: if isMember() && managesLink(resource.data);
     }
@@ -2317,12 +2325,12 @@ service cloud.firestore {
     }
 
     match /weeklyQuestions/{weekId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
       allow write: if false;
     }
 
     match /weeklyQuestions/{weekId}/answers/{memberId} {
-      allow read: if isMember()
+      allow read: if inAudience(resource)
         && (memberId == myMemberId()
             || exists(/databases/$(database)/documents/weeklyQuestions/$(weekId)/answers/$(myMemberId()))
             || request.time >= get(weeklyQuestionPath(weekId)).data.revealAt);
@@ -2502,7 +2510,7 @@ service cloud.firestore {
     }
 
     match /whoIsIt/{postId} {
-      allow read: if isMember();
+      allow read: if inAudience(resource);
       allow create: if isMember() && postId.matches('^[A-Za-z0-9]{1,40}$') && isValidWhoIsIt(request.resource.data);
       allow delete: if isMember() && (resource.data.authorId == myMemberId() || isOwner());
     }
