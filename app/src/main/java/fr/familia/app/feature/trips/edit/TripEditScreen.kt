@@ -1,6 +1,5 @@
 package fr.familia.app.feature.trips.edit
 
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,15 +37,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.HouseholdMemberPicker
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
-import fr.familia.app.feature.trips.TripCheckRow
 import fr.familia.app.feature.trips.TripDateButton
 import fr.familia.app.feature.trips.TripSectionTitle
 import java.time.LocalDate
@@ -150,15 +150,14 @@ private fun FormContent(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             ParticipantShortcuts(state.participants, form.participantIds) { ids -> onChange { it.withParticipants(ids) } }
-            state.participants.forEach { choice ->
-                TripCheckRow(
-                    label = choice.firstName,
-                    detail = choice.householdName,
-                    checked = choice.locked || choice.id in form.participantIds,
-                    enabled = !choice.locked,
-                    onCheckedChange = { taking -> onChange { it.withParticipant(choice.id, taking) } },
-                )
-            }
+            // By household, a box per household ticks all of its members (règle de Kévin, 17/11).
+            // The creator always takes part: unticking them, alone or with their household, does nothing.
+            val locked = state.participants.filter { it.locked }.map { it.id }.toSet()
+            HouseholdMemberPicker(
+                groups = state.participantGroups,
+                selected = form.participantIds + locked,
+                onChange = { picked -> onChange { it.withParticipantSet(picked + locked) } },
+            )
             errorText(errors, TripFormError.TooManyParticipants)?.invoke()
         }
 
@@ -169,16 +168,14 @@ private fun FormContent(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            state.readers.forEach { choice ->
-                val taking = choice.id in form.participantIds
-                TripCheckRow(
-                    label = choice.firstName,
-                    detail = if (taking) stringResource(R.string.trip_reader_participant) else choice.householdName,
-                    checked = taking || choice.id in form.readerIds,
-                    enabled = !taking,
-                    onCheckedChange = { following -> onChange { it.withReader(choice.id, following) } },
-                )
-            }
+            // A participant always follows the trip: their box stays ticked, and says why.
+            val taking = stringResource(R.string.trip_reader_participant)
+            HouseholdMemberPicker(
+                groups = state.readerGroups,
+                selected = form.readerIds + form.participantIds,
+                onChange = { picked -> onChange { it.withReaderSet(picked) } },
+                label = { member -> if (member.id in form.participantIds) "${member.firstName} · $taking" else member.firstName },
+            )
         }
 
         if (state.saveFailed) {
@@ -273,20 +270,10 @@ private fun TripEditScreenPreview() {
 private fun ParticipantShortcuts(choices: List<MemberChoice>, taking: Set<String>, onAdd: (List<String>) -> Unit) {
     val missing = { ids: List<String> -> ids.any { it !in taking } }
     val everyone = choices.map { it.id }
-    val households = choices.filter { it.householdId != null }.groupBy { it.householdId to it.householdName }
     Column(Modifier.padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (missing(everyone)) {
             OutlinedButton(onClick = { onAdd(everyone) }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.trip_add_everyone))
-            }
-        }
-        households.forEach { (key, members) ->
-            val ids = members.map { it.id }
-            val name = key.second
-            if (name != null && households.size > 1 && missing(ids)) {
-                OutlinedButton(onClick = { onAdd(ids) }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.trip_add_household, name))
-                }
             }
         }
     }

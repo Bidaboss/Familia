@@ -10,7 +10,7 @@
 // for a member are revealed the same way, into the same « On m'a offert » of their « Mes envies »,
 // as received/idea-{itemId}. The idea list itself stays: it is permanent, like « Mes envies ».
 
-import { PhotoCopier, receivedPhoto, storageCopier } from './itemPhoto';
+import { deleteItemPhoto, PhotoCopier, receivedPhoto, storageCopier } from './itemPhoto';
 import type { Firestore } from 'firebase-admin/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
 import { giftAudience, GiftMember, loadGiftMembers, nextBirthday } from './gifts';
@@ -274,8 +274,9 @@ export async function keepReceivedPhoto(
   try {
     await db.collection('giftLists').doc(listId).collection('received').doc(itemId).update({ photo: target });
   } catch (e) {
-    // The archive went in the meantime (the list was removed): nothing to name.
+    // The archive went in the meantime (the list was removed): the copy goes too.
     console.warn(`keepReceivedPhoto: ${listId}/${itemId} not updated`, e);
+    await deleteItemPhoto(target).catch(() => undefined);
     return false;
   }
   return true;
