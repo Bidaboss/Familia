@@ -7,8 +7,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import fr.familia.app.core.data.AppConfig
 import fr.familia.app.core.model.Family
@@ -47,8 +49,9 @@ fun WelcomeHost(
 ) {
     val done by rememberUpdatedState(onDone)
     val played by rememberUpdatedState(onPlayed)
-    val choice by produceState<WelcomeChoice>(WelcomeChoice.Waiting, family, config) {
-        value = if (family == null || config == null) WelcomeChoice.Skip else chooseWelcome(family, config, me)
+    var choice by remember(family, config) { mutableStateOf<WelcomeChoice>(WelcomeChoice.Waiting) }
+    LaunchedEffect(family, config) {
+        choice = if (family == null || config == null) WelcomeChoice.Skip else chooseWelcome(family, config, me)
     }
     when (val shown = choice) {
         WelcomeChoice.Waiting -> Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
