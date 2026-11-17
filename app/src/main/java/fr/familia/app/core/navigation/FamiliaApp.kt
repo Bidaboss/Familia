@@ -1651,6 +1651,7 @@ fun FamiliaApp(
                             onOpenUsage = { navController.navigate(UsageDestination) },
                             onOpenFeedback = { navController.navigate(FeedbackListDestination) },
                             onOpenCrashes = { navController.navigate(CrashesDestination) { launchSingleTop = true } },
+                            seeWhere = { feature -> navController.seeWhere(feature, currentMember.id) },
                         )
                     }
                     composable<CrashesDestination> {
@@ -1923,6 +1924,38 @@ private fun allModules(
         module(true, "yearInReview", R.string.all_year_in_review, Icons.Outlined.AutoAwesome, ModuleFamily.Remember) {
             navController.navigate(YearInReviewDestination(year)) { launchSingleTop = true }
         }
+    }
+}
+
+/**
+ * « Voir où » under a switch of Administration (PRODUIT, 17/11): the screen where [feature] shows,
+ * or null for a module with no screen of its own (a notification, a share).
+ */
+private fun NavHostController.seeWhere(feature: Feature, meId: String): (() -> Unit)? {
+    val lastMonth = YearMonth.now().minusMonths(1)
+    return when (feature) {
+        Feature.Home, Feature.YearAgo, Feature.BirthdayWishes, Feature.Discover, Feature.DailyNudge, Feature.ThinkOfMe, Feature.PresentationR1bis -> { navigateToTab(TopLevelDestination.Home) }
+        Feature.Gifts, Feature.GiftNotebook, Feature.WishesReveal, Feature.GiftBudget, Feature.SingleList -> { navigateToTab(TopLevelDestination.Gifts) }
+        Feature.HelpRequests, Feature.GoodDeals, Feature.Lending, Feature.Turns -> { navigateToTab(TopLevelDestination.HelpRequests) }
+        Feature.Trips, Feature.Expenses, Feature.PackingList -> { navigate(TripsDestination) { launchSingleTop = true } }
+        Feature.GoodNews, Feature.LittleOnes -> { navigate(GoodNewsFeedDestination) { launchSingleTop = true } }
+        Feature.Themes -> { navigate(AppearanceDestination) { launchSingleTop = true } }
+        Feature.Usage -> { navigate(UsageDestination) { launchSingleTop = true } }
+        Feature.WeeklyQuestion -> { navigate(WeeklyQuestionDestination()) { launchSingleTop = true } }
+        Feature.EventAlbums, Feature.PhotoBook -> { navigate(AlbumsDestination) { launchSingleTop = true } }
+        Feature.Calendar, Feature.Bring, Feature.Comments, Feature.MorePhotos, Feature.Carpool, Feature.RecurringEvents, Feature.MyReminders -> { navigateToTab(TopLevelDestination.Planning) }
+        Feature.Souvenirs, Feature.MemberCard -> { navigate(MemberProfileDestination(meId)) { launchSingleTop = true } }
+        Feature.Tree -> { navigate(ChallengesDestination) { launchSingleTop = true } }
+        Feature.MonthSlideshow -> { navigate(MonthSlideshowDestination(lastMonth.year, lastMonth.monthValue)) { launchSingleTop = true } }
+        Feature.Polls -> { navigate(PollsDestination) { launchSingleTop = true } }
+        Feature.Recipes -> { navigate(RecipesDestination()) { launchSingleTop = true } }
+        Feature.Capsules -> { navigate(CapsulesDestination) { launchSingleTop = true } }
+        Feature.Genealogy, Feature.TreePoster -> { navigate(GenealogyDestination) { launchSingleTop = true } }
+        Feature.Places -> { navigate(JoinMeDestination) { launchSingleTop = true } }
+        Feature.WhoIsIt -> { navigate(WhoIsItDestination) { launchSingleTop = true } }
+        Feature.RecipeBook -> { navigate(RecipeBookDestination) { launchSingleTop = true } }
+        Feature.CalendarFeed -> { navigate(CalendarFeedDestination) { launchSingleTop = true } }
+        else -> null
     }
 }
 

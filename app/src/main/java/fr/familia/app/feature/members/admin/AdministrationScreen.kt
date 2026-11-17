@@ -55,6 +55,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -505,26 +506,51 @@ private fun AdultSwitchRow(row: AdultRow, onSetChef: (Member, Boolean) -> Unit) 
     }
 }
 
-/** One module: on, the whole family sees it; off, only the admin principal does, to try it. */
+/**
+ * One module: on, the whole family sees it; off, only the admin principal does, to try it. Under it,
+ * what it is for and where it shows, « Publier Firebase » first when it has server parts, and
+ * « Voir où » when a screen shows it (PRODUIT, 17/11).
+ */
 @Composable
 private fun FeatureSwitchRow(feature: Feature, on: Boolean, onSetFeature: (Feature, Boolean) -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .toggleable(on, role = Role.Switch) { onSetFeature(feature, it) }
-            .heightIn(min = 56.dp)
-            .padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(stringResource(feature.labelRes), style = MaterialTheme.typography.titleMedium)
-            Text(
-                stringResource(if (on) R.string.administration_feature_on else R.string.administration_feature_off),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+    val name = stringResource(feature.labelRes)
+    val seeWhere = LocalFeatureSeeWhere.current(feature)
+    Column(Modifier.fillMaxWidth().padding(bottom = 4.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .toggleable(on, role = Role.Switch) { onSetFeature(feature, it) }
+                .heightIn(min = 56.dp)
+                .padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(name, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    stringResource(if (on) R.string.administration_feature_on else R.string.administration_feature_off),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Switch(checked = on, onCheckedChange = null)
         }
-        Switch(checked = on, onCheckedChange = null)
+        Column(Modifier.padding(horizontal = ClaySpacing.screen), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            featureHelpRes(feature)?.let { Text(stringResource(it), style = MaterialTheme.typography.bodyMedium) }
+            if (feature in NEEDS_FIREBASE_PUBLISH) {
+                Text(
+                    stringResource(R.string.administration_feature_publish_first),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (seeWhere != null) {
+                val label = stringResource(R.string.administration_feature_see_where_label, name)
+                TextButton(
+                    onClick = seeWhere,
+                    modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = label },
+                ) { Text(stringResource(R.string.administration_feature_see_where)) }
+            }
+        }
     }
 }
 
