@@ -1856,6 +1856,33 @@
     <string name="gift_mark_received_text">Elle passera dans « On m\'a offert ».</string>
     <string name="gift_mark_received_confirm">Oui, reçue</string>
     <string name="feature_more_photos">Plus de photos</string>
+    <string name="gifts_next_occasion_label">Prochaine occasion</string>
+    <string name="gifts_next_christmas">Noël, %1$s</string>
+    <string name="gifts_next_birthday">Anniversaire de %1$s, %2$s</string>
+    <plurals name="gifts_in_days">
+        <item quantity="one">demain</item>
+        <item quantity="other">dans %d jours</item>
+    </plurals>
+    <plurals name="gifts_open_wish_lists">
+        <item quantity="one">%d liste d\'envies ouverte</item>
+        <item quantity="other">%d listes d\'envies ouvertes</item>
+    </plurals>
+    <plurals name="gifts_family_ideas_count">
+        <item quantity="one">%d idée de la famille</item>
+        <item quantity="other">%d idées de la famille</item>
+    </plurals>
+    <string name="gifts_see_ideas">Voir les idées</string>
+    <string name="gifts_my_wish_list">Ma liste d\'envies</string>
+    <string name="gifts_family_wishes_title">Les envies de la famille</string>
+    <plurals name="gifts_wishes_count">
+        <item quantity="one">%d envie</item>
+        <item quantity="other">%d envies</item>
+    </plurals>
+    <plurals name="gifts_new_wishes">
+        <item quantity="one">%d nouvelle</item>
+        <item quantity="other">%d nouvelles</item>
+    </plurals>
+    <string name="gifts_ideas_for">Idées pour %1$s</string>
     <string name="feature_who_is_it">Qui est-ce ?</string>
     <string name="feature_presentation_r1bis">Nouvelle présentation</string>
     <string name="channel_welcome">Bienvenue</string>
