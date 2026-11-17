@@ -5,7 +5,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
@@ -83,7 +82,8 @@ class SurpriseButtonTest {
         var opened = 0
         show(stateFor("adult2"), onPicker = { opened++ })
         assertEquals(1, count("Surprises en préparation"))
-        compose.onNodeWithText("Surprise s1").assertExists()
+        // Once in « Surprises en préparation », once more among the lists of the person.
+        assertEquals(2, count("Surprise s1"))
         compose.onNodeWithContentDescription("Préparer une surprise").performClick()
         assertEquals(1, opened)
     }
