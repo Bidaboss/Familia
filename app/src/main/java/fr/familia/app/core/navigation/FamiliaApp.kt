@@ -225,6 +225,8 @@ import fr.familia.app.feature.recipes.RecipeDetailRoute
 import fr.familia.app.feature.recipes.RecipeEditDestination
 import fr.familia.app.feature.recipes.RecipeEditRoute
 import fr.familia.app.feature.recipes.RecipesDestination
+import fr.familia.app.feature.recipes.book.RecipeBookDestination
+import fr.familia.app.feature.recipes.book.RecipeBookRoute
 import fr.familia.app.feature.recipes.RecipesRoute
 import fr.familia.app.feature.trips.TripDetailDestination
 import fr.familia.app.feature.expenses.ExpenseEditRoute
@@ -1051,7 +1053,11 @@ fun FamiliaApp(
                             onOpen = { id -> navController.navigate(RecipeDetailDestination(id)) },
                             onAdd = { navController.navigate(RecipeEditDestination()) },
                             onBack = { navController.popBackStack() },
+                            onMakeBook = { navController.navigate(RecipeBookDestination) },
                         )
+                    }
+                    composable<RecipeBookDestination> {
+                        RecipeBookRoute(container = container, currentMember = currentMember, onBack = { navController.popBackStack() })
                     }
                     composable<CapsulesDestination> {
                         CapsulesRoute(

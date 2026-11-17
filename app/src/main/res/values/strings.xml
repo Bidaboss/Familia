@@ -1179,6 +1179,32 @@
     <string name="recipe_field_steps">Étapes</string>
     <string name="recipe_field_lines_help">Un par ligne.</string>
     <string name="recipe_field_tags">Étiquettes (facultatif)</string>
+    <!-- Livre de recettes (récit 47) -->
+    <string name="recipe_book_open">Faire le livre de recettes</string>
+    <string name="recipe_book_title">Livre de recettes</string>
+    <string name="recipe_book_intro">Choisis les recettes à mettre dans le livre. Ton téléphone en fait un PDF au format A5, à garder, imprimer ou offrir.</string>
+    <string name="recipe_book_cover">Couverture</string>
+    <string name="recipe_book_field_title">Titre du livre</string>
+    <string name="recipe_book_default_title">Les recettes de la famille</string>
+    <string name="recipe_book_year">Année : %1$d</string>
+    <string name="recipe_book_cover_photo">Photo de la couverture</string>
+    <string name="recipe_book_cover_none">Un dessin, sans photo</string>
+    <string name="recipe_book_cover_of">La photo de : %1$s</string>
+    <plurals name="recipe_book_chosen">
+        <item quantity="one">%1$d recette sur %2$d</item>
+        <item quantity="many">%1$d recettes sur %2$d</item>
+        <item quantity="other">%1$d recettes sur %2$d</item>
+    </plurals>
+    <string name="recipe_book_all">Tout cocher</string>
+    <string name="recipe_book_none">Tout décocher</string>
+    <string name="recipe_book_make">Faire le livre</string>
+    <string name="recipe_book_failed">Le livre n\'a pas pu être fait. Réessaie dans un instant.</string>
+    <string name="recipe_book_print_hint">Tu peux le faire imprimer dans une boutique photo : demande un livret au format A5.</string>
+    <string name="recipe_book_share_chooser">Enregistrer, imprimer ou envoyer le livre</string>
+    <string name="recipe_book_empty_title">Pas encore de recette</string>
+    <string name="recipe_book_empty_body">Le livre se fera dès qu\'il y aura des recettes dans le carnet.</string>
+    <string name="recipe_book_contents">Sommaire</string>
+    <string name="recipe_book_other">Autres recettes</string>
     <string name="recipe_field_story">Sa petite histoire (facultatif)</string>
     <string name="recipe_field_story_help">Qui la faisait, pour quelle occasion… Elle sera dans le livre de recettes.</string>
     <string name="recipe_child_in_photos">Un enfant est sur une des photos</string>

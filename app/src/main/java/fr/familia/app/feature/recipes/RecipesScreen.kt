@@ -2,6 +2,7 @@ package fr.familia.app.feature.recipes
 
 import androidx.compose.ui.text.style.TextOverflow
 import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -53,6 +54,8 @@ fun RecipesScreen(
     onOpen: (recipeId: String) -> Unit,
     onAdd: () -> Unit,
     onBack: () -> Unit,
+    /** « Faire le livre de recettes », with the switch recipeBook (récit 47); null hides it. */
+    onMakeBook: (() -> Unit)? = null,
 ) {
     val origin = (state as? RecipesUiState.Ready)?.originName
     Scaffold(
@@ -88,7 +91,7 @@ fun RecipesScreen(
                         body = stringResource(R.string.recipes_empty_body),
                     )
                 } else {
-                    RecipeList(state, onSearch, onOpen)
+                    RecipeList(state, onSearch, onOpen, onMakeBook)
                 }
             }
         }
@@ -96,7 +99,7 @@ fun RecipesScreen(
 }
 
 @Composable
-private fun RecipeList(state: RecipesUiState.Ready, onSearch: (String) -> Unit, onOpen: (String) -> Unit) {
+private fun RecipeList(state: RecipesUiState.Ready, onSearch: (String) -> Unit, onOpen: (String) -> Unit, onMakeBook: (() -> Unit)?) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         // Room at the bottom so the add button never hides the last recipe.
@@ -113,6 +116,9 @@ private fun RecipeList(state: RecipesUiState.Ready, onSearch: (String) -> Unit, 
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 modifier = Modifier.fillMaxWidth(),
             )
+        }
+        if (onMakeBook != null) {
+            item(key = "book") { ClayLink(stringResource(R.string.recipe_book_open), onClick = onMakeBook) }
         }
         if (state.rows.isEmpty()) {
             item(key = "none") { Text(stringResource(R.string.recipes_none_found), style = MaterialTheme.typography.bodyLarge) }
