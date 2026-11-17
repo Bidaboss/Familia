@@ -959,3 +959,8 @@ Sur ton téléphone, avec la rotation automatique allumée (volet des réglages 
 5. Toujours en « Voir comme », touche « Accueil » du téléphone, attends une minute, puis rouvre Familia. **Attendu :** le même membre, avec son bandeau, jamais ton propre Accueil.
 6. Toujours en « Voir comme », sur son Accueil, touche « Retour » du téléphone. **Attendu :** l'appli ne se ferme pas, et le message « Pour sortir de « Voir comme », touche « Quitter » sur le bandeau. » s'affiche. Dans un écran ouvert (un événement), « Retour » revient en arrière comme d'habitude.
 7. Touche « Quitter » sur le bandeau. **Attendu :** ton propre appli revient, et « Retour » sur ton Accueil ferme Familia comme avant.
+
+## Téléphone partagé : un autre membre se connecte (note C de #264)
+1. Sur un téléphone, connecte-toi avec le compte A, puis ouvre un album et un livre de recettes pour remplir le cache.
+2. Touche « Utiliser un autre compte » (par exemple depuis l'écran « Cette adresse n'est pas dans la famille ») et connecte-toi avec le compte B. **Attendu :** les photos se rechargent depuis le réseau, puis s'affichent normalement. Le dernier PDF de A n'est plus proposé.
+3. Reconnecte-toi avec B. **Attendu :** les photos s'affichent tout de suite, sans nouveau chargement, puisque c'est le même membre.

@@ -16,6 +16,17 @@ class PhotoLinksTest {
             writes++
             if (url == null) links.remove(path) else links[path] = url
         }
+        override fun clear() = links.clear()
+    }
+
+    @Test
+    fun `another member signing in forgets every link, of this launch and saved`() = runTest {
+        val saved = Memory()
+        val links = PhotoLinks(saved)
+        links.fresh("trips/t1/a/1.jpg") { "https://x/1?token=a" }
+        links.forgetAll()
+        assertNull(links.known("trips/t1/a/1.jpg"))
+        assertNull(saved.get("trips/t1/a/1.jpg"))
     }
 
     @Test
