@@ -10,7 +10,7 @@ import { Notice } from '../src/logic';
 import { notebookEntryId, syncNotebookEntry } from '../src/notebook';
 import { Sender } from '../src/store';
 import { Timestamp } from 'firebase-admin/firestore';
-import { claimOccasion, defaultWishOccasion, giverNames, occasionDay, receivedPath, revealWishes, thankGivers, wasMarkedReceived, wasRevealed } from '../src/wishesReveal';
+import { claimOccasion, defaultWishOccasion, giverNames, keepReceivedPhoto, occasionDay, receivedPath, revealWishes, thankGivers, wasMarkedReceived, wasRevealed } from '../src/wishesReveal';
 
 const ines: GiftMember = { id: 'ines', firstName: 'Inès', profile: 'adult', parentIds: [], birthDate: '1990-03-14' };
 const camille: GiftMember = { id: 'camille', firstName: 'Camille', profile: 'adult', parentIds: [], birthDate: '1988-12-09' };
@@ -235,6 +235,30 @@ describe('wishes reveal', () => {
     assert.deepEqual(sent.map((s) => s.token), ['token-camille']);
     assert.match(sent[0].notice.body, /a déjà reçu « Une lampe »/);
     assert.equal((await list().collection('claims').doc('lamp').get()).exists, false);
+  });
+
+  test('with « Plus de photos », a wish marked « Reçue » keeps its photo in « On m\'a offert »', async () => {
+    const photo = `giftLists/${LIST}/shared/ines/p3`;
+    await list().collection('received').doc('lamp').set({ title: 'Une lampe', givers: [], giverIds: [], self: true });
+    const copies: [string, string][] = [];
+    const copy = async (from: string, to: string) => { copies.push([from, to]); return true; };
+    // The switch off: nothing is copied.
+    assert.equal(await keepReceivedPhoto(db, LIST, 'lamp', photo, copy), false);
+    await db.doc('config/app').set({ features: { gifts: true, morePhotos: true } });
+    // Not marked by the person, a photo of another list, or none: nothing either.
+    assert.equal(await keepReceivedPhoto(db, LIST, 'book', photo, copy), false);
+    assert.equal(await keepReceivedPhoto(db, LIST, 'lamp', 'giftLists/wishes-camille/shared/camille/p1', copy), false);
+    assert.equal(await keepReceivedPhoto(db, LIST, 'lamp', null, copy), false);
+    assert.deepEqual(copies, []);
+
+    assert.equal(await keepReceivedPhoto(db, LIST, 'lamp', photo, copy), true);
+    assert.deepEqual(copies, [[photo, `giftLists/${LIST}/received/lamp/photo`]]);
+    assert.equal((await list().collection('received').doc('lamp').get()).get('photo'), `giftLists/${LIST}/received/lamp/photo`);
+
+    // A copy that failed leaves the archive without a photo.
+    await list().collection('received').doc('scarf').set({ title: 'Une écharpe', givers: [], giverIds: [], self: true });
+    assert.equal(await keepReceivedPhoto(db, LIST, 'scarf', photo, async () => false), false);
+    assert.equal((await list().collection('received').doc('scarf').get()).get('photo'), undefined);
   });
 
   test('a removed list takes its « On m\'a offert » with it', async () => {
