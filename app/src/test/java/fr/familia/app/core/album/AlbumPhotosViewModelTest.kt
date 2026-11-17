@@ -1,5 +1,6 @@
 package fr.familia.app.core.album
 
+import androidx.lifecycle.SavedStateHandle
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.photo.PhotoRefusedException
 import fr.familia.app.core.photo.PhotoStorage
@@ -11,6 +12,7 @@ import fr.familia.app.feature.trips.FakeTrips
 import fr.familia.app.feature.trips.photos.tripAlbumRights
 import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -85,9 +87,50 @@ class AlbumPhotosViewModelTest {
         photos: FakeAlbum,
         uploader: PhotoUploader = FakeUploader(),
         storage: PhotoStorage = FakeStorage(),
+        saved: SavedStateHandle = SavedStateHandle(),
     ): AlbumPhotosViewModel {
         val rights = tripAlbumRights(FakeTrips(), FakeMembers(TestFamily.family), "t1", me)
-        return AlbumPhotosViewModel(photos, rights, uploader, storage, me, "trips/t1")
+        return AlbumPhotosViewModel(photos, rights, uploader, storage, me, "trips/t1", savedState = saved)
+    }
+
+    @Test
+    fun `photos chosen before the album is read go as soon as it is`() = runTest {
+        val photos = FakeAlbum()
+        val uploader = FakeUploader()
+        val vm = album("adult2", photos, uploader)
+
+        // The gallery answers the reopened app before the album is read.
+        vm.addPhotos(listOf("content://a"))
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+
+        assertEquals(listOf("content://a"), uploader.sent.map { it.first })
+        assertEquals(listOf(1 to "adult2"), photos.added)
+    }
+
+    @Test
+    fun `photos not sent yet go again after Android stops the app, and only once`() = runTest {
+        val saved = SavedStateHandle()
+        val stuck = object : PhotoUploader {
+            override suspend fun upload(source: String, photoPath: String, thumbnailPath: String) = awaitCancellation()
+        }
+        val first = album("adult2", FakeAlbum(), stuck, saved = saved)
+        val collecting = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { first.uiState.collect {} }
+        first.addPhotos(listOf("content://a", "content://b"))
+        collecting.cancel()
+
+        // Android stops the app: a new screen starts from what was kept.
+        val photos = FakeAlbum()
+        val uploader = FakeUploader()
+        val again = album("adult2", photos, uploader, saved = saved)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { again.uiState.collect {} }
+
+        assertEquals(listOf("content://a", "content://b"), uploader.sent.map { it.first })
+        assertEquals(listOf(1 to "adult2", 2 to "adult2"), photos.added)
+        // Once sent, they leave the list: a third start sends nothing.
+        val none = FakeUploader()
+        val third = album("adult2", FakeAlbum(photos.photos.value), none, saved = saved)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { third.uiState.collect {} }
+        assertTrue(none.sent.isEmpty())
     }
 
     @Test

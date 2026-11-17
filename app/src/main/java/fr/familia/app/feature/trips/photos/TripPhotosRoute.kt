@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -41,6 +42,7 @@ fun rememberTripAlbum(container: AppContainer?, currentMember: Member, tripId: S
                 storage = container?.photoStorage,
                 currentMemberId = currentMember.id,
                 folder = tripAlbumFolder(tripId),
+                savedState = createSavedStateHandle(),
             )
         }
     },
