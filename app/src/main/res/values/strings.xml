@@ -180,16 +180,16 @@
     <string name="administration_feature_on">Visible par la famille</string>
     <string name="administration_feature_off">Caché à la famille</string>
     <!-- Une phrase sous chaque interrupteur d'Administration, Modules : à quoi il sert et où il apparaît. -->
-    <string name="administration_feature_publish_first">À faire avant d\'allumer : Publier Firebase, une fois depuis l\'arrivée du module.</string>
+    <string name="administration_feature_publish_first">Si tu n\'as pas lancé « Publier Firebase » depuis son arrivée, fais-le avant d\'allumer.</string>
     <string name="administration_feature_see_where">Voir où</string>
     <string name="administration_feature_see_where_label">voir où apparaît %1$s</string>
     <string name="feature_help_home">L\'onglet Accueil : la semaine en frise, le jour choisi, ce que tu as à faire et les bonnes nouvelles.</string>
     <string name="feature_help_gifts">L\'onglet Cadeaux : les envies de chacun, où l\'on réserve un cadeau sans que la personne le sache.</string>
     <string name="feature_help_gift_notebook">Dans Cadeaux, ton carnet privé : tes idées de cadeaux et ce que tu as déjà offert, pour chaque personne.</string>
-    <string name="feature_help_share_to_wishes">Depuis une autre appli, « Partager » puis Familia ajoute le lien à tes envies.</string>
-    <string name="feature_help_wish_from_share">Depuis une boutique, « Partager » vers Familia crée une envie, ou une idée pour quelqu\'un d\'autre.</string>
+    <string name="feature_help_share_to_wishes">Depuis une autre appli, « Partager » puis Familia ajoute le lien à tes envies. Version simple.</string>
+    <string name="feature_help_wish_from_share">Remplace « Partager vers Mes envies » : depuis une boutique, crée une envie, ou une idée pour quelqu\'un d\'autre.</string>
     <string name="feature_help_wishes_reveal">Le lendemain d\'une occasion, les envies offertes passent dans « On m\'a offert » de la personne fêtée.</string>
-    <string name="feature_help_gift_budget">Dans le carnet de Cadeaux, un budget pour toute une occasion et ce qu\'il reste. Adultes seulement.</string>
+    <string name="feature_help_gift_budget">Dans le carnet de Cadeaux, ton budget pour une occasion et ce qu\'il te reste. Privé, adultes seulement.</string>
     <string name="feature_help_help_requests">L\'onglet Entraide : on demande un coup de main à la famille, chacun répond « J\'y vais » ou « Non ».</string>
     <string name="feature_help_trips">Le carnet de voyage, dans Tout Familia : les étapes, qui part, et les photos du voyage.</string>
     <string name="feature_help_good_news">Les bonnes nouvelles : une phrase et des photos pour toute la famille, sur l\'Accueil et dans leur fil.</string>
@@ -199,7 +199,7 @@
     <string name="feature_help_event_albums">Sur la fiche d\'un événement, section Photos : l\'album où chacun ajoute les siennes, dès le jour même.</string>
     <string name="feature_help_calendar">Sur un événement ou un anniversaire, « Ajouter à mon agenda » le copie dans l\'agenda du téléphone.</string>
     <string name="feature_help_souvenirs">Des souvenirs offerts pour certains gestes, sur ta fiche : touche ta photo en haut, puis « Mon profil ».</string>
-    <string name="feature_help_tree">Le défi du mois sur l\'Accueil : chaque photo partagée fait pousser l\'arbre de la famille.</string>
+    <string name="feature_help_tree">Le défi du mois sur l\'Accueil : chaque photo partagée fait pousser l\'arbre (rien à voir avec l\'arbre généalogique).</string>
     <string name="feature_help_digest">Les avis des souvenirs, du défi et de la question de la semaine partent en une notification à 18 h.</string>
     <string name="feature_help_month_slideshow">Le diaporama du mois : les photos du mois passé, à regarder ou à partager en vidéo.</string>
     <string name="feature_help_polls">Dans Tout Familia, Sondages : trouver une date qui va à tous, ou poser une question à choix.</string>
@@ -212,10 +212,10 @@
     <string name="feature_help_comments">Sous la fiche d\'un événement, les commentaires de la famille.</string>
     <string name="feature_help_expenses">Dans un voyage, les comptes : qui a payé quoi, et qui doit combien à qui.</string>
     <string name="feature_help_recap">Chaque dimanche à 18 h, « La semaine de la famille » : ce qui s\'est passé et ce qui arrive.</string>
-    <string name="feature_help_year_ago">Sur l\'Accueil, une carte « Il y a un an » avec une photo de ce jour-là, l\'an dernier.</string>
+    <string name="feature_help_year_ago">Sur l\'Accueil, une carte avec une photo prise ce jour-là une année passée, tirée des voyages et des albums.</string>
     <string name="feature_help_birthday_wishes">Le jour d\'un anniversaire, chacun peut signer une carte de vœux pour la personne fêtée.</string>
     <string name="feature_help_welcome">Quand un membre se connecte pour la première fois, la famille est prévenue de son arrivée.</string>
-    <string name="feature_help_member_card">Sur la fiche d\'un membre : pointure, tailles, goûts et passions, pour trouver le bon cadeau.</string>
+    <string name="feature_help_member_card">Sur la fiche d\'un membre : ses goûts et ses passions, pour trouver le bon cadeau.</string>
     <string name="feature_help_little_ones">Dans les bonnes nouvelles, l\'étiquette « Les petits » et son filtre, pour les nouvelles des enfants.</string>
     <string name="feature_help_discover">Dès le lundi 30/11, une carte de l\'Accueil présente un module par semaine. L\'ordre se règle plus bas.</string>
     <string name="feature_help_daily_nudge">Sur l\'Accueil, un « petit geste du jour » dans À faire, sans notification.</string>
@@ -232,7 +232,7 @@
     <string name="feature_help_recurring_events">En créant un événement, « Se répète » : chaque semaine, chaque mois… Les dates suivantes se créent seules.</string>
     <string name="feature_help_tree_poster">Dans l\'arbre généalogique, « Faire l\'affiche » : l\'arbre en PDF A4 ou A3 à imprimer.</string>
     <string name="feature_help_photo_book">Dans l\'album d\'un voyage ou d\'un événement, « Faire le livre photo » en PDF.</string>
-    <string name="feature_help_year_in_review">Le récit de l\'année : sur l\'Accueil du 26/12 au 10/01, et dans Tout Familia, sous Se souvenir.</string>
+    <string name="feature_help_year_in_review">Le récit de l\'année : sur l\'Accueil du 26/12 au 10/01, et toute l\'année dans le tiroir, sous Se souvenir.</string>
     <string name="feature_help_my_reminders">Sur la fiche d\'un événement, « Me le rappeler » : un rappel privé. Les rappels par défaut sont dans Notifications.</string>
     <string name="feature_help_turns">Dans Entraide, « À qui le tour ? » : un tour de rôle entre foyers, pour recevoir ou organiser.</string>
     <string name="feature_help_packing_list">Dans un voyage, « À emporter » : la liste pour tout le monde, et « Ma valise ».</string>
