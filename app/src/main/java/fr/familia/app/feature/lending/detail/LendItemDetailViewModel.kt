@@ -46,8 +46,13 @@ sealed interface LendItemDetailUiState {
         /** « Retirer ma demande »: the one who asked. */
         val canDropAsk: Boolean,
         val actionFailed: Boolean = false,
+        /** Refused because someone changed the loan first (passe « en même temps »): no name, as EXPERT-9. */
+        val lostTo: LendLost? = null,
     ) : LendItemDetailUiState
 }
+
+/** Why an ask or an answer did not hold: someone asked first, or the loan changed meanwhile. */
+enum class LendLost { AskedFirst, ChangedFirst }
 
 private val PARIS: ZoneId = ZoneId.of("Europe/Paris")
 
@@ -62,26 +67,32 @@ class LendItemDetailViewModel(
     private val writeTimeoutMillis: Long = 4_000,
 ) : ViewModel() {
 
-    private val failed = MutableStateFlow(false)
+    /** The thing as I saw it when my action did not hold; null while nothing failed. */
+    private val failed = MutableStateFlow<LendItem?>(null)
     private var me: Member? = null
 
     val uiState: StateFlow<LendItemDetailUiState> = failed
         .flatMapLatest { didFail -> load(didFail) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LendItemDetailUiState.Loading)
 
-    private fun load(didFail: Boolean): Flow<LendItemDetailUiState> {
+    private fun load(didFail: LendItem?): Flow<LendItemDetailUiState> {
         val itemRepo = items ?: return flowOf(LendItemDetailUiState.Missing)
         val memberRepo = members ?: return flowOf(LendItemDetailUiState.Missing)
         return combine(itemRepo.observe(itemId, currentMemberId), memberRepo.observeFamily()) { item, family -> build(item, family, didFail) }
             .catch { emit(LendItemDetailUiState.Missing) }
     }
 
-    private fun build(item: LendItem?, family: Family, didFail: Boolean): LendItemDetailUiState {
+    private fun build(item: LendItem?, family: Family, didFail: LendItem?): LendItemDetailUiState {
         val reader = family.members.firstOrNull { it.id == currentMemberId }
         if (item == null || reader == null) return LendItemDetailUiState.Missing
         me = reader
         val isMine = item.ownerId == reader.id
         val iAmBorrower = item.status != LendStatus.Available && item.borrowerId == reader.id
+        // Read from the live thing: the rules take one ask at a time, so a refused one on a thing that
+        // moved meanwhile means someone came first. Never their name: the others read only « Prêté ».
+        val lost = didFail?.takeIf { it.status != item.status || it.borrowerId != item.borrowerId }?.let {
+            if (it.status == LendStatus.Available) LendLost.AskedFirst else LendLost.ChangedFirst
+        }
         return LendItemDetailUiState.Ready(
             item = item,
             isMine = isMine,
@@ -91,7 +102,8 @@ class LendItemDetailViewModel(
             canAnswer = isMine && item.status == LendStatus.Asked,
             canReturn = (isMine || iAmBorrower) && item.status == LendStatus.Lent,
             canDropAsk = iAmBorrower && item.status == LendStatus.Asked,
-            actionFailed = didFail,
+            actionFailed = didFail != null && lost == null,
+            lostTo = lost,
         )
     }
 
@@ -128,11 +140,12 @@ class LendItemDetailViewModel(
 
     // Offline, the write lands in the cache at once: only a refusal or an error counts as failed.
     private fun perform(write: suspend () -> Unit) {
-        failed.value = false
+        val seen = (uiState.value as? LendItemDetailUiState.Ready)?.item ?: return
+        failed.value = null
         viewModelScope.launch {
             // A refusal that comes once the network is back is said too.
-            val ok = writeOrQueue(viewModelScope, writeTimeoutMillis, onLateFailure = { failed.value = true }) { write() }
-            if (!ok) failed.value = true
+            val ok = writeOrQueue(viewModelScope, writeTimeoutMillis, onLateFailure = { failed.value = seen }) { write() }
+            if (!ok) failed.value = seen
         }
     }
 }

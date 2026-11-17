@@ -264,3 +264,46 @@ describe('« D\'accord », « Pas cette fois » and « Rendu » (récit 51)', ()
     await assertFails(updateDoc(doc(as(env, OTHER_ADULT), 'lendLoans/i1'), { until: Timestamp.fromMillis(Date.now() + 30 * DAY), updatedAt: serverTimestamp() }));
   });
 });
+
+// Le 21, two adults may ask for the same thing at the same second, or the owner say « D'accord »
+// while the ask is withdrawn: the server keeps one ask, loan and flag together, and the app tells
+// the other one without a name (LendItemDetailViewModel, EXPERT-9).
+describe('at the same moment (passe « en même temps »)', () => {
+  async function server(id) {
+    let value;
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      value = { item: (await getDoc(doc(db, `lendItems/${id}`))).data(), loan: (await getDoc(doc(db, `lendLoans/${id}`))).data() };
+    });
+    return value;
+  }
+
+  test('two adults ask in the same second: exactly one ask holds, loan and flag together', async () => {
+    await stored('i1', item(ADULT));
+    const results = await Promise.allSettled([
+      askBatch(NEIGHBOUR, 'i1', ask(ADULT, NEIGHBOUR)),
+      askBatch(OTHER_ADULT, 'i1', ask(ADULT, OTHER_ADULT)),
+    ]);
+    assert.equal(results.filter((r) => r.status === 'fulfilled').length, 1);
+    const { item: thing, loan } = await server('i1');
+    assert.equal(thing.lent, true);
+    const winner = results[0].status === 'fulfilled' ? NEIGHBOUR : OTHER_ADULT;
+    assert.equal(loan.borrowerId, winner.memberId);
+  });
+
+  test('an ask sent again once the network is back, after another one, is refused', async () => {
+    await stored('i1', item(ADULT));
+    await assertSucceeds(askBatch(OTHER_ADULT, 'i1', ask(ADULT, OTHER_ADULT)));
+    await assertFails(askBatch(NEIGHBOUR, 'i1', ask(ADULT, NEIGHBOUR)));
+    assert.equal((await server('i1')).loan.borrowerId, OTHER_ADULT.memberId);
+  });
+
+  test('« D\'accord » after the ask was withdrawn is refused, and nothing is left half done', async () => {
+    await stored('i1', item(ADULT, { lent: true }), asked(ADULT, NEIGHBOUR));
+    await assertSucceeds(releaseBatch(NEIGHBOUR, 'i1'));
+    await assertFails(updateDoc(doc(as(env, ADULT), 'lendLoans/i1'), { status: 'lent', lentAt: serverTimestamp(), updatedAt: serverTimestamp() }));
+    const { item: thing, loan } = await server('i1');
+    assert.equal(thing.lent, false);
+    assert.equal(loan, undefined);
+  });
+});

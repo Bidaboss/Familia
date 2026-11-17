@@ -1,5 +1,6 @@
 // Rules of « À qui le tour ? » (PRD, récit 58). Fictional family: admin1 (admin principal),
 // adult1, adult2 in h1, adult3 in h2; kid1, a child with the app in h1. h3 has nobody with the app.
+import assert from 'node:assert/strict';
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
 import { arrayUnion, deleteDoc, doc, getDoc, serverTimestamp, setDoc, Timestamp, updateDoc } from 'firebase/firestore';
@@ -166,5 +167,46 @@ describe('exchange places', () => {
     await assertFails(updateDoc(doc(as(env, ADULT), 'turns/t1'), {
       swap: { fromId: 'h1', toId: 'h3', fromIndex: 0, toIndex: 2, byId: 'adult1', byName: 'adult1' }, updatedAt: serverTimestamp(),
     }));
+  });
+});
+
+// Le 21, two phones of the same household may say « C'est fait » at the same second, or an
+// exchange may be withdrawn while the other household accepts it: the server lets one change hold,
+// made from the rotation as it is, and the app tells the other one (TurnDetailViewModel).
+describe('at the same moment (passe « en même temps »)', () => {
+  async function current() {
+    let data;
+    await env.withSecurityRulesDisabled(async (ctx) => { data = (await getDoc(doc(ctx.firestore(), 'turns/t1'))).data(); });
+    return data;
+  }
+
+  test('two « C\'est fait » in the same second: exactly one holds, the turn moves once', async () => {
+    await stored('t1', turn(NEIGHBOUR, { history: [OLD] }));
+    const results = await Promise.allSettled([
+      updateDoc(doc(as(env, OTHER_ADULT), 'turns/t1'), done(1, 'Noël 2026')),
+      updateDoc(doc(as(env, ADULT), 'turns/t1'), done(1, 'Noël')),
+    ]);
+    assert.equal(results.filter((r) => r.status === 'fulfilled').length, 1);
+    const t = await current();
+    assert.equal(t.current, 1);
+    assert.equal(t.history.length, 2);
+  });
+
+  test('a « C\'est fait » sent again once the network is back, after another one, is refused', async () => {
+    await stored('t1', turn(NEIGHBOUR, { history: [OLD] }));
+    await assertSucceeds(updateDoc(doc(as(env, OTHER_ADULT), 'turns/t1'), done(1)));
+    await assertFails(updateDoc(doc(as(env, ADULT), 'turns/t1'), done(1)));
+    assert.equal((await current()).history.length, 2);
+  });
+
+  test('an exchange withdrawn while the other household accepts it: never accepted after', async () => {
+    const ask = { fromId: 'h2', toId: 'h1', fromIndex: 1, toIndex: 0, byId: NEIGHBOUR.memberId, byName: NEIGHBOUR.memberId };
+    // The turn of h3: the late « D'accord » of h1 cannot pass for « On passe notre tour » either.
+    // (When the exchange is between the household whose turn it is and the next one, the same
+    // write is a « On passe notre tour » of that household, which it may always say.)
+    await stored('t1', turn(ADMIN, { swap: ask, current: 2 }));
+    await assertSucceeds(updateDoc(doc(as(env, NEIGHBOUR), 'turns/t1'), { swap: null, updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(as(env, ADULT), 'turns/t1'), { householdIds: ['h2', 'h1', 'h3'], swap: null, updatedAt: serverTimestamp() }));
+    assert.deepEqual((await current()).householdIds, ['h1', 'h2', 'h3']);
   });
 });

@@ -1,6 +1,7 @@
 // Bonnes nouvelles rules (PRD, récit 32, carte AVIS-12). Fictional family: adult1, adult2 and admin2
 // (chef) in h1, admin1 (admin principal), adult3 in h2; kid1 (child with the app, parent adult1) and
 // kid2 (child without the app, parents adult2 and admin1), both in h1.
+import assert from 'node:assert/strict';
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
 import {
@@ -243,5 +244,34 @@ describe('notification setting', () => {
     await assertFails(setDoc(settings, { goodNews: 'non' }));
     await assertSucceeds(setDoc(settings, { dayBeforeReminder: true, goodNews: true, weekly: false }));
     await assertFails(setDoc(settings, { weekly: 'non' }));
+  });
+});
+
+// Le 21, the whole family reacts to the same Bonne nouvelle in the same minute: each reaction is
+// its own key, so none is lost and the counts the app shows (GoodNewsItem.reactionCounts) are right.
+describe('at the same moment (passe « en même temps »)', () => {
+  test('six members react in the same second: all six are kept, each once', async () => {
+    await stored(news(ADULT));
+    const people = [ADULT, OTHER_ADULT, NEIGHBOUR, ADMIN, SECOND_ADMIN, KID];
+    const results = await Promise.allSettled(
+      people.map((p, i) => updateDoc(ref(as(env, p)), { [`reactions.${p.memberId}`]: i % 2 === 0 ? 'heart' : 'party' })),
+    );
+    assert.deepEqual(results.map((r) => r.status), people.map(() => 'fulfilled'));
+    let reactions;
+    await env.withSecurityRulesDisabled(async (ctx) => { reactions = (await getDoc(ref(ctx.firestore()))).data().reactions; });
+    assert.equal(Object.keys(reactions).length, 6);
+    assert.equal(Object.values(reactions).filter((r) => r === 'heart').length, 3);
+  });
+
+  test('one member who changes their reaction twice in a row keeps one: the last', async () => {
+    await stored(news(ADULT));
+    const db = as(env, OTHER_ADULT);
+    await Promise.all([
+      updateDoc(ref(db), { 'reactions.adult2': 'heart' }),
+      updateDoc(ref(db), { 'reactions.adult2': 'party' }),
+    ]);
+    let reactions;
+    await env.withSecurityRulesDisabled(async (ctx) => { reactions = (await getDoc(ref(ctx.firestore()))).data().reactions; });
+    assert.deepEqual(reactions, { adult2: 'party' });
   });
 });

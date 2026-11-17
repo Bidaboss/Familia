@@ -2447,6 +2447,8 @@
     <string name="lend_photo_label">Photo de l\'objet</string>
     <string name="lend_missing_title">Cet objet n\'est plus là</string>
     <string name="lend_missing_body">Celui qui le prêtait l\'a retiré.</string>
+    <string name="lend_asked_first">Quelqu\'un vient de le demander, juste avant toi.</string>
+    <string name="lend_changed_first">Ce prêt vient de changer, juste avant toi. La fiche est à jour.</string>
     <string name="lend_action_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
     <string name="lend_edit">Modifier</string>
     <string name="lend_remove">Retirer l\'objet</string>
@@ -2800,6 +2802,7 @@
     <string name="turns_delete">Supprimer</string>
     <string name="turns_delete_title">Supprimer ce tour ?</string>
     <string name="turns_delete_body">L\'ordre et l\'historique seront effacés pour tout le monde.</string>
+    <string name="turns_someone_first">Quelqu\'un vient de le faire, juste avant toi. Le tour est à jour.</string>
     <string name="turns_action_failed">Ça n\'a pas marché. Quelqu\'un l\'a peut-être déjà fait juste avant toi : le tour est à jour, regarde de nouveau. Sinon, vérifie le réseau.</string>
     <string name="turns_create_event">Créer l\'événement</string>
     <string name="turns_done">C\'est fait</string>
