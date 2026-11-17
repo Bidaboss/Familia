@@ -118,13 +118,13 @@ fun AdministrationRoute(
             discoverInTutorial = Discover.inTutorial(flags::isOn),
             onSaveDiscoverOrder = if (flags.isOn(Feature.Discover)) viewModel::saveDiscoverOrder else null,
             presentation = presentation?.let { p -> { PresentationSection(p) } },
-            calendarLinks = calendarLinks(container, family, flags.isOn(Feature.CalendarFeed)),
+            calendarLinks = calendarLinksCard(container, family, flags.isOn(Feature.CalendarFeed)),
         )
     }
 }
 
 /** « Liens d'agenda » once the calendar link is on (always for the admin principal, who tries it). */
-private fun calendarLinks(container: AppContainer?, family: Family?, on: Boolean): (@Composable () -> Unit)? {
+private fun calendarLinksCard(container: AppContainer?, family: Family?, on: Boolean): (@Composable () -> Unit)? {
     val repository = container?.calendarFeedRepository ?: return null
     if (!on || family == null) return null
     return { CalendarLinksSection(family, repository) }
