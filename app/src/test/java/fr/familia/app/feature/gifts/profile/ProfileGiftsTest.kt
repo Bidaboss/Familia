@@ -1,5 +1,6 @@
 package fr.familia.app.feature.gifts.profile
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -18,6 +19,10 @@ import fr.familia.app.feature.gifts.GiftsScreen
 import fr.familia.app.feature.gifts.WishPreview
 import fr.familia.app.feature.gifts.notebook.giftsFor
 import fr.familia.app.feature.gifts.previewGifts
+import fr.familia.app.feature.gifts.birthdaysSection
+import androidx.compose.foundation.lazy.LazyColumn
+import fr.familia.app.feature.gifts.surpriseIdeasToRead
+import fr.familia.app.feature.presentation.LocalPresenting
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -143,5 +148,61 @@ class ProfileGiftsTest {
         compose.onNodeWithText("Elles sont sur ta fiche", substring = true).performClick()
         assertEquals(1, page)
         assertTrue(opened.isEmpty())
+    }
+
+    @Test
+    fun `with the single list, only the birthdays of others are read for a surprise`() {
+        val state = previewGifts().copy(singleList = true)
+        assertEquals(listOf("b"), surpriseIdeasToRead(state))
+        assertTrue(surpriseIdeasToRead(previewGifts()).isEmpty())
+        val mine = state.copy(birthdays = state.birthdays.map { it.copy(member = state.sections.first { s -> s.isMe }.member) })
+        assertTrue(surpriseIdeasToRead(mine).isEmpty())
+        // A child without the app whose lists I keep: their adults see a surprise for them (retour du 18/11).
+        val kid = state.sections.first { it.member.id == "c" }.member
+        val forKid = state.copy(birthdays = state.birthdays.map { it.copy(member = kid) })
+        assertEquals(listOf("c"), surpriseIdeasToRead(forKid))
+    }
+
+    private fun showBirthdays(presenting: Boolean, opened: MutableList<String>) {
+        // With the single list there is no list for an occasion: only the ideas of the family.
+        val preview = previewGifts()
+        val state = preview.copy(singleList = true, surprisePreparedFor = setOf("b"), sections = preview.sections.map { it.copy(lists = emptyList()) })
+        compose.setContent {
+            FamiliaTheme {
+                CompositionLocalProvider(LocalPresenting provides presenting) {
+                    // The birthdays alone: the whole tab may push the card out of the test screen.
+                    LazyColumn { birthdaysSection(state, onAllBirthdays = {}, onPrepareSurprise = {}, onOpenList = { opened += it }) }
+                }
+            }
+        }
+        compose.waitForIdle()
+    }
+
+    @Test
+    fun `a surprise idea shows on the birthday card and opens the ideas`() {
+        val opened = mutableListOf<String>()
+        showBirthdays(presenting = false, opened)
+        compose.onNodeWithText("Une surprise est déjà en préparation").performClick()
+        assertEquals(listOf("ideas-b"), opened)
+        compose.onNodeWithText("Préparer une surprise").assertExists()
+    }
+
+    @Test
+    fun `never while presenting`() {
+        showBirthdays(presenting = true, mutableListOf())
+        assertEquals(0, compose.onAllNodesWithText("Une surprise est déjà en préparation").fetchSemanticsNodes().size)
+    }
+
+    @Test
+    fun `on the page, a surprise idea opens the ideas`() {
+        val opened = mutableListOf<String>()
+        compose.setContent {
+            FamiliaTheme {
+                ProfileGivingContent(GivingState(emptyList(), emptyList(), surpriseIdea = true), ines, notebookOn = true, failed = false, onOpenEntry = {}, onOpenList = { opened += it }, onOpenNotebook = {}, onAddIdea = {})
+            }
+        }
+        compose.onNodeWithText("Une surprise est déjà en préparation").performClick()
+        assertEquals(listOf("ideas-b"), opened)
+        assertEquals(0, compose.onAllNodesWithText("Rien pour l'instant", substring = true).fetchSemanticsNodes().size)
     }
 }

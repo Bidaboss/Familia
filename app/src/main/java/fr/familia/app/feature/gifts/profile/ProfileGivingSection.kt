@@ -31,6 +31,7 @@ import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.NotebookEntry
+import fr.familia.app.core.model.ideasListId
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.ui.ClayCard
@@ -55,7 +56,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 /** What I give to one member: my notebook for them, and the surprises I see being prepared. */
-data class GivingState(val entries: List<NotebookEntry>, val surprises: List<GiftList>)
+data class GivingState(
+    val entries: List<NotebookEntry>,
+    val surprises: List<GiftList>,
+    /** With the single list: their ideas of the family hold a surprise idea, kept from them. */
+    val surpriseIdea: Boolean = false,
+)
 
 /**
  * « Ce que je lui offre » on the page of [memberId] (retour d'essai, 17/11): my reservations, my
@@ -85,7 +91,15 @@ class ProfileGivingViewModel(
             emit(emptyList())
         }
 
-    val state: StateFlow<GivingState?> = combine(entries, surprises) { e, s -> GivingState(e, s) }
+    // With the single list a surprise is an idea of the family (retour d'essai du 17/11).
+    private val surpriseIdea = (gifts?.takeIf { singleList }?.observeItems(ideasListId(memberId), hiddenFromMe = false) ?: flowOf(emptyList()))
+        .map { items -> items.any { !it.visibleToBeneficiary } }
+        .catch { e ->
+            if (e is CancellationException) throw e
+            emit(false)
+        }
+
+    val state: StateFlow<GivingState?> = combine(entries, surprises, surpriseIdea) { e, s, i -> GivingState(e, s, i) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 }
 
@@ -187,12 +201,15 @@ fun ProfileGivingContent(
                     modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                 )
             }
-            if (state.entries.isEmpty() && state.surprises.isEmpty()) {
+            if (state.entries.isEmpty() && state.surprises.isEmpty() && !state.surpriseIdea) {
                 Text(stringResource(R.string.profile_giving_empty), style = MaterialTheme.typography.bodyLarge)
             }
             state.entries.forEach { entry -> GiftRow(entry, variant) { onOpenEntry(entry) } }
             state.surprises.forEach { list ->
                 ClayLink(stringResource(R.string.profile_giving_surprise, list.title), onClick = { onOpenList(list.id) })
+            }
+            if (state.surpriseIdea) {
+                ClayLink(stringResource(R.string.gifts_surprise_prepared), onClick = { onOpenList(ideasListId(member.id)) })
             }
             if (notebookOn) {
                 ClayLink(stringResource(R.string.notebook_add_idea), onClick = onAddIdea)

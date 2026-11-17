@@ -694,6 +694,7 @@
         <item quantity="one">%d surprise en préparation</item>
         <item quantity="other">%d surprises en préparation</item>
     </plurals>
+    <string name="gifts_surprise_prepared">Une surprise est déjà en préparation</string>
     <string name="gifts_all_birthdays">Tous les anniversaires</string>
     <string name="gifts_archived_title">Listes passées</string>
     <string name="gifts_archived_for">Pour %1$s · %2$s</string>
