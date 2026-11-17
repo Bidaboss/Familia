@@ -291,6 +291,16 @@ describe('« Pas dispo » when several people were warned (présentation R1 bis)
     await assertFails(updateDoc(ref(as(env, OTHER_ADULT), 'r2'), unavailable(OTHER_ADULT)));
   });
 
+  test('the only person warned answers « Je ne peux pas », not « Pas dispo »', async () => {
+    await stored(request(ADULT, ['adult2']));
+    await assertFails(updateDoc(ref(as(env, OTHER_ADULT)), unavailable(OTHER_ADULT)));
+  });
+
+  test('a new request has nobody « Pas dispo »', async () => {
+    await assertFails(setDoc(ref(as(env, ADULT), 'r3'), request(ADULT, ['adult2', 'adult3'], { unavailableIds: ['adult2'] })));
+    await assertSucceeds(setDoc(ref(as(env, ADULT), 'r3'), request(ADULT, ['adult2', 'adult3'], { unavailableIds: [] })));
+  });
+
   test('« Pas dispo » changes nothing else', async () => {
     await stored(request(ADULT, ['adult2', 'adult3']));
     await assertFails(updateDoc(ref(as(env, OTHER_ADULT)), { ...unavailable(OTHER_ADULT), declinedBy: 'adult2' }));

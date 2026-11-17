@@ -765,6 +765,7 @@ service cloud.firestore {
       let before = resource.data.get('unavailableIds', []);
       let after = request.resource.data.get('unavailableIds', []);
       return resource.data.status == 'open'
+        && resource.data.notifyIds.size() > 1
         && helpChanges(['unavailableIds'])
         && myMemberId() in resource.data.notifyIds
         && !(myMemberId() in before)
@@ -817,6 +818,7 @@ service cloud.firestore {
         && request.resource.data.volunteerId == null
         && request.resource.data.volunteerName == null
         && request.resource.data.declinedBy == null
+        && request.resource.data.get('unavailableIds', []).size() == 0
         && request.resource.data.thankedAt == null
         && request.resource.data.get('volunteerNote', null) == null
         && isValidHelpPhoto(requestId, request.resource.data, null)
