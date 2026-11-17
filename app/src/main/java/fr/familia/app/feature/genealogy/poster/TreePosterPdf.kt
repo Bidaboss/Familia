@@ -11,6 +11,8 @@ import android.graphics.pdf.PdfDocument
 import android.text.TextPaint
 import android.text.TextUtils
 import fr.familia.app.core.model.KinLinkKind
+import fr.familia.app.core.model.TreeBox
+import fr.familia.app.core.model.treeParentLines
 import fr.familia.app.core.print.PRINT_CLAY
 import fr.familia.app.core.print.PRINT_CLAY_DEEP
 import fr.familia.app.core.print.PRINT_INK
@@ -114,25 +116,9 @@ private class PosterDrawing(private val content: PosterContent) {
             val (left, right) = if (a.x < b.x) a to b else b to a
             canvas.drawLine(left.x + left.r, left.y, right.x - right.r, right.y, line)
         }
-        // Parents to child: down from the middle of the parents, across, then down to the round.
-        spots.keys.forEach { childId ->
-            val child = spots.getValue(childId)
-            val parents = content.parentsOf(childId).mapNotNull { spots[it] }
-            if (parents.isEmpty()) return@forEach
-            val fromX = parents.map { it.x }.average().toFloat()
-            val fromY = parents.maxOf { it.bottom } + 2f * k
-            val toY = child.y - child.r
-            val midY = (fromY + toY) / 2
-            canvas.drawPath(
-                Path().apply {
-                    moveTo(fromX, fromY)
-                    lineTo(fromX, midY)
-                    lineTo(child.x, midY)
-                    lineTo(child.x, toY)
-                },
-                line,
-            )
-        }
+        // Parents to children: one drop per couple or parent, one bar per family (retour du 17/11).
+        val placed = spots.mapValues { (_, spot) -> TreeBox(spot.x - spot.r, spot.y - spot.r, spot.x + spot.r, spot.bottom) }
+        treeParentLines(content.links, placed).forEach { canvas.drawLine(it.x1, it.y1, it.x2, it.y2, line) }
 
         content.rows.flatten().forEach { person ->
             val spot = spots.getValue(person.id)
