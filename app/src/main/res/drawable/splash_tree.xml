@@ -1,0 +1,587 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The tree of the icon growing on the start screen of Android 12 and later (spec DESIGN « animation
+  d'ouverture », part 1, 17/11): the sun (0 to 350 ms), the trunk from the bottom (150 to 450 ms),
+  the crown with a light bounce (300 to 650 ms), then the fruits in four waves (550 to 900 ms).
+  Built from ic_launcher_foreground.xml; only groups that scale, no path morphing. Every group
+  starts at scale 0: with animations off, Android shows the last frame, the whole tree.
+-->
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    <aapt:attr name="android:drawable">
+        <vector
+            android:width="240dp"
+            android:height="240dp"
+            android:viewportWidth="108"
+            android:viewportHeight="108">
+        <group android:name="sun" android:pivotX="54" android:pivotY="54" android:scaleX="0" android:scaleY="0">
+            <path
+                android:pathData="M21,54a33,33 0,1 1,66,0a33,33 0,1 1,-66,0z"
+                android:fillColor="#FFF6D27A" />
+        </group>
+        <group android:name="trunk" android:pivotX="54" android:pivotY="92" android:scaleY="0">
+            <path
+                android:pathData="M54 70 Q42 72.8 30 84"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="2.4"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M54 70 Q47 74 40 90"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="2.4"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M54 70 Q54 74.4 54 92"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="2.4"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M54 70 Q61 74 68 90"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="2.4"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M54 70 Q66 72.8 78 84"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="2.4"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M54 70 Q39 70.8 24 74"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="2.4"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M54 70 Q69 70.8 84 74"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="2.4"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M49 72 Q51 64 50 56 L58 56 Q57 64 59 72 Z"
+                android:fillColor="#FF5A3A22" />
+        </group>
+        <group android:name="crown" android:pivotX="54" android:pivotY="57" android:scaleX="0" android:scaleY="0">
+            <path
+                android:pathData="M54 57 Q43.48245903371273 61.472322293210695 38.964918067425465 55.472322293210695"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="2.4"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M54 57 Q43.48245903371273 50.5276777067893 38.964918067425465 44.5276777067893"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="2.4"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M54 57 Q46.41138850919163 42.89356729137613 44.82277701838326 36.89356729137613"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="2.4"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M54 57 Q61.58861149080837 42.89356729137613 63.17722298161674 36.89356729137613"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="2.4"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M54 57 Q64.51754096628727 50.5276777067893 69.03508193257454 44.5276777067893"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="2.4"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M54 57 Q64.51754096628727 61.4723222932107 69.03508193257454 55.4723222932107"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="2.4"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M38.964918067425465 55.472322293210695 Q32.66635102119088 40.49794671174567 32.367783974956296 38.49794671174567"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="1.68"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M38.964918067425465 44.5276777067893 Q37.73143238958558 30.367783974956286 42.49794671174568 28.367783974956286"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="1.68"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M44.82277701838326 36.89356729137613 Q52.41138850919163 27.5 54 25.5"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="1.68"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M63.17722298161674 36.89356729137613 Q67.33963813493554 30.367783974956293 65.50205328825433 28.367783974956293"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="1.68"
+                android:strokeLineCap="round" />
+            <path
+                android:pathData="M69.03508193257454 44.5276777067893 Q75.33364897880912 40.497946711745676 75.6322160250437 38.497946711745676"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="1.68"
+                android:strokeLineCap="round" />
+            <group android:rotation="-30" android:pivotX="33" android:pivotY="58">
+                <path
+                    android:pathData="M30.8,58a2.2,4 0,1 1,4.4,0a2.2,4 0,1 1,-4.4,0z"
+                    android:fillColor="#FF8A9A5B" />
+            </group>
+            <group android:rotation="30" android:pivotX="75" android:pivotY="58">
+                <path
+                    android:pathData="M72.8,58a2.2,4 0,1 1,4.4,0a2.2,4 0,1 1,-4.4,0z"
+                    android:fillColor="#FF8A9A5B" />
+            </group>
+            <group android:rotation="-60" android:pivotX="28" android:pivotY="44">
+                <path
+                    android:pathData="M25.8,44a2.2,4 0,1 1,4.4,0a2.2,4 0,1 1,-4.4,0z"
+                    android:fillColor="#FF8A9A5B" />
+            </group>
+            <group android:rotation="60" android:pivotX="80" android:pivotY="44">
+                <path
+                    android:pathData="M77.8,44a2.2,4 0,1 1,4.4,0a2.2,4 0,1 1,-4.4,0z"
+                    android:fillColor="#FF8A9A5B" />
+            </group>
+            <group android:rotation="-20" android:pivotX="36" android:pivotY="24">
+                <path
+                    android:pathData="M33.8,24a2.2,4 0,1 1,4.4,0a2.2,4 0,1 1,-4.4,0z"
+                    android:fillColor="#FF8A9A5B" />
+            </group>
+            <group android:rotation="20" android:pivotX="72" android:pivotY="24">
+                <path
+                    android:pathData="M69.8,24a2.2,4 0,1 1,4.4,0a2.2,4 0,1 1,-4.4,0z"
+                    android:fillColor="#FF8A9A5B" />
+            </group>
+            <group android:rotation="0" android:pivotX="54" android:pivotY="32">
+                <path
+                    android:pathData="M51.8,32a2.2,4 0,1 1,4.4,0a2.2,4 0,1 1,-4.4,0z"
+                    android:fillColor="#FF8A9A5B" />
+            </group>
+            <group android:rotation="-15" android:pivotX="47" android:pivotY="28">
+                <path
+                    android:pathData="M44.8,28a2.2,4 0,1 1,4.4,0a2.2,4 0,1 1,-4.4,0z"
+                    android:fillColor="#FF8A9A5B" />
+            </group>
+            <group android:rotation="15" android:pivotX="61" android:pivotY="28">
+                <path
+                    android:pathData="M58.8,28a2.2,4 0,1 1,4.4,0a2.2,4 0,1 1,-4.4,0z"
+                    android:fillColor="#FF8A9A5B" />
+            </group>
+            <group android:rotation="-80" android:pivotX="24" android:pivotY="52">
+                <path
+                    android:pathData="M21.8,52a2.2,4 0,1 1,4.4,0a2.2,4 0,1 1,-4.4,0z"
+                    android:fillColor="#FF8A9A5B" />
+            </group>
+            <group android:rotation="80" android:pivotX="84" android:pivotY="52">
+                <path
+                    android:pathData="M81.8,52a2.2,4 0,1 1,4.4,0a2.2,4 0,1 1,-4.4,0z"
+                    android:fillColor="#FF8A9A5B" />
+            </group>
+            <group android:rotation="-40" android:pivotX="44" android:pivotY="58">
+                <path
+                    android:pathData="M41.8,58a2.2,4 0,1 1,4.4,0a2.2,4 0,1 1,-4.4,0z"
+                    android:fillColor="#FF8A9A5B" />
+            </group>
+            <group android:rotation="40" android:pivotX="64" android:pivotY="58">
+                <path
+                    android:pathData="M61.8,58a2.2,4 0,1 1,4.4,0a2.2,4 0,1 1,-4.4,0z"
+                    android:fillColor="#FF8A9A5B" />
+            </group>
+        </group>
+        <group android:name="fruits1" android:pivotX="54" android:pivotY="44" android:scaleX="0" android:scaleY="0">
+            <path
+                android:pathData="M42.2,51a6.3,6.3 0,1 1,12.6,0a6.3,6.3 0,1 1,-12.6,0z"
+                android:fillColor="#FFF6D27A" />
+            <path
+                android:pathData="M43.1,51a5.4,5.4 0,1 1,10.8,0a5.4,5.4 0,1 1,-10.8,0z"
+                android:fillColor="#FF3E6B8A" />
+            <path
+                android:pathData="M44.99,49.11a1.62,1.62 0,1 1,3.24,0a1.62,1.62 0,1 1,-3.24,0z"
+                android:fillColor="#73FFFFFF" />
+            <path
+                android:pathData="M48.5 46.14 q0.81 -2.7 0.27 -3.78"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="0.972"
+                android:strokeLineCap="round" />
+            <group android:rotation="-25" android:pivotX="50.768" android:pivotY="44.952">
+                <path
+                    android:pathData="M48.5,44.952a2.268,1.08 0,1 1,4.536,0a2.268,1.08 0,1 1,-4.536,0z"
+                    android:fillColor="#FF5E8C4A" />
+            </group>
+            <path
+                android:pathData="M53.2,51a6.3,6.3 0,1 1,12.6,0a6.3,6.3 0,1 1,-12.6,0z"
+                android:fillColor="#FFF6D27A" />
+            <path
+                android:pathData="M54.1,51a5.4,5.4 0,1 1,10.8,0a5.4,5.4 0,1 1,-10.8,0z"
+                android:fillColor="#FF9B4E8C" />
+            <path
+                android:pathData="M55.99,49.11a1.62,1.62 0,1 1,3.24,0a1.62,1.62 0,1 1,-3.24,0z"
+                android:fillColor="#73FFFFFF" />
+            <path
+                android:pathData="M59.5 46.14 q0.81 -2.7 0.27 -3.78"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="0.972"
+                android:strokeLineCap="round" />
+            <group android:rotation="-25" android:pivotX="61.768" android:pivotY="44.952">
+                <path
+                    android:pathData="M59.5,44.952a2.268,1.08 0,1 1,4.536,0a2.268,1.08 0,1 1,-4.536,0z"
+                    android:fillColor="#FF5E8C4A" />
+            </group>
+        </group>
+        <group android:name="fruits2" android:pivotX="54" android:pivotY="44" android:scaleX="0" android:scaleY="0">
+            <path
+                android:pathData="M33.165,55.472a5.8,5.8 0,1 1,11.6,0a5.8,5.8 0,1 1,-11.6,0z"
+                android:fillColor="#FFF6D27A" />
+            <path
+                android:pathData="M34.065,55.472a4.9,4.9 0,1 1,9.8,0a4.9,4.9 0,1 1,-9.8,0z"
+                android:fillColor="#FFD9603B" />
+            <path
+                android:pathData="M35.78,53.757a1.47,1.47 0,1 1,2.94,0a1.47,1.47 0,1 1,-2.94,0z"
+                android:fillColor="#73FFFFFF" />
+            <path
+                android:pathData="M38.964918067425465 51.0623222932107 q0.735 -2.45 0.24500000000000002 -3.43"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="0.882"
+                android:strokeLineCap="round" />
+            <group android:rotation="-25" android:pivotX="41.023" android:pivotY="49.984">
+                <path
+                    android:pathData="M38.965,49.984a2.058,0.98 0,1 1,4.116,0a2.058,0.98 0,1 1,-4.116,0z"
+                    android:fillColor="#FF5E8C4A" />
+            </group>
+            <path
+                android:pathData="M33.165,44.528a5.8,5.8 0,1 1,11.6,0a5.8,5.8 0,1 1,-11.6,0z"
+                android:fillColor="#FFF6D27A" />
+            <path
+                android:pathData="M34.065,44.528a4.9,4.9 0,1 1,9.8,0a4.9,4.9 0,1 1,-9.8,0z"
+                android:fillColor="#FFE0A21F" />
+            <path
+                android:pathData="M35.78,42.813a1.47,1.47 0,1 1,2.94,0a1.47,1.47 0,1 1,-2.94,0z"
+                android:fillColor="#73FFFFFF" />
+            <path
+                android:pathData="M38.964918067425465 40.117677706789294 q0.735 -2.45 0.24500000000000002 -3.43"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="0.882"
+                android:strokeLineCap="round" />
+            <group android:rotation="-25" android:pivotX="41.023" android:pivotY="39.04">
+                <path
+                    android:pathData="M38.965,39.04a2.058,0.98 0,1 1,4.116,0a2.058,0.98 0,1 1,-4.116,0z"
+                    android:fillColor="#FF5E8C4A" />
+            </group>
+            <path
+                android:pathData="M39.023,36.894a5.8,5.8 0,1 1,11.6,0a5.8,5.8 0,1 1,-11.6,0z"
+                android:fillColor="#FFF6D27A" />
+            <path
+                android:pathData="M39.923,36.894a4.9,4.9 0,1 1,9.8,0a4.9,4.9 0,1 1,-9.8,0z"
+                android:fillColor="#FF2F8A6E" />
+            <path
+                android:pathData="M41.638,35.179a1.47,1.47 0,1 1,2.94,0a1.47,1.47 0,1 1,-2.94,0z"
+                android:fillColor="#73FFFFFF" />
+            <path
+                android:pathData="M44.82277701838326 32.48356729137613 q0.735 -2.45 0.24500000000000002 -3.43"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="0.882"
+                android:strokeLineCap="round" />
+            <group android:rotation="-25" android:pivotX="46.881" android:pivotY="31.406">
+                <path
+                    android:pathData="M44.823,31.406a2.058,0.98 0,1 1,4.116,0a2.058,0.98 0,1 1,-4.116,0z"
+                    android:fillColor="#FF5E8C4A" />
+            </group>
+        </group>
+        <group android:name="fruits3" android:pivotX="54" android:pivotY="44" android:scaleX="0" android:scaleY="0">
+            <path
+                android:pathData="M57.377,36.894a5.8,5.8 0,1 1,11.6,0a5.8,5.8 0,1 1,-11.6,0z"
+                android:fillColor="#FFF6D27A" />
+            <path
+                android:pathData="M58.277,36.894a4.9,4.9 0,1 1,9.8,0a4.9,4.9 0,1 1,-9.8,0z"
+                android:fillColor="#FF5562B5" />
+            <path
+                android:pathData="M59.992,35.179a1.47,1.47 0,1 1,2.94,0a1.47,1.47 0,1 1,-2.94,0z"
+                android:fillColor="#73FFFFFF" />
+            <path
+                android:pathData="M63.17722298161674 32.48356729137613 q0.735 -2.45 0.24500000000000002 -3.43"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="0.882"
+                android:strokeLineCap="round" />
+            <group android:rotation="-25" android:pivotX="65.235" android:pivotY="31.406">
+                <path
+                    android:pathData="M63.177,31.406a2.058,0.98 0,1 1,4.116,0a2.058,0.98 0,1 1,-4.116,0z"
+                    android:fillColor="#FF5E8C4A" />
+            </group>
+            <path
+                android:pathData="M63.235,44.528a5.8,5.8 0,1 1,11.6,0a5.8,5.8 0,1 1,-11.6,0z"
+                android:fillColor="#FFF6D27A" />
+            <path
+                android:pathData="M64.135,44.528a4.9,4.9 0,1 1,9.8,0a4.9,4.9 0,1 1,-9.8,0z"
+                android:fillColor="#FFC2456A" />
+            <path
+                android:pathData="M65.85,42.813a1.47,1.47 0,1 1,2.94,0a1.47,1.47 0,1 1,-2.94,0z"
+                android:fillColor="#73FFFFFF" />
+            <path
+                android:pathData="M69.03508193257454 40.117677706789294 q0.735 -2.45 0.24500000000000002 -3.43"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="0.882"
+                android:strokeLineCap="round" />
+            <group android:rotation="-25" android:pivotX="71.093" android:pivotY="39.04">
+                <path
+                    android:pathData="M69.035,39.04a2.058,0.98 0,1 1,4.116,0a2.058,0.98 0,1 1,-4.116,0z"
+                    android:fillColor="#FF5E8C4A" />
+            </group>
+            <path
+                android:pathData="M63.235,55.472a5.8,5.8 0,1 1,11.6,0a5.8,5.8 0,1 1,-11.6,0z"
+                android:fillColor="#FFF6D27A" />
+            <path
+                android:pathData="M64.135,55.472a4.9,4.9 0,1 1,9.8,0a4.9,4.9 0,1 1,-9.8,0z"
+                android:fillColor="#FF7A55B0" />
+            <path
+                android:pathData="M65.85,53.757a1.47,1.47 0,1 1,2.94,0a1.47,1.47 0,1 1,-2.94,0z"
+                android:fillColor="#73FFFFFF" />
+            <path
+                android:pathData="M69.03508193257454 51.0623222932107 q0.735 -2.45 0.24500000000000002 -3.43"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="0.882"
+                android:strokeLineCap="round" />
+            <group android:rotation="-25" android:pivotX="71.093" android:pivotY="49.984">
+                <path
+                    android:pathData="M69.035,49.984a2.058,0.98 0,1 1,4.116,0a2.058,0.98 0,1 1,-4.116,0z"
+                    android:fillColor="#FF5E8C4A" />
+            </group>
+        </group>
+        <group android:name="fruits4" android:pivotX="54" android:pivotY="44" android:scaleX="0" android:scaleY="0">
+            <path
+                android:pathData="M27.168,38.498a5.2,5.2 0,1 1,10.4,0a5.2,5.2 0,1 1,-10.4,0z"
+                android:fillColor="#FFF6D27A" />
+            <path
+                android:pathData="M28.068,38.498a4.3,4.3 0,1 1,8.6,0a4.3,4.3 0,1 1,-8.6,0z"
+                android:fillColor="#FF2D7FA8" />
+            <path
+                android:pathData="M29.573,36.993a1.29,1.29 0,1 1,2.58,0a1.29,1.29 0,1 1,-2.58,0z"
+                android:fillColor="#73FFFFFF" />
+            <path
+                android:pathData="M32.367783974956296 34.62794671174567 q0.6449999999999999 -2.15 0.215 -3.01"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="0.774"
+                android:strokeLineCap="round" />
+            <group android:rotation="-25" android:pivotX="34.174" android:pivotY="33.682">
+                <path
+                    android:pathData="M32.368,33.682a1.806,0.86 0,1 1,3.612,0a1.806,0.86 0,1 1,-3.612,0z"
+                    android:fillColor="#FF5E8C4A" />
+            </group>
+            <path
+                android:pathData="M37.298,28.368a5.2,5.2 0,1 1,10.4,0a5.2,5.2 0,1 1,-10.4,0z"
+                android:fillColor="#FFF6D27A" />
+            <path
+                android:pathData="M38.198,28.368a4.3,4.3 0,1 1,8.6,0a4.3,4.3 0,1 1,-8.6,0z"
+                android:fillColor="#FFF2B33D" />
+            <path
+                android:pathData="M39.703,26.863a1.29,1.29 0,1 1,2.58,0a1.29,1.29 0,1 1,-2.58,0z"
+                android:fillColor="#73FFFFFF" />
+            <path
+                android:pathData="M42.49794671174568 24.497783974956285 q0.6449999999999999 -2.15 0.215 -3.01"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="0.774"
+                android:strokeLineCap="round" />
+            <group android:rotation="-25" android:pivotX="44.304" android:pivotY="23.552">
+                <path
+                    android:pathData="M42.498,23.552a1.806,0.86 0,1 1,3.612,0a1.806,0.86 0,1 1,-3.612,0z"
+                    android:fillColor="#FF5E8C4A" />
+            </group>
+            <path
+                android:pathData="M60.302,28.368a5.2,5.2 0,1 1,10.4,0a5.2,5.2 0,1 1,-10.4,0z"
+                android:fillColor="#FFF6D27A" />
+            <path
+                android:pathData="M61.202,28.368a4.3,4.3 0,1 1,8.6,0a4.3,4.3 0,1 1,-8.6,0z"
+                android:fillColor="#FFE2574C" />
+            <path
+                android:pathData="M62.707,26.863a1.29,1.29 0,1 1,2.58,0a1.29,1.29 0,1 1,-2.58,0z"
+                android:fillColor="#73FFFFFF" />
+            <path
+                android:pathData="M65.50205328825433 24.497783974956292 q0.6449999999999999 -2.15 0.215 -3.01"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="0.774"
+                android:strokeLineCap="round" />
+            <group android:rotation="-25" android:pivotX="67.308" android:pivotY="23.552">
+                <path
+                    android:pathData="M65.502,23.552a1.806,0.86 0,1 1,3.612,0a1.806,0.86 0,1 1,-3.612,0z"
+                    android:fillColor="#FF5E8C4A" />
+            </group>
+            <path
+                android:pathData="M70.432,38.498a5.2,5.2 0,1 1,10.4,0a5.2,5.2 0,1 1,-10.4,0z"
+                android:fillColor="#FFF6D27A" />
+            <path
+                android:pathData="M71.332,38.498a4.3,4.3 0,1 1,8.6,0a4.3,4.3 0,1 1,-8.6,0z"
+                android:fillColor="#FFE27A3E" />
+            <path
+                android:pathData="M72.837,36.993a1.29,1.29 0,1 1,2.58,0a1.29,1.29 0,1 1,-2.58,0z"
+                android:fillColor="#73FFFFFF" />
+            <path
+                android:pathData="M75.6322160250437 34.62794671174568 q0.6449999999999999 -2.15 0.215 -3.01"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="0.774"
+                android:strokeLineCap="round" />
+            <group android:rotation="-25" android:pivotX="77.438" android:pivotY="33.682">
+                <path
+                    android:pathData="M75.632,33.682a1.806,0.86 0,1 1,3.612,0a1.806,0.86 0,1 1,-3.612,0z"
+                    android:fillColor="#FF5E8C4A" />
+            </group>
+            <path
+                android:pathData="M49.5,25.5a4.5,4.5 0,1 1,9,0a4.5,4.5 0,1 1,-9,0z"
+                android:fillColor="#FFF6D27A" />
+            <path
+                android:pathData="M50.4,25.5a3.6,3.6 0,1 1,7.2,0a3.6,3.6 0,1 1,-7.2,0z"
+                android:fillColor="#FF3BA39A" />
+            <path
+                android:pathData="M51.66,24.24a1.08,1.08 0,1 1,2.16,0a1.08,1.08 0,1 1,-2.16,0z"
+                android:fillColor="#73FFFFFF" />
+            <path
+                android:pathData="M54 22.259999999999998 q0.54 -1.8 0.18000000000000002 -2.52"
+                android:strokeColor="#FF5A3A22"
+                android:strokeWidth="0.648"
+                android:strokeLineCap="round" />
+            <group android:rotation="-25" android:pivotX="55.512" android:pivotY="21.468">
+                <path
+                    android:pathData="M54,21.468a1.512,0.72 0,1 1,3.024,0a1.512,0.72 0,1 1,-3.024,0z"
+                    android:fillColor="#FF5E8C4A" />
+            </group>
+        </group>
+    </vector>
+    </aapt:attr>
+    <target android:name="sun">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="scaleX"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:valueType="floatType"
+                    android:startOffset="0"
+                    android:duration="350"
+                    android:interpolator="@android:interpolator/decelerate_quad" />
+                <objectAnimator
+                    android:propertyName="scaleY"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:valueType="floatType"
+                    android:startOffset="0"
+                    android:duration="350"
+                    android:interpolator="@android:interpolator/decelerate_quad" />
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="trunk">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="scaleY"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:valueType="floatType"
+                    android:startOffset="150"
+                    android:duration="300"
+                    android:interpolator="@android:interpolator/decelerate_quad" />
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="crown">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="scaleX"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:valueType="floatType"
+                    android:startOffset="300"
+                    android:duration="350"
+                    android:interpolator="@android:interpolator/overshoot" />
+                <objectAnimator
+                    android:propertyName="scaleY"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:valueType="floatType"
+                    android:startOffset="300"
+                    android:duration="350"
+                    android:interpolator="@android:interpolator/overshoot" />
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="fruits1">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="scaleX"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:valueType="floatType"
+                    android:startOffset="550"
+                    android:duration="80"
+                    android:interpolator="@android:interpolator/overshoot" />
+                <objectAnimator
+                    android:propertyName="scaleY"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:valueType="floatType"
+                    android:startOffset="550"
+                    android:duration="80"
+                    android:interpolator="@android:interpolator/overshoot" />
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="fruits2">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="scaleX"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:valueType="floatType"
+                    android:startOffset="640"
+                    android:duration="80"
+                    android:interpolator="@android:interpolator/overshoot" />
+                <objectAnimator
+                    android:propertyName="scaleY"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:valueType="floatType"
+                    android:startOffset="640"
+                    android:duration="80"
+                    android:interpolator="@android:interpolator/overshoot" />
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="fruits3">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="scaleX"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:valueType="floatType"
+                    android:startOffset="730"
+                    android:duration="80"
+                    android:interpolator="@android:interpolator/overshoot" />
+                <objectAnimator
+                    android:propertyName="scaleY"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:valueType="floatType"
+                    android:startOffset="730"
+                    android:duration="80"
+                    android:interpolator="@android:interpolator/overshoot" />
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="fruits4">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="scaleX"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:valueType="floatType"
+                    android:startOffset="820"
+                    android:duration="80"
+                    android:interpolator="@android:interpolator/overshoot" />
+                <objectAnimator
+                    android:propertyName="scaleY"
+                    android:valueFrom="0"
+                    android:valueTo="1"
+                    android:valueType="floatType"
+                    android:startOffset="820"
+                    android:duration="80"
+                    android:interpolator="@android:interpolator/overshoot" />
+            </set>
+        </aapt:attr>
+    </target>
+</animated-vector>

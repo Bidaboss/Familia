@@ -1074,3 +1074,15 @@ Une limite connue : un téléphone sous Android 8 ne sait pas ouvrir les photos 
 4. Mode avion, puis « Faire le livre » avec des photos jamais ouvertes sur ce téléphone. **Attendu :** « Le livre n'a pas pu être fait. Vérifie ta connexion, puis réessaie. »
 5. Sur un téléphone presque plein (moins de 100 Mo libres), « Faire le livre photo ». **Attendu :** « Il n'y a plus assez de place sur le téléphone pour ce fichier… ». Libère de la place, puis réessaie : le livre se fait.
 6. Fais aussi le livre de recettes et l'affiche de l'arbre avec photos. **Attendu :** les deux se font et s'ouvrent dans l'appli de partage, et les photos d'enfants n'y sont que pour leurs parents.
+
+## L'arbre qui pousse au démarrage (Android 12 et plus)
+
+Sur un téléphone en Android 12 ou plus récent. Pour le savoir : Paramètres, puis « À propos du téléphone », puis « Version d'Android ».
+
+1. Ferme Familia complètement : ouvre les applis récentes et balaie Familia vers le haut.
+2. Touche l'icône de Familia. **Attendu :** sur le fond crème, le soleil apparaît, puis le tronc pousse de bas en haut, le feuillage s'ouvre avec un petit rebond, et les fruits sortent en quatre vagues. Ensuite, l'appli s'ouvre comme d'habitude, sans attendre plus longtemps qu'avant.
+3. Recommence en mode sombre (Paramètres, puis Affichage, puis « Thème sombre »). **Attendu :** le même arbre, sur un fond brun foncé.
+4. Dans Paramètres, puis Accessibilité, allume « Supprimer les animations », puis recommence l'étape 1. **Attendu :** l'arbre entier s'affiche d'un coup, sans mouvement. Éteins ensuite ce réglage.
+5. Sur un téléphone en Android 11 ou plus ancien, s'il y en a un dans la famille. **Attendu :** le démarrage est le même qu'avant.
+
+Si quelque chose ne va pas le 20 au soir, préviens [DEV] : on revient à l'icône fixe en retirant un seul changement.

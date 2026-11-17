@@ -130,6 +130,13 @@ fun TurnDetailScreen(state: TurnDetailUiState, actions: TurnDetailActions, onBac
             dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
+    if (success?.someoneFirst == true) {
+        AlertDialog(
+            onDismissRequest = actions.onDismissFailure,
+            text = { Text(stringResource(R.string.turns_someone_first)) },
+            confirmButton = { TextButton(onClick = actions.onDismissFailure) { Text(stringResource(R.string.action_ok)) } },
+        )
+    }
     if (success?.failed == true) {
         AlertDialog(
             onDismissRequest = actions.onDismissFailure,

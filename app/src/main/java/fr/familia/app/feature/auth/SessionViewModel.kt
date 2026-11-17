@@ -3,10 +3,14 @@ package fr.familia.app.feature.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.MemberRepository
+import fr.familia.app.core.model.Member
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
@@ -80,6 +84,7 @@ class SessionViewModel(
 
     /** Leaves the current account, for example to try another Google address. */
     fun signOut() {
+        membership?.cancel()
         auth?.signOut()
         _uiState.value = SessionUiState.SignedOut()
     }
@@ -105,8 +110,9 @@ class SessionViewModel(
             // already set (from the server, or from the write still waiting on the phone). Its
             // answer can wait for the network: the write stays queued and leaves by itself, and
             // the rules know a member by their address, so the app opens meanwhile.
-            if (member.uid == null) withTimeoutOrNull(LINK_WAIT_MS) { members.linkAccount(member.id, user.uid) }
+            if (member.uid == null) withTimeoutOrNull(LINK_WAIT_MS) { link(members, member, email, user.uid) }
             _uiState.value = SessionUiState.SignedIn(member.copy(uid = user.uid))
+            watchMembership(members, auth, member, email)
         } catch (e: TimeoutCancellationException) {
             // Before CancellationException, which it is: here it means a network that drags.
             _uiState.value = SessionUiState.SignedOut(SignInError.Network)
@@ -118,8 +124,65 @@ class SessionViewModel(
         }
     }
 
+    /**
+     * The same account opened on two phones at the same minute (the 21st): both link it, the rules
+     * keep the first and refuse the second. The second then reads the link already there and goes on.
+     */
+    private suspend fun link(members: MemberRepository, member: Member, email: String, uid: String) {
+        try {
+            members.linkAccount(member.id, uid)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            if (members.findByEmail(email)?.uid == null) throw e
+        }
+    }
+
+    private var membership: Job? = null
+
+    /**
+     * A member removed while signed in (a separation, for example) goes back to the sign-in screen
+     * with the message for an address outside the family, rather than to screens that fail one by one.
+     * The rules refuse the family list as soon as the address leaves it: the address is then read again.
+     */
+    private fun watchMembership(members: MemberRepository, auth: AuthRepository, member: Member, email: String) {
+        membership?.cancel()
+        membership = viewModelScope.launch {
+            while (true) {
+                try {
+                    // An empty list is a cache not filled yet, never a removal.
+                    members.observeFamily().firstOrNull { family ->
+                        family.members.isNotEmpty() && family.members.none { it.id == member.id }
+                    } ?: return@launch
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    // Refused: the address may have left the family.
+                }
+                // A list kept on a shared phone may predate the member: the address decides.
+                val gone = stillOut(members, email)
+                if (gone) {
+                    auth.signOut()
+                    _uiState.value = SessionUiState.NotAMember(email)
+                    return@launch
+                }
+                delay(MEMBERSHIP_RETRY_MS)
+            }
+        }
+    }
+
+    /** True only when the server says the address is no longer in the family; a cut is not a removal. */
+    private suspend fun stillOut(members: MemberRepository, email: String): Boolean = try {
+        members.findByEmail(email) == null
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        false
+    }
+
     companion object {
         const val READ_TIMEOUT_MS = 20_000L
         const val LINK_WAIT_MS = 8_000L
+        const val MEMBERSHIP_RETRY_MS = 60_000L
     }
 }

@@ -1,6 +1,7 @@
 // Coups de main rules (PRD, récits 13 à 18). Fictional family: adult1, adult2 and admin2 (chef) in
 // h1, admin1 (admin principal), adult3 in h2; kid1 (child with the app, parent adult1) and kid2
 // (child without the app, parents adult2 and admin1).
+import assert from 'node:assert/strict';
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
 import {
@@ -403,5 +404,47 @@ describe('the image of a request (Kévin 16/11)', () => {
   test('a request made before still has its 19 fields, and a word of the volunteer', async () => {
     await stored({ ...request(ADULT, ['adult2']), status: 'taken', volunteerId: 'adult2', volunteerName: 'adult2', volunteerNote: 'Avec plaisir' });
     await assertSucceeds(updateDoc(ref(as(env, ADULT)), { title: 'Garder les enfants samedi', ...now() }));
+  });
+});
+
+// Le 21, two people warned may say « Je m'en occupe » in the same second, or the author cancel
+// while someone answers: the server keeps one volunteer, never one on a cancelled request, and the
+// app tells the other one who came first (HelpRequestDetailViewModel).
+describe('at the same moment (passe « en même temps »)', () => {
+  const take = (by) => ({ status: 'taken', volunteerId: by.memberId, volunteerName: by.memberId, ...now() });
+  async function server() {
+    let data;
+    await env.withSecurityRulesDisabled(async (ctx) => { data = (await getDoc(ref(ctx.firestore()))).data(); });
+    return data;
+  }
+
+  test('two volunteers in the same second, each in a transaction: exactly one keeps it', async () => {
+    await stored(request(ADULT, ['adult2', 'admin1']));
+    const attempt = (who) => {
+      const db = as(env, who);
+      return runTransaction(db, async (tx) => {
+        const snap = await tx.get(ref(db));
+        if (snap.get('status') !== 'open') throw new Error('already taken');
+        tx.update(ref(db), take(who));
+      });
+    };
+    const results = await Promise.allSettled([attempt(OTHER_ADULT), attempt(ADMIN)]);
+    assert.equal(results.filter((r) => r.status === 'fulfilled').length, 1);
+    const winner = results[0].status === 'fulfilled' ? OTHER_ADULT : ADMIN;
+    assert.equal((await server()).volunteerId, winner.memberId);
+  });
+
+  test('the author cancels while someone takes it: one of the two holds, and a take sent after the cancel is refused', async () => {
+    await stored(request(ADULT, ['adult2']));
+    const results = await Promise.allSettled([
+      updateDoc(ref(as(env, ADULT)), { status: 'cancelled', ...now() }),
+      updateDoc(ref(as(env, OTHER_ADULT)), take(OTHER_ADULT)),
+    ]);
+    const data = await server();
+    if (data.status === 'cancelled') assert.equal(results[0].status, 'fulfilled');
+    else assert.equal(data.volunteerId, OTHER_ADULT.memberId);
+    // A « Je m'en occupe » queued offline and sent after the cancel is refused.
+    await stored({ ...request(ADULT, ['adult2']), status: 'cancelled' });
+    await assertFails(updateDoc(ref(as(env, OTHER_ADULT)), take(OTHER_ADULT)));
   });
 });

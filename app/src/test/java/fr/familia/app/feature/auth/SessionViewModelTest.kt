@@ -10,7 +10,9 @@ import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -177,6 +179,72 @@ class SessionViewModelTest {
     }
 
     @Test
+    fun `the same account opened on two phones at the same minute, the second goes in too`() {
+        val members = FakeMembers(member, linkedElsewhere = true)
+        val vm = SessionViewModel(FakeAuth(current = null, next = user("alex@example.com")), members)
+        vm.onGoogleTokenResult(GoogleTokenResult.Success("token"))
+        assertEquals("uid-1", (vm.uiState.value as SessionUiState.SignedIn).member.uid)
+    }
+
+    @Test
+    fun `a link refused for another reason still asks to retry`() {
+        val members = FakeMembers(member, hangOnLink = false)
+        val failing = object : MemberRepository by members {
+            override suspend fun linkAccount(memberId: String, uid: String) = throw IllegalStateException("PERMISSION_DENIED")
+        }
+        val vm = SessionViewModel(FakeAuth(current = null, next = user("alex@example.com")), failing)
+        vm.onGoogleTokenResult(GoogleTokenResult.Success("token"))
+        assertEquals(SessionUiState.SignedOut(SignInError.Network), vm.uiState.value)
+    }
+
+    @Test
+    fun `a member removed while signed in goes back to the sign-in screen with its message`() {
+        val members = FakeMembers(member.copy(uid = "uid-1"))
+        val auth = FakeAuth(current = user("alex@example.com"))
+        val vm = SessionViewModel(auth, members)
+        val other = member.copy(id = "m2", email = "sam@example.com")
+        members.family.value = Family(emptyList(), listOf(member, other), null)
+        assertTrue(vm.uiState.value is SessionUiState.SignedIn)
+        members.remove()
+        members.family.value = Family(emptyList(), listOf(other), null)
+        assertEquals(SessionUiState.NotAMember("alex@example.com"), vm.uiState.value)
+        assertNull(auth.currentUser())
+    }
+
+    @Test
+    fun `refused the family list after a removal, the address is read again`() {
+        val members = FakeMembers(member.copy(uid = "uid-1"))
+        members.remove()
+        members.refuseFamily = true
+        val auth = FakeAuth(current = user("alex@example.com"))
+        // Signed in from the cache of a previous session: the member is still found once.
+        val kept = object : MemberRepository by members {
+            var reads = 0
+            override suspend fun findByEmail(email: String): Member? =
+                if (reads++ == 0) member.copy(uid = "uid-1") else members.findByEmail(email)
+        }
+        val vm = SessionViewModel(auth, kept)
+        assertEquals(SessionUiState.NotAMember("alex@example.com"), vm.uiState.value)
+    }
+
+    @Test
+    fun `an empty family list from a cold cache, or a cut, never signs out`() {
+        val members = FakeMembers(member.copy(uid = "uid-1"))
+        val vm = SessionViewModel(FakeAuth(current = user("alex@example.com")), members)
+        members.family.value = Family(emptyList(), emptyList(), null)
+        assertTrue(vm.uiState.value is SessionUiState.SignedIn)
+        val cut = FakeMembers(member.copy(uid = "uid-1"))
+        cut.refuseFamily = true
+        val offline = object : MemberRepository by cut {
+            var reads = 0
+            override suspend fun findByEmail(email: String): Member? =
+                if (reads++ == 0) member.copy(uid = "uid-1") else throw IOException("hors ligne")
+        }
+        val vm2 = SessionViewModel(FakeAuth(current = user("alex@example.com")), offline)
+        assertTrue(vm2.uiState.value is SessionUiState.SignedIn)
+    }
+
+    @Test
     fun `using another account signs out`() {
         val auth = FakeAuth(current = user("alex@example.com"))
         val vm = SessionViewModel(auth, FakeMembers(member))
@@ -204,20 +272,34 @@ class SessionViewModelTest {
     }
 
     private class FakeMembers(
-        private val member: Member,
+        private var member: Member?,
         var failWith: Exception? = null,
         private val hangOnFind: Boolean = false,
         private val hangOnLink: Boolean = false,
+        /** Another phone of the same account links it first: this one is refused. */
+        private val linkedElsewhere: Boolean = false,
     ) : MemberRepository {
         var linked: Pair<String, String>? = null
+        /** The family list as the server sends it; null: nothing yet. */
+        val family = MutableStateFlow<Family?>(null)
+        /** The rules refuse the family list (the address left it). */
+        var refuseFamily = false
         override suspend fun findByEmail(email: String): Member? {
             failWith?.let { throw it }
             if (hangOnFind) awaitCancellation()
-            return member.takeIf { normalizeEmail(email) == member.email }
+            return member?.takeIf { normalizeEmail(email) == it.email }
         }
         override suspend fun linkAccount(memberId: String, uid: String) {
             if (hangOnLink) awaitCancellation()
+            if (linkedElsewhere) {
+                member = member?.copy(uid = uid)
+                throw IllegalStateException("PERMISSION_DENIED")
+            }
             linked = memberId to uid
+        }
+        /** The member is removed from the family: the address entry goes with them. */
+        fun remove() {
+            member = null
         }
         override fun newMemberId(): String = "new"
         override suspend fun saveMember(member: Member, previousEmail: String?) = Unit
@@ -225,6 +307,7 @@ class SessionViewModelTest {
         override fun newHouseholdId(): String = "h-new"
         override suspend fun saveHousehold(household: Household) = Unit
         override suspend fun deleteHousehold(householdId: String) = Unit
-        override fun observeFamily(): Flow<Family> = emptyFlow()
+        override fun observeFamily(): Flow<Family> =
+            if (refuseFamily) flow { throw IllegalStateException("PERMISSION_DENIED") } else family.filterNotNull()
     }
 }

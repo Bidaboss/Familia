@@ -235,6 +235,35 @@ class HelpRequestViewModelsTest {
     }
 
     @Test
+    fun `« Je ne peux pas » refused because someone took it just before says who`() = runTest {
+        val repo = FakeHelpRequests(listOf(helpRequest("r1", TestFamily.adult, listOf("adult2", "admin1"))))
+        // Admin1 takes it at the same second; the rules then refuse my answer on a request no longer open.
+        val late = object : HelpRequestRepository by repo {
+            override suspend fun decline(id: String, memberId: String) {
+                repo.requests.value = repo.requests.value.map {
+                    it.copy(status = HelpStatus.Taken, volunteerId = "admin1", volunteerName = "Admin1")
+                }
+                throw IllegalStateException("refused")
+            }
+        }
+        val viewModel = HelpRequestDetailViewModel(late, FakeMembers(), "adult2", "r1", today = flowOf(today))
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+        viewModel.decline()
+        assertEquals(HelpActionError.AlreadyTaken("Admin1"), (viewModel.uiState.value as HelpRequestDetailUiState.Success).error)
+        viewModel.dismissError()
+        assertNull((viewModel.uiState.value as HelpRequestDetailUiState.Success).error)
+    }
+
+    @Test
+    fun `a refusal on a request that did not move stays the plain failure`() = runTest {
+        val repo = FakeHelpRequests(listOf(helpRequest("r1", TestFamily.adult, listOf("adult2"))), failWith = IllegalStateException("refused"))
+        val viewModel = detail(repo, "adult2")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+        viewModel.decline()
+        assertEquals(HelpActionError.Failed, (viewModel.uiState.value as HelpRequestDetailUiState.Success).error)
+    }
+
+    @Test
     fun `without network, « Je m'en occupe » says so instead of waiting forever`() = runTest {
         val repo = FakeHelpRequests(listOf(helpRequest("r1", TestFamily.adult, listOf("adult2"))), hangTake = true)
         val viewModel = detail(repo, "adult2")

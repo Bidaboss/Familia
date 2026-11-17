@@ -78,4 +78,13 @@ class GiftsSurpriseLineTest {
         assertEquals(0, count("en préparation"))
         assertEquals(1, count("Préparer une surprise"))
     }
+
+    @Test
+    fun `while the mode présentation is on, a surprise in progress leaves the lists, a revealed one stays`() {
+        val own = surprise.copy(id = "o1", kind = GiftListKind.Own, title = "Liste o1")
+        val revealed = surprise.copy(id = "s2", revealed = true)
+        val lists = listOf(own, surprise, revealed)
+        assertEquals(listOf("o1", "s2"), shownLists(lists, presenting = true).map { it.id })
+        assertEquals(listOf("o1", "s1", "s2"), shownLists(lists, presenting = false).map { it.id })
+    }
 }
