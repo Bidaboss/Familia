@@ -39,11 +39,10 @@ import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 /** « Capsules temporelles »: those opened for me, then mine still sealed. Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -155,9 +154,7 @@ internal fun capsuleHeadline(row: CapsuleRow): String =
 internal fun capsuleDateLine(capsule: Capsule): String =
     stringResource(if (capsule.isOpened) R.string.capsule_opened_on else R.string.capsule_opens_on, capsuleDay(capsule.openAt))
 
-internal fun capsuleDay(day: LocalDate): String = day.format(capsuleDayFormatter)
-
-private val capsuleDayFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.FRANCE)
+internal fun capsuleDay(day: LocalDate): String = frenchDate(day, "d MMMM yyyy")
 
 /** Fictional capsules for previews and screenshots: Inès wrote to Camille, Camille to the children. */
 internal fun previewCapsules(): List<Capsule> = listOf(

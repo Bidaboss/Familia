@@ -1,5 +1,6 @@
 package fr.familia.app.core.share
 
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.Trip
 import android.content.Context
 import android.graphics.Bitmap
@@ -42,7 +43,7 @@ private fun eventWhen(context: Context, event: Event, today: LocalDate): String 
     return event.time?.let { context.getString(R.string.share_when_time, day, formatTime(it)) } ?: day
 }
 
-fun eventShare(context: Context, event: Event, today: LocalDate = LocalDate.now()): ShareContent {
+fun eventShare(context: Context, event: Event, today: LocalDate = familyToday()): ShareContent {
     val day = eventWhen(context, event, today)
     val place = event.place?.takeIf { it.isNotBlank() }
     val text = if (place != null) {
@@ -61,7 +62,7 @@ fun pollShare(context: Context, poll: Poll): ShareContent = ShareContent(
 )
 
 /** A birthday, without the member's photo in this first version: a child's photo needs EXPERT-2. */
-fun birthdayShare(context: Context, birthday: Birthday, today: LocalDate = LocalDate.now()): ShareContent {
+fun birthdayShare(context: Context, birthday: Birthday, today: LocalDate = familyToday()): ShareContent {
     val name = birthday.member.firstName
     val age = context.resources.getQuantityString(R.plurals.birthday_age, birthday.age, birthday.age)
     val day = formatDay(birthday.date, today)
@@ -77,7 +78,7 @@ fun birthdayShare(context: Context, birthday: Birthday, today: LocalDate = Local
  * A trip: its title and its dates only. Neither the participants, the steps, the arrivals nor the
  * photos go out; without a photo, the rule of carte EXPERT-2 has nothing to check.
  */
-fun tripShare(context: Context, trip: Trip, today: LocalDate = LocalDate.now()): ShareContent {
+fun tripShare(context: Context, trip: Trip, today: LocalDate = familyToday()): ShareContent {
     val start = lower(formatDay(trip.startDate, today))
     val dates = if (trip.startDate == trip.endDate) {
         context.getString(R.string.trip_dates_one_day, start)
@@ -110,7 +111,7 @@ fun goodNewsShare(context: Context, news: GoodNews, whoseName: String, photo: Bi
  * A coup de main still open: its kind, its title and when. Neither the place, the note, the
  * child helped nor who was warned goes out; the link opens it only for those it was asked to.
  */
-fun helpRequestShare(context: Context, request: HelpRequest, today: LocalDate = LocalDate.now()): ShareContent {
+fun helpRequestShare(context: Context, request: HelpRequest, today: LocalDate = familyToday()): ShareContent {
     val day = formatDay(request.date, today)
     val start = request.startTime
     val end = request.endTime

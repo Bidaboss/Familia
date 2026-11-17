@@ -57,6 +57,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 import fr.familia.app.core.ui.BackButton
@@ -257,7 +258,7 @@ private fun DateTimeSection(form: EventForm, dateMissing: Boolean, onChange: ((E
         }
     }
     if (datePicker) {
-        val pickerState = rememberDatePickerState(initialSelectedDateMillis = (form.date ?: LocalDate.now()).toUtcMillis())
+        val pickerState = rememberDatePickerState(initialSelectedDateMillis = (form.date ?: familyToday()).toUtcMillis())
         DatePickerDialog(
             onDismissRequest = { datePicker = false },
             confirmButton = {

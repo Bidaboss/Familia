@@ -19,10 +19,9 @@ import fr.familia.app.core.print.PRINT_INK_SOFT
 import fr.familia.app.core.print.PRINT_PAPER
 import fr.familia.app.core.print.decodeForPrint
 import fr.familia.app.core.print.drawCroppedPhoto
+import fr.familia.app.core.ui.frenchDate
 import java.io.File
 import java.io.FileOutputStream
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 /*
  * The PDF of the photo book (récit 59), made on the phone with android.graphics.pdf.PdfDocument:
@@ -163,12 +162,11 @@ private class BookDrawing(private val content: PhotoBookContent) {
             canvas.drawCircle(x + 4f, y - 4f, 4f, dot)
             val text = TextUtils.ellipsize("${s.kind} · ${s.place}", line, columnWidth - 24f, TextUtils.TruncateAt.END).toString()
             canvas.drawText(text, x + 16f, y, line)
-            canvas.drawText(stepDay.format(s.date), x + 16f, y + 13f, soft)
+            canvas.drawText(frenchDate(s.date, "EEEE d MMMM"), x + 16f, y + 13f, soft)
         }
     }
 
     companion object {
         const val STEPS_TITLE = "Les étapes du voyage"
-        val stepDay: DateTimeFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
     }
 }

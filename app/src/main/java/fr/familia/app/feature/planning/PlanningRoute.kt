@@ -8,12 +8,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.share.birthdayShare
 import fr.familia.app.core.share.share
 import fr.familia.app.core.ui.LocalFeatureFlags
-import java.time.LocalDate
 
 /** Connects the Planning tab to its ViewModel. */
 @Composable
@@ -51,6 +51,6 @@ fun PlanningRoute(
         onScopeChange = viewModel::setScope,
         onOpenTrip = onOpenTrip,
         r1 = LocalFeatureFlags.current.isOn(Feature.PresentationR1bis),
-        onShareBirthday = if (shareOn) ({ birthday -> share(screenContext, birthdayShare(screenContext, birthday, LocalDate.now())) }) else null,
+        onShareBirthday = if (shareOn) ({ birthday -> share(screenContext, birthdayShare(screenContext, birthday, familyToday())) }) else null,
     )
 }

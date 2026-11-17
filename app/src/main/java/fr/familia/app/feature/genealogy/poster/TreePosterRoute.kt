@@ -15,13 +15,13 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.print.PRINT_BYTES_PER_PHOTO
 import fr.familia.app.core.print.writePdfSafely
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.time.LocalDate
 
 @Composable
 fun TreePosterRoute(container: AppContainer?, currentMember: Member, onBack: () -> Unit) {
@@ -38,7 +38,7 @@ fun TreePosterRoute(container: AppContainer?, currentMember: Member, onBack: () 
                     photos = container?.memberPhotoRepository,
                     currentMemberId = currentMember.id,
                     defaultTitle = defaultTitle,
-                    year = LocalDate.now().year,
+                    year = familyToday().year,
                     print = { content, photo -> printPoster(app, content, photo) },
                 )
             }

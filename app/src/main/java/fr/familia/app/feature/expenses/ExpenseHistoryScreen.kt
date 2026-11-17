@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.ExpenseHistoryAction
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
@@ -34,7 +35,6 @@ import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.formatDay
 import fr.familia.app.core.ui.formatTime
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.Locale
 
@@ -110,7 +110,7 @@ private fun HistoryLine(row: HistoryRow) {
         Text(what, style = MaterialTheme.typography.bodyLarge)
         row.at?.let {
             Text(
-                stringResource(R.string.expense_history_when, formatDay(it.toLocalDate(), LocalDate.now()), formatTime(it.toLocalTime())),
+                stringResource(R.string.expense_history_when, formatDay(it.toLocalDate(), familyToday()), formatTime(it.toLocalTime())),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

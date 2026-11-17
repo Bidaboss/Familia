@@ -40,8 +40,8 @@ import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.RepeatChoice
 import fr.familia.app.core.model.RepeatEnd
+import fr.familia.app.core.ui.frenchDate
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
 
@@ -239,9 +239,8 @@ internal fun repeatLabel(choice: RepeatChoice, date: LocalDate?): String {
             val rank = if (nth == 1) stringResource(R.string.event_repeat_first) else stringResource(R.string.event_repeat_nth, nth)
             stringResource(R.string.event_repeat_monthly_weekday, rank, weekday)
         }
-        RepeatChoice.Yearly -> stringResource(R.string.event_repeat_yearly, date.format(dayMonth))
+        RepeatChoice.Yearly -> stringResource(R.string.event_repeat_yearly, frenchDate(date, "d MMMM"))
     }
 }
 
 private const val DEFAULT_TIMES = 10
-private val dayMonth = DateTimeFormatter.ofPattern("d MMMM", Locale.FRANCE)

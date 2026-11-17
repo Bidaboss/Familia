@@ -1,6 +1,7 @@
 package fr.familia.app.feature.trips.detail
 
 import androidx.compose.ui.text.style.TextOverflow
+import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
@@ -83,7 +84,6 @@ import fr.familia.app.feature.trips.tripDatesLabel
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
-import java.time.ZoneId
 import java.util.Locale
 
 /** One trip: its dates, who takes part, the steps and « bien arrivé ». Stateless. */
@@ -491,7 +491,7 @@ private fun StepCard(
 /** « Bien arrivé, signalé par Lou à 9 h 52 », with « Annuler » for a participant. */
 @Composable
 private fun ArrivedRow(arrival: TripArrival, today: LocalDate, isParticipant: Boolean, onClearArrival: () -> Unit) {
-    val at = arrival.at?.atZone(ZoneId.systemDefault())
+    val at = arrival.at?.atZone(FAMILY_ZONE)
     val label = if (at == null) {
         stringResource(R.string.trip_arrived_by, arrival.name)
     } else {
