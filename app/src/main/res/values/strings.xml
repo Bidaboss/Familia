@@ -2208,7 +2208,10 @@
     <string name="entraide_tab_help">Coups de main</string>
     <string name="entraide_tab_good_deals">Bons plans</string>
     <string name="gooddeal_title">Bon plan</string>
+    <string name="gooddeal_new_title">Nouveau bon plan</string>
+    <string name="gooddeal_edit_title">Modifier le bon plan</string>
     <string name="gooddeal_publish">Publier</string>
+    <string name="gooddeal_save">Enregistrer</string>
     <string name="gooddeal_open">Voir le bon plan</string>
     <string name="gooddeal_empty_title">Pas encore de bon plan</string>
     <string name="gooddeal_empty_body">Une promo, une cueillette, une sortie à ne pas rater ? Partage-la ici. Elle disparaît toute seule à sa date de fin.</string>
@@ -2216,6 +2219,8 @@
     <string name="gooddeal_error_body">Vérifie ta connexion, puis réessaie.</string>
     <string name="gooddeal_missing_title">Ce bon plan n\'est plus là</string>
     <string name="gooddeal_missing_body">Il a été retiré, ou il est terminé depuis longtemps.</string>
+    <string name="gooddeal_unavailable_title">Impossible de modifier ce bon plan</string>
+    <string name="gooddeal_unavailable_body">Seuls les adultes publient. Un bon plan se modifie par son auteur ou l\'admin principal.</string>
     <string name="gooddeal_until_today">Dernier jour aujourd\'hui</string>
     <string name="gooddeal_until_tomorrow">Jusqu\'à demain</string>
     <string name="gooddeal_until">Jusqu\'au %1$s</string>
@@ -2242,4 +2247,15 @@
     <string name="gooddeal_remove">Supprimer</string>
     <string name="gooddeal_remove_title">Supprimer ce bon plan ?</string>
     <string name="gooddeal_remove_body">Il disparaît pour toute la famille.</string>
+    <string name="gooddeal_no_secret">Pas de mot de passe ni de code de porte ici.</string>
+    <string name="gooddeal_field_title">Titre</string>
+    <string name="gooddeal_field_text">En une phrase (facultatif)</string>
+    <string name="gooddeal_field_place">Lieu (facultatif)</string>
+    <string name="gooddeal_field_link">Lien (facultatif)</string>
+    <string name="gooddeal_ends_on">Jusqu\'au %1$s</string>
+    <string name="gooddeal_pick_end">Choisir le dernier jour</string>
+    <string name="gooddeal_error_title_missing">Donne un titre au bon plan.</string>
+    <string name="gooddeal_error_link">Ce lien ne fonctionne pas. Colle l\'adresse complète du site.</string>
+    <string name="gooddeal_error_end">Choisis un dernier jour entre aujourd\'hui et dans 3 mois.</string>
+    <string name="gooddeal_save_failed">Le bon plan n\'est pas enregistré. Vérifie ta connexion, puis réessaie.</string>
 </resources>
