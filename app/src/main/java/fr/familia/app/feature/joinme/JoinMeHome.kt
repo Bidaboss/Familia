@@ -134,7 +134,7 @@ internal fun previewJoinMe(now: Instant): JoinMeHomeUiState.Ready = JoinMeHomeUi
 
 @FamiliaPreviews
 @Composable
-private fun JoinMeHomeCardPreview() {
+private fun JoinMeHomePreview() {
     FamiliaTheme {
         Surface { ClayCard { JoinMeHomeContent(previewJoinMe(Instant.parse("2026-11-21T16:00:00Z")), false, {}) } }
     }

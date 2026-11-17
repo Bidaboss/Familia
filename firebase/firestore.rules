@@ -684,26 +684,39 @@ service cloud.firestore {
       allow read: if isMember() && myMemberId() == memberId;
       allow create, update: if isMember()
         && myMemberId() == memberId
-        && settingId == 'notifications'
-        && request.resource.data.keys().hasOnly(['dayBeforeReminder', 'goodNews', 'weekly', 'souvenirs', 'tree', 'recap', 'birthdayWishes',
-          'planning', 'reminders', 'gifts', 'comments', 'helpRequests', 'trips', 'quietHours', 'defaultReminders'])
+        && ((settingId == 'packing' && isValidPackingTemplate(request.resource.data))
+            || (settingId == 'notifications' && isValidNotificationSettings(request.resource.data)));
+    }
+
+    // « Ma valise » (récit 62): the list each one starts a bag from, changed as they like.
+    function isValidPackingTemplate(t) {
+      return t.keys().hasOnly(['labels', 'updatedAt'])
+        && t.labels is list && t.labels.size() <= 80
+        && t.updatedAt == request.time;
+    }
+
+    function isValidNotificationSettings(n) {
+      return n.keys().hasOnly(['dayBeforeReminder', 'goodNews', 'weekly', 'souvenirs', 'tree', 'recap', 'birthdayWishes',
+          'planning', 'reminders', 'gifts', 'comments', 'helpRequests', 'trips', 'quietHours', 'defaultReminders', 'packingReminder'])
+        // Récit 62: `false` turns off the reminder of the day before a trip, for the bag.
+        && (!('packingReminder' in n) || n.packingReminder is bool)
         // Récit 56: the reminders given to the events I say « Je viens » to.
-        && (!('defaultReminders' in request.resource.data) || isReminderOffsets(request.resource.data.defaultReminders))
+        && (!('defaultReminders' in n) || isReminderOffsets(n.defaultReminders))
         // Récit 6 quinquies: one switch per family (the three levels set them at once), the quiet hours.
-        && (!('planning' in request.resource.data) || request.resource.data.planning is bool)
-        && (!('reminders' in request.resource.data) || request.resource.data.reminders is bool)
-        && (!('gifts' in request.resource.data) || request.resource.data.gifts is bool)
-        && (!('comments' in request.resource.data) || request.resource.data.comments is bool)
-        && (!('helpRequests' in request.resource.data) || request.resource.data.helpRequests is bool)
-        && (!('trips' in request.resource.data) || request.resource.data.trips is bool)
-        && (!('quietHours' in request.resource.data) || request.resource.data.quietHours is bool)
-        && (!('dayBeforeReminder' in request.resource.data) || request.resource.data.dayBeforeReminder is bool)
-        && (!('goodNews' in request.resource.data) || request.resource.data.goodNews is bool)
-        && (!('weekly' in request.resource.data) || request.resource.data.weekly is bool)
-        && (!('souvenirs' in request.resource.data) || request.resource.data.souvenirs is bool)
-        && (!('tree' in request.resource.data) || request.resource.data.tree is bool)
-        && (!('recap' in request.resource.data) || request.resource.data.recap is bool)
-        && (!('birthdayWishes' in request.resource.data) || request.resource.data.birthdayWishes is bool);
+        && (!('planning' in n) || n.planning is bool)
+        && (!('reminders' in n) || n.reminders is bool)
+        && (!('gifts' in n) || n.gifts is bool)
+        && (!('comments' in n) || n.comments is bool)
+        && (!('helpRequests' in n) || n.helpRequests is bool)
+        && (!('trips' in n) || n.trips is bool)
+        && (!('quietHours' in n) || n.quietHours is bool)
+        && (!('dayBeforeReminder' in n) || n.dayBeforeReminder is bool)
+        && (!('goodNews' in n) || n.goodNews is bool)
+        && (!('weekly' in n) || n.weekly is bool)
+        && (!('souvenirs' in n) || n.souvenirs is bool)
+        && (!('tree' in n) || n.tree is bool)
+        && (!('recap' in n) || n.recap is bool)
+        && (!('birthdayWishes' in n) || n.birthdayWishes is bool);
     }
 
     // L'arbre de la famille et le défi du mois (PRD, récit 35): familyTree/current and
@@ -2412,6 +2425,26 @@ service cloud.firestore {
       allow read: if isMember() && myMemberId() in tripOf(tripId).readerIds;
       allow create, update: if isMember() && isParticipantOf(tripId) && isValidItem(request.resource.data, tripId);
       allow delete: if isMember() && (isParticipantOf(tripId) || isOwner());
+    }
+
+    // « Ma valise » (récit 62, module packingList): trips/{tripId}/bags/{memberId}, one private list
+    // per participant, ticked by them or by one of their responsible adults (a child's bag), never
+    // read by anyone else. `items` holds { label, done } maps, written whole each time. Deleting the
+    // trip deletes the bags on the server.
+    function isValidBag(b) {
+      return b.keys().hasAll(['items', 'updatedAt', 'updatedBy'])
+        && b.keys().hasOnly(['items', 'updatedAt', 'updatedBy'])
+        && b.items is list && b.items.size() <= 80
+        && b.updatedAt == request.time
+        && b.updatedBy == myMemberId();
+    }
+
+    match /trips/{tripId}/bags/{memberId} {
+      allow read, delete: if isMember() && canAnswerFor(memberId);
+      allow create, update: if isMember()
+        && canAnswerFor(memberId)
+        && memberId in tripOf(tripId).participantIds
+        && isValidBag(request.resource.data);
     }
 
     // Shape of a photo of the trip (récit 15). Each participant has 30 places, numbered 1 to 30:

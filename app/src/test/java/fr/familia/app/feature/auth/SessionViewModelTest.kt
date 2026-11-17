@@ -7,19 +7,26 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.normalizeEmail
 import fr.familia.app.testing.MainDispatcherRule
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.io.IOException
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SessionViewModelTest {
 
+    private val dispatcher = UnconfinedTestDispatcher()
+
     @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+    val mainDispatcherRule = MainDispatcherRule(dispatcher)
 
     private val member = Member(
         id = "m1",
@@ -126,6 +133,50 @@ class SessionViewModelTest {
     }
 
     @Test
+    fun `without network the Google picker says so, never that there is no account`() {
+        val vm = SessionViewModel(FakeAuth(current = null), FakeMembers(member))
+        vm.onGoogleTokenResult(GoogleTokenResult.Offline)
+        assertEquals(SessionUiState.SignedOut(SignInError.Network), vm.uiState.value)
+    }
+
+    @Test
+    fun `retrying a kept account reads the family list again without the picker`() {
+        val auth = FakeAuth(current = user("alex@example.com"))
+        val members = FakeMembers(member, failWith = IOException("offline"))
+        val vm = SessionViewModel(auth, members)
+        members.failWith = null
+        assertTrue(vm.retryKeptAccount())
+        assertTrue(vm.uiState.value is SessionUiState.SignedIn)
+        assertEquals("m1" to "uid-1", members.linked)
+    }
+
+    @Test
+    fun `without a kept account retrying opens the picker`() {
+        val vm = SessionViewModel(FakeAuth(current = null), FakeMembers(member))
+        assertFalse(vm.retryKeptAccount())
+        assertEquals(SessionUiState.SignedOut(), vm.uiState.value)
+    }
+
+    @Test
+    fun `a family list that never answers ends on Réessayer, not on a spinner`() {
+        val members = FakeMembers(member, hangOnFind = true)
+        val vm = SessionViewModel(FakeAuth(current = user("alex@example.com")), members)
+        assertEquals(SessionUiState.Loading, vm.uiState.value)
+        dispatcher.scheduler.advanceTimeBy(SessionViewModel.READ_TIMEOUT_MS + 1)
+        assertEquals(SessionUiState.SignedOut(SignInError.Network), vm.uiState.value)
+    }
+
+    @Test
+    fun `a link waiting for the network does not hold the door`() {
+        val members = FakeMembers(member, hangOnLink = true)
+        val vm = SessionViewModel(FakeAuth(current = null, next = user("alex@example.com")), members)
+        vm.onGoogleTokenResult(GoogleTokenResult.Success("token"))
+        assertFalse(vm.uiState.value is SessionUiState.SignedIn)
+        dispatcher.scheduler.advanceTimeBy(SessionViewModel.LINK_WAIT_MS + 1)
+        assertTrue(vm.uiState.value is SessionUiState.SignedIn)
+    }
+
+    @Test
     fun `using another account signs out`() {
         val auth = FakeAuth(current = user("alex@example.com"))
         val vm = SessionViewModel(auth, FakeMembers(member))
@@ -154,14 +205,18 @@ class SessionViewModelTest {
 
     private class FakeMembers(
         private val member: Member,
-        private val failWith: Exception? = null,
+        var failWith: Exception? = null,
+        private val hangOnFind: Boolean = false,
+        private val hangOnLink: Boolean = false,
     ) : MemberRepository {
         var linked: Pair<String, String>? = null
         override suspend fun findByEmail(email: String): Member? {
             failWith?.let { throw it }
+            if (hangOnFind) awaitCancellation()
             return member.takeIf { normalizeEmail(email) == member.email }
         }
         override suspend fun linkAccount(memberId: String, uid: String) {
+            if (hangOnLink) awaitCancellation()
             linked = memberId to uid
         }
         override fun newMemberId(): String = "new"

@@ -12,5 +12,8 @@ enum class RsvpStatus(val firestoreValue: String) {
     }
 }
 
-/** One member's answer to one event. [answeredBy] is the member or one of their responsible adults. */
-data class Rsvp(val memberId: String, val status: RsvpStatus, val answeredBy: String)
+/**
+ * One member's answer to one event. [answeredBy] is the member or one of their responsible adults.
+ * [pending]: given on this phone without network, it still waits to leave (it leaves by itself).
+ */
+data class Rsvp(val memberId: String, val status: RsvpStatus, val answeredBy: String, val pending: Boolean = false)

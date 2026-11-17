@@ -6,6 +6,7 @@ import fr.familia.app.feature.presentation.rememberPresentation
 
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.EmojiEvents
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.AutoStories
 import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.platform.LocalConfiguration
@@ -238,6 +239,7 @@ import fr.familia.app.feature.events.album.EventAlbumRoute
 import fr.familia.app.feature.month.MonthSlideshowDestination
 import fr.familia.app.feature.month.MonthSlideshowRoute
 import fr.familia.app.feature.yearinreview.YearInReviewDestination
+import fr.familia.app.feature.yearinreview.openableReviewYear
 import fr.familia.app.feature.yearinreview.YearInReviewRoute
 import fr.familia.app.feature.month.slideshowMonthOf
 import fr.familia.app.feature.recipes.RecipeDetailDestination
@@ -282,6 +284,7 @@ import fr.familia.app.feature.whoisit.WhoIsItEditRoute
 import fr.familia.app.feature.whoisit.WhoIsItListRoute
 import fr.familia.app.feature.whoisit.WhoIsItPostDestination
 import fr.familia.app.feature.whoisit.WhoIsItPostRoute
+import java.time.LocalDate
 import java.time.YearMonth
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
@@ -691,6 +694,8 @@ fun FamiliaApp(
         if (addOpen && r1On) {
             HomeAddSheet(
                 options = HomeAddOptions(
+                    // « Dire où je suis » first (DESIGN, 17/11): it left the Accueil for « + ».
+                    onWhereAmI = if (features.isOn(Feature.Places)) ({ navController.navigate(JoinMeDestination) { launchSingleTop = true } }) else null,
                     onEvent = { navController.navigate(EventEditDestination()) },
                     // « Une photo » chooses its album (DESIGN, 17/11).
                     onPhoto = if (features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums)) ({ navController.navigate(AlbumsDestination) }) else null,
@@ -896,7 +901,13 @@ fun FamiliaApp(
                     }
                     composable<AllFamiliaDestination> {
                         AllFamiliaScreen(
-                            modules = allModules(features, helpBadge, navController, currentMember.id),
+                            modules = allModules(
+                                features,
+                                helpBadge,
+                                navController,
+                                currentMember.id,
+                                reviewYear = openableReviewYear(LocalDate.now(), forCard = false),
+                            ),
                             onBack = { navController.popBackStack() },
                         )
                     }
@@ -1857,7 +1868,14 @@ private val R1_TAB_PILL = Color(0xFFF2C14E)
  * The modules of « Tout Familia » (R1 bis, §3), each only while it is on for me. Comptes stays out
  * for the 21 (DESIGN); the Entraide badge is the one of its tab.
  */
-private fun allModules(features: FeatureFlags, helpBadge: Int, navController: NavHostController, meId: String): List<AllModule> = buildList {
+private fun allModules(
+    features: FeatureFlags,
+    helpBadge: Int,
+    navController: NavHostController,
+    meId: String,
+    /** « Notre année », findable all year long under « Se souvenir » (PRD rév. 259); null: not yet. */
+    reviewYear: Int? = null,
+): List<AllModule> = buildList {
     fun module(on: Boolean, key: String, label: Int, icon: ImageVector, family: ModuleFamily, badge: Int = 0, open: () -> Unit) {
         if (on) this.add(AllModule(key, label, icon, family, badge, open))
     }
@@ -1900,6 +1918,11 @@ private fun allModules(features: FeatureFlags, helpBadge: Int, navController: Na
     }
     module(features.isOn(Feature.GoodNews), "goodNews", R.string.all_good_news, Icons.Outlined.Celebration, ModuleFamily.Remember) {
         navController.navigate(GoodNewsFeedDestination) { launchSingleTop = true }
+    }
+    reviewYear?.let { year ->
+        module(true, "yearInReview", R.string.all_year_in_review, Icons.Outlined.AutoAwesome, ModuleFamily.Remember) {
+            navController.navigate(YearInReviewDestination(year)) { launchSingleTop = true }
+        }
     }
 }
 

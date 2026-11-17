@@ -134,6 +134,8 @@ enum class Feature(
     MyReminders("myReminders", R.string.feature_my_reminders),
     /** « À qui le tour ? » : un tour de rôle entre foyers, dans Entraide (PRD rév. 249, récit 58). */
     Turns("turns", R.string.feature_turns),
+    /** « À emporter » dans un voyage : « Pour tout le monde » et « Ma valise » (PRD rév. 263, récit 62). */
+    PackingList("packingList", R.string.feature_packing_list),
 }
 
 /**

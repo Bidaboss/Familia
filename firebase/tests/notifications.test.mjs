@@ -68,6 +68,19 @@ describe('settings', () => {
     await assertFails(setDoc(settings(db, 'adult1', 'other'), { dayBeforeReminder: false }));
   });
 
+  test('récit 62: the reminder of the bag is turned off, and the list to start from is mine only', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(settings(db, 'adult1'), { packingReminder: false }, { merge: true }));
+    await assertFails(setDoc(settings(db, 'adult1'), { packingReminder: 'non' }, { merge: true }));
+    await assertSucceeds(setDoc(settings(db, 'adult1', 'packing'), { labels: ['Chargeur', 'Papiers'], updatedAt: serverTimestamp() }));
+    await assertSucceeds(getDoc(settings(db, 'adult1', 'packing')));
+    await assertFails(setDoc(settings(db, 'adult1', 'packing'), { labels: 'Chargeur', updatedAt: serverTimestamp() }));
+    await assertFails(setDoc(settings(db, 'adult1', 'packing'), { labels: [], updatedAt: serverTimestamp(), other: 1 }));
+    await assertFails(setDoc(settings(db, 'adult1', 'packing'), { labels: Array.from({ length: 81 }, (_, i) => `o${i}`), updatedAt: serverTimestamp() }));
+    await assertFails(setDoc(settings(as(env, OTHER_ADULT), 'adult1', 'packing'), { labels: [], updatedAt: serverTimestamp() }));
+    await assertFails(getDoc(settings(as(env, OTHER_ADULT), 'adult1', 'packing')));
+  });
+
   test('récit 6 quinquies: one switch per family and the quiet hours, nothing else', async () => {
     const db = as(env, ADULT);
     await assertSucceeds(setDoc(settings(db, 'adult1'), {

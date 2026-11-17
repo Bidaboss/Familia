@@ -112,7 +112,7 @@ class EventDetailViewModel(
             target = TargetChoice(event.target, if (isMe) null else targetName(event.target, family)),
             authorName = authorDisplayName(event, family),
             canManage = canManage(event, me, family),
-            answerers = answerableMembers(me, family).map { Answerer(it, byMember[it.id]?.status, it.id == me.id) },
+            answerers = answerableMembers(me, family).map { Answerer(it, byMember[it.id]?.status, it.id == me.id, byMember[it.id]?.pending == true) },
             coming = names(RsvpStatus.Yes),
             maybe = names(RsvpStatus.Maybe),
             notComing = names(RsvpStatus.No),
