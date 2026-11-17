@@ -1,5 +1,7 @@
 package fr.familia.app.feature.capsules
 
+import fr.familia.app.core.ui.PickGroup
+import fr.familia.app.core.ui.pickGroups
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -57,6 +59,8 @@ sealed interface CapsuleEditUiState {
         val today: LocalDate,
         val members: List<RecipientChoice>,
         val errors: Set<CapsuleFormError> = emptySet(),
+        /** The family by household, for the picker (règle de Kévin, 17/11); empty shows [members] as chips. */
+        val groups: List<PickGroup> = emptyList(),
         /** null: not sending; 0: writing the capsule; n: sending photo n. */
         val sendingPhoto: Int? = null,
         val failure: CapsuleSaveFailure? = null,
@@ -107,7 +111,7 @@ class CapsuleEditViewModel(
             openAt = savedState.get<String>(OPEN_AT)?.let { runCatching { LocalDate.parse(it) }.getOrNull() },
         )
         val choices = family.members.sortedBy { it.firstName.lowercase() }.map { RecipientChoice(it.id, it.firstName) }
-        return CapsuleEditUiState.Editing(form, today(), choices)
+        return CapsuleEditUiState.Editing(form, today(), choices, groups = pickGroups(family.members, family, me?.householdId))
     }
 
     private fun edit(change: (CapsuleForm) -> CapsuleForm) {
@@ -122,6 +126,9 @@ class CapsuleEditViewModel(
     }
 
     fun setText(text: String) = edit { it.copy(text = text.take(Capsule.MAX_TEXT)) }
+    /** Who the capsule is for, as the picker by household gives them. */
+    fun setRecipients(ids: Set<String>) = edit { it.copy(recipientIds = ids) }
+
     fun toggleRecipient(id: String) = edit { it.copy(recipientIds = if (id in it.recipientIds) it.recipientIds - id else it.recipientIds + id) }
     fun setOpenAt(day: LocalDate) = edit { it.copy(openAt = day) }
     fun addPhotos(uris: List<String>) = edit { it.copy(photos = (it.photos + uris).distinct().take(Capsule.MAX_PHOTOS)) }

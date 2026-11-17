@@ -61,6 +61,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import fr.familia.app.R
+import fr.familia.app.core.ui.HouseholdMemberPicker
 import fr.familia.app.core.model.Capsule
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
@@ -78,6 +79,7 @@ import java.time.ZoneOffset
 data class CapsuleEditActions(
     val onText: (String) -> Unit = {},
     val onToggleRecipient: (String) -> Unit = {},
+    val onRecipients: (Set<String>) -> Unit = {},
     val onOpenAt: (LocalDate) -> Unit = {},
     val onAddPhotos: (List<String>) -> Unit = {},
     val onRemovePhoto: (String) -> Unit = {},
@@ -134,7 +136,9 @@ private fun Form(state: CapsuleEditUiState.Editing, actions: CapsuleEditActions)
         )
         Photos(state, actions)
         SectionTitle(stringResource(R.string.capsule_edit_who))
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (state.groups.isNotEmpty()) {
+            HouseholdMemberPicker(state.groups, form.recipientIds, onChange = actions.onRecipients, enabled = enabled)
+        } else FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             state.members.forEach { member ->
                 val selected = member.id in form.recipientIds
                 FilterChip(
