@@ -78,7 +78,7 @@ fun GoodNewsFeedScreen(
             if (state is GoodNewsFeedUiState.Success && !(state.items.isEmpty() && !state.littleOnesOnly)) {
                 ExtendedFloatingActionButton(
                     onClick = onPublish,
-                    icon = { Icon(Icons.Outlined.AddAPhoto, contentDescription = null) },
+                    icon = { Icon(Icons.Outlined.AddAPhoto, contentDescription = stringResource(R.string.goodnews_publish)) },
                     text = { Text(stringResource(R.string.goodnews_publish)) },
                 )
             }

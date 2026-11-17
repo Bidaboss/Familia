@@ -105,7 +105,7 @@ fun HelpRequestsScreen(
         if (state !is HelpRequestsUiState.Loading && !(state is HelpRequestsUiState.Success && state.isEmpty)) {
             ExtendedFloatingActionButton(
                 onClick = onAsk,
-                icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.helprequest_ask)) },
                 text = { Text(stringResource(R.string.helprequest_ask)) },
                 modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
             )
