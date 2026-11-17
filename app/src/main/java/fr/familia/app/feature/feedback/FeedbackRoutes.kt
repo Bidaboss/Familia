@@ -2,6 +2,7 @@ package fr.familia.app.feature.feedback
 
 import android.net.Uri
 import android.os.Build
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -12,6 +13,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.BuildConfig
+import fr.familia.app.R
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Feedback
 import fr.familia.app.core.model.FeedbackContext
@@ -111,6 +113,18 @@ fun FeedbackListRoute(container: AppContainer?, onBack: () -> Unit) {
         onAnswer = viewModel::answer,
         onRemove = viewModel::remove,
         onShareForClaude = { item -> scope.launch { shareFeedbackForClaude(context, storage, item) } },
+        // Android 10 and later only: before, MediaStore would need a permission (note C of #288).
+        onSaveScreenshot = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            { item ->
+                scope.launch {
+                    val saved = saveFeedbackScreenshot(context, storage, item)
+                    val message = if (saved) R.string.feedback_screenshot_saved else R.string.feedback_screenshot_save_failed
+                    Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                }
+            }
+        } else {
+            null
+        },
         actionFailed = actionFailed,
         onFailureShown = viewModel::failureShown,
     )

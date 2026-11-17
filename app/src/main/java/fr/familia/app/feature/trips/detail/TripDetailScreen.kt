@@ -41,6 +41,8 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -107,6 +109,11 @@ fun TripDetailScreen(
     illustrated: Boolean = false,
     /** « 18 photos » of the illustrated path: the album of the trip. */
     onSeePhotos: () -> Unit = {},
+    /**
+     * « Ma valise » (récit 62), while packingList is on: « À prévoir » becomes « Pour tout le monde »
+     * in « À emporter », with these bags under it. Null: the checklist as before.
+     */
+    packing: (@Composable () -> Unit)? = null,
 ) {
     val success = state as? TripDetailUiState.Success
     val path = illustrated && success != null
@@ -176,9 +183,9 @@ fun TripDetailScreen(
                     },
                 )
                 is TripDetailUiState.Success -> if (illustrated) {
-                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos)
+                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing)
                 } else {
-                    Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses)
+                    Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing)
                 }
             }
         }
@@ -195,6 +202,7 @@ private fun Content(
     photos: AlbumPhotosUiState,
     photoActions: PhotoActions,
     onOpenExpenses: (() -> Unit)?,
+    packing: (@Composable () -> Unit)?,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -238,8 +246,8 @@ private fun Content(
             val empty = if (photos.canAdd) R.string.trip_photos_empty_participant else R.string.trip_photos_empty
             AlbumPhotosSection(photos, photoActions, stringResource(empty))
         }
-        item(key = "checklist-title") { TripSectionTitle(stringResource(R.string.trip_checklist)) }
-        item(key = "checklist") { TripChecklist(state.items, state.assignees, state.isParticipant, checklist) }
+        item(key = "checklist-title") { TripSectionTitle(stringResource(if (packing != null) R.string.packing_title else R.string.trip_checklist)) }
+        item(key = "checklist") { PackingOrChecklist(state, checklist, packing) }
         if (onOpenExpenses != null && state.isParticipant) {
             item(key = "expenses") {
                 ClayLink(stringResource(R.string.expenses_open), onClick = onOpenExpenses)
@@ -279,6 +287,7 @@ private fun PathContent(
     photoActions: PhotoActions,
     onOpenExpenses: (() -> Unit)?,
     onSeePhotos: () -> Unit,
+    packing: (@Composable () -> Unit)?,
 ) {
     val days = remember(state.trip.startDate, state.trip.endDate) { TripDays.of(state.trip) }
     var chosenEpoch by rememberSaveable(state.trip.id) { mutableStateOf<Long?>(null) }
@@ -364,11 +373,14 @@ private fun PathContent(
             )
         }
         item(key = "checklist-title") {
-            TripSectionTitle(stringResource(R.string.trip_checklist), Modifier.padding(horizontal = ClaySpacing.screen))
+            TripSectionTitle(
+                stringResource(if (packing != null) R.string.packing_title else R.string.trip_checklist),
+                Modifier.padding(horizontal = ClaySpacing.screen),
+            )
         }
         item(key = "checklist") {
             Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) {
-                TripChecklist(state.items, state.assignees, state.isParticipant, checklist)
+                PackingOrChecklist(state, checklist, packing)
             }
         }
         item(key = "photos-title") {
@@ -380,6 +392,20 @@ private fun PathContent(
                 AlbumPhotosSection(photos, photoActions, stringResource(empty))
             }
         }
+    }
+}
+
+/** « À prévoir » as before, or, with packingList (récit 62), « Pour tout le monde » then the bags. */
+@Composable
+private fun PackingOrChecklist(state: TripDetailUiState.Success, checklist: ChecklistActions, packing: (@Composable () -> Unit)?) {
+    if (packing == null) {
+        TripChecklist(state.items, state.assignees, state.isParticipant, checklist)
+        return
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(stringResource(R.string.packing_everyone), style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+        TripChecklist(state.items, state.assignees, state.isParticipant, checklist)
+        packing()
     }
 }
 

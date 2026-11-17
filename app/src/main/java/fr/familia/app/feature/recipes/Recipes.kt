@@ -54,11 +54,19 @@ fun originLabel(recipe: Recipe, family: Family): String? =
 fun searchKey(text: String): String =
     Normalizer.normalize(text, Normalizer.Form.NFD).replace(Regex("\\p{M}"), "").lowercase()
 
-/** True when every word of [query] is in the title, the origin, the tags or the ingredients. */
+/** Who noted the recipe: their first name today, or the name saved with it. */
+fun authorLabel(recipe: Recipe, family: Family): String =
+    family.members.firstOrNull { it.id == recipe.authorId }?.firstName ?: recipe.authorName
+
+/**
+ * True when every word of [query] is in the title, the origin (« De … »), who noted it
+ * (« Notée par … »), the tags or the ingredients: a first name finds the recipes of that member.
+ */
 fun matches(recipe: Recipe, query: String, family: Family): Boolean {
     val words = searchKey(query).split(Regex("\\s+")).filter { it.isNotEmpty() }
     if (words.isEmpty()) return true
-    val haystack = searchKey(listOfNotNull(recipe.title, originLabel(recipe, family), recipe.ingredients).plus(recipe.tags).joinToString(" "))
+    val parts = listOfNotNull(recipe.title, originLabel(recipe, family), authorLabel(recipe, family), recipe.ingredients)
+    val haystack = searchKey(parts.plus(recipe.tags).joinToString(" "))
     return words.all { it in haystack }
 }
 

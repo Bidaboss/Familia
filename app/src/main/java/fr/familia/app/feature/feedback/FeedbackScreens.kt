@@ -208,6 +208,8 @@ fun FeedbackListScreen(
     onRemove: (String) -> Unit = {},
     /** « Partager pour Claude »: the text and the screenshot together; null outside Retours. */
     onShareForClaude: ((Feedback) -> Unit)? = null,
+    /** « Enregistrer la capture »: the screenshot into the gallery; null outside Retours. */
+    onSaveScreenshot: ((Feedback) -> Unit)? = null,
     actionFailed: Boolean = false,
     onFailureShown: () -> Unit = {},
 ) {
@@ -290,6 +292,11 @@ fun FeedbackListScreen(
                                         if (onShareForClaude != null) {
                                             TextButton(onClick = { onShareForClaude(item) }, modifier = Modifier.heightIn(min = 56.dp)) {
                                                 Text(stringResource(R.string.feedback_share_for_claude))
+                                            }
+                                        }
+                                        if (onSaveScreenshot != null && item.screenshot != null) {
+                                            TextButton(onClick = { onSaveScreenshot(item) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                                                Text(stringResource(R.string.feedback_save_screenshot))
                                             }
                                         }
                                         TextButton(onClick = { removing = item.id }, modifier = Modifier.heightIn(min = 56.dp)) {

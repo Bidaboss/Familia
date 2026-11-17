@@ -39,7 +39,7 @@ import {
 import {
   HelpNotice, HelpRequestData, HelpSender, onHelpRequestWritten, reopenRequestsOf, sendStillOpenReminders,
 } from './helpRequests';
-import { addDays, changeNotice, EventData, hasVisibleChange, Notice, parisDay } from './logic';
+import { actorUid, addDays, changeNotice, EventData, hasVisibleChange, Notice, parisDay } from './logic';
 import { comingMembers, deleteEventAnswers, featureAudience, loadMembers, deleteMemberData, memberForUid, notify, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
 import { deleteExpenseBook, ExpenseData, historyEntry, sendExpenseNotices, writeExpenseHistory } from './expenses';
 import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
@@ -115,11 +115,6 @@ const send: Sender = async (token: string, notice: Notice) => {
     return UNREGISTERED.has(code) ? 'unregistered' : 'error';
   }
 };
-
-/** The UID of the member who made the change, when it came from the app. */
-function actorUid(event: { authType: string; authId?: string }): string | undefined {
-  return event.authType === 'app_user' ? event.authId : undefined;
-}
 
 export const onEventCreated = onDocumentCreatedWithAuthContext('events/{eventId}', async (event) => {
   const data = event.data?.data() as EventData | undefined;
