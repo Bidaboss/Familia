@@ -1,6 +1,6 @@
 # Déroulé de la présentation du 21
 
-Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. « H » est l'heure où tout le monde est à table. Le repas est l'anniversaire de quelqu'un : ici on dit « la personne fêtée ». Rien sur son cadeau ne doit apparaître à l'écran.
+Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du café. Le repas est l'anniversaire de quelqu'un : ici on dit « la personne fêtée ». Rien sur son cadeau ne doit apparaître à l'écran.
 
 ## La veille, le 20 au soir (après le gel)
 
@@ -9,42 +9,45 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 3. **Administration**, **Modules** : allume ce que tu veux montrer, éteins le reste. Un module éteint ne laisse aucune trace chez les autres (ni pastille, ni carte « À découvrir », ni aide, ni notification). Toi, tu vois toujours tout : regarde avec « Voir comme » pour juger.
 4. Vérifie que chaque membre a son adresse Google dans sa fiche. Sans adresse, la personne ne pourra pas se connecter demain.
 5. Prépare les invitations : dans **Famille**, ouvre une fiche, « Envoyer l'invitation », et vérifie que le message contient le lien d'installation. Ne les envoie pas encore.
-6. Fais une répétition avec « Voir comme » : choisis un membre qui n'est **pas** la personne fêtée, et parcours les onglets dans l'ordre du jour J (plus bas). Note ce qui pourrait gêner. Si tu veux montrer les Cadeaux, regarde aussi l'onglet Cadeaux en « Voir comme » la personne fêtée.
+6. Fais une répétition avec « Voir comme » : parcours la visite guidée du jour J (étape 5, plus bas) en « Voir comme » un membre qui n'est **pas** la personne fêtée, puis l'onglet Cadeaux en « Voir comme » la personne fêtée. **Attendu :** rien ne lui montre ce qui est réservé pour elle. Note ce qui pourrait gêner.
 7. Ouvre une fois, avec le réseau, Accueil, Planning, Entraide et Famille : ils resteront lisibles si le réseau tombe demain.
 8. Télécharge l'APK du Drive sur ton téléphone, dans « Téléchargements ». C'est ton plan B si le réseau du lieu est mauvais.
 9. Recharge les deux téléphones à 100 %.
 
-## Le jour J, avant le repas
+## Le jour J : le repas d'abord, Familia au café
 
-**H − 30 min**
-1. Mets ton téléphone en « Ne pas déranger », pour qu'aucune notification n'apparaisse pendant que tu montres l'écran.
-2. Vérifie le réseau du lieu : ouvre Familia, le bandeau « Hors ligne » ne doit pas apparaître. Sinon, voir « Plan B ».
+Le repas reste celui de la personne fêtée. Familia n'arrive qu'au café, une fois le gâteau mangé (décision du 17/11, carte AVIS-21). On ne fait plus de présentation sur ton écran : chacun découvre l'appli sur son propre téléphone. « Voir comme » ne sert plus qu'à aider quelqu'un de perdu (voir « Les petits pièges »).
 
-**H − 10 min**
-3. **Administration**, carte « Mode présentation » tout en haut, touche « 4 h ». Le bandeau « Mode présentation jusqu'à … » apparaît au-dessus des onglets, sur ton téléphone seulement. Pendant ce temps, les arrivées, les réactions, les commentaires, les coups de main, les bonnes nouvelles des autres, les cadeaux et les capsules attendent, puis partent en un seul résumé à la fin. « Rejoignez-moi » passe toujours, et **ta** bonne nouvelle aussi : c'est le moment de poster la photo du repas, elle fera sonner tous les téléphones d'un coup.
-4. Ouvre **Administration**, « Voir comme… », et choisis un membre qui n'est **pas** la personne fêtée. Le bandeau « Tu vois l'appli comme … » le rappelle. C'est en lecture seule : rien ne peut être modifié par erreur.
+**Avant de partir**
+1. Mets ton téléphone en « Ne pas déranger ».
+2. Vérifie qu'il est chargé, et que l'APK est bien dans « Téléchargements » (plan B).
 
-## La présentation (environ 15 minutes)
+**1. Pendant le repas : la photo, sans Familia**
+Prends la photo de la table avec l'appareil photo du téléphone, comme d'habitude. N'ouvre pas Familia. La photo reste dans ta galerie pour plus tard (étape 6).
 
-**1. L'Accueil (3 min).** Montre l'Accueil vu par ce membre : les prochains rendez-vous, les anniversaires qui arrivent, les bonnes nouvelles. Ne montre pas ton propre Accueil.
+**2. Au café : le Mode présentation**
+Vérifie le réseau du lieu : ouvre Familia, le bandeau « Hors ligne » ne doit pas apparaître (sinon, voir « Plan B si le réseau tombe »). Puis **Administration**, carte « Mode présentation » tout en haut, touche « 4 h ». Le bandeau « Mode présentation jusqu'à … » apparaît au-dessus des onglets, sur ton téléphone seulement. Pendant ce temps, les arrivées, les réactions, les commentaires, les coups de main, les bonnes nouvelles des autres, les cadeaux et les capsules attendent, puis partent en un seul résumé à la fin. « Rejoignez-moi » passe toujours, et **ta** bonne nouvelle aussi.
 
-**2. Le Planning (3 min).** Le mois, puis un événement : qui vient, qui apporte quoi, les commentaires. Dis que chacun peut répondre « Je viens » en un geste.
+**3. Les invitations**
+Dans **Famille**, ouvre chaque fiche puis « Envoyer l'invitation », par WhatsApp ou SMS. Commence par ceux qui sont le plus à l'aise : un ado de la famille peut ensuite aider ses grands-parents à installer. Si Android bloque l'installation, l'invitation explique quoi faire (autoriser l'installation depuis WhatsApp ou les fichiers). Grâce au Mode présentation, personne n'est bombardé de « vient d'arriver ».
 
-**3. L'Entraide (2 min).** Les coups de main, et les autres rubriques si tu les as allumées.
+**4. La connexion et le tuto**
+Chacun ouvre Familia, se connecte avec son compte Google, puis suit le tuto. Laisse-les faire : n'aide que si quelqu'un est bloqué. Note qui a eu besoin d'aide, et à quelle étape (voir « Ce que tu notes », en bas).
 
-**4. La Famille (2 min).** Les foyers et les fiches. Puis touche la photo en haut à droite : montre « Vérifier les mises à jour ».
+**5. La visite guidée, 5 minutes, sur leurs propres téléphones**
+Tu guides à voix haute, chacun touche sur son téléphone :
+1. **L'Accueil** : les prochains rendez-vous, les anniversaires qui arrivent, « À faire ».
+2. **Un événement** : le repas de Noël (ou celui préparé la veille), depuis le Planning. Chacun touche « Je viens ». Puis « Qui apporte quoi » : chacun prend une ligne, préparée la veille (voir [veille-du-21.md](veille-du-21.md)).
+3. **Les Cadeaux** : chacun regarde sa liste d'envies et celles des autres. La personne fêtée peut le faire aussi : le serveur lui cache ce qui est réservé pour elle, et la liste de son anniversaire préparée par les autres. Toi, ne tourne pas ton propre onglet Cadeaux vers la table.
 
-**5. Les Cadeaux (1 min, avec prudence).** Ne montre **pas** ton propre onglet Cadeaux, ni celui d'un autre membre : l'occasion de la personne fêtée et ses réservations y apparaissent. Si tu veux le montrer, passe en « Voir comme » la personne fêtée, comme vérifié la veille. Sinon, explique-le en deux phrases sans l'ouvrir.
+**6. La photo du repas, en Bonne nouvelle puis dans l'album**
+C'est le moment fort : toute la table la reçoit. **C'est toi qui postes, depuis ton propre compte** : pendant le Mode présentation, seule ta bonne nouvelle d'admin principal sonne tout de suite.
+1. **Écran tourné vers toi**, ouvre le fil des Bonnes nouvelles (ton Accueil ne doit pas être montré) et touche « Publier ». Écris une phrase (« Joyeux anniversaire ! »), touche « Choisir des photos » et prends celle du repas, dans ta galerie. Tu peux nommer des membres. Ne parle pas du cadeau.
+2. Touche « Publier pour toute la famille ». Une barre se remplit au-dessus du bouton. **Reste sur cet écran** jusqu'à ce qu'il se ferme : tant qu'il est ouvert, l'envoi continue.
+3. L'écran revient sur le fil, où elle apparaît une seule fois. Les téléphones de la table sonnent.
+4. Puis verse-la dans l'album : ouvre l'événement du repas, section « Photos », et ajoute la même photo. Invite chacun à ajouter les siennes.
 
-**6. L'apparence (1 min).** Touche ta photo, **Apparence** : change de thème devant eux (Hiver, Jardin…), puis remets le tien. Si quelqu'un a une tablette, installe-la aussi : l'appli s'y utilise de la même façon.
-
-**7. On installe ensemble (le reste du temps).** Quitte « Voir comme » (« Quitter » sur le bandeau). Envoie les invitations une par une, par WhatsApp ou SMS. Chacun installe, se connecte avec son compte Google. Grâce au Mode présentation, personne n'est bombardé de « vient d'arriver ».
-
-**8. La photo du repas, en direct (2 min).** Le moment fort : toute la table la reçoit. **C'est toi qui postes, depuis ton propre compte** (tu as quitté « Voir comme » à l'étape 7) : pendant le Mode présentation, seule ta bonne nouvelle d'admin principal sonne tout de suite (étape 3 d'avant le repas).
-1. Avant de te tourner vers eux, prends la photo avec l'appareil photo du téléphone. Elle est ainsi gardée dans ta galerie quoi qu'il arrive.
-2. **Écran tourné vers toi**, ouvre le fil des Bonnes nouvelles (ton Accueil ne doit pas être montré) et touche « Publier » depuis le fil. Écris une phrase (« Joyeux anniversaire ! »), touche « Choisir des photos » et prends celle du repas. Tu peux nommer des membres. Ne parle pas du cadeau. Une fois le formulaire prêt, tourne l'écran vers la table.
-3. Touche « Publier pour toute la famille ». Une barre se remplit au-dessus du bouton. **Reste sur cet écran** jusqu'à ce qu'il se ferme : tant qu'il est ouvert, l'envoi continue.
-4. L'écran revient sur le fil des Bonnes nouvelles, où elle apparaît une seule fois. Fais ouvrir Familia à ceux qui l'ont déjà installée : elle est là, avec la photo.
+**7. Avant 22 h : éteindre le Mode présentation** (voir « À la fin »).
 
 ## Plan B si l'envoi de la photo bloque
 
@@ -58,6 +61,7 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 ## Les petits pièges, et quoi faire
 
 - **Tu touches deux fois un bouton :** un seul écran s'ouvre. Juste après un changement d'écran, un toucher peut ne rien faire pendant moins d'une seconde : touche de nouveau.
+- **Quelqu'un est perdu :** sur ton téléphone, **Administration**, « Voir comme… » et choisis-le. Tu vois son appli comme lui, en lecture seule, et tu peux lui montrer où toucher. Touche « Quitter » sur le bandeau ensuite.
 - **En « Voir comme », tu touches « Retour » sur l'Accueil du membre :** Familia ne se ferme pas, un message te rappelle de toucher « Quitter » sur le bandeau.
 - **Le téléphone tourne, ou tu reviens dans Familia après un appel :** le bandeau « Voir comme » reste, un rond tourne un instant, puis l'appli du membre revient, sur son Accueil. Ton propre Accueil ne s'affiche pas.
 - **Ne ferme pas Familia depuis les applis récentes pendant « Voir comme » :** à la réouverture, c'est ton propre Accueil. Si ça arrive, tourne l'écran vers toi et relance « Voir comme ».
@@ -65,7 +69,7 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 - **Un téléphone d'enfant suivi par Family Link** peut refuser d'installer une appli qui ne vient pas du Play Store. Essaie avant le 21 sur le téléphone d'un enfant de ton foyer. Si ça bloque le jour J, l'enfant découvre l'appli sur le téléphone d'un parent, et on règle son installation après le repas.
 - **Police très grande chez quelqu'un :** les écrans s'adaptent (essayés jusqu'à 200 %). Si un texte paraît coupé, fais défiler l'écran.
 
-## Les photos : l'album du repas, le diaporama et l'arbre (3 min, après la photo du repas)
+## Les photos : l'album du repas, le diaporama et l'arbre (en option, après l'étape 6)
 
 **La veille, en plus de la liste plus haut**
 1. **Administration**, **Modules** : allume « Albums des événements », « Diaporama du mois » et « Arbre généalogique » si tu veux les montrer.
@@ -73,8 +77,8 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 3. Ajoute 3 ou 4 de tes photos dans l'album d'un événement passé, puis touche une fois « Lancer le diaporama », avec le réseau. Les photos restent alors sur ton téléphone : elles s'afficheront même si le réseau tombe demain.
 4. Ouvre une fois l'arbre, avec le réseau.
 
-**Pendant le repas**
-1. **L'album du repas.** Ouvre l'événement du jour, section « Photos » : l'album s'ouvre le jour même. Ajoute la photo de la table prise à l'étape 8. Elle apparaît chez tous ceux qui voient l'événement. Invite chacun à ajouter les siennes une fois installé.
+**Au café, après l'étape 6**
+1. **L'album du repas.** Il s'ouvre le jour même, et la photo de la table y est déjà (étape 6). Elle apparaît chez tous ceux qui voient l'événement.
 2. **Le diaporama.** Touche « Lancer le diaporama ». Une photo passe toutes les 4 secondes, et la suivante se charge pendant que la photo en cours s'affiche. Pose le téléphone au milieu de la table.
 3. **L'arbre.** **Famille**, « Arbre généalogique » : montre une branche, et que l'on peut ajouter un parent ou un grand-parent qui n'a pas de compte.
 
@@ -95,7 +99,7 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 ## Plan B si le réseau tombe
 
 - **Le réseau est faible :** active le partage de connexion de ton téléphone (4G) et fais-y connecter les autres, deux ou trois à la fois.
-- **Plus de réseau du tout pour la démo :** l'appli reste lisible hors ligne, avec le bandeau « Hors ligne ». Fais la présentation quand même avec ce que tu as ouvert la veille. Les réponses que tu donnes partent au retour du réseau.
+- **Plus de réseau du tout au café :** sans réseau, personne ne peut se connecter. Montre l'appli sur ton téléphone, hors ligne, avec ce que tu as ouvert la veille, et chacun se connectera en rentrant.
 - **Plus de réseau pour installer :** envoie l'APK téléchargé la veille par **Partage à proximité** (Quick Share) d'Android, depuis « Téléchargements ». Chacun peut l'installer, mais la connexion Google demande du réseau : chacun se connectera en rentrant chez soi. Laisse le Mode présentation allumé jusqu'à ce moment-là, ou éteins-le à la fin du repas, comme prévu.
 - **Un téléphone refuse d'installer :** Android demande d'autoriser l'installation depuis WhatsApp ou les fichiers. Ouvre le réglage qu'il propose, autorise, puis reviens.
 - **Quelqu'un n'arrive pas à se connecter :** vérifie l'adresse Google dans sa fiche. Ne la change pas devant tout le monde : note-le et fais-le après le repas.

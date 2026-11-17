@@ -58,29 +58,31 @@ Passe chaque essai d'abord en mode avion, puis en « 2G seulement ». Pour la 2G
 
 ## 5. Préparer le repas, encore ce soir
 
-- [ ] Fais une répétition : **Administration**, puis « Voir comme… », puis un membre qui n'est **pas** la personne fêtée. Parcours les onglets dans l'ordre de [scenario-demo.md](scenario-demo.md). Note ce qui pourrait gêner.
+- [ ] Fais une répétition : **Administration**, puis « Voir comme… », puis un membre qui n'est **pas** la personne fêtée. Fais la visite guidée de [scenario-demo.md](scenario-demo.md) (étape 5). Puis regarde l'onglet Cadeaux en « Voir comme » la personne fêtée. **Attendu :** rien ne lui montre ce qui est réservé pour elle. Note ce qui pourrait gêner.
 - [ ] Toujours en « Voir comme », ouvre l'événement du repas. **Attendu :** rien n'y parle du cadeau.
 - [ ] Touche « Quitter » sur le bandeau.
 - [ ] Avec le réseau, ouvre une fois Accueil, Planning, Entraide et Famille. Ils resteront lisibles si le réseau tombe demain.
 - [ ] Vérifie que chaque membre a son adresse Google dans sa fiche (onglet **Famille**, une fiche après l'autre).
 - [ ] Télécharge l'APK du Drive sur ton téléphone, dans « Téléchargements ». C'est ton plan B si le réseau du lieu est mauvais.
-- [ ] Ouvre un événement à venir où la famille se retrouvera, par exemple le repas de Noël. Dans « Qui apporte quoi », ajoute trois ou quatre lignes, **sans les prendre** : « Une entrée », « Un dessert », « Les boissons », « Le pain ». Demain, à table, chacun pourra en prendre une depuis son téléphone. C'est un premier geste simple et utile. Ne le fais pas sur l'événement du repas d'anniversaire.
+- [ ] Ouvre un événement à venir où la famille se retrouvera, par exemple le repas de Noël. Dans « Qui apporte quoi », ajoute trois ou quatre lignes, **sans les prendre** : « Une entrée », « Un dessert », « Les boissons », « Le pain ». Demain, au café, chacun pourra en prendre une depuis son téléphone (visite guidée, étape 5). C'est un premier geste simple et utile. Ne le fais pas sur l'événement du repas d'anniversaire.
 - [ ] Recharge les deux téléphones à 100 %.
 
 ## 6. Le jour du repas (à relire le matin)
 
-**Une demi-heure avant de passer à table**
+**Avant de partir**
 - [ ] Mets ton téléphone en « Ne pas déranger » : glisse du haut de l'écran vers le bas, puis touche « Ne pas déranger ».
+
+**Pendant le repas**
+- [ ] Prends la photo de la table avec l'appareil photo, **sans ouvrir Familia**. Le repas reste celui de la personne fêtée.
+
+**Au café** (le déroulé complet est dans [scenario-demo.md](scenario-demo.md))
 - [ ] Ouvre Familia. **Attendu :** pas de bandeau « Hors ligne ». S'il apparaît, active le partage de connexion 4G.
-
-**Dix minutes avant**
 - [ ] **Administration**, puis la carte « Mode présentation » tout en haut, puis « 4 h ». **Attendu :** le bandeau « Mode présentation jusqu'à … » au-dessus des onglets.
-- [ ] **Administration**, puis « Voir comme… », puis un membre qui n'est **pas** la personne fêtée. **Attendu :** le bandeau « Tu vois l'appli comme … ».
-
-**Pendant la présentation**
-- [ ] Ne montre jamais **ton propre** Accueil.
-- [ ] Ne montre jamais **ton propre** onglet Cadeaux, ni celui d'un autre membre : l'occasion de la personne fêtée y apparaît.
-- [ ] Pour la photo du repas, touche « Quitter » sur le bandeau, puis publie depuis le fil des Bonnes nouvelles, **écran tourné vers toi** (voir l'étape 8 de [scenario-demo.md](scenario-demo.md)).
+- [ ] Envoie les invitations, puis laisse chacun se connecter et suivre le tuto sur son téléphone.
+- [ ] Fais la visite guidée de 5 minutes : Accueil, un événement (« Je viens », « Qui apporte quoi »), Cadeaux.
+- [ ] Ne tourne jamais **ton propre** Accueil ni **ton propre** onglet Cadeaux vers la table : l'occasion de la personne fêtée y apparaît.
+- [ ] Publie la photo du repas depuis le fil des Bonnes nouvelles, **écran tourné vers toi**, puis ajoute-la à l'album de l'événement (étape 6 de [scenario-demo.md](scenario-demo.md)).
+- [ ] « Voir comme » ne sert qu'à aider quelqu'un de perdu. Touche « Quitter » sur le bandeau ensuite.
 
 **À la fin**
 - [ ] **Administration**, puis « Éteindre » sur la carte « Mode présentation ».
