@@ -54,6 +54,7 @@ Passe chaque essai d'abord en mode avion, puis en « 2G seulement ». Pour la 2G
 - [ ] « Bonnes nouvelles : envoi de la photo sur un réseau faible ou coupé ».
 - [ ] « Voir comme » sur un enfant : **Administration**, puis « Voir comme… », puis un enfant d'environ 11 ans. Parcours Accueil, Planning, Entraide et Bonnes nouvelles. **Attendu :** aucun bouton qui finit sur un refus, et aucun texte d'adulte. Recommence avec un enfant d'environ 16 ans. C'est l'étape 3 de « Écrans vides et profils enfant ».
 - [ ] Touche « Quitter » sur le bandeau « Tu vois l'appli comme … ».
+- [ ] Un enfant suivi par Family Link : installe Familia sur son téléphone et connecte son compte, avec le parent qui le suit à côté. C'est « Un enfant suivi par Family Link se connecte (avant le 21) », dans [essais-manuels.md](essais-manuels.md). **Si ça bloque**, ne retente pas le jour J : sur sa fiche, passe son profil à « Enfant, sans l'appli ». Ses parents répondent pour lui, et on retente après le repas, au calme.
 
 ## 5. Préparer le repas, encore ce soir
 
@@ -82,6 +83,6 @@ Passe chaque essai d'abord en mode avion, puis en « 2G seulement ». Pour la 2G
 
 **À la fin**
 - [ ] **Administration**, puis « Éteindre » sur la carte « Mode présentation ».
-- [ ] **Attendu :** en moins d'une minute, chacun reçoit le résumé de la présentation, en trois notifications au plus. S'il n'arrive pas, il part au plus tard 30 minutes après.
+- [ ] **Attendu :** en moins d'une minute, chacun reçoit le résumé de la présentation, en trois notifications au plus. S'il n'arrive pas, il part au plus tard 30 minutes après. Après 22 h, il attend le lendemain à 8 h pour ceux qui ont « Calme la nuit », c'est-à-dire presque tout le monde : éteins le Mode présentation avant 22 h si tu veux qu'il arrive le soir même.
 - [ ] Enlève « Ne pas déranger ».
 - [ ] Le soir ou le lendemain, allume les modules de ta liste « à allumer plus tard » (étape 3).

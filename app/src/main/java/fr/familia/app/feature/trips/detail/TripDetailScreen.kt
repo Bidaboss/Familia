@@ -158,7 +158,8 @@ fun TripDetailScreen(
             if (success?.isParticipant == true) {
                 ExtendedFloatingActionButton(
                     onClick = onAddStep,
-                    icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                    // The text of an extended button is hidden from TalkBack (Material 3): the icon says it.
+                    icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.trip_add_step)) },
                     text = { Text(stringResource(R.string.trip_add_step)) },
                 )
             }

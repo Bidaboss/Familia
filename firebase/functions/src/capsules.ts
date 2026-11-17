@@ -8,6 +8,7 @@
 import type { Firestore } from 'firebase-admin/firestore';
 import { Notice, parisDay } from './logic';
 import { notify, Sender } from './store';
+import { isQuietHour } from './prefs';
 
 export interface CapsuleData {
   recipientIds: string[];
@@ -42,6 +43,8 @@ async function isModuleOn(db: Firestore): Promise<boolean> {
  * two close runs never tell the recipients twice. With the module off, capsules wait sealed.
  */
 export async function openDueCapsules(db: Firestore, send: Sender, now: Date): Promise<string[]> {
+  // Never at 0 h 30: the capsule of the day opens from 8 h, when its notice may ring (rév. 266).
+  if (isQuietHour(now)) return [];
   if (!(await isModuleOn(db))) return [];
   const today = parisDay(now);
   // Only the sealed ones, by equality: no composite index, and the opened ones are not read again

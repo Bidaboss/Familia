@@ -123,7 +123,8 @@ fun NotebookScreen(state: NotebookUiState, actions: NotebookActions, modifier: M
             if (state is NotebookUiState.Success) {
                 ExtendedFloatingActionButton(
                     onClick = { actions.onAddIdea(state.selected) },
-                    icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                    // The text of an extended button is hidden from TalkBack (Material 3): the icon says it.
+                    icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.notebook_add_idea)) },
                     text = { Text(stringResource(R.string.notebook_add_idea)) },
                 )
             }

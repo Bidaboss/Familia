@@ -70,7 +70,8 @@ fun RecipesScreen(
             if (state is RecipesUiState.Ready) {
                 ExtendedFloatingActionButton(
                     onClick = onAdd,
-                    icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                    // The text of an extended button is hidden from TalkBack (Material 3): the icon says it.
+                    icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.recipes_add)) },
                     text = { Text(stringResource(R.string.recipes_add)) },
                 )
             }

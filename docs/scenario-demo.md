@@ -48,6 +48,8 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 
 ## Plan B si l'envoi de la photo bloque
 
+- **Quelqu'un n'a rien reçu** (il s'est connecté après l'envoi, ou les notifications de Familia sont coupées sur son téléphone) : qu'il ouvre Familia. La photo est sur son Accueil, dans « Bonnes nouvelles », sans attendre de notification. Ne la publie pas une deuxième fois.
+
 - **La phrase « Plus de réseau : l'envoi reprendra tout seul dès son retour » apparaît :** ne touche à rien. Active le partage de connexion 4G, ou rapproche-toi de la box. L'envoi repart seul, sans doublon.
 - **La barre n'avance plus et rien ne bouge depuis une minute :** touche « Annuler l'envoi ». Le texte et la photo restent, rien n'est publié. Passe en 4G, puis touche de nouveau « Publier » : une seule bonne nouvelle partira, et les photos déjà envoyées ne repartent pas.
 - **Un message dit que la bonne nouvelle n'a pas pu être publiée :** touche « OK », puis « Publier » de nouveau. Le texte et la photo sont gardés.
@@ -87,7 +89,7 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 ## À la fin
 
 1. **Administration**, « Éteindre » le Mode présentation (sur le bandeau ou dans la carte).
-2. **Attendu :** en moins d'une minute, chacun reçoit un seul résumé, par exemple « 6 personnes ont rejoint Familia ». S'il n'arrive pas, il part au plus tard 30 minutes après.
+2. **Attendu :** en moins d'une minute, chacun reçoit un seul résumé, par exemple « 6 personnes ont rejoint Familia ». S'il n'arrive pas, il part au plus tard 30 minutes après. Après 22 h, il attend le lendemain à 8 h pour ceux qui ont « Calme la nuit », c'est-à-dire presque tout le monde : éteins le Mode présentation avant 22 h si tu veux qu'il arrive le soir même.
 3. Enlève « Ne pas déranger ».
 
 ## Plan B si le réseau tombe

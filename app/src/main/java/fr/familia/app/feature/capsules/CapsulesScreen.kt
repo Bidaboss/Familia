@@ -68,7 +68,8 @@ fun CapsulesScreen(
             if (state is CapsulesUiState.Ready && onAdd != null) {
                 ExtendedFloatingActionButton(
                     onClick = onAdd,
-                    icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                    // The text of an extended button is hidden from TalkBack (Material 3): the icon says it.
+                    icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.capsules_add)) },
                     text = { Text(stringResource(R.string.capsules_add)) },
                 )
             }

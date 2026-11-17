@@ -964,3 +964,34 @@ Sur ton téléphone, avec la rotation automatique allumée (volet des réglages 
 1. Sur un téléphone, connecte-toi avec le compte A, puis ouvre un album et un livre de recettes pour remplir le cache.
 2. Touche « Utiliser un autre compte » (par exemple depuis l'écran « Cette adresse n'est pas dans la famille ») et connecte-toi avec le compte B. **Attendu :** les photos se rechargent depuis le réseau, puis s'affichent normalement. Le dernier PDF de A n'est plus proposé.
 3. Reconnecte-toi avec B. **Attendu :** les photos s'affichent tout de suite, sans nouveau chargement, puisque c'est le même membre.
+
+## Démo du 21 : arrivée d'un nouveau membre, de l'invitation à l'Accueil
+
+Avec le deuxième téléphone de test, sous Android 13 ou plus, et Familia désinstallée.
+
+1. Sur ton téléphone, **Famille**, une fiche, « Envoyer l'invitation », par SMS vers le deuxième téléphone. **Attendu :** le message dit en trois étapes quoi faire : ouvrir le lien et toucher le fichier, « Télécharger » puis « Installer » (avec quoi faire si c'est bloqué), puis se connecter avec l'adresse Google notée.
+2. Sur le deuxième téléphone, suis le message. Si Android dit que l'installation est bloquée, touche « Paramètres », autorise la source, puis reviens. **Attendu :** l'installation se termine.
+3. Ouvre Familia et connecte-toi. Va jusqu'au dernier écran du tuto, « Rester prévenu », et touche « Autoriser ». Dans la fenêtre d'Android, touche « Ne pas autoriser ». **Attendu :** l'appli s'ouvre sur l'Accueil. Tu ne restes pas bloqué sur le tuto.
+4. Ta photo en haut à droite, puis les réglages des notifications. **Attendu :** le message « Les notifications de Familia sont bloquées sur ce téléphone… », avec un bouton vers les réglages d'Android.
+5. Recommence sur un téléphone où Familia vient d'être réinstallée, et touche « Autoriser » dans la fenêtre d'Android. **Attendu :** l'appli s'ouvre aussi sur l'Accueil.
+
+## Démo du 21 : la photo du repas chez ceux qui la reçoivent
+
+Avec ton téléphone et deux téléphones de test, A et B, déjà connectés. Sur B, coupe les notifications de Familia dans les réglages d'Android.
+
+1. Sur ton téléphone, allume le Mode présentation (« 4 h »), puis publie une bonne nouvelle avec une photo, depuis ton propre compte. **Attendu :** A sonne tout de suite. Touche la notification sur A, l'appli fermée : la bonne nouvelle s'ouvre, avec la photo.
+2. Sur B, rien ne sonne. Ouvre Familia. **Attendu :** la photo est sur l'Accueil, dans « Bonnes nouvelles ».
+3. Sur un troisième téléphone, ou sur B après « Utiliser un autre compte », connecte un membre qui ne s'était jamais connecté, puis finis le tuto. **Attendu :** la photo est sur son Accueil, sans notification.
+4. Mets A en économie d'énergie, écran éteint, et publie une deuxième bonne nouvelle. **Attendu :** A sonne dans la minute.
+5. Sur A, réagis à la photo. Puis, sur ton téléphone, éteins le Mode présentation. **Attendu :** sur A, le résumé ne parle jamais de ta photo : elle a déjà sonné, elle ne compte pas deux fois.
+
+
+## Démo du 21 : la nuit et le réveil du 22 (rév. 266)
+
+Avec le deuxième téléphone de test, sur un compte qui n'a jamais ouvert ses réglages de notifications.
+
+1. Ta photo en haut à droite, puis les réglages des notifications. **Attendu :** « Calme la nuit » est déjà allumé.
+2. Après 22 h, depuis ton téléphone, publie une bonne nouvelle et réagis à une autre. **Attendu :** le deuxième téléphone ne sonne pas.
+3. Le lendemain, entre 8 h et 8 h 30. **Attendu :** une seule notification « Cette nuit dans Familia » avec les titres de la nuit. Une surprise (cadeaux, capsule) arriverait à part.
+4. Sur un compte où tu as éteint « Calme la nuit » toi-même, refais l'étape 2. **Attendu :** il sonne tout de suite, comme avant.
+5. Une capsule prévue pour aujourd'hui. **Attendu :** elle s'ouvre et sonne à partir de 8 h, jamais en pleine nuit.

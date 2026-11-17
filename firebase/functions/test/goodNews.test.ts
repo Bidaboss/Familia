@@ -148,6 +148,11 @@ describe('sending, against the emulator', () => {
 
       await onGoodNewsPublished(db, send, 'n2', news({ authorId: 'jules', authorName: 'Jules', forMemberId: 'jules' }), meal);
       assert.deepEqual(sent, ['phone-camille', 'phone-noe']);
+      // The photo of the meal rang at once: it never waits for the summary, so the summary never counts it again.
+      for (const id of ['camille', 'noe', 'jules']) {
+        const items = ((await db.collection('presentationQueue').doc(id).get()).get('items') ?? []) as { goodNewsId?: string }[];
+        assert.ok(items.every((item) => item.goodNewsId !== 'n2'), id);
+      }
     } finally {
       await db.doc('config/presentation').delete();
       await db.recursiveDelete(db.collection('presentationQueue'));

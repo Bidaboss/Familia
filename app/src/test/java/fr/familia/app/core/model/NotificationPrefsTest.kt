@@ -6,10 +6,16 @@ import org.junit.Test
 class NotificationPrefsTest {
 
     @Test
-    fun `without a document everything is on and the nights are not quiet`() {
+    fun `without a document everything is on and the nights are quiet`() {
         val prefs = NotificationPrefs.from(null)
         assertEquals(NotificationLevel.All, prefs.level)
-        assertEquals(false, prefs.quietHours)
+        assertEquals(true, prefs.quietHours)
+    }
+
+    @Test
+    fun `the nights stay quiet unless the member turned it off themselves`() {
+        assertEquals(true, NotificationPrefs.from(mapOf("goodNews" to true)).quietHours)
+        assertEquals(false, NotificationPrefs.from(mapOf("quietHours" to false)).quietHours)
     }
 
     @Test
