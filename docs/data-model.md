@@ -237,6 +237,16 @@ Dans l'appli (`feature/wishes`), les cartes du dernier anniversaire s'affichent 
 
 « Il y a un an » (récit 36, module `yearAgo`) : une carte de l'Accueil, sans notification ni donnée nouvelle. L'appli lit les Bonnes nouvelles publiées le même jour un an plus tôt (`createdAt` entre minuit et minuit, heure de Paris) et, sinon, les photos d'album (`trips/{tripId}/photos`) prises ce jour-là dans les voyages que le membre suit (`readerIds`). Une Bonne nouvelle qu'il a masquée, un « Défi réussi » de Familia et un souvenir qu'il a écarté ne s'affichent pas. « Ne plus me montrer ce souvenir » est gardé sur le téléphone (préférences `yearAgoDismissed-{memberId}`), rien n'est écrit dans Firestore ; il n'est pas proposé en « Voir comme ».
 
+## Une seule audience (PRD, « élargir la famille par cercles », étape 1)
+
+« Toute la famille » ne s'écrit qu'à un endroit par couche, pour que les cercles (étape 2, interrupteur `circles`) ne touchent que lui :
+
+- **Règles** : `inAudience(resource)` (ou `inAudience(list())` pour les articles d'une liste) remplace `isMember()` sur toutes les lectures « toute la famille ». À l'étape 1, elle vaut `isMember()`. Les lectures personnelles et les audiences explicites (`viewerIds`, `readerIds`, `recipientIds`) ne changent pas.
+- **Fonctions** : `functions/src/audience.ts`. `familyMembers(db, contenu?)` est la seule lecture de `members/` entière ; `inAudience` et `circlesOf` sont les règles pures ; `withApp` garde ceux qui ont l'appli.
+- **Appli** : `core/model/Audience.kt`. `familyAudience(family)` pour « Toute la famille », `canSeeList` (la règle du même nom), `inAudience` et `circlesOf`, à côté de `concerns` pour les événements.
+
+Un document sans `circleIds` est dans le cercle `principal`, comme un membre : aucune migration. Ne jamais écrire « tous les membres » en dur ailleurs.
+
 ## Cloud Functions (lot 8)
 
 Le code est dans `firebase/functions`, en TypeScript, et tourne en Europe (`europe-west1`), avec une seule instance au plus.

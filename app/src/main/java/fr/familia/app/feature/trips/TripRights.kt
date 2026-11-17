@@ -5,6 +5,7 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripStep
+import fr.familia.app.core.model.familyAudience
 import fr.familia.app.core.model.isOwner
 import java.time.Instant
 import java.time.LocalDate
@@ -22,11 +23,10 @@ fun canManageTrip(trip: Trip, me: Member, family: Family): Boolean =
     trip.creatorId == me.id || family.isOwner(me)
 
 /**
- * The members who can be ticked as followers of a trip, all ticked for a new one. Today the whole
- * family; when the family becomes several circles, this is the one place to switch to the shared
- * audience function of core/model.
+ * The members who can be ticked as followers of a trip, all ticked for a new one: the shared
+ * audience of core/model ([familyAudience]).
  */
-fun tripAudience(family: Family): List<Member> = family.members
+fun tripAudience(family: Family): List<Member> = familyAudience(family)
 
 /** Only an adult creates a trip (PRD rév. 131). A child takes part once an adult adds them. */
 fun canCreateTrip(me: Member): Boolean = me.profile == MemberProfile.Adult

@@ -25,6 +25,7 @@ import type { DocumentReference, DocumentSnapshot, Firestore } from 'firebase-ad
 import { FieldValue } from 'firebase-admin/firestore';
 import { notebookEntryId } from './notebook';
 import { copiedItemPhoto, PhotoCopier, storageCopier } from './itemPhoto';
+import { familyMembers } from './audience';
 
 export type SingleListTarget = 'wishes' | 'ideas';
 
@@ -65,7 +66,7 @@ export async function migrateToSingleList(db: Firestore, copyPhoto: PhotoCopier 
   // Behind « Plus de photos » (récit 44, rév. 237): the photo follows the item.
   const photos = config.get('features.morePhotos') === true ? copyPhoto : undefined;
   const lists = await db.collection('giftLists').where('kind', 'in', ['own', 'surprise']).get();
-  const members = (await db.collection('members').get()).docs.map((m) => ({ id: m.id, profile: m.get('profile') }));
+  const members = (await familyMembers(db)).map((m) => ({ id: m.id, profile: m.get('profile') }));
   let copied = 0;
   for (const list of lists.docs) {
     // A revealed list is past: its gifts were given, they belong to its own history.

@@ -6,6 +6,7 @@ import { Timestamp, type Firestore } from 'firebase-admin/firestore';
 import type { Notice } from './logic';
 import { deliver } from './prefs';
 import type { Sender } from './store';
+import { familyMembers, withApp } from './audience';
 
 export interface GoodDealData {
   kind: 'deal' | 'address';
@@ -54,9 +55,7 @@ export function goodDealsNotice(deals: NewDeal[]): Notice | null {
  */
 async function goodDealsAudience(db: Firestore): Promise<string[]> {
   const config = await db.doc('config/app').get();
-  const members = (await db.collection('members').get()).docs
-    .filter((m) => m.get('profile') !== 'childWithoutApp')
-    .map((m) => m.id);
+  const members = withApp(await familyMembers(db));
   if (config.get('features.goodDeals') === true) return members;
   const owner = (await db.doc('config/family').get()).get('ownerMemberId');
   return members.filter((id) => id === owner);

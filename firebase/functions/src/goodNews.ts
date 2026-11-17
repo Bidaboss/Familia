@@ -4,6 +4,7 @@
 
 import { FieldValue, Timestamp, type Firestore } from 'firebase-admin/firestore';
 import { deliver } from './prefs';
+import { familyMembers } from './audience';
 
 export interface GoodNewsData {
   text: string;
@@ -126,8 +127,8 @@ export type FileRemover = (paths: string[]) => Promise<void>;
 const DIGESTS = 'goodNewsDigests';
 
 async function loadMembers(db: Firestore): Promise<GoodNewsMember[]> {
-  const snapshot = await db.collection('members').get();
-  return snapshot.docs.map((doc) => ({
+  const snapshot = await familyMembers(db);
+  return snapshot.map((doc) => ({
     id: doc.id,
     firstName: String(doc.get('firstName') ?? ''),
     profile: String(doc.get('profile') ?? ''),

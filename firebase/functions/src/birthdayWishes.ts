@@ -9,6 +9,7 @@ import type { Firestore } from 'firebase-admin/firestore';
 import { nextBirthday } from './gifts';
 import { parisDay, type Notice } from './logic';
 import { featureOn, notify, type Sender } from './store';
+import { familyMembers } from './audience';
 
 export const BIRTHDAY_WISHES = 'birthdayWishes';
 
@@ -71,11 +72,11 @@ export async function startBirthdays(db: Firestore, send: Sender, now: Date): Pr
   if (!(await featureOn(db, BIRTHDAY_WISHES))) return [];
   const today = parisDay(now);
   const year = Number(today.slice(0, 4));
-  const members = await db.collection('members').get();
-  const all = members.docs.map((m) => ({ id: m.id, birthDate: m.get('birthDate') as string | null | undefined }));
+  const members = await familyMembers(db);
+  const all = members.map((m) => ({ id: m.id, birthDate: m.get('birthDate') as string | null | undefined }));
   const celebrated: string[] = [];
   for (const id of birthdaysOn(all, today)) {
-    const member = members.docs.find((m) => m.id === id)!;
+    const member = members.find((m) => m.id === id)!;
     const firstName = String(member.get('firstName') ?? '');
     try {
       await db.collection('goodNews').doc(birthdayNewsId(year, id)).create({
@@ -89,7 +90,7 @@ export async function startBirthdays(db: Firestore, send: Sender, now: Date): Pr
       throw e;
     }
     celebrated.push(id);
-    const withApp = members.docs.filter((m) => m.id !== id && m.get('profile') !== 'childWithoutApp').map((m) => m.id);
+    const withApp = members.filter((m) => m.id !== id && m.get('profile') !== 'childWithoutApp').map((m) => m.id);
     const muted = await mutedOf(db, withApp);
     await notify(db, send, withApp.filter((m) => !muted.has(m)), invitationNotice(firstName, id));
   }

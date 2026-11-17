@@ -9,13 +9,14 @@ import {
 import { CARPOOL, loadRides, rideLines } from './carpool';
 import { topUpSeries } from './series';
 import { deliver } from './prefs';
+import { familyMembers } from './audience';
 
 /** Sends one notification to one phone. "unregistered" means the app was uninstalled. */
 export type Sender = (token: string, notice: Notice) => Promise<'ok' | 'unregistered' | 'error'>;
 
 export async function loadMembers(db: Firestore): Promise<Member[]> {
-  const snapshot = await db.collection('members').get();
-  return snapshot.docs.map((doc) => ({
+  const snapshot = await familyMembers(db);
+  return snapshot.map((doc) => ({
     id: doc.id,
     firstName: String(doc.get('firstName') ?? ''),
     profile: doc.get('profile'),

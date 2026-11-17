@@ -13,6 +13,7 @@ import type { Firestore } from 'firebase-admin/firestore';
 import { nextBirthday } from './gifts';
 import { addDays, parisDay, type Notice } from './logic';
 import { featureOn, notify, type Sender } from './store';
+import { familyMembers } from './audience';
 
 /** What the notice of the week says, read once for the whole family. */
 export interface WeekNews {
@@ -67,14 +68,14 @@ export async function loadWeek(db: Firestore, now: Date): Promise<Week> {
   const since = new Date(now.getTime() - 7 * 24 * 3600 * 1000);
   const [news, members, config, challenge, trips] = await Promise.all([
     db.collection('goodNews').where('createdAt', '>=', since).get(),
-    db.collection('members').get(),
+    familyMembers(db),
     db.doc('config/app').get(),
     db.doc(`challenges/${today.slice(0, 7)}`).get(),
     db.collection('trips').where('endDate', '>=', today).get(),
   ]);
   const photos = news.docs.reduce((n, d) => n + ((d.get('photoIds') as string[] | undefined)?.length ?? 0), 0);
   const horizon = addDays(today, 14);
-  const birthdays = members.docs.filter((m) => {
+  const birthdays = members.filter((m) => {
     const birthDate = m.get('birthDate') as string | null | undefined;
     if (!birthDate || birthDate > today) return false;
     const next = nextBirthday(birthDate, today);
@@ -113,8 +114,8 @@ export async function sendWeeklyRecap(db: Firestore, send: Sender, now: Date): P
     if ((e as { code?: number }).code === 6) return null; // Told this week.
     throw e;
   }
-  const members = await db.collection('members').get();
-  const withApp = members.docs.filter((m) => m.get('profile') !== 'childWithoutApp').map((m) => m.id);
+  const members = await familyMembers(db);
+  const withApp = members.filter((m) => m.get('profile') !== 'childWithoutApp').map((m) => m.id);
   if (withApp.length === 0) return 0;
   const settings = await db.getAll(...withApp.map((id) => db.doc(`members/${id}/settings/notifications`)));
   const muted = new Set(settings.filter((s) => s.exists && s.get('recap') === false).map((s) => s.ref.parent.parent!.id));

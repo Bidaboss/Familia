@@ -7,6 +7,7 @@ import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import type { Notice } from './logic';
 import { digestOn, queueDigest } from './digest';
 import { notify, type Sender } from './store';
+import { familyMembers } from './audience';
 
 /** The counted gestures, kept in souvenirCounters/{memberId}, which only the server reads. */
 export type Counter = 'reactions' | 'helpGiven' | 'weeklyAnswers';
@@ -114,9 +115,9 @@ export async function countHelpGiven(db: Firestore, send: Sender, day: string, n
 
 /** Un an dans Familia: a year after the member document was created. Run once a day. */
 export async function giveYearSouvenirs(db: Firestore, send: Sender, now: Date): Promise<string[]> {
-  const members = await db.collection('members').get();
+  const members = await familyMembers(db);
   const given: string[] = [];
-  for (const m of members.docs) {
+  for (const m of members) {
     if (now.getTime() - m.createTime.toDate().getTime() < MS_PER_YEAR) continue;
     if (await giveSouvenir(db, send, m.id, 'oneYear', now)) given.push(m.id);
   }

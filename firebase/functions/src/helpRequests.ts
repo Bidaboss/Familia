@@ -5,6 +5,7 @@
 import type { Firestore } from 'firebase-admin/firestore';
 import { addDays, formatDay, formatTime, parisDay, type Channel } from './logic';
 import { deliver } from './prefs';
+import { familyMembers } from './audience';
 
 export interface HelpRequestData {
   kind: 'childcare' | 'ride' | 'other';
@@ -162,8 +163,8 @@ export function stillOpenReminder(id: string, r: HelpRequestData, members: HelpM
 export type HelpSender = (token: string, notice: HelpNotice) => Promise<'ok' | 'unregistered' | 'error'>;
 
 export async function loadHelpMembers(db: Firestore): Promise<(HelpMember & { uid: string | null })[]> {
-  const snapshot = await db.collection('members').get();
-  return snapshot.docs.map((doc) => ({
+  const snapshot = await familyMembers(db);
+  return snapshot.map((doc) => ({
     id: doc.id,
     firstName: String(doc.get('firstName') ?? ''),
     profile: String(doc.get('profile') ?? ''),
