@@ -5,6 +5,8 @@ import fr.familia.app.core.model.GoodDeal
 import fr.familia.app.core.model.GoodDealKind
 import fr.familia.app.core.model.linkSiteName
 import fr.familia.app.feature.events.FakeMembers
+import fr.familia.app.feature.gooddeals.detail.GoodDealDetailUiState
+import fr.familia.app.feature.gooddeals.detail.GoodDealDetailViewModel
 import fr.familia.app.feature.gooddeals.list.GoodDealsUiState
 import fr.familia.app.feature.gooddeals.list.GoodDealsViewModel
 import fr.familia.app.testing.MainDispatcherRule
@@ -83,6 +85,38 @@ class GoodDealsTest {
         val state = viewModel.uiState.value as GoodDealsUiState.Success
         assertEquals(1, state.deals.size)
         assertFalse(state.canPublish)
+    }
+
+    // --- One bon plan ----------------------------------------------------------------------------
+
+    @Test
+    fun `a child says Ça m'intéresse and takes it back`() = runTest {
+        val repo = FakeGoodDeals(listOf(deal("d1", interested = listOf("adult2"))))
+        val viewModel = GoodDealDetailViewModel(repo, FakeMembers(), "kid1", "d1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+        var state = viewModel.uiState.value as GoodDealDetailUiState.Ready
+        assertFalse(state.canManage)
+        assertEquals(listOf("Adult2"), state.interestedNames)
+        viewModel.toggleInterest()
+        state = viewModel.uiState.value as GoodDealDetailUiState.Ready
+        assertTrue(state.iAmInterested)
+        viewModel.toggleInterest()
+        assertFalse((viewModel.uiState.value as GoodDealDetailUiState.Ready).iAmInterested)
+    }
+
+    @Test
+    fun `the author and the admin principal manage it, and removing it empties the screen`() = runTest {
+        val repo = FakeGoodDeals(listOf(deal("d1")))
+        val other = GoodDealDetailViewModel(repo, FakeMembers(), "adult2", "d1")
+        val admin = GoodDealDetailViewModel(repo, FakeMembers(), "admin1", "d1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { other.uiState.collect {} }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { admin.uiState.collect {} }
+        assertFalse((other.uiState.value as GoodDealDetailUiState.Ready).canManage)
+        other.remove()
+        assertEquals(1, repo.deals.value.size)
+        assertTrue((admin.uiState.value as GoodDealDetailUiState.Ready).canManage)
+        admin.remove()
+        assertEquals(GoodDealDetailUiState.Missing, admin.uiState.value)
     }
 
     // --- Small helpers ---------------------------------------------------------------------------

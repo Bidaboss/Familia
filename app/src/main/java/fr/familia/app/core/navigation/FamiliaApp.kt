@@ -75,6 +75,7 @@ import fr.familia.app.feature.genealogy.GenealogyRoute
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpRoute
 import fr.familia.app.feature.gooddeals.EntraideTabs
+import fr.familia.app.feature.gooddeals.GoodDealDetailRoute
 import fr.familia.app.feature.gooddeals.GoodDealsRoute
 import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
 import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
@@ -1193,9 +1194,19 @@ fun FamiliaApp(
                                     container = container,
                                     currentMember = currentMember,
                                     onPublish = null,
-                                    onOpenDeal = null,
+                                    onOpenDeal = { id -> navController.navigate(GoodDealDetailDestination(id)) },
                                 )
                             },
+                        )
+                    }
+                    composable<GoodDealDetailDestination> { entry ->
+                        val dealId = entry.toRoute<GoodDealDetailDestination>().dealId
+                        GoodDealDetailRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            dealId = dealId,
+                            onEdit = null,
+                            onBack = { navController.popBackStack() },
                         )
                     }
                     composable<HelpRequestDetailDestination> { entry ->
