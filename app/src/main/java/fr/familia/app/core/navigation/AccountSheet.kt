@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Palette
@@ -70,6 +71,8 @@ class AccountActions(
     val onShareApp: ((ownerFirstName: String?) -> Unit)?,
     val onOpenChildrenUsage: (() -> Unit)?,
     val onOpenAdministration: (() -> Unit)?,
+    /** « Voir dans mon agenda » (récit 49): null while its module is off, or in « Voir comme ». */
+    val onOpenCalendarFeed: (() -> Unit)? = null,
 )
 
 /** My photo at the right of the bar of the 5 tabs, 40 dp in a 56 dp target (DESIGN-12). */
@@ -103,6 +106,11 @@ fun AccountSheet(container: AppContainer?, member: Member, actions: AccountActio
             actions.onOpenProfile?.let { AccountRow(Icons.Outlined.Person, R.string.account_profile, go(it)) }
             actions.onOpenAppearance?.let { AccountRow(Icons.Outlined.Palette, R.string.appearance_title, go(it)) }
             AccountRow(Icons.Outlined.Notifications, R.string.notifications_title, go(actions.onOpenNotifications))
+            // A child has no link (récit 49): the rules refuse it too.
+            val calendarFeed = actions.onOpenCalendarFeed
+            if (calendarFeed != null && member.profile == MemberProfile.Adult) {
+                AccountRow(Icons.Outlined.CalendarMonth, R.string.account_calendar_feed, go(calendarFeed))
+            }
             AccountRow(Icons.AutoMirrored.Outlined.HelpOutline, R.string.help_title, go(actions.onOpenHelp))
             actions.onOpenWhatsNew?.let { AccountRow(Icons.Outlined.AutoAwesome, R.string.account_whats_new, go(it)) }
             AccountRow(Icons.Outlined.SystemUpdate, R.string.update_check_title, go(actions.onOpenUpdates))
