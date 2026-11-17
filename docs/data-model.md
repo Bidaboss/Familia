@@ -456,6 +456,8 @@ Ce que le membre prévoit d'offrir. Seul ce membre lit et écrit son carnet : ni
 
 Ce que le membre compte dépenser pour une personne et une occasion : `personId` (ou null), `personName`, `occasion`, `year`, `amount` (de 0 exclu à 100 000 euros), `updatedAt`. Seul le membre le lit et l'écrit.
 
+« Mon budget » (PRD, récit 57, interrupteur `giftBudget`) : le budget d'une occasion entière, à l'identifiant `total_{occasion}_{year}`, porte `total: true`, `personId` et `personName` à null, une occasion et une année. Seul un adulte l'écrit ; comme tout le carnet, personne d'autre ne le lit, l'admin principal non plus. La jauge additionne, pour l'occasion montrée, le prix de mes réservations et le montant de mes parts (quel que soit leur état), et le prix des idées privées marquées achetées, emballées ou offertes : c'est ainsi qu'on note un achat fait hors de l'appli (« Ajouter un achat fait ailleurs »), sans réservation et sans rien révéler. Au-delà du montant, elle passe en orange, sans alerte.
+
 ### `events/{eventId}/bring/{itemId}` (« Qui apporte quoi », PRD, récit 4 bis)
 
 Une chose à apporter à l'événement. Visible dans l'événement une fois le module `bring` allumé.

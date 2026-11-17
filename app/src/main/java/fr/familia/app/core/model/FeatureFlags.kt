@@ -30,6 +30,9 @@ enum class Feature(
 
     /** Les envies offertes passent dans « On m'a offert » le lendemain de l'occasion (PRD, récit 10 bis). */
     WishesReveal("wishesReveal", R.string.feature_wishes_reveal),
+
+    /** « Mon budget » (PRD, récit 57): a budget for a whole occasion in the notebook, adults only. */
+    GiftBudget("giftBudget", R.string.feature_gift_budget),
     HelpRequests("helpRequests", R.string.feature_help_requests),
     Trips("trips", R.string.feature_trips),
     GoodNews("goodNews", R.string.feature_good_news),

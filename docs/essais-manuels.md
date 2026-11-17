@@ -644,6 +644,19 @@ Interrupteur « Ajouter une envie depuis une autre appli » (wishFromShare) allu
 6. Avec le compte d'un enfant, partage un lien : il n'y a pas « C'est pour qui ? », l'envie va dans ses propres envies.
 7. Éteins l'interrupteur, ouvre Familia puis reviens au navigateur : Familia n'est plus dans « Partager ».
 
+## Mon budget cadeaux (récit 57)
+
+Interrupteurs « Budget cadeaux » (giftBudget) et « Carnet de cadeaux » allumés, avec « Cadeaux ».
+
+1. Avec un compte adulte, réserve sur une liste un article avec un prix (30 €), et prends une part de 25 € dans un cadeau commun, tous deux pour Noël.
+2. Ouvre « Mes cadeaux à offrir » et choisis Noël. La carte « Mon budget pour Noël 2026 » dit « 55 € déjà prévus ».
+3. Touche « Fixer mon budget » et mets 100. La carte dit « Il te reste 45 € sur 100 € », avec une jauge.
+4. Touche « Ajouter un achat fait ailleurs » : le formulaire s'ouvre sur Noël, déjà « Acheté ». Note un livre à 15 € pour quelqu'un et enregistre. La carte dit « Il te reste 30 € ».
+5. Mets le budget à 50 : le texte et la jauge passent en orange (« 20 € de plus que tes 50 € »), sans fenêtre ni notification.
+6. Avec le compte de la personne du livre, et avec celui de l'admin principal : rien de ce budget ni de cet achat n'apparaît, et l'article réservé n'a pas changé.
+7. Avec le compte d'un enfant : pas de carte « Mon budget ».
+8. Éteins l'interrupteur : la carte disparaît, les budgets par personne restent comme avant.
+
 ## Faire le livre de recettes (récit 47, partie 2)
 
 Interrupteur « Livre de recettes » allumé, avec des recettes dont certaines ont une photo, une étiquette et une histoire.
