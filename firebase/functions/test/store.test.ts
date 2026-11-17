@@ -106,8 +106,10 @@ test('deleting an event deletes its answers, and only its answers', async () => 
   assert.equal((await db.collection('events/later/rsvps').get()).size, 1);
 });
 
-test('removing a member deletes their answers, phones, settings and days of use', async () => {
+test('removing a member deletes their answers, phones, settings, reminders and days of use', async () => {
   await db.doc('members/ines/settings/notifications').set({ dayBeforeReminder: false });
+  await db.doc('members/ines/reminders/meal').set({ eventId: 'meal', offsets: ['h1'] });
+  await db.doc('members/noe/reminders/meal').set({ eventId: 'meal', offsets: ['h1'] });
   await db.doc('usage/ines/days/2026-11-20').set({ day: '2026-11-20', opens: 2, seconds: { home: 60 } });
   await db.doc('usage/noe/days/2026-11-20').set({ day: '2026-11-20', opens: 1, seconds: { home: 30 } });
   await db.doc('members/ines').delete();
@@ -117,6 +119,8 @@ test('removing a member deletes their answers, phones, settings and days of use'
   assert.equal((await db.doc('events/meal/rsvps/noe').get()).exists, true);
   assert.equal((await db.collection('members/ines/devices').get()).size, 0);
   assert.equal((await db.doc('members/ines/settings/notifications').get()).exists, false);
+  assert.equal((await db.collection('members/ines/reminders').get()).size, 0);
+  assert.equal((await db.doc('members/noe/reminders/meal').get()).exists, true);
   assert.equal((await db.collection('usage/ines/days').get()).size, 0);
   assert.equal((await db.doc('usage/noe/days/2026-11-20').get()).exists, true);
 });
