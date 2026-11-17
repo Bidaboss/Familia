@@ -632,7 +632,6 @@ Avec l'interrupteur « Bons plans » allumé :
 3. Avec un autre adulte, ouvre l'adresse : « Recommandée par » l'auteur, puis « Je recommande aussi » ajoute « Moi ». « Appeler le … » ouvre le téléphone.
 4. Avec l'auteur ou un enfant : **Attendu :** pas de bouton « Je recommande aussi ». Aucune notification pour une bonne adresse.
 
-<<<<<<< HEAD
 ## Faire le livre de recettes (récit 47, partie 2)
 
 Interrupteur « Livre de recettes » allumé, avec des recettes dont certaines ont une photo, une étiquette et une histoire.
@@ -643,7 +642,7 @@ Interrupteur « Livre de recettes » allumé, avec des recettes dont certaines o
 4. **Attendu dans le PDF :** une couverture, un sommaire par étiquette (la première de chaque recette, « Autres recettes » à la fin) avec les numéros de page, puis une recette par page : titre, « De … · Notée par … · Pour 6 personnes », l'histoire en italique, la photo, les ingrédients et les étapes. Une longue recette continue sur la page suivante.
 5. EXPERT-2 : une recette avec « Un enfant est sur une des photos » cochée, faite en livre par un autre compte que celui qui a pris la photo : un dessin de bol à la place de la photo. Même chose pour une photo prise par un enfant, ou une recette qui vient d'un enfant, quand tu n'es pas un de ses adultes.
 6. Mode avion avec des photos jamais vues : le livre se fait quand même, avec des dessins.
-=======
+
 ## Mode présentation (récit 48)
 
 Avec le compte de l'admin principal, plus deux autres comptes qui n'ont pas encore ouvert l'appli. « Publier Firebase » doit être passé.
@@ -655,4 +654,3 @@ Avec le compte de l'admin principal, plus deux autres comptes qui n'ont pas enco
 5. Touche « Éteindre », sur le bandeau ou dans la carte. **Attendu :** en moins d'une minute, chacun reçoit une seule notification « 2 personnes ont rejoint Familia », avec les deux prénoms. Le bandeau disparaît.
 6. Rallume le mode pour 2 h et laisse passer l'heure de fin. **Attendu :** le bandeau disparaît de lui-même. Le résumé part au premier envoi qui suit l'heure de fin, ou au plus tard 30 minutes après.
 7. Avec un compte qui n'est pas l'admin principal, et dans « Voir comme » : **Attendu :** ni la carte ni le bandeau.
->>>>>>> origin/main
