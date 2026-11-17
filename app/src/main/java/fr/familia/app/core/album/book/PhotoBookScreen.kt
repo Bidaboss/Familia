@@ -214,7 +214,7 @@ fun PhotoBookButton(onClick: () -> Unit) {
 
 @Composable
 private fun SmallAction(label: String, enabled: Boolean = true, onClick: () -> Unit) {
-    TextButton(onClick = onClick, enabled = enabled, modifier = Modifier.heightIn(min = 48.dp)) { Text(label) }
+    TextButton(onClick = onClick, enabled = enabled, modifier = Modifier.heightIn(min = 56.dp)) { Text(label) }
 }
 
 @Composable
