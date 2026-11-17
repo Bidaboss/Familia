@@ -308,7 +308,7 @@ private fun NotifySection(
             }
         }
         // By household, a box per household ticks all of its adults (règle du 17/11). The people
-        // always warned stay ticked: they are warned whatever is picked.
+        // always warned are ticked and greyed: a household box leaves them as they are.
         val always = stringResource(R.string.helprequest_notify_always)
         val others = stringResource(R.string.helprequest_notify_others)
         HouseholdMemberPicker(
@@ -316,6 +316,7 @@ private fun NotifySection(
             selected = warned,
             onChange = onPick,
             label = { adult -> if (adult.id in state.lockedIds) "${adult.firstName} · $always" else adult.firstName },
+            locked = state.lockedIds,
         )
         errorText(state.errors, HelpFormError.NobodyWarned)?.invoke()
     }

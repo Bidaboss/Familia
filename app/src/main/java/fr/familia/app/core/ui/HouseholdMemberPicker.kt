@@ -67,35 +67,39 @@ fun HouseholdMemberPicker(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     label: (Member) -> String = { it.firstName },
+    /** Always picked and not untickable (the parents of a child…): shown ticked and greyed. */
+    locked: Set<String> = emptySet(),
 ) {
     Column(modifier) {
         groups.forEach { group ->
             val ids = group.members.map { it.id }
-            val state = householdState(selected, ids)
+            val free = ids.filter { it !in locked }
+            val state = householdState(selected + locked, ids)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 56.dp)
                     .padding(top = 4.dp)
-                    .triStateToggleable(state = state, enabled = enabled, role = Role.Checkbox) { onChange(toggleHousehold(selected, ids)) }
+                    .triStateToggleable(state = state, enabled = enabled && free.isNotEmpty(), role = Role.Checkbox) { onChange(toggleHousehold(selected, free)) }
                     .semantics { heading() },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                TriStateCheckbox(state = state, onClick = null, enabled = enabled)
+                TriStateCheckbox(state = state, onClick = null, enabled = enabled && free.isNotEmpty())
                 Spacer(Modifier.width(16.dp))
                 Text(group.name, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold))
             }
             group.members.forEach { member ->
-                val checked = member.id in selected
+                val isLocked = member.id in locked
+                val checked = isLocked || member.id in selected
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 56.dp)
                         .padding(start = 32.dp)
-                        .toggleable(value = checked, enabled = enabled, role = Role.Checkbox) { onChange(toggleMember(selected, member.id)) },
+                        .toggleable(value = checked, enabled = enabled && !isLocked, role = Role.Checkbox) { onChange(toggleMember(selected, member.id)) },
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Checkbox(checked = checked, onCheckedChange = null, enabled = enabled)
+                    Checkbox(checked = checked, onCheckedChange = null, enabled = enabled && !isLocked)
                     Spacer(Modifier.width(16.dp))
                     Text(label(member), style = MaterialTheme.typography.bodyLarge)
                 }
