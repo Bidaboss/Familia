@@ -24,6 +24,7 @@ import fr.familia.app.core.album.AlbumPhotosSection
 import fr.familia.app.core.album.AlbumPhotosViewModel
 import fr.familia.app.core.album.AlbumScreen
 import fr.familia.app.core.album.FilmActions
+import fr.familia.app.core.album.book.PhotoBookButton
 import fr.familia.app.core.album.rememberPhotoActions
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.data.currentDayFlow
@@ -82,7 +83,7 @@ fun EventAlbumSection(container: AppContainer?, currentMember: Member, eventId: 
 
 /** « Voir les photos » of an event, with its film. */
 @Composable
-fun EventAlbumRoute(container: AppContainer?, currentMember: Member, eventId: String, onBack: () -> Unit) {
+fun EventAlbumRoute(container: AppContainer?, currentMember: Member, eventId: String, onBack: () -> Unit, onMakeBook: (() -> Unit)? = null) {
     val album = rememberEventAlbum(container, currentMember, eventId)
     val state by album.uiState.collectAsStateWithLifecycle()
     val filmsDir = File(LocalContext.current.cacheDir, "films")
@@ -102,6 +103,12 @@ fun EventAlbumRoute(container: AppContainer?, currentMember: Member, eventId: St
         actions = rememberPhotoActions(album),
         onBack = onBack,
         actionsBar = { HelpButton(ScreenHelp.EventAlbum) },
-        top = { AlbumFilmPart(film, state.photos.size, filmActions) },
+        top = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                AlbumFilmPart(film, state.photos.size, filmActions)
+                // Le livre photo (récit 59), behind the switch photoBook: the caller gives it or not.
+                if (onMakeBook != null && state.photos.isNotEmpty()) PhotoBookButton(onMakeBook)
+            }
+        },
     )
 }
