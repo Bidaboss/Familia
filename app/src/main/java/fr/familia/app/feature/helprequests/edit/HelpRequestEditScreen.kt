@@ -60,6 +60,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.photo.PhotoField
 import fr.familia.app.core.model.HelpKind
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
@@ -87,6 +88,8 @@ fun HelpRequestEditScreen(
     onShortcut: (NotifyShortcut) -> Unit,
     onSave: () -> Unit,
     onBack: () -> Unit,
+    /** A photo can be joined (Kévin 16/11): false when photos cannot be sent. */
+    photoOn: Boolean = true,
 ) {
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
     val hasChanges = (state as? HelpRequestEditUiState.Editing)?.hasChanges == true
@@ -129,7 +132,7 @@ fun HelpRequestEditScreen(
                     title = stringResource(R.string.helprequest_unavailable_title),
                     body = stringResource(R.string.helprequest_unavailable_body),
                 )
-                is HelpRequestEditUiState.Editing -> FormContent(state, onChange, onToggle, onShortcut, onSave)
+                is HelpRequestEditUiState.Editing -> FormContent(state, onChange, onToggle, onShortcut, onSave, photoOn)
             }
         }
     }
@@ -143,6 +146,7 @@ private fun FormContent(
     onToggle: (String) -> Unit,
     onShortcut: (NotifyShortcut) -> Unit,
     onSave: () -> Unit,
+    photoOn: Boolean,
 ) {
     val form = state.form
     val errors = state.errors
@@ -202,6 +206,20 @@ private fun FormContent(
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             modifier = Modifier.fillMaxWidth(),
         )
+
+        // A photo to show what it is about: a QR code, a parcel, a place (Kévin 16/11).
+        if (photoOn) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                SectionTitle(stringResource(R.string.helprequest_photo_title))
+                Text(stringResource(R.string.helprequest_photo_hint), style = MaterialTheme.typography.bodyMedium)
+                PhotoField(
+                    stored = state.storedPhoto,
+                    edit = form.photo,
+                    onEdit = { edit -> onChange { it.copy(photo = edit) } },
+                    enabled = !state.isSaving,
+                )
+            }
+        }
 
         if (state.targets.size > 1) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {

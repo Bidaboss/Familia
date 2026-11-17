@@ -8,6 +8,9 @@ import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.HelpRequest
 import fr.familia.app.core.model.HelpStatus
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.helpRequestPhotoBase
+import fr.familia.app.core.photo.PhotoEdit
+import fr.familia.app.core.photo.SinglePhotoSaver
 import fr.familia.app.feature.helprequests.canManageHelp
 import fr.familia.app.feature.helprequests.helpTargets
 import fr.familia.app.feature.helprequests.notifiableAdults
@@ -34,6 +37,9 @@ class HelpRequestEditViewModel(
     private val duplicateOf: String? = null,
     private val today: () -> LocalDate = LocalDate::now,
     private val writeTimeoutMillis: Long = 4_000,
+    /** Sends and removes the photo of the request (Kévin 16/11); null: no photo can be joined. */
+    private val photos: SinglePhotoSaver? = null,
+    private val photoTimeoutMillis: Long = 60_000,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HelpRequestEditUiState>(HelpRequestEditUiState.Loading)
@@ -109,6 +115,7 @@ class HelpRequestEditViewModel(
             shortcuts = shortcuts(adults, loaded.family),
             lockedIds = locked(authorId, initialForm.forMemberId, existing),
             errors = emptySet(),
+            storedPhoto = existing?.photo,
         )
     }
 
@@ -167,7 +174,7 @@ class HelpRequestEditViewModel(
         val form = state.form
         val authorId = existing?.authorId ?: author.id
         val notifyIds = (form.notifyIds + state.lockedIds - authorId).sorted()
-        val request = HelpRequest(
+        fun request(photo: String?) = HelpRequest(
             id = editedId,
             kind = form.kind,
             title = form.title.trim(),
@@ -182,12 +189,35 @@ class HelpRequestEditViewModel(
             notifyIds = notifyIds,
             // Widening a request someone could not take clears their « Je ne peux pas ».
             declinedBy = existing?.declinedBy?.takeIf { existing.notifyIds.sorted() == notifyIds },
+            photo = photo,
         )
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
-            if (write { repo.saveRequest(request, isNew = existing == null) }) {
+            // The photo goes first: the rules only accept a photo already sent. It needs the
+            // network, so a request with a new photo is not queued offline.
+            val previous = existing?.photo
+            val photo = if (photos == null) {
+                previous.takeIf { form.photo == PhotoEdit.Unchanged }
+            } else {
+                try {
+                    withTimeoutOrNull(photoTimeoutMillis) {
+                        photos.prepare(previous, form.photo) { helpRequestPhotoBase(editedId, currentMemberId) }
+                    // A new photo is never null once sent: null here means it timed out.
+                    } ?: if (form.photo is PhotoEdit.Picked) throw IllegalStateException("photo not sent") else null
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    val failed = _uiState.value as? HelpRequestEditUiState.Editing ?: return@launch
+                    _uiState.value = failed.copy(isSaving = false, saveFailed = true)
+                    return@launch
+                }
+            }
+            if (write { repo.saveRequest(request(photo), isNew = existing == null) }) {
+                photos?.cleanUp(previous, photo)
                 _uiState.value = HelpRequestEditUiState.Done
             } else {
+                // Not saved: the photo just sent is named by nothing.
+                if (photo != previous) photos?.cleanUp(photo, null)
                 val failed = _uiState.value as? HelpRequestEditUiState.Editing ?: return@launch
                 _uiState.value = failed.copy(isSaving = false, saveFailed = true)
             }

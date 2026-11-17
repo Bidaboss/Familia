@@ -2,6 +2,7 @@ package fr.familia.app.feature.helprequests.edit
 
 import fr.familia.app.core.model.HelpKind
 import fr.familia.app.core.model.HelpRequest
+import fr.familia.app.core.photo.PhotoEdit
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -17,6 +18,8 @@ data class HelpRequestForm(
     val forMemberId: String = "",
     /** The people ticked, without those who are always warned (see [HelpRequestEditUiState.Editing.lockedIds]). */
     val notifyIds: Set<String> = emptySet(),
+    /** What was done with the photo since the form opened (Kévin 16/11). */
+    val photo: PhotoEdit = PhotoEdit.Unchanged,
 ) {
     companion object {
         /** [keepDate] is false for « Dupliquer », which asks for another date (carte PRODUIT-23). */

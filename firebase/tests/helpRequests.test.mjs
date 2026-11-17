@@ -331,3 +331,33 @@ describe('managing a request (récit 17)', () => {
     await assertFails(updateDoc(ref(as(env, ADULT)), { thankedAt: serverTimestamp(), ...now() }));
   });
 });
+
+describe('the image of a request (Kévin 16/11)', () => {
+  test('the author names an image of their own folder, for this request', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(ref(db), request(ADULT, ['adult2'], { photo: 'helpRequests/r1/adult1/p1' })));
+    await assertSucceeds(setDoc(ref(db, 'r2'), request(ADULT, ['adult2'], { photo: null })));
+    await assertFails(setDoc(ref(db, 'r3'), request(ADULT, ['adult2'], { photo: 'helpRequests/r3/adult2/p1' })));
+    await assertFails(setDoc(ref(db, 'r4'), request(ADULT, ['adult2'], { photo: 'helpRequests/r1/adult1/p1' })));
+    await assertFails(setDoc(ref(db, 'r5'), request(ADULT, ['adult2'], { photo: 'helpRequests/r5/adult1/p.1' })));
+    await assertFails(setDoc(ref(db, 'r6'), request(ADULT, ['adult2'], { photo: 42 })));
+    await assertFails(setDoc(ref(db, 'r7'), request(ADULT, ['adult2'], { other: 'x' })));
+  });
+
+  test('whoever manages it changes or removes it; the others keep it as it is', async () => {
+    await stored(request(ADULT, ['adult2'], { photo: 'helpRequests/r1/adult1/p1' }));
+    // A volunteer takes it: the image stays.
+    const volunteer = as(env, OTHER_ADULT);
+    await assertSucceeds(runTransaction(volunteer, async (t) => {
+      t.update(ref(volunteer), { status: 'taken', volunteerId: 'adult2', volunteerName: 'adult2', ...now() });
+    }));
+    await assertFails(updateDoc(ref(as(env, OTHER_ADULT)), { photo: 'helpRequests/r1/adult2/p2', ...now() }));
+    await assertSucceeds(updateDoc(ref(as(env, ADULT)), { photo: 'helpRequests/r1/adult1/p2', ...now() }));
+    await assertSucceeds(updateDoc(ref(as(env, ADULT)), { photo: null, ...now() }));
+  });
+
+  test('a request made before still has its 19 fields, and a word of the volunteer', async () => {
+    await stored({ ...request(ADULT, ['adult2']), status: 'taken', volunteerId: 'adult2', volunteerName: 'adult2', volunteerNote: 'Avec plaisir' });
+    await assertSucceeds(updateDoc(ref(as(env, ADULT)), { title: 'Garder les enfants samedi', ...now() }));
+  });
+});

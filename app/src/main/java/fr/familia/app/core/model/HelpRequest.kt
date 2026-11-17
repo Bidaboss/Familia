@@ -1,5 +1,6 @@
 package fr.familia.app.core.model
 
+import fr.familia.app.core.photo.SinglePhoto
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -53,7 +54,17 @@ data class HelpRequest(
     val declinedBy: String? = null,
     val thankedAt: Instant? = null,
     val createdAt: Instant? = null,
+    /**
+     * A photo joined to the request (Kévin 16/11: the QR code of a parcel, a picture of what to
+     * fetch): the base of its two files in Storage ([fr.familia.app.core.photo.SinglePhoto]),
+     * read only by those who see the request.
+     */
+    val photo: String? = null,
 )
+
+/** helpRequests/{requestId}/{memberId}/{photoId}: sent by [memberId], removed by the server with the request. */
+fun helpRequestPhotoBase(requestId: String, memberId: String, photoId: String = SinglePhoto.newId()) =
+    "helpRequests/$requestId/$memberId/$photoId"
 
 /** The longest word a volunteer can leave (rules: isVolunteerNote). */
 const val VOLUNTEER_NOTE_MAX = 200

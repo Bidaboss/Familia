@@ -54,6 +54,7 @@ class FirestoreHelpRequestRepository(private val db: FirebaseFirestore) : HelpRe
             "endTime" to request.endTime?.hhmm(),
             "place" to request.place,
             "note" to request.note,
+            "photo" to request.photo,
             "notifyIds" to request.notifyIds,
             "viewerIds" to listOf(request.authorId) + request.notifyIds,
             "declinedBy" to request.declinedBy,
@@ -159,6 +160,7 @@ class FirestoreHelpRequestRepository(private val db: FirebaseFirestore) : HelpRe
             declinedBy = getString("declinedBy"),
             thankedAt = getTimestamp("thankedAt")?.toInstant(),
             createdAt = getTimestamp("createdAt")?.toInstant(),
+            photo = getString("photo"),
         )
     }
 

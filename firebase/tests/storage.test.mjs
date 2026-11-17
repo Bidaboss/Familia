@@ -368,3 +368,47 @@ describe('feedback folder (récit 6 sexies)', () => {
     await assertSucceeds(deleteObject(ref(storageAs(ADULT), file('adult1', 'g2.jpg'))));
   });
 });
+
+describe('image of a coup de main (Kévin 16/11)', () => {
+  // Each test has a request of its own by adult1, seen by adult2 only, naming the image h1 of adult1.
+  let n = 0;
+  const image = (author, name) => `helpRequests/h${n}/${author}/${name}`;
+  beforeEach(async () => {
+    n += 1;
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `helpRequests/h${n}`), {
+        title: 'Colis', authorId: 'adult1', notifyIds: ['adult2'], viewerIds: ['adult1', 'adult2'], photo: `helpRequests/h${n}/adult1/h1`,
+      });
+    });
+  });
+
+  test('the sender sends it to their own folder; only those who see the request read it', async () => {
+    const storage = storageAs(ADULT);
+    await assertSucceeds(uploadString(ref(storage, image('adult1', 'h1.jpg')), 'x'.repeat(300 * 1024), 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storage, image('adult1', 'h1-thumb.jpg')), 'x'.repeat(30 * 1024), 'raw', jpeg));
+    await assertSucceeds(getBytes(ref(storage, image('adult1', 'h1.jpg'))));
+    await assertSucceeds(getBytes(ref(storageAs(OTHER_ADULT), image('adult1', 'h1.jpg'))));
+    await assertFails(getBytes(ref(storageAs(NEIGHBOUR), image('adult1', 'h1.jpg'))));
+    await assertFails(getBytes(ref(storageAs(STRANGER), image('adult1', 'h1.jpg'))));
+  });
+
+  test('never into another folder, never replaced, a JPEG of the right size only', async () => {
+    await assertFails(uploadString(ref(storageAs(OTHER_ADULT), image('adult1', 'h2.jpg')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storageAs(STRANGER), image('stranger', 'h2.jpg')), 'x', 'raw', jpeg));
+    const storage = storageAs(ADULT);
+    await assertSucceeds(uploadString(ref(storage, image('adult1', 'h2.jpg')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, image('adult1', 'h2.jpg')), 'y', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, image('adult1', 'h3.jpg')), 'x'.repeat(513 * 1024), 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, image('adult1', 'h3-thumb.jpg')), 'x'.repeat(65 * 1024), 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, image('adult1', 'h3.png')), 'x', 'raw', { contentType: 'image/png' }));
+  });
+
+  test('its sender removes it; the others only an image the request no longer names', async () => {
+    const storage = storageAs(ADULT);
+    for (const name of ['h1.jpg', 'h1-thumb.jpg', 'old.jpg']) await uploadString(ref(storage, image('adult1', name)), 'x', 'raw', jpeg);
+    await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), image('adult1', 'h1.jpg'))));
+    await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), image('adult1', 'h1-thumb.jpg'))));
+    await assertSucceeds(deleteObject(ref(storageAs(OTHER_ADULT), image('adult1', 'old.jpg'))));
+    await assertSucceeds(deleteObject(ref(storage, image('adult1', 'h1.jpg'))));
+  });
+});
