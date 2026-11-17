@@ -9,6 +9,10 @@ import fr.familia.app.core.album.AlbumPhotoRepository
 import fr.familia.app.core.data.AppConfig
 import fr.familia.app.core.data.AppConfigRepository
 import fr.familia.app.core.data.BringRepository
+import fr.familia.app.core.data.CarpoolRepository
+import fr.familia.app.core.model.Ride
+import fr.familia.app.core.model.RideNeed
+import java.time.LocalTime
 import fr.familia.app.core.data.CapsuleRepository
 import fr.familia.app.core.data.CommentPage
 import fr.familia.app.core.data.EventCommentRepository
@@ -215,6 +219,17 @@ class ReadOnlyTripRepository(private val inner: TripRepository, private val guar
     override suspend fun saveItem(tripId: String, item: TripItem, isNew: Boolean) = guard.refuse()
     override suspend fun setItemDone(tripId: String, itemId: String, done: Boolean) = guard.refuse()
     override suspend fun deleteItem(tripId: String, itemId: String) = guard.refuse()
+}
+
+class ReadOnlyCarpoolRepository(private val inner: CarpoolRepository, private val guard: ViewAsGuard) : CarpoolRepository {
+    override fun observeRides(eventId: String): Flow<List<Ride>> = inner.observeRides(eventId)
+    override fun observeNeeds(eventId: String): Flow<List<RideNeed>> = inner.observeNeeds(eventId)
+    override suspend fun offer(eventId: String, driverId: String, seats: Int, from: String?, leaveAt: LocalTime?, isNew: Boolean) = guard.refuse()
+    override suspend fun withdraw(eventId: String, driverId: String) = guard.refuse()
+    override suspend fun getIn(eventId: String, driverId: String, memberId: String, leaving: String?) = guard.refuse()
+    override suspend fun getOut(eventId: String, driverId: String, memberId: String) = guard.refuse()
+    override suspend fun askSeat(eventId: String, memberId: String, askedBy: String) = guard.refuse()
+    override suspend fun cancelAsk(eventId: String, memberId: String) = guard.refuse()
 }
 
 class ReadOnlyGoodDealRepository(private val inner: GoodDealRepository, private val guard: ViewAsGuard) : GoodDealRepository {

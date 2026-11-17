@@ -1244,3 +1244,17 @@ Module `calendarFeed`, éteint par défaut. Interrupteur éteint : seul l'admin 
 `token` (texte, 43 caractères `A-Z a-z 0-9 _ -`, 32 octets tirés au hasard par l'appli), `updatedAt` (heure du serveur). Seul ce membre, adulte, le lit et l'écrit ; un enfant n'en a pas. L'admin principal peut le supprimer, ce qui coupe le lien. Écrire un nouveau `token` coupe l'ancien lien. Le document part avec le membre (`onMemberDeleted`).
 
 La fonction HTTP `calendarFeed` (europe-west1, GET `?t=<token>`) cherche le document dont le `token` est celui-là, vérifie que le membre existe encore et qu'il est adulte, puis sert les événements du planning qui le concernent, comme sur son Accueil (`concerns` de `logic.ts`), d'un mois avant à un an après aujourd'hui, en `text/calendar`. Jamais une occasion de cadeau ni une réservation. Lien inconnu : 404.
+
+## On y va ensemble (PRD, récit 52)
+
+Module `carpool`, éteint par défaut. Notifications sur le canal `events` (« Planning »), toutes directes (`direct: true`) : un toucher ouvre l'événement.
+
+### `events/{eventId}/rides/{driverId}`
+
+La voiture d'un adulte qui a répondu « Je viens » : `seats` (1 à 8), `from` (ville de départ, 40 caractères au plus, ou null), `leaveAt` (« HH:MM » ou null), `passengers` (ids de membres, jamais plus que `seats`, sans doublon), `createdAt`, `updatedAt`. Aucune position. Chacun monte ou descend pour lui ou pour un enfant dont il est responsable, une personne à la fois. Le conducteur change le reste et fait descendre qui il veut. Le conducteur ou ceux qui gèrent l'événement retirent la voiture.
+
+### `events/{eventId}/rideNeeds/{memberId}`
+
+« J'ai besoin d'une place » : `askedBy`, `updatedAt`. Effacé par le serveur quand ce membre monte dans une voiture.
+
+Côté serveur : `onRideWritten` prévient le conducteur de qui monte ou descend (avec les places restantes), et les passagers quand la voiture est retirée ou que le conducteur les fait descendre (un enfant sans l'appli, par ses adultes). « Je ne viens plus » (`onRsvpWritten`) retire la voiture du membre, le fait descendre de celle où il était, et efface sa demande. Le rappel de la veille ajoute « Tu emmènes A et B », « Tu pars avec C » ou « Noé part avec C ». Monter dans une voiture fait descendre de toute autre voiture du même événement. Un membre qui quitte la famille sort des voitures des événements à venir. Supprimer l'événement supprime ses voitures et ses demandes, sans autre notification que celle de la suppression.

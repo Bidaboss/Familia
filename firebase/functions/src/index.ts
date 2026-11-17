@@ -13,6 +13,7 @@ import {
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onRequest } from 'firebase-functions/v2/https';
 import { deleteCalendarFeedOf, feedFor } from './calendarFeed';
+import { clearRidesOf, clearRidesOfMember, onRideChanged, type RideData } from './carpool';
 import {
   deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
   sendBirthdayGiftReminders, updateSharesTotal,
@@ -37,7 +38,7 @@ import {
   HelpNotice, HelpRequestData, HelpSender, onHelpRequestWritten, reopenRequestsOf, sendStillOpenReminders,
 } from './helpRequests';
 import { addDays, EventData, hasVisibleChange, Notice, parisDay } from './logic';
-import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, memberForUid, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
+import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, memberForUid, notify, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
 import { deleteExpenseBook, ExpenseData, historyEntry, sendExpenseNotices, writeExpenseHistory } from './expenses';
 import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
@@ -156,8 +157,24 @@ export const onEventDeleted = onDocumentDeletedWithAuthContext('events/{eventId}
 // L'arbre (récit 35): « Je viens » adds a leaf for the member who comes, once per event.
 export const onRsvpWritten = onDocumentWritten('events/{eventId}/rsvps/{memberId}', async (event) => {
   const { eventId, memberId } = event.params;
-  if (event.data?.after.get('status') !== 'yes' || event.data?.before.get('status') === 'yes') return;
+  const before = event.data?.before.get('status');
+  const after = event.data?.after.get('status');
+  // « On y va ensemble » (récit 52): « Je ne viens plus » takes the member out of the cars.
+  if (before !== undefined && before !== 'no' && (after === 'no' || after === undefined)) {
+    await clearRidesOf(getFirestore(), eventId, memberId);
+  }
+  if (after !== 'yes' || before === 'yes') return;
   await grow('rsvp', () => addLeaf(getFirestore(), memberId, treeMark.rsvp(eventId, memberId), new Date()));
+});
+
+// « On y va ensemble » (récit 52): the driver hears who gets in or out, the passengers that the car goes.
+export const onRideWritten = onDocumentWrittenWithAuthContext('events/{eventId}/rides/{driverId}', async (event) => {
+  const db = getFirestore();
+  const members = await loadMembers(db);
+  const before = (event.data?.before.data() as RideData | undefined) ?? null;
+  const after = (event.data?.after.data() as RideData | undefined) ?? null;
+  const actorId = memberForUid(members, actorUid(event))?.id ?? null;
+  await onRideChanged(db, (ids, notice) => notify(db, send, ids, notice), event.params.eventId, event.params.driverId, before, after, actorId, members);
 });
 
 // Album d'un événement (récit 41): each photo adds a leaf for its author, once per slot, so taking
@@ -178,6 +195,8 @@ export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (ev
   await deleteMomentsOf(getFirestore(), event.params.memberId);
   // « Voir dans mon agenda » (récit 49): their link stops working.
   await deleteCalendarFeedOf(getFirestore(), event.params.memberId);
+  // « On y va ensemble » (récit 52): out of the cars to come.
+  await clearRidesOfMember(getFirestore(), event.params.memberId, parisDay(new Date()));
 });
 
 // Commentaires d'un événement (récit 28): those who follow the event are told.

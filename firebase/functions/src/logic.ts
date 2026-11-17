@@ -200,6 +200,8 @@ export function reminders(
   remindersOff: Set<string>,
   /** « Qui apporte quoi » (récit 4 bis): what each member took, by member id. */
   bringing: Map<string, string[]> = new Map(),
+  /** « On y va ensemble » (récit 52): « Tu emmènes A et B », « Tu pars avec C », by member id. */
+  rides: Map<string, string[]> = new Map(),
 ): Reminder[] {
   const byId = new Map(members.map((m) => [m.id, m]));
   // recipient -> names of the children without the app they are reminded for
@@ -230,7 +232,10 @@ export function reminders(
       const forChildren = children.length > 0 && !selfComing ? ` (pour ${joinNames(children)})` : '';
       const withChildren = children.length > 0 && selfComing ? ` (avec ${joinNames(children)})` : '';
       const items = bringing.get(recipientId) ?? [];
-      const body = items.length > 0 ? `${details}\nTu apportes : ${items.join(', ')}` : details;
+      const lines = [details];
+      if (items.length > 0) lines.push(`Tu apportes : ${items.join(', ')}`);
+      lines.push(...(rides.get(recipientId) ?? []));
+      const body = lines.join('\n');
       return {
         recipientId,
         notice: { channel: 'reminders', title: `Demain : ${event.title}${forChildren}${withChildren}`, body, eventId },

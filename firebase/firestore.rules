@@ -395,6 +395,75 @@ service cloud.firestore {
         && (resource.data.authorId == myMemberId() || canManage(get(eventPath(eventId)).data));
     }
 
+    // --- On y va ensemble (PRD, récit 52) ----------------------------------------------------------
+    //
+    // events/{eventId}/rides/{driverId}: the car of an adult who comes, with its seats, a town and a
+    // time to leave (both optional, never a position). [passengers] holds member ids: each member
+    // gets in or out for themselves or a child they answer for, one at a time, never beyond the seats.
+    // The driver changes the rest and lets anyone out. « Je ne viens plus » clears it on the server.
+
+    function isValidRide(r) {
+      return r.keys().hasAll(['seats', 'from', 'leaveAt', 'passengers', 'createdAt', 'updatedAt'])
+        && r.keys().hasOnly(['seats', 'from', 'leaveAt', 'passengers', 'createdAt', 'updatedAt'])
+        && r.seats is int && r.seats >= 1 && r.seats <= 8
+        && (r.from == null || (r.from is string && r.from.trim().size() > 0 && r.from.size() <= 40))
+        && (r.leaveAt == null || (r.leaveAt is string && r.leaveAt.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')))
+        && r.passengers is list && r.passengers.size() <= r.seats
+        && r.passengers.toSet().size() == r.passengers.size()
+        && r.updatedAt == request.time;
+    }
+
+    // Who got in: one member at most, a member of the family, never the driver, answered for by me.
+    function rideAddedOk(driverId, added) {
+      return added.size() == 0
+        || (added.size() == 1 && added[0] is string && added[0] != driverId
+            && exists(memberPath(added[0])) && canAnswerFor(added[0]));
+    }
+
+    match /events/{eventId}/rides/{driverId} {
+      allow read: if isMember();
+
+      allow create: if isMember()
+        && driverId == myMemberId()
+        && me().profile == 'adult'
+        && exists(eventPath(eventId))
+        && saidComing(eventId)
+        && isValidRide(request.resource.data)
+        && request.resource.data.passengers.size() == 0
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if isMember()
+        && isValidRide(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && (
+          // The driver: seats, town, time, and lets anyone out (or takes a child of theirs in).
+          (driverId == myMemberId()
+            && rideAddedOk(driverId, request.resource.data.passengers.removeAll(resource.data.passengers)))
+          // Anyone else: one member in or out, themselves or a child they answer for.
+          || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['passengers', 'updatedAt'])
+            && (request.resource.data.passengers.removeAll(resource.data.passengers).size()
+                + resource.data.passengers.removeAll(request.resource.data.passengers).size()) == 1
+            && rideAddedOk(driverId, request.resource.data.passengers.removeAll(resource.data.passengers))
+            && (resource.data.passengers.removeAll(request.resource.data.passengers).size() == 0
+                || canAnswerFor(resource.data.passengers.removeAll(request.resource.data.passengers)[0])))
+        );
+
+      allow delete: if isMember() && (driverId == myMemberId() || canManage(get(eventPath(eventId)).data));
+    }
+
+    // events/{eventId}/rideNeeds/{memberId}: « J'ai besoin d'une place », without a driver yet.
+    match /events/{eventId}/rideNeeds/{memberId} {
+      allow read: if isMember();
+      allow create, update: if isMember()
+        && exists(eventPath(eventId))
+        && exists(memberPath(memberId))
+        && canAnswerFor(memberId)
+        && request.resource.data.keys().hasOnly(['askedBy', 'updatedAt'])
+        && request.resource.data.askedBy == myMemberId()
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if isMember() && (canAnswerFor(memberId) || canManage(get(eventPath(eventId)).data));
+    }
+
     // The album of an event (récit 41) opens on its day: from 22:00 UTC the day before,
     // midnight in France in summer, 23:00 in winter (an hour before the app, harmless).
     // Its photos have the shape of the trip photos (isValidAlbumPhoto in the trips section): 30 places per person, files in Storage at events/{eventId}/{authorId}/.
