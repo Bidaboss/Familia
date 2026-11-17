@@ -137,6 +137,13 @@ private fun Content(
         }
         if (item.note.isNotBlank()) Text(item.note, style = MaterialTheme.typography.bodyLarge)
         LoanCard(state, today, onAskClick = { asking = true }, onAccept = onAccept, onRelease = onRelease)
+        state.lostTo?.let { lost ->
+            Text(
+                stringResource(if (lost == LendLost.AskedFirst) R.string.lend_asked_first else R.string.lend_changed_first),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            )
+        }
         if (state.actionFailed) {
             Text(stringResource(R.string.lend_action_failed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
         }

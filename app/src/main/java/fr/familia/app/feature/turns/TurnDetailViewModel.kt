@@ -48,6 +48,8 @@ sealed interface TurnDetailUiState {
         val swapOtherName: String = "",
         val isWorking: Boolean = false,
         val failed: Boolean = false,
+        /** Refused because someone else changed the rotation first (passe « en même temps »): it is up to date. */
+        val someoneFirst: Boolean = false,
     ) : TurnDetailUiState
 }
 
@@ -77,6 +79,10 @@ internal fun turnDetail(turn: Turn, family: fr.familia.app.core.model.Family, me
     )
 }
 
+/** Whether whose turn it is, the order, the history or the exchange moved since [before]. */
+internal fun Turn.changedSince(before: Turn): Boolean =
+    history.size != before.history.size || current != before.current || householdIds != before.householdIds || swap != before.swap
+
 /** One rotation: whose turn it is, the order, the history, and what my household can do. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class TurnDetailViewModel(
@@ -88,7 +94,8 @@ class TurnDetailViewModel(
 
     private val retries = MutableStateFlow(0)
     private val working = MutableStateFlow(false)
-    private val failed = MutableStateFlow(false)
+    /** The rotation as I saw it when my action did not hold; null while nothing failed. */
+    private val failed = MutableStateFlow<Turn?>(null)
     private var me: Member? = null
 
     val uiState: StateFlow<TurnDetailUiState> = retries
@@ -104,7 +111,12 @@ class TurnDetailViewModel(
             when {
                 member == null -> TurnDetailUiState.Error
                 turn == null -> TurnDetailUiState.Missing
-                else -> turnDetail(turn, family, member).copy(isWorking = isWorking, failed = hasFailed)
+                else -> {
+                    // Read from the live rotation: the rules accept a change only on the state it was
+                    // made from, so a refusal on a rotation that moved meanwhile means someone came first.
+                    val first = hasFailed != null && turn.changedSince(hasFailed)
+                    turnDetail(turn, family, member).copy(isWorking = isWorking, failed = hasFailed != null && !first, someoneFirst = first)
+                }
             }
         }.catch { emit(TurnDetailUiState.Error) }
     }
@@ -114,7 +126,7 @@ class TurnDetailViewModel(
     }
 
     fun dismissFailure() {
-        failed.value = false
+        failed.value = null
     }
 
     private fun act(after: () -> Unit = {}, block: suspend (TurnRepository, Turn) -> Unit) {
@@ -125,8 +137,8 @@ class TurnDetailViewModel(
         viewModelScope.launch {
             // The write lands in the cache at once; offline it waits there and goes later, and a
             // refusal that comes once the network is back is said too.
-            val ok = writeOrQueue(viewModelScope, WRITE_TIMEOUT_MS, onLateFailure = { failed.value = true }) { block(repo, s.turn) }
-            if (ok) after() else failed.value = true
+            val ok = writeOrQueue(viewModelScope, WRITE_TIMEOUT_MS, onLateFailure = { failed.value = s.turn }) { block(repo, s.turn) }
+            if (ok) after() else failed.value = s.turn
             working.value = false
         }
     }

@@ -12,6 +12,7 @@ import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.lending.detail.LendItemDetailUiState
 import fr.familia.app.feature.lending.detail.LendItemDetailViewModel
+import fr.familia.app.feature.lending.detail.LendLost
 import fr.familia.app.feature.lending.edit.LendFormError
 import fr.familia.app.feature.lending.edit.LendItemEditUiState
 import fr.familia.app.feature.lending.edit.LendItemEditViewModel
@@ -52,12 +53,21 @@ class FakeLendItems(initial: List<LendItem> = emptyList()) : LendItemRepository 
     override suspend fun delete(id: String) {
         items.value = items.value.filter { it.id != id }
     }
-    private fun change(id: String, block: (LendItem) -> LendItem) {
+    /** Another phone whose change reaches the server just before this one (passe « en même temps »). */
+    var otherFirst: (() -> Unit)? = null
+
+    private fun change(id: String, allowed: (LendItem) -> Boolean = { true }, block: (LendItem) -> LendItem) {
+        otherFirst?.let { otherFirst = null; it() }
+        // As the rules: one ask on a free thing, a « D'accord » on an ask (isLendTaken, isLendFlip).
+        val stored = items.value.firstOrNull { it.id == id }
+        if (stored == null || !allowed(stored)) throw IllegalStateException("PERMISSION_DENIED")
         items.value = items.value.map { if (it.id == id) block(it) else it }
     }
     override suspend fun ask(id: String, ownerId: String, me: Member, from: Instant?, until: Instant?) =
-        change(id) { it.copy(status = LendStatus.Asked, borrowerId = me.id, borrowerName = me.firstName, from = from, until = until) }
-    override suspend fun accept(id: String) = change(id) { it.copy(status = LendStatus.Lent, lentAt = Instant.EPOCH) }
+        change(id, { it.status == LendStatus.Available }) {
+            it.copy(status = LendStatus.Asked, borrowerId = me.id, borrowerName = me.firstName, from = from, until = until)
+        }
+    override suspend fun accept(id: String) = change(id, { it.status == LendStatus.Asked }) { it.copy(status = LendStatus.Lent, lentAt = Instant.EPOCH) }
     override suspend fun release(id: String) =
         change(id) { it.copy(status = LendStatus.Available, borrowerId = null, borrowerName = null, from = null, until = null, lentAt = null) }
 }
@@ -226,6 +236,39 @@ class LendingTest {
         item = repo.items.value.first { it.id == "i1" }
         assertEquals(LendStatus.Available, item.status)
         assertNull(item.borrowerId)
+    }
+
+    @Test
+    fun `two adults ask the same thing at the same second, the second reads why without a name`() = runTest {
+        val repo = FakeLendItems(family)
+        val asker = detail(repo, "adult2", "i1")
+        repo.otherFirst = {
+            repo.items.value = repo.items.value.map {
+                if (it.id == "i1") it.copy(status = LendStatus.Asked, borrowerId = "admin1", borrowerName = "Admin1") else it
+            }
+        }
+        asker.ask(null, null)
+        val s = asker.ready()
+        assertEquals(LendLost.AskedFirst, s.lostTo)
+        assertFalse(s.actionFailed)
+        // Only « Prêté »: neither the name nor the dates of the one who came first (EXPERT-9).
+        assertEquals(LendStatus.Lent, s.item.status)
+        assertNull(s.item.borrowerName)
+        assertEquals("admin1", repo.items.value.first { it.id == "i1" }.borrowerId)
+    }
+
+    @Test
+    fun `the owner says D'accord while the ask is withdrawn, and reads that it changed`() = runTest {
+        val repo = FakeLendItems(family)
+        detail(repo, "adult2", "i1").ask(null, null)
+        val owner = detail(repo, "adult1", "i1")
+        repo.otherFirst = {
+            repo.items.value = repo.items.value.map { if (it.id == "i1") it.copy(status = LendStatus.Available, borrowerId = null, borrowerName = null) else it }
+        }
+        owner.accept()
+        val s = owner.ready()
+        assertEquals(LendLost.ChangedFirst, s.lostTo)
+        assertEquals(LendStatus.Available, s.item.status)
     }
 
     @Test

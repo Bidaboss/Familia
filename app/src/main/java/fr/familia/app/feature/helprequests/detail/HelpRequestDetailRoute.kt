@@ -40,9 +40,12 @@ fun HelpRequestDetailRoute(
     val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)
     val context = LocalContext.current
     var wasShown by rememberSaveable { mutableStateOf(false) }
+    var iCancelled by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(state) {
         if (state is HelpRequestDetailUiState.Success) wasShown = true
-        if (state == HelpRequestDetailUiState.Missing && wasShown) onBack()
+        // Gone after my own « Annuler »: back to the list. Cancelled by its author while I was on it
+        // (passe « en même temps »): the screen stays and says so, rather than closing without a word.
+        if (state == HelpRequestDetailUiState.Missing && wasShown && iCancelled) onBack()
     }
     HelpRequestDetailScreen(
         state = state,
@@ -50,7 +53,7 @@ fun HelpRequestDetailRoute(
         onDecline = viewModel::decline,
         onWithdraw = viewModel::withdraw,
         onThank = viewModel::thank,
-        onCancel = viewModel::cancel,
+        onCancel = { iCancelled = true; viewModel.cancel() },
         onEdit = onEdit,
         onDuplicate = onDuplicate,
         onDismissError = viewModel::dismissError,

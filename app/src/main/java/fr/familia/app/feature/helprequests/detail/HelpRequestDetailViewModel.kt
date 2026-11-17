@@ -6,6 +6,7 @@ import fr.familia.app.core.data.AlreadyTakenException
 import fr.familia.app.core.data.HelpRequestRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.currentDayFlow
+import fr.familia.app.core.data.writeOrQueue
 import fr.familia.app.core.model.VOLUNTEER_NOTE_MAX
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.HelpRequest
@@ -39,7 +40,8 @@ class HelpRequestDetailViewModel(
     private val writeTimeoutMillis: Long = 4_000,
 ) : ViewModel() {
 
-    private data class Action(val busy: Boolean = false, val error: HelpActionError? = null)
+    /** [refusedOn]: the request as I saw it when my write did not hold, to tell why (passe « en même temps »). */
+    private data class Action(val busy: Boolean = false, val error: HelpActionError? = null, val refusedOn: HelpRequest? = null)
 
     private val action = MutableStateFlow(Action())
 
@@ -74,7 +76,14 @@ class HelpRequestDetailViewModel(
             canThank = canThank(request, me, family, today),
             seenByWholeFamily = family.members.all { it.id == request.authorId || it.id in request.notifyIds },
             isBusy = act.busy,
-            error = act.error,
+            error = act.refusedOn?.let { seen ->
+                // Read from the live request: if it moved meanwhile, someone came first.
+                if (request.status != seen.status || request.volunteerId != seen.volunteerId) {
+                    HelpActionError.AlreadyTaken(request.volunteerName.takeIf { request.status == HelpStatus.Taken })
+                } else {
+                    HelpActionError.Failed
+                }
+            } ?: act.error,
         )
     }
 
@@ -111,22 +120,20 @@ class HelpRequestDetailViewModel(
     fun cancel() = write { requests?.cancel(requestId) }
 
     fun dismissError() {
-        action.value = action.value.copy(error = null)
+        action.value = action.value.copy(error = null, refusedOn = null)
     }
 
-    /** Offline, the write lands in the cache at once and Firestore sends it when the network is back. */
+    /**
+     * Offline, the write lands in the cache at once and Firestore sends it when the network is back;
+     * a refusal then is said too. A refusal on a request that moved meanwhile says who came first.
+     */
     private fun write(block: suspend () -> Unit) {
         if (action.value.busy) return
+        val seen = (uiState.value as? HelpRequestDetailUiState.Success)?.request ?: return
         viewModelScope.launch {
             action.value = Action(busy = true)
-            action.value = try {
-                withTimeoutOrNull(writeTimeoutMillis) { block() }
-                Action()
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Action(error = HelpActionError.Failed)
-            }
+            val ok = writeOrQueue(viewModelScope, writeTimeoutMillis, onLateFailure = { action.value = Action(refusedOn = seen) }) { block() }
+            action.value = if (ok) Action() else Action(refusedOn = seen)
         }
     }
 }

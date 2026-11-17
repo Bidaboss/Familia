@@ -52,7 +52,16 @@ class TurnsTest {
         override suspend fun edit(id: String, title: String, householdIds: List<String>, current: Int) {
             edited += Triple(title, householdIds, current)
         }
+        /** Another phone whose change reaches the server just before this one (passe « en même temps »). */
+        var otherFirst: (() -> Unit)? = null
+
+        /** Refused for nothing, as a server that cannot be reached for good. */
+        var refuse = false
+
         private fun change(t: Turn, next: Turn) {
+            otherFirst?.let { otherFirst = null; it() }
+            // As the rules: a change holds only on the rotation it was made from.
+            if (refuse || turns.value.firstOrNull { it.id == t.id } != t) throw IllegalStateException("PERMISSION_DENIED")
             turns.value = turns.value.map { if (it.id == t.id) next else it }
         }
         override suspend fun done(turn: Turn, label: String) = change(turn, turn.done(label, Instant.EPOCH))
@@ -211,6 +220,49 @@ class TurnsTest {
         assertFalse(closed)
         advanceTimeBy(WRITE_TIMEOUT_MS + 1)
         assertTrue(closed)
+    }
+
+    @Test
+    fun `two households say C'est fait at the same second, one wins and the other reads why`() = runTest {
+        val repo = FakeTurns(listOf(turn()))
+        val vm = TurnDetailViewModel(repo, FakeMembers(family), "adult2", "t1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        // The other phone reaches the server first, from the same state.
+        repo.otherFirst = { repo.turns.value = repo.turns.value.map { it.done("Noël 2026", Instant.EPOCH) } }
+        vm.done("Noël 2026")
+        val s = vm.uiState.value as TurnDetailUiState.Success
+        assertTrue(s.someoneFirst)
+        assertFalse(s.failed)
+        // Only one line in the history, and the turn moved once.
+        assertEquals(1, s.turn.history.size)
+        assertEquals("Foyer Deux", s.nowName)
+        vm.dismissFailure()
+        assertFalse((vm.uiState.value as TurnDetailUiState.Success).someoneFirst)
+    }
+
+    @Test
+    fun `an exchange withdrawn while the other household accepts it says so`() = runTest {
+        val repo = FakeTurns(listOf(turn()))
+        repo.turns.value = repo.turns.value.map { it.copy(swap = it.swapAsk(TestFamily.otherAdult, "h1")) }
+        val vm = TurnDetailViewModel(repo, FakeMembers(family), "adult1", "t1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        repo.otherFirst = { repo.turns.value = repo.turns.value.map { it.copy(swap = null) } }
+        vm.acceptSwap()
+        val s = vm.uiState.value as TurnDetailUiState.Success
+        assertTrue(s.someoneFirst)
+        assertNull(s.turn.swap)
+        assertEquals(listOf("h1", "h2", "h3"), s.turn.householdIds)
+    }
+
+    @Test
+    fun `a refusal on a rotation that did not move is a plain failure`() = runTest {
+        val repo = FakeTurns(listOf(turn())).apply { refuse = true }
+        val vm = TurnDetailViewModel(repo, FakeMembers(family), "adult2", "t1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        vm.done("Noël 2026")
+        val s = vm.uiState.value as TurnDetailUiState.Success
+        assertTrue(s.failed)
+        assertFalse(s.someoneFirst)
     }
 
     @Test
