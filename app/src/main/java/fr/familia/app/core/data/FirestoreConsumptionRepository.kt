@@ -33,6 +33,8 @@ class FirestoreConsumptionRepository(private val db: FirebaseFirestore) : Consum
             writes = doc.getLong("writes") ?: 0,
             deletes = doc.getLong("deletes") ?: 0,
             storageBytes = doc.getLong("storageBytes"),
+            photoBytes = doc.getDouble("photoBytes")?.toLong(),
+            monthDownloadBytes = doc.getDouble("monthDownloadBytes")?.toLong(),
             monthCost = doc.getDouble("monthCost") ?: 0.0,
             failed = doc.getString("error") != null,
         )

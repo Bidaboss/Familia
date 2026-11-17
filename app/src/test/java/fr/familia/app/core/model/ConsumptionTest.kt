@@ -28,6 +28,18 @@ class ConsumptionTest {
     }
 
     @Test
+    fun `the photos of Cloud Storage have their gauges, when Monitoring gave them`() {
+        val withPhotos = Consumption(day, photoBytes = 4_100_000_000, monthDownloadBytes = 1_200_000_000)
+        assertEquals(
+            listOf(Consumption.Limit.Reads, Consumption.Limit.Writes, Consumption.Limit.Deletes, Consumption.Limit.Photos, Consumption.Limit.Downloads),
+            withPhotos.gauges.map { it.limit },
+        )
+        assertTrue(withPhotos.gauges[3].near)
+        assertFalse(withPhotos.gauges[4].near)
+        assertEquals(0.012f, withPhotos.gauges[4].share, 0.0001f)
+    }
+
+    @Test
     fun `the cost warns past 50 cents, like the server`() {
         assertFalse(Consumption(day, monthCost = 0.5).costNear)
         assertTrue(Consumption(day, monthCost = 0.51).costNear)

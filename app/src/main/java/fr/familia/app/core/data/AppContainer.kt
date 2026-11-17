@@ -12,8 +12,10 @@ import fr.familia.app.core.album.AlbumPhotoRepository
 import fr.familia.app.core.album.FirestoreAlbumPhotoRepository
 import fr.familia.app.core.photo.FirebasePhotoStorage
 import fr.familia.app.core.photo.PhotoEncoder
+import fr.familia.app.core.photo.PhotoLinks
 import fr.familia.app.core.photo.PhotoStorage
 import fr.familia.app.core.photo.PhotoUploader
+import fr.familia.app.core.photo.PreferencesLinks
 import fr.familia.app.core.photo.StoragePhotoUploader
 import fr.familia.app.core.place.AndroidPlaceLocator
 import fr.familia.app.core.usage.UsageTracker
@@ -164,7 +166,12 @@ class FirebaseAppContainer(context: Context) : AppContainer {
 
     /** Photos of the good news and the trips, in Cloud Storage (firebase/storage.rules). */
     override val photoStorage: PhotoStorage? by lazy {
-        if (firebaseReady) FirebasePhotoStorage(FirebaseStorage.getInstance()) else null
+        if (firebaseReady) {
+            val prefs = appContext.getSharedPreferences("photo-links", Context.MODE_PRIVATE)
+            FirebasePhotoStorage(FirebaseStorage.getInstance(), PhotoLinks(PreferencesLinks(prefs)))
+        } else {
+            null
+        }
     }
 
     override val photoUploader: PhotoUploader? by lazy {

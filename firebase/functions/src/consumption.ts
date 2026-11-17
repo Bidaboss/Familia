@@ -1,4 +1,5 @@
-// Récit 1 sexies: once a day, the use of the Firestore database is read from Cloud Monitoring,
+// Récit 1 sexies: once a day, the use of the Firestore database and of the photos in Cloud Storage
+// (their size, and what the phones downloaded) is read from Cloud Monitoring,
 // kept in consumption/{day} for the « Consommation » card of Administration, and the admin
 // principal is warned at 80 % of a free limit or when the estimated cost of the month passes
 // 0,50 €. The Google budget alert at 1 € by e-mail stays as the safety net.
@@ -7,22 +8,30 @@ import type { Firestore } from 'firebase-admin/firestore';
 import { addDays, Notice, parisDay } from './logic';
 import { notify, Sender } from './store';
 
-export type Limit = 'reads' | 'writes' | 'deletes' | 'storage';
+export type Limit = 'reads' | 'writes' | 'deletes' | 'storage' | 'photos' | 'downloads';
 
-/** The free quotas of Firestore: per day for the operations, stored for the size. */
+/**
+ * The free quotas: of Firestore per day for the operations, stored for the size; of Cloud Storage
+ * in US-EAST1 (docs/firebase-setup.md), 5 Go stored and 100 Go downloaded a month, counted in
+ * decimal gigabytes so the estimate errs on the safe side.
+ */
 export const FREE: Record<Limit, number> = {
   reads: 50_000,
   writes: 20_000,
   deletes: 20_000,
   storage: 1024 * 1024 * 1024,
+  photos: 5e9,
+  downloads: 100e9,
 };
 
-/** PRD: 40 000 reads, 16 000 writes or deletes a day, or 800 Mo of database. */
+/** PRD: 40 000 reads, 16 000 writes or deletes a day, or 800 Mo of database; 80 % for the photos. */
 export const ALERT_AT: Record<Limit, number> = {
   reads: 40_000,
   writes: 16_000,
   deletes: 16_000,
   storage: 800 * 1024 * 1024,
+  photos: 4e9,
+  downloads: 80e9,
 };
 
 export const COST_ALERT_EUROS = 0.5;
@@ -31,7 +40,7 @@ export const COST_ALERT_EUROS = 0.5;
  * Prices beyond the free quotas, taken high on purpose (multi-region prices, a dollar counted as
  * a euro), so the estimate errs on the safe side: per 100 000 operations, and per Gio a month.
  */
-export const PRICE = { reads: 0.06, writes: 0.18, deletes: 0.02, storagePerGiBMonth: 0.18 };
+export const PRICE = { reads: 0.06, writes: 0.18, deletes: 0.02, storagePerGiBMonth: 0.18, photosPerGBMonth: 0.03, downloadPerGB: 0.15 };
 
 export interface DayUse {
   day: string;
@@ -40,32 +49,49 @@ export interface DayUse {
   deletes: number;
   /** Null when Monitoring has no figure for the size. */
   storageBytes: number | null;
+  /** The photos in Cloud Storage; null or absent without a figure (it is measured once a day). */
+  photoBytes?: number | null;
+  /** What the phones downloaded from Cloud Storage that day. */
+  downloadBytes?: number;
 }
 
 /** What the day costs beyond the free quotas, with its share of the month for the size. */
 export function dayCost(use: DayUse): number {
   const over = (n: number, free: number) => Math.max(0, n - free);
   const storageGiB = over(use.storageBytes ?? 0, FREE.storage) / FREE.storage;
+  const photosGB = over(use.photoBytes ?? 0, FREE.photos) / 1e9;
   return (
     (over(use.reads, FREE.reads) / 100_000) * PRICE.reads +
     (over(use.writes, FREE.writes) / 100_000) * PRICE.writes +
     (over(use.deletes, FREE.deletes) / 100_000) * PRICE.deletes +
-    (storageGiB * PRICE.storagePerGiBMonth) / 30
+    (storageGiB * PRICE.storagePerGiBMonth) / 30 +
+    (photosGB * PRICE.photosPerGBMonth) / 30
   );
 }
 
-/** The days of [month] (AAAA-MM) among [days], added up. */
-export function monthCost(days: DayUse[], month: string): number {
-  return days.filter((d) => d.day.startsWith(month)).reduce((sum, d) => sum + dayCost(d), 0);
+/** What the phones downloaded from Cloud Storage during [month], whose free quota is monthly. */
+export function monthDownloads(days: DayUse[], month: string): number {
+  return days.filter((d) => d.day.startsWith(month)).reduce((sum, d) => sum + (d.downloadBytes ?? 0), 0);
 }
 
-/** The limits reached by [use] at 80 %, and « cost » when the month passes 0,50 €. */
-export function alerts(use: DayUse, cost: number): (Limit | 'cost')[] {
+/** The days of [month] (AAAA-MM) among [days], added up, with the downloads beyond the month's quota. */
+export function monthCost(days: DayUse[], month: string): number {
+  const daily = days.filter((d) => d.day.startsWith(month)).reduce((sum, d) => sum + dayCost(d), 0);
+  return daily + (Math.max(0, monthDownloads(days, month) - FREE.downloads) / 1e9) * PRICE.downloadPerGB;
+}
+
+/**
+ * The limits reached by [use] at 80 %, the downloads of the month so far ([downloads]) included,
+ * and « cost » when the month passes 0,50 €.
+ */
+export function alerts(use: DayUse, cost: number, downloads = use.downloadBytes ?? 0): (Limit | 'cost')[] {
   const found: (Limit | 'cost')[] = [];
   if (use.reads >= ALERT_AT.reads) found.push('reads');
   if (use.writes >= ALERT_AT.writes) found.push('writes');
   if (use.deletes >= ALERT_AT.deletes) found.push('deletes');
   if ((use.storageBytes ?? 0) >= ALERT_AT.storage) found.push('storage');
+  if ((use.photoBytes ?? 0) >= ALERT_AT.photos) found.push('photos');
+  if (downloads >= ALERT_AT.downloads) found.push('downloads');
   if (cost > COST_ALERT_EUROS) found.push('cost');
   return found;
 }
@@ -73,9 +99,10 @@ export function alerts(use: DayUse, cost: number): (Limit | 'cost')[] {
 const number = (n: number) => new Intl.NumberFormat('fr-FR').format(Math.round(n));
 const euros = (n: number) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n);
 const megabytes = (n: number) => `${number(n / (1024 * 1024))} Mo`;
+const gigabytes = (n: number) => `${new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 }).format(n / 1e9)} Go`;
 
 /** One notification per limit, in the words of the admin principal's phone. */
-export function alertNotice(alert: Limit | 'cost', use: DayUse, cost: number): Notice {
+export function alertNotice(alert: Limit | 'cost', use: DayUse, cost: number, downloads = use.downloadBytes ?? 0): Notice {
   const share = (n: number, free: number) => `${Math.round((100 * n) / free)} %`;
   const title = 'Familia approche d\'une limite gratuite';
   switch (alert) {
@@ -89,6 +116,12 @@ export function alertNotice(alert: Limit | 'cost', use: DayUse, cost: number): N
       const bytes = use.storageBytes ?? 0;
       return { channel: 'admin', title, body: `Taille de la base : ${megabytes(bytes)} sur 1 Go gratuit (${share(bytes, FREE.storage)}).` };
     }
+    case 'photos': {
+      const bytes = use.photoBytes ?? 0;
+      return { channel: 'admin', title, body: `Photos gardées : ${gigabytes(bytes)} sur 5 Go gratuits (${share(bytes, FREE.photos)}).` };
+    }
+    case 'downloads':
+      return { channel: 'admin', title, body: `Photos téléchargées ce mois-ci : ${gigabytes(downloads)} sur 100 Go gratuits (${share(downloads, FREE.downloads)}).` };
     case 'cost':
       return { channel: 'admin', title: 'Familia commence à coûter', body: `Coût estimé du mois : ${euros(cost)}. L'alerte de Google arrive à 1 €.` };
   }
@@ -102,6 +135,9 @@ export interface Metrics {
   writes?: string;
   deletes?: string;
   storage?: string;
+  /** Cloud Storage: the size of the bucket, and the bytes sent to the phones. */
+  photos?: string;
+  downloads?: string;
 }
 
 /**
@@ -116,6 +152,8 @@ export function pickMetrics(types: string[]): Metrics {
     writes: first('document/write_ops_count', 'document/write_count'),
     deletes: first('document/delete_ops_count', 'document/delete_count'),
     storage: types.find((t) => t.startsWith('firestore.googleapis.com/') && /storage/.test(t) && /bytes/.test(t)),
+    photos: ['storage.googleapis.com/storage/v2/total_bytes', 'storage.googleapis.com/storage/total_bytes'].find((n) => has.has(n)),
+    downloads: has.has('storage.googleapis.com/network/sent_bytes_count') ? 'storage.googleapis.com/network/sent_bytes_count' : undefined,
   };
 }
 
@@ -158,6 +196,8 @@ export async function checkConsumption(db: Firestore, monitoring: MonitoringRead
       writes: (await read(metrics.writes)) ?? 0,
       deletes: (await read(metrics.deletes)) ?? 0,
       storageBytes: await read(metrics.storage, true),
+      photoBytes: await read(metrics.photos, true),
+      downloadBytes: (await read(metrics.downloads)) ?? 0,
     };
   } catch {
     await ref.set({ day, error: 'monitoring', checkedAt: new Date() });
@@ -173,13 +213,16 @@ export async function checkConsumption(db: Firestore, monitoring: MonitoringRead
       writes: doc.get('writes') ?? 0,
       deletes: doc.get('deletes') ?? 0,
       storageBytes: doc.get('storageBytes') ?? null,
+      photoBytes: doc.get('photoBytes') ?? null,
+      downloadBytes: doc.get('downloadBytes') ?? 0,
     }));
   const cost = monthCost([...days, use], month);
-  const found = alerts(use, cost);
-  await ref.set({ ...use, monthCost: cost, alerts: found, checkedAt: new Date() });
+  const downloads = monthDownloads([...days, use], month);
+  const found = alerts(use, cost, downloads);
+  await ref.set({ ...use, monthDownloadBytes: downloads, monthCost: cost, alerts: found, checkedAt: new Date() });
   const ownerId = (await db.collection('config').doc('family').get()).get('ownerMemberId') as string | undefined;
   if (ownerId) {
-    for (const alert of found.filter((a) => !already.has(a))) await notify(db, send, [ownerId], alertNotice(alert, use, cost));
+    for (const alert of found.filter((a) => !already.has(a))) await notify(db, send, [ownerId], alertNotice(alert, use, cost, downloads));
   }
   return found;
 }

@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import fr.familia.app.R
+import fr.familia.app.core.photo.PrefetchStorageImage
 import fr.familia.app.core.photo.StorageImage
 import kotlinx.coroutines.delay
 
@@ -103,6 +104,8 @@ fun PhotoSlideshow(photos: List<AlbumPhoto>, onClose: () -> Unit) {
                     Text(stringResource(if (paused) R.string.album_slideshow_resume else R.string.album_slideshow_pause))
                 }
             }
+            // The next photo is fetched while this one shows, for a weak network.
+            if (photos.size > 1) PrefetchStorageImage(photos[(shown + 1) % photos.size].photoPath)
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 Crossfade(targetState = photos[shown], animationSpec = tween(800), label = "slideshow") { photo ->
                     StorageImage(
