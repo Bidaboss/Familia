@@ -7,6 +7,7 @@ import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { notebookEntryId, syncNotebookEntry } from '../src/notebook';
 import { copiedItemId, keptOccasion, migrateToSingleList, singleListTarget, widenedAudience } from '../src/singleList';
+import { copiedItemPhoto } from '../src/itemPhoto';
 import { revealGiftLists } from '../src/gifts';
 import { revealWishesOf } from '../src/wishesReveal';
 import type { Sender } from '../src/store';
@@ -55,6 +56,15 @@ function item(title: string, visibleToBeneficiary: boolean, authorId = 'ines') {
   return { title, url: null, price: 20, note: null, authorId, authorName: 'Auteur', visibleToBeneficiary, createdAt: made, updatedAt: made };
 }
 
+describe('the photo of a copied item (récit 44, rév. 237)', () => {
+  test('it goes next to the new item, in the folder of its new visibility', () => {
+    assert.equal(copiedItemPhoto('giftLists/noel-ines/shared/ines/p1', 'wishes-ines', true), 'giftLists/wishes-ines/shared/ines/p1');
+    assert.equal(copiedItemPhoto('giftLists/noel-ines/shared/ines/p1', 'ideas-ines', false), 'giftLists/ideas-ines/hidden/ines/p1');
+    assert.equal(copiedItemPhoto('giftLists/noel-ines/received/x/photo', 'ideas-ines', false), null);
+    assert.equal(copiedItemPhoto(null, 'ideas-ines', false), null);
+  });
+});
+
 describe('single list migration', () => {
   beforeEach(async () => {
     for (const c of ['giftLists', 'notebooks', 'members', 'migrations']) await db.recursiveDelete(db.collection(c));
@@ -78,6 +88,24 @@ describe('single list migration', () => {
     await lists.doc('old-ines').collection('items').doc('lamp').set(item('Une lampe', true));
   });
 
+  test('with « Plus de photos », the photo is copied next to the new item first (rév. 237)', async () => {
+    await db.doc('config/app').set({ features: { gifts: true, singleList: true, morePhotos: true } });
+    await lists.doc('surprise-ines').collection('items').doc('scarf').update({ photo: 'giftLists/surprise-ines/hidden/camille/p2' });
+    const copies: [string, string][] = [];
+    const copy = async (from: string, to: string) => { copies.push([from, to]); return !from.endsWith('p2'); };
+    assert.equal(await migrateToSingleList(db, copy), 3);
+    assert.deepEqual(copies.sort(), [
+      ['giftLists/noel-ines/shared/ines/p1', 'giftLists/wishes-ines/shared/ines/p1'],
+      ['giftLists/surprise-ines/hidden/camille/p2', 'giftLists/ideas-ines/hidden/camille/p2'],
+    ]);
+    const book = await lists.doc('wishes-ines').collection('items').doc(copiedItemId('noel-ines', 'book')).get();
+    assert.equal(book.get('photo'), 'giftLists/wishes-ines/shared/ines/p1');
+    // Not copied: the idea goes without its photo rather than name a file that is not there.
+    const scarf = await lists.doc('ideas-ines').collection('items').doc(copiedItemId('surprise-ines', 'scarf')).get();
+    assert.equal(scarf.get('title'), 'Une écharpe');
+    assert.equal(scarf.get('photo'), undefined);
+  });
+
   test('each open item is copied where it belongs, and nothing is deleted', async () => {
     assert.equal(await migrateToSingleList(db), 3);
     const wishes = lists.doc('wishes-ines');
@@ -88,7 +116,7 @@ describe('single list migration', () => {
     assert.equal(book.get('title'), 'Un livre');
     assert.equal(book.get('occasion'), 'christmas');
     assert.equal(book.get('visibleToBeneficiary'), true);
-    // Its photo stays with the old list (récit 44).
+    // « Plus de photos » off: the photo stays with the old list (récit 44).
     assert.equal(book.get('photo'), undefined);
     const ideas = lists.doc('ideas-ines');
     assert.equal((await ideas.get()).get('kind'), 'ideas');

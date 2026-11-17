@@ -383,6 +383,7 @@ Une envie offerte, sortie de « Mes envies » le lendemain de l'occasion de son 
 | `thankedAt` | horodatage serveur | Présent une fois le merci dit |
 | `revealedAt` | horodatage serveur | |
 | `self` | booléen, facultatif | Vrai pour « Je l'ai reçue » (rév. 232) : la personne l'a marquée elle-même, sans donneur. `occasion` et `year` sont alors nuls |
+| `photo` | texte, facultatif | Avec « Plus de photos » (rév. 237) : la photo de l'envie, copiée par le serveur avant la suppression de l'article, à `giftLists/{listId}/received/{itemId}/photo` (+ `.jpg` et `-thumb.jpg`). Lue par tous les membres, écrite par le serveur seul. Absente si la copie a échoué. « Je l'ai reçue » ne la garde pas encore |
 
 - **Lire** : le bénéficiaire, et les adultes qui gardent ses listes (un enfant sans l'appli n'a rien de dévoilé).
 - **Modifier** : le bénéficiaire, seulement pour passer `thanked` à vrai avec `thankedAt`.

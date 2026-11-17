@@ -104,6 +104,36 @@ describe('wishes reveal', () => {
     await list().collection('claims').doc('scarf').collection('shares').doc('camille').set({ amount: 15 });
   });
 
+  test('with « Plus de photos », the photo of the wish is copied to « On m\'a offert » before the removal (rév. 237)', async () => {
+    await db.doc('config/app').set({ features: { gifts: true, wishesReveal: true, morePhotos: true } });
+    await list().collection('items').doc('book').update({ photo: `giftLists/${LIST}/shared/ines/p1` });
+    const copies: [string, string][] = [];
+    const copy = async (from: string, to: string) => { copies.push([from, to]); return true; };
+    assert.equal(await revealWishes(db, fakeSender().send, DAY_AFTER, copy), 2);
+    assert.deepEqual(copies, [[`giftLists/${LIST}/shared/ines/p1`, `giftLists/${LIST}/received/book/photo`]]);
+    const book = await list().collection('received').doc('book').get();
+    assert.equal(book.get('photo'), `giftLists/${LIST}/received/book/photo`);
+    // The scarf had no photo: its archive has none.
+    assert.equal((await list().collection('received').doc('scarf').get()).get('photo'), undefined);
+  });
+
+  test('a photo that could not be copied, or the switch off, leaves the archive without it', async () => {
+    await list().collection('items').doc('book').update({ photo: `giftLists/${LIST}/shared/ines/p1` });
+    const copies: string[] = [];
+    assert.equal(await revealWishes(db, fakeSender().send, DAY_AFTER, async (from) => { copies.push(from); return true; }), 2);
+    assert.deepEqual(copies, []);
+    assert.equal((await list().collection('received').doc('book').get()).get('photo'), undefined);
+
+    await db.recursiveDelete(list().collection('received'));
+    await db.doc('config/app').set({ features: { gifts: true, wishesReveal: true, morePhotos: true } });
+    await list().collection('items').doc('lamp').set({ title: 'Une lampe', url: null, price: 30, authorId: 'ines', visibleToBeneficiary: true, photo: `giftLists/${LIST}/shared/ines/p2` });
+    await list().collection('claims').doc('lamp').set({ type: 'solo', holderId: 'camille', holderName: 'Camille', occasion: 'birthday', createdAt: Timestamp.fromDate(new Date('2027-01-05T10:00:00Z')) });
+    assert.equal(await revealWishes(db, fakeSender().send, DAY_AFTER, async () => false), 1);
+    const lamp = await list().collection('received').doc('lamp').get();
+    assert.equal(lamp.get('title'), 'Une lampe');
+    assert.equal(lamp.get('photo'), undefined);
+  });
+
   test('each taken wish goes to « On m\'a offert », with the givers and never the amounts', async () => {
     const { sent, send } = fakeSender();
     assert.equal(await revealWishes(db, send, DAY_AFTER), 2);

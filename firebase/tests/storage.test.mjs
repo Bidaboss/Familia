@@ -306,6 +306,20 @@ describe('photos of the gift lists (récit 44)', () => {
     await assertFails(getBytes(ref(storageAs(ADULT), file('surprise', 'hidden', 'adult2'))));
   });
 
+  test('« On m\'a offert »: the photo copied by the server is read by the family, written by nobody (rév. 237)', async () => {
+    const received = `giftLists/wishes${n}/received/book/photo.jpg`;
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await uploadString(ref(ctx.storage(), received), 'x', 'raw', jpeg);
+    });
+    await assertSucceeds(getBytes(ref(storageAs(ADULT), received)));
+    await assertSucceeds(getBytes(ref(storageAs(OTHER_ADULT), received)));
+    await assertFails(getBytes(ref(storageAs(STRANGER), received)));
+    await assertFails(uploadString(ref(storageAs(ADULT), `giftLists/wishes${n}/received/lamp/photo.jpg`), 'x', 'raw', jpeg));
+    await assertFails(deleteObject(ref(storageAs(ADULT), received)));
+    // Only under « Mes envies ».
+    await assertFails(getBytes(ref(storageAs(OTHER_ADULT), `giftLists/ideas${n}/received/book/photo.jpg`)));
+  });
+
   test('only in my folder, a known folder, a small JPEG, never replaced; only its author removes it', async () => {
     const storage = storageAs(ADULT);
     await assertFails(uploadString(ref(storage, file('wishes', 'shared', 'adult2')), 'x', 'raw', jpeg));
