@@ -155,7 +155,17 @@ fun MembersScreen(
                         Treasure("whoIsIt", Icons.Outlined.PhotoAlbum, SouvenirFamily.Share, R.string.members_treasure_who_is_it, R.string.members_treasure_who_is_it_open, it)
                     },
                 )
+                // At the top in both presentations: Kévin wants « Nos trésors » first (retour d'essai, 17/11).
                 if (treasures.isNotEmpty() && !r1) {
+                    item(key = "treasures") { TreasureTiles(treasures) }
+                }
+                if (treasures.isNotEmpty() && r1) {
+                    item(key = "treasures-label") {
+                        SectionLabel(
+                            stringResource(R.string.members_r1_treasures),
+                            modifier = Modifier.padding(horizontal = ClaySpacing.screen),
+                        )
+                    }
                     item(key = "treasures") { TreasureTiles(treasures) }
                 }
                 if (r1 && state.groups.isNotEmpty()) {
@@ -215,15 +225,6 @@ fun MembersScreen(
                                 }
                             }
                         }
-                    }
-                    if (treasures.isNotEmpty()) {
-                        item(key = "treasures-label") {
-                            SectionLabel(
-                                stringResource(R.string.members_r1_treasures),
-                                modifier = Modifier.padding(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 12.dp),
-                            )
-                        }
-                        item(key = "treasures") { TreasureTiles(treasures) }
                     }
                 }
                 if (!r1) state.groups.forEach { group ->
