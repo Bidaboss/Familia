@@ -10,6 +10,7 @@ import fr.familia.app.core.model.NotebookEntry
 import fr.familia.app.core.model.NotebookOccasion
 import fr.familia.app.core.model.NotebookSource
 import fr.familia.app.core.model.notebookBudgetId
+import fr.familia.app.core.model.notebookTotalBudgetId
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -84,21 +85,21 @@ class FirestoreNotebookRepository(private val db: FirebaseFirestore) : NotebookR
     }
 
     override suspend fun setBudget(memberId: String, budget: NotebookBudget, amount: Double?) {
-        val ref = db.collection(NOTEBOOKS).document(memberId).collection(BUDGETS)
-            .document(notebookBudgetId(budget.personId, budget.personName, budget.occasion))
+        val id = if (budget.total) notebookTotalBudgetId(budget.occasion) else notebookBudgetId(budget.personId, budget.personName, budget.occasion)
+        val ref = db.collection(NOTEBOOKS).document(memberId).collection(BUDGETS).document(id)
         if (amount == null) {
             ref.delete().await()
             return
         }
         ref.set(
             mapOf(
-                "personId" to budget.personId,
-                "personName" to budget.personName,
+                "personId" to budget.personId.takeUnless { budget.total },
+                "personName" to budget.personName.takeUnless { budget.total },
                 "occasion" to budget.occasion.occasion?.firestoreValue,
                 "year" to budget.occasion.year?.toLong(),
                 "amount" to amount,
                 "updatedAt" to FieldValue.serverTimestamp(),
-            ),
+            ) + (if (budget.total) mapOf("total" to true) else emptyMap()),
         ).await()
     }
 
@@ -109,6 +110,7 @@ class FirestoreNotebookRepository(private val db: FirebaseFirestore) : NotebookR
             personName = getString("personName").orEmpty(),
             occasion = NotebookOccasion(GiftOccasion.fromFirestore(getString("occasion")), getLong("year")?.toInt()),
             amount = amount,
+            total = getBoolean("total") == true,
         )
     }
 

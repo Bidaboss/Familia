@@ -2057,6 +2057,16 @@ service cloud.firestore {
       allow delete: if isNotebookOwner(memberId) && resource.data.source == 'idea';
     }
 
+    // « Mon budget » (récit 57): the budget of a whole occasion, no person, an occasion and its
+    // year, at its one id. Adults only: the children do not have it.
+    function isTotalBudget(b, budgetId) {
+      return b.total == true
+        && b.personId == null && b.personName == null
+        && b.occasion != null && b.year != null
+        && budgetId == 'total_' + b.occasion + '_' + string(b.year)
+        && me().profile == 'adult';
+    }
+
     // notebooks/{memberId}/budgets/{budgetId}: what the member means to spend for one person and
     // one occasion. The id is chosen by the app, one per person and occasion.
     match /notebooks/{memberId}/budgets/{budgetId} {
@@ -2064,10 +2074,12 @@ service cloud.firestore {
 
       allow create, update: if isNotebookOwner(memberId)
         && request.resource.data.keys().hasAll(['personId', 'personName', 'occasion', 'year', 'amount', 'updatedAt'])
-        && request.resource.data.keys().hasOnly(['personId', 'personName', 'occasion', 'year', 'amount', 'updatedAt'])
-        && (request.resource.data.personId == null || request.resource.data.personId is string)
-        && request.resource.data.personName is string
-        && request.resource.data.personName.size() > 0 && request.resource.data.personName.size() <= 40
+        && request.resource.data.keys().hasOnly(['personId', 'personName', 'occasion', 'year', 'amount', 'updatedAt', 'total'])
+        && (isTotalBudget(request.resource.data, budgetId)
+            || (request.resource.data.get('total', false) == false
+                && (request.resource.data.personId == null || request.resource.data.personId is string)
+                && request.resource.data.personName is string
+                && request.resource.data.personName.size() > 0 && request.resource.data.personName.size() <= 40))
         && (request.resource.data.occasion == null
             || request.resource.data.occasion in ['christmas', 'birthday', 'birth', 'other'])
         && (request.resource.data.year == null

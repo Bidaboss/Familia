@@ -182,6 +182,7 @@
     <string name="feature_gifts">Listes et cadeaux</string>
     <string name="feature_help_requests">Coups de main</string>
     <string name="feature_gift_notebook">Carnet de cadeaux</string>
+    <string name="feature_gift_budget">Budget cadeaux</string>
     <string name="feature_share_to_wishes">Partager vers « Mes envies »</string>
     <string name="feature_wish_from_share">Ajouter une envie depuis une autre appli</string>
     <string name="feature_wishes_reveal">Dévoiler les envies offertes</string>
@@ -678,6 +679,13 @@
     <string name="notebook_budget_amount">Montant</string>
     <string name="notebook_budget_hint">Laisse vide pour ne pas avoir de budget.</string>
     <string name="notebook_remove_budget">Retirer le budget</string>
+    <string name="notebook_my_budget">Mon budget pour %1$s</string>
+    <string name="notebook_set_my_budget">Fixer mon budget</string>
+    <string name="notebook_budget_committed">%1$s déjà prévus</string>
+    <string name="notebook_budget_left">Il te reste %1$s sur %2$s</string>
+    <string name="notebook_budget_over">%1$s de plus que tes %2$s</string>
+    <string name="notebook_budget_private">Tes réservations avec un prix, tes parts et tes achats faits ailleurs. Personne d\'autre ne le voit.</string>
+    <string name="notebook_add_purchase">Ajouter un achat fait ailleurs</string>
     <string name="notebook_source_claim">Réservé sur sa liste</string>
     <string name="notebook_source_share">Cadeau commun</string>
     <string name="notebook_source_idea">Idée privée</string>

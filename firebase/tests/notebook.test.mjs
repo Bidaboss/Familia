@@ -98,3 +98,48 @@ describe('budgets', () => {
     await assertSucceeds(deleteDoc(doc(db, 'notebooks/adult1/budgets/b1')));
   });
 });
+
+// « Mon budget » (récit 57): a total for a whole occasion, strictly private, adults only.
+describe('the budget of a whole occasion', () => {
+  const total = (overrides = {}) => budget({ personId: null, personName: null, total: true, ...overrides });
+
+  test('the owner sets one per occasion and year, at its one id', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(doc(db, 'notebooks/adult1/budgets/total_christmas_2026'), total()));
+    await assertSucceeds(updateDoc(doc(db, 'notebooks/adult1/budgets/total_christmas_2026'), { amount: 300, updatedAt: serverTimestamp() }));
+    await assertSucceeds(deleteDoc(doc(db, 'notebooks/adult1/budgets/total_christmas_2026')));
+  });
+
+  test('a total names no person, and has its occasion, its year and its id', async () => {
+    const db = as(env, ADULT);
+    await assertFails(setDoc(doc(db, 'notebooks/adult1/budgets/x'), total()));
+    await assertFails(setDoc(doc(db, 'notebooks/adult1/budgets/total_birthday_2026'), total()));
+    await assertFails(setDoc(doc(db, 'notebooks/adult1/budgets/total_christmas_2026'), total({ personId: 'adult2' })));
+    await assertFails(setDoc(doc(db, 'notebooks/adult1/budgets/total_christmas_2026'), total({ personName: 'adult2' })));
+    await assertFails(setDoc(doc(db, 'notebooks/adult1/budgets/total_none_2026'), total({ occasion: null })));
+    await assertFails(setDoc(doc(db, 'notebooks/adult1/budgets/total_christmas_none'), total({ year: null })));
+    await assertFails(setDoc(doc(db, 'notebooks/adult1/budgets/total_christmas_2026'), total({ amount: 0 })));
+    // A budget for a person always has their name.
+    await assertFails(setDoc(doc(db, 'notebooks/adult1/budgets/b4'), budget({ personName: null })));
+    await assertFails(setDoc(doc(db, 'notebooks/adult1/budgets/b4'), budget({ total: 'yes' })));
+  });
+
+  test('nobody else reads or writes it, the admin principal neither', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'notebooks/adult1/budgets/total_christmas_2026'), { ...total(), updatedAt: OLD });
+    });
+    for (const who of [OTHER_ADULT, ADMIN, STRANGER]) {
+      await assertFails(getDoc(doc(as(env, who), 'notebooks/adult1/budgets/total_christmas_2026')));
+      await assertFails(getDocs(collection(as(env, who), 'notebooks/adult1/budgets')));
+      await assertFails(setDoc(doc(as(env, who), 'notebooks/adult1/budgets/total_birthday_2027'), total({ occasion: 'birthday', year: 2027 })));
+      await assertFails(deleteDoc(doc(as(env, who), 'notebooks/adult1/budgets/total_christmas_2026')));
+    }
+  });
+
+  test('a child does not have it', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), 'members/adult1'), { profile: 'childWithApp' });
+    });
+    await assertFails(setDoc(doc(as(env, ADULT), 'notebooks/adult1/budgets/total_christmas_2026'), total()));
+  });
+});

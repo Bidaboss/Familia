@@ -5,10 +5,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.familia.app.core.navigation.FamiliaApp
+import fr.familia.app.core.photo.LocalOnline
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.viewas.ViewAsHost
 import fr.familia.app.feature.gifts.share.SharedWish
@@ -83,46 +85,48 @@ class MainActivity : ComponentActivity() {
             val wishToAdd by sharedWish
             val memberToOpen by openMemberId
             FamiliaTheme {
-                SessionRoute(container = container) { member ->
-                    // « Voir comme »: the admin principal may look at the app as another member.
-                    ViewAsHost(container, member) { shownContainer, shownMember ->
-                        FamiliaApp(
-                            shownContainer,
-                            shownMember,
-                            isOffline = !isOnline,
-                            openEventId = eventToOpen,
-                            onEventOpened = { openEventId.value = null },
-                            openListId = listToOpen,
-                            onListOpened = { openListId.value = null },
-                            openHelpRequestId = helpRequestToOpen,
-                            onHelpRequestOpened = { openHelpRequestId.value = null },
-                            openGoodNewsId = goodNewsToOpen,
-                            onGoodNewsOpened = { openGoodNewsId.value = null },
-                            openTripId = tripToOpen,
-                            onTripOpened = { openTripId.value = null },
-                            openWeeklyQuestionId = weeklyToOpen,
-                            onWeeklyQuestionOpened = { openWeeklyQuestionId.value = null },
-                            openSouvenir = souvenirToOpen,
-                            onSouvenirOpened = { openSouvenir.value = false },
-                            openPollId = pollToOpen,
-                            onPollOpened = { openPollId.value = null },
-                            openJoinMe = joinMeToOpen,
-                            onJoinMeOpened = { openJoinMe.value = false },
-                            openCapsuleId = capsuleToOpen,
-                            onCapsuleOpened = { openCapsuleId.value = null },
-                            openRecap = recapToOpen,
-                            onRecapOpened = { openRecap.value = null },
-                            openFeedback = feedbackToOpen,
-                            onFeedbackOpened = { openFeedback.value = null },
-                            openGoodDeals = goodDealsToOpen,
-                            onGoodDealsOpened = { openGoodDeals.value = false },
-                            openLendItemId = lendItemToOpen,
-                            onLendItemOpened = { openLendItemId.value = null },
-                            sharedWish = wishToAdd,
-                            onSharedWishOpened = { sharedWish.value = null },
-                            openMemberId = memberToOpen,
-                            onMemberOpened = { openMemberId.value = null },
-                        )
+                CompositionLocalProvider(LocalOnline provides isOnline) {
+                    SessionRoute(container = container) { member ->
+                        // « Voir comme »: the admin principal may look at the app as another member.
+                        ViewAsHost(container, member) { shownContainer, shownMember ->
+                            FamiliaApp(
+                                shownContainer,
+                                shownMember,
+                                isOffline = !isOnline,
+                                openEventId = eventToOpen,
+                                onEventOpened = { openEventId.value = null },
+                                openListId = listToOpen,
+                                onListOpened = { openListId.value = null },
+                                openHelpRequestId = helpRequestToOpen,
+                                onHelpRequestOpened = { openHelpRequestId.value = null },
+                                openGoodNewsId = goodNewsToOpen,
+                                onGoodNewsOpened = { openGoodNewsId.value = null },
+                                openTripId = tripToOpen,
+                                onTripOpened = { openTripId.value = null },
+                                openWeeklyQuestionId = weeklyToOpen,
+                                onWeeklyQuestionOpened = { openWeeklyQuestionId.value = null },
+                                openSouvenir = souvenirToOpen,
+                                onSouvenirOpened = { openSouvenir.value = false },
+                                openPollId = pollToOpen,
+                                onPollOpened = { openPollId.value = null },
+                                openJoinMe = joinMeToOpen,
+                                onJoinMeOpened = { openJoinMe.value = false },
+                                openCapsuleId = capsuleToOpen,
+                                onCapsuleOpened = { openCapsuleId.value = null },
+                                openRecap = recapToOpen,
+                                onRecapOpened = { openRecap.value = null },
+                                openFeedback = feedbackToOpen,
+                                onFeedbackOpened = { openFeedback.value = null },
+                                openGoodDeals = goodDealsToOpen,
+                                onGoodDealsOpened = { openGoodDeals.value = false },
+                                openLendItemId = lendItemToOpen,
+                                onLendItemOpened = { openLendItemId.value = null },
+                                sharedWish = wishToAdd,
+                                onSharedWishOpened = { sharedWish.value = null },
+                                openMemberId = memberToOpen,
+                                onMemberOpened = { openMemberId.value = null },
+                            )
+                        }
                     }
                 }
             }

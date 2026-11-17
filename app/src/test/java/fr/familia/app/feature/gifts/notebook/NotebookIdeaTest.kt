@@ -38,6 +38,14 @@ class NotebookIdeaTest {
     }
 
     @Test
+    fun `a purchase made elsewhere starts as bought, and stays a private idea`() = runTest {
+        val vm = NotebookIdeaViewModel(FakeNotebook(), FakeMembers(), "adult1", null, christmas, startBought = true)
+        val state = vm.editing()
+        assertEquals(GiftStatus.Bought, state.form.status)
+        assertEquals(GiftOccasion.Christmas, state.form.occasion)
+    }
+
+    @Test
     fun `an idea needs someone, a title and a sensible year`() = runTest {
         val notebook = FakeNotebook()
         val vm = NotebookIdeaViewModel(notebook, FakeMembers(), "adult1", null)
