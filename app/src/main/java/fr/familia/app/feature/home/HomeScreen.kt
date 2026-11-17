@@ -1,5 +1,7 @@
 package fr.familia.app.feature.home
 
+import fr.familia.app.feature.trips.now.rememberNowTravelling
+import fr.familia.app.feature.trips.now.NowTravellingCard
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -243,6 +245,9 @@ fun HomeRoute(
                 { modifier -> GoodNewsHomeCard(container, currentMember, onOpenGoodNewsFeed, onOpenGoodNews, onPublishGoodNews, modifier) }
             } else {
                 null
+            },
+            nowTravelling = rememberNowTravelling(container, currentMember)?.let { now ->
+                { NowTravellingCard(now, onOpen = { actions.onOpenTrip(now.tripId) }) }
             },
             allBadge = allBadge,
         )
