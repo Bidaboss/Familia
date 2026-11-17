@@ -1,7 +1,6 @@
 package fr.familia.app.feature.recipes
 
 import androidx.compose.ui.text.style.TextOverflow
-import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.foundation.layout.Arrangement
@@ -132,7 +131,9 @@ private fun RecipeList(state: RecipesUiState.Ready, onSearch: (String) -> Unit, 
 private fun RecipeCard(row: RecipeRow, onClick: () -> Unit) {
     val muted = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
     ClayCard(modifier = Modifier.fillMaxWidth(), onClick = onClick, onClickLabel = stringResource(R.string.recipes_open)) {
-        ClayCardTitle(row.recipe.title, style = MaterialTheme.typography.titleMedium)
+        // A plain text, not a card title: a heading is its own stop for TalkBack, so a recipe with
+        // no origin and no tag left the card itself with nothing to read.
+        Text(row.recipe.title, style = MaterialTheme.typography.titleMedium)
         row.origin?.let { Text(stringResource(R.string.recipe_from, it), style = MaterialTheme.typography.bodyMedium, color = muted) }
         if (row.recipe.tags.isNotEmpty()) {
             Text(row.recipe.tags.joinToString(" · "), style = MaterialTheme.typography.bodyMedium, color = muted)
