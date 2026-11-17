@@ -160,6 +160,7 @@ import fr.familia.app.feature.settings.appearance.AppIconSwitcher
 import fr.familia.app.feature.gifts.share.SharedWish
 import fr.familia.app.feature.gifts.share.ShareTargetSwitch
 import fr.familia.app.feature.usage.UsageRoute
+import fr.familia.app.feature.calendarfeed.CalendarFeedRoute
 import fr.familia.app.feature.feedback.FeedbackFormDestination
 import fr.familia.app.feature.feedback.FeedbackFormRoute
 import fr.familia.app.feature.feedback.FeedbackListDestination
@@ -658,6 +659,7 @@ fun FamiliaApp(
                     onShareApp = if (inViewAs) null else ({ owner -> shareApp(shareContext, owner) }),
                     onOpenChildrenUsage = if (features.isOn(Feature.Usage)) ({ navController.navigate(UsageDestination) }) else null,
                     onOpenAdministration = { navController.navigate(AdministrationDestination) },
+                    onOpenCalendarFeed = if (features.isOn(Feature.CalendarFeed) && !inViewAs) ({ navController.navigate(CalendarFeedDestination) }) else null,
                 ),
                 onDismiss = { accountOpen = false },
             )
@@ -1458,6 +1460,9 @@ fun FamiliaApp(
                     }
                     composable<UpdateCheckDestination> {
                         UpdateCheckRoute(container = container, onBack = { navController.popBackStack() })
+                    }
+                    composable<CalendarFeedDestination> {
+                        CalendarFeedRoute(container = container, memberId = currentMember.id, onBack = { navController.popBackStack() })
                     }
                     composable<AdministrationDestination> {
                         AdministrationRoute(

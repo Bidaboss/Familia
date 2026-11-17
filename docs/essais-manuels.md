@@ -654,3 +654,13 @@ Avec le compte de l'admin principal, plus deux autres comptes qui n'ont pas enco
 5. Touche « Éteindre », sur le bandeau ou dans la carte. **Attendu :** en moins d'une minute, chacun reçoit une seule notification « 2 personnes ont rejoint Familia », avec les deux prénoms. Le bandeau disparaît.
 6. Rallume le mode pour 2 h et laisse passer l'heure de fin. **Attendu :** le bandeau disparaît de lui-même. Le résumé part au premier envoi qui suit l'heure de fin, ou au plus tard 30 minutes après.
 7. Avec un compte qui n'est pas l'admin principal, et dans « Voir comme » : **Attendu :** ni la carte ni le bandeau.
+
+## Le planning dans mon agenda (récit 49)
+
+Avec un compte adulte, un compte enfant et un ordinateur. « Publier Firebase » doit être passé, et l'interrupteur « Planning dans mon agenda » allumé dans Administration.
+
+1. Touche ta photo en haut à droite. **Attendu :** « Voir dans mon agenda » apparaît sous « Notifications ». Avec le compte enfant, et dans « Voir comme », il n'apparaît pas.
+2. Touche-le, puis « Créer mon lien ». **Attendu :** le lien s'affiche, avec « Copier le lien », « M'envoyer le lien » et les étapes pour Google Agenda.
+3. Touche « M'envoyer le lien » et envoie-le-toi par mail. Sur l'ordinateur, suis les étapes 2 à 4. **Attendu :** un agenda « Familia » apparaît avec les événements du planning, aux bonnes heures. Aucune occasion de cadeau, aucune réservation.
+4. Dans Familia, crée un événement. **Attendu :** il arrive dans Google Agenda dans les heures qui suivent (Google décide quand il relit).
+5. Touche « Nouveau lien », puis confirme. **Attendu :** le lien change. Colle l'ancien dans la barre d'adresse de l'ordinateur : il répond « 404 ». L'agenda ajouté avec l'ancien lien ne se met plus à jour.

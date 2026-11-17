@@ -2674,6 +2674,19 @@ service cloud.firestore {
     // fields of config/app and the workflow « Créer le premier admin » writes config/family,
     // neither bound by these rules. From the app, only the admin principal changes `features`,
     // and nothing else.
+    // « Voir dans mon agenda » (récit 49): the secret token of my calendar link. Only I read it and
+    // write it (a new one cuts the old link), never a child; the admin principal may cut it.
+    match /calendarFeeds/{memberId} {
+      allow read: if isMember() && memberId == myMemberId();
+      allow create, update: if isMember() && memberId == myMemberId()
+        && me().profile == 'adult'
+        && request.resource.data.keys().hasOnly(['token', 'updatedAt'])
+        && request.resource.data.token is string
+        && request.resource.data.token.matches('^[A-Za-z0-9_-]{43}$')
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if isMember() && (memberId == myMemberId() || isOwner());
+    }
+
     match /config/{docId} {
       allow read: if isMember() && docId in ['app', 'family'];
       // The admin principal switches modules (features) and orders « À découvrir » (discoverOrder,

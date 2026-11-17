@@ -107,6 +107,8 @@ enum class Feature(
     PresentationR1bis("presentationR1bis", R.string.feature_presentation_r1bis, onByDefault = true),
     /** Bons plans et bonnes adresses dans Entraide (PRD, récit 45, PRODUIT-60). */
     GoodDeals("goodDeals", R.string.feature_good_deals),
+    /** « Voir dans mon agenda » : le planning dans Google Agenda, par un lien secret (PRD, récit 49). */
+    CalendarFeed("calendarFeed", R.string.feature_calendar_feed),
 }
 
 /**
