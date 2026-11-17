@@ -51,14 +51,15 @@ fun YearInReviewRoute(container: AppContainer?, currentMember: Member, year: Int
 
 /**
  * The year that can be opened on [today], or null: the module must be on, and the admin principal
- * tries this year at any time with a simulated date (PRODUIT, 17/11).
+ * tries this year at any time with a simulated date (PRODUIT, 17/11), from the drawer. The chip of
+ * the Accueil ([forCard]) keeps to 26/12–10/01 for everyone, the admin principal too (PRD rév. 259).
  */
 @Composable
 fun openableReviewYear(today: LocalDate, forCard: Boolean): Int? {
     val flags = LocalFeatureFlags.current
     if (!flags.isOn(Feature.YearInReview)) return null
     val simulate = flags.isOwner
-    if (forCard && !reviewCardShows(today, simulate)) return null
+    if (forCard && !reviewCardShows(today)) return null
     return reviewYear(today, simulate)
 }
 

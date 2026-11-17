@@ -806,10 +806,11 @@ Avec l'interrupteur « Notre année » allumé dans Administration. Avant le 26/
 
 Avec l'interrupteur « Notre année en famille » allumé.
 
-1. Entre le 26/12 et le 10/01, ouvre l'Accueil. **Attendu :** la puce « Notre année 2026 » en tête, avant « Anniversaires ». Avec la nouvelle présentation, elle est juste au-dessus de « Tout Familia ».
+1. Entre le 26/12 et le 10/01, ouvre l'Accueil. **Attendu :** la puce « Notre année 2026 » en tête, avant « Anniversaires ». Avec la nouvelle présentation, elle est en fin de liste, juste au-dessus de la barre « Tout Familia ».
 2. Touche-la. **Attendu :** l'écran de l'année s'ouvre.
-3. Hors de ces dates, avec un compte qui n'est pas l'admin principal : **Attendu :** pas de puce. L'admin principal la voit toute l'année, pour l'essayer.
-4. Interrupteur éteint, avec un autre compte : **Attendu :** pas de puce.
+3. Hors de ces dates, avec n'importe quel compte, l'admin principal compris : **Attendu :** pas de puce sur l'Accueil (PRD rév. 259).
+4. « Tout Familia », famille « Se souvenir ». **Attendu :** « Notre année ». L'admin principal l'y trouve toute l'année, pour l'essayer. Les autres l'y trouvent à partir du 26/12.
+5. Interrupteur éteint, avec un autre compte : **Attendu :** ni puce, ni entrée dans le tiroir.
 
 ## Bonnes nouvelles : envoi de la photo sur un réseau faible ou coupé
 
