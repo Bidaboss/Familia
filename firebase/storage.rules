@@ -263,6 +263,10 @@ service firebase.storage {
     // a wish revealed to « On m'a offert », copied there by the server only. The wish was already
     // seen by the whole family, and an idea by all but the person, who now got it: every member
     // reads it. Nobody writes or removes it; deleting the list removes it with the rest.
+    // KNOWN GAP: the document received/{receivedId} is read only by whoever keeps the lists of the
+    // person (keepsListsOf in firestore.rules), but its photo by every member. Checking the parents
+    // of a child without the app would read members/{id}, a third document (see LIMIT above). The
+    // photo shows nothing new: the family saw it on the list. See docs/security-audit.md.
     match /giftLists/{listId}/received/{receivedId}/{fileName} {
       allow read: if isMember() && giftList(listId).kind == 'wishes';
     }
