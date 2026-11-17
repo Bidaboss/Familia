@@ -11,10 +11,21 @@ import java.util.Locale
 /** "10 h 00", the French way, with non-breaking spaces so it never splits over two lines. */
 fun formatTime(time: LocalTime): String = "${time.hour}\u00A0h\u00A0${time.minute.toString().padStart(2, '0')}"
 
-/** "Samedi 21 novembre", with the year only when it is not the current one. */
+/** "Samedi 21 novembre", "Dimanche 1er novembre", with the year only when it is not the current one. */
 fun formatDay(date: LocalDate, today: LocalDate): String =
-    date.format(if (date.year == today.year) dayFormatter else dayYearFormatter)
-        .replaceFirstChar { it.titlecase(Locale.FRANCE) }
+    frenchDate(date, if (date.year == today.year) DAY else DAY_YEAR).replaceFirstChar { it.titlecase(Locale.FRANCE) }
+
+/** The day of the month alone in a pattern: a lone « d », not « dd » and not in quotes. */
+private val LONE_DAY = Regex("(?<![d'])d(?![d'])")
+
+/**
+ * [date] written with [pattern] in French, the first of the month as « 1er », as French writes
+ * it: « dimanche 1er novembre », « le 1er décembre ». Lower case, as java.time gives it.
+ */
+fun frenchDate(date: LocalDate, pattern: String): String {
+    val p = if (date.dayOfMonth == 1) pattern.replace(LONE_DAY, "d'er'") else pattern
+    return date.format(DateTimeFormatter.ofPattern(p, Locale.FRANCE))
+}
 
 /** Day header of the planning: "Aujourd'hui, samedi 14 novembre", "Demain, …" or "Lundi 16 novembre". */
 @Composable
@@ -35,5 +46,5 @@ fun dayShortLabel(date: LocalDate, today: LocalDate): String = when (date) {
     else -> formatDay(date, today)
 }
 
-private val dayFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRANCE)
-private val dayYearFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM yyyy", Locale.FRANCE)
+private const val DAY = "EEEE d MMMM"
+private const val DAY_YEAR = "EEEE d MMMM yyyy"

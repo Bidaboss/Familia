@@ -1,5 +1,7 @@
 package fr.familia.app.core.navigation
 
+import fr.familia.app.core.data.FAMILY_ZONE
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.feature.presentation.LocalPresenting
 import fr.familia.app.feature.presentation.PresentationBanner
 import fr.familia.app.feature.presentation.rememberPresentation
@@ -1660,8 +1662,8 @@ fun FamiliaApp(
                     }
                     composable<AdministrationDestination> {
                         val nextEvents = remember(container) {
-                            container?.eventRepository?.observeUpcoming(LocalDate.now())
-                                ?.map { nextEventId(it, LocalDateTime.now()) }
+                            container?.eventRepository?.observeUpcoming(familyToday())
+                                ?.map { nextEventId(it, LocalDateTime.now(FAMILY_ZONE)) }
                                 ?.catch { emit(null) }
                                 ?: flowOf(null)
                         }

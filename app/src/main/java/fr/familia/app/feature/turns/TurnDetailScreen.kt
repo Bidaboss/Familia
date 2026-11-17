@@ -44,6 +44,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Turn
 import fr.familia.app.core.model.TurnDone
@@ -57,15 +58,12 @@ import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.core.ui.PendingSign
+import fr.familia.app.core.ui.frenchDate
 import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import fr.familia.app.core.model.TurnSwap
 
-private val DONE_DAY = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.FRENCH).withZone(ZoneId.of("Europe/Paris"))
 
 /** What a tap on the detail asks for. */
 data class TurnDetailActions(
@@ -203,7 +201,7 @@ private fun Detail(state: TurnDetailUiState.Success, actions: TurnDetailActions)
             val name = householdLabel(line.name)
             Text(
                 if (line.done.label.isBlank()) {
-                    stringResource(R.string.turns_history_line, name, DONE_DAY.format(line.done.at))
+                    stringResource(R.string.turns_history_line, name, frenchDate(line.done.at.atZone(FAMILY_ZONE).toLocalDate(), "d MMMM yyyy"))
                 } else {
                     stringResource(R.string.turns_history_line_label, line.done.label, name)
                 },
