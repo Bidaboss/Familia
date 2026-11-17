@@ -4,10 +4,16 @@ import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { changeNotice } from '../src/logic';
 import {
+  toldBefore,
   occurrenceDays, occurrenceId, ruleDays, ruleLabel, syncSeries, writtenBySeries, type SeriesData, type SeriesRule,
 } from '../src/series';
 
 const rule = (o: Partial<SeriesRule> = {}): SeriesRule => ({ freq: 'weekly', interval: 1, monthlyBy: null, start: '2026-12-06', until: null, count: null, ...o });
+
+test('occurrences taken out together tell each member once, at the first one', () => {
+  assert.deepEqual(toldBefore([['a', 'b'], ['a', 'c'], ['b']]), [[], ['a', 'b'], ['a', 'b', 'c']]);
+  assert.deepEqual(toldBefore([]), []);
+});
 
 describe('the days of a series, without the emulator', () => {
   test('every week and every 2 weeks', () => {
@@ -69,6 +75,17 @@ describe('the occurrences against the emulator', () => {
   beforeEach(async () => {
     await db.recursiveDelete(db.collection('events'));
     await db.recursiveDelete(db.collection('eventSeries'));
+    await db.doc('members/camille').set({ firstName: 'Camille', profile: 'adult', householdId: 'h1', parentIds: [] });
+  });
+
+  test('a series whose author was removed writes no new day, and keeps the others', async () => {
+    await db.doc('eventSeries/s1').set(series({ rule: rule({ until: '2026-12-13' }) }));
+    await syncSeries(db, 's1', today);
+    await db.doc('members/camille').delete();
+    await db.doc('eventSeries/s1').update({ rule: rule({ until: '2027-01-03' }) });
+    const r = await syncSeries(db, 's1', today);
+    assert.deepEqual(r.created, []);
+    assert.deepEqual(await days(), ['s1_20261206', 's1_20261213']);
   });
 
   test('a new series writes its days to come', async () => {

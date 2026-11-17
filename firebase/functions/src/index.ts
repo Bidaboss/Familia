@@ -140,7 +140,8 @@ export const onEventDeleted = onDocumentDeletedWithAuthContext('events/{eventId}
   // The answers are read first: those who were coming are told, then the answers go.
   try {
     const members = await loadMembers(db);
-    const answered = await comingMembers(db, event.params.eventId, members);
+    const told = ((data as { seriesTold?: string[] } | undefined)?.seriesTold) ?? [];
+    const answered = await comingMembers(db, event.params.eventId, members, told);
     if (data && (data as { cancelledBySeries?: boolean }).cancelledBySeries) {
       // An occurrence taken out of its series (récit 54): only those who were coming hear of it.
       if (answered.size > 0) await notify(db, send, [...answered], changeNotice('deleted', event.params.eventId, data, null));

@@ -164,7 +164,7 @@ private fun EndSection(form: EventForm, invalid: Boolean, onChange: ((EventForm)
 
 /**
  * « Cette fois seulement » or « Celle-ci et les suivantes », before saving or deleting one event of
- * a series. Two large buttons, then « Annuler ».
+ * a series. Two large buttons of 56 dp, then « Annuler ».
  */
 @Composable
 internal fun SeriesScopeDialog(
@@ -179,10 +179,10 @@ internal fun SeriesScopeDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(body), style = MaterialTheme.typography.bodyMedium)
-                Button(onClick = { onPick(SeriesScope.ThisOnly) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                Button(onClick = { onPick(SeriesScope.ThisOnly) }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.event_scope_this))
                 }
-                OutlinedButton(onClick = { onPick(SeriesScope.ThisAndFollowing) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                OutlinedButton(onClick = { onPick(SeriesScope.ThisAndFollowing) }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.event_scope_following))
                 }
             }

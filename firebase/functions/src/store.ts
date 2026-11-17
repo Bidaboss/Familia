@@ -71,13 +71,13 @@ export async function notifyChange(
  * Who said « Je viens » or « Peut-être » to [eventId]. A child without the app answers through
  * their adults, who are then told instead.
  */
-export async function comingMembers(db: Firestore, eventId: string, members?: Member[]): Promise<Set<string>> {
+export async function comingMembers(db: Firestore, eventId: string, members?: Member[], skip: readonly string[] = []): Promise<Set<string>> {
   const rsvps = await db.collection('events').doc(eventId).collection('rsvps').get();
   const all = members ?? await loadMembers(db);
   const byId = new Map(all.map((m) => [m.id, m]));
   const coming = new Set<string>();
   for (const r of rsvps.docs) {
-    if (r.get('status') === 'no') continue;
+    if (r.get('status') === 'no' || skip.includes(r.id)) continue;
     const member = byId.get(r.id);
     if (!member) continue;
     if (member.profile === 'childWithoutApp') member.parentIds.forEach((id) => coming.add(id));
@@ -126,7 +126,12 @@ export async function deleteMemberData(db: Firestore, memberId: string): Promise
 /** PRD, récit 6 bis: at 18 h, the members coming tomorrow are reminded. */
 export async function sendDayBeforeReminders(db: Firestore, send: Sender, now: Date): Promise<number> {
   // « Événements qui reviennent » (récit 54): the 12 months move on by a day, before tomorrow is read.
-  await topUpSeries(db, parisDay(now));
+  // Never in the way of the reminders: a series that fails is only logged.
+  try {
+    await topUpSeries(db, parisDay(now));
+  } catch (e) {
+    console.error('topUpSeries', e);
+  }
   const tomorrow = addDays(parisDay(now), 1);
   const events = await db.collection('events').where('date', '==', tomorrow).get();
   if (events.empty) return 0;

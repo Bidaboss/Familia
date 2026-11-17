@@ -138,10 +138,15 @@ export async function syncSeries(db: Firestore, seriesId: string, today: string)
   const mark = Date.now();
   const batch = db.batch();
   const toDelete: DocumentReference[] = [];
-  for (const d of coming) {
+  const ordered = [...coming].sort((a, b) => String(a.get('occurrence')).localeCompare(String(b.get('occurrence'))));
+  const out = ordered.filter((d) => !wantedSet.has(String(d.get('occurrence'))));
+  const answered = await Promise.all(out.map(async (d) =>
+    (await d.ref.collection('rsvps').get()).docs.filter((r) => r.get('status') !== 'no').map((r) => r.id)));
+  const told = toldBefore(answered);
+  for (const d of ordered) {
     const day = String(d.get('occurrence'));
     if (!wantedSet.has(day)) {
-      batch.update(d.ref, { cancelledBySeries: true, bySeries: mark });
+      batch.update(d.ref, { cancelledBySeries: true, bySeries: mark, seriesTold: told[out.indexOf(d)] });
       toDelete.push(d.ref);
       result.cancelled.push(d.id);
     } else if (series && d.get('detached') !== true && (!series.applyFrom || day >= series.applyFrom) && differs(series, d.data())) {
@@ -149,7 +154,9 @@ export async function syncSeries(db: Firestore, seriesId: string, today: string)
       result.updated.push(d.id);
     }
   }
-  if (series) {
+  // A series whose author was removed keeps what it has, but writes no new day (C de la relecture de #244).
+  const authorHere = series ? (await db.collection('members').doc(series.authorId).get()).exists : false;
+  if (series && authorHere) {
     const have = new Set(coming.map((d) => String(d.get('occurrence'))));
     for (const day of wanted) {
       if (have.has(day)) continue;
@@ -169,11 +176,31 @@ export async function syncSeries(db: Firestore, seriesId: string, today: string)
   return result;
 }
 
+/**
+ * For occurrences taken out together, in order, with who answered each: who already hears of an
+ * earlier one, and so is not told again (one notice each, C de la relecture de #244).
+ */
+export function toldBefore(answered: string[][]): string[][] {
+  const seen = new Set<string>();
+  return answered.map((ids) => {
+    const before = [...seen];
+    ids.forEach((id) => seen.add(id));
+    return before;
+  });
+}
+
 /** Every series, from the evening reminder: the 12 months move on by a day. */
 export async function topUpSeries(db: Firestore, today: string): Promise<number> {
   const all = await db.collection('eventSeries').get();
   let created = 0;
-  for (const s of all.docs) created += (await syncSeries(db, s.id, today)).created.length;
+  for (const s of all.docs) {
+    // Each series on its own: one that fails leaves the others and the reminders be.
+    try {
+      created += (await syncSeries(db, s.id, today)).created.length;
+    } catch (e) {
+      console.error('syncSeries', s.id, e);
+    }
+  }
   return created;
 }
 
