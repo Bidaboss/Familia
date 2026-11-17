@@ -387,6 +387,9 @@
     <string name="feedback_copy_for_claude">Copier pour Claude</string>
     <string name="feedback_copied">Copié</string>
     <string name="feedback_share_for_claude">Partager pour Claude</string>
+    <string name="feedback_save_screenshot">Enregistrer la capture</string>
+    <string name="feedback_screenshot_saved">Capture enregistrée dans la galerie, album Familia</string>
+    <string name="feedback_screenshot_save_failed">Capture non enregistrée. Vérifie la connexion et réessaie.</string>
     <!-- « Plantages » (récit 6 sexies, rév. 220) -->
     <string name="crashes_title">Plantages</string>
     <string name="crashes_help">Les erreurs qui ont fermé l\'appli, envoyées au lancement suivant.</string>

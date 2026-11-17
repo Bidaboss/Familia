@@ -2,7 +2,10 @@ package fr.familia.app.feature.feedback
 
 import android.content.ClipData
 import android.content.Context
+import android.content.ContentValues
 import android.content.Intent
+import android.os.Build
+import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import fr.familia.app.R
 import fr.familia.app.core.photo.PhotoStorage
@@ -37,6 +40,40 @@ suspend fun shareFeedbackForClaude(context: Context, storage: PhotoStorage?, ite
     }
     context.startActivity(Intent.createChooser(send, context.getString(R.string.feedback_share_chooser)))
     return item.screenshot == null || picture != null
+}
+
+/**
+ * « Enregistrer la capture »: the share sheet of the Claude app always opens a new conversation,
+ * never a project. So the admin saves the screenshot in the gallery (album Pictures/Familia) and
+ * joins it by hand in the project. Android 10 and later only, which needs no permission; returns
+ * false before that, or when the picture cannot be fetched (offline, removed).
+ */
+suspend fun saveFeedbackScreenshot(context: Context, storage: PhotoStorage?, item: Feedback): Boolean {
+    val path = item.screenshot ?: return false
+    if (storage == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return false
+    return withContext(Dispatchers.IO) {
+        runCatching {
+            val url = storage.downloadUrl(path)
+            val resolver = context.contentResolver
+            val values = ContentValues().apply {
+                put(MediaStore.Images.Media.DISPLAY_NAME, "familia-retour-${item.id}.jpg")
+                put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Familia")
+                put(MediaStore.Images.Media.IS_PENDING, 1)
+            }
+            val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) ?: return@runCatching false
+            try {
+                URL(url).openStream().use { input ->
+                    (resolver.openOutputStream(uri) ?: error("no output")).use { input.copyTo(it) }
+                }
+                resolver.update(uri, ContentValues().apply { put(MediaStore.Images.Media.IS_PENDING, 0) }, null, null)
+                true
+            } catch (e: Exception) {
+                resolver.delete(uri, null, null)
+                throw e
+            }
+        }.getOrDefault(false)
+    }
 }
 
 private suspend fun fetchScreenshot(context: Context, storage: PhotoStorage, path: String, id: String): File? =
