@@ -100,9 +100,11 @@ internal val LightClayColors = ClayColors(
     dotBirthday = Color(0xFFD8693A),
 )
 
-// Dark: text #EBDCD3 on cards #2B201A (11.9:1).
+// Dark: text #EBDCD3 on cards #40312A (9.3:1), soft text #D8C2BA (7.3:1). The card stands out from
+// the background #1E1511 (1.44:1, it was 1.13:1 with #2B201A: retour du 17/11, « les tuiles sombres
+// sont trop proches du noir du fond »).
 internal val DarkClayColors = ClayColors(
-    card = Color(0xFF2B201A),
+    card = Color(0xFF40312A),
     household = Color(0xFF8FB2F0),
     family = Color(0xFFE9C969),
     birthday = Color(0xFFF2A585),
@@ -111,7 +113,7 @@ internal val DarkClayColors = ClayColors(
     onFamilyVariant = Color(0xFFD8C2BA),
     dayTitle = Color(0xFFFFB693),
     shadow = Color(0x66000000),
-    highlight = Color(0x14FFFFFF),
+    highlight = Color(0x1FFFFFFF),
     shade = Color(0x1F000000),
     tintAsStripe = true,
 )
