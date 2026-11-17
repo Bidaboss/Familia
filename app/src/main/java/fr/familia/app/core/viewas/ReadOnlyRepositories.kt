@@ -174,6 +174,7 @@ class ReadOnlyEventRepository(private val inner: EventRepository, private val gu
 class ReadOnlyRsvpRepository(private val inner: RsvpRepository, private val guard: ViewAsGuard) : RsvpRepository {
     override fun observeRsvps(eventId: String): Flow<List<Rsvp>> = inner.observeRsvps(eventId)
     override fun observeAllRsvps(): Flow<Map<String, List<Rsvp>>> = inner.observeAllRsvps()
+    override fun observeRsvpsOf(eventIds: List<String>): Flow<Map<String, List<Rsvp>>> = inner.observeRsvpsOf(eventIds)
     override fun observeAnswersOf(memberId: String, eventIds: List<String>): Flow<Map<String, List<Rsvp>>> =
         inner.observeAnswersOf(memberId, eventIds)
     override suspend fun setRsvp(eventId: String, memberId: String, status: RsvpStatus, answeredBy: String) = guard.refuse()

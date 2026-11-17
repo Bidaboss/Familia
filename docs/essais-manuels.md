@@ -1096,3 +1096,10 @@ Si quelque chose ne va pas le 20 au soir, préviens [DEV] : on revient à l'icô
 1. Sur un téléphone déjà connecté, ferme Familia en la balayant des applis récentes. Coupe le Wi-Fi et la 4G, puis rouvre Familia. **Attendu :** l'Accueil s'ouvre tout de suite, sans écran de connexion ni « Réessayer ».
 2. Remets le réseau. Depuis un autre téléphone d'admin, change le prénom de ce membre. Ferme et rouvre Familia sur le premier téléphone. **Attendu :** l'appli s'ouvre tout de suite, et le nouveau prénom apparaît quelques secondes après au plus (par exemple dans Mon profil).
 3. Sur un téléphone partagé, déconnecte-toi puis connecte un autre membre. **Attendu :** c'est bien l'autre membre qui entre, jamais le précédent.
+
+## Planning allégé : les compteurs « viennent »
+
+1. Ouvre le Planning. **Attendu :** chaque événement à venir montre, comme avant, combien de personnes viennent ou viendront peut-être, avec leurs photos.
+2. Sur un autre téléphone, réponds « Je viens » à un événement. **Attendu :** le compteur du premier téléphone monte en quelques secondes, sans rouvrir le Planning.
+3. Crée un nouvel événement, puis réponds-y. **Attendu :** son compteur apparaît aussi.
+4. Coupe le réseau et rouvre le Planning. **Attendu :** les événements s'affichent, avec les compteurs déjà lus.
