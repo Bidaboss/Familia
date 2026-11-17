@@ -54,6 +54,8 @@ data class NotebookEntry(
     val status: GiftStatus,
     val listId: String? = null,
     val itemId: String? = null,
+    /** Set by the copy of « Liste unique » (récit 9 ter): the entry of the copied gift. */
+    val movedTo: String? = null,
 )
 
 /** What the member means to spend for one person at one occasion. */

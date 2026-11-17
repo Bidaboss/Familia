@@ -71,6 +71,8 @@ class NotebookViewModel(
     private val writeTimeoutMillis: Long = 4_000,
     /** Writes the occasion of a reservation of « Mes envies », which decides when it is revealed. */
     private val gifts: GiftRepository? = null,
+    /** Switch « Liste unique » (récit 9 ter): which of an entry and its copy shows, see [shownEntries]. */
+    private val singleList: Boolean = false,
 ) : ViewModel() {
 
     /** The occasion the member chose, and whether the archive is open. */
@@ -84,7 +86,7 @@ class NotebookViewModel(
         .flatMapLatest {
             val repo = notebook ?: return@flatMapLatest flowOf(NotebookUiState.Error)
             combine(repo.observeEntries(currentMemberId), repo.observeBudgets(currentMemberId), chosen, today, failed) { entries, budgets, pick, day, didFail ->
-                state(entries, budgets, pick, day, didFail) as NotebookUiState
+                state(shownEntries(entries, singleList), budgets, pick, day, didFail) as NotebookUiState
             }.catch { emit(NotebookUiState.Error) }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), NotebookUiState.Loading)
@@ -120,7 +122,7 @@ class NotebookViewModel(
         val repo = notebook ?: return
         val claimOccasion = occasion.occasion
             ?.takeIf { entry.source == NotebookSource.Claim && entry.occasion.occasion != it && it in WISH_OCCASIONS }
-        val listId = entry.listId?.takeIf { it.startsWith(WISHES_PREFIX) }
+        val listId = entry.listId?.takeIf { isPermanentListId(it) }
         val itemId = entry.itemId
         failed.value = false
         viewModelScope.launch {
@@ -222,3 +224,18 @@ internal fun defaultOccasion(occasions: List<NotebookOccasion>, today: LocalDate
 
 /** The occasions a reservation of « Mes envies » may be meant for: the server reveals it the day after. */
 internal val WISH_OCCASIONS = setOf(GiftOccasion.Birthday, GiftOccasion.Christmas)
+
+/**
+ * The copy of « Liste unique » (récit 9 ter) keeps both entries of a moved gift: the old one, which
+ * says where it went ([NotebookEntry.movedTo]), and the copy. Only one shows: the copy while the
+ * switch is on, the old one once it is off again.
+ */
+internal fun shownEntries(entries: List<NotebookEntry>, singleList: Boolean): List<NotebookEntry> =
+    if (singleList) {
+        entries.filter { it.movedTo == null }
+    } else {
+        entries.filter { it.itemId?.startsWith(COPIED_ITEM_PREFIX) != true }
+    }
+
+/** The items copied by « Liste unique » (firebase/functions/src/singleList.ts). */
+private const val COPIED_ITEM_PREFIX = "from-"
