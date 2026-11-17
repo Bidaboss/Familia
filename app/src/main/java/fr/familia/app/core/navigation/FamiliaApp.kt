@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -564,7 +565,7 @@ fun FamiliaApp(
 
     // The theme chosen on this phone shows once the Thèmes module is on; before, Classique (DESIGN-7).
     val themesOn = features.isOn(Feature.Themes)
-    FamiliaTheme(theme = if (themesOn) chosenTheme else FamiliaThemeId.Classic) {
+    FamiliaTheme(theme = if (themesOn) chosenTheme else FamiliaThemeId.Classic, seeds = features.isOn(Feature.PresentationR1bis)) {
     CompositionLocalProvider(
         LocalOpenHelp provides { navController.navigate(HelpDestination) { launchSingleTop = true } },
         LocalMemberPhotos provides photos,
@@ -656,6 +657,12 @@ fun FamiliaApp(
                         NavigationBarItem(
                             selected = selected,
                             onClick = { navController.navigateToTab(destination) },
+                            // R1 bis: the tab on shows in a yellow pill, its icon dark on it.
+                            colors = if (r1On) {
+                                NavigationBarItemDefaults.colors(indicatorColor = R1_TAB_PILL, selectedIconColor = Color(0xFF1B1B1B))
+                            } else {
+                                NavigationBarItemDefaults.colors()
+                            },
                             icon = {
                                 val badge = if (destination == TopLevelDestination.HelpRequests) helpBadge else 0
                                 BadgedBox(badge = { if (badge > 0) Badge { Text(badge.toString()) } }) {
@@ -1513,6 +1520,8 @@ private fun TabLabel(text: String) {
 }
 
 private const val MIN_TAB_LABEL_SP = 9f
+
+private val R1_TAB_PILL = Color(0xFFF2C14E)
 
 /**
  * The modules of « Tout Familia » (R1 bis, §3), each only while it is on for me. Comptes, Défis,

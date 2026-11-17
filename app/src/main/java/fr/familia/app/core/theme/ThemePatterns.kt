@@ -53,6 +53,12 @@ internal fun DrawScope.drawPattern(pattern: ThemePattern) {
                 drawRect(c, topLeft = Offset(0f, i * band), size = Size(size.width, band))
             }
         }
+        ThemePattern.Seeds -> {
+            // Terracotta, green and violet seeds, 5 to 6 dp across, shifted on a 64 dp grid.
+            dots(Color(0xFFB5541C).copy(alpha = 0.16f), 3f, 64f, 64f, startX = 0f, startY = 0f)
+            dots(Color(0xFF1F5C3C).copy(alpha = 0.14f), 2.75f, 64f, 64f, startX = 30f, startY = 22f)
+            dots(Color(0xFF6B55C9).copy(alpha = 0.13f), 2.5f, 64f, 64f, startX = 14f, startY = 44f)
+        }
         ThemePattern.NotebookLines -> {
             val step = 32.dp.toPx()
             val line = 1.dp.toPx()
