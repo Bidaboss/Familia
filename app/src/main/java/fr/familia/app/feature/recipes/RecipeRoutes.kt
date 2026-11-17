@@ -110,6 +110,7 @@ fun RecipeDetailRoute(container: AppContainer?, currentMember: Member, recipeId:
         },
         bookOn = LocalFeatureFlags.current.isOn(Feature.RecipeBook),
         onChildInPhotos = viewModel::setChildInPhotos,
+        hasPhotos = photos.photos.isNotEmpty(),
     )
 }
 

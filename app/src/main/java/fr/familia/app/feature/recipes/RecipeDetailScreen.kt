@@ -72,6 +72,8 @@ fun RecipeDetailScreen(
     /** The switch recipeBook (récit 47): the little story and « Un enfant est sur une des photos ». */
     bookOn: Boolean = false,
     onChildInPhotos: (Boolean) -> Unit = {},
+    /** The recipe has at least one photo: « Un enfant est sur une des photos » only makes sense then. */
+    hasPhotos: Boolean = false,
 ) {
     Scaffold(
         topBar = {
@@ -90,7 +92,7 @@ fun RecipeDetailScreen(
                     title = stringResource(R.string.recipe_missing_title),
                     body = stringResource(R.string.recipe_missing_body),
                 )
-                is RecipeDetailUiState.Ready -> Content(state, onEdit, onRemove, onShare, photos, comments, bookOn, onChildInPhotos)
+                is RecipeDetailUiState.Ready -> Content(state, onEdit, onRemove, onShare, photos, comments, bookOn, onChildInPhotos, hasPhotos)
             }
         }
     }
@@ -106,6 +108,7 @@ private fun Content(
     comments: @Composable () -> Unit,
     bookOn: Boolean,
     onChildInPhotos: (Boolean) -> Unit,
+    hasPhotos: Boolean,
 ) {
     val recipe = state.recipe
     val muted = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
@@ -127,7 +130,7 @@ private fun Content(
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             SectionTitle(stringResource(R.string.recipe_photos_title))
             photos()
-            if (bookOn && state.canManage) ChildInPhotosRow(recipe.childInPhotos, onChildInPhotos)
+            if (bookOn && state.canManage && hasPhotos) ChildInPhotosRow(recipe.childInPhotos, onChildInPhotos)
         }
         // What to buy comes first in the kitchen: the point of the screen (DESIGN-11).
         ClayCard(modifier = Modifier.fillMaxWidth(), emphasis = true) {
