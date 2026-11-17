@@ -564,7 +564,7 @@ Avec l'interrupteur « Sondages » allumé :
 1. Ouvre « Albums » depuis Tout Familia : les voyages que tu suis et les événements qui te concernent, de la dernière année, avec au moins une photo, du plus récent au plus ancien. Chaque ligne montre la dernière photo, le nombre de photos et le mois.
 2. Touche un album : il s'ouvre, avec « Lancer le diaporama ».
 3. Sous « Les mois » : un mois par mois de ces albums. Touche-le : le diaporama du mois s'ouvre.
-4. Un voyage à venir, ou un album sans photo, n'apparaît pas. Sans aucun album : « Pas encore d'album ».
+4. Un voyage à venir, ou un album sans photo, n'apparaît pas. Sans aucun album : « Les premiers souvenirs arrivent bientôt », avec « Voir les voyages ».
 5. Voyages ou albums d'événements éteints dans Administration : leurs albums disparaissent de la liste.
 
 ## Le voyage en chemin illustré (R1 bis, maquette R6)
@@ -921,3 +921,19 @@ Il faut trois téléphones de test (A, B, C) et le module « La bienvenue » all
 8. Avec le réseau, allume le Mode présentation, puis passe en mode avion. **Attendu :** le bandeau « Mode présentation jusqu'à … » reste affiché.
 9. Mode avion, **Administration**, « Voir comme… », choisis un membre. **Attendu :** son Accueil et son Planning déjà vus s'affichent, avec le bandeau « Tu vois l'appli comme … ». « Quitter » marche aussi sans réseau.
 10. Remets le réseau et éteins le Mode présentation. **Attendu :** le résumé arrive comme d'habitude.
+
+## Démo du 21 : écrans vides et profils enfant (voyages, albums, recettes, capsule, arbre, Qui est-ce ?, diaporama)
+Le soir du 21, la famille ouvre ces écrans encore vides. Aucun ne doit rester blanc ni dire seulement « Aucun élément ».
+1. Sur un compte sans voyage, ouvre Voyages. **Attendu :** « Le prochain départ s'écrit ici » et le bouton « Nouveau voyage ».
+2. Ouvre les albums sans aucune photo. **Attendu :** « Les premiers souvenirs arrivent bientôt » et le lien « Voir les voyages », qui ouvre Voyages.
+3. Ouvre le diaporama d'un mois sans photo. **Attendu :** une phrase et le lien « Revenir en arrière ».
+4. Ouvre le carnet de recettes vide. **Attendu :** « Le carnet attend sa première recette » et le bouton « Nouvelle recette ». Fais de même pour Capsule (« Écris à la famille de demain », bouton « Nouvelle capsule ») et pour Qui est-ce ? (« Une vieille photo à deviner ? », bouton d'ajout).
+5. Ouvre l'arbre vide. Avec un chef de famille, **attendu :** le bouton d'ajout. Avec un autre membre, **attendu :** le lien « Revenir en arrière ».
+6. Administration › Voir comme › un enfant (sans compte admin ni chef de famille). Parcours les mêmes écrans. **Attendu :**
+   - Voyages vide : pas de « Nouveau voyage », mais « Quand un adulte t'emmène en voyage… » et le lien « Voir les albums photo ».
+   - Dans un voyage où l'enfant est participant : pas de « Modifier » ni de « Supprimer » du voyage. « Bien arrivé », les étapes, « À prévoir » et ses photos restent proposés.
+   - Dans un voyage qu'il suit seulement : aucun bouton d'ajout de photo ni de ligne.
+   - Arbre : aucun bouton pour ajouter une personne ou un lien.
+   - Recettes et Capsule : le bouton d'ajout est là, puisqu'un enfant peut écrire les siens. Qui est-ce ? n'en montre pas en Voir comme, c'est voulu.
+   Un bouton visible qui finirait sur un refus est un défaut : note l'écran et le bouton.
+7. Toucher un bouton en Voir comme donne « Lecture seule en mode Voir comme ». C'est normal : l'essai vérifie seulement quels boutons s'affichent.

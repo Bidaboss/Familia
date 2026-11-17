@@ -45,6 +45,7 @@ import fr.familia.app.core.photo.StorageImage
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
@@ -63,6 +64,7 @@ fun AlbumsScreen(
     onBack: () -> Unit,
     onOpenAlbum: (AlbumEntry) -> Unit,
     onOpenMonth: (YearMonth) -> Unit,
+    onOpenTrips: (() -> Unit)? = null,
 ) {
     Scaffold(
         topBar = {
@@ -79,6 +81,10 @@ fun AlbumsScreen(
                     icon = Icons.Outlined.PhotoLibrary,
                     title = stringResource(R.string.albums_empty_title),
                     body = stringResource(R.string.albums_empty_body),
+                    action = {
+                        if (onOpenTrips != null) ClayLink(stringResource(R.string.albums_empty_trips), onClick = onOpenTrips)
+                        else ClayLink(stringResource(R.string.empty_go_back), onClick = onBack)
+                    },
                 )
                 else -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),

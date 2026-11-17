@@ -113,7 +113,7 @@ fun GenealogyScreen(
                     title = stringResource(R.string.genealogy_failed_title),
                     body = stringResource(R.string.genealogy_failed_body),
                 )
-                is GenealogyUiState.Ready -> ReadyTree(state, onOpenProfile, actions, onMakePoster)
+                is GenealogyUiState.Ready -> ReadyTree(state, onOpenProfile, actions, onMakePoster, onBack)
             }
         }
     }
@@ -140,7 +140,7 @@ data class GenealogyActions(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ReadyTree(state: GenealogyUiState.Ready, onOpenProfile: ((String) -> Unit)?, actions: GenealogyActions?, onMakePoster: (() -> Unit)?) {
+private fun ReadyTree(state: GenealogyUiState.Ready, onOpenProfile: ((String) -> Unit)?, actions: GenealogyActions?, onMakePoster: (() -> Unit)?, onBack: () -> Unit) {
     var zoom by remember { mutableFloatStateOf(1f) }
     var pan by remember { mutableStateOf(Offset.Zero) }
     var open by rememberSaveable { mutableStateOf<String?>(null) }
@@ -170,7 +170,10 @@ private fun ReadyTree(state: GenealogyUiState.Ready, onOpenProfile: ((String) ->
             icon = Icons.Outlined.AccountTree,
             title = stringResource(R.string.genealogy_empty_title),
             body = stringResource(R.string.genealogy_empty_body),
-            action = addFirst,
+            // Who cannot add a link yet still gets a way on, never a dead end.
+            action = if (addFirst != null) addFirst else {
+                { ClayLink(stringResource(R.string.empty_go_back), onClick = onBack) }
+            },
         )
     } else Column(Modifier.fillMaxSize()) {
         if (onMakePoster != null) {

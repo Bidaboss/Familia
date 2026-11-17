@@ -46,6 +46,7 @@ import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
@@ -82,6 +83,7 @@ fun TreePosterScreen(state: TreePosterUiState, actions: TreePosterActions, onBac
                     icon = Icons.Outlined.AccountTree,
                     title = stringResource(R.string.tree_poster_empty_title),
                     body = stringResource(R.string.tree_poster_empty_body),
+                    action = { ClayLink(stringResource(R.string.tree_poster_empty_back), onClick = onBack) },
                 )
                 is TreePosterUiState.Choosing -> Choosing(state, actions)
             }

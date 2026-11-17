@@ -17,6 +17,7 @@ fun TripsRoute(
     onOpenTrip: (tripId: String) -> Unit,
     onAddTrip: () -> Unit,
     onBack: () -> Unit,
+    onOpenAlbums: (() -> Unit)? = null,
 ) {
     val viewModel: TripsViewModel = viewModel(
         factory = viewModelFactory {
@@ -24,5 +25,5 @@ fun TripsRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    TripsScreen(state = state, onRetry = viewModel::retry, onOpenTrip = onOpenTrip, onAddTrip = onAddTrip, onBack = onBack)
+    TripsScreen(state = state, onRetry = viewModel::retry, onOpenTrip = onOpenTrip, onAddTrip = onAddTrip, onBack = onBack, onOpenAlbums = onOpenAlbums)
 }

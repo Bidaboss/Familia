@@ -1,7 +1,5 @@
 package fr.familia.app.feature.month
 
-import fr.familia.app.core.ui.ClayCardTitle
-import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,6 +37,9 @@ import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClayLink
+import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.ui.MemberAvatar
@@ -105,6 +106,7 @@ fun MonthSlideshowScreen(month: YearMonth, state: MonthSlideshowUiState, film: F
                 state.challenge?.let { ClayCard(Modifier.fillMaxWidth()) { ChallengeGauge(it) } }
                 if (!state.loading && state.photos.isEmpty()) {
                     Text(stringResource(R.string.month_empty), style = MaterialTheme.typography.bodyLarge)
+                    ClayLink(stringResource(R.string.empty_go_back), onClick = onBack)
                 } else {
                     AlbumFilmPart(film, state.photos.size, filmActions)
                 }
