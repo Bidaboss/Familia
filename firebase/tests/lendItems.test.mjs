@@ -248,6 +248,16 @@ describe('« D\'accord », « Pas cette fois » and « Rendu » (récit 51)', ()
     await assertSucceeds(releaseBatch(ADULT, 'i2'));
   });
 
+  test('a thing left « Prêté » with no loan: its owner frees it, nobody else', async () => {
+    await stored('i1', item(ADULT), null);
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), 'lendItems/i1'), { lent: true });
+    });
+    await assertFails(releaseBatch(NEIGHBOUR, 'i1'));
+    await assertFails(releaseBatch(OTHER_ADULT, 'i1'));
+    await assertSucceeds(releaseBatch(ADULT, 'i1'));
+  });
+
   test('nobody writes the reminder but the server, nor changes the dates of a loan', async () => {
     await stored('i1', item(ADULT), lentTo(ADULT, OTHER_ADULT));
     await assertFails(updateDoc(doc(as(env, ADULT), 'lendLoans/i1'), { remindedAt: serverTimestamp(), updatedAt: serverTimestamp() }));
