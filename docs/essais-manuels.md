@@ -650,6 +650,6 @@ Avec un compte adulte, un compte enfant et un ordinateur. « Publier Firebase »
 
 1. Touche ta photo en haut à droite. **Attendu :** « Voir dans mon agenda » apparaît sous « Notifications ». Avec le compte enfant, et dans « Voir comme », il n'apparaît pas.
 2. Touche-le, puis « Créer mon lien ». **Attendu :** le lien s'affiche, avec « Copier le lien », « M'envoyer le lien » et les étapes pour Google Agenda.
-3. Touche « M'envoyer le lien » et envoie-le-toi par mail. Sur l'ordinateur, suis les étapes 2 à 4. **Attendu :** un agenda « Familia » apparaît avec les événements du planning, aux bonnes heures. Aucune occasion de cadeau, aucune réservation.
+3. Touche « M'envoyer le lien » et envoie-le-toi par mail. Sur l'ordinateur, suis les étapes 2 à 4. **Attendu :** un agenda « Familia » apparaît avec les événements du planning, aux bonnes heures. Seulement ce qui te concerne (toute la famille, ton foyer, toi et tes enfants) : pas les rendez-vous d'un autre foyer. Aucune occasion de cadeau, aucune réservation.
 4. Dans Familia, crée un événement. **Attendu :** il arrive dans Google Agenda dans les heures qui suivent (Google décide quand il relit).
 5. Touche « Nouveau lien », puis confirme. **Attendu :** le lien change. Colle l'ancien dans la barre d'adresse de l'ordinateur : il répond « 404 ». L'agenda ajouté avec l'ancien lien ne se met plus à jour.
