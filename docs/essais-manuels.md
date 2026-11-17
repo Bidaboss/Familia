@@ -579,3 +579,13 @@ Interrupteur « presentationR1bis » allumé (c'est le réglage par défaut).
 7. TalkBack : chaque jour de la frise se lit « Jour 3, mardi 17 novembre » ; le paysage n'est pas lu.
 8. Police du téléphone à 200 % : tout défile, rien ne passe sous le bouton « Ajouter une étape ».
 9. Interrupteur éteint : l'écran du voyage revient à l'ancienne présentation.
+
+## La photo d'une envie (récit 44)
+
+Avec les modules « Plus de photos » et « Liste unique » allumés, après « Publier Firebase », et le compte d'une autre personne.
+
+1. Dans « Mes envies », ajoute une envie avec « Ajouter une photo ». **Attendu :** une vignette sur la carte de l'envie, et la photo en large quand on l'ouvre. L'autre compte la voit aussi.
+2. Avec l'autre compte, ajoute une idée avec une photo dans « Idées de la famille » de la première personne. **Attendu :** la famille voit la photo, mais la personne fêtée ne voit ni l'idée ni la photo.
+3. Modifie l'envie et retire sa photo, après confirmation. **Attendu :** plus de vignette.
+4. Supprime une envie qui avait une photo. **Attendu :** elle disparaît, et sa photo aussi (le serveur la retire).
+5. Module éteint. **Attendu :** ni bouton photo, ni vignette.
