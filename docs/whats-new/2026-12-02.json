@@ -1,0 +1,29 @@
+{
+  "cards": [
+    {
+      "id": "budget-cadeaux",
+      "title": "Un budget pour tes cadeaux",
+      "body": "Dans Cadeaux, ouvre « Mes cadeaux à offrir » et touche « Fixer un budget » : tu vois ce qu'il te reste pour Noël, en privé.",
+      "feature": "giftBudget",
+      "open": "gifts",
+      "adultsOnly": true
+    },
+    {
+      "id": "livre-photo",
+      "title": "Le livre photo",
+      "body": "Dans l'album d'un voyage ou d'un événement, touche « Faire le livre photo » : tes photos deviennent un livre à imprimer ou à offrir.",
+      "childTitle": "Un livre de photos",
+      "childBody": "Dans l'album d'un voyage, fais un vrai livre avec tes photos préférées, à imprimer.",
+      "feature": "photoBook",
+      "open": "trips"
+    },
+    {
+      "id": "a-qui-le-tour",
+      "title": "À qui le tour ?",
+      "body": "Dans Entraide, « À qui le tour ? » fait tourner entre les foyers qui reçoit Noël ou le repas du dimanche, sans oublier personne.",
+      "feature": "turns",
+      "open": "helpRequests",
+      "adultsOnly": true
+    }
+  ]
+}

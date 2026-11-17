@@ -18,13 +18,13 @@ import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.Consumption
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.ClayCardTitle
+import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.frenchDate
 import java.text.NumberFormat
 import java.time.LocalDate
 import java.util.Locale
 import kotlin.math.roundToInt
-import fr.familia.app.core.ui.ClayCardTitle
-import fr.familia.app.core.ui.ClaySpacing
 
 /**
  * The « Consommation » card (PRD, récit 1 sexies): how much of each free limit of the database
@@ -56,7 +56,7 @@ private fun ReadyConsumption(consumption: Consumption) {
         return
     }
     consumption.gauges.forEach { GaugeLine(it) }
-    val cost = NumberFormat.getCurrencyInstance(Locale.FRANCE).format(consumption.monthCost)
+    val cost = euros(consumption.monthCost)
     Text(
         stringResource(R.string.consumption_cost, cost),
         style = MaterialTheme.typography.titleSmall,
@@ -78,27 +78,43 @@ private fun GaugeLine(gauge: Consumption.Gauge) {
         },
     )
     val figures = when (gauge.limit) {
-        Consumption.Limit.Storage -> stringResource(R.string.consumption_storage_figures, integer(gauge.used / (1024 * 1024)))
-        Consumption.Limit.Photos -> stringResource(R.string.consumption_photos_figures, megabytes(gauge.used))
-        Consumption.Limit.Downloads -> stringResource(R.string.consumption_downloads_figures, megabytes(gauge.used))
+        Consumption.Limit.Storage -> stringResource(R.string.consumption_storage_figures, sizeText(gauge.used, binary = true))
+        Consumption.Limit.Photos -> stringResource(R.string.consumption_photos_figures, sizeText(gauge.used, binary = false))
+        Consumption.Limit.Downloads -> stringResource(R.string.consumption_downloads_figures, sizeText(gauge.used, binary = false))
         else -> stringResource(R.string.consumption_figures, integer(gauge.used), integer(gauge.limit.free))
     }
     val percent = (gauge.share * 100).roundToInt()
     val color = if (gauge.near) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-    val spoken = stringResource(R.string.consumption_gauge_description, label, figures, percent)
+    val cost = gauge.cost?.let { stringResource(R.string.consumption_line_cost, euros(it)) }
+    val spoken = stringResource(R.string.consumption_gauge_description, label, figures, percent) + cost?.let { ", $it" }.orEmpty()
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.clearAndSetSemantics { contentDescription = spoken },
     ) {
         Text("$label · $figures", style = MaterialTheme.typography.bodyMedium)
         LinearProgressIndicator(progress = { gauge.share }, color = color, modifier = Modifier.fillMaxWidth())
+        if (cost != null) {
+            Text(cost, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
 
+/** Two decimals: below a cent, the card says « 0,00 € », never a rounded-up figure. */
+private fun euros(amount: Double): String = NumberFormat.getCurrencyInstance(Locale.FRANCE).format(amount)
+
 private fun integer(n: Long): String = NumberFormat.getIntegerInstance(Locale.FRANCE).format(n)
 
-/** Cloud Storage counts in decimal megabytes. */
-private fun megabytes(bytes: Long): String = integer(bytes / 1_000_000)
+/**
+ * A size for the card: in Mo below 1 Go, so a small figure never reads « 0 Go », then in Go with
+ * one decimal. Firestore counts in binary units ([binary]), Cloud Storage in decimal ones.
+ */
+internal fun sizeText(bytes: Long, binary: Boolean): String {
+    val mega = if (binary) 1024.0 * 1024 else 1_000_000.0
+    val giga = if (binary) 1024.0 * 1024 * 1024 else 1_000_000_000.0
+    if (bytes < giga) return "${integer((bytes / mega).toLong())} Mo"
+    val format = NumberFormat.getNumberInstance(Locale.FRANCE).apply { maximumFractionDigits = 1 }
+    return "${format.format(bytes / giga)} Go"
+}
 
 /** Fictional figures for previews and screenshots. */
 internal fun previewConsumption(): ConsumptionCard = ConsumptionCard.Ready(
@@ -111,5 +127,6 @@ internal fun previewConsumption(): ConsumptionCard = ConsumptionCard.Ready(
         photoBytes = 86_000_000,
         monthDownloadBytes = 1_200_000_000,
         monthCost = 0.0,
+        monthCosts = Consumption.Limit.entries.associateWith { 0.0 },
     ),
 )

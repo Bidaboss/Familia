@@ -1,0 +1,22 @@
+{
+  "cards": [
+    {
+      "id": "bons-plans",
+      "title": "Les bons plans de la famille",
+      "body": "Une promo, une bonne adresse à partager ? Publie-la dans Entraide, rubrique Bons plans, et vois qui est intéressé.",
+      "childTitle": "Les bons plans",
+      "childBody": "Regarde les bons plans de la famille dans Entraide et touche « Ça m'intéresse » quand l'un te plaît.",
+      "feature": "goodDeals",
+      "open": "helpRequests"
+    },
+    {
+      "id": "plus-de-photos",
+      "title": "Des photos partout",
+      "body": "Ajoute une photo de couverture à un événement et une photo à tes envies, pour qu'on voie tout de suite de quoi on parle.",
+      "childTitle": "Montre ton envie en photo",
+      "childBody": "Ajoute une photo à ton envie de cadeau, on verra tout de suite ce qui te ferait plaisir.",
+      "feature": "morePhotos",
+      "open": "gifts"
+    }
+  ]
+}

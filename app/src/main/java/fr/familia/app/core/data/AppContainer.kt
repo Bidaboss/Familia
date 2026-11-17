@@ -124,7 +124,14 @@ class FirebaseAppContainer(context: Context) : AppContainer {
         FirebaseFirestore.getInstance().apply {
             // Keeps the planning readable offline and queues writes until the network is back.
             firestoreSettings = firestoreSettings { setLocalCacheSettings(persistentCacheSettings {}) }
+            // A shared phone: another member signed in since the last start. Their cache goes before
+            // anything is read (Firestore runs it first). If it fails, the next start tries again.
+            if (firestoreCacheReset.pending()) clearPersistence().addOnSuccessListener { firestoreCacheReset.done() }
         }
+    }
+
+    private val firestoreCacheReset: FirestoreCacheReset by lazy {
+        FirestoreCacheReset(appContext.getSharedPreferences("local-traces", Context.MODE_PRIVATE))
     }
 
     override val authRepository: AuthRepository? by lazy {
@@ -214,6 +221,8 @@ class FirebaseAppContainer(context: Context) : AppContainer {
             // The last PDF shared (recipe book, tree poster, photo book…) and the photos of a book.
             File(appContext.cacheDir, "shares").deleteRecursively()
             File(appContext.cacheDir, "photo-book").deleteRecursively()
+            // The documents of the member before: at the next start of the app (note C de #306).
+            firestoreCacheReset.ask()
         }
     }
 

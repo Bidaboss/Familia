@@ -19,10 +19,12 @@ data class Consumption(
     /** What the phones downloaded from Cloud Storage since the 1st of the month. */
     val monthDownloadBytes: Long? = null,
     val monthCost: Double = 0.0,
+    /** What each limit costs since the 1st of the month, in euros; empty for a day read before the detail. */
+    val monthCosts: Map<Limit, Double> = emptyMap(),
     val failed: Boolean = false,
 ) {
-    /** One line of the card: how much of a free limit [used] takes. */
-    data class Gauge(val limit: Limit, val used: Long) {
+    /** One line of the card: how much of a free limit [used] takes, and what it costs this month ([cost]). */
+    data class Gauge(val limit: Limit, val used: Long, val cost: Double? = null) {
         val share: Float get() = (used.toDouble() / limit.free).toFloat().coerceIn(0f, 1f)
 
         /** From 80 %, the function warns the admin principal (same threshold as consumption.ts). */
@@ -31,6 +33,7 @@ data class Consumption(
 
     /** The free quotas of Firestore and Cloud Storage, as in FREE of firebase/functions/src/consumption.ts. */
     enum class Limit(val free: Long) {
+        // The key of each one in consumption/{day}.monthCosts is its name in lower case.
         Reads(50_000),
         Writes(20_000),
         Deletes(20_000),
@@ -42,12 +45,12 @@ data class Consumption(
     /** The limits, the sizes and the downloads only when Monitoring gave them. */
     val gauges: List<Gauge>
         get() = listOfNotNull(
-            Gauge(Limit.Reads, reads),
-            Gauge(Limit.Writes, writes),
-            Gauge(Limit.Deletes, deletes),
-            storageBytes?.let { Gauge(Limit.Storage, it) },
-            photoBytes?.let { Gauge(Limit.Photos, it) },
-            monthDownloadBytes?.let { Gauge(Limit.Downloads, it) },
+            Gauge(Limit.Reads, reads, monthCosts[Limit.Reads]),
+            Gauge(Limit.Writes, writes, monthCosts[Limit.Writes]),
+            Gauge(Limit.Deletes, deletes, monthCosts[Limit.Deletes]),
+            storageBytes?.let { Gauge(Limit.Storage, it, monthCosts[Limit.Storage]) },
+            photoBytes?.let { Gauge(Limit.Photos, it, monthCosts[Limit.Photos]) },
+            monthDownloadBytes?.let { Gauge(Limit.Downloads, it, monthCosts[Limit.Downloads]) },
         )
 
     /** Past 0,50 € in the month, the function warns too (COST_ALERT_EUROS). */
