@@ -138,6 +138,11 @@ enum class Feature(
     FirstSteps("firstSteps", R.string.feature_first_steps),
     /** « À emporter » dans un voyage : « Pour tout le monde » et « Ma valise » (PRD rév. 263, récit 62). */
     PackingList("packingList", R.string.feature_packing_list),
+    /**
+     * L'animation de bienvenue (spec DESIGN du 17/11) : à la première ouverture sur un téléphone, les
+     * fruits de l'arbre deviennent la famille. « Revoir l'animation de bienvenue » dans Apparence.
+     */
+    OpeningAnimation("openingAnimation", R.string.feature_opening_animation),
 }
 
 /**

@@ -20,7 +20,13 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Replay
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -68,6 +74,8 @@ fun AppearanceScreen(
     onBack: () -> Unit,
     icon: AppIcon = AppIcon.Default,
     onChooseIcon: (AppIcon) -> Unit = {},
+    /** « Revoir l'animation de bienvenue », while its module shows; null hides the line. */
+    onReplayWelcome: (() -> Unit)? = null,
 ) {
     var iconChanged by rememberSaveable { mutableStateOf(false) }
     Scaffold(
@@ -105,6 +113,15 @@ fun AppearanceScreen(
                     if (chosen != icon) {
                         onChooseIcon(chosen)
                         iconChanged = true
+                    }
+                }
+            }
+            if (onReplayWelcome != null) {
+                item(key = "welcome") {
+                    OutlinedButton(onClick = onReplayWelcome, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                        Icon(Icons.Outlined.Replay, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.appearance_replay_welcome))
                     }
                 }
             }
