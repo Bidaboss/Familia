@@ -148,6 +148,7 @@ fun PhotoSourceSheet(onPicked: (String) -> Unit, onDismiss: () -> Unit) {
     val context = LocalContext.current
     var cameraFile by rememberSaveable { mutableStateOf<String?>(null) }
     val gallery = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let { keepPhotoAccess(context, listOf(it)) }
         uri?.let { onPicked(it.toString()) }
         onDismiss()
     }
