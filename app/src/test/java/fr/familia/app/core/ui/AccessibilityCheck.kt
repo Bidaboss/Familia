@@ -27,8 +27,13 @@ fun ComposeContentTestRule.checkAccessibility(content: @Composable () -> Unit) {
     val silent = touchable.filter { it.a11yLabel().isBlank() }
     assertTrue("touchable without a label for TalkBack: ${silent.map { it.where() }}", silent.isEmpty())
     val minPx = with(density) { 48.dp.toPx() }
-    // A node cut by the edge of the screen (a list that scrolls) is not judged by its height.
-    val small = touchable.filter { it.size.height < minPx - 1f && it.boundsInRoot.height >= it.size.height }
+    // Judged by where a finger lands (touchBoundsInRoot): a 40 dp IconButton of Material 3 still
+    // takes the touches of 48 dp around it. A node cut by the edge of the screen (a list that
+    // scrolls) is not judged by its height.
+    val small = touchable.filter {
+        val touch = maxOf(it.size.height.toFloat(), it.touchBoundsInRoot.height)
+        touch < minPx - 1f && it.boundsInRoot.height >= it.size.height
+    }
     assertTrue("touchable under 48 dp: ${small.map { "« ${it.a11yLabel()} » ${it.where()}" }}", small.isEmpty())
 }
 
@@ -39,4 +44,4 @@ fun SemanticsNode.a11yLabel(): String =
         listOfNotNull(config.getOrNull(SemanticsProperties.EditableText)?.text))
         .joinToString(" ")
 
-private fun SemanticsNode.where(): String = "$boundsInRoot (${size.height} px)"
+private fun SemanticsNode.where(): String = "$boundsInRoot (${size.height} px, touch ${touchBoundsInRoot.height} px)"
