@@ -557,3 +557,11 @@ Avec l'interrupteur « Sondages » allumé :
 2. Touche-le : les photos défilent sur fond noir, de la plus ancienne à la plus récente, toutes les 4 secondes, en fondu, puis recommencent. L'écran ne s'éteint pas pendant ce temps.
 3. « Pause » s'arrête sur la photo, « Reprendre » repart. « Fermer » ou le bouton retour revient à l'album.
 4. Interrupteur presentationR1bis éteint : le bouton disparaît.
+
+## L'écran Albums (R1 bis, Tout Familia)
+
+1. Ouvre « Albums » depuis Tout Familia : les voyages que tu suis et les événements qui te concernent, de la dernière année, avec au moins une photo, du plus récent au plus ancien. Chaque ligne montre la dernière photo, le nombre de photos et le mois.
+2. Touche un album : il s'ouvre, avec « Lancer le diaporama ».
+3. Sous « Les mois » : un mois par mois de ces albums. Touche-le : le diaporama du mois s'ouvre.
+4. Un voyage à venir, ou un album sans photo, n'apparaît pas. Sans aucun album : « Pas encore d'album ».
+5. Voyages ou albums d'événements éteints dans Administration : leurs albums disparaissent de la liste.

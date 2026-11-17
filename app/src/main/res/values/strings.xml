@@ -1052,6 +1052,14 @@
     <string name="album_slideshow_start">Lancer le diaporama</string>
     <string name="album_slideshow_pause">Pause</string>
     <string name="album_slideshow_resume">Reprendre</string>
+    <string name="albums_title">Albums</string>
+    <string name="albums_empty_title">Pas encore d\'album</string>
+    <string name="albums_empty_body">Les photos d\'un voyage ou d\'un événement apparaissent ici, avec leur diaporama.</string>
+    <string name="albums_months">Les mois</string>
+    <string name="albums_month">%1$s %2$d</string>
+    <string name="albums_row_detail">%1$s, %2$s %3$d</string>
+    <string name="albums_open">ouvrir l\'album</string>
+    <string name="albums_open_month">ouvrir le diaporama du mois</string>
     <string name="album_photo_position">%1$d sur %2$d</string>
     <string name="album_photo_remove">Retirer</string>
     <string name="album_photo_remove_title">Retirer cette photo ?</string>
