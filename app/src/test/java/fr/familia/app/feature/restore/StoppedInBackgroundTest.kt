@@ -1,7 +1,9 @@
 package fr.familia.app.feature.restore
 
 import androidx.lifecycle.SavedStateHandle
+import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.feature.events.FakeMembers
+import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.joinme.FakeJoinMe
 import fr.familia.app.feature.joinme.FakeLocator
 import fr.familia.app.feature.joinme.JoinMeUiState
@@ -93,5 +95,22 @@ class StoppedInBackgroundTest {
         val again = JoinMeViewModel(FakeMembers(), repo, FakeLocator(), "adult1", savedState = handle)
         assertEquals(JoinMeUiState.Sent, again.uiState.value)
         assertEquals(1, repo.shares.value.size)
+    }
+
+    @Test
+    fun `a member who can no longer be ticked does not stay a recipient of the share`() = runTest {
+        val handle = SavedStateHandle()
+        val first = JoinMeViewModel(FakeMembers(), FakeJoinMe(), FakeLocator(), "adult1", savedState = handle)
+        first.locate()
+        first.toggle("kid1")
+        first.toggle("adult2")
+
+        // Meanwhile an admin made the child a child without the app.
+        val changed = TestFamily.family.copy(
+            members = TestFamily.family.members.map { if (it.id == "kid1") it.copy(profile = MemberProfile.ChildWithoutApp) else it },
+        )
+        val again = JoinMeViewModel(FakeMembers(changed), FakeJoinMe(), FakeLocator(), "adult1", savedState = handle)
+        val state = again.uiState.value as JoinMeUiState.Editing
+        assertEquals(setOf("adult2"), state.recipientIds)
     }
 }
