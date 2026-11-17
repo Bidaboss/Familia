@@ -159,6 +159,8 @@ class PlanningViewModel(
                         canManage = me != null && canManage(event, me, family),
                         coming = answers[event.id].orEmpty().count { it.memberId in memberIds && it.status == RsvpStatus.Yes },
                         maybe = answers[event.id].orEmpty().count { it.memberId in memberIds && it.status == RsvpStatus.Maybe },
+                        comers = answers[event.id].orEmpty().filter { it.status == RsvpStatus.Yes }
+                            .mapNotNull { answer -> family.members.firstOrNull { it.id == answer.memberId } },
                     )
                 },
             )

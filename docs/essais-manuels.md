@@ -591,7 +591,7 @@ Interrupteur « Nouvelle présentation » (presentationR1bis), allumé par défa
 5. Touche « + ». **Attendu :** Un événement, Une photo, Une bonne nouvelle, Une envie (2 × 2), Un coup de main sur toute la largeur, puis Annuler. « Une photo » ouvre le choix de l'album ; les autres choix ouvrent leur formulaire. Voyages et albums d'événements éteints : « Une photo » disparaît et « Un coup de main » rejoint la grille.
 6. Touche « Tout Familia ». **Attendu :** « Chercher un module », puis les modules en ronds sous S'organiser, Se faire plaisir et Se souvenir. Défis et Albums y sont quand leur module est allumé. Tape « ou je » : seul « Où je suis » reste.
 7. Onglet **Famille**. **Attendu :** « Nous N, en M foyers », une carte de couleur par foyer avec tous ses membres, puis « Nos trésors ». Deux prénoms qui commencent par la même lettre ont deux lettres dans leur pastille.
-8. Onglet **Planning**. **Attendu :** « Semaine » d'abord, la frise du lundi au dimanche, les flèches changent de semaine, « Aujourd'hui » revient à cette semaine.
+8. Onglet **Planning**. **Attendu :** « Semaine » d'abord, la frise du lundi au dimanche, les flèches changent de semaine, « Aujourd'hui » revient à cette semaine. Sous un événement avec des « oui » : les petites pastilles de ceux qui viennent (6 au plus, puis « +N »).
 9. En Classique clair, regarde le fond. **Attendu :** de petits pépins discrets ; en Contraste fort, aucun motif. L'onglet allumé est dans une pilule jaune.
 10. Taille de police à 130 % puis 200 % : la frise défile de côté, rien ne passe sous la barre du bas.
 11. Sur une tablette (ou en paysage large) : le rail de navigation à gauche, « + » en tête sur l'Accueil, l'Accueil sur deux colonnes.

@@ -228,6 +228,8 @@ private fun LazyListScope.dayItems(
     onOpenEvent: (String) -> Unit,
     onOpenTrip: (String) -> Unit = {},
     onShareBirthday: ((Birthday) -> Unit)? = null,
+    /** R1 bis week: the small avatars of those who come under each event (spec §4). */
+    comers: Boolean = false,
 ) {
     days.forEach { day ->
         item(key = "day-${day.date}") { DayHeader(day.date, today) }
@@ -238,7 +240,7 @@ private fun LazyListScope.dayItems(
             TripRow(trip, today, onClick = { onOpenTrip(trip.trip.id) })
         }
         items(day.items, key = { "event-${it.event.id}" }) { item ->
-            EventRow(item, onClick = { onOpenEvent(item.event.id) })
+            EventRow(item, comers, onClick = { onOpenEvent(item.event.id) })
         }
     }
 }
@@ -381,7 +383,7 @@ private fun DayHeader(date: LocalDate, today: LocalDate) {
 }
 
 @Composable
-private fun EventRow(item: PlanningItem, onClick: () -> Unit) {
+private fun EventRow(item: PlanningItem, comers: Boolean, onClick: () -> Unit) {
     val event = item.event
     val openLabel = stringResource(R.string.planning_open_action)
     Column {
@@ -412,6 +414,7 @@ private fun EventRow(item: PlanningItem, onClick: () -> Unit) {
                 answersLabel(item)?.let {
                     Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
                 }
+                if (comers && item.comers.isNotEmpty()) ComersRow(item.comers)
             }
             // The thumbnail of its cover (récit 44), before the author.
             val cover = event.coverPhoto?.takeIf { LocalFeatureFlags.current.isOn(Feature.MorePhotos) }
@@ -431,6 +434,24 @@ private fun EventRow(item: PlanningItem, onClick: () -> Unit) {
         HorizontalDivider(Modifier.padding(start = 100.dp))
     }
 }
+
+/** Up to 6 small avatars of those who come, then « +N »; the line above already says how many, for TalkBack. */
+@Composable
+private fun ComersRow(comers: List<Member>) {
+    val shown = comers.take(MAX_COMERS)
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(top = 4.dp).clearAndSetSemantics { },
+    ) {
+        shown.forEach { MemberAvatar(it, size = 24.dp) }
+        if (comers.size > shown.size) {
+            Text("+${comers.size - shown.size}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+private const val MAX_COMERS = 6
 
 /** "2 viennent · 1 peut-être", or nothing while nobody has answered yes or maybe. */
 @Composable
@@ -644,7 +665,7 @@ private fun WeekView(
                 }
             }
         } else {
-            dayItems(listOf(day), state.today, onOpenEvent, onOpenTrip, onShareBirthday)
+            dayItems(listOf(day), state.today, onOpenEvent, onOpenTrip, onShareBirthday, comers = true)
         }
     }
 }
