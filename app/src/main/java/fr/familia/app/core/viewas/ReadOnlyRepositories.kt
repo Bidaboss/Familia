@@ -22,6 +22,7 @@ import fr.familia.app.core.data.GiftRepository
 import fr.familia.app.core.data.BirthdayCardRepository
 import fr.familia.app.core.data.MomentRepository
 import fr.familia.app.core.data.GoodNewsRepository
+import fr.familia.app.core.data.GoodDealRepository
 import fr.familia.app.core.data.HelpRequestRepository
 import fr.familia.app.core.data.JoinMeRepository
 import fr.familia.app.core.data.MemberCardRepository
@@ -65,6 +66,7 @@ import fr.familia.app.core.model.GiftShare
 import fr.familia.app.core.model.GiftStatus
 import fr.familia.app.core.model.BirthdayCard
 import fr.familia.app.core.model.GoodNews
+import fr.familia.app.core.model.GoodDeal
 import fr.familia.app.core.model.HelpRequest
 import fr.familia.app.core.model.HostedChallenge
 import fr.familia.app.core.model.Household
@@ -213,6 +215,17 @@ class ReadOnlyTripRepository(private val inner: TripRepository, private val guar
     override suspend fun saveItem(tripId: String, item: TripItem, isNew: Boolean) = guard.refuse()
     override suspend fun setItemDone(tripId: String, itemId: String, done: Boolean) = guard.refuse()
     override suspend fun deleteItem(tripId: String, itemId: String) = guard.refuse()
+}
+
+class ReadOnlyGoodDealRepository(private val inner: GoodDealRepository, private val guard: ViewAsGuard) : GoodDealRepository {
+    override fun observeAll(): Flow<List<GoodDeal>> = inner.observeAll()
+    override fun observe(id: String): Flow<GoodDeal?> = inner.observe(id)
+    override suspend fun get(id: String): GoodDeal? = inner.get(id)
+    override fun newId(): String = inner.newId()
+    override suspend fun save(deal: GoodDeal, isNew: Boolean) = guard.refuse()
+    override suspend fun delete(id: String) = guard.refuse()
+    override suspend fun setInterested(id: String, memberId: String, interested: Boolean) = guard.refuse()
+    override suspend fun setRecommended(id: String, memberId: String, recommended: Boolean) = guard.refuse()
 }
 
 class ReadOnlyRecipeRepository(private val inner: RecipeRepository, private val guard: ViewAsGuard) : RecipeRepository {

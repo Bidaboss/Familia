@@ -65,6 +65,7 @@ fun HelpRequestsScreen(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
     r1bis: Boolean = false,
+    showTitle: Boolean = true,
     error: HelpActionError? = null,
     onTake: (HelpRequest) -> Unit = {},
     onDecline: (HelpRequest) -> Unit = {},
@@ -91,7 +92,7 @@ fun HelpRequestsScreen(
                         body = stringResource(R.string.helprequest_empty_body),
                     )
                 } else if (r1bis) {
-                    R1bisRequestList(state, onOpenRequest, onTake, onDecline)
+                    R1bisRequestList(state, onOpenRequest, onTake, onDecline, showTitle)
                 } else {
                     RequestList(state, onOpenRequest)
                 }
@@ -125,12 +126,14 @@ private fun R1bisRequestList(
     onOpenRequest: (String) -> Unit,
     onTake: (HelpRequest) -> Unit,
     onDecline: (HelpRequest) -> Unit,
+    showTitle: Boolean,
 ) {
     LazyColumn(
         contentPadding = PaddingValues(start = ClaySpacing.screen, top = 16.dp, end = ClaySpacing.screen, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
-        item(key = "title") {
+        // Under the tabs « Coups de main » / « Bons plans », the tab already says it.
+        if (showTitle) item(key = "title") {
             Text(
                 stringResource(R.string.helprequest_r1bis_title),
                 style = MaterialTheme.typography.headlineMedium,
