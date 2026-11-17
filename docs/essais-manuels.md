@@ -682,6 +682,7 @@ Avec l'interrupteur « On se prête » allumé (l'admin principal le voit toujou
 1. Entraide : **Attendu :** un onglet « On se prête » après « Coups de main » (et « Bons plans » s'il est allumé). Interrupteur éteint, pour un autre membre : pas d'onglet « On se prête ».
 2. Sans objet : **Attendu :** « Rien à se prêter pour l'instant ».
 3. Avec des objets : **Attendu :** chaque carte dit la catégorie, le nom, puis « Prêté par … » (ou « À moi ») et « Disponible », « Demandé par … » ou « Chez … depuis le 12/12 ». Tape « racl » : seul l'appareil à raclette reste. « Disponible » ne garde que les objets libres.
+4. « Ajouter un objet » (adulte) : nom, catégorie, note, photo facultative. Sans nom ni catégorie : **Attendu :** « Donne un nom à l'objet. » et « Choisis une catégorie. ». Enregistré : **Attendu :** la carte « À moi · Disponible ». Un enfant n'a pas le bouton.
 
 ## On y va ensemble (récit 52)
 
