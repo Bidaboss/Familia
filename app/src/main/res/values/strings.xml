@@ -722,6 +722,8 @@
     <string name="gift_add_item">Ajouter</string>
     <string name="gift_add_wish">Ajouter une envie</string>
     <string name="gift_action_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
+    <string name="gift_claim_taken">Quelqu\'un vient de la réserver, juste avant toi.</string>
+    <string name="gift_claim_removed">Son auteur vient de la retirer de la liste.</string>
     <string name="gift_item_price">Environ %1$s</string>
     <string name="gift_item_idea_of">Idée de %1$s</string>
     <string name="gift_item_open_link">Voir le lien</string>
@@ -1154,7 +1156,7 @@
     <string name="album_photos_add">Ajouter des photos</string>
     <string name="album_photos_full">Tu as ajouté tes %1$d photos. Retire-en une pour en mettre une autre.</string>
     <string name="album_photos_send_failed">Une photo n\'a pas pu être envoyée. Vérifie ta connexion, puis réessaie. Si ça recommence, dis-le dans « Une idée ? Un souci ? ».</string>
-    <string name="album_photos_unreadable">Une photo n\'a pas pu être lue sur le téléphone. Essaie avec une autre.</string>
+    <string name="album_photos_unreadable">Une photo n\'a pas pu être lue sur le téléphone : c\'est peut-être une vidéo, ou une photo que ce téléphone ne sait pas ouvrir. Les autres partent. Essaie avec une autre.</string>
     <string name="album_photos_refused">Familia n\'a pas accepté cette photo. Réessayer ne changera rien : choisis-en une autre, ou dis-le dans « Une idée ? Un souci ? ».</string>
     <string name="album_photos_too_many">%1$d photos par personne au plus : seules les premières ont été gardées.</string>
     <string name="album_photos_remove_failed">La photo n\'a pas pu être retirée. Vérifie ta connexion, puis réessaie.</string>
@@ -1526,9 +1528,9 @@
         <item quantity="other">Voir les %1$d photos et le film</item>
     </plurals>
     <plurals name="album_photos_sending">
-        <item quantity="one">Envoi de %1$d photo… Reste sur cet écran.</item>
-        <item quantity="many">Envoi de %1$d photos… Reste sur cet écran.</item>
-        <item quantity="other">Envoi de %1$d photos… Reste sur cet écran.</item>
+        <item quantity="one">Encore %1$d photo à envoyer. Tu peux quitter l\'écran : l\'envoi continue.</item>
+        <item quantity="many">Encore %1$d photos à envoyer. Tu peux quitter l\'écran : l\'envoi continue.</item>
+        <item quantity="other">Encore %1$d photos à envoyer. Tu peux quitter l\'écran : l\'envoi continue.</item>
     </plurals>
     <plurals name="album_photos_places_left">
         <item quantity="one">Encore %1$d photo possible pour toi.</item>

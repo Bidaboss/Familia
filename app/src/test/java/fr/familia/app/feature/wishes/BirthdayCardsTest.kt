@@ -1,6 +1,7 @@
 package fr.familia.app.feature.wishes
 
 import fr.familia.app.core.data.BirthdayCardRepository
+import fr.familia.app.core.data.WRITE_WAIT_MILLIS
 import fr.familia.app.core.data.GoodNewsRepository
 import fr.familia.app.core.model.BirthdayCard
 import fr.familia.app.core.model.GoodNews
@@ -8,12 +9,16 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.Reaction
 import fr.familia.app.testing.MainDispatcherRule
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -24,6 +29,7 @@ import org.junit.Test
 import java.time.Instant
 import java.time.LocalDate
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class BirthdayCardsTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -41,10 +47,14 @@ class BirthdayCardsTest {
 
     private class Cards : BirthdayCardRepository {
         val all = MutableStateFlow<List<BirthdayCard>>(emptyList())
+
+        /** Offline: the card lands in the cache at once, and the server answers when this completes. */
+        var server: CompletableDeferred<Unit>? = null
         override fun observeFor(memberId: String, year: Int): Flow<List<BirthdayCard>> =
             all.map { l -> l.filter { it.forMemberId == memberId && it.year == year } }
         override suspend fun save(card: BirthdayCard, isNew: Boolean) {
             all.value = all.value.filterNot { it.id == card.id } + card
+            server?.await()
         }
         override suspend fun remove(card: BirthdayCard) {
             all.value = all.value.filterNot { it.id == card.id }
@@ -88,6 +98,23 @@ class BirthdayCardsTest {
         assertEquals(listOf("Joyeux anniversaire !"), cards.all.value.map { it.text })
         vm.remove()
         assertTrue(cards.all.value.isEmpty())
+    }
+
+    @Test
+    fun `offline the card shows at once, Envoyer comes back, and a refusal later is said`() = runTest {
+        val cards = Cards().apply { server = CompletableDeferred() }
+        val vm = BirthdayCardsViewModel(cards, News(now.minusSeconds(7200)), ines, camille, today, clock = { now })
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        vm.send("Bon anniversaire !")
+        assertEquals("Bon anniversaire !", vm.uiState.value.mine?.text)
+        assertTrue(vm.uiState.value.saving)
+        advanceTimeBy(WRITE_WAIT_MILLIS + 1)
+        assertFalse(vm.uiState.value.saving)
+        assertFalse(vm.uiState.value.failed)
+        // The network is back and the server refuses it (the 24 h are over, say).
+        cards.server?.completeExceptionally(IllegalStateException("PERMISSION_DENIED"))
+        runCurrent()
+        assertTrue(vm.uiState.value.failed)
     }
 
     @Test

@@ -166,6 +166,23 @@ describe('functions', () => {
     assert.equal((await db.doc('giftLists/noel/claims/missing').get()).exists, false);
   });
 
+  test('parts added in the same second: the total counts them all (passe « en même temps »)', async () => {
+    const shares = db.collection('giftLists/noel/claims/i1/shares');
+    const amounts: Record<string, number> = { p1: 10, p2: 20, p3: 30, p4: 40 };
+    // Each part starts its own run, all at once, as the trigger does for each write.
+    await Promise.all(Object.entries(amounts).map(async ([id, amount]) => {
+      await shares.doc(id).set({ amount, memberName: id, received: false, updatedAt: new Date() });
+      await updateSharesTotal(db, 'noel', 'i1');
+    }));
+    await updateSharesTotal(db, 'noel', 'i1');
+    const all = await shares.get();
+    const expected = all.docs.reduce((sum, s) => sum + Number(s.get('amount')), 0);
+    const claim = await db.doc('giftLists/noel/claims/i1').get();
+    assert.equal(claim.get('sharesTotal'), expected);
+    assert.equal(claim.get('sharesCount'), all.size);
+    await Promise.all(Object.keys(amounts).map((id) => shares.doc(id).delete()));
+  });
+
   test('the beneficiary removes a reserved item: the reservers are warned, the reservation goes', async () => {
     const { sent, send } = fakeSender();
     await db.doc('giftLists/noel/items/i1').delete();

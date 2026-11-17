@@ -2,6 +2,7 @@ package fr.familia.app.core.ui
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.view.View
 import android.view.ViewGroup
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -17,6 +18,7 @@ import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
 import androidx.compose.ui.text.TextLayoutResult
@@ -66,8 +68,15 @@ fun ComposeContentTestRule.checkContrast(look: Look, screens: List<Pair<String, 
 }
 
 private fun ComposeContentTestRule.lowContrast(): List<String> {
+    // A sheet or a full-screen photo opens in a window of its own, on top: then only that window is judged.
+    val roots = onAllNodes(isRoot(), useUnmergedTree = true).fetchSemanticsNodes()
+    val inOwnWindow = roots.size > 1
     // Drawn by hand on a bitmap: captureToImage waits for a frame, and the clock here moves only when told to.
-    val view = (this as AndroidComposeTestRule<*, *>).activity.findViewById<ViewGroup>(android.R.id.content).getChildAt(0)
+    val view = if (inOwnWindow) {
+        topWindow()
+    } else {
+        (this as AndroidComposeTestRule<*, *>).activity.findViewById<ViewGroup>(android.R.id.content).getChildAt(0)
+    }
     val width = view.width
     val height = view.height
     if (width == 0 || height == 0) return listOf("l'écran est vide")
@@ -76,32 +85,53 @@ private fun ComposeContentTestRule.lowContrast(): List<String> {
     val pixels = IntArray(width * height)
     bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
     val root = Rect(0f, 0f, width.toFloat(), height.toFloat())
+    val shown: List<SemanticsNode> = if (inOwnWindow) roots.last().withDescendants() else emptyList()
+    fun SemanticsNode.box(): Rect = if (inOwnWindow) boundsInWindow else boundsInRoot
     val iconMax = with(density) { 48.dp.toPx() }
     val found = mutableListOf<String>()
     var measured = 0
 
-    val texts = onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.Text), useUnmergedTree = true).fetchSemanticsNodes()
+    val texts = if (inOwnWindow) {
+        shown.filter { it.config.getOrNull(SemanticsProperties.Text) != null }
+    } else {
+        onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.Text), useUnmergedTree = true).fetchSemanticsNodes()
+    }
     for (node in texts) {
         val text = node.config.getOrNull(SemanticsProperties.Text).orEmpty().joinToString(" ") { it.text }
         if (text.none(Char::isLetterOrDigit) || node.isDisabled()) continue
-        val m = measure(pixels, width, node.boundsInRoot.intersect(root)) ?: continue
+        val m = measure(pixels, width, node.box().intersect(root)) ?: continue
         measured++
         val need = if (node.isLargeText()) 3f else 4.5f
         if (m.ratio < need) found += "« ${text.take(40)} » $m (il faut $need)"
     }
 
-    val icons = onAllNodes(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Image), useUnmergedTree = true).fetchSemanticsNodes()
+    val icons = if (inOwnWindow) {
+        shown.filter { it.config.getOrNull(SemanticsProperties.Role) == Role.Image }
+    } else {
+        onAllNodes(SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Image), useUnmergedTree = true).fetchSemanticsNodes()
+    }
     for (node in icons) {
         val label = node.config.getOrNull(SemanticsProperties.ContentDescription).orEmpty().joinToString(" ")
         // Photos and drawings are bigger than an icon: they are not judged.
         if (label.isBlank() || node.size.width > iconMax || node.size.height > iconMax || node.isDisabled()) continue
-        val m = measure(pixels, width, node.boundsInRoot.intersect(root)) ?: continue
+        val m = measure(pixels, width, node.box().intersect(root)) ?: continue
         if (m.ratio < 3f) found += "icône « ${label.take(40)} » $m (il faut 3)"
     }
     // A blank picture would let every screen pass: at least one text must have been measured.
     if (texts.isNotEmpty() && measured == 0) found += "aucun texte mesuré : l'image est vide"
     return found
 }
+
+/** The window drawn last, on top of the others: a dialog or a sheet. */
+private fun topWindow(): View {
+    val global = Class.forName("android.view.WindowManagerGlobal")
+    val instance = global.getMethod("getInstance").invoke(null)
+    @Suppress("UNCHECKED_CAST")
+    val views = global.getDeclaredField("mViews").apply { isAccessible = true }.get(instance) as List<View>
+    return views.last()
+}
+
+private fun SemanticsNode.withDescendants(): List<SemanticsNode> = listOf(this) + children.flatMap { it.withDescendants() }
 
 private class Measure(val ratio: Float, val front: Int, val back: Int) {
     override fun toString() = "%.2f:1, #%06X sur #%06X".format(ratio, front and 0xFFFFFF, back and 0xFFFFFF)

@@ -1052,3 +1052,16 @@ Avant de commencer : **Administration**, puis **Modules**, et allume « Animatio
 7. Dans Réglages, puis Accessibilité, allume « Supprimer les animations », et rejoue-la. **Attendu :** le cercle, le titre et la phrase s'affichent d'un coup, sans mouvement, pendant une seconde et demie. Éteins ensuite ce réglage.
 8. En mode avion, rejoue-la après avoir fermé l'appli. **Attendu :** si la famille n'est pas encore lue, l'appli s'ouvre normalement au bout de 2 secondes et demie au plus, et l'animation attend la prochaine ouverture.
 9. Éteins le module, puis ouvre « Apparence » sur le deuxième téléphone. **Attendu :** la ligne « Revoir l'animation de bienvenue » n'y est plus.
+
+## Beaucoup de photos lourdes d'un coup, depuis un petit téléphone
+
+À faire de préférence sur le téléphone le plus ancien de la famille, en Wi-Fi puis en 4G. Prépare dans la galerie : une trentaine de photos, une photo prise au zoom ou en très haute définition (50 Mpx si le téléphone le permet), une photo d'iPhone reçue par message ou mail (fichier HEIC), une capture d'écran, une photo prise téléphone tenu en hauteur, et une vidéo.
+
+1. Dans l'album d'un voyage, touche « Ajouter des photos » et choisis 30 photos d'un coup. **Attendu :** « Encore 30 photos à envoyer » s'affiche, puis le nombre baisse et la barre avance photo après photo. Familia ne se ferme pas toute seule.
+2. Pendant l'envoi, touche la flèche retour, va sur l'Accueil, puis reviens dans l'album. **Attendu :** l'envoi a continué : la barre et le nombre restant ont avancé, et les photos arrivent une à une. Aucune n'apparaît deux fois.
+3. Ajoute la photo très haute définition, la photo HEIC et la capture d'écran. **Attendu :** les trois arrivent dans l'album, nettes, et la capture d'écran garde sa forme toute en hauteur.
+4. Ajoute la photo prise téléphone en hauteur. **Attendu :** elle est debout dans l'album, sur ton téléphone et sur un autre.
+5. Si la galerie te laisse choisir la vidéo (certains téléphones anciens), choisis-la avec deux photos. **Attendu :** les deux photos partent, et un message dit qu'une photo n'a pas pu être lue. Rien ne bloque.
+6. Recommence l'étape 1 dans l'album d'un événement, puis avec 3 photos dans une recette. **Attendu :** pareil.
+
+Une limite connue : un téléphone sous Android 8 ne sait pas ouvrir les photos HEIC. Elles sont refusées avec le message « n'a pas pu être lue », les autres partent.

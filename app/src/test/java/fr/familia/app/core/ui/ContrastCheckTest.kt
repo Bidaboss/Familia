@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import fr.familia.app.core.theme.FamiliaThemeId
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -40,6 +41,17 @@ class ContrastCheckTest {
             )
         }
         assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("Bonjour"))
+    }
+
+    @Test
+    fun `a pale text in a window of its own, like a sheet or a photo, is caught too`() {
+        val error = assertThrows(AssertionError::class.java) {
+            compose.checkContrast(
+                light,
+                listOf(screen("fenêtre") { Dialog(onDismissRequest = {}) { Box(Modifier.background(Color.White)) { Text("Au revoir", color = Color(0xFFBBBBBB), fontSize = 16.sp) } } }),
+            )
+        }
+        assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("Au revoir"))
     }
 
     @Test

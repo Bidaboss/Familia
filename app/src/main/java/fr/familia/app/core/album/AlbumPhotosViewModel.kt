@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
@@ -57,7 +56,13 @@ data class AlbumPhotosUiState(
     val problem: PhotoProblem? = null,
     /** Places of each member in this album: 30 for a trip or an event, 3 for a recipe. */
     val maxPerMember: Int = AlbumPhoto.MAX_PER_MEMBER,
+    /** Photos of this send already gone, out of [sent] + [sending]: the bar of progress. */
+    val sent: Int = 0,
 ) {
+    /** From 0 to 1, for the bar of progress. */
+    val sendProgress: Float
+        get() = if (sending == 0) 0f else sent.toFloat() / (sent + sending)
+
     /** Places left to this member, the photos being sent included. */
     val placesLeft: Int
         get() = (maxPerMember - photos.count { it.authorId == currentMemberId } - sending).coerceAtLeast(0)
@@ -80,7 +85,11 @@ class AlbumPhotosViewModel(
     private val writeTimeoutMillis: Long = 4_000,
     private val maxPerMember: Int = AlbumPhoto.MAX_PER_MEMBER,
     private val savedState: SavedStateHandle = SavedStateHandle(),
+    /** [AlbumSends.shared] in the app, so leaving the screen never stops a send; else this screen's own. */
+    sends: AlbumSends? = null,
 ) : ViewModel() {
+
+    private val sends: AlbumSends = sends ?: AlbumSends(viewModelScope)
 
     private val queueKey = "album_queue_$folder"
 
@@ -97,11 +106,6 @@ class AlbumPhotosViewModel(
     /** Photos of [queue] that wait for the album to be read (the app has just been reopened). */
     private var waiting: List<String> = queue
 
-    private val sending = MutableStateFlow(0)
-    private val problem = MutableStateFlow<PhotoProblem?>(null)
-
-    /** Places taken by photos still being sent, so two quick choices never take the same one. */
-    private val reserved = mutableSetOf<Int>()
     private var me: Member? = null
     private val empty = AlbumPhotosUiState(currentMemberId = currentMemberId, maxPerMember = maxPerMember)
 
@@ -109,14 +113,18 @@ class AlbumPhotosViewModel(
         if (photos == null || rights == null) {
             MutableStateFlow(empty) // Firebase not configured (previews).
         } else {
-            combine(photos.observePhotos(folder), rights, sending, problem) { list, r, n, p ->
+            combine(photos.observePhotos(folder), rights, this.sends.progress(folder)) { list, r, progress ->
                 me = r.me
                 if (r.me != null && r.canAdd && waiting.isNotEmpty()) {
                     val ready = waiting
                     waiting = emptyList()
                     send(ready, list, r.me)
                 }
-                if (r.me == null) empty else AlbumPhotosUiState(list, currentMemberId, r.canAdd, r.canManage, n, p, maxPerMember)
+                if (r.me == null) {
+                    empty
+                } else {
+                    AlbumPhotosUiState(list, currentMemberId, r.canAdd, r.canManage, progress.slots.size, progress.problem, maxPerMember, progress.done)
+                }
             }
                 // The screen of the module says when it cannot be read; here, simply no photos.
                 .catch { e -> if (e is CancellationException) throw e else emit(empty) }
@@ -144,17 +152,17 @@ class AlbumPhotosViewModel(
     private fun send(sources: List<String>, album: List<AlbumPhoto>, member: Member) {
         val repo = photos ?: return
         val upload = uploader ?: return
-        val taken = album.filter { it.authorId == member.id }.map { it.slot }.toSet() + reserved
+        val taken = album.filter { it.authorId == member.id }.map { it.slot }.toSet() + sends.current(folder).slots
         val chosen = sources.zip(AlbumPhoto.freeSlots(taken, maxPerMember))
         queue = (queue + chosen.map { it.first }).distinct() - sources.drop(chosen.size).toSet()
         if (chosen.isEmpty()) {
-            problem.value = PhotoProblem.TooMany
+            sends.setProblem(folder, PhotoProblem.TooMany)
             return
         }
-        reserved += chosen.map { it.second }
-        sending.update { it + chosen.size }
-        problem.value = if (chosen.size < sources.size) PhotoProblem.TooMany else null
-        viewModelScope.launch {
+        sends.start(folder, chosen.map { it.second })
+        sends.setProblem(folder, if (chosen.size < sources.size) PhotoProblem.TooMany else null)
+        // Not on the screen's scope: leaving the album never stops the photos (the evening of a party).
+        sends.launch {
             for ((source, slot) in chosen) {
                 val photo = AlbumPhoto(folder, member.id, member.firstName, slot, createdAt = null)
                 try {
@@ -165,15 +173,17 @@ class AlbumPhotosViewModel(
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    problem.value = when (e) {
-                        is UnreadablePhotoException -> PhotoProblem.Unreadable
-                        is PhotoRefusedException -> PhotoProblem.Refused
-                        else -> PhotoProblem.SendFailed
-                    }
+                    sends.setProblem(
+                        folder,
+                        when (e) {
+                            is UnreadablePhotoException -> PhotoProblem.Unreadable
+                            is PhotoRefusedException -> PhotoProblem.Refused
+                            else -> PhotoProblem.SendFailed
+                        },
+                    )
                 } finally {
                     queue = queue - source
-                    reserved -= slot
-                    sending.update { it - 1 }
+                    sends.finish(folder, slot)
                 }
             }
         }
@@ -183,7 +193,7 @@ class AlbumPhotosViewModel(
     fun removePhoto(photo: AlbumPhoto) {
         val repo = photos ?: return
         if (!uiState.value.canRemove(photo)) return
-        problem.value = null
+        sends.setProblem(folder, null)
         viewModelScope.launch {
             try {
                 storage?.let { files ->
@@ -196,13 +206,13 @@ class AlbumPhotosViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                problem.value = PhotoProblem.RemoveFailed
+                sends.setProblem(folder, PhotoProblem.RemoveFailed)
             }
         }
     }
 
     fun dismissProblem() {
-        problem.value = null
+        sends.setProblem(folder, null)
     }
 }
 

@@ -13,13 +13,14 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
 import fr.familia.app.core.album.AlbumPhotosSection
 import fr.familia.app.core.album.AlbumPhotosViewModel
+import fr.familia.app.core.album.AlbumSends
 import fr.familia.app.core.album.rememberPhotoActions
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.share.shareText
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.viewas.LocalViewAs
-import fr.familia.app.core.share.shareText
 
 @Composable
 fun RecipesRoute(
@@ -67,6 +68,7 @@ fun RecipeDetailRoute(container: AppContainer?, currentMember: Member, recipeId:
                     folder = recipePhotoFolder(recipeId),
                     maxPerMember = RECIPE_PHOTOS,
                     savedState = createSavedStateHandle(),
+                    sends = AlbumSends.shared,
                 )
             }
         },
