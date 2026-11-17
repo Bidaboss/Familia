@@ -14,6 +14,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.LocalFeatureFlags
@@ -40,7 +41,7 @@ fun YearInReviewRoute(container: AppContainer?, currentMember: Member, year: Int
                     questions = container?.weeklyQuestionRepository,
                     currentMemberId = currentMember.id,
                     year = year,
-                    today = LocalDate.now(),
+                    today = familyToday(),
                 )
             }
         },

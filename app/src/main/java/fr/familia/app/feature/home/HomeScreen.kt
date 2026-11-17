@@ -1,5 +1,7 @@
 package fr.familia.app.feature.home
 
+import fr.familia.app.core.data.FAMILY_ZONE
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.feature.firststeps.rememberFirstSteps
 import fr.familia.app.feature.gooddeals.GoodDealHomeChip
 
@@ -118,7 +120,6 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.YearMonth
-import java.time.ZoneId
 import java.util.Locale
 
 /** Where each row of the home screen leads. Null: the row is not a link (its module is off). */
@@ -203,7 +204,7 @@ fun HomeRoute(
     // Null while its switch is off or there is nothing to suggest today.
     val dailyNudge = rememberDailyNudge(container, currentMember)
     // The small modules stand in the row of chips, each only while it has something to say (rév. 205).
-    val today = LocalDate.now()
+    val today = familyToday()
     val extras = buildList {
         // The switch and the dates are read by the chip itself, which shows nothing outside them.
         if (flags.isOn(Feature.YearInReview)) add(HomeExtra("yearInReview", chip = { _, _ -> YearInReviewHomeChip(today, onOpenYear) }))
@@ -726,7 +727,7 @@ private fun TripsCard(trips: List<HomeTrip>, today: LocalDate, canCreate: Boolea
 
 @Composable
 private fun ArrivalLine(arrival: TripArrival, today: LocalDate) {
-    val at = arrival.at?.atZone(ZoneId.systemDefault())
+    val at = arrival.at?.atZone(FAMILY_ZONE)
     val label = if (at == null) {
         stringResource(R.string.trip_arrived_by, arrival.name)
     } else {

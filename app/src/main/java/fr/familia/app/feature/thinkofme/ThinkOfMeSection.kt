@@ -34,18 +34,16 @@ import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayLink
+import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.trips.TripDateButton
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 
-private val dayLabel = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
 
 /** « Pensez à moi » on a member's page (récit 43), while its module is on. */
 @Composable
@@ -146,7 +144,7 @@ private fun UpcomingLine(moment: Moment, state: ThinkOfMeState, firstName: Strin
     ClayCard(Modifier.fillMaxWidth()) {
         Text(moment.title, style = MaterialTheme.typography.titleMedium)
         Text(
-            dayLabel.format(moment.day).replaceFirstChar { it.uppercase() },
+            frenchDate(moment.day, "EEEE d MMMM").replaceFirstChar { it.uppercase() },
             style = MaterialTheme.typography.bodyMedium,
             color = FamiliaClay.colors.onTintVariant(ClayTint.Plain),
         )

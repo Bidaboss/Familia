@@ -7,12 +7,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.yearinreview.YearInReviewAgainButton
 import fr.familia.app.feature.yearinreview.openableReviewYear
-import java.time.LocalDate
 
 /** Connects the feed of the « Bonnes nouvelles » to its ViewModel. */
 @Composable
@@ -32,7 +32,7 @@ fun GoodNewsFeedRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val today = LocalDate.now()
+    val today = familyToday()
     val yearAgain: (@Composable () -> Unit)? =
         if (openableReviewYear(today, forCard = false) != null) { { YearInReviewAgainButton(today, onOpenYear) } } else null
     GoodNewsFeedScreen(

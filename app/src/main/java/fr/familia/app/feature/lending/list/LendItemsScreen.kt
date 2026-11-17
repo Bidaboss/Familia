@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.model.LendCategory
 import fr.familia.app.core.model.LendItem
 import fr.familia.app.core.model.LendStatus
@@ -43,20 +44,18 @@ import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.LoadingState
+import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.feature.lending.lendCategoryLabel
 import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
-private val SHORT_DAY = DateTimeFormatter.ofPattern("dd/MM").withZone(ZoneId.of("Europe/Paris"))
 
-/** « Chez Inès depuis le 12/12 », « Demandé par Inès », « Disponible ». */
+/** « Chez Inès depuis le 12 décembre », « Demandé par Inès », « Disponible ». */
 @Composable
 fun lendWhereLabel(item: LendItem, iHaveIt: Boolean): String = when (item.status) {
     LendStatus.Available -> stringResource(R.string.lend_status_available)
     LendStatus.Asked -> stringResource(R.string.lend_status_asked, item.borrowerName.orEmpty())
     LendStatus.Lent -> {
-        val since = item.lentAt?.let { SHORT_DAY.format(it) }
+        val since = item.lentAt?.let { frenchDate(it.atZone(FAMILY_ZONE).toLocalDate(), "d MMMM") }
         when {
             // Neither the owner nor the borrower: only « Prêté », no name, no date (EXPERT-9).
             item.borrowerName == null && !iHaveIt -> stringResource(R.string.lend_status_lent_hidden)

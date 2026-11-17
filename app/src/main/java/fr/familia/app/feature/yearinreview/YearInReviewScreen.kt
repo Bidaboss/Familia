@@ -49,15 +49,13 @@ import fr.familia.app.R
 import fr.familia.app.core.photo.StorageImage
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.FamiliaPreviews
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import fr.familia.app.core.ui.frenchDate
 
-private val dayMonth = DateTimeFormatter.ofPattern("d MMMM", Locale.FRANCE)
 
 /**
  * The story of the year, full screen: a tap on the right half goes on, on the left half goes back
@@ -181,7 +179,7 @@ private fun Page(page: ReviewPage, year: Int, onClose: () -> Unit) {
             is ReviewPage.TripOfTheYear -> {
                 Title(stringResource(R.string.year_trip_title))
                 Big(page.trip.title)
-                Body(stringResource(R.string.year_trip_dates, page.trip.startDate.format(dayMonth), page.trip.endDate.format(dayMonth)))
+                Body(stringResource(R.string.year_trip_dates, frenchDate(page.trip.startDate, "d MMMM"), frenchDate(page.trip.endDate, "d MMMM")))
             }
             is ReviewPage.Newcomers -> {
                 Title(stringResource(R.string.year_newcomers_title))
