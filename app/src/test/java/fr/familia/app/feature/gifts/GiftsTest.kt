@@ -134,6 +134,39 @@ class GiftsTest {
     }
 
     @Test
+    fun `« Prochaine occasion » counts real wishes, not empty lists`() {
+        // Retour d'essai du 17/11 : « 3 listes d'envies ouvertes » for a birthday, while two of them were empty.
+        val lists = listOf(
+            list("wishes-adult1", "adult1", GiftListKind.Wishes, viewers = emptyList()),
+            list("wishes-adult2", "adult2", GiftListKind.Wishes, viewers = emptyList()),
+            list("wishes-kid2", "kid2", GiftListKind.Wishes, viewers = emptyList()),
+        )
+        fun wish(id: String, occasion: GiftOccasion?, visible: Boolean = true) =
+            GiftItem(id, "Envie $id", null, null, null, "adult1", "Adult1", visibleToBeneficiary = visible, occasion = occasion)
+        val base = giftsState(family, lists, "adult2", today, singleList = true) as GiftsUiState.Success
+        val state = base.copy(
+            listItems = mapOf(
+                "wishes-adult1" to listOf(wish("a", GiftOccasion.Birthday), wish("b", null), wish("c", GiftOccasion.Christmas), wish("d", null, visible = false)),
+                "wishes-adult2" to emptyList(),
+                "wishes-kid2" to listOf(wish("e", GiftOccasion.Christmas)),
+            ),
+        )
+        assertEquals(2, nextOccasionCount(state, GiftMoment.BirthdayOf(TestFamily.adult, LocalDate.of(2027, 3, 1))))
+        assertEquals(0, nextOccasionCount(state, GiftMoment.BirthdayOf(TestFamily.otherAdult, LocalDate.of(2027, 3, 1))))
+        assertEquals(2, nextOccasionCount(state, GiftMoment.Christmas(2026)))
+    }
+
+    @Test
+    fun `the others are sorted by household, as in Famille, adults before children`() {
+        // Retour d'essai du 17/11 : « range les membres par foyers ». « Foyer Deux » comes before « Foyer Un ».
+        val state = giftsState(family, emptyList(), "admin1", today, singleList = true) as GiftsUiState.Success
+        assertEquals(listOf("admin1", "adult2", "kid2", "adult1", "kid1"), state.sections.map { it.member.id })
+        assertEquals(listOf("Foyer Un", "Foyer Deux", "Foyer Deux", "Foyer Un", "Foyer Un"), state.sections.map { it.householdName })
+        val runs = householdRuns(state.sections.filter { !it.keptByMe })
+        assertEquals(listOf("Foyer Deux", null, "Foyer Un", null), runs.map { it.first?.name })
+    }
+
+    @Test
     fun `the tab shows the member, then their children, then the others who have lists`() {
         val lists = listOf(
             list("w", "adult1", GiftListKind.Wishes, viewers = emptyList()),

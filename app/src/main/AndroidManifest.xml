@@ -142,6 +142,20 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity-alias>
+        <!-- Récit 50: the same door, named « Ajouter à mes envies », for its own switch. Only one of
+             the two is on at a time (ShareTargetSwitch). -->
+        <activity-alias
+            android:name=".AddToWishes"
+            android:enabled="false"
+            android:exported="true"
+            android:label="@string/share_add_to_wishes"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
     </application>
 
 </manifest>

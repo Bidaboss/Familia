@@ -12,6 +12,7 @@ import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.ideasListId
 import fr.familia.app.core.model.wishesListId
 import fr.familia.app.core.photo.PhotoEdit
@@ -21,6 +22,7 @@ import fr.familia.app.feature.gifts.addsVisibleItem
 import fr.familia.app.feature.gifts.isKeptFrom
 import fr.familia.app.feature.gifts.keepsListsOf
 import fr.familia.app.feature.gifts.parseEuros
+import fr.familia.app.feature.members.MembersViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,6 +41,9 @@ data class GiftItemForm(
     /** The photo (récit 44): sent by the ViewModel before the item, not kept in the draft. */
     val photo: PhotoEdit = PhotoEdit.Unchanged,
 )
+
+/** Where a link shared from another app goes (récit 50): my wishes when [memberId] is null, else an idea for them. */
+data class ShareTarget(val memberId: String?, val name: String)
 
 enum class GiftItemFormError { TitleMissing, TitleTooLong, BadLink, BadPrice, NoteTooLong }
 
@@ -68,6 +73,10 @@ sealed interface GiftItemEditUiState {
         /** « Plus de photos » is on: the form shows the photo, [storedPhoto] being the saved one. */
         val showPhoto: Boolean = false,
         val storedPhoto: String? = null,
+        /** Récit 50: « Pour moi » first, then « Une idée pour… » each other member; empty hides the choice. */
+        val targets: List<ShareTarget> = emptyList(),
+        /** The member of the chosen idea, null for my wishes. */
+        val targetId: String? = null,
     ) : GiftItemEditUiState
 
     data object Done : GiftItemEditUiState
@@ -81,7 +90,7 @@ class GiftItemEditViewModel(
     private val gifts: GiftRepository?,
     private val members: MemberRepository?,
     private val currentMemberId: String,
-    private val listId: String,
+    startListId: String,
     private val itemId: String?,
     /** Keeps the draft when Android closes the app in the background. */
     private val saved: SavedStateHandle = SavedStateHandle(),
@@ -89,12 +98,24 @@ class GiftItemEditViewModel(
     /** A new item filled from a link shared by another app (récit 8 bis): a change to keep or drop. */
     private val shared: GiftItemForm? = null,
     /** Reads the title, picture and price of a shared link (récit 8 bis). */
-    private val previews: LinkPreviewRepository? = null,
+    previews: LinkPreviewRepository? = null,
     /** The switch « Liste unique » (récit 9 ter): a wish then says what it is for. */
     private val singleList: Boolean = false,
     /** Sends and removes the photo (PRD, récit 44); null hides it, as when « Plus de photos » is off. */
     private val photos: SinglePhotoSaver? = null,
+    /**
+     * Récit 50: a new item from « Ajouter à mes envies ». An adult may then make it « Une idée pour… »
+     * another member, hidden from them; a child adds only to their own wishes.
+     */
+    private val fromShare: Boolean = false,
 ) : ViewModel() {
+
+    /** Récit 50 reads nothing from the shop: no network call on a link from « Ajouter à mes envies ». */
+    private val previews: LinkPreviewRepository? = previews.takeIf { !fromShare }
+
+    /** The list the item goes to: [startListId], or the one chosen with [chooseTarget]. */
+    private var listId: String = startListId
+    private var family: Family? = null
 
     /** The picture read for [previewedUrl]: dropped if the member changes the link. */
     private var previewImage: String? = null
@@ -118,17 +139,28 @@ class GiftItemEditViewModel(
     private suspend fun load() {
         val repo = gifts ?: return unavailable()
         val memberRepo = members ?: return unavailable()
-        val loaded = try {
-            val family = memberRepo.observeFamily().first()
-            family to repo.observeList(listId).first()
+        val loadedFamily = try {
+            memberRepo.observeFamily().first()
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             null
         } ?: return unavailable()
-        val (family, stored) = loaded
-        val current = family.members.firstOrNull { it.id == currentMemberId } ?: return unavailable()
-        val target = stored ?: emptyWishes(family, current) ?: return unavailable()
+        val current = loadedFamily.members.firstOrNull { it.id == currentMemberId } ?: return unavailable()
+        family = loadedFamily
+        me = current
+        val targets = if (fromShare && itemId == null) shareTargets(loadedFamily, current) else emptyList()
+        // The choice made before Android closed the app in the background.
+        val savedTarget = saved.get<String>(DRAFT_TARGET)?.takeIf { id -> targets.any { it.memberId == id } }
+        if (savedTarget != null) listId = ideasListId(savedTarget)
+        val stored = try {
+            repo.observeList(listId).first()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        }
+        val target = stored ?: emptyWishes(loadedFamily, current, listId) ?: return unavailable()
         if (target.revealed) return unavailable()
         val existing = if (itemId == null || stored == null) {
             null
@@ -142,13 +174,12 @@ class GiftItemEditViewModel(
             }
         }
         if (itemId != null && (existing == null || existing.authorId != current.id)) return unavailable()
-        val beneficiary = family.members.firstOrNull { it.id == target.beneficiaryId } ?: return unavailable()
+        val beneficiary = loadedFamily.members.firstOrNull { it.id == target.beneficiaryId } ?: return unavailable()
 
         list = target
         listExists = stored != null
         original = existing
-        me = current
-        visible = existing?.visibleToBeneficiary ?: addsVisibleItem(target, current, family)
+        visible = existing?.visibleToBeneficiary ?: addsVisibleItem(target, current, loadedFamily)
         initialForm = existing?.let {
             GiftItemForm(
                 title = it.title,
@@ -171,8 +202,59 @@ class GiftItemEditViewModel(
             forMe = beneficiary.id == current.id,
             showPhoto = photos != null,
             storedPhoto = existing?.photo,
+            targets = targets,
+            targetId = savedTarget,
         )
         if (shared != null && existing == null) readPreview(shared.url)
+    }
+
+    /** « Pour moi », then « Une idée pour… » each other member: for an adult only (récit 50). */
+    private fun shareTargets(family: Family, me: Member): List<ShareTarget> {
+        if (me.profile != MemberProfile.Adult) return emptyList()
+        // By household, in the order of the Famille tab (retour d'essai du 17/11).
+        val others = MembersViewModel.group(family).flatMap { group -> group.members.filter { it.id != me.id } }
+        if (others.isEmpty()) return emptyList()
+        return listOf(ShareTarget(null, me.firstName)) + others.map { ShareTarget(it.id, it.firstName) }
+    }
+
+    /**
+     * Récit 50: the shared link goes to my wishes ([memberId] null) or becomes an idea for that
+     * member, in their « Idées de la famille », hidden from them. What was typed stays.
+     */
+    fun chooseTarget(memberId: String?) {
+        val state = _uiState.value as? GiftItemEditUiState.Editing ?: return
+        if (state.isSaving || state.targetId == memberId || state.targets.none { it.memberId == memberId }) return
+        val repo = gifts ?: return
+        val current = me ?: return
+        val known = family ?: return
+        val id = memberId?.let(::ideasListId) ?: wishesListId(current.id)
+        viewModelScope.launch {
+            val stored = try {
+                repo.observeList(id).first()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                return@launch markFailed()
+            }
+            val target = (stored ?: emptyWishes(known, current, id))?.takeIf { !it.revealed } ?: return@launch markFailed()
+            val beneficiary = known.members.firstOrNull { it.id == target.beneficiaryId } ?: return@launch markFailed()
+            // A save started meanwhile keeps the list it started with.
+            val now = (_uiState.value as? GiftItemEditUiState.Editing)?.takeIf { !it.isSaving } ?: return@launch
+            listId = id
+            list = target
+            listExists = stored != null
+            visible = addsVisibleItem(target, current, known)
+            saved[DRAFT_TARGET] = memberId
+            val showOccasion = singleList && target.kind == GiftListKind.Wishes
+            _uiState.value = now.copy(
+                targetId = memberId,
+                hiddenFromBeneficiary = !visible && beneficiary.id != current.id,
+                beneficiaryName = beneficiary.firstName,
+                showOccasion = showOccasion,
+                forMe = beneficiary.id == current.id,
+                saveFailed = false,
+            )
+        }
     }
 
     /** Fills what the member has not typed yet with what the shop page says. */
@@ -214,7 +296,7 @@ class GiftItemEditViewModel(
         }
     }
 
-    private fun emptyWishes(family: Family, current: Member): GiftList? {
+    private fun emptyWishes(family: Family, current: Member, listId: String): GiftList? {
         // The first idea of the family for someone creates their « Idées de la famille » (récit 9 ter).
         family.members.firstOrNull { ideasListId(it.id) == listId }?.let { owner ->
             if (owner.id == current.id) return null
@@ -257,6 +339,7 @@ class GiftItemEditViewModel(
         val repo = gifts ?: return
         val target = list ?: return
         val author = me ?: return
+        val listId = listId
         if (state.isSaving) return
         showErrors = true
         val errors = errorsFor(state.form)
@@ -339,6 +422,7 @@ private const val DRAFT_URL = "draft.url"
 private const val DRAFT_PRICE = "draft.price"
 private const val DRAFT_NOTE = "draft.note"
 private const val DRAFT_OCCASION = "draft.occasion"
+private const val DRAFT_TARGET = "draft.target"
 
 /** The same limits as the security rules. */
 fun validateItem(form: GiftItemForm): Set<GiftItemFormError> = buildSet {

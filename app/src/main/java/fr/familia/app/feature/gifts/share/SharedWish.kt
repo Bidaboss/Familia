@@ -32,25 +32,48 @@ fun Intent.sharedWish(): SharedWish? {
     return parseSharedWish(getStringExtra(Intent.EXTRA_TEXT), getStringExtra(Intent.EXTRA_SUBJECT))
 }
 
+/** Which entry of the share menu of the phone opens Familia, if any. */
+enum class ShareEntry(val alias: String) {
+    /** « Mes envies Familia » (récit 8 bis). */
+    Wishes("ShareToWishes"),
+
+    /** « Ajouter à mes envies » (récit 50). */
+    AddToWishes("AddToWishes"),
+}
+
 /**
- * Shows Familia in the share menu of the phone only while the module is on: the entry is an alias
- * of the main screen, off in the manifest.
+ * The entry of the share menu for the switches: récit 50 first, else récit 8 bis, else none. None
+ * either without the « Cadeaux » module.
+ */
+fun shareEntryFor(gifts: Boolean, shareToWishes: Boolean, wishFromShare: Boolean): ShareEntry? = when {
+    !gifts -> null
+    wishFromShare -> ShareEntry.AddToWishes
+    shareToWishes -> ShareEntry.Wishes
+    else -> null
+}
+
+/**
+ * Shows Familia in the share menu of the phone only while its module is on and someone is signed
+ * in: the entries are aliases of the main screen, off in the manifest.
  */
 class ShareTargetSwitch(context: Context) {
     private val packageManager = context.packageManager
-    private val component = ComponentName(context.packageName, "$CODE_PACKAGE.$ALIAS")
+    private val packageName = context.packageName
 
-    fun set(on: Boolean) {
-        val wanted = if (on) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
-        if (packageManager.getComponentEnabledSetting(component) != wanted) {
-            packageManager.setComponentEnabledSetting(component, wanted, PackageManager.DONT_KILL_APP)
+    /** Turns [entry] on and the other one off; null turns both off. */
+    fun set(entry: ShareEntry?) {
+        ShareEntry.entries.forEach { one ->
+            val component = ComponentName(packageName, "$CODE_PACKAGE.${one.alias}")
+            val wanted = if (one == entry) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
+            if (packageManager.getComponentEnabledSetting(component) != wanted) {
+                packageManager.setComponentEnabledSetting(component, wanted, PackageManager.DONT_KILL_APP)
+            }
         }
     }
 
     private companion object {
         /** Declared in the namespace of the code, which the test build's package name extends. */
         val CODE_PACKAGE: String = SharedWish::class.java.name.substringBefore(".feature.")
-        const val ALIAS = "ShareToWishes"
     }
 }
 

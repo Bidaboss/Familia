@@ -15,6 +15,7 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.isPermanent
 import fr.familia.app.core.model.upcomingBirthdays
+import fr.familia.app.feature.members.MembersViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -43,6 +44,11 @@ data class GiftPersonSection(
     val lists: List<GiftList>,
     /** « Idées de la famille » for them (récit 9 ter), null while nobody added one; never for oneself. */
     val ideas: GiftList? = null,
+    /**
+     * The household it is shown under (retour d'essai du 17/11 : « range les membres par foyers »), as in the
+     * Famille tab; null for a member without a known household, under « Autres ». Unused for [keptByMe].
+     */
+    val householdName: String? = null,
 )
 
 sealed interface GiftsUiState {
@@ -236,6 +242,20 @@ private fun counts(item: GiftItem, moment: GiftMoment?): Boolean = when (moment)
     is GiftMoment.BirthdayOf -> item.occasion == null || item.occasion == GiftOccasion.Birthday
 }
 
+/**
+ * What « Prochaine occasion » counts (retour d'essai du 17/11 : « 3 listes ouvertes » for a birthday was wrong).
+ * For a birthday, the wishes of the person celebrated that they see and that are for it, or for when
+ * you like; for Christmas, the people who have at least one such wish. Empty lists count for nothing.
+ */
+internal fun nextOccasionCount(state: GiftsUiState.Success, next: GiftMoment): Int {
+    fun wishesOf(section: GiftPersonSection): Int =
+        section.wishes?.let { list -> state.listItems[list.id].orEmpty().count { it.visibleToBeneficiary && counts(it, next) } } ?: 0
+    return when (next) {
+        is GiftMoment.BirthdayOf -> state.sections.firstOrNull { it.member.id == next.member.id }?.let(::wishesOf) ?: 0
+        is GiftMoment.Christmas -> state.sections.count { wishesOf(it) > 0 }
+    }
+}
+
 /** What a list of wishes holds: how many, and the first titles for the card. */
 data class WishPreview(val count: Int, val titles: List<String>)
 
@@ -266,9 +286,11 @@ internal fun giftsState(
     val kept = keptMembers(me, family)
     val keptIds = kept.map { it.id }.toSet()
     // With the single list, everyone shows: the family can note an idea for anybody.
-    val others = family.members
-        .filter { it.id !in keptIds && (singleList || active.any { list -> list.beneficiaryId == it.id }) }
-        .sortedBy { it.firstName.lowercase() }
+    // The others by household, in the order of the Famille tab: households by name, adults then children.
+    val others = MembersViewModel.group(family).flatMap { group ->
+        group.members.filter { it.id !in keptIds && (singleList || active.any { list -> list.beneficiaryId == it.id }) }
+    }
+    val householdNames = family.households.associate { it.id to it.name }
     val sections = (kept + others).map { member ->
         val theirs = active.filter { it.beneficiaryId == member.id }
         GiftPersonSection(
@@ -279,6 +301,7 @@ internal fun giftsState(
             lists = theirs.filter { !it.kind.isPermanent }
                 .sortedWith(compareBy<GiftList>({ it.date ?: LocalDate.MAX }, { it.title.lowercase() })),
             ideas = theirs.firstOrNull { it.kind == GiftListKind.Ideas && member.id != me.id },
+            householdName = householdNames[member.householdId],
         )
     }
     val archived = known.filter { it.revealed }

@@ -632,6 +632,18 @@ Avec l'interrupteur « Bons plans » allumé :
 3. Avec un autre adulte, ouvre l'adresse : « Recommandée par » l'auteur, puis « Je recommande aussi » ajoute « Moi ». « Appeler le … » ouvre le téléphone.
 4. Avec l'auteur ou un enfant : **Attendu :** pas de bouton « Je recommande aussi ». Aucune notification pour une bonne adresse.
 
+## Ajouter une envie depuis une autre appli (récit 50)
+
+Interrupteur « Ajouter une envie depuis une autre appli » (wishFromShare) allumé, avec « Cadeaux ».
+
+1. Dans le navigateur, sur une page de boutique, touche « Partager ». « Ajouter à mes envies » apparaît dans la liste des applis. Touche-le.
+2. La feuille s'ouvre avec le titre et le lien de la page. Rien n'est lu sur la boutique : pas de photo ni de prix pré-remplis.
+3. Sous « C'est pour qui ? », « Pour moi » est choisi. Enregistre : l'envie est dans « Mes envies ».
+4. Recommence et choisis « Une idée pour… » quelqu'un d'autre. La phrase « … ne verra pas cet article » s'affiche. Enregistre : l'idée est dans ses « Idées de la famille ».
+5. Avec le compte de cette personne, ouvre Cadeaux : l'idée n'apparaît nulle part.
+6. Avec le compte d'un enfant, partage un lien : il n'y a pas « C'est pour qui ? », l'envie va dans ses propres envies.
+7. Éteins l'interrupteur, ouvre Familia puis reviens au navigateur : Familia n'est plus dans « Partager ».
+
 ## Faire le livre de recettes (récit 47, partie 2)
 
 Interrupteur « Livre de recettes » allumé, avec des recettes dont certaines ont une photo, une étiquette et une histoire.
@@ -642,6 +654,18 @@ Interrupteur « Livre de recettes » allumé, avec des recettes dont certaines o
 4. **Attendu dans le PDF :** une couverture, un sommaire par étiquette (la première de chaque recette, « Autres recettes » à la fin) avec les numéros de page, puis une recette par page : titre, « De … · Notée par … · Pour 6 personnes », l'histoire en italique, la photo, les ingrédients et les étapes. Une longue recette continue sur la page suivante.
 5. EXPERT-2 : une recette avec « Un enfant est sur une des photos » cochée, faite en livre par un autre compte que celui qui a pris la photo : un dessin de bol à la place de la photo. Même chose pour une photo prise par un enfant, ou une recette qui vient d'un enfant, quand tu n'es pas un de ses adultes.
 6. Mode avion avec des photos jamais vues : le livre se fait quand même, avec des dessins.
+
+## Faire l'affiche de l'arbre (récit 53)
+
+Interrupteur « Affiche de l'arbre » allumé, avec un arbre qui relie au moins trois générations, dont un enfant de ton foyer et un enfant d'un autre foyer, chacun avec une photo de profil.
+
+1. Arbre généalogique : en haut, « Faire l'affiche de l'arbre ». **Attendu :** absent quand l'interrupteur est éteint, et en « Voir comme ».
+2. L'écran montre le titre « L'arbre de la famille » (modifiable) et l'année, puis « À partir de qui ? » avec « Toute la famille » et une ligne par personne qui a des enfants, et enfin la feuille (A4 ou A3) et « Mettre les photos », cochée. Sans titre, « Faire l'affiche » est grisé.
+3. Touche « Faire l'affiche » : la feuille de partage d'Android s'ouvre avec arbre-de-la-famille-2026.pdf. Enregistre-le et ouvre-le.
+4. **Attendu dans le PDF :** une seule page en paysage. En haut, un bandeau argile avec le titre et l'année. Ensuite, une rangée par génération, les plus âgés en haut : un rond par personne (sa photo, ou son initiale), son prénom et son **année** de naissance seulement. Les couples sont côte à côte, reliés par un trait, et des traits descendent des parents vers leurs enfants.
+5. EXPERT-2 : l'enfant de ton foyer a sa photo, et l'enfant de l'autre foyer a son initiale. Refais l'affiche avec un adulte de l'autre foyer : c'est l'inverse.
+6. « … et ses descendants » : seuls la personne, ses descendants et leurs partenaires apparaissent, et la personne est tout en haut. Décoche « Mettre les photos » : il ne reste que des initiales. Choisis A3 : même dessin, sur une page plus grande.
+7. Mode avion avec des photos jamais vues : l'affiche se fait quand même, avec des initiales.
 
 ## Mode présentation (récit 48)
 

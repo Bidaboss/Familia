@@ -72,7 +72,8 @@ internal fun LazyListScope.presentationContent(
         item(key = "family-title") {
             SectionLabel(stringResource(R.string.gifts_family_wishes_title), Modifier.padding(top = 16.dp))
         }
-        others.forEach { section ->
+        householdRuns(others).forEach { (name, section) ->
+            if (name != null) item(key = "household-${section.member.id}") { HouseholdLabel(name) }
             item(key = "person-${section.member.id}") {
                 PersonWishesRow(
                     section = section,
@@ -111,8 +112,13 @@ private fun NextOccasionCard(state: GiftsUiState.Success, next: GiftMoment, onSe
         is GiftMoment.Christmas -> stringResource(R.string.gifts_next_christmas, inDays)
         is GiftMoment.BirthdayOf -> stringResource(R.string.gifts_next_birthday, next.member.firstName, inDays)
     }
-    val lists = state.sections.count { it.wishes != null }
-    val counts = pluralStringResource(R.plurals.gifts_open_wish_lists, lists, lists)
+    val count = nextOccasionCount(state, next)
+    val counts = when {
+        count == 0 -> stringResource(R.string.gifts_next_no_wish)
+        next is GiftMoment.Christmas -> pluralStringResource(R.plurals.gifts_open_wish_lists, count, count)
+        state.sections.any { it.isMe && it.member.id == (next as? GiftMoment.BirthdayOf)?.member?.id } -> pluralStringResource(R.plurals.gifts_next_my_wishes, count, count)
+        else -> pluralStringResource(R.plurals.gifts_next_their_wishes, count, count)
+    }
     ClayCard(Modifier.fillMaxWidth(), tint = ClayTint.Birthday, contentPadding = ClaySpacing.card, emphasis = true) {
         SectionLabel(stringResource(R.string.gifts_next_occasion_label), color = FamiliaClay.colors.onTintVariant(ClayTint.Birthday))
         ClayCardTitle(title, style = MaterialTheme.typography.titleLarge)
@@ -172,4 +178,22 @@ private fun NewBadge(count: Int) {
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
         )
     }
+}
+
+/**
+ * Each section with the name of its household when it starts a new one, else null: the tab shows
+ * the name once above each household (retour d'essai, 17/11). Without a known household: « Autres », as in Famille.
+ */
+internal fun householdRuns(sections: List<GiftPersonSection>): List<Pair<HouseholdHeading?, GiftPersonSection>> =
+    sections.mapIndexed { index, section ->
+        val starts = index == 0 || sections[index - 1].householdName != section.householdName
+        (if (starts) HouseholdHeading(section.householdName) else null) to section
+    }
+
+/** The name of a household above its people; null for « Autres ». */
+internal data class HouseholdHeading(val name: String?)
+
+@Composable
+internal fun HouseholdLabel(heading: HouseholdHeading) {
+    SectionLabel(heading.name ?: stringResource(R.string.members_other_household), Modifier.padding(top = 12.dp))
 }
