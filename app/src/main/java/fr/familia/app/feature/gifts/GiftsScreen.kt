@@ -280,6 +280,13 @@ internal fun LazyListScope.birthdaysSection(
                     onClick = { onOpenList(surprises.first().id) },
                     modifier = Modifier.padding(top = 4.dp),
                 )
+            } else if (!isMine && !LocalPresenting.current && birthday.member.id in state.surprisePreparedFor) {
+                // With the single list, a surprise is an idea of the family: the phrase alone, no number.
+                ClayLink(
+                    stringResource(R.string.gifts_surprise_prepared),
+                    onClick = { onOpenList(ideasListId(birthday.member.id)) },
+                    modifier = Modifier.padding(top = 4.dp),
+                )
             }
             if (state.canPrepareSurprise && !isMine) {
                 ClayLink(
