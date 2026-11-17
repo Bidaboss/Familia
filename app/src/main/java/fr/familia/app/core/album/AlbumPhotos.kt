@@ -113,7 +113,7 @@ fun PhotoGrid(photos: List<AlbumPhoto>, onOpen: (AlbumPhoto) -> Unit) {
     }
 }
 
-/** « Envoi de 2 photos… » while sending, then what went wrong, if anything. */
+/** « Encore 2 photos à envoyer » and how far the send is, then what went wrong, if anything. */
 @Composable
 fun PhotoStatus(state: AlbumPhotosUiState, onDismiss: () -> Unit) {
     if (state.sending > 0) {
@@ -121,7 +121,11 @@ fun PhotoStatus(state: AlbumPhotosUiState, onDismiss: () -> Unit) {
             pluralStringResource(R.plurals.album_photos_sending, state.sending, state.sending),
             style = MaterialTheme.typography.bodyMedium,
         )
-        LinearProgressIndicator(Modifier.fillMaxWidth())
+        if (state.sent == 0) {
+            LinearProgressIndicator(Modifier.fillMaxWidth())
+        } else {
+            LinearProgressIndicator(progress = { state.sendProgress }, modifier = Modifier.fillMaxWidth())
+        }
     }
     val problem = state.problem ?: return
     Row(verticalAlignment = Alignment.CenterVertically) {
