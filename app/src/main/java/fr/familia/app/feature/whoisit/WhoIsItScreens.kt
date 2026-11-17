@@ -93,6 +93,7 @@ fun ColumnScope.WhoIsItPostContent(state: WhoIsItPostUiState.Ready, actions: Who
         contentDescription = stringResource(R.string.who_is_it_photo),
         modifier = Modifier.fillMaxWidth().aspectRatio(4f / 3f).clip(RoundedCornerShape(16.dp)),
         contentScale = ContentScale.Fit,
+        showLoading = true,
     )
     if (state.post.hint.isNotBlank()) Text(state.post.hint, style = MaterialTheme.typography.bodyLarge)
     Text(stringResource(R.string.who_is_it_by, state.post.authorName), style = MaterialTheme.typography.bodyMedium, color = muted)

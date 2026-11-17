@@ -210,6 +210,7 @@ fun PhotoViewer(state: AlbumPhotosUiState, startId: String, onRemove: (AlbumPhot
                         contentDescription = stringResource(R.string.album_photo_by, photo.authorName),
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Fit,
+                        showLoading = true,
                     )
                 }
                 Text(
