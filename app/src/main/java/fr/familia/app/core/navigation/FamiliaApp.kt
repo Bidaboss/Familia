@@ -98,6 +98,8 @@ import fr.familia.app.feature.genealogy.GenealogyDestination
 import fr.familia.app.feature.genealogy.GenealogyRoute
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpRoute
+import fr.familia.app.feature.gooddeals.EntraideTabs
+import fr.familia.app.feature.gooddeals.GoodDealsRoute
 import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
 import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
@@ -1265,11 +1267,27 @@ fun FamiliaApp(
                     }
                     // --- Coups de main ---
                     composable<HelpRequestsRoute> {
-                        HelpRequestsRoute(
-                            container = container,
-                            currentMember = currentMember,
-                            onAsk = { navController.navigate(HelpRequestEditDestination()) },
-                            onOpenRequest = { id -> navController.navigate(HelpRequestDetailDestination(id)) },
+                        // Récit 45: the « Bons plans » beside the coups de main, behind their switch.
+                        val goodDealsOn = LocalFeatureFlags.current.isOn(Feature.GoodDeals)
+                        EntraideTabs(
+                            goodDealsOn = goodDealsOn,
+                            help = {
+                                HelpRequestsRoute(
+                                    container = container,
+                                    currentMember = currentMember,
+                                    onAsk = { navController.navigate(HelpRequestEditDestination()) },
+                                    onOpenRequest = { id -> navController.navigate(HelpRequestDetailDestination(id)) },
+                                    showTitle = !goodDealsOn,
+                                )
+                            },
+                            goodDeals = {
+                                GoodDealsRoute(
+                                    container = container,
+                                    currentMember = currentMember,
+                                    onPublish = null,
+                                    onOpenDeal = null,
+                                )
+                            },
                         )
                     }
                     composable<HelpRequestDetailDestination> { entry ->

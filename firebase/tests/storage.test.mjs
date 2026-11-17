@@ -263,6 +263,62 @@ describe('cover of an event (récit 44)', () => {
   });
 });
 
+describe('photos of the gift lists (récit 44)', () => {
+  // Each test has its own lists, so a file left by another test never gets in the way.
+  let n = 0;
+  const file = (list, folder, author, name = 'p1.jpg') => `giftLists/${list}${n}/${folder}/${author}/${name}`;
+  beforeEach(async () => {
+    n += 1;
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      const list = { beneficiaryId: 'adult1', viewerIds: [], revealed: false };
+      await setDoc(doc(db, `giftLists/wishes${n}`), { ...list, kind: 'wishes' });
+      await setDoc(doc(db, `giftLists/ideas${n}`), { ...list, kind: 'ideas' });
+      await setDoc(doc(db, `giftLists/surprise${n}`), { ...list, kind: 'surprise', viewerIds: ['adult2', 'adult3'] });
+    });
+  });
+
+  test('a wish: its author sends the photo, the family and the person read it', async () => {
+    await assertSucceeds(uploadString(ref(storageAs(ADULT), file('wishes', 'shared', 'adult1')), 'x'.repeat(300 * 1024), 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storageAs(ADULT), file('wishes', 'shared', 'adult1', 'p1-thumb.jpg')), 'x', 'raw', jpeg));
+    await assertSucceeds(getBytes(ref(storageAs(ADULT), file('wishes', 'shared', 'adult1'))));
+    await assertSucceeds(getBytes(ref(storageAs(OTHER_ADULT), file('wishes', 'shared', 'adult1'))));
+    await assertFails(getBytes(ref(storageAs(STRANGER), file('wishes', 'shared', 'adult1'))));
+  });
+
+  test('« Idées de la famille »: the person, signed in, can neither read nor download the photo', async () => {
+    await assertSucceeds(uploadString(ref(storageAs(NEIGHBOUR), file('ideas', 'hidden', 'adult3')), 'x', 'raw', jpeg));
+    await assertSucceeds(getBytes(ref(storageAs(OTHER_ADULT), file('ideas', 'hidden', 'adult3'))));
+    await assertFails(getBytes(ref(storageAs(ADULT), file('ideas', 'hidden', 'adult3'))));
+    // Not even by sending one there themselves.
+    await assertFails(uploadString(ref(storageAs(ADULT), file('ideas', 'hidden', 'adult1')), 'x', 'raw', jpeg));
+  });
+
+  test('a hidden idea on a wish list stays hidden from the person until the reveal', async () => {
+    await assertSucceeds(uploadString(ref(storageAs(OTHER_ADULT), file('wishes', 'hidden', 'adult2')), 'x', 'raw', jpeg));
+    await assertSucceeds(getBytes(ref(storageAs(NEIGHBOUR), file('wishes', 'hidden', 'adult2'))));
+    await assertFails(getBytes(ref(storageAs(ADULT), file('wishes', 'hidden', 'adult2'))));
+  });
+
+  test('a surprise list: only its viewers send and read', async () => {
+    await assertSucceeds(uploadString(ref(storageAs(OTHER_ADULT), file('surprise', 'hidden', 'adult2')), 'x', 'raw', jpeg));
+    await assertSucceeds(getBytes(ref(storageAs(NEIGHBOUR), file('surprise', 'hidden', 'adult2'))));
+    await assertFails(getBytes(ref(storageAs(ADULT), file('surprise', 'hidden', 'adult2'))));
+  });
+
+  test('only in my folder, a known folder, a small JPEG, never replaced; only its author removes it', async () => {
+    const storage = storageAs(ADULT);
+    await assertFails(uploadString(ref(storage, file('wishes', 'shared', 'adult2')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, file('wishes', 'other', 'adult1')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, file('wishes', 'shared', 'adult1')), 'x'.repeat(513 * 1024), 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, `giftLists/none${n}/shared/adult1/p1.jpg`), 'x', 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storage, file('wishes', 'shared', 'adult1')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, file('wishes', 'shared', 'adult1')), 'y', 'raw', jpeg));
+    await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), file('wishes', 'shared', 'adult1'))));
+    await assertSucceeds(deleteObject(ref(storage, file('wishes', 'shared', 'adult1'))));
+  });
+});
+
 describe('recipes folder (récit 38)', () => {
   // r1 is written by adult1.
   beforeEach(async () => {

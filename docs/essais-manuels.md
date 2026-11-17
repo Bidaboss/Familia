@@ -566,6 +566,20 @@ Avec l'interrupteur « Sondages » allumé :
 4. Un voyage à venir, ou un album sans photo, n'apparaît pas. Sans aucun album : « Pas encore d'album ».
 5. Voyages ou albums d'événements éteints dans Administration : leurs albums disparaissent de la liste.
 
+## Le voyage en chemin illustré (R1 bis, maquette R6)
+
+Interrupteur « presentationR1bis » allumé (c'est le réglage par défaut).
+
+1. Ouvre un voyage en cours. En haut, sur le ciel bleu : le nom du voyage et qui part, puis la frise des jours (« Jour 1 », « dim 15 »…). Le jour d'aujourd'hui est en noir.
+2. Dessous, le paysage : le chemin passe par 4 jours au plus. Les jours passés sont des ronds noirs, le jour choisi est jaune avec l'étiquette « Aujourd'hui, » et le lieu de sa première étape, les jours à venir sont en pointillés.
+3. Touche un autre jour dans la frise : le chemin, la carte du jour et le carnet suivent. Aujourd'hui garde un contour noir.
+4. Carte du jour : « Jour 3 : » et les lieux du jour, puis « 18 photos » (ouvre l'album), « Carnet » (descend au carnet du jour) et « Comptes » (seulement si tu pars et que les comptes sont allumés).
+5. Le carnet du jour montre les étapes de ce jour, avec « Bien arrivé ». Un hébergement de plusieurs nuits apparaît chaque jour. Un jour sans étape dit « Rien de noté ce jour-là ».
+6. Un voyage pas encore commencé s'ouvre sur son premier jour, un voyage fini sur son dernier.
+7. TalkBack : chaque jour de la frise se lit « Jour 3, mardi 17 novembre » ; le paysage n'est pas lu.
+8. Police du téléphone à 200 % : tout défile, rien ne passe sous le bouton « Ajouter une étape ».
+9. Interrupteur éteint : l'écran du voyage revient à l'ancienne présentation.
+
 ## Nouvelle présentation « R1 bis » (spec DESIGN du 17/11)
 
 Interrupteur « Nouvelle présentation » (presentationR1bis), allumé par défaut, admin principal compris. L'éteindre dans Administration rend l'ancienne présentation à tout le monde.
@@ -574,8 +588,8 @@ Interrupteur « Nouvelle présentation » (presentationR1bis), allumé par défa
 2. Touche un autre jour de la frise. **Attendu :** il passe en noir, aujourd'hui garde son contour, et la carte dessous montre ce jour : heure, trait de couleur, quoi. Un jour vide dit « Rien de prévu. Une journée tranquille. ».
 3. Un jour avec 2 événements ou plus. **Attendu :** un petit rond avec le nombre en haut à droite de la case. TalkBack lit « Mercredi 18, 2 événements ».
 4. Un événement auquel tu n'as pas répondu. **Attendu :** une carte dans « À faire » avec « J'y vais » et « Non ». Touche « J'y vais » : la carte disparaît, et l'événement te compte parmi ceux qui viennent.
-5. Touche « + ». **Attendu :** Un événement, Une bonne nouvelle, Une envie, Un coup de main (2 × 2), puis Annuler. Chaque choix ouvre son formulaire.
-6. Touche « Tout Familia ». **Attendu :** « Chercher un module », puis les modules en ronds sous S'organiser, Se faire plaisir et Se souvenir. Tape « ou je » : seul « Où je suis » reste.
+5. Touche « + ». **Attendu :** Un événement, Une photo, Une bonne nouvelle, Une envie (2 × 2), Un coup de main sur toute la largeur, puis Annuler. « Une photo » ouvre le choix de l'album ; les autres choix ouvrent leur formulaire. Voyages et albums d'événements éteints : « Une photo » disparaît et « Un coup de main » rejoint la grille.
+6. Touche « Tout Familia ». **Attendu :** « Chercher un module », puis les modules en ronds sous S'organiser, Se faire plaisir et Se souvenir. Défis et Albums y sont quand leur module est allumé. Tape « ou je » : seul « Où je suis » reste.
 7. Onglet **Famille**. **Attendu :** « Nous N, en M foyers », une carte de couleur par foyer avec tous ses membres, puis « Nos trésors ». Deux prénoms qui commencent par la même lettre ont deux lettres dans leur pastille.
 8. Onglet **Planning**. **Attendu :** « Semaine » d'abord, la frise du lundi au dimanche, les flèches changent de semaine, « Aujourd'hui » revient à cette semaine.
 9. En Classique clair, regarde le fond. **Attendu :** de petits pépins discrets ; en Contraste fort, aucun motif. L'onglet allumé est dans une pilule jaune.

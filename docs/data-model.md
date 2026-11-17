@@ -311,6 +311,7 @@ Requêtes de l'appli, toutes acceptées par les règles : `viewerIds array-conta
 | `price` | nombre de 0 à 100 000 ou null | Prix indicatif, en euros |
 | `note` | texte (500 au plus) ou null | Taille, couleur… |
 | `imageUrl` | texte `https://` (1 000 au plus), null ou absent | Facultatif : image lue dans l'aperçu d'un lien partagé (carte PRODUIT-34). Familia ne stocke aucune image |
+| `photo` | texte, null ou absent | Facultatif (PRD, récit 44, module « Plus de photos ») : la photo envoyée par l'auteur, `giftLists/{listId}/{shared\|hidden}/{memberId}/{photoId}` sans « .jpg ». `shared` pour un article que la personne fêtée voit, `hidden` pour une idée qui lui est cachée : Storage ne lui donne jamais un fichier de `hidden` avant la révélation. Le serveur retire la photo avec l'article ou la liste |
 | `authorId`, `authorName` | `memberId`, texte | Qui l'a ajouté, jamais modifiés |
 | `visibleToBeneficiary` | booléen | Vrai seulement si l'auteur tient les listes du bénéficiaire et que la liste n'est ni une surprise ni « Idées de la famille ». Les règles l'imposent |
 | `occasion` | `christmas` \| `birthday`, null ou absent | Récit 9 ter : l'occasion pour laquelle une envie est notée. Null ou absent : « Quand tu veux » |
@@ -369,10 +370,13 @@ Une envie offerte, sortie de « Mes envies » le lendemain de l'occasion de son 
 | `thanked` | booléen | Faux à la création, vrai quand le bénéficiaire a dit merci |
 | `thankedAt` | horodatage serveur | Présent une fois le merci dit |
 | `revealedAt` | horodatage serveur | |
+| `self` | booléen, facultatif | Vrai pour « Je l'ai reçue » (rév. 232) : la personne l'a marquée elle-même, sans donneur. `occasion` et `year` sont alors nuls |
 
 - **Lire** : le bénéficiaire, et les adultes qui gardent ses listes (un enfant sans l'appli n'a rien de dévoilé).
 - **Modifier** : le bénéficiaire, seulement pour passer `thanked` à vrai avec `thankedAt`.
-- **Créer, supprimer** : le serveur seul.
+- **Créer** : le serveur, à la révélation. Et « Je l'ai reçue » (rév. 232) : celui qui garde les listes de la personne, pour une envie qu'elle voit, dans le même lot que la suppression de l'envie, avec `self: true`, sans donneur, `thanked` faux. Une réservation de cette envie est annulée par le serveur, qui prévient son réservant (« … a déjà reçu … ») sans rien dire à la personne.
+- **Supprimer** : le serveur seul.
+- **« Tu l'as offert ? »** : le matin de la révélation, le réservant de chaque envie dévoilée est invité à passer son carnet à « Offert », sauf s'il l'a déjà fait.
 
 ### Cloud Functions des cadeaux (`firebase/functions/src/gifts.ts`)
 

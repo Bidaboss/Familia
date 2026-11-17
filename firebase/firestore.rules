@@ -1402,7 +1402,7 @@ service cloud.firestore {
       return i.keys().hasAll(['title', 'url', 'price', 'note', 'authorId', 'authorName',
                               'visibleToBeneficiary', 'createdAt', 'updatedAt'])
         && i.keys().hasOnly(['title', 'url', 'price', 'note', 'authorId', 'authorName',
-                             'visibleToBeneficiary', 'createdAt', 'updatedAt', 'imageUrl', 'occasion'])
+                             'visibleToBeneficiary', 'createdAt', 'updatedAt', 'imageUrl', 'occasion', 'photo'])
         // The occasion a wish is for (récit 9 ter): absent or null for « Quand tu veux ».
         && (!('occasion' in i) || i.occasion == null || i.occasion in ['christmas', 'birthday'])
         && i.title is string && i.title.size() > 0 && i.title.size() <= 80
@@ -1415,6 +1415,18 @@ service cloud.firestore {
         && i.authorName is string && i.authorName.size() > 0 && i.authorName.size() <= 40
         && i.visibleToBeneficiary is bool
         && i.updatedAt == request.time;
+    }
+
+    // Plus de photos (PRD, récit 44): photo, optional, names the photo its author sent to Storage
+    // beforehand, giftLists/{listId}/{folder}/{authorId}/{photoId} (storage.rules). The folder says
+    // who reads it there: « shared » for an item the beneficiary sees, « hidden » for an idea kept
+    // from them, so an idea can never name a photo that the beneficiary may download.
+    function isValidItemPhoto(listId, i, before) {
+      return !('photo' in i) || i.photo == null
+        || (before != null && 'photo' in before && i.photo == before.photo)
+        || (i.photo is string
+            && i.photo.matches('^giftLists/' + listId + '/' + (i.visibleToBeneficiary ? 'shared' : 'hidden')
+                               + '/' + myMemberId() + '/[A-Za-z0-9]{1,40}$'));
     }
 
     // giftLists/{listId}/items/{itemId}. An item added by someone other than the keeper of the
@@ -1438,6 +1450,7 @@ service cloud.firestore {
         && canSeeList(list())
         && list().revealed == false
         && isValidGiftItem(request.resource.data)
+        && isValidItemPhoto(listId, request.resource.data, null)
         && request.resource.data.authorId == myMemberId()
         && request.resource.data.authorName == me().firstName
         && request.resource.data.createdAt == request.time
@@ -1452,6 +1465,7 @@ service cloud.firestore {
         && list().revealed == false
         && (resource.data.visibleToBeneficiary == true || !exists(claimPath()))
         && isValidGiftItem(request.resource.data)
+        && isValidItemPhoto(listId, request.resource.data, resource.data)
         && request.resource.data.authorId == resource.data.authorId
         && request.resource.data.authorName == resource.data.authorName
         && request.resource.data.visibleToBeneficiary == resource.data.visibleToBeneficiary
@@ -1553,12 +1567,37 @@ service cloud.firestore {
     // giftLists/{listId}/received/{itemId}: « On m'a offert » (récit 10 bis), the wishes revealed
     // the day after an occasion, written by the Cloud Function only. Its owner and the adults who
     // keep their lists read it; the owner may only say thank you.
+    function isSelfReceived(r, item) {
+      return r.keys().hasOnly(['title', 'url', 'imageUrl', 'giverIds', 'givers', 'joint', 'occasion', 'year',
+                               'thanked', 'revealedAt', 'self'])
+        && r.keys().hasAll(['title', 'url', 'imageUrl', 'giverIds', 'givers', 'joint', 'occasion', 'year',
+                            'thanked', 'revealedAt', 'self'])
+        && r.title == item.title
+        && r.url == item.get('url', null)
+        && r.imageUrl == item.get('imageUrl', null)
+        && r.giverIds == [] && r.givers == [] && r.joint == false
+        && r.occasion == null && r.year == null
+        && r.thanked == false && r.revealedAt == request.time && r.self == true;
+    }
+
     match /giftLists/{listId}/received/{itemId} {
       function list() {
         return get(giftListPath(listId)).data;
       }
 
       allow read: if isMember() && list().kind == 'wishes' && keepsListsOf(list().beneficiaryId);
+
+      // « Reçue » (rév. 232): whoever keeps the lists of the person archives a wish of « Mes envies »
+      // they say they got, in the same batch as its removal. Nobody gave it through the list: no
+      // giver, no thanks. A reservation of it is cancelled, and its holder told, by the server.
+      allow create: if isMember()
+        && list().kind == 'wishes'
+        && keepsListsOf(list().beneficiaryId)
+        && exists(/databases/$(database)/documents/giftLists/$(listId)/items/$(itemId))
+        && get(/databases/$(database)/documents/giftLists/$(listId)/items/$(itemId)).data.visibleToBeneficiary == true
+        && !existsAfter(/databases/$(database)/documents/giftLists/$(listId)/items/$(itemId))
+        && isSelfReceived(request.resource.data,
+                          get(/databases/$(database)/documents/giftLists/$(listId)/items/$(itemId)).data);
 
       allow update: if isMember()
         && list().beneficiaryId == myMemberId()
