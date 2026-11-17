@@ -1,10 +1,11 @@
 package fr.familia.app.core.album.book
 
 import fr.familia.app.core.album.AlbumPhoto
+import fr.familia.app.core.data.FAMILY_ZONE
+import fr.familia.app.core.ui.frenchDate
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /*
@@ -79,22 +80,22 @@ fun bookPages(photos: List<BookPhoto>): List<List<BookPhoto>> {
     return pages
 }
 
-private val dayFormat = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.FRENCH)
-
 /** « Camille, 4 août 2026 », or the first name alone when the server time has not come yet. */
-fun bookCaption(photo: AlbumPhoto, zone: ZoneId = ZoneId.systemDefault()): String =
-    photo.createdAt?.let { "${photo.authorName}, ${dayFormat.format(it.atZone(zone))}" } ?: photo.authorName
+fun bookCaption(photo: AlbumPhoto, zone: ZoneId = FAMILY_ZONE): String =
+    photo.createdAt?.let { "${photo.authorName}, ${frenchDate(it.atZone(zone).toLocalDate(), DAY_YEAR)}" } ?: photo.authorName
 
 /** « 4 août 2026 », or « du 3 au 9 août 2026 », « du 30 juillet au 2 août 2026 », across years too. */
 fun bookDates(start: LocalDate, end: LocalDate = start): String {
-    if (!end.isAfter(start)) return dayFormat.format(start)
+    if (!end.isAfter(start)) return frenchDate(start, DAY_YEAR)
     val first = when {
-        start.year != end.year -> dayFormat.format(start)
-        start.month != end.month -> DateTimeFormatter.ofPattern("d MMMM", Locale.FRENCH).format(start)
-        else -> start.dayOfMonth.toString()
+        start.year != end.year -> frenchDate(start, DAY_YEAR)
+        start.month != end.month -> frenchDate(start, "d MMMM")
+        else -> frenchDate(start, "d")
     }
-    return "du $first au ${dayFormat.format(end)}"
+    return "du $first au ${frenchDate(end, DAY_YEAR)}"
 }
+
+private const val DAY_YEAR = "d MMMM yyyy"
 
 /** « livre-photo-vacances-a-la-mer.pdf »: plain letters, so every phone and photo shop accepts it. */
 fun photoBookFileName(title: String): String {

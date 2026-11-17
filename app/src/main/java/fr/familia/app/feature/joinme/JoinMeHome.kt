@@ -20,6 +20,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.model.JoinMe
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.place.DirectionsButton
@@ -73,7 +74,7 @@ fun JoinMeHomeContent(
     stopFailed: Boolean,
     onStop: (String) -> Unit,
     modifier: Modifier = Modifier,
-    zone: ZoneId = ZoneId.systemDefault(),
+    zone: ZoneId = FAMILY_ZONE,
 ) {
     val tint = LocalClayCardTint.current
     val received = state.received

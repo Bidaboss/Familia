@@ -55,6 +55,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
@@ -294,7 +295,7 @@ private fun DateField(date: LocalDate?, missing: Boolean, onPick: (LocalDate) ->
     }
     if (picker) {
         val pickerState = rememberDatePickerState(
-            initialSelectedDateMillis = (date ?: LocalDate.now()).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
+            initialSelectedDateMillis = (date ?: familyToday()).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
         )
         DatePickerDialog(
             onDismissRequest = { picker = false },

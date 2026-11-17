@@ -44,14 +44,13 @@ import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.MemberAvatar
+import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.feature.souvenirs.BravoSheet
 import fr.familia.app.feature.souvenirs.SouvenirKind
 import fr.familia.app.feature.souvenirs.SouvenirMedal
 import fr.familia.app.feature.souvenirs.nextSouvenirs
 import fr.familia.app.feature.souvenirs.previewSouvenirs
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 /** A member's page (récit 34): who they are, and the souvenirs they show. Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -195,9 +194,8 @@ private fun MySouvenir(kind: SouvenirKind, souvenir: Souvenir, onSetShown: (Stri
     }
 }
 
-private val birthdayFormatter = DateTimeFormatter.ofPattern("d MMMM", Locale.FRANCE)
 
-internal fun birthdayLabel(date: LocalDate): String = date.format(birthdayFormatter)
+internal fun birthdayLabel(date: LocalDate): String = frenchDate(date, "d MMMM")
 
 @FamiliaPreviews
 @Composable

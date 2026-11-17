@@ -58,6 +58,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.photo.PhotoField
 import fr.familia.app.core.model.HelpKind
 import fr.familia.app.core.model.Member
@@ -343,7 +344,7 @@ private fun WhenSection(form: HelpRequestForm, errors: Set<HelpFormError>, onCha
         errorText(errors, HelpFormError.EndBeforeStart)?.invoke()
     }
     if (datePicker) {
-        val pickerState = rememberDatePickerState(initialSelectedDateMillis = (form.date ?: LocalDate.now()).toUtcMillis())
+        val pickerState = rememberDatePickerState(initialSelectedDateMillis = (form.date ?: familyToday()).toUtcMillis())
         DatePickerDialog(
             onDismissRequest = { datePicker = false },
             confirmButton = {

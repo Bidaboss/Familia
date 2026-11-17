@@ -6,6 +6,7 @@ import fr.familia.app.R
 import fr.familia.app.core.model.Poll
 import fr.familia.app.core.ui.formatDay
 import fr.familia.app.core.ui.formatTime
+import fr.familia.app.core.ui.frenchDate
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -34,7 +35,6 @@ fun kindLabel(kind: Poll.Kind): String = stringResource(
 )
 
 /** « 19 décembre », for « Réponses jusqu'au … ». */
-fun closingDayLabel(day: LocalDate): String = day.format(closingFormatter)
+fun closingDayLabel(day: LocalDate): String = frenchDate(day, "d MMMM")
 
 private val shortFormatter = DateTimeFormatter.ofPattern("EEE d/MM", Locale.FRANCE)
-private val closingFormatter = DateTimeFormatter.ofPattern("d MMMM", Locale.FRANCE)

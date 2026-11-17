@@ -37,6 +37,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.GiftOccasion
@@ -69,7 +70,7 @@ data class ProposeIdeaActions(
 /** « Proposer à la famille »: which list of the person the idea goes to, hidden from them. Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProposeIdeaScreen(state: ProposeIdeaUiState, actions: ProposeIdeaActions, today: LocalDate = LocalDate.now()) {
+fun ProposeIdeaScreen(state: ProposeIdeaUiState, actions: ProposeIdeaActions, today: LocalDate = familyToday()) {
     Scaffold(
         topBar = {
             TopAppBar(

@@ -6,6 +6,7 @@ import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.AlbumPhotoRepository
 import fr.familia.app.core.album.albumPhotoOrder
 import fr.familia.app.core.data.EventRepository
+import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.TreeRepository
 import fr.familia.app.core.data.TripRepository
@@ -48,7 +49,7 @@ class MonthSlideshowViewModel(
     members: MemberRepository?,
     currentMemberId: String,
     private val month: YearMonth,
-    private val zone: ZoneId = ZoneId.systemDefault(),
+    private val zone: ZoneId = FAMILY_ZONE,
     tree: TreeRepository? = null,
 ) : ViewModel() {
 

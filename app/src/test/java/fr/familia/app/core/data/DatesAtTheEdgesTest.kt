@@ -7,6 +7,7 @@ import fr.familia.app.core.model.upcomingBirthdays
 import fr.familia.app.core.navigation.nextEventId
 import fr.familia.app.core.ui.formatDay
 import fr.familia.app.core.ui.frenchDate
+import fr.familia.app.core.ui.frenchDateTime
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.home.homeDays
 import fr.familia.app.feature.recap.WeekRecap
@@ -190,5 +191,25 @@ class DatesAtTheEdgesTest {
         } finally {
             java.util.Locale.setDefault(before)
         }
+    }
+
+    @Test
+    fun `a day and an hour are those of Paris, on a phone set to New York`() {
+        // 0 h 30 in Paris on Sunday 1 November 2026, still Saturday evening in New York.
+        val at = Instant.parse("2026-10-31T23:30:00Z")
+        onAPhoneIn("America/New_York") {
+            assertEquals("1er novembre à 0\u00A0h\u00A030", frenchDateTime(at))
+            assertEquals("dimanche 1er novembre", frenchDate(at, "EEEE d MMMM"))
+        }
+        assertEquals("21 novembre à 19\u00A0h\u00A030", frenchDateTime(Instant.parse("2026-11-21T18:30:00Z")))
+    }
+
+    @Test
+    fun `the other screens write the first of the month as 1er too`() {
+        assertEquals("1er décembre", fr.familia.app.feature.polls.closingDayLabel(LocalDate.of(2026, 12, 1)))
+        assertEquals("1er mai", fr.familia.app.feature.members.profile.birthdayLabel(LocalDate.of(2026, 5, 1)))
+        assertEquals("1er août 2026", fr.familia.app.core.album.book.bookDates(LocalDate.of(2026, 8, 1)))
+        assertEquals("du 1er au 9 août 2026", fr.familia.app.core.album.book.bookDates(LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 9)))
+        assertEquals("du 30 juillet au 1er août 2026", fr.familia.app.core.album.book.bookDates(LocalDate.of(2026, 7, 30), LocalDate.of(2026, 8, 1)))
     }
 }

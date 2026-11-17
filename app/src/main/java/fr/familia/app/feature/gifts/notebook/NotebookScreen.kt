@@ -61,6 +61,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftStatus
 import fr.familia.app.core.model.NotebookEntry
@@ -82,7 +83,6 @@ import fr.familia.app.feature.gifts.parseEuros
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpLink
 import fr.familia.app.feature.help.ScreenHelp
-import java.time.LocalDate
 
 /** What the notebook screen can ask for. */
 data class NotebookActions(
@@ -473,7 +473,7 @@ internal fun StatusSheetContent(
     onEdit: () -> Unit = {},
     onPropose: () -> Unit = {},
     onSetOccasion: (NotebookOccasion) -> Unit = {},
-    thisYear: Int = LocalDate.now().year,
+    thisYear: Int = familyToday().year,
 ) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).navigationBarsPadding()) {
         Text(entry.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })

@@ -65,10 +65,9 @@ import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.ShareGoodNewsButton
 import fr.familia.app.core.ui.formatTime
+import fr.familia.app.core.ui.frenchDate
 import java.time.Instant
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 /** The question of the week, my answer and, once allowed, everyone's (récit 37). Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -291,15 +290,14 @@ private fun PhotoPicker(
 }
 
 private val paris: ZoneId = ZoneId.of("Europe/Paris")
-private val dayFormatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRANCE)
 
 /** « lundi 30 novembre ». */
-internal fun weekLabel(publishedAt: Instant): String = publishedAt.atZone(paris).format(dayFormatter)
+internal fun weekLabel(publishedAt: Instant): String = frenchDate(publishedAt.atZone(paris).toLocalDate(), "EEEE d MMMM")
 
 /** « mercredi 2 décembre à 9 h 00 ». */
 internal fun revealLabel(revealAt: Instant): String {
     val at = revealAt.atZone(paris)
-    return "${at.format(dayFormatter)} à ${formatTime(at.toLocalTime())}"
+    return "${frenchDate(at.toLocalDate(), "EEEE d MMMM")} à ${formatTime(at.toLocalTime())}"
 }
 
 /** Fictional data for previews and screenshots. */

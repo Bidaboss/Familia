@@ -55,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.share.ShareButton
 import fr.familia.app.core.model.DateAnswer
 import fr.familia.app.core.model.Poll
@@ -85,7 +86,7 @@ fun PollDetailScreen(
     onOpenEvent: (String) -> Unit,
     onDismissError: () -> Unit,
     onBack: () -> Unit,
-    today: LocalDate = LocalDate.now(),
+    today: LocalDate = familyToday(),
     /** « Partager » vers une messagerie (PRD, récit 31); hidden when null. */
     onShare: (() -> Unit)? = null,
 ) {
