@@ -2,7 +2,7 @@
 // answer straight to the one who asked, and one gentle reminder goes to the borrower 3 days
 // after the return date, in the task of 18 h of the coups de main. No money, ever.
 
-import { Timestamp, type Firestore } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp, type Firestore } from 'firebase-admin/firestore';
 import { formatDay, parisDay, type Notice } from './logic';
 import { deliver } from './prefs';
 import type { Sender } from './store';
@@ -104,4 +104,23 @@ export async function sendLendReminders(db: Firestore, send: Sender, now: Date):
     told++;
   }
   return told;
+}
+
+/**
+ * A member removed from the family: their things go (the photos follow by onLendItemDeleted),
+ * and a thing they asked for or had is free again. Returns the number of things changed.
+ */
+export async function releaseLendItemsOf(db: Firestore, memberId: string): Promise<number> {
+  const owned = await db.collection('lendItems').where('ownerId', '==', memberId).get();
+  const borrowed = await db.collection('lendItems').where('borrowerId', '==', memberId).get();
+  const batch = db.batch();
+  for (const doc of owned.docs) batch.delete(doc.ref);
+  const free = {
+    status: 'available', borrowerId: null, borrowerName: null, from: null, until: null,
+    askedAt: null, lentAt: null, remindedAt: null, updatedAt: FieldValue.serverTimestamp(),
+  };
+  const released = borrowed.docs.filter((d) => d.get('ownerId') !== memberId);
+  for (const doc of released) batch.update(doc.ref, free);
+  await batch.commit();
+  return owned.size + released.length;
 }

@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import {
-  acceptNotice, askNotice, declineNotice, lendDates, onLendItemUpdated, reminderNotice, sendLendReminders,
+  acceptNotice, askNotice, declineNotice, lendDates, onLendItemUpdated, releaseLendItemsOf, reminderNotice, sendLendReminders,
   type LendItemData,
 } from '../src/lendItems';
 import { Notice } from '../src/logic';
@@ -107,5 +107,29 @@ describe('against the emulator', () => {
     assert.deepEqual(sent.map((s) => [s.token, s.notice.lendItemId]), [['token-ines', 'late']]);
     assert.ok((await db.doc('lendItems/late').get()).get('remindedAt'));
     assert.equal(await sendLendReminders(db, send, now), 0);
+  });
+
+  test('a member removed: their things go', async () => {
+    await db.doc('lendItems/mine').set(item({ ownerId: 'ines' }));
+    await db.doc('lendItems/other').set(item());
+    assert.equal(await releaseLendItemsOf(db, 'ines'), 1);
+    assert.equal((await db.doc('lendItems/mine').get()).exists, false);
+    assert.equal((await db.doc('lendItems/other').get()).exists, true);
+  });
+
+  test('a member removed: what they asked for or had is free again, entirely', async () => {
+    await db.doc('lendItems/asked').set(asked());
+    await db.doc('lendItems/lent').set(asked({
+      status: 'lent', until: Timestamp.fromMillis(now.getTime()), remindedAt: Timestamp.fromMillis(0),
+    }));
+    await db.doc('lendItems/noe').set(asked({ borrowerId: 'noe', borrowerName: 'Noé' }));
+    assert.equal(await releaseLendItemsOf(db, 'ines'), 2);
+    for (const id of ['asked', 'lent']) {
+      const doc = (await db.doc(`lendItems/${id}`).get()).data();
+      assert.equal(doc?.status, 'available');
+      for (const field of ['borrowerId', 'borrowerName', 'from', 'until', 'remindedAt']) assert.equal(doc?.[field], null);
+      assert.equal(doc?.ownerId, 'camille');
+    }
+    assert.equal((await db.doc('lendItems/noe').get()).get('borrowerId'), 'noe');
   });
 });

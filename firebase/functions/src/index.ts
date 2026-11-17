@@ -22,7 +22,7 @@ import { checkConsumptionIfDue } from './consumption';
 import { CrashData, onCrashReported } from './crashes';
 import { FeedbackData, onFeedbackChanged, onFeedbackCreated, screenshotToDelete } from './feedback';
 import { deleteEndedGoodDeals, sendGoodDealsSummary } from './goodDeals';
-import { onLendItemUpdated, sendLendReminders, type LendItemData } from './lendItems';
+import { onLendItemUpdated, releaseLendItemsOf, sendLendReminders, type LendItemData } from './lendItems';
 import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
 import { closeDuePolls, closeEventPolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
 import { cloudMonitoring } from './monitoring';
@@ -293,6 +293,8 @@ export const onLendItemDeleted = onDocumentDeleted('lendItems/{itemId}', async (
 // Spec, cas limites: a volunteer removed from the family frees their upcoming requests.
 export const onMemberDeletedHelp = onDocumentDeleted('members/{memberId}', async (event) => {
   await reopenRequestsOf(getFirestore(), event.params.memberId, new Date());
+  // On se prête (récit 51): their things go, and what they asked for or had is free again.
+  await releaseLendItemsOf(getFirestore(), event.params.memberId);
 });
 
 // --- Listes et cadeaux (V2) --------------------------------------------------------------------

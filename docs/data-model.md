@@ -621,7 +621,7 @@ Dans l'onglet Entraide, derrière l'interrupteur « On se prête » (`config/app
 
 Droits : tous les membres lisent tout. Seuls les adultes ajoutent un objet. Le propriétaire et l'admin principal modifient l'objet lui-même (le prêt ne change pas) et le retirent. « Je voudrais l'emprunter » : un adulte qui n'est pas le propriétaire, sur un objet libre, en son nom (`asked`). « D'accord » : le propriétaire (`lent`). « Pas cette fois » (le propriétaire) ou une demande retirée (l'emprunteur), puis « Rendu » (l'un ou l'autre) : retour à `available`, tous les champs du prêt à `null`. Un enfant voit la liste et ne demande pas.
 
-Serveur (`firebase/functions/src/lendItems.ts`) : `onLendItemChanged` prévient directement le propriétaire d'une demande, puis celui qui a demandé de la réponse. Une demande retirée et « Rendu » ne préviennent personne. Dans la tâche de 18 h des coups de main, un seul rappel doux part à l'emprunteur 3 jours après la date de retour (`remindedAt`). Le canal est Coups de main, et un tap ouvre l'objet (`lendItemId`). `onLendItemDeleted` supprime la photo.
+Serveur (`firebase/functions/src/lendItems.ts`) : `onLendItemChanged` prévient directement le propriétaire d'une demande, puis celui qui a demandé de la réponse. Une demande retirée et « Rendu » ne préviennent personne. Dans la tâche de 18 h des coups de main, un seul rappel doux part à l'emprunteur 3 jours après la date de retour (`remindedAt`). Le canal est Coups de main, et un tap ouvre l'objet (`lendItemId`). `onLendItemDeleted` supprime la photo. Un membre retiré de la famille (`onMemberDeletedHelp`) : ses objets sont supprimés, et ceux qu'il avait demandés ou empruntés redeviennent libres.
 
 ## Arbre généalogique (PRD, récit 40)
 
