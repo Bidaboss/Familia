@@ -853,7 +853,7 @@ Droits : les lecteurs du voyage lisent la liste. Les participants, enfants compr
 
 ### `trips/{tripId}/bags/{memberId}` (récit 62, « Ma valise », module `packingList`)
 
-La valise d'un participant pour ce voyage : une liste à cocher privée. Seuls le membre et ses adultes responsables (la valise d'un enfant) la lisent et l'écrivent, et seulement pour un participant du voyage. Ni l'admin principal ni « Voir comme » ne la lisent. Supprimée avec le voyage, et avec le membre quand il est retiré de la famille.
+La valise d'un participant pour ce voyage : une liste à cocher privée. Seuls le membre et ses adultes responsables (la valise d'un enfant) la lisent et l'écrivent, et seulement pour un participant du voyage. Ni l'admin principal ni « Voir comme » ne la lisent. Supprimée avec le voyage, quand le membre est retiré du voyage (fonction `onTripParticipantsChanged`), et avec le membre quand il est retiré de la famille.
 
 | Champ | Type | Description |
 |---|---|---|

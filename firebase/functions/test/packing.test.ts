@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { after, beforeEach, describe, test } from 'node:test';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { leftIn, packingMessages, sendPackingReminders } from '../src/packing';
+import { dropBags, leftIn, leftTheTrip, packingMessages, sendPackingReminders } from '../src/packing';
 import type { Member } from '../src/logic';
 
 const member = (id: string, firstName: string, profile: Member['profile'] = 'adult', parentIds: string[] = []): Member =>
@@ -38,6 +38,13 @@ describe('packing, without the emulator', () => {
   test('a bag left behind by someone no longer on the trip says nothing', () => {
     const msgs = packingMessages('t1', 'Corse', ['camille'], new Map([['camille', 0], ['ines', 3]]), MEMBERS);
     assert.deepEqual(msgs, []);
+  });
+
+  test('only those taken off the trip leave their bag', () => {
+    assert.deepEqual(leftTheTrip(['camille', 'ines', 'noe'], ['ines', 'sam']), ['camille', 'noe']);
+    assert.deepEqual(leftTheTrip(['camille'], ['camille', 'sam']), []);
+    assert.deepEqual(leftTheTrip(undefined, ['camille']), []);
+    assert.deepEqual(leftTheTrip(['camille', 42], 'abimé'), ['camille']);
   });
 });
 
@@ -79,5 +86,12 @@ describe('packing against the emulator', () => {
     await db.doc('config/app').set({ features: { packingList: false } });
     await sendPackingReminders(db, sender(bodies), evening);
     assert.deepEqual(bodies, []);
+  });
+
+  test('the bag of someone taken off the trip goes, the others stay', async () => {
+    assert.equal(await dropBags(db, 't1', ['camille', 'noe']), 2);
+    assert.equal((await db.doc('trips/t1/bags/camille').get()).exists, false);
+    assert.equal((await db.doc('trips/t1/bags/ines').get()).exists, true);
+    assert.equal(await dropBags(db, 't1', []), 0);
   });
 });
