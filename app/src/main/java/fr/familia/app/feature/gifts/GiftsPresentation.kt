@@ -48,6 +48,7 @@ internal fun LazyListScope.presentationContent(
     onAllBirthdays: () -> Unit,
     onPrepareSurprise: (String) -> Unit,
     onOpenNotebook: (() -> Unit)?,
+    onOpenMyPage: (() -> Unit)? = null,
 ) {
     state.next?.let { next ->
         item(key = "next-occasion") { NextOccasionCard(state, next, onSeeIdeas = { onSelectMoment(next) }) }
@@ -59,12 +60,16 @@ internal fun LazyListScope.presentationContent(
     val mine = state.sections.firstOrNull { it.isMe }
     if (mine != null && state.moment !is GiftMoment.BirthdayOf) {
         item(key = "my-wishes") {
-            ListCard(
-                title = stringResource(R.string.gifts_my_wish_list),
-                subtitle = wishesSubtitle(mine.wishes?.let { state.wishPreviews[it.id] }, empty = mine.wishes == null, keptByMe = true),
-                tint = ClayTint.Family,
-                onClick = { onOpenList(mine.wishes?.id ?: wishesListId(mine.member.id)) },
-            )
+            if (onOpenMyPage != null) {
+                MyWishesOnPageCard(onOpenMyPage)
+            } else {
+                ListCard(
+                    title = stringResource(R.string.gifts_my_wish_list),
+                    subtitle = wishesSubtitle(mine.wishes?.let { state.wishPreviews[it.id] }, empty = mine.wishes == null, keptByMe = true),
+                    tint = ClayTint.Family,
+                    onClick = { onOpenList(mine.wishes?.id ?: wishesListId(mine.member.id)) },
+                )
+            }
         }
     }
     val others = state.sections.filter { !it.isMe }

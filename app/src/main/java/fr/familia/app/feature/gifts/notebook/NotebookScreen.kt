@@ -398,7 +398,7 @@ private fun BudgetDialog(name: String, initial: Double?, onConfirm: (Double?) ->
 }
 
 @Composable
-private fun GiftRow(entry: NotebookEntry, variant: Color, onClick: () -> Unit) {
+internal fun GiftRow(entry: NotebookEntry, variant: Color, onClick: () -> Unit) {
     val details = listOfNotNull(
         statusLabel(entry.status),
         entry.price?.let { formatEuros(it) },
@@ -438,7 +438,7 @@ private fun sourceLabel(source: NotebookSource): String = stringResource(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun StatusSheet(entry: NotebookEntry, actions: NotebookActions, onDismiss: () -> Unit) {
+internal fun StatusSheet(entry: NotebookEntry, actions: NotebookActions, onDismiss: () -> Unit) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         StatusSheetContent(
             entry = entry,

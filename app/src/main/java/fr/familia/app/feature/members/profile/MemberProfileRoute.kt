@@ -11,6 +11,8 @@ import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.feature.gifts.profile.ProfileGivingSection
+import fr.familia.app.feature.gifts.profile.ProfileWishesSection
 import fr.familia.app.feature.members.card.MemberCardSection
 import fr.familia.app.feature.thinkofme.ThinkOfMeSection
 import fr.familia.app.feature.wishes.BirthdayCardsSection
@@ -26,6 +28,8 @@ fun MemberProfileRoute(
     onEdit: () -> Unit,
     /** « Voir ses recettes » (récit 38), when the recipe book is on. */
     onOpenRecipes: (() -> Unit)? = null,
+    /** What the Cadeaux sections of the page open (retour d'essai, 17/11). */
+    giftActions: ProfileGiftActions = ProfileGiftActions(),
 ) {
     val context = LocalContext.current.applicationContext
     val viewModel: MemberProfileViewModel = viewModel(
@@ -43,6 +47,9 @@ fun MemberProfileRoute(
     val wishesOn = LocalFeatureFlags.current.isOn(Feature.BirthdayWishes)
     val cardOn = LocalFeatureFlags.current.isOn(Feature.MemberCard)
     val thinkOfMeOn = LocalFeatureFlags.current.isOn(Feature.ThinkOfMe)
+    val giftsOn = LocalFeatureFlags.current.isOn(Feature.Gifts)
+    val singleList = LocalFeatureFlags.current.isOn(Feature.SingleList)
+    val notebookOn = LocalFeatureFlags.current.isOn(Feature.GiftNotebook)
     MemberProfileScreen(
         state = state,
         onBack = onBack,
@@ -53,5 +60,30 @@ fun MemberProfileRoute(
         wishes = if (wishesOn) ({ person -> BirthdayCardsSection(container, currentMember, person) }) else null,
         card = if (cardOn) ({ person -> MemberCardSection(container, currentMember, person) }) else null,
         thinkOfMe = if (thinkOfMeOn) ({ person -> ThinkOfMeSection(container, currentMember, person) }) else null,
+        gifts = if (giftsOn) {
+            { person ->
+                ProfileWishesSection(container, currentMember, person, giftActions.onOpenList, giftActions.onAddWish)
+                ProfileGivingSection(
+                    container, currentMember, person, singleList, notebookOn,
+                    onOpenList = giftActions.onOpenList,
+                    onOpenNotebook = giftActions.onOpenNotebook,
+                    onAddIdea = giftActions.onAddIdea,
+                    onEditIdea = giftActions.onEditIdea,
+                    onProposeIdea = giftActions.onProposeIdea,
+                )
+            }
+        } else {
+            null
+        },
     )
 }
+
+/** Where the « Ses envies » and « Ce que je lui offre » sections of a page lead. */
+data class ProfileGiftActions(
+    val onOpenList: (listId: String) -> Unit = {},
+    val onAddWish: (listId: String) -> Unit = {},
+    val onOpenNotebook: () -> Unit = {},
+    val onAddIdea: (personId: String) -> Unit = {},
+    val onEditIdea: (entryId: String) -> Unit = {},
+    val onProposeIdea: (entryId: String) -> Unit = {},
+)

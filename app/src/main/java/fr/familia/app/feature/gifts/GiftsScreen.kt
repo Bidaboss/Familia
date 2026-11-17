@@ -73,6 +73,8 @@ fun GiftsScreen(
     someListsHidden: Boolean = false,
     /** The occasion chosen at the top of the tab (récit 9 ter), null for everyone. */
     onSelectMoment: (GiftMoment?) -> Unit = {},
+    /** « Mes envies » now live on the member's page (retour d'essai, 17/11): the tab only leads there. */
+    onOpenMyPage: (() -> Unit)? = null,
 ) {
     // Mode présentation (récit 48): the tab may be on screen at the party, in front of the person.
     val presenting = LocalPresenting.current
@@ -105,7 +107,7 @@ fun GiftsScreen(
                     }
                 }
                 if (state.presentation) {
-                    presentationContent(state, onOpenList, onSelectMoment, onAllBirthdays, onPrepareSurprise, onOpenNotebook)
+                    presentationContent(state, onOpenList, onSelectMoment, onAllBirthdays, onPrepareSurprise, onOpenNotebook, onOpenMyPage)
                     return@LazyColumn
                 }
                 onOpenNotebook?.let { open ->
@@ -124,12 +126,12 @@ fun GiftsScreen(
                 // Once an occasion is chosen, its people come first: the birthdays wait.
                 if (state.moment == null) birthdaysSection(state, onAllBirthdays, onPrepareSurprise, onOpenList)
                 state.sections.filter { it.keptByMe }.forEach { section ->
-                    personSection(section, state.today, state.wishPreviews, onOpenList, state.singleList, presenting)
+                    personSection(section, state.today, state.wishPreviews, onOpenList, state.singleList, presenting, onOpenMyPage)
                 }
                 // The others under their household, as in the Famille tab.
                 householdRuns(state.sections.filter { !it.keptByMe }).forEach { (name, section) ->
                     if (name != null) item(key = "household-${section.member.id}") { HouseholdLabel(name) }
-                    personSection(section, state.today, state.wishPreviews, onOpenList, state.singleList, presenting)
+                    personSection(section, state.today, state.wishPreviews, onOpenList, state.singleList, presenting, onOpenMyPage)
                 }
                 if (state.archived.isNotEmpty()) archivedSection(state.archived, state.today, onOpenList)
             }
@@ -154,6 +156,7 @@ private fun LazyListScope.personSection(
     onOpenList: (String) -> Unit,
     singleList: Boolean = false,
     presenting: Boolean = false,
+    onOpenMyPage: (() -> Unit)? = null,
 ) {
     item(key = "person-${section.member.id}") {
         Row(
@@ -170,7 +173,9 @@ private fun LazyListScope.personSection(
     }
     // « Mes envies » always shows for the member and the children whose lists they keep, even empty.
     val wishes = section.wishes
-    if (wishes != null || section.keptByMe) {
+    if (section.isMe && onOpenMyPage != null) {
+        item(key = "wishes-${section.member.id}") { MyWishesOnPageCard(onOpenMyPage) }
+    } else if (wishes != null || section.keptByMe) {
         item(key = "wishes-${section.member.id}") {
             val title = if (section.isMe) {
                 stringResource(R.string.gift_my_wishes)
@@ -206,6 +211,17 @@ private fun LazyListScope.personSection(
             onClick = { onOpenList(list.id) },
         )
     }
+}
+
+/** « Mes envies » are on the member's page now: one card, well in sight for a child, leads there. */
+@Composable
+internal fun MyWishesOnPageCard(onOpenMyPage: () -> Unit) {
+    ListCard(
+        title = stringResource(R.string.gift_my_wishes),
+        subtitle = stringResource(R.string.gifts_my_wishes_on_page),
+        tint = ClayTint.Family,
+        onClick = onOpenMyPage,
+    )
 }
 
 /** While presenting, a surprise in progress stays out of sight: its title names the occasion. */
