@@ -8,6 +8,7 @@ import type { DocumentSnapshot, Firestore } from 'firebase-admin/firestore';
 import { addDays, formatDay, Notice, parisDay, Profile } from './logic';
 import { notify, Sender } from './store';
 import { wasMarkedReceived, wasRevealed } from './wishesReveal';
+import { familyMembers } from './audience';
 
 export interface GiftMember {
   id: string;
@@ -120,8 +121,8 @@ export function itemNotice(kind: 'edited' | 'deleted' | 'received', listId: stri
 // --- Firestore --------------------------------------------------------------------------------
 
 export async function loadGiftMembers(db: Firestore): Promise<GiftMember[]> {
-  const snapshot = await db.collection('members').get();
-  return snapshot.docs.map((doc) => ({
+  const snapshot = await familyMembers(db);
+  return snapshot.map((doc) => ({
     id: doc.id,
     firstName: String(doc.get('firstName') ?? ''),
     profile: doc.get('profile'),

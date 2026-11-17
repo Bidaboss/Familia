@@ -8,6 +8,7 @@ import { addDays, Notice, parisDay } from './logic';
 import { BankQuestion, QUESTION_BANK } from './questionBank';
 import { digestOn, queueDigest } from './digest';
 import { notify, Sender } from './store';
+import { familyMembers } from './audience';
 
 /** The first question comes out on Monday 30 November 2026 (PRD rév. 174). */
 export const FIRST_DAY = '2026-11-30';
@@ -64,8 +65,8 @@ async function isModuleOn(db: Firestore): Promise<boolean> {
 
 /** Who is told: every member with the app, except those who turned it off. */
 async function audience(db: Firestore): Promise<string[]> {
-  const members = await db.collection('members').get();
-  const withApp = members.docs.filter((m) => m.get('profile') !== 'childWithoutApp').map((m) => m.id);
+  const members = await familyMembers(db);
+  const withApp = members.filter((m) => m.get('profile') !== 'childWithoutApp').map((m) => m.id);
   if (withApp.length === 0) return [];
   const settings = await db.getAll(...withApp.map((id) => db.doc(`members/${id}/settings/notifications`)));
   const muted = new Set(settings.filter((s) => s.exists && s.get('weekly') === false).map((s) => s.ref.parent.parent!.id));

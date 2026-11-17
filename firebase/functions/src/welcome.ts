@@ -6,6 +6,7 @@ import type { Firestore } from 'firebase-admin/firestore';
 import type { Notice } from './logic';
 import { featureOn, notify, type Sender } from './store';
 import { householdKindOf } from './testHousehold';
+import { familyMembers } from './audience';
 
 export const WELCOME = 'welcome';
 /** The gRPC code Firestore gives when create() meets an existing document. */
@@ -36,11 +37,11 @@ export async function welcomeMember(db: Firestore, send: Sender, memberId: strin
     if ((e as { code?: number }).code === ALREADY_EXISTS) return null;
     throw e;
   }
-  const members = await db.collection('members').get();
-  const newcomer = members.docs.find((m) => m.id === memberId);
+  const members = await familyMembers(db);
+  const newcomer = members.find((m) => m.id === memberId);
   const firstName = String(newcomer?.get('firstName') ?? '');
   if (!firstName) return 0;
-  const others = members.docs.filter((m) => m.id !== memberId && m.get('profile') !== 'childWithoutApp').map((m) => m.id).sort();
+  const others = members.filter((m) => m.id !== memberId && m.get('profile') !== 'childWithoutApp').map((m) => m.id).sort();
   return notify(db, send, others, welcomeNotice(firstName, memberId));
 }
 

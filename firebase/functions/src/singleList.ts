@@ -24,6 +24,7 @@
 import type { DocumentReference, DocumentSnapshot, Firestore } from 'firebase-admin/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
 import { notebookEntryId } from './notebook';
+import { familyMembers } from './audience';
 
 export type SingleListTarget = 'wishes' | 'ideas';
 
@@ -62,7 +63,7 @@ export async function migrateToSingleList(db: Firestore): Promise<number> {
   const config = await db.doc('config/app').get();
   if (config.get('features.singleList') !== true) return 0;
   const lists = await db.collection('giftLists').where('kind', 'in', ['own', 'surprise']).get();
-  const members = (await db.collection('members').get()).docs.map((m) => ({ id: m.id, profile: m.get('profile') }));
+  const members = (await familyMembers(db)).map((m) => ({ id: m.id, profile: m.get('profile') }));
   let copied = 0;
   for (const list of lists.docs) {
     // A revealed list is past: its gifts were given, they belong to its own history.

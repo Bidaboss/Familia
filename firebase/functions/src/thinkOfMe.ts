@@ -8,6 +8,7 @@
 import type { Firestore } from 'firebase-admin/firestore';
 import { parisDay, type Notice } from './logic';
 import { featureOn, notify, type Sender } from './store';
+import { familyMembers } from './audience';
 
 export const THINK_OF_ME = 'thinkOfMe';
 
@@ -55,11 +56,11 @@ export async function startMoments(db: Firestore, send: Sender, now: Date): Prom
   const moments = await db.collection('moments').where('day', '==', today).get();
   const todo = moments.docs.filter((m) => m.get('status') === 'accepted' && !m.get('startedAt'));
   if (todo.length === 0) return [];
-  const members = await db.collection('members').get();
+  const members = await familyMembers(db);
   const started: string[] = [];
   for (const moment of todo) {
     const forMemberId = String(moment.get('forMemberId'));
-    const person = members.docs.find((m) => m.id === forMemberId);
+    const person = members.find((m) => m.id === forMemberId);
     if (!person) continue;
     try {
       // Only if nobody started it meanwhile: the update time must not have moved.
@@ -69,7 +70,7 @@ export async function startMoments(db: Firestore, send: Sender, now: Date): Prom
       throw e;
     }
     started.push(moment.id);
-    const withApp = members.docs
+    const withApp = members
       .filter((m) => m.id !== forMemberId && m.get('profile') !== 'childWithoutApp')
       .map((m) => m.id);
     const firstName = String(person.get('firstName') ?? '');

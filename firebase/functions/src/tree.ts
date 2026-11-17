@@ -8,6 +8,7 @@ import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import { addDays, parisDay, type Notice } from './logic';
 import { digestOn, queueDigest } from './digest';
 import { notify, type Sender } from './store';
+import { familyMembers } from './audience';
 
 export const LEAVES_PER_DAY = 5;
 
@@ -236,8 +237,8 @@ export async function celebrateChallenge(
     if ((e as { code?: number }).code === 6) return false; // Celebrated before.
     throw e;
   }
-  const members = await db.collection('members').get();
-  const withApp = members.docs.filter((m) => m.get('profile') !== 'childWithoutApp').map((m) => m.id);
+  const members = await familyMembers(db);
+  const withApp = members.filter((m) => m.get('profile') !== 'childWithoutApp').map((m) => m.id);
   if (withApp.length === 0) return true;
   const settings = await db.getAll(...withApp.map((id) => db.doc(`members/${id}/settings/notifications`)));
   const muted = new Set(settings.filter((s) => s.exists && s.get('tree') === false).map((s) => s.ref.parent.parent!.id));
