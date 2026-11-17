@@ -5,7 +5,7 @@ import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
 import {
   collection, deleteDoc, doc, getDoc, getDocs, query, runTransaction, serverTimestamp, setDoc, Timestamp,
-  updateDoc, where,
+  arrayUnion, updateDoc, where,
 } from 'firebase/firestore';
 import { ADMIN, ADULT, NEIGHBOUR, OTHER_ADULT, SECOND_ADMIN, STRANGER, adultDoc, as, createEnv, seed } from './helpers.mjs';
 
@@ -267,6 +267,40 @@ describe('« Je ne peux pas » (carte PRODUIT-22)', () => {
     await assertSucceeds(updateDoc(ref(as(env, ADULT)), {
       notifyIds: ['adult2', 'adult3'], viewerIds: ['adult1', 'adult2', 'adult3'], declinedBy: null, ...now(),
     }));
+  });
+});
+
+describe('« Pas dispo » when several people were warned (présentation R1 bis)', () => {
+  const unavailable = (by) => ({ unavailableIds: arrayUnion(by.memberId), ...now() });
+
+  test('someone warned says « Pas dispo », once, and the request stays open', async () => {
+    await stored(request(ADULT, ['adult2', 'adult3']));
+    await assertSucceeds(updateDoc(ref(as(env, OTHER_ADULT)), unavailable(OTHER_ADULT)));
+    await assertSucceeds(updateDoc(ref(as(env, NEIGHBOUR)), unavailable(NEIGHBOUR)));
+    const stored2 = await getDoc(ref(as(env, ADULT)));
+    if (stored2.get('unavailableIds').join() !== 'adult2,adult3' || stored2.get('status') !== 'open') throw new Error('not kept');
+    await assertFails(updateDoc(ref(as(env, OTHER_ADULT)), { unavailableIds: ['adult2', 'adult3', 'adult2'], ...now() }));
+  });
+
+  test('nobody says « Pas dispo » for someone else, nor when not warned, nor on a taken request', async () => {
+    await stored(request(ADULT, ['adult2', 'adult3']));
+    await assertFails(updateDoc(ref(as(env, OTHER_ADULT)), unavailable(NEIGHBOUR)));
+    await assertFails(updateDoc(ref(as(env, ADMIN)), unavailable(ADMIN)));
+    await assertFails(updateDoc(ref(as(env, OTHER_ADULT)), { unavailableIds: [], ...now() }));
+    await stored({ ...request(ADULT, ['adult2', 'adult3']), status: 'taken', volunteerId: 'adult3', volunteerName: 'adult3' }, 'r2');
+    await assertFails(updateDoc(ref(as(env, OTHER_ADULT), 'r2'), unavailable(OTHER_ADULT)));
+  });
+
+  test('« Pas dispo » changes nothing else', async () => {
+    await stored(request(ADULT, ['adult2', 'adult3']));
+    await assertFails(updateDoc(ref(as(env, OTHER_ADULT)), { ...unavailable(OTHER_ADULT), declinedBy: 'adult2' }));
+  });
+
+  test('the author keeps or clears the « Pas dispo » when editing, never adds one', async () => {
+    await stored({ ...request(ADULT, ['adult2', 'adult3']), unavailableIds: ['adult2'] });
+    await assertSucceeds(updateDoc(ref(as(env, ADULT)), { note: 'Avec le goûter', ...now() }));
+    await assertFails(updateDoc(ref(as(env, ADULT)), { unavailableIds: ['adult2', 'adult3'], ...now() }));
+    await assertSucceeds(updateDoc(ref(as(env, ADULT)), { unavailableIds: [], date: day(4), ...now() }));
   });
 });
 

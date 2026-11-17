@@ -23,6 +23,8 @@ export interface HelpRequestData {
   /** The volunteer's short word (récit 16, spec rév. 8), absent on older requests. */
   volunteerNote?: string | null;
   declinedBy: string | null;
+  /** « Pas dispo » (présentation R1 bis) from people warned among several: nobody is told. */
+  unavailableIds?: string[];
   thankedAt: unknown | null;
 }
 

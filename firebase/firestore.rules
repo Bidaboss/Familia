@@ -666,7 +666,8 @@ service cloud.firestore {
       return v == null || (v is string && v.size() <= 200);
     }
 
-    // The 19 fields, plus volunteerNote and photo when there are some (older requests have 19).
+    // The 19 fields, plus volunteerNote, photo and unavailableIds when there are some (older
+    // requests have 19).
     function isValidHelpRequest(r) {
       return r.keys().hasAll(['kind', 'title', 'date', 'startTime', 'endTime', 'place', 'note', 'authorId',
                               'authorName', 'forMemberId', 'notifyIds', 'viewerIds', 'status', 'volunteerId',
@@ -674,8 +675,9 @@ service cloud.firestore {
         && r.keys().hasOnly(['kind', 'title', 'date', 'startTime', 'endTime', 'place', 'note', 'authorId',
                              'authorName', 'forMemberId', 'notifyIds', 'viewerIds', 'status', 'volunteerId',
                              'volunteerName', 'declinedBy', 'thankedAt', 'createdAt', 'updatedAt',
-                             'volunteerNote', 'photo'])
+                             'volunteerNote', 'photo', 'unavailableIds'])
         && isVolunteerNote(r.get('volunteerNote', null))
+        && r.get('unavailableIds', []) is list && r.get('unavailableIds', []).size() <= 20
         && r.kind in ['childcare', 'ride', 'other']
         && r.title is string && r.title.size() > 0 && r.title.size() <= 80
         && isDay(r.date)
@@ -757,6 +759,20 @@ service cloud.firestore {
         && request.resource.data.declinedBy == myMemberId();
     }
 
+    // « Pas dispo » (présentation R1 bis) when others were warned too: someone warned adds their
+    // own id, once, and the request stays open for the others. Nobody is told.
+    function isHelpUnavailable() {
+      let before = resource.data.get('unavailableIds', []);
+      let after = request.resource.data.get('unavailableIds', []);
+      return resource.data.status == 'open'
+        && helpChanges(['unavailableIds'])
+        && myMemberId() in resource.data.notifyIds
+        && !(myMemberId() in before)
+        && after is list
+        && after.size() == before.size() + 1
+        && after.toSet() == before.toSet().union([myMemberId()].toSet());
+    }
+
     // « Merci », once, by whoever manages a request that was taken.
     function isHelpThanks() {
       return resource.data.status == 'taken'
@@ -768,13 +784,15 @@ service cloud.firestore {
 
     // Modify, widen to other people or cancel. The author, the person helped, the volunteer and
     // the creation time never change; the volunteer stays among the people warned; a new date is
-    // not in the past; widening clears a « Je ne peux pas ». A cancelled request stays cancelled.
+    // not in the past; widening clears a « Je ne peux pas », and may clear the « Pas dispo ». A
+    // cancelled request stays cancelled.
     function isHelpEdit(requestId) {
       return resource.data.status != 'cancelled'
         && request.resource.data.status in [resource.data.status, 'cancelled']
         && !request.resource.data.diff(resource.data).affectedKeys()
               .hasAny(['authorId', 'authorName', 'forMemberId', 'volunteerId', 'volunteerName', 'volunteerNote', 'thankedAt', 'createdAt'])
         && request.resource.data.declinedBy in [resource.data.declinedBy, null]
+        && request.resource.data.get('unavailableIds', []) in [resource.data.get('unavailableIds', []), []]
         && (resource.data.volunteerId == null || resource.data.volunteerId in request.resource.data.notifyIds)
         && (request.resource.data.date == resource.data.date || isHelpDayAhead(request.resource.data.date))
         && canManageHelp(resource.data)
@@ -805,7 +823,7 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time;
 
       allow update: if isMember()
-        && (isHelpTake() || isHelpWithdraw() || isHelpNote() || isHelpDecline() || isHelpThanks() || isHelpEdit(requestId));
+        && (isHelpTake() || isHelpWithdraw() || isHelpNote() || isHelpDecline() || isHelpUnavailable() || isHelpThanks() || isHelpEdit(requestId));
 
       allow delete: if isMember() && canManageHelp(resource.data);
     }
