@@ -2,6 +2,7 @@ package fr.familia.app.feature.gooddeals
 
 import fr.familia.app.core.data.GoodDealRepository
 import fr.familia.app.core.model.GoodDeal
+import fr.familia.app.core.model.GoodDealCategory
 import fr.familia.app.core.model.GoodDealKind
 import fr.familia.app.core.model.linkSiteName
 import fr.familia.app.core.photo.PhotoEdit
@@ -55,7 +56,11 @@ class FakeGoodDeals(initial: List<GoodDeal> = emptyList()) : GoodDealRepository 
             if (it.id != id) it else it.copy(interestedIds = if (interested) it.interestedIds + memberId else it.interestedIds - memberId)
         }
     }
-    override suspend fun setRecommended(id: String, memberId: String, recommended: Boolean) = Unit
+    override suspend fun setRecommended(id: String, memberId: String, recommended: Boolean) {
+        deals.value = deals.value.map {
+            if (it.id != id) it else it.copy(recommendedIds = if (recommended) it.recommendedIds + memberId else it.recommendedIds - memberId)
+        }
+    }
 }
 
 /** Bons plans in Entraide (PRD, récit 45). Fictional family of TestFamily. */
@@ -200,6 +205,74 @@ class GoodDealsTest {
         assertTrue(photo.matches(Regex("^goodDeals/d1/adult1/[A-Za-z0-9]{20}$")))
         assertEquals(listOf("$photo.jpg"), sent)
         assertEquals(listOf("goodDeals/d1/adult1/old.jpg", "goodDeals/d1/adult1/old-thumb.jpg"), storage.deleted)
+    }
+
+    // --- Bonnes adresses -------------------------------------------------------------------------
+
+    private fun address(id: String, title: String, category: GoodDealCategory, place: String? = null, author: String = "adult1") =
+        GoodDeal(id, GoodDealKind.Address, title, place = place, category = category, authorId = author, authorName = author.replaceFirstChar { it.uppercase() })
+
+    @Test
+    fun `addresses are filtered by category and found by name or town, without accents`() = runTest {
+        val repo = FakeGoodDeals(
+            listOf(
+                address("a1", "Dr Martin, dentiste", GoodDealCategory.Health, "Lyon"),
+                address("a2", "Garage Durand", GoodDealCategory.Car, "Villeurbanne"),
+                address("a3", "Pédiatre Bernard", GoodDealCategory.Health, "Écully"),
+            ),
+        )
+        val viewModel = GoodDealsViewModel(repo, FakeMembers(), "adult2", now = { now })
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+        fun ids() = (viewModel.uiState.value as GoodDealsUiState.Success).addresses.map { it.deal.id }
+        assertEquals(listOf("a1", "a2", "a3"), ids())
+        viewModel.pickCategory(GoodDealCategory.Health)
+        assertEquals(listOf("a1", "a3"), ids())
+        viewModel.search("ecully")
+        assertEquals(listOf("a3"), ids())
+        viewModel.pickCategory(GoodDealCategory.Health)
+        viewModel.search("pediatre ECULLY")
+        assertEquals(listOf("a3"), ids())
+        viewModel.search("Paris")
+        val state = viewModel.uiState.value as GoodDealsUiState.Success
+        assertTrue(state.addresses.isEmpty())
+        assertTrue(state.hasAddresses)
+    }
+
+    @Test
+    fun `an adult recommends an address too, not its author nor a child`() = runTest {
+        val repo = FakeGoodDeals(listOf(address("a1", "Dr Martin", GoodDealCategory.Health)))
+        val other = GoodDealDetailViewModel(repo, FakeMembers(), "adult2", "a1")
+        val author = GoodDealDetailViewModel(repo, FakeMembers(), "adult1", "a1")
+        val kid = GoodDealDetailViewModel(repo, FakeMembers(), "kid1", "a1")
+        for (vm in listOf(other, author, kid)) backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        assertEquals(listOf("Adult1"), (other.uiState.value as GoodDealDetailUiState.Ready).recommendedNames)
+        other.toggleRecommend()
+        assertTrue((other.uiState.value as GoodDealDetailUiState.Ready).iRecommend)
+        assertEquals(listOf("Adult2"), (author.uiState.value as GoodDealDetailUiState.Ready).recommendedNames)
+        assertFalse((author.uiState.value as GoodDealDetailUiState.Ready).canRecommend)
+        kid.toggleRecommend()
+        assertEquals(listOf("adult2"), repo.deals.value.single().recommendedIds)
+    }
+
+    @Test
+    fun `a new address needs a category, no end and no photo`() {
+        val repo = FakeGoodDeals()
+        val viewModel = GoodDealEditViewModel(repo, FakeMembers(), "adult1", kind = GoodDealKind.Address, photos = photos, today = { today })
+        assertNull((viewModel.uiState.value as GoodDealEditUiState.Editing).form.lastDay)
+        viewModel.update { it.copy(title = "Garage Durand", phone = "appelle") }
+        viewModel.save()
+        assertEquals(
+            setOf(GoodDealFormError.CategoryMissing, GoodDealFormError.PhoneInvalid),
+            (viewModel.uiState.value as GoodDealEditUiState.Editing).errors,
+        )
+        viewModel.update { it.copy(category = GoodDealCategory.Car, phone = "04 78 00 00 00", place = "Villeurbanne") }
+        viewModel.save()
+        val saved = repo.saved.single().first
+        assertEquals(GoodDealKind.Address, saved.kind)
+        assertEquals(GoodDealCategory.Car, saved.category)
+        assertEquals("04 78 00 00 00", saved.phone)
+        assertNull(saved.endsAt)
+        assertNull(saved.photo)
     }
 
     // --- Small helpers ---------------------------------------------------------------------------

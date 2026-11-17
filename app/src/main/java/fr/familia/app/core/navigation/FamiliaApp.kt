@@ -49,6 +49,7 @@ import fr.familia.app.feature.update.rememberInAppUpdater
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.memberInitials
+import fr.familia.app.core.model.GoodDealKind
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.notifications.NotificationChannels
 import fr.familia.app.core.model.FeatureFlags
@@ -1286,7 +1287,7 @@ fun FamiliaApp(
                                 GoodDealsRoute(
                                     container = container,
                                     currentMember = currentMember,
-                                    onPublish = { navController.navigate(GoodDealEditDestination()) },
+                                    onPublish = { kind -> navController.navigate(GoodDealEditDestination(kind = kind.firestoreValue)) },
                                     onOpenDeal = { id -> navController.navigate(GoodDealDetailDestination(id)) },
                                 )
                             },
@@ -1303,10 +1304,12 @@ fun FamiliaApp(
                         )
                     }
                     composable<GoodDealEditDestination> { entry ->
+                        val destination = entry.toRoute<GoodDealEditDestination>()
                         GoodDealEditRoute(
                             container = container,
                             currentMember = currentMember,
-                            dealId = entry.toRoute<GoodDealEditDestination>().dealId,
+                            dealId = destination.dealId,
+                            kind = GoodDealKind.fromFirestore(destination.kind) ?: GoodDealKind.Deal,
                             onDone = { navController.popBackStack() },
                         )
                     }
