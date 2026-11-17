@@ -207,3 +207,7 @@ enum class TopLevelDestination(
         fun visible(flags: FeatureFlags): List<TopLevelDestination> = entries.filter { it.feature?.let(flags::isOn) ?: true }
     }
 }
+
+/** « Tout Familia », the drawer of every module (R1 bis, §3). */
+@Serializable
+data object AllFamiliaDestination

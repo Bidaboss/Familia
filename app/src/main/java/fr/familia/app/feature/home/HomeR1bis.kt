@@ -1,0 +1,400 @@
+package fr.familia.app.feature.home
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Apps
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import fr.familia.app.R
+import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.ClaySpacing
+import fr.familia.app.core.ui.SectionLabel
+import fr.familia.app.core.ui.dayShortLabel
+import fr.familia.app.core.ui.dayTitle
+import fr.familia.app.core.ui.formatTime
+import fr.familia.app.feature.helprequests.kindLabel
+import fr.familia.app.feature.helprequests.whenLabel
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import java.util.Locale
+
+/** The colors of the three families of modules (R1 bis, §1): the pill, its pale background, its text. */
+internal data class ToneColors(val pill: Color, val pale: Color, val text: Color)
+
+internal fun toneColors(tone: DayTone): ToneColors = when (tone) {
+    DayTone.Organise -> ToneColors(Color(0xFFC9B8F5), Color(0xFFF4F0FD), Color(0xFF4A3F8C))
+    DayTone.Help -> ToneColors(Color(0xFFA8E0C2), Color(0xFFEDF7F0), Color(0xFF1F5C3C))
+    DayTone.Party -> ToneColors(Color(0xFFF9B99A), Color(0xFFFDF1EA), Color(0xFF8A3A12))
+}
+
+/** What the new Accueil opens, beside [HomeActions]. */
+class HomeR1bisActions(
+    val onAnswer: (eventId: String, going: Boolean) -> Unit = { _, _ -> },
+    val onOpenAll: () -> Unit = {},
+    /** « Où je suis », while the places module is on. */
+    val onJoinMe: (() -> Unit)? = null,
+)
+
+/**
+ * The Accueil of the R1 bis presentation (spec DESIGN du 17/11, §2), from top to bottom: the frise of
+ * the 7 days, the chosen day, « À faire » with its buttons on the cards, the good news and the
+ * challenge of the month side by side, « En ce moment » during a trip, then « Tout Familia » and
+ * « Où je suis ». At most 4 blocks between the frise and the buttons. The greeting, « + », « ? » and
+ * the avatar are in the bar above.
+ */
+@Composable
+fun HomeR1bisScreen(
+    state: HomeUiState,
+    actions: HomeActions,
+    r1: HomeR1bisActions,
+    goodNews: (@Composable (Modifier) -> Unit)? = null,
+    challenge: (@Composable (Modifier, wide: Boolean) -> Unit)? = null,
+    nowTravelling: (@Composable () -> Unit)? = null,
+    allBadge: Int = 0,
+) {
+    val ready = state as? HomeUiState.Ready ?: return
+    var chosen by rememberSaveable { mutableStateOf(ready.today.toEpochDay()) }
+    val days = ready.days.ifEmpty { homeDays(ready.today) }
+    val day = days.firstOrNull { it.date.toEpochDay() == chosen } ?: days.first()
+    LazyColumn(
+        contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        item(key = "frise") { WeekFrise(days, ready.today, day.date, onChoose = { chosen = it.toEpochDay() }) }
+        item(key = "day") { DayDetail(day, ready.today, actions) }
+        if (ready.todos.isNotEmpty()) {
+            item(key = "todo-label") { SectionLabel(stringResource(R.string.home_r1_todo)) }
+            ready.todos.forEach { todo ->
+                item(key = "todo-${todoKey(todo)}") { TodoR1Card(todo, ready.today, actions, r1) }
+            }
+        }
+        if (ready.todos.isEmpty() && nowTravelling == null && challenge != null) {
+            item(key = "calm") {
+                Text(stringResource(R.string.home_r1_calm), style = MaterialTheme.typography.bodyLarge)
+            }
+        }
+        if (goodNews != null || challenge != null) {
+            item(key = "news-challenge") {
+                if (goodNews != null && challenge != null) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                        goodNews(Modifier.weight(1f))
+                        challenge(Modifier.weight(1f), false)
+                    }
+                } else if (goodNews != null) {
+                    goodNews(Modifier.fillMaxWidth())
+                } else {
+                    challenge?.invoke(Modifier.fillMaxWidth(), true)
+                }
+            }
+        }
+        if (nowTravelling != null) item(key = "now") { nowTravelling() }
+        item(key = "buttons") { HomeButtons(r1, allBadge) }
+    }
+}
+
+private fun todoKey(todo: HomeTodo): String = when (todo) {
+    is HomeTodo.Answer -> "e-${todo.event.id}"
+    is HomeTodo.Help -> "h-${todo.request.id}"
+    is HomeTodo.Vote -> "p-${todo.poll.id}"
+}
+
+/** The frise, also given empty days while the state has none (previews, Firebase not configured). */
+private fun homeDays(today: LocalDate): List<HomeDay> = (0 until HomeWindow.WEEK_DAYS).map { HomeDay(today.plusDays(it), emptyList()) }
+
+/**
+ * 7 white boxes from today (§2.2): the day, its number, and the word of its first event on a pill of
+ * its color, with a round count from 2 events. The chosen day is dark, today keeps a 2 dp outline.
+ * At a large font size the boxes keep a readable width and the frise scrolls sideways.
+ */
+@Composable
+internal fun WeekFrise(days: List<HomeDay>, today: LocalDate, chosen: LocalDate, onChoose: (LocalDate) -> Unit) {
+    val fontScale = LocalDensity.current.fontScale.coerceAtLeast(1f)
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val gap = 6.dp
+        val fitted = (maxWidth - gap * (days.size - 1)) / days.size
+        val width: Dp = if (fitted < 48.dp * fontScale) 48.dp * fontScale else fitted
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(gap),
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        ) {
+            days.forEach { day -> DayBox(day, today, day.date == chosen, width, onChoose) }
+        }
+    }
+}
+
+@Composable
+private fun DayBox(day: HomeDay, today: LocalDate, chosen: Boolean, width: Dp, onChoose: (LocalDate) -> Unit) {
+    val surface = MaterialTheme.colorScheme.surface
+    val ink = MaterialTheme.colorScheme.onSurface
+    val shape = RoundedCornerShape(16.dp)
+    val background = if (chosen) ink else surface
+    val text = if (chosen) surface else ink
+    val first = day.first
+    val count = day.items.size
+    val name = day.date.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.FRANCE).replaceFirstChar { it.titlecase(Locale.FRANCE) }
+    val spoken = if (count == 0) {
+        stringResource(R.string.home_r1_day_none, "$name ${day.date.dayOfMonth}")
+    } else {
+        pluralStringResource(R.plurals.home_r1_day_events, count, "$name ${day.date.dayOfMonth}", count)
+    }
+    Box(
+        modifier = Modifier
+            .width(width)
+            .heightIn(min = 72.dp)
+            .clip(shape)
+            .background(background)
+            .then(if (day.date == today && !chosen) Modifier.border(BorderStroke(2.dp, ink), shape) else Modifier)
+            .clickable(role = Role.Tab) { onChoose(day.date) }
+            .semantics {
+                contentDescription = spoken
+                selected = chosen
+            },
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp, horizontal = 2.dp).clearAndSetSemantics { },
+        ) {
+            Text(
+                day.date.format(DOW).replace(".", "").replaceFirstChar { it.titlecase(Locale.FRANCE) },
+                fontSize = 12.sp,
+                color = text,
+                maxLines = 1,
+            )
+            Text(day.date.dayOfMonth.toString(), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = text, maxLines = 1)
+            if (first != null) {
+                val tone = toneColors(first.tone)
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    first.word,
+                    fontSize = 12.sp,
+                    color = tone.text,
+                    maxLines = 1,
+                    overflow = TextOverflow.Clip,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(tone.pill)
+                        .padding(horizontal = 4.dp, vertical = 1.dp),
+                )
+            }
+        }
+        if (count >= 2 && first != null) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(3.dp)
+                    .size(20.dp)
+                    .clip(CircleShape)
+                    .background(toneColors(first.tone).pill)
+                    .clearAndSetSemantics { },
+            ) {
+                Text(count.toString(), fontSize = 12.sp, lineHeight = 12.sp, color = toneColors(first.tone).text, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+private val DOW = DateTimeFormatter.ofPattern("EEE", Locale.FRANCE)
+
+/** The chosen day (§2.3): its title, « Tout le planning », then hour, a line of color, what and who. */
+@Composable
+private fun DayDetail(day: HomeDay, today: LocalDate, actions: HomeActions) {
+    ClayCard(modifier = Modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Text(
+                dayTitle(day.date, today),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f).semantics { heading() },
+            )
+            FilledTonalButton(
+                onClick = actions.onOpenPlanning,
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = toneColors(DayTone.Organise).pale,
+                    contentColor = toneColors(DayTone.Organise).text,
+                ),
+                modifier = Modifier.heightIn(min = 48.dp),
+            ) { Text(stringResource(R.string.home_week_all)) }
+        }
+        if (day.items.isEmpty()) {
+            Text(
+                stringResource(R.string.home_r1_day_empty),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
+        day.items.forEach { item -> DayLine(item, actions) }
+    }
+}
+
+@Composable
+private fun DayLine(item: DayItem, actions: HomeActions) {
+    val open: (() -> Unit)? = when (val target = item.open) {
+        is DayOpen.Event -> ({ actions.onOpenEvent(target.id) })
+        is DayOpen.Help -> ({ actions.onOpenHelpRequest(target.id) })
+        is DayOpen.Birthday -> actions.onOpenWishes?.let { wishes -> { wishes(target.memberId) } }
+    }
+    val tone = toneColors(item.tone)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .then(if (open != null) Modifier.clickable(onClick = open) else Modifier)
+            .padding(vertical = 6.dp),
+    ) {
+        Text(
+            item.time?.let { formatTime(it) } ?: stringResource(R.string.home_r1_all_day),
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.widthIn(min = 64.dp),
+        )
+        Box(Modifier.padding(horizontal = 10.dp).width(4.dp).height(32.dp).clip(RoundedCornerShape(2.dp)).background(tone.pill))
+        Column(Modifier.weight(1f)) {
+            val what = if (item.open is DayOpen.Birthday) stringResource(R.string.home_r1_birthday, item.what) else item.what
+            Text(what, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            item.who?.let {
+                Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+/** A card of « À faire » with its buttons right on it (§2.4), 48 dp each. */
+@Composable
+private fun TodoR1Card(todo: HomeTodo, today: LocalDate, actions: HomeActions, r1: HomeR1bisActions) {
+    when (todo) {
+        is HomeTodo.Answer -> TodoShell(
+            title = todo.event.title,
+            detail = todo.event.time?.let { "${dayShortLabel(todo.event.date, today)} · ${formatTime(it)}" } ?: dayShortLabel(todo.event.date, today),
+            onOpen = { actions.onOpenEvent(todo.event.id) },
+        ) {
+            Button(onClick = { r1.onAnswer(todo.event.id, true) }, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.home_r1_going))
+            }
+            OutlinedButton(onClick = { r1.onAnswer(todo.event.id, false) }, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.home_r1_not_going))
+            }
+        }
+        is HomeTodo.Help -> TodoShell(
+            title = todo.request.title.ifBlank { kindLabel(todo.request.kind) },
+            detail = stringResource(R.string.home_todo_help, todo.request.authorName, whenLabel(todo.request, today)),
+            onOpen = { actions.onOpenHelpRequest(todo.request.id) },
+        ) {
+            Button(onClick = { actions.onOpenHelpRequest(todo.request.id) }, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.home_r1_help_open))
+            }
+        }
+        is HomeTodo.Vote -> TodoShell(
+            title = todo.poll.question,
+            detail = stringResource(R.string.home_r1_poll_by, todo.poll.authorName),
+            onOpen = { actions.onOpenPoll(todo.poll.id) },
+        ) {
+            Button(onClick = { actions.onOpenPoll(todo.poll.id) }, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.home_r1_vote))
+            }
+        }
+    }
+}
+
+@Composable
+private fun TodoShell(title: String, detail: String, onOpen: () -> Unit, buttons: @Composable () -> Unit) {
+    ClayCard(modifier = Modifier.fillMaxWidth(), onClick = onOpen) {
+        Text(title, style = MaterialTheme.typography.titleMedium)
+        Text(detail, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) { buttons() }
+    }
+}
+
+/**
+ * « Tout Familia », dark and 56 dp, with the sum of the badges of the drawer, and beside it the
+ * small light « Où je suis » (§2.7).
+ */
+@Composable
+private fun HomeButtons(r1: HomeR1bisActions, allBadge: Int) {
+    val ink = MaterialTheme.colorScheme.onSurface
+    val news = if (allBadge > 0) pluralStringResource(R.plurals.home_r1_all_news, allBadge, allBadge) else null
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Button(
+            onClick = r1.onOpenAll,
+            colors = ButtonDefaults.buttonColors(containerColor = ink, contentColor = MaterialTheme.colorScheme.surface),
+            modifier = Modifier
+                .weight(1f)
+                .heightIn(min = 56.dp)
+                .semantics { if (news != null) stateDescription = news },
+        ) {
+            BadgedBox(
+                badge = { if (allBadge > 0) Badge(containerColor = Color(0xFFF2C14E), contentColor = Color(0xFF1B1B1B)) { Text(allBadge.toString()) } },
+                modifier = Modifier.clearAndSetSemantics { },
+            ) { Icon(Icons.Outlined.Apps, contentDescription = null) }
+            Spacer(Modifier.width(12.dp))
+            Text(stringResource(R.string.home_r1_all))
+        }
+        r1.onJoinMe?.let { joinMe ->
+            TextButton(onClick = joinMe, modifier = Modifier.heightIn(min = 56.dp)) {
+                Icon(Icons.Outlined.Place, contentDescription = null)
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.home_r1_where))
+            }
+        }
+    }
+}

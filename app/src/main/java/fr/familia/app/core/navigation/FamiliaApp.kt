@@ -1,5 +1,19 @@
 package fr.familia.app.core.navigation
 
+import androidx.compose.material.icons.outlined.AccountTree
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.CardGiftcard
+import androidx.compose.material.icons.outlined.HourglassTop
+import androidx.compose.material.icons.outlined.MenuBook
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.VolunteerActivism
+import androidx.compose.ui.graphics.vector.ImageVector
+import fr.familia.app.feature.all.AllFamiliaScreen
+import fr.familia.app.feature.all.AllModule
+import fr.familia.app.feature.all.ModuleFamily
+import fr.familia.app.feature.home.HomeAddOptions
+import fr.familia.app.feature.home.HomeAddSheet
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -568,6 +582,20 @@ fun FamiliaApp(
         val topBarScroll = TopAppBarDefaults.pinnedScrollBehavior()
         // The sheet of my photo (DESIGN-12): my profile and the settings that were under Famille.
         var accountOpen by rememberSaveable { mutableStateOf(false) }
+        // The « + » of the R1 bis Accueil: what can be added, each only with its module.
+        val r1On = features.isOn(Feature.PresentationR1bis)
+        var addOpen by rememberSaveable { mutableStateOf(false) }
+        if (addOpen && r1On) {
+            HomeAddSheet(
+                options = HomeAddOptions(
+                    onEvent = { navController.navigate(EventEditDestination()) },
+                    onGoodNews = if (features.isOn(Feature.GoodNews)) ({ navController.navigate(GoodNewsEditDestination()) }) else null,
+                    onWish = if (features.isOn(Feature.Gifts)) ({ navController.navigate(GiftItemEditDestination(wishesListId(currentMember.id))) }) else null,
+                    onHelp = if (features.isOn(Feature.HelpRequests)) ({ navController.navigate(HelpRequestEditDestination()) }) else null,
+                ),
+                onDismiss = { addOpen = false },
+            )
+        }
         if (accountOpen) {
             val shareContext = LocalContext.current
             val inViewAs = LocalViewAs.current.viewed != null
@@ -616,6 +644,8 @@ fun FamiliaApp(
                         onPolls = if (pollsOn) ({ navController.navigate(PollsDestination) { launchSingleTop = true } }) else null,
                         pollsToVote = if (pollsOn && tab == TopLevelDestination.Planning) rememberPollsToVote(container, currentMember.id) else 0,
                         onAccount = { accountOpen = true },
+                        greeting = if (r1On && tab == TopLevelDestination.Home) stringResource(R.string.home_r1_greeting, currentMember.firstName) else null,
+                        onAdd = if (r1On && tab == TopLevelDestination.Home) ({ addOpen = true }) else null,
                     )
                 }
             },
@@ -693,6 +723,8 @@ fun FamiliaApp(
                                 navController.navigate(HostChallengeDestination(month.year, month.monthValue)) { launchSingleTop = true }
                             },
                             onOpenRecipe = { id -> navController.navigate(RecipeDetailDestination(id)) },
+                            onOpenAll = { navController.navigate(AllFamiliaDestination) { launchSingleTop = true } },
+                            allBadge = helpBadge,
                             onOpenDiscover = { module ->
                                 when (module) {
                                     DiscoverModule.WeeklyQuestion -> navController.navigate(WeeklyQuestionDestination())
@@ -704,6 +736,12 @@ fun FamiliaApp(
                                     DiscoverModule.Genealogy -> navController.navigate(GenealogyDestination) { launchSingleTop = true }
                                 }
                             },
+                        )
+                    }
+                    composable<AllFamiliaDestination> {
+                        AllFamiliaScreen(
+                            modules = allModules(features, helpBadge, navController),
+                            onBack = { navController.popBackStack() },
                         )
                     }
                     composable<RecapDestination> {
@@ -1356,6 +1394,10 @@ private fun TabTopBar(
     pollsToVote: Int = 0,
     /** My photo, last at the right, opens the sheet of my account and the settings (DESIGN-12). */
     onAccount: (() -> Unit)? = null,
+    /** « Bonjour Camille » in place of the tab name, on the R1 bis Accueil. */
+    greeting: String? = null,
+    /** The « + » of the R1 bis Accueil, before « ? ». */
+    onAdd: (() -> Unit)? = null,
 ) {
     TopAppBar(
         scrollBehavior = scrollBehavior,
@@ -1371,7 +1413,7 @@ private fun TabTopBar(
             // 26 sp for the titles of the 5 tabs (DESIGN-11), scaled like titleLarge for a wide font.
             val base = MaterialTheme.typography.titleLarge
             Text(
-                stringResource(if (tab == TopLevelDestination.HelpRequests) R.string.helprequest_screen_title else tab.labelFor(member)),
+                greeting ?: stringResource(if (tab == TopLevelDestination.HelpRequests) R.string.helprequest_screen_title else tab.labelFor(member)),
                 style = base.copy(fontSize = base.fontSize * TAB_TITLE_SCALE, lineHeight = base.lineHeight * TAB_TITLE_SCALE),
             )
         },
@@ -1433,7 +1475,14 @@ private fun TabTopBar(
                     }
                     HelpButton(ScreenHelp.Planning)
                 }
-                TopLevelDestination.Home -> HelpButton(ScreenHelp.Home)
+                TopLevelDestination.Home -> {
+                    onAdd?.let { add ->
+                        IconButton(onClick = add, modifier = Modifier.size(56.dp)) {
+                            Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.home_r1_add))
+                        }
+                    }
+                    HelpButton(ScreenHelp.Home)
+                }
                 TopLevelDestination.Members -> HelpButton(ScreenHelp.Family)
                 TopLevelDestination.HelpRequests -> HelpButton(ScreenHelp.HelpRequests)
                 TopLevelDestination.Gifts -> HelpButton(ScreenHelp.Gifts)
@@ -1464,6 +1513,46 @@ private fun TabLabel(text: String) {
 }
 
 private const val MIN_TAB_LABEL_SP = 9f
+
+/**
+ * The modules of « Tout Familia » (R1 bis, §3), each only while it is on for me. Comptes, Défis,
+ * Albums and Souvenirs join it with their own screen; the Entraide badge is the one of its tab.
+ */
+private fun allModules(features: FeatureFlags, helpBadge: Int, navController: NavHostController): List<AllModule> = buildList {
+    fun module(on: Boolean, key: String, label: Int, icon: ImageVector, family: ModuleFamily, badge: Int = 0, open: () -> Unit) {
+        if (on) this.add(AllModule(key, label, icon, family, badge, open))
+    }
+    module(true, "planning", R.string.all_planning, Icons.Outlined.CalendarMonth, ModuleFamily.Organise) {
+        navController.navigateToTab(TopLevelDestination.Planning)
+    }
+    module(features.isOn(Feature.HelpRequests), "help", R.string.all_help, Icons.Outlined.VolunteerActivism, ModuleFamily.Organise, helpBadge) {
+        navController.navigateToTab(TopLevelDestination.HelpRequests)
+    }
+    module(features.isOn(Feature.Polls), "polls", R.string.all_polls, Icons.Outlined.Poll, ModuleFamily.Organise) {
+        navController.navigate(PollsDestination) { launchSingleTop = true }
+    }
+    module(features.isOn(Feature.Places) && features.isOn(Feature.Home), "where", R.string.all_where, Icons.Outlined.Place, ModuleFamily.Organise) {
+        navController.navigate(JoinMeDestination) { launchSingleTop = true }
+    }
+    module(features.isOn(Feature.Gifts), "gifts", R.string.all_gifts, Icons.Outlined.CardGiftcard, ModuleFamily.Treat) {
+        navController.navigateToTab(TopLevelDestination.Gifts)
+    }
+    module(features.isOn(Feature.Trips), "trips", R.string.all_trips, Icons.Outlined.CardTravel, ModuleFamily.Treat) {
+        navController.navigate(TripsDestination) { launchSingleTop = true }
+    }
+    module(features.isOn(Feature.Recipes), "recipes", R.string.all_recipes, Icons.Outlined.MenuBook, ModuleFamily.Treat) {
+        navController.navigate(RecipesDestination()) { launchSingleTop = true }
+    }
+    module(features.isOn(Feature.Genealogy), "tree", R.string.all_tree, Icons.Outlined.AccountTree, ModuleFamily.Remember) {
+        navController.navigate(GenealogyDestination) { launchSingleTop = true }
+    }
+    module(features.isOn(Feature.Capsules), "capsule", R.string.all_capsule, Icons.Outlined.HourglassTop, ModuleFamily.Remember) {
+        navController.navigate(CapsulesDestination) { launchSingleTop = true }
+    }
+    module(features.isOn(Feature.GoodNews), "goodNews", R.string.all_good_news, Icons.Outlined.Celebration, ModuleFamily.Remember) {
+        navController.navigate(GoodNewsFeedDestination) { launchSingleTop = true }
+    }
+}
 
 private fun NavDestination?.isOn(destination: TopLevelDestination): Boolean =
     this?.hierarchy?.any { it.hasRoute(destination.route::class) } == true

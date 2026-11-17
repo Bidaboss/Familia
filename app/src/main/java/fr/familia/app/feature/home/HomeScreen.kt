@@ -26,6 +26,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -143,6 +146,9 @@ fun HomeRoute(
     onOpenDiscover: (DiscoverModule) -> Unit = {},
     /** Opens the recipe of the chip « Nouvelle recette ». */
     onOpenRecipe: (String) -> Unit = {},
+    /** « Tout Familia » of the R1 bis Accueil, and the sum of the badges of its drawer. */
+    onOpenAll: () -> Unit = {},
+    allBadge: Int = 0,
 ) {
     val flags = LocalFeatureFlags.current
     val giftsOn = flags.isOn(Feature.Gifts)
@@ -219,6 +225,28 @@ fun HomeRoute(
         if (placesOn) {
             add(HomeExtra("joinMe", chip = { _, _ -> HomeChip(stringResource(R.string.joinme_send_open), onClick = onJoinMe) }))
         }
+    }
+    if (flags.isOn(Feature.PresentationR1bis)) {
+        val answerFailed by viewModel.answerFailed.collectAsStateWithLifecycle()
+        val context = LocalContext.current
+        LaunchedEffect(answerFailed) {
+            if (answerFailed) {
+                Toast.makeText(context, R.string.home_r1_answer_failed, Toast.LENGTH_LONG).show()
+                viewModel.answerFailureShown()
+            }
+        }
+        HomeR1bisScreen(
+            state = state,
+            actions = actions,
+            r1 = HomeR1bisActions(onAnswer = viewModel::answer, onOpenAll = onOpenAll, onJoinMe = if (placesOn) onJoinMe else null),
+            goodNews = if (flags.isOn(Feature.GoodNews)) {
+                { modifier -> GoodNewsHomeCard(container, currentMember, onOpenGoodNewsFeed, onOpenGoodNews, onPublishGoodNews, modifier) }
+            } else {
+                null
+            },
+            allBadge = allBadge,
+        )
+        return
     }
     HomeScreen(
         state = state,
