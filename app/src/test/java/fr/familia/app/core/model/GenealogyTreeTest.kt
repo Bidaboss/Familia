@@ -36,6 +36,56 @@ class GenealogyTreeTest {
     }
 
     @Test
+    fun `the children of two sisters stay together, each under their own parent`() {
+        // Alphabetical order alone would mix them: Ada (Rose), Bob (Iris), Cid (Rose), Dan (Iris).
+        val mum = m("mum", "Maud")
+        val iris = m("iris", "Iris")
+        val rose = m("rose", "Rose")
+        val kids = listOf(m("ada", "Ada"), m("bob", "Bob"), m("cid", "Cid"), m("dan", "Dan"))
+        val tree = GenealogyTree(
+            listOf(mum, iris, rose) + kids,
+            emptyList(),
+            listOf(
+                KinLink.parent("mum", "iris"),
+                KinLink.parent("mum", "rose"),
+                KinLink.parent("rose", "ada"),
+                KinLink.parent("iris", "bob"),
+                KinLink.parent("rose", "cid"),
+                KinLink.parent("iris", "dan"),
+            ),
+        )
+        assertEquals(listOf(listOf("mum"), listOf("iris", "rose"), listOf("bob", "dan", "ada", "cid")), tree.rows)
+    }
+
+    @Test
+    fun `a couple sends one line down from between them, and each family has its own bar`() {
+        val links = listOf(
+            KinLink.partners("camille", "ines"),
+            KinLink.parent("camille", "noe"),
+            KinLink.parent("ines", "noe"),
+            KinLink.parent("camille", "lou"),
+            KinLink.parent("ines", "lou"),
+            KinLink.parent("jeanne", "zoe"),
+        )
+        val boxes = mapOf(
+            "camille" to TreeBox(0f, 0f, 100f, 100f),
+            "ines" to TreeBox(120f, 0f, 220f, 100f),
+            "jeanne" to TreeBox(240f, 0f, 340f, 100f),
+            "lou" to TreeBox(0f, 160f, 100f, 260f),
+            "noe" to TreeBox(120f, 160f, 220f, 260f),
+            "zoe" to TreeBox(240f, 160f, 340f, 260f),
+        )
+        assertEquals(listOf(listOf("camille", "ines"), listOf("jeanne")), treeFamilies(links).map { it.parents })
+        val lines = treeParentLines(links, boxes)
+        // The couple: one drop from the middle of the line between them, at mid height.
+        assertEquals(TreeSegment(110f, 50f, 110f, 120f), lines[0])
+        assertEquals(TreeSegment(50f, 120f, 170f, 120f), lines[1])
+        // Jeanne alone: from under her card, on a lower bar of its own.
+        assertEquals(TreeSegment(290f, 100f, 290f, 140f), lines[4])
+        assertEquals(4 + 3, lines.size)
+    }
+
+    @Test
     fun `a link to someone no longer there is left out`() {
         val tree = GenealogyTree(listOf(camille), emptyList(), listOf(KinLink.parent("gone", "camille")))
         assertTrue(tree.links.isEmpty())
