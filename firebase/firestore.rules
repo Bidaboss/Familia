@@ -1402,7 +1402,7 @@ service cloud.firestore {
       return i.keys().hasAll(['title', 'url', 'price', 'note', 'authorId', 'authorName',
                               'visibleToBeneficiary', 'createdAt', 'updatedAt'])
         && i.keys().hasOnly(['title', 'url', 'price', 'note', 'authorId', 'authorName',
-                             'visibleToBeneficiary', 'createdAt', 'updatedAt', 'imageUrl', 'occasion'])
+                             'visibleToBeneficiary', 'createdAt', 'updatedAt', 'imageUrl', 'occasion', 'photo'])
         // The occasion a wish is for (récit 9 ter): absent or null for « Quand tu veux ».
         && (!('occasion' in i) || i.occasion == null || i.occasion in ['christmas', 'birthday'])
         && i.title is string && i.title.size() > 0 && i.title.size() <= 80
@@ -1415,6 +1415,18 @@ service cloud.firestore {
         && i.authorName is string && i.authorName.size() > 0 && i.authorName.size() <= 40
         && i.visibleToBeneficiary is bool
         && i.updatedAt == request.time;
+    }
+
+    // Plus de photos (PRD, récit 44): photo, optional, names the photo its author sent to Storage
+    // beforehand, giftLists/{listId}/{folder}/{authorId}/{photoId} (storage.rules). The folder says
+    // who reads it there: « shared » for an item the beneficiary sees, « hidden » for an idea kept
+    // from them, so an idea can never name a photo that the beneficiary may download.
+    function isValidItemPhoto(listId, i, before) {
+      return !('photo' in i) || i.photo == null
+        || (before != null && 'photo' in before && i.photo == before.photo)
+        || (i.photo is string
+            && i.photo.matches('^giftLists/' + listId + '/' + (i.visibleToBeneficiary ? 'shared' : 'hidden')
+                               + '/' + myMemberId() + '/[A-Za-z0-9]{1,40}$'));
     }
 
     // giftLists/{listId}/items/{itemId}. An item added by someone other than the keeper of the
@@ -1438,6 +1450,7 @@ service cloud.firestore {
         && canSeeList(list())
         && list().revealed == false
         && isValidGiftItem(request.resource.data)
+        && isValidItemPhoto(listId, request.resource.data, null)
         && request.resource.data.authorId == myMemberId()
         && request.resource.data.authorName == me().firstName
         && request.resource.data.createdAt == request.time
@@ -1452,6 +1465,7 @@ service cloud.firestore {
         && list().revealed == false
         && (resource.data.visibleToBeneficiary == true || !exists(claimPath()))
         && isValidGiftItem(request.resource.data)
+        && isValidItemPhoto(listId, request.resource.data, resource.data)
         && request.resource.data.authorId == resource.data.authorId
         && request.resource.data.authorName == resource.data.authorName
         && request.resource.data.visibleToBeneficiary == resource.data.visibleToBeneficiary

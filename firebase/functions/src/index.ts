@@ -277,7 +277,11 @@ export const onMemberDeletedHelp = onDocumentDeleted('members/{memberId}', async
 // --- Listes et cadeaux (V2) --------------------------------------------------------------------
 
 export const onGiftListDeleted = onDocumentDeleted('giftLists/{listId}', async (event) => {
-  await deleteGiftListContent(getFirestore(), event.params.listId);
+  await Promise.all([
+    deleteGiftListContent(getFirestore(), event.params.listId),
+    // The photos of its wishes and ideas (récit 44).
+    getStorage().bucket().deleteFiles({ prefix: `giftLists/${event.params.listId}/` }),
+  ]);
 });
 
 // A reservation is taken up in the private notebook of who made it (récit 9 bis).
@@ -308,6 +312,11 @@ export const onGiftItemWritten = onDocumentWritten('giftLists/{listId}/items/{it
   const before = event.data?.before.data() as GiftItemData | undefined;
   const after = event.data?.after.data() as GiftItemData | undefined;
   await onGiftItemChanged(getFirestore(), send, event.params.listId, event.params.itemId, before, after);
+  // A photo the item no longer names (récit 44), whoever removed the item: « name.jpg » and « name-thumb.jpg ».
+  const photo = typeof before?.photo === 'string' ? before.photo : null;
+  if (photo && photo.startsWith(`giftLists/${event.params.listId}/`) && photo !== after?.photo) {
+    await getStorage().bucket().deleteFiles({ prefix: photo });
+  }
   if (before && after) await syncNotebookItem(getFirestore(), event.params.listId, event.params.itemId);
 });
 

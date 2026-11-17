@@ -203,6 +203,44 @@ service firebase.storage {
                 != 'goodDeals/' + dealId + '/' + authorId + '/' + fileName.split('[-.]')[0]);
     }
 
+    // Plus de photos (PRD, récit 44): the photo of a wish or an idea,
+    // giftLists/{listId}/{folder}/{authorId}/{photoId}.jpg and its {photoId}-thumb.jpg. The rights
+    // are those of the list, by the same function as canSeeList in firestore.rules (keep both
+    // alike), on the list only (LIMIT above): the item is not read. « shared » holds the photos of
+    // items the beneficiary sees, « hidden » those of ideas kept from them before the reveal; the
+    // item names a photo of the right folder (isValidItemPhoto in firestore.rules). Its author
+    // sends it, once the list exists, and removes it; the server removes the photos of an item
+    // that drops them and of a deleted list.
+    function giftList(listId) {
+      return firestore.get(docPath('giftLists/' + listId)).data;
+    }
+
+    function canSeeList(l) {
+      return l.kind == 'wishes'
+        || (l.kind == 'ideas' && l.beneficiaryId != myMemberId())
+        || myMemberId() in l.viewerIds
+        || (l.beneficiaryId == myMemberId() && l.revealed == true);
+    }
+
+    function isKeptFromMe(l) {
+      return l.beneficiaryId == myMemberId() && l.revealed != true;
+    }
+
+    match /giftLists/{listId}/{folder}/{authorId}/{fileName} {
+      allow read: if isMember()
+        && folder in ['shared', 'hidden']
+        && canSeeList(giftList(listId))
+        && (folder == 'shared' || !isKeptFromMe(giftList(listId)));
+      allow create: if isMember()
+        && resource == null
+        && folder in ['shared', 'hidden']
+        && authorId == myMemberId()
+        && canSeeList(giftList(listId))
+        && ((fileName.matches('^[A-Za-z0-9]{1,40}[.]jpg$') && isJpegUnder(512 * 1024))
+            || (fileName.matches('^[A-Za-z0-9]{1,40}-thumb[.]jpg$') && isJpegUnder(64 * 1024)));
+      allow delete: if isMember() && authorId == myMemberId();
+    }
+
     // Capsule temporelle (PRD, récit 39): capsules/{authorId}/{capsuleId}/{n}.jpg and {n}-thumb.jpg,
     // n from 1 to 3, sent by the author before the document capsules/{capsuleId}. The author reads
     // them; the recipients only once the server opened the capsule. Deleting it removes them.

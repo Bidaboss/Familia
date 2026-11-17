@@ -20,6 +20,13 @@ object SinglePhoto {
     /** events/{eventId}/cover/{memberId}/{photoId}: the server removes it with the event. */
     fun eventCover(eventId: String, memberId: String, photoId: String = newId()) =
         "events/$eventId/cover/$memberId/$photoId"
+
+    /**
+     * giftLists/{listId}/{shared|hidden}/{memberId}/{photoId}: « hidden » for an idea kept from the
+     * person, who then never downloads it; the server removes it with the item or the list.
+     */
+    fun giftItem(listId: String, visibleToBeneficiary: Boolean, memberId: String, photoId: String = newId()) =
+        "giftLists/$listId/${if (visibleToBeneficiary) "shared" else "hidden"}/$memberId/$photoId"
 }
 
 /** What the member did with the photo on the edit screen. */
