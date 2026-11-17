@@ -1861,6 +1861,29 @@
     <string name="gift_mark_received_confirm">Oui, reçue</string>
     <string name="feature_more_photos">Plus de photos</string>
     <string name="feature_recipe_book">Livre de recettes</string>
+    <string name="gifts_next_occasion_label">Prochaine occasion</string>
+    <string name="gifts_next_christmas">Noël, %1$s</string>
+    <string name="gifts_next_birthday">Anniversaire de %1$s, %2$s</string>
+    <plurals name="gifts_in_days">
+        <item quantity="one">demain</item>
+        <item quantity="other">dans %d jours</item>
+    </plurals>
+    <plurals name="gifts_open_wish_lists">
+        <item quantity="one">%d liste d\'envies ouverte</item>
+        <item quantity="other">%d listes d\'envies ouvertes</item>
+    </plurals>
+    <string name="gifts_see_ideas">Voir les idées</string>
+    <string name="gifts_my_wish_list">Ma liste d\'envies</string>
+    <string name="gifts_family_wishes_title">Les envies de la famille</string>
+    <plurals name="gifts_wishes_count">
+        <item quantity="one">%d envie</item>
+        <item quantity="other">%d envies</item>
+    </plurals>
+    <plurals name="gifts_new_wishes">
+        <item quantity="one">%d nouvelle</item>
+        <item quantity="other">%d nouvelles</item>
+    </plurals>
+    <string name="gifts_ideas_for">Idées pour %1$s</string>
     <string name="feature_who_is_it">Qui est-ce ?</string>
     <string name="feature_presentation_r1bis">Nouvelle présentation</string>
     <string name="channel_welcome">Bienvenue</string>
@@ -2122,4 +2145,27 @@
     <string name="who_is_it_failed">La photo n\'a pas été publiée. Réessaie.</string>
     <string name="who_is_it_sending">Envoi en cours…</string>
     <string name="who_is_it_publish">Publier</string>
+    <!-- Bons plans et bonnes adresses (PRD, récit 45) -->
+    <string name="feature_good_deals">Bons plans</string>
+    <string name="entraide_tab_help">Coups de main</string>
+    <string name="entraide_tab_good_deals">Bons plans</string>
+    <string name="gooddeal_publish">Publier</string>
+    <string name="gooddeal_open">Voir le bon plan</string>
+    <string name="gooddeal_empty_title">Pas encore de bon plan</string>
+    <string name="gooddeal_empty_body">Une promo, une cueillette, une sortie à ne pas rater ? Partage-la ici. Elle disparaît toute seule à sa date de fin.</string>
+    <string name="gooddeal_error_title">Les bons plans ne s\'affichent pas</string>
+    <string name="gooddeal_error_body">Vérifie ta connexion, puis réessaie.</string>
+    <string name="gooddeal_until_today">Dernier jour aujourd\'hui</string>
+    <string name="gooddeal_until_tomorrow">Jusqu\'à demain</string>
+    <string name="gooddeal_until">Jusqu\'au %1$s</string>
+    <string name="gooddeal_by">Par %1$s</string>
+    <string name="gooddeal_by_me">Publié par moi</string>
+    <plurals name="gooddeal_interested_count">
+        <item quantity="one">%1$d personne intéressée</item>
+        <item quantity="other">%1$d personnes intéressées</item>
+    </plurals>
+    <plurals name="gooddeal_interested_with_me">
+        <item quantity="one">%1$d personne intéressée : moi</item>
+        <item quantity="other">%1$d personnes intéressées, dont moi</item>
+    </plurals>
 </resources>

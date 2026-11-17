@@ -58,6 +58,8 @@ interface AppContainer {
     val birthdayCardRepository: BirthdayCardRepository?
     /** « Pensez à moi » (récit 43). */
     val momentRepository: MomentRepository? get() = null
+    /** Bons plans et bonnes adresses (récit 45). */
+    val goodDealRepository: GoodDealRepository? get() = null
     val treeRepository: TreeRepository?
     val photoStorage: PhotoStorage?
     val photoUploader: PhotoUploader?
@@ -142,6 +144,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val souvenirRepository: SouvenirRepository? by lazy { firestore?.let { FirestoreSouvenirRepository(it) } }
     override val birthdayCardRepository: BirthdayCardRepository? by lazy { firestore?.let { FirestoreBirthdayCardRepository(it) } }
     override val momentRepository: MomentRepository? by lazy { firestore?.let { FirestoreMomentRepository(it) } }
+    override val goodDealRepository: GoodDealRepository? by lazy { firestore?.let { FirestoreGoodDealRepository(it) } }
     override val treeRepository: TreeRepository? by lazy { firestore?.let { FirestoreTreeRepository(it) } }
 
     /** Photos of the good news and the trips, in Cloud Storage (firebase/storage.rules). */

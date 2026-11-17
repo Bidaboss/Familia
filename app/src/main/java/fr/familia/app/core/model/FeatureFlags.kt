@@ -105,6 +105,8 @@ enum class Feature(
      * à deux lettres, motif du thème… Allumée par défaut ; l'éteindre rend l'ancienne présentation.
      */
     PresentationR1bis("presentationR1bis", R.string.feature_presentation_r1bis, onByDefault = true),
+    /** Bons plans et bonnes adresses dans Entraide (PRD, récit 45, PRODUIT-60). */
+    GoodDeals("goodDeals", R.string.feature_good_deals),
 }
 
 /**

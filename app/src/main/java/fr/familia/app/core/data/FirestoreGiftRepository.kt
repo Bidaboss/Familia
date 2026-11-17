@@ -303,6 +303,7 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
             visibleToBeneficiary = getBoolean("visibleToBeneficiary") == true,
             imageUrl = getString("imageUrl"),
             occasion = GiftOccasion.fromFirestore(getString("occasion")),
+            addedAt = getTimestamp("createdAt")?.toDate()?.toInstant(),
         )
     }
 

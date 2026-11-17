@@ -75,6 +75,8 @@ data class GiftItem(
     val imageUrl: String? = null,
     /** The occasion a wish is for (récit 9 ter): Christmas or a birthday; null for « Quand tu veux ». */
     val occasion: GiftOccasion? = null,
+    /** When it was added, for the « nouvelles » of the Cadeaux tab; null while the server has not written it. */
+    val addedAt: java.time.Instant? = null,
 )
 
 enum class ClaimType(val firestoreValue: String) {

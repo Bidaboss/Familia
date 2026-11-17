@@ -101,6 +101,10 @@ fun GiftsScreen(
                         )
                     }
                 }
+                if (state.presentation) {
+                    presentationContent(state, onOpenList, onSelectMoment, onAllBirthdays, onPrepareSurprise, onOpenNotebook)
+                    return@LazyColumn
+                }
                 onOpenNotebook?.let { open ->
                     item(key = "notebook") {
                         ListCard(
@@ -193,7 +197,7 @@ private fun LazyListScope.personSection(
 }
 
 /** The next birthdays first (carte DESIGN-4), each with « Préparer une surprise » for the adults. */
-private fun LazyListScope.birthdaysSection(
+internal fun LazyListScope.birthdaysSection(
     state: GiftsUiState.Success,
     onAllBirthdays: () -> Unit,
     onPrepareSurprise: (String) -> Unit,
@@ -246,7 +250,7 @@ private fun LazyListScope.birthdaysSection(
     }
 }
 
-private fun LazyListScope.archivedSection(archived: List<Pair<GiftList, String>>, today: LocalDate, onOpenList: (String) -> Unit) {
+internal fun LazyListScope.archivedSection(archived: List<Pair<GiftList, String>>, today: LocalDate, onOpenList: (String) -> Unit) {
     item(key = "archived-title") {
         Text(
             stringResource(R.string.gifts_archived_title),
@@ -265,7 +269,7 @@ private fun LazyListScope.archivedSection(archived: List<Pair<GiftList, String>>
 }
 
 @Composable
-private fun ListCard(title: String, subtitle: String, tint: ClayTint, onClick: () -> Unit) {
+internal fun ListCard(title: String, subtitle: String, tint: ClayTint, onClick: () -> Unit) {
     ClayCard(
         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
         tint = tint,
@@ -317,7 +321,7 @@ private fun GiftsScreenPreview() {
  * « Pas encore d'envie » when it holds none, and « Toute la famille la voit » while it loads.
  */
 @Composable
-private fun wishesSubtitle(preview: WishPreview?, empty: Boolean, keptByMe: Boolean): String = when {
+internal fun wishesSubtitle(preview: WishPreview?, empty: Boolean, keptByMe: Boolean): String = when {
     empty || preview?.count == 0 ->
         stringResource(if (keptByMe) R.string.gifts_wishes_empty else R.string.gifts_wishes_none)
     preview == null -> stringResource(R.string.gift_wishes_subtitle)
@@ -330,7 +334,7 @@ private fun wishesSubtitle(preview: WishPreview?, empty: Boolean, keptByMe: Bool
 /** « Tout le monde », « Noël 2026 », « Anniversaire de … »: what the tab prepares (récit 9 ter). */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun MomentChoice(moments: List<GiftMoment>, selected: GiftMoment?, onSelect: (GiftMoment?) -> Unit) {
+internal fun MomentChoice(moments: List<GiftMoment>, selected: GiftMoment?, onSelect: (GiftMoment?) -> Unit) {
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         (listOf(null) + moments).forEach { moment ->
             val label = when (moment) {
