@@ -6,6 +6,7 @@ import fr.familia.app.core.data.MemberRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
@@ -106,6 +107,9 @@ class SessionViewModel(
             // the rules know a member by their address, so the app opens meanwhile.
             if (member.uid == null) withTimeoutOrNull(LINK_WAIT_MS) { members.linkAccount(member.id, user.uid) }
             _uiState.value = SessionUiState.SignedIn(member.copy(uid = user.uid))
+        } catch (e: TimeoutCancellationException) {
+            // Before CancellationException, which it is: here it means a network that drags.
+            _uiState.value = SessionUiState.SignedOut(SignInError.Network)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
