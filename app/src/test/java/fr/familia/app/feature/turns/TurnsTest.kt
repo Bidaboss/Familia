@@ -95,7 +95,7 @@ class TurnsTest {
     // --- The rights -----------------------------------------------------------------------------
 
     @Test
-    fun `the household whose turn it is says done or passes; a child only reads`() {
+    fun `the household whose turn it is says done or passes, a child only reads`() {
         val mine = turnRights(turn(), TestFamily.adult, family.ownerId)
         assertTrue(mine.done && mine.skip && mine.createEvent && mine.askSwap)
         assertFalse(mine.edit)
