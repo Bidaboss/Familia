@@ -41,7 +41,7 @@ class WelcomeTest {
         assertEquals(angles.sorted(), angles)
         assertEquals(13, TREE_SLOTS.size)
         // The fruit at the very top of the tree goes first.
-        assertEquals(25.5f, TREE_SLOTS.first().center.y)
+        assertEquals(25.5f, TREE_SLOTS.first().center.y, 0f)
     }
 
     @Test
