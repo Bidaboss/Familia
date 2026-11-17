@@ -140,4 +140,19 @@ class ReadOnlyRepositoriesTest {
         assertRefused { tree.saveWords("adult1", mapOf("k1" to "Mamie")) }
         assertEquals(5, refused)
     }
+
+    @Test
+    fun `signing out in « Voir comme » is refused without an exception`() {
+        var signedOut = false
+        val inner = object : fr.familia.app.feature.auth.AuthRepository {
+            override fun currentUser(): fr.familia.app.feature.auth.AuthUser? = null
+            override suspend fun signInWithGoogleIdToken(idToken: String): fr.familia.app.feature.auth.AuthUser = error("unused")
+            override fun signOut() {
+                signedOut = true
+            }
+        }
+        ReadOnlyAuthRepository(inner, guard).signOut()
+        assertFalse(signedOut)
+        assertEquals(1, refused)
+    }
 }

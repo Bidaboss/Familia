@@ -124,7 +124,7 @@ class ReadOnlyAuthRepository(private val inner: AuthRepository, private val guar
     override fun currentUser(): AuthUser? = inner.currentUser()
     override suspend fun signInWithGoogleIdToken(idToken: String): AuthUser = guard.refuse()
     override fun signOut() {
-        guard.refuse()
+        guard.tell()
     }
 }
 

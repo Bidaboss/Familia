@@ -19,6 +19,12 @@ class ViewAsGuard(private val onRefused: () -> Unit = {}) {
         throw ReadOnlyViewException()
     }
 
+    /**
+     * A refusal without exception, for a call that is not suspend (signOut): the admin is told, and
+     * nothing is thrown on the main thread (note C de la relecture, rév. 16/11).
+     */
+    fun tell() = onRefused()
+
     // No quiet refusal: in « Voir comme » the app makes no write by itself when a screen opens
     // (the phone is not registered, the time is not counted), so any write reaching here was asked.
 }

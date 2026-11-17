@@ -18,7 +18,7 @@ describe('the calendar feed, without the emulator', () => {
   });
 
   test('texts are escaped and long lines folded', () => {
-    assert.equal(icsText('Repas; chez Inès, 19 h\nApporter du pain'), 'Repas\; chez Inès\\, 19 h\\nApporter du pain');
+    assert.equal(icsText('Repas; chez Inès, 19 h\nApporter du pain'), 'Repas\\; chez Inès\\, 19 h\\nApporter du pain');
     const folded = foldLine(`SUMMARY:${'é'.repeat(60)}`);
     for (const line of folded.split('\r\n')) assert.ok(Buffer.byteLength(line) <= 75);
     assert.equal(folded.replace(/\r\n /g, ''), `SUMMARY:${'é'.repeat(60)}`);
@@ -69,6 +69,18 @@ describe('the calendar feed against the emulator', () => {
     const feed = await feedFor(db, token, now);
     assert.ok(feed?.includes('SUMMARY:Galette'));
     assert.equal(feed?.includes('Pique-nique'), false);
+  });
+
+  test('only what concerns me, as on my Accueil', async () => {
+    await db.doc('members/camille').set({ firstName: 'Camille', profile: 'adult', parentIds: [], householdId: 'h1' });
+    await db.doc('events/theirs').set({ ...event('Courses du foyer 2', '2026-12-02', null), targetType: 'household', householdId: 'h2' });
+    await db.doc('events/ours').set({ ...event('Ménage du foyer 1', '2026-12-03', null), targetType: 'household', householdId: 'h1' });
+    await db.doc('events/kid').set({ ...event('Judo de Noé', '2026-12-04', '17:00'), targetType: 'child', targetMemberId: 'noe' });
+    const feed = await feedFor(db, token, now);
+    assert.ok(feed?.includes('SUMMARY:Galette'));
+    assert.ok(feed?.includes('Ménage du foyer 1'));
+    assert.ok(feed?.includes('Judo de Noé'));
+    assert.equal(feed?.includes('Courses du foyer 2'), false);
   });
 
   test('a wrong, replaced or child link leads nowhere', async () => {

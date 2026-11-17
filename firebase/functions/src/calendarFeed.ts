@@ -8,8 +8,8 @@
 
 import type { Firestore } from 'firebase-admin/firestore';
 import type { EventData } from './logic';
-import { addDays, parisDay } from './logic';
-import { featureOn } from './store';
+import { addDays, concerns, parisDay } from './logic';
+import { featureOn, loadMembers } from './store';
 
 export const CALENDAR_FEED = 'calendarFeed';
 
@@ -20,7 +20,7 @@ export function isFeedToken(token: unknown): token is string {
 
 /** The text of a property, escaped as RFC 5545 asks. */
 export function icsText(text: string): string {
-  return text.replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+  return text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
 }
 
 /** Lines longer than 75 octets go on, after a space, on the next line. */
@@ -103,8 +103,9 @@ export async function feedFor(db: Firestore, token: unknown, now: Date): Promise
   const found = await db.collection('calendarFeeds').where('token', '==', token).limit(1).get();
   if (found.empty) return null;
   const memberId = found.docs[0].id;
-  const member = await db.collection('members').doc(memberId).get();
-  if (!member.exists || member.get('profile') !== 'adult') return null;
+  const members = await loadMembers(db);
+  const me = members.find((m) => m.id === memberId);
+  if (!me || me.profile !== 'adult') return null;
   if (!(await featureOn(db, CALENDAR_FEED))) {
     const owner = (await db.collection('config').doc('family').get()).get('ownerMemberId');
     if (owner !== memberId) return null;
@@ -114,7 +115,11 @@ export async function feedFor(db: Firestore, token: unknown, now: Date): Promise
     .where('date', '>=', addDays(today, -DAYS_BACK))
     .where('date', '<=', addDays(today, DAYS_AHEAD))
     .get();
-  return icsFeed(events.docs.map((doc) => ({ id: doc.id, data: doc.data() as EventData })), now);
+  // Only what concerns me, as on my Accueil (concerns of logic.ts): not every household's errands.
+  const mine = events.docs
+    .map((doc) => ({ id: doc.id, data: doc.data() as EventData }))
+    .filter((e) => concerns(e.data, me, members));
+  return icsFeed(mine, now);
 }
 
 /** A member who leaves takes their link with them. */
