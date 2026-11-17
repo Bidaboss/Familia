@@ -15,9 +15,13 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.photo.SinglePhotoSaver
 import fr.familia.app.feature.gooddeals.detail.GoodDealDetailScreen
 import fr.familia.app.feature.gooddeals.detail.GoodDealDetailUiState
 import fr.familia.app.feature.gooddeals.detail.GoodDealDetailViewModel
+import fr.familia.app.feature.gooddeals.edit.GoodDealEditScreen
+import fr.familia.app.feature.gooddeals.edit.GoodDealEditUiState
+import fr.familia.app.feature.gooddeals.edit.GoodDealEditViewModel
 import fr.familia.app.feature.gooddeals.list.GoodDealsScreen
 import fr.familia.app.feature.gooddeals.list.GoodDealsViewModel
 import java.time.LocalDate
@@ -69,4 +73,33 @@ fun GoodDealDetailRoute(
         if (state == GoodDealDetailUiState.Missing && wasShown) onBack()
     }
     GoodDealDetailScreen(state, parisToday(), viewModel::toggleInterest, onEdit, viewModel::remove, onBack)
+}
+
+@Composable
+fun GoodDealEditRoute(
+    container: AppContainer?,
+    currentMember: Member,
+    dealId: String?,
+    onDone: () -> Unit,
+) {
+    val viewModel: GoodDealEditViewModel = viewModel(
+        factory = viewModelFactory {
+            initializer {
+                val uploader = container?.photoUploader
+                val storage = container?.photoStorage
+                GoodDealEditViewModel(
+                    container?.goodDealRepository,
+                    container?.memberRepository,
+                    currentMember.id,
+                    dealId = dealId,
+                    photos = if (uploader != null && storage != null) SinglePhotoSaver(uploader, storage) else null,
+                )
+            }
+        },
+    )
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(state) {
+        if (state == GoodDealEditUiState.Done) onDone()
+    }
+    GoodDealEditScreen(state, viewModel::update, viewModel::save, onDone)
 }
