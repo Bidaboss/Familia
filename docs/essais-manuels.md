@@ -1086,3 +1086,9 @@ Sur un téléphone en Android 12 ou plus récent. Pour le savoir : Paramètres, 
 5. Sur un téléphone en Android 11 ou plus ancien, s'il y en a un dans la famille. **Attendu :** le démarrage est le même qu'avant.
 
 Si quelque chose ne va pas le 20 au soir, préviens [DEV] : on revient à l'icône fixe en retirant un seul changement.
+
+## Ouverture rapide d'un compte déjà connecté
+
+1. Sur un téléphone déjà connecté, ferme Familia en la balayant des applis récentes. Coupe le Wi-Fi et la 4G, puis rouvre Familia. **Attendu :** l'Accueil s'ouvre tout de suite, sans écran de connexion ni « Réessayer ».
+2. Remets le réseau. Depuis un autre téléphone d'admin, change le prénom de ce membre. Ferme et rouvre Familia sur le premier téléphone. **Attendu :** l'appli s'ouvre tout de suite, et le nouveau prénom apparaît quelques secondes après au plus (par exemple dans Mon profil).
+3. Sur un téléphone partagé, déconnecte-toi puis connecte un autre membre. **Attendu :** c'est bien l'autre membre qui entre, jamais le précédent.
