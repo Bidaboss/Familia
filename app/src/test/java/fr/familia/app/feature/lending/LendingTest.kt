@@ -5,8 +5,13 @@ import fr.familia.app.core.model.LendCategory
 import fr.familia.app.core.model.LendItem
 import fr.familia.app.core.model.LendStatus
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.photo.PhotoStorage
+import fr.familia.app.core.photo.SinglePhotoSaver
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
+import fr.familia.app.feature.lending.edit.LendFormError
+import fr.familia.app.feature.lending.edit.LendItemEditUiState
+import fr.familia.app.feature.lending.edit.LendItemEditViewModel
 import fr.familia.app.feature.lending.list.LendItemsUiState
 import fr.familia.app.feature.lending.list.LendItemsViewModel
 import fr.familia.app.feature.lending.list.matchesLendItem
@@ -20,6 +25,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -113,5 +119,54 @@ class LendingTest {
     fun `every word of the search must be in the name`() {
         assertTrue(matchesLendItem(family[0], "raclette appareil"))
         assertFalse(matchesLendItem(family[0], "raclette four"))
+    }
+
+    // --- The form --------------------------------------------------------------------------------
+
+    private class FakeStorage : PhotoStorage {
+        override suspend fun upload(path: String, jpeg: ByteArray) = Unit
+        override suspend fun downloadUrl(path: String) = "https://example.com/$path"
+        override suspend fun delete(path: String) = Unit
+    }
+
+    private val photos = SinglePhotoSaver({ _, _, _ -> }, FakeStorage())
+
+    private fun edit(repo: FakeLendItems, me: String = "adult1", itemId: String? = null) =
+        LendItemEditViewModel(repo, FakeMembers(), me, itemId, photos = photos)
+
+    @Test
+    fun `a new thing needs a name and a category, and is free in my name`() {
+        val repo = FakeLendItems()
+        val viewModel = edit(repo)
+        viewModel.save()
+        assertEquals(setOf(LendFormError.NameMissing, LendFormError.CategoryMissing), (viewModel.uiState.value as LendItemEditUiState.Editing).errors)
+        viewModel.update { it.copy(name = " Remorque ", category = LendCategory.Diy, note = "Avec sa bâche") }
+        viewModel.save()
+        assertEquals(LendItemEditUiState.Done, viewModel.uiState.value)
+        val saved = repo.items.value.single()
+        assertEquals("i-new", saved.id)
+        assertEquals("Remorque", saved.name)
+        assertEquals("adult1", saved.ownerId)
+        assertEquals(LendStatus.Available, saved.status)
+        assertNull(saved.photo)
+    }
+
+    @Test
+    fun `a change keeps the loan as it is`() {
+        val repo = FakeLendItems(family)
+        val viewModel = edit(repo, me = "adult2", itemId = "i2")
+        viewModel.update { it.copy(name = "Lit parapluie bleu") }
+        viewModel.save()
+        val saved = repo.items.value.first { it.id == "i2" }
+        assertEquals("Lit parapluie bleu", saved.name)
+        assertEquals(LendStatus.Lent, saved.status)
+        assertEquals("adult1", saved.borrowerId)
+    }
+
+    @Test
+    fun `a child adds nothing, and nobody but the owner or the admin changes a thing`() {
+        assertEquals(LendItemEditUiState.Unavailable, edit(FakeLendItems(), me = "kid1").uiState.value)
+        assertEquals(LendItemEditUiState.Unavailable, edit(FakeLendItems(family), me = "adult2", itemId = "i1").uiState.value)
+        assertTrue(edit(FakeLendItems(family), me = "admin1", itemId = "i1").uiState.value is LendItemEditUiState.Editing)
     }
 }

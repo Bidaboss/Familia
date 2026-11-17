@@ -106,9 +106,10 @@ import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpRoute
 import fr.familia.app.feature.gooddeals.EntraideTabs
 import fr.familia.app.feature.gooddeals.GoodDealDetailRoute
-import fr.familia.app.feature.lending.LendItemsRoute
 import fr.familia.app.feature.gooddeals.GoodDealEditRoute
 import fr.familia.app.feature.gooddeals.GoodDealsRoute
+import fr.familia.app.feature.lending.LendItemEditRoute
+import fr.familia.app.feature.lending.LendItemsRoute
 import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
 import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
@@ -1332,7 +1333,14 @@ fun FamiliaApp(
                             showGoodDeals = entraideOnGoodDeals,
                             // Récit 51: « On se prête », behind its switch. The form and the sheet come next.
                             lendingOn = lendingOn,
-                            lending = { LendItemsRoute(container = container, currentMember = currentMember, onAdd = null, onOpen = null) },
+                            lending = {
+                                LendItemsRoute(
+                                    container = container,
+                                    currentMember = currentMember,
+                                    onAdd = { navController.navigate(LendItemEditDestination()) },
+                                    onOpen = null,
+                                )
+                            },
                         )
                     }
                     composable<GoodDealDetailDestination> { entry ->
@@ -1352,6 +1360,14 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             dealId = destination.dealId,
                             kind = GoodDealKind.fromFirestore(destination.kind) ?: GoodDealKind.Deal,
+                            onDone = { navController.popBackStack() },
+                        )
+                    }
+                    composable<LendItemEditDestination> { entry ->
+                        LendItemEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            itemId = entry.toRoute<LendItemEditDestination>().itemId,
                             onDone = { navController.popBackStack() },
                         )
                     }
