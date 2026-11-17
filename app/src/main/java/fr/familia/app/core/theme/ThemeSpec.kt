@@ -44,7 +44,12 @@ sealed interface ClayShadow {
 data class ClayBorder(val width: Dp, val color: Color, val dashed: Boolean = false)
 
 /** The background pattern of a theme, drawn under the content (ThemePatterns.kt). */
-enum class ThemePattern { None, PixelDots, Stars, FlagBand, Snow, Leaves, Stripes70, NotebookLines }
+enum class ThemePattern {
+    None, PixelDots, Stars, FlagBand, Snow, Leaves, Stripes70, NotebookLines,
+
+    /** « Pépins » of Classique in the R1 bis presentation: three small round seeds on a 64 dp grid. */
+    Seeds,
+}
 
 /** Everything a theme sets besides the colors: cards, fonts and background. */
 @Immutable

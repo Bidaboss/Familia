@@ -1,5 +1,28 @@
 package fr.familia.app.core.navigation
 
+import androidx.compose.material.icons.outlined.PhotoLibrary
+import androidx.compose.material.icons.outlined.EmojiEvents
+import androidx.compose.material.icons.outlined.AutoStories
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.NavigationRailItemDefaults
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material.icons.outlined.AccountTree
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.CardGiftcard
+import androidx.compose.material.icons.outlined.HourglassTop
+import androidx.compose.material.icons.outlined.MenuBook
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.VolunteerActivism
+import androidx.compose.ui.graphics.vector.ImageVector
+import fr.familia.app.feature.all.AllFamiliaScreen
+import fr.familia.app.feature.all.AllModule
+import fr.familia.app.feature.all.ModuleFamily
+import fr.familia.app.feature.home.HomeAddOptions
+import fr.familia.app.feature.home.HomeAddSheet
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -50,6 +73,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -556,7 +580,7 @@ fun FamiliaApp(
 
     // The theme chosen on this phone shows once the Thèmes module is on; before, Classique (DESIGN-7).
     val themesOn = features.isOn(Feature.Themes)
-    FamiliaTheme(theme = if (themesOn) chosenTheme else FamiliaThemeId.Classic) {
+    FamiliaTheme(theme = if (themesOn) chosenTheme else FamiliaThemeId.Classic, seeds = features.isOn(Feature.PresentationR1bis)) {
     CompositionLocalProvider(
         LocalOpenHelp provides { navController.navigate(HelpDestination) { launchSingleTop = true } },
         LocalMemberPhotos provides photos,
@@ -574,6 +598,24 @@ fun FamiliaApp(
         val topBarScroll = TopAppBarDefaults.pinnedScrollBehavior()
         // The sheet of my photo (DESIGN-12): my profile and the settings that were under Famille.
         var accountOpen by rememberSaveable { mutableStateOf(false) }
+        // The « + » of the R1 bis Accueil: what can be added, each only with its module.
+        val r1On = features.isOn(Feature.PresentationR1bis)
+        // A tablet of 7 inches or more, in portrait (600 dp) or landscape: the rail instead of the bar.
+        val useRail = r1On && LocalConfiguration.current.screenWidthDp >= 600
+        var addOpen by rememberSaveable { mutableStateOf(false) }
+        if (addOpen && r1On) {
+            HomeAddSheet(
+                options = HomeAddOptions(
+                    onEvent = { navController.navigate(EventEditDestination()) },
+                    // « Une photo » chooses its album (DESIGN, 17/11).
+                    onPhoto = if (features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums)) ({ navController.navigate(AlbumsDestination) }) else null,
+                    onGoodNews = if (features.isOn(Feature.GoodNews)) ({ navController.navigate(GoodNewsEditDestination()) }) else null,
+                    onWish = if (features.isOn(Feature.Gifts)) ({ navController.navigate(GiftItemEditDestination(wishesListId(currentMember.id))) }) else null,
+                    onHelp = if (features.isOn(Feature.HelpRequests)) ({ navController.navigate(HelpRequestEditDestination()) }) else null,
+                ),
+                onDismiss = { addOpen = false },
+            )
+        }
         if (accountOpen) {
             val shareContext = LocalContext.current
             val inViewAs = LocalViewAs.current.viewed != null
@@ -622,16 +664,24 @@ fun FamiliaApp(
                         onPolls = if (pollsOn) ({ navController.navigate(PollsDestination) { launchSingleTop = true } }) else null,
                         pollsToVote = if (pollsOn && tab == TopLevelDestination.Planning) rememberPollsToVote(container, currentMember.id) else 0,
                         onAccount = { accountOpen = true },
+                        greeting = if (r1On && tab == TopLevelDestination.Home) stringResource(R.string.home_r1_greeting, currentMember.firstName) else null,
+                        onAdd = if (r1On && tab == TopLevelDestination.Home) ({ addOpen = true }) else null,
                     )
                 }
             },
             bottomBar = {
-                if (onTab) NavigationBar {
+                if (onTab && !useRail) NavigationBar {
                     tabs.forEach { destination ->
                         val selected = currentDestination.isOn(destination)
                         NavigationBarItem(
                             selected = selected,
                             onClick = { navController.navigateToTab(destination) },
+                            // R1 bis: the tab on shows in a yellow pill, its icon dark on it.
+                            colors = if (r1On) {
+                                NavigationBarItemDefaults.colors(indicatorColor = R1_TAB_PILL, selectedIconColor = Color(0xFF1B1B1B))
+                            } else {
+                                NavigationBarItemDefaults.colors()
+                            },
                             icon = {
                                 val badge = if (destination == TopLevelDestination.HelpRequests) helpBadge else 0
                                 BadgedBox(badge = { if (badge > 0) Badge { Text(badge.toString()) } }) {
@@ -648,7 +698,40 @@ fun FamiliaApp(
             },
         ) { innerPadding ->
             // Consumed here, so the inner screens with their own Scaffold do not add the system bars again.
-            Column(Modifier.padding(innerPadding).consumeWindowInsets(innerPadding)) {
+            // R1 bis on a tablet (§5): the tabs go to a rail on the left, with « + » at its top on the Accueil.
+            Row(Modifier.padding(innerPadding).consumeWindowInsets(innerPadding)) {
+            if (onTab && useRail) {
+                NavigationRail(
+                    header = {
+                        if (r1On && currentDestination.isOn(TopLevelDestination.Home)) {
+                            FloatingActionButton(onClick = { addOpen = true }) {
+                                Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.home_r1_add))
+                            }
+                        }
+                    },
+                    modifier = Modifier.width(88.dp),
+                ) {
+                    tabs.forEach { destination ->
+                        val selected = currentDestination.isOn(destination)
+                        NavigationRailItem(
+                            selected = selected,
+                            onClick = { navController.navigateToTab(destination) },
+                            colors = NavigationRailItemDefaults.colors(indicatorColor = R1_TAB_PILL, selectedIconColor = Color(0xFF1B1B1B)),
+                            icon = {
+                                val badge = if (destination == TopLevelDestination.HelpRequests) helpBadge else 0
+                                BadgedBox(badge = { if (badge > 0) Badge { Text(badge.toString()) } }) {
+                                    Icon(
+                                        imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
+                                        contentDescription = null,
+                                    )
+                                }
+                            },
+                            label = { TabLabel(stringResource(destination.labelFor(currentMember))) },
+                        )
+                    }
+                }
+            }
+            Column(Modifier.weight(1f)) {
                 AnimatedVisibility(visible = isOffline) { OfflineBanner() }
                 val shownUpdate = update?.takeIf { onTab && !updateDismissed }
                 if (shownUpdate != null) {
@@ -699,6 +782,9 @@ fun FamiliaApp(
                                 navController.navigate(HostChallengeDestination(month.year, month.monthValue)) { launchSingleTop = true }
                             },
                             onOpenRecipe = { id -> navController.navigate(RecipeDetailDestination(id)) },
+                            onOpenAll = { navController.navigate(AllFamiliaDestination) { launchSingleTop = true } },
+                            allBadge = helpBadge,
+                            onOpenChallenges = { navController.navigate(ChallengesDestination) { launchSingleTop = true } },
                             onOpenDiscover = { module ->
                                 when (module) {
                                     DiscoverModule.WeeklyQuestion -> navController.navigate(WeeklyQuestionDestination())
@@ -710,6 +796,12 @@ fun FamiliaApp(
                                     DiscoverModule.Genealogy -> navController.navigate(GenealogyDestination) { launchSingleTop = true }
                                 }
                             },
+                        )
+                    }
+                    composable<AllFamiliaDestination> {
+                        AllFamiliaScreen(
+                            modules = allModules(features, helpBadge, navController, currentMember.id),
+                            onBack = { navController.popBackStack() },
                         )
                     }
                     composable<RecapDestination> {
@@ -1388,6 +1480,7 @@ fun FamiliaApp(
                     }
                 }
             }
+            }
         }
     }
     }
@@ -1414,6 +1507,10 @@ private fun TabTopBar(
     pollsToVote: Int = 0,
     /** My photo, last at the right, opens the sheet of my account and the settings (DESIGN-12). */
     onAccount: (() -> Unit)? = null,
+    /** « Bonjour Camille » in place of the tab name, on the R1 bis Accueil. */
+    greeting: String? = null,
+    /** The « + » of the R1 bis Accueil, before « ? ». */
+    onAdd: (() -> Unit)? = null,
 ) {
     TopAppBar(
         scrollBehavior = scrollBehavior,
@@ -1429,7 +1526,7 @@ private fun TabTopBar(
             // 26 sp for the titles of the 5 tabs (DESIGN-11), scaled like titleLarge for a wide font.
             val base = MaterialTheme.typography.titleLarge
             Text(
-                stringResource(if (tab == TopLevelDestination.HelpRequests) R.string.helprequest_screen_title else tab.labelFor(member)),
+                greeting ?: stringResource(if (tab == TopLevelDestination.HelpRequests) R.string.helprequest_screen_title else tab.labelFor(member)),
                 style = base.copy(fontSize = base.fontSize * TAB_TITLE_SCALE, lineHeight = base.lineHeight * TAB_TITLE_SCALE),
             )
         },
@@ -1491,7 +1588,14 @@ private fun TabTopBar(
                     }
                     HelpButton(ScreenHelp.Planning)
                 }
-                TopLevelDestination.Home -> HelpButton(ScreenHelp.Home)
+                TopLevelDestination.Home -> {
+                    onAdd?.let { add ->
+                        IconButton(onClick = add, modifier = Modifier.size(56.dp)) {
+                            Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.home_r1_add))
+                        }
+                    }
+                    HelpButton(ScreenHelp.Home)
+                }
                 TopLevelDestination.Members -> HelpButton(ScreenHelp.Family)
                 TopLevelDestination.HelpRequests -> HelpButton(ScreenHelp.HelpRequests)
                 TopLevelDestination.Gifts -> HelpButton(ScreenHelp.Gifts)
@@ -1522,6 +1626,58 @@ private fun TabLabel(text: String) {
 }
 
 private const val MIN_TAB_LABEL_SP = 9f
+
+private val R1_TAB_PILL = Color(0xFFF2C14E)
+
+/**
+ * The modules of « Tout Familia » (R1 bis, §3), each only while it is on for me. Comptes stays out
+ * for the 21 (DESIGN); the Entraide badge is the one of its tab.
+ */
+private fun allModules(features: FeatureFlags, helpBadge: Int, navController: NavHostController, meId: String): List<AllModule> = buildList {
+    fun module(on: Boolean, key: String, label: Int, icon: ImageVector, family: ModuleFamily, badge: Int = 0, open: () -> Unit) {
+        if (on) this.add(AllModule(key, label, icon, family, badge, open))
+    }
+    module(true, "planning", R.string.all_planning, Icons.Outlined.CalendarMonth, ModuleFamily.Organise) {
+        navController.navigateToTab(TopLevelDestination.Planning)
+    }
+    module(features.isOn(Feature.HelpRequests), "help", R.string.all_help, Icons.Outlined.VolunteerActivism, ModuleFamily.Organise, helpBadge) {
+        navController.navigateToTab(TopLevelDestination.HelpRequests)
+    }
+    module(features.isOn(Feature.Polls), "polls", R.string.all_polls, Icons.Outlined.Poll, ModuleFamily.Organise) {
+        navController.navigate(PollsDestination) { launchSingleTop = true }
+    }
+    module(features.isOn(Feature.Places) && features.isOn(Feature.Home), "where", R.string.all_where, Icons.Outlined.Place, ModuleFamily.Organise) {
+        navController.navigate(JoinMeDestination) { launchSingleTop = true }
+    }
+    module(features.isOn(Feature.Gifts), "gifts", R.string.all_gifts, Icons.Outlined.CardGiftcard, ModuleFamily.Treat) {
+        navController.navigateToTab(TopLevelDestination.Gifts)
+    }
+    module(features.isOn(Feature.Trips), "trips", R.string.all_trips, Icons.Outlined.CardTravel, ModuleFamily.Treat) {
+        navController.navigate(TripsDestination) { launchSingleTop = true }
+    }
+    module(features.isOn(Feature.Recipes), "recipes", R.string.all_recipes, Icons.Outlined.MenuBook, ModuleFamily.Treat) {
+        navController.navigate(RecipesDestination()) { launchSingleTop = true }
+    }
+    module(features.isOn(Feature.Tree), "challenges", R.string.all_challenges, Icons.Outlined.EmojiEvents, ModuleFamily.Treat) {
+        navController.navigate(ChallengesDestination) { launchSingleTop = true }
+    }
+    module(features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums), "albums", R.string.all_albums, Icons.Outlined.PhotoLibrary, ModuleFamily.Remember) {
+        navController.navigate(AlbumsDestination) { launchSingleTop = true }
+    }
+    module(features.isOn(Feature.Genealogy), "tree", R.string.all_tree, Icons.Outlined.AccountTree, ModuleFamily.Remember) {
+        navController.navigate(GenealogyDestination) { launchSingleTop = true }
+    }
+    module(features.isOn(Feature.Capsules), "capsule", R.string.all_capsule, Icons.Outlined.HourglassTop, ModuleFamily.Remember) {
+        navController.navigate(CapsulesDestination) { launchSingleTop = true }
+    }
+    // My own profile, whose souvenirs are never empty (DESIGN, 17/11).
+    module(features.isOn(Feature.Souvenirs), "souvenirs", R.string.all_souvenirs, Icons.Outlined.AutoStories, ModuleFamily.Remember) {
+        navController.navigate(MemberProfileDestination(meId)) { launchSingleTop = true }
+    }
+    module(features.isOn(Feature.GoodNews), "goodNews", R.string.all_good_news, Icons.Outlined.Celebration, ModuleFamily.Remember) {
+        navController.navigate(GoodNewsFeedDestination) { launchSingleTop = true }
+    }
+}
 
 private fun NavDestination?.isOn(destination: TopLevelDestination): Boolean =
     this?.hierarchy?.any { it.hasRoute(destination.route::class) } == true
