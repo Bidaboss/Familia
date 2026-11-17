@@ -3,6 +3,7 @@ package fr.familia.app.feature.yearinreview
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.EventRepository
+import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.data.GoodNewsRepository
 import fr.familia.app.core.data.HelpRequestRepository
 import fr.familia.app.core.data.MemberRepository
@@ -51,7 +52,7 @@ class YearInReviewViewModel(
     year: Int,
     today: LocalDate,
     now: Instant = Instant.now(),
-    zone: ZoneId = ZoneId.systemDefault(),
+    zone: ZoneId = FAMILY_ZONE,
 ) : ViewModel() {
 
     val uiState: StateFlow<YearInReviewUiState> =

@@ -301,7 +301,7 @@ Avec le module « Récap du dimanche » allumé, et deux comptes : un qui suit u
 
 1. Un dimanche après 18 h, regarde les notifications. **Attendu :** une seule « La semaine de la famille », discrète, avec par exemple « 3 photos, 1 anniversaire à venir, défi à 40 %, 1 voyage en cours. »
 2. Avec le compte décoché du voyage, lis la même notification. **Attendu :** elle ne parle pas de ce voyage.
-3. Touche la notification. **Attendu :** l'écran « La semaine de la famille » s'ouvre, avec au plus 3 photos, les anniversaires des 14 prochains jours, la jauge du défi et les voyages en cours. Aucun nombre de réactions, aucun nom sous les photos.
+3. Touche la notification. **Attendu :** l'écran « La semaine de la famille » s'ouvre, avec au plus 3 photos (une par jour où il y en a, de personnes différentes quand c'est possible, jamais choisies selon les cœurs), les anniversaires des 14 prochains jours, la jauge du défi et les voyages en cours. Aucun nombre de réactions, aucun nom sous les photos.
 4. Touche une photo, puis reviens, puis touche un voyage. **Attendu :** la Bonne nouvelle, puis le voyage, s'ouvrent.
 5. Réglages > Notifications : coupe « La semaine de la famille ». **Attendu :** le dimanche suivant, plus de notification pour ce compte.
 
