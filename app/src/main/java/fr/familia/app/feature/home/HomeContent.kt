@@ -78,6 +78,8 @@ sealed interface HomeUiState {
         val today: LocalDate,
         val todos: List<HomeTodo> = emptyList(),
         val week: List<Event> = emptyList(),
+        /** The 7 days of the frise (R1 bis): every event of mine, the help and the birthdays. */
+        val days: List<HomeDay> = emptyList(),
         /** Events of the 7 days beyond the 3 shown. */
         val weekMore: Int = 0,
         val birthdays: List<Birthday> = emptyList(),
@@ -226,13 +228,15 @@ internal fun homeState(
     pollsOn: Boolean = false,
 ): HomeUiState.Ready {
     val week = week(me, family, events, today)
+    val birthdays = birthdays(family, today)
     return HomeUiState.Ready(
         today = today,
         // The polls have their own block now, so « À faire pour moi » no longer lists them.
         todos = todos(me, family, events, answers, help, today),
         week = week.take(HomeWindow.WEEK_SHOWN),
         weekMore = (week.size - HomeWindow.WEEK_SHOWN).coerceAtLeast(0),
-        birthdays = birthdays(family, today),
+        days = homeDays(me, today, week, help, birthdays),
+        birthdays = birthdays,
         occasion = occasion,
         trips = trips,
         canCreateTrip = canCreateTrip(me),

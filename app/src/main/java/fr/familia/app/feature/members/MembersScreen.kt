@@ -1,5 +1,8 @@
 package fr.familia.app.feature.members
 
+import androidx.compose.ui.res.pluralStringResource
+import fr.familia.app.core.ui.SectionLabel
+import fr.familia.app.core.theme.ClayTint
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.rounded.RestaurantMenu
@@ -105,6 +108,11 @@ fun MembersScreen(
     onOpenWishes: ((memberId: String) -> Unit)? = null,
     /** Set: every row opens the member's page, whose Modifier keeps the rights of [onEditMember]. */
     onOpenProfile: ((memberId: String) -> Unit)? = null,
+    /**
+     * R1 bis (§4, R5): « Nous 13, en 4 foyers », one card of color per household with all its
+     * members, then « Nos trésors » on one line.
+     */
+    r1: Boolean = false,
 ) {
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
     var photoOf by rememberSaveable { mutableStateOf<String?>(null) }
@@ -147,8 +155,19 @@ fun MembersScreen(
                         Treasure("whoIsIt", Icons.Outlined.PhotoAlbum, SouvenirFamily.Share, R.string.members_treasure_who_is_it, R.string.members_treasure_who_is_it_open, it)
                     },
                 )
-                if (treasures.isNotEmpty()) {
+                if (treasures.isNotEmpty() && !r1) {
                     item(key = "treasures") { TreasureTiles(treasures) }
+                }
+                if (r1 && state.groups.isNotEmpty()) {
+                    item(key = "count") {
+                        val people = state.groups.sumOf { it.members.size }
+                        val homes = state.groups.count { it.household != null }
+                        Text(
+                            pluralStringResource(R.plurals.members_r1_count, people, people, pluralStringResource(R.plurals.members_r1_homes, homes, homes)),
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp).semantics { heading() },
+                        )
+                    }
                 }
                 if (state.groups.isEmpty()) {
                     item(key = "empty") {
@@ -159,7 +178,55 @@ fun MembersScreen(
                         )
                     }
                 }
-                state.groups.forEach { group ->
+                if (r1) {
+                    state.groups.forEachIndexed { index, group ->
+                        item(key = "card-${group.household?.id ?: "other"}") {
+                            val household = group.household
+                            ClayCard(
+                                tint = R1_HOUSEHOLD_TINTS[index % R1_HOUSEHOLD_TINTS.size],
+                                contentPadding = PaddingValues(vertical = 8.dp),
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = ClaySpacing.screen, vertical = 6.dp),
+                            ) {
+                                HouseholdHeader(
+                                    name = household?.name ?: stringResource(R.string.members_other_household),
+                                    onRename = if (household != null && onRenameHousehold != null && !state.isOwner &&
+                                        household.id in state.renamableHouseholdIds
+                                    ) {
+                                        { renaming = household.id }
+                                    } else {
+                                        null
+                                    },
+                                )
+                                group.members.forEach { member ->
+                                    MemberRow(
+                                        member = member,
+                                        isMe = member.id == state.currentMemberId,
+                                        isOwner = member.id == state.ownerId,
+                                        onClick = onOpenProfile?.let { open -> { open(member.id) } }
+                                            ?: onEditMember?.takeIf { member.id in state.editableMemberIds }?.let { edit -> { edit(member.id) } },
+                                        hasPhoto = member.id in photos,
+                                        onPhotoClick = when {
+                                            member.id in photos -> { { viewing = member.id } }
+                                            onSavePhoto != null && member.id in state.photoEditableMemberIds -> { { photoOf = member.id } }
+                                            else -> null
+                                        },
+                                        onWishesClick = onOpenWishes?.let { open -> { open(member.id) } },
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    if (treasures.isNotEmpty()) {
+                        item(key = "treasures-label") {
+                            SectionLabel(
+                                stringResource(R.string.members_r1_treasures),
+                                modifier = Modifier.padding(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 12.dp),
+                            )
+                        }
+                        item(key = "treasures") { TreasureTiles(treasures) }
+                    }
+                }
+                if (!r1) state.groups.forEach { group ->
                     item(key = "household-${group.household?.id ?: "other"}") {
                         val household = group.household
                         HouseholdHeader(
@@ -533,3 +600,6 @@ private fun MembersScreenPreview() {
 private fun MembersScreenErrorPreview() {
     FamiliaTheme { Surface { MembersScreen(MembersUiState.Error, onRetry = {}) } }
 }
+
+/** One color per household in the R1 bis Famille, in the order of the households. */
+private val R1_HOUSEHOLD_TINTS = listOf(ClayTint.Household, ClayTint.Family, ClayTint.Birthday, ClayTint.Plain)
