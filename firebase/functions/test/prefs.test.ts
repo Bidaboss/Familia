@@ -124,6 +124,12 @@ describe('the avalanche du 21, without the emulator', () => {
       { channel: 'birthdays', title: 'Joyeux anniversaire !', body: 'Inès et Noé', tag: 'cards' },
     ]);
     assert.deepEqual(cards.map((n) => n.body), ['Inès et Noé']);
+    // A turn to take is never lost in the group: it comes first and the group says so.
+    const turn = burstNotices<Notice>([
+      { channel: 'goodNews', title: 'Bonne nouvelle de Inès', body: 'a' },
+      { channel: 'helpRequests', title: "C'est ton tour", body: 'Poubelles', direct: true, turnId: 't1' },
+    ]);
+    assert.equal(turn[0].body, "Une demande attend ta réponse. 2 notifications : C'est ton tour · Bonne nouvelle de Inès");
     assert.equal(cappable({ channel: 'goodNews' }), true);
     assert.equal(cappable({ channel: 'birthdays', direct: true }), true);
     for (const never of [{ channel: 'joinMe' }, { channel: 'reminders', direct: true }, { channel: 'feedback' }, { channel: 'admin' }, { channel: 'goodNews', fromOwner: true }] as const) {

@@ -273,6 +273,11 @@ async function splitBurst(db: Firestore, memberIds: string[], now: Date): Promis
   return result;
 }
 
+/** Aimed at me and waiting for my answer: the Planning (a car) and Entraide (a turn, a loan, a coup de main). */
+export function asksAnswer(notice: Filtered): boolean {
+  return notice.direct === true && (notice.channel === 'events' || notice.channel === 'helpRequests');
+}
+
 /**
  * What waited past the cap, as few notices as possible: the notices of a same tag (the cards of the
  * day) keep the last one, a surprise keeps its private channel, and the rest is one notice.
@@ -287,8 +292,11 @@ export function burstNotices<N extends Filtered & { title: string; body: string;
   const counts = new Map<Channel, number>();
   for (const n of shared) counts.set(n.channel, (counts.get(n.channel) ?? 0) + 1);
   const channel = [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
-  const titles = [...new Set(shared.map((n) => n.title))].join(' · ');
-  const body = `${shared.length} notifications : ${titles}`;
+  // A notice that asks me something (« C'est ton tour », a passenger, a loan) is never lost in the
+  // group: it comes first, and the group says that an answer is waiting.
+  const asks = shared.filter(asksAnswer);
+  const titles = [...new Set([...asks, ...shared.filter((n) => !asksAnswer(n))].map((n) => n.title))].join(' · ');
+  const body = `${asks.length > 0 ? 'Une demande attend ta réponse. ' : ''}${shared.length} notifications : ${titles}`;
   const one = { channel, title: heading, body: body.length > MAX_BODY ? `${body.slice(0, MAX_BODY - 1)}…` : body } as N;
   return [one, ...surprises];
 }
@@ -309,23 +317,30 @@ export async function sendBurstHeld<N extends Filtered & { title: string; body: 
   }
   let sent = 0;
   for (const queue of queues.docs) {
-    if (!(await takeSlot(db, queue.id, now))) continue; // Still at the cap: the next run.
+    const prefs = (await loadPrefs(db, [queue.id])).get(queue.id) ?? DEFAULT_PREFS;
+    const waits = (notice: N): 'presentationQueue' | 'quietQueue' | null => {
+      if (presenting && heldByPresentation(notice)) return 'presentationQueue';
+      if (isQuietHour(now) && prefs.quietHours && !notice.direct && FAMILY_OF[notice.channel] !== null) return 'quietQueue';
+      return null;
+    };
+    const group = (items: (N & { heldAt?: string })[]) => burstNotices(items
+      .filter((n) => !n.heldAt || now.getTime() - Date.parse(n.heldAt) < MAX_HELD_MS)
+      .map(({ heldAt: _heldAt, ...n }) => n as unknown as N));
+    // A place of the hour is taken only when something rings now (note C1 de #295); still at the
+    // cap, everything waits for the next run.
+    const ringing = group((queue.get('items') as (N & { heldAt?: string })[] | undefined) ?? []).some((n) => waits(n) === null);
+    if (ringing && !(await takeSlot(db, queue.id, now))) continue;
     const items = await db.runTransaction(async (tx) => {
       const doc = await tx.get(queue.ref);
       tx.delete(queue.ref);
       return ((doc.get('items') as (N & { heldAt?: string })[] | undefined) ?? []);
     });
-    const fresh = items.filter((n) => !n.heldAt || now.getTime() - Date.parse(n.heldAt) < MAX_HELD_MS);
-    const prefs = (await loadPrefs(db, [queue.id])).get(queue.id) ?? DEFAULT_PREFS;
     const again: unknown[] = [];
-    for (const notice of burstNotices(fresh.map(({ heldAt: _heldAt, ...n }) => n as unknown as N))) {
+    for (const notice of group(items)) {
       const item = { ...JSON.parse(JSON.stringify(notice)), heldAt: now.toISOString() };
-      if (presenting && heldByPresentation(notice)) {
-        await db.collection('presentationQueue').doc(queue.id).set({ items: FieldValue.arrayUnion(item) }, { merge: true });
-        continue;
-      }
-      if (isQuietHour(now) && prefs.quietHours && !notice.direct && FAMILY_OF[notice.channel] !== null) {
-        await db.collection('quietQueue').doc(queue.id).set({ items: FieldValue.arrayUnion(item) }, { merge: true });
+      const queueName = waits(notice);
+      if (queueName !== null) {
+        await db.collection(queueName).doc(queue.id).set({ items: FieldValue.arrayUnion(item) }, { merge: true });
         continue;
       }
       let result = { sent: 0, failed: 0 };
