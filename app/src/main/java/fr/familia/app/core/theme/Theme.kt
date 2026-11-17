@@ -74,13 +74,16 @@ internal val DarkColors = darkColorScheme(
 fun FamiliaTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     theme: FamiliaThemeId = FamiliaThemeId.Classic,
+    /** The R1 bis presentation gives Classique its « pépins » (light only); the other themes keep theirs. */
+    seeds: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val spec = themeSpec(theme)
     val dark = darkTheme && spec.dark != null
+    val style = if (seeds && theme == FamiliaThemeId.Classic && !darkTheme) spec.style.copy(pattern = ThemePattern.Seeds) else spec.style
     CompositionLocalProvider(
         LocalClayColors provides if (dark) spec.darkClay ?: spec.lightClay else spec.lightClay,
-        LocalClayStyle provides spec.style,
+        LocalClayStyle provides style,
     ) {
         MaterialTheme(
             colorScheme = if (dark) spec.dark ?: spec.light else spec.light,

@@ -47,16 +47,18 @@ class FirestoreRecipeRepository(private val db: FirebaseFirestore) : RecipeRepos
             "ingredients" to recipe.ingredients,
             "steps" to recipe.steps,
             "tags" to recipe.tags,
-            "story" to recipe.story,
             "authorId" to recipe.authorId,
             "authorName" to recipe.authorName,
             "updatedAt" to FieldValue.serverTimestamp(),
         )
         val ref = db.collection(RECIPES).document(recipe.id)
+        // Its little story (récit 47) only when there is one: rules older than the field accept
+        // the recipe as long as it does not name it.
+        val story = recipe.story.takeIf { it.isNotEmpty() }
         if (isNew) {
-            ref.set(fields + ("createdAt" to FieldValue.serverTimestamp())).await()
+            ref.set(fields + ("createdAt" to FieldValue.serverTimestamp()) + listOfNotNull(story?.let { "story" to it })).await()
         } else {
-            ref.set(fields, SetOptions.merge()).await()
+            ref.set(fields + ("story" to (story ?: FieldValue.delete())), SetOptions.merge()).await()
         }
     }
 
