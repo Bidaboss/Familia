@@ -194,6 +194,7 @@ import fr.familia.app.feature.albums.AlbumEntry
 import fr.familia.app.feature.albums.AlbumsDestination
 import fr.familia.app.feature.albums.AlbumsRoute
 import fr.familia.app.feature.settings.appearance.AppearanceScreen
+import fr.familia.app.core.welcome.OpeningStyle
 import fr.familia.app.core.welcome.WelcomeHost
 import fr.familia.app.core.welcome.WELCOME_OFF_WAIT_MILLIS
 import fr.familia.app.core.welcome.WELCOME_WAIT_MILLIS
@@ -380,10 +381,11 @@ fun FamiliaApp(
     var chosenTheme by remember { mutableStateOf(themePrefs.theme) }
     val iconSwitcher = remember(context) { AppIconSwitcher(context.applicationContext) }
     var showOnboarding by rememberSaveable { mutableStateOf(!onboarding.seen) }
-    // The welcome of the first opening on this phone (spec DESIGN, 17/11), before the tutorial;
-    // never in « Voir comme ». « Revoir l'animation de bienvenue » in Apparence plays it again.
+    // The welcome plays at each opening while « Longue » is chosen in Apparence, the default
+    // (Kévin, 17/11), before the tutorial and before « Quoi de neuf ? »; never in « Voir comme ».
     val welcome = remember(context) { WelcomePreferences(context.applicationContext) }
-    var showWelcome by rememberSaveable { mutableStateOf(!welcome.seen) }
+    var openingStyle by remember { mutableStateOf(welcome.style) }
+    var showWelcome by rememberSaveable { mutableStateOf(welcome.style == OpeningStyle.Long) }
     if (showWelcome && !viewingAs) {
         val welcomeFamily = remember(container) { container?.memberRepository?.observeFamily() }
         val welcomeConfig = remember(container) { container?.appConfigRepository?.observeAppConfig() }
@@ -1764,13 +1766,10 @@ fun FamiliaApp(
                                 chosenIcon = icon
                                 iconSwitcher.choose(icon)
                             },
-                            onReplayWelcome = if (features.isOn(Feature.OpeningAnimation)) {
-                                {
-                                    welcome.seen = false
-                                    showWelcome = true
-                                }
-                            } else {
-                                null
+                            opening = openingStyle,
+                            onChooseOpening = { style ->
+                                openingStyle = style
+                                welcome.style = style
                             },
                         )
                     }
