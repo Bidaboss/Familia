@@ -55,6 +55,7 @@ import { deleteWelcomeOf, isFirstSignIn, welcomeMember } from './welcome';
 import { deleteCheersOf, deleteMomentsOf, onMomentCheerCreated, startMoments, type MomentCheer } from './thinkOfMe';
 import { revealWishes, thankGivers } from './wishesReveal';
 import { migrateToSingleList } from './singleList';
+import { deleteItemPhoto } from './itemPhoto';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
 
 initializeApp();
@@ -359,7 +360,7 @@ export const onGiftItemWritten = onDocumentWritten('giftLists/{listId}/items/{it
   // A photo the item no longer names (récit 44), whoever removed the item: « name.jpg » and « name-thumb.jpg ».
   const photo = typeof before?.photo === 'string' ? before.photo : null;
   if (photo && photo.startsWith(`giftLists/${event.params.listId}/`) && photo !== after?.photo) {
-    await getStorage().bucket().deleteFiles({ prefix: photo });
+    await deleteItemPhoto(photo);
   }
   if (before && after) await syncNotebookItem(getFirestore(), event.params.listId, event.params.itemId);
 });
