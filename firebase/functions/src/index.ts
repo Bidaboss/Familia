@@ -54,7 +54,7 @@ import { deleteQuietQueueOf, presentationFrom, presentingNow, sendHeldNotices, s
 import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type BirthdayCard } from './birthdayWishes';
 import { deleteWelcomeOf, isFirstSignIn, welcomeMember } from './welcome';
 import { deleteCheersOf, deleteMomentsOf, onMomentCheerCreated, startMoments, type MomentCheer } from './thinkOfMe';
-import { revealWishes, thankGivers } from './wishesReveal';
+import { keepReceivedPhoto, revealWishes, thankGivers } from './wishesReveal';
 import { migrateToSingleList } from './singleList';
 import { deleteItemPhoto } from './itemPhoto';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
@@ -392,6 +392,8 @@ export const onGiftItemWritten = onDocumentWritten('giftLists/{listId}/items/{it
   await onGiftItemChanged(getFirestore(), send, event.params.listId, event.params.itemId, before, after);
   // A photo the item no longer names (récit 44), whoever removed the item: « name.jpg » and « name-thumb.jpg ».
   const photo = typeof before?.photo === 'string' ? before.photo : null;
+  // « Reçue » (rév. 232): the photo is copied to « On m'a offert » first, with « Plus de photos ».
+  if (photo && !after) await keepReceivedPhoto(getFirestore(), event.params.listId, event.params.itemId, photo);
   if (photo && photo.startsWith(`giftLists/${event.params.listId}/`) && photo !== after?.photo) {
     await deleteItemPhoto(photo);
   }

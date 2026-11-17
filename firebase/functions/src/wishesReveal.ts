@@ -256,3 +256,27 @@ export async function wasMarkedReceived(db: Firestore, listId: string, itemId: s
   const received = await db.collection('giftLists').doc(listId).collection('received').doc(itemId).get();
   return received.exists && received.get('self') === true;
 }
+
+/**
+ * « Reçue » with « Plus de photos »: the photo of a wish the person marked received themselves
+ * follows it to « On m'a offert », as at the reveal (rév. 237). Called by the trigger of the
+ * removal before it deletes the photo. True when the archive now names the copy; otherwise the
+ * archive stays without a photo, as before.
+ */
+export async function keepReceivedPhoto(
+  db: Firestore, listId: string, itemId: string, photo: unknown, copyPhoto: PhotoCopier = storageCopier,
+): Promise<boolean> {
+  if (typeof photo !== 'string' || !photo.startsWith(`giftLists/${listId}/`)) return false;
+  if (!(await wasMarkedReceived(db, listId, itemId))) return false;
+  if ((await db.doc('config/app').get()).get('features.morePhotos') !== true) return false;
+  const target = receivedPhoto(listId, itemId);
+  if (!(await copyPhoto(photo, target))) return false;
+  try {
+    await db.collection('giftLists').doc(listId).collection('received').doc(itemId).update({ photo: target });
+  } catch (e) {
+    // The archive went in the meantime (the list was removed): nothing to name.
+    console.warn(`keepReceivedPhoto: ${listId}/${itemId} not updated`, e);
+    return false;
+  }
+  return true;
+}
