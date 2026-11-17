@@ -534,3 +534,11 @@ Avec l'interrupteur « Partager » allumé :
 2. Sur un téléphone prévenu, ouvre la demande : la photo est entière, sans être coupée. Touche-la : elle s'ouvre en grand sur fond noir, prête à être scannée. « Fermer » revient à la demande.
 3. Sur le téléphone d'un membre non prévenu, la demande n'apparaît pas, et la photo non plus.
 4. Modifie la demande, touche « Retirer la photo », enregistre : elle disparaît pour tout le monde.
+## L'écran Défis (R1 bis, maquette R7)
+
+1. Ouvre « Défis » depuis Tout Familia. En haut, la carte noire : « DÉFI DE DÉCEMBRE », le défi, la jauge jaune et « On le réussit ensemble, sans classement ». Avant décembre : « Premier défi le 1er décembre ».
+2. Défi lancé par un foyer : « Ajouter ma photo » ouvre une bonne nouvelle liée au défi. Si c'est au tour de ton foyer : « Préparer le défi ».
+3. Carte blanche « QUESTION DU LUNDI » : la question et le nombre de réponses, jamais qui. Sans réponse de ta part : « Tu réponds pour les voir » et « Répondre ». Avant le 30/11 : « Première question le lundi 30 novembre ».
+4. « Nos souvenirs gagnés ensemble » : l'arbre et ses feuilles, un souvenir par défi réussi, puis « À venir ». Rien n'appartient à une seule personne.
+5. Arbre ou question éteints dans Administration : leur carte disparaît de l'écran.
+6. Police à 200 % : tout défile.
