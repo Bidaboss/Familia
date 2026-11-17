@@ -1049,6 +1049,8 @@
     <string name="goodnews_publish_failed">La bonne nouvelle n\'a pas pu être publiée. Ton texte et tes photos sont gardés : touche « Publier » pour réessayer.</string>
     <string name="goodnews_home_empty">Rien de neuf depuis deux semaines. Partage une photo ou une bonne nouvelle !</string>
     <string name="goodnews_home_all">Toutes les bonnes nouvelles</string>
+    <string name="goodnews_home_compact_label">Bonne nouvelle</string>
+    <string name="goodnews_home_compact_empty">Rien de neuf. Partage la tienne !</string>
     <string name="goodnews_home_row_title">%1$s · %2$s</string>
     <string name="channel_good_news">Bonnes nouvelles</string>
     <string name="channel_good_news_description">Quand quelqu\'un de la famille partage une bonne nouvelle</string>

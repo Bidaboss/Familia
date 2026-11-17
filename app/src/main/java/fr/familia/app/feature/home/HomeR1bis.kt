@@ -106,7 +106,8 @@ fun HomeR1bisScreen(
     state: HomeUiState,
     actions: HomeActions,
     r1: HomeR1bisActions,
-    goodNews: (@Composable (Modifier) -> Unit)? = null,
+    /** The good news card; [compact] beside the challenge (DESIGN-20), full width alone. */
+    goodNews: (@Composable (Modifier, compact: Boolean) -> Unit)? = null,
     challenge: (@Composable (Modifier, wide: Boolean) -> Unit)? = null,
     nowTravelling: (@Composable () -> Unit)? = null,
     allBadge: Int = 0,
@@ -136,14 +137,21 @@ fun HomeR1bisScreen(
         }
     }
     val newsAndChallenge: @Composable () -> Unit = {
-        if (goodNews != null && challenge != null) {
+        if (calm && challenge != null) {
+            // A calm day (§2.5): « Profites-en pour le défi ! », then the challenge in a large card,
+            // and the good news under it, full width (DESIGN, 17/11).
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                challenge(Modifier.fillMaxWidth(), true)
+                goodNews?.invoke(Modifier.fillMaxWidth(), false)
+            }
+        } else if (goodNews != null && challenge != null) {
             // Both cards take the height of the taller one (DESIGN, 17/11).
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-                goodNews(Modifier.weight(1f).fillMaxHeight())
+                goodNews(Modifier.weight(1f).fillMaxHeight(), true)
                 challenge(Modifier.weight(1f).fillMaxHeight(), false)
             }
         } else if (goodNews != null) {
-            goodNews(Modifier.fillMaxWidth())
+            goodNews(Modifier.fillMaxWidth(), false)
         } else {
             challenge?.invoke(Modifier.fillMaxWidth(), true)
         }
@@ -377,10 +385,10 @@ private fun TodoR1Card(todo: HomeTodo, today: LocalDate, actions: HomeActions, r
             detail = todo.event.time?.let { "${dayShortLabel(todo.event.date, today)} · ${formatTime(it)}" } ?: dayShortLabel(todo.event.date, today),
             onOpen = { actions.onOpenEvent(todo.event.id) },
         ) {
-            Button(onClick = { r1.onAnswer(todo.event.id, true) }, modifier = Modifier.heightIn(min = 48.dp)) {
+            FilledTonalButton(onClick = { r1.onAnswer(todo.event.id, true) }, modifier = Modifier.heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.home_r1_going))
             }
-            OutlinedButton(onClick = { r1.onAnswer(todo.event.id, false) }, modifier = Modifier.heightIn(min = 48.dp)) {
+            OutlinedButton(onClick = { r1.onAnswer(todo.event.id, false) }, modifier = Modifier.heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.home_r1_not_going))
             }
         }
@@ -389,7 +397,7 @@ private fun TodoR1Card(todo: HomeTodo, today: LocalDate, actions: HomeActions, r
             detail = stringResource(R.string.home_todo_help, todo.request.authorName, whenLabel(todo.request, today)),
             onOpen = { actions.onOpenHelpRequest(todo.request.id) },
         ) {
-            Button(onClick = { actions.onOpenHelpRequest(todo.request.id) }, modifier = Modifier.heightIn(min = 48.dp)) {
+            FilledTonalButton(onClick = { actions.onOpenHelpRequest(todo.request.id) }, modifier = Modifier.heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.home_r1_help_open))
             }
         }
@@ -398,7 +406,7 @@ private fun TodoR1Card(todo: HomeTodo, today: LocalDate, actions: HomeActions, r
             detail = stringResource(R.string.home_r1_poll_by, todo.poll.authorName),
             onOpen = { actions.onOpenPoll(todo.poll.id) },
         ) {
-            Button(onClick = { actions.onOpenPoll(todo.poll.id) }, modifier = Modifier.heightIn(min = 48.dp)) {
+            FilledTonalButton(onClick = { actions.onOpenPoll(todo.poll.id) }, modifier = Modifier.heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.home_r1_vote))
             }
         }
@@ -427,11 +435,14 @@ private fun AllFamiliaBar(r1: HomeR1bisActions, allBadge: Int) {
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.background)
             .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 12.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Button(
             onClick = r1.onOpenAll,
             colors = ButtonDefaults.buttonColors(containerColor = ink, contentColor = MaterialTheme.colorScheme.surface),
             modifier = Modifier
+                // Never stretched across a tablet (DESIGN, 17/11).
+                .widthIn(max = 480.dp)
                 .fillMaxWidth()
                 .heightIn(min = 56.dp)
                 .semantics { if (news != null) stateDescription = news },
