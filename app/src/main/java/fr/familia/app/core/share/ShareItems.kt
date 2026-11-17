@@ -135,6 +135,19 @@ fun helpRequestShare(context: Context, request: HelpRequest, today: LocalDate = 
     )
 }
 
+/**
+ * « Mes envies » of [beneficiaryName] (récit 31, partie 2): the name and the link only. No item, no
+ * reservation, no part and no name of a giver goes out: whoever opens the link sees what the rules
+ * let them read, in the app. [title] and [text] are the strings of [wishesShare].
+ */
+fun wishesShareContent(listId: String, title: String, text: String): ShareContent =
+    ShareContent(title = title, lines = emptyList(), text = text, link = shareLink(ShareKind.List, listId))
+
+fun wishesShare(context: Context, listId: String, beneficiaryName: String): ShareContent {
+    val title = context.getString(R.string.gift_wishes_of, beneficiaryName)
+    return wishesShareContent(listId, title, context.getString(R.string.share_wishes_text, beneficiaryName))
+}
+
 /** Enough of a good news to read on the image and in the message: the rest is in Familia. */
 private const val SHARE_EXCERPT_MAX = 160
 

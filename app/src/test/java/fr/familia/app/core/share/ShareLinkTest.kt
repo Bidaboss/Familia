@@ -14,6 +14,16 @@ class ShareLinkTest {
         assertEquals("https://familia-93286.web.app/o/birthday/m_1", shareLink(ShareKind.Birthday, "m_1"))
     }
 
+    @Test
+    fun `shared wishes carry their name and the link, never an item nor a reservation`() {
+        val content = wishesShareContent("wishes-adult1", "Envies de Camille", "Les envies de Camille sont dans Familia.")
+        assertTrue(content.lines.isEmpty())
+        assertNull(content.photo)
+        assertEquals("https://familia-93286.web.app/o/list/wishes-adult1", content.link)
+        // The message is the text and the link, nothing else: no title of a wish, no giver.
+        assertEquals("Les envies de Camille sont dans Familia.\nhttps://familia-93286.web.app/o/list/wishes-adult1", shareMessage(content))
+    }
+
     @Test(expected = IllegalArgumentException::class)
     fun `an id that is not a document id is refused`() {
         shareLink(ShareKind.Poll, "../config")
