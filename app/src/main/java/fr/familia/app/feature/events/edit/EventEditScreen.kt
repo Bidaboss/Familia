@@ -61,6 +61,7 @@ import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.model.EventTarget
+import fr.familia.app.core.model.RepeatChoice
 import fr.familia.app.core.photo.PhotoField
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.EmptyState
@@ -80,8 +81,8 @@ import java.util.Locale
 fun EventEditScreen(
     state: EventEditUiState,
     onChange: ((EventForm) -> EventForm) -> Unit,
-    onSave: () -> Unit,
-    onDelete: () -> Unit,
+    onSave: (SeriesScope) -> Unit,
+    onDelete: (SeriesScope) -> Unit,
     onBack: () -> Unit,
 ) {
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
@@ -147,9 +148,10 @@ fun EventEditScreen(
 private fun EventFormContent(
     state: EventEditUiState.Editing,
     onChange: ((EventForm) -> EventForm) -> Unit,
-    onSave: () -> Unit,
-    onDelete: () -> Unit,
+    onSave: (SeriesScope) -> Unit,
+    onDelete: (SeriesScope) -> Unit,
 ) {
+    var askScope by rememberSaveable { mutableStateOf(false) }
     val form = state.form
     val errors = state.errors
     Column(
@@ -172,6 +174,7 @@ private fun EventFormContent(
         )
 
         DateTimeSection(form, EventFormError.DateMissing in errors, onChange)
+        if (state.showRepeat) RepeatSection(form, state.isOccurrence, EventFormError.RepeatEndInvalid in errors, onChange)
 
         OutlinedTextField(
             value = form.place,
@@ -185,7 +188,8 @@ private fun EventFormContent(
         )
         NoteField(form, errors, onChange)
 
-        if (state.showPhoto) {
+        // A series has no cover of its own: each time can get one afterwards.
+        if (state.showPhoto && !(state.isNew && form.repeat != RepeatChoice.None)) {
             PhotoField(
                 stored = state.storedCover,
                 edit = form.photo,
@@ -204,7 +208,7 @@ private fun EventFormContent(
             )
         }
         Button(
-            onClick = onSave,
+            onClick = { if (state.isOccurrence) askScope = true else onSave(SeriesScope.ThisOnly) },
             enabled = !state.isSaving,
             modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
         ) {
@@ -214,7 +218,15 @@ private fun EventFormContent(
                 Text(stringResource(R.string.member_save))
             }
         }
-        if (!state.isNew) DeleteButton(form.title, enabled = !state.isSaving, onDelete)
+        if (!state.isNew) DeleteButton(form.title, state.isOccurrence, enabled = !state.isSaving, onDelete)
+    }
+    if (askScope) {
+        SeriesScopeDialog(
+            title = R.string.event_scope_save_title,
+            body = R.string.event_scope_save_body,
+            onPick = { scope -> askScope = false; onSave(scope) },
+            onDismiss = { askScope = false },
+        )
     }
 }
 
@@ -279,7 +291,7 @@ private fun DateTimeSection(form: EventForm, dateMissing: Boolean, onChange: ((E
 }
 
 @Composable
-private fun DeleteButton(title: String, enabled: Boolean, onDelete: () -> Unit) {
+private fun DeleteButton(title: String, isOccurrence: Boolean, enabled: Boolean, onDelete: (SeriesScope) -> Unit) {
     var confirm by rememberSaveable { mutableStateOf(false) }
     OutlinedButton(
         onClick = { confirm = true },
@@ -287,13 +299,20 @@ private fun DeleteButton(title: String, enabled: Boolean, onDelete: () -> Unit) 
         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
     ) { Text(stringResource(R.string.event_delete)) }
-    if (confirm) {
+    if (confirm && isOccurrence) {
+        SeriesScopeDialog(
+            title = R.string.event_scope_delete_title,
+            body = R.string.event_scope_delete_body,
+            onPick = { scope -> confirm = false; onDelete(scope) },
+            onDismiss = { confirm = false },
+        )
+    } else if (confirm) {
         AlertDialog(
             onDismissRequest = { confirm = false },
             title = { Text(stringResource(R.string.event_delete_title, title.trim())) },
             text = { Text(stringResource(R.string.event_delete_body)) },
             confirmButton = {
-                TextButton(onClick = { confirm = false; onDelete() }) {
+                TextButton(onClick = { confirm = false; onDelete(SeriesScope.ThisOnly) }) {
                     Text(stringResource(R.string.event_delete_confirm), color = MaterialTheme.colorScheme.error)
                 }
             },
@@ -412,16 +431,17 @@ private fun errorText(errors: Set<EventFormError>, vararg kinds: EventFormError)
             EventFormError.PlaceTooLong -> R.string.error_event_place_too_long
             EventFormError.NoteTooLong -> R.string.error_event_note_too_long
             EventFormError.TargetMissing -> R.string.error_event_target_missing
+            EventFormError.RepeatEndInvalid -> R.string.error_event_repeat_end
         },
     )
     return { Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
 }
 
-private val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(Locale.FRANCE)
+internal val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(Locale.FRANCE)
 
 // The date picker works in UTC milliseconds.
-private fun LocalDate.toUtcMillis(): Long = atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
-private fun Long.toUtcDate(): LocalDate = Instant.ofEpochMilli(this).atZone(ZoneOffset.UTC).toLocalDate()
+internal fun LocalDate.toUtcMillis(): Long = atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+internal fun Long.toUtcDate(): LocalDate = Instant.ofEpochMilli(this).atZone(ZoneOffset.UTC).toLocalDate()
 
 /** Fictional data for previews and screenshots. */
 internal fun previewEventState(isNew: Boolean = true, errors: Set<EventFormError> = emptySet()) = EventEditUiState.Editing(
