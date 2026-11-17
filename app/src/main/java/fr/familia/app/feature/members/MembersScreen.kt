@@ -266,7 +266,8 @@ fun MembersScreen(
             if (canAdd && onEditMember != null) {
                 ExtendedFloatingActionButton(
                     onClick = { onEditMember(null) },
-                    icon = { Icon(Icons.Outlined.PersonAdd, contentDescription = null) },
+                    // The text of an extended button is hidden from TalkBack (Material 3): the icon says it.
+                    icon = { Icon(Icons.Outlined.PersonAdd, contentDescription = stringResource(R.string.members_add)) },
                     text = { Text(stringResource(R.string.members_add)) },
                     modifier = Modifier.align(Alignment.BottomEnd).aboveSnackbar().padding(16.dp),
                 )

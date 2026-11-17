@@ -1,14 +1,9 @@
 package fr.familia.app.feature.gifts
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.semantics.SemanticsNode
-import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.semantics.getOrNull
-import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.unit.dp
 import fr.familia.app.core.model.MemberCard
-import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.ui.checkAccessibility
 import fr.familia.app.feature.gifts.detail.GiftListActions
 import fr.familia.app.feature.gifts.detail.GiftListScreen
 import fr.familia.app.feature.gifts.detail.previewGiftList
@@ -28,8 +23,6 @@ import fr.familia.app.feature.gifts.received.ReceivedGiftsScreen
 import fr.familia.app.feature.gifts.received.previewReceivedGifts
 import fr.familia.app.feature.members.card.MemberCardContent
 import fr.familia.app.feature.members.card.MemberCardUiState
-import androidx.compose.material3.Surface
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -49,25 +42,7 @@ class GiftsAccessibilityTest {
     @get:Rule
     val compose = createComposeRule()
 
-    private fun check(content: @Composable () -> Unit) {
-        compose.setContent { FamiliaTheme { Surface { content() } } }
-        compose.waitForIdle()
-        val touchable = compose.onAllNodes(hasClickAction()).fetchSemanticsNodes()
-        assertTrue("nothing to touch on this screen", touchable.isNotEmpty())
-        val silent = touchable.filter { it.label().isBlank() }
-        assertTrue("touchable without a label for TalkBack: ${silent.map { it.where() }}", silent.isEmpty())
-        val minPx = with(compose.density) { 48.dp.toPx() }
-        // A node cut by the edge of the screen (a list that scrolls) is not judged by its height.
-        val small = touchable.filter { it.size.height < minPx - 1f && it.boundsInRoot.height >= it.size.height }
-        assertTrue("touchable under 48 dp: ${small.map { "« ${it.label()} » ${it.where()}" }}", small.isEmpty())
-    }
-
-    private fun SemanticsNode.label(): String =
-        (config.getOrNull(SemanticsProperties.ContentDescription).orEmpty() + config.getOrNull(SemanticsProperties.Text).orEmpty().map { it.text } +
-            listOfNotNull(config.getOrNull(SemanticsProperties.EditableText)?.text))
-            .joinToString(" ")
-
-    private fun SemanticsNode.where(): String = "${boundsInRoot} (${size.height} px)"
+    private fun check(content: @Composable () -> Unit) = compose.checkAccessibility(content)
 
     @Test
     fun `the Cadeaux tab`() = check { GiftsScreen(previewGifts(), {}, {}, {}) }

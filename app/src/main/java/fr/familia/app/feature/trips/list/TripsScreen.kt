@@ -71,7 +71,8 @@ fun TripsScreen(
             if (state is TripsUiState.Success && state.canCreate) {
                 ExtendedFloatingActionButton(
                     onClick = onAddTrip,
-                    icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                    // The text of an extended button is hidden from TalkBack (Material 3): the icon says it.
+                    icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.trips_add)) },
                     text = { Text(stringResource(R.string.trips_add)) },
                 )
             }
