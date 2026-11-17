@@ -130,6 +130,9 @@ describe('the avalanche du 21, without the emulator', () => {
       { channel: 'helpRequests', title: "C'est ton tour", body: 'Poubelles', direct: true, turnId: 't1' },
     ]);
     assert.equal(turn[0].body, "Une demande attend ta réponse. 2 notifications : C'est ton tour · Bonne nouvelle de Inès");
+    // And it stays aimed at me, so the night does not hold it until 8 h (note C de #295).
+    assert.equal(turn[0].direct, true);
+    assert.equal(burstNotices<Notice>([{ channel: 'goodNews', title: 'a', body: 'a' }, { channel: 'goodNews', title: 'b', body: 'b' }])[0].direct, undefined);
     assert.equal(cappable({ channel: 'goodNews' }), true);
     assert.equal(cappable({ channel: 'birthdays', direct: true }), true);
     for (const never of [{ channel: 'joinMe' }, { channel: 'reminders', direct: true }, { channel: 'feedback' }, { channel: 'admin' }, { channel: 'goodNews', fromOwner: true }] as const) {

@@ -297,7 +297,8 @@ export function burstNotices<N extends Filtered & { title: string; body: string;
   const asks = shared.filter(asksAnswer);
   const titles = [...new Set([...asks, ...shared.filter((n) => !asksAnswer(n))].map((n) => n.title))].join(' · ');
   const body = `${asks.length > 0 ? 'Une demande attend ta réponse. ' : ''}${shared.length} notifications : ${titles}`;
-  const one = { channel, title: heading, body: body.length > MAX_BODY ? `${body.slice(0, MAX_BODY - 1)}…` : body } as N;
+  // With a demand inside, the group is aimed at me too: it rings at night as the demand alone would.
+  const one = { channel, title: heading, body: body.length > MAX_BODY ? `${body.slice(0, MAX_BODY - 1)}…` : body, ...(asks.length > 0 ? { direct: true } : {}) } as N;
   return [one, ...surprises];
 }
 
