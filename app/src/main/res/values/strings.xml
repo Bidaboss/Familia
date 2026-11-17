@@ -901,6 +901,8 @@
     <string name="helprequest_todo_decline_large">Pas dispo</string>
     <string name="helprequest_todo_already_taken_by">Trop tard : %1$s s\'en occupe déjà.</string>
     <string name="helprequest_todo_already_taken">Quelqu\'un s\'en occupe déjà.</string>
+    <string name="helprequest_late_taken_by">%1$s s\'en occupait déjà. Merci d\'avoir proposé ton aide !</string>
+    <string name="helprequest_late_taken">Quelqu\'un s\'en occupait déjà. Merci d\'avoir proposé ton aide !</string>
     <string name="helprequest_todo_needs_network">Il faut du réseau pour répondre. Réessaie une fois connecté.</string>
     <string name="helprequest_todo_failed">Ça n\'a pas marché. Réessaie dans un instant.</string>
     <string name="helprequest_r1bis_title">Coups de main</string>

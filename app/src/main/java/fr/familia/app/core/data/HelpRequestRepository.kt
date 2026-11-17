@@ -2,6 +2,7 @@ package fr.familia.app.core.data
 
 import fr.familia.app.core.model.HelpRequest
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 /** Access to the « coups de main ». Screens never talk to Firestore directly. */
 interface HelpRequestRepository {
@@ -19,7 +20,7 @@ interface HelpRequestRepository {
 
     /**
      * « Je m'en occupe », in a transaction on the server: throws [AlreadyTakenException] when
-     * someone was quicker. Needs the network, so that there are never two volunteers.
+     * someone was quicker. Offline it waits on this phone, and the rules keep a single volunteer.
      */
     suspend fun take(id: String, volunteerId: String, volunteerName: String, note: String? = null)
 
@@ -39,6 +40,12 @@ interface HelpRequestRepository {
     suspend fun thank(id: String)
 
     suspend fun cancel(id: String)
+
+    /**
+     * A « Je m'en occupe » that waited offline and was refused when the network came back: the
+     * first name of who took it meanwhile, or null when unknown. Told once, while the app runs.
+     */
+    val lateRefusals: Flow<String?> get() = emptyFlow()
 }
 
 /** Someone else took the request first, or it is no longer open. */
