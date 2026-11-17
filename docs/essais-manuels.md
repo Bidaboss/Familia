@@ -670,3 +670,16 @@ Avec l'interrupteur « On se prête » allumé (l'admin principal le voit toujou
 1. Entraide : **Attendu :** un onglet « On se prête » après « Coups de main » (et « Bons plans » s'il est allumé). Interrupteur éteint, pour un autre membre : pas d'onglet « On se prête ».
 2. Sans objet : **Attendu :** « Rien à se prêter pour l'instant ».
 3. Avec des objets : **Attendu :** chaque carte dit la catégorie, le nom, puis « Prêté par … » (ou « À moi ») et « Disponible », « Demandé par … » ou « Chez … depuis le 12/12 ». Tape « racl » : seul l'appareil à raclette reste. « Disponible » ne garde que les objets libres.
+
+## On y va ensemble (récit 52)
+
+Avec trois comptes : Camille (adulte), Inès (adulte, responsable de Noé, enfant sans l'appli) et Sam. « Publier Firebase » doit être passé, et l'interrupteur « Covoiturage » allumé dans Administration.
+
+1. Avec Camille, ouvre un événement de demain et réponds « Je viens ». **Attendu :** la rubrique « On y va ensemble » apparaît sous les réponses, avec « J'ai des places ».
+2. Touche « J'ai des places », mets 2 places, « Annecy » et 10 h 30, puis « Proposer ». **Attendu :** la carte « Ma voiture » dit « 2 places libres sur 2 », « Départ : Annecy, 10 h 30 », avec « Itinéraire ».
+3. Avec Inès, touche « Qui monte ? » sur la voiture de Camille, coche « Toi » et Noé, puis OK. **Attendu :** Camille reçoit tout de suite « Inès et Noé montent avec toi », avec « C'est complet ». Même la nuit, la notification sonne.
+4. Avec Sam, touche « J'ai besoin d'une place ». **Attendu :** « Cherchent une place : Sam » s'affiche. La voiture est pleine, donc Sam n'a pas « Je monte ».
+5. Avec Camille, touche la croix à côté de Noé. **Attendu :** Inès reçoit « Camille ne peut plus t'emmener ».
+6. Avec Inès, réponds « Je ne viens pas ». **Attendu :** Inès disparaît de la voiture, et Camille reçoit « Inès ne monte plus avec toi ».
+7. Le soir à 18 h, la veille. **Attendu :** le rappel de Camille dit « Tu emmènes… », et celui de chaque passager « Tu pars avec Camille ».
+8. Avec Camille, touche « Retirer ma proposition », puis confirme. **Attendu :** les passagers reçoivent « Camille ne prend plus sa voiture ».

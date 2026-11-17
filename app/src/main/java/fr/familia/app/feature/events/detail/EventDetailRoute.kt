@@ -27,6 +27,8 @@ import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.photo.CoverBanner
 import fr.familia.app.feature.events.album.EventAlbumSection
 import fr.familia.app.feature.events.bring.BringSection
+import fr.familia.app.feature.events.carpool.CarpoolSection
+import fr.familia.app.core.model.RsvpStatus
 import fr.familia.app.feature.events.comments.EventCommentsSection
 import fr.familia.app.feature.events.album.isAlbumOpen
 import fr.familia.app.feature.polls.event.EventPollsSection
@@ -94,6 +96,15 @@ fun EventDetailRoute(
         },
         album = {
             val success = state as? EventDetailUiState.Success
+            // « On y va ensemble » (récit 52), right under « Je viens »: me and the children I answer for.
+            if (success != null && LocalFeatureFlags.current.isOn(Feature.Carpool)) {
+                HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                CarpoolSection(
+                    container, currentMember, eventId,
+                    riderIds = success.answerers.map { it.member.id },
+                    iAmComing = success.answerers.any { it.isMe && it.status == RsvpStatus.Yes },
+                )
+            }
             // « Qui apporte quoi » (récit 4 bis), before the album.
             if (success != null && LocalFeatureFlags.current.isOn(Feature.Bring)) {
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))

@@ -61,6 +61,9 @@ interface AppContainer {
     /** Bons plans et bonnes adresses (récit 45). */
     val goodDealRepository: GoodDealRepository? get() = null
 
+    /** « On y va ensemble » (récit 52). */
+    val carpoolRepository: CarpoolRepository? get() = null
+
     /** Récit 49; null in « Voir comme », where nobody else's secret link shows. */
     val calendarFeedRepository: CalendarFeedRepository? get() = null
     /** On se prête (récit 51). */
@@ -152,6 +155,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val goodDealRepository: GoodDealRepository? by lazy { firestore?.let { FirestoreGoodDealRepository(it) } }
     override val calendarFeedRepository: CalendarFeedRepository? by lazy { firestore?.let { FirestoreCalendarFeedRepository(it) } }
     override val lendItemRepository: LendItemRepository? by lazy { firestore?.let { FirestoreLendItemRepository(it) } }
+    override val carpoolRepository: CarpoolRepository? by lazy { firestore?.let { FirestoreCarpoolRepository(it) } }
     override val treeRepository: TreeRepository? by lazy { firestore?.let { FirestoreTreeRepository(it) } }
 
     /** Photos of the good news and the trips, in Cloud Storage (firebase/storage.rules). */

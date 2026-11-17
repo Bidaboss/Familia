@@ -111,6 +111,8 @@ enum class Feature(
     CalendarFeed("calendarFeed", R.string.feature_calendar_feed),
     /** On se prête : les objets que la famille se prête, dans Entraide (PRD, récit 51). */
     Lending("lending", R.string.feature_lending),
+    /** « On y va ensemble » : le covoiturage d'un événement (PRD, récit 52). */
+    Carpool("carpool", R.string.feature_carpool),
 }
 
 /**
