@@ -113,47 +113,70 @@ fun HomeR1bisScreen(
     var chosen by rememberSaveable { mutableStateOf(ready.today.toEpochDay()) }
     val days = ready.days.ifEmpty { homeDays(ready.today) }
     val day = days.firstOrNull { it.date.toEpochDay() == chosen } ?: days.first()
-    LazyColumn(
-        contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        item(key = "frise") { WeekFrise(days, ready.today, day.date, onChoose = { chosen = it.toEpochDay() }) }
-        item(key = "day") { DayDetail(day, ready.today, actions) }
-        if (ready.todos.isNotEmpty()) {
-            item(key = "todo-label") { SectionLabel(stringResource(R.string.home_r1_todo)) }
-            ready.todos.forEach { todo ->
-                item(key = "todo-${todoKey(todo)}") { TodoR1Card(todo, ready.today, actions, r1) }
-            }
+    val frise: @Composable () -> Unit = { WeekFrise(days, ready.today, day.date, onChoose = { chosen = it.toEpochDay() }) }
+    val detail: @Composable () -> Unit = { DayDetail(day, ready.today, actions) }
+    val calm = ready.todos.isEmpty() && nowTravelling == null && challenge != null
+    val todo: @Composable () -> Unit = {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (ready.todos.isNotEmpty()) SectionLabel(stringResource(R.string.home_r1_todo))
+            ready.todos.forEach { TodoR1Card(it, ready.today, actions, r1) }
+            if (calm) Text(stringResource(R.string.home_r1_calm), style = MaterialTheme.typography.bodyLarge)
         }
-        if (ready.todos.isEmpty() && nowTravelling == null && challenge != null) {
-            item(key = "calm") {
-                Text(stringResource(R.string.home_r1_calm), style = MaterialTheme.typography.bodyLarge)
+    }
+    val newsAndChallenge: @Composable () -> Unit = {
+        if (goodNews != null && challenge != null) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                goodNews(Modifier.weight(1f))
+                challenge(Modifier.weight(1f), false)
             }
+        } else if (goodNews != null) {
+            goodNews(Modifier.fillMaxWidth())
+        } else {
+            challenge?.invoke(Modifier.fillMaxWidth(), true)
         }
-        if (goodNews != null || challenge != null) {
-            item(key = "news-challenge") {
-                if (goodNews != null && challenge != null) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                        goodNews(Modifier.weight(1f))
-                        challenge(Modifier.weight(1f), false)
-                    }
-                } else if (goodNews != null) {
-                    goodNews(Modifier.fillMaxWidth())
-                } else {
-                    challenge?.invoke(Modifier.fillMaxWidth(), true)
+    }
+    val buttons: @Composable () -> Unit = { HomeButtons(r1, allBadge) }
+    val padding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = 24.dp)
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        when {
+            // Expanded (§5): two panes, each scrolling on its own.
+            maxWidth >= 840.dp -> Row(horizontalArrangement = Arrangement.spacedBy(24.dp), modifier = Modifier.padding(horizontal = ClaySpacing.screen)) {
+                LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    item(key = "frise") { frise() }
+                    item(key = "day") { detail() }
+                    item(key = "buttons") { buttons() }
+                }
+                LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    item(key = "todo") { todo() }
+                    item(key = "news-challenge") { newsAndChallenge() }
+                    if (nowTravelling != null) item(key = "now") { nowTravelling() }
                 }
             }
+            // Medium (§5): one column, with « À faire » beside the good news, the challenge and the trip.
+            maxWidth >= 600.dp -> LazyColumn(contentPadding = padding, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                item(key = "frise") { frise() }
+                item(key = "day") { detail() }
+                item(key = "columns") {
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Box(Modifier.weight(1f)) { todo() }
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            newsAndChallenge()
+                            nowTravelling?.invoke()
+                        }
+                    }
+                }
+                item(key = "buttons") { buttons() }
+            }
+            else -> LazyColumn(contentPadding = padding, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                item(key = "frise") { frise() }
+                item(key = "day") { detail() }
+                if (ready.todos.isNotEmpty() || calm) item(key = "todo") { todo() }
+                if (goodNews != null || challenge != null) item(key = "news-challenge") { newsAndChallenge() }
+                if (nowTravelling != null) item(key = "now") { nowTravelling() }
+                item(key = "buttons") { buttons() }
+            }
         }
-        if (nowTravelling != null) item(key = "now") { nowTravelling() }
-        item(key = "buttons") { HomeButtons(r1, allBadge) }
     }
-}
-
-private fun todoKey(todo: HomeTodo): String = when (todo) {
-    is HomeTodo.Answer -> "e-${todo.event.id}"
-    is HomeTodo.Help -> "h-${todo.request.id}"
-    is HomeTodo.Vote -> "p-${todo.poll.id}"
 }
 
 /** The frise, also given empty days while the state has none (previews, Firebase not configured). */

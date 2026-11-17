@@ -1,5 +1,11 @@
 package fr.familia.app.core.navigation
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.NavigationRailItemDefaults
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRail
 import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CalendarMonth
@@ -585,6 +591,8 @@ fun FamiliaApp(
         var accountOpen by rememberSaveable { mutableStateOf(false) }
         // The « + » of the R1 bis Accueil: what can be added, each only with its module.
         val r1On = features.isOn(Feature.PresentationR1bis)
+        // A tablet of 7 inches or more, in portrait (600 dp) or landscape: the rail instead of the bar.
+        val useRail = r1On && LocalConfiguration.current.screenWidthDp >= 600
         var addOpen by rememberSaveable { mutableStateOf(false) }
         if (addOpen && r1On) {
             HomeAddSheet(
@@ -651,7 +659,7 @@ fun FamiliaApp(
                 }
             },
             bottomBar = {
-                if (onTab) NavigationBar {
+                if (onTab && !useRail) NavigationBar {
                     tabs.forEach { destination ->
                         val selected = currentDestination.isOn(destination)
                         NavigationBarItem(
@@ -679,7 +687,40 @@ fun FamiliaApp(
             },
         ) { innerPadding ->
             // Consumed here, so the inner screens with their own Scaffold do not add the system bars again.
-            Column(Modifier.padding(innerPadding).consumeWindowInsets(innerPadding)) {
+            // R1 bis on a tablet (§5): the tabs go to a rail on the left, with « + » at its top on the Accueil.
+            Row(Modifier.padding(innerPadding).consumeWindowInsets(innerPadding)) {
+            if (onTab && useRail) {
+                NavigationRail(
+                    header = {
+                        if (r1On && currentDestination.isOn(TopLevelDestination.Home)) {
+                            FloatingActionButton(onClick = { addOpen = true }) {
+                                Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.home_r1_add))
+                            }
+                        }
+                    },
+                    modifier = Modifier.width(88.dp),
+                ) {
+                    tabs.forEach { destination ->
+                        val selected = currentDestination.isOn(destination)
+                        NavigationRailItem(
+                            selected = selected,
+                            onClick = { navController.navigateToTab(destination) },
+                            colors = NavigationRailItemDefaults.colors(indicatorColor = R1_TAB_PILL, selectedIconColor = Color(0xFF1B1B1B)),
+                            icon = {
+                                val badge = if (destination == TopLevelDestination.HelpRequests) helpBadge else 0
+                                BadgedBox(badge = { if (badge > 0) Badge { Text(badge.toString()) } }) {
+                                    Icon(
+                                        imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
+                                        contentDescription = null,
+                                    )
+                                }
+                            },
+                            label = { TabLabel(stringResource(destination.labelFor(currentMember))) },
+                        )
+                    }
+                }
+            }
+            Column(Modifier.weight(1f)) {
                 AnimatedVisibility(visible = isOffline) { OfflineBanner() }
                 val shownUpdate = update?.takeIf { onTab && !updateDismissed }
                 if (shownUpdate != null) {
@@ -1374,6 +1415,7 @@ fun FamiliaApp(
                         )
                     }
                 }
+            }
             }
         }
     }
