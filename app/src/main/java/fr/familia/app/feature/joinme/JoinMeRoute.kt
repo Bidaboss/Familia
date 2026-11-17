@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -21,7 +22,12 @@ import fr.familia.app.core.place.AndroidPlaceLocator
 fun JoinMeRoute(container: AppContainer?, currentMember: Member, onDone: () -> Unit) {
     val viewModel: JoinMeViewModel = viewModel(
         factory = viewModelFactory {
-            initializer { JoinMeViewModel(container?.memberRepository, container?.joinMeRepository, container?.placeLocator, currentMember.id) }
+            initializer {
+                JoinMeViewModel(
+                    container?.memberRepository, container?.joinMeRepository, container?.placeLocator, currentMember.id,
+                    savedState = createSavedStateHandle(),
+                )
+            }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()

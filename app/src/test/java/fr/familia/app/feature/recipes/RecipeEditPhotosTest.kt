@@ -1,5 +1,6 @@
 package fr.familia.app.feature.recipes
 
+import androidx.lifecycle.SavedStateHandle
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.AlbumPhotoRepository
 import fr.familia.app.core.model.Member
@@ -65,6 +66,26 @@ class RecipeEditPhotosTest {
         assertEquals(listOf("content://a" to "recipes/r-new/adult2/1.jpg", "content://c" to "recipes/r-new/adult2/2.jpg"), uploader.sent)
         assertEquals(listOf(Triple("recipes/r-new", 1, "adult2"), Triple("recipes/r-new", 2, "adult2")), album.added)
         assertEquals(RecipeEditUiState.Done("r-new"), vm.uiState.value)
+    }
+
+    @Test
+    fun `the photos and the place of a new recipe survive Android stopping the app`() = runTest {
+        val saved = SavedStateHandle(mapOf("recipe_draft_id" to "r-kept"))
+        val first = RecipeEditViewModel(FakeRecipes(), FakeMembers(), "adult2", recipeId = null, savedState = saved)
+        first.fill()
+        first.addPhotos(listOf("content://a", "content://b"))
+
+        val uploader = FakeUploader()
+        val again = RecipeEditViewModel(FakeRecipes(), FakeMembers(), "adult2", recipeId = null, savedState = saved, photos = FakeAlbum(), uploader = uploader)
+        assertEquals(listOf("content://a", "content://b"), again.editing.photos)
+        assertEquals("Crêpes", again.editing.form.title)
+        assertTrue(again.editing.hasChanges)
+
+        again.save()
+
+        // The same recipe as before the stop: saving it again never makes a second one.
+        assertEquals(RecipeEditUiState.Done("r-kept"), again.uiState.value)
+        assertEquals(listOf("content://a" to "recipes/r-kept/adult2/1.jpg", "content://b" to "recipes/r-kept/adult2/2.jpg"), uploader.sent)
     }
 
     @Test

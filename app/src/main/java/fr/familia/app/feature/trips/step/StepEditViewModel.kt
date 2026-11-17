@@ -86,7 +86,8 @@ class StepEditViewModel(
         if (stepId != null && existing == null) return unavailable()
 
         original = existing
-        editedId = existing?.id ?: tripRepo.newStepId(tripId)
+        // Kept with the draft: a step saved just before Android stopped the app is not written twice.
+        editedId = existing?.id ?: savedState.get<String>(DRAFT_ID) ?: tripRepo.newStepId(tripId).also { savedState[DRAFT_ID] = it }
         initialForm = existing?.let { StepForm.from(it) } ?: StepForm(departDate = trip.startDate)
         val form = restoreDraft() ?: initialForm
         _uiState.value = StepEditUiState.Editing(
@@ -194,6 +195,7 @@ class StepEditViewModel(
         const val DRAFT_ARRIVE_DATE = "step_draft_arrive_date"
         const val DRAFT_ARRIVE_TIME = "step_draft_arrive_time"
         const val DRAFT_NOTE = "step_draft_note"
+        const val DRAFT_ID = "step_draft_id"
     }
 }
 

@@ -1,6 +1,5 @@
 package fr.familia.app.feature.capsules
 
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -54,21 +53,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import fr.familia.app.R
-import fr.familia.app.core.ui.HouseholdMemberPicker
 import fr.familia.app.core.model.Capsule
+import fr.familia.app.core.photo.keepPhotoAccess
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.HouseholdMemberPicker
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 import java.time.Instant
@@ -188,7 +190,9 @@ private fun Form(state: CapsuleEditUiState.Editing, actions: CapsuleEditActions)
 @Composable
 private fun Photos(state: CapsuleEditUiState.Editing, actions: CapsuleEditActions) {
     // The Android photo picker: no permission to ask, and it works on every phone of the family.
+    val context = LocalContext.current
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(Capsule.MAX_PHOTOS)) { uris ->
+        keepPhotoAccess(context, uris)
         actions.onAddPhotos(uris.map { it.toString() })
     }
     state.form.photos.forEachIndexed { index, uri ->

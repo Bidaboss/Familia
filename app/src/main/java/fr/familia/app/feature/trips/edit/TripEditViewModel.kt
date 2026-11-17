@@ -100,7 +100,8 @@ class TripEditViewModel(
         me = current
         original = existing
         familyIds = tripAudience(family).map { it.id }.toSet()
-        editedId = existing?.id ?: tripRepo.newTripId()
+        // Kept with the draft: a trip saved just before Android stopped the app is not written twice.
+        editedId = existing?.id ?: savedState.get<String>(DRAFT_ID) ?: tripRepo.newTripId().also { savedState[DRAFT_ID] = it }
         val creatorId = existing?.creatorId ?: current.id
         val households = family.households.associate { it.id to it.name }
         fun choice(m: Member) = MemberChoice(m.id, m.firstName, households[m.householdId], locked = m.id == creatorId, householdId = m.householdId)
@@ -227,6 +228,7 @@ class TripEditViewModel(
         const val DRAFT_END = "trip_draft_end"
         const val DRAFT_PARTICIPANTS = "trip_draft_participants"
         const val DRAFT_READERS = "trip_draft_readers"
+        const val DRAFT_ID = "trip_draft_id"
     }
 }
 

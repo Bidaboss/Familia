@@ -1003,3 +1003,38 @@ Avec le deuxième téléphone de test, sur un compte qui n'a jamais ouvert ses r
 3. Le lendemain, entre 8 h et 8 h 30. **Attendu :** une seule notification « Cette nuit dans Familia » avec les titres de la nuit. Une surprise (cadeaux, capsule) arriverait à part.
 4. Sur un compte où tu as éteint « Calme la nuit » toi-même, refais l'étape 2. **Attendu :** il sonne tout de suite, comme avant.
 5. Une capsule prévue pour aujourd'hui. **Attendu :** elle s'ouvre et sonne à partir de 8 h, jamais en pleine nuit.
+
+## Démo du 21 : l'appli arrêtée par Android pendant une saisie
+
+Pendant le repas, on passe d'une appli à l'autre (appareil photo, WhatsApp), et Android peut arrêter Familia entre-temps. Pour le reproduire à coup sûr :
+
+Avant de commencer :
+1. Ouvre **Paramètres** > **À propos du téléphone**. Touche 7 fois **Numéro de build** pour activer les options pour les développeurs.
+2. Dans **Paramètres** > **Système** > **Options pour les développeurs**, allume **Ne pas conserver les activités**.
+
+Les étapes :
+3. **Créer un événement.** Planning, puis +. Tape un titre, une date, un lieu et une note. Appuie sur le bouton d'accueil d'Android, ouvre l'appareil photo, puis reviens dans Familia. **Attendu :** le formulaire est là, avec tout ce que tu as tapé.
+4. **Modifier un événement.** Fais la même chose depuis « Modifier » sur un événement existant. **Attendu :** pareil.
+5. **Sondage.** Ouvre un nouveau sondage. Tape une question, deux dates (dont une avec une heure), et décoche un foyer. Passe par l'appareil photo, puis reviens. **Attendu :** la question, les dates, l'heure et les cases cochées sont là.
+6. **Fiche membre** (Famille > un membre > Modifier, ou Ajouter). Change le prénom et la date de naissance, puis passe par WhatsApp et reviens. **Attendu :** tes changements sont là.
+7. **Administration**, « Ajouter un foyer ». Tape un nom, passe par l'appareil photo et reviens. **Attendu :** la fenêtre est ouverte, avec le nom tapé.
+8. **Dire où je suis.** Touche « Ici » et attends l'adresse. Coche un membre et écris une note, puis passe par l'appareil photo et reviens. **Attendu :** l'adresse, la note et le membre coché sont là, et « Envoyer » est actif.
+9. **Pas de double envoi.** Coupe le réseau (mode avion). Dans un sondage, touche « Envoyer », puis quitte tout de suite vers l'appareil photo et reviens. **Attendu :** l'écran du sondage est fermé, et pas rouvert avec le formulaire. Rallume le réseau. **Attendu :** le sondage apparaît une seule fois. Fais la même chose avec « Dire où je suis » et avec un nouvel événement.
+10. **Pas d'écran vide.** À chaque retour, l'écran montre le formulaire, ou bien il est déjà fermé. Il ne reste jamais blanc ni sur une roue qui tourne sans fin.
+
+À la fin, éteins **Ne pas conserver les activités**.
+
+Une limite connue : la position « Ici » revient telle qu'elle était au départ. Si tu as bougé entre-temps, touche à nouveau « Ici ».
+
+## L'appli arrêtée par Android pendant l'appareil photo ou la galerie
+
+Sur un téléphone de test, une seule fois : Paramètres > À propos du téléphone, touche 7 fois « Numéro de build ». Puis Paramètres > Système > Options pour les développeurs, et allume « Ne pas conserver les activités ». Android arrête alors Familia dès qu'elle passe en arrière-plan, comme il le fait sur un téléphone qui manque de mémoire. À la fin, éteins cette option.
+
+1. Voyages, « Nouveau voyage » : écris un nom, choisis les dates et deux personnes. Appuie sur le bouton rond du téléphone, puis rouvre Familia depuis les applis récentes. **Attendu :** le formulaire est rempli comme tu l'as laissé. Touche « Enregistrer ». **Attendu :** un seul voyage dans la liste.
+2. Dans ce voyage, « Ajouter une étape » : choisis le type, le lieu et une heure, puis fais la même chose qu'à l'étape 1. **Attendu :** l'étape est intacte, et il n'y en a qu'une une fois enregistrée.
+3. Dans l'album du voyage, « Ajouter des photos », et choisis 5 photos. **Attendu :** au retour de la galerie, les 5 photos partent, même si Familia a été arrêtée. Choisis-en encore 10, puis quitte Familia pendant l'envoi et rouvre-la. **Attendu :** les photos restantes repartent toutes seules, et aucune n'apparaît deux fois.
+4. Carnet de recettes, « Nouvelle recette » : écris le titre, deux ingrédients, une étape, puis ajoute 2 photos du plat. Quitte Familia et rouvre-la. **Attendu :** le texte et les 2 photos sont là. Touche « Enregistrer ». **Attendu :** une seule recette, avec ses 2 photos.
+5. Capsule, « Nouvelle capsule » : un mot, un destinataire, une date, et une photo de la galerie. Quitte et rouvre. **Attendu :** tout est là, photo comprise. Scelle-la. **Attendu :** une seule capsule.
+6. Qui est-ce ? : « Publier une photo », choisis la photo, écris qui c'est, quitte et rouvre. **Attendu :** la photo et le nom sont là.
+7. Arbre : ajoute une personne, écris son prénom et son année de naissance, quitte et rouvre. **Attendu :** la fenêtre est encore ouverte avec ce que tu as écrit.
+8. Ma valise : commence à écrire une ligne, quitte et rouvre. **Attendu :** le texte de la ligne est encore là.

@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -76,15 +77,20 @@ fun YearInReviewScreen(state: YearInReviewUiState, year: Int, onClose: () -> Uni
             } else {
                 Row(Modifier.fillMaxSize()) {
                     val none = remember { MutableInteractionSource() }
+                    // TalkBack names each half, not only its action (accessibility test of #313).
+                    val previous = stringResource(R.string.year_previous)
+                    val next = stringResource(R.string.year_next)
                     Box(
                         Modifier.weight(1f).fillMaxHeight()
-                            .clickable(interactionSource = none, indication = null, role = Role.Button, onClickLabel = stringResource(R.string.year_previous)) {
+                            .semantics { contentDescription = previous }
+                            .clickable(interactionSource = none, indication = null, role = Role.Button, onClickLabel = previous) {
                                 if (current > 0) index = current - 1
                             },
                     )
                     Box(
                         Modifier.weight(1f).fillMaxHeight()
-                            .clickable(interactionSource = none, indication = null, role = Role.Button, onClickLabel = stringResource(R.string.year_next)) {
+                            .semantics { contentDescription = next }
+                            .clickable(interactionSource = none, indication = null, role = Role.Button, onClickLabel = next) {
                                 if (current < last) index = current + 1 else onClose()
                             },
                     )

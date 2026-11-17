@@ -73,7 +73,7 @@ class LendItemDetailViewModel(
     private fun load(didFail: Boolean): Flow<LendItemDetailUiState> {
         val itemRepo = items ?: return flowOf(LendItemDetailUiState.Missing)
         val memberRepo = members ?: return flowOf(LendItemDetailUiState.Missing)
-        return combine(itemRepo.observe(itemId), memberRepo.observeFamily()) { item, family -> build(item, family, didFail) }
+        return combine(itemRepo.observe(itemId, currentMemberId), memberRepo.observeFamily()) { item, family -> build(item, family, didFail) }
             .catch { emit(LendItemDetailUiState.Missing) }
     }
 
@@ -105,7 +105,7 @@ class LendItemDetailViewModel(
         val start = from?.atStartOfDay(PARIS)?.toInstant()
         // The return is the start of its day, so a return before the start is never sent.
         val end = until?.takeIf { from == null || !it.isBefore(from) }?.atStartOfDay(PARIS)?.toInstant()
-        perform { repo.ask(itemId, who, start, end) }
+        perform { repo.ask(itemId, state.item.ownerId, who, start, end) }
     }
 
     fun accept() {

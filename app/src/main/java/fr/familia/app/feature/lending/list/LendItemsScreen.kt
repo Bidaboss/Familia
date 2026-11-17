@@ -33,6 +33,7 @@ import fr.familia.app.R
 import fr.familia.app.core.model.LendCategory
 import fr.familia.app.core.model.LendItem
 import fr.familia.app.core.model.LendStatus
+import fr.familia.app.core.model.withoutLoan
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
@@ -57,6 +58,8 @@ fun lendWhereLabel(item: LendItem, iHaveIt: Boolean): String = when (item.status
     LendStatus.Lent -> {
         val since = item.lentAt?.let { SHORT_DAY.format(it) }
         when {
+            // Neither the owner nor the borrower: only « Prêté », no name, no date (EXPERT-9).
+            item.borrowerName == null && !iHaveIt -> stringResource(R.string.lend_status_lent_hidden)
             iHaveIt && since != null -> stringResource(R.string.lend_status_mine_since, since)
             iHaveIt -> stringResource(R.string.lend_status_mine)
             since != null -> stringResource(R.string.lend_status_lent_since, item.borrowerName.orEmpty(), since)
@@ -184,9 +187,10 @@ internal fun previewLendItems(): LendItemsUiState.Success {
         )
     return LendItemsUiState.Success(
         items = listOf(
-            LendRow(item("i1", "Appareil à raclette", LendCategory.Kitchen, "Camille", LendStatus.Lent, "Inès"), isMine = false, iHaveIt = false),
-            LendRow(item("i2", "Lit parapluie", LendCategory.Baby, "Moi"), isMine = true, iHaveIt = false),
-            LendRow(item("i3", "Remorque", LendCategory.Diy, "Noé", LendStatus.Asked, "Camille"), isMine = false, iHaveIt = false),
+            // Lent by Camille to someone else: only « Prêté » (EXPERT-9).
+            LendRow(item("i1", "Appareil à raclette", LendCategory.Kitchen, "Camille", LendStatus.Lent).withoutLoan(), isMine = false, iHaveIt = false),
+            LendRow(item("i2", "Lit parapluie", LendCategory.Baby, "Moi", LendStatus.Lent, "Inès"), isMine = true, iHaveIt = false),
+            LendRow(item("i3", "Remorque", LendCategory.Diy, "Noé"), isMine = false, iHaveIt = false),
         ),
         canAdd = true,
     )

@@ -7,8 +7,12 @@ import fr.familia.app.core.model.Rsvp
 import fr.familia.app.core.model.RsvpStatus
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
 
 /** Answers live in `events/{eventId}/rsvps/{memberId}`. See docs/data-model.md for the rights. */
@@ -52,6 +56,28 @@ class FirestoreRsvpRepository(private val db: FirebaseFirestore) : RsvpRepositor
                 }
             }
         awaitClose { registration.remove() }
+    }
+
+    override fun observeAnswersOf(memberId: String, eventIds: List<String>): Flow<Map<String, List<Rsvp>>> {
+        if (eventIds.isEmpty()) return flowOf(emptyMap())
+        // Per event: null when there is no answer, an empty list when it cannot be read.
+        val one: List<Flow<Pair<String, List<Rsvp>?>>> = eventIds.distinct().map { eventId ->
+            callbackFlow<Pair<String, List<Rsvp>?>> {
+                val registration = db.collection("events").document(eventId).collection("rsvps").document(memberId)
+                    .addSnapshotListener { doc, error ->
+                        if (error != null) {
+                            close(error)
+                        } else {
+                            val status = doc?.takeIf { it.exists() }?.let { RsvpStatus.fromFirestore(it.getString("status")) }
+                            trySend(eventId to status?.let { listOf(Rsvp(memberId, it, doc?.getString("answeredBy").orEmpty())) })
+                        }
+                    }
+                awaitClose { registration.remove() }
+            }
+                // One answer that cannot be read stays unknown, the others still show (note C de #317).
+                .catch { e -> if (e is CancellationException) throw e else emit(eventId to emptyList()) }
+        }
+        return combine(one) { pairs -> pairs.mapNotNull { (id, answers) -> answers?.let { id to it } }.toMap() }
     }
 
     override suspend fun setRsvp(eventId: String, memberId: String, status: RsvpStatus, answeredBy: String) {

@@ -29,6 +29,21 @@ class FirestoreEventRepository(private val db: FirebaseFirestore) : EventReposit
         awaitClose { registration.remove() }
     }
 
+    override fun observeBetween(from: LocalDate, to: LocalDate): Flow<List<Event>> = callbackFlow {
+        // A range on the same field as observeUpcoming: no new index.
+        val registration = db.collection(EVENTS)
+            .whereGreaterThanOrEqualTo("date", from.toString())
+            .whereLessThanOrEqualTo("date", to.toString())
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                } else if (snapshot != null) {
+                    trySend(snapshot.documents.mapNotNull { it.toEvent() }.sortedWith(eventOrder))
+                }
+            }
+        awaitClose { registration.remove() }
+    }
+
     override fun observeOnDays(days: List<LocalDate>): Flow<List<Event>> = callbackFlow {
         val registration = db.collection(EVENTS)
             .whereIn("date", days.take(MAX_DAYS).map { it.toString() })

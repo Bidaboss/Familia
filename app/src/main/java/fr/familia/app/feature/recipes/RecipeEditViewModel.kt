@@ -133,13 +133,16 @@ class RecipeEditViewModel(
         if (recipeId != null && (existing == null || !canManageRecipe(existing, current, family))) return unavailable()
         me = current
         original = existing
-        editedId = existing?.id ?: recipeRepo.newRecipeId()
+        // Kept with the draft: a recipe saved just before Android stopped the app is not written twice.
+        editedId = existing?.id ?: savedState.get<String>(DRAFT_ID) ?: recipeRepo.newRecipeId().also { savedState[DRAFT_ID] = it }
         initialForm = existing?.let { RecipeForm.from(it) } ?: RecipeForm()
         val form = restoreDraft() ?: initialForm
+        val photos = if (existing == null) savedState.get<ArrayList<String>>(DRAFT_PHOTOS).orEmpty().take(RECIPE_PHOTOS) else emptyList()
         _uiState.value = RecipeEditUiState.Editing(
             form = form,
-            hasChanges = form != initialForm,
+            hasChanges = form != initialForm || photos.isNotEmpty(),
             isNew = existing == null,
+            photos = photos,
             members = family.members.sortedBy { it.firstName.lowercase() }.map { OriginChoice(it.id, it.firstName) },
             groups = pickGroups(family.members, family, current.householdId),
             errors = emptySet(),
@@ -166,12 +169,15 @@ class RecipeEditViewModel(
     fun addPhotos(uris: List<String>) {
         val state = _uiState.value as? RecipeEditUiState.Editing ?: return
         if (!state.canAddPhotos) return
-        _uiState.value = state.copy(photos = (state.photos + uris).distinct().take(RECIPE_PHOTOS), hasChanges = true)
+        val photos = (state.photos + uris).distinct().take(RECIPE_PHOTOS)
+        savedState[DRAFT_PHOTOS] = ArrayList(photos)
+        _uiState.value = state.copy(photos = photos, hasChanges = true)
     }
 
     fun removePhoto(uri: String) {
         val state = _uiState.value as? RecipeEditUiState.Editing ?: return
         if (state.isSaving) return
+        savedState[DRAFT_PHOTOS] = ArrayList(state.photos - uri)
         _uiState.value = state.copy(photos = state.photos - uri)
     }
 
@@ -277,5 +283,7 @@ class RecipeEditViewModel(
         const val DRAFT_STEPS = "recipe_draft_steps"
         const val DRAFT_TAGS = "recipe_draft_tags"
         const val DRAFT_STORY = "recipe_draft_story"
+        const val DRAFT_PHOTOS = "recipe_draft_photos"
+        const val DRAFT_ID = "recipe_draft_id"
     }
 }

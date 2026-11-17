@@ -128,7 +128,8 @@ internal fun todos(
     val toAnswer = events
         .filter { it.date in today..last && concerns(it.target, me, family) }
         .filterNot { it.target is EventTarget.ForChild && it.target.memberId != me.id }
-        .filterNot { event -> answers[event.id].orEmpty().any { it.memberId == me.id } }
+        // An empty list: the answer could not be read, so « À faire » does not ask again (note C de #317).
+        .filterNot { event -> answers[event.id]?.let { list -> list.isEmpty() || list.any { it.memberId == me.id } } == true }
         .map { HomeTodo.Answer(it) }
     // Same rule as the badge of the Entraide tab (badgeCount), so the two never disagree.
     val toHelp = help

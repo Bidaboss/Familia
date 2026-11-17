@@ -10,6 +10,7 @@ import fr.familia.app.core.data.PollRepository
 import fr.familia.app.core.data.RsvpRepository
 import fr.familia.app.core.data.TripRepository
 import fr.familia.app.core.data.currentDayFlow
+import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.HelpRequest
@@ -74,10 +75,12 @@ class HomeViewModel(
             if (shared == null || events == null) {
                 flowOf(HomeUiState.Ready(day)) // Firebase not configured (previews).
             } else {
+                // Only the weeks the home screen shows, and only my own answers (lectures Firestore).
+                val window = events.observeBetween(day, day.plusDays(HomeWindow.TODO_DAYS))
                 combine(
                     shared,
-                    events.observeUpcoming(day),
-                    bonus(rsvps?.observeAllRsvps(), emptyMap<String, List<Rsvp>>()),
+                    window,
+                    myAnswers(window),
                     bonus(helpRequests?.observeMine(currentMemberId), emptyList<HelpRequest>()),
                     combine(nextOccasion(day), followedTrips(shared, day), openPolls()) { o, t, p -> Triple(o, t, p) },
                 ) { fam, list, answers, help, extras ->
@@ -179,6 +182,21 @@ class HomeViewModel(
 
     fun answerFailureShown() {
         _answerFailed.value = false
+    }
+
+    /** My answers to the events of [window]; read again only when the list of events changes. */
+    private fun myAnswers(window: Flow<List<Event>>): Flow<Map<String, List<Rsvp>>> {
+        val repo = rsvps ?: return flowOf(emptyMap())
+        return window.map { list -> list.map { it.id } }
+            .distinctUntilChanged()
+            .flatMapLatest { ids ->
+                // Unreadable: every answer stays unknown rather than « à répondre » (note C de #317).
+                repo.observeAnswersOf(currentMemberId, ids).catch { e ->
+                    if (e is CancellationException) throw e
+                    emit(ids.associateWith { emptyList<Rsvp>() })
+                }
+            }
+            .onStart { emit(emptyMap()) }
     }
 
     private fun <T> bonus(source: Flow<T>?, empty: T): Flow<T> =

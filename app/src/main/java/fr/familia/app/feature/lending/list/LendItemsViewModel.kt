@@ -70,7 +70,7 @@ class LendItemsViewModel(
     private fun load(): Flow<LendItemsUiState> {
         val itemRepo = items ?: return flowOf(LendItemsUiState.Error)
         val memberRepo = members ?: return flowOf(LendItemsUiState.Error)
-        return combine(itemRepo.observeAll(), memberRepo.observeFamily(), filter) { list, family, f -> build(list, family, f) }
+        return combine(itemRepo.observeAll(currentMemberId), memberRepo.observeFamily(), filter) { list, family, f -> build(list, family, f) }
             .catch { emit(LendItemsUiState.Error) }
     }
 

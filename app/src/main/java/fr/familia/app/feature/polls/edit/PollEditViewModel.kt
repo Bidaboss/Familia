@@ -1,5 +1,6 @@
 package fr.familia.app.feature.polls.edit
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.EventRepository
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import java.time.LocalDate
+import java.time.LocalTime
 
 /**
  * « Nouveau sondage » (PRD, récits 2 bis et 2 ter): a date poll or a free poll, asked to the whole
@@ -36,6 +38,8 @@ class PollEditViewModel(
     /** Asked from the page of this event (récit 2 quater): its guests are ticked, and the poll is linked to it. */
     private val eventId: String? = null,
     private val events: EventRepository? = null,
+    /** Keeps what is typed when Android stops the app in the background (appareil photo, WhatsApp…). */
+    private val savedState: SavedStateHandle? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<PollEditUiState>(PollEditUiState.Loading)
@@ -51,6 +55,11 @@ class PollEditViewModel(
     }
 
     private suspend fun load() {
+        // Stopped by Android while the poll was leaving: it is in Firestore's queue, never asked twice.
+        if (savedState?.get<Boolean>(KEY_SENT) == true) {
+            _uiState.value = PollEditUiState.Done
+            return
+        }
         val memberRepo = members ?: return unavailable()
         val loaded = try {
             memberRepo.observeFamily().first()
@@ -74,8 +83,10 @@ class PollEditViewModel(
                 .takeIf { it.isNotEmpty() }
                 ?.let { AskGroup(household.name, it) }
         }
+        val form = savedState?.let { restoreDraft(it) }?.let { draft -> draft.copy(askedIds = draft.askedIds.filter { it in everyone }.toSet()) } ?: initialForm
         _uiState.value = PollEditUiState.Editing(
-            form = initialForm,
+            form = form,
+            hasChanges = form != initialForm,
             groups = groups,
             shortcuts = listOf(AskShortcut(null, everyone)) + groups.map { g -> AskShortcut(g.name, g.members.map { it.id }.toSet()) },
         )
@@ -101,6 +112,7 @@ class PollEditViewModel(
     fun update(change: (PollForm) -> PollForm) {
         val state = _uiState.value as? PollEditUiState.Editing ?: return
         val form = change(state.form)
+        savedState?.let { saveDraft(it, form) }
         _uiState.value = state.copy(
             form = form,
             errors = if (showErrors) validate(form, today()) else emptySet(),
@@ -159,6 +171,7 @@ class PollEditViewModel(
         // Only members still in the family are asked, in the family's order.
         val asked = members.map { it.id }.filter { it in form.askedIds }
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
+        savedState?.set(KEY_SENT, true)
         viewModelScope.launch {
             val sent = try {
                 withTimeoutOrNull(writeTimeoutMillis) {
@@ -185,9 +198,43 @@ class PollEditViewModel(
             if (sent) {
                 _uiState.value = PollEditUiState.Done
             } else {
+                savedState?.set(KEY_SENT, false)
                 val failed = _uiState.value as? PollEditUiState.Editing ?: return@launch
                 _uiState.value = failed.copy(isSaving = false, saveFailed = true)
             }
         }
     }
+}
+
+private const val KEY_SENT = "pollDraft.sent"
+private const val KEY_DRAFT = "pollDraft."
+
+/** The form as plain values, so the SavedStateHandle can keep it. */
+internal fun saveDraft(handle: SavedStateHandle, form: PollForm) {
+    handle[KEY_DRAFT + "kind"] = form.kind.key
+    handle[KEY_DRAFT + "question"] = form.question
+    handle[KEY_DRAFT + "dates"] = ArrayList(form.dates.map { "${it.day ?: ""}|${it.time ?: ""}" })
+    handle[KEY_DRAFT + "choices"] = ArrayList(form.choices)
+    handle[KEY_DRAFT + "multiple"] = form.multiple
+    handle[KEY_DRAFT + "asked"] = ArrayList(form.askedIds)
+    handle[KEY_DRAFT + "closesOn"] = form.closesOn?.toString()
+}
+
+/** The form kept before Android stopped the app, or null when nothing was typed yet. */
+internal fun restoreDraft(handle: SavedStateHandle): PollForm? {
+    val question = handle.get<String>(KEY_DRAFT + "question") ?: return null
+    val day = { text: String -> text.takeIf { it.isNotEmpty() }?.let { runCatching { LocalDate.parse(it) }.getOrNull() } }
+    val time = { text: String -> text.takeIf { it.isNotEmpty() }?.let { runCatching { LocalTime.parse(it) }.getOrNull() } }
+    val defaults = PollForm()
+    return PollForm(
+        kind = Poll.Kind.entries.firstOrNull { it.key == handle.get<String>(KEY_DRAFT + "kind") } ?: defaults.kind,
+        question = question,
+        dates = handle.get<ArrayList<String>>(KEY_DRAFT + "dates")
+            ?.map { DateChoice(day(it.substringBefore('|')), time(it.substringAfter('|', ""))) }
+            ?.takeIf { it.isNotEmpty() } ?: defaults.dates,
+        choices = handle.get<ArrayList<String>>(KEY_DRAFT + "choices")?.takeIf { it.isNotEmpty() } ?: defaults.choices,
+        multiple = handle.get<Boolean>(KEY_DRAFT + "multiple") ?: false,
+        askedIds = handle.get<ArrayList<String>>(KEY_DRAFT + "asked").orEmpty().toSet(),
+        closesOn = handle.get<String>(KEY_DRAFT + "closesOn")?.let(day),
+    )
 }

@@ -27,7 +27,7 @@ import { CrashData, onCrashReported } from './crashes';
 import { FeedbackData, onFeedbackChanged, onFeedbackCreated, screenshotToDelete } from './feedback';
 import { deleteEndedGoodDeals, sendGoodDealsSummary } from './goodDeals';
 import { onTurnWritten, type TurnData } from './turns';
-import { onLendItemUpdated, releaseLendItemsOf, sendLendReminders, type LendItemData } from './lendItems';
+import { deleteLoanOf, onLendLoanWritten, releaseLendItemsOf, sendLendReminders, type LendLoanData } from './lendItems';
 import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
 import { closeDuePolls, closeEventPolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
 import { cloudMonitoring } from './monitoring';
@@ -340,13 +340,17 @@ export const onGoodDealDeleted = onDocumentDeleted('goodDeals/{dealId}', async (
   await getStorage().bucket().deleteFiles({ prefix: `goodDeals/${event.params.dealId}/` });
 });
 
-// On se prête (récit 51): an ask to the owner, the answer to the one who asked.
-export const onLendItemChanged = onDocumentUpdatedWithAuthContext('lendItems/{itemId}', async (event) => {
-  const before = event.data?.before.data() as LendItemData | undefined;
-  const after = event.data?.after.data() as LendItemData | undefined;
-  if (!before || !after) return;
-  await onLendItemUpdated(getFirestore(), send, event.params.itemId, before, after, actorUid(event), new Date());
+// On se prête (récit 51): an ask to the owner, the answer to the one who asked. The loan lives
+// apart from the thing (lendLoans), read by the owner and the borrower only (EXPERT-9).
+export const onLendLoanChanged = onDocumentWrittenWithAuthContext('lendLoans/{itemId}', async (event) => {
+  const before = event.data?.before.data() as LendLoanData | undefined;
+  const after = event.data?.after.data() as LendLoanData | undefined;
+  await onLendLoanWritten(getFirestore(), send, event.params.itemId, before, after, actorUid(event), new Date());
 });
+
+// Kept, empty, under its old name: the deploy runs --non-interactive and would stop rather than
+// delete a function that left the code (same trigger kept too). The notices of a loan moved to onLendLoanChanged.
+export const onLendItemChanged = onDocumentUpdatedWithAuthContext('lendItems/{itemId}', async () => {});
 
 // --- À qui le tour ? (récit 58) -------------------------------------------------------------
 
@@ -359,8 +363,9 @@ export const onTurnChanged = onDocumentWrittenWithAuthContext('turns/{turnId}', 
   await onTurnWritten(db, send, event.params.turnId, before, after, actorUid(event), new Date(), only);
 });
 
-// A thing removed takes its photo with it.
+// A thing removed takes its loan and its photo with it.
 export const onLendItemDeleted = onDocumentDeleted('lendItems/{itemId}', async (event) => {
+  await deleteLoanOf(getFirestore(), event.params.itemId);
   await getStorage().bucket().deleteFiles({ prefix: `lendItems/${event.params.itemId}/` });
 });
 

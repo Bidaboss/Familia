@@ -161,6 +161,7 @@ class ReadOnlyMemberCardRepository(private val inner: MemberCardRepository, priv
 
 class ReadOnlyEventRepository(private val inner: EventRepository, private val guard: ViewAsGuard) : EventRepository {
     override fun observeUpcoming(from: LocalDate): Flow<List<Event>> = inner.observeUpcoming(from)
+    override fun observeBetween(from: LocalDate, to: LocalDate): Flow<List<Event>> = inner.observeBetween(from, to)
     override suspend fun getEvent(id: String): Event? = inner.getEvent(id)
     override fun observeEvent(id: String): Flow<Event?> = inner.observeEvent(id)
     override fun observeOnDays(days: List<LocalDate>): Flow<List<Event>> = inner.observeOnDays(days)
@@ -172,6 +173,8 @@ class ReadOnlyEventRepository(private val inner: EventRepository, private val gu
 class ReadOnlyRsvpRepository(private val inner: RsvpRepository, private val guard: ViewAsGuard) : RsvpRepository {
     override fun observeRsvps(eventId: String): Flow<List<Rsvp>> = inner.observeRsvps(eventId)
     override fun observeAllRsvps(): Flow<Map<String, List<Rsvp>>> = inner.observeAllRsvps()
+    override fun observeAnswersOf(memberId: String, eventIds: List<String>): Flow<Map<String, List<Rsvp>>> =
+        inner.observeAnswersOf(memberId, eventIds)
     override suspend fun setRsvp(eventId: String, memberId: String, status: RsvpStatus, answeredBy: String) = guard.refuse()
 }
 
@@ -259,13 +262,13 @@ class ReadOnlyGoodDealRepository(private val inner: GoodDealRepository, private 
 }
 
 class ReadOnlyLendItemRepository(private val inner: LendItemRepository, private val guard: ViewAsGuard) : LendItemRepository {
-    override fun observeAll(): Flow<List<LendItem>> = inner.observeAll()
-    override fun observe(id: String): Flow<LendItem?> = inner.observe(id)
+    override fun observeAll(readerId: String): Flow<List<LendItem>> = inner.observeAll(readerId)
+    override fun observe(id: String, readerId: String): Flow<LendItem?> = inner.observe(id, readerId)
     override suspend fun get(id: String): LendItem? = inner.get(id)
     override fun newId(): String = inner.newId()
     override suspend fun save(item: LendItem, isNew: Boolean) = guard.refuse()
     override suspend fun delete(id: String) = guard.refuse()
-    override suspend fun ask(id: String, me: Member, from: Instant?, until: Instant?) = guard.refuse()
+    override suspend fun ask(id: String, ownerId: String, me: Member, from: Instant?, until: Instant?) = guard.refuse()
     override suspend fun accept(id: String) = guard.refuse()
     override suspend fun release(id: String) = guard.refuse()
 }

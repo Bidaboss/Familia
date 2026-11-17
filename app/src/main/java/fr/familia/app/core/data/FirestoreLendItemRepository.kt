@@ -12,29 +12,49 @@ import fr.familia.app.core.model.Member
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.tasks.await
 import java.time.Instant
 import java.util.Date
 
-/** Things live in `lendItems/{itemId}`. See docs/data-model.md for the fields and the rights. */
+/**
+ * Things live in `lendItems/{itemId}`, read by the whole family, with only `lent`; who asked or has
+ * one, and the dates, live in `lendLoans/{itemId}`, read by the owner and the borrower (EXPERT-9).
+ * The two always change together, in one batch. See docs/data-model.md for the fields and the rights.
+ */
 class FirestoreLendItemRepository(private val db: FirebaseFirestore) : LendItemRepository {
 
-    override fun observeAll(): Flow<List<LendItem>> = callbackFlow {
+    private fun things(): Flow<List<DocumentSnapshot>> = callbackFlow {
         val registration = db.collection(LEND_ITEMS).addSnapshotListener { snapshot, error ->
-            if (error != null) close(error) else if (snapshot != null) trySend(snapshot.documents.mapNotNull { it.toLendItem() })
+            if (error != null) close(error) else if (snapshot != null) trySend(snapshot.documents)
         }
         awaitClose { registration.remove() }
     }
 
-    override fun observe(id: String): Flow<LendItem?> = callbackFlow {
+    private fun thing(id: String): Flow<DocumentSnapshot?> = callbackFlow {
         val registration = db.collection(LEND_ITEMS).document(id).addSnapshotListener { snapshot, error ->
-            if (error != null) close(error) else trySend(snapshot?.takeIf { it.exists() }?.toLendItem())
+            if (error != null) close(error) else trySend(snapshot?.takeIf { it.exists() })
         }
         awaitClose { registration.remove() }
     }
+
+    /** The asks and loans [readerId] is part of, by thing: the only ones the rules let them read. */
+    private fun loansOf(readerId: String): Flow<Map<String, DocumentSnapshot>> = callbackFlow {
+        val registration = db.collection(LEND_LOANS).whereArrayContains("parties", readerId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) close(error) else if (snapshot != null) trySend(snapshot.documents.associateBy { it.id })
+            }
+        awaitClose { registration.remove() }
+    }
+
+    override fun observeAll(readerId: String): Flow<List<LendItem>> =
+        combine(things(), loansOf(readerId)) { docs, loans -> docs.mapNotNull { it.toLendItem(loans[it.id]) } }
+
+    override fun observe(id: String, readerId: String): Flow<LendItem?> =
+        combine(thing(id), loansOf(readerId)) { doc, loans -> doc?.toLendItem(loans[id]) }
 
     override suspend fun get(id: String): LendItem? =
-        db.collection(LEND_ITEMS).document(id).get().await().takeIf { it.exists() }?.toLendItem()
+        db.collection(LEND_ITEMS).document(id).get().await().takeIf { it.exists() }?.toLendItem(null)
 
     override fun newId(): String = db.collection(LEND_ITEMS).document().id
 
@@ -48,33 +68,44 @@ class FirestoreLendItemRepository(private val db: FirebaseFirestore) : LendItemR
         )
         val ref = db.collection(LEND_ITEMS).document(item.id)
         if (isNew) {
-            ref.set(fields + free() + mapOf("ownerId" to item.ownerId, "ownerName" to item.ownerName, "createdAt" to FieldValue.serverTimestamp())).await()
+            ref.set(
+                fields + mapOf("lent" to false, "ownerId" to item.ownerId, "ownerName" to item.ownerName, "createdAt" to FieldValue.serverTimestamp()),
+            ).await()
         } else {
             // An edit leaves the loan, the owner and the creation alone.
             ref.set(fields, SetOptions.merge()).await()
         }
     }
 
+    /** The server removes its loan too (onLendItemDeleted). */
     override suspend fun delete(id: String) {
         db.collection(LEND_ITEMS).document(id).delete().await()
     }
 
-    override suspend fun ask(id: String, me: Member, from: Instant?, until: Instant?) {
-        db.collection(LEND_ITEMS).document(id).update(
+    override suspend fun ask(id: String, ownerId: String, me: Member, from: Instant?, until: Instant?) {
+        val batch = db.batch()
+        batch.set(
+            db.collection(LEND_LOANS).document(id),
             mapOf(
+                "ownerId" to ownerId,
+                "parties" to listOf(ownerId, me.id),
                 "status" to LendStatus.Asked.firestoreValue,
                 "borrowerId" to me.id,
                 "borrowerName" to me.firstName,
                 "from" to from?.let { Timestamp(Date.from(it)) },
                 "until" to until?.let { Timestamp(Date.from(it)) },
                 "askedAt" to FieldValue.serverTimestamp(),
+                "lentAt" to null,
+                "remindedAt" to null,
                 "updatedAt" to FieldValue.serverTimestamp(),
             ),
-        ).await()
+        )
+        batch.update(db.collection(LEND_ITEMS).document(id), mapOf("lent" to true, "updatedAt" to FieldValue.serverTimestamp()))
+        batch.commit().await()
     }
 
     override suspend fun accept(id: String) {
-        db.collection(LEND_ITEMS).document(id).update(
+        db.collection(LEND_LOANS).document(id).update(
             mapOf(
                 "status" to LendStatus.Lent.firestoreValue,
                 "lentAt" to FieldValue.serverTimestamp(),
@@ -84,24 +115,16 @@ class FirestoreLendItemRepository(private val db: FirebaseFirestore) : LendItemR
     }
 
     override suspend fun release(id: String) {
-        db.collection(LEND_ITEMS).document(id).update(free() + mapOf("updatedAt" to FieldValue.serverTimestamp())).await()
+        val batch = db.batch()
+        batch.delete(db.collection(LEND_LOANS).document(id))
+        batch.update(db.collection(LEND_ITEMS).document(id), mapOf("lent" to false, "updatedAt" to FieldValue.serverTimestamp()))
+        batch.commit().await()
     }
 
-    /** Every field of the loan, as on a free thing. */
-    private fun free(): Map<String, Any?> = mapOf(
-        "status" to LendStatus.Available.firestoreValue,
-        "borrowerId" to null,
-        "borrowerName" to null,
-        "from" to null,
-        "until" to null,
-        "askedAt" to null,
-        "lentAt" to null,
-        "remindedAt" to null,
-    )
-
-    private fun DocumentSnapshot.toLendItem(): LendItem? {
+    /** The thing, with [loan] when the reader may read it; otherwise only lent or free. */
+    private fun DocumentSnapshot.toLendItem(loan: DocumentSnapshot?): LendItem? {
         val name = getString("name") ?: return null
-        return LendItem(
+        val item = LendItem(
             id = id,
             name = name,
             note = getString("note").orEmpty(),
@@ -109,17 +132,22 @@ class FirestoreLendItemRepository(private val db: FirebaseFirestore) : LendItemR
             photo = getString("photo"),
             ownerId = getString("ownerId").orEmpty(),
             ownerName = getString("ownerName").orEmpty(),
-            status = LendStatus.fromFirestore(getString("status")),
-            borrowerId = getString("borrowerId"),
-            borrowerName = getString("borrowerName"),
-            from = getTimestamp("from")?.toDate()?.toInstant(),
-            until = getTimestamp("until")?.toDate()?.toInstant(),
-            lentAt = getTimestamp("lentAt")?.toDate()?.toInstant(),
+            status = if (getBoolean("lent") == true) LendStatus.Lent else LendStatus.Available,
             createdAt = getTimestamp("createdAt")?.toDate()?.toInstant(),
+        )
+        if (loan == null || getBoolean("lent") != true) return item
+        return item.copy(
+            status = LendStatus.fromFirestore(loan.getString("status")),
+            borrowerId = loan.getString("borrowerId"),
+            borrowerName = loan.getString("borrowerName"),
+            from = loan.getTimestamp("from")?.toDate()?.toInstant(),
+            until = loan.getTimestamp("until")?.toDate()?.toInstant(),
+            lentAt = loan.getTimestamp("lentAt")?.toDate()?.toInstant(),
         )
     }
 
     private companion object {
         const val LEND_ITEMS = "lendItems"
+        const val LEND_LOANS = "lendLoans"
     }
 }
