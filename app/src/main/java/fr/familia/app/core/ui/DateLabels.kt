@@ -3,6 +3,8 @@ package fr.familia.app.core.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import fr.familia.app.R
+import fr.familia.app.core.data.FAMILY_ZONE
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -25,6 +27,15 @@ private val LONE_DAY = Regex("(?<![d'])d(?![d'])")
 fun frenchDate(date: LocalDate, pattern: String): String {
     val p = if (date.dayOfMonth == 1) pattern.replace(LONE_DAY, "d'er'") else pattern
     return date.format(DateTimeFormatter.ofPattern(p, Locale.FRANCE))
+}
+
+/** [at] as a day of Paris, written with [pattern] as [frenchDate] does: the same day on every phone. */
+fun frenchDate(at: Instant, pattern: String): String = frenchDate(at.atZone(FAMILY_ZONE).toLocalDate(), pattern)
+
+/** « 21 novembre à 19 h 30 », « 1er décembre à 8 h 05 », the day and the hour of Paris. */
+fun frenchDateTime(at: Instant, pattern: String = "d MMMM"): String {
+    val paris = at.atZone(FAMILY_ZONE)
+    return "${frenchDate(paris.toLocalDate(), pattern)} à ${formatTime(paris.toLocalTime())}"
 }
 
 /** Day header of the planning: "Aujourd'hui, samedi 14 novembre", "Demain, …" or "Lundi 16 novembre". */

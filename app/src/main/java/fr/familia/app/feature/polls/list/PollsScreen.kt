@@ -31,6 +31,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.Poll
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
@@ -57,7 +58,7 @@ fun PollsScreen(
     onOpen: (String) -> Unit,
     onRetry: () -> Unit,
     onBack: () -> Unit,
-    today: LocalDate = LocalDate.now(),
+    today: LocalDate = familyToday(),
 ) {
     Scaffold(
         topBar = {

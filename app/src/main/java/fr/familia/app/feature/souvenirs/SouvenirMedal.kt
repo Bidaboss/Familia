@@ -38,14 +38,10 @@ import fr.familia.app.core.theme.Fredoka
 import fr.familia.app.core.theme.LocalClayColors
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.clayRelief
+import fr.familia.app.core.ui.frenchDate
 import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
-private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.FRANCE)
-
-internal fun earnedLabel(at: Instant): String = at.atZone(ZoneId.of("Europe/Paris")).format(dateFormatter)
+internal fun earnedLabel(at: Instant): String = frenchDate(at, "d MMMM yyyy")
 
 /**
  * SouvenirMedal ([DESIGN]): a clay circle of the family's light tint with a dotted inner ring, the

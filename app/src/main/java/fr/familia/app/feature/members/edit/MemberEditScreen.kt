@@ -68,6 +68,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.clickable
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.R
 import fr.familia.app.core.ui.HouseholdMemberPicker
@@ -97,7 +98,7 @@ fun MemberEditScreen(
     onAddHousehold: (String) -> Unit,
     onSave: () -> Unit,
     onBack: () -> Unit,
-    today: LocalDate = LocalDate.now(),
+    today: LocalDate = familyToday(),
     onRemove: () -> Unit = {},
     onInvite: (firstName: String, email: String) -> Unit = { _, _ -> },
 ) {
