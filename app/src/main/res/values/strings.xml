@@ -1385,6 +1385,7 @@
     <string name="view_as_gift_list_kept">C\'est une liste pour toi : même en mode Voir comme, ses réservations et ses idées surprises restent cachées pour toi.</string>
     <string name="view_as_gifts_hidden">Les listes où tu n\'es pas invité restent cachées, même en mode Voir comme.</string>
     <string name="view_as_quit">Quitter</string>
+    <string name="view_as_back_hint">Pour sortir de « Voir comme », touche « Quitter » sur le bandeau.</string>
     <string name="view_as_read_only">Lecture seule en mode Voir comme</string>
     <string name="feature_comments">Commentaires sous les événements</string>
     <string name="feature_expenses">Comptes du voyage</string>

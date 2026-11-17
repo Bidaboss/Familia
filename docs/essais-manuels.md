@@ -928,3 +928,18 @@ Sur une famille où rien n'a encore été publié, ou en « Voir comme » sur un
 8. Avec le réseau, allume le Mode présentation, puis passe en mode avion. **Attendu :** le bandeau « Mode présentation jusqu'à … » reste affiché.
 9. Mode avion, **Administration**, « Voir comme… », choisis un membre. **Attendu :** son Accueil et son Planning déjà vus s'affichent, avec le bandeau « Tu vois l'appli comme … ». « Quitter » marche aussi sans réseau.
 10. Remets le réseau et éteins le Mode présentation. **Attendu :** le résumé arrive comme d'habitude.
+
+## Démo du 21 : double toucher, retour, rotation et retour dans l'appli
+
+Sur ton téléphone, avec la rotation automatique allumée (volet des réglages rapides).
+
+**Double toucher**
+1. Planning, touche deux fois très vite un événement. **Attendu :** il s'ouvre une seule fois : un seul « Retour » ramène au Planning.
+2. Fil des Bonnes nouvelles, touche deux fois très vite « Publier ». **Attendu :** un seul formulaire. Ferme-le : tu es sur le fil, pas sur un deuxième formulaire.
+3. Juste après avoir changé d'onglet, touche tout de suite un bouton. **Attendu :** pendant moins d'une seconde, le toucher peut ne rien faire. Ensuite tout répond normalement.
+
+**« Voir comme »**
+4. **Administration**, « Voir comme… », choisis un membre. Ouvre son Planning, puis tourne le téléphone à l'horizontale, puis à la verticale. **Attendu :** le bandeau « Tu vois l'appli comme … » ne disparaît jamais. Un rond peut tourner un instant sous le bandeau. Ton propre Accueil ne s'affiche à aucun moment.
+5. Toujours en « Voir comme », touche « Accueil » du téléphone, attends une minute, puis rouvre Familia. **Attendu :** le même membre, avec son bandeau, jamais ton propre Accueil.
+6. Toujours en « Voir comme », sur son Accueil, touche « Retour » du téléphone. **Attendu :** l'appli ne se ferme pas, et le message « Pour sortir de « Voir comme », touche « Quitter » sur le bandeau. » s'affiche. Dans un écran ouvert (un événement), « Retour » revient en arrière comme d'habitude.
+7. Touche « Quitter » sur le bandeau. **Attendu :** ton propre appli revient, et « Retour » sur ton Accueil ferme Familia comme avant.

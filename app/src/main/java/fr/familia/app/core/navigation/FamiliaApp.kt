@@ -9,6 +9,8 @@ import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.AutoStories
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.NavigationRailItemDefaults
@@ -838,10 +840,12 @@ fun FamiliaApp(
                         onLater = { updateDismissed = true },
                     )
                 }
+                // A double tap opens one screen, not two (démo du 21).
+                Box(Modifier.weight(1f)) {
                 NavHost(
                     navController = navController,
                     startDestination = startTab.route,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     composable<HomeRoute> {
                         HomeTab(
@@ -1722,6 +1726,8 @@ fun FamiliaApp(
                             onBack = { navController.popBackStack() },
                         )
                     }
+                }
+                TapGuardWhileNavigating(navController)
                 }
             }
             }
