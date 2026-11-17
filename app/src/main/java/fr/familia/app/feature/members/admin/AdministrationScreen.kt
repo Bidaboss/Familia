@@ -168,7 +168,7 @@ fun AdministrationScreen(
                         onOpenUsage, consumption, challenges, onPickChallenge, capsuleLeftovers, onDeleteCapsuleLeftovers,
                         rotation, onSaveRotation, viewAsMembers, onViewAs, onShareApp, onOpenFeedback, feedbackUnseen,
                         onOpenCrashes, crashCount,
-                        discoverOrder, discoverInTutorial, onSaveDiscoverOrder, presentation,
+                        discoverOrder, discoverInTutorial, onSaveDiscoverOrder, presentation, calendarLinks,
                     )
             }
         }
@@ -216,6 +216,7 @@ private fun ReadyContent(
     discoverInTutorial: Set<DiscoverModule>,
     onSaveDiscoverOrder: ((List<DiscoverModule>) -> Unit)?,
     presentation: (@Composable () -> Unit)?,
+    calendarLinks: (@Composable () -> Unit)?,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
     var choosingViewAs by rememberSaveable { mutableStateOf(false) }
