@@ -42,9 +42,9 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 
 **8. La photo du repas, en direct (2 min).** Le moment fort : toute la table la reçoit.
 1. Avant de te tourner vers eux, prends la photo avec l'appareil photo du téléphone. Elle est ainsi gardée dans ta galerie quoi qu'il arrive.
-2. Ouvre l'écran Bonnes nouvelles (la carte de l'Accueil, sans t'y attarder), touche « Publier ». Écris une phrase (« Joyeux anniversaire ! »), touche « Choisir des photos » et prends celle du repas. Tu peux nommer des membres. Ne parle pas du cadeau.
+2. **Écran tourné vers toi**, ouvre le fil des Bonnes nouvelles (ton Accueil ne doit pas être montré) et touche « Publier » depuis le fil. Écris une phrase (« Joyeux anniversaire ! »), touche « Choisir des photos » et prends celle du repas. Tu peux nommer des membres. Ne parle pas du cadeau. Une fois le formulaire prêt, tourne l'écran vers la table.
 3. Touche « Publier pour toute la famille ». Une barre se remplit au-dessus du bouton. **Reste sur cet écran** jusqu'à ce qu'il se ferme : tant qu'il est ouvert, l'envoi continue.
-4. La bonne nouvelle apparaît dans le fil, une seule fois. Fais ouvrir Familia à ceux qui l'ont déjà installée : elle est là, avec la photo.
+4. L'écran revient sur le fil des Bonnes nouvelles, où elle apparaît une seule fois. Fais ouvrir Familia à ceux qui l'ont déjà installée : elle est là, avec la photo.
 
 ## Plan B si l'envoi de la photo bloque
 
