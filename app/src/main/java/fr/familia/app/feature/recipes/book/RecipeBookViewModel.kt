@@ -6,6 +6,8 @@ import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.AlbumPhotoRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.RecipeRepository
+import fr.familia.app.core.print.PrintException
+import fr.familia.app.core.print.PrintProblem
 import fr.familia.app.feature.recipes.originLabel
 import fr.familia.app.feature.recipes.recipePhotoFolder
 import kotlinx.coroutines.CancellationException
@@ -35,6 +37,8 @@ sealed interface RecipeBookUiState {
         val coverRecipeId: String? = null,
         val isMaking: Boolean = false,
         val failed: Boolean = false,
+        /** The room or the memory of the phone, when that is why it failed; else the connection. */
+        val problem: PrintProblem? = null,
     ) : RecipeBookUiState {
         val canMake: Boolean get() = chosen.isNotEmpty() && title.isNotBlank() && !isMaking
 
@@ -109,7 +113,7 @@ class RecipeBookViewModel(
     private fun change(transform: (RecipeBookUiState.Choosing) -> RecipeBookUiState.Choosing) {
         val state = _uiState.value as? RecipeBookUiState.Choosing ?: return
         if (state.isMaking) return
-        val next = transform(state).copy(failed = false)
+        val next = transform(state).copy(failed = false, problem = null)
         // The cover follows the recipes: an unticked one no longer gives it.
         _uiState.value = if (next.coverRecipeId != null && next.coverChoices.none { it.recipe.id == next.coverRecipeId }) next.copy(coverRecipeId = null) else next
     }
@@ -132,16 +136,20 @@ class RecipeBookViewModel(
             coverPhoto = chosen.firstOrNull { it.recipe.id == state.coverRecipeId }?.photo,
             sections = bookSections(chosen),
         )
-        _uiState.value = state.copy(isMaking = true, failed = false)
+        _uiState.value = state.copy(isMaking = true, failed = false, problem = null)
         viewModelScope.launch {
+            var problem: PrintProblem? = null
             val file = try {
                 print(content)
             } catch (e: CancellationException) {
                 throw e
+            } catch (e: PrintException) {
+                problem = e.problem
+                null
             } catch (e: Exception) {
                 null
             }
-            (_uiState.value as? RecipeBookUiState.Choosing)?.let { _uiState.value = it.copy(isMaking = false, failed = file == null) }
+            (_uiState.value as? RecipeBookUiState.Choosing)?.let { _uiState.value = it.copy(isMaking = false, failed = file == null, problem = problem) }
             _made.value = file
         }
     }
