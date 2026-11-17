@@ -74,6 +74,19 @@ class RecipesTest {
     }
 
     @Test
+    fun `a first name finds the recipes the member gave or noted, and a free origin too`() {
+        val family = TestFamily.family
+        val byAdult2 = soup.copy(authorId = "adult2", authorName = "Adult2", originMemberId = null)
+        val fromGranny = apple.copy(origin = "Mamie Rose")
+        assertTrue(matches(soup, "Adult2", family))
+        assertTrue(matches(byAdult2, "adult2 potiron", family))
+        assertFalse(matches(byAdult2, "adult1", family))
+        assertTrue(matches(apple, "adult1", family))
+        assertTrue(matches(fromGranny, "rose", family))
+        assertTrue(matches(soup.copy(authorId = "gone", authorName = "Ancien"), "ancien", family))
+    }
+
+    @Test
     fun `tags are trimmed, without doubles, six at most`() {
         assertEquals(listOf("dessert", "Noël"), parseTags(" dessert, Noël , Dessert,, "))
         assertEquals(6, parseTags("a,b,c,d,e,f,g").size)

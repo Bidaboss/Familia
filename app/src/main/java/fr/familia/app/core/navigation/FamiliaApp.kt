@@ -430,7 +430,10 @@ fun FamiliaApp(
     val liveFamily by liveFamilyFlow.collectAsStateWithLifecycle(initialValue = null)
     val ownerId = liveFamily?.ownerId
     val features = FeatureFlags(appConfig?.features.orEmpty(), isOwner = ownerId != null && ownerId == currentMember.id)
-    val presentation = rememberPresentation(container, isOwner = ownerId != null && ownerId == currentMember.id)
+    // In « Voir comme », the admin principal still reads config/presentation with their own account:
+    // the mode stays known (LocalPresenting), so what it hides stays hidden in front of the family.
+    val viewAsReader = LocalViewAs.current.readerId
+    val presentation = rememberPresentation(container, isOwner = ownerId != null && ownerId == (viewAsReader ?: currentMember.id))
 
     // « Partager » to Familia (récits 8 bis and 50): in the share menu only with its module, and a
     // shared link opens a new wish once the modules are known. Module off: the link is dropped.
@@ -825,7 +828,8 @@ fun FamiliaApp(
             Column(Modifier.weight(1f)) {
                 AnimatedVisibility(visible = isOffline) { OfflineBanner() }
                 // Mode présentation (récit 48): a discreet reminder on the phone of the admin principal.
-                presentation?.let { PresentationBanner(it) }
+                // Not in « Voir comme »: its « Éteindre » would be refused there, like every write.
+                presentation?.takeIf { viewAsReader == null }?.let { PresentationBanner(it) }
                 val shownUpdate = update?.takeIf { onTab && !updateDismissed }
                 if (shownUpdate != null) {
                     UpdateBanner(

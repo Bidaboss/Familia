@@ -446,6 +446,9 @@
     <string name="feedback_copy_for_claude">Copier pour Claude</string>
     <string name="feedback_copied">Copié</string>
     <string name="feedback_share_for_claude">Partager pour Claude</string>
+    <string name="feedback_save_screenshot">Enregistrer la capture</string>
+    <string name="feedback_screenshot_saved">Capture enregistrée dans la galerie, album Familia</string>
+    <string name="feedback_screenshot_save_failed">Capture non enregistrée. Vérifie la connexion et réessaie.</string>
     <!-- « Plantages » (récit 6 sexies, rév. 220) -->
     <string name="crashes_title">Plantages</string>
     <string name="crashes_help">Les erreurs qui ont fermé l\'appli, envoyées au lancement suivant.</string>
@@ -671,6 +674,10 @@
     <string name="gifts_birthdays_title">Anniversaires à venir</string>
     <string name="gifts_birthday_of">Anniversaire de %1$s</string>
     <string name="gifts_prepare_surprise">Préparer une surprise</string>
+    <plurals name="gifts_surprises_in_progress">
+        <item quantity="one">%d surprise en préparation</item>
+        <item quantity="other">%d surprises en préparation</item>
+    </plurals>
     <string name="gifts_all_birthdays">Tous les anniversaires</string>
     <string name="gifts_archived_title">Listes passées</string>
     <string name="gifts_archived_for">Pour %1$s · %2$s</string>
@@ -1194,7 +1201,7 @@
     <string name="recipe_picker_no_match">Aucune recette ne porte ce titre.</string>
     <string name="recipe_picker_failed">Les recettes n\'ont pas pu être lues. Réessaie dans un instant.</string>
     <string name="recipes_add">Nouvelle recette</string>
-    <string name="recipes_search">Chercher une recette, un ingrédient</string>
+    <string name="recipes_search">Recette, ingrédient ou prénom</string>
     <string name="recipes_none_found">Aucune recette ne correspond.</string>
     <string name="recipes_open">Voir la recette</string>
     <string name="recipes_empty_title">Pas encore de recette</string>
@@ -2675,6 +2682,34 @@
     <string name="first_steps_close">Fermer</string>
     <string name="first_steps_photo_failed">La photo n\'a pas pu être enregistrée. Vérifie le réseau, puis réessaie.</string>
     <string name="feature_packing_list">À emporter</string>
+    <string name="packing_title">À emporter</string>
+    <string name="packing_everyone">Pour tout le monde</string>
+    <string name="packing_take">Je m\'en charge</string>
+    <string name="packing_release">Je ne peux plus</string>
+    <string name="packing_my_bag">Ma valise</string>
+    <string name="packing_bag_of">La valise de %1$s</string>
+    <string name="packing_left">Encore %1$d à mettre dans la valise</string>
+    <string name="packing_all_done">Tout est dans la valise</string>
+    <string name="packing_add">Ajouter un objet</string>
+    <string name="packing_add_label">Objet</string>
+    <string name="packing_add_confirm">Ajouter</string>
+    <string name="packing_remove">Retirer</string>
+    <string name="packing_remove_action">Retirer %1$s de la valise</string>
+    <string name="packing_remove_title">Retirer « %1$s » de la valise ?</string>
+    <string name="packing_remove_confirm">Retirer</string>
+    <string name="packing_keep">Garder comme ma liste de départ</string>
+    <string name="packing_kept">Ta prochaine valise partira de cette liste.</string>
+    <string name="packing_failed">La valise n\'a pas pu être enregistrée. Réessaie dans un moment.</string>
+    <string-array name="packing_default">
+        <item>Papiers d\'identité</item>
+        <item>Chargeur de téléphone</item>
+        <item>Médicaments</item>
+        <item>Brosse à dents</item>
+        <item>Pyjama</item>
+        <item>Vêtements de rechange</item>
+        <item>Maillot de bain</item>
+        <item>Lunettes de soleil</item>
+    </string-array>
     <string name="year_title">Notre année %1$d</string>
     <string name="year_intro_body">Quelques images de l\'année de la famille. Touche la droite de l\'écran pour avancer, la gauche pour revenir.</string>
     <string name="year_numbers_title">En %1$d, la famille a partagé</string>
