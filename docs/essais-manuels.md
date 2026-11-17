@@ -615,3 +615,10 @@ Avec l'interrupteur « Bons plans » allumé (l'admin principal le voit toujours
 4. Avec un enfant qui a l'appli : **Attendu :** il voit les bons plans et touche « Ça m'intéresse », mais n'a pas de bouton « Publier ».
 5. L'auteur ou l'admin principal : « Modifier » et « Supprimer » (demande confirmation). Les autres n'ont pas ces boutons.
 6. Le lendemain vers 18 h : **Attendu :** une notification « Nouveau bon plan » (ou « 2 nouveaux bons plans ») sur le canal Coups de main, pour les autres membres seulement.
+
+## Bonnes adresses (récit 45)
+Avec l'interrupteur « Bons plans » allumé :
+1. Bons plans, « Publier » : **Attendu :** le choix « Un bon plan » ou « Une bonne adresse ». Choisis l'adresse : nom, catégorie (obligatoire), ville, téléphone, lien, « Pourquoi je la recommande ». Pas de date ni de photo.
+2. **Attendu :** la section « Bonnes adresses » sous les bons plans, avec la recherche et les catégories. « ecully » trouve « Écully » ; toucher deux fois une catégorie les montre toutes.
+3. Avec un autre adulte, ouvre l'adresse : « Recommandée par » l'auteur, puis « Je recommande aussi » ajoute « Moi ». « Appeler le … » ouvre le téléphone.
+4. Avec l'auteur ou un enfant : **Attendu :** pas de bouton « Je recommande aussi ». Aucune notification pour une bonne adresse.

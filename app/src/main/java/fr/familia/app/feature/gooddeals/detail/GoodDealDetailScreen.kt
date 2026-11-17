@@ -52,13 +52,14 @@ import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.feature.gooddeals.categoryLabel
 import fr.familia.app.feature.gooddeals.dealUntilLabel
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 import java.time.Instant
 import java.time.LocalDate
 
-/** One bon plan (PRD, récit 45). Stateless. */
+/** One bon plan or bonne adresse (PRD, récit 45). Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GoodDealDetailScreen(
@@ -69,11 +70,13 @@ fun GoodDealDetailScreen(
     onEdit: (() -> Unit)?,
     onRemove: () -> Unit,
     onBack: () -> Unit,
+    onToggleRecommend: () -> Unit = {},
 ) {
+    val address = (state as? GoodDealDetailUiState.Ready)?.deal?.kind == GoodDealKind.Address
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.gooddeal_title)) },
+                title = { Text(stringResource(if (address) R.string.gooddeal_address_title else R.string.gooddeal_title)) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = { HelpButton(ScreenHelp.HelpRequests) },
             )
@@ -87,7 +90,7 @@ fun GoodDealDetailScreen(
                     title = stringResource(R.string.gooddeal_missing_title),
                     body = stringResource(R.string.gooddeal_missing_body),
                 )
-                is GoodDealDetailUiState.Ready -> Content(state, today, onToggleInterest, onEdit, onRemove)
+                is GoodDealDetailUiState.Ready -> Content(state, today, onToggleInterest, onToggleRecommend, onEdit, onRemove)
             }
         }
     }
@@ -98,6 +101,7 @@ private fun Content(
     state: GoodDealDetailUiState.Ready,
     today: LocalDate,
     onToggleInterest: () -> Unit,
+    onToggleRecommend: () -> Unit,
     onEdit: (() -> Unit)?,
     onRemove: () -> Unit,
 ) {
@@ -112,6 +116,9 @@ private fun Content(
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             deal.endsAt?.let {
                 Text(dealUntilLabel(it, today), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            }
+            deal.category?.let {
+                Text(categoryLabel(it), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
             }
             Text(deal.title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
             Text(
@@ -128,27 +135,20 @@ private fun Content(
             )
         }
         if (deal.text.isNotBlank()) Text(deal.text, style = MaterialTheme.typography.bodyLarge)
-        deal.place?.let { Text(stringResource(R.string.gooddeal_place, it), style = MaterialTheme.typography.bodyLarge, color = muted) }
+        deal.place?.let {
+            Text(stringResource(if (deal.kind == GoodDealKind.Address) R.string.gooddeal_city else R.string.gooddeal_place, it), style = MaterialTheme.typography.bodyLarge, color = muted)
+        }
+        deal.phone?.let { phone ->
+            ClayLink(stringResource(R.string.gooddeal_call, phone), onClick = { runCatching { uriHandler.openUri("tel:" + phone.filter { it.isDigit() || it == '+' }) } })
+        }
         deal.link?.let { link ->
             // Opens in the browser, named by its site (récit 45).
             ClayLink(stringResource(R.string.gooddeal_open_link, linkSiteName(link)), onClick = { runCatching { uriHandler.openUri(link) } })
         }
-        // What the screen is for: say « Ça m'intéresse », the one filled button (DESIGN-11).
-        ClayCard(modifier = Modifier.fillMaxWidth(), emphasis = !state.isMine) {
-            val names = (if (state.iAmInterested) listOf(stringResource(R.string.gooddeal_me)) else emptyList()) + state.interestedNames
-            Text(
-                if (names.isEmpty()) stringResource(R.string.gooddeal_interested_nobody) else stringResource(R.string.gooddeal_interested_names, names.joinToString(", ")),
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            if (state.iAmInterested) {
-                OutlinedButton(onClick = onToggleInterest, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.gooddeal_not_interested))
-                }
-            } else {
-                Button(onClick = onToggleInterest, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.gooddeal_interested))
-                }
-            }
+        if (deal.kind == GoodDealKind.Address) {
+            RecommendCard(state, onToggleRecommend)
+        } else {
+            InterestCard(state, onToggleInterest)
         }
         if (state.actionFailed) {
             Text(stringResource(R.string.gooddeal_action_failed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
@@ -180,6 +180,47 @@ private fun Content(
                 }
             },
         )
+    }
+}
+
+/** « Ça m'intéresse » on a bon plan, children too: the one filled button (DESIGN-11). */
+@Composable
+private fun InterestCard(state: GoodDealDetailUiState.Ready, onToggleInterest: () -> Unit) {
+    ClayCard(modifier = Modifier.fillMaxWidth(), emphasis = !state.isMine) {
+        val names = (if (state.iAmInterested) listOf(stringResource(R.string.gooddeal_me)) else emptyList()) + state.interestedNames
+        Text(
+            if (names.isEmpty()) stringResource(R.string.gooddeal_interested_nobody) else stringResource(R.string.gooddeal_interested_names, names.joinToString(", ")),
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        if (state.iAmInterested) {
+            OutlinedButton(onClick = onToggleInterest, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.gooddeal_not_interested))
+            }
+        } else {
+            Button(onClick = onToggleInterest, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.gooddeal_interested))
+            }
+        }
+    }
+}
+
+/** « Je recommande aussi » on a bonne adresse: every adult but its author. */
+@Composable
+private fun RecommendCard(state: GoodDealDetailUiState.Ready, onToggleRecommend: () -> Unit) {
+    ClayCard(modifier = Modifier.fillMaxWidth(), emphasis = state.canRecommend && !state.iRecommend) {
+        val names = (if (state.isMine || state.iRecommend) listOf(stringResource(R.string.gooddeal_me)) else emptyList()) + state.recommendedNames
+        Text(stringResource(R.string.gooddeal_recommended_by, names.joinToString(", ")), style = MaterialTheme.typography.bodyLarge)
+        if (state.canRecommend) {
+            if (state.iRecommend) {
+                OutlinedButton(onClick = onToggleRecommend, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.gooddeal_not_recommend))
+                }
+            } else {
+                Button(onClick = onToggleRecommend, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                    Text(stringResource(R.string.gooddeal_recommend))
+                }
+            }
+        }
     }
 }
 

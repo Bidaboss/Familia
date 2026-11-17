@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.GoodDealRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.GoodDeal
+import fr.familia.app.core.model.GoodDealCategory
 import fr.familia.app.core.model.GoodDealKind
 import fr.familia.app.core.model.goodDealPhotoBase
 import fr.familia.app.core.photo.PhotoEdit
@@ -33,9 +34,12 @@ data class GoodDealForm(
     val place: String = "",
     val lastDay: LocalDate? = null,
     val photo: PhotoEdit = PhotoEdit.Unchanged,
+    /** A bonne adresse: its category and phone. */
+    val category: GoodDealCategory? = null,
+    val phone: String = "",
 )
 
-enum class GoodDealFormError { TitleMissing, LinkInvalid, EndInvalid }
+enum class GoodDealFormError { TitleMissing, LinkInvalid, EndInvalid, CategoryMissing, PhoneInvalid }
 
 sealed interface GoodDealEditUiState {
     data object Loading : GoodDealEditUiState
@@ -48,6 +52,7 @@ sealed interface GoodDealEditUiState {
     data class Editing(
         val form: GoodDealForm,
         val isNew: Boolean,
+        val kind: GoodDealKind = GoodDealKind.Deal,
         val today: LocalDate,
         /** The photo already saved, as a Storage base. */
         val storedPhoto: String? = null,
@@ -65,17 +70,21 @@ fun normalizeLink(link: String): String {
 }
 
 private val LINK = Regex("^https?://[^ ]+$")
+private val PHONE = Regex("^[+]?[0-9 .()-]{4,20}$")
 
 /**
- * Publish a bon plan ([dealId] null) or change one (PRD, récit 45). Its end is a day, by default
- * in 7 days, never more than 3 months on. Offline, the write lands in the cache at once; a new
- * photo needs the network, as on a coup de main.
+ * Publish a bon plan or a bonne adresse ([dealId] null, of [kind]) or change one (PRD, récit 45).
+ * A bon plan ends on a day, by default in 7 days, never more than 3 months on; an address has a
+ * category instead. Offline, the write lands in the cache at once; a new photo needs the network,
+ * as on a coup de main.
  */
 class GoodDealEditViewModel(
     private val deals: GoodDealRepository?,
     private val members: MemberRepository?,
     private val currentMemberId: String,
     private val dealId: String? = null,
+    /** The kind of a new post; an existing one keeps its own. */
+    private val kind: GoodDealKind = GoodDealKind.Deal,
     private val photos: SinglePhotoSaver? = null,
     private val today: () -> LocalDate = { LocalDate.now(PARIS) },
     private val writeTimeoutMillis: Long = 4_000,
@@ -88,6 +97,7 @@ class GoodDealEditViewModel(
     private var original: GoodDeal? = null
     private var authorName = ""
     private var editedId = ""
+    private var editedKind = GoodDealKind.Deal
     private var showErrors = false
 
     init {
@@ -106,17 +116,18 @@ class GoodDealEditViewModel(
         }
         val me = family.members.firstOrNull { it.id == currentMemberId } ?: return unavailable()
         if (dealId == null && !canPublishGoodDeal(me)) return unavailable()
-        if (dealId != null && (existing == null || existing.kind != GoodDealKind.Deal || !canManageGoodDeal(existing, me, family))) {
+        if (dealId != null && (existing == null || !canManageGoodDeal(existing, me, family))) {
             return unavailable()
         }
         original = existing
         authorName = me.firstName
         editedId = existing?.id ?: dealRepo.newId()
         val day = today()
+        editedKind = existing?.kind ?: kind
         val form = existing?.let {
-            GoodDealForm(it.title, it.text, it.link.orEmpty(), it.place.orEmpty(), it.endsAt?.let(::dealLastDay))
-        } ?: GoodDealForm(lastDay = day.plusDays(DEFAULT_DEAL_DAYS))
-        _uiState.value = GoodDealEditUiState.Editing(form, isNew = existing == null, today = day, storedPhoto = existing?.photo)
+            GoodDealForm(it.title, it.text, it.link.orEmpty(), it.place.orEmpty(), it.endsAt?.let(::dealLastDay), category = it.category, phone = it.phone.orEmpty())
+        } ?: GoodDealForm(lastDay = day.plusDays(DEFAULT_DEAL_DAYS).takeIf { editedKind == GoodDealKind.Deal })
+        _uiState.value = GoodDealEditUiState.Editing(form, isNew = existing == null, kind = editedKind, today = day, storedPhoto = existing?.photo)
     }
 
     private fun unavailable() {
@@ -137,8 +148,13 @@ class GoodDealEditViewModel(
         return buildSet {
             if (form.title.isBlank()) add(GoodDealFormError.TitleMissing)
             if (link.isNotEmpty() && (link.length > 500 || !LINK.matches(link))) add(GoodDealFormError.LinkInvalid)
-            // An ended bon plan can be fixed without moving its end; a new end is from today on.
-            if (form.lastDay == null || (!endKept && !dealDayAllowed(form.lastDay, state.today))) add(GoodDealFormError.EndInvalid)
+            if (state.kind == GoodDealKind.Address) {
+                if (form.category == null) add(GoodDealFormError.CategoryMissing)
+                if (form.phone.isNotBlank() && !PHONE.matches(form.phone.trim())) add(GoodDealFormError.PhoneInvalid)
+            } else if (form.lastDay == null || (!endKept && !dealDayAllowed(form.lastDay, state.today))) {
+                // An ended bon plan can be fixed without moving its end; a new end is from today on.
+                add(GoodDealFormError.EndInvalid)
+            }
         }
     }
 
@@ -154,17 +170,25 @@ class GoodDealEditViewModel(
         }
         val existing = original
         val form = state.form
-        val endsAt = if (existing?.endsAt?.let(::dealLastDay) == form.lastDay) existing?.endsAt else dealEnd(requireNotNull(form.lastDay))
+        val isDeal = editedKind == GoodDealKind.Deal
+        val endsAt = when {
+            !isDeal -> null
+            existing?.endsAt?.let(::dealLastDay) == form.lastDay -> existing?.endsAt
+            else -> dealEnd(requireNotNull(form.lastDay))
+        }
         fun deal(photo: String?) = GoodDeal(
             id = editedId,
-            kind = GoodDealKind.Deal,
+            kind = editedKind,
             title = form.title.trim().take(80),
             text = form.text.trim().take(500),
             link = normalizeLink(form.link).ifEmpty { null },
             place = form.place.trim().take(80).ifEmpty { null },
+            phone = form.phone.trim().takeIf { !isDeal && it.isNotEmpty() },
+            category = form.category.takeIf { !isDeal },
             endsAt = endsAt,
-            photo = photo,
+            photo = photo.takeIf { isDeal },
             interestedIds = existing?.interestedIds.orEmpty(),
+            recommendedIds = existing?.recommendedIds.orEmpty(),
             authorId = existing?.authorId ?: currentMemberId,
             authorName = existing?.authorName ?: authorName,
         )

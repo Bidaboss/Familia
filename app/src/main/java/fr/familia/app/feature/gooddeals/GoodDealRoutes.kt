@@ -14,6 +14,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.data.currentDayFlow
+import fr.familia.app.core.model.GoodDealKind
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.photo.SinglePhotoSaver
 import fr.familia.app.feature.gooddeals.detail.GoodDealDetailScreen
@@ -39,7 +40,7 @@ private fun parisToday(): LocalDate {
 fun GoodDealsRoute(
     container: AppContainer?,
     currentMember: Member,
-    onPublish: (() -> Unit)?,
+    onPublish: ((GoodDealKind) -> Unit)?,
     onOpenDeal: ((String) -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
@@ -49,7 +50,7 @@ fun GoodDealsRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    GoodDealsScreen(state, parisToday(), onPublish, onOpenDeal, viewModel::retry, modifier)
+    GoodDealsScreen(state, parisToday(), onPublish, onOpenDeal, viewModel::retry, modifier, viewModel::pickCategory, viewModel::search)
 }
 
 @Composable
@@ -72,7 +73,7 @@ fun GoodDealDetailRoute(
         if (state is GoodDealDetailUiState.Ready) wasShown = true
         if (state == GoodDealDetailUiState.Missing && wasShown) onBack()
     }
-    GoodDealDetailScreen(state, parisToday(), viewModel::toggleInterest, onEdit, viewModel::remove, onBack)
+    GoodDealDetailScreen(state, parisToday(), viewModel::toggleInterest, onEdit, viewModel::remove, onBack, viewModel::toggleRecommend)
 }
 
 @Composable
@@ -80,6 +81,7 @@ fun GoodDealEditRoute(
     container: AppContainer?,
     currentMember: Member,
     dealId: String?,
+    kind: GoodDealKind,
     onDone: () -> Unit,
 ) {
     val viewModel: GoodDealEditViewModel = viewModel(
@@ -92,6 +94,7 @@ fun GoodDealEditRoute(
                     container?.memberRepository,
                     currentMember.id,
                     dealId = dealId,
+                    kind = kind,
                     photos = if (uploader != null && storage != null) SinglePhotoSaver(uploader, storage) else null,
                 )
             }
