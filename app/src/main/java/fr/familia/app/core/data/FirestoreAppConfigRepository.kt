@@ -1,6 +1,7 @@
 package fr.familia.app.core.data
 
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.SetOptions
@@ -44,6 +45,10 @@ class FirestoreAppConfigRepository(private val db: FirebaseFirestore) : AppConfi
         db.collection("config").document("app").set(mapOf("discoverOrder" to keys), SetOptions.merge()).await()
     }
 
+    override suspend fun hideMemory(key: String) {
+        db.collection("config").document("app").set(mapOf("memoriesHidden" to FieldValue.arrayUnion(key)), SetOptions.merge()).await()
+    }
+
     override fun observePresentation(): Flow<PresentationMode?> = callbackFlow {
         val registration = db.collection("config").document("presentation").addSnapshotListener { snapshot, error ->
             if (error != null) {
@@ -84,5 +89,6 @@ class FirestoreAppConfigRepository(private val db: FirebaseFirestore) : AppConfi
             .toMap(),
         whatsNew = WhatsNew.parse(snapshot?.get("whatsNew")),
         discoverOrder = (snapshot?.get("discoverOrder") as? List<*>).orEmpty().filterIsInstance<String>(),
+        memoriesHidden = (snapshot?.get("memoriesHidden") as? List<*>).orEmpty().filterIsInstance<String>(),
     )
 }

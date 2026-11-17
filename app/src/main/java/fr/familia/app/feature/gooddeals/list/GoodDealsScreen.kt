@@ -18,7 +18,6 @@ import androidx.compose.material.icons.outlined.LocalOffer
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -53,6 +52,7 @@ import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.feature.gooddeals.categoryLabel
 import fr.familia.app.feature.gooddeals.dealUntilLabel
 import java.time.Instant
@@ -76,7 +76,7 @@ fun GoodDealsScreen(
     var choosing by rememberSaveable { mutableStateOf(false) }
     Box(modifier.fillMaxSize()) {
         when (state) {
-            GoodDealsUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+            GoodDealsUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
             GoodDealsUiState.Error -> EmptyState(
                 icon = Icons.Outlined.LocalOffer,
                 title = stringResource(R.string.gooddeal_error_title),

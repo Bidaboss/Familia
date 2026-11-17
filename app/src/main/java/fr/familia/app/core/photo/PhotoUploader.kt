@@ -1,6 +1,7 @@
 package fr.familia.app.core.photo
 
 import android.net.Uri
+import java.time.Instant
 
 /**
  * Encodes a photo chosen on the phone and sends it with its thumbnail to the two Storage paths
@@ -14,6 +15,9 @@ fun interface PhotoUploader {
         upload(source, photoPath, thumbnailPath)
         onProgress(1f)
     }
+
+    /** When the photo at [source] was taken, from its EXIF, or null (récit 36, « Il y a N ans »). */
+    suspend fun takenAt(source: String): Instant? = null
 }
 
 class StoragePhotoUploader(private val encoder: PhotoEncoder, private val storage: PhotoStorage) : PhotoUploader {
@@ -26,4 +30,6 @@ class StoragePhotoUploader(private val encoder: PhotoEncoder, private val storag
         storage.upload(photoPath, photo) { done -> onProgress(done * photo.size / total) }
         storage.upload(thumbnailPath, thumbnail) { done -> onProgress((photo.size + done * thumbnail.size) / total) }
     }
+
+    override suspend fun takenAt(source: String): Instant? = encoder.takenAt(Uri.parse(source))
 }

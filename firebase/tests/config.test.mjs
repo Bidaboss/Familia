@@ -2,7 +2,7 @@
 // it; from the app only the admin principal switches modules on or off (features).
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { deleteDoc, deleteField, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { arrayUnion, deleteDoc, deleteField, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { ADMIN, ADULT, SECOND_ADMIN, STRANGER, as, createEnv, seed } from './helpers.mjs';
 
 let env;
@@ -54,6 +54,18 @@ describe('config/app', () => {
     await assertFails(updateDoc(doc(db, 'config/app'), { discoverOrder: ['recipes'], latestVersionCode: 99 }));
     await assertFails(setDoc(doc(as(env, ADULT), 'config/app'), { discoverOrder: ['recipes'] }, { merge: true }));
     await assertFails(setDoc(doc(as(env, SECOND_ADMIN), 'config/app'), { discoverOrder: ['recipes'] }, { merge: true }));
+  });
+
+  test('the admin principal takes a souvenir away for everyone, and only them', async () => {
+    const db = as(env, ADMIN);
+    await assertSucceeds(setDoc(doc(db, 'config/app'), { memoriesHidden: arrayUnion('trip-t1-a_1') }, { merge: true }));
+    await assertSucceeds(updateDoc(doc(db, 'config/app'), { memoriesHidden: arrayUnion('news-n1') }));
+    await assertFails(updateDoc(doc(db, 'config/app'), { memoriesHidden: 'news-n1' }));
+    await assertFails(updateDoc(doc(db, 'config/app'), { memoriesHidden: Array.from({ length: 301 }, (_, i) => `news-${i}`) }));
+    await assertFails(updateDoc(doc(db, 'config/app'), { memoriesHidden: ['news-n2'], latestVersionCode: 99 }));
+    await assertFails(setDoc(doc(as(env, ADULT), 'config/app'), { memoriesHidden: arrayUnion('news-n2') }, { merge: true }));
+    await assertFails(setDoc(doc(as(env, SECOND_ADMIN), 'config/app'), { memoriesHidden: arrayUnion('news-n2') }, { merge: true }));
+    await assertSucceeds(getDoc(doc(as(env, ADULT), 'config/app')));
   });
 
   test('the switches are never removed, nor emptied of their kind', async () => {

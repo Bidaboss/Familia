@@ -44,4 +44,4 @@ fun eventAlbumRights(
 
 /** All the photos of an event, with its film. */
 @Serializable
-data class EventAlbumDestination(val eventId: String)
+data class EventAlbumDestination(val eventId: String, val photoId: String? = null)

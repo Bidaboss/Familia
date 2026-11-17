@@ -1,5 +1,6 @@
 package fr.familia.app.feature.presentation
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
@@ -35,7 +37,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import android.widget.Toast
 import fr.familia.app.R
 import fr.familia.app.core.data.AppConfigRepository
 import fr.familia.app.core.data.AppContainer
@@ -97,6 +98,9 @@ class PresentationViewModel(
         }
     }
 }
+
+/** True while the mode présentation is on, on the phone of the admin principal only (récit 48). */
+val LocalPresenting = compositionLocalOf { false }
 
 /** The mode and its actions, for the admin principal only; null for everyone else. */
 class PresentationState(val mode: PresentationMode?, val now: Instant, val onStart: (PresentationLength) -> Unit, val onStop: () -> Unit) {

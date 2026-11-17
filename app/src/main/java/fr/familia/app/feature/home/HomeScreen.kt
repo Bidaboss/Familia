@@ -107,6 +107,7 @@ import fr.familia.app.feature.helprequests.whenLabel
 import fr.familia.app.feature.goodnews.home.GoodNewsHomeCard
 import fr.familia.app.feature.month.isSlideshowTime
 import fr.familia.app.feature.tree.TreeHomeCard
+import fr.familia.app.feature.yearago.MemoryAlbum
 import fr.familia.app.feature.yearago.YearAgoHomeCard
 import fr.familia.app.feature.trips.tripDatesLabel
 import fr.familia.app.feature.whoisit.WhoIsItHomeCard
@@ -127,6 +128,8 @@ class HomeActions(
     val onOpenWishes: ((memberId: String) -> Unit)? = null,
     val onOpenList: (String) -> Unit = {},
     val onOpenTrip: (String) -> Unit = {},
+    /** A photo of « Il y a N ans »: its album, opened on it (récit 36). */
+    val onOpenAlbumPhoto: (MemoryAlbum, String) -> Unit = { _, _ -> },
     val onNewTrip: () -> Unit = {},
     /** « Tous les voyages »: set while the trips module is on; the card then always shows. */
     val onOpenTrips: (() -> Unit)? = null,
@@ -225,7 +228,7 @@ fun HomeRoute(
                 HomeExtra(
                     "yearAgo",
                     chip = { selected, toggle -> YearAgoHomeChip(container, currentMember, selected, toggle) },
-                    card = { YearAgoHomeCard(container, currentMember, onOpenGoodNews = onOpenGoodNews, onOpenTrip = actions.onOpenTrip) },
+                    card = { YearAgoHomeCard(container, currentMember, onOpenGoodNews = onOpenGoodNews, onOpenAlbumPhoto = actions.onOpenAlbumPhoto) },
                 ),
             )
         }

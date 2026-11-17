@@ -235,7 +235,7 @@ Le jour J, la tâche de 10 h (`birthdayGiftReminders`) publie la Bonne nouvelle 
 
 Dans l'appli (`feature/wishes`), les cartes du dernier anniversaire s'affichent sur la fiche de la personne, en cartes Argile, sans compte. Le champ « Écris un mot à … » n'apparaît que le jour J, sur la fiche d'un autre, hors « Voir comme ». Le toucher d'un avis (`birthdayOf`) ouvre la fiche ; les avis de même étiquette (`notificationTag`) se remplacent aussi quand l'appli est ouverte.
 
-« Il y a un an » (récit 36, module `yearAgo`) : une carte de l'Accueil, sans notification ni donnée nouvelle. L'appli lit les Bonnes nouvelles publiées le même jour un an plus tôt (`createdAt` entre minuit et minuit, heure de Paris) et, sinon, les photos d'album (`trips/{tripId}/photos`) prises ce jour-là dans les voyages que le membre suit (`readerIds`). Une Bonne nouvelle qu'il a masquée, un « Défi réussi » de Familia et un souvenir qu'il a écarté ne s'affichent pas. « Ne plus me montrer ce souvenir » est gardé sur le téléphone (préférences `yearAgoDismissed-{memberId}`), rien n'est écrit dans Firestore ; il n'est pas proposé en « Voir comme ».
+« Il y a N ans » (récit 36, module `yearAgo`, étendu par la rév. 258) : une carte de l'Accueil, sans notification ni donnée nouvelle. L'appli regarde le même jour, de un à dix ans plus tôt (heure de Paris). Elle lit d'abord les Bonnes nouvelles publiées ce jour-là (`createdAt`, une requête par année) puis, sinon, les photos d'album prises ce jour-là (`takenAt`, sinon `createdAt`) : celles des voyages que le membre suit (`readerIds`) et, si le module `eventAlbums` est allumé, celles des événements de ce jour-là qui le concernent, comme dans « Albums » (une requête `date in [...]` sur `events`). Une Bonne nouvelle qu'il a masquée, un « Défi réussi » de Familia et un souvenir qu'il a écarté ne s'affichent pas. Le souvenir du matin reste le même toute la journée (préférence `yearAgoToday-{memberId}`, « date|clé »). Toucher une photo ouvre son album sur cette photo. Rien ne s'affiche pendant le Mode présentation (récit 48). « Ne plus me montrer ce souvenir » est gardé sur le téléphone (préférences `yearAgoDismissed-{memberId}`), rien n'est écrit dans Firestore ; il n'est pas proposé en « Voir comme ». L'admin principal peut aussi « Retirer ce souvenir pour tous », après confirmation : la clé va dans `config/app.memoriesHidden`.
 
 ## Cloud Functions (lot 8)
 
@@ -284,6 +284,7 @@ Les données sont lues sur le serveur, jamais dans le cache du téléphone. Hors
 | `apkSha256` | texte | Son empreinte SHA-256 (64 caractères hexadécimaux), vérifiée avant l'installation |
 | `features` | map texte → booléen | Les modules allumés pour la famille (`gifts`, `helpRequests`, `trips`, `home`…). Un module absent ou à `false` reste caché, sauf pour l'admin principal |
 | `discoverOrder` | liste de textes (20 au plus), facultatif | L'ordre d'« À découvrir » choisi par l'admin principal (clés des modules : `weeklyQuestion`, `recipes`…). Les clés inconnues sont ignorées, et les modules absents suivent dans l'ordre par défaut |
+| `memoriesHidden` | liste de textes (300 au plus), facultatif | Les souvenirs d'« Il y a N ans » (récit 36) que l'admin principal a retirés pour tous : leurs clés (`news-{id}`, `trip-{tripId}-{photoId}`, `event-{eventId}-{photoId}`). Ajoutées une à une (`arrayUnion`) par lui seul ; la photo ou la Bonne nouvelle reste à sa place. |
 
 Le lien du dossier Drive n'est pas dans ce document : il est fixé dans l'appli (`BuildConfig.DOWNLOAD_URL`). Si un champ de l'APK manque ou paraît faux, l'appli ouvre ce dossier comme avant.
 
@@ -575,7 +576,7 @@ Droits :
 
 - **Lire** : le demandeur et les personnes prévenues (`viewerIds`), donc aussi les adultes responsables de l'enfant aidé (carte PRODUIT-8). L'admin principal lit toutes les demandes, pour la sauvegarde et pour « modifier toutes » ; l'onglet ne lui montre pourtant que celles où il est dans `viewerIds`. Un chef de famille n'a pas de droit en plus.
 - **Créer** : un membre avec l'appli, pour lui ; un adulte, aussi pour un de ses enfants ; l'admin principal, pour n'importe qui. La demande naît ouverte, sans volontaire.
-- **« Je m'en occupe »** : un adulte prévenu, jamais le demandeur, sur une demande ouverte. L'appli l'écrit dans une transaction, qui demande le réseau : de deux volontaires en même temps, seul le premier l'emporte, l'autre voit « déjà prise ».
+- **« Je m'en occupe »** : un adulte prévenu, jamais le demandeur, sur une demande ouverte. Avec le réseau, l'appli l'écrit dans une transaction : de deux volontaires en même temps, seul le premier l'emporte, l'autre voit « déjà prise ». Sans réseau, ou s'il ne répond pas en 5 secondes, la même écriture attend sur le téléphone (« En attente du réseau ») et part une seule fois à son retour ; la règle (demande encore ouverte) la refuse alors si quelqu'un l'a prise entre-temps, et la demande montre ce volontaire.
 - **Se retirer** : le volontaire seulement ; la demande redevient ouverte.
 - **« Je ne peux pas »** : la seule personne prévenue, sur une demande ouverte.
 - **Modifier, élargir, annuler, « Merci », supprimer** : l'admin principal, le demandeur, et un adulte responsable du demandeur ou de l'enfant aidé. Le volontaire reste parmi les personnes prévenues ; le « Merci » n'existe que pour une demande prise.
@@ -662,7 +663,7 @@ Dans l'onglet Entraide, derrière l'interrupteur « À qui le tour » (`config/a
 | `title` | texte | Le nom du tour de rôle, de 1 à 60 caractères |
 | `householdIds` | liste de textes | Les foyers qui y participent, dans l'ordre, de 2 à 12, chacun une fois |
 | `current` | entier | La place dans `householdIds` du foyer dont c'est le tour |
-| `history` | liste | Les tours faits, le plus récent en dernier, sans limite (l'appli en montre 50, puis 50 de plus à chaque « Voir plus ») : `{householdId, label, at}`. `label` (« Noël 2026 ») fait 40 caractères au plus et peut être vide. `at` est l'heure du téléphone, vérifiée à 10 minutes près, car Firestore n'a pas d'heure du serveur dans une liste |
+| `history` | liste | Les tours faits, le plus récent en dernier, sans limite (l'appli en montre 50, puis 50 de plus à chaque « Voir plus ») : `{householdId, label, at}`. `label` (« Noël 2026 ») fait 40 caractères au plus et peut être vide. `at` est l'heure du téléphone, car Firestore n'a pas d'heure du serveur dans une liste : au plus 10 minutes dans le futur, et jusqu'à 7 jours dans le passé, pour un « C'est fait » dit hors ligne qui part au retour du réseau |
 | `swap` | objet ou `null` | L'échange proposé : `{fromId, toId, fromIndex, toIndex, byId, byName}`, les deux foyers, leurs places, l'adulte qui propose et son prénom. Un seul à la fois |
 | `createdBy` | texte | L'adulte qui l'a créé |
 | `createdAt`, `updatedAt` | horodatage | Heure du serveur |
@@ -832,6 +833,7 @@ Les photos du voyage (récit 15). Chaque participant a 30 places, numérotées d
 | `authorId`, `authorName` | texte | L'auteur et son prénom, gardé s'il quitte le voyage |
 | `slot` | entier de 1 à 30 | La place, la même que dans l'identifiant |
 | `createdAt` | horodatage serveur | Les photos s'affichent de la plus récente à la plus ancienne |
+| `takenAt` | horodatage, facultatif | Le moment de la prise de vue, lu par le téléphone dans l'EXIF du fichier choisi (DateTimeOriginal) avant de le réencoder. Jamais avant 2001 ni plus d'un jour après l'heure du serveur (marge pour l'horloge du téléphone). Absent pour les photos envoyées avant le 17/11/2026, sans EXIF ou prises dans les 10 dernières minutes (`createdAt` donne alors le même jour). Sert à « Il y a N ans » (récit 36). Seule la date est gardée, jamais le lieu. Même champ pour les albums d'événement et les photos de recette. |
 
 Photos dans Storage : `trips/{tripId}/{authorId}/{slot}.jpg` (1600 px au plus, environ 300 Ko, 512 Ko au plus) et `{slot}-thumb.jpg` (400 px, environ 30 Ko, 64 Ko au plus), sans données EXIF, donc sans lieu. L'appli envoie les deux fichiers avant d'écrire le document. Si un envoi a été coupé, l'auteur peut renvoyer une place dont le document n'existe pas.
 

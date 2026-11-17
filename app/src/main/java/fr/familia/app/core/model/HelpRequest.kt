@@ -62,6 +62,8 @@ data class HelpRequest(
      * read only by those who see the request.
      */
     val photo: String? = null,
+    /** Changed on this phone without network (« Je m'en occupe »…): it goes by itself, once, when the network is back. */
+    val pending: Boolean = false,
 )
 
 /** helpRequests/{requestId}/{memberId}/{photoId}: sent by [memberId], removed by the server with the request. */

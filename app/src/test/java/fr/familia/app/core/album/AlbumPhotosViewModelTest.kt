@@ -42,6 +42,11 @@ class AlbumPhotosViewModelTest {
             added += slot to me.id
             photos.value = photos.value + AlbumPhoto(folder, me.id, me.firstName, slot, createdAt = null)
         }
+        val takenAts = mutableListOf<Instant?>()
+        override suspend fun addPhoto(folder: String, slot: Int, me: Member, takenAt: Instant?) {
+            takenAts += takenAt
+            addPhoto(folder, slot, me)
+        }
         override suspend fun deletePhoto(photo: AlbumPhoto) {
             deleted += photo.id
             photos.value = photos.value.filterNot { it.id == photo.id && it.folder == photo.folder }
@@ -49,8 +54,13 @@ class AlbumPhotosViewModelTest {
     }
 
     /** Remembers what was sent, and refuses the sources listed in [failing]. */
-    private class FakeUploader(private val failing: Set<String> = emptySet(), private val refused: Set<String> = emptySet()) : PhotoUploader {
+    private class FakeUploader(
+        private val failing: Set<String> = emptySet(),
+        private val refused: Set<String> = emptySet(),
+        private val dates: Map<String, Instant> = emptyMap(),
+    ) : PhotoUploader {
         val sent = mutableListOf<Triple<String, String, String>>()
+        override suspend fun takenAt(source: String): Instant? = dates[source]
         override suspend fun upload(source: String, photoPath: String, thumbnailPath: String) {
             if (source in failing) throw UnreadablePhotoException("unreadable")
             if (source in refused) throw PhotoRefusedException(IllegalStateException("rules"))
@@ -102,6 +112,18 @@ class AlbumPhotosViewModelTest {
         assertEquals(0, vm.uiState.value.sending)
         assertEquals(26, vm.uiState.value.placesLeft)
         assertNull(vm.uiState.value.problem)
+    }
+
+    @Test
+    fun `the day a photo was taken goes with its record when the file says it`() = runTest {
+        val photos = FakeAlbum()
+        val day = Instant.parse("2025-08-04T16:30:00Z")
+        val vm = album("adult2", photos, FakeUploader(dates = mapOf("content://a" to day)))
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+
+        vm.addPhotos(listOf("content://a", "content://b"))
+
+        assertEquals(listOf(day, null), photos.takenAts)
     }
 
     @Test

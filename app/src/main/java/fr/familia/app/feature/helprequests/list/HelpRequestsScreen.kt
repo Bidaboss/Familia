@@ -16,7 +16,6 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -42,7 +41,9 @@ import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.core.ui.MemberAvatar
+import fr.familia.app.core.ui.PendingSign
 import fr.familia.app.core.ui.SectionLabel
 import fr.familia.app.feature.helprequests.detail.HelpActionError
 import fr.familia.app.feature.helprequests.todo.HelpRequestTodo
@@ -73,7 +74,7 @@ fun HelpRequestsScreen(
 ) {
     Box(modifier.fillMaxSize()) {
         when (state) {
-            HelpRequestsUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+            HelpRequestsUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
             HelpRequestsUiState.Error -> EmptyState(
                 icon = Icons.Outlined.VolunteerActivism,
                 title = stringResource(R.string.helprequest_error_title),
@@ -191,6 +192,7 @@ private fun HandledRow(row: HelpRequestRow, today: LocalDate, onOpenRequest: (St
                     style = MaterialTheme.typography.bodyMedium,
                     color = FamiliaClay.colors.onTintVariant(tint),
                 )
+                if (request.pending) PendingSign(color = FamiliaClay.colors.onTintVariant(tint))
             }
         }
     }
@@ -249,6 +251,7 @@ private fun RequestCard(row: HelpRequestRow, today: LocalDate, onOpenRequest: (S
             style = MaterialTheme.typography.bodyMedium,
             color = if (request.status == HelpStatus.Open && !row.isMine) MaterialTheme.colorScheme.primary else FamiliaClay.colors.onTintVariant(tint),
         )
+        if (request.pending) PendingSign(color = FamiliaClay.colors.onTintVariant(tint))
     }
 }
 

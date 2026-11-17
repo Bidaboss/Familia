@@ -44,6 +44,8 @@ data class GoodNews(
     val birthdayOf: String? = null,
     /** « Les petits » (récit 43): a young child's drawing or success, published for them by a responsible adult. */
     val littleOnes: Boolean = false,
+    /** Published on this phone without network: it goes by itself, once, when the network is back. */
+    val pending: Boolean = false,
 ) {
     /** Changed by its author after it was published. */
     val isEdited: Boolean get() = createdAt != null && updatedAt != null && updatedAt.isAfter(createdAt.plusSeconds(60))

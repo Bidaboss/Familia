@@ -870,6 +870,18 @@ Avec l'interrupteur « À qui le tour ? » allumé (l'admin principal le voit to
 11. Touche une notification « C'est ton tour ». **Attendu :** le tour s'ouvre. Interrupteur éteint pour ce membre : rien ne s'ouvre.
 12. L'auteur ou l'admin principal : le crayon change le titre ou l'ordre, la corbeille supprime le tour après confirmation. **Attendu :** retour à la liste, le tour a disparu chez tout le monde.
 
+## Démo du 21 : Bonnes nouvelles et Entraide sur un réseau faible
+
+Passe chaque étape deux fois : d'abord en mode avion, puis en 2G (réglages du téléphone, Réseau mobile, Type de réseau préféré « 2G seulement », Wi-Fi coupé). Ouvre d'abord une fois le fil et Entraide avec un bon réseau. Il faut deux téléphones de deux foyers pour l'étape 6.
+1. Ouvre les Bonnes nouvelles. **Attendu :** le fil déjà vu s'affiche tout de suite, avec le bandeau « Hors ligne » en mode avion. Jamais d'écran vide ni de plantage. Sur un téléphone qui n'a jamais ouvert le fil : la roue, puis « Pas de réseau pour l'instant… » en mode avion, ou « Le réseau est lent, ça arrive… » en 2G après quelques secondes, mais jamais « Pas encore de bonne nouvelle ».
+2. Publie une bonne nouvelle sans photo. **Attendu :** l'écran se ferme et elle est en haut du fil avec « En attente du réseau ». Remets le réseau sans toucher l'écran : la mention disparaît, et l'autre téléphone la reçoit une seule fois. Avec une photo, l'écran reste ouvert et la phrase « Plus de réseau : l'envoi reprendra tout seul… » s'affiche (voir la section sur l'envoi de la photo).
+3. Ouvre une bonne nouvelle déjà vue et ajoute une réaction. **Attendu :** la fiche s'affiche, la réaction aussi, et elle part au retour du réseau.
+4. Ouvre Entraide, puis chaque onglet (Coups de main, Bons plans, Prêts, À qui le tour ?). **Attendu :** ce qui est déjà vu s'affiche. Sinon, la roue avec la phrase qui dit pourquoi. Jamais d'écran blanc.
+5. Sur une demande où on a besoin de toi, touche « Je m'en occupe ». **Attendu :** pas de message d'erreur, la demande passe dans « Déjà pris en charge » avec « En attente du réseau ». Remets le réseau : la mention disparaît, et l'auteur de la demande est prévenu une seule fois.
+6. Deux téléphones, une même demande ouverte. Le téléphone A en mode avion touche « Je m'en occupe ». Le téléphone B, avec le réseau, touche « Je m'en occupe » juste après. Remets le réseau sur A. **Attendu :** B l'a. Sur A, la demande montre que B s'en occupe, sans doublon, et un message en bas dit « … s'en occupait déjà. Merci d'avoir proposé ton aide ! », sans erreur rouge.
+7. Sur « À qui le tour ? », touche « C'est fait » sur un tour où c'est à ton foyer. **Attendu :** le tour passe au foyer suivant avec « En attente du réseau », et les boutons restent utilisables. Au retour du réseau, la mention disparaît, et le foyer suivant reçoit « C'est ton tour » une seule fois.
+8. Remets le réseau normal et rouvre chaque écran. **Attendu :** tout est à jour, sans avoir fermé l'appli.
+
 ## Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible
 
 À faire avec le deuxième téléphone de test, une fois en mode avion, puis une fois en « 2G seulement » (réglages du téléphone, Réseau mobile, Type de réseau préféré), Wi-Fi coupé.

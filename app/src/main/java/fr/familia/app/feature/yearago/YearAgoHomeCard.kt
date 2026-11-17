@@ -1,5 +1,6 @@
 package fr.familia.app.feature.yearago
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,12 +9,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,41 +44,62 @@ import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.home.HomeChip
+import fr.familia.app.feature.presentation.LocalPresenting
 import java.time.LocalDate
 
-/** The « Il y a un an » card of the Accueil (récit 36): shown only on a day that has a souvenir. */
+/**
+ * The « Il y a N ans » card of the Accueil (récit 36): shown only on a day that has a souvenir, and
+ * never while the Mode présentation is on (récit 48).
+ */
 @Composable
 fun YearAgoHomeCard(
     container: AppContainer?,
     currentMember: Member,
     onOpenGoodNews: (String) -> Unit,
-    onOpenTrip: (String) -> Unit,
+    onOpenAlbumPhoto: (MemoryAlbum, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val viewModel = yearAgoViewModel(container, currentMember)
     val memory by viewModel.memory.collectAsStateWithLifecycle()
+    val hideFailed by viewModel.hideFailed.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val refused = stringResource(R.string.year_ago_hide_failed)
+    LaunchedEffect(hideFailed) {
+        if (hideFailed) {
+            Toast.makeText(context, refused, Toast.LENGTH_LONG).show()
+            viewModel.hideFailureShown()
+        }
+    }
+    if (LocalPresenting.current) return
     memory?.let { m ->
         YearAgoContent(
             memory = m,
             onOpen = {
                 when (m) {
                     is YearAgoMemory.News -> onOpenGoodNews(m.news.id)
-                    is YearAgoMemory.TripPhoto -> onOpenTrip(m.trip.id)
+                    is YearAgoMemory.Photo -> onOpenAlbumPhoto(m.album, m.photo.id)
                 }
             },
             onDismiss = if (viewModel.canDismiss) ({ viewModel.dismiss(m) }) else null,
+            onHideForAll = if (viewModel.canHideForAll) ({ viewModel.hideForAll(m) }) else null,
             modifier = modifier,
         )
     }
 }
 
-/** The chip of « Il y a un an » on the Accueil (DESIGN-11): only on a day with a souvenir; it opens [YearAgoHomeCard]. */
+/** The chip of « Il y a N ans » on the Accueil (DESIGN-11): only on a day with a souvenir; it opens [YearAgoHomeCard]. */
 @Composable
 fun YearAgoHomeChip(container: AppContainer?, currentMember: Member, selected: Boolean, onToggle: () -> Unit) {
     val memory by yearAgoViewModel(container, currentMember).memory.collectAsStateWithLifecycle()
-    if (memory == null) return
-    HomeChip(label = stringResource(R.string.year_ago_title), onClick = onToggle, selected = selected)
+    val m = memory ?: return
+    if (LocalPresenting.current) return
+    HomeChip(label = yearAgoTitle(m.years), onClick = onToggle, selected = selected)
 }
+
+/** « Il y a un an », « Il y a 3 ans »… */
+@Composable
+fun yearAgoTitle(years: Int): String =
+    if (years <= 1) stringResource(R.string.year_ago_title) else stringResource(R.string.year_ago_title_years, years)
 
 @Composable
 private fun yearAgoViewModel(container: AppContainer?, currentMember: Member): YearAgoViewModel {
@@ -84,8 +111,10 @@ private fun yearAgoViewModel(container: AppContainer?, currentMember: Member): Y
     val flags = LocalFeatureFlags.current
     val newsOn = flags.isOn(Feature.GoodNews)
     val tripsOn = flags.isOn(Feature.Trips)
+    val eventsOn = flags.isOn(Feature.EventAlbums)
+    val owner = flags.isOwner && !viewingAs
     return viewModel(
-        key = "yearAgo-$today-${currentMember.id}-$newsOn-$tripsOn",
+        key = "yearAgo-$today-${currentMember.id}-$newsOn-$tripsOn-$eventsOn-$owner",
         factory = viewModelFactory {
             initializer {
                 YearAgoViewModel(
@@ -96,6 +125,10 @@ private fun yearAgoViewModel(container: AppContainer?, currentMember: Member): Y
                     today,
                     store,
                     canDismiss = !viewingAs,
+                    events = if (eventsOn) container?.eventRepository else null,
+                    members = container?.memberRepository,
+                    config = container?.appConfigRepository,
+                    canHideForAll = owner,
                 )
             }
         },
@@ -103,10 +136,18 @@ private fun yearAgoViewModel(container: AppContainer?, currentMember: Member): Y
 }
 
 @Composable
-fun YearAgoContent(memory: YearAgoMemory, onOpen: () -> Unit, onDismiss: (() -> Unit)?, modifier: Modifier = Modifier) {
+fun YearAgoContent(
+    memory: YearAgoMemory,
+    onOpen: () -> Unit,
+    onDismiss: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+    /** The admin principal only, after confirming (rév. 258). */
+    onHideForAll: (() -> Unit)? = null,
+) {
+    var confirmHide by rememberSaveable { mutableStateOf(false) }
     val tint = ClayTint.Plain
     ClayCard(modifier = modifier.fillMaxWidth(), tint = tint) {
-        Text(stringResource(R.string.year_ago_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+        Text(yearAgoTitle(memory.years), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         val thumbnail: String?
         val title: String
         val detail: String
@@ -118,11 +159,15 @@ fun YearAgoContent(memory: YearAgoMemory, onOpen: () -> Unit, onDismiss: (() -> 
                 detail = stringResource(R.string.year_ago_news, memory.news.authorName)
                 openLabel = stringResource(R.string.goodnews_open)
             }
-            is YearAgoMemory.TripPhoto -> {
+            is YearAgoMemory.Photo -> {
                 thumbnail = memory.photo.thumbnailPath
-                title = memory.trip.title
-                detail = stringResource(R.string.year_ago_trip, memory.photo.authorName)
-                openLabel = stringResource(R.string.recap_trip_open)
+                title = memory.album.title
+                val of = when (memory.album.kind) {
+                    MemoryAlbum.Kind.Trip -> R.string.year_ago_trip
+                    MemoryAlbum.Kind.Event -> R.string.year_ago_event
+                }
+                detail = stringResource(of, memory.photo.authorName)
+                openLabel = stringResource(R.string.album_photo_open)
             }
         }
         Row(
@@ -143,5 +188,27 @@ fun YearAgoContent(memory: YearAgoMemory, onOpen: () -> Unit, onDismiss: (() -> 
                 Text(stringResource(R.string.year_ago_dismiss))
             }
         }
+        if (onHideForAll != null) {
+            TextButton(onClick = { confirmHide = true }, modifier = Modifier.heightIn(min = 56.dp).align(Alignment.End)) {
+                Text(stringResource(R.string.year_ago_hide_all))
+            }
+        }
+    }
+    if (confirmHide && onHideForAll != null) {
+        AlertDialog(
+            onDismissRequest = { confirmHide = false },
+            title = { Text(stringResource(R.string.year_ago_hide_all_title)) },
+            text = { Text(stringResource(R.string.year_ago_hide_all_text)) },
+            confirmButton = {
+                TextButton(onClick = { confirmHide = false; onHideForAll() }, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.year_ago_hide_all_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmHide = false }, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        )
     }
 }

@@ -1390,7 +1390,8 @@ service cloud.firestore {
         && last is map && last.keys().hasAll(['householdId', 'label', 'at']) && last.keys().hasOnly(['householdId', 'label', 'at'])
         && last.householdId == turnHouseholdNow()
         && last.label is string && last.label.size() <= 40
-        && last.at is timestamp && last.at > request.time - duration.value(10, 'm') && last.at < request.time + duration.value(10, 'm')
+        // The phone's time: a « C'est fait » said offline may reach the server days later.
+        && last.at is timestamp && last.at > request.time - duration.value(7, 'd') && last.at < request.time + duration.value(10, 'm')
         && d.current == (before.current + 1) % before.householdIds.size();
     }
 
@@ -2417,9 +2418,15 @@ service cloud.firestore {
     // the id of the document is the author and the place (« m1_7 »), so the rules cap the photos
     // per person without counting them. The files are in Storage (firebase/storage.rules), at
     // trips/{tripId}/{authorId}/{slot}.jpg and {slot}-thumb.jpg, sent before this document.
+    // takenAt (récit 36, « Il y a N ans »): optional, when the photo was taken, read by the phone
+    // from the EXIF of the file; never after now, never before 2001 (a clock never set).
     function isValidAlbumPhoto(p, photoId) {
       return p.keys().hasAll(['authorId', 'authorName', 'slot', 'createdAt'])
-        && p.keys().hasOnly(['authorId', 'authorName', 'slot', 'createdAt'])
+        && p.keys().hasOnly(['authorId', 'authorName', 'slot', 'createdAt', 'takenAt'])
+        && (!('takenAt' in p) || (p.takenAt is timestamp
+            // A day of margin: the clock of a phone may be a little ahead of the server's.
+            && p.takenAt <= request.time + duration.value(1, 'd')
+            && p.takenAt >= timestamp.date(2001, 1, 1)))
         && p.authorId == myMemberId()
         && p.authorName == me().firstName
         && p.slot is int && p.slot >= 1 && p.slot <= 30
@@ -3008,14 +3015,17 @@ service cloud.firestore {
       allow read: if isMember() && docId in ['app', 'family'];
       // The admin principal switches modules (features) and orders « À découvrir » (discoverOrder,
       // AVIS-19 partie 2: the module keys, 20 at most). `features` is never removed once there:
-      // it may only be missing on a config/app that never had it.
+      // it may only be missing on a config/app that never had it. memoriesHidden (récit 36): the
+      // souvenirs of « Il y a N ans » the admin principal took away for everyone, 300 at most.
       allow update: if docId == 'app'
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['features', 'discoverOrder'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['features', 'discoverOrder', 'memoriesHidden'])
         && (('features' in request.resource.data
                 && request.resource.data.features is map && request.resource.data.features.size() <= 60)
             || (!('features' in request.resource.data) && !('features' in resource.data)))
         && (!('discoverOrder' in request.resource.data)
             || (request.resource.data.discoverOrder is list && request.resource.data.discoverOrder.size() <= 20))
+        && (!('memoriesHidden' in request.resource.data)
+            || (request.resource.data.memoriesHidden is list && request.resource.data.memoriesHidden.size() <= 300))
         && isOwner();
       // Mode présentation (récit 48): only the admin principal reads and writes config/presentation.
       // `on` turns it on or off, `until` is its end (null: until turned off), `since` when it began.
