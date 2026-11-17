@@ -5,8 +5,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performSemanticsAction
-import androidx.compose.ui.semantics.SemanticsActions
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.GiftOccasion
@@ -21,6 +19,8 @@ import fr.familia.app.feature.gifts.GiftsScreen
 import fr.familia.app.feature.gifts.WishPreview
 import fr.familia.app.feature.gifts.notebook.giftsFor
 import fr.familia.app.feature.gifts.previewGifts
+import fr.familia.app.feature.gifts.birthdaysSection
+import androidx.compose.foundation.lazy.LazyColumn
 import fr.familia.app.feature.gifts.surpriseIdeasToRead
 import fr.familia.app.feature.presentation.LocalPresenting
 import org.junit.Assert.assertEquals
@@ -168,7 +168,8 @@ class ProfileGiftsTest {
         compose.setContent {
             FamiliaTheme {
                 CompositionLocalProvider(LocalPresenting provides presenting) {
-                    GiftsScreen(state, onOpenList = { opened += it }, onNewList = {}, onRetry = {})
+                    // The birthdays alone: the whole tab may push the card out of the test screen.
+                    LazyColumn { birthdaysSection(state, onAllBirthdays = {}, onPrepareSurprise = {}, onOpenList = { opened += it }) }
                 }
             }
         }
@@ -179,8 +180,7 @@ class ProfileGiftsTest {
     fun `a surprise idea shows on the birthday card and opens the ideas`() {
         val opened = mutableListOf<String>()
         showBirthdays(presenting = false, opened)
-        // The link may sit under the bottom edge of the test screen: its action, not a touch.
-        compose.onNodeWithText("Une surprise est déjà en préparation").performSemanticsAction(SemanticsActions.OnClick)
+        compose.onNodeWithText("Une surprise est déjà en préparation").performClick()
         assertEquals(listOf("ideas-b"), opened)
         compose.onNodeWithText("Préparer une surprise").assertExists()
     }
