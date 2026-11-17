@@ -535,6 +535,7 @@ Cloud Functions (`functions/src/goodNews.ts`) :
 | `onGoodNewsUpdated` | modification | Efface dans Storage les photos que l'auteur a retirées. À la première nouvelle réaction, note dans `goodNewsDigests/{postId}` l'envoi groupé prévu une heure plus tard. |
 | `goodNewsReactionDigests` | toutes les 15 min | Envoie à l'auteur les avis groupés arrivés à échéance : « Inès et 3 autres ont réagi à ta Bonne nouvelle » (PRD rév. 174). Chaque personne n'est nommée qu'une fois. Canal `comments`, hors résumé du jour. |
 | `onGoodNewsDeleted` | suppression | Efface toutes les photos, quel que soit l'auteur du retrait, et l'avis groupé en attente. |
+| `reportOrphanGoodNewsPhotos`, appelée par `arrivalReminder` | toutes les 30 minutes, agit le dimanche entre 4 h 00 et 4 h 29 | Liste dans les journaux les photos de `goodNews/` reliées à aucune bonne nouvelle (envoi annulé, vignette échouée), plus de 24 h après leur envoi, avec leur taille. Lecture seule : rien n'est supprimé avant le 21/11. Pas de tâche planifiée à part : Cloud Scheduler n'en offre que 3 gratuites. |
 
 `goodNewsDigests/{postId}` (fonctions seules, aucune règle ne l'ouvre à l'appli) : `authorId`, `dueAt` (horodatage, absent quand rien n'attend) et `notifiedIds` (ceux déjà nommés).
 

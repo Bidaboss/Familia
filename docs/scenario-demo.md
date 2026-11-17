@@ -40,7 +40,7 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 
 **7. On installe ensemble (le reste du temps).** Quitte « Voir comme » (« Quitter » sur le bandeau). Envoie les invitations une par une, par WhatsApp ou SMS. Chacun installe, se connecte avec son compte Google. Grâce au Mode présentation, personne n'est bombardé de « vient d'arriver ».
 
-**8. La photo du repas, en direct (2 min).** Le moment fort : toute la table la reçoit.
+**8. La photo du repas, en direct (2 min).** Le moment fort : toute la table la reçoit. **C'est toi qui postes, depuis ton propre compte** (tu as quitté « Voir comme » à l'étape 7) : pendant le Mode présentation, seule ta bonne nouvelle d'admin principal sonne tout de suite (étape 3 d'avant le repas).
 1. Avant de te tourner vers eux, prends la photo avec l'appareil photo du téléphone. Elle est ainsi gardée dans ta galerie quoi qu'il arrive.
 2. **Écran tourné vers toi**, ouvre le fil des Bonnes nouvelles (ton Accueil ne doit pas être montré) et touche « Publier » depuis le fil. Écris une phrase (« Joyeux anniversaire ! »), touche « Choisir des photos » et prends celle du repas. Tu peux nommer des membres. Ne parle pas du cadeau. Une fois le formulaire prêt, tourne l'écran vers la table.
 3. Touche « Publier pour toute la famille ». Une barre se remplit au-dessus du bouton. **Reste sur cet écran** jusqu'à ce qu'il se ferme : tant qu'il est ouvert, l'envoi continue.
