@@ -69,9 +69,11 @@ class JoinMeViewModel(
         }
         me = current
         val groups = recipientGroups(family, current)
-        val everyone = family.members.map { it.id }.toSet()
+        // Only those who can still be ticked: a member who has become a child without the app since, or
+        // who has left the family, never stays a recipient of a position.
+        val tickable = groups.flatMap { group -> group.members.map { it.id } }.toSet()
         val fresh = JoinMeUiState.Editing(groups = groups, shortcuts = shortcuts(groups, current))
-        val restored = savedState?.let { restoreJoinMe(it, fresh) }?.let { it.copy(recipientIds = it.recipientIds.filter { id -> id in everyone }.toSet()) }
+        val restored = savedState?.let { restoreJoinMe(it, fresh) }?.let { it.copy(recipientIds = it.recipientIds.filter { id -> id in tickable }.toSet()) }
         _uiState.value = restored?.copy(errors = errorsOf(restored)) ?: fresh
     }
 
