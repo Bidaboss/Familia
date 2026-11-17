@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Android 12 and later: the start screen plays the tree of the icon growing (splash_tree.xml,
+      spec DESIGN « animation d'ouverture », part 1), on the cream of the Argile style. It lasts while
+      the app starts and never longer. To go back to the still icon, remove this file and
+      values-night-v31/themes.xml.
+    -->
+    <style name="Theme.Familia" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_tree</item>
+        <item name="android:windowSplashScreenAnimationDuration">900</item>
+    </style>
+</resources>

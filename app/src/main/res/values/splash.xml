@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The start screen of Android 12 and later: the cream of the Argile style (the cream of the Accueil). -->
+    <color name="splash_background">#FBF4EA</color>
+</resources>
