@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -16,10 +17,25 @@ import androidx.compose.ui.unit.dp
  * the text (design principles, « Lisibilité »). Classique keeps its plain cream.
  */
 @Composable
-fun Modifier.themeBackground(): Modifier {
+fun Modifier.themeBackground(withTopBand: Boolean = true): Modifier {
     val color = MaterialTheme.colorScheme.background
     val pattern = LocalClayStyle.current.pattern
-    return background(color).then(if (pattern == ThemePattern.None) Modifier else Modifier.drawBehind { drawPattern(pattern) })
+    val behind = pattern != ThemePattern.None && (withTopBand || !pattern.isTopBand)
+    return background(color).then(if (behind) Modifier.drawBehind { drawPattern(pattern) } else Modifier)
+}
+
+/** The bands drawn across the top of the screen (Rétro 70, Espagne), rather than a light motif. */
+val ThemePattern.isTopBand: Boolean get() = this == ThemePattern.Stripes70 || this == ThemePattern.FlagBand
+
+/**
+ * The band of Rétro 70 or Espagne drawn over the content, at the very top of the screen. Behind the
+ * content, the title bar hid it as soon as it took the surface color, once the content scrolled under
+ * it (retour d'essai, 17/11). Use with themeBackground(withTopBand = false).
+ */
+@Composable
+fun Modifier.themeTopBand(): Modifier {
+    val pattern = LocalClayStyle.current.pattern
+    return if (pattern.isTopBand) drawWithContent { drawContent(); drawPattern(pattern) } else this
 }
 
 internal fun DrawScope.drawPattern(pattern: ThemePattern) {
