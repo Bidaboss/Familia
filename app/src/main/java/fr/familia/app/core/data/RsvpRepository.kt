@@ -10,8 +10,18 @@ interface RsvpRepository {
     /** The answers to [eventId], updated live (and served from the offline cache). */
     fun observeRsvps(eventId: String): Flow<List<Rsvp>>
 
-    /** Every answer of the family, by event id, for the counters of the planning. */
+    /** Every answer of the family, by event id. */
     fun observeAllRsvps(): Flow<Map<String, List<Rsvp>>>
+
+    /**
+     * The answers to [eventIds] only, by event id, for the counters of the planning: the events to
+     * come, rather than every answer of the family since the start. An event left out has no answer,
+     * or its answers cannot be read (the planning then shows it without counters).
+     */
+    fun observeRsvpsOf(eventIds: List<String>): Flow<Map<String, List<Rsvp>>> {
+        val wanted = eventIds.toSet()
+        return observeAllRsvps().map { all -> all.filterKeys { it in wanted } }
+    }
 
     /**
      * The answers of [memberId] alone to [eventIds], by event id, for « À faire » of the home

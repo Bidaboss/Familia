@@ -1056,6 +1056,7 @@ Avant de commencer : **Administration**, puis **Modules**, et allume « Animatio
 7. Dans Réglages, puis Accessibilité, allume « Supprimer les animations », et rejoue-la. **Attendu :** le cercle, le titre et la phrase s'affichent d'un coup, sans mouvement, pendant une seconde et demie. Éteins ensuite ce réglage.
 8. En mode avion, rejoue-la après avoir fermé l'appli. **Attendu :** si la famille n'est pas encore lue, l'appli s'ouvre normalement au bout de 2 secondes et demie au plus, et l'animation attend la prochaine ouverture.
 9. Éteins le module, puis ouvre « Apparence » sur le deuxième téléphone. **Attendu :** la ligne « Revoir l'animation de bienvenue » n'y est plus.
+10. Module éteint, sur un téléphone qui ne l'a jamais vue : ferme et rouvre Familia deux fois. **Attendu :** à la deuxième ouverture, l'Accueil arrive presque tout de suite, sans écran vide. Rallume le module, puis rouvre Familia. **Attendu :** l'animation se joue.
 
 ## Beaucoup de photos lourdes d'un coup, depuis un petit téléphone
 
@@ -1098,3 +1099,19 @@ Si quelque chose ne va pas le 20 au soir, préviens [DEV] : on revient à l'icô
 1. Sur un téléphone déjà connecté, ferme Familia en la balayant des applis récentes. Coupe le Wi-Fi et la 4G, puis rouvre Familia. **Attendu :** l'Accueil s'ouvre tout de suite, sans écran de connexion ni « Réessayer ».
 2. Remets le réseau. Depuis un autre téléphone d'admin, change le prénom de ce membre. Ferme et rouvre Familia sur le premier téléphone. **Attendu :** l'appli s'ouvre tout de suite, et le nouveau prénom apparaît quelques secondes après au plus (par exemple dans Mon profil).
 3. Sur un téléphone partagé, déconnecte-toi puis connecte un autre membre. **Attendu :** c'est bien l'autre membre qui entre, jamais le précédent.
+
+## Planning allégé : les compteurs « viennent »
+
+1. Ouvre le Planning. **Attendu :** chaque événement à venir montre, comme avant, combien de personnes viennent ou viendront peut-être, avec leurs photos.
+2. Sur un autre téléphone, réponds « Je viens » à un événement. **Attendu :** le compteur du premier téléphone monte en quelques secondes, sans rouvrir le Planning.
+3. Crée un nouvel événement, puis réponds-y. **Attendu :** son compteur apparaît aussi.
+4. Coupe le réseau et rouvre le Planning. **Attendu :** les événements s'affichent, avec les compteurs déjà lus.
+
+## Liens d'agenda dans Administration
+
+Avec le module « Voir le planning dans mon agenda » allumé (ou sur le téléphone de l'admin principal, qui le voit toujours).
+
+1. Sur le téléphone d'un adulte, crée son lien d'agenda et ajoute-le à Google Agenda.
+2. Sur le téléphone de l'admin principal : **Administration**, puis la carte « Liens d'agenda ». **Attendu :** tous les adultes, rangés par foyer, chacun avec un bouton « Couper le lien de {prénom} ».
+3. Touche le bouton de cet adulte, puis « Couper ». **Attendu :** « Le lien de {prénom} est coupé. » s'affiche. Sur son téléphone, l'écran du lien d'agenda propose d'en créer un nouveau.
+4. Coupe le lien d'un adulte qui n'en avait pas. **Attendu :** le même message, et rien ne change pour lui.

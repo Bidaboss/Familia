@@ -130,6 +130,8 @@ fun AdministrationScreen(
     onSaveDiscoverOrder: ((List<DiscoverModule>) -> Unit)? = null,
     /** « Mode présentation » (récit 48), first of the screen for the day of the demo; hidden when null. */
     presentation: (@Composable () -> Unit)? = null,
+    /** « Liens d'agenda » (audit du 17/11): cut an adult's calendar link; hidden when null. */
+    calendarLinks: (@Composable () -> Unit)? = null,
 ) {
     Scaffold(
         modifier = modifier,
@@ -166,7 +168,7 @@ fun AdministrationScreen(
                         onOpenUsage, consumption, challenges, onPickChallenge, capsuleLeftovers, onDeleteCapsuleLeftovers,
                         rotation, onSaveRotation, viewAsMembers, onViewAs, onShareApp, onOpenFeedback, feedbackUnseen,
                         onOpenCrashes, crashCount,
-                        discoverOrder, discoverInTutorial, onSaveDiscoverOrder, presentation,
+                        discoverOrder, discoverInTutorial, onSaveDiscoverOrder, presentation, calendarLinks,
                     )
             }
         }
@@ -214,6 +216,7 @@ private fun ReadyContent(
     discoverInTutorial: Set<DiscoverModule>,
     onSaveDiscoverOrder: ((List<DiscoverModule>) -> Unit)?,
     presentation: (@Composable () -> Unit)?,
+    calendarLinks: (@Composable () -> Unit)?,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
     var choosingViewAs by rememberSaveable { mutableStateOf(false) }
@@ -398,6 +401,7 @@ private fun ReadyContent(
         if (consumption != null) {
             item(key = "consumption") { ConsumptionSection(consumption) }
         }
+        if (calendarLinks != null) item(key = "calendar-links") { calendarLinks() }
         item(key = "backup") {
             HorizontalDivider(Modifier.padding(top = 8.dp))
             Row(

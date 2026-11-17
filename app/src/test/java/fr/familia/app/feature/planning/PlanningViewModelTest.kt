@@ -1,5 +1,6 @@
 package fr.familia.app.feature.planning
 
+import fr.familia.app.core.data.RsvpRepository
 import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.model.Rsvp
 import fr.familia.app.core.model.RsvpStatus
@@ -9,8 +10,10 @@ import fr.familia.app.feature.events.FakeRsvps
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -142,6 +145,36 @@ class PlanningViewModelTest {
         val updated = (vm.uiState.value as PlanningUiState.Success).days.single().items.single()
         assertEquals(3, updated.coming)
         assertEquals(0, updated.maybe)
+    }
+
+    @Test
+    fun `only the answers to the events to come are read, never every answer of the family`() = runTest {
+        val events = FakeEvents(
+            listOf(
+                TestFamily.event("meal", TestFamily.adult),
+                TestFamily.event("past", TestFamily.adult, date = LocalDate.of(2026, 11, 1)),
+            ),
+        )
+        val fake = FakeRsvps()
+        fake.answers.value = mapOf("meal" to listOf(Rsvp("adult1", RsvpStatus.Yes, "adult1")))
+        val asked = mutableListOf<List<String>>()
+        var allCalls = 0
+        val spy = object : RsvpRepository by fake {
+            override fun observeAllRsvps(): Flow<Map<String, List<Rsvp>>> {
+                allCalls++
+                return fake.observeAllRsvps()
+            }
+            override fun observeRsvpsOf(eventIds: List<String>): Flow<Map<String, List<Rsvp>>> {
+                asked += eventIds
+                return fake.answers.map { all -> all.filterKeys { it in eventIds } }
+            }
+        }
+        val vm = PlanningViewModel(events, FakeMembers(), "adult1", today = flowOf(today), rsvps = spy)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        val item = (vm.uiState.value as PlanningUiState.Success).days.single().items.single()
+        assertEquals(1, item.coming)
+        assertEquals(listOf("meal"), asked.last())
+        assertEquals(0, allCalls)
     }
 
     @Test

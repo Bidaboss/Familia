@@ -58,7 +58,7 @@ import { deleteWelcomeOf, isFirstSignIn, sendQueuedWelcomes, welcomeMember } fro
 import { deleteCheersOf, deleteMomentsOf, onMomentCheerCreated, startMoments, type MomentCheer } from './thinkOfMe';
 import { keepReceivedPhoto, revealWishes, thankGivers } from './wishesReveal';
 import { cleanupOldLists, migrateToSingleList } from './singleList';
-import { deleteEventReminders, sendMyReminders } from './reminders';
+import { deleteEventReminders, deleteSeriesReminders, sendMyReminders } from './reminders';
 import { dropBags, leftTheTrip, sendPackingReminders } from './packing';
 import { deleteItemPhoto } from './itemPhoto';
 import { addLeaf, applyChallengePick, celebrateChallenge, countForChallenge, deleteTreeDataOf, ensureChallenge, parisMonth, treeMark } from './tree';
@@ -174,7 +174,10 @@ export const onSeriesWritten = onDocumentWrittenWithAuthContext('eventSeries/{se
   const result = await syncSeries(db, event.params.seriesId, parisDay(now));
   const before = event.data?.before.data() as SeriesData | undefined;
   const after = event.data?.after.data() as SeriesData | undefined;
-  if (!after) return;
+  if (!after) {
+    await deleteSeriesReminders(db, event.params.seriesId);
+    return;
+  }
   const repeat = ` Puis ${ruleLabel(after.rule)}.`;
   // recurringEvents off: the admin principal tries it alone, nobody else is told.
   const only = await featureAudience(db, RECURRING_EVENTS);
