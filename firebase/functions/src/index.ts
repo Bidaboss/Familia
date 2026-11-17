@@ -349,15 +349,18 @@ export const onLendItemChanged = onDocumentUpdatedWithAuthContext('lendItems/{it
   await onLendItemUpdated(getFirestore(), send, event.params.itemId, before, after, actorUid(event), new Date());
 });
 
-// A thing removed takes its photo with it.
 // --- À qui le tour ? (récit 58) -------------------------------------------------------------
 
 export const onTurnChanged = onDocumentWrittenWithAuthContext('turns/{turnId}', async (event) => {
+  const db = getFirestore();
   const before = event.data?.before.data() as TurnData | undefined;
   const after = event.data?.after.data() as TurnData | undefined;
-  await onTurnWritten(getFirestore(), send, event.params.turnId, before, after, actorUid(event), new Date());
+  // turns off: the admin principal tries it alone, nobody else is told.
+  const only = await featureAudience(db, 'turns');
+  await onTurnWritten(db, send, event.params.turnId, before, after, actorUid(event), new Date(), only);
 });
 
+// A thing removed takes its photo with it.
 export const onLendItemDeleted = onDocumentDeleted('lendItems/{itemId}', async (event) => {
   await getStorage().bucket().deleteFiles({ prefix: `lendItems/${event.params.itemId}/` });
 });

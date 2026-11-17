@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { Notice } from '../src/logic';
-import { Sender } from '../src/store';
+import { featureAudience, Sender } from '../src/store';
 import { onTurnWritten, swapAskNotice, swapRefusedNotice, turnHousehold, yourTurnNotice, type TurnData } from '../src/turns';
 
 function turn(overrides: Partial<TurnData> = {}): TurnData {
@@ -102,6 +102,35 @@ describe('against the emulator', () => {
     await onTurnWritten(db, accepted.send, 't1', turn({ swap: ASK }), turn({ householdIds: ['h2', 'h1', 'h3'] }), 'uid-camille', now);
     assert.deepEqual(tokens(accepted.sent), ['token-ines']);
     assert.equal(accepted.sent[0].notice.title, 'C\'est votre tour');
+  });
+
+  test('a proposal dropped by the proposer\'s own household, or by an edit, is no refusal', async () => {
+    const own = fakeSender();
+    const fromH1 = { fromId: 'h1', toId: 'h2', byId: 'camille', byName: 'Camille' };
+    await onTurnWritten(db, own.send, 't1', turn({ swap: fromH1 }), turn(), 'uid-noe', now);
+    assert.equal(own.sent.length, 0);
+
+    const edited = fakeSender();
+    await onTurnWritten(db, edited.send, 't1', turn({ swap: ASK }), turn({ title: 'Repas du dimanche' }), 'uid-jules', now);
+    assert.equal(edited.sent.length, 0);
+  });
+
+  test('turns off: only the admin principal hears of a rotation', async () => {
+    await db.doc('config/family').set({ ownerMemberId: 'noe' });
+    await db.doc('config/app').set({ features: {} });
+    const off = fakeSender();
+    await onTurnWritten(db, off.send, 't1', undefined, turn(), 'uid-camille', now, await featureAudience(db, 'turns'));
+    assert.deepEqual(tokens(off.sent), ['token-noe']);
+    const notOwner = fakeSender();
+    await onTurnWritten(db, notOwner.send, 't1', turn(), turn({ current: 1 }), 'uid-noe', now, await featureAudience(db, 'turns'));
+    await onTurnWritten(db, notOwner.send, 't1', turn({ swap: ASK }), turn(), 'uid-camille', now, await featureAudience(db, 'turns'));
+    assert.equal(notOwner.sent.length, 0);
+    await db.doc('config/app').set({ features: { turns: true } });
+    const on = fakeSender();
+    await onTurnWritten(db, on.send, 't1', turn(), turn({ current: 1 }), 'uid-noe', now, await featureAudience(db, 'turns'));
+    assert.deepEqual(tokens(on.sent), ['token-ines']);
+    await db.doc('config/app').delete();
+    await db.doc('config/family').delete();
   });
 
   test('a removed rotation, or a title changed, tells nobody', async () => {
