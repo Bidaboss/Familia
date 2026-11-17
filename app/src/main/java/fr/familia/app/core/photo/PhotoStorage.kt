@@ -46,12 +46,6 @@ class FirebasePhotoStorage(
 
     private val jpegMetadata = StorageMetadata.Builder().setContentType("image/jpeg").build()
 
-<<<<<<< HEAD
-    override suspend fun upload(path: String, jpeg: ByteArray) {
-=======
-    // A photo never changes once sent, so its link is asked once per launch of the app.
-    private val urls = ConcurrentHashMap<String, String>()
-
     override suspend fun upload(path: String, jpeg: ByteArray) = upload(path, jpeg) { }
 
     override suspend fun upload(path: String, jpeg: ByteArray, onProgress: (Float) -> Unit) {
@@ -59,7 +53,6 @@ class FirebasePhotoStorage(
         task.addOnProgressListener { snapshot ->
             if (snapshot.totalByteCount > 0) onProgress(snapshot.bytesTransferred.toFloat() / snapshot.totalByteCount)
         }
->>>>>>> origin/main
         try {
             task.await()
         } catch (e: CancellationException) {
