@@ -74,6 +74,8 @@ fun GiftsScreen(
     /** The occasion chosen at the top of the tab (récit 9 ter), null for everyone. */
     onSelectMoment: (GiftMoment?) -> Unit = {},
 ) {
+    // Mode présentation (récit 48): the tab may be on screen at the party, in front of the person.
+    val presenting = LocalPresenting.current
     Box(modifier.fillMaxSize()) {
         when (state) {
             GiftsUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -122,12 +124,12 @@ fun GiftsScreen(
                 // Once an occasion is chosen, its people come first: the birthdays wait.
                 if (state.moment == null) birthdaysSection(state, onAllBirthdays, onPrepareSurprise, onOpenList)
                 state.sections.filter { it.keptByMe }.forEach { section ->
-                    personSection(section, state.today, state.wishPreviews, onOpenList, state.singleList)
+                    personSection(section, state.today, state.wishPreviews, onOpenList, state.singleList, presenting)
                 }
                 // The others under their household, as in the Famille tab.
                 householdRuns(state.sections.filter { !it.keptByMe }).forEach { (name, section) ->
                     if (name != null) item(key = "household-${section.member.id}") { HouseholdLabel(name) }
-                    personSection(section, state.today, state.wishPreviews, onOpenList, state.singleList)
+                    personSection(section, state.today, state.wishPreviews, onOpenList, state.singleList, presenting)
                 }
                 if (state.archived.isNotEmpty()) archivedSection(state.archived, state.today, onOpenList)
             }
@@ -151,6 +153,7 @@ private fun LazyListScope.personSection(
     previews: Map<String, WishPreview>,
     onOpenList: (String) -> Unit,
     singleList: Boolean = false,
+    presenting: Boolean = false,
 ) {
     item(key = "person-${section.member.id}") {
         Row(
@@ -195,7 +198,7 @@ private fun LazyListScope.personSection(
             )
         }
     }
-    items(section.lists, key = { "list-${it.id}" }) { list ->
+    items(shownLists(section.lists, presenting), key = { "list-${it.id}" }) { list ->
         ListCard(
             title = list.title,
             subtitle = listSubtitle(list, section.member.firstName, today),
@@ -204,6 +207,10 @@ private fun LazyListScope.personSection(
         )
     }
 }
+
+/** While presenting, a surprise in progress stays out of sight: its title names the occasion. */
+internal fun shownLists(lists: List<GiftList>, presenting: Boolean): List<GiftList> =
+    if (presenting) lists.filter { it.kind != GiftListKind.Surprise || it.revealed } else lists
 
 /** The next birthdays first (carte DESIGN-4), each with « Préparer une surprise » for the adults. */
 internal fun LazyListScope.birthdaysSection(

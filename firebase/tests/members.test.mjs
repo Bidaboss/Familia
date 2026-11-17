@@ -2,8 +2,8 @@
 // family; the only write is a member linking their own Firebase account on first sign-in.
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { ADULT, OTHER_ADULT, STRANGER, as, createEnv, seed } from './helpers.mjs';
+import { collection, deleteDoc, doc, getDoc, getDocs, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
+import { ADMIN, ADULT, NEIGHBOUR, OTHER_ADULT, SECOND_ADMIN, STRANGER, adultDoc, as, createEnv, seed } from './helpers.mjs';
 
 let env;
 before(async () => { env = await createEnv(); });
@@ -77,6 +77,74 @@ describe('linking the account on first sign-in', () => {
 
   test('linking cannot be used to change other fields, such as becoming admin', async () => {
     await assertFails(updateDoc(doc(as(env, ADULT), 'members/adult1'), { uid: ADULT.uid, isAdmin: true }));
+  });
+});
+
+// The 21st: the whole family installs and signs in at the same minute.
+describe('everyone at the same minute', () => {
+  const KID = { memberId: 'kid1', email: 'kid1@example.com', uid: 'uid-kid1' };
+
+  async function stored(path) {
+    let data = null;
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const snap = await getDoc(doc(ctx.firestore(), path));
+      data = snap.exists() ? snap.data() : null;
+    });
+    return data;
+  }
+
+  test('the same account opened on two phones links once, and the second phone still reads the family', async () => {
+    const results = await Promise.allSettled([
+      updateDoc(doc(as(env, ADULT), 'members/adult1'), { uid: ADULT.uid }),
+      updateDoc(doc(as(env, ADULT), 'members/adult1'), { uid: ADULT.uid }),
+    ]);
+    if (!results.some((r) => r.status === 'fulfilled')) throw new Error('no link at all');
+    if ((await stored('members/adult1')).uid !== ADULT.uid) throw new Error('wrong link');
+    // The phone refused reads the link already there (what the app does) and goes on.
+    const again = await assertSucceeds(getDoc(doc(as(env, ADULT), 'members/adult1')));
+    if (again.get('uid') !== ADULT.uid) throw new Error('second phone does not see the link');
+  });
+
+  test('everyone links their own account at the same moment, without touching anyone else', async () => {
+    const all = [ADULT, OTHER_ADULT, ADMIN, SECOND_ADMIN, NEIGHBOUR];
+    await Promise.all(all.map((m) => assertSucceeds(updateDoc(doc(as(env, m), `members/${m.memberId}`), { uid: m.uid }))));
+    for (const m of all) {
+      if ((await stored(`members/${m.memberId}`)).uid !== m.uid) throw new Error(`${m.memberId} not linked to their own account`);
+    }
+    const ids = [];
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      (await getDocs(collection(ctx.firestore(), 'members'))).forEach((d) => ids.push(d.id));
+    });
+    if (ids.length !== all.length) throw new Error(`members after the sign-ins: ${ids.length}, no extra one expected`);
+  });
+
+  test('a member removed while signed in reads nothing more, and finds their address gone', async () => {
+    const admin = as(env, ADMIN);
+    const batch = writeBatch(admin);
+    batch.delete(doc(admin, 'members/adult1'));
+    batch.delete(doc(admin, `memberEmails/${ADULT.email}`));
+    await assertSucceeds(batch.commit());
+    const db = as(env, ADULT);
+    await assertFails(getDoc(doc(db, 'members/adult2')));
+    // What the app reads again to tell a removal apart from a cut.
+    const entry = await assertSucceeds(getDoc(doc(db, `memberEmails/${ADULT.email}`)));
+    if (entry.exists()) throw new Error('the address should be gone');
+  });
+
+  test('a child with the app (Family Link) links their own account and reads the family', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, `memberEmails/${KID.email}`), { memberId: KID.memberId });
+      await setDoc(doc(db, `members/${KID.memberId}`), adultDoc(KID, { profile: 'childWithApp', parentIds: [ADULT.memberId], birthDate: '2015-01-10' }));
+    });
+    await assertSucceeds(updateDoc(doc(as(env, KID), 'members/kid1'), { uid: KID.uid }));
+    await assertSucceeds(getDoc(doc(as(env, KID), 'members/adult1')));
+  });
+
+  test('an address not yet added to the family opens nothing, even signed in with Google', async () => {
+    const snap = await assertSucceeds(getDoc(doc(as(env, STRANGER), `memberEmails/${STRANGER.email}`)));
+    if (snap.exists()) throw new Error('not in the family');
+    await assertFails(getDocs(collection(as(env, STRANGER), 'members')));
   });
 });
 
