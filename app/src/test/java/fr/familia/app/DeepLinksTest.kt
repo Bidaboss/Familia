@@ -34,6 +34,7 @@ class DeepLinksTest {
         assertEquals(listOf(DeepLink.Feedback("crashes")), fromExtras("feedback" to "crashes"))
         assertEquals(listOf(DeepLink.GoodDeals), fromExtras("goodDeals" to "list"))
         assertEquals(listOf(DeepLink.LendItem("i1")), fromExtras("lendItemId" to "i1"))
+        assertEquals(listOf(DeepLink.Turn("t1")), fromExtras("turnId" to "t1"))
     }
 
     @Test

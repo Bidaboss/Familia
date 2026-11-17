@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -22,8 +23,9 @@ import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 
 /**
- * The Entraide tab with its « Bons plans » (PRD, récit 45) and « On se prête » (récit 51): the
- * coups de main first, then each module switched on. With both off, only the coups de main.
+ * The Entraide tab with its « Bons plans » (PRD, récit 45), « On se prête » (récit 51) and « À qui
+ * le tour ? » (récit 58): the coups de main first, then each module switched on. With all off, only
+ * the coups de main.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,11 +37,16 @@ fun EntraideTabs(
     showGoodDeals: Int = 0,
     lendingOn: Boolean = false,
     lending: @Composable () -> Unit = {},
+    turnsOn: Boolean = false,
+    turns: @Composable () -> Unit = {},
+    /** Each new value turns to « À qui le tour ? » (a touched notification). */
+    showTurns: Int = 0,
 ) {
     val tabs = buildList {
         add(EntraideTab.Help)
         if (goodDealsOn) add(EntraideTab.GoodDeals)
         if (lendingOn) add(EntraideTab.Lending)
+        if (turnsOn) add(EntraideTab.Turns)
     }
     if (tabs.size == 1) {
         help()
@@ -49,10 +56,13 @@ fun EntraideTabs(
     LaunchedEffect(showGoodDeals) {
         if (showGoodDeals > 0 && goodDealsOn) selected = EntraideTab.GoodDeals
     }
+    LaunchedEffect(showTurns) {
+        if (showTurns > 0 && turnsOn) selected = EntraideTab.Turns
+    }
     // A module switched off while its tab was open: back to the coups de main.
     val shown = selected.takeIf { it in tabs } ?: EntraideTab.Help
     Column(Modifier.fillMaxSize()) {
-        PrimaryTabRow(selectedTabIndex = tabs.indexOf(shown), modifier = Modifier.fillMaxWidth()) {
+        val tabItems: @Composable () -> Unit = {
             tabs.forEach { tab ->
                 Tab(
                     selected = shown == tab,
@@ -62,11 +72,18 @@ fun EntraideTabs(
                 )
             }
         }
+        // Past three tabs the labels no longer fit a phone's width: the row scrolls.
+        if (tabs.size > 3) {
+            PrimaryScrollableTabRow(selectedTabIndex = tabs.indexOf(shown), modifier = Modifier.fillMaxWidth(), edgePadding = 0.dp) { tabItems() }
+        } else {
+            PrimaryTabRow(selectedTabIndex = tabs.indexOf(shown), modifier = Modifier.fillMaxWidth()) { tabItems() }
+        }
         Box(Modifier.weight(1f).fillMaxWidth()) {
             when (shown) {
                 EntraideTab.Help -> help()
                 EntraideTab.GoodDeals -> goodDeals()
                 EntraideTab.Lending -> lending()
+                EntraideTab.Turns -> turns()
             }
         }
     }
@@ -76,4 +93,5 @@ private enum class EntraideTab(@StringRes val label: Int) {
     Help(R.string.entraide_tab_help),
     GoodDeals(R.string.entraide_tab_good_deals),
     Lending(R.string.entraide_tab_lending),
+    Turns(R.string.entraide_tab_turns),
 }

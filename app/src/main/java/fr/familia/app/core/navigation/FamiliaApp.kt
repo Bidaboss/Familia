@@ -113,6 +113,9 @@ import fr.familia.app.feature.gooddeals.GoodDealsRoute
 import fr.familia.app.feature.lending.LendItemDetailRoute
 import fr.familia.app.feature.lending.LendItemEditRoute
 import fr.familia.app.feature.lending.LendItemsRoute
+import fr.familia.app.feature.turns.TurnDetailRoute
+import fr.familia.app.feature.turns.TurnEditRoute
+import fr.familia.app.feature.turns.TurnsRoute
 import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
 import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
@@ -327,6 +330,9 @@ fun FamiliaApp(
     /** A thing to lend whose ask, answer or reminder was touched (récit 51). */
     openLendItemId: String? = null,
     onLendItemOpened: () -> Unit = {},
+    /** A rotation whose turn or exchange was touched (récit 58). */
+    openTurnId: String? = null,
+    onTurnOpened: () -> Unit = {},
     /** A link shared from another app, to add to « Mes envies » once (récit 8 bis). */
     sharedWish: SharedWish? = null,
     onSharedWishOpened: () -> Unit = {},
@@ -595,6 +601,14 @@ fun FamiliaApp(
         if (openLendItemId != null && appConfig != null && ownerId != null) {
             if (features.isOn(Feature.Lending)) navController.navigate(LendItemDetailDestination(openLendItemId))
             onLendItemOpened()
+        }
+    }
+
+    // À qui le tour ? (récit 58): the rotation itself, once the modules are known; module off, the tap is spent.
+    LaunchedEffect(openTurnId, appConfig, ownerId) {
+        if (openTurnId != null && appConfig != null && ownerId != null) {
+            if (features.isOn(Feature.Turns)) navController.navigate(TurnDetailDestination(openTurnId))
+            onTurnOpened()
         }
     }
 
@@ -1232,10 +1246,12 @@ fun FamiliaApp(
                         )
                     }
                     composable<EventEditDestination> { entry ->
+                        val destination = entry.toRoute<EventEditDestination>()
                         EventEditRoute(
                             container = container,
                             currentMember = currentMember,
-                            eventId = entry.toRoute<EventEditDestination>().eventId,
+                            eventId = destination.eventId,
+                            prefillTitle = destination.title,
                             onDone = { confirmation ->
                                 // A deleted event has no detail left: back to the planning.
                                 val deleted = confirmation == Confirmation.Deleted
@@ -1365,6 +1381,7 @@ fun FamiliaApp(
                         // Récit 45: the « Bons plans » beside the coups de main, behind their switch.
                         val goodDealsOn = LocalFeatureFlags.current.isOn(Feature.GoodDeals)
                         val lendingOn = LocalFeatureFlags.current.isOn(Feature.Lending)
+                        val turnsOn = LocalFeatureFlags.current.isOn(Feature.Turns)
                         EntraideTabs(
                             goodDealsOn = goodDealsOn,
                             help = {
@@ -1373,7 +1390,7 @@ fun FamiliaApp(
                                     currentMember = currentMember,
                                     onAsk = { navController.navigate(HelpRequestEditDestination()) },
                                     onOpenRequest = { id -> navController.navigate(HelpRequestDetailDestination(id)) },
-                                    showTitle = !goodDealsOn && !lendingOn,
+                                    showTitle = !goodDealsOn && !lendingOn && !turnsOn,
                                 )
                             },
                             goodDeals = {
@@ -1393,6 +1410,16 @@ fun FamiliaApp(
                                     currentMember = currentMember,
                                     onAdd = { navController.navigate(LendItemEditDestination()) },
                                     onOpen = { id -> navController.navigate(LendItemDetailDestination(id)) },
+                                )
+                            },
+                            // Récit 58: « À qui le tour ? », behind its switch.
+                            turnsOn = turnsOn,
+                            turns = {
+                                TurnsRoute(
+                                    container = container,
+                                    currentMember = currentMember,
+                                    onCreate = { navController.navigate(TurnEditDestination()) },
+                                    onOpen = { id -> navController.navigate(TurnDetailDestination(id)) },
                                 )
                             },
                         )
@@ -1432,6 +1459,25 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             itemId = entry.toRoute<LendItemEditDestination>().itemId,
+                            onDone = { navController.popBackStack() },
+                        )
+                    }
+                    composable<TurnDetailDestination> { entry ->
+                        val turnId = entry.toRoute<TurnDetailDestination>().turnId
+                        TurnDetailRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            turnId = turnId,
+                            onEdit = { navController.navigate(TurnEditDestination(turnId)) },
+                            onCreateEvent = { title -> navController.navigate(EventEditDestination(title = title)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<TurnEditDestination> { entry ->
+                        TurnEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            turnId = entry.toRoute<TurnEditDestination>().turnId,
                             onDone = { navController.popBackStack() },
                         )
                     }

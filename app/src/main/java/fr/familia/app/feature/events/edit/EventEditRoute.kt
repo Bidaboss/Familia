@@ -26,6 +26,7 @@ fun EventEditRoute(
     eventId: String?,
     onDone: (Confirmation) -> Unit,
     onBack: () -> Unit,
+    prefillTitle: String? = null,
 ) {
     val morePhotos = LocalFeatureFlags.current.isOn(Feature.MorePhotos)
     val recurring = LocalFeatureFlags.current.isOn(Feature.RecurringEvents)
@@ -41,6 +42,7 @@ fun EventEditRoute(
                     photos = if (morePhotos) photoSaver(container) else null,
                     series = container?.eventSeriesRepository,
                     recurring = recurring,
+                    prefillTitle = prefillTitle,
                 )
             }
         },
