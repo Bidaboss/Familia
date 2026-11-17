@@ -28,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -46,6 +47,9 @@ import kotlinx.coroutines.delay
 
 /** How long each photo stays on screen. */
 private const val SLIDE_MILLIS = 4_000L
+
+/** How long a photo that cannot load stays, its drawing shown, before the next one. */
+private const val SKIP_MILLIS = 1_500L
 
 /** Oldest first, as the days went by; the album itself shows the newest first. */
 fun slideshowOrder(photos: List<AlbumPhoto>): List<AlbumPhoto> = photos.sortedWith(albumPhotoOrder).reversed()
@@ -77,9 +81,12 @@ fun PhotoSlideshow(photos: List<AlbumPhoto>, onClose: () -> Unit) {
     LaunchedEffect(photos.isEmpty()) { if (photos.isEmpty()) onClose() }
     if (photos.isEmpty()) return
     val shown = index.coerceIn(0, photos.lastIndex)
-    LaunchedEffect(shown, paused, photos.size) {
+    // A photo that cannot load (weak network, never seen on this phone) is not waited for.
+    var failedId by remember { mutableStateOf<String?>(null) }
+    val skip = failedId == photos[shown].id
+    LaunchedEffect(shown, paused, photos.size, skip) {
         if (paused) return@LaunchedEffect
-        delay(SLIDE_MILLIS)
+        delay(if (skip) SKIP_MILLIS else SLIDE_MILLIS)
         index = (shown + 1) % photos.size
     }
     val view = LocalView.current
@@ -113,6 +120,8 @@ fun PhotoSlideshow(photos: List<AlbumPhoto>, onClose: () -> Unit) {
                         contentDescription = stringResource(R.string.album_photo_by, photo.authorName),
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Fit,
+                        showLoading = true,
+                        onFailed = { failedId = photo.id },
                     )
                 }
             }

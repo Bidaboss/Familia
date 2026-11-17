@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -12,6 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -43,12 +45,20 @@ fun StorageImage(
     contentDescription: String?,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
+    /** A small wheel while the photo comes, for a photo shown big (viewer, slideshow) on a weak network. */
+    showLoading: Boolean = false,
+    /** Told once the photo cannot load, so a slideshow can go on to the next one. */
+    onFailed: () -> Unit = {},
 ) {
     val storage = LocalPhotoStorage.current
     val online = LocalOnline.current
     var url by remember(path, storage) { mutableStateOf(storage?.knownUrl(path)) }
     var asked by remember(path, storage) { mutableStateOf(false) }
     var failed by remember(path, storage) { mutableStateOf(false) }
+    var loaded by remember(path, storage) { mutableStateOf(false) }
+    val showFailed = failed || (asked && url == null)
+    val failedNow by rememberUpdatedState(onFailed)
+    LaunchedEffect(showFailed) { if (showFailed) failedNow() }
     // Asked again when the network comes back: a photo never seen then shows without leaving the screen.
     LaunchedEffect(path, storage, online) {
         val photos = storage ?: return@LaunchedEffect
@@ -75,10 +85,16 @@ fun StorageImage(
                 modifier = Modifier.matchParentSize(),
                 contentScale = contentScale,
                 onError = { failed = true },
-                onSuccess = { failed = false },
+                onSuccess = {
+                    failed = false
+                    loaded = true
+                },
             )
-        } else if (failed || (asked && shown == null)) {
+        } else if (showFailed) {
             PhotoMissing()
+        }
+        if (showLoading && !loaded && !showFailed && storage != null) {
+            CircularProgressIndicator(Modifier.size(32.dp), color = MaterialTheme.colorScheme.onSurfaceVariant, strokeWidth = 3.dp)
         }
     }
 }
