@@ -127,7 +127,7 @@ class GenealogyTest {
     }
 
     @Test
-    fun `an empty tree offers to join two members: the ones I may edit, my household first`() = runTest {
+    fun `an empty tree offers to join two members, the ones I may edit, my household first`() = runTest {
         val owner = ready(GenealogyViewModel(FakeGenealogy(), FakeMembers(), "admin1"))
         assertTrue(owner.isEmpty)
         val ids = owner.joinable.map { it.id }
