@@ -631,3 +631,15 @@ Avec l'interrupteur « Bons plans » allumé :
 2. **Attendu :** la section « Bonnes adresses » sous les bons plans, avec la recherche et les catégories. « ecully » trouve « Écully » ; toucher deux fois une catégorie les montre toutes.
 3. Avec un autre adulte, ouvre l'adresse : « Recommandée par » l'auteur, puis « Je recommande aussi » ajoute « Moi ». « Appeler le … » ouvre le téléphone.
 4. Avec l'auteur ou un enfant : **Attendu :** pas de bouton « Je recommande aussi ». Aucune notification pour une bonne adresse.
+
+## Mode présentation (récit 48)
+
+Avec le compte de l'admin principal, plus deux autres comptes qui n'ont pas encore ouvert l'appli. « Publier Firebase » doit être passé.
+
+1. Ouvre **Administration**. **Attendu :** la carte « Mode présentation » est tout en haut, avec « 2 h », « 4 h » et « Jusqu'à ce que je l'éteigne ».
+2. Touche « 2 h ». **Attendu :** la carte dit « Allumé jusqu'à » suivi de l'heure de fin, et le bandeau « Mode présentation jusqu'à » avec l'heure apparaît au-dessus des onglets. Il n'apparaît que sur ton téléphone.
+3. Fais se connecter les deux autres comptes pour la première fois. **Attendu :** aucune notification « vient d'arriver » sur les téléphones de la famille.
+4. Envoie un « Rejoignez-moi » depuis un autre compte. **Attendu :** il sonne tout de suite.
+5. Touche « Éteindre », sur le bandeau ou dans la carte. **Attendu :** en moins d'une minute, chacun reçoit une seule notification « 2 personnes ont rejoint Familia », avec les deux prénoms. Le bandeau disparaît.
+6. Rallume le mode pour 2 h et laisse passer l'heure de fin. **Attendu :** le bandeau disparaît de lui-même. Le résumé part au premier envoi qui suit l'heure de fin, ou au plus tard 30 minutes après.
+7. Avec un compte qui n'est pas l'admin principal, et dans « Voir comme » : **Attendu :** ni la carte ni le bandeau.

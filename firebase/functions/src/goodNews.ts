@@ -31,6 +31,8 @@ export interface GoodNewsNotice {
   goodNewsId: string;
   /** The post of a child, to their responsible adults (AVIS-12): never muted (récit 6 quinquies). */
   direct?: boolean;
+  /** Grouped reactions: held during the mode présentation (récit 48). */
+  reaction?: boolean;
 }
 
 export interface GoodNewsMessage {
@@ -106,7 +108,7 @@ export function reactionsNotice(id: string, n: GoodNewsData, names: string[]): G
   const who = names.length === 1 ? `${names[0]} a réagi`
     : names.length === 2 ? `${names[0]} et ${names[1]} ont réagi`
       : `${names[0]} et ${names.length - 1} autres ont réagi`;
-  return { channel: 'comments', title: `${who} à ta Bonne nouvelle`, body: preview(n.text), goodNewsId: id };
+  return { channel: 'comments', title: `${who} à ta Bonne nouvelle`, body: preview(n.text), goodNewsId: id, reaction: true };
 }
 
 /** The two Storage files of each photo: the photo and its thumbnail. */

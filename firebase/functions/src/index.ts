@@ -46,7 +46,7 @@ import { queueAlbumInvitations } from './albumInvites';
 import { deleteDigestOf, sendDigests } from './digest';
 import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { sendWeeklyRecap } from './recap';
-import { deleteQuietQueueOf, sendHeldNotices } from './prefs';
+import { deleteQuietQueueOf, presentationFrom, presentingNow, sendHeldNotices, sendPresentationHeld } from './prefs';
 import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type BirthdayCard } from './birthdayWishes';
 import { deleteWelcomeOf, isFirstSignIn, welcomeMember } from './welcome';
 import { deleteCheersOf, deleteMomentsOf, onMomentCheerCreated, startMoments, type MomentCheer } from './thinkOfMe';
@@ -594,7 +594,24 @@ const sendHeld = async (token: string, notice: Notice & { goodNewsId?: string; h
   return send(token, notice);
 };
 
+/**
+ * Mode présentation (récit 48): when it goes off (turned off in Administration, or its end seen by
+ * a send), what it held goes out as one summary per channel.
+ */
+export const onPresentationWritten = onDocumentWritten('config/presentation', async (event) => {
+  const before = presentationFrom(event.data?.before.data());
+  const after = presentationFrom(event.data?.after.data());
+  if (!before.on || after.on) return;
+  await sendPresentationHeld(getFirestore(), sendHeld, new Date());
+});
+
 export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/Paris' }, async () => {
+  // The end of a mode présentation is seen here too, even when nothing else is sent (récit 48).
+  try {
+    await presentingNow(getFirestore(), new Date());
+  } catch (e) {
+    console.error('presentation', e);
+  }
   // First what was held during the quiet hours (récit 6 quinquies), from 8 h. A failure waits
   // for the next run and never stops the rest.
   try {
