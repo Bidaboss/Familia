@@ -74,6 +74,8 @@ class NotebookIdeaViewModel(
     private val entryId: String?,
     /** The occasion chosen on the notebook, for a new idea. */
     private val startOccasion: NotebookOccasion = NotebookOccasion(null, null),
+    /** « Un achat fait ailleurs » (récit 57): a new idea that starts as bought. */
+    private val startBought: Boolean = false,
     private val saved: SavedStateHandle = SavedStateHandle(),
     private val writeTimeoutMillis: Long = 4_000,
 ) : ViewModel() {
@@ -120,7 +122,11 @@ class NotebookIdeaViewModel(
                 note = e.note.orEmpty(),
                 status = e.status,
             )
-        } ?: NotebookIdeaForm(occasion = startOccasion.occasion, year = startOccasion.year?.toString().orEmpty())
+        } ?: NotebookIdeaForm(
+            occasion = startOccasion.occasion,
+            year = startOccasion.year?.toString().orEmpty(),
+            status = if (startBought) GiftStatus.Bought else GiftStatus.Idea,
+        )
         val form = restoredDraft() ?: initialForm
         _uiState.value = NotebookIdeaUiState.Editing(form, isNew = existing == null, people = people, hasChanges = form != initialForm)
     }
