@@ -1016,6 +1016,27 @@
     <string name="trip_photos">Photos</string>
     <string name="trip_photos_empty">Pas encore de photo.</string>
     <string name="trip_photos_empty_participant">Ajoute tes photos du voyage : toute la famille qui le suit les verra.</string>
+    <!-- R1 bis, maquette R6 : le voyage en chemin illustré -->
+    <string name="trip_day_number">Jour %1$d</string>
+    <string name="trip_day_spoken">Jour %1$d, %2$s</string>
+    <string name="trip_day_title">Jour %1$d : %2$s</string>
+    <string name="trip_day_today_place">Aujourd\'hui, %1$s</string>
+    <plurals name="trip_photo_count">
+        <item quantity="one">%d photo</item>
+        <item quantity="many">%d photos</item>
+        <item quantity="other">%d photos</item>
+    </plurals>
+    <string name="trip_notebook">Carnet</string>
+    <string name="trip_notebook_day">Carnet du jour %1$d</string>
+    <string name="trip_expenses_short">Comptes</string>
+    <string name="trip_day_no_steps">Rien de noté ce jour-là. Choisis un autre jour en haut.</string>
+    <string name="now_travelling_label">En ce moment</string>
+    <string name="now_travelling_me">Tu es à %1$s</string>
+    <string name="now_travelling_me_with">Tu es à %1$s avec %2$s</string>
+    <string name="now_travelling_one">%1$s est à %2$s</string>
+    <string name="now_travelling_many">%1$s sont à %2$s</string>
+    <string name="now_travelling_detail">Jour %1$d, %2$s</string>
+    <string name="now_travelling_open">ouvrir le voyage</string>
     <!-- Photo albums, shared by the trips (récit 15) and later the events (récit 41). -->
     <string name="album_photos_add">Ajouter des photos</string>
     <string name="album_photos_full">Tu as ajouté tes %1$d photos. Retire-en une pour en mettre une autre.</string>
