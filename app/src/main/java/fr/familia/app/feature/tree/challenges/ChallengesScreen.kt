@@ -53,7 +53,7 @@ import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.feature.tree.TreeDrawing
-import fr.familia.app.feature.tree.TreeSeason
+import fr.familia.app.core.model.TreeSeason
 import fr.familia.app.feature.tree.TreeUiState
 import fr.familia.app.feature.tree.ofMonth
 import fr.familia.app.feature.tree.previewTreeState
