@@ -72,6 +72,7 @@ class HelpRequestDetailViewModel(
             canWithdraw = canWithdraw(request, me),
             canManage = canManageHelp(request, me, family) && request.status != HelpStatus.Cancelled,
             canThank = canThank(request, me, family, today),
+            seenByWholeFamily = family.members.all { it.id == request.authorId || it.id in request.notifyIds },
             isBusy = act.busy,
             error = act.error,
         )

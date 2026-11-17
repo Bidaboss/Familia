@@ -41,6 +41,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.share.ShareButton
 import fr.familia.app.core.model.HelpKind
 import fr.familia.app.core.model.HelpRequest
 import fr.familia.app.core.model.HelpStatus
@@ -71,6 +72,8 @@ fun HelpRequestDetailScreen(
     onDismissError: () -> Unit,
     onBack: () -> Unit,
     onSetNote: (note: String) -> Unit = {},
+    /** « Partager » (récit 31): for whoever manages the request, while it is open. */
+    onShare: (() -> Unit)? = null,
 ) {
     Scaffold(
         topBar = {
@@ -78,6 +81,7 @@ fun HelpRequestDetailScreen(
                 title = { Text(stringResource(R.string.helprequest_detail_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = {
+                    onShare?.let { ShareButton(onClick = it) }
                     if ((state as? HelpRequestDetailUiState.Success)?.canManage == true) {
                         TextButton(onClick = onEdit, modifier = Modifier.heightIn(min = 56.dp)) {
                             Text(stringResource(R.string.event_detail_edit), style = MaterialTheme.typography.labelLarge)

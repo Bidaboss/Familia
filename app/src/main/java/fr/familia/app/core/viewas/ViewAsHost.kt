@@ -68,10 +68,10 @@ fun ViewAsHost(
     }
     val context = LocalContext.current
     val readOnly = stringResource(R.string.view_as_read_only)
-    val viewContainer = remember(container, context, me.id) {
+    val viewContainer = remember(container, context, me.id, viewed.id) {
         val main = Handler(Looper.getMainLooper())
         val guard = ViewAsGuard { main.post { Toast.makeText(context.applicationContext, readOnly, Toast.LENGTH_SHORT).show() } }
-        ViewAsContainer(container, guard, me.id)
+        ViewAsContainer(container, guard, me.id, viewed.id)
     }
     val control = ViewAsControl(viewed = viewed, stop = { viewedId = null }, readerId = me.id)
     Column(Modifier.fillMaxSize()) {

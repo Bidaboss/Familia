@@ -44,7 +44,7 @@ sealed interface ClayShadow {
 data class ClayBorder(val width: Dp, val color: Color, val dashed: Boolean = false)
 
 /** The background pattern of a theme, drawn under the content (ThemePatterns.kt). */
-enum class ThemePattern { None, PixelDots, Stars, Azulejos, Snow, Leaves, Stripes70, NotebookLines }
+enum class ThemePattern { None, PixelDots, Stars, FlagBand, Snow, Leaves, Stripes70, NotebookLines }
 
 /** Everything a theme sets besides the colors: cards, fonts and background. */
 @Immutable
@@ -253,14 +253,15 @@ fun themeSpec(id: FamiliaThemeId): FamiliaThemeSpec = when (id) {
         shadow = Color(0x1F13293D),
     )
     FamiliaThemeId.Spain -> themed(
-        Palette(0xFFFBF1DE, 0xFFFFFDF7, 0xFFF6D27A, 0xFFDCE9F5, 0xFFF9DCD2, 0xFFA61E22, 0xFFFFFFFF, 0xFF1D4E89, 0xFF2A1A12, 0xFF5C4636, 0xFFA61E22),
+        // The colors of the flag (DESIGN, 16/11): red #AA151B and yellow #F1BF00, contrasts over 4.5:1.
+        Palette(0xFFFFF8E6, 0xFFFFFFFF, 0xFFF1BF00, 0xFFFDEDB3, 0xFFF8D9D6, 0xFFAA151B, 0xFFFFFFFF, 0xFF8A1015, 0xFF2A1A12, 0xFF5C3A2E, 0xFFAA151B),
         ClayStyle(
             cardRadius = 18.dp,
-            border = ClayBorder(2.dp, Color(0xFF1D4E89)),
-            shadow = ClayShadow.Hard(3.dp, Color(0xFFF2B33D), emphasisOffset = 4.dp),
+            border = ClayBorder(2.dp, Color(0xFFAA151B)),
+            shadow = ClayShadow.Hard(3.dp, Color(0xFFF1BF00), emphasisOffset = 4.dp),
             titleFont = AbrilFatface,
             dayFont = AbrilFatface,
-            pattern = ThemePattern.Azulejos,
+            pattern = ThemePattern.FlagBand,
         ),
     )
     FamiliaThemeId.HighContrast -> themed(

@@ -1,5 +1,9 @@
 package fr.familia.app.core.share
 
+import fr.familia.app.core.model.Family
+import fr.familia.app.core.model.GoodNews
+import fr.familia.app.core.model.MemberProfile
+
 /*
  * The link of a share (PRD, récit 31). It goes through a free Firebase Hosting page, which shows
  * no family data: the app opens the item for whoever has it (Android App Links, or the button of
@@ -65,3 +69,17 @@ fun parseSharedLink(scheme: String?, host: String?, path: String?): SharedLink? 
  */
 fun photoAllowed(sharerId: String, childParentIds: Collection<Collection<String>>): Boolean =
     childParentIds.all { sharerId in it }
+
+/**
+ * Carte EXPERT-2 for a good news: its first photo may go out only when [sharerId] is a responsible
+ * adult of every child it shows, the one it is for and those named. A member who left the family
+ * can no longer be checked, so the photo stays. The good news of Familia (birthday, challenge) has
+ * no photo.
+ */
+fun goodNewsPhotoAllowed(news: GoodNews, sharerId: String, family: Family): Boolean {
+    if (news.photoIds.isEmpty() || news.birthdayOf != null || news.challengeMonth != null) return false
+    val shown = (listOf(news.forMemberId) + news.mentionIds).distinct().map { id ->
+        family.members.firstOrNull { it.id == id } ?: return false
+    }
+    return photoAllowed(sharerId, shown.filter { it.profile != MemberProfile.Adult }.map { it.parentIds })
+}

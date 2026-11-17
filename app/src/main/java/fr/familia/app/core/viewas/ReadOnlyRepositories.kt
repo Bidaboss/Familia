@@ -321,6 +321,7 @@ class ReadOnlyPhotoStorage(private val inner: PhotoStorage, private val guard: V
     override suspend fun upload(path: String, jpeg: ByteArray) = guard.refuse()
     override suspend fun downloadUrl(path: String): String = inner.downloadUrl(path)
     override suspend fun delete(path: String) = guard.refuse()
+    override suspend fun bytes(path: String, maxBytes: Long): ByteArray? = inner.bytes(path, maxBytes)
 }
 
 class ReadOnlyPhotoUploader(private val guard: ViewAsGuard) : PhotoUploader {
@@ -337,6 +338,7 @@ class ReadOnlyAppConfigRepository(private val inner: AppConfigRepository, privat
     override fun observeAppConfig(): Flow<AppConfig> = inner.observeAppConfig()
     override suspend fun fetchAppConfig(): AppConfig = inner.fetchAppConfig()
     override suspend fun setFeature(key: String, enabled: Boolean) = guard.refuse()
+    override suspend fun setDiscoverOrder(keys: List<String>) = guard.refuse()
 }
 
 /**
@@ -348,10 +350,12 @@ class ReadOnlyGiftRepository(
     private val inner: GiftRepository,
     private val guard: ViewAsGuard,
     private val adminId: String,
+    /** The member looked at: a list opened by its id (a link, a notification) follows their rule too. */
+    private val viewedId: String,
 ) : GiftRepository {
     override fun observeVisibleLists(memberId: String): Flow<List<GiftList>> =
         inner.observeVisibleLists(adminId).map { lists -> listsSeenBy(lists, memberId) }
-    override fun observeList(listId: String): Flow<GiftList?> = inner.observeList(listId)
+    override fun observeList(listId: String): Flow<GiftList?> = inner.observeList(listId).map { listSeenBy(it, viewedId) }
     override fun observeItems(listId: String, hiddenFromMe: Boolean): Flow<List<GiftItem>> = inner.observeItems(listId, hiddenFromMe)
     override fun observeClaims(listId: String): Flow<List<GiftClaim>> = inner.observeClaims(listId)
     override fun observeShares(listId: String, itemIds: List<String>, memberId: String, allOf: Set<String>): Flow<Map<String, List<GiftShare>>> =
@@ -469,6 +473,12 @@ class ReadOnlyExpenseRepository(private val inner: ExpenseRepository, private va
     override suspend fun settle(bookId: String, transfer: Transfer, me: Member) = guard.refuse()
     override suspend fun unsettle(bookId: String, settlementId: String) = guard.refuse()
 }
+
+/**
+ * [list] when [memberId] may read it, else null, as the rules answer « introuvable »: on a projector
+ * in « Voir comme », a surprise never shows to the one it is for (récit 1 octies, surprise de la démo).
+ */
+fun listSeenBy(list: GiftList?, memberId: String): GiftList? = list?.takeIf { listsSeenBy(listOf(it), memberId).isNotEmpty() }
 
 /** The lists of [lists] that [memberId] sees, by the rule of canSeeList (firebase/firestore.rules). */
 fun listsSeenBy(lists: List<GiftList>, memberId: String): List<GiftList> = lists.filter { list ->

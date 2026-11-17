@@ -257,10 +257,11 @@ Les données sont lues sur le serveur, jamais dans le cache du téléphone. Hors
 | `apkSize` | nombre | Sa taille en octets, vérifiée après le téléchargement |
 | `apkSha256` | texte | Son empreinte SHA-256 (64 caractères hexadécimaux), vérifiée avant l'installation |
 | `features` | map texte → booléen | Les modules allumés pour la famille (`gifts`, `helpRequests`, `trips`, `home`…). Un module absent ou à `false` reste caché, sauf pour l'admin principal |
+| `discoverOrder` | liste de textes (20 au plus), facultatif | L'ordre d'« À découvrir » choisi par l'admin principal (clés des modules : `weeklyQuestion`, `recipes`…). Les clés inconnues sont ignorées, et les modules absents suivent dans l'ordre par défaut |
 
 Le lien du dossier Drive n'est pas dans ce document : il est fixé dans l'appli (`BuildConfig.DOWNLOAD_URL`). Si un champ de l'APK manque ou paraît faux, l'appli ouvre ce dossier comme avant.
 
-Droits : tous les membres le lisent. Le workflow « APK de publication » écrit les champs de version et d'APK. Depuis l'appli, seul l'admin principal modifie `features`, et rien d'autre (menu Administration, carte « Modules »). Voir [mise-a-jour.md](mise-a-jour.md).
+Droits : tous les membres le lisent. Le workflow « APK de publication » écrit les champs de version et d'APK. Depuis l'appli, seul l'admin principal modifie `features` et `discoverOrder`, et rien d'autre (menu Administration, cartes « Modules » et « Ordre d'À découvrir »). Voir [mise-a-jour.md](mise-a-jour.md).
 
 ### `config/family` (carte DEV-8)
 
