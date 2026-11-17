@@ -55,7 +55,7 @@ class TreePosterViewModelTest {
     }
 
     @Test
-    fun `nobody joined yet: the screen says to fill the tree first`() = runTest {
+    fun `nobody joined yet, so the screen says to fill the tree first`() = runTest {
         assertEquals(TreePosterUiState.Empty, viewModel(links = emptyList()).uiState.value)
     }
 
