@@ -111,12 +111,20 @@ class PhotoLinks(private val saved: SavedLinks = SavedLinks.None) {
         thisLaunch.remove(path)
         saved.put(path, null)
     }
+
+    /** Another member signs in on this phone: none of the links stay (note C de #264). */
+    fun forgetAll() {
+        thisLaunch.clear()
+        saved.clear()
+    }
 }
 
 /** Where the links are kept between two launches: the preferences of the app, or nowhere in tests. */
 interface SavedLinks {
     fun get(path: String): String?
     fun put(path: String, url: String?)
+
+    fun clear() = Unit
 
     object None : SavedLinks {
         override fun get(path: String): String? = null
@@ -128,5 +136,9 @@ class PreferencesLinks(private val prefs: android.content.SharedPreferences) : S
     override fun get(path: String): String? = prefs.getString(path, null)
     override fun put(path: String, url: String?) {
         prefs.edit().apply { if (url == null) remove(path) else putString(path, url) }.apply()
+    }
+
+    override fun clear() {
+        prefs.edit().clear().apply()
     }
 }
