@@ -44,6 +44,9 @@ interface AppContainer {
     val eventRepository: EventRepository?
     val rsvpRepository: RsvpRepository?
     val bringRepository: BringRepository?
+
+    /** « Ma valise » (récit 62). */
+    val packingRepository: PackingRepository? get() = null
     val eventCommentRepository: EventCommentRepository?
     val helpRequestRepository: HelpRequestRepository?
     val tripRepository: TripRepository?
@@ -134,6 +137,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
 
     /** « Qui apporte quoi » of an event (PRD, récit 4 bis). */
     override val bringRepository: BringRepository? by lazy { firestore?.let { FirestoreBringRepository(it) } }
+    override val packingRepository: PackingRepository? by lazy { firestore?.let { FirestorePackingRepository(it) } }
 
     /** The comments of an event (PRD, récit 28). */
     override val eventCommentRepository: EventCommentRepository? by lazy { firestore?.let { FirestoreEventCommentRepository(it) } }

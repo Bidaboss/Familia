@@ -824,6 +824,29 @@ La liste « À prévoir » du voyage (récit 13) : ce qu'il faut apporter ou ré
 
 Droits : les lecteurs du voyage lisent la liste. Les participants, enfants compris, ajoutent, cochent, modifient et retirent les lignes. L'admin principal peut retirer une ligne. La personne en charge est forcément un participant. La suppression du voyage supprime sa liste sur le serveur. Tests : `firebase/tests/trips.test.mjs`.
 
+
+### `trips/{tripId}/bags/{memberId}` (récit 62, « Ma valise », module `packingList`)
+
+La valise d'un participant pour ce voyage : une liste à cocher privée. Seuls le membre et ses adultes responsables (la valise d'un enfant) la lisent et l'écrivent, et seulement pour un participant du voyage. Ni l'admin principal ni « Voir comme » ne la lisent. Supprimée avec le voyage, et avec le membre quand il est retiré de la famille.
+
+| Champ | Type | Description |
+|---|---|---|
+| `items` | liste (80 au plus) de `{ label, done }` | Les règles bornent la liste à 80. L'appli garantit le reste : `label` de 1 à 60 caractères, `done` booléen, et elle ignore à la lecture une ligne mal formée. Toute la liste est réécrite à chaque changement |
+| `updatedAt` | horodatage serveur | |
+| `updatedBy` | `memberId` | Qui l'a changée en dernier : le membre ou l'un de ses adultes |
+
+Une valise jamais ouverte n'existe pas : l'appli montre la liste de départ du membre (`members/{memberId}/settings/packing`), sinon la liste par défaut, et le premier changement l'écrit. Pour un enfant, c'est toujours la liste par défaut.
+
+### `members/{memberId}/settings/packing` (récit 62)
+
+La liste de départ de « Ma valise », modifiable par le membre seul (« Garder comme ma liste de départ »). Lue et écrite par lui seul.
+
+| Champ | Type | Description |
+|---|---|---|
+| `labels` | liste de textes (80 au plus) | Les objets, sans case cochée. Les règles bornent la liste, l'appli garantit les 60 caractères par objet |
+| `updatedAt` | horodatage serveur | |
+
+`members/{memberId}/settings/notifications.packingReminder` (booléen, facultatif) : `false` coupe le rappel de la veille du départ quand il reste des objets non cochés.
 ### `trips/{tripId}/photos/{authorId}_{slot}`
 
 Les photos du voyage (récit 15). Chaque participant a 30 places, numérotées de 1 à 30. L'identifiant du document est l'auteur suivi de la place, par exemple `m1_7`. Ainsi, les règles limitent les photos à 30 par personne sans avoir à les compter.

@@ -117,8 +117,8 @@ export async function releaseBringOf(db: Firestore, memberId: string): Promise<v
 }
 
 /**
- * A member was removed (a separation, for example): their answers, phones, settings and days of
- * use (PRD, récit 1 nonies) go too.
+ * A member was removed (a separation, for example): their answers, bags, phones, settings and days
+ * of use (PRD, récit 1 nonies) go too.
  * The family has a few hundred events at most, so going through them all stays cheap.
  */
 export async function deleteMemberData(db: Firestore, memberId: string): Promise<void> {
@@ -126,6 +126,11 @@ export async function deleteMemberData(db: Firestore, memberId: string): Promise
   const writer = db.bulkWriter();
   for (const event of events.docs) {
     writer.delete(event.ref.collection('rsvps').doc(memberId));
+  }
+  // « À emporter » (récit 62): their bags, which nobody else could read, go too.
+  const trips = await db.collection('trips').select().get();
+  for (const trip of trips.docs) {
+    writer.delete(trip.ref.collection('bags').doc(memberId));
   }
   await writer.close();
   const member = db.collection('members').doc(memberId);

@@ -2,6 +2,7 @@ package fr.familia.app.core.viewas
 
 import androidx.compose.runtime.staticCompositionLocalOf
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.data.PackingRepository
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.usage.UsageTracker
 
@@ -57,6 +58,9 @@ class ViewAsContainer(private val base: AppContainer, guard: ViewAsGuard, adminI
     override val eventRepository = base.eventRepository?.let { ReadOnlyEventRepository(it, guard) }
     override val rsvpRepository = base.rsvpRepository?.let { ReadOnlyRsvpRepository(it, guard) }
     override val bringRepository = base.bringRepository?.let { ReadOnlyBringRepository(it, guard) }
+
+    // « Ma valise » is private: in « Voir comme », nobody's bag is read or written.
+    override val packingRepository: PackingRepository? = null
     override val eventCommentRepository = base.eventCommentRepository?.let { ReadOnlyEventCommentRepository(it, guard) }
     override val helpRequestRepository = base.helpRequestRepository?.let { ReadOnlyHelpRequestRepository(it, guard) }
     override val tripRepository = base.tripRepository?.let { ReadOnlyTripRepository(it, guard) }

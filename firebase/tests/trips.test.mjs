@@ -369,3 +369,38 @@ describe('trip photos (récit 15)', () => {
     await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'trips/t1/photos/adult1_1')));
   });
 });
+
+// « Ma valise » (récit 62): a private list per participant, ticked by them or by their adults.
+describe('trips/{tripId}/bags', () => {
+  const bag = (by, items = [{ label: 'Chargeur', done: false }]) => ({ items, updatedAt: serverTimestamp(), updatedBy: by.memberId });
+
+  beforeEach(async () => {
+    await storedTrip('t1', ADULT, { participantIds: ['adult1', 'adult3', 'kid1'] });
+  });
+
+  test('a participant fills and ticks their own bag, and reads it back', async () => {
+    const db = as(env, NEIGHBOUR);
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/bags/adult3'), bag(NEIGHBOUR)));
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/bags/adult3'), bag(NEIGHBOUR, [{ label: 'Chargeur', done: true }])));
+    await assertSucceeds(getDoc(doc(db, 'trips/t1/bags/adult3')));
+    await assertSucceeds(deleteDoc(doc(db, 'trips/t1/bags/adult3')));
+  });
+
+  test('a responsible adult ticks the bag of their child, nobody else reads it', async () => {
+    await assertSucceeds(setDoc(doc(as(env, ADULT), 'trips/t1/bags/kid1'), bag(ADULT)));
+    await assertSucceeds(getDoc(doc(as(env, KID), 'trips/t1/bags/kid1')));
+    await assertFails(getDoc(doc(as(env, NEIGHBOUR), 'trips/t1/bags/kid1')));
+    await assertFails(getDoc(doc(as(env, ADMIN), 'trips/t1/bags/kid1')));
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/bags/adult1'), bag(NEIGHBOUR)));
+    await assertFails(getDoc(doc(as(env, STRANGER), 'trips/t1/bags/adult3')));
+  });
+
+  test('only the participants have a bag, of the right shape', async () => {
+    await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'trips/t1/bags/adult2'), bag(OTHER_ADULT)));
+    const db = as(env, NEIGHBOUR);
+    await assertFails(setDoc(doc(db, 'trips/t1/bags/adult3'), { ...bag(NEIGHBOUR), updatedBy: 'adult1' }));
+    await assertFails(setDoc(doc(db, 'trips/t1/bags/adult3'), { ...bag(NEIGHBOUR), extra: 1 }));
+    await assertFails(setDoc(doc(db, 'trips/t1/bags/adult3'), bag(NEIGHBOUR, 'Chargeur')));
+    await assertFails(setDoc(doc(db, 'trips/t1/bags/adult3'), bag(NEIGHBOUR, Array.from({ length: 81 }, (_, i) => ({ label: `o${i}`, done: false })))));
+  });
+});
