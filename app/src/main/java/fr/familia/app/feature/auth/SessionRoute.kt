@@ -2,6 +2,7 @@ package fr.familia.app.feature.auth
 
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
@@ -11,6 +12,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import fr.familia.app.feature.gifts.share.ShareTargetSwitch
 import kotlinx.coroutines.launch
 
 /**
@@ -30,6 +32,13 @@ fun SessionRoute(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    // Récit 50: nobody signed in, Familia leaves the share menu of the phone; it comes back with the modules.
+    LaunchedEffect(state) {
+        if (state is SessionUiState.SignedOut || state is SessionUiState.NotAMember) {
+            ShareTargetSwitch(context.applicationContext).set(null)
+        }
+    }
 
     (state as? SessionUiState.SignedIn)?.let {
         signedInContent(it.member)

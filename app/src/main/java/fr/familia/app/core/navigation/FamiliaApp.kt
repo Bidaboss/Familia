@@ -160,7 +160,9 @@ import fr.familia.app.feature.home.HomeActions
 import fr.familia.app.feature.home.HomePreferences
 import fr.familia.app.feature.settings.appearance.AppIconSwitcher
 import fr.familia.app.feature.gifts.share.SharedWish
+import fr.familia.app.feature.gifts.share.ShareEntry
 import fr.familia.app.feature.gifts.share.ShareTargetSwitch
+import fr.familia.app.feature.gifts.share.shareEntryFor
 import fr.familia.app.feature.usage.UsageRoute
 import fr.familia.app.feature.calendarfeed.CalendarFeedRoute
 import fr.familia.app.feature.feedback.FeedbackFormDestination
@@ -421,18 +423,27 @@ fun FamiliaApp(
     val features = FeatureFlags(appConfig?.features.orEmpty(), isOwner = ownerId != null && ownerId == currentMember.id)
     val presentation = rememberPresentation(container, isOwner = ownerId != null && ownerId == currentMember.id)
 
-    // « Partager » to Familia (récit 8 bis): in the share menu only with its module, and a shared
-    // link opens a new wish once the modules are known. Module off: the link is dropped.
-    val shareOn = features.isOn(Feature.Gifts) && features.isOn(Feature.ShareToWishes)
+    // « Partager » to Familia (récits 8 bis and 50): in the share menu only with its module, and a
+    // shared link opens a new wish once the modules are known. Module off: the link is dropped.
+    val shareEntry = shareEntryFor(
+        gifts = features.isOn(Feature.Gifts),
+        shareToWishes = features.isOn(Feature.ShareToWishes),
+        wishFromShare = features.isOn(Feature.WishFromShare),
+    )
     val shareSwitch = remember(context) { ShareTargetSwitch(context.applicationContext) }
     LaunchedEffect(appConfig, ownerId) {
-        if (appConfig != null && ownerId != null) shareSwitch.set(shareOn)
+        if (appConfig != null && ownerId != null) shareSwitch.set(shareEntry)
     }
     LaunchedEffect(sharedWish, appConfig, ownerId) {
         if (sharedWish != null && appConfig != null && ownerId != null) {
-            if (shareOn) {
+            if (shareEntry != null) {
                 navController.navigate(
-                    GiftItemEditDestination(wishesListId(currentMember.id), sharedUrl = sharedWish.url, sharedTitle = sharedWish.title),
+                    GiftItemEditDestination(
+                        wishesListId(currentMember.id),
+                        sharedUrl = sharedWish.url,
+                        sharedTitle = sharedWish.title,
+                        fromShare = shareEntry == ShareEntry.AddToWishes,
+                    ),
                 )
             }
             onSharedWishOpened()
@@ -1298,6 +1309,7 @@ fun FamiliaApp(
                             listId = route.listId,
                             itemId = route.itemId,
                             shared = route.sharedUrl?.let { url -> SharedWish(url, route.sharedTitle.orEmpty()) },
+                            fromShare = route.fromShare,
                             onDone = { navController.popBackStack() },
                         )
                     }

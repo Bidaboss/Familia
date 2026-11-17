@@ -1,6 +1,7 @@
 // V2 rules: listes et cadeaux (PRD, récits 7 à 10 bis). The surprise is kept by the server.
 // Fictional family: adult1, adult2, admin1 (admin principal) and admin2 in h1, adult3 in h2,
 // kid1 (child with the app, parent adult1), kid2 (child without the app, parent adult2).
+import assert from 'node:assert/strict';
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
 import {
@@ -520,6 +521,40 @@ describe('the ideas of the family (récit 9 ter)', () => {
     await assertSucceeds(setDoc(doc(as(env, ADULT), 'giftLists/wishes-adult1/items/o1'), newItem(ADULT, { visibleToBeneficiary: true, occasion: 'christmas' })));
     await assertSucceeds(setDoc(doc(as(env, ADULT), 'giftLists/wishes-adult1/items/o2'), newItem(ADULT, { visibleToBeneficiary: true, occasion: null })));
     await assertFails(setDoc(doc(as(env, ADULT), 'giftLists/wishes-adult1/items/o3'), newItem(ADULT, { visibleToBeneficiary: true, occasion: 'easter' })));
+  });
+});
+
+// Récit 50: « Ajouter à mes envies » from another app, made « Une idée pour… » someone by an adult.
+// The app writes the same list and item as the ideas of the family; checked here with the account
+// of the person the idea is for.
+describe('an idea for someone, from the share menu (récit 50)', () => {
+  test('the first shared idea creates their list; the person reads nothing of it', async () => {
+    const giver = as(env, OTHER_ADULT);
+    await assertSucceeds(setDoc(doc(giver, 'giftLists/ideas-adult3'), newList(OTHER_ADULT, {
+      kind: 'ideas', title: 'Idées de la famille', occasion: null, date: null, beneficiaryId: 'adult3', viewerIds: [],
+    })));
+    await assertSucceeds(setDoc(doc(giver, 'giftLists/ideas-adult3/items/s1'), newItem(OTHER_ADULT, {
+      title: 'Un puzzle', url: 'https://boutique.example/puzzle', price: null,
+    })));
+
+    const person = as(env, NEIGHBOUR);
+    await assertFails(getDoc(doc(person, 'giftLists/ideas-adult3')));
+    await assertFails(getDoc(doc(person, 'giftLists/ideas-adult3/items/s1')));
+    await assertFails(getDocs(collection(person, 'giftLists/ideas-adult3/items')));
+    // The query of their own tab leaves their ideas out.
+    const theirs = await getDocs(query(collection(person, 'giftLists'), where('kind', '==', 'ideas'), where('beneficiaryId', '!=', 'adult3')));
+    assert.ok(theirs.docs.every((d) => d.id !== 'ideas-adult3'));
+    // The rest of the family sees it.
+    await assertSucceeds(getDoc(doc(as(env, ADULT), 'giftLists/ideas-adult3/items/s1')));
+  });
+
+  test('a shared idea can never be made visible to the person', async () => {
+    await assertSucceeds(setDoc(doc(as(env, OTHER_ADULT), 'giftLists/ideas-adult3'), newList(OTHER_ADULT, {
+      kind: 'ideas', title: 'Idées de la famille', occasion: null, date: null, beneficiaryId: 'adult3', viewerIds: [],
+    })));
+    await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'giftLists/ideas-adult3/items/s2'), newItem(OTHER_ADULT, {
+      title: 'Un puzzle', url: 'https://boutique.example/puzzle', price: null, visibleToBeneficiary: true,
+    })));
   });
 });
 

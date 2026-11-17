@@ -25,6 +25,8 @@ fun GiftItemEditRoute(
     onDone: () -> Unit,
     /** A link shared from another app, to start a new wish with. */
     shared: SharedWish? = null,
+    /** Récit 50: from « Ajouter à mes envies »: « Une idée pour… », and nothing read from the shop. */
+    fromShare: Boolean = false,
 ) {
     val singleList = LocalFeatureFlags.current.isOn(Feature.SingleList)
     val morePhotos = LocalFeatureFlags.current.isOn(Feature.MorePhotos)
@@ -38,6 +40,7 @@ fun GiftItemEditRoute(
                     previews = container?.linkPreviewRepository,
                     singleList = singleList,
                     photos = if (morePhotos) photoSaver(container) else null,
+                    fromShare = fromShare,
                 )
             }
         },
@@ -49,6 +52,7 @@ fun GiftItemEditRoute(
     GiftItemEditScreen(
         state = state,
         onChange = viewModel::update,
+        onChooseTarget = viewModel::chooseTarget,
         onSave = viewModel::save,
         onDelete = viewModel::delete,
         onBack = onDone,
