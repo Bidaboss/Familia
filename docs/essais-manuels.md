@@ -699,3 +699,11 @@ Avec deux comptes : Camille (adulte) et Inès (adulte). « Publier Firebase » d
 8. Ouvre le cinquième mardi, « Supprimer », puis « Celle-ci et les suivantes ». **Attendu :** les mardis 5 et 6 disparaissent, les autres restent.
 9. Dans « Voir dans mon agenda », mets à jour Google Agenda. **Attendu :** chaque mardi restant y est un événement à lui.
 10. Éteins l'interrupteur. **Attendu :** « Se répète » ne s'affiche plus sur un nouvel événement, mais un mardi existant demande toujours « Cette fois seulement » ou « Celle-ci et les suivantes ».
+
+## « Qui prévenir » rangé par foyer (règle du 17/11)
+
+Avec deux comptes adultes de foyers différents, et un compte enfant.
+
+1. Entraide, « Demander un coup de main ». **Attendu :** sous « Qui prévenir », le raccourci « Tout le monde », puis les adultes rangés par foyer, ton foyer d'abord. Chaque foyer a sa propre case.
+2. Coche la case d'un foyer. **Attendu :** tous ses adultes sont cochés. Décoche un seul adulte : la case du foyer est à moitié cochée. Touche-la encore : tout le foyer est coché, puis décoché.
+3. Avec le compte enfant, demande un coup de main. **Attendu :** son parent est marqué « Toujours prévenu pour un enfant » et reste coché, même si tu décoches son foyer.

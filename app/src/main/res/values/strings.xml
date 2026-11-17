@@ -836,6 +836,7 @@
     <string name="helprequest_notify_hint">Seules ces personnes verront ta demande.</string>
     <string name="helprequest_notify_everyone">Tout le monde</string>
     <string name="helprequest_notify_always">Toujours prévenu pour un enfant</string>
+    <string name="helprequest_notify_others">Autres</string>
     <string name="helprequest_send">Envoyer la demande</string>
     <string name="helprequest_error_date_past">Cette date est déjà passée.</string>
     <string name="helprequest_error_end_before_start">La fin doit venir après le début.</string>

@@ -44,7 +44,7 @@ fun HelpRequestEditRoute(
     HelpRequestEditScreen(
         state = state,
         onChange = viewModel::update,
-        onToggle = viewModel::toggle,
+        onPick = viewModel::setNotify,
         onShortcut = viewModel::applyShortcut,
         onSave = viewModel::save,
         onBack = onDone,
