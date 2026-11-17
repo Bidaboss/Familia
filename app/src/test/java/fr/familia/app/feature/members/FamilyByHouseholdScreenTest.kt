@@ -32,7 +32,7 @@ class FamilyByHouseholdScreenTest {
     private fun stateOf(meId: String) = MembersUiState.Success(previewGroups(), meId)
 
     private fun hasState(text: String) =
-        SemanticsMatcher("stateDescription $text") { it.config.getOrNull(SemanticsProperties.StateDescription) == text }
+        SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, text)
 
     @Test
     fun `my card, my household, then the other households folded, and a touch unfolds one`() {
