@@ -5,6 +5,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.MetadataChanges
 import com.google.firebase.firestore.Query
 import fr.familia.app.core.model.ClaimType
 import fr.familia.app.core.model.GiftClaim
@@ -48,11 +49,16 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
     }
 
     override fun observeList(listId: String): Flow<GiftList?> = callbackFlow {
-        val registration = db.collection(LISTS).document(listId).addSnapshotListener { snapshot, error ->
+        // Metadata changes too: the server's answer arrives even when it says the same as the cache.
+        val registration = db.collection(LISTS).document(listId).addSnapshotListener(MetadataChanges.INCLUDE) { snapshot, error ->
             if (error != null) {
                 // A list that is not visible (or deleted with its rights) reads as missing.
                 trySend(null)
             } else if (snapshot != null) {
+                // Not on the phone yet: wait for the server rather than show an empty list for a
+                // moment (retour du 17/11, « ses envies mettent du temps à arriver »). Offline, the
+                // screen keeps its wheel and says the network is gone.
+                if (!snapshot.exists() && snapshot.metadata.isFromCache) return@addSnapshotListener
                 trySend(snapshot.takeIf { it.exists() }?.toGiftList())
             }
         }
@@ -62,7 +68,7 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
     override fun observeItems(listId: String, hiddenFromMe: Boolean): Flow<List<GiftItem>> {
         val items: Query = db.collection(LISTS).document(listId).collection(ITEMS)
         val query = if (hiddenFromMe) items.whereEqualTo("visibleToBeneficiary", true) else items
-        return query.observe { it.toGiftItem() }
+        return query.observe(waitForServerWhenEmpty = true) { it.toGiftItem() }
     }
 
     override fun observeClaims(listId: String): Flow<List<GiftClaim>> =
@@ -265,11 +271,18 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
     }
 
     /** Live documents of a query; malformed ones are skipped rather than crash the screen. */
-    private fun <T> Query.observe(map: (DocumentSnapshot) -> T?): Flow<List<T>> = callbackFlow {
-        val registration = addSnapshotListener { snapshot, error ->
+    /**
+     * [waitForServerWhenEmpty]: an empty answer from the phone's cache alone is not sent, since the
+     * items of a list never opened on this phone are not there yet; the server's answer follows.
+     */
+    private fun <T> Query.observe(waitForServerWhenEmpty: Boolean = false, map: (DocumentSnapshot) -> T?): Flow<List<T>> = callbackFlow {
+        // Metadata changes too, when waiting: the server's « still empty » then arrives as well.
+        val changes = if (waitForServerWhenEmpty) MetadataChanges.INCLUDE else MetadataChanges.EXCLUDE
+        val registration = addSnapshotListener(changes) { snapshot, error ->
             if (error != null) {
                 close(error)
             } else if (snapshot != null) {
+                if (waitForServerWhenEmpty && snapshot.isEmpty && snapshot.metadata.isFromCache) return@addSnapshotListener
                 trySend(snapshot.documents.mapNotNull(map))
             }
         }
