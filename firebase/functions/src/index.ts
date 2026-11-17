@@ -13,7 +13,7 @@ import {
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onRequest } from 'firebase-functions/v2/https';
 import { deleteCalendarFeedOf, feedFor } from './calendarFeed';
-import { clearRidesOf, onRideChanged, type RideData } from './carpool';
+import { clearRidesOf, clearRidesOfMember, onRideChanged, type RideData } from './carpool';
 import {
   deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
   sendBirthdayGiftReminders, updateSharesTotal,
@@ -195,6 +195,8 @@ export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (ev
   await deleteMomentsOf(getFirestore(), event.params.memberId);
   // « Voir dans mon agenda » (récit 49): their link stops working.
   await deleteCalendarFeedOf(getFirestore(), event.params.memberId);
+  // « On y va ensemble » (récit 52): out of the cars to come.
+  await clearRidesOfMember(getFirestore(), event.params.memberId, parisDay(new Date()));
 });
 
 // Commentaires d'un événement (récit 28): those who follow the event are told.

@@ -132,6 +132,15 @@ export async function clearRidesOf(db: Firestore, eventId: string, memberId: str
   await db.collection('events').doc(eventId).collection('rideNeeds').doc(memberId).delete();
 }
 
+/**
+ * A member who leaves the family: out of the cars of every event to come, with their offer and
+ * their requests (a child without the app never answers « Je ne viens pas » to clear them).
+ */
+export async function clearRidesOfMember(db: Firestore, memberId: string, today: string): Promise<void> {
+  const events = await db.collection('events').where('date', '>=', today).get();
+  for (const event of events.docs) await clearRidesOf(db, event.id, memberId);
+}
+
 /** The cars of an event, for the reminder of the day before. */
 export async function loadRides(db: Firestore, eventId: string): Promise<{ driverId: string; ride: RideData }[]> {
   const snap = await ridesOf(db, eventId).get();
@@ -144,7 +153,15 @@ export async function onRideChanged(
   eventId: string, driverId: string, before: RideData | null, after: RideData | null, actorId: string | null, members: Member[],
 ): Promise<number> {
   const joined = (after?.passengers ?? []).filter((id) => !(before?.passengers ?? []).includes(id));
-  if (joined.length > 0) await clearNeedsOf(db, eventId, joined);
+  if (joined.length > 0) {
+    await clearNeedsOf(db, eventId, joined);
+    // One car at a time: whoever got in here leaves any other car of the event (the rules see one car only).
+    for (const id of joined) {
+      const elsewhere = await ridesOf(db, eventId).where('passengers', 'array-contains', id).get();
+      await Promise.all(elsewhere.docs.filter((d) => d.id !== driverId)
+        .map((d) => d.ref.update({ passengers: FieldValue.arrayRemove(id), updatedAt: FieldValue.serverTimestamp() })));
+    }
+  }
   const event = await db.collection('events').doc(eventId).get();
   // The event itself is gone: its deletion already told those who were coming.
   if (!event.exists) return 0;

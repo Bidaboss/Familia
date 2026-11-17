@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { after, beforeEach, describe, test } from 'node:test';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import { clearRidesOf, onRideChanged, rideLines, rideMessages, type RideData } from '../src/carpool';
+import { clearRidesOf, clearRidesOfMember, onRideChanged, rideLines, rideMessages, type RideData } from '../src/carpool';
 import { reminders, type Member } from '../src/logic';
 
 const member = (id: string, firstName: string, profile: Member['profile'] = 'adult', parentIds: string[] = []): Member =>
@@ -89,6 +89,22 @@ describe('carpool against the emulator', () => {
     assert.equal(count, 1);
     assert.deepEqual(sent, [{ ids: ['camille'], title: 'Noé monte avec toi' }]);
     assert.equal((await db.doc('events/e1/rideNeeds/noe').get()).exists, false);
+  });
+
+  test('getting in one car takes the member out of another', async () => {
+    await db.doc('events/e1/rides/sam').update({ passengers: ['noe'] });
+    await db.doc('events/e1/rides/camille').update({ passengers: ['sam', 'ines', 'noe'] });
+    await onRideChanged(db, async () => 0, 'e1', 'camille', ride(['sam', 'ines']), ride(['sam', 'ines', 'noe']), 'ines', MEMBERS);
+    assert.deepEqual((await db.doc('events/e1/rides/sam').get()).get('passengers'), []);
+    assert.deepEqual((await db.doc('events/e1/rides/camille').get()).get('passengers'), ['sam', 'ines', 'noe']);
+  });
+
+  test('a member who leaves the family leaves the cars to come', async () => {
+    await db.doc('events/past').set({ title: 'Pique-nique', date: '2026-06-01' });
+    await db.doc('events/past/rides/camille').set({ seats: 2, from: null, leaveAt: null, passengers: ['ines'], createdAt: t0, updatedAt: t0 });
+    await clearRidesOfMember(db, 'ines', '2026-11-21');
+    assert.deepEqual((await db.doc('events/e1/rides/camille').get()).get('passengers'), ['sam']);
+    assert.deepEqual((await db.doc('events/past/rides/camille').get()).get('passengers'), ['ines']);
   });
 
   test('nothing is sent once the event is gone', async () => {
