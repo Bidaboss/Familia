@@ -1,5 +1,9 @@
 package fr.familia.app.core.photo
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -78,12 +82,22 @@ fun StorageImage(
         url = link
         asked = true
     }
-    Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
+    // The description is on the box, not on the image: TalkBack reads it while the photo comes or
+    // cannot load too, and a photo one touches is never read « bouton » and nothing else.
+    val described = if (contentDescription != null) {
+        Modifier.semantics {
+            this.contentDescription = contentDescription
+            role = Role.Image
+        }
+    } else {
+        Modifier
+    }
+    Box(modifier.then(described).background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
         val shown = url
         if (shown != null && !failed) {
             AsyncImage(
                 model = shown,
-                contentDescription = contentDescription,
+                contentDescription = null,
                 modifier = Modifier.matchParentSize(),
                 contentScale = contentScale,
                 onError = { failed = true },
