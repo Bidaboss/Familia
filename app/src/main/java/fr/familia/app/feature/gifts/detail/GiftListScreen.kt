@@ -277,15 +277,29 @@ private fun Header(state: GiftListUiState.Success, onOpenReceived: (() -> Unit)?
                 onClick = { onOpenBeneficiary(state.beneficiary.id) },
             )
         }
-        if (state.actionFailed) {
-            Text(
-                stringResource(R.string.gift_action_failed),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-            )
-        }
+        ActionMessage(state)
     }
+}
+
+/**
+ * What did not hold: a reservation someone else made first is said gently, not in red.
+ * With [itemId], only what concerns that idea (its sheet covers the list).
+ */
+@Composable
+private fun ActionMessage(state: GiftListUiState.Success, itemId: String? = null) {
+    val lost = state.claimLost?.takeIf { itemId == null || it.itemId == itemId }
+    val text = when {
+        lost?.reason == ClaimLost.Reason.Taken -> stringResource(R.string.gift_claim_taken)
+        lost?.reason == ClaimLost.Reason.Removed -> stringResource(R.string.gift_claim_removed)
+        state.actionFailed -> stringResource(R.string.gift_action_failed)
+        else -> return
+    }
+    Text(
+        text,
+        style = MaterialTheme.typography.bodyLarge,
+        color = if (lost != null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
+        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+    )
 }
 
 /** An idea at a glance: title, price, status, and « Je le prends » when it is free. */
@@ -413,6 +427,7 @@ internal fun ItemSheetContent(row: ItemRow, state: GiftListUiState.Success, acti
             }
         }
         row.claim?.takeIf { it.type == ClaimType.Shared }?.let { Shares(item.id, it, actions) }
+        ActionMessage(state, item.id)
         Spacer(Modifier.height(16.dp))
     }
 }
