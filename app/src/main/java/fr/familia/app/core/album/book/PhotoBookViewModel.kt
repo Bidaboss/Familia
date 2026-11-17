@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.AlbumPhotoRepository
+import fr.familia.app.core.print.PrintException
+import fr.familia.app.core.print.PrintProblem
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +36,8 @@ sealed interface PhotoBookUiState {
         val format: PhotoBookFormat = PhotoBookFormat.Landscape,
         val isMaking: Boolean = false,
         val failed: Boolean = false,
+        /** The room or the memory of the phone, when that is why it failed; else the connection. */
+        val problem: PrintProblem? = null,
     ) : PhotoBookUiState {
         val inBook: List<BookPhoto> get() = photos.filter { it.photo.id in chosen }
         val pageCount: Int get() = 1 + bookPages(inBook).size + if (steps.isEmpty()) 0 else 1
@@ -102,7 +106,7 @@ class PhotoBookViewModel(
     private fun change(transform: (PhotoBookUiState.Choosing) -> PhotoBookUiState.Choosing) {
         val state = _uiState.value as? PhotoBookUiState.Choosing ?: return
         if (state.isMaking) return
-        _uiState.value = transform(state).copy(failed = false)
+        _uiState.value = transform(state).copy(failed = false, problem = null)
     }
 
     fun setTitle(title: String) = change { it.copy(title = title.take(PHOTO_BOOK_TITLE_MAX)) }
@@ -144,16 +148,20 @@ class PhotoBookViewModel(
             pages = bookPages(state.inBook),
             steps = state.steps,
         )
-        _uiState.value = state.copy(isMaking = true, failed = false)
+        _uiState.value = state.copy(isMaking = true, failed = false, problem = null)
         viewModelScope.launch {
+            var problem: PrintProblem? = null
             val file = try {
                 print(content)
             } catch (e: CancellationException) {
                 throw e
+            } catch (e: PrintException) {
+                problem = e.problem
+                null
             } catch (e: Exception) {
                 null
             }
-            (_uiState.value as? PhotoBookUiState.Choosing)?.let { _uiState.value = it.copy(isMaking = false, failed = file == null) }
+            (_uiState.value as? PhotoBookUiState.Choosing)?.let { _uiState.value = it.copy(isMaking = false, failed = file == null, problem = problem) }
             _made.value = file
         }
     }

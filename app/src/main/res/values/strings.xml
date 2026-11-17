@@ -1317,6 +1317,8 @@
     <string name="photo_book_is_cover">Couverture</string>
     <string name="photo_book_is_big">Seule sur sa page</string>
     <string name="photo_book_make">Faire le livre photo</string>
+    <string name="print_failed_no_room">Il n\'y a plus assez de place sur le téléphone pour ce fichier. Libère de la place (photos, vidéos, applis), puis réessaie.</string>
+    <string name="print_failed_too_big">Ce fichier est trop gros pour ce téléphone. Enlève des photos, puis réessaie.</string>
     <string name="photo_book_failed">Le livre n\'a pas pu être fait. Vérifie ta connexion, puis réessaie.</string>
     <string name="photo_book_hint">Les photos sont téléchargées en pleine qualité, une seule fois. Une boutique photo peut l\'imprimer.</string>
     <string name="photo_book_share_chooser">Enregistrer, imprimer ou envoyer le livre photo</string>

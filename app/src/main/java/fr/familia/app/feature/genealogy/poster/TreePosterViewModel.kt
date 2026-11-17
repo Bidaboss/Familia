@@ -6,6 +6,8 @@ import fr.familia.app.core.data.GenealogyRepository
 import fr.familia.app.core.data.MemberPhotoRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.GenealogyTree
+import fr.familia.app.core.print.PrintException
+import fr.familia.app.core.print.PrintProblem
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -40,6 +42,8 @@ sealed interface TreePosterUiState {
         val format: PosterFormat = PosterFormat.A4,
         val isMaking: Boolean = false,
         val failed: Boolean = false,
+        /** The room or the memory of the phone, when that is why it failed; else the connection. */
+        val problem: PrintProblem? = null,
     ) : TreePosterUiState {
         val canMake: Boolean get() = title.isNotBlank() && !isMaking
     }
@@ -120,7 +124,7 @@ class TreePosterViewModel(
     private fun change(transform: (TreePosterUiState.Choosing) -> TreePosterUiState.Choosing) {
         val state = _uiState.value as? TreePosterUiState.Choosing ?: return
         if (state.isMaking) return
-        _uiState.value = transform(state).copy(failed = false)
+        _uiState.value = transform(state).copy(failed = false, problem = null)
     }
 
     fun setTitle(title: String) = change { it.copy(title = title.take(POSTER_TITLE_MAX)) }
@@ -145,16 +149,20 @@ class TreePosterViewModel(
             year = state.year,
             format = state.format,
         )
-        _uiState.value = state.copy(isMaking = true, failed = false)
+        _uiState.value = state.copy(isMaking = true, failed = false, problem = null)
         viewModelScope.launch {
+            var problem: PrintProblem? = null
             val file = try {
                 print(content) { bytes[it] }
             } catch (e: CancellationException) {
                 throw e
+            } catch (e: PrintException) {
+                problem = e.problem
+                null
             } catch (e: Exception) {
                 null
             }
-            (_uiState.value as? TreePosterUiState.Choosing)?.let { _uiState.value = it.copy(isMaking = false, failed = file == null) }
+            (_uiState.value as? TreePosterUiState.Choosing)?.let { _uiState.value = it.copy(isMaking = false, failed = file == null, problem = problem) }
             _made.value = file
         }
     }
