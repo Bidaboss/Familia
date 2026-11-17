@@ -21,7 +21,7 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 2. Vérifie le réseau du lieu : ouvre Familia, le bandeau « Hors ligne » ne doit pas apparaître. Sinon, voir « Plan B ».
 
 **H − 10 min**
-3. **Administration**, carte « Mode présentation » tout en haut, touche « 4 h ». Le bandeau « Mode présentation jusqu'à … » apparaît au-dessus des onglets, sur ton téléphone seulement. Pendant ce temps, les arrivées, les réactions, les cadeaux et les capsules attendent, puis partent en un seul résumé à la fin. « Rejoignez-moi » passe toujours.
+3. **Administration**, carte « Mode présentation » tout en haut, touche « 4 h ». Le bandeau « Mode présentation jusqu'à … » apparaît au-dessus des onglets, sur ton téléphone seulement. Pendant ce temps, les arrivées, les réactions, les commentaires, les coups de main, les bonnes nouvelles des autres, les cadeaux et les capsules attendent, puis partent en un seul résumé à la fin. « Rejoignez-moi » passe toujours, et **ta** bonne nouvelle aussi : c'est le moment de poster la photo du repas, elle fera sonner tous les téléphones d'un coup.
 4. Ouvre **Administration**, « Voir comme… », et choisis un membre qui n'est **pas** la personne fêtée. Le bandeau « Tu vois l'appli comme … » le rappelle. C'est en lecture seule : rien ne peut être modifié par erreur.
 
 ## La présentation (environ 15 minutes)

@@ -111,6 +111,7 @@ import fr.familia.app.feature.yearago.YearAgoHomeCard
 import fr.familia.app.feature.trips.tripDatesLabel
 import fr.familia.app.feature.whoisit.WhoIsItHomeCard
 import fr.familia.app.feature.whoisit.WhoIsItHomeChip
+import fr.familia.app.feature.yearinreview.YearInReviewHomeChip
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -162,6 +163,8 @@ fun HomeRoute(
     onOpenChallenges: () -> Unit = {},
     /** A « Nouveau bon plan » chip opens its card (récit 45). */
     onOpenGoodDeal: (String) -> Unit = {},
+    /** « Notre année en famille », from 26/12 to 10/01: opens the year. */
+    onOpenYear: (Int) -> Unit = {},
 ) {
     val flags = LocalFeatureFlags.current
     val giftsOn = flags.isOn(Feature.Gifts)
@@ -194,7 +197,10 @@ fun HomeRoute(
     // Null while its switch is off or there is nothing to suggest today.
     val dailyNudge = rememberDailyNudge(container, currentMember)
     // The small modules stand in the row of chips, each only while it has something to say (rév. 205).
+    val today = LocalDate.now()
     val extras = buildList {
+        // The switch and the dates are read by the chip itself, which shows nothing outside them.
+        if (flags.isOn(Feature.YearInReview)) add(HomeExtra("yearInReview", chip = { _, _ -> YearInReviewHomeChip(today, onOpenYear) }))
         if (flags.isOn(Feature.WeeklyQuestion)) {
             add(HomeExtra("weeklyQuestion", chip = { _, _ -> WeeklyQuestionHomeChip(container, currentMember, onOpenWeeklyQuestion) }))
         }
@@ -271,6 +277,11 @@ fun HomeRoute(
             state = shownState,
             challenge = if (hasChallenge) {
                 { modifier, wide -> ChallengeHomeCard(container, currentMember, wide, onOpen = onOpenChallenges, onAddPhoto = onJoinChallenge, modifier = modifier) }
+            } else {
+                null
+            },
+            yearInReview = if (flags.isOn(Feature.YearInReview)) {
+                { YearInReviewHomeChip(today, onOpenYear) }
             } else {
                 null
             },
@@ -474,14 +485,16 @@ private fun homeChips(
         )
     }
     val byKey = extras.associateBy { it.key }
+    // « Notre année en famille » leads, from 26/12 to 10/01, before the birthdays.
     return listOfNotNull(
+        byKey["yearInReview"],
         birthdays,
         byKey["weeklyQuestion"],
         byKey["tree"],
         slideshow,
         trips,
         occasion,
-    ) + extras.filter { it.key != "weeklyQuestion" && it.key != "tree" }
+    ) + extras.filter { it.key != "yearInReview" && it.key != "weeklyQuestion" && it.key != "tree" }
 }
 
 @Composable

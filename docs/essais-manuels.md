@@ -678,6 +678,8 @@ Avec le compte de l'admin principal, plus deux autres comptes qui n'ont pas enco
 5. Touche « Éteindre », sur le bandeau ou dans la carte. **Attendu :** en moins d'une minute, chacun reçoit une seule notification « 2 personnes ont rejoint Familia », avec les deux prénoms. Le bandeau disparaît.
 6. Rallume le mode pour 2 h et laisse passer l'heure de fin. **Attendu :** le bandeau disparaît de lui-même. Le résumé part au premier envoi qui suit l'heure de fin, ou au plus tard 30 minutes après.
 7. Avec un compte qui n'est pas l'admin principal, et dans « Voir comme » : **Attendu :** ni la carte ni le bandeau.
+8. Mode allumé, avec un autre compte : publie une bonne nouvelle, commente un événement et demande un coup de main. **Attendu :** aucun téléphone ne sonne. À l'extinction, chacun reçoit un résumé « Pendant la présentation » par sorte d'avis.
+9. Mode allumé, avec le compte de l'admin principal : publie une bonne nouvelle avec une photo. **Attendu :** elle sonne tout de suite sur les téléphones de la famille.
 
 ## Le planning dans mon agenda (récit 49)
 
@@ -786,6 +788,15 @@ Avec l'interrupteur « Notre année » allumé dans Administration. Avant le 26/
 4. Touche « Enregistrer ». Le bouton affiche « Envoi de la photo 1 sur 2… », puis la recette s'ouvre avec ses photos dans « Photos du plat ».
 5. Sans réseau : la recette s'enregistre quand même. Les photos ne partent pas ; tu peux les ajouter plus tard depuis la recette.
 6. Ouvre une recette existante et touche « Modifier » : pas de champ photo dans le formulaire, les photos se gèrent sur la recette elle-même.
+
+## « Notre année en famille » sur l'Accueil
+
+Avec l'interrupteur « Notre année en famille » allumé.
+
+1. Entre le 26/12 et le 10/01, ouvre l'Accueil. **Attendu :** la puce « Notre année 2026 » en tête, avant « Anniversaires ». Avec la nouvelle présentation, elle est juste au-dessus de « Tout Familia ».
+2. Touche-la. **Attendu :** l'écran de l'année s'ouvre.
+3. Hors de ces dates, avec un compte qui n'est pas l'admin principal : **Attendu :** pas de puce. L'admin principal la voit toute l'année, pour l'essayer.
+4. Interrupteur éteint, avec un autre compte : **Attendu :** pas de puce.
 
 ## Bonnes nouvelles : envoi de la photo sur un réseau faible ou coupé
 

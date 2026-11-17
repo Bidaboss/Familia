@@ -2430,7 +2430,7 @@
     <string name="gooddeal_error_phone">Ce numéro ne fonctionne pas : des chiffres, des espaces et + seulement.</string>
     <!-- Mode présentation (récit 48) -->
     <string name="presentation_title">Mode présentation</string>
-    <string name="presentation_help">Pendant que toute la famille installe l\'appli, les arrivées, les réactions, les cadeaux et les capsules attendent, puis partent en un seul résumé à la fin. « Rejoignez-moi », les retours et l\'admin passent toujours.</string>
+    <string name="presentation_help">Pendant que toute la famille installe l\'appli, les arrivées, les réactions, les commentaires, les coups de main, les bonnes nouvelles, les cadeaux et les capsules attendent, puis partent en un seul résumé à la fin. Tes bonnes nouvelles, « Rejoignez-moi », les retours et l\'admin passent toujours.</string>
     <string name="presentation_two_hours">2 h</string>
     <string name="presentation_four_hours">4 h</string>
     <string name="presentation_until_off">Jusqu\'à ce que je l\'éteigne</string>

@@ -54,10 +54,17 @@ describe('my notification settings, without the emulator', () => {
 describe('the mode présentation, without the emulator', () => {
   const welcome = (name: string): Notice => ({ channel: 'welcome', title: `${name} vient d'arriver`, body: 'Dis-lui bonjour !' });
 
-  test('it holds the arrivals, the reactions, the gifts and the capsules; never joinMe, retours or admin', () => {
+  test('it holds the arrivals, the reactions, the gifts, the capsules, the coups de main, the comments and the good news; never joinMe, retours or admin', () => {
     assert.equal(heldByPresentation(welcome('Inès')), true);
     assert.equal(heldByPresentation({ channel: 'comments', reaction: true }), true);
-    assert.equal(heldByPresentation({ channel: 'comments' }), false); // A comment on an event still rings.
+    // Thirteen people trying the app at the same table: what they post waits for the summary.
+    assert.equal(heldByPresentation({ channel: 'comments' }), true);
+    assert.equal(heldByPresentation({ channel: 'helpRequests' }), true);
+    assert.equal(heldByPresentation({ channel: 'helpRequests', direct: true }), true);
+    assert.equal(heldByPresentation({ channel: 'goodNews' }), true);
+    // The photo of the meal posted by the admin principal rings at once; nothing else is let through.
+    assert.equal(heldByPresentation({ channel: 'goodNews', fromOwner: true }), false);
+    assert.equal(heldByPresentation({ channel: 'gifts', fromOwner: true }), true);
     assert.equal(heldByPresentation({ channel: 'gifts', direct: true }), true);
     assert.equal(heldByPresentation({ channel: 'capsules' }), true);
     assert.equal(heldByPresentation({ channel: 'joinMe', reaction: true }), false);
