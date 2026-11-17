@@ -22,6 +22,7 @@ import { checkConsumptionIfDue } from './consumption';
 import { CrashData, onCrashReported } from './crashes';
 import { FeedbackData, onFeedbackChanged, onFeedbackCreated, screenshotToDelete } from './feedback';
 import { deleteEndedGoodDeals, sendGoodDealsSummary } from './goodDeals';
+import { onLendItemUpdated, releaseLendItemsOf, sendLendReminders, type LendItemData } from './lendItems';
 import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
 import { closeDuePolls, closeEventPolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
 import { cloudMonitoring } from './monitoring';
@@ -92,6 +93,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.welcomeOf ? { welcomeOf: notice.welcomeOf } : {}),
         ...(notice.thinkOfMeOf ? { thinkOfMeOf: notice.thinkOfMeOf } : {}),
         ...(notice.goodDeals ? { goodDeals: notice.goodDeals } : {}),
+        ...(notice.lendItemId ? { lendItemId: notice.lendItemId } : {}),
         ...(notice.tag ? { notificationTag: notice.tag } : {}),
       },
       // A surprise never shows on the lock screen (audit 2.2): only « Familia » and the channel.
@@ -262,6 +264,12 @@ export const helpRequestStillOpen = onSchedule({ schedule: '0 18 * * *', timeZon
   } catch (e) {
     console.error('good deals', e);
   }
+  // On se prête (récit 51): the one reminder, 3 days after the return date.
+  try {
+    await sendLendReminders(getFirestore(), send, now);
+  } catch (e) {
+    console.error('lend reminders', e);
+  }
 });
 
 // A bon plan removed (by its author, the admin principal or the cleanup) takes its photo with it.
@@ -269,9 +277,24 @@ export const onGoodDealDeleted = onDocumentDeleted('goodDeals/{dealId}', async (
   await getStorage().bucket().deleteFiles({ prefix: `goodDeals/${event.params.dealId}/` });
 });
 
+// On se prête (récit 51): an ask to the owner, the answer to the one who asked.
+export const onLendItemChanged = onDocumentUpdatedWithAuthContext('lendItems/{itemId}', async (event) => {
+  const before = event.data?.before.data() as LendItemData | undefined;
+  const after = event.data?.after.data() as LendItemData | undefined;
+  if (!before || !after) return;
+  await onLendItemUpdated(getFirestore(), send, event.params.itemId, before, after, actorUid(event), new Date());
+});
+
+// A thing removed takes its photo with it.
+export const onLendItemDeleted = onDocumentDeleted('lendItems/{itemId}', async (event) => {
+  await getStorage().bucket().deleteFiles({ prefix: `lendItems/${event.params.itemId}/` });
+});
+
 // Spec, cas limites: a volunteer removed from the family frees their upcoming requests.
 export const onMemberDeletedHelp = onDocumentDeleted('members/{memberId}', async (event) => {
   await reopenRequestsOf(getFirestore(), event.params.memberId, new Date());
+  // On se prête (récit 51): their things go, and what they asked for or had is free again.
+  await releaseLendItemsOf(getFirestore(), event.params.memberId);
 });
 
 // --- Listes et cadeaux (V2) --------------------------------------------------------------------

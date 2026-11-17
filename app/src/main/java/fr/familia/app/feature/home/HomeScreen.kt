@@ -1,5 +1,7 @@
 package fr.familia.app.feature.home
 
+import fr.familia.app.feature.gooddeals.GoodDealHomeChip
+
 import fr.familia.app.feature.helprequests.todo.rememberHelpRequestTodos
 import fr.familia.app.feature.helprequests.todo.helpActionErrorText
 import fr.familia.app.feature.helprequests.todo.HelpRequestTodoCard
@@ -158,6 +160,8 @@ fun HomeRoute(
     allBadge: Int = 0,
     /** « Défis » (R1 bis), opened from the card of the challenge of the month. */
     onOpenChallenges: () -> Unit = {},
+    /** A « Nouveau bon plan » chip opens its card (récit 45). */
+    onOpenGoodDeal: (String) -> Unit = {},
 ) {
     val flags = LocalFeatureFlags.current
     val giftsOn = flags.isOn(Feature.Gifts)
@@ -231,6 +235,10 @@ fun HomeRoute(
                 ),
             )
         }
+        // A new good deal of someone else, just before « Dire où je suis » (récit 45).
+        if (flags.isOn(Feature.GoodDeals)) {
+            add(HomeExtra("goodDeal", chip = { _, _ -> GoodDealHomeChip(container, currentMember.id, onOpenGoodDeal) }))
+        }
         if (placesOn) {
             add(HomeExtra("joinMe", chip = { _, _ -> HomeChip(stringResource(R.string.joinme_send_open), onClick = onJoinMe) }))
         }
@@ -263,6 +271,11 @@ fun HomeRoute(
             state = shownState,
             challenge = if (hasChallenge) {
                 { modifier, wide -> ChallengeHomeCard(container, currentMember, wide, onOpen = onOpenChallenges, onAddPhoto = onJoinChallenge, modifier = modifier) }
+            } else {
+                null
+            },
+            goodDeal = if (flags.isOn(Feature.GoodDeals)) {
+                { GoodDealHomeChip(container, currentMember.id, onOpenGoodDeal) }
             } else {
                 null
             },

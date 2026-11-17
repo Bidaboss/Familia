@@ -509,3 +509,43 @@ describe('photo of a bon plan (récit 45)', () => {
     await assertSucceeds(deleteObject(ref(storage, photo('adult1', 'p1.jpg'))));
   });
 });
+
+describe('photo of a thing to lend (récit 51)', () => {
+  // Each test has an item of its own, owned by adult1, whose photo is p1 of adult1.
+  let n = 0;
+  const photo = (author, name) => `lendItems/i${n}/${author}/${name}`;
+  beforeEach(async () => {
+    n += 1;
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `lendItems/i${n}`), { ownerId: 'adult1', photo: `lendItems/i${n}/adult1/p1` });
+    });
+  });
+
+  test('a member sends a photo and its thumbnail to their own folder, and the family sees it', async () => {
+    const storage = storageAs(ADULT);
+    await assertSucceeds(uploadString(ref(storage, photo('adult1', 'p1.jpg')), 'x'.repeat(300 * 1024), 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storage, photo('adult1', 'p1-thumb.jpg')), 'x'.repeat(30 * 1024), 'raw', jpeg));
+    await assertSucceeds(getBytes(ref(storageAs(NEIGHBOUR), photo('adult1', 'p1.jpg'))));
+    await assertFails(getBytes(ref(storageAs(STRANGER), photo('adult1', 'p1.jpg'))));
+  });
+
+  test('never to the folder of someone else, never replaced, only a small JPEG', async () => {
+    const storage = storageAs(ADULT);
+    await assertFails(uploadString(ref(storageAs(OTHER_ADULT), photo('adult1', 'p2.jpg')), 'x', 'raw', jpeg));
+    await assertSucceeds(uploadString(ref(storage, photo('adult1', 'p2.jpg')), 'x', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, photo('adult1', 'p2.jpg')), 'y', 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, photo('adult1', 'p3.jpg')), 'x'.repeat(513 * 1024), 'raw', jpeg));
+    await assertFails(uploadString(ref(storage, photo('adult1', 'p3.png')), 'x', 'raw', { contentType: 'image/png' }));
+  });
+
+  test('its sender removes it; the others only a photo the item no longer names', async () => {
+    const storage = storageAs(ADULT);
+    for (const name of ['p1.jpg', 'p1-thumb.jpg', 'p0.jpg']) {
+      await uploadString(ref(storage, photo('adult1', name)), 'x', 'raw', jpeg);
+    }
+    await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), photo('adult1', 'p1.jpg'))));
+    await assertFails(deleteObject(ref(storageAs(OTHER_ADULT), photo('adult1', 'p1-thumb.jpg'))));
+    await assertSucceeds(deleteObject(ref(storageAs(OTHER_ADULT), photo('adult1', 'p0.jpg'))));
+    await assertSucceeds(deleteObject(ref(storage, photo('adult1', 'p1.jpg'))));
+  });
+});
