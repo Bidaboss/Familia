@@ -8,7 +8,15 @@ import fr.familia.app.R
  * the version shown on 21 November only shows what works). Each [key] is a field of
  * config/app.features. Every [dev] thread adds its own entry here, nothing else.
  */
-enum class Feature(val key: String, @StringRes val labelRes: Int) {
+enum class Feature(
+    val key: String,
+    @StringRes val labelRes: Int,
+    /**
+     * On until switched off, for everyone, the admin principal included: a kill switch for a change
+     * already shown by default (R1 bis), not a module waiting for its test.
+     */
+    val onByDefault: Boolean = false,
+) {
     Home("home", R.string.feature_home),
     Gifts("gifts", R.string.feature_gifts),
     GiftNotebook("giftNotebook", R.string.feature_gift_notebook),
@@ -87,6 +95,11 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
     SingleList("singleList", R.string.feature_single_list),
     /** Une photo de couverture sur un événement et une photo sur une envie (PRD, récit 44). */
     MorePhotos("morePhotos", R.string.feature_more_photos),
+    /**
+     * La présentation « R1 bis » (spec DESIGN du 17/11) : frise de l'Accueil, Tout Familia, pastilles
+     * à deux lettres, motif du thème… Allumée par défaut ; l'éteindre rend l'ancienne présentation.
+     */
+    PresentationR1bis("presentationR1bis", R.string.feature_presentation_r1bis, onByDefault = true),
 }
 
 /**
@@ -94,8 +107,9 @@ enum class Feature(val key: String, @StringRes val labelRes: Int) {
  * Administration; the admin principal always sees every module, to try it first.
  */
 data class FeatureFlags(val switchedOn: Map<String, Boolean> = emptyMap(), val isOwner: Boolean = false) {
-    fun isOn(feature: Feature): Boolean = isOwner || switchedOn[feature.key] == true
+    fun isOn(feature: Feature): Boolean =
+        if (feature.onByDefault) isOnForFamily(feature) else isOwner || switchedOn[feature.key] == true
 
     /** Switched on for the whole family (what Administration shows). */
-    fun isOnForFamily(feature: Feature): Boolean = switchedOn[feature.key] == true
+    fun isOnForFamily(feature: Feature): Boolean = switchedOn[feature.key] ?: feature.onByDefault
 }

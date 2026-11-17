@@ -16,17 +16,20 @@ class ShareFamiliaTest {
     private fun member(profile: MemberProfile) =
         Member("m1", "Camille", null, null, "h1", profile, isAdmin = false, parentIds = emptyList(), uid = null)
 
+    private fun member(id: String, profile: MemberProfile) = member(profile).copy(id = id)
+
     @Test
-    fun `every adult may share the app, children may not`() {
-        assertTrue(canShareApp(member(MemberProfile.Adult), LINK))
-        assertFalse(canShareApp(member(MemberProfile.ChildWithApp), LINK))
-        assertFalse(canShareApp(member(MemberProfile.ChildWithoutApp), LINK))
-        assertFalse(canShareApp(null, LINK))
+    fun `only the admin principal may share the app, not the other adults`() {
+        assertTrue(canShareApp(member("noe", MemberProfile.Adult), "noe", LINK))
+        assertFalse(canShareApp(member("ines", MemberProfile.Adult), "noe", LINK))
+        assertFalse(canShareApp(member("lou", MemberProfile.ChildWithApp), "noe", LINK))
+        assertFalse(canShareApp(member("noe", MemberProfile.Adult), null, LINK))
+        assertFalse(canShareApp(null, "noe", LINK))
     }
 
     @Test
     fun `without an install link (a local build), nobody is offered the button`() {
-        assertFalse(canShareApp(member(MemberProfile.Adult), " "))
+        assertFalse(canShareApp(member("noe", MemberProfile.Adult), "noe", " "))
         assertFalse(hasInstallLink(""))
     }
 

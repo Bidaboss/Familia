@@ -38,10 +38,10 @@ describe('config/app', () => {
     await assertSucceeds(setDoc(doc(db, 'config/app'), { features: { gifts: false, trips: true } }, { merge: true }));
     await assertFails(updateDoc(doc(db, 'config/app'), { features: { gifts: true }, latestVersionCode: 99 }));
     await assertFails(updateDoc(doc(db, 'config/app'), { features: 'all' }));
-    // Room for 40 modules (relevé de 30 à 40 avec les vœux d'anniversaire, récit 36).
-    const forty = Object.fromEntries(Array.from({ length: 40 }, (_, i) => [`m${i}`, true]));
-    await assertSucceeds(updateDoc(doc(db, 'config/app'), { features: forty }));
-    const many = Object.fromEntries(Array.from({ length: 41 }, (_, i) => [`m${i}`, true]));
+    // Room for 60 modules (relevé de 40 à 60 avec la présentation R1 bis, 39 interrupteurs déjà).
+    const sixty = Object.fromEntries(Array.from({ length: 60 }, (_, i) => [`m${i}`, true]));
+    await assertSucceeds(updateDoc(doc(db, 'config/app'), { features: sixty }));
+    const many = Object.fromEntries(Array.from({ length: 61 }, (_, i) => [`m${i}`, true]));
     await assertFails(updateDoc(doc(db, 'config/app'), { features: many }));
   });
 

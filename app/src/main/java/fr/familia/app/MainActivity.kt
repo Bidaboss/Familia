@@ -9,9 +9,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.familia.app.core.navigation.FamiliaApp
-import fr.familia.app.core.notifications.FamiliaMessagingService
-import fr.familia.app.core.share.ShareKind
-import fr.familia.app.core.share.parseSharedLink
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.viewas.ViewAsHost
 import fr.familia.app.feature.gifts.share.SharedWish
@@ -59,23 +56,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        if (savedInstanceState == null) {
-            openEventId.value = intent.eventId()
-            openListId.value = intent.listId()
-            openHelpRequestId.value = intent.helpRequestId()
-            openGoodNewsId.value = intent.goodNewsId()
-            openTripId.value = intent.tripId()
-            openWeeklyQuestionId.value = intent.weeklyQuestionId()
-            openSouvenir.value = intent.hasSouvenir()
-            openPollId.value = intent.pollId()
-            openJoinMe.value = intent.hasJoinMe()
-            openCapsuleId.value = intent.capsuleId()
-            openRecap.value = intent.recapWeek()
-            (intent.birthdayOf() ?: intent.welcomeOf() ?: intent.thinkOfMeOf())?.let { openMemberId.value = it }
-            openFeedback.value = intent.feedback()
-            sharedWish.value = intent.sharedWish()
-            openSharedLink(intent)
-        }
+        // One door for every link (audit): the same in onCreate and onNewIntent.
+        if (savedInstanceState == null) open(intent)
         val app = application as FamiliaApplication
         val container = app.container
         setContent {
@@ -140,63 +122,28 @@ class MainActivity : ComponentActivity() {
     /** The app was already open (singleTop) when a notification was tapped. */
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        intent.eventId()?.let { openEventId.value = it }
-        intent.listId()?.let { openListId.value = it }
-        intent.helpRequestId()?.let { openHelpRequestId.value = it }
-        intent.goodNewsId()?.let { openGoodNewsId.value = it }
-        intent.tripId()?.let { openTripId.value = it }
-        intent.weeklyQuestionId()?.let { openWeeklyQuestionId.value = it }
-        if (intent.hasSouvenir()) openSouvenir.value = true
-        intent.pollId()?.let { openPollId.value = it }
-        if (intent.hasJoinMe()) openJoinMe.value = true
-        intent.capsuleId()?.let { openCapsuleId.value = it }
-        intent.recapWeek()?.let { openRecap.value = it }
-        (intent.birthdayOf() ?: intent.welcomeOf() ?: intent.thinkOfMeOf())?.let { openMemberId.value = it }
-        intent.feedback()?.let { openFeedback.value = it }
-        intent.sharedWish()?.let { sharedWish.value = it }
-        openSharedLink(intent)
+        open(intent)
     }
 
-    /**
-     * A link of a share (récit 31): the same doors as a tapped notification. The security rules
-     * still decide: an item the member cannot read shows « introuvable », as for a deleted one.
-     */
-    private fun openSharedLink(intent: Intent) {
-        if (intent.action != Intent.ACTION_VIEW) return
-        val uri = intent.data ?: return
-        val link = parseSharedLink(uri.scheme, uri.host, uri.path) ?: return
-        when (link.kind) {
-            ShareKind.Event -> openEventId.value = link.id
-            ShareKind.Poll -> openPollId.value = link.id
-            ShareKind.Birthday -> openMemberId.value = link.id
-            ShareKind.List -> openListId.value = link.id
-            ShareKind.GoodNews -> openGoodNewsId.value = link.id
-            ShareKind.Trip -> openTripId.value = link.id
-            ShareKind.HelpRequest -> openHelpRequestId.value = link.id
+    /** Each door of [intent] (see [deepLinks]) is opened once the member is signed in. */
+    private fun open(intent: Intent) {
+        intent.deepLinks().forEach { link ->
+            when (link) {
+                is DeepLink.Event -> openEventId.value = link.id
+                is DeepLink.GiftList -> openListId.value = link.id
+                is DeepLink.HelpRequest -> openHelpRequestId.value = link.id
+                is DeepLink.GoodNews -> openGoodNewsId.value = link.id
+                is DeepLink.Trip -> openTripId.value = link.id
+                is DeepLink.WeeklyQuestion -> openWeeklyQuestionId.value = link.id
+                DeepLink.Souvenir -> openSouvenir.value = true
+                is DeepLink.Poll -> openPollId.value = link.id
+                DeepLink.JoinMe -> openJoinMe.value = true
+                is DeepLink.Capsule -> openCapsuleId.value = link.id
+                is DeepLink.Recap -> openRecap.value = link.week
+                is DeepLink.Member -> openMemberId.value = link.id
+                is DeepLink.Feedback -> openFeedback.value = link.key
+            }
         }
+        intent.sharedWish()?.let { sharedWish.value = it }
     }
-
-    private fun Intent.eventId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_EVENT_ID)
-
-    private fun Intent.listId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_LIST_ID)
-
-    private fun Intent.helpRequestId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_HELP_REQUEST_ID)
-
-    private fun Intent.goodNewsId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_GOOD_NEWS_ID)
-    private fun Intent.tripId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_TRIP_ID)
-
-    private fun Intent.weeklyQuestionId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_WEEKLY_QUESTION_ID)
-
-    private fun Intent.hasSouvenir(): Boolean = getStringExtra(FamiliaMessagingService.EXTRA_SOUVENIR_KEY) != null
-    private fun Intent.pollId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_POLL_ID)
-    private fun Intent.hasJoinMe(): Boolean = getStringExtra(FamiliaMessagingService.EXTRA_JOIN_ME_ID) != null
-    private fun Intent.capsuleId(): String? = getStringExtra(FamiliaMessagingService.EXTRA_CAPSULE_ID)
-    private fun Intent.feedback(): String? = getStringExtra(FamiliaMessagingService.EXTRA_FEEDBACK)
-
-    /** The Sunday of the recap notice (AAAA-MM-JJ), or null. */
-    private fun Intent.recapWeek(): String? = getStringExtra(FamiliaMessagingService.EXTRA_RECAP_WEEK)
-    private fun Intent.birthdayOf(): String? = getStringExtra(FamiliaMessagingService.EXTRA_BIRTHDAY_OF)
-    private fun Intent.welcomeOf(): String? = getStringExtra(FamiliaMessagingService.EXTRA_WELCOME_OF)
-
-    private fun Intent.thinkOfMeOf(): String? = getStringExtra(FamiliaMessagingService.EXTRA_THINK_OF_ME_OF)
 }

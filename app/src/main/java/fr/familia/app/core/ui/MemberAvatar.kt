@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -80,12 +81,18 @@ fun MemberAvatar(member: Member, modifier: Modifier = Modifier, size: Dp = 40.dp
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = member.firstName.take(1).uppercase(),
+            text = LocalMemberInitials.current[member.id] ?: member.firstName.take(1).uppercase(),
             style = MaterialTheme.typography.titleMedium,
             color = OnMemberColor,
         )
     }
 }
+
+/**
+ * The letters of each avatar, by member id (DESIGN-19, [memberInitials]): given for the whole app
+ * while the R1 bis presentation is on. Empty, every avatar shows its single initial.
+ */
+val LocalMemberInitials = staticCompositionLocalOf<Map<String, String>> { emptyMap() }
 
 /**
  * Same color on every phone for a given member: the one an admin chose, or else one derived from
