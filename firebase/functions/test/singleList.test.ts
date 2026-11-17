@@ -6,9 +6,9 @@ import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { notebookEntryId, syncNotebookEntry } from '../src/notebook';
-import { copiedItemId, keptOccasion, migrateToSingleList, singleListTarget, widenedAudience } from '../src/singleList';
+import { cleanupOldLists, copiedItemId, keptOccasion, migrateToSingleList, singleListTarget, widenedAudience } from '../src/singleList';
 import { copiedItemPhoto } from '../src/itemPhoto';
-import { revealGiftLists } from '../src/gifts';
+import { onGiftItemChanged, revealGiftLists } from '../src/gifts';
 import { revealWishesOf } from '../src/wishesReveal';
 import type { Sender } from '../src/store';
 
@@ -222,5 +222,70 @@ describe('single list migration', () => {
     assert.equal(await migrateToSingleList(db), 0);
     assert.equal((await lists.doc('wishes-ines').get()).exists, false);
     assert.equal((await db.collection('migrations').doc('singleList').collection('items').get()).size, 0);
+  });
+
+  // After the 21st (PRODUIT-58): the old lists go, by hand, only when nothing would be lost.
+  const after21 = new Date('2026-11-23T09:00:00Z');
+  const cleanupOn = { features: { gifts: true, singleList: true, oldListsCleanup: true } };
+
+  test('the old lists copied whole go after the 21st, their copies and the revealed list stay', async () => {
+    // Without a photo: one not copied keeps its list (next test).
+    await lists.doc('noel-ines').collection('items').doc('book').set(item('Un livre', true));
+    await migrateToSingleList(db);
+    await db.doc('config/app').set(cleanupOn);
+    assert.deepEqual(await cleanupOldLists(db, after21), { deleted: 2, kept: 0 });
+    assert.equal((await lists.doc('noel-ines').get()).exists, false);
+    assert.equal((await lists.doc('noel-ines').collection('items').get()).size, 0);
+    assert.equal((await lists.doc('surprise-ines').get()).exists, false);
+    assert.equal((await lists.doc('old-ines').get()).exists, true);
+    assert.equal((await lists.doc('wishes-ines').collection('items').get()).size, 1);
+    assert.equal((await lists.doc('ideas-ines').collection('items').get()).size, 2);
+    // The reservation and its part live on in the copy; the old notebook entry, which only pointed to it, goes.
+    const copy = copiedItemId('noel-ines', 'book');
+    assert.equal((await lists.doc('wishes-ines').collection('claims').doc(copy).collection('shares').doc('jules').get()).exists, true);
+    assert.equal((await db.doc(`notebooks/camille/entries/${notebookEntryId('noel-ines', 'book')}`).get()).exists, false);
+    const kept = await db.doc(`notebooks/camille/entries/${notebookEntryId('wishes-ines', copy)}`).get();
+    assert.equal(kept.get('note'), 'Caché au grenier');
+    assert.equal((await db.doc('migrations/singleList/lists/noel-ines').get()).get('status'), 'deleted');
+  });
+
+  test('nothing goes before the 22nd, nor with a switch off', async () => {
+    await migrateToSingleList(db);
+    await db.doc('config/app').set(cleanupOn);
+    assert.deepEqual(await cleanupOldLists(db, new Date('2026-11-21T20:00:00Z')), { deleted: 0, kept: 0 });
+    await db.doc('config/app').set({ features: { gifts: true, singleList: true } });
+    assert.deepEqual(await cleanupOldLists(db, after21), { deleted: 0, kept: 0 });
+    await db.doc('config/app').set({ features: { gifts: true, oldListsCleanup: true } });
+    assert.deepEqual(await cleanupOldLists(db, after21), { deleted: 0, kept: 0 });
+    assert.equal((await lists.doc('noel-ines').get()).exists, true);
+  });
+
+  test('a list with an item added after the copy, or a photo not copied, stays', async () => {
+    await migrateToSingleList(db);
+    await db.doc('config/app').set(cleanupOn);
+    await lists.doc('surprise-ines').collection('items').doc('late').set(item('Un pull', false, 'camille'));
+    // « Plus de photos » was off at the copy: the photo of the book is only in the old list.
+    assert.deepEqual(await cleanupOldLists(db, after21), { deleted: 0, kept: 2 });
+    assert.equal((await lists.doc('noel-ines').get()).exists, true);
+    assert.equal((await lists.doc('surprise-ines').get()).exists, true);
+    assert.equal((await db.doc('migrations/singleList/lists/noel-ines').get()).get('cleanup'), 'photo not copied');
+  });
+
+  test('a list skipped or copied in part is never deleted', async () => {
+    await migrateToSingleList(db);
+    await db.doc('config/app').set(cleanupOn);
+    await db.doc('migrations/singleList/lists/noel-ines').set({ status: 'partial' });
+    await db.doc('migrations/singleList/lists/surprise-ines').set({ status: 'skipped' });
+    assert.deepEqual(await cleanupOldLists(db, after21), { deleted: 0, kept: 0 });
+    assert.equal((await lists.doc('noel-ines').get()).exists, true);
+  });
+
+  test('the items of an old list removed after the 21st tell nobody', async () => {
+    await db.doc('migrations/singleList/lists/noel-ines').set({ status: 'deleted' });
+    const sent: string[][] = [];
+    const send: Sender = async (token) => { sent.push([token]); return 'ok'; };
+    const book = (await lists.doc('noel-ines').collection('items').doc('book').get()).data() as never;
+    assert.equal(await onGiftItemChanged(db, send, 'noel-ines', 'book', book, undefined), 0);
+    assert.equal(sent.length, 0);
   });
 });

@@ -57,7 +57,7 @@ import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type Birt
 import { deleteWelcomeOf, isFirstSignIn, sendQueuedWelcomes, welcomeMember } from './welcome';
 import { deleteCheersOf, deleteMomentsOf, onMomentCheerCreated, startMoments, type MomentCheer } from './thinkOfMe';
 import { keepReceivedPhoto, revealWishes, thankGivers } from './wishesReveal';
-import { migrateToSingleList } from './singleList';
+import { cleanupOldLists, migrateToSingleList } from './singleList';
 import { deleteEventReminders, sendMyReminders } from './reminders';
 import { sendPackingReminders } from './packing';
 import { deleteItemPhoto } from './itemPhoto';
@@ -433,6 +433,15 @@ export const onSingleListSwitched = onDocumentWritten({ document: 'config/app', 
   if (before || !after) return;
   const copied = await migrateToSingleList(getFirestore());
   console.log(`singleList: ${copied} items copied`);
+});
+
+// After the 21st (PRODUIT-58): turned on by hand, its switch removes the old lists whose copy is whole.
+export const onOldListsCleanupSwitched = onDocumentWritten({ document: 'config/app', timeoutSeconds: 540 }, async (event) => {
+  const before = event.data?.before.get('features.oldListsCleanup') === true;
+  const after = event.data?.after.get('features.oldListsCleanup') === true;
+  if (before || !after) return;
+  const { deleted, kept } = await cleanupOldLists(getFirestore(), new Date());
+  console.log(`oldListsCleanup: ${deleted} lists deleted, ${kept} kept`);
 });
 
 export const onMemberDeletedGifts = onDocumentDeleted('members/{memberId}', async (event) => {

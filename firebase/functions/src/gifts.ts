@@ -8,6 +8,7 @@ import type { DocumentSnapshot, Firestore } from 'firebase-admin/firestore';
 import { addDays, formatDay, Notice, parisDay, Profile } from './logic';
 import { notify, Sender } from './store';
 import { wasMarkedReceived, wasRevealed } from './wishesReveal';
+import { cleanedUp } from './singleList';
 
 export interface GiftMember {
   id: string;
@@ -247,6 +248,8 @@ export async function onGiftItemChanged(
   if (after && !itemChanged(before, after)) return 0;
   // A revealed wish left the list for « On m'a offert »: nothing was cancelled (wishesReveal.ts).
   if (!after && (await wasRevealed(db, listId, itemId))) return 0;
+  // An old list removed after the 21st (PRODUIT-58): its gifts live on in their copies.
+  if (!after && (await cleanedUp(db, listId))) return 0;
   const { claim, ids } = await reservers(db, listId, itemId);
   let sent = 0;
   if (ids.length > 0) {

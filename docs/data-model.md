@@ -464,6 +464,8 @@ Ce que le membre prévoit d'offrir. Seul ce membre lit et écrit son carnet : ni
 
 Écrit par la fonction seule, jamais lu par l'appli. Une liste n'est copiée que si tous ceux qui liraient sa copie la voient déjà (ses `viewerIds` couvrent toute la famille sauf la personne, les enfants sans l'appli mis à part). Sinon elle reste telle quelle : `status: 'skipped'`, `reason: 'audience'`, `missing` (le nombre de membres qui la verraient en plus). Une liste copiée porte `status: 'copied'`, ou `'partial'` si un article a échoué (il est repris au prochain allumage) : tant que l'interrupteur est allumé, la révélation du matin des anciennes listes la laisse de côté dans les deux cas, puisque ses cadeaux sont dévoilés un par un depuis « Mes envies » et les idées. Champ commun : `at`.
 
+Après le 21 (PRODUIT-58), l'interrupteur `oldListsCleanup`, allumé à la main dans Administration avec « Liste unique », efface les listes `copied` dont chaque article a sa copie (et sa photo quand il en avait une). Rien ne se passe avant le 22/11 (heure de Paris). La marque passe d'abord à `status: 'deleted'` (`deletedAt`) : les articles effacés ne préviennent alors personne, et les anciennes entrées de carnet (`movedTo`) partent aussi. Une liste gardée reçoit `cleanup` : `'item not copied'` ou `'photo not copied'`.
+
 ### `notebooks/{memberId}/budgets/{budgetId}`
 
 Ce que le membre compte dépenser pour une personne et une occasion : `personId` (ou null), `personName`, `occasion`, `year`, `amount` (de 0 exclu à 100 000 euros), `updatedAt`. Seul le membre le lit et l'écrit.
