@@ -3,10 +3,13 @@ package fr.familia.app.feature.recipes
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fr.familia.app.core.album.AlbumPhoto
+import fr.familia.app.core.album.AlbumPhotoRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.RecipeRepository
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Recipe
+import fr.familia.app.core.photo.PhotoUploader
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -71,7 +74,13 @@ sealed interface RecipeEditUiState {
         val hasChanges: Boolean = false,
         val isSaving: Boolean = false,
         val saveFailed: Boolean = false,
-    ) : RecipeEditUiState
+        /** A new recipe only: the photos of the dish chosen on the phone, sent once it is saved. */
+        val photos: List<String> = emptyList(),
+        /** Sending photo n after the recipe is written; null otherwise. */
+        val sendingPhoto: Int? = null,
+    ) : RecipeEditUiState {
+        val canAddPhotos: Boolean get() = isNew && photos.size < RECIPE_PHOTOS && !isSaving
+    }
 
     /** Saved (or queued until the network is back): [recipeId] opens next. */
     data class Done(val recipeId: String) : RecipeEditUiState
@@ -86,6 +95,9 @@ class RecipeEditViewModel(
     private val writeTimeoutMillis: Long = 4_000,
     /** Keeps the draft when Android stops the app in the background (relecture #82, C3). */
     private val savedState: SavedStateHandle = SavedStateHandle(),
+    /** The photos of a new recipe go to its album once it is written (retour de Kévin, 17/11). */
+    private val photos: AlbumPhotoRepository? = null,
+    private val uploader: PhotoUploader? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<RecipeEditUiState>(RecipeEditUiState.Loading)
@@ -145,6 +157,19 @@ class RecipeEditViewModel(
         )
     }
 
+    /** Photos chosen on the phone for a new recipe, [RECIPE_PHOTOS] at most. */
+    fun addPhotos(uris: List<String>) {
+        val state = _uiState.value as? RecipeEditUiState.Editing ?: return
+        if (!state.canAddPhotos) return
+        _uiState.value = state.copy(photos = (state.photos + uris).distinct().take(RECIPE_PHOTOS), hasChanges = true)
+    }
+
+    fun removePhoto(uri: String) {
+        val state = _uiState.value as? RecipeEditUiState.Editing ?: return
+        if (state.isSaving) return
+        _uiState.value = state.copy(photos = state.photos - uri)
+    }
+
     private fun keepDraft(form: RecipeForm) {
         savedState[DRAFT_TITLE] = form.title
         savedState[DRAFT_ORIGIN_MEMBER] = form.originMemberId.orEmpty()
@@ -168,6 +193,28 @@ class RecipeEditViewModel(
             tags = savedState.get<String>(DRAFT_TAGS).orEmpty(),
             story = savedState.get<String>(DRAFT_STORY).orEmpty(),
         )
+    }
+
+    /**
+     * The photos of a new recipe, once it is written: each in its place of the album (1 to 3), the
+     * files first, then the record, as on the recipe itself. A photo that cannot go is left out: it
+     * can still be added from the recipe.
+     */
+    private suspend fun sendPhotos(recipeId: String, author: Member, sources: List<String>) {
+        val repo = photos ?: return
+        val upload = uploader ?: return
+        sources.take(RECIPE_PHOTOS).forEachIndexed { index, source ->
+            (_uiState.value as? RecipeEditUiState.Editing)?.let { _uiState.value = it.copy(sendingPhoto = index + 1) }
+            val photo = AlbumPhoto(recipePhotoFolder(recipeId), author.id, author.firstName, index + 1, createdAt = null)
+            try {
+                upload.upload(source, photo.photoPath, photo.thumbnailPath)
+                withTimeoutOrNull(writeTimeoutMillis) { repo.addPhoto(photo.folder, photo.slot, author) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Unreadable, refused or no network: the recipe is there, the photo can wait.
+            }
+        }
     }
 
     fun save() {
@@ -208,6 +255,7 @@ class RecipeEditViewModel(
                 false
             }
             if (written) {
+                if (original == null) sendPhotos(recipe.id, author, state.photos)
                 _uiState.value = RecipeEditUiState.Done(recipe.id)
             } else {
                 (_uiState.value as? RecipeEditUiState.Editing)?.let { _uiState.value = it.copy(isSaving = false, saveFailed = true) }

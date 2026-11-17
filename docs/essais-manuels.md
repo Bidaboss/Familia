@@ -765,3 +765,12 @@ La mise à jour :
 13. Coupe le réseau (mode avion), rouvre Familia. **Attendu :** le bandeau « Hors ligne » et les données, sans écran d'erreur.
 
 Si quelque chose ne va pas à l'étape 7 (écran de connexion) ou 9 (données absentes), ne désinstalle pas l'appli : note la version, fais une capture et préviens [DEV]. Désinstaller effacerait la copie hors ligne, mais pas les données, qui restent dans Firebase.
+
+## Une photo dès la création d'une recette
+
+1. Onglet Famille > Recettes > « Ajouter une recette ». Remplis le titre, les ingrédients et les étapes.
+2. Plus bas, sous « Photos du plat », touche « Ajouter une photo du plat ». Le sélecteur de photos d'Android s'ouvre, sans demander de permission. Choisis 2 photos.
+3. Les 2 photos s'affichent en petit, chacune avec « Retirer la photo ». Le bouton dit maintenant « Ajouter des photos (encore 1) ». Après une 3e photo, il disparaît.
+4. Touche « Enregistrer ». Le bouton affiche « Envoi de la photo 1 sur 2… », puis la recette s'ouvre avec ses photos dans « Photos du plat ».
+5. Sans réseau : la recette s'enregistre quand même. Les photos ne partent pas ; tu peux les ajouter plus tard depuis la recette.
+6. Ouvre une recette existante et touche « Modifier » : pas de champ photo dans le formulaire, les photos se gèrent sur la recette elle-même.
