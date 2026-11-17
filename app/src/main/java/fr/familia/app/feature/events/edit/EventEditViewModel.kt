@@ -69,6 +69,11 @@ class EventEditViewModel(
     }
 
     private suspend fun load() {
+        // Stopped by Android while the write was leaving: it is in Firestore's queue, never sent twice.
+        when (savedState?.get<String>(KEY_SENT)) {
+            SENT_SAVED -> return run { _uiState.value = EventEditUiState.Done(Confirmation.Saved) }
+            SENT_DELETED -> return run { _uiState.value = EventEditUiState.Done(Confirmation.Deleted) }
+        }
         val eventRepo = events ?: return
         val memberRepo = members ?: return
         val loaded = try {
@@ -167,6 +172,7 @@ class EventEditViewModel(
             _uiState.value = state.copy(isSaving = true, saveFailed = false)
             viewModelScope.launch {
                 val created = state.form.toSeries(seriesRepo.newSeriesId(), author.id, author.firstName, newRule)
+                savedState?.set(KEY_SENT, SENT_SAVED)
                 val sent = write { seriesRepo.saveSeries(created, isNew = true) }
                 if (sent != null) _uiState.value = EventEditUiState.Done(sent.or(Confirmation.Saved)) else markFailed()
             }
@@ -191,6 +197,7 @@ class EventEditViewModel(
                 authorName = original?.authorName ?: author.firstName,
                 coverPhoto = cover,
             ).copy(seriesId = original?.seriesId, occurrence = original?.occurrence)
+            savedState?.set(KEY_SENT, SENT_SAVED)
             val sent = write { repo.saveEvent(event, isNew = original == null) }
             if (sent != null) {
                 photos?.cleanUp(previous = before, saved = cover)
@@ -219,6 +226,7 @@ class EventEditViewModel(
             if (scope == SeriesScope.ThisOnly && ofSeries.exdates.size >= EventSeries.MAX_EXDATES) return markFailed()
             _uiState.value = state.copy(isSaving = true, saveFailed = false)
             viewModelScope.launch {
+                savedState?.set(KEY_SENT, SENT_DELETED)
                 val sent = write {
                     when {
                         scope == SeriesScope.ThisOnly ->
@@ -233,6 +241,7 @@ class EventEditViewModel(
         }
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
+            savedState?.set(KEY_SENT, SENT_DELETED)
             val sent = write { repo.deleteEvent(event.id) }
             if (sent != null) _uiState.value = EventEditUiState.Done(sent.or(Confirmation.Deleted)) else markFailed()
         }
@@ -253,6 +262,7 @@ class EventEditViewModel(
         val sameRhythm = form.date == day && rule.copy(start = ofSeries.rule.start) == ofSeries.rule
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
+            savedState?.set(KEY_SENT, SENT_SAVED)
             val sent = write {
                 when {
                     sameRhythm -> repo.saveSeries(
@@ -277,6 +287,7 @@ class EventEditViewModel(
         if (showErrors) validate(form, state.targets.map { it.target }) else emptySet()
 
     private fun markFailed() {
+        savedState?.remove<String>(KEY_SENT)
         val state = _uiState.value as? EventEditUiState.Editing ?: return
         _uiState.value = state.copy(isSaving = false, saveFailed = true)
     }
@@ -286,6 +297,10 @@ class EventEditViewModel(
 
     private companion object {
         const val KEY_ID = "eventDraft.id"
+        /** The write left (it waits in Firestore's queue): after Android stops the app, never twice. */
+        const val KEY_SENT = "eventDraft.sent"
+        const val SENT_SAVED = "saved"
+        const val SENT_DELETED = "deleted"
         const val KEY_TITLE = "eventDraft.title"
         const val KEY_DATE = "eventDraft.date"
         const val KEY_TIME = "eventDraft.time"

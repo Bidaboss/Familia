@@ -1003,3 +1003,25 @@ Avec le deuxième téléphone de test, sur un compte qui n'a jamais ouvert ses r
 3. Le lendemain, entre 8 h et 8 h 30. **Attendu :** une seule notification « Cette nuit dans Familia » avec les titres de la nuit. Une surprise (cadeaux, capsule) arriverait à part.
 4. Sur un compte où tu as éteint « Calme la nuit » toi-même, refais l'étape 2. **Attendu :** il sonne tout de suite, comme avant.
 5. Une capsule prévue pour aujourd'hui. **Attendu :** elle s'ouvre et sonne à partir de 8 h, jamais en pleine nuit.
+
+## Démo du 21 : l'appli arrêtée par Android pendant une saisie
+
+Pendant le repas, on passe d'une appli à l'autre (appareil photo, WhatsApp), et Android peut arrêter Familia entre-temps. Pour le reproduire à coup sûr :
+
+Avant de commencer :
+1. Ouvre **Paramètres** > **À propos du téléphone**. Touche 7 fois **Numéro de build** pour activer les options pour les développeurs.
+2. Dans **Paramètres** > **Système** > **Options pour les développeurs**, allume **Ne pas conserver les activités**.
+
+Les étapes :
+3. **Créer un événement.** Planning, puis +. Tape un titre, une date, un lieu et une note. Appuie sur le bouton d'accueil d'Android, ouvre l'appareil photo, puis reviens dans Familia. **Attendu :** le formulaire est là, avec tout ce que tu as tapé.
+4. **Modifier un événement.** Fais la même chose depuis « Modifier » sur un événement existant. **Attendu :** pareil.
+5. **Sondage.** Ouvre un nouveau sondage. Tape une question, deux dates (dont une avec une heure), et décoche un foyer. Passe par l'appareil photo, puis reviens. **Attendu :** la question, les dates, l'heure et les cases cochées sont là.
+6. **Fiche membre** (Famille > un membre > Modifier, ou Ajouter). Change le prénom et la date de naissance, puis passe par WhatsApp et reviens. **Attendu :** tes changements sont là.
+7. **Administration**, « Ajouter un foyer ». Tape un nom, passe par l'appareil photo et reviens. **Attendu :** la fenêtre est ouverte, avec le nom tapé.
+8. **Dire où je suis.** Touche « Ici » et attends l'adresse. Coche un membre et écris une note, puis passe par l'appareil photo et reviens. **Attendu :** l'adresse, la note et le membre coché sont là, et « Envoyer » est actif.
+9. **Pas de double envoi.** Coupe le réseau (mode avion). Dans un sondage, touche « Envoyer », puis quitte tout de suite vers l'appareil photo et reviens. **Attendu :** l'écran du sondage est fermé, et pas rouvert avec le formulaire. Rallume le réseau. **Attendu :** le sondage apparaît une seule fois. Fais la même chose avec « Dire où je suis » et avec un nouvel événement.
+10. **Pas d'écran vide.** À chaque retour, l'écran montre le formulaire, ou bien il est déjà fermé. Il ne reste jamais blanc ni sur une roue qui tourne sans fin.
+
+À la fin, éteins **Ne pas conserver les activités**.
+
+Une limite connue : la position « Ici » revient telle qu'elle était au départ. Si tu as bougé entre-temps, touche à nouveau « Ici ».

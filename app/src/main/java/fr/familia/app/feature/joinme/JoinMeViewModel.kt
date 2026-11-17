@@ -1,5 +1,6 @@
 package fr.familia.app.feature.joinme
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.JoinMeRepository
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * « Rejoignez-moi » (PRD, récit 33): the position of the moment, read once when the member asks
@@ -31,6 +33,10 @@ class JoinMeViewModel(
     private val shares: JoinMeRepository?,
     private val locator: PlaceLocator?,
     private val currentMemberId: String,
+    /** Keeps what is typed when Android stops the app in the background (appareil photo, WhatsApp…). */
+    private val savedState: SavedStateHandle? = null,
+    /** Offline, the share waits in Firestore's queue: after this, the screen closes as sent. */
+    private val sendTimeoutMillis: Long = 4_000,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<JoinMeUiState>(JoinMeUiState.Loading)
@@ -56,14 +62,23 @@ class JoinMeViewModel(
             _uiState.value = JoinMeUiState.Unavailable
             return
         }
+        // Stopped by Android while the share was leaving: it is in Firestore's queue, never sent twice.
+        if (savedState?.get<Boolean>(KEY_SENT) == true) {
+            _uiState.value = JoinMeUiState.Sent
+            return
+        }
         me = current
         val groups = recipientGroups(family, current)
-        _uiState.value = JoinMeUiState.Editing(groups = groups, shortcuts = shortcuts(groups, current))
+        val everyone = family.members.map { it.id }.toSet()
+        val fresh = JoinMeUiState.Editing(groups = groups, shortcuts = shortcuts(groups, current))
+        val restored = savedState?.let { restoreJoinMe(it, fresh) }?.let { it.copy(recipientIds = it.recipientIds.filter { id -> id in everyone }.toSet()) }
+        _uiState.value = restored?.copy(errors = errorsOf(restored)) ?: fresh
     }
 
     private fun update(change: (JoinMeUiState.Editing) -> JoinMeUiState.Editing) {
         val state = _uiState.value as? JoinMeUiState.Editing ?: return
         val next = change(state)
+        savedState?.let { saveJoinMe(it, next) }
         _uiState.value = next.copy(errors = errorsOf(next), sendFailed = if (next.sending) false else next.sendFailed)
     }
 
@@ -141,19 +156,24 @@ class JoinMeViewModel(
         val place = state.place ?: return
         if (!state.canSend) return
         update { it.copy(sending = true) }
+        savedState?.set(KEY_SENT, true)
         viewModelScope.launch {
             try {
-                repo.send(
-                    authorId = author.id,
-                    authorName = author.firstName,
-                    recipientIds = state.recipientIds.sorted(),
-                    place = place.copy(name = state.name.trim().ifEmpty { null }),
-                    note = state.note.trim().ifEmpty { null },
-                )
+                // Still pending after the timeout: queued offline, sent when the network is back.
+                withTimeoutOrNull(sendTimeoutMillis) {
+                    repo.send(
+                        authorId = author.id,
+                        authorName = author.firstName,
+                        recipientIds = state.recipientIds.sorted(),
+                        place = place.copy(name = state.name.trim().ifEmpty { null }),
+                        note = state.note.trim().ifEmpty { null },
+                    )
+                }
                 _uiState.value = JoinMeUiState.Sent
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                savedState?.set(KEY_SENT, false)
                 update { it.copy(sending = false, sendFailed = true) }
             }
         }
@@ -199,5 +219,37 @@ internal fun shortcuts(groups: List<RecipientGroup>, me: Member): List<Recipient
     return listOfNotNull(
         RecipientShortcut(RecipientShortcut.Kind.MyHousehold, mine).takeIf { mine.isNotEmpty() },
         RecipientShortcut(RecipientShortcut.Kind.Family, everyone).takeIf { everyone.isNotEmpty() && everyone != mine },
+    )
+}
+
+private const val KEY_SENT = "joinMeDraft.sent"
+private const val KEY_DRAFT = "joinMeDraft."
+
+/** What is typed, and the place found, as plain values the SavedStateHandle can keep. */
+internal fun saveJoinMe(handle: SavedStateHandle, state: JoinMeUiState.Editing) {
+    handle[KEY_DRAFT + "source"] = state.source.name
+    handle[KEY_DRAFT + "query"] = state.query
+    handle[KEY_DRAFT + "name"] = state.name
+    handle[KEY_DRAFT + "note"] = state.note
+    handle[KEY_DRAFT + "recipients"] = ArrayList(state.recipientIds)
+    val place = state.place
+    handle[KEY_DRAFT + "lat"] = place?.lat
+    handle[KEY_DRAFT + "lng"] = place?.lng
+    handle[KEY_DRAFT + "address"] = place?.address
+}
+
+/** The form kept before Android stopped the app, on top of [fresh]; null when nothing was kept. */
+internal fun restoreJoinMe(handle: SavedStateHandle, fresh: JoinMeUiState.Editing): JoinMeUiState.Editing? {
+    val source = handle.get<String>(KEY_DRAFT + "source")?.let { name -> PlaceSource.entries.firstOrNull { it.name == name } } ?: return null
+    val lat = handle.get<Double>(KEY_DRAFT + "lat")
+    val lng = handle.get<Double>(KEY_DRAFT + "lng")
+    val place = if (lat != null && lng != null) Place(lat, lng, address = handle.get<String>(KEY_DRAFT + "address")) else null
+    return fresh.copy(
+        source = source,
+        lookup = place?.let { PlaceLookup.Found(it) } ?: PlaceLookup.Idle,
+        query = handle.get<String>(KEY_DRAFT + "query").orEmpty(),
+        name = handle.get<String>(KEY_DRAFT + "name").orEmpty(),
+        note = handle.get<String>(KEY_DRAFT + "note").orEmpty(),
+        recipientIds = handle.get<ArrayList<String>>(KEY_DRAFT + "recipients").orEmpty().toSet(),
     )
 }
