@@ -13,6 +13,8 @@ import fr.familia.app.core.model.HelpStatus
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withTimeoutOrNull
@@ -21,6 +23,10 @@ import java.time.LocalTime
 
 /** Requests live in `helpRequests/{id}`. See docs/data-model.md for the fields and the rights. */
 class FirestoreHelpRequestRepository(private val db: FirebaseFirestore) : HelpRequestRepository {
+
+    private val refusals = MutableSharedFlow<String?>(extraBufferCapacity = 4)
+
+    override val lateRefusals: Flow<String?> = refusals.asSharedFlow()
 
     override fun observeMine(memberId: String): Flow<List<HelpRequest>> = callbackFlow {
         // The rules only let a member read the requests where they are in viewerIds.
@@ -131,7 +137,19 @@ class FirestoreHelpRequestRepository(private val db: FirebaseFirestore) : HelpRe
             throw AlreadyTakenException(cached.getString("volunteerName"))
         }
         // Not awaited: the task ends only once the server has it. The request shows « En attente ».
-        ref.update(fields)
+        // A transaction cut by the timeout of take() still runs and may win first: this write is then
+        // refused too (isHelpTake wants an open request). Not a bug: the volunteer is the same, so
+        // nothing is told, and the cache goes back to what the server holds.
+        val myId = fields["volunteerId"]
+        ref.update(fields).addOnFailureListener { e ->
+            if (e !is FirebaseFirestoreException || e.code != FirebaseFirestoreException.Code.PERMISSION_DENIED) return@addOnFailureListener
+            ref.get(Source.CACHE).addOnCompleteListener { read ->
+                val now = if (read.isSuccessful) read.result else null
+                // Removed meanwhile: nothing to tell.
+                if (now != null && !now.exists()) return@addOnCompleteListener
+                if (now?.getString("volunteerId") != myId) refusals.tryEmit(now?.getString("volunteerName"))
+            }
+        }
     }
 
     override suspend fun withdraw(id: String) = update(

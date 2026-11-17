@@ -641,6 +641,14 @@ fun FamiliaApp(
     val confirm: (Confirmation) -> Unit = { confirmation ->
         scope.launch { snackbar.showConfirmation(context.getString(confirmation.textRes)) }
     }
+    // A « Je m'en occupe » sent offline, refused at the return of the network: said gently, never as an error.
+    LaunchedEffect(container?.helpRequestRepository) {
+        container?.helpRequestRepository?.lateRefusals?.collect { name ->
+            snackbar.showConfirmation(
+                name?.let { context.getString(R.string.helprequest_late_taken_by, it) } ?: context.getString(R.string.helprequest_late_taken),
+            )
+        }
+    }
 
     // Time spent in the app (PRD, récit 1 nonies): counted on this phone only once the module is on
     // for the family, the admin principal included, then sent once a day.
