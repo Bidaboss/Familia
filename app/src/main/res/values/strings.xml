@@ -1116,8 +1116,6 @@
     <string name="event_album_empty">Pas encore de photo. Ceux qui ont dit « Je viens » peuvent en ajouter.</string>
     <!-- Diaporama du mois (récit 42) -->
     <string name="month_title">%1$s en famille</string>
-    <string name="month_home_body">Les photos du mois, les anniversaires, et une vidéo à partager.</string>
-    <string name="month_home_open">Voir le diaporama</string>
     <string name="month_birthdays">Anniversaires du mois</string>
     <string name="month_birthday_day">Le %1$d</string>
     <string name="month_birthday_first">Le 1er</string>

@@ -1,6 +1,5 @@
 package fr.familia.app.feature.month
 
-import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.foundation.layout.Arrangement
@@ -54,17 +53,6 @@ import java.util.Locale
 /** « Novembre », the month alone, as said in French. */
 fun monthName(month: YearMonth): String =
     month.month.getDisplayName(TextStyle.FULL_STANDALONE, Locale.FRENCH).replaceFirstChar { it.titlecase(Locale.FRENCH) }
-
-/** The card of the Accueil, from the last Sunday of the month. */
-@Composable
-fun MonthSlideshowHomeCard(month: YearMonth, onOpen: () -> Unit) {
-    val tint = ClayTint.Plain
-    ClayCard(modifier = Modifier.fillMaxWidth(), tint = tint) {
-        ClayCardTitle(stringResource(R.string.month_title, monthName(month)))
-        Text(stringResource(R.string.month_home_body), style = MaterialTheme.typography.bodyLarge, color = FamiliaClay.colors.onTintVariant(tint))
-        ClayLink(stringResource(R.string.month_home_open), onClick = onOpen)
-    }
-}
 
 /** The slideshow of [month]: its photos, its birthdays, and the video to watch or share. */
 @Composable
@@ -160,10 +148,4 @@ fun previewMonthSlideshow(birthdays: List<Member> = emptyList(), challenge: Mont
 @Composable
 private fun MonthSlideshowPreview() {
     FamiliaTheme { Surface { MonthSlideshowScreen(YearMonth.of(2027, 8), previewMonthSlideshow(), FilmState.Idle, FilmActions(), {}) } }
-}
-
-@FamiliaPreviews
-@Composable
-private fun MonthSlideshowHomeCardPreview() {
-    FamiliaTheme { Surface { MonthSlideshowHomeCard(YearMonth.of(2027, 8)) {} } }
 }
