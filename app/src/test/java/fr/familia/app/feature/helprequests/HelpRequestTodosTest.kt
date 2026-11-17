@@ -100,8 +100,8 @@ class HelpRequestTodosTest {
         assertEquals(HelpStatus.Open, late.status)
         assertEquals(listOf("soon", "only"), viewModel.todos.value.map { it.request.id })
         assertEquals(2, badgeCount(repo.requests.value, TestFamily.otherAdult, today))
-        // The others warned still see it.
-        assertEquals(1, badgeCount(repo.requests.value, TestFamily.admin, today))
+        // The others warned still see it: « late », and « notMe » asked of them only.
+        assertEquals(2, badgeCount(repo.requests.value, TestFamily.admin, today))
     }
 
     @Test
