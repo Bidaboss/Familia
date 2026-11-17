@@ -596,3 +596,12 @@ Interrupteur « Nouvelle présentation » (presentationR1bis), allumé par défa
 10. Taille de police à 130 % puis 200 % : la frise défile de côté, rien ne passe sous la barre du bas.
 11. Sur une tablette (ou en paysage large) : le rail de navigation à gauche, « + » en tête sur l'Accueil, l'Accueil sur deux colonnes.
 12. Dans Administration, éteins « Nouvelle présentation ». **Attendu :** l'ancien Accueil revient, pour toi aussi. Rallume-la.
+
+## Bons plans dans Entraide (récit 45)
+Avec l'interrupteur « Bons plans » allumé (l'admin principal le voit toujours) :
+1. Entraide : **Attendu :** deux onglets en haut, « Coups de main » et « Bons plans ». Interrupteur éteint, pour un autre membre : l'onglet Entraide comme avant, sans onglets.
+2. Bons plans, « Publier » : le rappel « Pas de mot de passe ni de code de porte ici. » est en tête. Le dernier jour est dans 7 jours ; le calendrier ne propose que d'aujourd'hui à dans 3 mois. Publie avec un titre, un lien tapé court (exemple.fr) et une photo. **Attendu :** la carte dit « Jusqu'au … », ton prénom, le site du lien.
+3. Ouvre-le avec un autre membre, touche « Ça m'intéresse ». **Attendu :** « Intéressés : Moi », puis le bouton « Ça ne m'intéresse plus ». Le lien s'ouvre dans le navigateur.
+4. Avec un enfant qui a l'appli : **Attendu :** il voit les bons plans et touche « Ça m'intéresse », mais n'a pas de bouton « Publier ».
+5. L'auteur ou l'admin principal : « Modifier » et « Supprimer » (demande confirmation). Les autres n'ont pas ces boutons.
+6. Le lendemain vers 18 h : **Attendu :** une notification « Nouveau bon plan » (ou « 2 nouveaux bons plans ») sur le canal Coups de main, pour les autres membres seulement.

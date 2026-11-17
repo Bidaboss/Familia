@@ -55,6 +55,10 @@ data class HelpRequestEditDestination(val requestId: String? = null, val duplica
 @Serializable
 data class GoodDealDetailDestination(val dealId: String)
 
+/** The form of a bon plan: a new one when [dealId] is null. */
+@Serializable
+data class GoodDealEditDestination(val dealId: String? = null)
+
 /** All the « Bonnes nouvelles », opened from the home card (récit 32). */
 @Serializable
 data object GoodNewsFeedDestination
