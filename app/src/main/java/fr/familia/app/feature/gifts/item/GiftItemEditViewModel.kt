@@ -22,7 +22,7 @@ import fr.familia.app.feature.gifts.addsVisibleItem
 import fr.familia.app.feature.gifts.isKeptFrom
 import fr.familia.app.feature.gifts.keepsListsOf
 import fr.familia.app.feature.gifts.parseEuros
-import fr.familia.app.feature.members.MembersViewModel
+import fr.familia.app.core.model.householdGroups
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -212,7 +212,7 @@ class GiftItemEditViewModel(
     private fun shareTargets(family: Family, me: Member): List<ShareTarget> {
         if (me.profile != MemberProfile.Adult) return emptyList()
         // By household, in the order of the Famille tab (retour d'essai du 17/11).
-        val others = MembersViewModel.group(family).flatMap { group -> group.members.filter { it.id != me.id } }
+        val others = householdGroups(family).flatMap { group -> group.members.filter { it.id != me.id } }
         if (others.isEmpty()) return emptyList()
         return listOf(ShareTarget(null, me.firstName)) + others.map { ShareTarget(it.id, it.firstName) }
     }
