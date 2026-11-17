@@ -574,7 +574,7 @@
     <string name="help_topic_notifications_title">Notifications et rappels</string>
     <string name="help_topic_notifications_body">Tu es prévenu quand quelqu\'un ajoute, modifie ou supprime un événement qui te concerne (toute la famille, ton foyer, un enfant dont tu t\'occupes, ou un événement où tu viens), mais jamais pour tes propres changements. La veille à 18\u00A0h, un rappel part si tu as répondu « Je viens » ou « Peut-être ». Tu peux couper ce rappel : touche ta photo en haut à droite, puis « Notifications ».</string>
     <string name="help_topic_family_title">La famille</string>
-    <string name="help_topic_family_body">La liste des membres, rangés par foyer. Les anniversaires de chacun sont dans le planning, et en haut de l\'onglet Cadeaux.</string>
+    <string name="help_topic_family_body">La liste des membres, rangés par foyer. Les anniversaires de chacun sont dans le planning.</string>
     <string name="help_topic_usage_title">Ce que voit l\'administrateur</string>
     <string name="help_topic_usage_body">L\'administrateur voit combien de temps chacun passe dans l\'appli, et les parents voient le temps de leurs enfants.</string>
     <string name="help_topic_wishes_title">Mes envies</string>
@@ -1614,9 +1614,9 @@
     <string name="home_trips_all">Tous les voyages</string>
     <string name="home_trip_ongoing">En cours</string>
     <string name="help_screen_home_title">L\'accueil</string>
-    <string name="help_screen_home_body">Ici, l\'essentiel du moment : ce que tu as à faire, cette semaine et les bonnes nouvelles. Dessous, les puces : anniversaires, question, arbre, diaporama, voyages, prochaine occasion. Une puce n\'apparaît que si elle a quelque chose à dire ; touche-la pour ouvrir sa carte ou son écran.</string>
+    <string name="help_screen_home_body">Ici, l\'essentiel du moment : ce que tu as à faire et ta semaine. Dessous, des puces : chacune n\'apparaît que si elle a quelque chose à dire ; touche-la pour ouvrir sa carte ou son écran.</string>
     <string name="help_topic_home_title">L\'accueil</string>
-    <string name="help_topic_home_body">Le premier onglet résume le moment : les événements où tu n\'as pas encore répondu, les coups de main pour toi, la semaine qui vient, les anniversaires du mois, la prochaine occasion de cadeaux et les voyages que tu suis. Il est le même pour tout le monde.</string>
+    <string name="help_topic_home_body">Le premier onglet résume le moment : les événements où tu n\'as pas encore répondu, ce que tu as à faire, la semaine qui vient et les anniversaires du mois. Il est le même pour tout le monde.</string>
     <!-- Thèmes au choix (DESIGN-7) -->
     <string name="appearance_title">Apparence</string>
     <string name="appearance_theme_title">Thème</string>

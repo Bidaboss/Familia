@@ -385,22 +385,10 @@ fun FamiliaApp(
         }
         return
     }
-    LaunchedEffect(openListId) {
-        if (openListId != null) {
-            navController.navigate(GiftListDestination(openListId))
-            onListOpened()
-        }
-    }
     LaunchedEffect(openEventId) {
         if (openEventId != null) {
             navController.navigate(EventDetailDestination(openEventId))
             onEventOpened()
-        }
-    }
-    LaunchedEffect(openTripId) {
-        if (openTripId != null) {
-            navController.navigate(TripDetailDestination(openTripId))
-            onTripOpened()
         }
     }
 
@@ -468,6 +456,21 @@ fun FamiliaApp(
     val tabs = TopLevelDestination.visible(features).let { visible ->
         // The start screen keeps its tab until the next opening, so the bar always shows where one is.
         if (startTab in visible) visible else listOf(startTab) + visible
+    }
+    // A list or a trip opens only once its module shows (démo du 21: no trace of a module off).
+    val giftsOn = features.isOn(Feature.Gifts)
+    val tripsOn = features.isOn(Feature.Trips)
+    LaunchedEffect(openListId, giftsOn) {
+        if (openListId != null && giftsOn) {
+            navController.navigate(GiftListDestination(openListId))
+            onListOpened()
+        }
+    }
+    LaunchedEffect(openTripId, tripsOn) {
+        if (openTripId != null && tripsOn) {
+            navController.navigate(TripDetailDestination(openTripId))
+            onTripOpened()
+        }
     }
     // The notification channels of a module appear in the Android settings once it shows.
     LaunchedEffect(features) { NotificationChannels.create(context.applicationContext, features) }

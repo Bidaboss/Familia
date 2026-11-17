@@ -68,7 +68,7 @@ enum class HelpTopic(
     Reserve(R.string.help_topic_reserve_title, R.string.help_topic_reserve_body, feature = Feature.Gifts),
     Updates(R.string.help_topic_updates_title, R.string.help_topic_updates_body),
     Appearance(R.string.help_topic_appearance_title, R.string.help_topic_appearance_body, feature = Feature.Themes),
-    Trips(R.string.help_topic_trips_title, R.string.help_topic_trips_body),
+    Trips(R.string.help_topic_trips_title, R.string.help_topic_trips_body, feature = Feature.Trips),
     WeeklyQuestion(R.string.help_topic_weekly_title, R.string.help_topic_weekly_body, feature = Feature.WeeklyQuestion),
     Souvenirs(R.string.help_topic_souvenirs_title, R.string.help_topic_souvenirs_body, feature = Feature.Souvenirs),
     Tree(R.string.help_topic_tree_title, R.string.help_topic_tree_body, feature = Feature.Tree),
