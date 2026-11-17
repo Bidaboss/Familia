@@ -1222,6 +1222,7 @@ L'usage de la base un jour donné, lu une fois chaque matin à partir de 8 h dan
 | `reads`, `writes`, `deletes` | int | Les opérations de la journée, heure de Paris. |
 | `storageBytes` | int ou null | La taille de la base ce jour-là, si Monitoring la donne. |
 | `monthCost` | number | Le coût estimé du mois jusqu'à ce jour, en euros, au-delà des parts gratuites (prix volontairement hauts). |
+| `monthCosts` | map | Le même coût, limite par limite : `reads`, `writes`, `deletes`, `storage`, `photos`, `downloads`, en euros. Absent pour un jour relevé avant le détail : la carte n'affiche alors que le total. |
 | `alerts` | liste | Les limites atteintes à 80 % (`reads`, `writes`, `deletes`, `storage`) et `cost` au-delà de 0,50 €. Une alerte n'est envoyée qu'une fois par jour. |
 | `checkedAt` | timestamp | L'heure du relevé. |
 | `error` | string | `monitoring` quand Monitoring n'a pas pu être lu (rôle « Lecteur Monitoring » manquant, docs/deploiement.md). Les autres champs manquent alors. |

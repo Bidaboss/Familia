@@ -55,18 +55,23 @@ export interface DayUse {
   downloadBytes?: number;
 }
 
-/** What the day costs beyond the free quotas, with its share of the month for the size. */
-export function dayCost(use: DayUse): number {
+/** What each limit of the day costs beyond the free quotas, with its share of the month for the sizes. */
+export function dayCosts(use: DayUse): Record<Limit, number> {
   const over = (n: number, free: number) => Math.max(0, n - free);
-  const storageGiB = over(use.storageBytes ?? 0, FREE.storage) / FREE.storage;
-  const photosGB = over(use.photoBytes ?? 0, FREE.photos) / 1e9;
-  return (
-    (over(use.reads, FREE.reads) / 100_000) * PRICE.reads +
-    (over(use.writes, FREE.writes) / 100_000) * PRICE.writes +
-    (over(use.deletes, FREE.deletes) / 100_000) * PRICE.deletes +
-    (storageGiB * PRICE.storagePerGiBMonth) / 30 +
-    (photosGB * PRICE.photosPerGBMonth) / 30
-  );
+  return {
+    reads: (over(use.reads, FREE.reads) / 100_000) * PRICE.reads,
+    writes: (over(use.writes, FREE.writes) / 100_000) * PRICE.writes,
+    deletes: (over(use.deletes, FREE.deletes) / 100_000) * PRICE.deletes,
+    storage: ((over(use.storageBytes ?? 0, FREE.storage) / FREE.storage) * PRICE.storagePerGiBMonth) / 30,
+    photos: ((over(use.photoBytes ?? 0, FREE.photos) / 1e9) * PRICE.photosPerGBMonth) / 30,
+    // Downloads have a monthly quota: counted by monthCosts, never day by day.
+    downloads: 0,
+  };
+}
+
+/** What the day costs beyond the free quotas, all limits together. */
+export function dayCost(use: DayUse): number {
+  return Object.values(dayCosts(use)).reduce((sum, n) => sum + n, 0);
 }
 
 /** What the phones downloaded from Cloud Storage during [month], whose free quota is monthly. */
@@ -74,10 +79,23 @@ export function monthDownloads(days: DayUse[], month: string): number {
   return days.filter((d) => d.day.startsWith(month)).reduce((sum, d) => sum + (d.downloadBytes ?? 0), 0);
 }
 
+/**
+ * The cost of [month] (AAAA-MM) so far, limit by limit (récit 1 sexies, the detail of the card):
+ * the days of [days] added up, and the downloads beyond the month's quota.
+ */
+export function monthCosts(days: DayUse[], month: string): Record<Limit, number> {
+  const total: Record<Limit, number> = { reads: 0, writes: 0, deletes: 0, storage: 0, photos: 0, downloads: 0 };
+  for (const day of days.filter((d) => d.day.startsWith(month))) {
+    const costs = dayCosts(day);
+    for (const limit of Object.keys(total) as Limit[]) total[limit] += costs[limit];
+  }
+  total.downloads = (Math.max(0, monthDownloads(days, month) - FREE.downloads) / 1e9) * PRICE.downloadPerGB;
+  return total;
+}
+
 /** The days of [month] (AAAA-MM) among [days], added up, with the downloads beyond the month's quota. */
 export function monthCost(days: DayUse[], month: string): number {
-  const daily = days.filter((d) => d.day.startsWith(month)).reduce((sum, d) => sum + dayCost(d), 0);
-  return daily + (Math.max(0, monthDownloads(days, month) - FREE.downloads) / 1e9) * PRICE.downloadPerGB;
+  return Object.values(monthCosts(days, month)).reduce((sum, n) => sum + n, 0);
 }
 
 /**
@@ -216,10 +234,11 @@ export async function checkConsumption(db: Firestore, monitoring: MonitoringRead
       photoBytes: doc.get('photoBytes') ?? null,
       downloadBytes: doc.get('downloadBytes') ?? 0,
     }));
-  const cost = monthCost([...days, use], month);
+  const costs = monthCosts([...days, use], month);
+  const cost = Object.values(costs).reduce((sum, n) => sum + n, 0);
   const downloads = monthDownloads([...days, use], month);
   const found = alerts(use, cost, downloads);
-  await ref.set({ ...use, monthDownloadBytes: downloads, monthCost: cost, alerts: found, checkedAt: new Date() });
+  await ref.set({ ...use, monthDownloadBytes: downloads, monthCost: cost, monthCosts: costs, alerts: found, checkedAt: new Date() });
   const ownerId = (await db.collection('config').doc('family').get()).get('ownerMemberId') as string | undefined;
   if (ownerId) {
     for (const alert of found.filter((a) => !already.has(a))) await notify(db, send, [ownerId], alertNotice(alert, use, cost, downloads));

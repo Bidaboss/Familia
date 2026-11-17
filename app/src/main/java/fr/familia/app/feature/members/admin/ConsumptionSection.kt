@@ -56,7 +56,7 @@ private fun ReadyConsumption(consumption: Consumption) {
         return
     }
     consumption.gauges.forEach { GaugeLine(it) }
-    val cost = NumberFormat.getCurrencyInstance(Locale.FRANCE).format(consumption.monthCost)
+    val cost = euros(consumption.monthCost)
     Text(
         stringResource(R.string.consumption_cost, cost),
         style = MaterialTheme.typography.titleSmall,
@@ -85,15 +85,22 @@ private fun GaugeLine(gauge: Consumption.Gauge) {
     }
     val percent = (gauge.share * 100).roundToInt()
     val color = if (gauge.near) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-    val spoken = stringResource(R.string.consumption_gauge_description, label, figures, percent)
+    val cost = gauge.cost?.let { stringResource(R.string.consumption_line_cost, euros(it)) }
+    val spoken = stringResource(R.string.consumption_gauge_description, label, figures, percent) + cost?.let { ", $it" }.orEmpty()
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.clearAndSetSemantics { contentDescription = spoken },
     ) {
         Text("$label · $figures", style = MaterialTheme.typography.bodyMedium)
         LinearProgressIndicator(progress = { gauge.share }, color = color, modifier = Modifier.fillMaxWidth())
+        if (cost != null) {
+            Text(cost, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
+
+/** Two decimals: below a cent, the card says « 0,00 € », never a rounded-up figure. */
+private fun euros(amount: Double): String = NumberFormat.getCurrencyInstance(Locale.FRANCE).format(amount)
 
 private fun integer(n: Long): String = NumberFormat.getIntegerInstance(Locale.FRANCE).format(n)
 
@@ -120,5 +127,6 @@ internal fun previewConsumption(): ConsumptionCard = ConsumptionCard.Ready(
         photoBytes = 86_000_000,
         monthDownloadBytes = 1_200_000_000,
         monthCost = 0.0,
+        monthCosts = Consumption.Limit.entries.associateWith { 0.0 },
     ),
 )

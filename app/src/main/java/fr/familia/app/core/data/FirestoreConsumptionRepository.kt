@@ -36,7 +36,14 @@ class FirestoreConsumptionRepository(private val db: FirebaseFirestore) : Consum
             photoBytes = doc.getDouble("photoBytes")?.toLong(),
             monthDownloadBytes = doc.getDouble("monthDownloadBytes")?.toLong(),
             monthCost = doc.getDouble("monthCost") ?: 0.0,
+            monthCosts = monthCostsOf(doc.get("monthCosts")),
             failed = doc.getString("error") != null,
         )
     }
+}
+
+/** consumption/{day}.monthCosts: { reads: 0.0, photos: 0.0, … }; a key unknown or not a number is left out. */
+internal fun monthCostsOf(raw: Any?): Map<Consumption.Limit, Double> {
+    val map = raw as? Map<*, *> ?: return emptyMap()
+    return Consumption.Limit.entries.mapNotNull { limit -> (map[limit.name.lowercase()] as? Number)?.let { limit to it.toDouble() } }.toMap()
 }
