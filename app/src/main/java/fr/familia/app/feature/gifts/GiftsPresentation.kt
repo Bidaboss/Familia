@@ -99,7 +99,10 @@ internal fun LazyListScope.presentationContent(
     if (state.archived.isNotEmpty()) archivedSection(state.archived, state.today, onOpenList)
 }
 
-/** « Prochaine occasion »: when, and how many lists and ideas, never who reserved what. */
+/**
+ * « Prochaine occasion »: when, and how many wish lists are open. Never a count of ideas, read as
+ * the ideas for the person named on the card, and never who reserved what.
+ */
 @Composable
 private fun NextOccasionCard(state: GiftsUiState.Success, next: GiftMoment, onSeeIdeas: () -> Unit) {
     val days = ChronoUnit.DAYS.between(state.today, next.day()).toInt()
@@ -109,10 +112,7 @@ private fun NextOccasionCard(state: GiftsUiState.Success, next: GiftMoment, onSe
         is GiftMoment.BirthdayOf -> stringResource(R.string.gifts_next_birthday, next.member.firstName, inDays)
     }
     val lists = state.sections.count { it.wishes != null }
-    val counts = buildList {
-        add(pluralStringResource(R.plurals.gifts_open_wish_lists, lists, lists))
-        state.ideasCount?.let { add(pluralStringResource(R.plurals.gifts_family_ideas_count, it, it)) }
-    }.joinToString(", ")
+    val counts = pluralStringResource(R.plurals.gifts_open_wish_lists, lists, lists)
     ClayCard(Modifier.fillMaxWidth(), tint = ClayTint.Birthday, contentPadding = ClaySpacing.card, emphasis = true) {
         SectionLabel(stringResource(R.string.gifts_next_occasion_label), color = FamiliaClay.colors.onTintVariant(ClayTint.Birthday))
         ClayCardTitle(title, style = MaterialTheme.typography.titleLarge)

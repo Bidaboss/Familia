@@ -72,8 +72,6 @@ sealed interface GiftsUiState {
          * shows, the tab may be on screen at the party), with no reservation.
          */
         val next: GiftMoment? = null,
-        /** How many ideas of the family this member reads, all people together; null while it loads. */
-        val ideasCount: Int? = null,
         /** The wishes added by someone else since this phone last opened the list, by list id. */
         val newWishes: Map<String, Int> = emptyMap(),
         /** The new presentation of the tab (DESIGN-14), with the single list only. */
@@ -114,7 +112,6 @@ class GiftsViewModel(
                     giftsState(family, lists, currentMemberId, day, singleList, presentation)
                 }
                     .flatMapLatest { state -> withPreviews(gifts, state) }
-                    .flatMapLatest { state -> withIdeasCount(gifts, state) }
                     .let { states ->
                         combine(states, moment, seen) { state, chosen, visits ->
                             withNewWishes(forMoment(state, chosen), visits, currentMemberId)
@@ -160,27 +157,6 @@ class GiftsViewModel(
                 }
         }
         return combine(previews) { all -> state.copy(listItems = all.filterNotNull().toMap()) }
-    }
-
-    /**
-     * Présentation R1 bis: how many ideas of the family, all people together. Only the lists this
-     * member reads (never their own ideas, which the server does not send); a list that fails to
-     * read counts for nothing.
-     */
-    private fun withIdeasCount(repo: GiftRepository, state: GiftsUiState): Flow<GiftsUiState> {
-        if (state !is GiftsUiState.Success || !state.presentation) return flowOf(state)
-        val ideas = state.sections.filter { !it.isMe }.mapNotNull { it.ideas }
-        if (ideas.isEmpty()) return flowOf(state.copy(ideasCount = 0))
-        val counts = ideas.map { list ->
-            repo.observeItems(list.id, hiddenFromMe = true)
-                .map<List<GiftItem>, Int?> { it.size }
-                .onStart { emit(null) }
-                .catch { e ->
-                    if (e is CancellationException) throw e
-                    emit(0)
-                }
-        }
-        return combine(counts) { all -> state.copy(ideasCount = if (all.any { it == null }) null else all.sumOf { it ?: 0 }) }
     }
 }
 

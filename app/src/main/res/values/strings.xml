@@ -1867,10 +1867,6 @@
         <item quantity="one">%d liste d\'envies ouverte</item>
         <item quantity="other">%d listes d\'envies ouvertes</item>
     </plurals>
-    <plurals name="gifts_family_ideas_count">
-        <item quantity="one">%d idée de la famille</item>
-        <item quantity="other">%d idées de la famille</item>
-    </plurals>
     <string name="gifts_see_ideas">Voir les idées</string>
     <string name="gifts_my_wish_list">Ma liste d\'envies</string>
     <string name="gifts_family_wishes_title">Les envies de la famille</string>
