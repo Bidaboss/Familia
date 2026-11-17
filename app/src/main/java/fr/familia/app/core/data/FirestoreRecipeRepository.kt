@@ -47,6 +47,7 @@ class FirestoreRecipeRepository(private val db: FirebaseFirestore) : RecipeRepos
             "ingredients" to recipe.ingredients,
             "steps" to recipe.steps,
             "tags" to recipe.tags,
+            "story" to recipe.story,
             "authorId" to recipe.authorId,
             "authorName" to recipe.authorName,
             "updatedAt" to FieldValue.serverTimestamp(),
@@ -57,6 +58,12 @@ class FirestoreRecipeRepository(private val db: FirebaseFirestore) : RecipeRepos
         } else {
             ref.set(fields, SetOptions.merge()).await()
         }
+    }
+
+    override suspend fun setChildInPhotos(id: String, childInPhotos: Boolean) {
+        db.collection(RECIPES).document(id)
+            .update(mapOf("childInPhotos" to childInPhotos, "updatedAt" to FieldValue.serverTimestamp()))
+            .await()
     }
 
     override suspend fun deleteRecipe(id: String) {
@@ -116,6 +123,8 @@ class FirestoreRecipeRepository(private val db: FirebaseFirestore) : RecipeRepos
             authorId = getString("authorId").orEmpty(),
             authorName = getString("authorName").orEmpty(),
             createdAt = getTimestamp("createdAt")?.toDate()?.toInstant(),
+            story = getString("story").orEmpty(),
+            childInPhotos = getBoolean("childInPhotos") == true,
         )
     }
 

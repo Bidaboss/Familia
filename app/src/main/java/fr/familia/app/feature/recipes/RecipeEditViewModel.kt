@@ -24,6 +24,7 @@ data class RecipeForm(
     val ingredients: String = "",
     val steps: String = "",
     val tags: String = "",
+    val story: String = "",
 ) {
     companion object {
         fun from(recipe: Recipe) = RecipeForm(
@@ -34,11 +35,12 @@ data class RecipeForm(
             ingredients = recipe.ingredients,
             steps = recipe.steps,
             tags = recipe.tags.joinToString(", "),
+            story = recipe.story,
         )
     }
 }
 
-enum class RecipeFormError { TitleMissing, TitleTooLong, OriginTooLong, ServingsInvalid, IngredientsMissing, IngredientsTooLong, StepsMissing, StepsTooLong }
+enum class RecipeFormError { TitleMissing, TitleTooLong, OriginTooLong, ServingsInvalid, IngredientsMissing, IngredientsTooLong, StepsMissing, StepsTooLong, StoryTooLong }
 
 fun validate(form: RecipeForm): Set<RecipeFormError> = buildSet {
     if (form.title.isBlank()) add(RecipeFormError.TitleMissing)
@@ -49,6 +51,7 @@ fun validate(form: RecipeForm): Set<RecipeFormError> = buildSet {
     if (form.ingredients.trim().length > Recipe.MAX_INGREDIENTS) add(RecipeFormError.IngredientsTooLong)
     if (Recipe.lines(form.steps).isEmpty()) add(RecipeFormError.StepsMissing)
     if (form.steps.trim().length > Recipe.MAX_STEPS) add(RecipeFormError.StepsTooLong)
+    if (form.story.trim().length > Recipe.MAX_STORY) add(RecipeFormError.StoryTooLong)
 }
 
 /** A member who may be named as the origin of the recipe. */
@@ -150,6 +153,7 @@ class RecipeEditViewModel(
         savedState[DRAFT_INGREDIENTS] = form.ingredients
         savedState[DRAFT_STEPS] = form.steps
         savedState[DRAFT_TAGS] = form.tags
+        savedState[DRAFT_STORY] = form.story
     }
 
     private fun restoreDraft(): RecipeForm? {
@@ -162,6 +166,7 @@ class RecipeEditViewModel(
             ingredients = savedState.get<String>(DRAFT_INGREDIENTS).orEmpty(),
             steps = savedState.get<String>(DRAFT_STEPS).orEmpty(),
             tags = savedState.get<String>(DRAFT_TAGS).orEmpty(),
+            story = savedState.get<String>(DRAFT_STORY).orEmpty(),
         )
     }
 
@@ -190,6 +195,8 @@ class RecipeEditViewModel(
             authorId = original?.authorId ?: author.id,
             authorName = original?.authorName ?: author.firstName,
             createdAt = original?.createdAt,
+            story = form.story.trim(),
+            childInPhotos = original?.childInPhotos == true,
         )
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
@@ -217,5 +224,6 @@ class RecipeEditViewModel(
         const val DRAFT_INGREDIENTS = "recipe_draft_ingredients"
         const val DRAFT_STEPS = "recipe_draft_steps"
         const val DRAFT_TAGS = "recipe_draft_tags"
+        const val DRAFT_STORY = "recipe_draft_story"
     }
 }

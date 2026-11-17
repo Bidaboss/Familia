@@ -579,3 +579,12 @@ Interrupteur « presentationR1bis » allumé (c'est le réglage par défaut).
 7. TalkBack : chaque jour de la frise se lit « Jour 3, mardi 17 novembre » ; le paysage n'est pas lu.
 8. Police du téléphone à 200 % : tout défile, rien ne passe sous le bouton « Ajouter une étape ».
 9. Interrupteur éteint : l'écran du voyage revient à l'ancienne présentation.
+
+## La petite histoire d'une recette (récit 47, partie 1)
+
+Interrupteur « Livre de recettes » allumé dans Administration, après « Publier Firebase ».
+
+1. Modifie une de tes recettes : sous les étiquettes, « Sa petite histoire (facultatif) ». Écris deux phrases et enregistre. **Attendu :** l'histoire apparaît en italique sous le titre de la recette.
+2. Plus de 600 caractères : « Texte trop long ». La recette n'est pas enregistrée.
+3. Sous « Photos du plat », la case « Un enfant est sur une des photos » (décochée au début). Coche-la, quitte et reviens : elle est toujours cochée. Avec un autre compte qui n'est pas l'auteur : pas de case.
+4. Interrupteur éteint : ni le champ, ni l'histoire, ni la case. Une histoire déjà écrite n'est pas perdue quand on modifie la recette.
