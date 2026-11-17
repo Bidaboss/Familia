@@ -64,6 +64,7 @@ Passe chaque essai d'abord en mode avion, puis en « 2G seulement ». Pour la 2G
 - [ ] Avec le réseau, ouvre une fois Accueil, Planning, Entraide et Famille. Ils resteront lisibles si le réseau tombe demain.
 - [ ] Vérifie que chaque membre a son adresse Google dans sa fiche (onglet **Famille**, une fiche après l'autre).
 - [ ] Télécharge l'APK du Drive sur ton téléphone, dans « Téléchargements ». C'est ton plan B si le réseau du lieu est mauvais.
+- [ ] Ouvre un événement à venir où la famille se retrouvera, par exemple le repas de Noël. Dans « Qui apporte quoi », ajoute trois ou quatre lignes, **sans les prendre** : « Une entrée », « Un dessert », « Les boissons », « Le pain ». Demain, à table, chacun pourra en prendre une depuis son téléphone. C'est un premier geste simple et utile. Ne le fais pas sur l'événement du repas d'anniversaire.
 - [ ] Recharge les deux téléphones à 100 %.
 
 ## 6. Le jour du repas (à relire le matin)

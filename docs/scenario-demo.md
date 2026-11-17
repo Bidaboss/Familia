@@ -99,3 +99,19 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 - **Plus de réseau pour installer :** envoie l'APK téléchargé la veille par **Partage à proximité** (Quick Share) d'Android, depuis « Téléchargements ». Chacun peut l'installer, mais la connexion Google demande du réseau : chacun se connectera en rentrant chez soi. Laisse le Mode présentation allumé jusqu'à ce moment-là, ou éteins-le à la fin du repas, comme prévu.
 - **Un téléphone refuse d'installer :** Android demande d'autoriser l'installation depuis WhatsApp ou les fichiers. Ouvre le réglage qu'il propose, autorise, puis reviens.
 - **Quelqu'un n'arrive pas à se connecter :** vérifie l'adresse Google dans sa fiche. Ne la change pas devant tout le monde : note-le et fais-le après le repas.
+
+## Ce que tu notes, pendant et juste après
+
+Garde une feuille ou une note sur ton téléphone, et remplis-la sans interrompre personne. Elle servira à choisir ce qu'on corrige d'abord.
+
+| Qui | À quelle étape | Ce qui s'est passé |
+|---|---|---|
+| (prénom) | Installation, connexion, Accueil, réponse à un événement, photo… | A eu besoin d'aide, ou a réussi seul |
+
+En plus du tableau, note :
+- **Les questions posées**, mot pour mot si possible (« Où je vois… ? », « Comment on… ? »).
+- **Ce que quelqu'un a cherché sans le trouver**, et où il l'a cherché.
+- **Ce qui a fait sourire ou réagir**, pour savoir ce qui marche.
+
+Envoie ta note au fil [BUG] le soir même ou le lendemain matin. Une photo de la feuille suffit.
+
