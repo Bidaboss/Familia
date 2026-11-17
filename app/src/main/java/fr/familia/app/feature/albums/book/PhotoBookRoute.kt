@@ -4,6 +4,8 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -35,12 +37,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.IOException
+import kotlin.concurrent.thread
 
 /** « Faire le livre photo » of the album of a trip or an event (récit 59). */
 @Composable
 fun PhotoBookRoute(container: AppContainer?, album: PhotoBookDestination, onBack: () -> Unit) {
+    if (!album.isKnown) {
+        LaunchedEffect(Unit) { onBack() }
+        return
+    }
     val context = LocalContext.current
     val app = context.applicationContext
+    // The full photos are kept only while this screen is open: making the book again reuses
+    // them, and leaving the screen frees the room (a big album weighs hundreds of Mo).
+    DisposableEffect(Unit) {
+        onDispose { thread(name = "photo-book-cache") { bookPhotos(app).deleteRecursively() } }
+    }
     val labels = StepType.entries.associateWith { stepTypeLabel(it) }
     val viewModel: PhotoBookViewModel = viewModel(
         key = "photo-book-${album.kind}-${album.id}",
@@ -106,17 +119,28 @@ private suspend fun bookSource(container: AppContainer?, album: PhotoBookDestina
 private suspend fun printBook(context: Context, content: PhotoBookContent, storage: PhotoStorage?): File = withContext(Dispatchers.IO) {
     val shares = File(context.cacheDir, "shares").apply { mkdirs() }
     oldBooks(context).forEach { it.delete() }
-    val photos = File(context.cacheDir, "photo-book").apply { mkdirs() }
+    val photos = bookPhotos(context).apply { mkdirs() }
     val file = File(shares, photoBookFileName(content.title))
     writePhotoBook(content, file) { photo -> cachedPhoto(photos, photo, storage) }
     file
 }
 
+/** The full photos of the book being made, removed when the screen closes. */
+private fun bookPhotos(context: Context): File = File(context.cacheDir, "photo-book")
+
 private suspend fun cachedPhoto(folder: File, photo: AlbumPhoto, storage: PhotoStorage?): ByteArray? {
     val cached = File(folder, "${photo.folder.replace('/', '_')}_${photo.id}.jpg")
-    if (cached.isFile && cached.length() > 0) return cached.readBytes()
+    try {
+        if (cached.isFile && cached.length() > 0) return cached.readBytes()
+    } catch (e: IOException) {
+        // Removed meanwhile: downloaded again below.
+    }
     val bytes = storage?.bytes(photo.photoPath) ?: return null
-    cached.writeBytes(bytes)
+    try {
+        cached.writeBytes(bytes)
+    } catch (e: IOException) {
+        // No room or folder gone: the book is still made, only without the copy for next time.
+    }
     return bytes
 }
 
