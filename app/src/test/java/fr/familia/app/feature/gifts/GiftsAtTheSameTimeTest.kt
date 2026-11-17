@@ -123,4 +123,22 @@ class GiftsAtTheSameTimeTest {
         assertFalse(vm.shown().actionFailed)
         assertNull(vm.shown().claimLost)
     }
+
+    @Test
+    fun `a late refusal of an older reservation never covers the one that held after it`() = runTest {
+        val gifts = FakeGifts(list)
+        gifts.onClaim = {
+            delay(60_000)
+            throw refused
+        }
+        val vm = opened(gifts, timeout = 1_000)
+        vm.take("i1")
+        advanceTimeBy(2_000)
+        gifts.onClaim = {}
+        vm.openJointGift("i1")
+        runCurrent()
+        advanceUntilIdle()
+        assertFalse(vm.shown().actionFailed)
+        assertNull(vm.shown().claimLost)
+    }
 }
