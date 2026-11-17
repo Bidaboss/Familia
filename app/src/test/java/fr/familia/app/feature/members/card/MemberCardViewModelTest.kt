@@ -38,10 +38,12 @@ class MemberCardViewModelTest {
 
     @Test
     fun `a card is trimmed, and a field too long is refused rather than cut`() {
-        assertEquals(MemberCard("a", top = "M", tastes = "Le thé"), MemberCard("a", top = " M ", tastes = "Le thé\n").cleaned())
+        assertEquals(MemberCard("a", tastes = "Le thé", hobbies = "Le jardin"), MemberCard("a", tastes = "Le thé\n", hobbies = " Le jardin ").cleaned())
+        assertNull(MemberCard("a", hobbies = "x".repeat(MemberCard.TEXT_MAX + 1)).cleaned())
+        assertNull(MemberCard("a", tastes = "x".repeat(MemberCard.TEXT_MAX + 1)).cleaned())
         assertNull(MemberCard("a", shoes = "x".repeat(MemberCard.SIZE_MAX + 1)).cleaned())
-        assertNull(MemberCard("a", allergies = "x".repeat(MemberCard.TEXT_MAX + 1)).cleaned())
-        assertTrue(MemberCard("a", top = "  ").cleaned()!!.isEmpty)
+        assertEquals("42", MemberCard("a", shoes = " 42 ").cleaned()!!.shoes)
+        assertTrue(MemberCard("a", hobbies = "  ").cleaned()!!.isEmpty)
     }
 
     @Test
@@ -50,8 +52,8 @@ class MemberCardViewModelTest {
         val vm = MemberCardViewModel(cards, FakeMembers(), "adult2", "adult2")
         val empty = vm.uiState.first { it is MemberCardUiState.Ready } as MemberCardUiState.Ready
         assertTrue(empty.card.isEmpty && empty.isMe && empty.canEdit)
-        assertTrue(vm.save(MemberCard("ignored", shoes = " 42 ")))
-        val filled = vm.uiState.first { (it as? MemberCardUiState.Ready)?.card?.shoes == "42" }
+        assertTrue(vm.save(MemberCard("ignored", hobbies = " La pêche ")))
+        val filled = vm.uiState.first { (it as? MemberCardUiState.Ready)?.card?.hobbies == "La pêche" }
         assertEquals("adult2", (filled as MemberCardUiState.Ready).card.memberId)
         assertEquals("adult2", cards.saved.single().second)
         assertFalse(vm.save(MemberCard("adult2", tastes = "x".repeat(MemberCard.TEXT_MAX + 1))))
@@ -60,14 +62,14 @@ class MemberCardViewModelTest {
 
     @Test
     fun `an adult of the household fills in a child's card, another adult only reads`() = runTest {
-        val cards = FakeCards(mapOf("kid1" to MemberCard("kid1", shoes = "30"), "adult1" to MemberCard("adult1", top = "L")))
+        val cards = FakeCards(mapOf("kid1" to MemberCard("kid1", hobbies = "Le foot"), "adult1" to MemberCard("adult1", tastes = "Le thé")))
         val parent = MemberCardViewModel(cards, FakeMembers(), "adult1", "kid1")
         assertTrue((parent.uiState.first { it is MemberCardUiState.Ready } as MemberCardUiState.Ready).canEdit)
         val other = MemberCardViewModel(cards, FakeMembers(), "adult2", "adult1")
         val read = other.uiState.first { it is MemberCardUiState.Ready } as MemberCardUiState.Ready
         assertFalse(read.canEdit)
-        assertEquals("L", read.card.top)
-        assertFalse(other.save(MemberCard("adult1", top = "XL")))
+        assertEquals("Le thé", read.card.tastes)
+        assertFalse(other.save(MemberCard("adult1", tastes = "Le café")))
         assertTrue(cards.saved.isEmpty())
     }
 

@@ -13,7 +13,8 @@
 //   viewerIds): a copy never shows a gift to someone its creator kept it from. Any other list is
 //   left as it is, logged and marked skipped in migrations/singleList/lists/{listId}.
 // - The day after the date of the list stays the day of the reveal (revealAfter on the reservation).
-// - A list copied is marked copied there too: the morning reveal of the old lists leaves it alone,
+// - A list copied is marked copied there too (partial when an item failed, tried again the next
+//   time the switch is turned on): the morning reveal of the old lists leaves it alone,
 //   so its beneficiary is never told twice about the same gift.
 //
 // Idempotent: each item is copied in one batch together with its mark, migrations/singleList/items/
@@ -86,7 +87,8 @@ export async function migrateToSingleList(db: Firestore): Promise<number> {
         console.error(`singleList: ${list.id}/${item.id}`, e);
       }
     }
-    if (!failed) await listMark.set({ status: 'copied', at: FieldValue.serverTimestamp() });
+    // Partly copied, the list is revealed through its copies too: the old reveal would tell twice.
+    await listMark.set({ status: failed ? 'partial' : 'copied', at: FieldValue.serverTimestamp() });
   }
   return copied;
 }

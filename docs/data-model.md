@@ -81,8 +81,10 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 
 | Champ | Type | Rôle |
 |---|---|---|
-| `top`, `bottom`, `shoes` | texte, 20 caractères au plus | Taille du haut, taille du bas et pointure, en texte libre (« M », « 12 ans », « 39 »), vides si inconnues |
-| `allergies`, `tastes` | texte, 300 caractères au plus | Allergies et goûts, pour choisir un cadeau ou un menu |
+| `shoes` | texte, 20 caractères au plus, facultatif | Pointure (« 39 », « 30-31 ») |
+| `tastes` | texte, 300 caractères au plus | Goûts, pour choisir un cadeau |
+| `hobbies` | texte, 300 caractères au plus, facultatif | Loisirs et passions |
+| `top`, `bottom`, `allergies` | texte, facultatifs | Anciens champs (tailles, allergies) : encore acceptés d'une appli pas à jour, plus affichés ni écrits |
 | `updatedBy` | texte | Le membre qui a écrit la fiche |
 | `updatedAt` | timestamp | Heure du serveur |
 
@@ -419,7 +421,7 @@ Ce que le membre prévoit d'offrir. Seul ce membre lit et écrit son carnet : ni
 
 ### `migrations/singleList/lists/{listId}` (récit 9 ter, « Liste unique »)
 
-Écrit par la fonction seule, jamais lu par l'appli. Une liste n'est copiée que si tous ceux qui liraient sa copie la voient déjà (ses `viewerIds` couvrent toute la famille sauf la personne, les enfants sans l'appli mis à part). Sinon elle reste telle quelle : `status: 'skipped'`, `reason: 'audience'`, `missing` (le nombre de membres qui la verraient en plus). Une liste copiée sans erreur porte `status: 'copied'` : tant que l'interrupteur est allumé, la révélation du matin des anciennes listes la laisse de côté, puisque ses cadeaux sont dévoilés un par un depuis « Mes envies » et les idées. Champ commun : `at`.
+Écrit par la fonction seule, jamais lu par l'appli. Une liste n'est copiée que si tous ceux qui liraient sa copie la voient déjà (ses `viewerIds` couvrent toute la famille sauf la personne, les enfants sans l'appli mis à part). Sinon elle reste telle quelle : `status: 'skipped'`, `reason: 'audience'`, `missing` (le nombre de membres qui la verraient en plus). Une liste copiée porte `status: 'copied'`, ou `'partial'` si un article a échoué (il est repris au prochain allumage) : tant que l'interrupteur est allumé, la révélation du matin des anciennes listes la laisse de côté dans les deux cas, puisque ses cadeaux sont dévoilés un par un depuis « Mes envies » et les idées. Champ commun : `at`.
 
 ### `notebooks/{memberId}/budgets/{budgetId}`
 

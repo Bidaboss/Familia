@@ -160,16 +160,12 @@ service cloud.firestore {
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uid']);
 
-      // The admin principal adds anyone; a chef de famille adds members to their own household,
-      // never another chef, with responsible adults of that household. No linked account yet.
-      allow create: if isMember()
+      // Only the admin principal adds a member (the family rarely grows, so the chefs have no
+      // button for it). No linked account yet.
+      allow create: if isOwner()
         && isValidMember(request.resource.data)
         && request.resource.data.uid == null
-        && emailIndexMatches(memberId, request.resource.data.email)
-        && (isOwner()
-            || (isChefOf(request.resource.data.householdId)
-                && request.resource.data.isAdmin == false
-                && parentsInHousehold(request.resource.data)));
+        && emailIndexMatches(memberId, request.resource.data.email);
 
       // The admin principal edits anyone and names the chefs. A chef de famille edits the members
       // of their household, never the chef flag, never the admin principal, and keeps the member
@@ -1547,10 +1543,11 @@ service cloud.firestore {
 
     // --- Fiche membre (PRD, récit 7 bis) ------------------------------------------------------------
     //
-    // memberCards/{memberId} -> { top, bottom, shoes, allergies, tastes, updatedBy, updatedAt }: the
-    // sizes, shoe size, allergies and tastes of a member, free texts, blank when unknown. The whole
-    // family reads it, to pick a present or a menu. Those who change the photo change the card. An
-    // empty card is deleted; the functions delete it with its member (onMemberDeletedCard).
+    // memberCards/{memberId} -> { shoes, tastes, hobbies, updatedBy, updatedAt }: the shoe size,
+    // tastes and hobbies or passions of a member, free texts, blank when unknown. The whole family reads it, to
+    // pick a present. Those who change the photo change the card. An empty card is deleted; the
+    // functions delete it with its member (onMemberDeletedCard). The sizes and allergies of the
+    // first version (top, bottom, allergies) are still accepted from an older app, never required.
     function isCardSize(v) {
       return v is string && v.size() <= 20;
     }
@@ -1563,13 +1560,14 @@ service cloud.firestore {
       allow read: if isMember();
       allow create, update: if canChangePhoto(memberId)
         && exists(memberPath(memberId))
-        && request.resource.data.keys().hasOnly(['top', 'bottom', 'shoes', 'allergies', 'tastes', 'updatedBy', 'updatedAt'])
-        && request.resource.data.keys().hasAll(['top', 'bottom', 'shoes', 'allergies', 'tastes', 'updatedBy', 'updatedAt'])
-        && isCardSize(request.resource.data.top)
-        && isCardSize(request.resource.data.bottom)
-        && isCardSize(request.resource.data.shoes)
-        && isCardText(request.resource.data.allergies)
+        && request.resource.data.keys().hasOnly(['tastes', 'hobbies', 'top', 'bottom', 'shoes', 'allergies', 'updatedBy', 'updatedAt'])
+        && request.resource.data.keys().hasAll(['tastes', 'updatedBy', 'updatedAt'])
         && isCardText(request.resource.data.tastes)
+        && isCardText(request.resource.data.get('hobbies', ''))
+        && isCardSize(request.resource.data.get('top', ''))
+        && isCardSize(request.resource.data.get('bottom', ''))
+        && isCardSize(request.resource.data.get('shoes', ''))
+        && isCardText(request.resource.data.get('allergies', ''))
         && request.resource.data.updatedBy == myMemberId()
         && request.resource.data.updatedAt == request.time;
       allow delete: if canChangePhoto(memberId);
