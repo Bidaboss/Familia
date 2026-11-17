@@ -107,6 +107,17 @@ class FirestoreNotificationRepository(
         settings(memberId).set(mapOf("birthdayWishes" to enabled), SetOptions.merge()).await()
     }
 
+    override fun observePackingReminder(memberId: String): Flow<Boolean> = callbackFlow {
+        val registration = settings(memberId).addSnapshotListener { snapshot, error ->
+            if (error != null) close(error) else trySend(snapshot?.getBoolean("packingReminder") != false)
+        }
+        awaitClose { registration.remove() }
+    }
+
+    override suspend fun setPackingReminder(memberId: String, enabled: Boolean) {
+        settings(memberId).set(mapOf("packingReminder" to enabled), SetOptions.merge()).await()
+    }
+
     override fun observePrefs(memberId: String): Flow<NotificationPrefs> = callbackFlow {
         val registration = settings(memberId).addSnapshotListener { snapshot, error ->
             if (error != null) close(error) else trySend(NotificationPrefs.from(snapshot?.data))
