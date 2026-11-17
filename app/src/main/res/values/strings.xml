@@ -635,7 +635,7 @@
     <string name="help_screen_family_title">La famille</string>
     <string name="help_screen_administration_title">L\'administration</string>
     <string name="help_screen_administration_body">Un chef de famille gère les membres et les événements de son foyer.\n\nLe crayon renomme un foyer ; un foyer sans membre peut être supprimé.\n\nChoisis le défi de la famille dans la liste. Le défi d\'un mois ne change plus dès que sa jauge a avancé. Chaque foyer lance le défi d\'un mois, à tour de rôle. Il est prévenu 7 jours avant et peut passer son tour. Monte ou descends un foyer, puis enregistre.</string>
-    <string name="help_screen_family_body">En haut, Nos trésors : les recettes, l\'arbre et les capsules de la famille. Dessous, les membres, rangés par foyer. Tes réglages (notifications, apparence, mises à jour, aide) sont derrière ta photo, en haut à droite. Seul l\'admin principal ajoute un membre. Les chefs de famille modifient ceux de leur foyer.</string>
+    <string name="help_screen_family_body">Les membres, rangés par foyer. Les recettes, l\'arbre, la capsule et « Qui est-ce ? » sont dans « Tout Familia », sur l\'Accueil. Tes réglages (notifications, apparence, mises à jour, aide) sont derrière ta photo, en haut à droite. Seul l\'admin principal ajoute un membre. Les chefs de famille modifient ceux de leur foyer.</string>
     <string name="help_screen_gifts_title">Cadeaux</string>
     <string name="help_screen_gifts_body">En haut, les prochains anniversaires. Plus bas, les listes de chacun : « Mes envies », que chacun remplit toute l\'année, et les listes d\'occasion, comme Noël. Touche une liste pour l\'ouvrir, ou « Nouvelle liste » pour en créer une.</string>
     <string name="help_screen_gift_list_title">Une liste</string>
@@ -1693,6 +1693,7 @@
     <string name="all_recipes">Recettes</string>
     <string name="all_tree">Arbre</string>
     <string name="all_capsule">Capsule</string>
+    <string name="all_who_is_it">Qui est-ce ?</string>
     <string name="all_souvenirs">Souvenirs</string>
     <string name="all_good_news">Bonnes nouvelles</string>
     <string name="all_year_in_review">Notre année</string>
