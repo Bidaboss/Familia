@@ -24,4 +24,10 @@ class ExifTakenAtTest {
         assertNull(exifTakenAt("2000:01:01 00:00:00", null, now))
         assertNull(exifTakenAt("2027:01:01 00:00:00", null, now))
     }
+
+    @Test
+    fun `a photo of the last ten minutes goes without its date, createdAt says the same day`() {
+        assertNull(exifTakenAt("2026:11:17 12:55:00", "+01:00", now))
+        assertEquals(Instant.parse("2026-11-17T11:45:00Z"), exifTakenAt("2026:11:17 12:45:00", "+01:00", now))
+    }
 }

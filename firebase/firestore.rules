@@ -2423,7 +2423,8 @@ service cloud.firestore {
       return p.keys().hasAll(['authorId', 'authorName', 'slot', 'createdAt'])
         && p.keys().hasOnly(['authorId', 'authorName', 'slot', 'createdAt', 'takenAt'])
         && (!('takenAt' in p) || (p.takenAt is timestamp
-            && p.takenAt <= request.time
+            // A day of margin: the clock of a phone may be a little ahead of the server's.
+            && p.takenAt <= request.time + duration.value(1, 'd')
             && p.takenAt >= timestamp.date(2001, 1, 1)))
         && p.authorId == myMemberId()
         && p.authorName == me().firstName

@@ -833,7 +833,7 @@ Les photos du voyage (récit 15). Chaque participant a 30 places, numérotées d
 | `authorId`, `authorName` | texte | L'auteur et son prénom, gardé s'il quitte le voyage |
 | `slot` | entier de 1 à 30 | La place, la même que dans l'identifiant |
 | `createdAt` | horodatage serveur | Les photos s'affichent de la plus récente à la plus ancienne |
-| `takenAt` | horodatage, facultatif | Le moment de la prise de vue, lu par le téléphone dans l'EXIF du fichier choisi (DateTimeOriginal) avant de le réencoder. Jamais dans le futur ni avant 2001. Absent pour les photos envoyées avant le 17/11/2026 ou sans EXIF. Sert à « Il y a N ans » (récit 36). Seule la date est gardée, jamais le lieu. Même champ pour les albums d'événement et les photos de recette. |
+| `takenAt` | horodatage, facultatif | Le moment de la prise de vue, lu par le téléphone dans l'EXIF du fichier choisi (DateTimeOriginal) avant de le réencoder. Jamais avant 2001 ni plus d'un jour après l'heure du serveur (marge pour l'horloge du téléphone). Absent pour les photos envoyées avant le 17/11/2026, sans EXIF ou prises dans les 10 dernières minutes (`createdAt` donne alors le même jour). Sert à « Il y a N ans » (récit 36). Seule la date est gardée, jamais le lieu. Même champ pour les albums d'événement et les photos de recette. |
 
 Photos dans Storage : `trips/{tripId}/{authorId}/{slot}.jpg` (1600 px au plus, environ 300 Ko, 512 Ko au plus) et `{slot}-thumb.jpg` (400 px, environ 30 Ko, 64 Ko au plus), sans données EXIF, donc sans lieu. L'appli envoie les deux fichiers avant d'écrire le document. Si un envoi a été coupé, l'auteur peut renvoyer une place dont le document n'existe pas.
 
