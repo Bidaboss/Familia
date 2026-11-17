@@ -147,6 +147,30 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
         db.collection(LISTS).document(listId).collection(ITEMS).document(itemId).delete().await()
     }
 
+    override suspend fun markWishReceived(listId: String, item: GiftItem) {
+        val list = db.collection(LISTS).document(listId)
+        db.batch()
+            .set(
+                list.collection("received").document(item.id),
+                mapOf(
+                    "title" to item.title,
+                    "url" to item.url,
+                    "imageUrl" to item.imageUrl,
+                    "giverIds" to emptyList<String>(),
+                    "givers" to emptyList<String>(),
+                    "joint" to false,
+                    "occasion" to null,
+                    "year" to null,
+                    "thanked" to false,
+                    "revealedAt" to FieldValue.serverTimestamp(),
+                    "self" to true,
+                ),
+            )
+            .delete(list.collection(ITEMS).document(item.id))
+            .commit()
+            .await()
+    }
+
     override suspend fun claim(listId: String, claim: GiftClaim) {
         db.collection(LISTS).document(listId).collection(CLAIMS).document(claim.itemId).set(
             mapOf(

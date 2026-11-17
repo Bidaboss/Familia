@@ -1553,12 +1553,37 @@ service cloud.firestore {
     // giftLists/{listId}/received/{itemId}: « On m'a offert » (récit 10 bis), the wishes revealed
     // the day after an occasion, written by the Cloud Function only. Its owner and the adults who
     // keep their lists read it; the owner may only say thank you.
+    function isSelfReceived(r, item) {
+      return r.keys().hasOnly(['title', 'url', 'imageUrl', 'giverIds', 'givers', 'joint', 'occasion', 'year',
+                               'thanked', 'revealedAt', 'self'])
+        && r.keys().hasAll(['title', 'url', 'imageUrl', 'giverIds', 'givers', 'joint', 'occasion', 'year',
+                            'thanked', 'revealedAt', 'self'])
+        && r.title == item.title
+        && r.url == item.get('url', null)
+        && r.imageUrl == item.get('imageUrl', null)
+        && r.giverIds == [] && r.givers == [] && r.joint == false
+        && r.occasion == null && r.year == null
+        && r.thanked == false && r.revealedAt == request.time && r.self == true;
+    }
+
     match /giftLists/{listId}/received/{itemId} {
       function list() {
         return get(giftListPath(listId)).data;
       }
 
       allow read: if isMember() && list().kind == 'wishes' && keepsListsOf(list().beneficiaryId);
+
+      // « Reçue » (rév. 232): whoever keeps the lists of the person archives a wish of « Mes envies »
+      // they say they got, in the same batch as its removal. Nobody gave it through the list: no
+      // giver, no thanks. A reservation of it is cancelled, and its holder told, by the server.
+      allow create: if isMember()
+        && list().kind == 'wishes'
+        && keepsListsOf(list().beneficiaryId)
+        && exists(/databases/$(database)/documents/giftLists/$(listId)/items/$(itemId))
+        && get(/databases/$(database)/documents/giftLists/$(listId)/items/$(itemId)).data.visibleToBeneficiary == true
+        && !existsAfter(/databases/$(database)/documents/giftLists/$(listId)/items/$(itemId))
+        && isSelfReceived(request.resource.data,
+                          get(/databases/$(database)/documents/giftLists/$(listId)/items/$(itemId)).data);
 
       allow update: if isMember()
         && list().beneficiaryId == myMemberId()

@@ -15,6 +15,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { giftAudience, GiftMember, loadGiftMembers, nextBirthday } from './gifts';
 import { Notice, parisDay } from './logic';
 import { notify, Sender } from './store';
+import { notebookEntryId } from './notebook';
 
 export type RevealOccasion = 'birthday' | 'christmas';
 
@@ -95,11 +96,32 @@ export async function revealWishes(db: Firestore, send: Sender, now: Date): Prom
     // A child without the app: their adults already see everything.
     if (member.profile === 'childWithoutApp') continue;
     let count = 0;
-    for (const source of sources) count += await revealWishesOf(db, member, members, today, source);
+    const asks: GivenAsk[] = [];
+    for (const source of sources) count += await revealWishesOf(db, member, members, today, source, asks);
     revealed += count;
     if (count > 0 && audience([member.id]).length > 0) await notify(db, send, [member.id], wishesRevealNotice(`wishes-${member.id}`, count));
+    // « Tu l'as offert ? » (récit 10 bis, rév. 232): the one who reserved says it in their notebook.
+    for (const ask of asks) {
+      const to = audience([ask.holderId].filter((id) => id !== member.id));
+      if (to.length > 0) await notify(db, send, to, givenAskNotice(member.firstName, ask.title));
+    }
   }
   return revealed;
+}
+
+/** A reservation just revealed whose holder has not said « Offert » in their notebook yet. */
+export interface GivenAsk {
+  holderId: string;
+  title: string;
+}
+
+/** « Tu l'as offert ? », the day after the occasion, to the one who reserved (rév. 232). */
+export function givenAskNotice(beneficiaryName: string, title: string): Notice {
+  return {
+    channel: 'gifts',
+    title: 'Tu l\'as offert ?',
+    body: `« ${title} » pour ${beneficiaryName} : dis-le dans ton carnet, onglet Cadeaux, en le passant à « Offert ».`,
+  };
 }
 
 /** The list a reveal reads: « Mes envies », or the « Idées de la famille » for the member (récit 9 ter). */
@@ -118,6 +140,7 @@ export function receivedPath(listId: string, itemId: string): { listId: string; 
  */
 export async function revealWishesOf(
   db: Firestore, member: GiftMember, members: GiftMember[], today: string, source: RevealSource = 'wishes',
+  asks?: GivenAsk[],
 ): Promise<number> {
   const list = db.collection('giftLists').doc(`${source}-${member.id}`);
   const wishes = db.collection('giftLists').doc(`wishes-${member.id}`);
@@ -171,6 +194,12 @@ export async function revealWishesOf(
     await batch.commit();
     await db.recursiveDelete(claim.ref.collection('shares'));
     count++;
+    // The notebook entry of the holder stays after the reveal: ask only while it is not « Offert ».
+    const holderId = String(claim.get('holderId') ?? '');
+    if (asks && holderId) {
+      const entry = await db.collection('notebooks').doc(holderId).collection('entries').doc(notebookEntryId(list.id, claim.id)).get();
+      if (entry.get('status') !== 'given') asks.push({ holderId, title: String(item.get('title') ?? '') });
+    }
   }
   return count;
 }
@@ -206,5 +235,14 @@ export async function thankGivers(
 export async function wasRevealed(db: Firestore, listId: string, itemId: string): Promise<boolean> {
   const archive = receivedPath(listId, itemId);
   if (!archive) return false;
-  return (await db.collection('giftLists').doc(archive.listId).collection('received').doc(archive.receivedId).get()).exists;
+  const received = await db.collection('giftLists').doc(archive.listId).collection('received').doc(archive.receivedId).get();
+  // « Reçue », marked by the person (rév. 232): nobody gave it through the list, a reservation is cancelled.
+  return received.exists && received.get('self') !== true;
+}
+
+/** The person marked [itemId] of « Mes envies » « Reçue » themselves (rév. 232). */
+export async function wasMarkedReceived(db: Firestore, listId: string, itemId: string): Promise<boolean> {
+  if (!listId.startsWith('wishes-')) return false;
+  const received = await db.collection('giftLists').doc(listId).collection('received').doc(itemId).get();
+  return received.exists && received.get('self') === true;
 }

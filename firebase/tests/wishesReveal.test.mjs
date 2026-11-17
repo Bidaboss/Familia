@@ -4,7 +4,7 @@
 // without the app, parent adult2).
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { collection, deleteDoc, doc, getDocs, serverTimestamp, setDoc, Timestamp, updateDoc } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDocs, serverTimestamp, setDoc, Timestamp, updateDoc, writeBatch } from 'firebase/firestore';
 import { ADMIN, ADULT, NEIGHBOUR, OTHER_ADULT, adultDoc, as, createEnv, seed } from './helpers.mjs';
 
 let env;
@@ -37,6 +37,58 @@ beforeEach(async () => {
     await setDoc(doc(db, 'giftLists/wishes-adult1/received/w1'), received());
     await setDoc(doc(db, 'giftLists/wishes-kid2'), wishes('kid2'));
     await setDoc(doc(db, 'giftLists/wishes-kid2/received/k1'), received({ givers: ['adult3'] }));
+  });
+});
+
+function wish(overrides = {}) {
+  return {
+    title: 'Un vélo', url: 'https://example.com/velo', price: 120, note: null, authorId: 'adult1', authorName: 'adult1',
+    visibleToBeneficiary: true, createdAt: OLD, updatedAt: OLD, ...overrides,
+  };
+}
+
+/** « Reçue » as the app writes it (rév. 232): the archive and the removal of the wish, in one batch. */
+function selfReceived(item, overrides = {}) {
+  return {
+    title: item.title, url: item.url, imageUrl: null, giverIds: [], givers: [], joint: false,
+    occasion: null, year: null, thanked: false, revealedAt: serverTimestamp(), self: true, ...overrides,
+  };
+}
+
+async function markReceived(who, listId, itemId, item, overrides = {}, removeItem = true) {
+  const db = as(env, who);
+  const batch = writeBatch(db);
+  batch.set(doc(db, `giftLists/${listId}/received/${itemId}`), selfReceived(item, overrides));
+  if (removeItem) batch.delete(doc(db, `giftLists/${listId}/items/${itemId}`));
+  return batch.commit();
+}
+
+describe('« Reçue », marked by the person (rév. 232)', () => {
+  beforeEach(async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore();
+      await setDoc(doc(db, 'giftLists/wishes-adult1/items/bike'), wish());
+      await setDoc(doc(db, 'giftLists/wishes-adult1/items/idea'), wish({ title: 'Une idée', authorId: 'adult2', visibleToBeneficiary: false }));
+      await setDoc(doc(db, 'giftLists/wishes-kid2/items/doll'), wish({ title: 'Une poupée', authorId: 'adult2' }));
+    });
+  });
+
+  test('the person archives a wish they got, with its removal, and no giver', async () => {
+    await assertSucceeds(markReceived(ADULT, 'wishes-adult1', 'bike', wish()));
+  });
+
+  test('the adults of a child without the app do it for them; nobody else', async () => {
+    await assertSucceeds(markReceived(OTHER_ADULT, 'wishes-kid2', 'doll', wish({ title: 'Une poupée' })));
+    await assertFails(markReceived(OTHER_ADULT, 'wishes-adult1', 'bike', wish()));
+    await assertFails(markReceived(NEIGHBOUR, 'wishes-adult1', 'bike', wish()));
+  });
+
+  test('never without removing the wish, never with a giver, never on a surprise idea', async () => {
+    await assertFails(markReceived(ADULT, 'wishes-adult1', 'bike', wish(), {}, false));
+    await assertFails(markReceived(ADULT, 'wishes-adult1', 'bike', wish(), { givers: ['adult2'], giverIds: ['adult2'] }));
+    await assertFails(markReceived(ADULT, 'wishes-adult1', 'bike', wish(), { title: 'Autre chose' }));
+    await assertFails(markReceived(ADULT, 'wishes-adult1', 'idea', wish({ title: 'Une idée' })));
+    await assertFails(markReceived(ADULT, 'wishes-adult1', 'nothing', wish()));
   });
 });
 
