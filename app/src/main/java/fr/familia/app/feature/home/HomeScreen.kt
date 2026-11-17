@@ -3,6 +3,7 @@ package fr.familia.app.feature.home
 import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.data.familyToday
 import fr.familia.app.feature.firststeps.rememberFirstSteps
+import fr.familia.app.feature.gooddeals.GoodDealHomeCard
 import fr.familia.app.feature.gooddeals.GoodDealHomeChip
 
 import fr.familia.app.feature.helprequests.todo.rememberHelpRequestTodos
@@ -294,7 +295,7 @@ fun HomeRoute(
                 null
             },
             goodDeal = if (flags.isOn(Feature.GoodDeals)) {
-                { GoodDealHomeChip(container, currentMember.id, onOpenGoodDeal) }
+                { GoodDealHomeCard(container, currentMember.id, onOpenGoodDeal) }
             } else {
                 null
             },

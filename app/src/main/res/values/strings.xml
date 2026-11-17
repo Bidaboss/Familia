@@ -2504,6 +2504,9 @@
     <string name="lend_until_on">Jusqu\'au %1$s</string>
     <string name="lend_ask_send">Demander</string>
     <string name="home_new_good_deal">Nouveau bon plan : %1$s</string>
+    <string name="home_good_deal_label">Bon plan</string>
+    <string name="home_good_deal_byline">%1$s · %2$s</string>
+    <string name="home_good_deal_open">ouvrir le bon plan</string>
     <string name="gooddeal_title">Bon plan</string>
     <string name="gooddeal_new_title">Nouveau bon plan</string>
     <string name="gooddeal_edit_title">Modifier le bon plan</string>
