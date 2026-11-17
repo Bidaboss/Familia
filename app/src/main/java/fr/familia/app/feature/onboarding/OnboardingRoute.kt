@@ -28,8 +28,9 @@ fun OnboardingRoute(
     // Back goes to the previous screen; on the first one, Android leaves the app as usual.
     BackHandler(enabled = index > 0) { current = pages[index - 1] }
     // Once the Android dialog has answered, whatever the answer, the app opens.
-    LaunchedEffect(askedPermission, permission.allowed) {
-        if (askedPermission && permission.allowed) onDone()
+    // A « Non » used to leave the newcomer on this screen, where « Autoriser » then opened the Android settings.
+    LaunchedEffect(askedPermission, permission.allowed, permission.answered) {
+        if (leavesOnboarding(askedPermission, permission.allowed, permission.answered)) onDone()
     }
     OnboardingScreen(
         pages = pages,
@@ -44,3 +45,7 @@ fun OnboardingRoute(
         onFinish = onDone,
     )
 }
+
+/** After « Autoriser » on the last screen: the app opens once Android allows, or once its dialog has answered no. */
+internal fun leavesOnboarding(askedPermission: Boolean, allowed: Boolean, dialogAnswered: Boolean): Boolean =
+    askedPermission && (allowed || dialogAnswered)

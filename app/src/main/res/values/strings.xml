@@ -487,7 +487,7 @@
     <string name="share_app_message">Bonjour à tous ! On a maintenant Familia, l\'appli rien que pour notre famille.\n\n1. Télécharge l\'appli : %1$s\n2. Ouvre le fichier et accepte l\'installation si ton téléphone le demande.\n3. Ouvre Familia et connecte-toi avec ton compte Google.\n\nSi ton adresse n\'est pas inscrite, demande à %2$s.</string>
     <string name="invite_send">Envoyer l\'invitation</string>
     <string name="invite_chooser">Envoyer l\'invitation avec</string>
-    <string name="invite_message">Bonjour %1$s ! Bienvenue dans Familia, l\'appli de notre famille.\n\n1. Installe l\'appli : %2$s\n2. Ouvre-la et connecte-toi avec ton compte Google %3$s.</string>
+    <string name="invite_message">Bonjour %1$s ! Bienvenue dans Familia, l\'appli de notre famille.\n\n1. Ouvre ce lien et touche le fichier Familia : %2$s\n2. Touche « Télécharger », puis « Installer ». Si le téléphone dit que l\'installation est bloquée, touche « Paramètres », autorise cette source, puis reviens en arrière.\n3. Ouvre Familia et connecte-toi avec ton compte Google %3$s.</string>
     <string name="member_leave_title">Quitter la fiche ?</string>
     <string name="member_leave_body">Les changements de cette fiche ne sont pas enregistrés.</string>
     <string name="member_leave_keep">Continuer la fiche</string>
