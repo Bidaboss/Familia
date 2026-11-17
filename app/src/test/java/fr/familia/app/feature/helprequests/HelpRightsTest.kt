@@ -1,5 +1,7 @@
 package fr.familia.app.feature.helprequests
 
+import fr.familia.app.core.data.SeenHelpRequests
+import fr.familia.app.core.data.SeenStore
 import fr.familia.app.core.model.HelpStatus
 import fr.familia.app.feature.events.TestFamily
 import org.junit.Assert.assertEquals
@@ -87,5 +89,34 @@ class HelpRightsTest {
             helpRequest("r5", TestFamily.adult, listOf("admin1")),
         )
         assertEquals(1, badgeCount(requests, TestFamily.otherAdult, today))
+    }
+
+    @Test
+    fun `a request seen in the tab leaves the badge, a new one rings again`() {
+        val seen = listOf(helpRequest("r1", TestFamily.adult, listOf("adult2")))
+        assertEquals(0, badgeCount(seen, TestFamily.otherAdult, today, seenIds = setOf("r1")))
+        val withNew = seen + helpRequest("r2", TestFamily.adult, listOf("adult2"))
+        assertEquals(1, badgeCount(withNew, TestFamily.otherAdult, today, seenIds = setOf("r1")))
+    }
+
+    @Test
+    fun `a seen request taken then open again rings again`() {
+        val store = object : SeenStore {
+            var saved: Set<String> = emptySet()
+            override fun load(memberId: String) = saved
+            override fun save(memberId: String, ids: Set<String>) {
+                saved = ids
+            }
+        }
+        val seen = SeenHelpRequests(store, "adult2")
+        seen.markSeen(listOf("r1"))
+        val taken = listOf(helpRequest("r1", TestFamily.adult, listOf("adult2"), status = HelpStatus.Taken, volunteer = TestFamily.admin))
+        seen.forget(seenToForget(taken, TestFamily.otherAdult, today, seen.seen.value))
+        assertEquals(emptySet<String>(), seen.seen.value)
+        val openAgain = listOf(helpRequest("r1", TestFamily.adult, listOf("adult2")))
+        assertEquals(1, badgeCount(openAgain, TestFamily.otherAdult, today, seen.seen.value))
+        // Kept on the phone: the next launch remembers what was seen.
+        seen.markSeen(listOf("r1"))
+        assertEquals(setOf("r1"), SeenHelpRequests(store, "adult2").seen.value)
     }
 }

@@ -73,8 +73,15 @@ fun isListed(request: HelpRequest, me: Member, family: Family, today: LocalDate)
     else -> false
 }
 
-/** The badge of the tab: open requests where [me] was warned and can still help. */
-fun badgeCount(requests: List<HelpRequest>, me: Member, today: LocalDate): Int =
-    requests.count { needsMe(it, me, today) }
+/**
+ * The badge of the tab: open requests where [me] was warned and can still help, and that [me] has
+ * not seen yet in the « Coups de main » tab ([seenIds], retour [BUG] du 18/11).
+ */
+fun badgeCount(requests: List<HelpRequest>, me: Member, today: LocalDate, seenIds: Set<String> = emptySet()): Int =
+    requests.count { needsMe(it, me, today) && it.id !in seenIds }
+
+/** The seen requests that no longer need [me]: forgotten, so that open again they ring again. */
+fun seenToForget(requests: List<HelpRequest>, me: Member, today: LocalDate, seenIds: Set<String>): Set<String> =
+    requests.filter { it.id in seenIds && !needsMe(it, me, today) }.map { it.id }.toSet()
 
 private const val THANKS_DAYS = 7L
