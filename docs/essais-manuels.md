@@ -535,8 +535,6 @@ Avec l'interrupteur « Partager » allumé :
 3. Sur le téléphone d'un membre non prévenu, la demande n'apparaît pas, et la photo non plus.
 4. Modifie la demande, touche « Retirer la photo », enregistre : elle disparaît pour tout le monde.
 
-3. Ouvre un coup de main que tu as demandé, encore ouvert : Partager donne le titre et le moment, sans le lieu ni la note. Une fois pris, le bouton disparaît, et il n'apparaît jamais sur la demande de quelqu'un d'autre.
-
 ## Les sondages d'un événement (récit 2 quater)
 Avec l'interrupteur « Sondages » allumé :
 1. Ouvre un événement de ton foyer et touche « Lancer un sondage » : les invités de l'événement sont déjà cochés. Envoie un sondage de date.
