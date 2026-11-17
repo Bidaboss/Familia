@@ -1,10 +1,6 @@
 package fr.familia.app.feature.a11y
 
 import androidx.compose.runtime.Composable
-import fr.familia.app.core.model.Member
-import fr.familia.app.core.model.MemberProfile
-import fr.familia.app.core.navigation.AccountActions
-import fr.familia.app.core.navigation.AccountSheet
 import fr.familia.app.core.theme.FamiliaThemeId
 import fr.familia.app.feature.events.detail.EventDetailScreen
 import fr.familia.app.feature.events.detail.previewEventDetail
@@ -20,10 +16,11 @@ import fr.familia.app.feature.settings.NotificationSettingsScreen
 import fr.familia.app.feature.settings.NotificationSettingsUiState
 import fr.familia.app.feature.settings.appearance.AppearanceScreen
 
-/** The screens of the demo of the 21, in their preview states, for the contrast pass. Fictional family only. */
+/**
+ * The screens of the demo of the 21, in their preview states, for the contrast pass. Fictional family only.
+ * Mon compte is a sheet, drawn in a window of its own: the pass does not see it, its colors are the surface ones.
+ */
 internal object DemoScreens {
-
-    private val me = Member("a", "Camille", null, null, "h1", MemberProfile.Adult, false, emptyList(), null)
 
     private fun screen(name: String, content: @Composable () -> Unit) = name to content
 
@@ -53,26 +50,6 @@ internal object DemoScreens {
                 features = mapOf("gifts" to true),
                 onSetFeature = { _, _ -> },
                 onRenameHousehold = { _, _ -> },
-            )
-        },
-        screen("Mon compte") {
-            AccountSheet(
-                container = null,
-                member = me,
-                actions = AccountActions(
-                    onOpenProfile = {},
-                    onOpenAppearance = {},
-                    onOpenNotifications = {},
-                    onOpenHelp = {},
-                    onOpenWhatsNew = {},
-                    onOpenUpdates = {},
-                    onOpenFeedback = {},
-                    onShareApp = {},
-                    onOpenChildrenUsage = {},
-                    onOpenAdministration = {},
-                    onOpenCalendarFeed = {},
-                ),
-                onDismiss = {},
             )
         },
         screen("les Notifications") {

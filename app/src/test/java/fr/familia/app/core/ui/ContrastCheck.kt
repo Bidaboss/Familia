@@ -1,5 +1,8 @@
 package fr.familia.app.core.ui
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.view.ViewGroup
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -13,11 +16,9 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
-import androidx.compose.ui.test.ComposeTimeoutException
 import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.junit4.ComposeContentTestRule
-import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -58,22 +59,22 @@ fun ComposeContentTestRule.checkContrast(look: Look, screens: List<Pair<String, 
     screens.forEachIndexed { index, (name, _) ->
         shown = index
         mainClock.advanceTimeBy(SETTLE_MS)
-        problems += try {
-            lowContrast().map { "${look.name} › $name › $it" }
-        } catch (e: ComposeTimeoutException) {
-            listOf("${look.name} › $name › l'écran ne se pose pas : ${e.message?.take(120)}")
-        }
+        problems += lowContrast().map { "${look.name} › $name › $it" }
     }
     mainClock.autoAdvance = true
     assertTrue("contraste trop faible :\n" + problems.joinToString("\n"), problems.isEmpty())
 }
 
 private fun ComposeContentTestRule.lowContrast(): List<String> {
-    val image = onRoot().captureToImage()
-    val width = image.width
-    val height = image.height
+    // Drawn by hand on a bitmap: captureToImage waits for a frame, and the clock here moves only when told to.
+    val view = (this as AndroidComposeTestRule<*, *>).activity.findViewById<ViewGroup>(android.R.id.content).getChildAt(0)
+    val width = view.width
+    val height = view.height
+    if (width == 0 || height == 0) return listOf("l'écran est vide")
+    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    runOnIdle { view.draw(Canvas(bitmap)) }
     val pixels = IntArray(width * height)
-    image.readPixels(pixels)
+    bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
     val root = Rect(0f, 0f, width.toFloat(), height.toFloat())
     val iconMax = with(density) { 48.dp.toPx() }
     val found = mutableListOf<String>()
