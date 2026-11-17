@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -27,7 +30,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Apps
-import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
@@ -37,7 +39,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -90,16 +91,15 @@ internal fun toneColors(tone: DayTone): ToneColors = when (tone) {
 class HomeR1bisActions(
     val onAnswer: (eventId: String, going: Boolean) -> Unit = { _, _ -> },
     val onOpenAll: () -> Unit = {},
-    /** « Où je suis », while the places module is on. */
-    val onJoinMe: (() -> Unit)? = null,
 )
 
 /**
  * The Accueil of the R1 bis presentation (spec DESIGN du 17/11, §2), from top to bottom: the frise of
  * the 7 days, the chosen day, « À faire » with its buttons on the cards, the good news and the
- * challenge of the month side by side, « En ce moment » during a trip, then « Tout Familia » and
- * « Où je suis ». At most 4 blocks between the frise and the buttons. The greeting, « + », « ? » and
- * the avatar are in the bar above.
+ * challenge of the month side by side, « En ce moment » during a trip. « Tout Familia » stays fixed at
+ * the bottom, just above the tabs, always in sight (Kévin, 17/11); « Où je suis » is in « + ». At
+ * most 4 blocks between the frise and that bar. The greeting, « + », « ? » and the avatar are in the
+ * bar above.
  */
 @Composable
 fun HomeR1bisScreen(
@@ -112,9 +112,9 @@ fun HomeR1bisScreen(
     allBadge: Int = 0,
     /** The coups de main of « À faire », with their own « J'y vais » / « Non » (help-requests thread). */
     helpTodos: (@Composable () -> Unit)? = null,
-    /** « Nouveau bon plan » (récit 45), just above « Tout Familia » and « Où je suis ». */
+    /** « Nouveau bon plan » (récit 45), at the end of the list, above the bar « Tout Familia ». */
     goodDeal: (@Composable () -> Unit)? = null,
-    /** « Notre année en famille », from 26/12 to 10/01, first above the buttons (it shows nothing otherwise). */
+    /** « Notre année en famille », from 26/12 to 10/01, at the end of the list (it shows nothing otherwise). */
     yearInReview: (@Composable () -> Unit)? = null,
 ) {
     val ready = state as? HomeUiState.Ready ?: return
@@ -135,9 +135,10 @@ fun HomeR1bisScreen(
     }
     val newsAndChallenge: @Composable () -> Unit = {
         if (goodNews != null && challenge != null) {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                goodNews(Modifier.weight(1f))
-                challenge(Modifier.weight(1f), false)
+            // Both cards take the height of the taller one (DESIGN, 17/11).
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                goodNews(Modifier.weight(1f).fillMaxHeight())
+                challenge(Modifier.weight(1f).fillMaxHeight(), false)
             }
         } else if (goodNews != null) {
             goodNews(Modifier.fillMaxWidth())
@@ -149,49 +150,52 @@ fun HomeR1bisScreen(
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             yearInReview?.invoke()
             goodDeal?.invoke()
-            HomeButtons(r1, allBadge)
         }
     }
     val padding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = 24.dp)
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
-        when {
-            // Expanded (§5): two panes, each scrolling on its own.
-            maxWidth >= 840.dp -> Row(horizontalArrangement = Arrangement.spacedBy(24.dp), modifier = Modifier.padding(horizontal = ClaySpacing.screen)) {
-                LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    item(key = "frise") { frise() }
-                    item(key = "day") { detail() }
-                    item(key = "buttons") { buttons() }
-                }
-                LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    item(key = "todo") { todo() }
-                    item(key = "news-challenge") { newsAndChallenge() }
-                    if (nowTravelling != null) item(key = "now") { nowTravelling() }
-                }
-            }
-            // Medium (§5): one column, with « À faire » beside the good news, the challenge and the trip.
-            maxWidth >= 600.dp -> LazyColumn(contentPadding = padding, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                item(key = "frise") { frise() }
-                item(key = "day") { detail() }
-                item(key = "columns") {
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Box(Modifier.weight(1f)) { todo() }
-                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            newsAndChallenge()
-                            nowTravelling?.invoke()
-                        }
+    Column(Modifier.fillMaxSize()) {
+        BoxWithConstraints(Modifier.fillMaxWidth().weight(1f)) {
+            when {
+                // Expanded (§5): two panes, each scrolling on its own.
+                maxWidth >= 840.dp -> Row(horizontalArrangement = Arrangement.spacedBy(24.dp), modifier = Modifier.padding(horizontal = ClaySpacing.screen)) {
+                    LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        item(key = "frise") { frise() }
+                        item(key = "day") { detail() }
+                        item(key = "buttons") { buttons() }
+                    }
+                    LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        item(key = "todo") { todo() }
+                        item(key = "news-challenge") { newsAndChallenge() }
+                        if (nowTravelling != null) item(key = "now") { nowTravelling() }
                     }
                 }
-                item(key = "buttons") { buttons() }
-            }
-            else -> LazyColumn(contentPadding = padding, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                item(key = "frise") { frise() }
-                item(key = "day") { detail() }
-                if (hasTodo || calm) item(key = "todo") { todo() }
-                if (goodNews != null || challenge != null) item(key = "news-challenge") { newsAndChallenge() }
-                if (nowTravelling != null) item(key = "now") { nowTravelling() }
-                item(key = "buttons") { buttons() }
+                // Medium (§5): one column, with « À faire » beside the good news, the challenge and the trip.
+                maxWidth >= 600.dp -> LazyColumn(contentPadding = padding, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    item(key = "frise") { frise() }
+                    item(key = "day") { detail() }
+                    item(key = "columns") {
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Box(Modifier.weight(1f)) { todo() }
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                newsAndChallenge()
+                                nowTravelling?.invoke()
+                            }
+                        }
+                    }
+                    item(key = "buttons") { buttons() }
+                }
+                else -> LazyColumn(contentPadding = padding, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    item(key = "frise") { frise() }
+                    item(key = "day") { detail() }
+                    if (hasTodo || calm) item(key = "todo") { todo() }
+                    if (goodNews != null || challenge != null) item(key = "news-challenge") { newsAndChallenge() }
+                    if (nowTravelling != null) item(key = "now") { nowTravelling() }
+                    item(key = "buttons") { buttons() }
+                }
             }
         }
+        // Fixed under the list, which stops above it: the last block is never hidden.
+        AllFamiliaBar(r1, allBadge)
     }
 }
 
@@ -406,19 +410,24 @@ private fun TodoShell(title: String, detail: String, onOpen: () -> Unit, buttons
 }
 
 /**
- * « Tout Familia », dark and 56 dp, with the sum of the badges of the drawer, and beside it the
- * small light « Où je suis » (§2.7).
+ * « Tout Familia », dark and 56 dp, with the sum of the badges of the drawer, fixed just above the
+ * tabs (§2.7, Kévin 17/11): 20 dp on each side, 12 dp above the tabs, on the background of the theme.
  */
 @Composable
-private fun HomeButtons(r1: HomeR1bisActions, allBadge: Int) {
+private fun AllFamiliaBar(r1: HomeR1bisActions, allBadge: Int) {
     val ink = MaterialTheme.colorScheme.onSurface
     val news = if (allBadge > 0) pluralStringResource(R.plurals.home_r1_all_news, allBadge, allBadge) else null
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 12.dp),
+    ) {
         Button(
             onClick = r1.onOpenAll,
             colors = ButtonDefaults.buttonColors(containerColor = ink, contentColor = MaterialTheme.colorScheme.surface),
             modifier = Modifier
-                .weight(1f)
+                .fillMaxWidth()
                 .heightIn(min = 56.dp)
                 .semantics { if (news != null) stateDescription = news },
         ) {
@@ -428,13 +437,6 @@ private fun HomeButtons(r1: HomeR1bisActions, allBadge: Int) {
             ) { Icon(Icons.Outlined.Apps, contentDescription = null) }
             Spacer(Modifier.width(12.dp))
             Text(stringResource(R.string.home_r1_all))
-        }
-        r1.onJoinMe?.let { joinMe ->
-            TextButton(onClick = joinMe, modifier = Modifier.heightIn(min = 56.dp)) {
-                Icon(Icons.Outlined.Place, contentDescription = null)
-                Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.home_r1_where))
-            }
         }
     }
 }

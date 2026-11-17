@@ -62,7 +62,7 @@ class R1bisScreenshotTest {
     private val state = HomeUiState.Ready(today = today, todos = listOf(HomeTodo.Answer(judo)), days = days)
 
     private val home: @Composable () -> Unit = {
-        Surface { HomeR1bisScreen(state, HomeActions(), HomeR1bisActions(onJoinMe = {}), allBadge = 2) }
+        Surface { HomeR1bisScreen(state, HomeActions(), HomeR1bisActions(), allBadge = 2) }
     }
 
     private val all: @Composable () -> Unit = {

@@ -666,6 +666,8 @@ fun FamiliaApp(
         if (addOpen && r1On) {
             HomeAddSheet(
                 options = HomeAddOptions(
+                    // « Dire où je suis » first (DESIGN, 17/11): it left the Accueil for « + ».
+                    onWhereAmI = if (features.isOn(Feature.Places)) ({ navController.navigate(JoinMeDestination) { launchSingleTop = true } }) else null,
                     onEvent = { navController.navigate(EventEditDestination()) },
                     // « Une photo » chooses its album (DESIGN, 17/11).
                     onPhoto = if (features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums)) ({ navController.navigate(AlbumsDestination) }) else null,

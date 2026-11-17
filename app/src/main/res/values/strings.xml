@@ -1561,7 +1561,6 @@
         <item quantity="many">%d de nouveautés</item>
         <item quantity="other">%d nouveautés</item>
     </plurals>
-    <string name="home_r1_where">Où je suis</string>
     <plurals name="members_r1_count">
         <item quantity="one">Nous %1$d, en %2$s</item>
         <item quantity="many">Nous %1$d, en %2$s</item>
@@ -1592,6 +1591,7 @@
     <string name="all_challenges">Défis</string>
     <string name="all_albums">Albums</string>
     <string name="home_r1_add">Ajouter</string>
+    <string name="home_r1_add_where">Dire où je suis</string>
     <string name="home_r1_add_event">Un événement</string>
     <string name="home_r1_add_photo">Une photo</string>
     <string name="home_r1_add_good_news">Une bonne nouvelle</string>
