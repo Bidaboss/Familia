@@ -11,7 +11,7 @@
 import type { Firestore } from 'firebase-admin/firestore';
 import { Timestamp } from 'firebase-admin/firestore';
 import { addDays, formatTime, parisDay, type EventData } from './logic';
-import { deliver, isQuietHour, type AnySender } from './prefs';
+import { deliver, isQuietHour, prefsFrom, type AnySender } from './prefs';
 import { featureAudience } from './store';
 
 export const MY_REMINDERS = 'myReminders';
@@ -132,7 +132,7 @@ export async function sendMyReminders(db: Firestore, send: AnySender<ReminderNot
   for (const m of members.docs) {
     const settings = await m.ref.collection('settings').doc('notifications').get();
     const defaults = offsetsFrom(settings.get('defaultReminders'));
-    choices.set(m.id, { byEvent: new Map(), bySeries: new Map(), defaults, quietHours: settings.get('quietHours') === true });
+    choices.set(m.id, { byEvent: new Map(), bySeries: new Map(), defaults, quietHours: prefsFrom(settings.data()).quietHours });
   }
   const asked = await db.collectionGroup('reminders').get();
   for (const doc of asked.docs) {

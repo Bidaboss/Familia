@@ -77,7 +77,6 @@ class YearInReviewTest {
     fun `the admin principal tries this year with a simulated date`() {
         val november = LocalDate.of(2026, 11, 17)
         assertEquals(2026, reviewYear(november, simulate = true))
-        assertTrue(reviewCardShows(november, simulate = true))
         assertNull(reviewYear(november, simulate = false))
     }
 

@@ -53,9 +53,6 @@ fun reviewCardShows(today: LocalDate): Boolean {
  */
 fun reviewYear(today: LocalDate, simulate: Boolean): Int? = if (simulate) today.year else reviewYear(today)
 
-/** The card shows in the window, and always for the admin principal trying it. */
-fun reviewCardShows(today: LocalDate, simulate: Boolean): Boolean = simulate || reviewCardShows(today)
-
 /** One photo of a good news: the path of its first photo in Storage. */
 data class ReviewPhoto(val newsId: String, val path: String, val authorName: String)
 

@@ -102,6 +102,20 @@ describe('sending, against the emulator', () => {
     assert.equal(await sendMyReminders(db, send, new Date('2026-11-21T13:30:00Z')), 0);
   });
 
+  test('« Calme la nuit » on by default: 2 days before at 23 h waits for 8 h, unless turned off (rév. 266)', async () => {
+    await db.doc('events/e1').set(piscine({ date: '2026-11-23', time: '23:00' }));
+    await db.doc('members/camille/reminders/e1').set({ eventId: 'e1', offsets: ['d2'] });
+    await db.doc('members/ines/reminders/e1').set({ eventId: 'e1', offsets: ['d2'] });
+    await db.doc('members/ines/settings/notifications').set({ quietHours: false });
+    const { sent, send } = collect();
+    // The 21st at 23 h in Paris: Inès turned the quiet nights off, Camille never touched them.
+    assert.equal(await sendMyReminders(db, send, new Date('2026-11-21T22:00:00Z')), 1);
+    assert.deepEqual(sent.map(([t]) => t), ['phone-ines']);
+    // The 22nd at 8 h: Camille's reminder rings.
+    assert.equal(await sendMyReminders(db, send, new Date('2026-11-22T07:00:00Z')), 1);
+    assert.deepEqual(sent.map(([t]) => t), ['phone-ines', 'phone-camille']);
+  });
+
   test('a changed time rings again at the new time, a deleted event never', async () => {
     await db.doc('events/e1').set(piscine());
     await db.doc('members/camille/reminders/e1').set({ eventId: 'e1', offsets: ['h1'] });
