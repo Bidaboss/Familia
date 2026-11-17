@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -27,7 +26,6 @@ import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -63,6 +61,8 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.ClaySpacing
+import fr.familia.app.core.ui.HouseholdMemberPicker
+import fr.familia.app.core.ui.PickGroup
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
@@ -217,7 +217,7 @@ private fun FormContent(
     }
 }
 
-/** Who sees the list: shortcuts for the whole family and each household, then one box per member. */
+/** Who sees the list: the whole family or nobody, then the households and their members. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Viewers(state: GiftListEditUiState.Editing, onChange: ((GiftListForm) -> GiftListForm) -> Unit) {
@@ -232,39 +232,27 @@ private fun Viewers(state: GiftListEditUiState.Editing, onChange: ((GiftListForm
                 onClick = { onChange { form -> form.copy(viewerIds = candidates.map { it.id }.toSet()) } },
                 modifier = Modifier.heightIn(min = 56.dp),
             ) { Text(stringResource(R.string.event_for_family)) }
-            state.households.forEach { household ->
-                OutlinedButton(
-                    onClick = {
-                        onChange { form ->
-                            form.copy(viewerIds = form.viewerIds + candidates.filter { it.householdId == household.id }.map { it.id })
-                        }
-                    },
-                    modifier = Modifier.heightIn(min = 56.dp),
-                ) { Text(stringResource(R.string.gift_list_add_household, household.name)) }
-            }
             OutlinedButton(
                 onClick = { onChange { form -> form.copy(viewerIds = emptySet()) } },
                 modifier = Modifier.heightIn(min = 56.dp),
             ) { Text(stringResource(R.string.gift_list_viewers_none)) }
         }
-        candidates.forEach { member ->
-            val locked = member.id in state.locked
-            val checked = locked || member.id in state.form.viewerIds
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp)
-                    .toggleable(value = checked, enabled = !locked, role = Role.Checkbox) { on ->
-                        onChange { form -> form.copy(viewerIds = if (on) form.viewerIds + member.id else form.viewerIds - member.id) }
-                    },
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Checkbox(checked = checked, onCheckedChange = null, enabled = !locked)
-                Spacer(Modifier.width(16.dp))
-                Text(member.firstName, style = MaterialTheme.typography.bodyLarge)
-            }
-        }
+        // By household (retour d'essai, 17/11): a household box ticks all its members. The locked ones stay ticked.
+        HouseholdMemberPicker(
+            groups = viewerGroups(state.households, candidates),
+            selected = state.form.viewerIds + state.locked,
+            onChange = { picked -> onChange { form -> form.copy(viewerIds = picked + state.locked) } },
+        )
     }
+}
+
+/** The candidates by household, in the order of [households], then the others under « Autres ». */
+@Composable
+private fun viewerGroups(households: List<Household>, candidates: List<Member>): List<PickGroup> {
+    val known = households.map { it.id }.toSet()
+    val groups = households.map { household -> PickGroup(household.name, candidates.filter { it.householdId == household.id }) }
+    val others = PickGroup(stringResource(R.string.members_other_household), candidates.filter { it.householdId !in known })
+    return (groups + others).filter { it.members.isNotEmpty() }
 }
 
 @Composable

@@ -16,6 +16,7 @@ import fr.familia.app.feature.gifts.item.GiftItemFormError
 import fr.familia.app.feature.gifts.item.normalizeLink
 import fr.familia.app.feature.gifts.item.validateItem
 import fr.familia.app.feature.gifts.parseEuros
+import fr.familia.app.feature.members.MembersViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -104,7 +105,8 @@ class NotebookIdeaViewModel(
         if (family.members.none { it.id == currentMemberId }) return unavailable()
         // Only a private idea is edited here; a reservation is followed from the notebook.
         if (entryId != null && existing?.source != NotebookSource.Idea) return unavailable()
-        people = family.members.filter { it.id != currentMemberId }.sortedBy { it.firstName.lowercase() }
+        // By household, in the order of the Famille tab (retour d'essai, 17/11).
+        people = MembersViewModel.group(family).flatMap { group -> group.members.filter { it.id != currentMemberId } }
         original = existing
         initialForm = existing?.let { e ->
             NotebookIdeaForm(
