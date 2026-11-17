@@ -110,6 +110,12 @@ describe('« C\'est fait » and « On passe notre tour »', () => {
     }));
   });
 
+  test('no limit on the history: one more line after 150', async () => {
+    const many = Array.from({ length: 150 }, (_, i) => ({ householdId: 'h3', label: `Année ${i}`, at: Timestamp.fromMillis(i) }));
+    await stored('t1', turn(NEIGHBOUR, { history: many }));
+    await assertSucceeds(updateDoc(doc(as(env, OTHER_ADULT), 'turns/t1'), done(1)));
+  });
+
   test('the author of the rotation can say it for the household', async () => {
     await assertSucceeds(updateDoc(doc(as(env, NEIGHBOUR), 'turns/t1'), done(1)));
   });

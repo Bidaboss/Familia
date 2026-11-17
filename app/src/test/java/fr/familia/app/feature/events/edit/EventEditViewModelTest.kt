@@ -42,6 +42,14 @@ class EventEditViewModelTest {
     }
 
     @Test
+    fun `« Créer l'événement » of a turn opens a new event with its title written, nothing changed yet`() {
+        val state = EventEditViewModel(FakeEvents(), FakeMembers(), "adult1", null, prefillTitle = "Recevoir à Noël").editing()
+        assertTrue(state.isNew)
+        assertEquals("Recevoir à Noël", state.form.title)
+        assertFalse(state.hasChanges)
+    }
+
+    @Test
     fun `a child's new event is for themselves`() {
         assertEquals(EventTarget.ForSelf("kid1"), vm(FakeEvents(), me = "kid1").editing().form.target)
     }
