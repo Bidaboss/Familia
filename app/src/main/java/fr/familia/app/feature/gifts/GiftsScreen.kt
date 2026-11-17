@@ -18,7 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -57,6 +56,7 @@ import fr.familia.app.core.ui.dayShortLabel
 import fr.familia.app.core.model.Birthday
 import fr.familia.app.feature.presentation.LocalPresenting
 import java.time.LocalDate
+import fr.familia.app.core.ui.LoadingState
 
 /** Cadeaux tab: the lists of the family, grouped by person, the member first. Stateless. */
 @Composable
@@ -80,7 +80,7 @@ fun GiftsScreen(
     val presenting = LocalPresenting.current
     Box(modifier.fillMaxSize()) {
         when (state) {
-            GiftsUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+            GiftsUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
             GiftsUiState.Error -> EmptyState(
                 icon = Icons.Outlined.CardGiftcard,
                 title = stringResource(R.string.gifts_error_title),

@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -37,6 +36,7 @@ import fr.familia.app.core.ui.formatDay
 import fr.familia.app.core.ui.formatTime
 import java.time.LocalDateTime
 import java.util.Locale
+import fr.familia.app.core.ui.LoadingState
 
 /** The history of an expense (récit 16 bis): who added it, changed it, and what. Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,7 +60,7 @@ fun ExpenseHistoryScreen(state: ExpenseHistoryUiState, onRetry: () -> Unit, onBa
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                ExpenseHistoryUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                ExpenseHistoryUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 ExpenseHistoryUiState.Error -> EmptyState(
                     icon = Icons.Outlined.History,
                     title = stringResource(R.string.expenses_error_title),

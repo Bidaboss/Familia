@@ -30,7 +30,6 @@ import androidx.compose.material.icons.outlined.AddAPhoto
 import androidx.compose.material.icons.outlined.PhotoAlbum
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -74,6 +73,7 @@ import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.LoadingState
 
 /** What one can do on a photo. */
 data class WhoIsItActions(
@@ -166,7 +166,7 @@ fun WhoIsItPostScreen(state: WhoIsItPostUiState, actions: WhoIsItActions, onDele
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                WhoIsItPostUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                WhoIsItPostUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 WhoIsItPostUiState.Missing -> EmptyState(
                     icon = Icons.Outlined.PhotoAlbum,
                     title = stringResource(R.string.who_is_it_missing_title),
@@ -227,7 +227,7 @@ fun WhoIsItListScreen(state: WhoIsItListUiState, onOpen: (String) -> Unit, onAdd
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                WhoIsItListUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                WhoIsItListUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 WhoIsItListUiState.Error -> EmptyState(
                     icon = Icons.Outlined.PhotoAlbum,
                     title = stringResource(R.string.who_is_it_error_title),

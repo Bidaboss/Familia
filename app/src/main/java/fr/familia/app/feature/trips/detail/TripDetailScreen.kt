@@ -36,7 +36,6 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledTonalButton
@@ -85,6 +84,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.util.Locale
+import fr.familia.app.core.ui.LoadingState
 
 /** One trip: its dates, who takes part, the steps and « bien arrivé ». Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -167,7 +167,7 @@ fun TripDetailScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                TripDetailUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                TripDetailUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 TripDetailUiState.Missing -> EmptyState(
                     icon = Icons.Outlined.CardTravel,
                     title = stringResource(R.string.trip_missing_title),

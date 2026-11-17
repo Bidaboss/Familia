@@ -68,6 +68,7 @@ import fr.familia.app.core.ui.formatTime
 import fr.familia.app.core.ui.frenchDate
 import java.time.Instant
 import java.time.ZoneId
+import fr.familia.app.core.ui.LoadingState
 
 /** The question of the week, my answer and, once allowed, everyone's (récit 37). Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -98,7 +99,7 @@ fun WeeklyQuestionScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                WeeklyQuestionUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                WeeklyQuestionUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 WeeklyQuestionUiState.None -> EmptyState(
                     icon = Icons.Outlined.QuestionAnswer,
                     title = stringResource(R.string.weekly_none_title),

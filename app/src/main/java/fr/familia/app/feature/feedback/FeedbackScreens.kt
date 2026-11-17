@@ -31,7 +31,6 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -77,6 +76,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import fr.familia.app.core.ui.LoadingState
 
 /** The form, stateless: every change goes through the callbacks. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -232,7 +232,7 @@ fun FeedbackListScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                FeedbackListState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                FeedbackListState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 FeedbackListState.Error -> EmptyState(
                     icon = Icons.Outlined.Lightbulb,
                     title = stringResource(R.string.feedback_list_error_title),

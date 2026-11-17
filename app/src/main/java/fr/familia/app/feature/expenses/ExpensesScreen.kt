@@ -25,7 +25,6 @@ import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -77,6 +76,7 @@ import fr.familia.app.feature.gifts.formatEuros
 import fr.familia.app.feature.trips.TripSectionTitle
 import java.time.LocalDate
 import java.util.Locale
+import fr.familia.app.core.ui.LoadingState
 
 /** Whole cents, the French way: « 12,50 € ». */
 fun formatCents(cents: Long): String = formatEuros(cents / 100.0)
@@ -141,7 +141,7 @@ fun ExpensesScreen(
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                ExpensesUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                ExpensesUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 ExpensesUiState.NotAllowed -> EmptyState(
                     icon = Icons.Outlined.Payments,
                     title = stringResource(R.string.expenses_not_allowed_title),

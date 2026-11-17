@@ -51,6 +51,7 @@ import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.feature.recipes.previewRecipes
+import fr.familia.app.core.ui.LoadingState
 
 /** What the screen can ask, so the route stays short. */
 data class RecipeBookActions(
@@ -78,7 +79,7 @@ fun RecipeBookScreen(state: RecipeBookUiState, actions: RecipeBookActions, onBac
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                RecipeBookUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                RecipeBookUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                 RecipeBookUiState.Empty -> EmptyState(
                     icon = Icons.Outlined.Restaurant,
                     title = stringResource(R.string.recipe_book_empty_title),
