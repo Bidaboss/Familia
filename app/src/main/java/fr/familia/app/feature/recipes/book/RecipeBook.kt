@@ -48,16 +48,16 @@ fun bookSections(recipes: List<BookRecipe>): List<BookSection> {
 private fun capitalized(tag: String): String = tag.replaceFirstChar { it.titlecase(Locale.FRENCH) }
 
 /**
- * Carte EXPERT-2 in the book, which leaves the app: a photo counts as showing a child when a child
- * took it, or when the recipe comes from a child. Then only the adults of that child keep it. A
- * member who left can no longer be checked: no photo. (The box « Un enfant est sur une des photos »
- * was taken away on 17/11: the adults choose the recipes of their book themselves.)
+ * Carte EXPERT-2 in the book, which leaves the app: the photo of a recipe that comes from a child
+ * stays with the adults of that child. A photo taken by a child goes to everyone (« on est en
+ * famille », 17/11), and so does the photo of any other recipe (the box « Un enfant est sur une
+ * des photos » was taken away the same day). A member who left can no longer be checked: no photo.
  */
 fun bookPhotoAllowed(photo: AlbumPhoto, recipe: Recipe, makerId: String, family: Family): Boolean {
-    val shown = listOfNotNull(photo.authorId, recipe.originMemberId).distinct().map { id ->
-        family.members.firstOrNull { it.id == id } ?: return false
-    }
-    return photoAllowed(makerId, shown.filter { it.profile != MemberProfile.Adult }.map { it.parentIds })
+    if (family.members.none { it.id == photo.authorId }) return false
+    val origin = recipe.originMemberId ?: return true
+    val from = family.members.firstOrNull { it.id == origin } ?: return false
+    return from.profile == MemberProfile.Adult || photoAllowed(makerId, listOf(from.parentIds))
 }
 
 /** The first photo of [photos] the maker may put in the book, or null: then the Argile drawing. */

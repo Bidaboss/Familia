@@ -39,11 +39,11 @@ class RecipeBookTest {
     }
 
     @Test
-    fun `a photo taken by a child, or of a recipe from a child, stays with the adults of that child`() {
+    fun `a photo taken by a child goes to everyone, a recipe from a child stays with the adults of that child`() {
         val family = TestFamily.family
         val byKid = photo("1", "kid1")
         assertTrue(bookPhotoAllowed(byKid, recipe("1", "Tarte", author = "kid1"), "adult1", family))
-        assertFalse(bookPhotoAllowed(byKid, recipe("1", "Tarte", author = "kid1"), "adult2", family))
+        assertTrue(bookPhotoAllowed(byKid, recipe("1", "Tarte", author = "kid1"), "adult2", family))
 
         val fromKid = recipe("2", "Gâteau de Kid2", origin = "kid2")
         assertTrue(bookPhotoAllowed(photo("2", "adult2"), fromKid, "adult2", family))
