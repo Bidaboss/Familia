@@ -106,6 +106,7 @@ import fr.familia.app.feature.gooddeals.EntraideTabs
 import fr.familia.app.feature.gooddeals.GoodDealDetailRoute
 import fr.familia.app.feature.gooddeals.GoodDealEditRoute
 import fr.familia.app.feature.gooddeals.GoodDealsRoute
+import fr.familia.app.feature.lending.LendItemDetailRoute
 import fr.familia.app.feature.lending.LendItemEditRoute
 import fr.familia.app.feature.lending.LendItemsRoute
 import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
@@ -315,6 +316,9 @@ fun FamiliaApp(
     /** The summary of the new bons plans was touched: Entraide, on its Bons plans (récit 45). */
     openGoodDeals: Boolean = false,
     onGoodDealsOpened: () -> Unit = {},
+    /** A thing to lend whose ask, answer or reminder was touched (récit 51). */
+    openLendItemId: String? = null,
+    onLendItemOpened: () -> Unit = {},
     /** A link shared from another app, to add to « Mes envies » once (récit 8 bis). */
     sharedWish: SharedWish? = null,
     onSharedWishOpened: () -> Unit = {},
@@ -563,6 +567,14 @@ fun FamiliaApp(
             if (goodDealsSwitchOn) entraideOnGoodDeals++
             if (helpRequestsOn) navController.navigateToTab(TopLevelDestination.HelpRequests)
             onGoodDealsOpened()
+        }
+    }
+
+    // On se prête (récit 51): the thing itself, once the modules are known; module off, the tap is spent.
+    LaunchedEffect(openLendItemId, appConfig, ownerId) {
+        if (openLendItemId != null && appConfig != null && ownerId != null) {
+            if (features.isOn(Feature.Lending)) navController.navigate(LendItemDetailDestination(openLendItemId))
+            onLendItemOpened()
         }
     }
 
@@ -1333,7 +1345,7 @@ fun FamiliaApp(
                                     container = container,
                                     currentMember = currentMember,
                                     onAdd = { navController.navigate(LendItemEditDestination()) },
-                                    onOpen = null,
+                                    onOpen = { id -> navController.navigate(LendItemDetailDestination(id)) },
                                 )
                             },
                         )
@@ -1356,6 +1368,16 @@ fun FamiliaApp(
                             dealId = destination.dealId,
                             kind = GoodDealKind.fromFirestore(destination.kind) ?: GoodDealKind.Deal,
                             onDone = { navController.popBackStack() },
+                        )
+                    }
+                    composable<LendItemDetailDestination> { entry ->
+                        val itemId = entry.toRoute<LendItemDetailDestination>().itemId
+                        LendItemDetailRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            itemId = itemId,
+                            onEdit = { navController.navigate(LendItemEditDestination(itemId)) },
+                            onBack = { navController.popBackStack() },
                         )
                     }
                     composable<LendItemEditDestination> { entry ->

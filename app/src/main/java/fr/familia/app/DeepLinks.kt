@@ -25,6 +25,8 @@ sealed interface DeepLink {
     data class Feedback(val key: String) : DeepLink
     /** The bons plans of the day (récit 45): Entraide, on its Bons plans. */
     data object GoodDeals : DeepLink
+    /** A thing to lend (récit 51): an ask, its answer or the reminder. */
+    data class LendItem(val id: String) : DeepLink
 }
 
 /**
@@ -47,6 +49,7 @@ fun deepLinks(extra: (String) -> String?, action: String?, scheme: String?, host
     (extra(FamiliaMessagingService.EXTRA_BIRTHDAY_OF) ?: extra(FamiliaMessagingService.EXTRA_WELCOME_OF) ?: extra(FamiliaMessagingService.EXTRA_THINK_OF_ME_OF))?.let { add(DeepLink.Member(it)) }
     extra(FamiliaMessagingService.EXTRA_FEEDBACK)?.let { add(DeepLink.Feedback(it)) }
     if (extra(FamiliaMessagingService.EXTRA_GOOD_DEALS) != null) add(DeepLink.GoodDeals)
+    extra(FamiliaMessagingService.EXTRA_LEND_ITEM_ID)?.let { add(DeepLink.LendItem(it)) }
     if (action == Intent.ACTION_VIEW) {
         parseSharedLink(scheme, host, path)?.let { link ->
             add(
