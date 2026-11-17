@@ -38,26 +38,31 @@ import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.home.HomeChip
+import fr.familia.app.feature.presentation.LocalPresenting
 import java.time.LocalDate
 
-/** The « Il y a un an » card of the Accueil (récit 36): shown only on a day that has a souvenir. */
+/**
+ * The « Il y a N ans » card of the Accueil (récit 36): shown only on a day that has a souvenir, and
+ * never while the Mode présentation is on (récit 48).
+ */
 @Composable
 fun YearAgoHomeCard(
     container: AppContainer?,
     currentMember: Member,
     onOpenGoodNews: (String) -> Unit,
-    onOpenTrip: (String) -> Unit,
+    onOpenAlbumPhoto: (MemoryAlbum, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val viewModel = yearAgoViewModel(container, currentMember)
     val memory by viewModel.memory.collectAsStateWithLifecycle()
+    if (LocalPresenting.current) return
     memory?.let { m ->
         YearAgoContent(
             memory = m,
             onOpen = {
                 when (m) {
                     is YearAgoMemory.News -> onOpenGoodNews(m.news.id)
-                    is YearAgoMemory.TripPhoto -> onOpenTrip(m.trip.id)
+                    is YearAgoMemory.Photo -> onOpenAlbumPhoto(m.album, m.photo.id)
                 }
             },
             onDismiss = if (viewModel.canDismiss) ({ viewModel.dismiss(m) }) else null,
@@ -66,13 +71,19 @@ fun YearAgoHomeCard(
     }
 }
 
-/** The chip of « Il y a un an » on the Accueil (DESIGN-11): only on a day with a souvenir; it opens [YearAgoHomeCard]. */
+/** The chip of « Il y a N ans » on the Accueil (DESIGN-11): only on a day with a souvenir; it opens [YearAgoHomeCard]. */
 @Composable
 fun YearAgoHomeChip(container: AppContainer?, currentMember: Member, selected: Boolean, onToggle: () -> Unit) {
     val memory by yearAgoViewModel(container, currentMember).memory.collectAsStateWithLifecycle()
-    if (memory == null) return
-    HomeChip(label = stringResource(R.string.year_ago_title), onClick = onToggle, selected = selected)
+    val m = memory ?: return
+    if (LocalPresenting.current) return
+    HomeChip(label = yearAgoTitle(m.years), onClick = onToggle, selected = selected)
 }
+
+/** « Il y a un an », « Il y a 3 ans »… */
+@Composable
+fun yearAgoTitle(years: Int): String =
+    if (years <= 1) stringResource(R.string.year_ago_title) else stringResource(R.string.year_ago_title_years, years)
 
 @Composable
 private fun yearAgoViewModel(container: AppContainer?, currentMember: Member): YearAgoViewModel {
@@ -84,8 +95,9 @@ private fun yearAgoViewModel(container: AppContainer?, currentMember: Member): Y
     val flags = LocalFeatureFlags.current
     val newsOn = flags.isOn(Feature.GoodNews)
     val tripsOn = flags.isOn(Feature.Trips)
+    val eventsOn = flags.isOn(Feature.EventAlbums)
     return viewModel(
-        key = "yearAgo-$today-${currentMember.id}-$newsOn-$tripsOn",
+        key = "yearAgo-$today-${currentMember.id}-$newsOn-$tripsOn-$eventsOn",
         factory = viewModelFactory {
             initializer {
                 YearAgoViewModel(
@@ -96,6 +108,8 @@ private fun yearAgoViewModel(container: AppContainer?, currentMember: Member): Y
                     today,
                     store,
                     canDismiss = !viewingAs,
+                    events = if (eventsOn) container?.eventRepository else null,
+                    members = container?.memberRepository,
                 )
             }
         },
@@ -106,7 +120,7 @@ private fun yearAgoViewModel(container: AppContainer?, currentMember: Member): Y
 fun YearAgoContent(memory: YearAgoMemory, onOpen: () -> Unit, onDismiss: (() -> Unit)?, modifier: Modifier = Modifier) {
     val tint = ClayTint.Plain
     ClayCard(modifier = modifier.fillMaxWidth(), tint = tint) {
-        Text(stringResource(R.string.year_ago_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+        Text(yearAgoTitle(memory.years), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         val thumbnail: String?
         val title: String
         val detail: String
@@ -118,11 +132,15 @@ fun YearAgoContent(memory: YearAgoMemory, onOpen: () -> Unit, onDismiss: (() -> 
                 detail = stringResource(R.string.year_ago_news, memory.news.authorName)
                 openLabel = stringResource(R.string.goodnews_open)
             }
-            is YearAgoMemory.TripPhoto -> {
+            is YearAgoMemory.Photo -> {
                 thumbnail = memory.photo.thumbnailPath
-                title = memory.trip.title
-                detail = stringResource(R.string.year_ago_trip, memory.photo.authorName)
-                openLabel = stringResource(R.string.recap_trip_open)
+                title = memory.album.title
+                val of = when (memory.album.kind) {
+                    MemoryAlbum.Kind.Trip -> R.string.year_ago_trip
+                    MemoryAlbum.Kind.Event -> R.string.year_ago_event
+                }
+                detail = stringResource(of, memory.photo.authorName)
+                openLabel = stringResource(R.string.album_photo_open)
             }
         }
         Row(

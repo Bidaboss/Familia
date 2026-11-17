@@ -1,5 +1,6 @@
 package fr.familia.app.core.navigation
 
+import fr.familia.app.feature.presentation.LocalPresenting
 import fr.familia.app.feature.presentation.PresentationBanner
 import fr.familia.app.feature.presentation.rememberPresentation
 
@@ -259,6 +260,7 @@ import fr.familia.app.feature.expenses.TripExpenseHistoryDestination
 import fr.familia.app.feature.expenses.TripExpensesDestination
 import fr.familia.app.feature.trips.TripEditDestination
 import fr.familia.app.feature.trips.TripPhotosDestination
+import fr.familia.app.feature.yearago.MemoryAlbum
 import fr.familia.app.feature.trips.TripStepEditDestination
 import fr.familia.app.feature.trips.TripsDestination
 import fr.familia.app.feature.trips.detail.TripDetailRoute
@@ -648,6 +650,7 @@ fun FamiliaApp(
             if (features.isOn(Feature.PresentationR1bis)) memberInitials(liveFamily?.members.orEmpty()) else emptyMap()
         },
         LocalFeatureFlags provides features,
+        LocalPresenting provides (presentation?.isOn == true),
         LocalDiscoverOrder provides remember(appConfig?.discoverOrder) { Discover.order(appConfig?.discoverOrder.orEmpty()) },
         LocalInAppUpdater provides updater,
         LocalSnackbarHost provides snackbar,
@@ -824,6 +827,12 @@ fun FamiliaApp(
                                 },
                                 onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
                                 onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
+                                onOpenAlbumPhoto = { album, photoId ->
+                                    when (album.kind) {
+                                        MemoryAlbum.Kind.Trip -> navController.navigate(TripPhotosDestination(album.id, photoId))
+                                        MemoryAlbum.Kind.Event -> navController.navigate(EventAlbumDestination(album.id, photoId))
+                                    }
+                                },
                                 onOpenPoll = { id -> navController.navigate(PollDetailDestination(id)) },
                                 onOpenPolls = { navController.navigate(PollsDestination) { launchSingleTop = true } },
                                 onNewPoll = { navController.navigate(PollEditDestination) },
@@ -1011,11 +1020,13 @@ fun FamiliaApp(
                         ExpenseHistoryRoute(container = container, tripId = route.tripId, expenseId = route.expenseId, onBack = { navController.popBackStack() })
                     }
                     composable<TripPhotosDestination> { entry ->
-                        val tripId = entry.toRoute<TripPhotosDestination>().tripId
+                        val route = entry.toRoute<TripPhotosDestination>()
+                        val tripId = route.tripId
                         TripPhotosRoute(
                             container = container,
                             currentMember = currentMember,
                             tripId = tripId,
+                            startPhotoId = route.photoId,
                             onBack = { navController.popBackStack() },
                             onMakeBook = if (features.isOn(Feature.PhotoBook) && !viewingAs) {
                                 { navController.navigate(PhotoBookDestination(PhotoBookDestination.TRIP, tripId)) }
@@ -1218,11 +1229,13 @@ fun FamiliaApp(
                         )
                     }
                     composable<EventAlbumDestination> { entry ->
-                        val eventId = entry.toRoute<EventAlbumDestination>().eventId
+                        val route = entry.toRoute<EventAlbumDestination>()
+                        val eventId = route.eventId
                         EventAlbumRoute(
                             container = container,
                             currentMember = currentMember,
                             eventId = eventId,
+                            startPhotoId = route.photoId,
                             onBack = { navController.popBackStack() },
                             onMakeBook = if (features.isOn(Feature.PhotoBook) && !viewingAs) {
                                 { navController.navigate(PhotoBookDestination(PhotoBookDestination.EVENT, eventId)) }

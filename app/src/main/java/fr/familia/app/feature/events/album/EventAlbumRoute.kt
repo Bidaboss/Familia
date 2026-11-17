@@ -83,7 +83,7 @@ fun EventAlbumSection(container: AppContainer?, currentMember: Member, eventId: 
 
 /** « Voir les photos » of an event, with its film. */
 @Composable
-fun EventAlbumRoute(container: AppContainer?, currentMember: Member, eventId: String, onBack: () -> Unit, onMakeBook: (() -> Unit)? = null) {
+fun EventAlbumRoute(container: AppContainer?, currentMember: Member, eventId: String, onBack: () -> Unit, onMakeBook: (() -> Unit)? = null, startPhotoId: String? = null) {
     val album = rememberEventAlbum(container, currentMember, eventId)
     val state by album.uiState.collectAsStateWithLifecycle()
     val filmsDir = File(LocalContext.current.cacheDir, "films")
@@ -98,6 +98,7 @@ fun EventAlbumRoute(container: AppContainer?, currentMember: Member, eventId: St
         FilmActions(onMake = { filmViewModel.make(album.uiState.value.photos) }, onCancel = filmViewModel::cancel)
     }
     AlbumScreen(
+        startPhotoId = startPhotoId,
         title = stringResource(R.string.event_album_title),
         state = state,
         actions = rememberPhotoActions(album),

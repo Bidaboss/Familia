@@ -29,6 +29,19 @@ class FirestoreEventRepository(private val db: FirebaseFirestore) : EventReposit
         awaitClose { registration.remove() }
     }
 
+    override fun observeOnDays(days: List<LocalDate>): Flow<List<Event>> = callbackFlow {
+        val registration = db.collection(EVENTS)
+            .whereIn("date", days.take(MAX_DAYS).map { it.toString() })
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                } else if (snapshot != null) {
+                    trySend(snapshot.documents.mapNotNull { it.toEvent() })
+                }
+            }
+        awaitClose { registration.remove() }
+    }
+
     override suspend fun getEvent(id: String): Event? =
         db.collection(EVENTS).document(id).get().await().takeIf { it.exists() }?.toEvent()
 
@@ -102,6 +115,9 @@ class FirestoreEventRepository(private val db: FirebaseFirestore) : EventReposit
 
     private companion object {
         const val EVENTS = "events"
+
+        /** A whereIn query takes 30 values at most. */
+        const val MAX_DAYS = 30
     }
 }
 

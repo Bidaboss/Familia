@@ -61,6 +61,7 @@ class FakeEvents(initial: List<Event> = emptyList(), private val failWith: Excep
     val deleted = mutableListOf<String>()
     override fun observeUpcoming(from: LocalDate): Flow<List<Event>> =
         events.map { list -> list.filter { it.date >= from }.sortedWith(eventOrder) }
+    override fun observeOnDays(days: List<LocalDate>): Flow<List<Event>> = events.map { list -> list.filter { it.date in days } }
     override suspend fun getEvent(id: String): Event? = events.value.firstOrNull { it.id == id }
     override fun observeEvent(id: String): Flow<Event?> = events.map { list -> list.firstOrNull { it.id == id } }
     override fun newEventId(): String = "e-new"

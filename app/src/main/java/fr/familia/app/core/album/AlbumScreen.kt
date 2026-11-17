@@ -1,9 +1,5 @@
 package fr.familia.app.core.album
 
-import androidx.compose.ui.text.style.TextOverflow
-import fr.familia.app.core.ui.ClaySpacing
-import fr.familia.app.core.model.Feature
-import fr.familia.app.core.ui.LocalFeatureFlags
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,6 +18,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -29,12 +26,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.photo.StorageImage
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
+import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.LocalFeatureFlags
 import java.time.Instant
 
 /**
@@ -50,8 +51,17 @@ fun AlbumScreen(
     onBack: () -> Unit,
     actionsBar: @Composable () -> Unit = {},
     top: @Composable () -> Unit = {},
+    /** Opened on this photo once it is there (« Il y a N ans », récit 36). */
+    startPhotoId: String? = null,
 ) {
     var openedId by rememberSaveable { mutableStateOf<String?>(null) }
+    var startDone by rememberSaveable { mutableStateOf(startPhotoId == null) }
+    LaunchedEffect(state.photos, startPhotoId) {
+        if (!startDone && state.photos.any { it.id == startPhotoId }) {
+            openedId = startPhotoId
+            startDone = true
+        }
+    }
     val shape = RoundedCornerShape(16.dp)
     val open = stringResource(R.string.album_photo_open)
     Scaffold(

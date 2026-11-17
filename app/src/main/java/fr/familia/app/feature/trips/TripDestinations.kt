@@ -25,4 +25,4 @@ data class TripStepEditDestination(val tripId: String, val stepId: String? = nul
 
 /** All the photos of [tripId] (récit 15). */
 @Serializable
-data class TripPhotosDestination(val tripId: String)
+data class TripPhotosDestination(val tripId: String, val photoId: String? = null)
