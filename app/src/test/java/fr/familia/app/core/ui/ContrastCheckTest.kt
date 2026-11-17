@@ -3,6 +3,7 @@ package fr.familia.app.core.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -26,6 +27,8 @@ class ContrastCheckTest {
     @get:Rule
     val compose = createComposeRule()
 
+    private fun screen(name: String, content: @Composable () -> Unit) = name to content
+
     private val light = Look("Classique clair", FamiliaThemeId.Classic)
 
     @Test
@@ -33,7 +36,7 @@ class ContrastCheckTest {
         val error = assertThrows(AssertionError::class.java) {
             compose.checkContrast(
                 light,
-                listOf("pâle" to { Box(Modifier.background(Color.White)) { Text("Bonjour", color = Color(0xFFBBBBBB), fontSize = 16.sp) } }),
+                listOf(screen("pâle") { Box(Modifier.background(Color.White)) { Text("Bonjour", color = Color(0xFFBBBBBB), fontSize = 16.sp) } }),
             )
         }
         assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("Bonjour"))
@@ -42,7 +45,7 @@ class ContrastCheckTest {
     @Test
     fun `a dark text on white passes`() = compose.checkContrast(
         light,
-        listOf("foncé" to { Box(Modifier.background(Color.White)) { Text("Bonjour", color = Color(0xFF222222), fontSize = 16.sp) } }),
+        listOf(screen("foncé") { Box(Modifier.background(Color.White)) { Text("Bonjour", color = Color(0xFF222222), fontSize = 16.sp) } }),
     )
 
     @Test
