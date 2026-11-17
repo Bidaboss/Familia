@@ -1159,14 +1159,16 @@ fun FamiliaApp(
                     // --- Coups de main ---
                     composable<HelpRequestsRoute> {
                         // Récit 45: the « Bons plans » beside the coups de main, behind their switch.
+                        val goodDealsOn = LocalFeatureFlags.current.isOn(Feature.GoodDeals)
                         EntraideTabs(
-                            goodDealsOn = LocalFeatureFlags.current.isOn(Feature.GoodDeals),
+                            goodDealsOn = goodDealsOn,
                             help = {
                                 HelpRequestsRoute(
                                     container = container,
                                     currentMember = currentMember,
                                     onAsk = { navController.navigate(HelpRequestEditDestination()) },
                                     onOpenRequest = { id -> navController.navigate(HelpRequestDetailDestination(id)) },
+                                    showTitle = !goodDealsOn,
                                 )
                             },
                             goodDeals = {

@@ -18,6 +18,7 @@ fun HelpRequestsRoute(
     currentMember: Member,
     onAsk: () -> Unit,
     onOpenRequest: (String) -> Unit,
+    showTitle: Boolean = true,
 ) {
     val viewModel: HelpRequestsViewModel = viewModel(
         factory = viewModelFactory {
@@ -34,6 +35,7 @@ fun HelpRequestsRoute(
         onOpenRequest = onOpenRequest,
         onRetry = viewModel::retry,
         r1bis = LocalFeatureFlags.current.isOn(Feature.PresentationR1bis),
+        showTitle = showTitle,
         error = error,
         onTake = viewModel::take,
         onDecline = viewModel::decline,
