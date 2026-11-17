@@ -77,6 +77,8 @@ data class GiftItem(
     val occasion: GiftOccasion? = null,
     /** When it was added, for the « nouvelles » of the Cadeaux tab; null while the server has not written it. */
     val addedAt: java.time.Instant? = null,
+    /** The base of the photo sent by its author (core/photo/SinglePhoto, PRD récit 44), or null. */
+    val photo: String? = null,
 )
 
 enum class ClaimType(val firestoreValue: String) {

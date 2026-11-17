@@ -11,6 +11,9 @@ import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftShare
+import fr.familia.app.core.photo.PhotoEdit
+import fr.familia.app.core.photo.PhotoStorage
+import fr.familia.app.core.photo.SinglePhotoSaver
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.gifts.detail.GiftListUiState
@@ -329,6 +332,41 @@ class GiftsTest {
     }
 
     @Test
+    fun `a photo goes to « shared » for a wish and to « hidden » for an idea kept from the person`() = runTest {
+        val sent = mutableListOf<String>()
+        val photos = SinglePhotoSaver(
+            uploader = { _, photo, _ -> sent += photo },
+            storage = object : PhotoStorage {
+                override suspend fun upload(path: String, jpeg: ByteArray) = Unit
+                override suspend fun downloadUrl(path: String) = path
+                override suspend fun delete(path: String) = Unit
+            },
+        )
+        val wishes = FakeGifts(list("wishes-adult1", "adult1", kind = GiftListKind.Wishes))
+        val mine = GiftItemEditViewModel(wishes, FakeMembers(), "adult1", "wishes-adult1", null, photos = photos)
+        assertTrue((mine.uiState.first { it is GiftItemEditUiState.Editing } as GiftItemEditUiState.Editing).showPhoto)
+        mine.update { it.copy(title = "Un vélo", photo = PhotoEdit.Picked("content://photo/1")) }
+        mine.save()
+        mine.uiState.first { it == GiftItemEditUiState.Done }
+        assertTrue(wishes.savedItems.single().photo!!.startsWith("giftLists/wishes-adult1/shared/adult1/"))
+
+        val surprise = FakeGifts(list("l", "adult1", viewers = listOf("adult1", "adult2")))
+        val idea = GiftItemEditViewModel(surprise, FakeMembers(), "adult2", "l", null, photos = photos)
+        idea.uiState.first { it is GiftItemEditUiState.Editing }
+        idea.update { it.copy(title = "Une montre", photo = PhotoEdit.Picked("content://photo/2")) }
+        idea.save()
+        idea.uiState.first { it == GiftItemEditUiState.Done }
+        assertTrue(surprise.savedItems.single().photo!!.startsWith("giftLists/l/hidden/adult2/"))
+        assertEquals(2, sent.size)
+    }
+
+    @Test
+    fun `without « Plus de photos » a wish has no photo to add`() = runTest {
+        val vm = GiftItemEditViewModel(FakeGifts(null), FakeMembers(), "adult1", "wishes-adult1", null)
+        assertFalse((vm.uiState.first { it is GiftItemEditUiState.Editing } as GiftItemEditUiState.Editing).showPhoto)
+    }
+
+    @Test
     fun `a link shared from another app starts a new wish, to save or drop`() = runTest {
         // adult1 has no « Mes envies » yet: the first wish creates the list.
         val shared = GiftItemForm(title = "Écharpe rouge", url = "https://boutique.example/echarpe")
@@ -420,7 +458,10 @@ class FakeGifts(list: GiftList?) : GiftRepository {
     override fun newItemId(listId: String): String = "new-item"
     override suspend fun saveList(list: GiftList, isNew: Boolean) = Unit
     override suspend fun deleteList(listId: String) = Unit
-    override suspend fun saveItem(listId: String, item: GiftItem, isNew: Boolean) = Unit
+    val savedItems = mutableListOf<GiftItem>()
+    override suspend fun saveItem(listId: String, item: GiftItem, isNew: Boolean) {
+        savedItems += item
+    }
     override suspend fun deleteItem(listId: String, itemId: String) = Unit
     override suspend fun claim(listId: String, claim: GiftClaim) = Unit
     override suspend fun release(listId: String, itemId: String) = Unit

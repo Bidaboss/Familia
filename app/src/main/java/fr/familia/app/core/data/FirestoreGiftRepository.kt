@@ -130,8 +130,10 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
             "updatedAt" to FieldValue.serverTimestamp(),
         )
         if (isNew) {
+            // Left out when there is none, so the item fits the rules of before the photo too.
+            val photo = item.photo?.let { mapOf("photo" to it) }.orEmpty()
             ref.set(
-                fields + mapOf(
+                fields + photo + mapOf(
                     "authorId" to item.authorId,
                     "authorName" to item.authorName,
                     "visibleToBeneficiary" to item.visibleToBeneficiary,
@@ -139,7 +141,8 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
                 ),
             ).await()
         } else {
-            ref.update(fields).await()
+            // Removing a field that is not there changes nothing, under the old rules too.
+            ref.update(fields + ("photo" to (item.photo ?: FieldValue.delete()))).await()
         }
     }
 
@@ -304,6 +307,7 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
             imageUrl = getString("imageUrl"),
             occasion = GiftOccasion.fromFirestore(getString("occasion")),
             addedAt = getTimestamp("createdAt")?.toDate()?.toInstant(),
+            photo = getString("photo"),
         )
     }
 

@@ -1,5 +1,9 @@
 package fr.familia.app.feature.gifts.detail
 
+import fr.familia.app.core.photo.CoverBanner
+import fr.familia.app.core.photo.CoverThumbnail
+import fr.familia.app.core.model.Feature
+import fr.familia.app.core.ui.LocalFeatureFlags
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -295,6 +299,10 @@ private fun ItemCard(row: ItemRow, state: GiftListUiState.Success, onOpen: () ->
     ClayCard(modifier = Modifier.fillMaxWidth(), tint = tint, onClick = onOpen, onClickLabel = openLabel, contentPadding = ClaySpacing.card) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                // The photo of its author (récit 44), small: the sheet shows it wide.
+                item.photo?.takeIf { LocalFeatureFlags.current.isOn(Feature.MorePhotos) }?.let { photo ->
+                    CoverThumbnail(photo, Modifier.padding(end = 12.dp))
+                }
                 ClayCardTitle(item.title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 // Says to the eye what the click label says to TalkBack: the card opens.
                 Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null)
@@ -370,7 +378,10 @@ internal fun ItemSheetContent(row: ItemRow, state: GiftListUiState.Success, acti
         modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp).navigationBarsPadding(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        item.imageUrl?.let { image ->
+        val photo = item.photo?.takeIf { LocalFeatureFlags.current.isOn(Feature.MorePhotos) }
+        // The photo of its author (récit 44) comes before the picture of the shop page.
+        if (photo != null) CoverBanner(photo)
+        item.imageUrl?.takeIf { photo == null }?.let { image ->
             // The picture of the shop page of a shared link (récit 8 bis): decorative.
             AsyncImage(
                 model = image,
