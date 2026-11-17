@@ -38,6 +38,24 @@ class NotebookIdeaTest {
     }
 
     @Test
+    fun `from a member's page, the idea stays for that member`() = runTest {
+        val vm = NotebookIdeaViewModel(FakeNotebook(), FakeMembers(), "adult1", null, christmas, startPersonId = "adult2")
+        val state = vm.editing()
+        assertEquals("adult2", state.fixedPerson?.id)
+        assertEquals("adult2", state.form.personId)
+        vm.update { it.copy(personId = "admin1") }
+        vm.update { it.copy(otherName = "Mamie Jo", personId = null) }
+        assertEquals("adult2", vm.editing().form.personId)
+        assertEquals("", vm.editing().form.otherName)
+    }
+
+    @Test
+    fun `from the notebook, anyone may be chosen`() = runTest {
+        val vm = NotebookIdeaViewModel(FakeNotebook(), FakeMembers(), "adult1", null, christmas)
+        assertNull(vm.editing().fixedPerson)
+    }
+
+    @Test
     fun `a purchase made elsewhere starts as bought, and stays a private idea`() = runTest {
         val vm = NotebookIdeaViewModel(FakeNotebook(), FakeMembers(), "adult1", null, christmas, startBought = true)
         val state = vm.editing()

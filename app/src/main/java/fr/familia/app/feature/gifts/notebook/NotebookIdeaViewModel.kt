@@ -58,6 +58,8 @@ sealed interface NotebookIdeaUiState {
         val hasChanges: Boolean = false,
         val isSaving: Boolean = false,
         val saveFailed: Boolean = false,
+        /** A new idea from the page of this member (retour d'essai du 18/11): they stay chosen. */
+        val fixedPerson: Member? = null,
     ) : NotebookIdeaUiState
 
     data object Done : NotebookIdeaUiState
@@ -88,6 +90,7 @@ class NotebookIdeaViewModel(
     private var initialForm = NotebookIdeaForm()
     private var original: NotebookEntry? = null
     private var people: List<Member> = emptyList()
+    private var fixedPerson: Member? = null
     private var showErrors = false
 
     init {
@@ -130,9 +133,15 @@ class NotebookIdeaViewModel(
             year = startOccasion.year?.toString().orEmpty(),
             status = if (startBought) GiftStatus.Bought else GiftStatus.Idea,
         )
-        val form = restoredDraft() ?: initialForm
-        _uiState.value = NotebookIdeaUiState.Editing(form, isNew = existing == null, people = people, hasChanges = form != initialForm)
+        fixedPerson = if (existing == null) people.firstOrNull { it.id == startPersonId } else null
+        val form = (restoredDraft() ?: initialForm).fixed()
+        _uiState.value = NotebookIdeaUiState.Editing(
+            form, isNew = existing == null, people = people, hasChanges = form != initialForm, fixedPerson = fixedPerson,
+        )
     }
+
+    /** From a member's page, the idea stays for that member whatever the form asks. */
+    private fun NotebookIdeaForm.fixed(): NotebookIdeaForm = fixedPerson?.let { copy(personId = it.id, otherName = "") } ?: this
 
     private fun unavailable() {
         _uiState.value = NotebookIdeaUiState.Unavailable
@@ -140,7 +149,7 @@ class NotebookIdeaViewModel(
 
     fun update(change: (NotebookIdeaForm) -> NotebookIdeaForm) {
         val state = _uiState.value as? NotebookIdeaUiState.Editing ?: return
-        val form = change(state.form)
+        val form = change(state.form).fixed()
         keepDraft(form)
         _uiState.value = state.copy(
             form = form,

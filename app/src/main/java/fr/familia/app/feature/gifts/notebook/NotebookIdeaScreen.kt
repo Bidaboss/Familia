@@ -131,27 +131,33 @@ private fun FormContent(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Section(R.string.notebook_idea_for) {
-            ChipRow {
-                state.people.forEach { person ->
-                    Chip(person.firstName, selected = form.personId == person.id) {
-                        onChange { it.copy(personId = if (it.personId == person.id) null else person.id, otherName = "") }
+            // From a member's page (retour d'essai du 18/11): that member, and no other choice.
+            val fixed = state.fixedPerson
+            if (fixed != null) {
+                Text(fixed.firstName, style = MaterialTheme.typography.bodyLarge)
+            } else {
+                ChipRow {
+                    state.people.forEach { person ->
+                        Chip(person.firstName, selected = form.personId == person.id) {
+                            onChange { it.copy(personId = if (it.personId == person.id) null else person.id, otherName = "") }
+                        }
                     }
                 }
+                OutlinedTextField(
+                    value = form.otherName,
+                    onValueChange = { value -> onChange { it.copy(otherName = value, personId = null) } },
+                    label = { Text(stringResource(R.string.notebook_idea_other)) },
+                    isError = state.errors.any { it == NotebookIdeaError.PersonMissing || it == NotebookIdeaError.NameTooLong },
+                    supportingText = when {
+                        NotebookIdeaError.PersonMissing in state.errors -> errorLine(R.string.error_notebook_person_missing)
+                        NotebookIdeaError.NameTooLong in state.errors -> errorLine(R.string.error_notebook_name_too_long)
+                        else -> null
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
-            OutlinedTextField(
-                value = form.otherName,
-                onValueChange = { value -> onChange { it.copy(otherName = value, personId = null) } },
-                label = { Text(stringResource(R.string.notebook_idea_other)) },
-                isError = state.errors.any { it == NotebookIdeaError.PersonMissing || it == NotebookIdeaError.NameTooLong },
-                supportingText = when {
-                    NotebookIdeaError.PersonMissing in state.errors -> errorLine(R.string.error_notebook_person_missing)
-                    NotebookIdeaError.NameTooLong in state.errors -> errorLine(R.string.error_notebook_name_too_long)
-                    else -> null
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-                modifier = Modifier.fillMaxWidth(),
-            )
         }
         Section(R.string.notebook_idea_occasion) {
             ChipRow {
