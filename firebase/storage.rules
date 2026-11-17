@@ -203,6 +203,24 @@ service firebase.storage {
                 != 'goodDeals/' + dealId + '/' + authorId + '/' + fileName.split('[-.]')[0]);
     }
 
+    // The photo of a thing to lend (récit 51): lendItems/{itemId}/{authorId}/{photoId}.jpg and its
+    // {photoId}-thumb.jpg, as the photo of a bon plan above: sent to the sender's own folder before
+    // its name goes in the field photo of the item (checked by firestore.rules), read by every
+    // member, removed by its sender or once the item no longer names it, and by the server with
+    // the item.
+    match /lendItems/{itemId}/{authorId}/{fileName} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && resource == null
+        && authorId == myMemberId()
+        && ((fileName.matches('^[A-Za-z0-9]{1,40}[.]jpg$') && isJpegUnder(512 * 1024))
+            || (fileName.matches('^[A-Za-z0-9]{1,40}-thumb[.]jpg$') && isJpegUnder(64 * 1024)));
+      allow delete: if isMember()
+        && (authorId == myMemberId()
+            || firestore.get(docPath('lendItems/' + itemId)).data.get('photo', null)
+                != 'lendItems/' + itemId + '/' + authorId + '/' + fileName.split('[-.]')[0]);
+    }
+
     // Plus de photos (PRD, récit 44): the photo of a wish or an idea,
     // giftLists/{listId}/{folder}/{authorId}/{photoId}.jpg and its {photoId}-thumb.jpg. The rights
     // are those of the list, by the same function as canSeeList in firestore.rules (keep both
