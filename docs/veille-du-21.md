@@ -52,13 +52,13 @@ Passe chaque essai d'abord en mode avion, puis en « 2G seulement ». Pour la 2G
 - [ ] « Démo du 21 : Bonnes nouvelles et Entraide sur un réseau faible ».
 - [ ] « Démo du 21 : album, diaporama, recettes, arbre et Qui est-ce ? sur un réseau faible », si tu montres ces modules.
 - [ ] « Bonnes nouvelles : envoi de la photo sur un réseau faible ou coupé ».
-- [ ] « Voir comme » sur un enfant : **Administration**, puis « Voir comme… », puis un enfant d'environ 11 ans. Parcours Accueil, Planning, Entraide et Bonnes nouvelles. **Attendu :** aucun bouton qui finit sur un refus, et aucun texte d'adulte. Recommence avec un enfant d'environ 16 ans. C'est l'étape 3 de « Écrans vides et profils enfant ».
+- [ ] « Voir comme » sur un enfant : **Administration**, puis « Démo et présentation », puis « Voir comme… », puis un enfant d'environ 11 ans. Parcours Accueil, Planning, Entraide et Bonnes nouvelles. **Attendu :** aucun bouton qui finit sur un refus, et aucun texte d'adulte. Recommence avec un enfant d'environ 16 ans. C'est l'étape 3 de « Écrans vides et profils enfant ».
 - [ ] Touche « Quitter » sur le bandeau « Tu vois l'appli comme … ».
 - [ ] Un enfant suivi par Family Link : installe Familia sur son téléphone et connecte son compte, avec le parent qui le suit à côté. C'est « Un enfant suivi par Family Link se connecte (avant le 21) », dans [essais-manuels.md](essais-manuels.md). **Si ça bloque**, ne retente pas le jour J : sur sa fiche, passe son profil à « Enfant, sans l'appli ». Ses parents répondent pour lui, et on retente après le repas, au calme.
 
 ## 5. Préparer le repas, encore ce soir
 
-- [ ] Fais une répétition : **Administration**, puis « Voir comme… », puis un membre qui n'est **pas** la personne fêtée. Fais la visite guidée de [scenario-demo.md](scenario-demo.md) (étape 5). Puis regarde l'onglet Cadeaux en « Voir comme » la personne fêtée. **Attendu :** rien ne lui montre ce qui est réservé pour elle. Note ce qui pourrait gêner.
+- [ ] Fais une répétition : **Administration**, puis « Démo et présentation », puis « Voir comme… », puis un membre qui n'est **pas** la personne fêtée. Fais la visite guidée de [scenario-demo.md](scenario-demo.md) (étape 5). Puis regarde l'onglet Cadeaux en « Voir comme » la personne fêtée. **Attendu :** rien ne lui montre ce qui est réservé pour elle. Note ce qui pourrait gêner.
 - [ ] Toujours en « Voir comme », ouvre l'événement du repas. **Attendu :** rien n'y parle du cadeau.
 - [ ] Touche « Quitter » sur le bandeau.
 - [ ] Avec le réseau, ouvre une fois Accueil, Planning, Entraide et Famille. Ils resteront lisibles si le réseau tombe demain.
@@ -77,7 +77,7 @@ Passe chaque essai d'abord en mode avion, puis en « 2G seulement ». Pour la 2G
 
 **Au café** (le déroulé complet est dans [scenario-demo.md](scenario-demo.md))
 - [ ] Ouvre Familia. **Attendu :** pas de bandeau « Hors ligne ». S'il apparaît, active le partage de connexion 4G.
-- [ ] **Administration**, puis la carte « Mode présentation » tout en haut, puis « 4 h ». **Attendu :** le bandeau « Mode présentation jusqu'à … » au-dessus des onglets.
+- [ ] **Administration**, puis « Démo et présentation » tout en haut, puis la carte « Mode présentation », puis « 4 h ». **Attendu :** le bandeau « Mode présentation jusqu'à … » au-dessus des onglets.
 - [ ] Envoie les invitations, puis laisse chacun se connecter et suivre le tuto sur son téléphone.
 - [ ] Fais la visite guidée de 5 minutes : Accueil, un événement (« Je viens », « Qui apporte quoi »), Cadeaux.
 - [ ] Ne tourne jamais **ton propre** Accueil ni **ton propre** onglet Cadeaux vers la table : l'occasion de la personne fêtée y apparaît.
@@ -86,7 +86,7 @@ Passe chaque essai d'abord en mode avion, puis en « 2G seulement ». Pour la 2G
 - [ ] « Voir comme » ne sert qu'à aider quelqu'un de perdu. Touche « Quitter » sur le bandeau ensuite.
 
 **À la fin**
-- [ ] **Administration**, puis « Éteindre » sur la carte « Mode présentation ».
+- [ ] **Administration**, puis « Démo et présentation », puis « Éteindre » sur la carte « Mode présentation ».
 - [ ] **Attendu :** en moins d'une minute, chacun reçoit le résumé de la présentation, en trois notifications au plus. S'il n'arrive pas, il part au plus tard 30 minutes après. Après 22 h, il attend le lendemain à 8 h pour ceux qui ont « Calme la nuit », c'est-à-dire presque tout le monde : éteins le Mode présentation avant 22 h si tu veux qu'il arrive le soir même.
 - [ ] Enlève « Ne pas déranger ».
 - [ ] Le soir ou le lendemain, allume les modules de ta liste « à allumer plus tard » (étape 3).
