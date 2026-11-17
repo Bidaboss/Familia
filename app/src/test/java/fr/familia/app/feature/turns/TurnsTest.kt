@@ -8,12 +8,14 @@ import fr.familia.app.core.model.TurnSwap
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.testing.MainDispatcherRule
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -60,8 +62,11 @@ class TurnsTest {
         override suspend fun dropSwap(id: String) {
             turns.value = turns.value.map { if (it.id == id) it.copy(swap = null) else it }
         }
+        /** Offline: the change lands in the cache at once, and the server answers when this completes. */
+        var server: CompletableDeferred<Unit>? = null
         override suspend fun delete(id: String) {
             turns.value = turns.value.filter { it.id != id }
+            server?.await()
         }
     }
 
@@ -194,6 +199,18 @@ class TurnsTest {
         val s = other.uiState.value as TurnDetailUiState.Success
         assertEquals("Foyer Deux", s.nowName)
         assertNull(s.turn.swap)
+    }
+
+    @Test
+    fun `offline, Supprimer closes the screen once the deletion waits for the network`() = runTest {
+        val repo = FakeTurns(listOf(turn())).apply { server = CompletableDeferred() }
+        val vm = TurnDetailViewModel(repo, FakeMembers(family), "adult2", "t1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        var closed = false
+        vm.delete { closed = true }
+        assertFalse(closed)
+        advanceTimeBy(WRITE_TIMEOUT_MS + 1)
+        assertTrue(closed)
     }
 
     @Test

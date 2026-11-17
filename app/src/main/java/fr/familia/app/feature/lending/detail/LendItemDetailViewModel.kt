@@ -4,13 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.LendItemRepository
 import fr.familia.app.core.data.MemberRepository
+import fr.familia.app.core.data.writeOrQueue
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.LendItem
 import fr.familia.app.core.model.LendStatus
 import fr.familia.app.core.model.Member
 import fr.familia.app.feature.lending.canAskLendItem
 import fr.familia.app.feature.lending.canManageLendItem
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -131,14 +130,8 @@ class LendItemDetailViewModel(
     private fun perform(write: suspend () -> Unit) {
         failed.value = false
         viewModelScope.launch {
-            val ok = try {
-                withTimeoutOrNull(writeTimeoutMillis) { write() }
-                true
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                false
-            }
+            // A refusal that comes once the network is back is said too.
+            val ok = writeOrQueue(viewModelScope, writeTimeoutMillis, onLateFailure = { failed.value = true }) { write() }
             if (!ok) failed.value = true
         }
     }

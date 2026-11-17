@@ -4,11 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.TurnRepository
+import fr.familia.app.core.data.writeOrQueue
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Turn
 import fr.familia.app.core.model.TurnDone
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 
 /** Past this, a write is left in the cache: offline it goes by itself when the network is back. */
 internal const val WRITE_TIMEOUT_MS = 4_000L
@@ -118,22 +117,17 @@ class TurnDetailViewModel(
         failed.value = false
     }
 
-    private fun act(block: suspend (TurnRepository, Turn) -> Unit) {
+    private fun act(after: () -> Unit = {}, block: suspend (TurnRepository, Turn) -> Unit) {
         val s = uiState.value as? TurnDetailUiState.Success ?: return
         val repo = turns ?: return
         if (working.value) return
         working.value = true
         viewModelScope.launch {
-            try {
-                // The write lands in the cache at once; offline it waits there and goes later.
-                withTimeoutOrNull(WRITE_TIMEOUT_MS) { block(repo, s.turn) }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                failed.value = true
-            } finally {
-                working.value = false
-            }
+            // The write lands in the cache at once; offline it waits there and goes later, and a
+            // refusal that comes once the network is back is said too.
+            val ok = writeOrQueue(viewModelScope, WRITE_TIMEOUT_MS, onLateFailure = { failed.value = true }) { block(repo, s.turn) }
+            if (ok) after() else failed.value = true
+            working.value = false
         }
     }
 
@@ -149,8 +143,6 @@ class TurnDetailViewModel(
     /** « Non merci » from the other household, or « Retirer » from mine. */
     fun dropSwap() = act { repo, t -> repo.dropSwap(t.id) }
 
-    fun delete(onDeleted: () -> Unit) = act { repo, t ->
-        repo.delete(t.id)
-        onDeleted()
-    }
+    /** Offline too, the screen closes once the deletion waits for the network: the turn is already gone from the list. */
+    fun delete(onDeleted: () -> Unit) = act(after = onDeleted) { repo, t -> repo.delete(t.id) }
 }
