@@ -611,6 +611,30 @@ Droits : tous les membres lisent tout. Seuls les adultes publient. L'auteur et l
 
 Serveur (`firebase/functions/src/goodDeals.ts`), dans la tâche de 18 h des coups de main : le résumé des bons plans publiés dans les dernières 24 h et pas encore terminés (« Nouveau bon plan » ou « 2 nouveaux bons plans »), sur le canal Coups de main, via `deliver()`. Une adresse n'envoie rien. Tant que l'interrupteur est éteint, seul l'admin principal le reçoit. La même tâche supprime les bons plans terminés depuis plus de 30 jours, et `onGoodDealDeleted` supprime leur photo.
 
+## On se prête (PRD, récit 51)
+
+Dans l'onglet Entraide, derrière l'interrupteur « On se prête » (`config/app.features.lending`). Jamais d'argent ni de caution.
+
+### `lendItems/{itemId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `name` | texte | Le nom de l'objet, de 1 à 60 caractères |
+| `note` | texte | Une note (« à rendre propre »), 300 caractères au plus (peut être vide) |
+| `category` | texte | `kitchen`, `diy`, `baby`, `sport`, `travel` ou `other` |
+| `photo` | texte ou `null` | La base de sa photo dans Storage, `lendItems/{itemId}/{memberId}/{photoId}` (`.jpg` et `-thumb.jpg`) |
+| `ownerId`, `ownerName` | texte | L'adulte qui le prête et son prénom, qui ne changent jamais |
+| `status` | `available`, `asked` ou `lent` | Libre, demandé, ou prêté |
+| `borrowerId`, `borrowerName` | texte ou `null` | Celui qui a demandé ou qui l'a, et son prénom. `null` quand l'objet est libre |
+| `from`, `until` | horodatage ou `null` | Les dates facultatives de la demande, dans l'année, le retour pas avant le début |
+| `askedAt`, `lentAt` | horodatage ou `null` | Heure du serveur de la demande et du « D'accord » |
+| `remindedAt` | horodatage ou `null` | Écrit par le serveur seul, au rappel |
+| `createdAt`, `updatedAt` | horodatage | Heure du serveur |
+
+Droits : tous les membres lisent tout. Seuls les adultes ajoutent un objet. Le propriétaire et l'admin principal modifient l'objet lui-même (le prêt ne change pas) et le retirent. « Je voudrais l'emprunter » : un adulte qui n'est pas le propriétaire, sur un objet libre, en son nom (`asked`). « D'accord » : le propriétaire (`lent`). « Pas cette fois » (le propriétaire) ou une demande retirée (l'emprunteur), puis « Rendu » (l'un ou l'autre) : retour à `available`, tous les champs du prêt à `null`. Un enfant voit la liste et ne demande pas.
+
+Serveur (`firebase/functions/src/lendItems.ts`) : `onLendItemChanged` prévient directement le propriétaire d'une demande, puis celui qui a demandé de la réponse. Une demande retirée et « Rendu » ne préviennent personne. Dans la tâche de 18 h des coups de main, un seul rappel doux part à l'emprunteur 3 jours après la date de retour (`remindedAt`). Le canal est Coups de main, et un tap ouvre l'objet (`lendItemId`). `onLendItemDeleted` supprime la photo. Un membre retiré de la famille (`onMemberDeletedHelp`) : ses objets sont supprimés, et ceux qu'il avait demandés ou empruntés redeviennent libres.
+
 ## Arbre généalogique (PRD, récit 40)
 
 L'arbre se dessine à partir des membres, des proches sans compte (`kin`) et de leurs liens (`kinLinks`). Tout membre le lit. L'admin principal le modifie en entier, et un chef de famille modifie les proches de son foyer et les liens qui touchent son foyer : un conjoint d'un côté ou de l'autre, mais un parent seulement pour un enfant de son foyer (PRD rév. 195). Il est derrière le module « Arbre généalogique » (`genealogy`), à ne pas confondre avec l'arbre des feuilles du récit 35.
