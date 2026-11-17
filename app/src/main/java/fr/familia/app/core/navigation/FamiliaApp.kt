@@ -886,6 +886,7 @@ fun FamiliaApp(
                             onOpenChallenges = { navController.navigate(ChallengesDestination) { launchSingleTop = true } },
                             onOpenGoodDeal = { id -> navController.navigate(GoodDealDetailDestination(id)) },
                             onOpenYear = { year -> navController.navigate(YearInReviewDestination(year)) { launchSingleTop = true } },
+                            onOpenMyProfile = { navController.navigate(MemberProfileDestination(currentMember.id)) { launchSingleTop = true } },
                             onOpenDiscover = { module ->
                                 when (module) {
                                     DiscoverModule.WeeklyQuestion -> navController.navigate(WeeklyQuestionDestination())
