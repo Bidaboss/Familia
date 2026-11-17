@@ -157,6 +157,7 @@ private fun FormContent(
                 groups = state.participantGroups,
                 selected = form.participantIds + locked,
                 onChange = { picked -> onChange { it.withParticipantSet(picked + locked) } },
+                locked = locked,
             )
             errorText(errors, TripFormError.TooManyParticipants)?.invoke()
         }
@@ -175,6 +176,7 @@ private fun FormContent(
                 selected = form.readerIds + form.participantIds,
                 onChange = { picked -> onChange { it.withReaderSet(picked) } },
                 label = { member -> if (member.id in form.participantIds) "${member.firstName} · $taking" else member.firstName },
+                locked = form.participantIds,
             )
         }
 
