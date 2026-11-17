@@ -14,6 +14,7 @@ import fr.familia.app.core.model.GiftShare
 import fr.familia.app.core.photo.PhotoEdit
 import fr.familia.app.core.photo.PhotoStorage
 import fr.familia.app.core.photo.SinglePhotoSaver
+import fr.familia.app.core.viewas.listsSeenBy
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.gifts.detail.GiftListUiState
@@ -71,6 +72,27 @@ class GiftsTest {
         assertFalse(canShareWishesOutside(ideas, TestFamily.adult, family))
         assertFalse(canShareWishesOutside(ideas, TestFamily.otherAdult, family))
         assertFalse(canShareWishesOutside(list("noel", "adult1"), TestFamily.adult, family))
+    }
+
+    @Test
+    fun `a surprise already prepared shows on the birthday of its person, never to that person`() {
+        // A surprise for adult1, seen by admin1 and adult2 only, as the server sends it to each.
+        val surprise = list("s1", "adult1", kind = GiftListKind.Surprise, viewers = listOf("admin1", "adult2"), creator = "adult2")
+        val other = list("s2", "adult1", kind = GiftListKind.Surprise, viewers = listOf("admin1", "adult2"), creator = "admin1")
+        val own = list("noel", "adult1", viewers = listOf("adult1", "adult2"))
+        val all = listOf(surprise, own, other.copy(revealed = true))
+        val giver = giftsState(family, listsSeenBy(all, "adult2"), "adult2", today) as GiftsUiState.Success
+        assertEquals(listOf("s1"), surprisesFor(giver, "adult1").map { it.id })
+        // Two surprises: both counted, the nearest first.
+        val two = giftsState(family, listsSeenBy(listOf(surprise, other.copy(date = LocalDate.of(2026, 12, 1))), "adult2"), "adult2", today)
+            as GiftsUiState.Success
+        assertEquals(listOf("s2", "s1"), surprisesFor(two, "adult1").map { it.id })
+        // Its person, on their phone or in « Voir comme » them, gets none of it.
+        val person = giftsState(family, listsSeenBy(all, "adult1"), "adult1", today) as GiftsUiState.Success
+        assertTrue(surprisesFor(person, "adult1").isEmpty())
+        // With the single list, a surprise is an idea of the family: the tab never says how many.
+        val single = giftsState(family, listsSeenBy(all, "adult2"), "adult2", today, singleList = true) as GiftsUiState.Success
+        assertTrue(surprisesFor(single, "adult1").isEmpty())
     }
 
     @Test
