@@ -179,7 +179,7 @@ class SessionViewModelTest {
     }
 
     @Test
-    fun `the same account opened on two phones at the same minute: the second goes in too`() {
+    fun `the same account opened on two phones at the same minute, the second goes in too`() {
         val members = FakeMembers(member, linkedElsewhere = true)
         val vm = SessionViewModel(FakeAuth(current = null, next = user("alex@example.com")), members)
         vm.onGoogleTokenResult(GoogleTokenResult.Success("token"))
