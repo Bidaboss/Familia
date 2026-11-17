@@ -71,6 +71,10 @@ data class WeeklyQuestionDestination(val questionId: String? = null)
 @Serializable
 data class HostChallengeDestination(val year: Int, val month: Int)
 
+/** « Défis » (R1 bis, maquette R7): the challenge of the month, the question of Monday, what was won together. */
+@Serializable
+data object ChallengesDestination
+
 /** « La semaine de la famille », opened by the notification of Sunday (récit 36). */
 @Serializable
 data object RecapDestination

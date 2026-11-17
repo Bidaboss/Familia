@@ -7,7 +7,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.ui.LocalFeatureFlags
 
 /** Connects the « Coups de main » tab to its ViewModel. */
 @Composable
@@ -25,5 +27,16 @@ fun HelpRequestsRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    HelpRequestsScreen(state = state, onAsk = onAsk, onOpenRequest = onOpenRequest, onRetry = viewModel::retry)
+    val error by viewModel.error.collectAsStateWithLifecycle()
+    HelpRequestsScreen(
+        state = state,
+        onAsk = onAsk,
+        onOpenRequest = onOpenRequest,
+        onRetry = viewModel::retry,
+        r1bis = LocalFeatureFlags.current.isOn(Feature.PresentationR1bis),
+        error = error,
+        onTake = viewModel::take,
+        onDecline = viewModel::decline,
+        onDismissError = viewModel::dismissError,
+    )
 }

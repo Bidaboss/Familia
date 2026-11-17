@@ -136,6 +136,7 @@ import fr.familia.app.feature.feedback.MyFeedbackDestination
 import fr.familia.app.feature.feedback.MyFeedbackRoute
 import fr.familia.app.core.model.FeedbackOrigin
 import fr.familia.app.feature.tree.HostChallengeRoute
+import fr.familia.app.feature.tree.challenges.ChallengesRoute
 import fr.familia.app.feature.settings.appearance.AppearanceScreen
 import fr.familia.app.feature.settings.appearance.ThemePreferences
 import fr.familia.app.core.theme.FamiliaClay
@@ -713,6 +714,18 @@ fun FamiliaApp(
                             onBack = { navController.popBackStack() },
                             onOpenGoodNews = { id -> navController.navigate(GoodNewsDetailDestination(id)) },
                             onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
+                        )
+                    }
+                    composable<ChallengesDestination> {
+                        ChallengesRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onBack = { navController.popBackStack() },
+                            onJoinChallenge = { navController.navigate(GoodNewsEditDestination(forChallenge = true)) },
+                            onPrepareChallenge = { month ->
+                                navController.navigate(HostChallengeDestination(month.year, month.monthValue)) { launchSingleTop = true }
+                            },
+                            onOpenWeekly = { navController.navigate(WeeklyQuestionDestination()) },
                         )
                     }
                     composable<HostChallengeDestination> { entry ->

@@ -75,6 +75,6 @@ fun isListed(request: HelpRequest, me: Member, family: Family, today: LocalDate)
 
 /** The badge of the tab: open requests where [me] was warned and can still help. */
 fun badgeCount(requests: List<HelpRequest>, me: Member, today: LocalDate): Int =
-    requests.count { it.date >= today && canVolunteer(it, me) && it.declinedBy != me.id }
+    requests.count { needsMe(it, me, today) }
 
 private const val THANKS_DAYS = 7L
