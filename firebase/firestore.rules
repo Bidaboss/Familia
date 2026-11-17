@@ -232,18 +232,25 @@ service cloud.firestore {
 
     // Shape of an event. Who it is for is stored on the event itself, so the rules never have to
     // read other events. authorName keeps the events of a removed member readable.
-    function isValidEvent(e) {
+    // [extra]: the optional keys besides coverPhoto; an occurrence of a series (récit 54) has 4 more,
+    // written by the server only, so an event created from the app never has them.
+    function isValidEvent(e, extra) {
       return e.keys().hasAll(['title', 'date', 'time', 'place', 'note', 'targetType', 'targetMemberId',
                               'householdId', 'authorId', 'authorName', 'createdAt', 'updatedAt'])
         && e.keys().hasOnly(['title', 'date', 'time', 'place', 'note', 'targetType', 'targetMemberId',
-                             'householdId', 'authorId', 'authorName', 'createdAt', 'updatedAt', 'coverPhoto'])
-        && e.title is string && e.title.size() > 0 && e.title.size() <= 80
+                             'householdId', 'authorId', 'authorName', 'createdAt', 'updatedAt', 'coverPhoto'].concat(extra))
         && isDay(e.date)
+        && e.updatedAt == request.time
+        && isValidEventContent(e);
+    }
+
+    // What an event and a series of events (récit 54) share: the texts, the time and the target.
+    function isValidEventContent(e) {
+      return e.title is string && e.title.size() > 0 && e.title.size() <= 80
         && (e.time == null || (e.time is string && e.time.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')))
         && (e.place == null || (e.place is string && e.place.size() <= 120))
         && (e.note == null || (e.note is string && e.note.size() <= 1000))
         && e.authorName is string && e.authorName.size() > 0 && e.authorName.size() <= 40
-        && e.updatedAt == request.time
         && ((e.targetType == 'self' && e.targetMemberId == e.authorId && e.householdId == null)
             || (e.targetType == 'child' && e.targetMemberId is string && e.householdId == null
                 && exists(memberPath(e.targetMemberId))
@@ -292,7 +299,7 @@ service cloud.firestore {
       allow read: if isMember();
 
       allow create: if isMember()
-        && isValidEvent(request.resource.data)
+        && isValidEvent(request.resource.data, [])
         && isValidCover(eventId, request.resource.data, null)
         && request.resource.data.authorId == myMemberId()
         && request.resource.data.authorName == me().firstName
@@ -302,8 +309,81 @@ service cloud.firestore {
       // The author and creation time never change; a new target must be one the editor may choose.
       allow update: if isMember()
         && canManage(resource.data)
-        && isValidEvent(request.resource.data)
+        && isValidEvent(request.resource.data, ['seriesId', 'occurrence', 'detached', 'bySeries'])
         && isValidCover(eventId, request.resource.data, resource.data)
+        && request.resource.data.authorId == resource.data.authorId
+        && request.resource.data.authorName == resource.data.authorName
+        && request.resource.data.createdAt == resource.data.createdAt
+        && seriesFieldsKept(request.resource.data, resource.data)
+        && (canTarget(request.resource.data)
+            || (request.resource.data.targetType == resource.data.targetType
+                && request.resource.data.targetMemberId == resource.data.targetMemberId
+                && request.resource.data.householdId == resource.data.householdId));
+
+      allow delete: if isMember() && canManage(resource.data);
+    }
+
+    // « Cette fois seulement » (récit 54): an occurrence keeps its series, its day of origin and the
+    // server's mark; changing it by hand marks it detached, so the series no longer rewrites it.
+    function seriesFieldsKept(after, before) {
+      return (!('seriesId' in before) && !after.keys().hasAny(['seriesId', 'occurrence', 'detached', 'bySeries']))
+        || ('seriesId' in before
+            && after.get('seriesId', null) == before.seriesId
+            && after.get('occurrence', null) == before.get('occurrence', null)
+            && after.get('bySeries', null) == before.get('bySeries', null)
+            && after.get('detached', false) == true);
+    }
+
+    // --- Événements qui reviennent (PRD, récit 54) --------------------------------------------------
+    //
+    // eventSeries/{seriesId}: what repeats (the texts, the time and the target of an event) and how.
+    // The server writes the occurrences as ordinary events, events/{seriesId}_{AAAAMMJJ}, for the
+    // 12 months to come; each has its own answers, « Qui apporte quoi », cars and comments.
+    // [rule]: freq weekly (every 1 or 2 weeks), monthly (same date, or same weekday: the 1st Sunday)
+    // or yearly, from [start], until a day or for [count] times, or never. [exdates]: the days taken
+    // out one by one (« Cette fois seulement » deleted). [applyFrom]: « celle-ci et les suivantes »,
+    // the first day the texts apply to.
+
+    function isValidRule(r) {
+      return r is map
+        && r.keys().hasAll(['freq', 'interval', 'monthlyBy', 'start', 'until', 'count'])
+        && r.keys().hasOnly(['freq', 'interval', 'monthlyBy', 'start', 'until', 'count'])
+        && r.freq in ['weekly', 'monthly', 'yearly']
+        && (r.interval == 1 || (r.interval == 2 && r.freq == 'weekly'))
+        && ((r.freq == 'monthly' && r.monthlyBy in ['date', 'weekday']) || (r.freq != 'monthly' && r.monthlyBy == null))
+        && isDay(r.start)
+        && (r.until == null || (isDay(r.until) && r.until >= r.start))
+        && (r.count == null || (r.count is int && r.count >= 2 && r.count <= 200))
+        && (r.until == null || r.count == null);
+    }
+
+    function isValidSeries(e) {
+      return e.keys().hasAll(['title', 'time', 'place', 'note', 'targetType', 'targetMemberId', 'householdId',
+                              'authorId', 'authorName', 'rule', 'exdates', 'applyFrom', 'createdAt', 'updatedAt'])
+        && e.keys().hasOnly(['title', 'time', 'place', 'note', 'targetType', 'targetMemberId', 'householdId',
+                             'authorId', 'authorName', 'rule', 'exdates', 'applyFrom', 'createdAt', 'updatedAt'])
+        && isValidRule(e.rule)
+        && e.exdates is list && e.exdates.size() <= 100
+        && (e.applyFrom == null || isDay(e.applyFrom))
+        && e.updatedAt == request.time
+        && isValidEventContent(e);
+    }
+
+    match /eventSeries/{seriesId} {
+      allow read: if isMember();
+
+      allow create: if isMember()
+        && isValidSeries(request.resource.data)
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.exdates.size() == 0
+        && canTarget(request.resource.data);
+
+      // Same rights as an event of the series: its author, the admin principal, a chef, a parent.
+      allow update: if isMember()
+        && canManage(resource.data)
+        && isValidSeries(request.resource.data)
         && request.resource.data.authorId == resource.data.authorId
         && request.resource.data.authorName == resource.data.authorName
         && request.resource.data.createdAt == resource.data.createdAt
