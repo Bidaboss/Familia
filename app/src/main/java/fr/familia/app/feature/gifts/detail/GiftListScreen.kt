@@ -156,20 +156,18 @@ fun GiftListScreen(state: GiftListUiState, actions: GiftListActions, modifier: M
         },
         floatingActionButton = {
             if (success?.canAddItems == true) {
+                val addLabel = stringResource(
+                    when {
+                        success.list.kind == GiftListKind.Ideas -> R.string.gift_add_idea
+                        success.list.kind == GiftListKind.Wishes && success.isMine -> R.string.gift_add_wish
+                        else -> R.string.gift_add_item
+                    },
+                )
                 ExtendedFloatingActionButton(
                     onClick = actions.onAddItem,
-                    icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                    text = {
-                        Text(
-                            stringResource(
-                                when {
-                                    success.list.kind == GiftListKind.Ideas -> R.string.gift_add_idea
-                                    success.list.kind == GiftListKind.Wishes && success.isMine -> R.string.gift_add_wish
-                                    else -> R.string.gift_add_item
-                                },
-                            ),
-                        )
-                    },
+                    // The text of an extended button is hidden from TalkBack (Material 3): the icon says it.
+                    icon = { Icon(Icons.Outlined.Add, contentDescription = addLabel) },
+                    text = { Text(addLabel) },
                 )
             }
         },
