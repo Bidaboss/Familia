@@ -92,6 +92,9 @@ interface AppContainer {
 
     /** The creations sent without network, checked after sign-in (note C de #331). */
     val sendJournal: SendJournal? get() = null
+
+    /** The coups de main [memberId] already saw, for the badge of the Entraide tab (retour [BUG] du 18/11). */
+    fun seenHelpRequests(memberId: String): SeenHelpRequests? = null
     val albumPhotoRepository: AlbumPhotoRepository?
     val filmMaker: PhotoFilmMaker
     val appConfigRepository: AppConfigRepository?
@@ -210,6 +213,14 @@ class FirebaseAppContainer(context: Context) : AppContainer {
             }
         }
     }
+
+    private val seenStore: SeenStore by lazy {
+        PreferencesSeenStore(appContext.getSharedPreferences("seen-help-requests", Context.MODE_PRIVATE))
+    }
+    private val seenByMember = mutableMapOf<String, SeenHelpRequests>()
+
+    override fun seenHelpRequests(memberId: String): SeenHelpRequests =
+        synchronized(seenByMember) { seenByMember.getOrPut(memberId) { SeenHelpRequests(seenStore, memberId) } }
 
     override val localTraces: LocalTraces by lazy {
         LocalTraces(PreferencesTraceOwner(appContext.getSharedPreferences("local-traces", Context.MODE_PRIVATE))) {

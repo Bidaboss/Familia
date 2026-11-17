@@ -240,6 +240,7 @@ import fr.familia.app.feature.gifts.notebook.ProposeIdeaRoute
 import fr.familia.app.feature.events.answerableMembers
 import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.feature.helprequests.badgeCount
+import fr.familia.app.feature.helprequests.seenToForget
 import fr.familia.app.feature.helprequests.detail.HelpRequestDetailRoute
 import fr.familia.app.feature.helprequests.edit.HelpRequestEditRoute
 import fr.familia.app.feature.helprequests.list.HelpRequestsRoute
@@ -661,10 +662,16 @@ fun FamiliaApp(
     var updateDismissed by rememberSaveable { mutableStateOf(false) }
     LifecycleEventEffect(Lifecycle.Event.ON_START) { updateDismissed = false }
 
-    // Récit 15: the Entraide tab counts the open requests where I was warned and can still help.
+    // Récit 15: the Entraide tab counts the open requests where I was warned and can still help,
+    // and that I have not seen yet in the « Coups de main » tab (retour [BUG] du 18/11).
     val helpBadges = remember(container, currentMember) {
+        val seen = container?.seenHelpRequests(currentMember.id)
         container?.helpRequestRepository?.observeMine(currentMember.id)
-            ?.combine(currentDayFlow()) { requests, today -> badgeCount(requests, currentMember, today) }
+            ?.combine(currentDayFlow()) { requests, today -> requests to today }
+            ?.combine(seen?.seen ?: flowOf(emptySet<String>())) { (requests, today), seenIds ->
+                seen?.forget(seenToForget(requests, currentMember, today, seenIds))
+                badgeCount(requests, currentMember, today, seenIds)
+            }
             ?.catch { emit(0) }
             ?: flowOf(0)
     }
