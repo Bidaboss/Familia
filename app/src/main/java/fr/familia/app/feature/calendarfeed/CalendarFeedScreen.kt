@@ -62,6 +62,10 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+
+/** How long a write may hold the buttons before the screen lets go (it goes on in the background). */
+private const val WRITE_TIMEOUT_MILLIS = 4_000L
 
 /** What the screen shows: waiting, my link (null while I have none), or the link cannot be read. */
 sealed interface CalendarFeedState {
@@ -93,7 +97,8 @@ class CalendarFeedViewModel(private val repo: CalendarFeedRepository?, private v
         _busy.value = true
         viewModelScope.launch {
             try {
-                r.renew(memberId)
+                // Offline, the write waits in Firestore's queue: the screen does not stay blocked.
+                withTimeoutOrNull(WRITE_TIMEOUT_MILLIS) { r.renew(memberId) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -116,7 +121,7 @@ class CalendarFeedViewModel(private val repo: CalendarFeedRepository?, private v
         _busy.value = true
         viewModelScope.launch {
             try {
-                r.remove(memberId)
+                withTimeoutOrNull(WRITE_TIMEOUT_MILLIS) { r.remove(memberId) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
