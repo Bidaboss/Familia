@@ -93,6 +93,7 @@ import fr.familia.app.feature.gifts.parseEuros
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpLink
 import fr.familia.app.feature.help.ScreenHelp
+import fr.familia.app.core.share.ShareButton
 import java.time.LocalDate
 
 /** What a gift list screen can ask for. Grouped so the screen stays readable. */
@@ -114,6 +115,8 @@ data class GiftListActions(
     val onOpenReceived: (() -> Unit)? = null,
     /** The page of the beneficiary, for their sizes and tastes (récit 7 bis); null while that module is off. */
     val onOpenBeneficiary: ((memberId: String) -> Unit)? = null,
+    /** « Partager » « Mes envies » outside the app (récit 31); null while that module is off. */
+    val onShareOutside: (() -> Unit)? = null,
 )
 
 /** One gift list: its items, and the reservations for everyone but the beneficiary. Stateless. */
@@ -136,6 +139,7 @@ fun GiftListScreen(state: GiftListUiState, actions: GiftListActions, modifier: M
                 navigationIcon = { BackButton(onClick = actions.onBack) },
                 actions = {
                     HelpButton(ScreenHelp.GiftList)
+                    if (actions.onShareOutside != null && success?.canSendOutside == true) ShareButton(onClick = actions.onShareOutside)
                     if (success?.canManage == true && !success.list.kind.isPermanent) {
                         TextButton(onClick = actions.onEditList, modifier = Modifier.heightIn(min = 56.dp)) {
                             Text(stringResource(R.string.event_detail_edit), style = MaterialTheme.typography.labelLarge)

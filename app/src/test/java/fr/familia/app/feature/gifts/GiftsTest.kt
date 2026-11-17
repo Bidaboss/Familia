@@ -59,6 +59,29 @@ class GiftsTest {
     ) = GiftList(id, kind, "Liste $id", GiftOccasion.Christmas, LocalDate.of(2026, 12, 25), beneficiary, viewers, creator, creator, revealed)
 
     @Test
+    fun `only my own wishes go out of the app, never the ideas of the family nor a list of an occasion`() {
+        val mine = list("wishes-adult1", "adult1", kind = GiftListKind.Wishes, viewers = emptyList())
+        assertTrue(canShareWishesOutside(mine, TestFamily.adult, family))
+        assertFalse(canShareWishesOutside(mine, TestFamily.otherAdult, family)) // Someone else's.
+        assertFalse(canShareWishesOutside(mine.copy(revealed = true), TestFamily.adult, family))
+        val ideas = list("ideas-adult1", "adult1", kind = GiftListKind.Ideas, viewers = emptyList(), creator = "adult2")
+        assertFalse(canShareWishesOutside(ideas, TestFamily.adult, family))
+        assertFalse(canShareWishesOutside(ideas, TestFamily.otherAdult, family))
+        assertFalse(canShareWishesOutside(list("noel", "adult1"), TestFamily.adult, family))
+    }
+
+    @Test
+    fun `the wishes of a child are shared by their adults only (EXPERT-2)`() {
+        val kidWishes = list("wishes-kid1", "kid1", kind = GiftListKind.Wishes, viewers = emptyList())
+        assertFalse(canShareWishesOutside(kidWishes, TestFamily.kid, family)) // Never the child, even with the app.
+        assertTrue(canShareWishesOutside(kidWishes, TestFamily.adult, family))
+        assertFalse(canShareWishesOutside(kidWishes, TestFamily.otherAdult, family))
+        val babyWishes = list("wishes-kid2", "kid2", kind = GiftListKind.Wishes, viewers = emptyList())
+        assertTrue(canShareWishesOutside(babyWishes, TestFamily.otherAdult, family))
+        assertFalse(canShareWishesOutside(babyWishes, TestFamily.adult, family))
+    }
+
+    @Test
     fun `a member keeps their own lists and those of their children without the app only`() {
         assertTrue(keepsListsOf(TestFamily.adult, TestFamily.adult))
         assertTrue(keepsListsOf(TestFamily.otherAdult, TestFamily.otherKid))
