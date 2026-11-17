@@ -1136,7 +1136,7 @@
     <string name="recipe_picker_no_match">Aucune recette ne porte ce titre.</string>
     <string name="recipe_picker_failed">Les recettes n\'ont pas pu être lues. Réessaie dans un instant.</string>
     <string name="recipes_add">Nouvelle recette</string>
-    <string name="recipes_search">Chercher une recette, un ingrédient</string>
+    <string name="recipes_search">Recette, ingrédient ou prénom</string>
     <string name="recipes_none_found">Aucune recette ne correspond.</string>
     <string name="recipes_open">Voir la recette</string>
     <string name="recipes_empty_title">Pas encore de recette</string>
