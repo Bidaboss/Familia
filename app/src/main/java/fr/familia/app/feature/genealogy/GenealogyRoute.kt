@@ -8,7 +8,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.core.viewas.LocalViewAs
 import kotlinx.serialization.Serializable
 
 /** L'arbre généalogique (PRD, récit 40), behind Feature.Genealogy. */
@@ -16,7 +19,13 @@ import kotlinx.serialization.Serializable
 data object GenealogyDestination
 
 @Composable
-fun GenealogyRoute(container: AppContainer?, currentMember: Member, onBack: () -> Unit, onOpenProfile: ((String) -> Unit)? = null) {
+fun GenealogyRoute(
+    container: AppContainer?,
+    currentMember: Member,
+    onBack: () -> Unit,
+    onOpenProfile: ((String) -> Unit)? = null,
+    onMakePoster: (() -> Unit)? = null,
+) {
     val viewModel: GenealogyViewModel = viewModel(
         factory = viewModelFactory {
             initializer { GenealogyViewModel(container?.genealogyRepository, container?.memberRepository, currentMember.id) }
@@ -40,5 +49,7 @@ fun GenealogyRoute(container: AppContainer?, currentMember: Member, onBack: () -
         actions = actions,
         actionFailed = failed,
         onFailureShown = viewModel::failureShown,
+        // Not in « Voir comme »: the poster would be made with someone else's rights (récit 53).
+        onMakePoster = onMakePoster?.takeIf { LocalFeatureFlags.current.isOn(Feature.TreePoster) && LocalViewAs.current.viewed == null },
     )
 }

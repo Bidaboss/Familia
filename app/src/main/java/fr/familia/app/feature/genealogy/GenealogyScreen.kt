@@ -66,6 +66,7 @@ import fr.familia.app.core.model.KinLinkKind
 import fr.familia.app.core.model.TreePerson
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.feature.help.HelpButton
@@ -91,6 +92,8 @@ fun GenealogyScreen(
     actions: GenealogyActions? = null,
     actionFailed: Boolean = false,
     onFailureShown: () -> Unit = {},
+    /** « Faire l'affiche de l'arbre », with the switch treePoster (récit 53); null hides it. */
+    onMakePoster: (() -> Unit)? = null,
 ) {
     Scaffold(
         modifier = modifier,
@@ -110,7 +113,7 @@ fun GenealogyScreen(
                     title = stringResource(R.string.genealogy_failed_title),
                     body = stringResource(R.string.genealogy_failed_body),
                 )
-                is GenealogyUiState.Ready -> ReadyTree(state, onOpenProfile, actions)
+                is GenealogyUiState.Ready -> ReadyTree(state, onOpenProfile, actions, onMakePoster)
             }
         }
     }
@@ -137,7 +140,7 @@ data class GenealogyActions(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ReadyTree(state: GenealogyUiState.Ready, onOpenProfile: ((String) -> Unit)?, actions: GenealogyActions?) {
+private fun ReadyTree(state: GenealogyUiState.Ready, onOpenProfile: ((String) -> Unit)?, actions: GenealogyActions?, onMakePoster: (() -> Unit)?) {
     var zoom by remember { mutableFloatStateOf(1f) }
     var pan by remember { mutableStateOf(Offset.Zero) }
     var open by rememberSaveable { mutableStateOf<String?>(null) }
@@ -170,6 +173,9 @@ private fun ReadyTree(state: GenealogyUiState.Ready, onOpenProfile: ((String) ->
             action = addFirst,
         )
     } else Column(Modifier.fillMaxSize()) {
+        if (onMakePoster != null) {
+            ClayLink(stringResource(R.string.tree_poster_open), onClick = onMakePoster, modifier = Modifier.padding(start = 12.dp, top = 4.dp))
+        }
         if (editing != null) {
             OutlinedButton(
                 onClick = { editKin = NEW_KIN },

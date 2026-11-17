@@ -100,6 +100,8 @@ import fr.familia.app.feature.capsules.CapsulesDestination
 import fr.familia.app.feature.capsules.CapsulesRoute
 import fr.familia.app.feature.genealogy.GenealogyDestination
 import fr.familia.app.feature.genealogy.GenealogyRoute
+import fr.familia.app.feature.genealogy.poster.TreePosterDestination
+import fr.familia.app.feature.genealogy.poster.TreePosterRoute
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpRoute
 import fr.familia.app.feature.gooddeals.EntraideTabs
@@ -1123,7 +1125,11 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             onBack = { navController.popBackStack() },
                             onOpenProfile = if (souvenirsOn) ({ id -> navController.navigate(MemberProfileDestination(id)) }) else null,
+                            onMakePoster = { navController.navigate(TreePosterDestination) },
                         )
+                    }
+                    composable<TreePosterDestination> {
+                        TreePosterRoute(container = container, currentMember = currentMember, onBack = { navController.popBackStack() })
                     }
                     composable<CapsuleEditDestination> {
                         CapsuleEditRoute(
