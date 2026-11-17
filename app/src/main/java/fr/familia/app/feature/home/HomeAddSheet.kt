@@ -72,6 +72,8 @@ fun HomeAddSheet(options: HomeAddOptions, onDismiss: () -> Unit) {
                 options.onPhoto?.let { Choice(Icons.Outlined.AddAPhoto, R.string.home_r1_add_photo, it) },
                 options.onGoodNews?.let { Choice(Icons.Outlined.Celebration, R.string.home_r1_add_good_news, it) },
                 options.onWish?.let { Choice(Icons.Outlined.CardGiftcard, R.string.home_r1_add_wish, it) },
+                // Without « Une photo », « Un coup de main » joins the grid of 2 × 2 (DESIGN, 17/11).
+                options.onHelp?.takeIf { options.onPhoto == null }?.let { Choice(Icons.Outlined.VolunteerActivism, R.string.home_r1_add_help, it) },
             )
             pairs.chunked(2).forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
@@ -79,7 +81,7 @@ fun HomeAddSheet(options: HomeAddOptions, onDismiss: () -> Unit) {
                     if (row.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
-            options.onHelp?.let { ChoiceButton(Choice(Icons.Outlined.VolunteerActivism, R.string.home_r1_add_help, it), onDismiss, Modifier.fillMaxWidth()) }
+            options.onHelp?.takeIf { options.onPhoto != null }?.let { ChoiceButton(Choice(Icons.Outlined.VolunteerActivism, R.string.home_r1_add_help, it), onDismiss, Modifier.fillMaxWidth()) }
             TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.action_cancel))
             }

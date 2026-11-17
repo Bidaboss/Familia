@@ -1,5 +1,6 @@
 package fr.familia.app.core.navigation
 
+import androidx.compose.material.icons.outlined.AutoStories
 import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.material3.FloatingActionButton
@@ -788,7 +789,7 @@ fun FamiliaApp(
                     }
                     composable<AllFamiliaDestination> {
                         AllFamiliaScreen(
-                            modules = allModules(features, helpBadge, navController),
+                            modules = allModules(features, helpBadge, navController, currentMember.id),
                             onBack = { navController.popBackStack() },
                         )
                     }
@@ -1566,10 +1567,10 @@ private const val MIN_TAB_LABEL_SP = 9f
 private val R1_TAB_PILL = Color(0xFFF2C14E)
 
 /**
- * The modules of « Tout Familia » (R1 bis, §3), each only while it is on for me. Comptes, Défis,
- * Albums and Souvenirs join it with their own screen; the Entraide badge is the one of its tab.
+ * The modules of « Tout Familia » (R1 bis, §3), each only while it is on for me. Défis and Albums
+ * join it with their own screen, Comptes stays out for the 21; the Entraide badge is the one of its tab.
  */
-private fun allModules(features: FeatureFlags, helpBadge: Int, navController: NavHostController): List<AllModule> = buildList {
+private fun allModules(features: FeatureFlags, helpBadge: Int, navController: NavHostController, meId: String): List<AllModule> = buildList {
     fun module(on: Boolean, key: String, label: Int, icon: ImageVector, family: ModuleFamily, badge: Int = 0, open: () -> Unit) {
         if (on) this.add(AllModule(key, label, icon, family, badge, open))
     }
@@ -1599,6 +1600,10 @@ private fun allModules(features: FeatureFlags, helpBadge: Int, navController: Na
     }
     module(features.isOn(Feature.Capsules), "capsule", R.string.all_capsule, Icons.Outlined.HourglassTop, ModuleFamily.Remember) {
         navController.navigate(CapsulesDestination) { launchSingleTop = true }
+    }
+    // My own profile, whose souvenirs are never empty (DESIGN, 17/11).
+    module(features.isOn(Feature.Souvenirs), "souvenirs", R.string.all_souvenirs, Icons.Outlined.AutoStories, ModuleFamily.Remember) {
+        navController.navigate(MemberProfileDestination(meId)) { launchSingleTop = true }
     }
     module(features.isOn(Feature.GoodNews), "goodNews", R.string.all_good_news, Icons.Outlined.Celebration, ModuleFamily.Remember) {
         navController.navigate(GoodNewsFeedDestination) { launchSingleTop = true }
