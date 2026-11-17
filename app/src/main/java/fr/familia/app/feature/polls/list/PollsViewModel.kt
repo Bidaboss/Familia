@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.time.Instant
 import java.time.LocalDate
@@ -32,6 +33,8 @@ class PollsViewModel(
     private val currentMemberId: String,
     private val now: () -> Instant = Instant::now,
     private val today: Flow<LocalDate> = currentDayFlow(),
+    /** Only the polls of this event, on its page (récit 2 quater); null: all of mine. */
+    private val eventId: String? = null,
 ) : ViewModel() {
 
     private val retries = MutableStateFlow(0)
@@ -44,7 +47,8 @@ class PollsViewModel(
         val pollRepo = polls ?: return flowOf(PollsUiState.Error)
         val memberRepo = members ?: return flowOf(PollsUiState.Error)
         // A family has a handful of polls: one listener on the votes of each.
-        val withVotes: Flow<List<Pair<Poll, List<PollVote>>>> = pollRepo.observeMine(currentMemberId).flatMapLatest { list ->
+        val mine = pollRepo.observeMine(currentMemberId).map { list -> if (eventId == null) list else list.filter { it.eventId == eventId } }
+        val withVotes: Flow<List<Pair<Poll, List<PollVote>>>> = mine.flatMapLatest { list ->
             if (list.isEmpty()) {
                 flowOf(emptyList<Pair<Poll, List<PollVote>>>())
             } else {

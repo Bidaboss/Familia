@@ -55,6 +55,7 @@ class FirestorePollRepository(private val db: FirebaseFirestore) : PollRepositor
         closesAt: Instant?,
         authorId: String,
         authorName: String,
+        eventId: String?,
     ): String {
         val ref = polls.document()
         ref.set(
@@ -65,7 +66,7 @@ class FirestorePollRepository(private val db: FirebaseFirestore) : PollRepositor
                 "multiple" to (kind == Poll.Kind.Choice && multiple),
                 "askedIds" to askedIds,
                 "viewerIds" to viewerIds,
-                "eventId" to null,
+                "eventId" to eventId,
                 "closesAt" to closesAt?.let { Timestamp(it.epochSecond, it.nano) },
                 "closed" to false,
                 "chosen" to null,

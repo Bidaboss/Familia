@@ -67,6 +67,14 @@ test('an adult asks a date poll or a free poll; a child does not', async () => {
   await assertFails(setDoc(doc(as(env, CHILD), 'polls/new3'), poll({ authorId: CHILD.memberId, authorName: CHILD.memberId, viewerIds: [CHILD.memberId, OTHER_ADULT.memberId], askedIds: [OTHER_ADULT.memberId] })));
 });
 
+test('a poll asked from an event names it (récit 2 quater)', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), 'events/e1'), { title: 'Repas', authorId: ADULT.memberId });
+  });
+  await assertSucceeds(setDoc(doc(as(env, ADULT), 'polls/ofEvent'), poll({ eventId: 'e1' })));
+  await assertSucceeds(getDocs(query(collection(as(env, OTHER_ADULT), 'polls'), where('viewerIds', 'array-contains', OTHER_ADULT.memberId))));
+});
+
 test('a poll keeps its shape', async () => {
   const db = as(env, ADULT);
   const bad = [

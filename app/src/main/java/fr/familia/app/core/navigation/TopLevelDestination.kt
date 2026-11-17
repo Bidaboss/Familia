@@ -103,6 +103,10 @@ data class PollDetailDestination(val pollId: String)
 @Serializable
 data object PollEditDestination
 
+/** « Lancer un sondage » from the page of an event (récit 2 quater): its guests are asked. */
+@Serializable
+data class EventPollEditDestination(val eventId: String)
+
 /** « Rejoignez-moi », opened from its card on the Accueil (récit 33). */
 @Serializable
 data object JoinMeDestination

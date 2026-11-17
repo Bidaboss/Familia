@@ -768,6 +768,14 @@ fun FamiliaApp(
                     composable<PollEditDestination> {
                         PollEditRoute(container = container, currentMember = currentMember, onDone = { navController.popBackStack() })
                     }
+                    composable<EventPollEditDestination> { entry ->
+                        PollEditRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onDone = { navController.popBackStack() },
+                            eventId = entry.toRoute<EventPollEditDestination>().eventId,
+                        )
+                    }
                     composable<JoinMeDestination> {
                         JoinMeRoute(container = container, currentMember = currentMember, onDone = { navController.popBackStack() })
                     }
@@ -874,6 +882,8 @@ fun FamiliaApp(
                             onEdit = { navController.navigate(EventEditDestination(eventId)) },
                             onOpenAlbum = { navController.navigate(EventAlbumDestination(eventId)) },
                             onOpenRecipe = if (features.isOn(Feature.Recipes)) ({ id -> navController.navigate(RecipeDetailDestination(id)) }) else null,
+                            onNewPoll = { navController.navigate(EventPollEditDestination(eventId)) },
+                            onOpenPoll = { id -> navController.navigate(PollDetailDestination(id)) },
                             onBack = { navController.popBackStack() },
                             // Shown only with the switch on, to an adult who comes or to the author (canOpenExpenses).
                             onOpenExpenses = { navController.navigate(EventExpensesDestination(eventId)) },

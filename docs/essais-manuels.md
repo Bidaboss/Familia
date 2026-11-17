@@ -544,3 +544,9 @@ Avec l'interrupteur « Partager » allumé :
 4. « Nos souvenirs gagnés ensemble » : l'arbre et ses feuilles, un souvenir par défi réussi, puis « À venir ». Rien n'appartient à une seule personne.
 5. Arbre ou question éteints dans Administration : leur carte disparaît de l'écran.
 6. Police à 200 % : tout défile.
+
+## Les sondages d'un événement (récit 2 quater)
+Avec l'interrupteur « Sondages » allumé :
+1. Ouvre un événement de ton foyer et touche « Lancer un sondage » : les invités de l'événement sont déjà cochés. Envoie un sondage de date.
+2. Reviens sur la fiche : le sondage y apparaît, avec les réponses puis le résultat une fois terminé. Il est aussi dans la liste « Sondages ».
+3. Supprime l'événement : le sondage reste dans « Sondages », marqué Terminé, et personne ne reçoit de notification de résultat.
