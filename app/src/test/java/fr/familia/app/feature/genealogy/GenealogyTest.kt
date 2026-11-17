@@ -127,6 +127,22 @@ class GenealogyTest {
     }
 
     @Test
+    fun `an empty tree offers to join two members: the ones I may edit, my household first`() = runTest {
+        val owner = ready(GenealogyViewModel(FakeGenealogy(), FakeMembers(), "admin1"))
+        assertTrue(owner.isEmpty)
+        val ids = owner.joinable.map { it.id }
+        assertEquals(TestFamily.family.members.size, ids.size)
+        val mine = TestFamily.family.members.first { it.id == "admin1" }.householdId
+        val firstOther = ids.indexOfFirst { owner.tree.people.getValue(it).householdId != mine }
+        assertTrue(ids.drop(firstOther).none { owner.tree.people.getValue(it).householdId == mine })
+        // A chef only starts from their household; an adult not at all.
+        val chef = TestFamily.family.copy(ownerId = "someone-else")
+        val asChef = ready(GenealogyViewModel(FakeGenealogy(), FakeMembers(chef), "admin1"))
+        assertTrue(asChef.joinable.isNotEmpty() && asChef.joinable.all { it.householdId == mine })
+        assertTrue(ready(GenealogyViewModel(FakeGenealogy(), FakeMembers(), "adult1")).joinable.isEmpty())
+    }
+
+    @Test
     fun `a link is made once, never backwards, and only where one may`() = runTest {
         val repo = FakeGenealogy(listOf(jeanne))
         val vm = GenealogyViewModel(repo, FakeMembers(), "admin1")

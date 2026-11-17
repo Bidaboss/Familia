@@ -349,6 +349,9 @@
     <string name="genealogy_word_label">Ton mot</string>
     <string name="genealogy_word_action">Choisir ton mot pour %1$s</string>
     <string name="genealogy_save">Enregistrer</string>
+    <string name="genealogy_join_members">Relier deux membres</string>
+    <string name="genealogy_join_title">Qui veux-tu relier ?</string>
+    <string name="genealogy_join_next">Suivant</string>
     <string name="genealogy_link_add">Ajouter un lien</string>
     <string name="genealogy_link_title">Relier quelqu\'un à %1$s</string>
     <string name="genealogy_link_who">Qui ?</string>

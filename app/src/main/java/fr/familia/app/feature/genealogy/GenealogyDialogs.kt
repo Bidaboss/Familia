@@ -123,6 +123,34 @@ internal fun LinkDialog(
     )
 }
 
+/**
+ * « Relier deux membres » from an empty tree (retour d'essai du 17/11): first the person to join,
+ * among [people] (the ones I may edit, by household, mine first); the link dialog follows.
+ */
+@Composable
+internal fun PickPersonDialog(people: List<TreePerson>, onPick: (String) -> Unit, onDismiss: () -> Unit) {
+    var picked by rememberSaveable { mutableStateOf<String?>(null) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.genealogy_join_title)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()).selectableGroup()) {
+                people.forEach { p -> Choice(p.firstName, selected = picked == p.id) { picked = p.id } }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { picked?.let(onPick) },
+                enabled = picked != null,
+                modifier = Modifier.heightIn(min = 56.dp),
+            ) { Text(stringResource(R.string.genealogy_join_next)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
+        },
+    )
+}
+
 private fun relationLabel(relation: Relation): Int = when (relation) {
     Relation.Parent -> R.string.genealogy_relation_parent
     Relation.Child -> R.string.genealogy_relation_child

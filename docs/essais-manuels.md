@@ -1115,3 +1115,9 @@ Avec le module « Voir le planning dans mon agenda » allumé (ou sur le télép
 2. Sur le téléphone de l'admin principal : **Administration**, puis la carte « Liens d'agenda ». **Attendu :** tous les adultes, rangés par foyer, chacun avec un bouton « Couper le lien de {prénom} ».
 3. Touche le bouton de cet adulte, puis « Couper ». **Attendu :** « Le lien de {prénom} est coupé. » s'affiche. Sur son téléphone, l'écran du lien d'agenda propose d'en créer un nouveau.
 4. Coupe le lien d'un adulte qui n'en avait pas. **Attendu :** le même message, et rien ne change pour lui.
+
+## Arbre vide : relier deux membres (retour d'essai du 17/11)
+1. En admin principal, avec un arbre sans aucun lien ni proche, ouvre Famille › Nos trésors › Arbre généalogique. **Attendu :** l'écran vide propose « Relier deux membres » (bouton plein) et « Ajouter un proche sans compte ».
+2. Touche « Relier deux membres ». **Attendu :** « Qui veux-tu relier ? » liste les membres, ton foyer d'abord. Choisis-en un, puis « Suivant ».
+3. Choisis « Conjoint ou conjointe » (ou parent, enfant), puis la seconde personne, et « Relier ». **Attendu :** l'arbre s'affiche avec tous les membres et le lien tracé.
+4. En chef de famille (ou « Voir comme » un chef), même écran vide. **Attendu :** « Qui veux-tu relier ? » ne liste que son foyer. En simple adulte, aucun de ces boutons, seulement « Revenir ».

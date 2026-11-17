@@ -68,6 +68,18 @@ sealed interface GenealogyUiState {
             KinLinkKind.Parent -> canEditPerson(link.bId)
         }
 
+        /**
+         * Whom « Relier deux membres » offers first: the people I may edit, by household (mine
+         * first, then the others together), by first name inside each one.
+         */
+        val joinable: List<TreePerson>
+            get() {
+                val mine = tree.people[me]?.householdId
+                return tree.people.values
+                    .filter { canEditPerson(it.id) }
+                    .sortedWith(compareBy<TreePerson>({ it.householdId != mine }, { it.householdId }, { it.firstName.lowercase() }))
+            }
+
         /** I may make [otherId] the [relation] of [personId]: what the link dialog offers. */
         fun canJoin(personId: String, relation: Relation, otherId: String): Boolean =
             canEditLink(relation.link(personId, otherId))

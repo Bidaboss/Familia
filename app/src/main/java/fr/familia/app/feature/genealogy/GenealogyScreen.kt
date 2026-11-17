@@ -151,6 +151,7 @@ private fun ReadyTree(state: GenealogyUiState.Ready, onOpenProfile: ((String) ->
     var joinPerson by rememberSaveable { mutableStateOf<String?>(null) }
     var joinRelation by rememberSaveable { mutableStateOf<Relation?>(null) }
     var removeKin by rememberSaveable { mutableStateOf<String?>(null) }
+    var pickFirst by rememberSaveable { mutableStateOf(false) }
     val editing = actions?.takeIf { state.canEdit }
     val transform = rememberTransformableState { zoomChange, panChange, _ ->
         zoom = (zoom * zoomChange).coerceIn(MIN_ZOOM, MAX_ZOOM)
@@ -160,8 +161,20 @@ private fun ReadyTree(state: GenealogyUiState.Ready, onOpenProfile: ((String) ->
         null
     } else {
         {
-            Button(onClick = { editKin = NEW_KIN }, modifier = Modifier.heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.genealogy_kin_add))
+            // An empty tree still shows nobody: « Relier deux membres » picks the first one by name.
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (state.joinable.size > 1) {
+                    Button(onClick = { pickFirst = true }, modifier = Modifier.heightIn(min = 56.dp)) {
+                        Text(stringResource(R.string.genealogy_join_members))
+                    }
+                    OutlinedButton(onClick = { editKin = NEW_KIN }, modifier = Modifier.heightIn(min = 56.dp)) {
+                        Text(stringResource(R.string.genealogy_kin_add))
+                    }
+                } else {
+                    Button(onClick = { editKin = NEW_KIN }, modifier = Modifier.heightIn(min = 56.dp)) {
+                        Text(stringResource(R.string.genealogy_kin_add))
+                    }
+                }
             }
         }
     }
@@ -259,6 +272,12 @@ private fun ReadyTree(state: GenealogyUiState.Ready, onOpenProfile: ((String) ->
             actions?.onSetWord(person.id, word)
             wordFor = null
         }, onDismiss = { wordFor = null })
+    }
+    if (pickFirst) {
+        PickPersonDialog(state.joinable, onPick = { id ->
+            pickFirst = false
+            linkFor = id
+        }, onDismiss = { pickFirst = false })
     }
     linkFor?.let { people[it] }?.let { person ->
         LinkDialog(person, state.tree, onPick = { relation, other ->
