@@ -13,6 +13,7 @@ import {
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onRequest } from 'firebase-functions/v2/https';
 import { deleteCalendarFeedOf, feedFor } from './calendarFeed';
+import { ruleLabel, syncSeries, writtenBySeries, type SeriesData } from './series';
 import { clearRidesOf, clearRidesOfMember, onRideChanged, type RideData } from './carpool';
 import {
   deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
@@ -37,7 +38,7 @@ import {
 import {
   HelpNotice, HelpRequestData, HelpSender, onHelpRequestWritten, reopenRequestsOf, sendStillOpenReminders,
 } from './helpRequests';
-import { addDays, EventData, hasVisibleChange, Notice, parisDay } from './logic';
+import { addDays, changeNotice, EventData, hasVisibleChange, Notice, parisDay } from './logic';
 import { comingMembers, deleteEventAnswers, loadMembers, deleteMemberData, memberForUid, notify, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
 import { deleteExpenseBook, ExpenseData, historyEntry, sendExpenseNotices, writeExpenseHistory } from './expenses';
 import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
@@ -117,7 +118,8 @@ function actorUid(event: { authType: string; authId?: string }): string | undefi
 
 export const onEventCreated = onDocumentCreatedWithAuthContext('events/{eventId}', async (event) => {
   const data = event.data?.data() as EventData | undefined;
-  if (!data) return;
+  // An occurrence of a series (récit 54) is written by the server: the series sends one notice.
+  if (!data || writtenBySeries(undefined, event.data?.data())) return;
   await notifyChange(getFirestore(), send, 'added', event.params.eventId, data, actorUid(event), new Date());
 });
 
@@ -125,6 +127,7 @@ export const onEventUpdated = onDocumentUpdatedWithAuthContext('events/{eventId}
   const before = event.data?.before.data() as EventData | undefined;
   const after = event.data?.after.data() as EventData | undefined;
   if (!before || !after || !hasVisibleChange(before, after)) return;
+  if (writtenBySeries(event.data?.before.data(), event.data?.after.data())) return;
   const db = getFirestore();
   const members = await loadMembers(db);
   const answered = await comingMembers(db, event.params.eventId, members);
@@ -138,7 +141,12 @@ export const onEventDeleted = onDocumentDeletedWithAuthContext('events/{eventId}
   try {
     const members = await loadMembers(db);
     const answered = await comingMembers(db, event.params.eventId, members);
-    if (data) await notifyChange(db, send, 'deleted', event.params.eventId, data, actorUid(event), new Date(), answered, members);
+    if (data && (data as { cancelledBySeries?: boolean }).cancelledBySeries) {
+      // An occurrence taken out of its series (récit 54): only those who were coming hear of it.
+      if (answered.size > 0) await notify(db, send, [...answered], changeNotice('deleted', event.params.eventId, data, null));
+    } else if (data) {
+      await notifyChange(db, send, 'deleted', event.params.eventId, data, actorUid(event), new Date(), answered, members);
+    }
   } finally {
     // Each one is tried even if another fails: answers, the album (récit 41), records and files, comments (récit 28),
     // and its polls closed (récit 2 quater).
@@ -151,6 +159,28 @@ export const onEventDeleted = onDocumentDeletedWithAuthContext('events/{eventId}
     ]);
     const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
     if (failed) throw failed.reason;
+  }
+});
+
+// « Événements qui reviennent » (récit 54): the occurrences follow their series, with one notice for it.
+export const onSeriesWritten = onDocumentWrittenWithAuthContext('eventSeries/{seriesId}', async (event) => {
+  const db = getFirestore();
+  const now = new Date();
+  const result = await syncSeries(db, event.params.seriesId, parisDay(now));
+  const before = event.data?.before.data() as SeriesData | undefined;
+  const after = event.data?.after.data() as SeriesData | undefined;
+  if (!after) return;
+  const repeat = ` Puis ${ruleLabel(after.rule)}.`;
+  if (!before && result.created.length > 0) {
+    const first = [...result.created].sort()[0];
+    const data = (await db.collection('events').doc(first).get()).data() as EventData;
+    await notifyChange(db, send, 'added', first, data, actorUid(event), now, new Set(), undefined, repeat);
+  } else if (before && result.updated.length > 0) {
+    const first = [...result.updated].sort()[0];
+    const data = (await db.collection('events').doc(first).get()).data() as EventData;
+    const members = await loadMembers(db);
+    const answered = await comingMembers(db, first, members);
+    await notifyChange(db, send, 'edited', first, data, actorUid(event), now, answered, members, ` Et les suivantes.`);
   }
 });
 

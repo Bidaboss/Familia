@@ -7,6 +7,7 @@ import {
   changeNotice, changeRecipients, ChangeKind, EventData, Member, Notice, parisDay, addDays, reminders, RsvpStatus,
 } from './logic';
 import { CARPOOL, loadRides, rideLines } from './carpool';
+import { topUpSeries } from './series';
 import { deliver } from './prefs';
 
 /** Sends one notification to one phone. "unregistered" means the app was uninstalled. */
@@ -56,14 +57,14 @@ async function calendarOn(db: Firestore): Promise<boolean> {
  */
 export async function notifyChange(
   db: Firestore, send: Sender, kind: ChangeKind, eventId: string, event: EventData, actorUid: string | undefined, now: Date,
-  answered: Set<string> = new Set(), loaded?: Member[],
+  answered: Set<string> = new Set(), loaded?: Member[], repeat = '',
 ): Promise<number> {
   const members = loaded ?? await loadMembers(db);
   const actor = memberForUid(members, actorUid);
   const recipients = changeRecipients(members, actor?.id ?? null, event, parisDay(now), answered);
   if (recipients.length === 0) return 0;
   const calendarHint = kind !== 'added' && await calendarOn(db);
-  return notify(db, send, recipients, changeNotice(kind, eventId, event, actor?.firstName ?? null, calendarHint));
+  return notify(db, send, recipients, changeNotice(kind, eventId, event, actor?.firstName ?? null, calendarHint, repeat));
 }
 
 /**
@@ -124,6 +125,8 @@ export async function deleteMemberData(db: Firestore, memberId: string): Promise
 
 /** PRD, récit 6 bis: at 18 h, the members coming tomorrow are reminded. */
 export async function sendDayBeforeReminders(db: Firestore, send: Sender, now: Date): Promise<number> {
+  // « Événements qui reviennent » (récit 54): the 12 months move on by a day, before tomorrow is read.
+  await topUpSeries(db, parisDay(now));
   const tomorrow = addDays(parisDay(now), 1);
   const events = await db.collection('events').where('date', '==', tomorrow).get();
   if (events.empty) return 0;

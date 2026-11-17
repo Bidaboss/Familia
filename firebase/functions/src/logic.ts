@@ -171,6 +171,8 @@ export const CALENDAR_HINT = {
 /** [calendarHint]: the module « Ajouter à mon agenda » is on for the family (config/app). */
 export function changeNotice(
   kind: ChangeKind, eventId: string, event: EventData, actorName: string | null, calendarHint = false,
+  /** « Événements qui reviennent » (récit 54): « Puis chaque semaine. » */
+  repeat = '',
 ): Notice {
   const who = actorName ?? 'Un membre de la famille';
   const title = { added: 'Nouvel événement', edited: 'Événement modifié', deleted: 'Événement annulé' }[kind];
@@ -178,7 +180,7 @@ export function changeNotice(
     ? `${who} a supprimé « ${event.title} » du ${formatDay(event.date)}.`
     : `${who} a ${kind === 'added' ? 'ajouté' : 'modifié'} « ${event.title} », ${formatWhen(event)}.`;
   const hint = calendarHint && kind !== 'added' ? CALENDAR_HINT[kind] : '';
-  return { channel: 'events', title, body: body + hint, eventId };
+  return { channel: 'events', title, body: body + repeat + hint, eventId };
 }
 
 export interface Reminder {
