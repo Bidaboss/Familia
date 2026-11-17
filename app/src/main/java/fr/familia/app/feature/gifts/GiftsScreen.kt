@@ -55,6 +55,7 @@ import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.dayShortLabel
 import fr.familia.app.core.model.Birthday
+import fr.familia.app.feature.presentation.LocalPresenting
 import java.time.LocalDate
 
 /** Cadeaux tab: the lists of the family, grouped by person, the member first. Stateless. */
@@ -208,7 +209,7 @@ internal fun LazyListScope.birthdaysSection(
     state: GiftsUiState.Success,
     onAllBirthdays: () -> Unit,
     onPrepareSurprise: (String) -> Unit,
-    onOpenList: (String) -> Unit = {},
+    onOpenList: (String) -> Unit,
 ) {
     item(key = "birthdays-title") {
         Text(
@@ -247,7 +248,8 @@ internal fun LazyListScope.birthdaysSection(
             val isMine = state.sections.any { it.isMe && it.member.id == birthday.member.id }
             // A surprise already prepared for them (retour d'essai du 17/11). Their own phone never gets
             // it, nor « Voir comme » them: the server, and listsSeenBy, keep a surprise list from its person.
-            val surprises = if (isMine) emptyList() else surprisesFor(state, birthday.member.id)
+            // Nor while the mode présentation is on (récit 48): the tab may be on screen at the party.
+            val surprises = if (isMine || LocalPresenting.current) emptyList() else surprisesFor(state, birthday.member.id)
             if (surprises.isNotEmpty()) {
                 ClayLink(
                     pluralStringResource(R.plurals.gifts_surprises_in_progress, surprises.size, surprises.size),
