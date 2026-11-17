@@ -83,6 +83,6 @@ Passe chaque essai d'abord en mode avion, puis en « 2G seulement ». Pour la 2G
 
 **À la fin**
 - [ ] **Administration**, puis « Éteindre » sur la carte « Mode présentation ».
-- [ ] **Attendu :** en moins d'une minute, chacun reçoit le résumé de la présentation, en trois notifications au plus. S'il n'arrive pas, il part au plus tard 30 minutes après.
+- [ ] **Attendu :** en moins d'une minute, chacun reçoit le résumé de la présentation, en trois notifications au plus. S'il n'arrive pas, il part au plus tard 30 minutes après. Après 22 h, il attend le lendemain à 8 h pour ceux qui ont « Calme la nuit », c'est-à-dire presque tout le monde : éteins le Mode présentation avant 22 h si tu veux qu'il arrive le soir même.
 - [ ] Enlève « Ne pas déranger ».
 - [ ] Le soir ou le lendemain, allume les modules de ta liste « à allumer plus tard » (étape 3).

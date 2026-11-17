@@ -89,7 +89,7 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 ## À la fin
 
 1. **Administration**, « Éteindre » le Mode présentation (sur le bandeau ou dans la carte).
-2. **Attendu :** en moins d'une minute, chacun reçoit un seul résumé, par exemple « 6 personnes ont rejoint Familia ». S'il n'arrive pas, il part au plus tard 30 minutes après.
+2. **Attendu :** en moins d'une minute, chacun reçoit un seul résumé, par exemple « 6 personnes ont rejoint Familia ». S'il n'arrive pas, il part au plus tard 30 minutes après. Après 22 h, il attend le lendemain à 8 h pour ceux qui ont « Calme la nuit », c'est-à-dire presque tout le monde : éteins le Mode présentation avant 22 h si tu veux qu'il arrive le soir même.
 3. Enlève « Ne pas déranger ».
 
 ## Plan B si le réseau tombe
