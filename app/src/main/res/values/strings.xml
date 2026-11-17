@@ -1815,11 +1815,11 @@
     <string name="consumption_deletes">Suppressions</string>
     <string name="consumption_storage">Taille de la base</string>
     <string name="consumption_figures">%1$s sur %2$s gratuites</string>
-    <string name="consumption_storage_figures">%1$s Mo sur 1 Go gratuit</string>
+    <string name="consumption_storage_figures">%1$s sur 1 Go gratuit</string>
     <string name="consumption_photos">Photos gardées</string>
-    <string name="consumption_photos_figures">%1$s Mo sur 5 Go gratuits</string>
+    <string name="consumption_photos_figures">%1$s sur 5 Go gratuits</string>
     <string name="consumption_downloads">Photos téléchargées ce mois-ci</string>
-    <string name="consumption_downloads_figures">%1$s Mo sur 100 Go gratuits</string>
+    <string name="consumption_downloads_figures">%1$s sur 100 Go gratuits</string>
     <string name="consumption_gauge_description">%1$s : %2$s, %3$d pour cent</string>
     <string name="consumption_cost">Coût estimé du mois : %1$s</string>
     <string name="consumption_cost_help">Ce coût est une estimation, pas la facture. Familia te prévient à 80 % d\'une limite ou au-delà de 0,50 €. Le vrai garde-fou reste l\'alerte de Google, par e-mail à 1 €.</string>
