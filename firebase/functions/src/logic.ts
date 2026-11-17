@@ -154,6 +154,17 @@ export function concerns(
  * « Je viens » or « Peut-être » ([answered]), whatever the target. Events already past notify
  * nobody (cleaning up old events should not wake the family).
  */
+/**
+ * The UID of the member who made the change, from the auth context of the trigger. Firestore does
+ * not send « app_user » for a write of the app: in production a signed-in phone comes as « api_key »
+ * with its Firebase UID in authId (until 17/11 only « app_user » was read, so the author was told of
+ * their own event). Any authId is kept: memberForUid only matches the UID of a member, never a
+ * service account or the fake id of the emulator.
+ */
+export function actorUid(event: { authType?: string; authId?: string }): string | undefined {
+  return event.authId || undefined;
+}
+
 export function changeRecipients(
   members: Member[], actorId: string | null, event: EventData, today: string, answered: Set<string> = new Set(),
 ): string[] {

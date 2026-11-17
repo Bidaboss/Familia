@@ -113,12 +113,17 @@ fun FeedbackListRoute(container: AppContainer?, onBack: () -> Unit) {
         onAnswer = viewModel::answer,
         onRemove = viewModel::remove,
         onShareForClaude = { item -> scope.launch { shareFeedbackForClaude(context, storage, item) } },
-        onSaveScreenshot = { item ->
-            scope.launch {
-                val saved = saveFeedbackScreenshot(context, storage, item)
-                val message = if (saved) R.string.feedback_screenshot_saved else R.string.feedback_screenshot_save_failed
-                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+        // Android 10 and later only: before, MediaStore would need a permission (note C of #288).
+        onSaveScreenshot = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            { item ->
+                scope.launch {
+                    val saved = saveFeedbackScreenshot(context, storage, item)
+                    val message = if (saved) R.string.feedback_screenshot_saved else R.string.feedback_screenshot_save_failed
+                    Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                }
             }
+        } else {
+            null
         },
         actionFailed = actionFailed,
         onFailureShown = viewModel::failureShown,
