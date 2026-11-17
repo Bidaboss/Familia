@@ -1,10 +1,13 @@
 package fr.familia.app.feature.trips.photos
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
@@ -15,6 +18,7 @@ import fr.familia.app.core.album.AlbumFilmViewModel
 import fr.familia.app.core.album.AlbumPhotosViewModel
 import fr.familia.app.core.album.AlbumScreen
 import fr.familia.app.core.album.FilmActions
+import fr.familia.app.core.album.book.PhotoBookButton
 import fr.familia.app.core.album.rememberPhotoActions
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
@@ -44,7 +48,7 @@ fun rememberTripAlbum(container: AppContainer?, currentMember: Member, tripId: S
 
 /** « Voir les photos » of a trip, with its film (récit 16). */
 @Composable
-fun TripPhotosRoute(container: AppContainer?, currentMember: Member, tripId: String, onBack: () -> Unit) {
+fun TripPhotosRoute(container: AppContainer?, currentMember: Member, tripId: String, onBack: () -> Unit, onMakeBook: (() -> Unit)? = null) {
     val album = rememberTripAlbum(container, currentMember, tripId)
     val state by album.uiState.collectAsStateWithLifecycle()
     val filmsDir = File(LocalContext.current.cacheDir, "films")
@@ -64,6 +68,12 @@ fun TripPhotosRoute(container: AppContainer?, currentMember: Member, tripId: Str
         actions = rememberPhotoActions(album),
         onBack = onBack,
         actionsBar = { HelpButton(ScreenHelp.TripDetail) },
-        top = { AlbumFilmPart(film, state.photos.size, filmActions) },
+        top = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                AlbumFilmPart(film, state.photos.size, filmActions)
+                // Le livre photo (récit 59), behind the switch photoBook: the caller gives it or not.
+                if (onMakeBook != null && state.photos.isNotEmpty()) PhotoBookButton(onMakeBook)
+            }
+        },
     )
 }

@@ -1217,6 +1217,31 @@
     <string name="recipe_book_print_hint">Tu peux le faire imprimer dans une boutique photo : demande un livret au format A5.</string>
     <string name="recipe_book_share_chooser">Enregistrer, imprimer ou envoyer le livre</string>
     <!-- L'affiche de l'arbre (récit 53) -->
+    <string name="photo_book_open">Faire le livre photo</string>
+    <string name="photo_book_title">Le livre photo</string>
+    <string name="photo_book_intro">Choisis les photos et leur ordre. Ton téléphone en fait un PDF, à garder, imprimer ou offrir.</string>
+    <string name="photo_book_field_title">Titre du livre</string>
+    <string name="photo_book_format">Les pages</string>
+    <string name="photo_book_landscape">A4 en paysage, pour une imprimante à la maison</string>
+    <string name="photo_book_square">Carré 21 × 21 cm, comme les livres photo des boutiques</string>
+    <plurals name="photo_book_count">
+        <item quantity="one">%1$d photo choisie, %2$d pages</item>
+        <item quantity="other">%1$d photos choisies, %2$d pages</item>
+    </plurals>
+    <string name="photo_book_earlier">Plus tôt</string>
+    <string name="photo_book_later">Plus tard</string>
+    <string name="photo_book_big">En grand</string>
+    <string name="photo_book_small">Pas en grand</string>
+    <string name="photo_book_cover">En couverture</string>
+    <string name="photo_book_is_cover">Couverture</string>
+    <string name="photo_book_is_big">Seule sur sa page</string>
+    <string name="photo_book_make">Faire le livre photo</string>
+    <string name="photo_book_failed">Le livre n\'a pas pu être fait. Vérifie le réseau et réessaie.</string>
+    <string name="photo_book_hint">Les photos sont téléchargées en pleine qualité, une seule fois. Une boutique photo peut l\'imprimer.</string>
+    <string name="photo_book_share_chooser">Enregistrer, imprimer ou envoyer le livre photo</string>
+    <string name="photo_book_consent_body">Des enfants apparaissent peut-être sur ces photos. Pense à demander l\'accord de leurs parents avant d\'envoyer le livre hors de Familia.</string>
+    <string name="photo_book_empty_title">Pas encore de photo pour un livre</string>
+    <string name="photo_book_empty_body">Ajoute d\'abord des photos à l\'album, puis reviens faire le livre.</string>
     <string name="tree_poster_open">Faire l\'affiche de l\'arbre</string>
     <string name="tree_poster_title">L\'affiche de l\'arbre</string>
     <string name="tree_poster_intro">Choisis ce que montre l\'affiche. Ton téléphone en fait un PDF en paysage, à garder, imprimer ou accrocher.</string>
@@ -2451,6 +2476,7 @@
     <!-- Récit 49 : le planning dans Google Agenda -->
     <string name="feature_calendar_feed">Planning dans mon agenda</string>
     <string name="feature_tree_poster">Affiche de l\'arbre</string>
+    <string name="feature_photo_book">Livre photo</string>
     <string name="account_calendar_feed">Voir dans mon agenda</string>
     <string name="calendar_feed_title">Voir dans mon agenda</string>
     <string name="calendar_feed_what_title">Le planning dans ton agenda</string>
