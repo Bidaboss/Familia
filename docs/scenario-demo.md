@@ -48,6 +48,8 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du repas. �
 
 ## Plan B si l'envoi de la photo bloque
 
+- **Quelqu'un n'a rien reçu** (il s'est connecté après l'envoi, ou les notifications de Familia sont coupées sur son téléphone) : qu'il ouvre Familia. La photo est sur son Accueil, dans « Bonnes nouvelles », sans attendre de notification. Ne la publie pas une deuxième fois.
+
 - **La phrase « Plus de réseau : l'envoi reprendra tout seul dès son retour » apparaît :** ne touche à rien. Active le partage de connexion 4G, ou rapproche-toi de la box. L'envoi repart seul, sans doublon.
 - **La barre n'avance plus et rien ne bouge depuis une minute :** touche « Annuler l'envoi ». Le texte et la photo restent, rien n'est publié. Passe en 4G, puis touche de nouveau « Publier » : une seule bonne nouvelle partira, et les photos déjà envoyées ne repartent pas.
 - **Un message dit que la bonne nouvelle n'a pas pu être publiée :** touche « OK », puis « Publier » de nouveau. Le texte et la photo sont gardés.

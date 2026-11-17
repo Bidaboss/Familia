@@ -969,3 +969,14 @@ Avec le deuxième téléphone de test, sous Android 13 ou plus, et Familia dési
 3. Ouvre Familia et connecte-toi. Va jusqu'au dernier écran du tuto, « Rester prévenu », et touche « Autoriser ». Dans la fenêtre d'Android, touche « Ne pas autoriser ». **Attendu :** l'appli s'ouvre sur l'Accueil. Tu ne restes pas bloqué sur le tuto.
 4. Ta photo en haut à droite, puis les réglages des notifications. **Attendu :** le message « Les notifications de Familia sont bloquées sur ce téléphone… », avec un bouton vers les réglages d'Android.
 5. Recommence sur un téléphone où Familia vient d'être réinstallée, et touche « Autoriser » dans la fenêtre d'Android. **Attendu :** l'appli s'ouvre aussi sur l'Accueil.
+
+## Démo du 21 : la photo du repas chez ceux qui la reçoivent
+
+Avec ton téléphone et deux téléphones de test, A et B, déjà connectés. Sur B, coupe les notifications de Familia dans les réglages d'Android.
+
+1. Sur ton téléphone, allume le Mode présentation (« 4 h »), puis publie une bonne nouvelle avec une photo, depuis ton propre compte. **Attendu :** A sonne tout de suite. Touche la notification sur A, l'appli fermée : la bonne nouvelle s'ouvre, avec la photo.
+2. Sur B, rien ne sonne. Ouvre Familia. **Attendu :** la photo est sur l'Accueil, dans « Bonnes nouvelles ».
+3. Sur un troisième téléphone, ou sur B après « Utiliser un autre compte », connecte un membre qui ne s'était jamais connecté, puis finis le tuto. **Attendu :** la photo est sur son Accueil, sans notification.
+4. Mets A en économie d'énergie, écran éteint, et publie une deuxième bonne nouvelle. **Attendu :** A sonne dans la minute.
+5. Sur A, réagis à la photo. Puis, sur ton téléphone, éteins le Mode présentation. **Attendu :** le résumé arrive. Il parle des arrivées et des réactions, jamais de ta photo : elle a déjà sonné, elle ne compte pas deux fois.
+
