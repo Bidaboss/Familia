@@ -2,11 +2,13 @@ package fr.familia.app.core.data
 
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.normalizeEmail
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Household
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -26,6 +28,19 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
         val memberId = index.getString("memberId") ?: return null
         val doc = db.collection(MEMBERS).document(memberId).get().await()
         return if (doc.exists()) doc.toMember() else null
+    }
+
+    override suspend fun findCachedByEmail(email: String): Member? = try {
+        val index = db.collection(MEMBER_EMAILS).document(normalizeEmail(email)).get(Source.CACHE).await()
+        index.getString("memberId")?.let { memberId ->
+            val doc = db.collection(MEMBERS).document(memberId).get(Source.CACHE).await()
+            if (doc.exists()) doc.toMember() else null
+        }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        // Not in the phone's copy yet: the server answers instead.
+        null
     }
 
     override suspend fun linkAccount(memberId: String, uid: String) {

@@ -10,6 +10,13 @@ interface MemberRepository {
     /** The member whose Google address is [email], or null if this address is not in the family. */
     suspend fun findByEmail(email: String): Member?
 
+    /**
+     * The same, read from the phone's copy only, without waiting for the network: null when this
+     * phone has never read it (or cannot). Used to open the app at once for an account kept from a
+     * previous session; the server copy is read just after.
+     */
+    suspend fun findCachedByEmail(email: String): Member? = null
+
     /** Remembers which Firebase account belongs to [memberId], on the member's first sign-in. */
     suspend fun linkAccount(memberId: String, uid: String)
 
