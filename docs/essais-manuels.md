@@ -763,6 +763,14 @@ Ce que dit le code, vérifié le 17/11 :
 - La seule migration côté serveur (la liste unique) ne part que quand l'interrupteur « Liste unique » change dans Administration. Une mise à jour de l'appli ne la déclenche pas, et « Publier Firebase » non plus.
 - La nouvelle version a le même nom (`fr.familia.app`) et la même clé de signature : Android l'installe par-dessus et garde la connexion. L'APK de test (`fr.familia.app.test`) est une autre appli : il ne remplace rien.
 
+Répétition sur le code, le 17/11 : de la version publiée le 17/11 à 15 h 35 (numéro 298) jusqu'à main.
+- **Connexion :** gardée. Aucune clé de connexion ne change entre les deux.
+- **Réglages des notifications :** ils sont dans Firebase, pas sur le téléphone. L'ancienne version n'écrivait « Calme la nuit » que quand le membre touchait ce bouton lui-même. Un membre qui n'y a jamais touché n'a donc rien d'écrit, et la nouvelle version l'allume pour lui. Celui qui l'avait éteint le garde éteint. Ce choix est lu de la même façon par l'appli, par les notifications et par les rappels (#308, #312).
+- **Cache des photos et liens :** gardés. La nouvelle version note pour la première fois à qui appartiennent ces traces (#306). Au premier lancement, rien n'est encore noté, donc elle ne vide rien. Elle videra seulement si un autre membre se connecte ensuite sur ce téléphone.
+- **Copie hors ligne :** gardée, car c'est le même nom d'appli.
+- **Brouillons :** un formulaire laissé à moitié rempli (événement, membre, envie…) est perdu à la mise à jour, comme quand Android ferme l'appli. Termine ou annule tes formulaires avant de mettre à jour.
+- **« Quoi de neuf ? » :** les 4 cartes (la question de la semaine, Qui est-ce ?, les recettes, On se prête) sont parties dans la version du 17/11. Après la mise à jour du 20, la feuille ne montre que les cartes pas encore vues sur ce téléphone. Si tu as déjà touché « C'est parti » le 17, elle ne s'ouvrira pas, et c'est normal. Les membres qui installent l'appli le 21 voient le tuto, pas la feuille. Pour revoir les cartes : menu de l'avatar, « Quoi de neuf ? ».
+
 Avant de commencer :
 1. Note la version installée : onglet **Famille**, tout en bas.
 2. Note trois repères : le nombre d'événements de la semaine dans Planning, une liste d'envies avec ses lignes, et la dernière bonne nouvelle.
@@ -776,7 +784,7 @@ La mise à jour :
 8. Onglet **Famille**, tout en bas. **Attendu :** le nouveau numéro de version.
 9. Vérifie tes trois repères. **Attendu :** les mêmes événements, les mêmes lignes, la même bonne nouvelle.
 10. **Administration**. **Attendu :** les mêmes modules allumés qu'à l'étape 3. Aucun ne s'est allumé tout seul.
-11. **Attendu :** s'il y a des nouveautés, la feuille « Quoi de neuf ? » s'ouvre une fois. Touche « C'est parti ». Ferme et rouvre l'appli : elle ne revient pas.
+11. **Attendu :** si tu n'as pas encore vu les cartes, la feuille « Quoi de neuf ? » s'ouvre une fois (4 cartes au plus). Touche « C'est parti ». Ferme et rouvre l'appli : elle ne revient pas.
 12. Sur le deuxième téléphone, encore en ancienne version, ouvre Familia. **Attendu :** il voit les mêmes données et peut toujours répondre à un événement. Puis mets-le à jour à son tour.
 13. Coupe le réseau (mode avion), rouvre Familia. **Attendu :** le bandeau « Hors ligne » et les données, sans écran d'erreur.
 
