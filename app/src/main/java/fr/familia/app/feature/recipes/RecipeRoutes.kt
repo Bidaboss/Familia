@@ -124,11 +124,20 @@ fun RecipeEditRoute(container: AppContainer?, currentMember: Member, recipeId: S
                     currentMember.id,
                     recipeId,
                     savedState = createSavedStateHandle(),
+                    photos = container?.albumPhotoRepository,
+                    uploader = container?.photoUploader,
                 )
             }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(state) { (state as? RecipeEditUiState.Done)?.let { onSaved(it.recipeId) } }
-    RecipeEditScreen(state, viewModel::update, viewModel::save, onBack, showStory = LocalFeatureFlags.current.isOn(Feature.RecipeBook))
+    RecipeEditScreen(
+        state,
+        viewModel::update,
+        viewModel::save,
+        onBack,
+        showStory = LocalFeatureFlags.current.isOn(Feature.RecipeBook),
+        photos = RecipeEditPhotoActions(viewModel::addPhotos, viewModel::removePhoto),
+    )
 }

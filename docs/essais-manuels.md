@@ -737,3 +737,12 @@ Avec deux comptes adultes de foyers différents, et un compte enfant.
 1. Entraide, « Demander un coup de main ». **Attendu :** sous « Qui prévenir », le raccourci « Tout le monde », puis les adultes rangés par foyer, ton foyer d'abord. Chaque foyer a sa propre case.
 2. Coche la case d'un foyer. **Attendu :** tous ses adultes sont cochés. Décoche un seul adulte : la case du foyer est à moitié cochée. Touche-la encore : tout le foyer est coché, puis décoché.
 3. Avec le compte enfant, demande un coup de main. **Attendu :** son parent est marqué « Toujours prévenu pour un enfant » et reste coché, même si tu décoches son foyer.
+
+## Une photo dès la création d'une recette
+
+1. Onglet Famille > Recettes > « Ajouter une recette ». Remplis le titre, les ingrédients et les étapes.
+2. Plus bas, sous « Photos du plat », touche « Ajouter une photo du plat ». Le sélecteur de photos d'Android s'ouvre, sans demander de permission. Choisis 2 photos.
+3. Les 2 photos s'affichent en petit, chacune avec « Retirer la photo ». Le bouton dit maintenant « Ajouter des photos (encore 1) ». Après une 3e photo, il disparaît.
+4. Touche « Enregistrer ». Le bouton affiche « Envoi de la photo 1 sur 2… », puis la recette s'ouvre avec ses photos dans « Photos du plat ».
+5. Sans réseau : la recette s'enregistre quand même. Les photos ne partent pas ; tu peux les ajouter plus tard depuis la recette.
+6. Ouvre une recette existante et touche « Modifier » : pas de champ photo dans le formulaire, les photos se gèrent sur la recette elle-même.
