@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import {
-  deleteEventReminders, myReminderNotice, offsetsFor, offsetsFrom, parisInstant, reminderAt, sendMyReminders, type ReminderNotice,
+  deleteEventReminders, myReminderNotice, offsetsFor, offsetsFrom, parisInstant, reminderAt, sendMyReminders, shiftedAt, type ReminderNotice,
 } from '../src/reminders';
 import type { EventData } from '../src/logic';
 
@@ -31,6 +31,16 @@ describe('when a reminder rings, without the emulator', () => {
     assert.equal(reminderAt('2026-11-21', null, 'h3'), null);
     assert.equal(iso(reminderAt('2026-11-21', null, 'morning')), '2026-11-21T07:00:00.000Z');
     assert.equal(iso(reminderAt('2026-11-21', null, 'd2')), '2026-11-19T07:00:00.000Z');
+  });
+
+  test('with quiet hours, 2 days and a week before wait for 8 h, the others keep their time', () => {
+    const night = reminderAt('2026-11-21', '23:00', 'd2'); // The 19th at 23 h.
+    assert.equal(iso(shiftedAt(night!, 'd2', true)), '2026-11-20T07:00:00.000Z');
+    assert.equal(iso(shiftedAt(night!, 'd2', false)), iso(night));
+    const early = reminderAt('2026-11-21', '06:30', 'w1'); // The 14th at 6 h 30.
+    assert.equal(iso(shiftedAt(early!, 'w1', true)), '2026-11-14T07:00:00.000Z');
+    const hour = reminderAt('2026-11-21', '06:30', 'h1');
+    assert.equal(iso(shiftedAt(hour!, 'h1', true)), iso(hour));
   });
 
   test('an event of its own wins over its series, and the defaults only count for « Je viens »', () => {

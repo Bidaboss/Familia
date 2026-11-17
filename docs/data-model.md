@@ -1281,6 +1281,6 @@ Derrière l'interrupteur `myReminders`, éteint par défaut. Interrupteur étein
 - `members/{memberId}/settings/notifications.defaultReminders` : les rappels donnés aux événements où le membre a répondu « Je viens », quand il n'a rien choisi d'autre.
 - `offsets` : `h1` (1 h avant), `h3` (3 h avant), `morning` (le matin à 8 h), `d2` (2 jours avant), `w1` (1 semaine avant). Un événement « Journée » n'a ni `h1` ni `h3`, et ses autres rappels sonnent à 8 h.
 - Privé : seul le membre lit ou écrit ses rappels, même pas l'admin principal en « Voir comme ».
-- `arrivalReminder` les envoie toutes les 30 minutes sur le canal `reminders`, avec `direct: true` et par `deliver()`. Comme il a été demandé, il sonne même pendant les heures calmes et le Mode présentation, comme « Rejoignez-moi ». Il n'y a aucune nouvelle tâche planifiée.
+- `arrivalReminder` les envoie toutes les 30 minutes sur le canal `reminders`, avec `direct: true` et par `deliver()`. Comme il a été demandé, il sonne même pendant le Mode présentation, comme « Rejoignez-moi ». Avec les heures calmes, « 2 jours avant » et « 1 semaine avant » attendent 8 h ; « 1 h avant », « 3 h avant » et « le matin » gardent leur heure. Il n'y a aucune nouvelle tâche planifiée.
 - `remindersSent/{membre_événement_rappel_date+heure}`, fermé à l'appli : chaque rappel part une seule fois. Un changement d'heure en fait un nouveau. Le TTL `expireAt` l'efface deux jours après l'événement.
 - Un événement supprimé emporte ses rappels.

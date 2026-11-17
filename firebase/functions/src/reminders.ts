@@ -11,7 +11,7 @@
 import type { Firestore } from 'firebase-admin/firestore';
 import { Timestamp } from 'firebase-admin/firestore';
 import { addDays, formatTime, parisDay, type EventData } from './logic';
-import { deliver, type AnySender } from './prefs';
+import { deliver, isQuietHour, type AnySender } from './prefs';
 import { featureAudience } from './store';
 
 export const MY_REMINDERS = 'myReminders';
@@ -63,6 +63,17 @@ export function reminderAt(day: string, time: string | null, offset: ReminderOff
   return at;
 }
 
+/**
+ * For a member with quiet hours, « 2 jours avant » and « 1 semaine avant » never ring between 22 h
+ * and 8 h: they wait for 8 h. « 1 h avant », « 3 h avant » and « le matin » keep their time.
+ */
+export function shiftedAt(at: Date, offset: ReminderOffset, quietHours: boolean): Date {
+  if (!quietHours || (offset !== 'd2' && offset !== 'w1') || !isQuietHour(at)) return at;
+  const day = parisDay(at);
+  const late = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', hour: '2-digit', hourCycle: 'h23' }).format(at)) >= 22;
+  return parisInstant(late ? addDays(day, 1) : day, '08:00');
+}
+
 const LEAD: Record<ReminderOffset, string> = {
   h1: 'Dans 1 h',
   h3: 'Dans 3 h',
@@ -95,6 +106,7 @@ interface Choice {
   byEvent: Map<string, ReminderOffset[]>;
   bySeries: Map<string, ReminderOffset[]>;
   defaults: ReminderOffset[];
+  quietHours?: boolean;
 }
 
 /**
@@ -118,8 +130,9 @@ export async function sendMyReminders(db: Firestore, send: AnySender<ReminderNot
   const members = await db.collection('members').get();
   const choices = new Map<string, Choice>();
   for (const m of members.docs) {
-    const defaults = offsetsFrom((await m.ref.collection('settings').doc('notifications').get()).get('defaultReminders'));
-    choices.set(m.id, { byEvent: new Map(), bySeries: new Map(), defaults });
+    const settings = await m.ref.collection('settings').doc('notifications').get();
+    const defaults = offsetsFrom(settings.get('defaultReminders'));
+    choices.set(m.id, { byEvent: new Map(), bySeries: new Map(), defaults, quietHours: settings.get('quietHours') === true });
   }
   const asked = await db.collectionGroup('reminders').get();
   for (const doc of asked.docs) {
@@ -150,7 +163,8 @@ export async function sendMyReminders(db: Firestore, send: AnySender<ReminderNot
     for (const [memberId, choice] of choices) {
       if (only([memberId]).length === 0) continue;
       for (const offset of offsetsFor(choice, eventDoc.id, event.seriesId ?? null, coming.has(memberId))) {
-        const at = reminderAt(event.date, event.time ?? null, offset);
+        const planned = reminderAt(event.date, event.time ?? null, offset);
+        const at = planned && shiftedAt(planned, offset, choice.quietHours === true);
         if (!at || at.getTime() > now.getTime() || now.getTime() - at.getTime() > LATE_MS) continue;
         if (event.time != null && start.getTime() <= now.getTime()) continue;
         // The time is in the key: a new time is a new reminder, an old one is never sent twice.
