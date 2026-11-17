@@ -113,6 +113,8 @@ enum class Feature(
     Lending("lending", R.string.feature_lending),
     /** « On y va ensemble » : le covoiturage d'un événement (PRD, récit 52). */
     Carpool("carpool", R.string.feature_carpool),
+    /** « Se répète » : un événement qui revient chaque semaine, chaque mois… (PRD, récit 54). */
+    RecurringEvents("recurringEvents", R.string.feature_recurring_events),
 }
 
 /**

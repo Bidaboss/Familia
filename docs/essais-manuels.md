@@ -683,3 +683,18 @@ Avec trois comptes : Camille (adulte), Inès (adulte, responsable de Noé, enfan
 6. Avec Inès, réponds « Je ne viens pas ». **Attendu :** Inès disparaît de la voiture, et Camille reçoit « Inès ne monte plus avec toi ».
 7. Le soir à 18 h, la veille. **Attendu :** le rappel de Camille dit « Tu emmènes… », et celui de chaque passager « Tu pars avec Camille ».
 8. Avec Camille, touche « Retirer ma proposition », puis confirme. **Attendu :** les passagers reçoivent « Camille ne prend plus sa voiture ».
+
+## Événements qui reviennent (récit 54)
+
+Avec deux comptes : Camille (adulte) et Inès (adulte). « Publier Firebase » doit être passé, et l'interrupteur « Événements qui reviennent » allumé dans Administration.
+
+1. Avec Camille, ajoute « Piscine » un mardi, puis touche « Se répète ». **Attendu :** les choix « Chaque semaine, le mardi », « Toutes les 2 semaines, le mardi », « Chaque mois, le 12 » (selon la date), « Chaque mois, le 2e mardi », « Chaque année, le 12 … ».
+2. Choisis « Chaque semaine », puis « Se termine » : « Après un nombre de fois », 1. Touche « Enregistrer ». **Attendu :** le message rouge sur la fin. Mets 6, puis « Enregistrer ».
+3. **Attendu :** le Planning montre 6 mardis « Piscine ». Inès reçoit une seule notification, qui finit par « Puis chaque semaine. ».
+4. Avec Inès, réponds « Je viens » au deuxième mardi seulement. **Attendu :** les autres mardis n'ont pas sa réponse.
+5. Avec Camille, ouvre le troisième mardi, change le lieu, « Enregistrer », puis « Cette fois seulement ». **Attendu :** seul ce mardi a le nouveau lieu.
+6. Ouvre le quatrième mardi, change l'heure, « Enregistrer », puis « Celle-ci et les suivantes ». **Attendu :** les mardis 4 à 6 ont la nouvelle heure, le troisième garde son lieu à lui.
+7. Ouvre le deuxième mardi, « Supprimer », puis « Cette fois seulement ». **Attendu :** il disparaît du Planning, et Inès, qui venait, reçoit qu'il est annulé.
+8. Ouvre le cinquième mardi, « Supprimer », puis « Celle-ci et les suivantes ». **Attendu :** les mardis 5 et 6 disparaissent, les autres restent.
+9. Dans « Voir dans mon agenda », mets à jour Google Agenda. **Attendu :** chaque mardi restant y est un événement à lui.
+10. Éteins l'interrupteur. **Attendu :** « Se répète » ne s'affiche plus sur un nouvel événement, mais un mardi existant demande toujours « Cette fois seulement » ou « Celle-ci et les suivantes ».
