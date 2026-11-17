@@ -2309,4 +2309,32 @@
     <string name="presentation_banner_until">Mode présentation jusqu\'à %1$s</string>
     <string name="presentation_banner">Mode présentation allumé</string>
     <string name="presentation_failed">Le mode présentation n\'a pas pu changer. Vérifie la connexion.</string>
+    <!-- Récit 49 : le planning dans Google Agenda -->
+    <string name="feature_calendar_feed">Planning dans mon agenda</string>
+    <string name="account_calendar_feed">Voir dans mon agenda</string>
+    <string name="calendar_feed_title">Voir dans mon agenda</string>
+    <string name="calendar_feed_what_title">Le planning dans ton agenda</string>
+    <string name="calendar_feed_what_body">Les événements de Familia s\'affichent dans ton agenda Google, à côté des tiens. Tu y vois les mêmes que dans l\'appli, et ils se mettent à jour tout seuls, avec quelques heures de retard. On ne peut rien changer depuis l\'agenda : pour répondre ou modifier, c\'est dans Familia.</string>
+    <string name="calendar_feed_link_title">Ton lien</string>
+    <string name="calendar_feed_none">Tu n\'as pas encore de lien. Il est rien qu\'à toi.</string>
+    <string name="calendar_feed_create">Créer mon lien</string>
+    <string name="calendar_feed_secret">Ce lien est secret : qui l\'a voit ton planning. Ne le donne à personne.</string>
+    <string name="calendar_feed_copy">Copier le lien</string>
+    <string name="calendar_feed_copied">Lien copié</string>
+    <string name="calendar_feed_share">M\'envoyer le lien</string>
+    <string name="calendar_feed_share_chooser">Envoyer le lien à moi-même</string>
+    <string name="calendar_feed_steps_title">L\'ajouter dans Google Agenda</string>
+    <string name="calendar_feed_step">%1$d. %2$s</string>
+    <string name="calendar_feed_step_1">Touche « Copier le lien ». Sur un ordinateur, c\'est plus simple : touche plutôt « M\'envoyer le lien » et ouvre-le là-bas.</string>
+    <string name="calendar_feed_step_2">Ouvre calendar.google.com dans Chrome. Sur le téléphone, touche le menu ⋮ puis coche « Version pour ordinateur ».</string>
+    <string name="calendar_feed_step_3">À gauche, à côté de « Autres agendas », touche « + » puis « À partir de l\'URL ».</string>
+    <string name="calendar_feed_step_4">Colle le lien, puis touche « Ajouter l\'agenda ». Il s\'appelle « Familia ».</string>
+    <string name="calendar_feed_step_5">Dans l\'appli Agenda du téléphone : menu ☰, Paramètres, « Familia », puis active « Synchroniser ».</string>
+    <string name="calendar_feed_renew_title">Changer de lien</string>
+    <string name="calendar_feed_renew_body">Si tu as donné ton lien par erreur, fais-en un nouveau : l\'ancien ne marchera plus.</string>
+    <string name="calendar_feed_renew">Nouveau lien</string>
+    <string name="calendar_feed_renew_confirm_title">Faire un nouveau lien ?</string>
+    <string name="calendar_feed_renew_confirm_body">L\'ancien lien ne marchera plus. Il faudra ajouter le nouveau dans ton agenda.</string>
+    <string name="calendar_feed_failed">Le lien n\'a pas pu être créé. Réessaie quand tu as du réseau.</string>
+    <string name="calendar_feed_error">Ton lien ne peut pas s\'afficher pour l\'instant. Réessaie plus tard.</string>
 </resources>

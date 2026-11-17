@@ -11,6 +11,8 @@ import {
   onDocumentUpdatedWithAuthContext, onDocumentWritten, onDocumentWrittenWithAuthContext,
 } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
+import { onRequest } from 'firebase-functions/v2/https';
+import { deleteCalendarFeedOf, feedFor } from './calendarFeed';
 import {
   deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
   sendBirthdayGiftReminders, updateSharesTotal,
@@ -173,6 +175,8 @@ export const onMemberDeleted = onDocumentDeleted('members/{memberId}', async (ev
   await deleteBirthdayCardsOf(getFirestore(), event.params.memberId);
   await deleteWelcomeOf(getFirestore(), event.params.memberId);
   await deleteMomentsOf(getFirestore(), event.params.memberId);
+  // « Voir dans mon agenda » (récit 49): their link stops working.
+  await deleteCalendarFeedOf(getFirestore(), event.params.memberId);
 });
 
 // Commentaires d'un événement (récit 28): those who follow the event are told.
@@ -688,4 +692,29 @@ export const onPollDeleted = onDocumentDeleted('polls/{pollId}', async (event) =
 export const onJoinMeCreatedNotify = onDocumentCreated('joinMe/{shareId}', async (event) => {
   const data = event.data?.data() as JoinMeData | undefined;
   if (data) await onJoinMeCreated(getFirestore(), send, event.params.shareId, data);
+});
+
+/**
+ * « Voir le planning dans mon agenda » (récit 49): https://…/calendarFeed?t=<token>, the secret link
+ * of one member, read by their calendar every few hours. A wrong or replaced link gets a 404.
+ */
+export const calendarFeed = onRequest({ cors: false }, async (req, res) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    res.status(405).send('');
+    return;
+  }
+  try {
+    const feed = await feedFor(getFirestore(), req.query.t, new Date());
+    if (feed === null) {
+      res.status(404).send('');
+      return;
+    }
+    res.set('Content-Type', 'text/calendar; charset=utf-8');
+    res.set('Cache-Control', 'private, max-age=900');
+    res.set('X-Robots-Tag', 'noindex');
+    res.status(200).send(feed);
+  } catch (e) {
+    console.error('calendarFeed', e);
+    res.status(500).send('');
+  }
 });

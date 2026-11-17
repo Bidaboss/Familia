@@ -1233,3 +1233,13 @@ La photo est dans Storage à `whoIsIt/{authorId}/{postId}/photo.jpg` (512 Ko au 
 ### `whoIsIt/{postId}/guesses/{memberId}`
 
 `who` (0 à 80 caractères, vide pour « Je ne sais pas »), `year` (entier ou null), `name` (le prénom de celui qui devine), `createdAt`. Une seule par membre, à son nom, jamais modifiée ; l'auteur ne devine pas sa propre photo. Lues, comme la réponse, une fois qu'on a deviné.
+
+## Le planning dans mon agenda (PRD, récit 49)
+
+Module `calendarFeed`, éteint par défaut. Interrupteur éteint : seul l'admin principal a son lien qui marche.
+
+### `calendarFeeds/{memberId}`
+
+`token` (texte, 43 caractères `A-Z a-z 0-9 _ -`, 32 octets tirés au hasard par l'appli), `updatedAt` (heure du serveur). Seul ce membre, adulte, le lit et l'écrit ; un enfant n'en a pas. L'admin principal peut le supprimer, ce qui coupe le lien. Écrire un nouveau `token` coupe l'ancien lien. Le document part avec le membre (`onMemberDeleted`).
+
+La fonction HTTP `calendarFeed` (europe-west1, GET `?t=<token>`) cherche le document dont le `token` est celui-là, vérifie que le membre existe encore et qu'il est adulte, puis sert les événements du planning (d'un mois avant à un an après aujourd'hui) en `text/calendar`. Jamais une occasion de cadeau ni une réservation. Lien inconnu : 404.
