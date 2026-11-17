@@ -1,8 +1,9 @@
 package fr.familia.app.feature.helprequests.edit
 
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.ui.PickGroup
 
-/** A group of people to tick at once: the whole family, or one household (récit 14). */
+/** A group of people to tick at once: the whole family (récit 14). The households are boxes of the picker. */
 data class NotifyShortcut(val label: String?, val memberIds: Set<String>)
 
 sealed interface HelpRequestEditUiState {
@@ -18,8 +19,10 @@ sealed interface HelpRequestEditUiState {
         val targets: List<Member>,
         /** The adults who can be warned. */
         val adults: List<Member>,
-        /** « Tout le monde » (null label) then each household. */
+        /** « Tout le monde » (null label). */
         val shortcuts: List<NotifyShortcut>,
+        /** The adults who can be warned, by household: a box per household ticks them all (règle du 17/11). */
+        val groups: List<PickGroup> = emptyList(),
         /** Always warned and not untickable: the parents of a child, the current volunteer. */
         val lockedIds: Set<String>,
         val errors: Set<HelpFormError>,
