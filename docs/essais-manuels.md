@@ -278,16 +278,17 @@ Avant le 20/11 : refais tout cet essai sur l'APK de publication, puisque « Voir
 
 Limites connues de cette première partie : ce que le serveur cache à l'admin (le carnet de cadeaux, l'espace cadeau de son propre anniversaire) reste caché. Le message « Masqué : c'est ta surprise » et les demandes de coup de main viendront dans une deuxième partie.
 
-## Partager Familia avec toute la famille (récit 1 bis bis)
+## Partager Familia avec toute la famille (récit 1 bis bis, rév. 229)
 
-Pas d'interrupteur : le bouton est là pour tous les adultes, dans la version famille (le lien vient du secret FAMILIA_DOWNLOAD_URL, comme l'invitation).
+Pas d'interrupteur : le bouton n'est là que pour l'admin principal, dans la version famille (le lien vient du secret FAMILIA_DOWNLOAD_URL, comme l'invitation). Les autres adultes ne le voient plus.
 
-1. Avec un compte adulte, ouvre l'onglet **Famille** et touche **Partager Familia**. **Attendu :** le partage d'Android s'ouvre, WhatsApp en tête s'il est installé.
+1. Avec l'admin principal, touche ta photo en haut à droite, puis **Partager Familia**. **Attendu :** le partage d'Android s'ouvre, WhatsApp en tête s'il est installé.
 2. Choisis WhatsApp. **Attendu :** le message est déjà écrit et tu peux le modifier avant d'envoyer : l'accueil, le lien du dossier Drive, trois étapes, puis « Si ton adresse n'est pas inscrite, demande à » suivi du prénom de l'admin principal.
 3. Vérifie le lien. **Attendu :** c'est le même que dans « Envoyer l'invitation », sans rien après (aucun jeton, aucune adresse).
 4. Avec l'admin principal, ouvre **Administration** et touche **Partager Familia**. **Attendu :** le même message.
-5. Avec un compte enfant, ouvre l'onglet Famille. **Attendu :** pas de bouton Partager Familia.
-6. En mode **Voir comme** un adulte. **Attendu :** pas de bouton Partager Familia (rien ne sort de l'appli dans ce mode).
+5. Avec un autre adulte, même un chef de famille, touche sa photo. **Attendu :** pas de ligne Partager Familia.
+6. Avec un compte enfant, touche sa photo. **Attendu :** pas de ligne Partager Familia.
+7. En mode **Voir comme** un adulte. **Attendu :** pas de ligne Partager Familia (rien ne sort de l'appli dans ce mode).
 
 ## Aucune surprise sur l'écran verrouillé (audit 2.2)
 
@@ -466,7 +467,7 @@ Il faut une version publiée avec un fichier dans `docs/whats-new`, et un télé
 
 ## Ma photo en haut à droite (DESIGN-12)
 1. Sur chacun des 5 onglets : **Attendu :** ta photo (ou tes initiales) à droite de la barre du haut, après le « ? ». TalkBack lit « Mon compte et réglages ».
-2. Touche-la. **Attendu :** une feuille s'ouvre avec, dans l'ordre : Mon profil, Apparence, Notifications, Aide, Vérifier les mises à jour, « Une idée ? Un souci ? », Partager Familia. Une ligne absente veut dire que son module est éteint.
+2. Touche-la. **Attendu :** une feuille s'ouvre avec, dans l'ordre : Mon profil, Apparence, Notifications, Aide, Vérifier les mises à jour, « Une idée ? Un souci ? », puis Partager Familia pour l'admin principal seulement. Une ligne absente veut dire que son module est éteint.
 3. Avec le compte de l'admin principal : **Attendu :** « Administration » en dernier, après un trait. Avec un autre compte, pas de ligne Administration.
 4. Avec un parent d'un enfant qui a l'appli (pas l'admin) : **Attendu :** « Temps de mes enfants » dans la feuille.
 5. Touche une ligne. **Attendu :** la feuille se ferme et l'écran s'ouvre.
