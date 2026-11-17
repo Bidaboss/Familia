@@ -7,8 +7,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.NotebookOccasion
+import fr.familia.app.core.ui.LocalFeatureFlags
 
 /** Connects « Mes cadeaux à offrir » to its ViewModel. */
 @Composable
@@ -21,9 +23,13 @@ fun NotebookRoute(
     onEditIdea: (entryId: String) -> Unit,
     onProposeIdea: (entryId: String) -> Unit,
 ) {
+    val singleList = LocalFeatureFlags.current.isOn(Feature.SingleList)
     val viewModel: NotebookViewModel = viewModel(
+        key = "notebook-$singleList",
         factory = viewModelFactory {
-            initializer { NotebookViewModel(container?.notebookRepository, currentMember.id, gifts = container?.giftRepository) }
+            initializer {
+                NotebookViewModel(container?.notebookRepository, currentMember.id, gifts = container?.giftRepository, singleList = singleList)
+            }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()

@@ -426,10 +426,10 @@ internal fun StatusSheetContent(
                 }
             }
         }
-        // « Mes envies » has no occasion: the member says which one the gift is for, the next
+        // « Mes envies » (and the ideas of the family) has no occasion: the member says which one the gift is for, the next
         // birthday or the next Christmas; it is revealed the day after (PRD rév. 186). The part of
         // a joint gift follows the choice of its responsible.
-        if (entry.listId?.startsWith(WISHES_PREFIX) == true) {
+        if (isPermanentListId(entry.listId)) {
             Text(
                 stringResource(R.string.notebook_idea_occasion),
                 style = MaterialTheme.typography.titleSmall,
@@ -470,6 +470,12 @@ internal fun StatusSheetContent(
 }
 
 internal const val WISHES_PREFIX = "wishes-"
+
+/** « Mes envies » or the « Idées de la famille » (récit 9 ter): no date, each reservation says its occasion. */
+internal fun isPermanentListId(listId: String?): Boolean =
+    listId != null && (listId.startsWith(WISHES_PREFIX) || listId.startsWith(IDEAS_PREFIX))
+
+private const val IDEAS_PREFIX = "ideas-"
 
 /** Fictional notebook for previews and screenshots. */
 internal fun previewNotebook(): NotebookUiState.Success {
