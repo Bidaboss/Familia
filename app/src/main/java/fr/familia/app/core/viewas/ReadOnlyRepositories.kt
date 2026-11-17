@@ -262,13 +262,13 @@ class ReadOnlyGoodDealRepository(private val inner: GoodDealRepository, private 
 }
 
 class ReadOnlyLendItemRepository(private val inner: LendItemRepository, private val guard: ViewAsGuard) : LendItemRepository {
-    override fun observeAll(): Flow<List<LendItem>> = inner.observeAll()
-    override fun observe(id: String): Flow<LendItem?> = inner.observe(id)
+    override fun observeAll(readerId: String): Flow<List<LendItem>> = inner.observeAll(readerId)
+    override fun observe(id: String, readerId: String): Flow<LendItem?> = inner.observe(id, readerId)
     override suspend fun get(id: String): LendItem? = inner.get(id)
     override fun newId(): String = inner.newId()
     override suspend fun save(item: LendItem, isNew: Boolean) = guard.refuse()
     override suspend fun delete(id: String) = guard.refuse()
-    override suspend fun ask(id: String, me: Member, from: Instant?, until: Instant?) = guard.refuse()
+    override suspend fun ask(id: String, ownerId: String, me: Member, from: Instant?, until: Instant?) = guard.refuse()
     override suspend fun accept(id: String) = guard.refuse()
     override suspend fun release(id: String) = guard.refuse()
 }

@@ -9,6 +9,31 @@ import type { Sender } from './store';
 
 export type LendStatus = 'available' | 'asked' | 'lent';
 
+/**
+ * The thing as everyone reads it, in lendItems/{itemId}: no name and no date of a loan, only
+ * `lent` (EXPERT-9, PRD rév. 268). The ask or the loan lives in lendLoans/{itemId}, which only the
+ * owner, the borrower and the admin principal (for the export) read.
+ */
+export interface LendThingData {
+  name: string;
+  ownerId: string;
+  ownerName: string;
+  lent: boolean;
+}
+
+/** lendLoans/{itemId}: the ask, then the loan, of one thing. Gone when the thing is free. */
+export interface LendLoanData {
+  ownerId: string;
+  parties: string[];
+  status: 'asked' | 'lent';
+  borrowerId: string;
+  borrowerName: string;
+  from: Timestamp | null;
+  until: Timestamp | null;
+  remindedAt: Timestamp | null;
+}
+
+/** The thing and its loan together, as the notices tell it. */
 export interface LendItemData {
   name: string;
   ownerId: string;
@@ -19,6 +44,14 @@ export interface LendItemData {
   from: Timestamp | null;
   until: Timestamp | null;
   remindedAt: Timestamp | null;
+}
+
+export function withLoan(thing: LendThingData, loan: LendLoanData | undefined): LendItemData {
+  return {
+    name: thing.name, ownerId: thing.ownerId, ownerName: thing.ownerName,
+    status: loan?.status ?? 'available', borrowerId: loan?.borrowerId ?? null, borrowerName: loan?.borrowerName ?? null,
+    from: loan?.from ?? null, until: loan?.until ?? null, remindedAt: loan?.remindedAt ?? null,
+  };
 }
 
 /** The reminder leaves 3 days after the return date (récit 51), once. */
@@ -70,21 +103,25 @@ async function memberOfUid(db: Firestore, uid: string | undefined): Promise<stri
 }
 
 /**
- * What a change of a thing tells: an ask to the owner, « D'accord » or « Pas cette fois » to the
- * one who asked. A dropped ask (the borrower) and « Rendu » tell nobody.
+ * What a change of a loan tells: an ask to the owner, « D'accord » or « Pas cette fois » to the
+ * one who asked. A dropped ask (the borrower), « Rendu », and a loan that goes with its thing
+ * (removed, or its owner gone) tell nobody.
  */
-export async function onLendItemUpdated(
-  db: Firestore, send: Sender, itemId: string, before: LendItemData, after: LendItemData,
+export async function onLendLoanWritten(
+  db: Firestore, send: Sender, itemId: string, before: LendLoanData | undefined, after: LendLoanData | undefined,
   actorUid: string | undefined, now: Date,
 ): Promise<void> {
-  if (before.status === 'available' && after.status === 'asked' && after.borrowerId) {
-    await deliver(db, send, [after.ownerId], askNotice(itemId, after), now);
-  } else if (before.status === 'asked' && after.status === 'lent' && after.borrowerId) {
-    await deliver(db, send, [after.borrowerId], acceptNotice(itemId, after), now);
-  } else if (before.status === 'asked' && after.status === 'available' && before.borrowerId) {
+  const thingDoc = await db.doc(`lendItems/${itemId}`).get();
+  if (!thingDoc.exists) return;
+  const thing = thingDoc.data() as LendThingData;
+  if (!before && after?.status === 'asked') {
+    await deliver(db, send, [thing.ownerId], askNotice(itemId, withLoan(thing, after)), now);
+  } else if (before?.status === 'asked' && after?.status === 'lent') {
+    await deliver(db, send, [after.borrowerId], acceptNotice(itemId, withLoan(thing, after)), now);
+  } else if (before?.status === 'asked' && !after) {
     const actor = await memberOfUid(db, actorUid);
-    if (actor !== null && actor === before.borrowerId) return;
-    await deliver(db, send, [before.borrowerId], declineNotice(itemId, before), now);
+    if (actor === null || actor === before.borrowerId) return;
+    await deliver(db, send, [before.borrowerId], declineNotice(itemId, withLoan(thing, before)), now);
   }
 }
 
@@ -94,33 +131,43 @@ export async function onLendItemUpdated(
  */
 export async function sendLendReminders(db: Firestore, send: Sender, now: Date): Promise<number> {
   const limit = now.getTime() - REMIND_AFTER_DAYS * DAY_MS;
-  const lent = await db.collection('lendItems').where('status', '==', 'lent').get();
+  const lent = await db.collection('lendLoans').where('status', '==', 'lent').get();
   let told = 0;
   for (const doc of lent.docs) {
-    const item = doc.data() as LendItemData;
-    if (item.remindedAt || !item.until || !item.borrowerId || item.until.toMillis() > limit) continue;
-    await deliver(db, send, [item.borrowerId], reminderNotice(doc.id, item), now);
+    const loan = doc.data() as LendLoanData;
+    if (loan.remindedAt || !loan.until || !loan.borrowerId || loan.until.toMillis() > limit) continue;
+    const thing = await db.doc(`lendItems/${doc.id}`).get();
+    if (!thing.exists) continue;
+    await deliver(db, send, [loan.borrowerId], reminderNotice(doc.id, withLoan(thing.data() as LendThingData, loan)), now);
     await doc.ref.update({ remindedAt: Timestamp.fromDate(now) });
     told++;
   }
   return told;
 }
 
+/** A thing removed takes its ask or loan with it. */
+export async function deleteLoanOf(db: Firestore, itemId: string): Promise<void> {
+  await db.doc(`lendLoans/${itemId}`).delete();
+}
+
 /**
- * A member removed from the family: their things go (the photos follow by onLendItemDeleted),
- * and a thing they asked for or had is free again. Returns the number of things changed.
+ * A member removed from the family: their things go, with their loans, and a thing they asked for
+ * or had is free again. Returns the number of things changed.
  */
 export async function releaseLendItemsOf(db: Firestore, memberId: string): Promise<number> {
   const owned = await db.collection('lendItems').where('ownerId', '==', memberId).get();
-  const borrowed = await db.collection('lendItems').where('borrowerId', '==', memberId).get();
+  const borrowed = await db.collection('lendLoans').where('borrowerId', '==', memberId).get();
   const batch = db.batch();
-  for (const doc of owned.docs) batch.delete(doc.ref);
-  const free = {
-    status: 'available', borrowerId: null, borrowerName: null, from: null, until: null,
-    askedAt: null, lentAt: null, remindedAt: null, updatedAt: FieldValue.serverTimestamp(),
-  };
+  for (const doc of owned.docs) {
+    batch.delete(doc.ref);
+    batch.delete(db.doc(`lendLoans/${doc.id}`));
+  }
   const released = borrowed.docs.filter((d) => d.get('ownerId') !== memberId);
-  for (const doc of released) batch.update(doc.ref, free);
+  for (const doc of released) {
+    batch.delete(doc.ref);
+    const thing = db.doc(`lendItems/${doc.id}`);
+    if ((await thing.get()).exists) batch.update(thing, { lent: false, updatedAt: FieldValue.serverTimestamp() });
+  }
   await batch.commit();
   return owned.size + released.length;
 }

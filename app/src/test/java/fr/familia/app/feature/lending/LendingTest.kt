@@ -4,6 +4,7 @@ import fr.familia.app.core.data.LendItemRepository
 import fr.familia.app.core.model.LendCategory
 import fr.familia.app.core.model.LendItem
 import fr.familia.app.core.model.LendStatus
+import fr.familia.app.core.model.withoutLoan
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.photo.PhotoStorage
 import fr.familia.app.core.photo.SinglePhotoSaver
@@ -38,8 +39,11 @@ import java.time.LocalDate
 /** Things to lend kept in memory, as Firestore would. */
 class FakeLendItems(initial: List<LendItem> = emptyList()) : LendItemRepository {
     val items = MutableStateFlow(initial)
-    override fun observeAll(): Flow<List<LendItem>> = items
-    override fun observe(id: String): Flow<LendItem?> = items.map { list -> list.firstOrNull { it.id == id } }
+    /** As the rules let [readerId] read it: the loan only for the owner and the borrower. */
+    private fun LendItem.seenBy(readerId: String) = if (readerId == ownerId || readerId == borrowerId) this else withoutLoan()
+    override fun observeAll(readerId: String): Flow<List<LendItem>> = items.map { list -> list.map { it.seenBy(readerId) } }
+    override fun observe(id: String, readerId: String): Flow<LendItem?> =
+        items.map { list -> list.firstOrNull { it.id == id }?.seenBy(readerId) }
     override suspend fun get(id: String): LendItem? = items.value.firstOrNull { it.id == id }
     override fun newId(): String = "i-new"
     override suspend fun save(item: LendItem, isNew: Boolean) {
@@ -51,7 +55,7 @@ class FakeLendItems(initial: List<LendItem> = emptyList()) : LendItemRepository 
     private fun change(id: String, block: (LendItem) -> LendItem) {
         items.value = items.value.map { if (it.id == id) block(it) else it }
     }
-    override suspend fun ask(id: String, me: Member, from: Instant?, until: Instant?) =
+    override suspend fun ask(id: String, ownerId: String, me: Member, from: Instant?, until: Instant?) =
         change(id) { it.copy(status = LendStatus.Asked, borrowerId = me.id, borrowerName = me.firstName, from = from, until = until) }
     override suspend fun accept(id: String) = change(id) { it.copy(status = LendStatus.Lent, lentAt = Instant.EPOCH) }
     override suspend fun release(id: String) =
@@ -82,6 +86,23 @@ class LendingTest {
         assertTrue(state.items[0].isMine)
         assertTrue(state.items[1].iHaveIt)
         assertTrue(state.canAdd)
+    }
+
+    @Test
+    fun `the rest of the family sees only Prete, with no name and no date`() = runTest {
+        val viewModel = LendItemsViewModel(FakeLendItems(family), FakeMembers(), "admin1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect {} }
+        val items = (viewModel.uiState.value as LendItemsUiState.Success).items.map { it.item }
+        // Lent by adult2 to adult1, and asked by adult2 of adult1: both only « Prêté » here.
+        for (item in items.filter { it.id in setOf("i2", "i3") }) {
+            assertEquals(LendStatus.Lent, item.status)
+            assertNull(item.borrowerId)
+            assertNull(item.borrowerName)
+            assertNull(item.lentAt)
+        }
+        assertFalse(canAskLendItem(items.first { it.id == "i3" }, TestFamily.admin))
+        val owner = detail(FakeLendItems(family), "adult1", "i3")
+        assertEquals("adult2", owner.ready().item.borrowerName)
     }
 
     @Test

@@ -33,7 +33,8 @@ enum class LendStatus(val firestoreValue: String) {
 /**
  * A thing an adult is happy to lend to the family (« On se prête », PRD récit 51). While it is
  * [LendStatus.Asked] or [LendStatus.Lent], [borrowerId] is the one who asked or has it, with the
- * optional dates [from] and [until] of the ask. No money anywhere.
+ * optional dates [from] and [until] of the ask: known only to the owner and the borrower. For the
+ * rest of the family it is [LendStatus.Lent] with no borrower ([withoutLoan]). No money anywhere.
  */
 data class LendItem(
     val id: String,
@@ -50,6 +51,19 @@ data class LendItem(
     val until: Instant? = null,
     val lentAt: Instant? = null,
     val createdAt: Instant? = null,
+)
+
+/**
+ * The thing as the rest of the family sees it (EXPERT-9, PRD rév. 268): lent or free, with no name
+ * and no date. Only the owner and the borrower read the loan; the rules say the same.
+ */
+fun LendItem.withoutLoan(): LendItem = copy(
+    status = if (status == LendStatus.Available) LendStatus.Available else LendStatus.Lent,
+    borrowerId = null,
+    borrowerName = null,
+    from = null,
+    until = null,
+    lentAt = null,
 )
 
 /** Where the photo of a thing goes in Storage: lendItems/{itemId}/{memberId}/{photoId}. */
