@@ -737,3 +737,31 @@ Avec deux comptes adultes de foyers différents, et un compte enfant.
 1. Entraide, « Demander un coup de main ». **Attendu :** sous « Qui prévenir », le raccourci « Tout le monde », puis les adultes rangés par foyer, ton foyer d'abord. Chaque foyer a sa propre case.
 2. Coche la case d'un foyer. **Attendu :** tous ses adultes sont cochés. Décoche un seul adulte : la case du foyer est à moitié cochée. Touche-la encore : tout le foyer est coché, puis décoché.
 3. Avec le compte enfant, demande un coup de main. **Attendu :** son parent est marqué « Toujours prévenu pour un enfant » et reste coché, même si tu décoches son foyer.
+
+## Mise à jour du 20 au soir (démo du 21)
+
+But : passer le téléphone de l'admin principal de la version installée aujourd'hui à la version figée du 20 au soir, sans rien perdre. Fais-le d'abord sur le deuxième téléphone de test, puis sur le tien.
+
+Ce que dit le code, vérifié le 17/11 :
+- L'appli n'a aucune migration au démarrage. Les données sont dans Firebase, et le téléphone n'en garde qu'une copie pour le mode hors ligne.
+- La seule migration côté serveur (la liste unique) ne part que quand l'interrupteur « Liste unique » change dans Administration. Une mise à jour de l'appli ne la déclenche pas, et « Publier Firebase » non plus.
+- La nouvelle version a le même nom (`fr.familia.app`) et la même clé de signature : Android l'installe par-dessus et garde la connexion. L'APK de test (`fr.familia.app.test`) est une autre appli : il ne remplace rien.
+
+Avant de commencer :
+1. Note la version installée : onglet **Famille**, tout en bas.
+2. Note trois repères : le nombre d'événements de la semaine dans Planning, une liste d'envies avec ses lignes, et la dernière bonne nouvelle.
+3. Dans **Administration**, note quels modules sont allumés.
+
+La mise à jour :
+4. Lance « APK de publication » (voir [mise-a-jour.md](mise-a-jour.md)), puis « Publier Firebase » s'il y a eu des fusions qui touchent Firebase.
+5. Ferme Familia, puis rouvre-la. **Attendu :** l'encadré « Nouvelle version disponible ». S'il n'apparaît pas, onglet **Famille**, « Vérifier les mises à jour ».
+6. Touche « Mettre à jour », puis « Mettre à jour » dans la fenêtre d'Android. **Attendu :** la barre d'avancement, puis l'installation. Aucune demande de connexion Google après l'installation.
+7. Rouvre Familia. **Attendu :** tu arrives directement sur l'Accueil, connecté, sans écran de connexion.
+8. Onglet **Famille**, tout en bas. **Attendu :** le nouveau numéro de version.
+9. Vérifie tes trois repères. **Attendu :** les mêmes événements, les mêmes lignes, la même bonne nouvelle.
+10. **Administration**. **Attendu :** les mêmes modules allumés qu'à l'étape 3. Aucun ne s'est allumé tout seul.
+11. **Attendu :** s'il y a des nouveautés, la feuille « Quoi de neuf ? » s'ouvre une fois. Touche « C'est parti ». Ferme et rouvre l'appli : elle ne revient pas.
+12. Sur le deuxième téléphone, encore en ancienne version, ouvre Familia. **Attendu :** il voit les mêmes données et peut toujours répondre à un événement. Puis mets-le à jour à son tour.
+13. Coupe le réseau (mode avion), rouvre Familia. **Attendu :** le bandeau « Hors ligne » et les données, sans écran d'erreur.
+
+Si quelque chose ne va pas à l'étape 7 (écran de connexion) ou 9 (données absentes), ne désinstalle pas l'appli : note la version, fais une capture et préviens [DEV]. Désinstaller effacerait la copie hors ligne, mais pas les données, qui restent dans Firebase.
