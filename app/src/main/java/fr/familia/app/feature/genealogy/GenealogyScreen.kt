@@ -69,10 +69,10 @@ import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.EmptyState
+import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
-import fr.familia.app.core.ui.LoadingState
 
 private const val MIN_ZOOM = 0.5f
 private const val MAX_ZOOM = 2.5f
@@ -96,6 +96,8 @@ fun GenealogyScreen(
     onFailureShown: () -> Unit = {},
     /** « Faire l'affiche de l'arbre », with the switch treePoster (récit 53); null hides it. */
     onMakePoster: (() -> Unit)? = null,
+    /** L'arbre de vie (switch arbreDeVie): the « Arbre » and « Liste » tabs; off, the rows only. */
+    treeOfLife: Boolean = false,
 ) {
     Scaffold(
         modifier = modifier,
@@ -115,7 +117,7 @@ fun GenealogyScreen(
                     title = stringResource(R.string.genealogy_failed_title),
                     body = stringResource(R.string.genealogy_failed_body),
                 )
-                is GenealogyUiState.Ready -> ReadyTree(state, onOpenProfile, actions, onMakePoster, onBack)
+                is GenealogyUiState.Ready -> ReadyTree(state, onOpenProfile, actions, onMakePoster, onBack, treeOfLife)
             }
         }
     }
@@ -142,7 +144,14 @@ data class GenealogyActions(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ReadyTree(state: GenealogyUiState.Ready, onOpenProfile: ((String) -> Unit)?, actions: GenealogyActions?, onMakePoster: (() -> Unit)?, onBack: () -> Unit) {
+private fun ReadyTree(
+    state: GenealogyUiState.Ready,
+    onOpenProfile: ((String) -> Unit)?,
+    actions: GenealogyActions?,
+    onMakePoster: (() -> Unit)?,
+    onBack: () -> Unit,
+    treeOfLife: Boolean = false,
+) {
     var zoom by remember { mutableFloatStateOf(1f) }
     var pan by remember { mutableStateOf(Offset.Zero) }
     var open by rememberSaveable { mutableStateOf<String?>(null) }
@@ -191,58 +200,70 @@ private fun ReadyTree(state: GenealogyUiState.Ready, onOpenProfile: ((String) ->
             },
         )
     } else Column(Modifier.fillMaxSize()) {
-        if (onMakePoster != null) {
-            ClayLink(stringResource(R.string.tree_poster_open), onClick = onMakePoster, modifier = Modifier.padding(start = 12.dp, top = 4.dp))
+        // L'arbre de vie (spec DESIGN du 18/11), behind its switch: « Arbre » draws it, « Liste »
+        // keeps the rows, the plain reading for TalkBack and Contraste fort, where it opens.
+        val prefersList = rememberPrefersList()
+        var view by rememberSaveable { mutableStateOf(if (treeOfLife && !prefersList) TreeView.Tree else TreeView.List) }
+        if (treeOfLife) {
+            TreeViewSwitch(view, onChange = { view = it }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp))
         }
-        if (editing != null) {
-            OutlinedButton(
-                onClick = { editKin = NEW_KIN },
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp).heightIn(min = 56.dp),
-            ) { Text(stringResource(R.string.genealogy_kin_add)) }
-        }
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            OutlinedButton(
-                onClick = { zoom = (zoom / 1.25f).coerceAtLeast(MIN_ZOOM) },
-                enabled = zoom > MIN_ZOOM,
-                modifier = Modifier.weight(1f).heightIn(min = 56.dp),
-            ) { Text(stringResource(R.string.genealogy_zoom_out)) }
-            OutlinedButton(
-                onClick = { zoom = (zoom * 1.25f).coerceAtMost(MAX_ZOOM) },
-                enabled = zoom < MAX_ZOOM,
-                modifier = Modifier.weight(1f).heightIn(min = 56.dp),
-            ) { Text(stringResource(R.string.genealogy_zoom_in)) }
-            // Moved too far, or lost: back to the start (relecture #122).
-            OutlinedButton(
-                onClick = {
-                    zoom = 1f
-                    pan = Offset.Zero
-                },
-                enabled = zoom != 1f || pan != Offset.Zero,
-                modifier = Modifier.weight(1f).heightIn(min = 56.dp),
-            ) { Text(stringResource(R.string.genealogy_recenter)) }
-        }
-        Box(
-            Modifier
-                .fillMaxSize()
-                .clipToBounds()
-                .transformable(transform),
-        ) {
-            TreeDrawing(
-                tree = state.tree,
-                words = state.words,
-                onOpen = { open = it },
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .graphicsLayer {
-                        scaleX = zoom
-                        scaleY = zoom
-                        translationX = pan.x
-                        translationY = pan.y
+        if (treeOfLife && view == TreeView.Tree) {
+            TreeOfLifeView(state, onOpen = { open = it }, onAddKin = editing?.let { { editKin = NEW_KIN } })
+        } else {
+            if (onMakePoster != null) {
+                ClayLink(stringResource(R.string.tree_poster_open), onClick = onMakePoster, modifier = Modifier.padding(start = 12.dp, top = 4.dp))
+            }
+            if (editing != null) {
+                OutlinedButton(
+                    onClick = { editKin = NEW_KIN },
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp).heightIn(min = 56.dp),
+                ) { Text(stringResource(R.string.genealogy_kin_add)) }
+            }
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                OutlinedButton(
+                    onClick = { zoom = (zoom / 1.25f).coerceAtLeast(MIN_ZOOM) },
+                    enabled = zoom > MIN_ZOOM,
+                    modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                ) { Text(stringResource(R.string.genealogy_zoom_out)) }
+                OutlinedButton(
+                    onClick = { zoom = (zoom * 1.25f).coerceAtMost(MAX_ZOOM) },
+                    enabled = zoom < MAX_ZOOM,
+                    modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                ) { Text(stringResource(R.string.genealogy_zoom_in)) }
+                // Moved too far, or lost: back to the start (relecture #122).
+                OutlinedButton(
+                    onClick = {
+                        zoom = 1f
+                        pan = Offset.Zero
                     },
-            )
+                    enabled = zoom != 1f || pan != Offset.Zero,
+                    modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                ) { Text(stringResource(R.string.genealogy_recenter)) }
+            }
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .clipToBounds()
+                    .transformable(transform),
+            ) {
+                TreeDrawing(
+                    tree = state.tree,
+                    words = state.words,
+                    onOpen = { open = it },
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .graphicsLayer {
+                            scaleX = zoom
+                            scaleY = zoom
+                            translationX = pan.x
+                            translationY = pan.y
+                        },
+                )
+            }
+    
         }
     }
     val person = open?.let { state.tree.people[it] }
@@ -413,7 +434,7 @@ private fun Avatar(person: TreePerson) {
 
 /** « 1921 – 1999 » for someone remembered, a year of birth for a living relative, or nothing. */
 @Composable
-private fun lifeLine(person: TreePerson): String? {
+internal fun lifeLine(person: TreePerson): String? {
     val kin = (person as? TreePerson.OfKin)?.kin ?: return null
     val born = kin.born?.take(4)
     val died = kin.died?.take(4)
