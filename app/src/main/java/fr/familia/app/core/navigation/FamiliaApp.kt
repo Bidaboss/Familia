@@ -547,13 +547,15 @@ fun FamiliaApp(
         }
         if (openFeedback != null) onFeedbackOpened()
     }
-    // The bons plans of the day (récit 45): Entraide, turned to its Bons plans.
+    // The bons plans of the day (récit 45): Entraide, turned to its Bons plans, once the modules
+    // are known. Module off: Entraide alone, and the tap is spent either way, so switching the
+    // module on later does not jump to Bons plans.
     var entraideOnGoodDeals by remember { mutableStateOf(0) }
     val goodDealsSwitchOn = features.isOn(Feature.GoodDeals)
-    LaunchedEffect(openGoodDeals, goodDealsSwitchOn) {
-        if (openGoodDeals && goodDealsSwitchOn) {
-            entraideOnGoodDeals++
-            navController.navigateToTab(TopLevelDestination.HelpRequests)
+    LaunchedEffect(openGoodDeals, appConfig, ownerId) {
+        if (openGoodDeals && appConfig != null && ownerId != null) {
+            if (goodDealsSwitchOn) entraideOnGoodDeals++
+            if (helpRequestsOn) navController.navigateToTab(TopLevelDestination.HelpRequests)
             onGoodDealsOpened()
         }
     }
