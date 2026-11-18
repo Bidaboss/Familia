@@ -209,7 +209,7 @@
     <string name="administration_feature_see_where_label">voir où apparaît %1$s</string>
     <string name="feature_help_home">L\'onglet Accueil : la semaine en frise, le jour choisi, ce que tu as à faire et les bonnes nouvelles.</string>
     <string name="feature_help_gifts">L\'onglet Cadeaux : les envies de chacun, où l\'on réserve un cadeau sans que la personne le sache.</string>
-    <string name="feature_help_gift_notebook">Dans Cadeaux, ton carnet privé : tes idées de cadeaux et ce que tu as déjà offert, pour chaque personne.</string>
+    <string name="feature_help_gift_notebook">Sur ta fiche, ton carnet privé : tes idées de cadeaux et ce que tu as déjà offert, pour chaque personne.</string>
     <string name="feature_help_share_to_wishes">Depuis une autre appli, « Partager » puis Familia ajoute le lien à tes envies. Version simple.</string>
     <string name="feature_help_wish_from_share">Remplace « Partager vers Mes envies » : depuis une boutique, crée une envie, ou une idée pour quelqu\'un d\'autre.</string>
     <string name="feature_help_wishes_reveal">Le lendemain d\'une occasion, les envies offertes passent dans « On m\'a offert » de la personne fêtée.</string>
@@ -781,7 +781,7 @@
     <string name="gift_take">Je le prends</string>
     <string name="notebook_title">Mes cadeaux à offrir</string>
     <string name="notebook_entry">Mes cadeaux à offrir</string>
-    <string name="notebook_entry_subtitle">Ton carnet privé : idées et achats</string>
+    <string name="notebook_on_my_page">Privé : toi seul le vois</string>
     <string name="notebook_private">Personne d\'autre ne voit ce carnet.</string>
     <string name="notebook_empty_title">Ton carnet est vide</string>
     <string name="notebook_empty_body">Ce que tu réserves sur les listes de la famille arrive ici tout seul.</string>
@@ -2186,6 +2186,8 @@
     <string name="gifts_next_occasion_label">Prochaine occasion</string>
     <string name="gifts_next_christmas">Noël, %1$s</string>
     <string name="gifts_next_birthday">Anniversaire de %1$s, %2$s</string>
+    <string name="gifts_next_my_birthday">Ton anniversaire, %1$s</string>
+    <string name="gifts_upcoming_title">À venir</string>
     <plurals name="gifts_in_days">
         <item quantity="one">demain</item>
         <item quantity="other">dans %d jours</item>

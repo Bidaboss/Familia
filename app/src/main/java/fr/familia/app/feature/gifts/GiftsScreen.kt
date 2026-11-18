@@ -69,7 +69,6 @@ fun GiftsScreen(
     modifier: Modifier = Modifier,
     onAllBirthdays: () -> Unit = {},
     onPrepareSurprise: (memberId: String) -> Unit = {},
-    onOpenNotebook: (() -> Unit)? = null,
     /** « Voir comme » (PRD, rôles): some lists of this member are kept from the admin. */
     someListsHidden: Boolean = false,
     /** The occasion chosen at the top of the tab (récit 9 ter), null for everyone. */
@@ -113,30 +112,23 @@ fun GiftsScreen(
                         )
                     }
                 }
+                // At the very top of the tab (PRD rév. 291), never while presenting nor in « Voir comme »
+                // (récit 63): nothing of a surprise on screen.
+                if (!state.presentation && !presenting && !someListsHidden) preparingSection(state, onOpenList)
                 if (state.presentation) {
                     presentationContent(
-                        state, onOpenList, onSelectMoment, onAllBirthdays, onPrepareSurprise, onOpenNotebook, onOpenMyPage,
+                        state, onOpenList, onSelectMoment, onAllBirthdays, onPrepareSurprise, onOpenMyPage,
                         showPreparing = !presenting && !someListsHidden,
                     )
                     return@LazyColumn
                 }
-                onOpenNotebook?.let { open ->
-                    item(key = "notebook") {
-                        ListCard(
-                            title = stringResource(R.string.notebook_entry),
-                            subtitle = stringResource(R.string.notebook_entry_subtitle),
-                            tint = ClayTint.Household,
-                            onClick = open,
-                        )
-                    }
-                }
+                // Right under the surprises (PRD rév. 292), the next birthday in relief. Once an occasion is
+                // chosen, its people come first: the birthdays wait.
+                if (state.moment == null) birthdaysSection(state, onAllBirthdays, onPrepareSurprise, onOpenList)
+                // « Mes cadeaux à offrir » lives on my own page (PRD rév. 293), not in the tab.
                 if (state.occasions.isNotEmpty()) {
                     item(key = "moments") { MomentChoice(state.occasions, state.moment, onSelectMoment) }
                 }
-                // Once an occasion is chosen, its people come first: the birthdays wait.
-                if (state.moment == null) birthdaysSection(state, onAllBirthdays, onPrepareSurprise, onOpenList)
-                // Never while presenting nor in « Voir comme » (récit 63): nothing of a surprise on screen.
-                if (!presenting && !someListsHidden) preparingSection(state, onOpenList)
                 state.sections.filter { it.keptByMe }.forEach { section ->
                     personSection(section, state.today, state.wishPreviews, onOpenList, state.singleList, presenting, onOpenMyPage)
                 }
@@ -332,62 +324,74 @@ internal fun LazyListScope.birthdaysSection(
     }
     // The next birthday is the main point of the tab: the only card in full relief (DESIGN-11).
     items(state.birthdays, key = { "birthday-${it.member.id}" }) { birthday ->
-        ClayCard(
-            Modifier.fillMaxWidth(),
-            tint = ClayTint.Birthday,
-            contentPadding = ClaySpacing.card,
-            emphasis = birthday == state.birthdays.first(),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                MemberAvatar(birthday.member)
-                Spacer(Modifier.width(12.dp))
-                Column {
-                    ClayCardTitle(
-                        stringResource(R.string.gifts_birthday_of, birthday.member.firstName),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Text(
-                        stringResource(
-                            R.string.birthday_when_age,
-                            dayShortLabel(birthday.date, state.today),
-                            pluralStringResource(R.plurals.birthday_age, birthday.age, birthday.age),
-                        ),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = FamiliaClay.colors.onTintVariant(ClayTint.Birthday),
-                    )
-                }
-            }
-            val isMine = state.sections.any { it.isMe && it.member.id == birthday.member.id }
-            // A surprise already prepared for them (retour d'essai du 17/11). Their own phone never gets
-            // it, nor « Voir comme » them: the server, and listsSeenBy, keep a surprise list from its person.
-            // Nor while the mode présentation is on (récit 48): the tab may be on screen at the party.
-            val surprises = if (isMine || LocalPresenting.current) emptyList() else surprisesFor(state, birthday.member.id)
-            if (surprises.isNotEmpty()) {
-                ClayLink(
-                    pluralStringResource(R.plurals.gifts_surprises_in_progress, surprises.size, surprises.size),
-                    onClick = { onOpenList(surprises.first().id) },
-                    modifier = Modifier.padding(top = 4.dp),
-                )
-            } else if (!isMine && !LocalPresenting.current && birthday.member.id in state.surprisePreparedFor) {
-                // With the single list, a surprise is an idea of the family: the phrase alone, no number.
-                ClayLink(
-                    stringResource(R.string.gifts_surprise_prepared),
-                    onClick = { onOpenList(ideasListId(birthday.member.id)) },
-                    modifier = Modifier.padding(top = 4.dp),
-                )
-            }
-            // With « Bouton surprise » (récit 63), the one button of the tab replaces this link.
-            if (state.canPrepareSurprise && !isMine && !state.surpriseButton) {
-                ClayLink(
-                    stringResource(R.string.gifts_prepare_surprise),
-                    onClick = { onPrepareSurprise(birthday.member.id) },
-                    modifier = Modifier.padding(top = 4.dp),
-                )
-            }
-        }
+        BirthdayCard(state, birthday, emphasis = birthday == state.birthdays.first(), onPrepareSurprise, onOpenList)
     }
     item(key = "birthdays-all") {
         ClayLink(stringResource(R.string.gifts_all_birthdays), onClick = onAllBirthdays)
+    }
+}
+
+/** One birthday of the tab, with what this member may do for it. */
+@Composable
+internal fun BirthdayCard(
+    state: GiftsUiState.Success,
+    birthday: Birthday,
+    emphasis: Boolean,
+    onPrepareSurprise: (String) -> Unit,
+    onOpenList: (String) -> Unit,
+) {
+    ClayCard(
+        Modifier.fillMaxWidth(),
+        tint = ClayTint.Birthday,
+        contentPadding = ClaySpacing.card,
+        emphasis = emphasis,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            MemberAvatar(birthday.member)
+            Spacer(Modifier.width(12.dp))
+            Column {
+                ClayCardTitle(
+                    stringResource(R.string.gifts_birthday_of, birthday.member.firstName),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    stringResource(
+                        R.string.birthday_when_age,
+                        dayShortLabel(birthday.date, state.today),
+                        pluralStringResource(R.plurals.birthday_age, birthday.age, birthday.age),
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = FamiliaClay.colors.onTintVariant(ClayTint.Birthday),
+                )
+            }
+        }
+        val isMine = state.sections.any { it.isMe && it.member.id == birthday.member.id }
+        // A surprise already prepared for them (retour d'essai du 17/11). Their own phone never gets
+        // it, nor « Voir comme » them: the server, and listsSeenBy, keep a surprise list from its person.
+        // Nor while the mode présentation is on (récit 48): the tab may be on screen at the party.
+        val surprises = if (isMine || LocalPresenting.current) emptyList() else surprisesFor(state, birthday.member.id)
+        if (surprises.isNotEmpty()) {
+            ClayLink(
+                pluralStringResource(R.plurals.gifts_surprises_in_progress, surprises.size, surprises.size),
+                onClick = { onOpenList(surprises.first().id) },
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        } else if (!isMine && !LocalPresenting.current && birthday.member.id in state.surprisePreparedFor) {
+            // With the single list, a surprise is an idea of the family: the phrase alone, no number.
+            ClayLink(
+                stringResource(R.string.gifts_surprise_prepared),
+                onClick = { onOpenList(ideasListId(birthday.member.id)) },
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
+        // With « Bouton surprise » (récit 63), the one button of the tab replaces this link.
+        if (state.canPrepareSurprise && !isMine && !state.surpriseButton) {
+            ClayLink(
+                stringResource(R.string.gifts_prepare_surprise),
+                onClick = { onPrepareSurprise(birthday.member.id) },
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
     }
 }
 

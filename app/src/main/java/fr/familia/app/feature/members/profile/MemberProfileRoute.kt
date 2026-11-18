@@ -12,6 +12,7 @@ import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.gifts.profile.ProfileGivingSection
+import fr.familia.app.feature.gifts.profile.ProfileNotebookSection
 import fr.familia.app.feature.gifts.profile.ProfileWishesSection
 import fr.familia.app.feature.members.card.MemberCardSection
 import fr.familia.app.feature.thinkofme.ThinkOfMeSection
@@ -63,6 +64,8 @@ fun MemberProfileRoute(
         gifts = if (giftsOn) {
             { person ->
                 ProfileWishesSection(container, currentMember, person, giftActions.onOpenList, giftActions.onAddWish)
+                // My private notebook, under my wishes, on my own page only (PRD rév. 293).
+                ProfileNotebookSection(currentMember, person, notebookOn, giftActions.onOpenNotebook)
                 ProfileGivingSection(
                     container, currentMember, person, singleList, notebookOn,
                     onOpenList = giftActions.onOpenList,
