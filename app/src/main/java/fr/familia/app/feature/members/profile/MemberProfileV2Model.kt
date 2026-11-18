@@ -4,8 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.EventRepository
 import fr.familia.app.core.data.GenealogyRepository
+import fr.familia.app.core.data.GiftRepository
 import fr.familia.app.core.data.GoodNewsRepository
+import fr.familia.app.core.data.MemberCardRepository
+import fr.familia.app.core.data.MemberPhotoRepository
 import fr.familia.app.core.data.MemberRepository
+import fr.familia.app.core.data.RecipeRepository
 import fr.familia.app.core.data.RsvpRepository
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.Family
@@ -20,6 +24,7 @@ import fr.familia.app.core.model.Rsvp
 import fr.familia.app.core.model.RsvpStatus
 import fr.familia.app.core.model.concerns
 import fr.familia.app.core.model.nextBirthday
+import fr.familia.app.core.model.wishesListId
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -31,6 +36,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -60,7 +67,42 @@ data class ProfileV2State(
     val managesHousehold: Boolean,
     val saving: Boolean = false,
     val saveFailed: Boolean = false,
+    /** My own page only (PRODUIT-116), for « Ta fiche est remplie à N % »: what the page cannot read itself. */
+    val hasTastes: Boolean = false,
+    val wishCount: Int = 0,
+    val hasRecipe: Boolean = false,
+    /** The parts the gauge counts: a module that is off never counts against me. */
+    val fillable: Set<FillPart> = FillPart.entries.toSet(),
 )
+
+/**
+ * What « Ta fiche est remplie à N % » counts (PRODUIT-116), each part worth the same: a photo, my
+ * tastes, at least one wish, my family in the tree, a recipe or a souvenir shown, and my phone for an
+ * adult (never for a child, PRODUIT-98).
+ */
+enum class FillPart { Photo, Tastes, Wishes, Family, RecipeOrSouvenir, Phone }
+
+/** The parts of my page, each with whether it is filled, in the order they are named. */
+internal fun fillParts(member: Member, hasPhoto: Boolean, data: ProfileV2State, souvenirShown: Boolean): List<Pair<FillPart, Boolean>> =
+    buildList {
+        add(FillPart.Photo to hasPhoto)
+        add(FillPart.Tastes to data.hasTastes)
+        add(FillPart.Wishes to (data.wishCount > 0))
+        add(FillPart.Family to !data.kinship.isEmpty)
+        add(FillPart.RecipeOrSouvenir to (data.hasRecipe || souvenirShown))
+        if (hasCoordinates(member)) add(FillPart.Phone to (member.phone != null))
+    }.filter { it.first in data.fillable }
+
+/** The share of the parts filled, rounded down to the ten: 4 of 6 gives 60. */
+internal fun fillPercent(parts: List<Pair<FillPart, Boolean>>): Int {
+    if (parts.isEmpty()) return 100
+    val percent = parts.count { it.second } * 100 / parts.size
+    return if (percent == 100) 100 else percent / 10 * 10
+}
+
+/** In the 30 days before the birthday: the pill and « Vœux » turn dark, « Bientôt » on Cadeaux (P2). */
+internal fun birthdaySoon(birthDate: LocalDate?, today: LocalDate): Boolean =
+    birthDate?.let { daysUntilBirthday(it, today) in 0..30 } == true
 
 /** How many events and photos « Ses moments » shows. */
 internal const val MOMENTS_MAX = 3
@@ -138,6 +180,11 @@ class MemberProfileV2ViewModel(
     private val readerId: String,
     private val memberId: String,
     private val today: LocalDate,
+    /** Read on my own page only, for the gauge (PRODUIT-116). */
+    memberCards: MemberCardRepository? = null,
+    gifts: GiftRepository? = null,
+    recipes: RecipeRepository? = null,
+    private val photos: MemberPhotoRepository? = null,
 ) : ViewModel() {
     private val saving = MutableStateFlow(false)
     private val failed = MutableStateFlow(false)
@@ -157,7 +204,28 @@ class MemberProfileV2ViewModel(
     }
     private val news = (goodNews?.observeLatest(40) ?: flowOf(emptyList())).orElse(emptyList())
 
-    private val tree = combine(kin, links, words) { k, l, w -> Triple(k, l, w) }
+    private val mine = readerId == memberId
+    private val fillable: Set<FillPart> = buildSet {
+        if (photos != null) add(FillPart.Photo)
+        if (memberCards != null) add(FillPart.Tastes)
+        if (gifts != null) add(FillPart.Wishes)
+        if (genealogy != null) add(FillPart.Family)
+        add(FillPart.RecipeOrSouvenir)
+        add(FillPart.Phone)
+    }
+
+    /** What the gauge counts that this page does not read otherwise; nothing for someone else's page. */
+    private val filled: Flow<Triple<Boolean, Int, Boolean>> = if (!mine) {
+        flowOf(Triple(false, 0, false))
+    } else {
+        val tastes = (memberCards?.observeCard(memberId)?.map { it?.isEmpty == false } ?: flowOf(false)).orElse(false).onStart { emit(false) }
+        val wishes = (gifts?.observeItems(wishesListId(memberId), hiddenFromMe = true)?.map { it.size } ?: flowOf(0)).orElse(0).onStart { emit(0) }
+        val recipe = (recipes?.observeRecipes()?.map { list -> list.any { it.originMemberId == memberId || it.authorId == memberId } } ?: flowOf(false))
+            .orElse(false).onStart { emit(false) }
+        combine(tastes, wishes, recipe) { t, w, r -> Triple(t, w, r) }
+    }
+
+    private val tree = combine(kin, links, words, filled) { k, l, w, f -> Pair(Triple(k, l, w), f) }
     private val moments = combine(upcoming, answers) { e, a -> e to a }
 
     val state: StateFlow<ProfileV2State?> = combine(family, tree, moments, news, combine(saving, failed) { s, f -> s to f }) { fam, t, m, n, sf ->
@@ -166,12 +234,16 @@ class MemberProfileV2ViewModel(
         ProfileV2State(
             today = today,
             household = fam.households.firstOrNull { it.id == member.householdId },
-            kinship = kinshipOf(memberId, fam, t.first, t.second, t.third),
+            kinship = kinshipOf(memberId, fam, t.first.first, t.first.second, t.first.third),
             moments = nextMomentsOf(m.first, m.second, member, fam),
             photos = photosOf(n, memberId, readerId),
             managesHousehold = reader != null && (fam.ownerId == reader.id || (reader.isAdmin && reader.householdId == member.householdId)),
             saving = sf.first,
             saveFailed = sf.second,
+            hasTastes = t.second.first,
+            wishCount = t.second.second,
+            hasRecipe = t.second.third,
+            fillable = fillable,
         )
     }.orElse(null).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
@@ -189,6 +261,17 @@ class MemberProfileV2ViewModel(
         val household = state.value?.household ?: return
         val value = address.trim().take(200).ifEmpty { null }
         write { repo.saveHousehold(household.copy(address = value)) }
+    }
+
+    /** My photo, from « Changer ma photo » on the avatar of my page (P3). */
+    fun savePhoto(jpeg: ByteArray) {
+        val repo = photos ?: return
+        write { repo.savePhoto(memberId, jpeg) }
+    }
+
+    fun removePhoto() {
+        val repo = photos ?: return
+        write { repo.removePhoto(memberId) }
     }
 
     private fun write(block: suspend () -> Unit) {
