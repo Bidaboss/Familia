@@ -159,8 +159,8 @@ class GiftsTabV2Test {
     fun `out of season, compact lines only`() {
         show(stateFor("adult1", day = LocalDate.of(2026, 3, 1)))
         assertEquals(0, count("PROCHAIN ANNIVERSAIRE"))
-        // A compact line, and its chip.
-        assertEquals(2, count("Anniversaire de Kid2"))
+        // A compact line (the chips come from the ViewModel, not from this state).
+        assertEquals(1, count("Anniversaire de Kid2"))
     }
 
     @Test
