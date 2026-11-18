@@ -6,6 +6,7 @@ import fr.familia.app.feature.presentation.LocalPresenting
 import fr.familia.app.feature.presentation.PresentationBanner
 import fr.familia.app.feature.presentation.rememberPresentation
 
+import androidx.compose.material.icons.outlined.PhotoAlbum
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.AutoAwesome
@@ -1992,6 +1993,10 @@ private fun allModules(
     }
     module(features.isOn(Feature.Capsules), "capsule", R.string.all_capsule, Icons.Outlined.HourglassTop, ModuleFamily.Remember) {
         navController.navigate(CapsulesDestination) { launchSingleTop = true }
+    }
+    // « Qui est-ce ? » was only in « Nos trésors » of the Famille tab, gone on 18/11 (Kévin).
+    module(features.isOn(Feature.WhoIsIt), "whoIsIt", R.string.all_who_is_it, Icons.Outlined.PhotoAlbum, ModuleFamily.Remember) {
+        navController.navigate(WhoIsItDestination) { launchSingleTop = true }
     }
     // My own profile, whose souvenirs are never empty (DESIGN, 17/11).
     module(features.isOn(Feature.Souvenirs), "souvenirs", R.string.all_souvenirs, Icons.Outlined.AutoStories, ModuleFamily.Remember) {
