@@ -211,12 +211,12 @@ class TreeOfLife(tree: GenealogyTree, labelWidth: (String) -> Float = ::estimate
         /** About the width of a name in Nunito 800 at 12 sp; the screen passes the measured one. */
         fun estimatedLabelWidth(text: String): Float = text.length * 7f
 
-        /** Couples side by side in a row (partners, or the parents of one child) make one household. */
+        /** Couples side by side in a row (partners, or the parents of one child) make one household, two at most. */
         private fun households(row: List<String>, tree: GenealogyTree): List<List<String>> {
             val out = mutableListOf<MutableList<String>>()
             for (id in row) {
                 val last = out.lastOrNull()
-                if (last != null && last.any { it in tree.coupleOf(id) }) last.add(id) else out.add(mutableListOf(id))
+                if (last != null && last.size < 2 && last.any { it in tree.coupleOf(id) }) last.add(id) else out.add(mutableListOf(id))
             }
             return out
         }

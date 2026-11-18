@@ -103,11 +103,16 @@ class GenealogyTree(members: List<Member>, kin: List<Kin>, links: List<KinLink>)
         links.filter { it.kind == KinLinkKind.Partner && (it.aId == id || it.bId == id) }.map { if (it.aId == id) it.bId else it.aId }
 
     /**
-     * The partners of [id], and the other parents of their children even without a « partner »
-     * link (retour du 18/11: two couples of grandparents were split, the grandfathers together).
+     * The partners of [id]; without any, the other parents of their children who have no partner
+     * either (retour du 18/11: two couples of grandparents were split, the grandfathers together).
+     * A shared custody stays apart: the other parent never joins a couple that has a « partner »
+     * link.
      */
-    fun coupleOf(id: String): List<String> =
-        (partnersOf(id) + childrenOf(id).flatMap { parentsOf(it) }).filter { it != id }.distinct()
+    fun coupleOf(id: String): List<String> {
+        val partners = partnersOf(id)
+        if (partners.isNotEmpty()) return partners
+        return childrenOf(id).flatMap { parentsOf(it) }.filter { it != id && partnersOf(it).isEmpty() }.distinct()
+    }
 
     /**
      * The name on the drawing: the first name, and the last name too when it is noted and someone

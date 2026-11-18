@@ -85,7 +85,7 @@ fun posterRows(tree: GenealogyTree, ids: Set<String>): List<List<String>> {
         val groups = mutableListOf<MutableList<String>>()
         row.forEach { id ->
             val last = groups.lastOrNull()
-            if (last != null && last.any { it in cut.coupleOf(id) }) last += id else groups += mutableListOf(id)
+            if (last != null && last.size < 2 && last.any { it in cut.coupleOf(id) }) last += id else groups += mutableListOf(id)
         }
         val ordered = groups.withIndex().sortedBy { (index, group) ->
             val above = group.flatMap { cut.parentsOf(it) }.mapNotNull { place[it] }
