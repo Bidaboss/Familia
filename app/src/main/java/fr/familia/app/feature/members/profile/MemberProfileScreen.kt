@@ -162,12 +162,14 @@ internal fun SouvenirsContent(state: MemberProfileUiState.Ready, onSetShown: (St
 /** One of my souvenirs, with the switch « Montrer sur ma fiche ». */
 @Composable
 private fun MySouvenir(kind: SouvenirKind, souvenir: Souvenir, onSetShown: (String, Boolean) -> Unit) {
+    // The switch under the medal, on the whole width (retour d'essai du 18/11) : à côté de la
+    // médaille, avec un grand texte, « Montrer » se coupait en plein mot.
     ClayCard(Modifier.fillMaxWidth()) {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             SouvenirMedal(kind, souvenir.earnedAt)
             Row(
                 Modifier
-                    .weight(1f)
+                    .fillMaxWidth()
                     .heightIn(min = 56.dp)
                     .toggleable(value = souvenir.shown, role = Role.Switch, onValueChange = { onSetShown(souvenir.key, it) }),
                 verticalAlignment = Alignment.CenterVertically,

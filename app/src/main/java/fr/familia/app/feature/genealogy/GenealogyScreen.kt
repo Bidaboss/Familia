@@ -71,6 +71,7 @@ import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.core.ui.MemberAvatar
+import fr.familia.app.core.ui.SideBySide
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 
@@ -219,19 +220,16 @@ private fun ReadyTree(
                     modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp).heightIn(min = 56.dp),
                 ) { Text(stringResource(R.string.genealogy_kin_add)) }
             }
-            Row(
-                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
+            SideBySide(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), spacing = 12.dp) { item ->
                 OutlinedButton(
                     onClick = { zoom = (zoom / 1.25f).coerceAtLeast(MIN_ZOOM) },
                     enabled = zoom > MIN_ZOOM,
-                    modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                    modifier = item.heightIn(min = 56.dp),
                 ) { Text(stringResource(R.string.genealogy_zoom_out)) }
                 OutlinedButton(
                     onClick = { zoom = (zoom * 1.25f).coerceAtMost(MAX_ZOOM) },
                     enabled = zoom < MAX_ZOOM,
-                    modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                    modifier = item.heightIn(min = 56.dp),
                 ) { Text(stringResource(R.string.genealogy_zoom_in)) }
                 // Moved too far, or lost: back to the start (relecture #122).
                 OutlinedButton(
@@ -240,7 +238,7 @@ private fun ReadyTree(
                         pan = Offset.Zero
                     },
                     enabled = zoom != 1f || pan != Offset.Zero,
-                    modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                    modifier = item.heightIn(min = 56.dp),
                 ) { Text(stringResource(R.string.genealogy_recenter)) }
             }
             Box(

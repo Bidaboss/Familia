@@ -60,6 +60,7 @@ import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.SectionLabel
+import fr.familia.app.core.ui.SideBySide
 import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.core.ui.memberColor
 import java.time.LocalDate
@@ -367,14 +368,14 @@ private fun PersonCard(state: GiftsUiState.Success, section: GiftPersonSection, 
                 }
             }
         }
-        Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        SideBySide(Modifier.padding(top = 4.dp)) { item ->
             Button(
                 onClick = { onOpenList(section.wishes?.id ?: wishesListId(member.id)) },
                 colors = ButtonDefaults.buttonColors(containerColor = Peach.copy(alpha = 0.3f), contentColor = MaterialTheme.colorScheme.onSurface),
-                modifier = Modifier.weight(1f).heightIn(min = 56.dp).labelled(stringResource(R.string.gift_wishes_of, member.firstName)),
+                modifier = item.heightIn(min = 56.dp).labelled(stringResource(R.string.gift_wishes_of, member.firstName)),
             ) { Text(stringResource(R.string.gifts_v2_their_wishes)) }
             if (door(member.id)) {
-                OutlineButton(stringResource(R.string.gifts_v2_surprise), Modifier.weight(1f), description = stringResource(R.string.gift_ideas_of, member.firstName)) {
+                OutlineButton(stringResource(R.string.gifts_v2_surprise), item, description = stringResource(R.string.gift_ideas_of, member.firstName)) {
                     onOpenList(section.ideas?.id ?: ideasListId(member.id))
                 }
             }
