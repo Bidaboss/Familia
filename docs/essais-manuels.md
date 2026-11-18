@@ -1057,7 +1057,7 @@ Sur un téléphone de test, une seule fois : Paramètres > À propos du téléph
 
 Avant de commencer : **Administration**, puis **Modules**, et allume « Animation de bienvenue ». Sur ton téléphone d'admin principal, elle se joue même éteinte, pour l'essayer d'abord.
 
-1. Sur le deuxième téléphone, installe la nouvelle version et ouvre Familia. **Attendu :** l'arbre de l'icône pousse, puis ses fruits glissent en cercle autour du soleil, chacun de la couleur d'un membre avec ses lettres. Puis « Bienvenue dans Familia » et « Bonjour {prénom}, tu es chez toi. » apparaissent. Tout se déroule lentement, puis la dernière image reste 2 secondes. Vers 8 secondes, l'appli continue : le tuto sur une nouvelle installation, l'Accueil sinon.
+1. Sur le deuxième téléphone, installe la nouvelle version et ouvre Familia. **Attendu :** l'arbre de l'icône pousse, puis ses fruits glissent en cercle autour du soleil, chacun de la couleur d'un membre avec ses lettres. Puis « Bienvenue dans Familia » et « Bonjour {prénom}, tu es chez toi. » apparaissent. Le petit arbre pousse lentement pendant 2 secondes, puis les fruits deviennent les photos, et la dernière image reste 2 secondes. Vers 8 secondes, l'appli continue : le tuto sur une nouvelle installation, l'Accueil sinon.
 2. **Attendu :** il y a autant de fruits que de membres, ton foyer en premier, en partant du haut.
    - Pour un membre qui a une photo de profil, **attendu :** sa photo apparaît dans son fruit, ronde, avec un bord de sa couleur. Les membres sans photo gardent leurs lettres.
 3. Ferme et rouvre Familia. **Attendu :** l'animation ne revient pas.

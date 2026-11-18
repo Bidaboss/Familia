@@ -122,13 +122,15 @@ class WelcomeTest {
 
     @Test
     fun `the welcome lasts 8 s with the last picture held 2 s`() {
-        // Every step slowed in proportion: the leaves of the tree end at 700 ms of the spec.
-        assertEquals(700f, pictureTime(1_120f), 0.01f)
-        // The circle and the words are complete at 5.44 s, then held still until the fade.
-        assertEquals(3_400f, pictureTime(5_440f), 0.01f)
-        assertEquals(3_400f, pictureTime(7_400f), 0.01f)
-        assertEquals(0f, welcomeFade(7_440f), 0.001f)
-        assertTrue(welcomeFade(7_700f) in 0.01f..0.99f)
+        // The small tree grows over the first 2 s: its leaves end at 700 ms of the spec.
+        assertEquals(0f, pictureTime(0f), 0.01f)
+        assertEquals(350f, pictureTime(1_000f), 0.01f)
+        assertEquals(700f, pictureTime(2_000f), 0.01f)
+        // The circle and the words are complete at 5.6 s, then held still 2 s until the fade.
+        assertEquals(3_400f, pictureTime(5_600f), 0.01f)
+        assertEquals(3_400f, pictureTime(7_500f), 0.01f)
+        assertEquals(0f, welcomeFade(7_600f), 0.001f)
+        assertTrue(welcomeFade(7_800f) in 0.01f..0.99f)
         assertEquals(1f, welcomeFade(8_000f), 0.001f)
     }
 }
