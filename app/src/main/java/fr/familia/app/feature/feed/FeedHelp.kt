@@ -122,7 +122,7 @@ class HelpFeedCard(val request: HelpRequest, private val requests: HelpRequestRe
                                 busy = false
                             }
                         },
-                        modifier = item.heightIn(min = 48.dp),
+                        modifier = item.heightIn(min = 56.dp),
                     ) { Text(stringResource(R.string.feed_help_take)) }
                     OutlinedButton(
                         enabled = !busy,
@@ -133,7 +133,7 @@ class HelpFeedCard(val request: HelpRequest, private val requests: HelpRequestRe
                                 busy = false
                             }
                         },
-                        modifier = item.heightIn(min = 48.dp),
+                        modifier = item.heightIn(min = 56.dp),
                     ) { Text(stringResource(R.string.feed_help_no)) }
                 }
             }
