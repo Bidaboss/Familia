@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.AlbumPhotoRepository
 import fr.familia.app.core.data.EventRepository
+import fr.familia.app.core.data.FAMILY_ZONE
+import fr.familia.app.core.data.GoodNewsRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.TripRepository
 import fr.familia.app.core.model.Event
@@ -26,6 +28,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -39,6 +42,8 @@ data class AlbumEntry(
     val photoCount: Int = 0,
     /** The thumbnail of the newest photo. */
     val coverThumb: String? = null,
+    /** Who added the newest photo. */
+    val coverAuthor: String? = null,
 ) {
     enum class Kind { Trip, Event }
 
@@ -51,7 +56,14 @@ data class AlbumsUiState(
     val albums: List<AlbumEntry> = emptyList(),
     /** The months of these albums, newest first: each opens its diaporama of the month. */
     val months: List<YearMonth> = emptyList(),
-)
+    /** Se souvenir en un seul lieu (récit 71): the « Photos du fil » of each month, newest first. */
+    val feedAlbums: List<FeedPhotoAlbum> = emptyList(),
+) {
+    /** The grid by month of the maquette SF2. */
+    val sections: List<AlbumMonthSection> get() = albumSections(albums, feedAlbums)
+
+    val isEmpty: Boolean get() = albums.isEmpty() && feedAlbums.isEmpty()
+}
 
 /** How far back the screen looks, and how many albums it listens to at most. */
 const val ALBUMS_MONTHS_BACK = 12L
@@ -61,10 +73,19 @@ const val ALBUMS_MAX = 40
  * The albums [memberId] can see, before any photo is read: the trips they follow and the events
  * of the last year that concern them, already started, the most recent first.
  */
-fun albumCandidates(trips: List<Trip>, events: List<Event>, family: Family, memberId: String, today: LocalDate): List<AlbumEntry> {
+fun albumCandidates(
+    trips: List<Trip>,
+    events: List<Event>,
+    family: Family,
+    memberId: String,
+    today: LocalDate,
+    /** With the fil (récit 71), like its cards: a trip hidden from someone (a surprise) never shows. */
+    hideSurprises: Boolean = false,
+): List<AlbumEntry> {
     val me = family.members.firstOrNull { it.id == memberId } ?: return emptyList()
     val since = today.minusMonths(ALBUMS_MONTHS_BACK)
     val fromTrips = trips.filter { !it.startDate.isAfter(today) && !it.endDate.isBefore(since) }
+        .filter { trip -> !hideSurprises || family.members.all { it.id in trip.readerIds } }
         .map { AlbumEntry(AlbumEntry.Kind.Trip, it.id, it.title, it.startDate) }
     val fromEvents = events.filter { !it.date.isAfter(today) && !it.date.isBefore(since) && concerns(it.target, me, family) }
         .map { AlbumEntry(AlbumEntry.Kind.Event, it.id, it.title, it.date) }
@@ -75,7 +96,7 @@ fun albumCandidates(trips: List<Trip>, events: List<Event>, family: Family, memb
 fun albumsState(candidates: List<AlbumEntry>, photos: List<List<AlbumPhoto>>): AlbumsUiState {
     val albums = candidates.zip(photos).mapNotNull { (entry, list) ->
         // The repository gives the newest first.
-        list.firstOrNull()?.let { entry.copy(photoCount = list.size, coverThumb = it.thumbnailPath) }
+        list.firstOrNull()?.let { entry.copy(photoCount = list.size, coverThumb = it.thumbnailPath, coverAuthor = it.authorName) }
     }
     return AlbumsUiState(
         loading = false,
@@ -98,6 +119,10 @@ class AlbumsViewModel(
     today: LocalDate,
     tripsOn: Boolean,
     eventsOn: Boolean,
+    /** Se souvenir en un seul lieu (récit 71): with the fil on, the « Photos du fil » of each month too. */
+    goodNews: GoodNewsRepository? = null,
+    memoriesInFeed: Boolean = false,
+    now: Instant = Instant.now(),
 ) : ViewModel() {
 
     val uiState: StateFlow<AlbumsUiState> =
@@ -106,12 +131,25 @@ class AlbumsViewModel(
         } else {
             val followed = if (tripsOn) trips.observeFollowedTrips(memberId) else flowOf(emptyList())
             val recent = if (eventsOn) events.observeUpcoming(today.minusMonths(ALBUMS_MONTHS_BACK)) else flowOf(emptyList())
-            combine(followed, recent, members.observeFamily()) { trs, evts, family -> albumCandidates(trs, evts, family, memberId, today) }
+            val fromFeed = if (memoriesInFeed && goodNews != null) {
+                goodNews.observeBetween(today.minusMonths(ALBUMS_MONTHS_BACK).withDayOfMonth(1).atStartOfDay(FAMILY_ZONE).toInstant(), now.plusSeconds(DAY_SECONDS))
+                    .map { feedPhotoAlbums(it, memberId) }
+                    .catch { e -> if (e is CancellationException) throw e else emit(emptyList()) }
+            } else {
+                flowOf(emptyList())
+            }
+            combine(followed, recent, members.observeFamily()) { trs, evts, family -> albumCandidates(trs, evts, family, memberId, today, hideSurprises = memoriesInFeed) }
                 .distinctUntilChanged()
                 .flatMapLatest { candidates -> photosOf(albums, candidates).map { albumsState(candidates, it) } }
+                .combine(fromFeed) { state, feed -> state.copy(feedAlbums = feed) }
                 .catch { e -> if (e is CancellationException) throw e else emit(AlbumsUiState(loading = false)) }
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AlbumsUiState())
         }
+
+    private companion object {
+        /** A photo dated a little ahead by the server clock still shows. */
+        const val DAY_SECONDS = 86_400L
+    }
 
     /** An album that cannot be read counts as empty, so it is left out rather than breaking the list. */
     private fun photosOf(albums: AlbumPhotoRepository, candidates: List<AlbumEntry>): Flow<List<List<AlbumPhoto>>> =

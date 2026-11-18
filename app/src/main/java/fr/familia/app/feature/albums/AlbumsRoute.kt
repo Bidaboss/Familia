@@ -27,13 +27,18 @@ fun AlbumsRoute(
     onOpenAlbum: (AlbumEntry) -> Unit,
     onOpenMonth: (YearMonth) -> Unit,
     onOpenTrips: (() -> Unit)? = null,
+    /** « Photos du fil » of a month (récit 71). */
+    onOpenFeedPhotos: (YearMonth) -> Unit = {},
 ) {
     val flags = LocalFeatureFlags.current
     val tripsOn = flags.isOn(Feature.Trips)
     val eventsOn = flags.isOn(Feature.EventAlbums)
+    // Se souvenir en un seul lieu (récit 71): only with the fil on; off, Albums stays as it was.
+    val memoriesInFeed = flags.isOnForFamily(Feature.NewsFeed)
+    val feedPhotosOn = memoriesInFeed && flags.isOn(Feature.GoodNews)
     val today = familyToday()
     val viewModel: AlbumsViewModel = viewModel(
-        key = "albums-$today-$tripsOn-$eventsOn",
+        key = "albums-$today-$tripsOn-$eventsOn-$memoriesInFeed-$feedPhotosOn",
         factory = viewModelFactory {
             initializer {
                 AlbumsViewModel(
@@ -45,10 +50,16 @@ fun AlbumsRoute(
                     today,
                     tripsOn,
                     eventsOn,
+                    goodNews = container?.goodNewsRepository?.takeIf { feedPhotosOn },
+                    memoriesInFeed = memoriesInFeed,
                 )
             }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    AlbumsScreen(state, onBack, onOpenAlbum, onOpenMonth, onOpenTrips)
+    if (memoriesInFeed) {
+        AlbumsByMonthScreen(state, today, onBack, onOpenAlbum, onOpenMonth, onOpenFeedPhotos, onOpenTrips)
+    } else {
+        AlbumsScreen(state, onBack, onOpenAlbum, onOpenMonth, onOpenTrips)
+    }
 }
