@@ -236,7 +236,7 @@ private fun Header(
                     Surface(
                         shape = CircleShape,
                         color = MaterialTheme.colorScheme.inverseSurface,
-                        modifier = Modifier.align(Alignment.BottomEnd).size(48.dp).clip(CircleShape)
+                        modifier = Modifier.align(Alignment.BottomEnd).size(56.dp).clip(CircleShape)
                             .clickable(role = Role.Button, onClickLabel = stringResource(R.string.profile_v2_photo_change)) { changePhoto = true },
                     ) {
                         Box(contentAlignment = Alignment.Center) {
@@ -638,7 +638,7 @@ private fun CoordinateRow(value: String, caption: String, action: String?, onAct
             Text(caption, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         action?.let {
-            FilledTonalButton(onClick = onAction, modifier = Modifier.heightIn(min = 48.dp)) { Text(it) }
+            FilledTonalButton(onClick = onAction, modifier = Modifier.heightIn(min = 56.dp)) { Text(it) }
         }
     }
 }
@@ -658,7 +658,7 @@ private fun ReachThroughParents(member: Member, kin: Kinship) {
         Text(stringResource(R.string.profile_v2_reach_parents, member.firstName), style = MaterialTheme.typography.bodyLarge)
         FlowRow(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             parents.forEach { (name, phone) ->
-                FilledTonalButton(onClick = { dial(context, phone) }, modifier = Modifier.heightIn(min = 48.dp)) {
+                FilledTonalButton(onClick = { dial(context, phone) }, modifier = Modifier.heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.profile_v2_call_name, name))
                 }
             }

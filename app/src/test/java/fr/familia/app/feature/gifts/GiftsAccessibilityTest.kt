@@ -52,6 +52,22 @@ class GiftsAccessibilityTest {
         GiftsScreen(previewGifts().copy(singleList = true, presentation = true), {}, {}, {})
     }
 
+    /** « Nouvel onglet Cadeaux » (PRODUIT-119 à 121): a surprise in progress, a birthday in relief, the occasions. */
+    private fun newTab() = previewGifts().let { state ->
+        state.copy(
+            singleList = true, tabV2 = true, surpriseButton = true, surprisePreparedFor = setOf("b"),
+            occasions = giftMoments(state.today, state.birthdays),
+        )
+    }
+
+    @Test
+    fun `the new Cadeaux tab`() = check { GiftsScreen(newTab(), {}, {}, {}, onOpenSurprisePicker = {}, onOpenMyPage = {}) }
+
+    @Test
+    fun `the new Cadeaux tab of a child`() = check {
+        GiftsScreen(newTab().copy(canPrepareSurprise = false), {}, {}, {}, onOpenSurprisePicker = {}, onOpenMyPage = {})
+    }
+
     @Test
     fun `a list, or « Mes envies »`() = check { GiftListScreen(previewGiftList(), GiftListActions()) }
 
