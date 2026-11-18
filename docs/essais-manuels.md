@@ -1241,6 +1241,20 @@ Module « Fil d'actualité » allumé dans Administration > Modules (éteint, l'
 8. Ajoute des photos à un voyage que quelqu'un ne suit pas (un voyage surprise). **Attendu :** aucune carte, même sur le téléphone de quelqu'un qui le suit.
 9. Ajoute une recette. **Attendu :** une carte orange « Recette » avec son titre, « La recette de … » si l'origine est notée, la photo du plat si elle existe et le dernier commentaire. Toucher la carte ouvre la recette.
 
+## Se souvenir en un seul lieu (récit 71)
+
+Module « Fil d'actualité » allumé. Éteint, Tout Familia et l'Accueil restent comme avant : c'est le retour arrière.
+
+1. Ouvre **Tout Familia**. **Attendu :** une note verte en haut explique où sont passés les souvenirs. Sous « Se souvenir » : Le fil, Albums, Arbre et Capsule. « Qui est-ce ? » est sous « Se faire plaisir ». Plus de Souvenirs ni de Bonnes nouvelles. « Notre année » n'y est que du 26/12 au 10/01.
+2. Reviens, puis rouvre **Tout Familia**. **Attendu :** la note verte ne revient plus.
+3. Touche **Le fil**. **Attendu :** l'Accueil s'ouvre directement sur « Le fil ».
+4. En haut du fil. **Attendu :** ton avatar, « Une photo, une bonne nouvelle… », un bouton photo vert pâle et « Publier » en noir. Les trois ouvrent l'écran pour publier une bonne nouvelle. En mode présentation et en « Voir comme », la barre n'est pas là.
+5. Mets la taille du texte à 130 %. **Attendu :** la phrase passe au-dessus, les deux boutons dessous, rien n'est coupé.
+6. Le jour où une capsule s'ouvre pour toi. **Attendu :** une carte pêche « Capsule », « La capsule de … s'est ouverte » et « Ouvrir », qui ouvre la capsule. Elle n'arrive pas chez ceux à qui elle n'est pas destinée.
+7. Un jour avec un souvenir d'il y a un an. **Attendu :** une carte verte « Il y a un an » avec la vignette, le titre et « Revoir l'album ». La carte de l'Accueil « Aujourd'hui » est toujours là.
+8. Un dimanche avec des photos, un anniversaire ou un voyage en cours. **Attendu :** une carte lilas « La semaine de la famille » avec les chiffres, les vignettes et « Revoir la semaine », qui ouvre le récap. Les autres jours, pas de carte.
+9. Du 26/12 au 10/01. **Attendu :** une carte verte « Notre année » avec « Regarder », qui ouvre l'année.
+
 ## Nouveau Planning (PRODUIT-126)
 
 Avant de commencer : **Administration**, puis **Modules**, et allume « Nouveau Planning ». Éteint, l'onglet Planning ne change pas, même pour toi.

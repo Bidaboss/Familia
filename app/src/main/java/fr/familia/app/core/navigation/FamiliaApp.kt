@@ -30,6 +30,7 @@ import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material.icons.outlined.AccountTree
+import androidx.compose.material.icons.outlined.DynamicFeed
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Autorenew
@@ -44,6 +45,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import fr.familia.app.feature.all.AllFamiliaScreen
 import fr.familia.app.feature.all.AllModule
 import fr.familia.app.feature.all.ModuleFamily
+import fr.familia.app.feature.all.rememberMemoriesNote
+import fr.familia.app.feature.feed.FeedOpenRequest
 import fr.familia.app.feature.home.HomeAddOptions
 import fr.familia.app.feature.home.HomeAddSheet
 import androidx.compose.runtime.mutableStateOf
@@ -981,6 +984,8 @@ fun FamiliaApp(
                             onOpenYear = { year -> navController.navigate(YearInReviewDestination(year)) { launchSingleTop = true } },
                             onOpenMyProfile = { navController.navigate(MemberProfileDestination(currentMember.id)) { launchSingleTop = true } },
                             onOpenMember = { id -> navController.navigate(MemberProfileDestination(id)) },
+                            onOpenCapsule = { id -> navController.navigate(CapsuleDetailDestination(id)) },
+                            onOpenRecap = { navController.navigate(RecapDestination) { launchSingleTop = true } },
                             onOpenDiscover = { module ->
                                 when (module) {
                                     DiscoverModule.WeeklyQuestion -> navController.navigate(WeeklyQuestionDestination())
@@ -995,13 +1000,17 @@ fun FamiliaApp(
                         )
                     }
                     composable<AllFamiliaDestination> {
+                        // Se souvenir en un seul lieu (récit 71): only with the fil on; off, nothing moves.
+                        val memoriesInFeed = features.isOnForFamily(Feature.NewsFeed)
                         AllFamiliaScreen(
+                            note = if (rememberMemoriesNote(memoriesInFeed)) stringResource(R.string.all_memories_note) else null,
                             modules = allModules(
                                 features,
                                 helpBadge,
                                 navController,
                                 currentMember.id,
-                                reviewYear = openableReviewYear(LocalDate.now(), forCard = false),
+                                reviewYear = openableReviewYear(LocalDate.now(), forCard = memoriesInFeed),
+                                memoriesInFeed = memoriesInFeed,
                                 onEntraideTab = { tab ->
                                     entraideTab = tab
                                     navController.navigateToTab(TopLevelDestination.HelpRequests)
@@ -2083,6 +2092,12 @@ private fun allModules(
     reviewYear: Int? = null,
     /** Bons plans, On se prête, À qui le tour ?: Entraide, turned to that sub-tab (PRODUIT-118). */
     onEntraideTab: (EntraideTab) -> Unit = {},
+    /**
+     * Se souvenir en un seul lieu (récit 71), with the fil on: « Se souvenir » keeps Le fil, Albums,
+     * Arbre and Capsule (to write one); « Qui est-ce ? » goes to « Se faire plaisir »; Souvenirs and
+     * Bonnes nouvelles are cards of the fil; « Notre année » only from 26/12 to 10/01.
+     */
+    memoriesInFeed: Boolean = false,
 ): List<AllModule> = buildList {
     fun module(on: Boolean, key: String, label: Int, icon: ImageVector, family: ModuleFamily, badge: Int = 0, open: () -> Unit) {
         if (on) this.add(AllModule(key, label, icon, family, badge, open))
@@ -2122,6 +2137,10 @@ private fun allModules(
     module(features.isOn(Feature.Tree), "challenges", R.string.all_challenges, Icons.Outlined.EmojiEvents, ModuleFamily.Treat) {
         navController.navigate(ChallengesDestination) { launchSingleTop = true }
     }
+    module(memoriesInFeed, "feed", R.string.all_feed, Icons.Outlined.DynamicFeed, ModuleFamily.Remember) {
+        FeedOpenRequest.ask()
+        navController.navigateToTab(TopLevelDestination.Home)
+    }
     module(features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums), "albums", R.string.all_albums, Icons.Outlined.PhotoLibrary, ModuleFamily.Remember) {
         navController.navigate(AlbumsDestination) { launchSingleTop = true }
     }
@@ -2132,14 +2151,15 @@ private fun allModules(
         navController.navigate(CapsulesDestination) { launchSingleTop = true }
     }
     // « Qui est-ce ? » was only in « Nos trésors » of the Famille tab, gone on 18/11 (Kévin).
-    module(features.isOn(Feature.WhoIsIt), "whoIsIt", R.string.all_who_is_it, Icons.Outlined.PhotoAlbum, ModuleFamily.Remember) {
+    val whoIsItFamily = if (memoriesInFeed) ModuleFamily.Treat else ModuleFamily.Remember
+    module(features.isOn(Feature.WhoIsIt), "whoIsIt", R.string.all_who_is_it, Icons.Outlined.PhotoAlbum, whoIsItFamily) {
         navController.navigate(WhoIsItDestination) { launchSingleTop = true }
     }
     // My own profile, whose souvenirs are never empty (DESIGN, 17/11).
-    module(features.isOn(Feature.Souvenirs), "souvenirs", R.string.all_souvenirs, Icons.Outlined.AutoStories, ModuleFamily.Remember) {
+    module(!memoriesInFeed && features.isOn(Feature.Souvenirs), "souvenirs", R.string.all_souvenirs, Icons.Outlined.AutoStories, ModuleFamily.Remember) {
         navController.navigate(MemberProfileDestination(meId)) { launchSingleTop = true }
     }
-    module(features.isOn(Feature.GoodNews), "goodNews", R.string.all_good_news, Icons.Outlined.Celebration, ModuleFamily.Remember) {
+    module(!memoriesInFeed && features.isOn(Feature.GoodNews), "goodNews", R.string.all_good_news, Icons.Outlined.Celebration, ModuleFamily.Remember) {
         navController.navigate(GoodNewsFeedDestination) { launchSingleTop = true }
     }
     reviewYear?.let { year ->

@@ -45,6 +45,7 @@ import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.home.HomeChip
 import fr.familia.app.feature.presentation.LocalPresenting
+import kotlinx.coroutines.flow.StateFlow
 import java.time.LocalDate
 
 /**
@@ -95,6 +96,11 @@ fun YearAgoHomeChip(container: AppContainer?, currentMember: Member, selected: B
     if (LocalPresenting.current) return
     HomeChip(label = yearAgoTitle(m.years), onClick = onToggle, selected = selected)
 }
+
+/** The souvenir of the day for the fil (récit 71): the same as the card of the Accueil, none in présentation. */
+@Composable
+fun rememberYearAgoMemory(container: AppContainer?, currentMember: Member): StateFlow<YearAgoMemory?>? =
+    if (LocalPresenting.current) null else yearAgoViewModel(container, currentMember).memory
 
 /** « Il y a un an », « Il y a 3 ans »… */
 @Composable
