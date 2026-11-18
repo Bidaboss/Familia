@@ -71,6 +71,7 @@ import fr.familia.app.core.ui.SectionLabel
 import fr.familia.app.core.ui.dayShortLabel
 import fr.familia.app.core.ui.dayTitle
 import fr.familia.app.core.ui.formatTime
+import fr.familia.app.core.ui.isLargeText
 import fr.familia.app.feature.helprequests.kindLabel
 import fr.familia.app.feature.helprequests.whenLabel
 import java.time.LocalDate
@@ -147,6 +148,12 @@ fun HomeR1bisScreen(
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 challenge(Modifier.fillMaxWidth(), true)
                 goodNews?.invoke(Modifier.fillMaxWidth(), false)
+            }
+        } else if (goodNews != null && challenge != null && isLargeText()) {
+            // Large text: one under the other, or half a screen cuts words (retour d'essai du 18/11).
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                goodNews(Modifier.fillMaxWidth(), false)
+                challenge(Modifier.fillMaxWidth(), true)
             }
         } else if (goodNews != null && challenge != null) {
             // Both cards take the height of the taller one (DESIGN, 17/11).
