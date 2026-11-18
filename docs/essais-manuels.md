@@ -1253,6 +1253,15 @@ Module « Fil d'actualité » allumé. Éteint, Albums reste la liste d'avant.
 5. Un voyage surprise (que quelqu'un ne suit pas). **Attendu :** il n'apparaît pas dans Albums, même chez ceux qui le suivent. Il reste dans l'écran Voyages.
 6. Mets la taille du texte à 200 %. **Attendu :** un album par ligne, les titres restent lisibles.
 
+## Sondage lancé depuis un événement (retour du 18/11)
+
+1. Ouvre un événement, puis **Lancer un sondage**. **Attendu :** en haut, « Pour : <titre> · <date> », sans moyen de le changer. Les invités de l'événement sont cochés.
+2. **Attendu :** « De quoi parle le sondage ? » avec « La date », « Le lieu », « Le menu » et « Autre question sur <titre> ». Il n'y a plus d'exemples sans rapport, comme le repas de Noël.
+3. Touche « Le lieu ». **Attendu :** la question devient « Où fait-on <titre> ? », reste modifiable, et les réponses sont des choix libres. Touche « La date ». **Attendu :** « Quelle date pour <titre> ? » avec des dates à proposer.
+4. Écris ta propre question, puis touche « Autre question sur <titre> ». **Attendu :** ta question reste.
+5. Envoie, puis clôture le sondage. **Attendu :** il apparaît sur la page de l'événement, et la date de l'événement ne change pas toute seule.
+6. Lance un sondage depuis l'écran **Sondages** ou l'Accueil. **Attendu :** le formulaire libre de toujours, avec « Trouver une date » ou « Choix libre ».
+
 ## Nouveau Planning (PRODUIT-126)
 
 Avant de commencer : **Administration**, puis **Modules**, et allume « Nouveau Planning ». Éteint, l'onglet Planning ne change pas, même pour toi.
