@@ -1,5 +1,6 @@
 package fr.familia.app.core.model
 
+import kotlin.math.abs
 import kotlin.math.hypot
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -37,6 +38,7 @@ class TreeOfLifeTest {
         return GenealogyTree(members, kin, links)
     }
 
+    /** No two medallions closer than 4 dp, and no two touch squares of 56 dp closer than 8 dp. */
     private fun assertApart(life: TreeOfLife) {
         val points = life.centers.entries.toList()
         for (i in points.indices) for (j in i + 1 until points.size) {
@@ -44,6 +46,8 @@ class TreeOfLifeTest {
             val (b, pb) = points[j]
             val gap = hypot(pa.first - pb.first, pa.second - pb.second) - life.radiusOf(a) - life.radiusOf(b)
             assertTrue("$a and $b are $gap dp apart", gap >= 4f)
+            val apart = maxOf(abs(pa.first - pb.first), abs(pa.second - pb.second)) - TreeOfLife.TOUCH
+            assertTrue("the touch squares of $a and $b are $apart dp apart", apart >= TreeOfLife.SPACING)
         }
     }
 

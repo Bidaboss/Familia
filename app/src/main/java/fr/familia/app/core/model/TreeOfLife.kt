@@ -67,11 +67,11 @@ class TreeOfLife(tree: GenealogyTree, labelWidth: (String) -> Float = ::estimate
         flat.indices.forEach { i -> if (parentOf[i] >= 0) children[parentOf[i]].add(i) }
 
         fun ownWidth(i: Int): Float {
-            val (level, ids) = flat[i]
-            val radius = if (level == 0 && ids.size > 1) TRUNK_RADIUS else RADIUS
-            val medallions = ids.size * 2 * radius + (ids.size - 1) * COUPLE_GAP
+            val ids = flat[i].second
+            // Each medallion is touched in a square of TOUCH dp, SPACING dp from the next one.
+            val medallions = ids.size * TOUCH + (ids.size - 1) * SPACING
             val label = labelWidth(ids.joinToString(" et ") { tree.people.getValue(it).firstName }) + 2 * PILL_PADDING
-            return max(medallions, label) + UNIT_GAP
+            return max(medallions, label) + SPACING
         }
 
         val subtree = FloatArray(flat.size)
@@ -106,7 +106,7 @@ class TreeOfLife(tree: GenealogyTree, labelWidth: (String) -> Float = ::estimate
             left += subtree[t]
         }
 
-        units = flat.mapIndexed { i, (level, ids) -> Unit(ids, level, xs[i], -level * LEVEL_GAP, ownWidth(i) - UNIT_GAP) }
+        units = flat.mapIndexed { i, (level, ids) -> Unit(ids, level, xs[i], -level * LEVEL_GAP, ownWidth(i) - SPACING) }
         branches = flat.indices.mapNotNull { i ->
             val p = parentOf[i]
             val from = if (p >= 0) xs[p] to -flat[p].first * LEVEL_GAP else if (flat[i].first > 0) 0f to 0f else return@mapNotNull null
@@ -121,9 +121,8 @@ class TreeOfLife(tree: GenealogyTree, labelWidth: (String) -> Float = ::estimate
 
         val map = HashMap<String, Pair<Float, Float>>()
         units.forEach { u ->
-            val radius = if (u.level == 0 && u.ids.size > 1) TRUNK_RADIUS else RADIUS
-            val span = u.ids.size * 2 * radius + (u.ids.size - 1) * COUPLE_GAP
-            u.ids.forEachIndexed { k, id -> map[id] = (u.x - span / 2 + radius + k * (2 * radius + COUPLE_GAP)) to u.y }
+            val span = u.ids.size * TOUCH + (u.ids.size - 1) * SPACING
+            u.ids.forEachIndexed { k, id -> map[id] = (u.x - span / 2 + TOUCH / 2 + k * (TOUCH + SPACING)) to u.y }
         }
         roots.forEach { map[it.id] = it.x to it.y }
         centers = map
@@ -167,8 +166,9 @@ class TreeOfLife(tree: GenealogyTree, labelWidth: (String) -> Float = ::estimate
         const val RADIUS = 19f
         const val TRUNK_RADIUS = 21f
         const val ROOT_RADIUS = 16f
-        const val COUPLE_GAP = 6f
-        const val UNIT_GAP = 16f
+        /** The square one touches around each medallion, and the room between two (grille : 56 et 8 dp). */
+        const val TOUCH = 56f
+        const val SPACING = 8f
         const val PILL_PADDING = 10f
         const val LEVEL_GAP = 104f
         const val LABEL_DROP = 30f

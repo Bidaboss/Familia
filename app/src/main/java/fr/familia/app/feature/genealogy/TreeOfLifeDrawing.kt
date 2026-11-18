@@ -10,7 +10,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
@@ -50,6 +49,7 @@ import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -63,6 +63,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.familia.app.R
@@ -79,7 +80,6 @@ import fr.familia.app.core.ui.LocalMemberInitials
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.memberColor
 import kotlin.math.max
-import kotlin.math.min
 
 /** The colors of the spec (DESIGN, 18/11): an illustration, the same in every theme. */
 private object Palette {
@@ -110,7 +110,7 @@ private val PAD = 16.dp
 /**
  * « L'arbre de vie » (spec DESIGN du 18/11, switch arbreDeVie): [TreeOfLife] drawn on a Canvas, the
  * people on top as medallions one can touch. [outlined] (Contraste fort) rings them in dark. The
- * drawing fits the width first, then pinches from 1 to 3.
+ * drawing keeps its own size (never under 56 dp to touch), one pans along it and pinches from 1 to 3.
  */
 @Composable
 internal fun TreeOfLifeDrawing(
@@ -133,22 +133,31 @@ internal fun TreeOfLifeDrawing(
     // From the top left of the drawing to its point (0, 0), the top of the trunk.
     val ox = -left.dp + PAD
     val oy = -top.dp + PAD
+    // Never smaller than its own size: a medallion keeps its 56 dp to touch (grille). One pans to
+    // see the rest, and pinches up to 3, never so far that the drawing leaves the screen.
     var zoom by remember { mutableFloatStateOf(1f) }
     var pan by remember { mutableStateOf(Offset.Zero) }
+    var view by remember { mutableStateOf(IntSize.Zero) }
+    val widthPx = with(density) { width.toPx() }
+    val heightPx = with(density) { height.toPx() }
+    fun clamped(offset: Offset, scale: Float): Offset {
+        val spareX = max(0f, (widthPx * scale - view.width) / 2)
+        val spareY = max(0f, heightPx * scale - view.height)
+        return Offset(offset.x.coerceIn(-spareX, spareX), offset.y.coerceIn(-spareY, 0f))
+    }
     val transform = rememberTransformableState { change, move, _ ->
         zoom = (zoom * change).coerceIn(1f, MAX_ZOOM)
-        pan += move
+        pan = clamped(pan + move, zoom)
     }
-    BoxWithConstraints(
+    Box(
         modifier
             .fillMaxSize()
             .background(Brush.verticalGradient(Palette.Sky))
             .clipToBounds()
+            .onSizeChanged { view = it }
             .transformable(transform),
         contentAlignment = Alignment.TopCenter,
     ) {
-        // Too wide or too tall for the screen: smaller, never the text alone (spec, 200 %).
-        val fit = min(1f, min(maxWidth / width, maxHeight / height))
         Box(
             Modifier
                 .layout { measurable, _ ->
@@ -156,8 +165,8 @@ internal fun TreeOfLifeDrawing(
                     layout(placeable.width, placeable.height) { placeable.place(0, 0) }
                 }
                 .graphicsLayer {
-                    scaleX = fit * zoom
-                    scaleY = fit * zoom
+                    scaleX = zoom
+                    scaleY = zoom
                     transformOrigin = TransformOrigin(0.5f, 0f)
                     translationX = pan.x
                     translationY = pan.y
@@ -219,7 +228,7 @@ private fun Pill(text: String, style: TextStyle, outlined: Boolean, modifier: Mo
     )
 }
 
-/** One person: the photo or the initial in two rings, 48 dp to touch whatever its size. */
+/** One person: the photo or the initial in two rings, 56 dp to touch whatever its size (grille). */
 @Composable
 private fun Medallion(person: TreePerson, radius: Dp, word: String?, outlined: Boolean, onOpen: (String) -> Unit, modifier: Modifier) {
     val spoken = listOfNotNull(person.firstName, word, lifeLine(person)).joinToString(", ")
@@ -227,7 +236,7 @@ private fun Medallion(person: TreePerson, radius: Dp, word: String?, outlined: B
     val size = radius * 2
     Box(
         modifier
-            .size(max(48f, size.value).dp)
+            .size(TreeOfLife.TOUCH.dp)
             .clickable(onClickLabel = openLabel, role = Role.Button) { onOpen(person.id) }
             .semantics { contentDescription = spoken },
         contentAlignment = Alignment.Center,
