@@ -761,7 +761,7 @@
     <string name="gift_ideas_title">La surprise de la famille</string>
     <string name="gift_ideas_of">Surprise pour %1$s</string>
     <string name="gift_ideas_subtitle">%1$s ne voit jamais cette partie</string>
-    <string name="gift_ideas_notice">La surprise de la famille pour %1$s : notez et prenez des idées. %1$s ne voit jamais cette liste, ni qui a pris quoi.</string>
+    <string name="gift_ideas_notice">La surprise de la famille pour %1$s : note et prends des idées. %1$s ne voit jamais cette liste, ni qui a pris quoi.</string>
     <string name="gift_ideas_empty">Aucune idée pour l\'instant : ajoute la première.</string>
     <string name="gift_add_idea">Ajouter une idée</string>
     <string name="gift_occasion_christmas">Noël</string>
