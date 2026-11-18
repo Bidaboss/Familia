@@ -126,7 +126,7 @@
     <string name="member_not_found_title">Cette fiche ne s\'ouvre pas</string>
     <string name="member_not_found_body">Le membre a peut-être été retiré de la famille. Reviens à la liste et réessaie.</string>
     <string name="member_first_name">Prénom</string>
-    <string name="member_profile">Profil</string>
+    <string name="member_profile">Type de membre</string>
     <string name="member_email">Adresse Google</string>
     <string name="member_email_help">Celle avec laquelle la personne se connectera à l\'appli.</string>
     <string name="member_email_help_optional">Facultative : celle avec laquelle la personne se connectera. Tu peux l\'ajouter plus tard, au moment de l\'inviter.</string>
@@ -229,7 +229,7 @@
     <string name="feature_help_weekly_question">Chaque lundi, une question pour toute la famille sur l\'Accueil : on répond, puis on lit les autres.</string>
     <string name="feature_help_event_albums">Sur la fiche d\'un événement, section Photos : l\'album où chacun ajoute les siennes, dès le jour même.</string>
     <string name="feature_help_calendar">Sur un événement ou un anniversaire, « Ajouter à mon agenda » le copie dans l\'agenda du téléphone.</string>
-    <string name="feature_help_souvenirs">Des souvenirs offerts pour certains gestes, sur ta fiche : touche ta photo en haut, puis « Mon profil ».</string>
+    <string name="feature_help_souvenirs">Des souvenirs offerts pour certains gestes, sur ta fiche : touche ta photo en haut, puis « Ma fiche ».</string>
     <string name="feature_help_tree">Le défi du mois sur l\'Accueil : chaque photo partagée fait pousser l\'arbre (rien à voir avec l\'arbre généalogique).</string>
     <string name="feature_help_digest">Les avis des souvenirs, du défi et de la question de la semaine partent en une notification à 18 h.</string>
     <string name="feature_help_month_slideshow">Le diaporama du mois : les photos du mois passé, à regarder ou à partager en vidéo.</string>
@@ -384,7 +384,7 @@
     <string name="genealogy_kin_add">Ajouter un proche sans compte</string>
     <string name="genealogy_kin_edit">Modifier sa fiche</string>
     <string name="genealogy_word_title">Ton mot pour %1$s</string>
-    <string name="genealogy_word_help">Comment l\'appelles-tu ? « Mamie », « bonus-maman », un surnom… Toi seul le vois. Laisse vide pour l\'enlever.</string>
+    <string name="genealogy_word_help">Comment l\'appelles-tu ? « Mamie », « bonus-maman », un surnom… Toi seul le vois. Laisse vide pour le retirer.</string>
     <string name="genealogy_word_label">Ton mot</string>
     <string name="genealogy_word_action">Choisir ton mot pour %1$s</string>
     <string name="genealogy_save">Enregistrer</string>
@@ -634,7 +634,7 @@
     <string name="onboarding_next">Suivant</string>
     <string name="onboarding_start">C\'est parti</string>
     <string name="onboarding_allow_notifications">Autoriser les notifications</string>
-    <string name="onboarding_not_now">Pas maintenant</string>
+    <string name="onboarding_not_now">Plus tard</string>
     <string name="onboarding_welcome_title">Bienvenue dans Familia</string>
     <string name="onboarding_welcome_body">Tout le monde voit le même planning : les événements et les anniversaires de la famille. Touche un événement pour voir le détail.</string>
     <string name="onboarding_welcome_body_usage">Tout le monde voit le même planning : les événements et les anniversaires de la famille. Touche un événement pour voir le détail. L\'administrateur voit combien de temps chacun passe dans l\'appli, et les parents voient le temps de leurs enfants.</string>
@@ -651,7 +651,7 @@
     <string name="onboarding_notifications_body">Familia te prévient des nouveautés et te rappelle la veille d\'un événement. Autorise les notifications pour ne rien manquer. Tes réglages sont derrière ta photo, en haut à droite.</string>
     <!-- Mon compte et réglages, derrière la photo (DESIGN-12) -->
     <string name="account_open">Mon compte et réglages</string>
-    <string name="account_profile">Mon profil</string>
+    <string name="account_profile">Ma fiche</string>
     <string name="account_whats_new">Quoi de neuf ?</string>
     <!-- Aide (spec « tuto et aide », récits 26 et 27) -->
     <string name="help_button">Aide sur cet écran</string>
@@ -707,7 +707,7 @@
     <string name="help_topic_updates_title">Mettre à jour l\'appli</string>
     <string name="help_topic_updates_body">À l\'ouverture et chaque fois que tu reviens dans l\'appli, Familia vérifie s\'il existe une nouvelle version et propose de l\'installer depuis le dossier Drive. Tu peux aussi vérifier toi-même : touche ta photo en haut à droite, puis « Vérifier les mises à jour ».</string>
     <string name="help_topic_invite_title">Réservé aux chefs de famille : inviter un membre</string>
-    <string name="help_topic_invite_body">Dans l\'onglet Famille, touche « Ajouter un membre ». Indique son foyer et son profil. L\'adresse Google peut attendre : ajoute-la quand tu veux l\'inviter, puis envoie-lui l\'invitation par WhatsApp ou SMS.</string>
+    <string name="help_topic_invite_body">Dans l\'onglet Famille, touche « Ajouter un membre ». Indique son foyer et son type de membre. L\'adresse Google peut attendre : ajoute-la quand tu veux l\'inviter, puis envoie-lui l\'invitation par WhatsApp ou SMS.</string>
     <string name="help_topic_export_title">Réservé à l\'admin principal : sauvegarder les données</string>
     <string name="help_topic_export_body">Touche ta photo en haut à droite, ouvre « Administration » puis « Sauvegarde des données ». Elle enregistre toutes les données dans un fichier JSON, sur le téléphone ou dans ton Drive.</string>
     <!-- Listes et cadeaux (PRD, V2, récits 7 à 10 bis) -->
@@ -945,7 +945,7 @@
 
     <!-- Coups de main (PRD, récits 13 à 18) : fil [DEV] coups de main -->
     <string name="nav_help_requests">Entraide</string>
-    <string name="helprequest_screen_title">Coups de main</string>
+    <string name="helprequest_screen_title">Entraide</string>
     <string name="helprequest_photo_title">Photo</string>
     <string name="helprequest_photo_hint">Un QR code de colis, ce qu\'il faut récupérer, l\'endroit : seuls ceux que tu préviens la voient.</string>
     <string name="helprequest_photo_label">Photo jointe à la demande</string>
@@ -1046,7 +1046,7 @@
     <string name="helprequest_late_taken">Quelqu\'un s\'en occupait déjà. Merci d\'avoir proposé ton aide !</string>
     <string name="helprequest_todo_needs_network">Il faut du réseau pour répondre. Réessaie une fois connecté.</string>
     <string name="helprequest_todo_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
-    <string name="helprequest_r1bis_title">Coups de main</string>
+    <string name="helprequest_r1bis_title">Entraide</string>
     <string name="helprequest_r1bis_needs_you">On a besoin de toi</string>
     <string name="helprequest_r1bis_mine">Mes demandes</string>
     <string name="helprequest_r1bis_handled">Déjà pris en charge</string>
@@ -1124,7 +1124,7 @@
     <string name="goodnews_add_photos">Choisir des photos</string>
     <string name="goodnews_add_more_photos">Ajouter une photo</string>
     <string name="goodnews_photo_number">Photo %1$d</string>
-    <string name="goodnews_photo_remove">Enlever la photo %1$d</string>
+    <string name="goodnews_photo_remove">Retirer la photo %1$d</string>
     <string name="goodnews_error_no_photo">Ajoute au moins une photo</string>
     <string name="goodnews_photos_fixed">Les photos ne se changent pas. Pour en mettre d\'autres, retire cette bonne nouvelle et publies-en une nouvelle.</string>
     <string name="goodnews_for">De qui est cette nouvelle ?</string>
@@ -1137,7 +1137,7 @@
     <string name="goodnews_leave_title">Abandonner cette bonne nouvelle ?</string>
     <string name="goodnews_waiting_network">Plus de réseau : l\'envoi reprendra tout seul dès son retour. Garde cet écran ouvert.</string>
     <string name="goodnews_cancel_sending">Annuler l\'envoi</string>
-    <string name="goodnews_photo_unreadable">Une des photos n\'a pas pu être lue. Enlève-la ou choisis-en une autre.</string>
+    <string name="goodnews_photo_unreadable">Une des photos n\'a pas pu être lue. Retire-la ou choisis-en une autre.</string>
     <string name="goodnews_publish_failed">La bonne nouvelle n\'a pas pu être publiée. Ton texte et tes photos sont gardés : touche « Publier » pour réessayer.</string>
     <string name="goodnews_home_empty">Rien de neuf depuis deux semaines. Partage une photo ou une bonne nouvelle !</string>
     <string name="goodnews_home_all">Toutes les bonnes nouvelles</string>
@@ -1368,7 +1368,7 @@
     <string name="profile_v2_address_add">Ajouter l\'adresse du foyer</string>
     <string name="profile_v2_address_edit">Changer l\'adresse du foyer</string>
     <string name="profile_v2_address_title">Adresse du foyer</string>
-    <string name="profile_v2_coordinates_empty_removes">Laisse vide pour l\'enlever.</string>
+    <string name="profile_v2_coordinates_empty_removes">Laisse vide pour le retirer.</string>
     <string name="profile_v2_save">Enregistrer</string>
     <string name="profile_v2_cancel">Annuler</string>
     <string name="profile_v2_save_failed">Ce n\'est pas enregistré. Vérifie ta connexion, puis réessaie.</string>
@@ -1399,7 +1399,7 @@
     <string name="profile_v2_age_line">%1$s · anniversaire le %2$s</string>
     <string name="profile_v2_birthday_pill">Anniversaire %1$s</string>
     <string name="profile_v2_birthday_pill_today">Anniversaire aujourd\'hui</string>
-    <string name="profile_v2_wishes_button">Vœux</string>
+    <string name="profile_v2_wishes_button">Lui souhaiter</string>
     <string name="profile_v2_fill_title">Ta fiche est remplie à %1$d %%</string>
     <string name="profile_v2_fill_missing">Il manque %1$s. Ça aide la famille à te faire plaisir.</string>
     <string name="profile_v2_fill_photo">ta photo</string>
@@ -1487,7 +1487,7 @@
     <string name="photo_book_is_big">Seule sur sa page</string>
     <string name="photo_book_make">Faire le livre photo</string>
     <string name="print_failed_no_room">Il n\'y a plus assez de place sur le téléphone pour ce fichier. Libère de la place (photos, vidéos, applis), puis réessaie.</string>
-    <string name="print_failed_too_big">Ce fichier est trop gros pour ce téléphone. Enlève des photos, puis réessaie.</string>
+    <string name="print_failed_too_big">Ce fichier est trop gros pour ce téléphone. Retire des photos, puis réessaie.</string>
     <string name="photo_book_failed">Le livre n\'a pas pu être fait. Vérifie ta connexion, puis réessaie.</string>
     <string name="photo_book_hint">Les photos sont téléchargées en pleine qualité, une seule fois. Une boutique photo peut l\'imprimer.</string>
     <string name="photo_book_share_chooser">Enregistrer, imprimer ou envoyer le livre photo</string>
@@ -1786,7 +1786,7 @@
     <string name="help_topic_weekly_title">Répondre à la question de la semaine</string>
     <string name="help_topic_weekly_body">Chaque lundi à 9 h, une question arrive pour toute la famille, sur l\'Accueil. Réponds en quelques mots, ou touche « Passer ». Tu vois les réponses des autres dès que tu as répondu ou passé, et tout le monde les voit le mercredi vers 9 h. Tu peux modifier ou retirer ta réponse. « Nos réponses » garde les questions des semaines passées. Pour ne plus être prévenu le lundi, va dans les réglages des notifications.</string>
     <string name="help_topic_souvenirs_title">Mes souvenirs</string>
-    <string name="help_topic_souvenirs_body">Familia te donne un souvenir pour certains gestes : ta première Bonne nouvelle, 10 réactions, 5 coups de main rendus, ton premier « bien arrivé » en voyage, tes réponses à la question de la semaine, et ta première année dans Familia. Tu les trouves sur ta fiche : touche ta photo en haut à droite, puis « Mon profil ». Ils sont privés : touche « Montrer sur ma fiche » pour que la famille voie ceux que tu choisis. Il n\'y a ni classement ni score. Pour ne plus être prévenu d\'un nouveau souvenir, va dans les réglages des notifications.</string>
+    <string name="help_topic_souvenirs_body">Familia te donne un souvenir pour certains gestes : ta première Bonne nouvelle, 10 réactions, 5 coups de main rendus, ton premier « bien arrivé » en voyage, tes réponses à la question de la semaine, et ta première année dans Familia. Tu les trouves sur ta fiche : touche ta photo en haut à droite, puis « Ma fiche ». Ils sont privés : touche « Montrer sur ma fiche » pour que la famille voie ceux que tu choisis. Il n\'y a ni classement ni score. Pour ne plus être prévenu d\'un nouveau souvenir, va dans les réglages des notifications.</string>
     <!-- Accueil (PRD, récit 29, « Tableau de bord d'accueil ») -->
     <string name="nav_home">Accueil</string>
     <string name="home_empty_title">Rien de prévu pour l\'instant</string>
@@ -2993,9 +2993,9 @@
     <string name="planning_v2_subtitle">%1$s · %2$s</string>
     <string name="planning_v2_scope_family">toute la famille</string>
     <string name="planning_v2_scope_household">mon foyer</string>
-    <string name="planning_v2_scope_house">ma maison</string>
+    <string name="planning_v2_scope_house">mon foyer</string>
     <string name="planning_v2_scope_button_household">Mon foyer seulement</string>
-    <string name="planning_v2_scope_button_house">Ma maison seulement</string>
+    <string name="planning_v2_scope_button_house">Mon foyer seulement</string>
     <string name="planning_v2_choose_view">Choisir Semaine ou Mois</string>
     <string name="planning_v2_previous">Précédent</string>
     <string name="planning_v2_next">Suivant</string>

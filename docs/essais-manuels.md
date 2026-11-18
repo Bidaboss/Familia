@@ -61,7 +61,7 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 1. Installe l'appli sur un téléphone où elle n'a jamais été ouverte, puis connecte-toi avec un compte adulte. **Attendu :** « Bienvenue dans Familia » s'affiche, avec « 1 sur 4 » en haut.
 2. Touche « Suivant » jusqu'au 3e écran. **Attendu :** « Dire si tu viens » parle aussi de répondre pour tes enfants. Avec un compte enfant, ou un adulte sans enfant rattaché (un grand-parent par exemple), cette phrase n’apparaît pas.
 3. Touche le bouton retour d'Android. **Attendu :** l'écran précédent s'affiche.
-4. Touche « Passer ». **Attendu :** l'écran « Rester prévenu » s'affiche (4 sur 4), avec « Autoriser les notifications » et « Pas maintenant ».
+4. Touche « Passer ». **Attendu :** l'écran « Rester prévenu » s'affiche (4 sur 4), avec « Autoriser les notifications » et « Plus tard ».
 5. Touche « Autoriser les notifications », puis accepte dans la fenêtre d'Android. **Attendu :** le planning s'ouvre.
 6. Ferme l'appli, puis rouvre-la. **Attendu :** le tuto ne s'affiche plus.
 
@@ -480,7 +480,7 @@ Il faut une version publiée avec un fichier dans `docs/whats-new`, et un télé
 
 ## Ma photo en haut à droite (DESIGN-12)
 1. Sur chacun des 5 onglets : **Attendu :** ta photo (ou tes initiales) à droite de la barre du haut, après le « ? ». TalkBack lit « Mon compte et réglages ».
-2. Touche-la. **Attendu :** une feuille s'ouvre avec, dans l'ordre : Mon profil, Apparence, Notifications, Aide, Vérifier les mises à jour, « Une idée ? Un souci ? », puis Partager Familia pour l'admin principal seulement. Une ligne absente veut dire que son module est éteint.
+2. Touche-la. **Attendu :** une feuille s'ouvre avec, dans l'ordre : Ma fiche, Apparence, Notifications, Aide, Vérifier les mises à jour, « Une idée ? Un souci ? », puis Partager Familia pour l'admin principal seulement. Une ligne absente veut dire que son module est éteint.
 3. Avec le compte de l'admin principal : **Attendu :** « Administration » en dernier, après un trait. Avec un autre compte, pas de ligne Administration.
 4. Avec un parent d'un enfant qui a l'appli (pas l'admin) : **Attendu :** « Temps de mes enfants » dans la feuille.
 5. Touche une ligne. **Attendu :** la feuille se ferme et l'écran s'ouvre.
@@ -1108,7 +1108,7 @@ Si quelque chose ne va pas le 20 au soir, préviens [DEV] : on revient à l'icô
 ## Ouverture rapide d'un compte déjà connecté
 
 1. Sur un téléphone déjà connecté, ferme Familia en la balayant des applis récentes. Coupe le Wi-Fi et la 4G, puis rouvre Familia. **Attendu :** l'Accueil s'ouvre tout de suite, sans écran de connexion ni « Réessayer ».
-2. Remets le réseau. Depuis un autre téléphone d'admin, change le prénom de ce membre. Ferme et rouvre Familia sur le premier téléphone. **Attendu :** l'appli s'ouvre tout de suite, et le nouveau prénom apparaît quelques secondes après au plus (par exemple dans Mon profil).
+2. Remets le réseau. Depuis un autre téléphone d'admin, change le prénom de ce membre. Ferme et rouvre Familia sur le premier téléphone. **Attendu :** l'appli s'ouvre tout de suite, et le nouveau prénom apparaît quelques secondes après au plus (par exemple dans Ma fiche).
 3. Sur un téléphone partagé, déconnecte-toi puis connecte un autre membre. **Attendu :** c'est bien l'autre membre qui entre, jamais le précédent.
 
 ## Planning allégé : les compteurs « viennent »
@@ -1251,7 +1251,7 @@ Avant de commencer : **Administration**, puis **Modules**, et allume « Nouveau 
 5. Touche les flèches. **Attendu :** la semaine change. La flèche de gauche est grisée sur la semaine d'aujourd'hui.
 6. Touche le titre. **Attendu :** le choix « Semaine » ou « Mois ». Choisis « Mois ». **Attendu :** « Novembre 2026 ▾ », une grille blanche avec le chiffre, le mot et la pastille de chaque jour. Touche un jour : il passe en noir et ses cartes s'affichent dessous.
 7. Touche le rond lilas. **Attendu :** il devient plein, et le sous-titre dit « mon foyer ». Seuls les événements de ton foyer restent, avec tous les anniversaires. Touche-le encore pour revenir à toute la famille.
-8. Sur le téléphone d'un enfant qui a l'appli : **attendu :** le sous-titre dit « ma maison », et « Ajouté par toi » apparaît sur ce qu'il a créé.
+8. Sur le téléphone d'un enfant qui a l'appli : **attendu :** le sous-titre dit « mon foyer », et « Ajouté par toi » apparaît sur ce qu'il a créé.
 9. Mets la taille du texte à 130 %. **Attendu :** le titre passe sur deux lignes, sans être coupé. Les mots de la frise peuvent être coupés, mais la carte du jour touché les donne en entier.
 10. Éteins le module. **Attendu :** l'ancien Planning revient tel qu'il était.
 
