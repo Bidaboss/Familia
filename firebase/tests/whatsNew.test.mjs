@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { checkFile, mergeWhatsNew, readWhatsNew } from '../functions/scripts/whats-new.mjs';
+import { checkFile, dueFiles, mergeWhatsNew, parisToday, readWhatsNew } from '../functions/scripts/whats-new.mjs';
 
 const card = (id, more = {}) => ({ id, title: `Titre ${id}`, body: `Une phrase pour ${id}.`, ...more });
 
@@ -47,4 +47,22 @@ test('a new file takes the version published, an old one keeps its number, a rem
   assert.deepEqual(merged.map((r) => [r.id, r.versionCode]), [['2026-11-28', 210], ['2026-12-05', 230]]);
   assert.equal(merged[0].cards[0].body, 'Texte corrigé.');
   assert.deepEqual(mergeWhatsNew(undefined, files, 230, '1.230').map((r) => r.versionCode), [230, 230]);
+});
+
+test('a file dated later waits for its own publication, and leaves a history it entered too early', () => {
+  const files = [
+    { id: '2026-11-20', cards: [card('a')] },
+    { id: '2026-11-23', cards: [card('b')] },
+    { id: 'sans-date', cards: [card('c')] },
+  ];
+  assert.deepEqual(dueFiles(files, '2026-11-20').map((f) => f.id), ['2026-11-20', 'sans-date']);
+  assert.deepEqual(dueFiles(files, '2026-11-23').map((f) => f.id), ['2026-11-20', '2026-11-23', 'sans-date']);
+  // Published too early with the same number: the next publication takes it out, a later one gives it its own.
+  const tooEarly = [{ id: '2026-11-23', versionCode: 200, versionName: '1.200', cards: [card('b')] }];
+  assert.deepEqual(mergeWhatsNew(tooEarly, dueFiles(files, '2026-11-20'), 210, '1.210').map((r) => r.id), ['2026-11-20', 'sans-date']);
+});
+
+test("today is read in Paris", () => {
+  assert.equal(parisToday(new Date('2026-11-20T23:30:00Z')), '2026-11-21');
+  assert.equal(parisToday(new Date('2026-11-20T12:00:00Z')), '2026-11-20');
 });
