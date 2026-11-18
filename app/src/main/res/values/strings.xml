@@ -189,6 +189,8 @@
     <string name="administration_group_open">ouvert, toucher pour fermer</string>
     <string name="administration_group_closed">fermé, toucher pour ouvrir</string>
     <string name="administration_features_help">Un module éteint est caché à la famille, mais toi tu le vois toujours.</string>
+    <string name="administration_firebase_budget">Budget Firebase</string>
+    <string name="administration_firebase_budget_help">Ouvre la console Firebase : utilisation, facturation et alerte de budget.</string>
     <string name="administration_features_choice">Au choix</string>
     <string name="administration_features_new">Nouvelles versions</string>
     <string name="administration_features_new_help">À garder allumées une fois validées. Après le 21, l\'ancienne version et son interrupteur disparaîtront.</string>

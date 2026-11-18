@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.Campaign
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.QueryStats
 import androidx.compose.material.icons.outlined.SaveAlt
+import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.AlertDialog
@@ -55,6 +56,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -490,6 +492,30 @@ private fun ReadyContent(
                 if (consumption != null) {
                     item(key = "consumption") { ConsumptionSection(consumption) }
                 }
+                // Kévin le 18/11 : le budget Firebase en un geste, depuis Administration.
+                item(key = "firebase-budget") {
+                    val uri = LocalUriHandler.current
+                    HorizontalDivider(Modifier.padding(top = 8.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { uri.openUri(FIREBASE_BUDGET_URL) }
+                            .heightIn(min = 56.dp)
+                            .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(Icons.Outlined.Savings, contentDescription = null)
+                        Spacer(Modifier.width(16.dp))
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(stringResource(R.string.administration_firebase_budget), style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                stringResource(R.string.administration_firebase_budget_help),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
             }
         }
         adminGroup("data", R.string.administration_group_data, R.string.administration_group_data_help, open, ::toggle) {
@@ -855,3 +881,6 @@ private fun ViewAsDialog(members: List<Member>, onPick: (Member) -> Unit, onDism
         },
     )
 }
+
+/** Utilisation et facturation du projet Firebase : la consommation, le forfait et l'alerte de budget. */
+private const val FIREBASE_BUDGET_URL = "https://console.firebase.google.com/project/familia-93286/usage/details"
