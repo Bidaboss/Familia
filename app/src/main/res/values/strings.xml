@@ -2154,8 +2154,8 @@
     <string name="question_how_title">La question du lundi</string>
     <string name="question_how_principle">Chaque lundi, une question pour toute la famille. Tu réponds, puis tu vois les réponses des autres. Personne n\'est obligé.</string>
     <string name="question_how_principle_start">Première question le lundi %1$s.</string>
-    <string name="weekly_open">répondre à la question</string>
-    <string name="weekly_open_answers">voir les réponses</string>
+    <string name="challenges_weekly_open">répondre à la question</string>
+    <string name="challenges_weekly_open_answers">voir les réponses</string>
     <string name="host_look_note">Un mot pour la famille (facultatif)</string>
     <string name="host_look_note_help">Il s\'affiche quand on touche le défi. Sans mot, Familia explique le défi tout seul.</string>
     <string name="challenge_home_label">Défi du mois</string>

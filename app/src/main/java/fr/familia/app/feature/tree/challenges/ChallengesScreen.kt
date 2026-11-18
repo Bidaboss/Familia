@@ -253,8 +253,8 @@ private fun WeeklyCard(state: WeeklyQuestionUiState, onOpen: () -> Unit, onExpla
     val open = if (state is WeeklyQuestionUiState.Success) onOpen else onExplain
     val label = when {
         state !is WeeklyQuestionUiState.Success -> stringResource(R.string.challenge_how_open)
-        answered -> stringResource(R.string.weekly_open_answers)
-        else -> stringResource(R.string.weekly_open)
+        answered -> stringResource(R.string.challenges_weekly_open_answers)
+        else -> stringResource(R.string.challenges_weekly_open)
     }
     Column(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(Color.White)
