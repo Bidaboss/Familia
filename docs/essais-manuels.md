@@ -1207,13 +1207,14 @@ Dans « Le fil » de l'Accueil :
 13. Passe le téléphone en réseau faible (Options pour les développeurs > réseau limité, ou mode avion juste après avoir touché « Envoyer »), puis commente une Bonne nouvelle depuis le fil. **Attendu :** « Envoyer » se grise pendant au plus 4 s, puis le champ se ferme ; un second toucher n'envoie pas le commentaire deux fois ; le fil reste utilisable pendant ce temps. Le commentaire part au retour du réseau.
 14. En « Voir comme » un membre fêté prochainement. **Attendu :** aucune carte du fil ne parle d'un cadeau ou d'une surprise pour elle ; un coup de main dont elle n'est pas prévenue n'apparaît pas.
 
-## Fil d'actualité : une tuile par actualité (PRODUIT-127)
+## Fil d'actualité : une tuile par actualité (PRODUIT-127, PRODUIT-130)
 
 Module « Fil d'actualité » allumé.
 
-1. Ouvre « Le fil ». **Attendu :** chaque actualité est une carte blanche aux coins arrondis comme celles du Planning, avec une ombre très douce et un fin trait de sa couleur dessous. Il n'y a plus de liseré coloré à gauche ; la pastille du type reste en haut à droite.
-2. **Attendu :** 8 dp entre deux actualités d'un même jour, un peu plus avant et après « Aujourd'hui », « Hier ».
-3. En thème sombre, puis à 130 % de taille de texte. **Attendu :** les cartes restent lisibles et séparées, rien n'est coupé.
+1. Ouvre « Le fil ». **Attendu :** chaque actualité est une tuile aux coins arrondis comme les cartes du Planning, de la couleur des cartes du thème, avec un fin contour et une ombre douce. Il n'y a ni liseré coloré à gauche ni trait coloré dessous ; la pastille du type reste en haut à droite.
+2. **Attendu :** 10 dp entre deux actualités d'un même jour, un peu plus avant et après « Aujourd'hui », « Hier ».
+3. Dans Réglages > Apparence, passe par Classique, Contraste fort, Hiver, Espagne, puis le thème sombre. **Attendu :** dans chaque thème, les tuiles se détachent nettement du fond ; aucune ne se fond dedans.
+4. À 130 % de taille de texte. **Attendu :** les tuiles restent lisibles et séparées, rien n'est coupé.
 
 ## Fil d'actualité : la bascule « Aujourd'hui | Le fil » (PRODUIT-128)
 
