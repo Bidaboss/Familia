@@ -11,15 +11,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -34,8 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.Member
@@ -46,7 +41,6 @@ import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
-import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.feature.souvenirs.BravoSheet
 import fr.familia.app.feature.souvenirs.SouvenirKind
@@ -74,8 +68,8 @@ fun MemberProfileScreen(
     thinkOfMe: (@Composable (Member) -> Unit)? = null,
     /** « Ses envies » and « Ce que je lui offre » (retour d'essai, 17/11), while Cadeaux is on. */
     gifts: (@Composable (Member) -> Unit)? = null,
-    /** « Nouvelle fiche de membre » (récit 66): null keeps the page as it was. */
-    v2: ProfileV2Ui? = null,
+    /** What the page organised in sections reads besides the member (récit 66). */
+    v2: ProfileV2Ui = ProfileV2Ui(null),
 ) {
     (state as? MemberProfileUiState.Ready)?.bravo?.let { souvenir ->
         SouvenirKind.of(souvenir.key)?.let { kind ->
@@ -93,19 +87,14 @@ fun MemberProfileScreen(
     Scaffold(
         topBar = {
             val ready = state as? MemberProfileUiState.Ready
-            // The new page (PRODUIT-114): the bar takes the color of the band under it, and the first
-            // name lives in the page; « Ma fiche » on mine. Never a ⋮ menu.
-            val banded = v2 != null && ready != null
+            // PRODUIT-114: the bar takes the color of the band under it, and the first name lives in
+            // the page; « Ma fiche » on mine. Never a ⋮ menu.
             TopAppBar(
                 title = {
-                    val title = when {
-                        !banded -> ready?.member?.firstName.orEmpty()
-                        ready?.isMe == true -> stringResource(R.string.profile_v2_my_page)
-                        else -> ""
-                    }
+                    val title = if (ready?.isMe == true) stringResource(R.string.profile_v2_my_page) else ""
                     Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 },
-                colors = if (banded && ready != null) {
+                colors = if (ready != null) {
                     TopAppBarDefaults.topAppBarColors(
                         containerColor = memberColor(ready.member),
                         titleContentColor = OnMemberColor,
@@ -122,7 +111,7 @@ fun MemberProfileScreen(
                         TextButton(
                             onClick = onEdit,
                             modifier = Modifier.heightIn(min = 56.dp),
-                            colors = if (banded) ButtonDefaults.textButtonColors(contentColor = OnMemberColor) else ButtonDefaults.textButtonColors(),
+                            colors = ButtonDefaults.textButtonColors(contentColor = OnMemberColor),
                         ) {
                             Text(stringResource(R.string.profile_edit))
                         }
@@ -139,59 +128,8 @@ fun MemberProfileScreen(
                     title = stringResource(R.string.member_not_found_title),
                     body = stringResource(R.string.profile_not_found_body),
                 )
-                is MemberProfileUiState.Ready -> if (v2 != null) {
-                    ContentV2(state, v2, onSetShown, onOpenRecipes, wishes, card, thinkOfMe, gifts)
-                } else {
-                    Content(state, onSetShown, onOpenRecipes, wishes, card, thinkOfMe, gifts)
-                }
+                is MemberProfileUiState.Ready -> ContentV2(state, v2, onSetShown, onOpenRecipes, wishes, card, thinkOfMe, gifts)
             }
-        }
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun Content(
-    state: MemberProfileUiState.Ready,
-    onSetShown: (String, Boolean) -> Unit,
-    onOpenRecipes: (() -> Unit)?,
-    wishes: (@Composable (Member) -> Unit)?,
-    card: (@Composable (Member) -> Unit)?,
-    thinkOfMe: (@Composable (Member) -> Unit)?,
-    gifts: (@Composable (Member) -> Unit)?,
-) {
-    val member = state.member
-    Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            MemberAvatar(member, size = 72.dp)
-            Column {
-                Text(member.firstName, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
-                state.householdName?.let { Text(it, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                member.birthDate?.let {
-                    Text(stringResource(R.string.profile_birthday, birthdayLabel(it)), style = MaterialTheme.typography.bodyLarge)
-                }
-            }
-        }
-        // On the day, and until the next birthday, the cards of vœux (récit 36).
-        wishes?.invoke(member)
-        // What to offer, what to cook (récit 7 bis).
-        card?.invoke(member)
-        gifts?.invoke(member)
-        thinkOfMe?.invoke(member)
-        // The recipes that come from this member (récit 38).
-        onOpenRecipes?.let { open ->
-            OutlinedButton(onClick = open, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.profile_recipes))
-            }
-        }
-
-        Text(stringResource(R.string.souvenirs_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
-        SouvenirsContent(state, onSetShown)
-        if (state.saveFailed) {
-            Text(stringResource(R.string.notifications_save_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
