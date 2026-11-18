@@ -4,9 +4,10 @@
 import { after, beforeEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import { Notice } from '../src/logic';
 import { AnnouncementData, announcementNotice, announcementRecipients, deleteAnnouncementsOf, onAnnouncementCreated } from '../src/announcements';
+import { sendHeldNotices } from '../src/prefs';
 import { Sender } from '../src/store';
 
 function announcement(overrides: Partial<AnnouncementData> = {}): AnnouncementData {
@@ -90,6 +91,23 @@ describe('against the emulator', () => {
       const items = (await db.doc(`quietQueue/${id}`).get()).get('items') as Notice[];
       assert.equal(items[0].announcementId, 'a1');
     }
+  });
+
+  test('at 8 h it comes alone and whole, never inside « Cette nuit dans Familia »', async () => {
+    const { sent, send } = fakeSender();
+    await onAnnouncementCreated(db, send, 'a1', announcement(), NIGHT);
+    await db.doc('quietQueue/ines').update({
+      items: FieldValue.arrayUnion(
+        { channel: 'events', title: 'Nouvel événement', body: 'Goûter', heldAt: NIGHT.toISOString() },
+        { channel: 'goodNews', title: 'Bonne nouvelle', body: 'Lou a marché', heldAt: NIGHT.toISOString() },
+      ),
+    });
+    await sendHeldNotices(db, send, new Date('2026-11-19T07:30:00Z'));
+    const toInes = sent.filter((s) => s.token === 'token-ines').map((s) => s.notice);
+    const mine = toInes.find((n) => n.announcementId === 'a1');
+    assert.ok(mine);
+    assert.equal(mine.title, 'Repas de dimanche');
+    assert.equal(toInes.length, 2);
   });
 
   test('« Urgent » rings at once, even at night', async () => {

@@ -179,6 +179,12 @@ enum class Feature(
      * principal ne voit pas la case.
      */
     AlreadyBought("alreadyBought", R.string.feature_already_bought),
+    /**
+     * « Envoyer une notification » dans Administration (PRD récit 69, PRODUIT-111) : l'admin principal
+     * écrit à la famille, sans réponse. Lu avec isOnForFamily : éteint, même l'admin principal ne voit
+     * pas l'entrée, et le serveur refuse l'envoi.
+     */
+    AdminAnnouncements("adminAnnouncements", R.string.feature_admin_announcements),
 }
 
 /**

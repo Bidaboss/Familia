@@ -46,6 +46,10 @@ import fr.familia.app.core.crash.CrashCatcher
 import fr.familia.app.core.crash.PendingCrashStore
 import fr.familia.app.core.crash.crashScreenName
 import fr.familia.app.core.crash.sendPendingCrashes
+import fr.familia.app.feature.announcements.AnnouncementDestination
+import fr.familia.app.feature.announcements.AnnouncementRoute
+import fr.familia.app.feature.announcements.AnnouncementsDestination
+import fr.familia.app.feature.announcements.AnnouncementsRoute
 import fr.familia.app.feature.crashes.CrashesDestination
 import fr.familia.app.feature.crashes.CrashesRoute
 import fr.familia.app.core.whatsnew.WhatsNewHost
@@ -353,6 +357,9 @@ fun FamiliaApp(
     /** A rotation whose turn or exchange was touched (récit 58). */
     openTurnId: String? = null,
     onTurnOpened: () -> Unit = {},
+    /** A message of the admin principal whose notification was touched (récit 69). */
+    openAnnouncementId: String? = null,
+    onAnnouncementOpened: () -> Unit = {},
     /** A link shared from another app, to add to « Mes envies » once (récit 8 bis). */
     sharedWish: SharedWish? = null,
     onSharedWishOpened: () -> Unit = {},
@@ -658,6 +665,14 @@ fun FamiliaApp(
         if (openTurnId != null && appConfig != null && ownerId != null) {
             if (features.isOn(Feature.Turns)) navController.navigate(TurnDetailDestination(openTurnId))
             onTurnOpened()
+        }
+    }
+
+    // Annonces de l'admin (récit 69): the whole message, whatever the module says now (it was sent).
+    LaunchedEffect(openAnnouncementId) {
+        if (openAnnouncementId != null) {
+            navController.navigate(AnnouncementDestination(openAnnouncementId)) { launchSingleTop = true }
+            onAnnouncementOpened()
         }
     }
 
@@ -1732,7 +1747,23 @@ fun FamiliaApp(
                             onOpenUsage = { navController.navigate(UsageDestination) },
                             onOpenFeedback = { navController.navigate(FeedbackListDestination) },
                             onOpenCrashes = { navController.navigate(CrashesDestination) { launchSingleTop = true } },
+                            onOpenAnnouncements = { navController.navigate(AnnouncementsDestination) { launchSingleTop = true } },
                             seeWhere = { feature -> navController.seeWhere(feature, currentMember.id, nextEventId) },
+                        )
+                    }
+                    composable<AnnouncementsDestination> {
+                        AnnouncementsRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onBack = { navController.popBackStack() },
+                            onOpen = { id -> navController.navigate(AnnouncementDestination(id)) },
+                        )
+                    }
+                    composable<AnnouncementDestination> { entry ->
+                        AnnouncementRoute(
+                            container = container,
+                            announcementId = entry.toRoute<AnnouncementDestination>().announcementId,
+                            onBack = { navController.popBackStack() },
                         )
                     }
                     composable<CrashesDestination> {

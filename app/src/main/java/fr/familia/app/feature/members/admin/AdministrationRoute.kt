@@ -40,6 +40,8 @@ fun AdministrationRoute(
     onOpenFeedback: (() -> Unit)? = null,
     /** « Plantages » (récit 6 sexies, rév. 220). */
     onOpenCrashes: (() -> Unit)? = null,
+    /** « Envoyer une notification » (récit 69). */
+    onOpenAnnouncements: (() -> Unit)? = null,
     /** « Voir où » under a module switch: the screen that shows it, or null. */
     seeWhere: (Feature) -> (() -> Unit)? = { null },
 ) {
@@ -113,6 +115,10 @@ fun AdministrationRoute(
             feedbackUnseen = newCount(feedback),
             onOpenCrashes = onOpenCrashes.takeIf { container?.crashRepository != null },
             crashCount = crashCount,
+            // Read for the family: switched off, even the admin principal does not see the entry.
+            onOpenAnnouncements = onOpenAnnouncements.takeIf {
+                flags.isOnForFamily(Feature.AdminAnnouncements) && container?.announcementRepository != null
+            },
             // Shown while « À découvrir » is on (always for the admin principal while in test).
             discoverOrder = Discover.order(discoverKeys),
             discoverInTutorial = Discover.inTutorial(flags::isOn),

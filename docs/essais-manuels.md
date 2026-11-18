@@ -1162,3 +1162,17 @@ Présentation R1 bis et liste unique allumées.
 2. **Attendu :** sous le dessin, le pourcentage avance avec le téléchargement, puis la barre verte. Le texte d'aide dit de toucher « Installer sans analyser » si Android propose d'analyser l'appli.
 3. Avec TalkBack. **Attendu :** le titre, « Téléchargement : 42 % » (le vrai pourcentage), puis le texte d'aide. Le dessin n'est pas lu.
 4. Coupe les animations du téléphone (Options pour les développeurs, échelle d'animation désactivée). **Attendu :** la ronde est fixe. Seuls le pourcentage et la barre avancent.
+
+## Annonces de l'admin : envoyer une notification (récit 69)
+
+Après « Publier Firebase ». Deux téléphones : celui de l'admin principal et celui d'un autre adulte.
+
+1. Administration, module « Annonces de l'admin » éteint. **Attendu :** pas de ligne « Envoyer une notification », même pour l'admin principal.
+2. Allume le module. **Attendu :** la ligne « Envoyer une notification » apparaît en haut d'Administration, sous « Démo et présentation ».
+3. Ouvre-la. **Attendu :** tout le monde est coché, rangé par foyer, sauf toi et les enfants sans l'appli. Décocher un foyer décoche tous ses membres.
+4. Écris un titre (60 caractères au plus) et un message (300 au plus). **Attendu :** l'aperçu montre le titre et le début du message ; « Envoyer à N personnes » s'allume.
+5. Touche « Envoyer », puis « Envoyer » dans la fenêtre. **Attendu :** « Message envoyé. », le message dans « Déjà envoyées » avec « envoyé ». L'autre téléphone reçoit la notification, même avec toutes ses notifications coupées dans les réglages de Familia.
+6. Sur l'autre téléphone, touche la notification. **Attendu :** le message entier, signé « Prénom (admin) », sans rien pour répondre.
+7. Après 22 h, sans « Urgent ». **Attendu :** la fenêtre dit qu'il partira à 8 h, « Déjà envoyées » dit « part à 8 h », et la notification arrive seule à 8 h, pas dans « Cette nuit dans Familia ».
+8. Après 22 h, avec « Urgent ». **Attendu :** elle arrive tout de suite.
+9. Allume le mode présentation. **Attendu :** l'écran dit que rien ne part, et le bouton reste éteint.

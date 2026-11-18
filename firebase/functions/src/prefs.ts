@@ -414,11 +414,14 @@ export async function sendHeldNotices<N extends Filtered & { title: string; body
     });
     // One notice for the whole night, a surprise apart on its own channel (no avalanche at 8 h):
     // the shared items go together, each private channel by itself.
-    const shared = items.filter((n) => !PRIVATE_CHANNELS.has(n.channel));
+    // A message of the admin principal (récit 69) goes alone too, whole, so its tap opens it.
+    const alone = (n: N) => n.channel === 'admin';
+    const shared = items.filter((n) => !PRIVATE_CHANNELS.has(n.channel) && !alone(n));
     const groups: (N & { heldAt?: string })[][] = shared.length > 0 ? [shared] : [];
     for (const channel of new Set(items.map((n) => n.channel).filter((c) => PRIVATE_CHANNELS.has(c)))) {
       groups.push(items.filter((n) => n.channel === channel));
     }
+    for (const n of items.filter(alone)) groups.push([n]);
     const again: (N & { heldAt?: string })[] = [];
     for (const group of groups) {
       const [notice] = burstNotices(group.map(({ heldAt: _heldAt, ...n }) => n as unknown as N), 'Cette nuit dans Familia');

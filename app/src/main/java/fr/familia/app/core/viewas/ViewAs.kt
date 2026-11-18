@@ -94,6 +94,7 @@ class ViewAsContainer(private val base: AppContainer, guard: ViewAsGuard, adminI
     override val feedbackRepository = base.feedbackRepository?.let { ReadOnlyFeedbackRepository(it, guard) }
     // Nothing is sent or settled through someone else's eyes.
     override val crashRepository: fr.familia.app.core.data.CrashRepository? = null
+    override val announcementRepository: fr.familia.app.core.data.AnnouncementRepository? = null
     override val joinMeRepository = base.joinMeRepository?.let { ReadOnlyJoinMeRepository(it, guard) }
     override val placeLocator = base.placeLocator
     override val exportRepository = base.exportRepository?.let { ReadOnlyExportRepository(guard) }
