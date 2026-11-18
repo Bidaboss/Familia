@@ -1177,6 +1177,14 @@ Après « Publier Firebase ». Deux téléphones : celui de l'admin principal et
 8. Après 22 h, avec « Urgent ». **Attendu :** elle arrive tout de suite.
 9. Allume le mode présentation. **Attendu :** l'écran dit que rien ne part, et le bouton reste éteint.
 
+## Tout Familia : Bons plans, On se prête et À qui le tour ? (PRODUIT-118)
+
+1. Avec Entraide et les trois modules allumés, ouvre « Tout Familia ». **Attendu :** sous « Entraide », trois icônes de plus : « Bons plans », « On se prête », « À qui le tour ? ».
+2. Touche « On se prête ». **Attendu :** l'onglet Entraide s'ouvre directement sur son sous-onglet « On se prête ». Même chose pour les deux autres.
+3. Reviens à l'Accueil, puis touche l'onglet Entraide en bas. **Attendu :** il garde le sous-onglet où tu étais, sans sauter ailleurs.
+4. Cherche « prêt », puis « tour ». **Attendu :** « On se prête », puis « À qui le tour ? ».
+5. Éteins « On se prête » dans Administration > Modules. **Attendu :** son icône disparaît de « Tout Familia ».
+
 ## Fil d'actualité : Bonnes nouvelles et leurs commentaires, coups de main, question (récit 67)
 
 Module « Fil d'actualité » allumé dans Administration > Modules, après « Publier Firebase ». Éteint, la Bonne nouvelle ne montre pas de commentaires.

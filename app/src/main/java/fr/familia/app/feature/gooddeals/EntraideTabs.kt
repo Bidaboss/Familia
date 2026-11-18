@@ -41,6 +41,9 @@ fun EntraideTabs(
     turns: @Composable () -> Unit = {},
     /** Each new value turns to « À qui le tour ? » (a touched notification). */
     showTurns: Int = 0,
+    /** A sub-tab asked once from « Tout Familia » (PRODUIT-118); [onOpened] spends it. */
+    open: EntraideTab? = null,
+    onOpened: () -> Unit = {},
 ) {
     val tabs = buildList {
         add(EntraideTab.Help)
@@ -49,6 +52,7 @@ fun EntraideTabs(
         if (turnsOn) add(EntraideTab.Turns)
     }
     if (tabs.size == 1) {
+        if (open != null) LaunchedEffect(open) { onOpened() }
         help()
         return
     }
@@ -58,6 +62,12 @@ fun EntraideTabs(
     }
     LaunchedEffect(showTurns) {
         if (showTurns > 0 && turnsOn) selected = EntraideTab.Turns
+    }
+    LaunchedEffect(open) {
+        if (open != null) {
+            if (open in tabs) selected = open
+            onOpened()
+        }
     }
     // A module switched off while its tab was open: back to the coups de main.
     val shown = selected.takeIf { it in tabs } ?: EntraideTab.Help
@@ -89,7 +99,7 @@ fun EntraideTabs(
     }
 }
 
-private enum class EntraideTab(@StringRes val label: Int) {
+enum class EntraideTab(@StringRes val label: Int) {
     Help(R.string.entraide_tab_help),
     GoodDeals(R.string.entraide_tab_good_deals),
     Lending(R.string.entraide_tab_lending),
