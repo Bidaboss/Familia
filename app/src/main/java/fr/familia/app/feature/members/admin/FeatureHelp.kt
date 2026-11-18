@@ -72,7 +72,6 @@ private val HELP: Map<Feature, Int> = mapOf(
     Feature.AlreadyBought to R.string.feature_help_already_bought,
     Feature.AdminAnnouncements to R.string.feature_help_admin_announcements,
     Feature.NewsFeed to R.string.feature_help_news_feed,
-    Feature.PlanningV2 to R.string.feature_help_planning_v2,
     Feature.EveningDigest to R.string.feature_help_evening_digest,
 )
 
