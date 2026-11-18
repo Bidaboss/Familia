@@ -4,6 +4,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessaging
+import fr.familia.app.core.model.EveningKind
 import fr.familia.app.core.model.NotificationFamily
 import fr.familia.app.core.model.NotificationPrefs
 import kotlinx.coroutines.channels.awaitClose
@@ -132,6 +133,10 @@ class FirestoreNotificationRepository(
 
     override suspend fun setQuietHours(memberId: String, enabled: Boolean) {
         settings(memberId).set(mapOf("quietHours" to enabled), SetOptions.merge()).await()
+    }
+
+    override suspend fun setEvening(memberId: String, kind: EveningKind, inSummary: Boolean) {
+        settings(memberId).set(mapOf(kind.key to inSummary), SetOptions.merge()).await()
     }
 
     private fun settings(memberId: String) =

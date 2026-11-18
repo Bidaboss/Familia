@@ -54,7 +54,7 @@ import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { sendWeeklyRecap } from './recap';
 import { deleteGoodNewsComments, GoodNewsCommentData, onGoodNewsCommentCreated, onGoodNewsCommentDeleted } from './goodNewsComments';
 import { orphanReportDue, reportOrphanGoodNewsPhotos, type StoredFile } from './orphanPhotos';
-import { capBursts, deleteQuietQueueOf, presentationFrom, presentingNow, PRIVATE_CHANNELS, sendBurstHeld, sendHeldNotices, sendPresentationHeld } from './prefs';
+import { capBursts, deleteQuietQueueOf, presentationFrom, presentingNow, PRIVATE_CHANNELS, sendBurstHeld, sendEveningHeld, sendHeldNotices, sendPresentationHeld } from './prefs';
 import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type BirthdayCard } from './birthdayWishes';
 import { deleteWelcomeOf, isFirstSignIn, sendQueuedWelcomes, welcomeMember } from './welcome';
 import { deleteCheersOf, deleteMomentsOf, onMomentCheerCreated, startMoments, type MomentCheer } from './thinkOfMe';
@@ -774,8 +774,14 @@ export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZo
   } catch (e) {
     console.error('albumInvites', e);
   }
-  // And the résumé of the day, once from 18 h (AVIS-14).
+  // And the résumé of the day, once from 18 h (AVIS-14), from 19 h with the résumé du soir.
   await sendDigests(getFirestore(), send, new Date());
+  // And the résumé du soir, from 19 h (récit 70). A failure waits for the next run.
+  try {
+    await sendEveningHeld(getFirestore(), sendHeld, new Date());
+  } catch (e) {
+    console.error('eveningQueue', e);
+  }
   // And the polls whose end date has passed (récits 2 bis et 2 ter).
   await closeDuePolls(getFirestore(), new Date());
   // And the day's notice of the accounts of each trip, once from 20 h (récit 16 bis).

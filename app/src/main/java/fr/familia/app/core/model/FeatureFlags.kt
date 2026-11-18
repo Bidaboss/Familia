@@ -201,6 +201,12 @@ enum class Feature(
      * dans le titre, des cartes avec l'heure en bloc. Lu avec isOnForFamily : éteint, rien ne change.
      */
     PlanningV2("planningV2", R.string.feature_planning_v2),
+    /**
+     * Le résumé du soir des notifications (PRD récit 70, DESIGN-31) : réactions, commentaires,
+     * question de la semaine et souvenirs partent groupés à 19 h ; chacun peut garder un type
+     * immédiat. Lu avec isOnForFamily côté serveur et dans les réglages : éteint, rien ne change.
+     */
+    EveningDigest("eveningDigest", R.string.feature_evening_digest),
 }
 
 /**

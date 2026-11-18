@@ -3,12 +3,14 @@
 // most, on the `weekly` channel: « Aujourd'hui dans Familia : nouveau souvenir, défi à 60 %,
 // question de la semaine ». The events, the Bonnes nouvelles, the birthday wishes and « Rejoignez-moi »
 // stay instant, and so does the very first souvenir of each member. While the module `digest` is
-// off, everything is sent at once, as before.
+// off, everything is sent at once, as before. With the résumé du soir on (récit 70), it leaves
+// from 19 h instead, with the small news of the day.
 //
 // engagementDigests/{memberId} holds what is waiting for one member; only the functions use it.
 
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import { parisDay, type Notice } from './logic';
+import { EVENING_HOUR, eveningDigestOn } from './prefs';
 import { featureOn, notify, type Sender } from './store';
 
 /** From this hour in Paris, the day's résumé leaves (run by the task of every 30 minutes). */
@@ -94,12 +96,14 @@ export function digestNotice(
 }
 
 /**
- * From [DIGEST_HOUR], sends each résumé that waits, once a day. A member's résumé is emptied
+ * From [DIGEST_HOUR] (from [EVENING_HOUR] with the résumé du soir), sends each résumé that waits, once a day. A member's résumé is emptied
  * before it is sent, so two close runs never send it twice. Returns how many members were told.
  */
 export async function sendDigests(db: Firestore, send: Sender, now: Date): Promise<number> {
   const hour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', hour: '2-digit', hourCycle: 'h23' }).format(now));
   if (hour < DIGEST_HOUR) return 0;
+  // Résumé du soir (récit 70): the résumé of the day waits for 19 h too.
+  if (hour < EVENING_HOUR && (await eveningDigestOn(db))) return 0;
   const waiting = await db.collection('engagementDigests').where('pending', '==', true).get();
   if (waiting.empty) return 0;
   const today = parisDay(now);
@@ -123,7 +127,7 @@ export async function sendDigests(db: Firestore, send: Sender, now: Date): Promi
       weekly: (taken.get('weekly') as string | null | undefined) ?? null,
       albums: (taken.get('albums') as string[] | undefined) ?? [],
     }, news, typeof seen === 'number' ? Math.max(0, news.leaves - seen) : 0);
-    if (notice && (await notify(db, send, [doc.id], notice)) > 0) told++;
+    if (notice && (await notify(db, send, [doc.id], notice, now)) > 0) told++;
   }
   return told;
 }
