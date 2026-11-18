@@ -35,6 +35,11 @@ Fais d'abord le deuxième téléphone, puis le tien. La marche détaillée se tr
 
 - [ ] Ouvre **Administration**, puis **Modules**.
 - [ ] Allume ce que tu veux montrer demain. Sous chaque interrupteur, une phrase dit à quoi il sert, et « Voir où » ouvre l'écran concerné.
+- [ ] **Les nouvelles versions** (décision AVIS-22) : la famille les découvre demain. Allume chacune seulement si [DEV] t'a confirmé qu'elle est fusionnée et que ses essais sont passés. Sinon, laisse-la éteinte : l'ancienne version reste, sans rien perdre.
+  - [ ] « Nouvel onglet Cadeaux »
+  - [ ] « Nouvelle fiche de membre »
+  - [ ] « Nouveau Planning »
+  - [ ] « Fil d'actualité » (il demande « Publier Firebase », déjà fait à l'étape 1)
 - [ ] Laisse **éteints** les modules prévus pour après le 21. Un module éteint ne laisse aucune trace chez les autres : ni pastille, ni carte, ni aide, ni notification.
 - [ ] Les modules à allumer plus tard, avec leur date :
   - [ ] « Mes premiers pas » : le 21 au soir après le repas, ou le 22.
@@ -54,14 +59,17 @@ Passe chaque essai d'abord en mode avion, puis en « 2G seulement ». Pour la 2G
 - [ ] « Bonnes nouvelles : envoi de la photo sur un réseau faible ou coupé ».
 - [ ] « Voir comme » sur un enfant : **Administration**, puis « Démo et présentation », puis « Voir comme… », puis un enfant d'environ 11 ans. Parcours Accueil, Planning, Entraide et Bonnes nouvelles. **Attendu :** aucun bouton qui finit sur un refus, et aucun texte d'adulte. Recommence avec un enfant d'environ 16 ans. C'est l'étape 3 de « Écrans vides et profils enfant ».
 - [ ] Touche « Quitter » sur le bandeau « Tu vois l'appli comme … ».
+- [ ] **Les nouvelles versions allumées à l'étape 3**, une par une, en mode avion puis en 2G : le nouvel onglet Cadeaux, la nouvelle fiche d'un membre, le Planning en Semaine puis en Mois, et sur l'Accueil « Le fil ». **Attendu :** chaque écran s'ouvre avec ce que tu as déjà vu, sans rond qui tourne sans fin, et une action faite hors ligne part au retour du réseau.
+- [ ] Les mêmes écrans avec la police au plus grand : Réglages du téléphone, puis Affichage, puis Taille de la police, au maximum. **Attendu :** rien n'est coupé, et tout se lit en faisant défiler. Remets la taille normale.
+- [ ] Les mêmes écrans avec TalkBack : Réglages, puis Accessibilité, puis TalkBack. Glisse d'un élément à l'autre. **Attendu :** chaque bouton dit ce qu'il fait. Éteins TalkBack ensuite au même endroit : avec TalkBack, touche une fois pour choisir, puis deux fois rapidement pour valider.
 - [ ] Un enfant suivi par Family Link : installe Familia sur son téléphone et connecte son compte, avec le parent qui le suit à côté. C'est « Un enfant suivi par Family Link se connecte (avant le 21) », dans [essais-manuels.md](essais-manuels.md). **Si ça bloque**, ne retente pas le jour J : sur sa fiche, passe son profil à « Enfant, sans l'appli ». Ses parents répondent pour lui, et on retente après le repas, au calme.
 
 ## 5. Préparer le repas, encore ce soir
 
-- [ ] Fais une répétition : **Administration**, puis « Démo et présentation », puis « Voir comme… », puis un membre qui n'est **pas** la personne fêtée. Fais la visite guidée de [scenario-demo.md](scenario-demo.md) (étape 5). Puis regarde l'onglet Cadeaux en « Voir comme » la personne fêtée. **Attendu :** rien ne lui montre ce qui est réservé pour elle. Note ce qui pourrait gêner.
+- [ ] Fais une répétition : **Administration**, puis « Démo et présentation », puis « Voir comme… », puis un membre qui n'est **pas** la personne fêtée. Fais la visite guidée de [scenario-demo.md](scenario-demo.md) (étape 5). Puis, en « Voir comme » la personne fêtée, regarde l'onglet Cadeaux, sa propre fiche, le Planning et, sur l'Accueil, « Le fil ». **Attendu :** rien ne lui montre ce qui est réservé ou préparé pour elle, ni dans les nouvelles versions ni dans les anciennes. Note ce qui pourrait gêner.
 - [ ] Toujours en « Voir comme », ouvre l'événement du repas. **Attendu :** rien n'y parle du cadeau.
 - [ ] Touche « Quitter » sur le bandeau.
-- [ ] Avec le réseau, ouvre une fois Accueil, Planning, Entraide et Famille. Ils resteront lisibles si le réseau tombe demain.
+- [ ] Avec le réseau, ouvre une fois Accueil (et « Le fil »), Planning (Semaine et Mois), Cadeaux, Entraide et Famille. Ils resteront lisibles si le réseau tombe demain.
 - [ ] Vérifie que chaque membre a son adresse Google dans sa fiche (onglet **Famille**, une fiche après l'autre).
 - [ ] Télécharge l'APK du Drive sur ton téléphone, dans « Téléchargements ». C'est ton plan B si le réseau du lieu est mauvais.
 - [ ] Ouvre un événement à venir où la famille se retrouvera, par exemple le repas de Noël. Dans « Qui apporte quoi », ajoute trois ou quatre lignes, **sans les prendre** : « Une entrée », « Un dessert », « Les boissons », « Le pain ». Demain, au café, chacun pourra en prendre une depuis son téléphone (visite guidée, étape 5). C'est un premier geste simple et utile. Ne le fais pas sur l'événement du repas d'anniversaire.
