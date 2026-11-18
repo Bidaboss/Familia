@@ -1,6 +1,7 @@
 package fr.familia.app.feature.members
 
 import androidx.compose.ui.res.pluralStringResource
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.ui.SectionLabel
 import fr.familia.app.core.theme.ClayTint
 import androidx.compose.runtime.getValue
@@ -70,6 +71,7 @@ import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.HouseholdGroup
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
+import java.time.LocalDate
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
@@ -79,7 +81,7 @@ import fr.familia.app.feature.members.photo.MemberPhotoEditor
 import fr.familia.app.feature.members.photo.MemberPhotoViewer
 
 /**
- * Famille tab: « Nos trésors », then the members grouped by household. The settings moved to the
+ * Famille tab: the members grouped by household. The settings moved to the
  * sheet of the avatar (DESIGN-12). Stateless.
  */
 @Composable
@@ -111,11 +113,18 @@ fun MembersScreen(
     onOpenProfile: ((memberId: String) -> Unit)? = null,
     /**
      * R1 bis (§4, R5): « Nous 13, en 4 foyers », one card of color per household with all its
-     * members, then « Nos trésors » on one line.
+     * members.
      */
     r1: Boolean = false,
+    /**
+     * « Famille par foyer » (récit 64, Kévin le 18/11): me first, my household, then the other
+     * households folded. Behind its switch, off for everyone until Kévin turns it on.
+     */
+    byHousehold: Boolean = false,
+    today: LocalDate = familyToday(),
 ) {
     var renaming by rememberSaveable { mutableStateOf<String?>(null) }
+    var unfolded by rememberSaveable { mutableStateOf(listOf<String>()) }
     var photoOf by rememberSaveable { mutableStateOf<String?>(null) }
     var viewing by rememberSaveable { mutableStateOf<String?>(null) }
     val photos = LocalMemberPhotos.current
@@ -140,36 +149,50 @@ fun MembersScreen(
                 // Room at the bottom so the add button never hides the last row.
                 contentPadding = PaddingValues(top = 8.dp, bottom = if (canAdd) 96.dp else 8.dp),
             ) {
-                // « Nos trésors » at the top (DESIGN-12, avancé au 21 par PRODUIT): recettes, arbre and
-                // capsules as tiles. Each one stays behind its module; no module on, no row.
-                val treasures = listOfNotNull(
-                    onOpenRecipes?.let {
-                        Treasure("recipes", Icons.Rounded.RestaurantMenu, SouvenirFamily.Party, R.string.members_treasure_recipes, R.string.members_treasure_recipes_open, it)
-                    },
-                    onOpenGenealogy?.let {
-                        Treasure("genealogy", Icons.Rounded.AccountTree, SouvenirFamily.Help, R.string.members_treasure_tree, R.string.members_treasure_tree_open, it)
-                    },
-                    onOpenCapsules?.let {
-                        Treasure("capsules", Icons.Rounded.HourglassTop, SouvenirFamily.Trips, R.string.members_treasure_capsules, R.string.members_treasure_capsules_open, it)
-                    },
-                    onOpenWhoIsIt?.let {
-                        Treasure("whoIsIt", Icons.Outlined.PhotoAlbum, SouvenirFamily.Share, R.string.members_treasure_who_is_it, R.string.members_treasure_who_is_it_open, it)
-                    },
-                )
-                // At the top in both presentations: Kévin wants « Nos trésors » first (retour d'essai, 17/11).
-                if (treasures.isNotEmpty() && !r1) {
-                    item(key = "treasures") { TreasureTiles(treasures) }
+                // « Nos trésors » left the Famille tab (Kévin, 18/11): recettes, arbre, capsule and
+                // « Qui est-ce ? » are all in « Tout Familia ». The tab is the family only.
+                // One member's row, the same in every presentation: same clicks, same rights.
+                val memberRow: @Composable (Member) -> Unit = { member ->
+                    MemberRow(
+                        member = member,
+                        isMe = member.id == state.currentMemberId,
+                        isOwner = member.id == state.ownerId,
+                        onClick = onOpenProfile?.let { open -> { open(member.id) } }
+                            ?: onEditMember?.takeIf { member.id in state.editableMemberIds }?.let { edit -> { edit(member.id) } },
+                        hasPhoto = member.id in photos,
+                        onPhotoClick = when {
+                            member.id in photos -> { { viewing = member.id } }
+                            onSavePhoto != null && member.id in state.photoEditableMemberIds -> { { photoOf = member.id } }
+                            else -> null
+                        },
+                        onWishesClick = onOpenWishes?.let { open -> { open(member.id) } },
+                    )
                 }
-                if (treasures.isNotEmpty() && r1) {
-                    item(key = "treasures-label") {
-                        SectionLabel(
-                            stringResource(R.string.members_r1_treasures),
-                            modifier = Modifier.padding(horizontal = ClaySpacing.screen),
-                        )
-                    }
-                    item(key = "treasures") { TreasureTiles(treasures) }
+                if (byHousehold && state.groups.isNotEmpty()) {
+                    familyByHousehold(
+                        layout = familyTabLayout(state.groups, state.currentMemberId),
+                        today = today,
+                        onOpenMine = onOpenProfile ?: onEditMember?.takeIf { state.currentMemberId in state.editableMemberIds }?.let { edit -> { id: String -> edit(id) } },
+                        householdName = { group -> group.household?.name ?: stringResource(R.string.members_other_household) },
+                        header = { group ->
+                            val household = group.household
+                            HouseholdHeader(
+                                name = household?.name ?: stringResource(R.string.members_other_household),
+                                onRename = if (household != null && onRenameHousehold != null && !state.isOwner &&
+                                    household.id in state.renamableHouseholdIds
+                                ) {
+                                    { renaming = household.id }
+                                } else {
+                                    null
+                                },
+                            )
+                        },
+                        row = memberRow,
+                        open = unfolded,
+                        onToggle = { key -> unfolded = if (key in unfolded) unfolded - key else unfolded + key },
+                    )
                 }
-                if (r1 && state.groups.isNotEmpty()) {
+                if (!byHousehold && r1 && state.groups.isNotEmpty()) {
                     item(key = "count") {
                         val people = state.groups.sumOf { it.members.size }
                         val homes = state.groups.count { it.household != null }
@@ -189,7 +212,7 @@ fun MembersScreen(
                         )
                     }
                 }
-                if (r1) {
+                if (!byHousehold && r1) {
                     state.groups.forEachIndexed { index, group ->
                         item(key = "card-${group.household?.id ?: "other"}") {
                             val household = group.household
@@ -228,7 +251,7 @@ fun MembersScreen(
                         }
                     }
                 }
-                if (!r1) state.groups.forEach { group ->
+                if (!byHousehold && !r1) state.groups.forEach { group ->
                     item(key = "household-${group.household?.id ?: "other"}") {
                         val household = group.household
                         HouseholdHeader(
@@ -342,86 +365,6 @@ fun MembersScreen(
     }
 }
 
-private class Treasure(
-    val key: String,
-    val icon: ImageVector,
-    val family: SouvenirFamily,
-    @StringRes val labelRes: Int,
-    @StringRes val openLabelRes: Int,
-    val onClick: () -> Unit,
-)
-
-/**
- * « Nos trésors » (DESIGN-12): a small title, then one tile per module on, of equal width. A tile
- * alone takes the whole width, its picture on the left.
- */
-@Composable
-private fun TreasureTiles(treasures: List<Treasure>) {
-    Column(Modifier.padding(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 8.dp, bottom = 8.dp)) {
-        Text(
-            stringResource(R.string.members_treasures),
-            style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 0.08.em),
-            modifier = Modifier.padding(bottom = 8.dp).semantics { heading() },
-        )
-        // Four tiles go on two rows of two, so each name stays readable on a narrow phone.
-        val rows = treasures.chunked(if (treasures.size > 3) 2 else 3)
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            rows.forEach { row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    row.forEach { treasure -> TreasureTile(treasure, alone = row.size == 1) }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RowScope.TreasureTile(treasure: Treasure, alone: Boolean) {
-    ClayCard(
-        modifier = Modifier.weight(1f).heightIn(min = 112.dp),
-        onClick = treasure.onClick,
-        onClickLabel = stringResource(treasure.openLabelRes),
-        contentPadding = PaddingValues(16.dp),
-    ) {
-        if (alone) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                TreasureBadge(treasure)
-                Spacer(Modifier.width(16.dp))
-                Text(
-                    stringResource(treasure.labelRes),
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        } else {
-            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                TreasureBadge(treasure)
-                Spacer(Modifier.height(8.dp))
-                // Two lines at 200 %, so « Qui est-ce ? » or « Capsules » stay whole.
-                Text(
-                    stringResource(treasure.labelRes),
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
-                )
-            }
-        }
-    }
-}
-
-/** The 48 dp disc in the light tint of its family, with the filled picture in the dark one. */
-@Composable
-private fun TreasureBadge(treasure: Treasure) {
-    Box(
-        Modifier.size(48.dp).clip(CircleShape).background(treasure.family.light),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(treasure.icon, contentDescription = null, tint = treasure.family.dark, modifier = Modifier.size(28.dp))
-    }
-}
 
 @Composable
 private fun HouseholdHeader(name: String, onRename: (() -> Unit)?) {

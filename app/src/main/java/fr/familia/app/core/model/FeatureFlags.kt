@@ -154,6 +154,11 @@ enum class Feature(
      * fruits de l'arbre deviennent la famille. « Revoir l'animation de bienvenue » dans Apparence.
      */
     OpeningAnimation("openingAnimation", R.string.feature_opening_animation),
+    /**
+     * L'onglet Famille « par foyer » (PRD récit 64, Kévin le 18/11) : ma carte, mon foyer, puis les
+     * autres foyers repliés. Lu avec isOnForFamily : éteint, même l'admin principal garde l'ancien onglet.
+     */
+    FamilyTabV2("familyTabV2", R.string.feature_family_tab_v2),
 }
 
 /**
