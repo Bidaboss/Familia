@@ -235,7 +235,7 @@ private fun DayTitle(date: LocalDate, today: LocalDate, count: Int) {
 
 /**
  * Haut C: « ‹ Du 18 au 24 novembre ▾ › », and « Semaine · toute la famille » under it. Touching the
- * title opens the choice Semaine or Mois. Arrows of 48 dp, the title on two lines at a large font.
+ * title opens the choice Semaine or Mois. Arrows of 56 dp to touch, the title on two lines at a large font.
  */
 @Composable
 private fun PlanningV2Header(
