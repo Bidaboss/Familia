@@ -70,6 +70,7 @@ private val HELP: Map<Feature, Int> = mapOf(
     Feature.FirstSteps to R.string.feature_help_first_steps,
     Feature.OpeningAnimation to R.string.feature_help_opening_animation,
     Feature.FamilyTabV2 to R.string.feature_help_family_tab_v2,
+    Feature.GiftsTabV2 to R.string.feature_help_gifts_tab_v2,
     Feature.ChallengeDetails to R.string.feature_help_challenge_details,
     Feature.AlreadyBought to R.string.feature_help_already_bought,
     Feature.AdminAnnouncements to R.string.feature_help_admin_announcements,

@@ -1393,6 +1393,7 @@ fun FamiliaApp(
                             onPrepareSurprise = { id -> prepareSurprise(navController, features.isOn(Feature.SingleList), id, nearestOccasion = false) },
                             onOpenMyPage = { navController.navigate(MemberProfileDestination(currentMember.id)) },
                             onOpenSurprisePicker = { navController.navigate(SurprisePickDestination) },
+                            onAddWish = { id -> navController.navigate(GiftItemEditDestination(id)) },
                         )
                     }
                     composable<SurprisePickDestination> {

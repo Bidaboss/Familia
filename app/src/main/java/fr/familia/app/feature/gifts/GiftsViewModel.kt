@@ -91,6 +91,8 @@ sealed interface GiftsUiState {
         val newWishes: Map<String, Int> = emptyMap(),
         /** The new presentation of the tab (DESIGN-14), with the single list only. */
         val presentation: Boolean = false,
+        /** « Nouvel onglet Cadeaux » (PRODUIT-119 and 120), with the single list only. */
+        val tabV2: Boolean = false,
     ) : GiftsUiState
 
     data object Error : GiftsUiState
@@ -115,6 +117,8 @@ class GiftsViewModel(
     private val seen: Flow<Map<String, Long>> = flowOf(emptyMap()),
     /** The switch « Bouton surprise » (récit 63). */
     private val surpriseButton: Boolean = false,
+    /** The switch « Nouvel onglet Cadeaux » (PRODUIT-119 and 120). */
+    private val tabV2: Boolean = false,
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
@@ -126,7 +130,7 @@ class GiftsViewModel(
                 flowOf(GiftsUiState.Error)
             } else {
                 combine(members.observeFamily(), gifts.observeVisibleLists(currentMemberId), today) { family, lists, day ->
-                    giftsState(family, lists, currentMemberId, day, singleList, presentation, surpriseButton)
+                    giftsState(family, lists, currentMemberId, day, singleList, presentation, surpriseButton, tabV2)
                 }
                     .flatMapLatest { state -> withPreviews(gifts, state) }
                     .let { states ->
@@ -314,6 +318,7 @@ internal fun giftsState(
     singleList: Boolean = false,
     presentation: Boolean = false,
     surpriseButton: Boolean = false,
+    tabV2: Boolean = false,
 ): GiftsUiState {
     val me = family.members.firstOrNull { it.id == meId } ?: return GiftsUiState.Error
     val byId = family.members.associateBy { it.id }
@@ -356,6 +361,7 @@ internal fun giftsState(
         presentation = presentation && singleList,
         next = if (presentation && singleList) nextOccasion(today, family.members) else null,
         surpriseButton = surpriseButton,
+        tabV2 = tabV2 && singleList,
     )
 }
 
