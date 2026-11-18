@@ -300,7 +300,7 @@ private fun OccasionChips(moments: List<GiftMoment>, selected: GiftMoment?, onSe
                 is GiftMoment.Christmas -> stringResource(R.string.gifts_moment_christmas, moment.year)
                 is GiftMoment.BirthdayOf -> stringResource(R.string.gifts_birthday_of, moment.member.firstName)
             }
-            FilterChip(selected = selected == moment, onClick = { onSelect(moment) }, label = { Text(label) }, modifier = Modifier.heightIn(min = 48.dp))
+            FilterChip(selected = selected == moment, onClick = { onSelect(moment) }, label = { Text(label) }, modifier = Modifier.heightIn(min = 56.dp))
         }
     }
 }
@@ -395,7 +395,7 @@ private fun PersonCard(state: GiftsUiState.Success, section: GiftPersonSection, 
             Button(
                 onClick = { onOpenList(section.wishes?.id ?: wishesListId(member.id)) },
                 colors = ButtonDefaults.buttonColors(containerColor = Peach.copy(alpha = 0.3f), contentColor = MaterialTheme.colorScheme.onSurface),
-                modifier = Modifier.weight(1f).heightIn(min = 48.dp).labelled(stringResource(R.string.gift_wishes_of, member.firstName)),
+                modifier = Modifier.weight(1f).heightIn(min = 56.dp).labelled(stringResource(R.string.gift_wishes_of, member.firstName)),
             ) { Text(stringResource(R.string.gifts_v2_their_wishes)) }
             if (adult) {
                 OutlineButton(stringResource(R.string.gifts_v2_ideas), Modifier.weight(1f), description = stringResource(R.string.gifts_ideas_for, member.firstName)) {
@@ -427,7 +427,7 @@ private fun DarkButton(text: String, modifier: Modifier = Modifier, description:
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.inverseSurface, contentColor = MaterialTheme.colorScheme.inverseOnSurface),
-        modifier = modifier.heightIn(min = 48.dp).then(if (description != null) Modifier.labelled(description) else Modifier),
+        modifier = modifier.heightIn(min = 56.dp).then(if (description != null) Modifier.labelled(description) else Modifier),
     ) { Text(text) }
 }
 
@@ -435,7 +435,7 @@ private fun DarkButton(text: String, modifier: Modifier = Modifier, description:
 private fun OutlineButton(text: String, modifier: Modifier = Modifier, description: String? = null, onClick: () -> Unit) {
     OutlinedButton(
         onClick = onClick,
-        modifier = modifier.heightIn(min = 48.dp).then(if (description != null) Modifier.labelled(description) else Modifier),
+        modifier = modifier.heightIn(min = 56.dp).then(if (description != null) Modifier.labelled(description) else Modifier),
     ) { Text(text) }
 }
 
@@ -445,7 +445,7 @@ private fun ArchivedLink(state: GiftsUiState.Success, onOpenList: (String) -> Un
     var open by rememberSaveable { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
-            Modifier.heightIn(min = 48.dp).clip(RoundedCornerShape(12.dp)).clickable(role = Role.Button) { open = !open }.padding(horizontal = 12.dp),
+            Modifier.heightIn(min = 56.dp).clip(RoundedCornerShape(12.dp)).clickable(role = Role.Button) { open = !open }.padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
