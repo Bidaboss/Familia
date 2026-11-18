@@ -156,7 +156,7 @@ Repli si ça bloque :
 
 1. Dans Administration > Modules, allume « Thèmes au choix ». Dans l'onglet Famille, **attendu :** une ligne « Apparence » apparaît sous les réglages.
 2. Ouvre « Apparence ». **Attendu :** 7 thèmes dans cet ordre : Argile, Olivier, Espagne, Hiver, Lavande, Nuit, Contraste fort, chacun montré dans ses couleurs. Plus d'Arcade, de Cosmos, de Rétro 70, de Carnet de voyage ni de Jardin.
-3. Touche « Olivier ». **Attendu :** l'appli change tout de suite : fond vert très pâle avec de petites feuilles, pastille de l'onglet actif vert tendre. Les cartes restent blanches, avec un fin contour et une ombre douce, et leurs coins sont les mêmes dans tous les thèmes sauf Argile.
+3. Touche « Olivier ». **Attendu :** l'appli change tout de suite : fond vert très pâle avec de petites feuilles, pastille de l'onglet actif vert tendre. Les cartes restent blanches, avec les coins et le relief d'Argile, et le bouton foncé (« Tout Familia » excepté) prend le vert foncé du thème.
 4. Fais de même avec Espagne (pépins rouges et jaunes, sans bande en haut), Hiver (flocons), Lavande (pépins lilas) et Nuit (fond brun très sombre, cartes brunes). **Attendu :** les couleurs des types (vert, pêche, lilas) et celles des membres ne changent jamais.
 5. Ferme complètement l'appli et rouvre-la. **Attendu :** le thème choisi est gardé. Sur un autre téléphone, le thème reste Argile.
 6. Un téléphone qui était sur un thème retiré, après la mise à jour. **Attendu :** pas de plantage ; Arcade ou Cosmos deviennent Nuit, Jardin devient Olivier, Rétro 70 ou Carnet de voyage deviennent Argile.

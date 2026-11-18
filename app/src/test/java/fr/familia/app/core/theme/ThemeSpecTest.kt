@@ -36,14 +36,17 @@ class ThemeSpecTest {
     }
 
     @Test
-    fun `a theme changes the mood only, with the same corners everywhere but Argile`() {
-        FamiliaThemeId.entries.drop(1).forEach { id ->
+    fun `a theme changes the mood only, with the look of Argile until the 21st`() {
+        FamiliaThemeId.entries.forEach { id ->
             val style = themeSpec(id).style
-            assertEquals(id.name, 22.dp, style.cardRadius)
-            assertTrue(id.name, style.border == null || style.border?.dashed == false)
+            assertEquals(id.name, 28.dp, style.cardRadius)
+            if (id != FamiliaThemeId.HighContrast) assertNull(id.name, style.border)
         }
         assertEquals(Color(0xFFC9DBA8), themeSpec(FamiliaThemeId.Olive).style.tabPill)
-        assertEquals(Color(0xFF1E1511), themeSpec(FamiliaThemeId.Night).light.background)
+        assertEquals(Color(0xFFAA151B), themeSpec(FamiliaThemeId.Spain).light.primary)
+        val night = themeSpec(FamiliaThemeId.Night).light
+        assertEquals(Color(0xFF1E1511), night.background)
+        assertEquals(Color(0xFF1E1511), night.onPrimary)
     }
 
     @Test

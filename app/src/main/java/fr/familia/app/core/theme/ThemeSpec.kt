@@ -15,8 +15,8 @@ import fr.familia.app.R
  * The 7 themes to choose from (DESIGN-43, Kévin 18/11): a theme only changes the mood. It sets the
  * background and its discreet pattern, the dark buttons, the pill of the active tab, the lines and
  * the outlines. It never changes the fonts (chosen apart: TitleFont, BodyFont), the white cards, the
- * colors of the types and of the members, the corners (22 dp) nor the targets. Argile, the default,
- * stays exactly as before and follows the phone's dark mode.
+ * colors of the types and of the members, the corners nor the targets: until the 21st every theme
+ * keeps the look of Argile (28 dp, relief). Argile, the default, follows the phone's dark mode.
  */
 
 /** How a card stands out: the Argile relief, a hard offset shadow, a soft or glowing one, or none. */
@@ -172,49 +172,45 @@ private fun themed(p: Palette, style: ClayStyle, shadow: Color = Color.Transpare
 )
 
 /**
- * The structure shared by the themes (DESIGN-43): 22 dp corners, a soft 2 dp shadow and a 1,5 dp
- * outline in the color of the theme's lines.
+ * The structure shared by the themes (DESIGN, 18/11): the look of Argile until the 21st, 28 dp
+ * corners and its relief, no outline. Only the pattern and the pill of the active tab change; the
+ * dark button is the theme's primary color.
  */
-private fun mood(outline: Long, pattern: ThemePattern, tabPill: Long, shadow: Long) = ClayStyle(
-    cardRadius = 22.dp,
-    border = ClayBorder(1.5.dp, Color(outline)),
-    shadow = ClayShadow.Soft(2.dp, Color(shadow)),
-    pattern = pattern,
-    tabPill = Color(tabPill),
-)
+private fun mood(pattern: ThemePattern, tabPill: Long) = ClayStyle(pattern = pattern, tabPill = Color(tabPill))
 
 /** The spec of each theme. Only Argile follows the dark mode; Nuit is the dark Argile, always. */
 fun themeSpec(id: FamiliaThemeId): FamiliaThemeSpec = when (id) {
     FamiliaThemeId.Classic -> ClassicSpec
     FamiliaThemeId.Olive -> themed(
         Palette(0xFFF0F3E8, 0xFFFFFFFF, 0xFFC9DBA8, 0xFFE3EED8, 0xFFF6E7D0, 0xFF2F3B22, 0xFFFFFFFF, 0xFF3F6B2E, 0xFF1E2B1F, 0xFF4A5A4B, 0xFF2F3B22),
-        mood(0xFFD5DEC6, ThemePattern.Leaves, 0xFFC9DBA8, 0x242F3B22),
+        mood(ThemePattern.Leaves, 0xFFC9DBA8),
         shadow = Color(0x242F3B22),
     )
     FamiliaThemeId.Spain -> themed(
         // The colors of the flag (DESIGN, 16/11), softened on 18/11: no band, no Abril Fatface.
         Palette(0xFFFFF8E6, 0xFFFFFFFF, 0xFFF1BF00, 0xFFFDEDB3, 0xFFF8D9D6, 0xFFAA151B, 0xFFFFFFFF, 0xFF8A1015, 0xFF2A1A12, 0xFF5C3A2E, 0xFFAA151B),
-        mood(0xFFF0DFB8, ThemePattern.SeedsSpain, 0xFFF1BF00, 0x24AA151B),
+        mood(ThemePattern.SeedsSpain, 0xFFF1BF00),
         shadow = Color(0x24AA151B),
     )
     FamiliaThemeId.Winter -> themed(
         Palette(0xFFEAF2F8, 0xFFFFFFFF, 0xFFF6DADA, 0xFFDDEBF5, 0xFFF6DADA, 0xFF13293D, 0xFFFFFFFF, 0xFF1E5B7A, 0xFF13293D, 0xFF3E566B, 0xFFB3262E),
-        mood(0xFFCFDDE8, ThemePattern.Snow, 0xFFF6DADA, 0x1F13293D),
+        mood(ThemePattern.Snow, 0xFFF6DADA),
         shadow = Color(0x1F13293D),
     )
     FamiliaThemeId.Lavender -> themed(
         Palette(0xFFF5F2FB, 0xFFFFFFFF, 0xFFD9CCF7, 0xFFE6E0F7, 0xFFFFF1C9, 0xFF2B2350, 0xFFFFFFFF, 0xFF5B4A9E, 0xFF1F1A33, 0xFF4E4766, 0xFF2B2350),
-        mood(0xFFE0D8F0, ThemePattern.SeedsLilac, 0xFFD9CCF7, 0x242B2350),
+        mood(ThemePattern.SeedsLilac, 0xFFD9CCF7),
         shadow = Color(0x242B2350),
     )
     FamiliaThemeId.Night -> FamiliaThemeSpec(
-        light = DarkColors,
+        // The dark Argile, always; its dark button is light, with dark text (DESIGN, 18/11).
+        light = DarkColors.copy(primary = Color(0xFFEBDCD3), onPrimary = Color(0xFF1E1511)),
         lightClay = DarkClayColors,
-        style = ClayStyle(cardRadius = 22.dp, pattern = ThemePattern.SeedsNight),
+        style = ClayStyle(pattern = ThemePattern.SeedsNight),
     )
     FamiliaThemeId.HighContrast -> themed(
-        Palette(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFE08A, 0xFFE6F0FF, 0xFFFFF0D6, 0xFF7A2A00, 0xFFFFFFFF, 0xFF003C8F, 0xFF000000, 0xFF1A1A1A, 0xFF000000),
-        ClayStyle(cardRadius = 22.dp, border = ClayBorder(2.dp, Color(0xFF1A1A1A)), shadow = ClayShadow.None, tabPill = Color(0xFFFFE08A)),
+        Palette(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFE08A, 0xFFE6F0FF, 0xFFFFF0D6, 0xFF000000, 0xFFFFFFFF, 0xFF003C8F, 0xFF000000, 0xFF1A1A1A, 0xFF000000),
+        ClayStyle(border = ClayBorder(2.dp, Color(0xFF1A1A1A)), shadow = ClayShadow.None, tabPill = Color(0xFFFFE08A)),
         strongTints = true,
     )
 }
