@@ -603,7 +603,10 @@
     <string name="update_permission_open">Ouvrir le réglage</string>
     <string name="update_open_drive">Ouvrir le Drive</string>
     <string name="update_downloading_title">Mise à jour en cours</string>
-    <string name="update_downloading_body">Téléchargement : %1$d %%. Ensuite, Android propose d\'installer la nouvelle version par-dessus l\'actuelle : tes données ne bougent pas.</string>
+    <string name="update_downloading_line">La nouvelle version arrive.</string>
+    <string name="update_downloading_percent">%1$d %%</string>
+    <string name="update_downloading_progress">Téléchargement : %1$d %%</string>
+    <string name="update_downloading_help">Ensuite, Android te propose d\'installer la nouvelle version. S\'il propose d\'analyser l\'appli, touche « Installer sans analyser ». Tes données ne bougent pas.</string>
     <string name="update_failed_title">La mise à jour n\'a pas abouti</string>
     <string name="update_failed_body">Télécharge-la depuis le Drive, puis ouvre le fichier pour l\'installer.</string>
     <string name="update_action">Mettre à jour</string>

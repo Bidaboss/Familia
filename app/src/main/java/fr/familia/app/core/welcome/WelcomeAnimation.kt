@@ -27,20 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.drawscope.clipPath
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
-import kotlin.math.roundToInt
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.graphics.drawscope.scale
-import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -49,7 +36,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
@@ -134,9 +120,7 @@ internal fun WelcomePicture(
     modifier: Modifier = Modifier,
     photos: Map<String, ImageBitmap> = emptyMap(),
 ) {
-    val sunColor = Color(0xFFF6D27A)
-    val wood = Color(0xFF5A3A22)
-    val leaf = Color(0xFF8A9A5B)
+    val sunColor = OLIVE_SUN_COLOR
     val measurer = rememberTextMeasurer()
     BoxWithConstraints(
         modifier
@@ -147,26 +131,28 @@ internal fun WelcomePicture(
         // The circle shrinks on a narrow phone so that every fruit stays on screen.
         val ring: Dp = min(128f, maxWidth.value / 2f - 26f - 16f).dp
         val centerY: Dp = maxHeight * 0.40f
+        val olive = rememberOlivePaths()
         Canvas(Modifier.fillMaxSize()) {
             val unit = 220.dp.toPx() / 108f
             val center = Offset(size.width / 2f, centerY.toPx())
             fun icon(x: Float, y: Float) = Offset(center.x + (x - 54f) * unit, center.y + (y - 54f) * unit)
 
-            // The sun (0 to 350 ms), which stays.
-            val sun = phase(time, 0f, 350f)
-            scale(easeOutBack(sun), pivot = center) { drawCircle(sunColor.copy(alpha = sun), radius = 33f * unit, center = center) }
-
-            // The tree fades away while the fruits leave for the circle (1.6 to 2.1 s).
+            // The olive tree of the icon (DESIGN, 18/11), in the order of the start screen: the sun
+            // and its thin red ring (0 to 350 ms), which stay, the roots (150 to 400 ms), the trunk
+            // (250 to 500 ms), then the leaves with a light bounce (350 to 700 ms). The tree fades
+            // away while the fruits leave for the circle (1.6 to 2.1 s).
             val treeAlpha = 1f - phase(time, 1_600f, 2_100f)
+            drawOlive(
+                olive,
+                center,
+                unit,
+                sun = easeOutBack(phase(time, 0f, 350f)),
+                roots = phase(time, 150f, 400f),
+                trunk = phase(time, 250f, 500f),
+                crown = easeOutBack(phase(time, 350f, 700f)),
+                treeAlpha = treeAlpha,
+            )
             if (treeAlpha > 0f) {
-                val trunk = phase(time, 150f, 450f)
-                if (trunk > 0f) {
-                    scale(scaleX = 1f, scaleY = trunk, pivot = icon(54f, 92f)) { drawTrunk(::icon, unit, wood.copy(alpha = treeAlpha)) }
-                }
-                val crown = phase(time, 300f, 650f)
-                if (crown > 0f) {
-                    scale(easeOutBack(crown), pivot = icon(54f, 57f)) { drawCrown(::icon, unit, wood.copy(alpha = treeAlpha), leaf.copy(alpha = treeAlpha)) }
-                }
                 // The fruits of the icon that are nobody's go with the tree.
                 TREE_SLOTS.drop(fruits.size).forEachIndexed { index, fruit ->
                     val grown = easeOutBack(phase(time, 550f + 30f * (fruits.size + index), 670f + 30f * (fruits.size + index)))
@@ -174,36 +160,24 @@ internal fun WelcomePicture(
                 }
             }
 
-            // Each fruit: out on the tree one by one (550 to 900 ms), then to its place on the circle,
-            // growing from about 22 to 52 dp and taking the member's color (1.6 to 2.5 s).
+            // Each fruit is a member (règle de Kévin, 18/11): their photo, or their letters on their
+            // color, from the moment it comes out on the tree (550 to 900 ms). Then it goes to its
+            // place on the circle, growing from about 20 to 52 dp (1.6 to 2.5 s).
             val travel = easeInOut(phase(time, 1_600f, 2_500f))
-            val tint = phase(time, 1_600f, 2_300f)
-            val letters = phase(time, 2_300f, 2_600f)
             val big = 26.dp.toPx()
             fruits.forEach { fruit ->
                 val start = fruit.tree?.let { icon(it.center.x, it.center.y) } ?: center
                 val startRadius = (fruit.tree?.radius ?: 0f) * unit
                 val order = if (fruit.tree != null) fruit.place else 13
-                val grown = easeOutBack(phase(time, 550f + 30f * order, 670f + 30f * order))
+                val out = phase(time, 550f + 30f * order, 670f + 30f * order)
                 val angle = -Math.PI / 2 + 2 * Math.PI * fruit.place / fruits.size
                 val end = Offset(center.x + ring.toPx() * cos(angle).toFloat(), center.y + ring.toPx() * sin(angle).toFloat())
                 val at = Offset(start.x + (end.x - start.x) * travel, start.y + (end.y - start.y) * travel)
-                val radius = (startRadius + (big - startRadius) * travel) * if (fruit.tree != null) grown else travel
+                val radius = (startRadius + (big - startRadius) * travel) * if (fruit.tree != null) easeOutBack(out) else travel
                 if (radius <= 0f) return@forEach
                 drawCircle(sunColor, radius = radius + 0.9f * unit, center = at)
-                drawCircle(lerp(fruit.tree?.color ?: fruit.color, fruit.color, tint), radius = radius, center = at)
-                val photo = photos[fruit.memberId]
-                if (photo != null && letters > 0f) {
-                    // A member with a profile photo (retour de Kévin, 17/11): the photo, round, inside
-                    // a rim of their color; the letters otherwise.
-                    drawPhoto(photo, at, radius - 3.dp.toPx(), letters)
-                } else if (letters > 0f) {
-                    val layout = measurer.measure(
-                        fruit.initials,
-                        TextStyle(fontFamily = Fredoka, fontWeight = FontWeight.SemiBold, fontSize = 18.sp, color = Color.White.copy(alpha = letters)),
-                    )
-                    drawText(layout, topLeft = Offset(at.x - layout.size.width / 2f, at.y - layout.size.height / 2f))
-                }
+                val shown = if (fruit.tree != null) out else travel
+                drawMedallion(measurer, at, radius, fruit.color, photos[fruit.memberId], fruit.initials, shown)
             }
         }
         // The words (from 2.9 s), under the circle.
@@ -231,73 +205,6 @@ internal fun WelcomePicture(
             )
         }
     }
-}
-
-/** [photo] cropped to its center square, in a circle of [radius] around [center]. */
-private fun DrawScope.drawPhoto(photo: ImageBitmap, center: Offset, radius: Float, alpha: Float) {
-    if (radius <= 0f) return
-    val side = min(photo.width, photo.height)
-    val circle = Path().apply { addOval(Rect(center, radius)) }
-    clipPath(circle) {
-        drawImage(
-            image = photo,
-            srcOffset = IntOffset((photo.width - side) / 2, (photo.height - side) / 2),
-            srcSize = IntSize(side, side),
-            dstOffset = IntOffset((center.x - radius).roundToInt(), (center.y - radius).roundToInt()),
-            dstSize = IntSize((2 * radius).roundToInt(), (2 * radius).roundToInt()),
-            alpha = alpha,
-        )
-    }
-}
-
-/** The trunk and the roots of the icon. */
-private fun DrawScope.drawTrunk(icon: (Float, Float) -> Offset, unit: Float, wood: Color) {
-    val roots = listOf(30f to 84f, 40f to 90f, 54f to 92f, 68f to 90f, 78f to 84f, 24f to 74f, 84f to 74f)
-    val bends = listOf(42f to 72.8f, 47f to 74f, 54f to 74.4f, 61f to 74f, 66f to 72.8f, 39f to 70.8f, 69f to 70.8f)
-    roots.zip(bends).forEach { (end, bend) -> curve(icon(54f, 70f), icon(bend.first, bend.second), icon(end.first, end.second), wood, 2.4f * unit) }
-    val trunk = Path().apply {
-        icon(49f, 72f).let { moveTo(it.x, it.y) }
-        icon(51f, 64f).let { c -> icon(50f, 56f).let { e -> quadraticTo(c.x, c.y, e.x, e.y) } }
-        icon(58f, 56f).let { lineTo(it.x, it.y) }
-        icon(57f, 64f).let { c -> icon(59f, 72f).let { e -> quadraticTo(c.x, c.y, e.x, e.y) } }
-        close()
-    }
-    drawPath(trunk, wood)
-}
-
-/** The branches, the twigs and the leaves of the icon. */
-private fun DrawScope.drawCrown(icon: (Float, Float) -> Offset, unit: Float, wood: Color, leaf: Color) {
-    val branches = listOf(
-        Triple(43.48f to 61.47f, 38.96f to 55.47f, 2.4f), Triple(43.48f to 50.53f, 38.96f to 44.53f, 2.4f),
-        Triple(46.41f to 42.89f, 44.82f to 36.89f, 2.4f), Triple(61.59f to 42.89f, 63.18f to 36.89f, 2.4f),
-        Triple(64.52f to 50.53f, 69.04f to 44.53f, 2.4f), Triple(64.52f to 61.47f, 69.04f to 55.47f, 2.4f),
-    )
-    branches.forEach { (bend, end, width) -> curve(icon(54f, 57f), icon(bend.first, bend.second), icon(end.first, end.second), wood, width * unit) }
-    val twigs = listOf(
-        Triple(38.96f to 55.47f, 32.67f to 40.5f, 32.37f to 38.5f), Triple(38.96f to 44.53f, 37.73f to 30.37f, 42.5f to 28.37f),
-        Triple(44.82f to 36.89f, 52.41f to 27.5f, 54f to 25.5f), Triple(63.18f to 36.89f, 67.34f to 30.37f, 65.5f to 28.37f),
-        Triple(69.04f to 44.53f, 75.33f to 40.5f, 75.63f to 38.5f),
-    )
-    twigs.forEach { (from, bend, end) -> curve(icon(from.first, from.second), icon(bend.first, bend.second), icon(end.first, end.second), wood, 1.68f * unit) }
-    val leaves = listOf(
-        Triple(33f, 58f, -30f), Triple(75f, 58f, 30f), Triple(28f, 44f, -60f), Triple(80f, 44f, 60f), Triple(36f, 24f, -20f),
-        Triple(72f, 24f, 20f), Triple(54f, 32f, 0f), Triple(47f, 28f, -15f), Triple(61f, 28f, 15f), Triple(24f, 52f, -80f),
-        Triple(84f, 52f, 80f), Triple(44f, 58f, -40f), Triple(64f, 58f, 40f),
-    )
-    leaves.forEach { (x, y, degrees) ->
-        val at = icon(x, y)
-        rotate(degrees, pivot = at) {
-            drawOval(leaf, topLeft = Offset(at.x - 2.2f * unit, at.y - 4f * unit), size = androidx.compose.ui.geometry.Size(4.4f * unit, 8f * unit))
-        }
-    }
-}
-
-private fun DrawScope.curve(from: Offset, bend: Offset, to: Offset, color: Color, width: Float) {
-    val path = Path().apply {
-        moveTo(from.x, from.y)
-        quadraticTo(bend.x, bend.y, to.x, to.y)
-    }
-    drawPath(path, color, style = Stroke(width = width, cap = StrokeCap.Round))
 }
 
 /** How far [time] is between [start] and [end], from 0 to 1. */

@@ -459,7 +459,6 @@ fun FamiliaApp(
     val appConfig by configs.collectAsStateWithLifecycle(initialValue = null)
     val update = appConfig?.let { availableUpdate(it, BuildConfig.VERSION_CODE, BuildConfig.DOWNLOAD_URL) }
     val updater = rememberInAppUpdater()
-    InAppUpdateDialogs(updater, update)
     WhatsNewHost(appConfig, currentMember, BuildConfig.VERSION_CODE.toLong(), freshInstall, onOpen = navController::openWhatsNew)
 
     // Modules still in test are shown to the admin principal only, until switched on in
@@ -468,6 +467,8 @@ fun FamiliaApp(
         container?.memberRepository?.observeFamily()?.catch { emit(Family(emptyList(), emptyList())) } ?: flowOf(null)
     }
     val liveFamily by liveFamilyFlow.collectAsStateWithLifecycle(initialValue = null)
+    // While the update downloads, the family turns around the tree (DESIGN, 18/11).
+    InAppUpdateDialogs(updater, update, liveFamily, currentMember, container?.memberPhotoRepository)
     val ownerId = liveFamily?.ownerId
     val features = FeatureFlags(appConfig?.features.orEmpty(), isOwner = ownerId != null && ownerId == currentMember.id)
     // In « Voir comme », the admin principal still reads config/presentation with their own account:
