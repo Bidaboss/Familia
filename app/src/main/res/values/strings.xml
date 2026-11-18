@@ -193,7 +193,7 @@
     <string name="administration_features_new">Nouvelles versions</string>
     <string name="administration_features_new_help">À garder allumées une fois validées. Après le 21, l\'ancienne version et son interrupteur disparaîtront.</string>
     <string name="administration_features_base">La base</string>
-    <string name="administration_features_base_help">Les modules de tous les jours, à laisser allumés.</string>
+    <string name="administration_features_base_help">Toujours allumés pour toute la famille, sans interrupteur : %1$s.</string>
     <string name="administration_challenge_title">Défi du mois</string>
     <string name="administration_challenge_change">Changer le défi de %1$s</string>
     <string name="administration_challenge_locked">La jauge a commencé : ce défi reste jusqu\'à la fin du mois.</string>

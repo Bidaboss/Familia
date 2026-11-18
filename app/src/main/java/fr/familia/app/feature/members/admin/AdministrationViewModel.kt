@@ -10,6 +10,8 @@ import fr.familia.app.core.data.TreeRepository
 import fr.familia.app.core.model.CapsuleLeftover
 import fr.familia.app.core.model.ChallengeRotation
 import fr.familia.app.core.model.Feature
+import fr.familia.app.core.model.FeatureTier
+import fr.familia.app.core.model.tier
 import fr.familia.app.feature.discover.DiscoverModule
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Household
@@ -28,6 +30,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
@@ -82,6 +85,25 @@ class AdministrationViewModel(
     val features: StateFlow<Map<String, Boolean>> = (appConfig?.observeAppConfig()?.map { it.features } ?: emptyFlow())
         .catch { e -> if (e is CancellationException) throw e }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
+
+    init {
+        // « La base » has no switch any more (Kévin le 18/11, 20 h 39). The server still reads
+        // config/app for some of them (comments, bring, vœux…): the admin principal's first visit
+        // writes them on, once. Refused (Voir comme, rules not yet published): tried again next time.
+        appConfig?.let { repo ->
+            viewModelScope.launch {
+                try {
+                    val switched = repo.observeAppConfig().first().features
+                    Feature.entries
+                        .filter { it.tier == FeatureTier.Base && switched[it.key] != true }
+                        .forEach { repo.setFeature(it.key, true) }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                }
+            }
+        }
+    }
 
     /** The order of « À découvrir » saved in config/app (AVIS-19 partie 2); empty: the default. */
     val discoverOrder: StateFlow<List<String>> = (appConfig?.observeAppConfig()?.map { it.discoverOrder } ?: emptyFlow())
