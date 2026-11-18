@@ -604,7 +604,7 @@ Interrupteur « Livre de recettes » allumé dans Administration, après « Publ
 Avec les modules « Plus de photos » et « Liste unique » allumés, après « Publier Firebase », et le compte d'une autre personne.
 
 1. Dans « Mes envies », ajoute une envie avec « Ajouter une photo ». **Attendu :** une vignette sur la carte de l'envie, et la photo en large quand on l'ouvre. L'autre compte la voit aussi.
-2. Avec l'autre compte, ajoute une idée avec une photo dans « Idées de la famille » de la première personne. **Attendu :** la famille voit la photo, mais la personne fêtée ne voit ni l'idée ni la photo.
+2. Avec l'autre compte, ajoute une idée avec une photo dans « Surprise pour … » de la première personne. **Attendu :** la famille voit la photo, mais la personne fêtée ne voit ni l'idée ni la photo.
 3. Modifie l'envie et retire sa photo, après confirmation. **Attendu :** plus de vignette.
 4. Supprime une envie qui avait une photo. **Attendu :** elle disparaît, et sa photo aussi (le serveur la retire).
 5. Module éteint. **Attendu :** ni bouton photo, ni vignette.
@@ -649,7 +649,7 @@ Interrupteur « Ajouter une envie depuis une autre appli » (wishFromShare) allu
 1. Dans le navigateur, sur une page de boutique, touche « Partager ». « Ajouter à mes envies » apparaît dans la liste des applis. Touche-le.
 2. La feuille s'ouvre avec le titre et le lien de la page. Rien n'est lu sur la boutique : pas de photo ni de prix pré-remplis.
 3. Sous « C'est pour qui ? », « Pour moi » est choisi. Enregistre : l'envie est dans « Mes envies ».
-4. Recommence et choisis « Une idée pour… » quelqu'un d'autre. La phrase « … ne verra pas cet article » s'affiche. Enregistre : l'idée est dans ses « Idées de la famille ».
+4. Recommence et choisis « Une idée pour… » quelqu'un d'autre. La phrase « … ne verra pas cet article » s'affiche. Enregistre : l'idée est dans sa liste « Surprise pour … ».
 5. Avec le compte de cette personne, ouvre Cadeaux : l'idée n'apparaît nulle part.
 6. Avec le compte d'un enfant, partage un lien : il n'y a pas « C'est pour qui ? », l'envie va dans ses propres envies.
 7. Éteins l'interrupteur, ouvre Familia puis reviens au navigateur : Familia n'est plus dans « Partager ».
@@ -1281,18 +1281,18 @@ Avant de commencer : **Administration**, puis **Modules**, et allume « Nouveau 
 
 Depuis le 18/11 (PRODUIT-131), le nouvel onglet n'a plus d'interrupteur à lui : il vient avec « Liste unique ». Allume « Liste unique » dans **Administration**, **Modules**. Fais ces essais sur ton téléphone et celui de ta compagne avant le gel du 20 au soir.
 
-1. Ouvre **Cadeaux**. **Attendu :** si tu prépares une surprise, une carte noire « Surprise en préparation » en tête. Puis « À venir » : le prochain anniversaire des 30 jours en relief (« … fête ses … ans », « Ses envies », « Idées »), puis Noël à partir du 1er novembre. Puis « Mes envies », puis « La famille » : ton foyer ouvert, les autres repliés.
-2. Regarde une carte de personne. **Attendu :** sa couleur à gauche, son anniversaire et seulement « N envies ». Jamais un nombre d'idées ni de réservations.
+1. Ouvre **Cadeaux**. **Attendu :** si tu prépares une surprise, une carte noire « Surprise en préparation » en tête. Puis « À venir » : le prochain anniversaire des 30 jours en relief (« … fête ses … ans », « Ses envies », et « Surprise » s'il y a déjà une surprise en cours pour lui), puis les autres anniversaires. Pas de ligne Noël. Puis « Mes envies », puis « La famille » : ton foyer ouvert, les autres repliés. Aucune puce « Toutes », « Noël … » ou « Anniversaire de … ». Touche une ligne « Anniversaire de … » : ses envies s'ouvrent.
+2. Regarde une carte de personne. **Attendu :** sa couleur à gauche, son anniversaire et seulement « N envies ». Jamais un nombre d'idées ni de réservations. Le bouton « Surprise » n'apparaît que si une surprise est en cours pour cette personne : pour en commencer une, passe par « Préparer une surprise ». Il ouvre « Surprise pour … », et l'en-tête dit que la personne ne voit jamais cette liste.
 3. Pendant la démo, n'ouvre pas cet onglet devant la table : le Mode présentation a été retiré le 18/11. Montre-le avec « Voir comme » un autre membre que la personne fêtée.
 4. **Administration**, « Voir comme… », choisis la personne dont l'anniversaire approche. **Attendu :** « Tu fêtes tes … ans » en relief. Aucune surprise, aucune réservation, aucun « Ce que j'offre ».
-5. « Voir comme » un enfant. **Attendu :** « Mes envies » en tête. Sur les cartes des autres, « Ses envies » seulement, jamais « Idées » ni « Préparer une surprise ».
-6. Mets la taille du texte à 200 %. **Attendu :** les noms de foyer passent sur deux lignes, rien n'est coupé et tous les boutons restent faciles à toucher. Avec TalkBack, « Ses envies » se lit « Envies de … », et « Idées » se lit « Idées pour … ».
+5. « Voir comme » un enfant. **Attendu :** « Mes envies » en tête. Sur les cartes des autres, « Ses envies » seulement, jamais « Surprise » ni « Préparer une surprise ».
+6. Mets la taille du texte à 200 %. **Attendu :** les noms de foyer passent sur deux lignes, rien n'est coupé et tous les boutons restent faciles à toucher. Avec TalkBack, « Ses envies » se lit « Envies de … », et « Surprise » se lit « Surprise pour … ».
 7. Réseau faible : refais les étapes 1 et 3 en mode avion, puis en « 2G seulement », comme dans « Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible ». **Attendu :** l'onglet déjà vu s'affiche avec le bandeau « Hors ligne », sans écran blanc ni roue sans fin.
 8. **Administration**, puis **Modules**. **Attendu :** plus de « Nouvel onglet Cadeaux ». La phrase sous « Liste unique » dit qu'elle apporte le nouvel onglet.
 
 ## Nouvelle fiche de membre (PRODUIT-114 à 117)
 
-Depuis le 18/11 (PRODUIT-131), c'est la seule fiche : plus d'interrupteur ni d'ancienne fiche. Fais ces essais sur ton téléphone et celui d'ta compagne avant le gel du 20 au soir.
+Depuis le 18/11 (PRODUIT-131), c'est la seule fiche : plus d'interrupteur ni d'ancienne fiche. Fais ces essais sur ton téléphone et celui de ta compagne avant le gel du 20 au soir.
 
 1. Dans **Famille**, ouvre la fiche d'un adulte. **Attendu :** un bandeau à sa couleur, sa photo ronde, son âge, « Anniversaire dans … ». Puis les boutons ronds (Vœux, Pensez à moi, Appeler, Itinéraire) et une carte par section. Jamais de menu ⋮.
 2. Ouvre ta propre fiche. **Attendu :** « Ma fiche » en haut, un crayon sur les cartes que tu peux remplir, la jauge « Ta fiche est remplie à … % », et le bouton appareil photo sur ta photo. Tes envies ne montrent que leurs titres, jamais « Réservé » ni « Pris ».
