@@ -147,8 +147,8 @@ class SurpriseButtonTest {
     fun `in the presentation, the surprises then one block for what comes`() {
         show(presentationFor("adult2"))
         assertTrue(topOf("Surprises en préparation") < topOf("À venir"))
-        assertTrue(topOf("À venir") < topOf("Prochaine occasion"))
-        // The next occasion is the first card of the block, never a separate section of birthdays.
+        assertTrue(topOf("À venir") < topOf("PROCHAINE OCCASION"))
+        // The next occasion (its label in capitals) is the first card of the block, never a separate section of birthdays.
         assertEquals(0, count("Anniversaires à venir"))
         assertEquals(1, count("Anniversaire de Adult1"))
     }
