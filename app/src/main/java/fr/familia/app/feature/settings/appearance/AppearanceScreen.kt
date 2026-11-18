@@ -56,10 +56,16 @@ import fr.familia.app.core.welcome.OpeningStyle
 import fr.familia.app.core.ui.FamiliaPreviews
 import androidx.compose.foundation.isSystemInDarkTheme
 import fr.familia.app.core.theme.ClayTint
+import fr.familia.app.core.theme.BodyFont
+import fr.familia.app.core.theme.TitleFont
+import fr.familia.app.core.theme.sample
+import androidx.annotation.StringRes
+import androidx.compose.ui.text.TextStyle
 
 /**
- * Ma photo › Apparence (DESIGN-7): the 9 themes, each shown in its own colors and fonts.
- * The choice applies at once and stays on this phone.
+ * Ma photo › Apparence (DESIGN-7, revised by DESIGN-43): the 7 themes, each shown in its own
+ * colors, then the title font and the text font (DESIGN-45 and 46), each name written in its own
+ * font. Every choice applies at once and stays on this phone.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,6 +73,10 @@ fun AppearanceScreen(
     current: FamiliaThemeId,
     onChoose: (FamiliaThemeId) -> Unit,
     onBack: () -> Unit,
+    titleFont: TitleFont = TitleFont.Round,
+    onChooseTitleFont: (TitleFont) -> Unit = {},
+    bodyFont: BodyFont = BodyFont.Normal,
+    onChooseBodyFont: (BodyFont) -> Unit = {},
     icon: AppIcon = AppIcon.Default,
     onChooseIcon: (AppIcon) -> Unit = {},
     /** What plays at each opening (Kévin, 17/11): the welcome, the tree, or nothing. */
@@ -104,6 +114,20 @@ fun AppearanceScreen(
             items(FamiliaThemeId.entries, key = { it.key }) { theme ->
                 ThemeChoice(theme, selected = theme == current) { onChoose(theme) }
             }
+            item(key = "titleFont") {
+                FontSection(
+                    title = R.string.appearance_title_font_title,
+                    help = R.string.appearance_title_font_help,
+                    choices = TitleFont.entries.map { FontOption(it.labelRes, it.sample, it == titleFont) { onChooseTitleFont(it) } },
+                )
+            }
+            item(key = "bodyFont") {
+                FontSection(
+                    title = R.string.appearance_body_font_title,
+                    help = R.string.appearance_body_font_help,
+                    choices = BodyFont.entries.map { FontOption(it.labelRes, it.sample, it == bodyFont) { onChooseBodyFont(it) } },
+                )
+            }
             item(key = "icon") {
                 IconSection(icon, changed = iconChanged) { chosen ->
                     if (chosen != icon) {
@@ -114,6 +138,43 @@ fun AppearanceScreen(
             }
             item(key = "opening") {
                 OpeningSection(opening, onChooseOpening)
+            }
+        }
+    }
+}
+
+/** One font to choose: its name, written in [style], the font itself. */
+internal class FontOption(@StringRes val labelRes: Int, val style: TextStyle, val selected: Boolean, val onChoose: () -> Unit)
+
+/** « Police des titres » or « Police du texte »: a radio button per font, its name in that font. */
+@Composable
+internal fun FontSection(@StringRes title: Int, @StringRes help: Int, choices: List<FontOption>) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+        Text(
+            stringResource(title),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.semantics { heading() },
+        )
+        Text(
+            stringResource(help),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Column(Modifier.selectableGroup()) {
+            choices.forEach { choice ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp)
+                        .clip(MaterialTheme.shapes.large)
+                        .selectable(selected = choice.selected, role = Role.RadioButton, onClick = choice.onChoose)
+                        .padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    RadioButton(selected = choice.selected, onClick = null)
+                    Text(stringResource(choice.labelRes), style = choice.style, color = MaterialTheme.colorScheme.onSurface)
+                }
             }
         }
     }

@@ -32,19 +32,13 @@ abstract class ThemeLooksContrastTest(private val screens: List<Pair<String, @Co
     fun `Classique, dark`() = check(allLooks.first { it.dark })
 
     @Test
-    fun arcade() = check(look(FamiliaThemeId.Arcade))
+    fun olive() = check(look(FamiliaThemeId.Olive))
 
     @Test
-    fun retro() = check(look(FamiliaThemeId.Retro))
+    fun lavender() = check(look(FamiliaThemeId.Lavender))
 
     @Test
-    fun travel() = check(look(FamiliaThemeId.Travel))
-
-    @Test
-    fun garden() = check(look(FamiliaThemeId.Garden))
-
-    @Test
-    fun cosmos() = check(look(FamiliaThemeId.Cosmos))
+    fun night() = check(look(FamiliaThemeId.Night))
 
     @Test
     fun winter() = check(look(FamiliaThemeId.Winter))
