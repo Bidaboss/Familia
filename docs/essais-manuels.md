@@ -1177,6 +1177,17 @@ Après « Publier Firebase ». Deux téléphones : celui de l'admin principal et
 8. Après 22 h, avec « Urgent ». **Attendu :** elle arrive tout de suite.
 9. Allume le mode présentation. **Attendu :** l'écran dit que rien ne part, et le bouton reste éteint.
 
+## Commentaires des Bonnes nouvelles (récit 67)
+
+Module « Fil d'actualité » allumé dans Administration > Modules, après « Publier Firebase ». Éteint, la Bonne nouvelle ne montre pas de commentaires.
+
+1. Ouvre une Bonne nouvelle d'un autre membre. **Attendu :** sous la nouvelle, « Commentaires », « Pas encore de commentaire… », un champ et « Envoyer ».
+2. Écris « Bravo ! » et envoie. **Attendu :** le commentaire apparaît, signé de ton prénom et de l'heure. L'auteur de la nouvelle reçoit « Prénom a commenté ta Bonne nouvelle ».
+3. Sur un troisième téléphone, commente aussi. **Attendu :** tu reçois « Prénom a aussi commenté la Bonne nouvelle ». Touche « Ne plus être prévenu des commentaires », puis fais commenter encore : plus rien n'arrive.
+4. Modifie ton commentaire, puis retire-le. **Attendu :** « modifié » s'affiche, puis le commentaire disparaît. L'auteur de la nouvelle et l'admin principal ont aussi « Retirer ».
+5. Retire la nouvelle. **Attendu :** ses commentaires partent avec elle.
+6. En mode présentation, puis en « Voir comme ». **Attendu :** les commentaires se lisent, sans champ, sans « Modifier » ni « Retirer ».
+
 ## Fil d'actualité de l'Accueil (récit 67)
 
 Module « Fil d'actualité » allumé dans Administration > Modules (éteint, l'Accueil ne change pas, même pour l'admin principal).

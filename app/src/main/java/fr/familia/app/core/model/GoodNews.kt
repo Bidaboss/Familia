@@ -46,6 +46,8 @@ data class GoodNews(
     val littleOnes: Boolean = false,
     /** Published on this phone without network: it goes by itself, once, when the network is back. */
     val pending: Boolean = false,
+    /** Its comments (récit 67), counted by the server. */
+    val commentCount: Int = 0,
 ) {
     /** Changed by its author after it was published. */
     val isEdited: Boolean get() = createdAt != null && updatedAt != null && updatedAt.isAfter(createdAt.plusSeconds(60))

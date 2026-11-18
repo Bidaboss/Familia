@@ -1088,6 +1088,7 @@
     <string name="goodnews_error_title">Les bonnes nouvelles ne s\'affichent pas</string>
     <string name="goodnews_error_body">L\'appli n\'a pas pu les lire. Réessaie, et si ça continue, préviens un chef de famille.</string>
     <string name="goodnews_missing_title">Cette bonne nouvelle n\'existe plus</string>
+    <string name="goodnews_comments_empty">Pas encore de commentaire. Un bravo, un souvenir, une question ?</string>
     <string name="goodnews_missing_body">Elle a été retirée, ou elle n\'est pas encore arrivée sur ce téléphone.</string>
     <string name="goodnews_text_field">Ta bonne nouvelle</string>
     <string name="goodnews_text_hint">Raconte en quelques mots</string>
