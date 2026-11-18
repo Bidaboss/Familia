@@ -239,7 +239,7 @@ Avant ces essais : « Publier Firebase » a publié la page des liens (Hosting),
 
 Avec le module « Arbre » visible (admin principal, ou module allumé), deux comptes du même foyer : un adulte et un enfant avec l'appli.
 
-1. Administration > « Ordre des foyers » : mets ton foyer en premier, puis touche « Enregistrer l'ordre ». **Attendu :** ton foyer est en face du mois prochain, les autres suivent, un mois chacun.
+1. Administration > « Vie de la famille » > « Ordre des foyers » : mets ton foyer en premier, puis touche « Enregistrer l'ordre ». **Attendu :** ton foyer est en face du mois prochain, les autres suivent, un mois chacun.
 2. À partir de 7 jours avant le mois prochain, ouvre l'Accueil. **Attendu :** la carte de l'arbre dit « C'est à vous de lancer le défi de … ! » avec « Préparer le défi ».
 3. Avec le compte enfant, touche « Préparer le défi », choisis « Cuisine », un objectif, puis un nom, un emoji et une illustration. À l'aperçu, touche « Enregistrer pour le foyer ». **Attendu :** pas de bouton « Publier » ni « Passer notre tour » ; la phrase « Un adulte du foyer le publiera. »
 4. Avec le compte adulte, rouvre le guide. **Attendu :** le brouillon de l'enfant est là. Touche « Publier le défi ». **Attendu :** le guide se ferme et la bannière disparaît de l'Accueil.
@@ -1116,8 +1116,18 @@ Avec le module « Voir le planning dans mon agenda » allumé (ou sur le télép
 3. Touche le bouton de cet adulte, puis « Couper ». **Attendu :** « Le lien de {prénom} est coupé. » s'affiche. Sur son téléphone, l'écran du lien d'agenda propose d'en créer un nouveau.
 4. Coupe le lien d'un adulte qui n'en avait pas. **Attendu :** le même message, et rien ne change pour lui.
 
+## Bon plan mis en avant sur l'Accueil
+
+Avec le module « Bons plans » allumé. Deux téléphones : celui qui publie, celui qui regarde.
+
+1. Sur le premier téléphone, publie un bon plan avec une photo. Sur le second, ouvre l'Accueil. **Attendu :** une carte « BON PLAN » avec la photo en large, coupée proprement aux bords arrondis, le titre, puis « {prénom} · Aujourd'hui à … ».
+2. Touche la carte. **Attendu :** le bon plan s'ouvre.
+3. Publie un bon plan sans photo. **Attendu :** la carte montre le titre, l'auteur et le début du texte, sans cadre vide.
+4. Sur le téléphone qui a publié. **Attendu :** pas de carte : on ne voit pas son propre bon plan.
+5. Deux jours plus tard, ou après la fin du bon plan. **Attendu :** la carte disparaît.
+
 ## Arbre vide : relier deux membres (retour d'essai du 17/11)
-1. En admin principal, avec un arbre sans aucun lien ni proche, ouvre Famille › Nos trésors › Arbre généalogique. **Attendu :** l'écran vide propose « Relier deux membres » (bouton plein) et « Ajouter un proche sans compte ».
+1. En admin principal, avec un arbre sans aucun lien ni proche, ouvre Tout Familia › Arbre généalogique. **Attendu :** l'écran vide propose « Relier deux membres » (bouton plein) et « Ajouter un proche sans compte ».
 2. Touche « Relier deux membres ». **Attendu :** « Qui veux-tu relier ? » liste les membres, ton foyer d'abord. Choisis-en un, puis « Suivant ».
 3. Choisis « Le conjoint ou la conjointe de … » (ou un parent, un enfant), puis la seconde personne, et « Relier ». **Attendu :** l'arbre s'affiche avec tous les membres et le lien tracé.
 4. En chef de famille (ou « Voir comme » un chef), même écran vide. **Attendu :** « Qui veux-tu relier ? » ne liste que son foyer. En simple adulte, aucun de ces boutons, seulement « Revenir ».

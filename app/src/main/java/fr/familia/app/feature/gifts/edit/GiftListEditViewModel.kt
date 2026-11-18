@@ -11,6 +11,8 @@ import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.nextBirthday
+import fr.familia.app.core.data.familyToday
 import fr.familia.app.feature.gifts.canManageList
 import fr.familia.app.feature.gifts.keepsListsOf
 import fr.familia.app.feature.gifts.keptMembers
@@ -77,6 +79,9 @@ class GiftListEditViewModel(
     /** Keeps the draft when Android closes the app in the background. */
     private val saved: SavedStateHandle = SavedStateHandle(),
     private val writeTimeoutMillis: Long = 4_000,
+    /** « Préparer une surprise » (récit 63): a new surprise starts at the nearest occasion of its person. */
+    private val nearestOccasion: Boolean = false,
+    private val today: () -> LocalDate = { familyToday() },
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<GiftListEditUiState>(GiftListEditUiState.Loading)
@@ -148,8 +153,10 @@ class GiftListEditViewModel(
         val beneficiary = fam.members.firstOrNull { it.id == beneficiaryId } ?: current
         val surprise = !keepsListsOf(current, beneficiary)
         val all = fam.members.map { it.id }.toSet()
+        val nearest = if (surprise && nearestOccasion) nearestOccasionOf(beneficiary, today()) else null
         return GiftListForm(
-            occasion = if (surprise) GiftOccasion.Birthday else GiftOccasion.Christmas,
+            occasion = nearest?.first ?: if (surprise) GiftOccasion.Birthday else GiftOccasion.Christmas,
+            date = nearest?.second,
             beneficiaryId = beneficiary.id,
             viewerIds = if (surprise) all - beneficiary.id else all,
         )
@@ -299,6 +306,13 @@ class GiftListEditViewModel(
 }
 
 private const val DRAFT_TITLE = "draft.title"
+/** The next birthday of [member] or the next Christmas, whichever comes first (récit 63, PRODUIT-89). */
+internal fun nearestOccasionOf(member: Member, today: LocalDate): Pair<GiftOccasion, LocalDate> {
+    val christmas = LocalDate.of(today.year, 12, 25).let { if (it < today) it.plusYears(1) else it }
+    val birthday = member.birthDate?.let { nextBirthday(it, today) }
+    return if (birthday != null && birthday <= christmas) GiftOccasion.Birthday to birthday else GiftOccasion.Christmas to christmas
+}
+
 private const val DRAFT_OCCASION = "draft.occasion"
 private const val DRAFT_DATE = "draft.date"
 private const val DRAFT_BENEFICIARY = "draft.beneficiary"

@@ -6,12 +6,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.LocalOffer
@@ -34,6 +36,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -44,6 +47,8 @@ import fr.familia.app.core.model.GoodDeal
 import fr.familia.app.core.model.GoodDealCategory
 import fr.familia.app.core.model.GoodDealKind
 import fr.familia.app.core.model.linkSiteName
+import fr.familia.app.core.photo.SinglePhoto
+import fr.familia.app.core.photo.StorageImage
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
@@ -184,6 +189,17 @@ private fun AddressSearch(filter: AddressFilter, onPickCategory: (GoodDealCatego
     }
 }
 
+/** The photo of a deal, wide and rounded above its title; nothing without one. The title says what it is. */
+@Composable
+private fun DealPhoto(base: String?) {
+    base ?: return
+    StorageImage(
+        path = SinglePhoto.photoPath(base),
+        contentDescription = null,
+        modifier = Modifier.fillMaxWidth().aspectRatio(16f / 9f).clip(RoundedCornerShape(16.dp)),
+    )
+}
+
 @Composable
 private fun AddressCard(row: GoodDealRow, onOpenDeal: ((String) -> Unit)?) {
     val deal = row.deal
@@ -193,6 +209,8 @@ private fun AddressCard(row: GoodDealRow, onOpenDeal: ((String) -> Unit)?) {
         onClick = onOpenDeal?.let { open -> { open(deal.id) } },
         onClickLabel = onOpenDeal?.let { stringResource(R.string.gooddeal_open_address) },
     ) {
+        // Retour [BUG] du 18/11: the photo of a deal stands out at the top of its card.
+        DealPhoto(deal.photo)
         Text(
             listOfNotNull(deal.category?.let { categoryLabel(it) }, deal.place).joinToString(" · "),
             style = MaterialTheme.typography.labelLarge,
@@ -214,6 +232,8 @@ private fun DealCard(row: GoodDealRow, today: LocalDate, onOpenDeal: ((String) -
         onClick = onOpenDeal?.let { open -> { open(deal.id) } },
         onClickLabel = onOpenDeal?.let { stringResource(R.string.gooddeal_open) },
     ) {
+        // Retour [BUG] du 18/11: the photo of a deal stands out at the top of its card.
+        DealPhoto(deal.photo)
         deal.endsAt?.let {
             Text(dealUntilLabel(it, today), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
         }

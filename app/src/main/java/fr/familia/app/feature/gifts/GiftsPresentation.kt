@@ -49,6 +49,8 @@ internal fun LazyListScope.presentationContent(
     onPrepareSurprise: (String) -> Unit,
     onOpenNotebook: (() -> Unit)?,
     onOpenMyPage: (() -> Unit)? = null,
+    /** « Surprises en préparation » (récit 63): false while presenting and in « Voir comme ». */
+    showPreparing: Boolean = false,
 ) {
     state.next?.let { next ->
         item(key = "next-occasion") { NextOccasionCard(state, next, onSeeIdeas = { onSelectMoment(next) }) }
@@ -91,6 +93,7 @@ internal fun LazyListScope.presentationContent(
         }
     }
     if (state.moment == null) birthdaysSection(state, onAllBirthdays, onPrepareSurprise, onOpenList)
+    if (showPreparing) preparingSection(state, onOpenList)
     onOpenNotebook?.let { open ->
         item(key = "notebook") {
             Spacer(Modifier.padding(top = 8.dp))

@@ -16,6 +16,7 @@ import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.isPermanent
 import fr.familia.app.core.model.upcomingBirthdays
 import fr.familia.app.core.model.householdGroups
+import fr.familia.app.core.model.ideasListId
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -67,6 +68,14 @@ sealed interface GiftsUiState {
         val wishPreviews: Map<String, WishPreview> = emptyMap(),
         /** The items read for the cards, by list id: what [wishPreviews] counts from. */
         val listItems: Map<String, List<GiftItem>> = emptyMap(),
+        /**
+         * With the single list (récit 9 ter): the people of [birthdays] whose ideas of the family hold
+         * a surprise idea, kept from them (retour d'essai du 17/11). Never this member; the adults of
+         * a child without the app see it, as the rules let them read the child's ideas.
+         */
+        val surprisePreparedFor: Set<String> = emptySet(),
+        /** « Bouton surprise » (récit 63): one button to prepare a surprise, and the surprises in progress on top. */
+        val surpriseButton: Boolean = false,
         /** One list of wishes per person, and the ideas of the family (récit 9 ter): no list for an occasion. */
         val singleList: Boolean = false,
         /** The occasions to prepare (récit 9 ter): the next Christmas, then the next birthdays. */
@@ -104,6 +113,8 @@ class GiftsViewModel(
     private val presentation: Boolean = false,
     /** When this phone last opened each list, from [GiftSeenPreferences]. */
     private val seen: Flow<Map<String, Long>> = flowOf(emptyMap()),
+    /** The switch « Bouton surprise » (récit 63). */
+    private val surpriseButton: Boolean = false,
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
@@ -115,7 +126,7 @@ class GiftsViewModel(
                 flowOf(GiftsUiState.Error)
             } else {
                 combine(members.observeFamily(), gifts.observeVisibleLists(currentMemberId), today) { family, lists, day ->
-                    giftsState(family, lists, currentMemberId, day, singleList, presentation)
+                    giftsState(family, lists, currentMemberId, day, singleList, presentation, surpriseButton)
                 }
                     .flatMapLatest { state -> withPreviews(gifts, state) }
                     .let { states ->
@@ -152,7 +163,8 @@ class GiftsViewModel(
         // Only « Mes envies »: the card of the ideas of the family says nothing of what they hold, not
         // even how many, since the tab may be shown in front of their person.
         val wishes = state.sections.mapNotNull { it.wishes }
-        if (wishes.isEmpty()) return flowOf(state)
+        val ideas = surpriseIdeasToRead(state)
+        if (wishes.isEmpty() && ideas.isEmpty()) return flowOf(state)
         val previews = wishes.map { list ->
             repo.observeItems(list.id, hiddenFromMe = true)
                 .map<List<GiftItem>, Pair<String, List<GiftItem>>?> { items -> list.id to items }
@@ -162,9 +174,35 @@ class GiftsViewModel(
                     emit(null)
                 }
         }
-        return combine(previews) { all -> state.copy(listItems = all.filterNotNull().toMap()) }
+        val read = if (previews.isEmpty()) flowOf(emptyMap()) else combine(previews) { all -> all.filterNotNull().toMap() }
+        // Only whether one surprise idea is there, for the few birthdays shown: never how many.
+        val prepared = ideas.map { memberId ->
+            repo.observeItems(ideasListId(memberId), hiddenFromMe = false)
+                .map<List<GiftItem>, String?> { items -> memberId.takeIf { items.any { !it.visibleToBeneficiary } } }
+                .onStart { emit(null) }
+                .catch { e ->
+                    if (e is CancellationException) throw e
+                    emit(null)
+                }
+        }
+        val preparedFor = if (prepared.isEmpty()) flowOf(emptySet()) else combine(prepared) { all -> all.filterNotNull().toSet() }
+        return combine(read, preparedFor) { items, people -> state.copy(listItems = items, surprisePreparedFor = people) }
     }
 }
+
+/**
+ * The people of the birthdays shown whose ideas of the family to read for a surprise in progress:
+ * with the single list only, never this member (« Voir comme » them included: they are « me » then).
+ */
+internal fun surpriseIdeasToRead(state: GiftsUiState.Success): List<String> =
+    if (!state.singleList) {
+        emptyList()
+    } else {
+        // « Surprises en préparation » (récit 63) names everyone with a surprise, not only the next birthdays.
+        val people = if (state.surpriseButton) state.sections.map { it.member.id } else state.birthdays.map { it.member.id }
+        people.distinct()
+            .filter { id -> state.sections.none { it.member.id == id && it.isMe } }
+    }
 
 /**
  * The next occasion strictly after [today] (présentation R1 bis): a birthday of the family or
@@ -275,6 +313,7 @@ internal fun giftsState(
     today: LocalDate,
     singleList: Boolean = false,
     presentation: Boolean = false,
+    surpriseButton: Boolean = false,
 ): GiftsUiState {
     val me = family.members.firstOrNull { it.id == meId } ?: return GiftsUiState.Error
     val byId = family.members.associateBy { it.id }
@@ -316,6 +355,7 @@ internal fun giftsState(
         singleList = singleList,
         presentation = presentation && singleList,
         next = if (presentation && singleList) nextOccasion(today, family.members) else null,
+        surpriseButton = surpriseButton,
     )
 }
 

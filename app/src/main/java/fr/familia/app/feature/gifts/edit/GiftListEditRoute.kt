@@ -18,6 +18,7 @@ fun GiftListEditRoute(
     currentMember: Member,
     listId: String?,
     forMemberId: String?,
+    nearestOccasion: Boolean = false,
     onDone: (deleted: Boolean) -> Unit,
     onBack: () -> Unit,
 ) {
@@ -27,6 +28,7 @@ fun GiftListEditRoute(
                 GiftListEditViewModel(
                     container?.giftRepository, container?.memberRepository, currentMember.id, listId, forMemberId,
                     saved = createSavedStateHandle(),
+                    nearestOccasion = nearestOccasion,
                 )
             }
         },

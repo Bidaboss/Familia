@@ -6,6 +6,7 @@ import fr.familia.app.feature.presentation.LocalPresenting
 import fr.familia.app.feature.presentation.PresentationBanner
 import fr.familia.app.feature.presentation.rememberPresentation
 
+import androidx.compose.material.icons.outlined.PhotoAlbum
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.AutoAwesome
@@ -128,6 +129,7 @@ import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
 import fr.familia.app.feature.members.profile.MemberProfileRoute
 import fr.familia.app.feature.members.profile.ProfileGiftActions
+import fr.familia.app.feature.gifts.surprise.SurprisePickRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyArchiveRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionRoute
 import fr.familia.app.feature.help.LocalOpenHelp
@@ -239,6 +241,7 @@ import fr.familia.app.feature.gifts.notebook.ProposeIdeaRoute
 import fr.familia.app.feature.events.answerableMembers
 import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.feature.helprequests.badgeCount
+import fr.familia.app.feature.helprequests.seenToForget
 import fr.familia.app.feature.helprequests.detail.HelpRequestDetailRoute
 import fr.familia.app.feature.helprequests.edit.HelpRequestEditRoute
 import fr.familia.app.feature.helprequests.list.HelpRequestsRoute
@@ -660,10 +663,16 @@ fun FamiliaApp(
     var updateDismissed by rememberSaveable { mutableStateOf(false) }
     LifecycleEventEffect(Lifecycle.Event.ON_START) { updateDismissed = false }
 
-    // Récit 15: the Entraide tab counts the open requests where I was warned and can still help.
+    // Récit 15: the Entraide tab counts the open requests where I was warned and can still help,
+    // and that I have not seen yet in the « Coups de main » tab (retour [BUG] du 18/11).
     val helpBadges = remember(container, currentMember) {
+        val seen = container?.seenHelpRequests(currentMember.id)
         container?.helpRequestRepository?.observeMine(currentMember.id)
-            ?.combine(currentDayFlow()) { requests, today -> badgeCount(requests, currentMember, today) }
+            ?.combine(currentDayFlow()) { requests, today -> requests to today }
+            ?.combine(seen?.seen ?: flowOf(emptySet<String>())) { (requests, today), seenIds ->
+                seen?.forget(seenToForget(requests, currentMember, today, seenIds))
+                badgeCount(requests, currentMember, today, seenIds)
+            }
             ?.catch { emit(0) }
             ?: flowOf(0)
     }
@@ -1354,17 +1363,25 @@ fun FamiliaApp(
                             onNewList = { navController.navigate(GiftListEditDestination()) },
                             onAllBirthdays = { navController.navigate(BirthdaysRoute) },
                             // With the single list (récit 9 ter), a surprise is an idea of the family.
-                            onPrepareSurprise = if (features.isOn(Feature.SingleList)) {
-                                { id -> navController.navigate(GiftListDestination(ideasListId(id))) }
-                            } else {
-                                { id -> navController.navigate(GiftListEditDestination(forMemberId = id)) }
-                            },
+                            onPrepareSurprise = { id -> prepareSurprise(navController, features.isOn(Feature.SingleList), id, nearestOccasion = false) },
                             onOpenNotebook = if (features.isOn(Feature.GiftNotebook)) {
                                 { navController.navigate(NotebookDestination) }
                             } else {
                                 null
                             },
                             onOpenMyPage = { navController.navigate(MemberProfileDestination(currentMember.id)) },
+                            onOpenSurprisePicker = { navController.navigate(SurprisePickDestination) },
+                        )
+                    }
+                    composable<SurprisePickDestination> {
+                        SurprisePickRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onBack = { navController.popBackStack() },
+                            onPick = { id ->
+                                navController.popBackStack()
+                                prepareSurprise(navController, features.isOn(Feature.SingleList), id, nearestOccasion = true)
+                            },
                         )
                     }
                     composable<NotebookDestination> {
@@ -1438,6 +1455,7 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             listId = route.listId,
                             forMemberId = route.forMemberId,
+                            nearestOccasion = route.nearestOccasion,
                             onDone = { deleted ->
                                 // A deleted list closes its screen too.
                                 if (deleted) navController.popBackStack(GiftsRoute, inclusive = false) else navController.popBackStack()
@@ -1986,6 +2004,10 @@ private fun allModules(
     module(features.isOn(Feature.Capsules), "capsule", R.string.all_capsule, Icons.Outlined.HourglassTop, ModuleFamily.Remember) {
         navController.navigate(CapsulesDestination) { launchSingleTop = true }
     }
+    // « Qui est-ce ? » was only in « Nos trésors » of the Famille tab, gone on 18/11 (Kévin).
+    module(features.isOn(Feature.WhoIsIt), "whoIsIt", R.string.all_who_is_it, Icons.Outlined.PhotoAlbum, ModuleFamily.Remember) {
+        navController.navigate(WhoIsItDestination) { launchSingleTop = true }
+    }
     // My own profile, whose souvenirs are never empty (DESIGN, 17/11).
     module(features.isOn(Feature.Souvenirs), "souvenirs", R.string.all_souvenirs, Icons.Outlined.AutoStories, ModuleFamily.Remember) {
         navController.navigate(MemberProfileDestination(meId)) { launchSingleTop = true }
@@ -2067,5 +2089,14 @@ private fun NavHostController.navigateToTab(destination: TopLevelDestination) {
         popUpTo(graph.findStartDestination().id) { saveState = true }
         launchSingleTop = true
         restoreState = true
+    }
+}
+
+/** With the single list a surprise is an idea of the family (récit 9 ter); else a surprise list. */
+private fun prepareSurprise(navController: NavHostController, singleList: Boolean, memberId: String, nearestOccasion: Boolean) {
+    if (singleList) {
+        navController.navigate(GiftListDestination(ideasListId(memberId)))
+    } else {
+        navController.navigate(GiftListEditDestination(forMemberId = memberId, nearestOccasion = nearestOccasion))
     }
 }

@@ -50,6 +50,7 @@ private val HELP: Map<Feature, Int> = mapOf(
     Feature.WhoIsIt to R.string.feature_help_who_is_it,
     Feature.SingleList to R.string.feature_help_single_list,
     Feature.OldListsCleanup to R.string.feature_help_old_lists_cleanup,
+    Feature.SurpriseButton to R.string.feature_help_surprise_button,
     Feature.MorePhotos to R.string.feature_help_more_photos,
     Feature.RecipeBook to R.string.feature_help_recipe_book,
     Feature.PresentationR1bis to R.string.feature_help_presentation_r1bis,
@@ -67,6 +68,7 @@ private val HELP: Map<Feature, Int> = mapOf(
     Feature.PackingList to R.string.feature_help_packing_list,
     Feature.FirstSteps to R.string.feature_help_first_steps,
     Feature.OpeningAnimation to R.string.feature_help_opening_animation,
+    Feature.FamilyTabV2 to R.string.feature_help_family_tab_v2,
 )
 
 @StringRes
@@ -107,6 +109,7 @@ val NEEDS_FIREBASE_PUBLISH: Set<Feature> = setOf(
     Feature.WhoIsIt,
     Feature.SingleList,
     Feature.OldListsCleanup,
+    Feature.SurpriseButton,
     Feature.MorePhotos,
     Feature.RecipeBook,
     Feature.GoodDeals,

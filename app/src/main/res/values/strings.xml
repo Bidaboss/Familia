@@ -136,6 +136,16 @@
     <string name="member_remove_owner_only">Seul l\'admin principal peut retirer %1$s.</string>
     <string name="administration_title">Administration</string>
     <string name="members_treasures">Nos trésors</string>
+    <string name="members_other_households">Les autres foyers</string>
+    <string name="members_me_birthday">Anniversaire le %1$s</string>
+    <string name="members_me_open">Voir et modifier ma fiche</string>
+    <string name="members_household_unfolded">déplié</string>
+    <plurals name="members_household_folded">
+        <item quantity="one">replié, %d membre</item>
+        <item quantity="other">replié, %d membres</item>
+    </plurals>
+    <string name="members_household_unfold">déplier</string>
+    <string name="members_household_fold">replier</string>
     <string name="members_treasure_recipes">Recettes</string>
     <string name="members_treasure_recipes_open">ouvrir les recettes</string>
     <string name="members_treasure_tree">Arbre</string>
@@ -164,6 +174,20 @@
     <string name="administration_household_delete_body">Il n\'a plus de membres. Ses anciens événements restent dans le planning.</string>
     <string name="administration_household_delete_confirm">Supprimer</string>
     <string name="administration_features_title">Modules</string>
+    <string name="administration_group_demo">Démo et présentation</string>
+    <string name="administration_group_demo_help">Le mode présentation, et voir l\'appli comme un autre membre.</string>
+    <string name="administration_group_feedback">Retours et plantages</string>
+    <string name="administration_group_feedback_help">Les idées et soucis envoyés par la famille, et les plantages de l\'appli.</string>
+    <string name="administration_group_family">Famille</string>
+    <string name="administration_group_family_help">Chefs de famille, foyers, et l\'invitation à installer l\'appli.</string>
+    <string name="administration_group_life">Vie de la famille</string>
+    <string name="administration_group_life_help">Défi du mois, ordre des foyers, « À découvrir » et capsules.</string>
+    <string name="administration_group_follow">Suivi</string>
+    <string name="administration_group_follow_help">Le temps passé dans l\'appli et ce que coûte Firebase.</string>
+    <string name="administration_group_data">Agenda et sauvegarde</string>
+    <string name="administration_group_data_help">Les liens d\'agenda et la sauvegarde des données.</string>
+    <string name="administration_group_open">ouvert, toucher pour fermer</string>
+    <string name="administration_group_closed">fermé, toucher pour ouvrir</string>
     <string name="administration_features_help">Un module éteint est caché à la famille, mais toi tu le vois toujours.</string>
     <string name="administration_challenge_title">Défi du mois</string>
     <string name="administration_challenge_change">Changer le défi de %1$s</string>
@@ -221,6 +245,7 @@
     <string name="feature_help_daily_nudge">Sur l\'Accueil, un « petit geste du jour » dans À faire, sans notification.</string>
     <string name="feature_help_think_of_me">« Pensez à moi » : on note un moment important, et la famille encourage le jour J.</string>
     <string name="feature_help_who_is_it">« Qui est-ce ? » sur l\'Accueil : une vieille photo, la famille devine qui c\'est et en quelle année.</string>
+    <string name="feature_help_surprise_button">Un bouton « Préparer une surprise » dans Cadeaux, et les surprises en préparation en haut. La personne fêtée ne voit rien.</string>
     <string name="feature_help_old_lists_cleanup">Après le 21/11 : efface les anciennes listes déjà copiées dans « Mes envies » et les idées. Rien de ce qu\'elles contiennent ne se perd.</string>
     <string name="feature_help_single_list">Une seule liste d\'envies par personne et « Idées de la famille », à la place des listes d\'occasion.</string>
     <string name="feature_help_more_photos">Une photo de couverture sur un événement, et une photo sur une envie.</string>
@@ -239,7 +264,8 @@
     <string name="feature_help_turns">Dans Entraide, « À qui le tour ? » : un tour de rôle entre foyers, pour recevoir ou organiser.</string>
     <string name="feature_help_first_steps">Sur l\'Accueil, une carte propose à chacun 3 gestes pendant 14 jours : sa photo, ses goûts, une réaction.</string>
     <string name="feature_help_packing_list">Dans un voyage, « À emporter » : la liste pour tout le monde, et « Ma valise ».</string>
-    <string name="feature_help_opening_animation">À la première ouverture sur un téléphone, les fruits de l\'arbre deviennent la famille. À revoir dans Apparence.</string>
+    <string name="feature_help_family_tab_v2">L\'onglet Famille commence par ta fiche et ton foyer ; les autres foyers sont plus bas, repliés. Éteint, même toi tu gardes l\'onglet actuel.</string>
+    <string name="feature_help_opening_animation">À chaque ouverture, les fruits de l\'arbre deviennent la famille. Dans Apparence, chacun choisit l\'animation longue, courte ou aucune.</string>
     <string name="feature_home">Accueil</string>
     <string name="feature_gifts">Listes et cadeaux</string>
     <string name="feature_help_requests">Coups de main</string>
@@ -632,7 +658,7 @@
     <string name="help_screen_family_title">La famille</string>
     <string name="help_screen_administration_title">L\'administration</string>
     <string name="help_screen_administration_body">Un chef de famille gère les membres et les événements de son foyer.\n\nLe crayon renomme un foyer ; un foyer sans membre peut être supprimé.\n\nChoisis le défi de la famille dans la liste. Le défi d\'un mois ne change plus dès que sa jauge a avancé. Chaque foyer lance le défi d\'un mois, à tour de rôle. Il est prévenu 7 jours avant et peut passer son tour. Monte ou descends un foyer, puis enregistre.</string>
-    <string name="help_screen_family_body">En haut, Nos trésors : les recettes, l\'arbre et les capsules de la famille. Dessous, les membres, rangés par foyer. Tes réglages (notifications, apparence, mises à jour, aide) sont derrière ta photo, en haut à droite. Seul l\'admin principal ajoute un membre. Les chefs de famille modifient ceux de leur foyer.</string>
+    <string name="help_screen_family_body">Les membres, rangés par foyer. Les recettes, l\'arbre, la capsule et « Qui est-ce ? » sont dans « Tout Familia », sur l\'Accueil. Tes réglages (notifications, apparence, mises à jour, aide) sont derrière ta photo, en haut à droite. Seul l\'admin principal ajoute un membre. Les chefs de famille modifient ceux de leur foyer.</string>
     <string name="help_screen_gifts_title">Cadeaux</string>
     <string name="help_screen_gifts_body">En haut, les prochains anniversaires. Plus bas, les listes de chacun : « Mes envies », que chacun remplit toute l\'année, et les listes d\'occasion, comme Noël. Touche une liste pour l\'ouvrir, ou « Nouvelle liste » pour en créer une.</string>
     <string name="help_screen_gift_list_title">Une liste</string>
@@ -691,6 +717,17 @@
         <item quantity="one">%d surprise en préparation</item>
         <item quantity="other">%d surprises en préparation</item>
     </plurals>
+    <string name="gifts_surprise_prepared">Une surprise est déjà en préparation</string>
+    <string name="gifts_preparing_title">Surprises en préparation</string>
+    <string name="gifts_preparing_for">Pour %1$s</string>
+    <string name="gifts_preparing_ideas_title">Surprise pour %1$s</string>
+    <string name="gifts_preparing_ideas_birthday">Dans ses idées, pour son anniversaire : %1$s</string>
+    <string name="gifts_preparing_ideas">Dans ses idées de la famille</string>
+    <string name="surprise_pick_title">Préparer une surprise</string>
+    <string name="surprise_pick_question">Pour qui ?</string>
+    <string name="surprise_pick_next">Prochain anniversaire</string>
+    <string name="surprise_pick_birthday">Anniversaire : %1$s</string>
+    <string name="surprise_pick_error">Impossible d\'afficher la famille. Vérifie ta connexion, puis réessaie.</string>
     <string name="gifts_all_birthdays">Tous les anniversaires</string>
     <string name="gifts_archived_title">Listes passées</string>
     <string name="gifts_archived_for">Pour %1$s · %2$s</string>
@@ -1690,6 +1727,7 @@
     <string name="all_recipes">Recettes</string>
     <string name="all_tree">Arbre</string>
     <string name="all_capsule">Capsule</string>
+    <string name="all_who_is_it">Qui est-ce ?</string>
     <string name="all_souvenirs">Souvenirs</string>
     <string name="all_good_news">Bonnes nouvelles</string>
     <string name="all_year_in_review">Notre année</string>
@@ -2125,6 +2163,7 @@
     <string name="feature_welcome">La bienvenue</string>
     <string name="feature_single_list">Une seule liste d\'envies par personne</string>
     <string name="feature_old_lists_cleanup">Effacer les anciennes listes</string>
+    <string name="feature_surprise_button">Bouton surprise</string>
     <string name="old_lists_cleanup_confirm_title">Effacer les anciennes listes ?</string>
     <string name="old_lists_cleanup_confirm_body">Les listes d\'occasion déjà copiées seront effacées pour de bon. Leurs envies, réservations et parts restent dans « Mes envies » et les idées. Avant le 22 novembre, rien ne se passe : rallume-le après le 22.</string>
     <string name="old_lists_cleanup_confirm">Effacer</string>
@@ -2519,6 +2558,9 @@
     <string name="lend_until_on">Jusqu\'au %1$s</string>
     <string name="lend_ask_send">Demander</string>
     <string name="home_new_good_deal">Nouveau bon plan : %1$s</string>
+    <string name="home_good_deal_label">Bon plan</string>
+    <string name="home_good_deal_byline">%1$s · %2$s</string>
+    <string name="home_good_deal_open">ouvrir le bon plan</string>
     <string name="gooddeal_title">Bon plan</string>
     <string name="gooddeal_new_title">Nouveau bon plan</string>
     <string name="gooddeal_edit_title">Modifier le bon plan</string>
@@ -2764,6 +2806,7 @@
     <string name="first_steps_photo_failed">La photo n\'a pas pu être enregistrée. Vérifie ta connexion, puis réessaie. Si ça recommence, dis-le dans « Une idée ? Un souci ? ».</string>
     <string name="feature_packing_list">À emporter</string>
     <string name="feature_opening_animation">Animation de bienvenue</string>
+    <string name="feature_family_tab_v2">Famille par foyer</string>
     <string name="packing_title">À emporter</string>
     <string name="notifications_packing">Ma valise</string>
     <string name="notifications_packing_help">La veille d\'un voyage, à 18 h, s\'il reste des objets à mettre dans ta valise.</string>
