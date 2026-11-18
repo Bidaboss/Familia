@@ -530,13 +530,22 @@ const EVENING_QUEUE = 'eveningQueue';
 /**
  * From 19 h, the small news that waited go out as one notice per member, « Ce soir dans Familia »
  * (récit 70). Run by the task of every 30 minutes. What is still there at night (a failed send)
- * waits for 8 h with the night, for a member who keeps « Calme la nuit ». A notice that reached
+ * waits for 8 h with the night, for a member who keeps « Calme la nuit ». During the mode
+ * présentation, what it holds waits for its summary. A notice that reached
  * none of the member's phones is tried again by the next run, for a day at most. Returns how many
  * phones got something.
  */
 export async function sendEveningHeld<N extends Filtered & { title: string; body: string; tag?: string }>(db: Firestore, send: AnySender<N>, now: Date): Promise<number> {
   if (parisHour(now) < EVENING_HOUR && !isQuietHour(now)) return 0;
   const queues = await db.collection(EVENING_QUEUE).get();
+  if (queues.empty) return 0;
+  // A mode présentation at an evening meal: what it holds waits for its summary (B1 de #393).
+  let presenting = false;
+  try {
+    presenting = await presentingNow(db, now);
+  } catch (e) {
+    console.error('presentation: read failed', e);
+  }
   let sent = 0;
   for (const queue of queues.docs) {
     // Taken and emptied at once, so two runs never send the same evening twice.
@@ -545,7 +554,10 @@ export async function sendEveningHeld<N extends Filtered & { title: string; body
       tx.delete(queue.ref);
       return ((doc.get('items') as (N & { heldAt?: string })[] | undefined) ?? []);
     });
-    const fresh = items.filter((n) => !n.heldAt || now.getTime() - Date.parse(n.heldAt) < MAX_HELD_MS);
+    const recent = items.filter((n) => !n.heldAt || now.getTime() - Date.parse(n.heldAt) < MAX_HELD_MS);
+    const shown = presenting ? recent.filter((n) => heldByPresentation(n)) : [];
+    if (shown.length > 0) await db.collection('presentationQueue').doc(queue.id).set({ items: FieldValue.arrayUnion(...shown) }, { merge: true });
+    const fresh = recent.filter((n) => !shown.includes(n));
     if (fresh.length === 0) continue;
     const prefs = (await loadPrefs(db, [queue.id])).get(queue.id) ?? DEFAULT_PREFS;
     if (isQuietHour(now) && prefs.quietHours) {

@@ -134,6 +134,20 @@ describe('the résumé du soir against the emulator', () => {
     assert.equal((await db.doc('eveningQueue/lou').get()).exists, false);
   });
 
+  test('during the mode présentation, the résumé du soir waits for its summary', async () => {
+    await turn(true);
+    const { sent, send } = fakeSender();
+    await deliver(db, send, ['camille', 'lou'], reaction, day);
+    await deliver(db, send, ['lou'], question, day);
+    await db.doc('config/presentation').set({ on: true, until: null });
+    assert.equal(await sendEveningHeld(db, send, seven), 1);
+    // The question of the week is not held by the mode présentation: it rings; the reactions wait.
+    assert.deepEqual(sent.map((s) => [s.token, s.notice.title]), [['token-lou', 'La question de la semaine']]);
+    assert.equal((await db.doc('presentationQueue/camille').get()).get('items').length, 1);
+    assert.equal((await db.doc('presentationQueue/lou').get()).get('items').length, 1);
+    assert.equal((await db.doc('eveningQueue/lou').get()).exists, false);
+  });
+
   test('a résumé that reaches no phone is tried again, and leaves with the member', async () => {
     await turn(true);
     await deliver(db, fakeSender().send, ['lou'], comment, day);
