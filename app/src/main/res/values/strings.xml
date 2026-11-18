@@ -617,6 +617,8 @@
     <string name="update_failed_title">La mise à jour n\'a pas abouti</string>
     <string name="update_failed_body">Télécharge-la depuis le Drive, puis ouvre le fichier pour l\'installer.</string>
     <string name="update_action">Mettre à jour</string>
+    <string name="update_banner_title">Une nouvelle version est prête</string>
+    <string name="update_banner_line">2 minutes, et tes données ne bougent pas.</string>
     <string name="update_later">Plus tard</string>
     <string name="update_check_title">Vérifier les mises à jour</string>
     <string name="update_check_installed">Version installée : %1$s</string>
