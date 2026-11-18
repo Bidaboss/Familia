@@ -82,6 +82,17 @@ class HostChallengeViewModelTest {
     }
 
     @Test
+    fun `the word of the foyer goes with the challenge, trimmed and within 140 characters`() = runTest {
+        val repo = FakeHosting()
+        val vm = HostChallengeViewModel(repo, null, member(MemberProfile.Adult), january)
+        vm.setNote("x".repeat(200))
+        assertEquals(HostedChallenge.NOTE_MAX, vm.state.value.draft.note.length)
+        vm.setNote("  Vos plus beaux gâteaux  ")
+        vm.publish()
+        assertEquals("Vos plus beaux gâteaux", repo.writes.single().first.note)
+    }
+
+    @Test
     fun `a child saves the draft for the adults, and cannot publish`() = runTest {
         val repo = FakeHosting()
         val vm = HostChallengeViewModel(repo, null, member(MemberProfile.ChildWithApp), january)

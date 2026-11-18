@@ -73,6 +73,15 @@ describe('the challenge of a foyer', () => {
     await assertFails(write(ADULT, THIS_MONTH, challenge(ADULT, { status: 'published' })));
   });
 
+  test('the optional word of the foyer (récit 65): a string of 140 characters at most', async () => {
+    await assertSucceeds(write(KID, THIS_MONTH, challenge(KID, { note: 'Une photo de vos mains en train de cuisiner.' })));
+    await assertSucceeds(write(KID, THIS_MONTH, challenge(KID, { note: 'x'.repeat(140) })));
+    await assertFails(write(KID, THIS_MONTH, challenge(KID, { note: 'x'.repeat(141) })));
+    await assertFails(write(KID, THIS_MONTH, challenge(KID, { note: 12 })));
+    // Without a word, as before.
+    await assertSucceeds(write(KID, THIS_MONTH, challenge(KID)));
+  });
+
   test('an adult publishes the draft of the foyer', async () => {
     await assertSucceeds(write(KID, THIS_MONTH, challenge(KID)));
     await assertSucceeds(write(ADULT, THIS_MONTH, challenge(ADULT, { status: 'published' })));

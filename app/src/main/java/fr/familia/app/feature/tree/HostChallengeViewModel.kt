@@ -29,6 +29,8 @@ data class HostDraft(
     val titleEdited: Boolean = false,
     val emoji: String = HostGuide.start(HostedKind.Photo, target).emoji,
     val illustration: HostedIllustration = HostGuide.start(HostedKind.Photo, target).illustration,
+    /** The optional word for the family, shown in « Comment ça marche » (récit 65). */
+    val note: String = "",
 )
 
 data class HostGuideState(
@@ -73,7 +75,7 @@ class HostChallengeViewModel(
                 null
             }
             val draft = if (saved != null && saved.status == HostedStatus.Draft && saved.householdId == member.householdId) {
-                HostDraft(saved.kind, saved.target, saved.title, titleEdited = true, emoji = saved.emoji, illustration = saved.illustration)
+                HostDraft(saved.kind, saved.target, saved.title, titleEdited = true, emoji = saved.emoji, illustration = saved.illustration, note = saved.note)
             } else {
                 HostDraft(HostedKind.Photo, target, start.title, false, start.emoji, start.illustration)
             }
@@ -99,6 +101,8 @@ class HostChallengeViewModel(
     fun setTitle(title: String) = edit { it.copy(title = title.take(HostedChallenge.TITLE_MAX), titleEdited = true) }
 
     fun setEmoji(emoji: String) = edit { it.copy(emoji = emoji) }
+
+    fun setNote(note: String) = edit { it.copy(note = note.take(HostedChallenge.NOTE_MAX)) }
 
     fun setIllustration(illustration: HostedIllustration) = edit { it.copy(illustration = illustration) }
 
@@ -126,7 +130,7 @@ class HostChallengeViewModel(
         _state.update { it.copy(saving = true) }
         viewModelScope.launch {
             try {
-                repo.saveHosted(HostedChallenge(s.month, member.householdId, status, d.kind, title, d.emoji, d.illustration, d.target), member.id)
+                repo.saveHosted(HostedChallenge(s.month, member.householdId, status, d.kind, title, d.emoji, d.illustration, d.target, d.note.trim()), member.id)
                 _state.update { it.copy(saving = false, done = status) }
             } catch (e: CancellationException) {
                 throw e

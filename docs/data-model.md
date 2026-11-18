@@ -1005,6 +1005,7 @@ L'ordre dans lequel les foyers lancent le défi, un mois chacun : `householdIds`
 | `title`, `emoji` | texte (60 au plus), emoji | Par exemple « 15 photos de nos balades », 📸. |
 | `illustration` | `sun` \| `heart` \| `leaf` \| `star` \| `camera` \| `pot` | Le dessin de la carte. |
 | `target` | int, 3 à 50 | L'objectif : le nombre de Bonnes nouvelles avec photo liées au défi. |
+| `note` | texte (140 au plus), facultatif | Le mot du foyer, affiché dans « Comment ça marche » quand on touche le défi (récit 65, interrupteur `challengeDetails`). Absent sans mot. |
 | `updatedBy`, `updatedAt` | `memberId`, horodatage serveur | Le dernier qui l'a touché. |
 
 Tout le foyer du mois le prépare, enfants compris, pour le mois en cours ou le suivant. Seul un adulte du foyer le publie ou passe le tour. Une fois publié ou passé, il ne change plus depuis l'appli et personne ne l'efface ; l'admin principal peut toujours imposer un autre défi par `challengePicks`. Toute la famille le lit.

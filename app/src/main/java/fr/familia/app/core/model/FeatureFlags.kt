@@ -159,6 +159,11 @@ enum class Feature(
      * autres foyers repliés. Lu avec isOnForFamily : éteint, même l'admin principal garde l'ancien onglet.
      */
     FamilyTabV2("familyTabV2", R.string.feature_family_tab_v2),
+    /**
+     * « Comment ça marche » sous le défi du mois, et le mot facultatif du foyer qui le lance (PRD
+     * récit 65, rév. 289). Lu avec isOnForFamily : éteint, même l'admin principal garde l'écran d'avant.
+     */
+    ChallengeDetails("challengeDetails", R.string.feature_challenge_details),
 }
 
 /**

@@ -245,6 +245,17 @@ Avec le module « Arbre » visible (admin principal, ou module allumé), deux co
 4. Avec le compte adulte, rouvre le guide. **Attendu :** le brouillon de l'enfant est là. Touche « Publier le défi ». **Attendu :** le guide se ferme et la bannière disparaît de l'Accueil.
 5. Avec un autre foyer, refais l'étape 2 au mois de son tour, puis touche « Passer notre tour » et confirme. **Attendu :** la bannière disparaît, et le défi du mois reste celui de Familia.
 
+## Défis : comment ça marche (récit 65, interrupteur challengeDetails)
+
+Après « Publier Firebase », allume « Défis expliqués » dans Administration > Modules.
+
+1. Ouvre Défis et touche n'importe où sur la carte du défi. **Attendu :** une feuille « Comment ça marche » : ce qui compte, l'objectif (« 7 sur 20 »), la date de fin, ce qu'on gagne, puis « Ajouter ma photo » ou « Partager une bonne nouvelle », ou « Défi réussi ». Aucun prénom.
+2. Avant le 1er décembre, touche la carte du défi, puis celle de la question. **Attendu :** le principe, avec « Premier défi le 1er décembre. » et « Première question le lundi 30 novembre. »
+3. Touche n'importe où sur la carte de la question (même interrupteur éteint). **Attendu :** l'écran pour répondre, ou les réponses si tu as déjà répondu.
+4. Touche une tuile « Défi … réussi ». **Attendu :** l'explication de ce défi, avec « Défi réussi ».
+5. Dans le guide « Préparer le défi », écris un mot à l'étape 3, puis publie. **Attendu :** le mot apparaît dans « Comment ça marche » pour toute la famille. Sans mot, le texte automatique.
+6. Avec TalkBack, passe sur chaque carte. **Attendu :** TalkBack dit « bouton » et ce que fait la carte.
+
 ## Commentaires sous un événement (récit 28)
 
 Avant ces essais : « Publier Firebase » a publié les règles, l'index TTL et les fonctions, et le module « Commentaires sous les événements » est allumé dans Administration > Modules.
