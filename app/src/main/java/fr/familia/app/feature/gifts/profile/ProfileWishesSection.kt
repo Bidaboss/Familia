@@ -25,7 +25,6 @@ import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClaySpacing
-import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.gifts.WishPreview
 import fr.familia.app.feature.gifts.keepsListsOf
 import fr.familia.app.feature.gifts.wishPreview
@@ -60,7 +59,6 @@ fun ProfileWishesSection(
     currentMember: Member,
     member: Member,
     onOpenList: (listId: String) -> Unit,
-    onAddWish: (listId: String) -> Unit,
 ) {
     val viewModel: ProfileWishesViewModel = viewModel(
         key = "profile-wishes-${member.id}",
@@ -73,10 +71,7 @@ fun ProfileWishesSection(
         member = member,
         isMe = member.id == currentMember.id,
         keptByMe = keepsListsOf(currentMember, member),
-        // « Voir comme » writes nothing: no « Ajouter une envie » there.
-        mayAdd = keepsListsOf(currentMember, member) && LocalViewAs.current.viewed == null,
         onOpen = { onOpenList(listId) },
-        onAdd = { onAddWish(listId) },
     )
 }
 
@@ -87,9 +82,7 @@ fun ProfileWishesContent(
     member: Member,
     isMe: Boolean,
     keptByMe: Boolean,
-    mayAdd: Boolean,
     onOpen: () -> Unit,
-    onAdd: () -> Unit,
 ) {
     ClayCard(Modifier.fillMaxWidth(), contentPadding = ClaySpacing.card) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -99,8 +92,8 @@ fun ProfileWishesContent(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            // « Ajouter une envie » only on the screen of the wishes (retour de Kévin, 18/11).
             ClayLink(stringResource(R.string.profile_wishes_open), onClick = onOpen)
-            if (mayAdd) ClayLink(stringResource(R.string.gift_add_wish), onClick = onAdd)
         }
     }
 }
