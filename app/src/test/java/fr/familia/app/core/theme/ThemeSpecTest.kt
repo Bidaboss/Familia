@@ -2,6 +2,7 @@ package fr.familia.app.core.theme
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.unit.dp
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -16,13 +17,33 @@ class ThemeSpecTest {
     }
 
     @Test
-    fun `nine themes, Classique first and by default`() {
-        assertEquals(9, FamiliaThemeId.entries.size)
+    fun `seven themes, Argile first and by default`() {
+        assertEquals(7, FamiliaThemeId.entries.size)
         assertEquals(FamiliaThemeId.Classic, FamiliaThemeId.entries.first())
         assertEquals(FamiliaThemeId.Classic, FamiliaThemeId.fromKey(null))
         assertEquals(FamiliaThemeId.Classic, FamiliaThemeId.fromKey("unknown"))
         assertEquals(FamiliaThemeId.Spain, FamiliaThemeId.fromKey("spain"))
-        assertEquals(9, FamiliaThemeId.entries.map { it.key }.toSet().size)
+        assertEquals(7, FamiliaThemeId.entries.map { it.key }.toSet().size)
+    }
+
+    @Test
+    fun `a phone set on a removed theme goes to the closest one`() {
+        assertEquals(FamiliaThemeId.Night, FamiliaThemeId.fromKey("arcade"))
+        assertEquals(FamiliaThemeId.Night, FamiliaThemeId.fromKey("cosmos"))
+        assertEquals(FamiliaThemeId.Olive, FamiliaThemeId.fromKey("garden"))
+        assertEquals(FamiliaThemeId.Classic, FamiliaThemeId.fromKey("retro"))
+        assertEquals(FamiliaThemeId.Classic, FamiliaThemeId.fromKey("travel"))
+    }
+
+    @Test
+    fun `a theme changes the mood only, with the same corners everywhere but Argile`() {
+        FamiliaThemeId.entries.drop(1).forEach { id ->
+            val style = themeSpec(id).style
+            assertEquals(id.name, 22.dp, style.cardRadius)
+            assertTrue(id.name, style.border == null || style.border?.dashed == false)
+        }
+        assertEquals(Color(0xFFC9DBA8), themeSpec(FamiliaThemeId.Olive).style.tabPill)
+        assertEquals(Color(0xFF1E1511), themeSpec(FamiliaThemeId.Night).light.background)
     }
 
     @Test
@@ -45,8 +66,9 @@ class ThemeSpecTest {
                 "text/background" to contrast(c.onSurface, c.background),
                 "text/card" to contrast(c.onSurface, clay.card),
                 "secondary text/card" to contrast(clay.onPlainVariant, clay.card),
-                "secondary text/household" to contrast(clay.onHouseholdVariant, clay.household),
-                "secondary text/family" to contrast(clay.onFamilyVariant, clay.family),
+                // Where the tint is a stripe or a dot (Nuit, the light themes), the card keeps its color.
+                "secondary text/household" to contrast(clay.onHouseholdVariant, clay.cardBackground(ClayTint.Household)),
+                "secondary text/family" to contrast(clay.onFamilyVariant, clay.cardBackground(ClayTint.Family)),
                 "button" to contrast(c.onPrimary, c.primary),
                 // Large texts (3:1 would do), held to 4,5:1 like the rest.
                 "title bar" to contrast(spec.style.titleColor ?: c.onSurface, c.background),
@@ -57,10 +79,18 @@ class ThemeSpecTest {
     }
 
     @Test
-    fun `a themed title keeps Nunito for the body text`() {
-        val spain = familiaTypography(themeSpec(FamiliaThemeId.Spain).style)
-        assertEquals(FamiliaTypography.bodyLarge, spain.bodyLarge)
-        assertTrue(spain.titleLarge.fontFamily != FamiliaTypography.titleLarge.fontFamily)
-        assertEquals(FamiliaTypography, familiaTypography(ClayStyle()))
+    fun `the fonts are chosen apart, and the defaults change nothing`() {
+        assertEquals(FamiliaTypography, familiaTypography())
+        assertEquals(TitleFont.Round, TitleFont.fromKey(null))
+        assertEquals(BodyFont.Normal, BodyFont.fromKey("unknown"))
+        assertEquals(BodyFont.Legible, BodyFont.fromKey("atkinson"))
+        val elegant = familiaTypography(TitleFont.Elegant)
+        assertEquals(FamiliaTypography.bodyLarge, elegant.bodyLarge)
+        assertTrue(elegant.titleLarge.fontFamily != FamiliaTypography.titleLarge.fontFamily)
+        val legible = familiaTypography(body = BodyFont.Legible)
+        assertEquals(FamiliaTypography.titleLarge, legible.titleLarge)
+        assertEquals(AtkinsonHyperlegible, legible.bodyLarge.fontFamily)
+        assertEquals(AtkinsonHyperlegible, legible.labelLarge.fontFamily)
+        assertEquals(FamiliaTypography.bodyLarge.fontSize, legible.bodyLarge.fontSize)
     }
 }

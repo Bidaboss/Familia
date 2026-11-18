@@ -7,21 +7,16 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.ExperimentalTextApi
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontVariation
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 
 /*
- * The 9 themes to choose from (DESIGN-7, 15/11): values copied from the « planche des thèmes »,
- * rules from the « Thèmes au choix » section of the design principles. A theme changes the colors,
- * the background and its pattern, the font of titles and day headers, the corners, the border and
- * the shadow of the cards. It never changes the layout, the texts, the icons, the 56 dp targets,
- * the members' colors, nor the body text (always Nunito).
+ * The 7 themes to choose from (DESIGN-43, Kévin 18/11): a theme only changes the mood. It sets the
+ * background and its discreet pattern, the dark buttons, the pill of the active tab, the lines and
+ * the outlines. It never changes the fonts (chosen apart: TitleFont, BodyFont), the white cards, the
+ * colors of the types and of the members, the corners (22 dp) nor the targets. Argile, the default,
+ * stays exactly as before and follows the phone's dark mode.
  */
 
 /** How a card stands out: the Argile relief, a hard offset shadow, a soft or glowing one, or none. */
@@ -39,16 +34,19 @@ sealed interface ClayShadow {
     data object None : ClayShadow
 }
 
-/** The card border of a theme; [dashed] for the Carnet de voyage. */
+/** The card border of a theme; [dashed] draws it in dashes. */
 @Immutable
 data class ClayBorder(val width: Dp, val color: Color, val dashed: Boolean = false)
 
 /** The background pattern of a theme, drawn under the content (ThemePatterns.kt). */
 enum class ThemePattern {
-    None, PixelDots, Stars, FlagBand, Snow, Leaves, Stripes70, NotebookLines,
+    None, Snow, Leaves,
 
-    /** « Pépins » of Classique in the R1 bis presentation: three small round seeds on a 64 dp grid. */
+    /** « Pépins » of Argile in the R1 bis presentation: three small round seeds on a 64 dp grid. */
     Seeds,
+
+    /** The same seeds in red and yellow (Espagne), in lilac (Lavande), and barely there (Nuit). */
+    SeedsSpain, SeedsLilac, SeedsNight,
 }
 
 /** Everything a theme sets besides the colors: cards, fonts and background. */
@@ -57,16 +55,12 @@ data class ClayStyle(
     val cardRadius: Dp = 28.dp,
     val border: ClayBorder? = null,
     val shadow: ClayShadow = ClayShadow.Relief,
-    /** Font of titles (titles of screens and cards); null keeps Fredoka. */
-    val titleFont: FontFamily? = null,
-    /** Font of the day headers of the planning; null keeps the title font. */
-    val dayFont: FontFamily? = null,
-    /** A wide display font is set a little smaller, so titles keep to their line. */
-    val titleScale: Float = 1f,
     /** Day headers and the title bar; null keeps the primary color. */
     val dayColor: Color? = null,
     val titleColor: Color? = null,
     val pattern: ThemePattern = ThemePattern.None,
+    /** The pill behind the icon of the active tab (DESIGN-43): the yellow of Argile by default. */
+    val tabPill: Color = Color(0xFFF2C14E),
 )
 
 val LocalClayStyle = staticCompositionLocalOf { ClayStyle() }
@@ -97,36 +91,27 @@ class FamiliaThemeSpec(
     val style: ClayStyle = ClayStyle(),
 )
 
-/** The 9 themes, in the order of the Apparence screen. [key] is what the phone keeps. */
+/**
+ * The 7 themes, in the order of the Apparence screen. [key] is what the phone keeps: Olivier keeps
+ * the key of the Jardin it replaces. Classic is Argile.
+ */
 enum class FamiliaThemeId(val key: String, @StringRes val labelRes: Int) {
     Classic("classic", R.string.theme_classic),
-    Arcade("arcade", R.string.theme_arcade),
-    Retro("retro", R.string.theme_retro),
-    Travel("travel", R.string.theme_travel),
-    Garden("garden", R.string.theme_garden),
-    Cosmos("cosmos", R.string.theme_cosmos),
-    Winter("winter", R.string.theme_winter),
+    Olive("garden", R.string.theme_olive),
     Spain("spain", R.string.theme_spain),
+    Winter("winter", R.string.theme_winter),
+    Lavender("lavender", R.string.theme_lavender),
+    Night("night", R.string.theme_night),
     HighContrast("contrast", R.string.theme_contrast),
     ;
 
     companion object {
-        fun fromKey(key: String?): FamiliaThemeId = entries.firstOrNull { it.key == key } ?: Classic
+        /** The themes removed on 18/11 go to the closest one: Arcade and Cosmos to Nuit, the others to Argile. */
+        private val REMOVED = mapOf("arcade" to Night, "cosmos" to Night, "retro" to Classic, "travel" to Classic)
+
+        fun fromKey(key: String?): FamiliaThemeId = entries.firstOrNull { it.key == key } ?: REMOVED[key] ?: Classic
     }
 }
-
-@OptIn(ExperimentalTextApi::class)
-private fun variableFamily(resId: Int, vararg weights: FontWeight) = FontFamily(
-    weights.map { Font(resId, it, variationSettings = FontVariation.Settings(FontVariation.weight(it.weight))) },
-)
-
-private val PressStart = FontFamily(Font(R.font.press_start_2p, FontWeight.Normal))
-private val Silkscreen = FontFamily(Font(R.font.silkscreen, FontWeight.Normal))
-private val Shrikhand = FontFamily(Font(R.font.shrikhand, FontWeight.Normal))
-private val AbrilFatface = FontFamily(Font(R.font.abril_fatface, FontWeight.Normal))
-private val Kalam = FontFamily(Font(R.font.kalam_bold, FontWeight.Bold))
-private val Fraunces = variableFamily(R.font.fraunces, FontWeight.SemiBold, FontWeight.Bold)
-private val Orbitron = variableFamily(R.font.orbitron, FontWeight.SemiBold, FontWeight.Bold)
 
 private fun scheme(p: Palette): ColorScheme {
     val base = if (p.dark) darkColorScheme() else lightColorScheme()
@@ -179,103 +164,57 @@ private fun clay(p: Palette, shadow: Color, tintAsDot: Boolean) = ClayColors(
     tintAsDot = tintAsDot,
 )
 
-/** [strongTints] keeps the tinted cards (dark themes, Contraste fort: DESIGN-11). */
+/** [strongTints] keeps the tinted cards (Contraste fort: DESIGN-11). */
 private fun themed(p: Palette, style: ClayStyle, shadow: Color = Color.Transparent, strongTints: Boolean = p.dark) = FamiliaThemeSpec(
     light = scheme(p),
     lightClay = clay(p, shadow, tintAsDot = !strongTints),
     style = style.copy(dayColor = Color(p.accent), titleColor = Color(p.title)),
 )
 
-/** The spec of each theme. Arcade and Cosmos are dark by nature; the others keep their light version. */
+/**
+ * The structure shared by the themes (DESIGN-43): 22 dp corners, a soft 2 dp shadow and a 1,5 dp
+ * outline in the color of the theme's lines.
+ */
+private fun mood(outline: Long, pattern: ThemePattern, tabPill: Long, shadow: Long) = ClayStyle(
+    cardRadius = 22.dp,
+    border = ClayBorder(1.5.dp, Color(outline)),
+    shadow = ClayShadow.Soft(2.dp, Color(shadow)),
+    pattern = pattern,
+    tabPill = Color(tabPill),
+)
+
+/** The spec of each theme. Only Argile follows the dark mode; Nuit is the dark Argile, always. */
 fun themeSpec(id: FamiliaThemeId): FamiliaThemeSpec = when (id) {
     FamiliaThemeId.Classic -> ClassicSpec
-    FamiliaThemeId.Arcade -> themed(
-        Palette(0xFF140B2E, 0xFF22164A, 0xFF3A2A7A, 0xFF1B2A55, 0xFF3A1748, 0xFFFFD23F, 0xFF1A0F00, 0xFF00E5FF, 0xFFF4F0FF, 0xFFC9C0F0, 0xFFFFD23F, dark = true),
-        ClayStyle(
-            cardRadius = 6.dp,
-            border = ClayBorder(2.dp, Color(0xFF5B3DF5)),
-            shadow = ClayShadow.Hard(3.dp, Color(0xFF00B8CC), emphasisOffset = 5.dp),
-            titleFont = PressStart,
-            dayFont = Silkscreen,
-            titleScale = 0.8f,
-            pattern = ThemePattern.PixelDots,
-        ),
-    )
-    FamiliaThemeId.Retro -> themed(
-        Palette(0xFFF6EAD7, 0xFFFFF8EC, 0xFFF2C66D, 0xFFF7D9A8, 0xFFE3EBCB, 0xFFA8431F, 0xFFFFFFFF, 0xFF8A3A1A, 0xFF3A2418, 0xFF6B4A36, 0xFFA8431F),
-        ClayStyle(
-            cardRadius = 22.dp,
-            border = ClayBorder(2.dp, Color(0xFF6B3E26)),
-            shadow = ClayShadow.Hard(3.dp, Color(0xFF6B3E26), emphasisOffset = 4.dp),
-            titleFont = Shrikhand,
-            dayFont = Shrikhand,
-            pattern = ThemePattern.Stripes70,
-        ),
-    )
-    FamiliaThemeId.Travel -> themed(
-        Palette(0xFFF3EDE1, 0xFFFFFDF8, 0xFFE2D6BE, 0xFFDCE7F2, 0xFFF4E2C4, 0xFF1F3A5F, 0xFFFFFFFF, 0xFF8F2F1C, 0xFF1C2430, 0xFF4A5566, 0xFF1F3A5F),
-        ClayStyle(
-            cardRadius = 14.dp,
-            border = ClayBorder(2.dp, Color(0xFF1F3A5F), dashed = true),
-            shadow = ClayShadow.Soft(6.dp, Color(0x261F3A5F)),
-            titleFont = Kalam,
-            dayFont = Kalam,
-            pattern = ThemePattern.NotebookLines,
-        ),
-        shadow = Color(0x261F3A5F),
-    )
-    FamiliaThemeId.Garden -> themed(
-        Palette(0xFFEEF3E6, 0xFFFFFFFF, 0xFFD7E6C3, 0xFFE3EED8, 0xFFF6E7D0, 0xFF2F5D3A, 0xFFFFFFFF, 0xFF3F6B2E, 0xFF1E2B1F, 0xFF4A5A4B, 0xFF2F5D3A),
-        ClayStyle(
-            cardRadius = 26.dp,
-            shadow = ClayShadow.Soft(10.dp, Color(0x242F5D3A)),
-            titleFont = Fraunces,
-            dayFont = Fraunces,
-            pattern = ThemePattern.Leaves,
-        ),
-        shadow = Color(0x242F5D3A),
-    )
-    FamiliaThemeId.Cosmos -> themed(
-        Palette(0xFF0B1026, 0xFF161D3F, 0xFF2A3366, 0xFF1A2A4F, 0xFF2E1F4F, 0xFF8FB8FF, 0xFF0B1026, 0xFFFFB86B, 0xFFEEF1FF, 0xFFB8C0E6, 0xFF8FB8FF, dark = true),
-        ClayStyle(
-            cardRadius = 18.dp,
-            border = ClayBorder(1.dp, Color(0x598FB8FF)),
-            shadow = ClayShadow.Soft(18.dp, Color(0x388FB8FF)),
-            titleFont = Orbitron,
-            dayFont = Orbitron,
-            titleScale = 0.9f,
-            pattern = ThemePattern.Stars,
-        ),
-        shadow = Color(0x388FB8FF),
-    )
-    FamiliaThemeId.Winter -> themed(
-        Palette(0xFFEAF2F8, 0xFFFFFFFF, 0xFFD6E6F2, 0xFFDDEBF5, 0xFFF6DADA, 0xFFB3262E, 0xFFFFFFFF, 0xFF1E5B7A, 0xFF13293D, 0xFF3E566B, 0xFFB3262E),
-        ClayStyle(
-            cardRadius = 24.dp,
-            shadow = ClayShadow.Soft(8.dp, Color(0x1F13293D)),
-            pattern = ThemePattern.Snow,
-        ),
-        shadow = Color(0x1F13293D),
+    FamiliaThemeId.Olive -> themed(
+        Palette(0xFFF0F3E8, 0xFFFFFFFF, 0xFFC9DBA8, 0xFFE3EED8, 0xFFF6E7D0, 0xFF2F3B22, 0xFFFFFFFF, 0xFF3F6B2E, 0xFF1E2B1F, 0xFF4A5A4B, 0xFF2F3B22),
+        mood(0xFFD5DEC6, ThemePattern.Leaves, 0xFFC9DBA8, 0x242F3B22),
+        shadow = Color(0x242F3B22),
     )
     FamiliaThemeId.Spain -> themed(
-        // The colors of the flag (DESIGN, 16/11): red #AA151B and yellow #F1BF00, contrasts over 4.5:1.
+        // The colors of the flag (DESIGN, 16/11), softened on 18/11: no band, no Abril Fatface.
         Palette(0xFFFFF8E6, 0xFFFFFFFF, 0xFFF1BF00, 0xFFFDEDB3, 0xFFF8D9D6, 0xFFAA151B, 0xFFFFFFFF, 0xFF8A1015, 0xFF2A1A12, 0xFF5C3A2E, 0xFFAA151B),
-        ClayStyle(
-            cardRadius = 18.dp,
-            border = ClayBorder(2.dp, Color(0xFFAA151B)),
-            shadow = ClayShadow.Hard(3.dp, Color(0xFFF1BF00), emphasisOffset = 4.dp),
-            titleFont = AbrilFatface,
-            dayFont = AbrilFatface,
-            pattern = ThemePattern.FlagBand,
-        ),
+        mood(0xFFF0DFB8, ThemePattern.SeedsSpain, 0xFFF1BF00, 0x24AA151B),
+        shadow = Color(0x24AA151B),
+    )
+    FamiliaThemeId.Winter -> themed(
+        Palette(0xFFEAF2F8, 0xFFFFFFFF, 0xFFF6DADA, 0xFFDDEBF5, 0xFFF6DADA, 0xFF13293D, 0xFFFFFFFF, 0xFF1E5B7A, 0xFF13293D, 0xFF3E566B, 0xFFB3262E),
+        mood(0xFFCFDDE8, ThemePattern.Snow, 0xFFF6DADA, 0x1F13293D),
+        shadow = Color(0x1F13293D),
+    )
+    FamiliaThemeId.Lavender -> themed(
+        Palette(0xFFF5F2FB, 0xFFFFFFFF, 0xFFD9CCF7, 0xFFE6E0F7, 0xFFFFF1C9, 0xFF2B2350, 0xFFFFFFFF, 0xFF5B4A9E, 0xFF1F1A33, 0xFF4E4766, 0xFF2B2350),
+        mood(0xFFE0D8F0, ThemePattern.SeedsLilac, 0xFFD9CCF7, 0x242B2350),
+        shadow = Color(0x242B2350),
+    )
+    FamiliaThemeId.Night -> FamiliaThemeSpec(
+        light = DarkColors,
+        lightClay = DarkClayColors,
+        style = ClayStyle(cardRadius = 22.dp, pattern = ThemePattern.SeedsNight),
     )
     FamiliaThemeId.HighContrast -> themed(
         Palette(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFE08A, 0xFFE6F0FF, 0xFFFFF0D6, 0xFF7A2A00, 0xFFFFFFFF, 0xFF003C8F, 0xFF000000, 0xFF1A1A1A, 0xFF000000),
-        ClayStyle(
-            cardRadius = 16.dp,
-            border = ClayBorder(2.dp, Color(0xFF1A1A1A)),
-            shadow = ClayShadow.None,
-        ),
+        ClayStyle(cardRadius = 22.dp, border = ClayBorder(2.dp, Color(0xFF1A1A1A)), shadow = ClayShadow.None, tabPill = Color(0xFFFFE08A)),
         strongTints = true,
     )
 }
