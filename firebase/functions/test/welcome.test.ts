@@ -101,20 +101,6 @@ describe('la bienvenue against the emulator', () => {
     assert.equal(await welcomeMember(db, send, 'sansfoyer', later), null);
   });
 
-  test('during the mode présentation every arrival waits for its summary, never in the queue', async () => {
-    await db.doc('config/presentation').set({ on: true, until: null });
-    try {
-      const { sent, send } = fakeSender();
-      await welcomeMember(db, send, 'camille', now);
-      await welcomeMember(db, send, 'ines', now);
-      assert.equal(sent.length, 0);
-      assert.equal((await db.doc('presentationQueue/noe').get()).get('items').length, 2);
-      assert.equal((await db.doc('welcomeQueue/family').get()).exists, false);
-    } finally {
-      await db.doc('config/presentation').delete();
-    }
-  });
-
   test('module off: nothing is sent, and the welcome stays for later', async () => {
     await db.doc('config/app').set({ features: { welcome: false } });
     const { sent, send } = fakeSender();

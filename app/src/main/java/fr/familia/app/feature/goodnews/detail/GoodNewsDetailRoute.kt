@@ -25,7 +25,6 @@ import fr.familia.app.R
 import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.events.comments.CommentsSection
 import fr.familia.app.feature.goodnews.canRemoveGoodNewsComment
-import fr.familia.app.feature.presentation.LocalPresenting
 import kotlinx.coroutines.launch
 import fr.familia.app.feature.wishes.BirthdayCardsSection
 
@@ -50,7 +49,7 @@ fun GoodNewsDetailRoute(
     val wishesOn = LocalFeatureFlags.current.isOn(Feature.BirthdayWishes)
     val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)
     val commentsOn = LocalFeatureFlags.current.isOn(Feature.NewsFeed)
-    val readOnly = LocalPresenting.current || LocalViewAs.current.viewed != null
+    val readOnly = LocalViewAs.current.viewed != null
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var sharing by remember { mutableStateOf(false) }

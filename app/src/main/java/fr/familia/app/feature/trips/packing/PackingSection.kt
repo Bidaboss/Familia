@@ -45,11 +45,10 @@ import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayLink
-import fr.familia.app.feature.presentation.LocalPresenting
 
 /**
  * « Ma valise » (récit 62) under « Pour tout le monde »: my bag, then those of my children who come.
- * Nothing for a follower, in « Voir comme » (no repository) or while the Mode présentation is on.
+ * Nothing for a follower or in « Voir comme » (no repository).
  */
 @Composable
 fun PackingSection(container: AppContainer?, currentMember: Member, tripId: String) {
@@ -70,7 +69,7 @@ fun PackingSection(container: AppContainer?, currentMember: Member, tripId: Stri
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    if (LocalPresenting.current || state.bags.isEmpty()) return
+    if (state.bags.isEmpty()) return
     PackingBags(
         state,
         PackingActions(

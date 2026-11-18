@@ -98,7 +98,6 @@ import fr.familia.app.feature.gifts.listTitle
 import fr.familia.app.feature.gifts.wishOccasionLabel
 import fr.familia.app.feature.gifts.parseEuros
 import fr.familia.app.feature.help.HelpButton
-import fr.familia.app.feature.presentation.LocalPresenting
 import fr.familia.app.feature.help.HelpLink
 import fr.familia.app.feature.help.ScreenHelp
 import fr.familia.app.core.share.ShareButton
@@ -481,7 +480,6 @@ private fun AlreadyBoughtStatus(
     seesContributors: Boolean = false,
 ) {
     val color = FamiliaClay.colors.onTintVariant(tint)
-    val presenting = LocalPresenting.current
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(stringResource(R.string.gift_already_bought_label), style = MaterialTheme.typography.titleSmall, color = color)
         val total = formatEuros(view.total.toDouble())
@@ -497,7 +495,7 @@ private fun AlreadyBoughtStatus(
             )
         }
         Text(spoken, style = MaterialTheme.typography.bodyMedium, color = color)
-        if (!detailed || presenting) return@Column
+        if (!detailed) return@Column
         view.mine?.let {
             Text(stringResource(R.string.gift_my_contribution, formatEuros(it.toDouble())), style = MaterialTheme.typography.bodyLarge)
         }

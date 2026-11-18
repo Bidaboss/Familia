@@ -73,7 +73,7 @@ import java.time.temporal.ChronoUnit
  * mine open and the others folded, one compact card per person in their color.
  *
  * Never a count of ideas nor of reservations: only « N envies », what the person sees of their own
- * list. Nothing of a surprise while presenting nor in « Voir comme » (the caller says so).
+ * list. Nothing of a surprise in « Voir comme » (the caller says so).
  */
 
 /** What the new tab leads to. */
@@ -257,7 +257,7 @@ private fun wishesFor(state: GiftsUiState.Success, memberId: String): String =
 /**
  * The « Surprise » of a person's card (PRODUIT-133): only once a surprise is in progress for them,
  * since « Préparer une surprise » starts one; on every card while that button is off, the only way in.
- * Never while presenting nor in « Voir comme »: it would tell that a surprise is there. Pure, for the tests.
+ * Never in « Voir comme »: it would tell that a surprise is there. Pure, for the tests.
  */
 internal fun surpriseDoor(state: GiftsUiState.Success, memberId: String, showPreparing: Boolean): Boolean =
     showPreparing && (!state.surpriseButton || memberId in state.surprisePreparedFor)

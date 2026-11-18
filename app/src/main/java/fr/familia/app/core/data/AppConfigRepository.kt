@@ -1,10 +1,7 @@
 package fr.familia.app.core.data
 
-import fr.familia.app.core.model.PresentationMode
 import fr.familia.app.core.whatsnew.WhatsNewRelease
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
-import java.time.Instant
 
 /**
  * `config/app`, written by the « APK de publication » workflow once the new APK is in the Drive
@@ -46,18 +43,6 @@ interface AppConfigRepository {
 
     /** The admin principal takes a souvenir of « Il y a N ans » away for everyone (the rules check it). */
     suspend fun hideMemory(key: String) = Unit
-
-    /**
-     * config/presentation (récit 48), readable by the admin principal only: only observe it for them.
-     * Null while it was never turned on.
-     */
-    fun observePresentation(): Flow<PresentationMode?> = flowOf(null)
-
-    /** The admin principal turns the mode présentation on until [until] (null: until turned off). */
-    suspend fun startPresentation(until: Instant?, now: Instant) = Unit
-
-    /** The admin principal turns it off: the functions then send what it held. */
-    suspend fun stopPresentation() = Unit
 }
 
 class AppConfigOfflineException(cause: Throwable? = null) : Exception(cause)

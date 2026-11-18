@@ -54,7 +54,6 @@ import fr.familia.app.feature.gifts.notebook.NotebookUiState
 import fr.familia.app.feature.gifts.notebook.NotebookViewModel
 import fr.familia.app.feature.gifts.notebook.StatusSheet
 import fr.familia.app.feature.gifts.notebook.giftsFor
-import fr.familia.app.feature.presentation.LocalPresenting
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -117,11 +116,10 @@ internal fun preparedSurprises(lists: List<GiftList>, memberId: String): List<Gi
     lists.filter { it.kind == GiftListKind.Surprise && !it.revealed && it.beneficiaryId == memberId }
 
 /**
- * Never on one's own page, never in « Voir comme » (the notebook is never shown there, PRD), never
- * in presentation mode: the page may be on screen in front of the person.
+ * Never on one's own page, never in « Voir comme » (the notebook is never shown there, PRD).
  */
-internal fun showsGiving(currentMemberId: String, memberId: String, viewingAs: Boolean, presenting: Boolean): Boolean =
-    currentMemberId != memberId && !viewingAs && !presenting
+internal fun showsGiving(currentMemberId: String, memberId: String, viewingAs: Boolean): Boolean =
+    currentMemberId != memberId && !viewingAs
 
 @Composable
 fun ProfileGivingSection(
@@ -136,7 +134,7 @@ fun ProfileGivingSection(
     onEditIdea: (entryId: String) -> Unit,
     onProposeIdea: (entryId: String) -> Unit,
 ) {
-    if (!showsGiving(currentMember.id, member.id, LocalViewAs.current.viewed != null, LocalPresenting.current)) return
+    if (!showsGiving(currentMember.id, member.id, LocalViewAs.current.viewed != null)) return
     val viewModel: ProfileGivingViewModel = viewModel(
         key = "profile-giving-${member.id}-$singleList-$notebookOn",
         factory = viewModelFactory {
