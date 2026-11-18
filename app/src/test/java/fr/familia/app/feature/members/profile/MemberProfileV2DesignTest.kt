@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.semantics.SemanticsNode
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -172,11 +174,11 @@ class MemberProfileV2DesignTest {
     private fun assertNothingCut() {
         val nodes = compose.onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsActions.GetTextLayoutResult), useUnmergedTree = true).fetchSemanticsNodes()
         assertTrue(nodes.isNotEmpty())
-        val cut = nodes.mapNotNull { node ->
+        val cut: List<String> = nodes.mapNotNull { node: SemanticsNode ->
             val layouts = mutableListOf<TextLayoutResult>()
-            node.config[SemanticsActions.GetTextLayoutResult].action?.invoke(layouts)
-            val text = node.config.getOrNull(SemanticsProperties.Text)?.joinToString { it.text }
-            text.takeIf { layouts.any { it.hasVisualOverflow } }
+            node.config.getOrNull(SemanticsActions.GetTextLayoutResult)?.action?.invoke(layouts)
+            val text: String = node.config.getOrNull(SemanticsProperties.Text).orEmpty().joinToString { annotated -> annotated.text }
+            text.takeIf { layouts.any { layout -> layout.hasVisualOverflow } }
         }
         assertTrue("cut at 130 %: $cut", cut.isEmpty())
     }
