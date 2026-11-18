@@ -1205,6 +1205,14 @@ Dans « Le fil » de l'Accueil :
 11. Un lundi, après 9 h. **Attendu :** une carte « Question de la semaine · N réponses » avec « Répondre », qui devient « Voir les réponses » une fois répondu.
 12. En mode présentation, puis en « Voir comme ». **Attendu :** les cartes se lisent, sans réaction possible, sans « Commenter », « Je m'en occupe » ni « Répondre ».
 
+## Fil d'actualité : une tuile par actualité (PRODUIT-127)
+
+Module « Fil d'actualité » allumé.
+
+1. Ouvre « Le fil ». **Attendu :** chaque actualité est une carte blanche aux coins arrondis comme celles du Planning, avec une ombre très douce et un fin trait de sa couleur dessous. Il n'y a plus de liseré coloré à gauche ; la pastille du type reste en haut à droite.
+2. **Attendu :** 8 dp entre deux actualités d'un même jour, un peu plus avant et après « Aujourd'hui », « Hier ».
+3. En thème sombre, puis à 130 % de taille de texte. **Attendu :** les cartes restent lisibles et séparées, rien n'est coupé.
+
 ## Fil d'actualité de l'Accueil (récit 67)
 
 Module « Fil d'actualité » allumé dans Administration > Modules (éteint, l'Accueil ne change pas, même pour l'admin principal).
@@ -1218,3 +1226,18 @@ Module « Fil d'actualité » allumé dans Administration > Modules (éteint, l'
 7. Ajoute trois photos à l'album d'un événement passé, ou d'un voyage que toute la famille suit. **Attendu :** une carte verte « Photos » avec le titre, « 3 nouvelles photos » et les vignettes. Les photos d'un même jour et d'un même album font une seule carte. Toucher la carte ouvre l'album sur la photo la plus récente.
 8. Ajoute des photos à un voyage que quelqu'un ne suit pas (un voyage surprise). **Attendu :** aucune carte, même sur le téléphone de quelqu'un qui le suit.
 9. Ajoute une recette. **Attendu :** une carte orange « Recette » avec son titre, « La recette de … » si l'origine est notée, la photo du plat si elle existe et le dernier commentaire. Toucher la carte ouvre la recette.
+
+## Nouveau Planning (PRODUIT-126)
+
+Avant de commencer : **Administration**, puis **Modules**, et allume « Nouveau Planning ». Éteint, l'onglet Planning ne change pas, même pour toi.
+
+1. Ouvre l'onglet **Planning**. **Attendu :** en haut, « ‹ Du … au … ▾ › », avec en dessous « Semaine · toute la famille ». Dans la barre, à côté de « ? », un rond lilas avec deux personnages, et un « + » rond. Il n'y a plus de bouton « Ajouter » en bas, ni d'onglets « Mois | Liste ».
+2. **Attendu :** la frise de 7 jours, comme sur l'Accueil, avec le même mot pour chaque jour. Aujourd'hui est choisi. Sous la frise, « Aujourd'hui, … », puis les jours suivants de la semaine qui ont quelque chose.
+3. Regarde une carte. **Attendu :** à gauche, un bloc pâle avec l'heure en gros (« 18 ») et les minutes dessous (« h00 »), « Journée » s'il n'y a pas d'heure. Au milieu : le titre, le lieu, la note s'il y en a une, les photos de ceux qui y vont (4 au plus, puis « +2 »), et « 3 y vont » en vert, ou « Tu y vas ». À droite, la photo de couverture s'il y en a une.
+4. Pour un anniversaire, **attendu :** un gâteau et « Journée » dans le bloc. Pour un voyage de plusieurs jours, **attendu :** « JOUR 2 sur 3 », avec les dates à la place du lieu.
+5. Touche les flèches. **Attendu :** la semaine change. La flèche de gauche est grisée sur la semaine d'aujourd'hui.
+6. Touche le titre. **Attendu :** le choix « Semaine » ou « Mois ». Choisis « Mois ». **Attendu :** « Novembre 2026 ▾ », une grille blanche avec le chiffre, le mot et la pastille de chaque jour. Touche un jour : il passe en noir et ses cartes s'affichent dessous.
+7. Touche le rond lilas. **Attendu :** il devient plein, et le sous-titre dit « mon foyer ». Seuls les événements de ton foyer restent, avec tous les anniversaires. Touche-le encore pour revenir à toute la famille.
+8. Sur le téléphone d'un enfant qui a l'appli : **attendu :** le sous-titre dit « ma maison », et « Ajouté par toi » apparaît sur ce qu'il a créé.
+9. Mets la taille du texte à 130 %. **Attendu :** le titre passe sur deux lignes, sans être coupé. Les mots de la frise peuvent être coupés, mais la carte du jour touché les donne en entier.
+10. Éteins le module. **Attendu :** l'ancien Planning revient tel qu'il était.

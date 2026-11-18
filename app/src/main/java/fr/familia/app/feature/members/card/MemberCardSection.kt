@@ -1,5 +1,11 @@
 package fr.familia.app.feature.members.card
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import fr.familia.app.feature.members.profile.LocalProfileSection
+import fr.familia.app.feature.members.profile.ProfileInviteCard
+import fr.familia.app.feature.members.profile.ProfileSectionCard
+import fr.familia.app.feature.members.profile.SectionAccent
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -56,6 +62,11 @@ fun MemberCardSection(container: AppContainer?, currentMember: Member, member: M
 fun MemberCardContent(state: MemberCardUiState.Ready, onSave: (MemberCard) -> Boolean) {
     var editing by rememberSaveable { mutableStateOf(false) }
     val card = state.card
+    if (LocalProfileSection.current) {
+        InProfileSection(state) { editing = true }
+        if (editing) MemberCardDialog(card, onSave = onSave, onDismiss = { editing = false })
+        return
+    }
     ClayCard(Modifier.fillMaxWidth(), contentPadding = ClaySpacing.card) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             ClayCardTitle(stringResource(R.string.member_card_title))
@@ -80,6 +91,42 @@ fun MemberCardContent(state: MemberCardUiState.Ready, onSave: (MemberCard) -> Bo
     }
     if (editing) {
         MemberCardDialog(card, onSave = onSave, onDismiss = { editing = false })
+    }
+}
+
+/**
+ * On the new member page (PRODUIT-115): « Goûts et passions » as a section card, with a pencil for
+ * those who may change it. Empty, it shows only to them, as an invitation; never to the others.
+ */
+@Composable
+private fun InProfileSection(state: MemberCardUiState.Ready, onEdit: () -> Unit) {
+    val card = state.card
+    val title = stringResource(if (state.isMe) R.string.member_card_section_mine else R.string.member_card_section)
+    if (card.isEmpty) {
+        if (!state.canEdit) return
+        ProfileInviteCard(
+            title = title,
+            icon = Icons.Outlined.FavoriteBorder,
+            accent = SectionAccent.Rose,
+            text = stringResource(R.string.member_card_invite),
+            action = stringResource(if (state.isMe) R.string.member_card_fill_mine else R.string.member_card_fill_theirs),
+            onAction = onEdit,
+        )
+        return
+    }
+    ProfileSectionCard(
+        title = title,
+        icon = Icons.Outlined.FavoriteBorder,
+        accent = SectionAccent.Rose,
+        onEdit = if (state.canEdit) onEdit else null,
+        editLabel = stringResource(R.string.member_card_edit),
+    ) {
+        Line(R.string.member_card_tastes, card.tastes)
+        Line(R.string.member_card_hobbies, card.hobbies)
+        Line(R.string.member_card_shoes, card.shoes)
+        if (state.saveFailed) {
+            Text(stringResource(R.string.member_card_save_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+        }
     }
 }
 

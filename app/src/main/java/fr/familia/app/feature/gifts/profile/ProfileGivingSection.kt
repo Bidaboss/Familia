@@ -1,5 +1,14 @@
 package fr.familia.app.feature.gifts.profile
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material3.Icon
+import androidx.compose.ui.Alignment
+import fr.familia.app.feature.members.profile.LocalProfileSection
+import fr.familia.app.feature.members.profile.ProfilePrivateBox
+import fr.familia.app.feature.members.profile.ProfileSectionLabel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -176,6 +185,43 @@ fun ProfileGivingSection(
     )
 }
 
+/** What I give, in the beige box of the new member page: the same lines as the card. */
+@Composable
+private fun GivingLines(
+    state: GivingState,
+    member: Member,
+    notebookOn: Boolean,
+    failed: Boolean,
+    onOpenEntry: (NotebookEntry) -> Unit,
+    onOpenList: (String) -> Unit,
+    onOpenNotebook: () -> Unit,
+    onAddIdea: () -> Unit,
+) {
+    val variant = MaterialTheme.colorScheme.onSurfaceVariant
+    if (failed) {
+        Text(
+            stringResource(R.string.gift_action_failed),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+        )
+    }
+    if (state.entries.isEmpty() && state.surprises.isEmpty() && !state.surpriseIdea) {
+        Text(stringResource(R.string.profile_giving_empty), style = MaterialTheme.typography.bodyLarge)
+    }
+    state.entries.forEach { entry -> GiftRow(entry, variant) { onOpenEntry(entry) } }
+    state.surprises.forEach { list ->
+        ClayLink(stringResource(R.string.profile_giving_surprise, list.title), onClick = { onOpenList(list.id) })
+    }
+    if (state.surpriseIdea) {
+        ClayLink(stringResource(R.string.gifts_surprise_prepared), onClick = { onOpenList(ideasListId(member.id)) })
+    }
+    if (notebookOn) {
+        ClayLink(stringResource(R.string.notebook_add_idea), onClick = onAddIdea)
+        ClayLink(stringResource(R.string.profile_giving_all), onClick = onOpenNotebook)
+    }
+}
+
 /** The card of the page. Stateless. */
 @Composable
 fun ProfileGivingContent(
@@ -189,6 +235,18 @@ fun ProfileGivingContent(
     onAddIdea: () -> Unit,
 ) {
     val variant = FamiliaClay.colors.onTintVariant(ClayTint.Household)
+    // Inside « Cadeaux » of the new member page (PRODUIT-115): the beige box with its lock.
+    if (LocalProfileSection.current) {
+        ProfilePrivateBox {
+            ProfileSectionLabel(stringResource(R.string.profile_v2_giving_label))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.size(16.dp))
+                Text(stringResource(R.string.profile_v2_not_seen_by, member.firstName), style = MaterialTheme.typography.bodyMedium)
+            }
+            GivingLines(state, member, notebookOn, failed, onOpenEntry, onOpenList, onOpenNotebook, onAddIdea)
+        }
+        return
+    }
     ClayCard(Modifier.fillMaxWidth(), tint = ClayTint.Household, contentPadding = ClaySpacing.card) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             ClayCardTitle(stringResource(R.string.profile_giving_title, member.firstName))

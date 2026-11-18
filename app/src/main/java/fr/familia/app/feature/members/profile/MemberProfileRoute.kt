@@ -62,7 +62,7 @@ fun MemberProfileRoute(
         val genealogyOn = LocalFeatureFlags.current.isOn(Feature.Genealogy)
         val goodNewsOn = LocalFeatureFlags.current.isOn(Feature.GoodNews)
         val v2Model: MemberProfileV2ViewModel = viewModel(
-            key = "profile-v2-$memberId-$genealogyOn-$goodNewsOn",
+            key = "profile-v2-$memberId-$genealogyOn-$goodNewsOn-$cardOn-$giftsOn-${onOpenRecipes != null}",
             factory = viewModelFactory {
                 initializer {
                     MemberProfileV2ViewModel(
@@ -74,12 +74,20 @@ fun MemberProfileRoute(
                         readerId = currentMember.id,
                         memberId = memberId,
                         today = LocalDate.now(ZoneId.of("Europe/Paris")),
+                        memberCards = container?.memberCardRepository?.takeIf { cardOn },
+                        gifts = container?.giftRepository?.takeIf { giftsOn },
+                        recipes = container?.recipeRepository?.takeIf { onOpenRecipes != null },
+                        photos = container?.memberPhotoRepository,
                     )
                 }
             },
         )
         val v2State by v2Model.state.collectAsStateWithLifecycle()
-        ProfileV2Ui(v2State, onOpenMember, onOpenEvent, v2Model::savePhone, v2Model::saveAddress)
+        ProfileV2Ui(
+            v2State, onOpenMember, onOpenEvent, v2Model::savePhone, v2Model::saveAddress,
+            onSavePhoto = v2Model::savePhoto,
+            onRemovePhoto = v2Model::removePhoto,
+        )
     } else {
         null
     }
