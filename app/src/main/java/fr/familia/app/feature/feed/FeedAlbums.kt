@@ -185,7 +185,7 @@ class AlbumFeedCard(
                         StorageImage(photo.thumbnailPath, null, Modifier.fillMaxSize())
                         val more = photos.size - THUMBS
                         if (index == shown.lastIndex && more > 0) {
-                            Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.45f)), contentAlignment = Alignment.Center) {
+                            Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)), contentAlignment = Alignment.Center) {
                                 Text(
                                     stringResource(R.string.feed_album_more, more),
                                     style = MaterialTheme.typography.titleMedium,
