@@ -103,8 +103,28 @@ class GenealogyTree(members: List<Member>, kin: List<Kin>, links: List<KinLink>)
         links.filter { it.kind == KinLinkKind.Partner && (it.aId == id || it.bId == id) }.map { if (it.aId == id) it.bId else it.aId }
 
     /**
+     * The partners of [id], and the other parents of their children even without a « partner »
+     * link (retour du 18/11: two couples of grandparents were split, the grandfathers together).
+     */
+    fun coupleOf(id: String): List<String> =
+        (partnersOf(id) + childrenOf(id).flatMap { parentsOf(it) }).filter { it != id }.distinct()
+
+    /**
+     * The name on the drawing: the first name, and the last name too when it is noted and someone
+     * else in the tree has the same first name (retour du 18/11: two grandfathers of one name).
+     */
+    fun drawnName(id: String): String {
+        val person = people[id] ?: return ""
+        val first = person.firstName.trim()
+        val last = (person as? TreePerson.OfKin)?.kin?.lastName?.trim()?.takeIf { it.isNotEmpty() } ?: return person.firstName
+        val twin = people.values.any { it.id != id && it.firstName.trim().equals(first, ignoreCase = true) }
+        return if (twin) "$first $last" else person.firstName
+    }
+
+    /**
      * One generation below the lowest of one's parents' ones, and partners side by side (the
-     * deeper of the two). Settled in a few passes: a family has few generations.
+     * deeper of the two), like the parents of one child. Settled in a few passes: a family has few
+     * generations.
      */
     val generations: Map<String, Int> = run {
         val gen = people.keys.associateWith { 0 }.toMutableMap()
@@ -123,13 +143,21 @@ class GenealogyTree(members: List<Member>, kin: List<Kin>, links: List<KinLink>)
                     changed = true
                 }
             }
+            // The parents of one child stand on one row, like partners.
+            for (child in people.keys) {
+                val parents = parentsOf(child)
+                if (parents.size < 2) continue
+                val g = parents.maxOf { gen.getValue(it) }
+                parents.filter { gen.getValue(it) < g }.forEach { gen[it] = g; changed = true }
+            }
             if (!changed) return@run gen
         }
         gen
     }
 
     /**
-     * By generation, eldest first. Within one, partners next to each other, and brothers and
+     * By generation, eldest first. Within one, couples (partners, or the parents of one child) next
+     * to each other, each on the side of their own parents, and brothers and
      * sisters together under their parents (retour du 17/11: the children of two sisters were
      * mixed), then by first name.
      */
@@ -145,12 +173,18 @@ class GenealogyTree(members: List<Member>, kin: List<Kin>, links: List<KinLink>)
     }
 
     private fun orderRow(ids: List<String>, place: Map<String, Double>): List<String> {
-        val sorted = ids.sortedBy { people.getValue(it).firstName.lowercase() }
+        // Two of one first name: the last name, then the id, so the order never changes.
+        val sorted = ids.sortedWith(compareBy({ people.getValue(it).firstName.lowercase() }, { drawnName(it).lowercase() }, { it }))
         val placed = HashSet<String>()
         val groups = mutableListOf<List<String>>()
         for (id in sorted) {
             if (id in placed) continue
-            val group = listOf(id) + partnersOf(id).filter { it in ids && it !in placed }.sortedBy { people.getValue(it).firstName.lowercase() }
+            val group = (listOf(id) + coupleOf(id).filter { it in ids && it !in placed }.sortedBy { people.getValue(it).firstName.lowercase() })
+                // Within a couple, each one stands on the side of their own parents.
+                .let { couple ->
+                    val sides = couple.map { member -> parentsOf(member).mapNotNull { place[it] }.ifEmpty { null }?.average() }
+                    if (sides.all { it != null }) couple.zip(sides).sortedBy { it.second }.map { it.first } else couple
+                }
             placed += group
             groups += group
         }

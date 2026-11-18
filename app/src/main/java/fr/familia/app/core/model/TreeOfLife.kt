@@ -70,7 +70,7 @@ class TreeOfLife(tree: GenealogyTree, labelWidth: (String) -> Float = ::estimate
             val ids = flat[i].second
             // Each medallion is touched in a square of TOUCH dp, SPACING dp from the next one.
             val medallions = ids.size * TOUCH + (ids.size - 1) * SPACING
-            val label = labelWidth(ids.joinToString(" et ") { tree.people.getValue(it).firstName }) + 2 * PILL_PADDING
+            val label = labelWidth(ids.joinToString(" et ") { tree.drawnName(it) }) + 2 * PILL_PADDING
             return max(medallions, label) + SPACING
         }
 
@@ -182,12 +182,12 @@ class TreeOfLife(tree: GenealogyTree, labelWidth: (String) -> Float = ::estimate
         /** About the width of a name in Nunito 800 at 12 sp; the screen passes the measured one. */
         fun estimatedLabelWidth(text: String): Float = text.length * 7f
 
-        /** Partners side by side in a row make one household, the others stand alone. */
+        /** Couples side by side in a row (partners, or the parents of one child) make one household. */
         private fun households(row: List<String>, tree: GenealogyTree): List<List<String>> {
             val out = mutableListOf<MutableList<String>>()
             for (id in row) {
                 val last = out.lastOrNull()
-                if (last != null && last.any { it in tree.partnersOf(id) }) last.add(id) else out.add(mutableListOf(id))
+                if (last != null && last.any { it in tree.coupleOf(id) }) last.add(id) else out.add(mutableListOf(id))
             }
             return out
         }

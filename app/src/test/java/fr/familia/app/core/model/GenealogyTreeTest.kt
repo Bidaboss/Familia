@@ -86,6 +86,57 @@ class GenealogyTreeTest {
     }
 
     @Test
+    fun `two couples of grandparents with the same first names stay couples, each above their child`() {
+        // Retour du 18/11: two Paul and two Anna, no « partner » link between them, were drawn
+        // Anna, Anna, Paul, Paul.
+        fun kin(id: String, first: String, last: String) = Kin(id, first, last, living = false, householdId = "h1")
+        val tree = GenealogyTree(
+            listOf(m("hugo", "Hugo"), m("elsa", "Elsa"), m("tim", "Tim")),
+            listOf(kin("paulM", "Paul", "Martin"), kin("annaM", "Anna", "Martin"), kin("paulD", "Paul", "Durand"), kin("annaD", "Anna", "Durand")),
+            listOf(
+                KinLink.parent("paulM", "hugo"), KinLink.parent("annaM", "hugo"),
+                KinLink.parent("paulD", "elsa"), KinLink.parent("annaD", "elsa"),
+                KinLink.partners("hugo", "elsa"),
+                KinLink.parent("hugo", "tim"), KinLink.parent("elsa", "tim"),
+            ),
+        )
+        assertEquals(
+            listOf(listOf("annaD", "paulD", "annaM", "paulM"), listOf("elsa", "hugo"), listOf("tim")),
+            tree.rows,
+        )
+        assertEquals("Paul Martin", tree.drawnName("paulM"))
+        assertEquals("Anna Durand", tree.drawnName("annaD"))
+        assertEquals("Hugo", tree.drawnName("hugo"))
+        assertEquals(listOf("annaM"), tree.coupleOf("paulM"))
+    }
+
+    @Test
+    fun `the parents of one child without a partner link each send a line to the bar`() {
+        val links = listOf(KinLink.parent("a", "c"), KinLink.parent("b", "c"))
+        val boxes = mapOf(
+            "a" to TreeBox(0f, 0f, 100f, 100f),
+            "b" to TreeBox(120f, 0f, 220f, 100f),
+            "c" to TreeBox(60f, 160f, 160f, 260f),
+        )
+        assertEquals(
+            listOf(
+                TreeSegment(50f, 100f, 50f, 130f),
+                TreeSegment(170f, 100f, 170f, 130f),
+                TreeSegment(50f, 130f, 170f, 130f),
+                TreeSegment(110f, 130f, 110f, 160f),
+            ),
+            treeParentLines(links, boxes),
+        )
+    }
+
+    @Test
+    fun `a parent alone on their row keeps their name, even with a namesake elsewhere`() {
+        val tree = GenealogyTree(listOf(m("x", "Paul")), listOf(Kin("y", "Paul", living = true, householdId = "h1")), emptyList())
+        assertEquals("Paul", tree.drawnName("y"))
+        assertEquals("Paul", tree.drawnName("x"))
+    }
+
+    @Test
     fun `a link to someone no longer there is left out`() {
         val tree = GenealogyTree(listOf(camille), emptyList(), listOf(KinLink.parent("gone", "camille")))
         assertTrue(tree.links.isEmpty())

@@ -81,11 +81,11 @@ fun posterRows(tree: GenealogyTree, ids: Set<String>): List<List<String>> {
     )
     val place = HashMap<String, Float>()
     return cut.rows.map { row ->
-        // Partners stay side by side: a group is a person and the partners just after them.
+        // Couples stay side by side: a group is a person and the partners (or co-parents) just after them.
         val groups = mutableListOf<MutableList<String>>()
         row.forEach { id ->
             val last = groups.lastOrNull()
-            if (last != null && last.any { it in cut.partnersOf(id) }) last += id else groups += mutableListOf(id)
+            if (last != null && last.any { it in cut.coupleOf(id) }) last += id else groups += mutableListOf(id)
         }
         val ordered = groups.withIndex().sortedBy { (index, group) ->
             val above = group.flatMap { cut.parentsOf(it) }.mapNotNull { place[it] }
@@ -101,13 +101,19 @@ fun posterRows(tree: GenealogyTree, ids: Set<String>): List<List<String>> {
  * only when the maker is one of that child's adults; otherwise, and for a relative without an
  * account, the initial. Only the year of birth is kept.
  */
-fun posterPerson(person: TreePerson, makerId: String, withPhotos: Boolean, hasPhoto: (String) -> Boolean): PosterPerson = when (person) {
+fun posterPerson(
+    person: TreePerson,
+    makerId: String,
+    withPhotos: Boolean,
+    hasPhoto: (String) -> Boolean,
+    name: String = person.firstName,
+): PosterPerson = when (person) {
     is TreePerson.OfMember -> {
         val member = person.member
         val allowed = member.profile == MemberProfile.Adult || photoAllowed(makerId, listOf(member.parentIds))
-        PosterPerson(member.id, member.firstName, member.birthDate?.year, member.id.takeIf { withPhotos && allowed && hasPhoto(it) })
+        PosterPerson(member.id, name, member.birthDate?.year, member.id.takeIf { withPhotos && allowed && hasPhoto(it) })
     }
-    is TreePerson.OfKin -> PosterPerson(person.kin.id, person.kin.firstName, person.kin.born?.take(4)?.toIntOrNull(), null)
+    is TreePerson.OfKin -> PosterPerson(person.kin.id, name, person.kin.born?.take(4)?.toIntOrNull(), null)
 }
 
 /** Everything the poster shows, ready to print. */
@@ -122,7 +128,7 @@ fun posterContent(
     format: PosterFormat,
 ): PosterContent {
     val ids = posterIds(tree, start)
-    val rows = posterRows(tree, ids).map { row -> row.map { posterPerson(tree.people.getValue(it), makerId, withPhotos, hasPhoto) } }
+    val rows = posterRows(tree, ids).map { row -> row.map { posterPerson(tree.people.getValue(it), makerId, withPhotos, hasPhoto, tree.drawnName(it)) } }
     val links = tree.links.filter { it.aId in ids && it.bId in ids }
     return PosterContent(title, year, format, rows, links)
 }
