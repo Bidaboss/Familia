@@ -105,7 +105,7 @@ fun TripDetailScreen(
     onOpenExpenses: (() -> Unit)? = null,
     /** « Partager » (récit 31): null while the switch is off. */
     onShare: (() -> Unit)? = null,
-    /** The illustrated path of R1 bis (maquette R6), while the switch presentationR1bis is on. */
+    /** The illustrated path of R1 bis (maquette R6). */
     illustrated: Boolean = false,
     /** « 18 photos » of the illustrated path: the album of the trip. */
     onSeePhotos: () -> Unit = {},

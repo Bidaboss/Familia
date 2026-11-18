@@ -120,11 +120,6 @@ enum class Feature(
      * « Un enfant est sur la photo », puis « Faire le livre » en PDF A5 dans Recettes.
      */
     RecipeBook("recipeBook", R.string.feature_recipe_book),
-    /**
-     * La présentation « R1 bis » (spec DESIGN du 17/11) : frise de l'Accueil, Tout Familia, pastilles
-     * à deux lettres, motif du thème… Allumée par défaut ; l'éteindre rend l'ancienne présentation.
-     */
-    PresentationR1bis("presentationR1bis", R.string.feature_presentation_r1bis, onByDefault = true),
     /** Bons plans et bonnes adresses dans Entraide (PRD, récit 45, PRODUIT-60). */
     GoodDeals("goodDeals", R.string.feature_good_deals),
     /** « Voir dans mon agenda » : le planning dans Google Agenda, par un lien secret (PRD, récit 49). */
