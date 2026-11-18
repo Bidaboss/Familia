@@ -67,7 +67,7 @@ enum class SectionAccent(private val light: Color, private val dark: Color) {
 
 /**
  * One section of the page: its icon in a rounded square, its title, an optional pill ([badge]) and,
- * on my page, a pencil ([onEdit], 48 dp), above [content]. A thin line of [accent] runs on its left.
+ * on my page, a pencil ([onEdit], 56 dp), above [content]. A thin line of [accent] runs on its left.
  */
 @Composable
 fun ProfileSectionCard(
@@ -99,7 +99,7 @@ fun ProfileSectionCard(
 
 @Composable
 private fun SectionHeader(title: String, icon: ImageVector, color: Color, badge: String?, onEdit: (() -> Unit)?, editLabel: String?) {
-    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Box(Modifier.size(36.dp).background(color.copy(alpha = 0.28f), RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
             Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
         }
@@ -110,7 +110,7 @@ private fun SectionHeader(title: String, icon: ImageVector, color: Color, badge:
             }
         }
         onEdit?.let { edit ->
-            IconButton(onClick = edit, modifier = Modifier.size(48.dp)) {
+            IconButton(onClick = edit, modifier = Modifier.size(56.dp)) {
                 Icon(Icons.Outlined.Edit, contentDescription = editLabel ?: title)
             }
         }
