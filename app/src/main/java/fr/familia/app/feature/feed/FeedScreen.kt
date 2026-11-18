@@ -117,7 +117,7 @@ fun rememberFeedState(container: AppContainer?, me: Member): FeedState {
 /**
  * Under « Bonjour » (PRODUIT-128, variante C): a line that says where I am, and one button that
  * says where it leads. On Aujourd'hui, the date and a pale green « Le fil 4 › » with the number of
- * new cards; on the fil, « Le fil de la famille » and a white « ‹ Aujourd'hui ». Targets of 48 dp;
+ * new cards; on the fil, « Le fil de la famille » and a white « ‹ Aujourd'hui ». Targets of 56 dp;
  * at large text the button goes under the words.
  */
 @OptIn(ExperimentalLayoutApi::class)
@@ -146,7 +146,7 @@ fun HomeFeedSwitch(onFeed: Boolean, unseen: Int, onChoose: (Boolean) -> Unit, mo
                 shape = RoundedCornerShape(24.dp),
                 color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant),
-                modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = description },
+                modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = description },
             ) {
                 Row(Modifier.padding(start = 12.dp, end = 18.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null)
@@ -162,7 +162,7 @@ fun HomeFeedSwitch(onFeed: Boolean, unseen: Int, onChoose: (Boolean) -> Unit, mo
                 shape = RoundedCornerShape(24.dp),
                 color = FEED_BUTTON_GREEN,
                 contentColor = FEED_BUTTON_GREEN_TEXT,
-                modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = description },
+                modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = description },
             ) {
                 Row(Modifier.padding(start = 18.dp, end = 12.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.feed_tab_feed), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold)
