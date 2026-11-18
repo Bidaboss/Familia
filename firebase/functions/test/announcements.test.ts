@@ -116,11 +116,11 @@ describe('against the emulator', () => {
     assert.equal(sent.length, 2);
   });
 
-  test('during the mode présentation nothing goes', async () => {
+  test('a config/presentation left on no longer stops anything (Mode présentation removed, PRODUIT-132)', async () => {
     await db.doc('config/presentation').set({ on: true, until: null });
     const { sent, send } = fakeSender();
-    assert.equal(await onAnnouncementCreated(db, send, 'a1', announcement(), DAY), 'refused');
-    assert.equal(sent.length, 0);
+    assert.equal(await onAnnouncementCreated(db, send, 'a1', announcement(), DAY), 'sent');
+    assert.ok(sent.length > 0);
   });
 
   test('module off, or written by someone else than the admin principal: nothing goes', async () => {

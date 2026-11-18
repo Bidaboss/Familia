@@ -2,7 +2,7 @@
 // comment tells the author of the news, the member it is for and those who already commented, never
 // the one who wrote it, nor those who chose « Ne plus être prévenu »
 // (goodNews/{postId}/commentMutes/{memberId}) or hid the news for themselves. Sent by deliver on the
-// channel comments, so it waits during the mode présentation like the reactions (récit 48). Until the
+// channel comments, like the reactions. Until the
 // fil d'actualité is switched on for the family (config/app.features.newsFeed), only the admin
 // principal is told. The news keeps its count of comments (commentCount) for the cards of the fil.
 

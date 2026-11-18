@@ -53,7 +53,7 @@ internal fun LazyListScope.presentationContent(
     onAllBirthdays: () -> Unit,
     onPrepareSurprise: (String) -> Unit,
     onOpenMyPage: (() -> Unit)? = null,
-    /** « Surprises en préparation » (récit 63): false while presenting and in « Voir comme ». */
+    /** « Surprises en préparation » (récit 63): false in « Voir comme ». */
     showPreparing: Boolean = false,
 ) {
     // At the very top of the tab (PRD rév. 291).

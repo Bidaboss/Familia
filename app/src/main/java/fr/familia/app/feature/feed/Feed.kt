@@ -60,7 +60,7 @@ fun interface FeedSource {
 }
 
 /**
- * What every card knows. [readOnly] in the Mode présentation and in « Voir comme »: a card reads,
+ * What every card knows. [readOnly] in « Voir comme »: a card reads,
  * it never writes (no « J'y vais », no comment).
  */
 class FeedContext(

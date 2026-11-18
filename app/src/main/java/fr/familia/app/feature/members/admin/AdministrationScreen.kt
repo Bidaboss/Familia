@@ -139,8 +139,6 @@ fun AdministrationScreen(
     discoverOrder: List<DiscoverModule> = DiscoverModule.entries,
     discoverInTutorial: Set<DiscoverModule> = emptySet(),
     onSaveDiscoverOrder: ((List<DiscoverModule>) -> Unit)? = null,
-    /** « Mode présentation » (récit 48), first of the screen for the day of the demo; hidden when null. */
-    presentation: (@Composable () -> Unit)? = null,
     /** « Liens d'agenda » (audit du 17/11): cut an adult's calendar link; hidden when null. */
     calendarLinks: (@Composable () -> Unit)? = null,
 ) {
@@ -179,7 +177,7 @@ fun AdministrationScreen(
                         onOpenUsage, consumption, challenges, onPickChallenge, capsuleLeftovers, onDeleteCapsuleLeftovers,
                         rotation, onSaveRotation, viewAsMembers, onViewAs, onShareApp, onOpenFeedback, feedbackUnseen,
                         onOpenCrashes, crashCount, onOpenAnnouncements,
-                        discoverOrder, discoverInTutorial, onSaveDiscoverOrder, presentation, calendarLinks,
+                        discoverOrder, discoverInTutorial, onSaveDiscoverOrder, calendarLinks,
                     )
             }
         }
@@ -227,7 +225,6 @@ private fun ReadyContent(
     discoverOrder: List<DiscoverModule>,
     discoverInTutorial: Set<DiscoverModule>,
     onSaveDiscoverOrder: ((List<DiscoverModule>) -> Unit)?,
-    presentation: (@Composable () -> Unit)?,
     calendarLinks: (@Composable () -> Unit)?,
 ) {
     var adding by rememberSaveable { mutableStateOf(false) }
@@ -241,12 +238,10 @@ private fun ReadyContent(
         open = if (key in open) open - key else open + key
     }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 8.dp)) {
-        if (presentation != null || (onViewAs != null && viewAsMembers.isNotEmpty())) {
+        if (onViewAs != null && viewAsMembers.isNotEmpty()) {
             adminGroup("demo", R.string.administration_group_demo, R.string.administration_group_demo_help, open, ::toggle) {
-                if (presentation != null) item(key = "presentation") { presentation() }
                 if (onViewAs != null && viewAsMembers.isNotEmpty()) {
                     item(key = "view-as") {
-                        HorizontalDivider(Modifier.padding(top = 8.dp))
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()

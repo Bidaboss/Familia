@@ -20,11 +20,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Campaign
-import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -87,7 +84,6 @@ fun AnnouncementsScreen(
     onUrgent: (Boolean) -> Unit,
     selected: Set<String>,
     onSelect: (Set<String>) -> Unit,
-    presenting: Boolean,
     sending: Boolean,
     /** « Déjà envoyées »; null while it loads. */
     sent: List<Announcement>?,
@@ -101,7 +97,7 @@ fun AnnouncementsScreen(
     var confirming by rememberSaveable { mutableStateOf(false) }
     val others = stringResource(R.string.announcements_others)
     val groups = remember(candidates, family, me.householdId, others) { pickGroups(candidates, family, me.householdId, others) }
-    val canSend = !presenting && !sending && canSendAnnouncement(title, text, selected)
+    val canSend = !sending && canSendAnnouncement(title, text, selected)
     Scaffold(
         topBar = {
             TopAppBar(
@@ -121,17 +117,6 @@ fun AnnouncementsScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            }
-            if (presenting) {
-                item(key = "presenting") {
-                    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
-                        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Outlined.NotificationsOff, contentDescription = null)
-                            Spacer(Modifier.width(12.dp))
-                            Text(stringResource(R.string.announcements_presenting), style = MaterialTheme.typography.bodyMedium)
-                        }
-                    }
-                }
             }
             item(key = "title") {
                 OutlinedTextField(
@@ -384,7 +369,7 @@ private fun AnnouncementsScreenPreview() {
             family = family, me = me, candidates = others,
             title = "Repas de dimanche", onTitle = {}, text = "On se retrouve à midi chez Inès.", onText = {},
             urgent = false, onUrgent = {}, selected = others.map { it.id }.toSet(), onSelect = {},
-            presenting = false, sending = false,
+            sending = false,
             sent = listOf(
                 Announcement("a1", "Nouvelle version", "Pense à la mettre à jour.", false, listOf("jules", "ines"), "camille", "Camille", Instant.now(), Announcement.Delivery.Sent),
             ),
