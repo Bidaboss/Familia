@@ -1,5 +1,6 @@
 package fr.familia.app.feature.feed
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +43,7 @@ import fr.familia.app.core.data.TripRepository
 import fr.familia.app.core.model.Capsule
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.photo.StorageImage
+import fr.familia.app.core.theme.LocalClayColors
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.feature.recap.WeekRecap
 import fr.familia.app.feature.yearago.MemoryAlbum
@@ -272,7 +274,9 @@ fun FeedPublishBar(me: Member, onPublish: () -> Unit, modifier: Modifier = Modif
     val prompt = stringResource(R.string.feed_publish_prompt)
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
+        // The card color of the theme, like the tiles of the fil (PRODUIT-130).
+        color = LocalClayColors.current.card,
+        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = modifier,
     ) {
         val buttons = @Composable {
