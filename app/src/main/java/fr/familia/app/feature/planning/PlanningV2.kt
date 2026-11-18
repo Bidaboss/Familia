@@ -45,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -436,7 +437,9 @@ private fun CardBody(
             }
         }
         if (!note.isNullOrBlank()) {
-            Text(note, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = toneColors(tone).text)
+            // The tone ink is made for pale tiles: on a dark card (dark themes) it would be unreadable.
+            val noteInk = if (MaterialTheme.colorScheme.surface.luminance() < 0.5f) MaterialTheme.colorScheme.onSurface else toneColors(tone).text
+            Text(note, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = noteInk)
         }
         footer()
     }
