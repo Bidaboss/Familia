@@ -1364,11 +1364,6 @@ fun FamiliaApp(
                             onAllBirthdays = { navController.navigate(BirthdaysRoute) },
                             // With the single list (récit 9 ter), a surprise is an idea of the family.
                             onPrepareSurprise = { id -> prepareSurprise(navController, features.isOn(Feature.SingleList), id, nearestOccasion = false) },
-                            onOpenNotebook = if (features.isOn(Feature.GiftNotebook)) {
-                                { navController.navigate(NotebookDestination) }
-                            } else {
-                                null
-                            },
                             onOpenMyPage = { navController.navigate(MemberProfileDestination(currentMember.id)) },
                             onOpenSurprisePicker = { navController.navigate(SurprisePickDestination) },
                         )

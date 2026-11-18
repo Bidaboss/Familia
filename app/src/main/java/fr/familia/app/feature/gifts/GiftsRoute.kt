@@ -24,8 +24,6 @@ fun GiftsRoute(
     onNewList: () -> Unit,
     onAllBirthdays: () -> Unit,
     onPrepareSurprise: (memberId: String) -> Unit,
-    /** Null while the notebook module is off for this member. */
-    onOpenNotebook: (() -> Unit)? = null,
     /** « Mes envies » live on the member's page (retour d'essai, 17/11); null keeps them in the tab. */
     onOpenMyPage: (() -> Unit)? = null,
     /** « Préparer une surprise » (récit 63): the choice of the person. */
@@ -69,8 +67,7 @@ fun GiftsRoute(
         onRetry = viewModel::retry,
         onAllBirthdays = onAllBirthdays,
         onPrepareSurprise = onPrepareSurprise,
-        // « Voir comme »: the notebook is never shown (PRD), and some lists may be kept from the admin.
-        onOpenNotebook = onOpenNotebook?.takeIf { viewedAs == null },
+        // « Voir comme »: some lists may be kept from the admin.
         someListsHidden = viewedAs != null,
         onSelectMoment = viewModel::selectMoment,
         onOpenMyPage = onOpenMyPage,

@@ -132,6 +132,11 @@ class SurpriseButtonTest {
 
     private fun topOf(text: String) = compose.onNodeWithText(text).fetchSemanticsNode().boundsInRoot.top
 
+    /** The presentation R1 bis, with the single list: a surprise is an idea of the family. */
+    private fun presentationFor(reader: String) =
+        (giftsState(family, emptyList(), reader, today, singleList = true, presentation = true, surpriseButton = true) as GiftsUiState.Success)
+            .copy(surprisePreparedFor = if (reader == "adult1") emptySet() else setOf("adult1"))
+
     @Test
     fun `the surprises in progress come first, above the birthdays`() {
         show(stateFor("adult2"))
@@ -139,8 +144,30 @@ class SurpriseButtonTest {
     }
 
     @Test
-    fun `with the presentation of the tab, the surprises in progress come first too`() {
-        show(stateFor("adult2").copy(presentation = true))
-        assertTrue(topOf("Surprises en préparation") < topOf("Anniversaires à venir"))
+    fun `in the presentation, the surprises then one block for what comes`() {
+        show(presentationFor("adult2"))
+        assertTrue(topOf("Surprises en préparation") < topOf("À venir"))
+        assertTrue(topOf("À venir") < topOf("Prochaine occasion"))
+        // The next occasion is the first card of the block, never a separate section of birthdays.
+        assertEquals(0, count("Anniversaires à venir"))
+        assertEquals(1, count("Anniversaire de Adult1"))
+    }
+
+    @Test
+    fun `after the next occasion, the birthdays and Christmas by date`() {
+        val state = presentationFor("adult2")
+        val next = state.next as GiftMoment.BirthdayOf
+        assertEquals("adult1", next.member.id)
+        val after = upcomingAfterNext(state)
+        assertTrue(after.none { it is Upcoming.OfBirthday && it.birthday.member.id == "adult1" })
+        assertTrue(after.any { it is Upcoming.OfChristmas && it.year == 2026 })
+        assertEquals(after.sortedBy { it.date }, after)
+    }
+
+    @Test
+    fun `the person celebrated reads their own birthday, and no surprise`() {
+        show(presentationFor("adult1"))
+        assertEquals(1, count("Ton anniversaire, dans 5 jours"))
+        assertEquals(0, count("Surprises en préparation"))
     }
 }
