@@ -190,6 +190,11 @@ enum class Feature(
      * Lu avec isOnForFamily : éteint, l'Accueil ne change pas, même pour l'admin principal.
      */
     NewsFeed("newsFeed", R.string.feature_news_feed),
+    /**
+     * Le nouvel onglet Planning (PRODUIT-126, maquettes PL1 à PL5, haut C) : Semaine et Mois, la vue
+     * dans le titre, des cartes avec l'heure en bloc. Lu avec isOnForFamily : éteint, rien ne change.
+     */
+    PlanningV2("planningV2", R.string.feature_planning_v2),
 }
 
 /**

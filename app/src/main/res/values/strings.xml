@@ -2959,6 +2959,34 @@
     <string name="gift_contributors_none">Personne n\'a encore participé.</string>
     <string name="feature_admin_announcements">Annonces de l\'admin</string>
     <string name="feature_news_feed">Fil d\'actualité</string>
+    <string name="feature_planning_v2">Nouveau Planning</string>
+    <string name="feature_help_planning_v2">Nouveau Planning : cartes avec l\'heure en bloc et frise d\'un mot par jour.</string>
+    <string name="planning_v2_week_range">Du %1$s au %2$s</string>
+    <string name="planning_v2_subtitle">%1$s · %2$s</string>
+    <string name="planning_v2_scope_family">toute la famille</string>
+    <string name="planning_v2_scope_household">mon foyer</string>
+    <string name="planning_v2_scope_house">ma maison</string>
+    <string name="planning_v2_scope_button_household">Mon foyer seulement</string>
+    <string name="planning_v2_scope_button_house">Ma maison seulement</string>
+    <string name="planning_v2_choose_view">Choisir Semaine ou Mois</string>
+    <string name="planning_v2_previous">Précédent</string>
+    <string name="planning_v2_next">Suivant</string>
+    <string name="planning_v2_trip_day">JOUR</string>
+    <string name="planning_v2_trip_of">sur %1$d</string>
+    <string name="planning_v2_trip_day_spoken">Jour %1$d sur %2$d</string>
+    <string name="planning_v2_trip_dates">du %1$s au %2$s</string>
+    <string name="planning_v2_you_go">Tu y vas</string>
+    <string name="planning_v2_added_by_you">Ajouté par toi</string>
+    <plurals name="planning_v2_going">
+        <item quantity="one">%d y va</item>
+        <item quantity="many">%d y vont</item>
+        <item quantity="other">%d y vont</item>
+    </plurals>
+    <plurals name="planning_v2_day_count">
+        <item quantity="one">%d événement</item>
+        <item quantity="many">%d événements</item>
+        <item quantity="other">%d événements</item>
+    </plurals>
     <string name="packing_title">À emporter</string>
     <string name="notifications_packing">Ma valise</string>
     <string name="notifications_packing_help">La veille d\'un voyage, à 18 h, s\'il reste des objets à mettre dans ta valise.</string>
