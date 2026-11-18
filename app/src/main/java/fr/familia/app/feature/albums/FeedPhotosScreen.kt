@@ -97,6 +97,7 @@ fun FeedPhotosScreen(state: FeedPhotosUiState, month: YearMonth, onBack: () -> U
             )
         },
     ) { padding ->
+        val open = stringResource(R.string.albums_feed_open)
         Box(Modifier.padding(padding).fillMaxSize()) {
             when {
                 state.loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -111,7 +112,6 @@ fun FeedPhotosScreen(state: FeedPhotosUiState, month: YearMonth, onBack: () -> U
                     contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 8.dp, bottom = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    val open = stringResource(R.string.albums_feed_open)
                     state.photos.chunked(3).forEachIndexed { line, row ->
                         item(key = "line-$line") {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
