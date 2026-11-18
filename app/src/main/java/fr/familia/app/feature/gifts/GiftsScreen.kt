@@ -123,7 +123,7 @@ fun GiftsScreen(
                 if (state.tabV2) {
                     giftsV2Content(
                         state,
-                        GiftsV2Actions(onOpenList, onSelectMoment, onAllBirthdays, onOpenMyPage, onAddWish),
+                        GiftsV2Actions(onOpenList, onAllBirthdays, onOpenMyPage, onAddWish),
                         showPreparing = !presenting && !someListsHidden,
                     )
                     return@LazyColumn

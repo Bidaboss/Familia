@@ -204,8 +204,26 @@ class GiftsTabV2Test {
     fun `out of season, compact lines only`() {
         show(stateFor("adult1", day = LocalDate.of(2026, 3, 1)))
         assertEquals(0, count("PROCHAIN ANNIVERSAIRE"))
-        // A compact line (the chips come from the ViewModel, not from this state).
+        // A compact line, and no filter chips any more (PRODUIT-134).
         assertEquals(1, count("Anniversaire de Kid2"))
+        assertEquals(0, count("Toutes"))
+    }
+
+    @Test
+    fun `a birthday line opens the wishes of that person`() {
+        val opened = mutableListOf<String>()
+        compose.setContent {
+            FamiliaTheme {
+                GiftsScreen(
+                    stateFor("adult1", day = LocalDate.of(2026, 3, 1)), onOpenList = { opened += it }, onNewList = {}, onRetry = {},
+                    onOpenSurprisePicker = {}, onOpenMyPage = {},
+                )
+            }
+        }
+        compose.waitForIdle()
+        compose.onNodeWithText("Anniversaire de Kid2").performClick()
+        compose.waitForIdle()
+        assertEquals(listOf("wishes-kid2"), opened)
     }
 
     @Test

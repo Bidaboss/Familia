@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
@@ -28,7 +26,6 @@ import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Park
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -82,7 +79,6 @@ import java.time.temporal.ChronoUnit
 /** What the new tab leads to. */
 internal class GiftsV2Actions(
     val onOpenList: (String) -> Unit,
-    val onSelectMoment: (GiftMoment?) -> Unit,
     val onAllBirthdays: () -> Unit,
     val onOpenMyPage: (() -> Unit)?,
     val onAddWish: (listId: String) -> Unit,
@@ -99,9 +95,6 @@ internal fun LazyListScope.giftsV2Content(state: GiftsUiState.Success, actions: 
     // A child finds their own wishes first (C5).
     if (!adult && mine != null) item(key = "my-wishes") { MyWishesCard(state, mine, actions, showTitles = true) }
     if (state.moment == null) upcomingV2(state, actions, door)
-    if (state.occasions.isNotEmpty()) {
-        item(key = "moments") { OccasionChips(state.occasions, state.moment, actions.onSelectMoment) }
-    }
     if (adult && mine != null && state.moment !is GiftMoment.BirthdayOf) {
         item(key = "my-wishes") { MyWishesCard(state, mine, actions, showTitles = false) }
     }
@@ -207,8 +200,9 @@ private fun LazyListScope.upcomingV2(state: GiftsUiState.Success, actions: Gifts
                     title = stringResource(R.string.gifts_birthday_of, birthday.member.firstName),
                     subtitle = dateLine(state.today, date),
                     onClick = {
+                        // No more filter by occasion (PRODUIT-134): their wishes, as « Ses envies ».
                         if (me) actions.onOpenMyPage?.invoke() ?: actions.onOpenList(wishesListId(birthday.member.id))
-                        else actions.onSelectMoment(GiftMoment.BirthdayOf(birthday.member, birthday.date))
+                        else actions.onOpenList(wishesFor(state, birthday.member.id))
                     },
                 )
             } else {
@@ -216,7 +210,8 @@ private fun LazyListScope.upcomingV2(state: GiftsUiState.Success, actions: Gifts
                     icon = Icons.Outlined.Park,
                     title = stringResource(R.string.gifts_v2_christmas),
                     subtitle = dateLine(state.today, date),
-                    onClick = { actions.onSelectMoment(GiftMoment.Christmas(date.year)) },
+                    // A reminder of the day only: each person's card below holds what to give.
+                    onClick = null,
                 )
             }
         }
@@ -282,10 +277,10 @@ internal fun surpriseDoor(state: GiftsUiState.Success, memberId: String, showPre
 private fun ideasFor(state: GiftsUiState.Success, memberId: String): String =
     state.sections.firstOrNull { it.member.id == memberId }?.ideas?.id ?: ideasListId(memberId)
 
-/** Noël, or a birthday after the one in relief: an icon, the day, a chevron. */
+/** Noël, or a birthday after the one in relief: an icon, the day, and a chevron when it opens something. */
 @Composable
-private fun CompactLine(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String, onClick: () -> Unit) {
-    ClayCard(Modifier.fillMaxWidth().heightIn(min = 56.dp), onClick = onClick, onClickLabel = stringResource(R.string.gifts_v2_open), contentPadding = ClaySpacing.card) {
+private fun CompactLine(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String, onClick: (() -> Unit)?) {
+    ClayCard(Modifier.fillMaxWidth().heightIn(min = 56.dp), onClick = onClick, onClickLabel = onClick?.let { stringResource(R.string.gifts_v2_open) }, contentPadding = ClaySpacing.card) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Box(Modifier.size(40.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
                 Icon(icon, contentDescription = null)
@@ -294,22 +289,7 @@ private fun CompactLine(icon: androidx.compose.ui.graphics.vector.ImageVector, t
                 Text(title, style = MaterialTheme.typography.titleMedium)
                 Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null)
-        }
-    }
-}
-
-/** « Toutes », « Anniversaire de … », « Noël 2026 » on one line that scrolls. */
-@Composable
-private fun OccasionChips(moments: List<GiftMoment>, selected: GiftMoment?, onSelect: (GiftMoment?) -> Unit) {
-    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        (listOf(null) + moments).forEach { moment ->
-            val label = when (moment) {
-                null -> stringResource(R.string.gifts_v2_all)
-                is GiftMoment.Christmas -> stringResource(R.string.gifts_moment_christmas, moment.year)
-                is GiftMoment.BirthdayOf -> stringResource(R.string.gifts_birthday_of, moment.member.firstName)
-            }
-            FilterChip(selected = selected == moment, onClick = { onSelect(moment) }, label = { Text(label) }, modifier = Modifier.heightIn(min = 56.dp))
+            if (onClick != null) Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null)
         }
     }
 }
