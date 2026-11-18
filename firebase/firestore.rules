@@ -107,8 +107,10 @@ service cloud.firestore {
     // colorIndex is optional: one of the 13 member colors of the app.
     function isValidMember(m) {
       return m.keys().hasAll(['firstName', 'email', 'birthDate', 'householdId', 'profile', 'isAdmin', 'parentIds', 'uid'])
-        && m.keys().hasOnly(['firstName', 'email', 'birthDate', 'householdId', 'profile', 'isAdmin', 'parentIds', 'uid', 'colorIndex'])
+        && m.keys().hasOnly(['firstName', 'email', 'birthDate', 'householdId', 'profile', 'isAdmin', 'parentIds', 'uid', 'colorIndex', 'phone'])
         && (!('colorIndex' in m) || (m.colorIndex is int && m.colorIndex >= 0 && m.colorIndex <= 12))
+        // Coordonnées (récit 66): an optional phone, for an adult only, never for a child.
+        && (!('phone' in m) || (isPhone(m.phone) && m.profile == 'adult'))
         && m.firstName is string && m.firstName.size() > 0 && m.firstName.size() <= 40
         && (m.email == null || (m.email is string && m.email == m.email.lower()))
         && (m.birthDate == null || isDay(m.birthDate))
@@ -160,6 +162,13 @@ service cloud.firestore {
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uid']);
 
+      // Coordonnées (récit 66): an adult sets or removes their own phone, and nothing else.
+      allow update: if isMember()
+        && myMemberId() == memberId
+        && resource.data.profile == 'adult'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['phone'])
+        && (!('phone' in request.resource.data) || isPhone(request.resource.data.phone));
+
       // Only the admin principal adds a member (the family rarely grows, so the chefs have no
       // button for it). No linked account yet.
       allow create: if isOwner()
@@ -203,9 +212,16 @@ service cloud.firestore {
     }
 
     function isValidHousehold(h) {
-      return h.keys().hasOnly(['name'])
+      return h.keys().hasOnly(['name', 'address'])
         && h.name is string
-        && h.name.size() > 0 && h.name.size() <= 40;
+        && h.name.size() > 0 && h.name.size() <= 40
+        // Coordonnées (récit 66): an optional address for the household, set by who manages it.
+        && (!('address' in h) || (h.address is string && h.address.size() > 0 && h.address.size() <= 200));
+    }
+
+    // A phone number as people type it: digits, spaces, dots, dashes, brackets and a leading +.
+    function isPhone(value) {
+      return value is string && value.matches('^[+]?[0-9 .()-]{6,24}$');
     }
 
     // households/{householdId}. Readable by the whole family. The admin principal creates and
@@ -768,7 +784,7 @@ service cloud.firestore {
     }
 
     function isValidHostedChallenge(c, month) {
-      return c.keys().hasOnly(['householdId', 'status', 'kind', 'title', 'emoji', 'illustration', 'target', 'updatedBy', 'updatedAt'])
+      return c.keys().hasOnly(['householdId', 'status', 'kind', 'title', 'emoji', 'illustration', 'target', 'note', 'updatedBy', 'updatedAt'])
         && c.householdId == me().householdId
         && c.householdId == hostOf(month)
         && c.status in ['draft', 'published', 'skipped']
@@ -777,6 +793,8 @@ service cloud.firestore {
         && c.emoji is string && c.emoji.size() > 0 && c.emoji.size() <= 8
         && c.illustration in ['sun', 'heart', 'leaf', 'star', 'camera', 'pot']
         && c.target is int && c.target >= 3 && c.target <= 50
+        // The optional word of the foyer for « Comment ça marche » (récit 65).
+        && (!('note' in c) || (c.note is string && c.note.size() <= 140))
         && c.updatedBy == myMemberId()
         && c.updatedAt == request.time;
     }

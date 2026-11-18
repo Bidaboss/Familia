@@ -4,6 +4,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import fr.familia.app.core.model.ChallengeRotation
 import fr.familia.app.core.model.FamilyTree
+import fr.familia.app.core.model.ChallengeMeasure
 import fr.familia.app.core.model.HostedChallenge
 import fr.familia.app.core.model.HostedIllustration
 import fr.familia.app.core.model.HostedKind
@@ -50,6 +51,7 @@ class FirestoreTreeRepository(private val db: FirebaseFirestore) : TreeRepositor
                         achieved = snapshot.get("achievedAt") != null,
                         choiceId = snapshot.getString("choiceId"),
                         hostHouseholdId = snapshot.getString("householdId")?.takeIf { snapshot.getString("measure") == "linked" },
+                        measure = ChallengeMeasure.of(snapshot.getString("measure")) ?: ChallengeMeasure.GoodNews,
                     )
                 },
             )
@@ -108,6 +110,7 @@ class FirestoreTreeRepository(private val db: FirebaseFirestore) : TreeRepositor
                         emoji = snapshot.getString("emoji").orEmpty(),
                         illustration = HostedIllustration.of(snapshot.getString("illustration")) ?: HostedIllustration.Sun,
                         target = snapshot.getLong("target")?.toInt() ?: HostedChallenge.TARGET_MIN,
+                        note = snapshot.getString("note").orEmpty(),
                     )
                 },
             )
@@ -128,7 +131,8 @@ class FirestoreTreeRepository(private val db: FirebaseFirestore) : TreeRepositor
                     "target" to challenge.target,
                     "updatedBy" to memberId,
                     "updatedAt" to FieldValue.serverTimestamp(),
-                ),
+                    // Written only when there is one: without it, the rules of before still accept the challenge.
+                ) + listOfNotNull(challenge.note.trim().takeIf { it.isNotEmpty() }?.let { "note" to it }),
             )
             .await()
     }

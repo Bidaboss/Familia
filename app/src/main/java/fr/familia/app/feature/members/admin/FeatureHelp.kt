@@ -51,6 +51,7 @@ private val HELP: Map<Feature, Int> = mapOf(
     Feature.SingleList to R.string.feature_help_single_list,
     Feature.OldListsCleanup to R.string.feature_help_old_lists_cleanup,
     Feature.SurpriseButton to R.string.feature_help_surprise_button,
+    Feature.MemberProfileV2 to R.string.feature_help_member_profile_v2,
     Feature.MorePhotos to R.string.feature_help_more_photos,
     Feature.RecipeBook to R.string.feature_help_recipe_book,
     Feature.PresentationR1bis to R.string.feature_help_presentation_r1bis,
@@ -69,6 +70,7 @@ private val HELP: Map<Feature, Int> = mapOf(
     Feature.FirstSteps to R.string.feature_help_first_steps,
     Feature.OpeningAnimation to R.string.feature_help_opening_animation,
     Feature.FamilyTabV2 to R.string.feature_help_family_tab_v2,
+    Feature.ChallengeDetails to R.string.feature_help_challenge_details,
 )
 
 @StringRes
@@ -79,6 +81,8 @@ fun featureHelpRes(feature: Feature): Int? = HELP[feature]
  * they arrived before being switched on.
  */
 val NEEDS_FIREBASE_PUBLISH: Set<Feature> = setOf(
+    // The phone of a member and the address of a household (récit 66).
+    Feature.MemberProfileV2,
     Feature.Gifts,
     Feature.GiftNotebook,
     Feature.WishesReveal,
@@ -91,6 +95,7 @@ val NEEDS_FIREBASE_PUBLISH: Set<Feature> = setOf(
     Feature.EventAlbums,
     Feature.Souvenirs,
     Feature.Tree,
+    Feature.ChallengeDetails,
     Feature.Digest,
     Feature.Polls,
     Feature.Recipes,
@@ -110,6 +115,7 @@ val NEEDS_FIREBASE_PUBLISH: Set<Feature> = setOf(
     Feature.SingleList,
     Feature.OldListsCleanup,
     Feature.SurpriseButton,
+    Feature.MemberProfileV2,
     Feature.MorePhotos,
     Feature.RecipeBook,
     Feature.GoodDeals,

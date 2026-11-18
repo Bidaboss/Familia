@@ -1,6 +1,17 @@
 package fr.familia.app.feature.tree.challenges
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -63,10 +74,6 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 
-/** The first challenge of the family (récit 35) and the first question of Monday (récit 37). */
-private val FIRST_CHALLENGE = YearMonth.of(2026, 12)
-private val FIRST_QUESTION = LocalDate.of(2026, 11, 30)
-
 private fun beforeFirstQuestion(): Boolean = LocalDate.now(ZoneId.of("Europe/Paris")).isBefore(FIRST_QUESTION)
 
 /** The fixed colours of the maquette R7: a dark card for the challenge, the violet of S'organiser, the green of Se souvenir. */
@@ -99,7 +106,21 @@ fun ChallengesScreen(
     onOpenWeekly: () -> Unit,
     /** Before the first challenge, the fallback « Partager une bonne nouvelle en attendant »; null while Bonnes nouvelles is off. */
     onShareGoodNews: (() -> Unit)? = null,
+    /** « Comment ça marche » under the cards (récit 65, switch challengeDetails); off, the screen of before. */
+    details: Boolean = false,
+    today: LocalDate = LocalDate.now(ZoneId.of("Europe/Paris")),
+    /** The challenge of a month gone by, for its tile « Défi … réussi ». */
+    loadChallenge: (YearMonth) -> Flow<MonthChallenge?> = { flowOf(null) },
 ) {
+    var sheet by remember { mutableStateOf<ChallengeSheet?>(null) }
+    var wonMonth by remember { mutableStateOf<YearMonth?>(null) }
+    val explainNow: (MonthChallenge?) -> Unit = { challenge ->
+        sheet = if (challenge == null) {
+            challengePrinciple(today)
+        } else {
+            ChallengeSheet.Challenge(explain(challenge, today, tree?.hostNote, onShareGoodNews != null))
+        }
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -114,18 +135,35 @@ fun ChallengesScreen(
             verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
         ) {
             if (tree != null) {
-                item(key = "challenge") { MonthChallengeCard(tree, onJoinChallenge, onPrepareChallenge, onShareGoodNews) }
+                item(key = "challenge") {
+                    MonthChallengeCard(tree, onJoinChallenge, onPrepareChallenge, onShareGoodNews, onExplain = if (details) ({ explainNow(tree.challenge) }) else null)
+                }
             }
             if (weekly != null && weekly !is WeeklyQuestionUiState.Loading) {
-                item(key = "weekly") { WeeklyCard(weekly, onOpenWeekly) }
+                item(key = "weekly") { WeeklyCard(weekly, onOpenWeekly, onExplain = if (details) ({ sheet = questionPrinciple(today) }) else null) }
             }
             if (tree != null) {
                 item(key = "won-title") { Label(stringResource(R.string.challenges_won_title), ChallengeColors.Green) }
-                item(key = "won") { WonTogether(tree.tree, tree.month) }
+                item(key = "won") { WonTogether(tree.tree, tree.month, onOpenWon = if (details) ({ wonMonth = it }) else null) }
             }
         }
     }
+    sheet?.let { open ->
+        ChallengeHowSheet(open, onDismiss = { sheet = null }, onJoin = onJoinChallenge, onShareGoodNews = onShareGoodNews)
+    }
+    wonMonth?.let { month ->
+        // The challenge of that month, read once: the explanation of what the family won.
+        val won by remember(month) { loadChallenge(month) }.collectAsState(initial = null)
+        won?.let { challenge ->
+            val e = explain(challenge, today, hostNote = null, canShareGoodNews = false)
+            ChallengeHowSheet(ChallengeSheet.Challenge(e), onDismiss = { wonMonth = null }, onJoin = {}, onShareGoodNews = null)
+        }
+    }
 }
+
+/** A whole card that opens something: TalkBack says it is a button, and what it does. */
+private fun Modifier.openable(label: String, onClick: (() -> Unit)?): Modifier =
+    if (onClick == null) this else clickable(onClickLabel = label, role = Role.Button, onClick = onClick)
 
 @Composable
 private fun Label(text: String, color: Color) {
@@ -143,10 +181,18 @@ private fun Label(text: String, color: Color) {
  * for a challenge of a foyer. Before the first one, the day it starts.
  */
 @Composable
-private fun MonthChallengeCard(state: TreeUiState, onJoin: () -> Unit, onPrepare: (YearMonth) -> Unit, onShareGoodNews: (() -> Unit)?) {
+private fun MonthChallengeCard(
+    state: TreeUiState,
+    onJoin: () -> Unit,
+    onPrepare: (YearMonth) -> Unit,
+    onShareGoodNews: (() -> Unit)?,
+    onExplain: (() -> Unit)? = null,
+) {
     val challenge = state.challenge
     Column(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(ChallengeColors.Ink).padding(20.dp),
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(ChallengeColors.Ink)
+            .openable(stringResource(R.string.challenge_how_open), onExplain)
+            .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Label(stringResource(R.string.challenges_month_label, ofMonth(state.month)), ChallengeColors.Peach)
@@ -200,9 +246,20 @@ private fun YellowButton(text: String, onClick: () -> Unit) {
 
 /** The question of Monday: the question, how many answered, never who; « Tu réponds pour les voir ». */
 @Composable
-private fun WeeklyCard(state: WeeklyQuestionUiState, onOpen: () -> Unit) {
+private fun WeeklyCard(state: WeeklyQuestionUiState, onOpen: () -> Unit, onExplain: (() -> Unit)? = null) {
+    // The whole card opens the question, or its answers once I answered (récit 65); without a
+    // question, « Comment ça marche » under the switch.
+    val answered = (state as? WeeklyQuestionUiState.Success)?.myAnswer != null
+    val open = if (state is WeeklyQuestionUiState.Success) onOpen else onExplain
+    val label = when {
+        state !is WeeklyQuestionUiState.Success -> stringResource(R.string.challenge_how_open)
+        answered -> stringResource(R.string.challenges_weekly_open_answers)
+        else -> stringResource(R.string.challenges_weekly_open)
+    }
     Column(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(Color.White).padding(20.dp),
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(28.dp)).background(Color.White)
+            .openable(label, open)
+            .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Label(stringResource(R.string.challenges_weekly_label), ChallengeColors.Violet)
@@ -238,7 +295,7 @@ private fun WeeklyCard(state: WeeklyQuestionUiState, onOpen: () -> Unit) {
  * Shared by everyone: nothing here is one person's.
  */
 @Composable
-private fun WonTogether(tree: FamilyTree, month: YearMonth) {
+private fun WonTogether(tree: FamilyTree, month: YearMonth, onOpenWon: ((YearMonth) -> Unit)? = null) {
     val bloomed = tree.bloomedMonths.mapNotNull { runCatching { YearMonth.parse(it) }.getOrNull() }.sortedDescending()
     LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         item(key = "tree") {
@@ -247,7 +304,7 @@ private fun WonTogether(tree: FamilyTree, month: YearMonth) {
             }
         }
         items(bloomed, key = { it.toString() }) { won ->
-            Tile(stringResource(R.string.challenges_won_month, ofMonth(won))) {
+            Tile(stringResource(R.string.challenges_won_month, ofMonth(won)), onOpen = onOpenWon?.let { open -> { open(won) } }) {
                 Box(Modifier.size(52.dp).clip(RoundedCornerShape(18.dp)).background(ChallengeColors.Bloom), contentAlignment = Alignment.Center) {
                     Text("🌸", fontSize = 24.sp)
                 }
@@ -267,14 +324,22 @@ private fun WonTogether(tree: FamilyTree, month: YearMonth) {
 }
 
 @Composable
-private fun Tile(label: String, image: @Composable () -> Unit) {
+private fun Tile(label: String, onOpen: (() -> Unit)? = null, image: @Composable () -> Unit) {
+    val openLabel = stringResource(R.string.challenge_how_open)
     Column(
         Modifier
             .width(96.dp)
             .heightIn(min = 112.dp)
             .clip(RoundedCornerShape(20.dp))
             .background(Color.White)
-            .clearAndSetSemantics { contentDescription = label }
+            .then(if (onOpen != null) Modifier.clickable(onClick = onOpen) else Modifier)
+            .clearAndSetSemantics {
+                contentDescription = label
+                if (onOpen != null) {
+                    role = Role.Button
+                    onClick(label = openLabel) { onOpen(); true }
+                }
+            }
             .padding(vertical = 12.dp, horizontal = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),

@@ -17,9 +17,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.familia.app.R
+import fr.familia.app.core.model.Birthday
 import fr.familia.app.core.model.ideasListId
 import fr.familia.app.core.model.wishesListId
 import fr.familia.app.core.theme.ClayTint
@@ -30,12 +33,14 @@ import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.SectionLabel
+import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 /*
  * The Cadeaux tab in the new presentation « R1 bis » (DESIGN-14, spec §4, maquette R8): the next
  * occasion, « Ma liste d'envies », then the envies of each person with their « nouvelles », the
- * birthdays, and the notebook and the past lists at the bottom. With the single list only.
+ * birthdays, and the past lists at the bottom. With the single list only. The surprises in progress
+ * come first and the next occasion leads « À venir » (PRD rév. 291 and 292); the notebook is on my page (rév. 293).
  *
  * Nothing here ever shows a reservation, and the ideas of the family only as one number for all
  * people together: the tab may be on screen in front of anyone.
@@ -47,14 +52,14 @@ internal fun LazyListScope.presentationContent(
     onSelectMoment: (GiftMoment?) -> Unit,
     onAllBirthdays: () -> Unit,
     onPrepareSurprise: (String) -> Unit,
-    onOpenNotebook: (() -> Unit)?,
     onOpenMyPage: (() -> Unit)? = null,
     /** « Surprises en préparation » (récit 63): false while presenting and in « Voir comme ». */
     showPreparing: Boolean = false,
 ) {
-    state.next?.let { next ->
-        item(key = "next-occasion") { NextOccasionCard(state, next, onSeeIdeas = { onSelectMoment(next) }) }
-    }
+    // At the very top of the tab (PRD rév. 291).
+    if (showPreparing) preparingSection(state, onOpenList)
+    // One block « À venir » (PRD rév. 292): the next occasion first, then the birthdays and Christmas.
+    upcomingSection(state, onSelectMoment, onAllBirthdays, onPrepareSurprise, onOpenList)
     // Once « Voir les idées » chose an occasion, the chips let the member come back to everyone.
     if (state.moment != null) {
         item(key = "moments") { MomentChoice(state.occasions, state.moment, onSelectMoment) }
@@ -92,20 +97,82 @@ internal fun LazyListScope.presentationContent(
             }
         }
     }
-    if (state.moment == null) birthdaysSection(state, onAllBirthdays, onPrepareSurprise, onOpenList)
-    if (showPreparing) preparingSection(state, onOpenList)
-    onOpenNotebook?.let { open ->
-        item(key = "notebook") {
-            Spacer(Modifier.padding(top = 8.dp))
-            ListCard(
-                title = stringResource(R.string.notebook_entry),
-                subtitle = stringResource(R.string.notebook_entry_subtitle),
-                tint = ClayTint.Household,
-                onClick = open,
-            )
+    if (state.archived.isNotEmpty()) archivedSection(state.archived, state.today, onOpenList)
+}
+
+/** What comes after the next occasion in « À venir »: a birthday, or Christmas, by date. */
+internal sealed interface Upcoming {
+    val date: LocalDate
+
+    data class OfBirthday(val birthday: Birthday) : Upcoming {
+        override val date: LocalDate get() = birthday.date
+    }
+
+    data class OfChristmas(val year: Int) : Upcoming {
+        override val date: LocalDate get() = LocalDate.of(year, 12, 25)
+    }
+}
+
+/**
+ * The cards under the next occasion (PRD rév. 292): the next birthdays and Christmas by date, the
+ * next occasion itself left out since it is the first card. Pure, for the tests.
+ */
+internal fun upcomingAfterNext(state: GiftsUiState.Success): List<Upcoming> {
+    val next = state.next
+    val birthdays = state.birthdays
+        .filterNot { next is GiftMoment.BirthdayOf && it.member.id == next.member.id && it.date == next.date }
+        .map { Upcoming.OfBirthday(it) }
+    val christmas = LocalDate.of(state.today.year, 12, 25).let { if (it > state.today) it else it.plusYears(1) }
+    val noel = if (next is GiftMoment.Christmas || next == null) emptyList() else listOf(Upcoming.OfChristmas(christmas.year))
+    return (birthdays + noel).sortedBy { it.date }
+}
+
+/** « À venir »: the next occasion in relief, then what follows by date, and « Tous les anniversaires ». */
+internal fun LazyListScope.upcomingSection(
+    state: GiftsUiState.Success,
+    onSelectMoment: (GiftMoment?) -> Unit,
+    onAllBirthdays: () -> Unit,
+    onPrepareSurprise: (String) -> Unit,
+    onOpenList: (String) -> Unit,
+) {
+    item(key = "upcoming-title") {
+        Text(
+            stringResource(R.string.gifts_upcoming_title),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.semantics { heading() },
+        )
+    }
+    state.next?.let { next ->
+        item(key = "next-occasion") { NextOccasionCard(state, next, onSeeIdeas = { onSelectMoment(next) }) }
+    }
+    // Once « Voir les idées » chose an occasion, its people come first: the rest waits.
+    if (state.moment != null) return
+    upcomingAfterNext(state).forEach { line ->
+        when (line) {
+            is Upcoming.OfBirthday -> item(key = "birthday-${line.birthday.member.id}") {
+                BirthdayCard(state, line.birthday, emphasis = false, onPrepareSurprise, onOpenList)
+            }
+            is Upcoming.OfChristmas -> item(key = "christmas-${line.year}") {
+                ChristmasCard(state, onSeeIdeas = { onSelectMoment(GiftMoment.Christmas(line.year)) }, year = line.year)
+            }
         }
     }
-    if (state.archived.isNotEmpty()) archivedSection(state.archived, state.today, onOpenList)
+    item(key = "birthdays-all") {
+        ClayLink(stringResource(R.string.gifts_all_birthdays), onClick = onAllBirthdays)
+    }
+}
+
+/** Christmas among the birthdays, when it is not the next occasion. */
+@Composable
+private fun ChristmasCard(state: GiftsUiState.Success, onSeeIdeas: () -> Unit, year: Int) {
+    val days = ChronoUnit.DAYS.between(state.today, LocalDate.of(year, 12, 25)).toInt()
+    ClayCard(Modifier.fillMaxWidth(), tint = ClayTint.Birthday, contentPadding = ClaySpacing.card) {
+        ClayCardTitle(
+            stringResource(R.string.gifts_next_christmas, pluralStringResource(R.plurals.gifts_in_days, days, days)),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        ClayLink(stringResource(R.string.gifts_see_ideas), onClick = onSeeIdeas)
+    }
 }
 
 /**
@@ -118,7 +185,12 @@ private fun NextOccasionCard(state: GiftsUiState.Success, next: GiftMoment, onSe
     val inDays = pluralStringResource(R.plurals.gifts_in_days, days, days)
     val title = when (next) {
         is GiftMoment.Christmas -> stringResource(R.string.gifts_next_christmas, inDays)
-        is GiftMoment.BirthdayOf -> stringResource(R.string.gifts_next_birthday, next.member.firstName, inDays)
+        // The person celebrated reads « Ton anniversaire »: « Voir les idées » shows only their envies.
+        is GiftMoment.BirthdayOf -> if (state.sections.any { it.isMe && it.member.id == next.member.id }) {
+            stringResource(R.string.gifts_next_my_birthday, inDays)
+        } else {
+            stringResource(R.string.gifts_next_birthday, next.member.firstName, inDays)
+        }
     }
     val count = nextOccasionCount(state, next)
     val counts = when {

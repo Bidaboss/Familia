@@ -113,6 +113,12 @@ enum class Feature(
      * garde l'écran d'avant.
      */
     SurpriseButton("surpriseButton", R.string.feature_surprise_button),
+    /**
+     * La fiche de membre organisée (PRD rév. 290, récit 66) : une page à sections fixes, Cadeaux ou
+     * Goûts et passions d'abord selon la saison, Sa famille, Ses moments, les coordonnées. Lu avec
+     * isOnForFamily : éteint, même l'admin principal garde l'ancienne fiche.
+     */
+    MemberProfileV2("memberProfileV2", R.string.feature_member_profile_v2),
     /** Une photo de couverture sur un événement et une photo sur une envie (PRD, récit 44). */
     MorePhotos("morePhotos", R.string.feature_more_photos),
     /**
@@ -162,6 +168,11 @@ enum class Feature(
      * autres foyers repliés. Lu avec isOnForFamily : éteint, même l'admin principal garde l'ancien onglet.
      */
     FamilyTabV2("familyTabV2", R.string.feature_family_tab_v2),
+    /**
+     * « Comment ça marche » sous le défi du mois, et le mot facultatif du foyer qui le lance (PRD
+     * récit 65, rév. 289). Lu avec isOnForFamily : éteint, même l'admin principal garde l'écran d'avant.
+     */
+    ChallengeDetails("challengeDetails", R.string.feature_challenge_details),
 }
 
 /**

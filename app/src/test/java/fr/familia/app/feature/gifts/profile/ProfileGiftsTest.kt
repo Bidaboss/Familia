@@ -205,4 +205,21 @@ class ProfileGiftsTest {
         assertEquals(listOf("ideas-b"), opened)
         assertEquals(0, compose.onAllNodesWithText("Rien pour l'instant", substring = true).fetchSemanticsNodes().size)
     }
+
+    @Test
+    fun `my notebook only on my own page, never in Voir comme nor while presenting`() {
+        assertTrue(showsMyNotebook("a", "a", viewingAs = false, presenting = false))
+        assertFalse(showsMyNotebook("a", "b", viewingAs = false, presenting = false))
+        assertFalse(showsMyNotebook("a", "a", viewingAs = true, presenting = false))
+        assertFalse(showsMyNotebook("a", "a", viewingAs = false, presenting = true))
+    }
+
+    @Test
+    fun `the notebook card says it is private and opens it`() {
+        var opened = 0
+        compose.setContent { FamiliaTheme { ProfileNotebookCard(onOpen = { opened++ }) } }
+        compose.onNodeWithText("Privé : toi seul le vois").assertExists()
+        compose.onNodeWithText("Mes cadeaux à offrir").performClick()
+        assertEquals(1, opened)
+    }
 }

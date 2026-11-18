@@ -66,6 +66,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
+import fr.familia.app.core.model.Feature
+import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.HostedChallenge
 import fr.familia.app.core.model.HostedIllustration
@@ -91,12 +93,15 @@ fun HostChallengeRoute(container: AppContainer?, currentMember: Member, month: Y
     LaunchedEffect(state.done) { state.done?.let(onClose) }
     HostChallengeScreen(
         state = state,
+        // Récit 65: the word of the foyer, under the switch challengeDetails.
+        noteOn = LocalFeatureFlags.current.isOnForFamily(Feature.ChallengeDetails),
         onBack = { if (state.step > 1) viewModel.back() else onClose(null) },
         actions = HostGuideActions(
             chooseKind = viewModel::chooseKind,
             setTarget = viewModel::setTarget,
             setTitle = viewModel::setTitle,
             setEmoji = viewModel::setEmoji,
+            setNote = viewModel::setNote,
             setIllustration = viewModel::setIllustration,
             next = viewModel::next,
             saveDraft = viewModel::saveDraft,
@@ -113,6 +118,7 @@ data class HostGuideActions(
     val setTarget: (Int) -> Unit = {},
     val setTitle: (String) -> Unit = {},
     val setEmoji: (String) -> Unit = {},
+    val setNote: (String) -> Unit = {},
     val setIllustration: (HostedIllustration) -> Unit = {},
     val next: () -> Unit = {},
     val saveDraft: () -> Unit = {},
@@ -131,7 +137,7 @@ fun ofMonth(month: YearMonth): String {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HostChallengeScreen(state: HostGuideState, onBack: () -> Unit, actions: HostGuideActions, modifier: Modifier = Modifier) {
+fun HostChallengeScreen(state: HostGuideState, onBack: () -> Unit, actions: HostGuideActions, modifier: Modifier = Modifier, noteOn: Boolean = false) {
     var skipping by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         modifier = modifier,
@@ -161,7 +167,7 @@ fun HostChallengeScreen(state: HostGuideState, onBack: () -> Unit, actions: Host
             when (state.step) {
                 1 -> KindStep(state.draft, actions)
                 2 -> TargetStep(state.draft, actions)
-                3 -> LookStep(state.draft, actions)
+                3 -> LookStep(state.draft, actions, noteOn)
                 else -> PreviewStep(state, actions)
             }
             if (state.step < 4) {
@@ -275,7 +281,7 @@ private val illustrationIcons: Map<HostedIllustration, Pair<ImageVector, Int>> =
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun LookStep(draft: HostDraft, actions: HostGuideActions) {
+private fun LookStep(draft: HostDraft, actions: HostGuideActions, noteOn: Boolean = false) {
     StepTitle(stringResource(R.string.host_look_title), stringResource(R.string.host_look_help))
     OutlinedTextField(
         value = draft.title,
@@ -285,6 +291,16 @@ private fun LookStep(draft: HostDraft, actions: HostGuideActions) {
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
     )
+    if (noteOn) {
+        OutlinedTextField(
+            value = draft.note,
+            onValueChange = actions.setNote,
+            label = { Text(stringResource(R.string.host_look_note)) },
+            supportingText = { Text(stringResource(R.string.host_look_note_help) + "  ${draft.note.length} / ${HostedChallenge.NOTE_MAX}") },
+            minLines = 2,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
     Text(stringResource(R.string.host_look_emoji), style = MaterialTheme.typography.titleMedium)
     FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         HostGuide.emojis.forEach { emoji ->

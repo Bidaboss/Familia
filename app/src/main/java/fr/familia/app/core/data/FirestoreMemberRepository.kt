@@ -1,6 +1,7 @@
 package fr.familia.app.core.data
 
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Source
 import fr.familia.app.core.model.Member
@@ -49,7 +50,7 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
 
     override fun observeFamily(): Flow<Family> =
         combine(
-            snapshots(HOUSEHOLDS) { Household(id = it.id, name = it.getString("name").orEmpty()) },
+            snapshots(HOUSEHOLDS) { Household(id = it.id, name = it.getString("name").orEmpty(), address = it.getString("address")) },
             snapshots(MEMBERS) { it.toMember() },
             ownerId(),
         ) { households, members, ownerId -> Family(households, members, ownerId) }
@@ -90,10 +91,15 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
         batch.commit().await()
     }
 
+    override suspend fun savePhone(memberId: String, phone: String?) {
+        db.collection(MEMBERS).document(memberId).update("phone", phone ?: FieldValue.delete()).await()
+    }
+
     override fun newHouseholdId(): String = db.collection(HOUSEHOLDS).document().id
 
     override suspend fun saveHousehold(household: Household) {
-        db.collection(HOUSEHOLDS).document(household.id).set(mapOf("name" to household.name)).await()
+        db.collection(HOUSEHOLDS).document(household.id)
+            .set(buildMap { put("name", household.name); household.address?.let { put("address", it) } }).await()
     }
 
     override suspend fun deleteHousehold(householdId: String) {
@@ -123,6 +129,7 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
         parentIds = (get("parentIds") as? List<*>).orEmpty().filterIsInstance<String>(),
         uid = getString("uid"),
         colorIndex = getLong("colorIndex")?.toInt(),
+        phone = getString("phone"),
     )
 
     private fun Member.toFirestore(): Map<String, Any?> = buildMap {
@@ -136,6 +143,8 @@ class FirestoreMemberRepository(private val db: FirebaseFirestore) : MemberRepos
         put("uid", uid)
         // Optional in the rules: absent rather than null when no color was chosen.
         colorIndex?.let { put("colorIndex", it) }
+        // Never for a child (the rules refuse it), absent rather than null.
+        phone?.takeIf { profile == MemberProfile.Adult }?.let { put("phone", it) }
     }
 
     private companion object {

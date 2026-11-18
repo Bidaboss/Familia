@@ -32,11 +32,22 @@ data class MonthChallenge(
     val choiceId: String? = null,
     /** The foyer that launched it (récit 35 bis); null for a challenge of Familia or of the admin. */
     val hostHouseholdId: String? = null,
+    /** What moves the gauge (tree.ts, Measure), for « Comment ça marche » (récit 65). */
+    val measure: ChallengeMeasure = if (hostHouseholdId != null) ChallengeMeasure.Linked else ChallengeMeasure.GoodNews,
 ) {
     /** A challenge of a foyer counts the Bonnes nouvelles linked to it, each with a photo. */
     val countsLinkedNews: Boolean get() = hostHouseholdId != null
 
     val fraction: Float get() = if (target <= 0) 0f else (progress.toFloat() / target).coerceIn(0f, 1f)
+}
+
+/** What moves the gauge of a challenge: photos, Bonnes nouvelles, or Bonnes nouvelles linked to it, each with a photo. */
+enum class ChallengeMeasure(val key: String) {
+    Photos("photos"), GoodNews("goodNews"), Linked("linked");
+
+    companion object {
+        fun of(key: String?): ChallengeMeasure? = entries.firstOrNull { it.key == key }
+    }
 }
 
 /** The tree dresses for the season: blossom, green, orange or bare with snow. */

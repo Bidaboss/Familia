@@ -12,6 +12,7 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.tree.TreeViewModel
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionViewModel
+import kotlinx.coroutines.flow.flowOf
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
@@ -49,5 +50,9 @@ fun ChallengesRoute(
         onPrepareChallenge = onPrepareChallenge,
         onOpenWeekly = onOpenWeekly,
         onShareGoodNews = onShareGoodNews,
+        // Récit 65: « Comment ça marche », read for the whole family (off, even the admin keeps the screen of before).
+        details = flags.isOnForFamily(Feature.ChallengeDetails),
+        today = today,
+        loadChallenge = { month -> container?.treeRepository?.observeChallenge(month) ?: flowOf(null) },
     )
 }

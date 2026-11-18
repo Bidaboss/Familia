@@ -75,9 +75,12 @@ data class HostedChallenge(
     val emoji: String,
     val illustration: HostedIllustration,
     val target: Int,
+    /** The optional word of the foyer, shown in « Comment ça marche » (récit 65); empty for none. */
+    val note: String = "",
 ) {
     companion object {
         const val TITLE_MAX = 60
+        const val NOTE_MAX = 140
         const val TARGET_MIN = 3
         const val TARGET_MAX = 50
     }
