@@ -64,7 +64,7 @@ class MemberProfileV2SafetyTest {
                             MemberProfileUiState.Ready(member, "Foyer Un", reader.id == member.id, canEdit = reader.id == member.id, souvenirs = emptyList()),
                             ProfileV2Ui(v2(), onSavePhoto = {}),
                             onSetShown = { _, _ -> }, onOpenRecipes = null,
-                            wishes = null, card = null, thinkOfMe = null, gifts = gifts,
+                            wishes = null, card = null, gifts = gifts,
                         )
                     }
                 }

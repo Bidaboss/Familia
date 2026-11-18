@@ -212,6 +212,14 @@ data class NotebookIdeaDestination(
     val personId: String? = null,
 )
 
+/** « Penser à quelqu'un » (PRODUIT-135): me first, then the family, from the « + » of the Accueil. */
+@Serializable
+data object ThinkOfMePickDestination
+
+/** « Pensez à moi » of one member on a screen of its own (PRODUIT-135). */
+@Serializable
+data class ThinkOfMeDestination(val memberId: String)
+
 /** « Préparer une surprise » (récit 63): who the surprise is for. */
 @Serializable
 data object SurprisePickDestination

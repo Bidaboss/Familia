@@ -113,7 +113,6 @@ class MemberProfileV2Test {
                         ready(member, isMe), ProfileV2Ui(state), onSetShown = { _, _ -> }, onOpenRecipes = null,
                         wishes = null,
                         card = { Text("Carte des goûts") },
-                        thinkOfMe = null,
                         gifts = { Text("Carte des cadeaux") },
                     )
                 }

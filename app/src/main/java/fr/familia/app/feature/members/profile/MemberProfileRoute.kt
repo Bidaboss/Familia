@@ -15,7 +15,6 @@ import fr.familia.app.feature.gifts.profile.ProfileGivingSection
 import fr.familia.app.feature.gifts.profile.ProfileNotebookSection
 import fr.familia.app.feature.gifts.profile.ProfileWishesSection
 import fr.familia.app.feature.members.card.MemberCardSection
-import fr.familia.app.feature.thinkofme.ThinkOfMeSection
 import fr.familia.app.feature.wishes.BirthdayCardsSection
 import fr.familia.app.feature.souvenirs.SouvenirCelebrationPreferences
 import java.time.LocalDate
@@ -52,7 +51,6 @@ fun MemberProfileRoute(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val wishesOn = LocalFeatureFlags.current.isOn(Feature.BirthdayWishes)
     val cardOn = LocalFeatureFlags.current.isOn(Feature.MemberCard)
-    val thinkOfMeOn = LocalFeatureFlags.current.isOn(Feature.ThinkOfMe)
     val giftsOn = LocalFeatureFlags.current.isOn(Feature.Gifts)
     val singleList = LocalFeatureFlags.current.isOn(Feature.SingleList)
     val notebookOn = LocalFeatureFlags.current.isOn(Feature.GiftNotebook)
@@ -97,7 +95,6 @@ fun MemberProfileRoute(
         onOpenRecipes = onOpenRecipes,
         wishes = if (wishesOn) ({ person -> BirthdayCardsSection(container, currentMember, person) }) else null,
         card = if (cardOn) ({ person -> MemberCardSection(container, currentMember, person) }) else null,
-        thinkOfMe = if (thinkOfMeOn) ({ person -> ThinkOfMeSection(container, currentMember, person) }) else null,
         gifts = if (giftsOn) {
             { person ->
                 ProfileWishesSection(container, currentMember, person, giftActions.onOpenList)

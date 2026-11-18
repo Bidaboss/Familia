@@ -496,13 +496,16 @@ Avec les modules « Qui apporte quoi » et Recettes allumés, et au moins une re
 
 ## Pensez à moi (récit 43)
 
-Avec le module « Pensez à moi » allumé, un adulte parent d'un enfant de moins de 15 ans et d'un ado de 15 ans ou plus (date de naissance remplie), et un autre compte.
+Avec le module « Pensez à moi » allumé, un adulte parent d'un enfant de moins de 15 ans et d'un ado de 15 ans ou plus (date de naissance remplie), et un autre compte. Depuis le 18/11 (PRODUIT-135), « Pensez à moi » n'est plus sur la fiche : il s'ouvre depuis le « + » de l'Accueil, « Penser à quelqu'un ».
 
-1. Sur ta propre fiche, note « Examen » pour demain. **Attendu :** il apparaît sous « Pensez à moi », avec « Retirer ».
-2. Sur la fiche de l'enfant, note un moment. **Attendu :** il est accepté tout de suite. Sur celle de l'ado : « … choisira de l'accepter ou non », puis « En attente de la réponse de … ».
-3. Avec le compte de l'ado, ouvre sa fiche. **Attendu :** « Noté par … » avec « Oui » et « Non merci ».
-4. Le jour J vers 10 h. **Attendu :** les autres reçoivent « Pensez à … aujourd'hui ». Sur la fiche, « Aujourd'hui : « … » » et un champ pour un mot. Le membre reçoit « … pense à toi. » à chaque mot. Rien le lendemain.
-5. En « Voir comme », ouvre une fiche. **Attendu :** ni champ ni bouton, la lecture seule.
+1. Accueil, « + », « Penser à quelqu'un ». **Attendu :** « Moi » en tête, puis la famille rangée par foyer. Touche « Moi » et note « Examen » pour demain. **Attendu :** il apparaît avec « Retirer ».
+2. Revient à « Penser à quelqu'un », choisis l'enfant et note un moment. **Attendu :** il est accepté tout de suite. Pour l'ado : « … choisira de l'accepter ou non », puis « En attente de la réponse de … ».
+3. Avec le compte de l'ado, « + », « Penser à quelqu'un », « Moi ». **Attendu :** « Noté par … » avec « Oui » et « Non merci ».
+4. Le jour J vers 10 h. **Attendu :** les autres reçoivent « Pensez à … aujourd'hui ». Toucher la notification ouvre « Pensez à … », avec « Aujourd'hui : « … » » et un champ pour un mot. Le membre reçoit « … pense à toi. » à chaque mot. Rien le lendemain.
+5. Un autre jour, choisis quelqu'un sans moment. **Attendu :** « Pas de moment à encourager pour … aujourd'hui », sans écran vide.
+6. Ouvre la fiche d'un membre. **Attendu :** ni bouton rond « Pensez à moi », ni section « Pensez à moi ».
+7. En « Voir comme », ouvre « Penser à quelqu'un » puis une personne. **Attendu :** ni champ ni bouton, la lecture seule.
+8. Éteins le module. **Attendu :** plus de « Penser à quelqu'un » dans le « + ».
 
 ## La photo d'un événement (récit 44)
 
@@ -1285,7 +1288,7 @@ Depuis le 18/11 (PRODUIT-131), le nouvel onglet n'a plus d'interrupteur à lui :
 
 Depuis le 18/11 (PRODUIT-131), c'est la seule fiche : plus d'interrupteur ni d'ancienne fiche. Fais ces essais sur ton téléphone et celui de ta compagne avant le gel du 20 au soir.
 
-1. Dans **Famille**, ouvre la fiche d'un adulte. **Attendu :** un bandeau à sa couleur, sa photo ronde, son âge, « Anniversaire dans … ». Puis les boutons ronds (Vœux, Pensez à moi, Appeler, Itinéraire) et une carte par section. Jamais de menu ⋮.
+1. Dans **Famille**, ouvre la fiche d'un adulte. **Attendu :** un bandeau à sa couleur, sa photo ronde, son âge, « Anniversaire dans … ». Puis les boutons ronds (Vœux, Appeler, Itinéraire) et une carte par section. Jamais de menu ⋮.
 2. Ouvre ta propre fiche. **Attendu :** « Ma fiche » en haut, un crayon sur les cartes que tu peux remplir, la jauge « Ta fiche est remplie à … % », et le bouton appareil photo sur ta photo. Tes envies ne montrent que leurs titres, jamais « Réservé » ni « Pris ».
 3. Ouvre la fiche d'un enfant. **Attendu :** pas de « Coordonnées », mais « Pour joindre …, passe par ses parents », avec « Appeler … » pour chaque parent qui a donné son téléphone.
 4. Ouvre la fiche de la personne dont l'anniversaire approche. **Attendu :** « Ce que je lui offre » y est, sur ton téléphone seulement : n'ouvre donc ni sa fiche ni la tienne devant la table, depuis le retrait du Mode présentation (18/11).
