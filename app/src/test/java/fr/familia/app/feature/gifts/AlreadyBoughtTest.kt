@@ -1,6 +1,5 @@
 package fr.familia.app.feature.gifts
 
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import fr.familia.app.core.data.GiftRepository
@@ -20,7 +19,6 @@ import fr.familia.app.feature.gifts.detail.ItemSheetContent
 import fr.familia.app.feature.gifts.detail.contributionGauge
 import fr.familia.app.feature.gifts.item.GiftItemEditUiState
 import fr.familia.app.feature.gifts.item.GiftItemEditViewModel
-import fr.familia.app.feature.presentation.LocalPresenting
 import fr.familia.app.testing.MainDispatcherRule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -187,7 +185,7 @@ class AlreadyBoughtTest {
         assertTrue(fake.savedItems.single().alreadyBought)
     }
 
-    private fun sheet(seesContributors: Boolean, canContribute: Boolean, presenting: Boolean = false, mine: Int? = null) {
+    private fun sheet(seesContributors: Boolean, canContribute: Boolean, mine: Int? = null) {
         val row = ItemRow(
             bike, canEdit = false, isSurpriseIdea = false, claim = null,
             contributions = ContributionView(45, mine, if (seesContributors) listOf(GiftContribution("adult2", "Camille", 45)) else emptyList()),
@@ -201,9 +199,7 @@ class AlreadyBoughtTest {
         )
         compose.setContent {
             FamiliaTheme {
-                CompositionLocalProvider(LocalPresenting provides presenting) {
-                    ItemSheetContent(row, state, GiftListActions(), onEdit = {})
-                }
+                ItemSheetContent(row, state, GiftListActions(), onEdit = {})
             }
         }
         compose.waitForIdle()
@@ -222,17 +218,10 @@ class AlreadyBoughtTest {
     }
 
     @Test
-    fun `the sheet of the person names who takes part, but not in presentation mode`() {
+    fun `the sheet of the person names who takes part`() {
         sheet(seesContributors = true, canContribute = false)
         assertEquals(1, count("Camille"))
         assertEquals(0, count("Je participe"))
-    }
-
-    @Test
-    fun `in presentation mode the gauge only`() {
-        sheet(seesContributors = true, canContribute = false, presenting = true)
-        assertEquals(0, count("Camille"))
-        assertEquals(1, count("Déjà acheté, participation bienvenue"))
     }
 
     @Test

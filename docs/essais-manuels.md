@@ -684,19 +684,13 @@ Interrupteur « Affiche de l'arbre » allumé, avec un arbre qui relie au moins 
 6. « … et ses descendants » : seuls la personne, ses descendants et leurs partenaires apparaissent, et la personne est tout en haut. Décoche « Mettre les photos » : il ne reste que des initiales. Choisis A3 : même dessin, sur une page plus grande.
 7. Mode avion avec des photos jamais vues : l'affiche se fait quand même, avec des initiales.
 
-## Mode présentation (récit 48)
+## Mode présentation (récit 48), retiré le 18/11
 
-Avec le compte de l'admin principal, plus deux autres comptes qui n'ont pas encore ouvert l'appli. « Publier Firebase » doit être passé.
+Le Mode présentation a été retiré le 18/11 (PRODUIT-132). Après « Publier Firebase » et le nouvel APK :
 
-1. Ouvre **Administration**. **Attendu :** la carte « Mode présentation » est tout en haut, avec « 2 h », « 4 h » et « Jusqu'à ce que je l'éteigne ».
-2. Touche « 2 h ». **Attendu :** la carte dit « Allumé jusqu'à » suivi de l'heure de fin, et le bandeau « Mode présentation jusqu'à » avec l'heure apparaît au-dessus des onglets. Il n'apparaît que sur ton téléphone.
-3. Fais se connecter les deux autres comptes pour la première fois. **Attendu :** aucune notification « vient d'arriver » sur les téléphones de la famille.
-4. Envoie un « Rejoignez-moi » depuis un autre compte. **Attendu :** il sonne tout de suite.
-5. Touche « Éteindre », sur le bandeau ou dans la carte. **Attendu :** en moins d'une minute, chacun reçoit une seule notification « 2 personnes ont rejoint Familia », avec les deux prénoms. Le bandeau disparaît.
-6. Rallume le mode pour 2 h et laisse passer l'heure de fin. **Attendu :** le bandeau disparaît de lui-même. Le résumé part au premier envoi qui suit l'heure de fin, ou au plus tard 30 minutes après.
-7. Avec un compte qui n'est pas l'admin principal, et dans « Voir comme » : **Attendu :** ni la carte ni le bandeau.
-8. Mode allumé, avec un autre compte : publie une bonne nouvelle, commente un événement et demande un coup de main. **Attendu :** aucun téléphone ne sonne. À l'extinction, chacun reçoit un résumé « Pendant la présentation » par sorte d'avis.
-9. Mode allumé, avec le compte de l'admin principal : publie une bonne nouvelle avec une photo. **Attendu :** elle sonne tout de suite sur les téléphones de la famille.
+1. Ouvre **Administration**. **Attendu :** plus de carte « Mode présentation », ni de bandeau au-dessus des onglets. Le groupe s'appelle « Démo » et ne garde que « Voir comme… ».
+2. Fais se connecter un compte pour la première fois. **Attendu :** la famille reçoit « … vient d'arriver », comme hors présentation.
+3. Si le mode était allumé avant la mise à jour, rien n'est plus retenu : une bonne nouvelle, un commentaire ou une annonce de l'admin partent comme d'habitude.
 
 ## Le planning dans mon agenda (récit 49)
 
@@ -902,16 +896,15 @@ Avec l'interrupteur « Mes premiers pas » allumé pour la famille. Éteint, per
 3. Touche « Remplir « Goûts et passions » », écris un goût sur ta fiche, reviens. **Attendu :** la ligne est cochée.
 4. Touche « Réagir à une bonne nouvelle », mets un cœur sur une bonne nouvelle, reviens. **Attendu :** la carte dit « Bravo, c'est parti ! ». Le lendemain, ou après « Fermer », elle a disparu.
 5. Sur un autre membre, touche « Plus tard ». **Attendu :** la carte disparaît pour la journée, et revient le lendemain. « Ne plus afficher » : elle ne revient plus sur ce téléphone.
-6. Allume le Mode présentation. **Attendu :** pas de carte. Éteins-le : elle revient. En « Voir comme » : jamais de carte.
+6. En « Voir comme » : jamais de carte.
 7. Aucune notification n'arrive pour ces gestes. Au bout de 14 jours après sa première apparition sur le téléphone, la carte ne s'affiche plus.
 ## Démo du 21 : avalanche de notifications
 
-Il faut trois téléphones de test (A, B, C) et le module « La bienvenue » allumé. Mode présentation éteint, sauf à l'étape 5. Les heures sont celles de la tâche des 30 minutes (à l'heure pile et à la demie, à une ou deux minutes près).
+Il faut trois téléphones de test (A, B, C) et le module « La bienvenue » allumé. Les heures sont celles de la tâche des 30 minutes (à l'heure pile et à la demie, à une ou deux minutes près).
 1. Connecte A pour la première fois. **Attendu :** B et C reçoivent tout de suite « … vient d'arriver ».
 2. Dans les 30 minutes, connecte B, puis C pour la première fois. **Attendu :** rien n'arrive tout de suite.
 3. Attends le passage suivant de la tâche, au moins 30 minutes après l'étape 1. **Attendu :** A reçoit une seule notification « B et C viennent d'arriver ». B ne reçoit que « C vient d'arriver », et C que « B vient d'arriver ».
 4. Depuis B, publie cinq bonnes nouvelles en quelques minutes. **Attendu :** A reçoit les trois premières, puis plus rien. Une heure environ après la première, A reçoit une seule notification « Dans Familia », « 2 notifications : … ». Pendant ce temps, un « Rejoins-moi » de B arrive tout de suite.
-5. Allume le Mode présentation. Connecte un nouveau membre, publie deux bonnes nouvelles et réagis à une autre depuis B. Éteins le mode. **Attendu :** pendant le mode, rien ne sonne sur A. À la fin, A reçoit au plus trois notifications : « … personnes ont rejoint Familia », une seule « Pendant la présentation » pour tout le reste, et à part une notification Cadeaux s'il y en avait.
 
 ## Écrans vides et profils enfant
 
@@ -935,10 +928,9 @@ Sur une famille où rien n'a encore été publié, ou en « Voir comme » sur un
 6. Mode avion, ouvre un événement et touche « Je viens ». **Attendu :** « Je viens » est coché tout de suite, avec sous la ligne « En attente du réseau : la réponse partira toute seule à son retour. ». Aucun message d'erreur.
 7. Coupe le mode avion, sans toucher l'écran. **Attendu :** la ligne « En attente » disparaît en quelques secondes. Sur ton téléphone, la réponse apparaît une seule fois dans « Qui vient ».
 
-**Mode présentation et « Voir comme » (sur ton téléphone)**
-8. Avec le réseau, allume le Mode présentation, puis passe en mode avion. **Attendu :** le bandeau « Mode présentation jusqu'à … » reste affiché.
-9. Mode avion, **Administration**, « Voir comme… », choisis un membre. **Attendu :** son Accueil et son Planning déjà vus s'affichent, avec le bandeau « Tu vois l'appli comme … ». « Quitter » marche aussi sans réseau.
-10. Remets le réseau et éteins le Mode présentation. **Attendu :** le résumé arrive comme d'habitude.
+**« Voir comme » (sur ton téléphone)**
+8. Passe en mode avion. Puis, **Administration**, « Voir comme… », choisis un membre. **Attendu :** son Accueil et son Planning déjà vus s'affichent, avec le bandeau « Tu vois l'appli comme … ». « Quitter » marche aussi sans réseau.
+9. Remets le réseau. **Attendu :** tout se met à jour.
 
 ## Démo du 21 : écrans vides et profils enfant (voyages, albums, recettes, capsule, arbre, Qui est-ce ?, diaporama)
 Le soir du 21, la famille ouvre ces écrans encore vides. Aucun ne doit rester blanc ni dire seulement « Aucun élément ».
@@ -992,11 +984,10 @@ Avec le deuxième téléphone de test, sous Android 13 ou plus, et Familia dési
 
 Avec ton téléphone et deux téléphones de test, A et B, déjà connectés. Sur B, coupe les notifications de Familia dans les réglages d'Android.
 
-1. Sur ton téléphone, allume le Mode présentation (« 4 h »), puis publie une bonne nouvelle avec une photo, depuis ton propre compte. **Attendu :** A sonne tout de suite. Touche la notification sur A, l'appli fermée : la bonne nouvelle s'ouvre, avec la photo.
+1. Sur ton téléphone, publie une bonne nouvelle avec une photo, depuis ton propre compte. **Attendu :** A sonne tout de suite. Touche la notification sur A, l'appli fermée : la bonne nouvelle s'ouvre, avec la photo.
 2. Sur B, rien ne sonne. Ouvre Familia. **Attendu :** la photo est sur l'Accueil, dans « Bonnes nouvelles ».
 3. Sur un troisième téléphone, ou sur B après « Utiliser un autre compte », connecte un membre qui ne s'était jamais connecté, puis finis le tuto. **Attendu :** la photo est sur son Accueil, sans notification.
 4. Mets A en économie d'énergie, écran éteint, et publie une deuxième bonne nouvelle. **Attendu :** A sonne dans la minute.
-5. Sur A, réagis à la photo. Puis, sur ton téléphone, éteins le Mode présentation. **Attendu :** sur A, le résumé ne parle jamais de ta photo : elle a déjà sonné, elle ne compte pas deux fois.
 
 
 ## Démo du 21 : la nuit et le réveil du 22 (rév. 266)
@@ -1159,14 +1150,13 @@ Liste unique allumée.
 Après « Publier Firebase ». Deux téléphones : celui de l'admin principal et celui d'un autre adulte.
 
 1. Administration, module « Annonces de l'admin » éteint. **Attendu :** pas de ligne « Envoyer une notification », même pour l'admin principal.
-2. Allume le module. **Attendu :** la ligne « Envoyer une notification » apparaît en haut d'Administration, sous « Démo et présentation ».
+2. Allume le module. **Attendu :** la ligne « Envoyer une notification » apparaît en haut d'Administration, sous « Démo ».
 3. Ouvre-la. **Attendu :** tout le monde est coché, rangé par foyer, sauf toi et les enfants sans l'appli. Décocher un foyer décoche tous ses membres.
 4. Écris un titre (60 caractères au plus) et un message (300 au plus). **Attendu :** l'aperçu montre le titre et le début du message ; « Envoyer à N personnes » s'allume.
 5. Touche « Envoyer », puis « Envoyer » dans la fenêtre. **Attendu :** « Message envoyé. », le message dans « Déjà envoyées » avec « envoyé ». L'autre téléphone reçoit la notification, même avec toutes ses notifications coupées dans les réglages de Familia.
 6. Sur l'autre téléphone, touche la notification. **Attendu :** le message entier, signé « Prénom (admin) », sans rien pour répondre.
 7. Après 22 h, sans « Urgent ». **Attendu :** la fenêtre dit qu'il partira à 8 h, « Déjà envoyées » dit « part à 8 h », et la notification arrive seule à 8 h, pas dans « Cette nuit dans Familia ».
 8. Après 22 h, avec « Urgent ». **Attendu :** elle arrive tout de suite.
-9. Allume le mode présentation. **Attendu :** l'écran dit que rien ne part, et le bouton reste éteint.
 
 ## Tout Familia : Bons plans, On se prête et À qui le tour ? (PRODUIT-118)
 
@@ -1185,7 +1175,7 @@ Module « Fil d'actualité » allumé dans Administration > Modules, après « P
 3. Sur un troisième téléphone, commente aussi. **Attendu :** tu reçois « Prénom a aussi commenté la Bonne nouvelle ». Touche « Ne plus être prévenu des commentaires », puis fais commenter encore : plus rien n'arrive.
 4. Modifie ton commentaire, puis retire-le. **Attendu :** « modifié » s'affiche, puis le commentaire disparaît. L'auteur de la nouvelle et l'admin principal ont aussi « Retirer ».
 5. Retire la nouvelle. **Attendu :** ses commentaires partent avec elle.
-6. En mode présentation, puis en « Voir comme ». **Attendu :** les commentaires se lisent, sans champ, sans « Modifier » ni « Retirer ».
+6. En « Voir comme ». **Attendu :** les commentaires se lisent, sans champ, sans « Modifier » ni « Retirer ».
 
 Dans « Le fil » de l'Accueil :
 
@@ -1194,7 +1184,7 @@ Dans « Le fil » de l'Accueil :
 9. Masque pour toi une nouvelle qui te nomme. **Attendu :** elle quitte ton fil, pas celui des autres.
 10. Sur un autre téléphone, demande un coup de main en te prévenant. **Attendu :** une carte « Coup de main » avec « Je m'en occupe » et « Pas dispo ». « Je m'en occupe » la change en une ligne « Prénom s'en occupe : … ✓ ». Un coup de main annulé disparaît.
 11. Un lundi, après 9 h. **Attendu :** une carte « Question de la semaine · N réponses » avec « Répondre », qui devient « Voir les réponses » une fois répondu.
-12. En mode présentation, puis en « Voir comme ». **Attendu :** les cartes se lisent, sans réaction possible, sans « Commenter », « Je m'en occupe » ni « Répondre ».
+12. En « Voir comme ». **Attendu :** les cartes se lisent, sans réaction possible, sans « Commenter », « Je m'en occupe » ni « Répondre ».
 13. Passe le téléphone en réseau faible (Options pour les développeurs > réseau limité, ou mode avion juste après avoir touché « Envoyer »), puis commente une Bonne nouvelle depuis le fil. **Attendu :** « Envoyer » se grise pendant au plus 4 s, puis le champ se ferme ; un second toucher n'envoie pas le commentaire deux fois ; le fil reste utilisable pendant ce temps. Le commentaire part au retour du réseau.
 14. En « Voir comme » un membre fêté prochainement. **Attendu :** aucune carte du fil ne parle d'un cadeau ou d'une surprise pour elle ; un coup de main dont elle n'est pas prévenue n'apparaît pas.
 
@@ -1227,7 +1217,7 @@ Module « Fil d'actualité » allumé dans Administration > Modules (éteint, l'
 3. Sur un autre téléphone, ajoute un événement au Planning. **Attendu :** une carte « Planning » arrive en haut du fil, avec la date, l'heure, « J'y vais » et le dernier commentaire s'il y en a. « J'y vais » répond « Oui » et disparaît. Toucher la carte ouvre l'événement.
 4. Un jour d'anniversaire. **Attendu :** une carte « Anniversaire · Prénom a N ans », avec « Lui souhaiter » qui ouvre sa fiche (si les vœux d'anniversaire sont allumés).
 5. Touche « Voir plus ancien ». **Attendu :** les 14 jours d'avant s'ajoutent en bas.
-6. En mode présentation, puis en « Voir comme ». **Attendu :** le fil se lit, sans « J'y vais » ni « Lui souhaiter ». Jamais rien des Cadeaux.
+6. En « Voir comme ». **Attendu :** le fil se lit, sans « J'y vais » ni « Lui souhaiter ». Jamais rien des Cadeaux.
 7. Ajoute trois photos à l'album d'un événement passé, ou d'un voyage que toute la famille suit. **Attendu :** une carte verte « Photos » avec le titre, « 3 nouvelles photos » et les vignettes. Les photos d'un même jour et d'un même album font une seule carte. Toucher la carte ouvre l'album sur la photo la plus récente.
 8. Ajoute des photos à un voyage que quelqu'un ne suit pas (un voyage surprise). **Attendu :** aucune carte, même sur le téléphone de quelqu'un qui le suit.
 9. Ajoute une recette. **Attendu :** une carte orange « Recette » avec son titre, « La recette de … » si l'origine est notée, la photo du plat si elle existe et le dernier commentaire. Toucher la carte ouvre la recette.
@@ -1239,7 +1229,7 @@ Module « Fil d'actualité » allumé. Éteint, Tout Familia et l'Accueil resten
 1. Ouvre **Tout Familia**. **Attendu :** une note verte en haut explique où sont passés les souvenirs. Sous « Se souvenir » : Le fil, Albums, Arbre et Capsule. « Qui est-ce ? » est sous « Se faire plaisir ». Plus de Souvenirs ni de Bonnes nouvelles. « Notre année » n'y est que du 26/12 au 10/01.
 2. Reviens, puis rouvre **Tout Familia**. **Attendu :** la note verte ne revient plus.
 3. Touche **Le fil**. **Attendu :** l'Accueil s'ouvre directement sur « Le fil ».
-4. En haut du fil. **Attendu :** ton avatar, « Une photo, une bonne nouvelle… », un bouton photo vert pâle et « Publier » en noir. Les trois ouvrent l'écran pour publier une bonne nouvelle. En mode présentation et en « Voir comme », la barre n'est pas là.
+4. En haut du fil. **Attendu :** ton avatar, « Une photo, une bonne nouvelle… », un bouton photo vert pâle et « Publier » en noir. Les trois ouvrent l'écran pour publier une bonne nouvelle. En « Voir comme », la barre n'est pas là.
 5. Mets la taille du texte à 130 %. **Attendu :** la phrase passe au-dessus, les deux boutons dessous, rien n'est coupé.
 6. Le jour où une capsule s'ouvre pour toi. **Attendu :** une carte pêche « Capsule », « La capsule de … s'est ouverte » et « Ouvrir », qui ouvre la capsule. Elle n'arrive pas chez ceux à qui elle n'est pas destinée.
 7. Un jour avec un souvenir d'il y a un an. **Attendu :** une carte verte « Il y a un an » avec la vignette, le titre et « Revoir l'album ». La carte de l'Accueil « Aujourd'hui » est toujours là.
@@ -1278,7 +1268,7 @@ Depuis le 18/11 (PRODUIT-131), le nouvel onglet n'a plus d'interrupteur à lui :
 
 1. Ouvre **Cadeaux**. **Attendu :** si tu prépares une surprise, une carte noire « Surprise en préparation » en tête. Puis « À venir » : le prochain anniversaire des 30 jours en relief (« … fête ses … ans », « Ses envies », « Idées »), puis Noël à partir du 1er novembre. Puis « Mes envies », puis « La famille » : ton foyer ouvert, les autres repliés.
 2. Regarde une carte de personne. **Attendu :** sa couleur à gauche, son anniversaire et seulement « N envies ». Jamais un nombre d'idées ni de réservations.
-3. Allume le **Mode présentation**. **Attendu :** plus de carte « Surprise en préparation », plus de bouton « Préparer une surprise ». Rien n'indique qu'une surprise existe.
+3. Pendant la démo, n'ouvre pas cet onglet devant la table : le Mode présentation a été retiré le 18/11. Montre-le avec « Voir comme » un autre membre que la personne fêtée.
 4. **Administration**, « Voir comme… », choisis la personne dont l'anniversaire approche. **Attendu :** « Tu fêtes tes … ans » en relief. Aucune surprise, aucune réservation, aucun « Ce que j'offre ».
 5. « Voir comme » un enfant. **Attendu :** « Mes envies » en tête. Sur les cartes des autres, « Ses envies » seulement, jamais « Idées » ni « Préparer une surprise ».
 6. Mets la taille du texte à 200 %. **Attendu :** les noms de foyer passent sur deux lignes, rien n'est coupé et tous les boutons restent faciles à toucher. Avec TalkBack, « Ses envies » se lit « Envies de … », et « Idées » se lit « Idées pour … ».
@@ -1292,7 +1282,7 @@ Depuis le 18/11 (PRODUIT-131), c'est la seule fiche : plus d'interrupteur ni d'a
 1. Dans **Famille**, ouvre la fiche d'un adulte. **Attendu :** un bandeau à sa couleur, sa photo ronde, son âge, « Anniversaire dans … ». Puis les boutons ronds (Vœux, Pensez à moi, Appeler, Itinéraire) et une carte par section. Jamais de menu ⋮.
 2. Ouvre ta propre fiche. **Attendu :** « Ma fiche » en haut, un crayon sur les cartes que tu peux remplir, la jauge « Ta fiche est remplie à … % », et le bouton appareil photo sur ta photo. Tes envies ne montrent que leurs titres, jamais « Réservé » ni « Pris ».
 3. Ouvre la fiche d'un enfant. **Attendu :** pas de « Coordonnées », mais « Pour joindre …, passe par ses parents », avec « Appeler … » pour chaque parent qui a donné son téléphone.
-4. Allume le **Mode présentation** et ouvre la fiche de la personne dont l'anniversaire approche. **Attendu :** pas de « Ce que je lui offre », ni de « Mes cadeaux à offrir » sur ta fiche.
+4. Ouvre la fiche de la personne dont l'anniversaire approche. **Attendu :** « Ce que je lui offre » y est, sur ton téléphone seulement : n'ouvre donc ni sa fiche ni la tienne devant la table, depuis le retrait du Mode présentation (18/11).
 5. **Administration**, « Voir comme… » cette personne, puis ouvre sa fiche. **Attendu :** aucune surprise, réservation ni « Ce que j'offre ». Pas de jauge ni de bouton photo, car « Voir comme » n'écrit rien.
 6. Mets la taille du texte à 200 %. **Attendu :** le prénom, l'adresse et les boutons passent à la ligne sans être coupés. Avec TalkBack, chaque bouton dit ce qu'il fait.
 7. Réseau faible : ouvre une fiche déjà vue en mode avion, puis en « 2G seulement », comme dans « Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible ». **Attendu :** la fiche s'affiche, sans écran blanc. « Appeler » ouvre le téléphone même sans réseau.

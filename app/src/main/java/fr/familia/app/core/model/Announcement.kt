@@ -25,7 +25,7 @@ data class Announcement(
         Sent("sent"),
         /** Written between 22 h and 8 h without « Urgent »: it leaves at 8 h. */
         Morning("morning"),
-        /** Module off, or Mode présentation on: nothing left. */
+        /** Module off: nothing left. */
         Refused("refused"),
         ;
 

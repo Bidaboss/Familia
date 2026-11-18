@@ -1,6 +1,5 @@
 package fr.familia.app.feature.gifts.profile
 
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -22,7 +21,6 @@ import fr.familia.app.feature.gifts.previewGifts
 import fr.familia.app.feature.gifts.birthdaysSection
 import androidx.compose.foundation.lazy.LazyColumn
 import fr.familia.app.feature.gifts.surpriseIdeasToRead
-import fr.familia.app.feature.presentation.LocalPresenting
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -72,11 +70,10 @@ class ProfileGiftsTest {
     }
 
     @Test
-    fun `never on my own page, in Voir comme or while presenting`() {
-        assertTrue(showsGiving("a", "b", viewingAs = false, presenting = false))
-        assertFalse(showsGiving("a", "a", viewingAs = false, presenting = false))
-        assertFalse(showsGiving("a", "b", viewingAs = true, presenting = false))
-        assertFalse(showsGiving("a", "b", viewingAs = false, presenting = true))
+    fun `never on my own page nor in Voir comme`() {
+        assertTrue(showsGiving("a", "b", viewingAs = false))
+        assertFalse(showsGiving("a", "a", viewingAs = false))
+        assertFalse(showsGiving("a", "b", viewingAs = true))
     }
 
     @Test
@@ -163,16 +160,14 @@ class ProfileGiftsTest {
         assertEquals(listOf("c"), surpriseIdeasToRead(forKid))
     }
 
-    private fun showBirthdays(presenting: Boolean, opened: MutableList<String>) {
+    private fun showBirthdays(opened: MutableList<String>) {
         // With the single list there is no list for an occasion: only the ideas of the family.
         val preview = previewGifts()
         val state = preview.copy(singleList = true, surprisePreparedFor = setOf("b"), sections = preview.sections.map { it.copy(lists = emptyList()) })
         compose.setContent {
             FamiliaTheme {
-                CompositionLocalProvider(LocalPresenting provides presenting) {
-                    // The birthdays alone: the whole tab may push the card out of the test screen.
-                    LazyColumn { birthdaysSection(state, onAllBirthdays = {}, onPrepareSurprise = {}, onOpenList = { opened += it }) }
-                }
+                // The birthdays alone: the whole tab may push the card out of the test screen.
+                LazyColumn { birthdaysSection(state, onAllBirthdays = {}, onPrepareSurprise = {}, onOpenList = { opened += it }) }
             }
         }
         compose.waitForIdle()
@@ -181,16 +176,10 @@ class ProfileGiftsTest {
     @Test
     fun `a surprise idea shows on the birthday card and opens the ideas`() {
         val opened = mutableListOf<String>()
-        showBirthdays(presenting = false, opened)
+        showBirthdays(opened)
         compose.onNodeWithText("Une surprise est déjà en préparation").performClick()
         assertEquals(listOf("ideas-b"), opened)
         compose.onNodeWithText("Préparer une surprise").assertExists()
-    }
-
-    @Test
-    fun `never while presenting`() {
-        showBirthdays(presenting = true, mutableListOf())
-        assertEquals(0, compose.onAllNodesWithText("Une surprise est déjà en préparation").fetchSemanticsNodes().size)
     }
 
     @Test
@@ -207,11 +196,10 @@ class ProfileGiftsTest {
     }
 
     @Test
-    fun `my notebook only on my own page, never in Voir comme nor while presenting`() {
-        assertTrue(showsMyNotebook("a", "a", viewingAs = false, presenting = false))
-        assertFalse(showsMyNotebook("a", "b", viewingAs = false, presenting = false))
-        assertFalse(showsMyNotebook("a", "a", viewingAs = true, presenting = false))
-        assertFalse(showsMyNotebook("a", "a", viewingAs = false, presenting = true))
+    fun `my notebook only on my own page, never in Voir comme`() {
+        assertTrue(showsMyNotebook("a", "a", viewingAs = false))
+        assertFalse(showsMyNotebook("a", "b", viewingAs = false))
+        assertFalse(showsMyNotebook("a", "a", viewingAs = true))
     }
 
     @Test

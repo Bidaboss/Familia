@@ -2,7 +2,6 @@ package fr.familia.app.feature.firststeps
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import fr.familia.app.core.data.AppConfigRepository
 import fr.familia.app.core.data.GoodNewsRepository
 import fr.familia.app.core.data.MemberCardRepository
 import fr.familia.app.core.data.MemberPhotoRepository
@@ -25,14 +24,12 @@ import java.time.ZoneId
 /**
  * « Mes premiers pas » (récit 61) for [memberId]: each gesture is ticked from what the family already
  * sees (a profile photo, « Goûts et passions » filled, a reaction to a good news). [tastesOn] is
- * false while « Goûts et passions » is off: that gesture is not offered. Hidden during the Mode
- * présentation. The screen never builds it in « Voir comme ».
+ * false while « Goûts et passions » is off: that gesture is not offered. The screen never builds it in « Voir comme ».
  */
 class FirstStepsViewModel(
     private val photos: MemberPhotoRepository?,
     cards: MemberCardRepository?,
     goodNews: GoodNewsRepository?,
-    config: AppConfigRepository?,
     private val store: FirstStepsStore,
     private val memberId: String,
     tastesOn: Boolean,
@@ -58,11 +55,7 @@ class FirstStepsViewModel(
     private val hasReacted: Flow<Boolean> =
         goodNews?.observeLatest(RECENT_NEWS)?.map { list -> list.any { memberId in it.reactions } }?.catch { emit(false) } ?: flowOf(false)
 
-    private val presenting: Flow<Boolean> =
-        config?.observePresentation()?.map { it?.isOn(clock()) == true }?.catch { emit(false) } ?: flowOf(false)
-
-    val card: StateFlow<FirstStepsCard?> = combine(hasPhoto, hasTastes, hasReacted, presenting, marks) { photo, tastes, reacted, presentation, kept ->
-        if (presentation) return@combine null
+    val card: StateFlow<FirstStepsCard?> = combine(hasPhoto, hasTastes, hasReacted, marks) { photo, tastes, reacted, kept ->
         val done = buildMap {
             put(FirstStep.Photo, photo)
             tastes?.let { put(FirstStep.Tastes, it) }

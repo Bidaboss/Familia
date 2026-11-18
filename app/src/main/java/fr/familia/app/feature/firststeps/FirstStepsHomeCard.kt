@@ -49,7 +49,7 @@ import fr.familia.app.feature.members.photo.MemberPhotoEditor
 
 /**
  * « Mes premiers pas » on the Accueil (récit 61), behind Feature.FirstSteps switched on for the family:
- * the card to place, or null when there is nothing to show, in « Voir comme », or during the Mode présentation. [onOpenTastes] opens
+ * the card to place, or null when there is nothing to show, or in « Voir comme ». [onOpenTastes] opens
  * my profile, where « Goûts et passions » is filled; [onOpenGoodNews] the feed of the good news.
  */
 @Composable
@@ -71,7 +71,7 @@ fun rememberFirstSteps(
             initializer {
                 FirstStepsViewModel(
                     container?.memberPhotoRepository, container?.memberCardRepository, container?.goodNewsRepository,
-                    container?.appConfigRepository, FirstStepsPreferences(context), currentMember.id, tastesOn,
+                    FirstStepsPreferences(context), currentMember.id, tastesOn,
                 )
             }
         },

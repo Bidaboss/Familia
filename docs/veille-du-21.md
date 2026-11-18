@@ -54,7 +54,7 @@ Passe chaque essai d'abord en mode avion, puis en « 2G seulement ». Pour la 2G
 - [ ] « Démo du 21 : Bonnes nouvelles et Entraide sur un réseau faible ».
 - [ ] « Démo du 21 : album, diaporama, recettes, arbre et Qui est-ce ? sur un réseau faible », si tu montres ces modules.
 - [ ] « Bonnes nouvelles : envoi de la photo sur un réseau faible ou coupé ».
-- [ ] « Voir comme » sur un enfant : **Administration**, puis « Démo et présentation », puis « Voir comme… », puis un enfant d'environ 11 ans. Parcours Accueil, Planning, Entraide et Bonnes nouvelles. **Attendu :** aucun bouton qui finit sur un refus, et aucun texte d'adulte. Recommence avec un enfant d'environ 16 ans. C'est l'étape 3 de « Écrans vides et profils enfant ».
+- [ ] « Voir comme » sur un enfant : **Administration**, puis « Démo », puis « Voir comme… », puis un enfant d'environ 11 ans. Parcours Accueil, Planning, Entraide et Bonnes nouvelles. **Attendu :** aucun bouton qui finit sur un refus, et aucun texte d'adulte. Recommence avec un enfant d'environ 16 ans. C'est l'étape 3 de « Écrans vides et profils enfant ».
 - [ ] Touche « Quitter » sur le bandeau « Tu vois l'appli comme … ».
 - [ ] **Les nouvelles versions allumées à l'étape 3**, une par une, en mode avion puis en 2G : le nouvel onglet Cadeaux, la nouvelle fiche d'un membre, le Planning en Semaine puis en Mois, et sur l'Accueil « Le fil ». **Attendu :** chaque écran s'ouvre avec ce que tu as déjà vu, sans rond qui tourne sans fin, et une action faite hors ligne part au retour du réseau.
 - [ ] Les mêmes écrans avec la police au plus grand : Réglages du téléphone, puis Affichage, puis Taille de la police, au maximum. **Attendu :** rien n'est coupé, et tout se lit en faisant défiler. Remets la taille normale.
@@ -63,7 +63,7 @@ Passe chaque essai d'abord en mode avion, puis en « 2G seulement ». Pour la 2G
 
 ## 5. Préparer le repas, encore ce soir
 
-- [ ] Fais une répétition : **Administration**, puis « Démo et présentation », puis « Voir comme… », puis un membre qui n'est **pas** la personne fêtée. Fais la visite guidée de [scenario-demo.md](scenario-demo.md) (étape 5). Puis, en « Voir comme » la personne fêtée, regarde l'onglet Cadeaux, sa propre fiche, le Planning et, sur l'Accueil, « Le fil ». **Attendu :** rien ne lui montre ce qui est réservé ou préparé pour elle, ni dans les nouvelles versions ni dans les anciennes. Note ce qui pourrait gêner.
+- [ ] Fais une répétition : **Administration**, puis « Démo », puis « Voir comme… », puis un membre qui n'est **pas** la personne fêtée. Fais la visite guidée de [scenario-demo.md](scenario-demo.md) (étape 5). Puis, en « Voir comme » la personne fêtée, regarde l'onglet Cadeaux, sa propre fiche, le Planning et, sur l'Accueil, « Le fil ». **Attendu :** rien ne lui montre ce qui est réservé ou préparé pour elle, ni dans les nouvelles versions ni dans les anciennes. Note ce qui pourrait gêner.
 - [ ] Toujours en « Voir comme », ouvre l'événement du repas. **Attendu :** rien n'y parle du cadeau.
 - [ ] Touche « Quitter » sur le bandeau.
 - [ ] Avec le réseau, ouvre une fois Accueil (et « Le fil »), Planning (Semaine et Mois), Cadeaux, Entraide et Famille. Ils resteront lisibles si le réseau tombe demain.
@@ -82,17 +82,16 @@ Passe chaque essai d'abord en mode avion, puis en « 2G seulement ». Pour la 2G
 
 **Au café** (le déroulé complet est dans [scenario-demo.md](scenario-demo.md))
 - [ ] Ouvre Familia. **Attendu :** pas de bandeau « Hors ligne ». S'il apparaît, active le partage de connexion 4G.
-- [ ] **Administration**, puis « Démo et présentation » tout en haut, puis la carte « Mode présentation », puis « 4 h ». **Attendu :** le bandeau « Mode présentation jusqu'à … » au-dessus des onglets.
+- [ ] Le Mode présentation n'existe plus (retiré le 18/11) : rien n'est retenu. Pendant toute la démo, **n'ouvre ni l'onglet Cadeaux, ni ta propre fiche, ni celle de la personne fêtée**.
 - [ ] Envoie les invitations, puis laisse chacun se connecter et suivre le tuto sur son téléphone.
 - [ ] Fais la visite guidée de 5 minutes : Accueil, un événement (« Je viens », « Qui apporte quoi »), Cadeaux.
 - [ ] Ne tourne jamais **ton propre** Accueil ni **ton propre** onglet Cadeaux vers la table : l'occasion de la personne fêtée y apparaît, et « Surprises en préparation » est tout en haut de Cadeaux.
-- [ ] N'ouvre pas **ta propre** fiche hors mode présentation : la carte « Mes cadeaux à offrir », ton carnet privé, y est.
-- [ ] N'ouvre pas la fiche de la personne fêtée (ni d'un autre membre) hors mode présentation : sa fiche montre « Ce que j'offre à … », avec tes réservations et les surprises en cours.
+- [ ] N'ouvre pas **ta propre** fiche : la carte « Mes cadeaux à offrir », ton carnet privé, y est.
+- [ ] N'ouvre pas la fiche de la personne fêtée (ni d'un autre membre) : sa fiche montre « Ce que j'offre à … », avec tes réservations et les surprises en cours.
 - [ ] Publie la photo du repas depuis le fil des Bonnes nouvelles, **écran tourné vers toi**, puis ajoute-la à l'album de l'événement (étape 6 de [scenario-demo.md](scenario-demo.md)).
-- [ ] « Voir comme » ne sert qu'à aider quelqu'un de perdu. Touche « Quitter » sur le bandeau ensuite.
+- [ ] Pour montrer l'appli, et surtout les Cadeaux, passe par **Administration**, « Démo », « Voir comme… » **un autre membre** que la personne fêtée. Touche « Quitter » sur le bandeau ensuite.
 
 **À la fin**
-- [ ] **Administration**, puis « Démo et présentation », puis « Éteindre » sur la carte « Mode présentation ».
-- [ ] **Attendu :** en moins d'une minute, chacun reçoit le résumé de la présentation, en trois notifications au plus. S'il n'arrive pas, il part au plus tard 30 minutes après. Après 22 h, il attend le lendemain à 8 h pour ceux qui ont « Calme la nuit », c'est-à-dire presque tout le monde : éteins le Mode présentation avant 22 h si tu veux qu'il arrive le soir même.
+- [ ] Si tu es encore en « Voir comme », touche « Quitter » sur le bandeau. Il n'y a plus de résumé de fin : tout est parti pendant la démo. Après 22 h, « Calme la nuit » garde les notifications jusqu'à 8 h pour presque tout le monde.
 - [ ] Enlève « Ne pas déranger ».
 - [ ] Le soir ou le lendemain, allume les modules de ta liste « à allumer plus tard » (étape 3).
