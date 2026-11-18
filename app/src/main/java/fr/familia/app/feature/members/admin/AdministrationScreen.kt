@@ -69,6 +69,8 @@ import fr.familia.app.core.model.ChallengeRotation
 import fr.familia.app.feature.members.RenameHouseholdDialog
 import fr.familia.app.core.model.CapsuleLeftover
 import fr.familia.app.core.model.Feature
+import fr.familia.app.core.model.FeatureTier
+import fr.familia.app.core.model.tier
 import fr.familia.app.feature.discover.DiscoverModule
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
@@ -408,8 +410,23 @@ private fun ReadyContent(
         }
         if (onSetFeature != null) {
             adminGroup("features", R.string.administration_features_title, R.string.administration_features_help, open, ::toggle) {
-                items(Feature.entries, key = { "feature-${it.key}" }) { feature ->
+                // BUG-2 (Kévin le 18/11): the modules au choix, then the new versions, the base folded at the bottom.
+                val byTier = Feature.entries.groupBy { it.tier }
+                item(key = "features-choice-title") { SectionTitle(R.string.administration_features_choice) }
+                items(byTier[FeatureTier.Choice].orEmpty(), key = { "feature-${it.key}" }) { feature ->
                     FeatureSwitchRow(feature, on = features[feature.key] ?: feature.onByDefault, onSetFeature = onSetFeature)
+                }
+                item(key = "features-new-title") {
+                    HorizontalDivider(Modifier.padding(top = 8.dp))
+                    SectionTitle(R.string.administration_features_new, R.string.administration_features_new_help)
+                }
+                items(byTier[FeatureTier.NewVersion].orEmpty(), key = { "feature-${it.key}" }) { feature ->
+                    FeatureSwitchRow(feature, on = features[feature.key] ?: feature.onByDefault, onSetFeature = onSetFeature)
+                }
+                adminGroup("features-base", R.string.administration_features_base, R.string.administration_features_base_help, open, ::toggle) {
+                    items(byTier[FeatureTier.Base].orEmpty(), key = { "feature-${it.key}" }) { feature ->
+                        FeatureSwitchRow(feature, on = features[feature.key] ?: feature.onByDefault, onSetFeature = onSetFeature)
+                    }
                 }
             }
         }
