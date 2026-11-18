@@ -511,12 +511,16 @@ class ScreenshotTest {
     }
 
     @Test
-    fun updateBannerLight() = capture("mise_a_jour_clair") { UpdateBanner(AppUpdate("0.2.0", "https://example.com"), {}, {}) }
+    fun updateBannerLight() = capture("mise_a_jour_clair") { UpdateBanner({}, {}) }
+
+    @Test
+    @Config(fontScale = 1.3f)
+    fun updateBannerFontScale130() = capture("mise_a_jour_police_130") { UpdateBanner({}, {}) }
 
     @Test
     @Config(fontScale = 2f)
     fun updateBannerFontScale200() = capture("mise_a_jour_police_200") {
-        UpdateBanner(AppUpdate("0.2.0", "https://example.com"), {}, {})
+        UpdateBanner({}, {})
     }
 
     @Test
