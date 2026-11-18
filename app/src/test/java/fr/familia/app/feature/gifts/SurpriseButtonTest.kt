@@ -158,6 +158,8 @@ class SurpriseButtonTest {
         val state = presentationFor("adult2")
         val next = state.next as GiftMoment.BirthdayOf
         assertEquals("adult1", next.member.id)
+        // Christmas shows from the 1st of November, not on the 31st of October.
+        assertTrue(upcomingAfterNext(state.copy(today = LocalDate.of(2026, 10, 31))).none { it is Upcoming.OfChristmas })
         val after = upcomingAfterNext(state)
         assertTrue(after.none { it is Upcoming.OfBirthday && it.birthday.member.id == "adult1" })
         assertTrue(after.any { it is Upcoming.OfChristmas && it.year == 2026 })
@@ -169,5 +171,16 @@ class SurpriseButtonTest {
         show(presentationFor("adult1"))
         assertEquals(1, count("Ton anniversaire, dans 5 jours"))
         assertEquals(0, count("Surprises en préparation"))
+    }
+
+    @Test
+    fun `after the next occasion, no birthday further than 30 days`() {
+        val state = presentationFor("adult2")
+        val far = state.birthdays.first().copy(date = today.plusDays(150))
+        val edge = state.birthdays.first().copy(date = today.plusDays(30))
+        val after = upcomingAfterNext(state.copy(birthdays = listOf(far)))
+        assertTrue(after.none { it is Upcoming.OfBirthday })
+        val withEdge = upcomingAfterNext(state.copy(birthdays = listOf(edge, far)))
+        assertEquals(listOf(today.plusDays(30)), withEdge.filterIsInstance<Upcoming.OfBirthday>().map { it.date })
     }
 }

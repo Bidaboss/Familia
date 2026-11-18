@@ -113,17 +113,23 @@ internal sealed interface Upcoming {
     }
 }
 
+/** How far « À venir » looks for birthdays after the next occasion (retour d'essai, 18/11). */
+internal const val UPCOMING_BIRTHDAY_DAYS = 30L
+
 /**
- * The cards under the next occasion (PRD rév. 292): the next birthdays and Christmas by date, the
- * next occasion itself left out since it is the first card. Pure, for the tests.
+ * The cards under the next occasion (PRD rév. 292): the birthdays of the next 30 days, and Christmas
+ * from the 1st of November (retour d'essai, 18/11), by date, the next occasion itself left out since it is
+ * the first card. A birthday further away waits for « Tous les anniversaires ». Pure, for the tests.
  */
 internal fun upcomingAfterNext(state: GiftsUiState.Success): List<Upcoming> {
     val next = state.next
+    val until = state.today.plusDays(UPCOMING_BIRTHDAY_DAYS)
     val birthdays = state.birthdays
+        .filter { it.date <= until }
         .filterNot { next is GiftMoment.BirthdayOf && it.member.id == next.member.id && it.date == next.date }
         .map { Upcoming.OfBirthday(it) }
     val christmas = LocalDate.of(state.today.year, 12, 25).let { if (it > state.today) it else it.plusYears(1) }
-    val noel = if (next is GiftMoment.Christmas || next == null) emptyList() else listOf(Upcoming.OfChristmas(christmas.year))
+    val noel = if (next is GiftMoment.Christmas || next == null || state.today < LocalDate.of(christmas.year, 11, 1)) emptyList() else listOf(Upcoming.OfChristmas(christmas.year))
     return (birthdays + noel).sortedBy { it.date }
 }
 
