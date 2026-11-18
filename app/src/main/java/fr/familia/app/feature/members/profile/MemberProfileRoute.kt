@@ -95,7 +95,7 @@ fun MemberProfileRoute(
         thinkOfMe = if (thinkOfMeOn) ({ person -> ThinkOfMeSection(container, currentMember, person) }) else null,
         gifts = if (giftsOn) {
             { person ->
-                ProfileWishesSection(container, currentMember, person, giftActions.onOpenList, giftActions.onAddWish)
+                ProfileWishesSection(container, currentMember, person, giftActions.onOpenList)
                 // My private notebook, under my wishes, on my own page only (PRD rév. 293).
                 ProfileNotebookSection(currentMember, person, notebookOn, giftActions.onOpenNotebook)
                 ProfileGivingSection(
@@ -117,7 +117,6 @@ fun MemberProfileRoute(
 /** Where the « Ses envies » and « Ce que je lui offre » sections of a page lead. */
 data class ProfileGiftActions(
     val onOpenList: (listId: String) -> Unit = {},
-    val onAddWish: (listId: String) -> Unit = {},
     val onOpenNotebook: () -> Unit = {},
     val onAddIdea: (personId: String) -> Unit = {},
     val onEditIdea: (entryId: String) -> Unit = {},

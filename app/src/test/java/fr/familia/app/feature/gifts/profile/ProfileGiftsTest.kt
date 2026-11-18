@@ -109,29 +109,29 @@ class ProfileGiftsTest {
     }
 
     @Test
-    fun `my wishes show their titles and let me add one`() {
-        var added = 0
+    fun `my wishes show their titles, adding one is only on the screen of the wishes`() {
+        var opened = 0
         compose.setContent {
             FamiliaTheme {
-                ProfileWishesContent(WishPreview(2, listOf("Un livre", "Une plante")), ines, isMe = true, keptByMe = true, mayAdd = true, onOpen = {}, onAdd = { added++ })
+                ProfileWishesContent(WishPreview(2, listOf("Un livre", "Une plante")), ines, isMe = true, keptByMe = true, onOpen = { opened++ })
             }
         }
         compose.onNodeWithText("Mes envies").assertExists()
         compose.onNodeWithText("Un livre", substring = true).assertExists()
-        compose.onNodeWithText("Ajouter une envie").performClick()
-        assertEquals(1, added)
+        assertEquals(0, compose.onAllNodesWithText("Ajouter une envie").fetchSemanticsNodes().size)
+        compose.onNodeWithText("Voir toute la liste").performClick()
+        assertEquals(1, opened)
     }
 
     @Test
-    fun `the wishes of someone else cannot be added to`() {
+    fun `the wishes of someone else open their list`() {
         var opened = 0
         compose.setContent {
             FamiliaTheme {
-                ProfileWishesContent(WishPreview(1, listOf("Un livre")), ines, isMe = false, keptByMe = false, mayAdd = false, onOpen = { opened++ }, onAdd = {})
+                ProfileWishesContent(WishPreview(1, listOf("Un livre")), ines, isMe = false, keptByMe = false, onOpen = { opened++ })
             }
         }
         compose.onNodeWithText("Envies de Inès").assertExists()
-        assertEquals(0, compose.onAllNodesWithText("Ajouter une envie").fetchSemanticsNodes().size)
         compose.onNodeWithText("Voir toute la liste").performClick()
         assertEquals(1, opened)
     }

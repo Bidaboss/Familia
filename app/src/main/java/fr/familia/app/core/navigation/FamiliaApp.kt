@@ -749,7 +749,7 @@ fun FamiliaApp(
                     // « Une photo » chooses its album (DESIGN, 17/11).
                     onPhoto = if (features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums)) ({ navController.navigate(AlbumsDestination) }) else null,
                     onGoodNews = if (features.isOn(Feature.GoodNews)) ({ navController.navigate(GoodNewsEditDestination()) }) else null,
-                    onWish = if (features.isOn(Feature.Gifts)) ({ navController.navigate(GiftItemEditDestination(wishesListId(currentMember.id))) }) else null,
+                    // « Ajouter une envie » only on the screen of the wishes (retour de Kévin, 18/11).
                     onHelp = if (features.isOn(Feature.HelpRequests)) ({ navController.navigate(HelpRequestEditDestination()) }) else null,
                 ),
                 onDismiss = { addOpen = false },
@@ -1646,7 +1646,6 @@ fun FamiliaApp(
                             onOpenRecipes = if (features.isOn(Feature.Recipes)) ({ navController.navigate(RecipesDestination(memberId)) }) else null,
                             giftActions = ProfileGiftActions(
                                 onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
-                                onAddWish = { id -> navController.navigate(GiftItemEditDestination(id)) },
                                 onOpenNotebook = { navController.navigate(NotebookDestination) },
                                 onAddIdea = { id -> navController.navigate(NotebookIdeaDestination(personId = id)) },
                                 onEditIdea = { id -> navController.navigate(NotebookIdeaDestination(entryId = id)) },
