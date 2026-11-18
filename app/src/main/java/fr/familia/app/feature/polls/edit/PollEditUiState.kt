@@ -22,6 +22,8 @@ sealed interface PollEditUiState {
         val hasChanges: Boolean = false,
         val isSaving: Boolean = false,
         val saveFailed: Boolean = false,
+        /** Asked from this event: « Pour : <titre> · <date> » and the motives of the event. */
+        val forEvent: PollEvent? = null,
     ) : PollEditUiState
 
     /** Sent (or queued until the network is back): the screen closes. */

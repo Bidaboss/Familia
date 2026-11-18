@@ -13,7 +13,9 @@ import fr.familia.app.feature.polls.edit.AskShortcut
 import fr.familia.app.feature.polls.edit.DateChoice
 import fr.familia.app.feature.polls.edit.PollEditUiState
 import fr.familia.app.feature.polls.edit.PollEditViewModel
+import fr.familia.app.feature.polls.edit.PollEvent
 import fr.familia.app.feature.polls.edit.PollFormError
+import fr.familia.app.feature.polls.edit.PollMotive
 import fr.familia.app.feature.polls.list.PollsUiState
 import fr.familia.app.feature.polls.list.PollsViewModel
 import fr.familia.app.testing.MainDispatcherRule
@@ -90,6 +92,34 @@ class PollViewModelsTest {
         viewModel.update { it.copy(question = "Quel jour ?", dates = listOf(DateChoice(today.plusDays(3)), DateChoice(today.plusDays(4)))) }
         viewModel.save()
         assertEquals("e1", repo.created.single().eventId)
+    }
+
+    @Test
+    fun `from an event, the form says which one and its motives fill the question`() = runTest {
+        val repo = FakePolls()
+        val events = FakeEvents(listOf(TestFamily.event("e1", TestFamily.adult)))
+        val viewModel = PollEditViewModel(repo, FakeMembers(), "adult1", today = { today }, eventId = "e1", events = events)
+        val editing = viewModel.uiState.value as PollEditUiState.Editing
+        assertEquals(PollEvent("Repas e1", LocalDate.of(2026, 12, 24)), editing.forEvent)
+        viewModel.chooseMotive(PollMotive.Place, "Où fait-on Repas e1 ?")
+        val place = (viewModel.uiState.value as PollEditUiState.Editing).form
+        assertEquals(Poll.Kind.Choice, place.kind)
+        assertEquals("Où fait-on Repas e1 ?", place.question)
+        viewModel.chooseMotive(PollMotive.Date, "Quelle date pour Repas e1 ?")
+        assertEquals(Poll.Kind.Date, (viewModel.uiState.value as PollEditUiState.Editing).form.kind)
+        viewModel.update { it.copy(dates = listOf(DateChoice(today.plusDays(3)), DateChoice(today.plusDays(4)))) }
+        viewModel.save()
+        val created = repo.created.single()
+        assertEquals("e1", created.eventId)
+        assertEquals("Quelle date pour Repas e1 ?", created.question)
+    }
+
+    @Test
+    fun `a poll asked from Sondages keeps a free motive`() = runTest {
+        val viewModel = PollEditViewModel(FakePolls(), FakeMembers(), "adult1", today = { today })
+        val editing = viewModel.uiState.value as PollEditUiState.Editing
+        assertNull(editing.forEvent)
+        assertNull(editing.form.motive)
     }
 
     @Test

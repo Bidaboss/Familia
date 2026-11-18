@@ -17,6 +17,8 @@ data class PollForm(
     val askedIds: Set<String> = emptySet(),
     /** The last day answers are taken; null: until the author ends it. */
     val closesOn: LocalDate? = null,
+    /** Asked from an event: what it is about, to fill the question; never stored. */
+    val motive: PollMotive? = null,
 ) {
     /**
      * The options as stored: the dates picked, without duplicates and in order, or the texts

@@ -2101,6 +2101,17 @@
     <string name="poll_question">Question</string>
     <string name="poll_question_hint_date">Quand fait-on le repas de Noël ?</string>
     <string name="poll_question_hint_choice">Quel restaurant pour l\'anniversaire ?</string>
+    <!-- Sondage lancé depuis un événement (retour du 18/11) -->
+    <string name="poll_for_event">Pour : %1$s · %2$s</string>
+    <string name="poll_motive">De quoi parle le sondage ?</string>
+    <string name="poll_motive_date">La date</string>
+    <string name="poll_motive_place">Le lieu</string>
+    <string name="poll_motive_menu">Le menu</string>
+    <string name="poll_motive_other">Autre question sur %1$s</string>
+    <string name="poll_motive_q_date">Quelle date pour %1$s ?</string>
+    <string name="poll_motive_q_place">Où fait-on %1$s ?</string>
+    <string name="poll_motive_q_menu">Que mange-t-on pour %1$s ?</string>
+    <string name="poll_question_hint_event">Une question sur %1$s</string>
     <string name="poll_dates">Dates proposées</string>
     <string name="poll_dates_hint">De 2 à 5 dates. L\'heure est facultative.</string>
     <string name="poll_choices">Réponses proposées</string>
