@@ -22,6 +22,9 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Autorenew
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.LocalOffer
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.HourglassTop
 import androidx.compose.material.icons.outlined.MenuBook
@@ -118,6 +121,7 @@ import fr.familia.app.core.album.book.PhotoBookDestination
 import fr.familia.app.feature.albums.book.PhotoBookRoute
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.HelpRoute
+import fr.familia.app.feature.gooddeals.EntraideTab
 import fr.familia.app.feature.gooddeals.EntraideTabs
 import fr.familia.app.feature.gooddeals.GoodDealDetailRoute
 import fr.familia.app.feature.gooddeals.GoodDealEditRoute
@@ -643,6 +647,8 @@ fun FamiliaApp(
     // are known. Module off: Entraide alone, and the tap is spent either way, so switching the
     // module on later does not jump to Bons plans.
     var entraideOnGoodDeals by remember { mutableStateOf(0) }
+    // A sub-tab of Entraide asked from « Tout Familia » (PRODUIT-118), spent once Entraide shows it.
+    var entraideTab by remember { mutableStateOf<EntraideTab?>(null) }
     val goodDealsSwitchOn = features.isOn(Feature.GoodDeals)
     LaunchedEffect(openGoodDeals, appConfig, ownerId) {
         if (openGoodDeals && appConfig != null && ownerId != null) {
@@ -977,6 +983,10 @@ fun FamiliaApp(
                                 navController,
                                 currentMember.id,
                                 reviewYear = openableReviewYear(LocalDate.now(), forCard = false),
+                                onEntraideTab = { tab ->
+                                    entraideTab = tab
+                                    navController.navigateToTab(TopLevelDestination.HelpRequests)
+                                },
                             ),
                             onBack = { navController.popBackStack() },
                         )
@@ -1513,6 +1523,8 @@ fun FamiliaApp(
                                 )
                             },
                             showGoodDeals = entraideOnGoodDeals,
+                            open = entraideTab,
+                            onOpened = { entraideTab = null },
                             // Récit 51: « On se prête », behind its switch. The form and the sheet come next.
                             lendingOn = lendingOn,
                             lending = {
@@ -1996,6 +2008,8 @@ private fun allModules(
     meId: String,
     /** « Notre année », findable all year long under « Se souvenir » (PRD rév. 259); null: not yet. */
     reviewYear: Int? = null,
+    /** Bons plans, On se prête, À qui le tour ?: Entraide, turned to that sub-tab (PRODUIT-118). */
+    onEntraideTab: (EntraideTab) -> Unit = {},
 ): List<AllModule> = buildList {
     fun module(on: Boolean, key: String, label: Int, icon: ImageVector, family: ModuleFamily, badge: Int = 0, open: () -> Unit) {
         if (on) this.add(AllModule(key, label, icon, family, badge, open))
@@ -2005,6 +2019,17 @@ private fun allModules(
     }
     module(features.isOn(Feature.HelpRequests), "help", R.string.all_help, Icons.Outlined.VolunteerActivism, ModuleFamily.Organise, helpBadge) {
         navController.navigateToTab(TopLevelDestination.HelpRequests)
+    }
+    // Each sub-tab of Entraide also by itself (PRODUIT-118), while its module and Entraide are on.
+    val entraideOn = features.isOn(Feature.HelpRequests)
+    module(entraideOn && features.isOn(Feature.GoodDeals), "goodDeals", R.string.entraide_tab_good_deals, Icons.Outlined.LocalOffer, ModuleFamily.Organise) {
+        onEntraideTab(EntraideTab.GoodDeals)
+    }
+    module(entraideOn && features.isOn(Feature.Lending), "lending", R.string.entraide_tab_lending, Icons.Outlined.Category, ModuleFamily.Organise) {
+        onEntraideTab(EntraideTab.Lending)
+    }
+    module(entraideOn && features.isOn(Feature.Turns), "turns", R.string.entraide_tab_turns, Icons.Outlined.Autorenew, ModuleFamily.Organise) {
+        onEntraideTab(EntraideTab.Turns)
     }
     module(features.isOn(Feature.Polls), "polls", R.string.all_polls, Icons.Outlined.Poll, ModuleFamily.Organise) {
         navController.navigate(PollsDestination) { launchSingleTop = true }
