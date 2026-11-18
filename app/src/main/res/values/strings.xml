@@ -2403,7 +2403,7 @@
     <string name="think_of_me_pick_me">Moi</string>
     <string name="think_of_me_pick_me_detail">Noter un moment important à venir</string>
     <string name="think_of_me_pick_error">Impossible d\'afficher la famille. Vérifie ta connexion, puis réessaie.</string>
-    <string name="think_of_me_for">Pensez à %1$s</string>
+    <string name="think_of_me_for">Penser à %1$s</string>
     <string name="think_of_me_nothing_today">Pas de moment à encourager pour %1$s aujourd\'hui. Le jour J d\'un moment noté, tu pourras lui écrire ici.</string>
     <string name="feature_little_ones">Le coin des petits</string>
     <string name="feature_discover">À découvrir</string>
