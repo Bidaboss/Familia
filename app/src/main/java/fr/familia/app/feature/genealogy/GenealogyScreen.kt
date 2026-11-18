@@ -6,6 +6,7 @@ import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -363,10 +364,11 @@ internal fun TreeDrawing(tree: GenealogyTree, words: Map<String, String>, onOpen
             }
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(48.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        // Each card on its column, so children stand under the middle of their parents (retour du 18/11).
+        val rowWidth = NODE_SLOT * tree.width.toFloat() - NODE_GAP
         tree.rows.forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+            Box(Modifier.width(rowWidth)) {
                 row.forEach { id ->
                     val person = tree.people.getValue(id)
                     PersonNode(
@@ -374,7 +376,7 @@ internal fun TreeDrawing(tree: GenealogyTree, words: Map<String, String>, onOpen
                         name = tree.drawnName(id),
                         word = words[id],
                         onClick = { onOpen(id) },
-                        modifier = Modifier.onGloballyPositioned { coords ->
+                        modifier = Modifier.offset(x = NODE_SLOT * (tree.columns[id] ?: 0.0).toFloat()).onGloballyPositioned { coords ->
                             val root = origin ?: return@onGloballyPositioned
                             if (!root.isAttached || !coords.isAttached) return@onGloballyPositioned
                             val topLeft = root.localPositionOf(coords, Offset.Zero)
@@ -387,10 +389,15 @@ internal fun TreeDrawing(tree: GenealogyTree, words: Map<String, String>, onOpen
     }
 }
 
+/** A card of the tree and the space after it. */
+private val NODE_WIDTH = 128.dp
+private val NODE_GAP = 24.dp
+private val NODE_SLOT = NODE_WIDTH + NODE_GAP
+
 @Composable
 private fun PersonNode(person: TreePerson, name: String, word: String?, onClick: () -> Unit, modifier: Modifier = Modifier) {
     ClayCard(
-        modifier = modifier.width(128.dp),
+        modifier = modifier.width(NODE_WIDTH),
         onClick = onClick,
         onClickLabel = stringResource(R.string.genealogy_open_card),
         contentPadding = PaddingValues(12.dp),
