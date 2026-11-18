@@ -1065,7 +1065,7 @@ service cloud.firestore {
                               'mentionIds', 'reactions', 'hiddenByIds', 'createdAt', 'updatedAt'])
         && n.keys().hasOnly(['text', 'photoIds', 'authorId', 'authorName', 'forMemberId', 'householdId',
                              'mentionIds', 'reactions', 'hiddenByIds', 'createdAt', 'updatedAt', 'forChallenge',
-                             'littleOnes'])
+                             'littleOnes', 'commentCount'])
         // Linked to the challenge of a foyer (récit 35 bis): its month; the photo is already required.
         && (!('forChallenge' in n) || isMonthId(n.forChallenge))
         // « Les petits » (récit 43): only on a news an adult publishes for a child, never on one's own.
@@ -1128,11 +1128,55 @@ service cloud.firestore {
         && canPostFor(request.resource.data.forMemberId)
         && request.resource.data.reactions.size() == 0
         && request.resource.data.hiddenByIds.size() == 0
+        // commentCount is kept by the server alone (récit 67).
+        && !('commentCount' in request.resource.data)
         && request.resource.data.createdAt == request.time;
 
       allow update: if isMember() && (isGoodNewsReaction() || isGoodNewsHide() || isGoodNewsEdit());
 
       allow delete: if isMember() && canRemoveGoodNews(resource.data);
+    }
+
+    // goodNews/{postId}/comments/{commentId} (récit 67): every member reads the comments of a good
+    // news and writes their own, a child with the app too, without approval (PRODUIT-102): a text
+    // of 1 to 500 characters. They stay as long as the news and go with it (onGoodNewsDeleted). Its
+    // author changes the text. Its author, the author of the news, a responsible adult of its
+    // author, a chef de famille of the household of the news and the admin principal remove it.
+    // The server counts them on the news (commentCount) and tells who is concerned.
+    function newsOf(postId) {
+      return get(/databases/$(database)/documents/goodNews/$(postId)).data;
+    }
+
+    match /goodNews/{postId}/comments/{commentId} {
+      allow read: if isMember();
+      allow create: if isMember()
+        && exists(/databases/$(database)/documents/goodNews/$(postId))
+        && request.resource.data.keys().hasAll(['text', 'authorId', 'authorName', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['text', 'authorId', 'authorName', 'createdAt'])
+        && isCommentText(request.resource.data.text)
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.createdAt == request.time;
+      allow update: if isMember()
+        && resource.data.authorId == myMemberId()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'editedAt'])
+        && isCommentText(request.resource.data.text)
+        && request.resource.data.editedAt == request.time;
+      allow delete: if isMember()
+        && (resource.data.authorId == myMemberId()
+            || isParentOf(resource.data.authorId)
+            || newsOf(postId).get('authorId', '') == myMemberId()
+            || managesHousehold(newsOf(postId).get('householdId', '')));
+    }
+
+    // « Ne plus être prévenu » for the comments of a good news, as for an event.
+    match /goodNews/{postId}/commentMutes/{memberId} {
+      allow read: if isMember() && memberId == myMemberId();
+      allow create: if isMember()
+        && memberId == myMemberId()
+        && request.resource.data.keys().hasOnly(['mutedAt'])
+        && request.resource.data.mutedAt == request.time;
+      allow delete: if isMember() && memberId == myMemberId();
     }
 
     // --- Bons plans et bonnes adresses (PRD, récit 45, PRODUIT-60) ------------------------------
