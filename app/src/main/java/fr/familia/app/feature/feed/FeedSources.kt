@@ -7,6 +7,8 @@ import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.feature.yearago.rememberYearAgoMemory
+import fr.familia.app.feature.yearinreview.openableReviewYear
 import java.time.LocalDate
 
 /**
@@ -26,7 +28,15 @@ fun rememberFeedSources(container: AppContainer?, me: Member, family: Family?, t
     val tripsOn = flags.isOn(Feature.Trips)
     val eventAlbumsOn = flags.isOn(Feature.EventAlbums)
     val recipesOn = flags.isOn(Feature.Recipes)
-    return remember(container, me.id, family, today, commentsOn, wishesOn, goodNewsOn, helpOn, weeklyOn, tripsOn, eventAlbumsOn, recipesOn) {
+    // Se souvenir en un seul lieu (récit 71): each souvenir under the switch of its module.
+    val capsulesOn = flags.isOn(Feature.Capsules)
+    val recapOn = flags.isOn(Feature.Recap)
+    val yearAgo = if (flags.isOn(Feature.YearAgo)) rememberYearAgoMemory(container, me) else null
+    val reviewYear = openableReviewYear(today, forCard = true)
+    return remember(
+        container, me.id, family, today, commentsOn, wishesOn, goodNewsOn, helpOn, weeklyOn, tripsOn, eventAlbumsOn, recipesOn,
+        capsulesOn, recapOn, yearAgo, reviewYear,
+    ) {
         buildList {
             // Planning (fil principal): the events put in the Planning, with « J'y vais » and their last comment.
             container?.eventRepository?.let { events ->
@@ -48,6 +58,13 @@ fun rememberFeedSources(container: AppContainer?, me: Member, family: Family?, t
             }
             // Recettes ajoutées (fil voyage), with their last comment.
             container?.recipeRepository?.takeIf { recipesOn }?.let { add(RecipeFeedSource(it, container.albumPhotoRepository)) }
+            // Capsule ouverte, Il y a un an, La semaine de la famille (le dimanche), Notre année (récit 71).
+            if (capsulesOn) container?.capsuleRepository?.let { add(CapsuleFeedSource(it, me.id)) }
+            yearAgo?.let { add(YearAgoFeedSource(it, today)) }
+            if (recapOn && family != null) {
+                add(WeekFeedSource(container?.goodNewsRepository.takeIf { goodNewsOn }, container?.tripRepository.takeIf { tripsOn }, family.members, me.id, today))
+            }
+            add(YearInReviewFeedSource(reviewYear))
         }
     }
 }

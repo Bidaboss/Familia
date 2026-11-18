@@ -41,12 +41,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import fr.familia.app.feature.feed.FeedList
+import fr.familia.app.feature.feed.FeedOpenRequest
+import fr.familia.app.feature.feed.FeedPublishBar
 import fr.familia.app.feature.feed.FeedNavigation
 import fr.familia.app.feature.feed.HomeFeedSwitch
 import fr.familia.app.feature.feed.LocalFeedNavigation
 import fr.familia.app.feature.feed.rememberFeedState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import android.widget.Toast
 import androidx.compose.ui.Alignment
@@ -182,6 +185,10 @@ fun HomeRoute(
     onOpenMyProfile: () -> Unit = {},
     /** A member's page, from a card of the fil (« Lui souhaiter », récit 67). */
     onOpenMember: (String) -> Unit = {},
+    /** An opened capsule, from its card of the fil (récit 71). */
+    onOpenCapsule: (String) -> Unit = {},
+    /** « La semaine de la famille », from its card of the fil (récit 71). */
+    onOpenRecap: () -> Unit = {},
 ) {
     val flags = LocalFeatureFlags.current
     val giftsOn = flags.isOn(Feature.Gifts)
@@ -295,6 +302,14 @@ fun HomeRoute(
         val feed = if (feedOn) rememberFeedState(container, currentMember) else null
         // The app always opens on « Aujourd'hui ».
         var onFeed by rememberSaveable { mutableStateOf(false) }
+        // « Le fil » of Tout Familia opens the Accueil on the fil (récit 71).
+        val feedAsked by FeedOpenRequest.asked.collectAsState()
+        LaunchedEffect(feedAsked, feed != null) {
+            if (feedAsked && feed != null) {
+                onFeed = true
+                FeedOpenRequest.consume()
+            }
+        }
         val feedNavigation = remember(actions) {
             FeedNavigation(
                 onOpenEvent = actions.onOpenEvent,
@@ -305,12 +320,26 @@ fun HomeRoute(
                 onOpenRecipe = onOpenRecipe,
                 onOpenAlbumPhoto = actions.onOpenAlbumPhoto,
                 onOpenWeeklyQuestion = onOpenWeeklyQuestion,
+                onOpenCapsule = onOpenCapsule,
+                onOpenRecap = onOpenRecap,
+                onOpenYear = onOpenYear,
             )
         }
+        val canPublish = flags.isOn(Feature.GoodNews)
         HomeR1bisScreen(
             switcher = feed?.let { f -> { HomeFeedSwitch(onFeed, f.unseen, onChoose = { onFeed = it }) } },
             feed = feed?.takeIf { onFeed }?.let { f ->
-                { CompositionLocalProvider(LocalFeedNavigation provides feedNavigation) { FeedList(f) } }
+                {
+                    CompositionLocalProvider(LocalFeedNavigation provides feedNavigation) {
+                        // Publish from the fil itself (maquette SF1); never in presentation or « Voir comme ».
+                        val publish: (@Composable () -> Unit)? = if (canPublish && f.context?.readOnly == false) {
+                            { FeedPublishBar(currentMember, onPublishGoodNews) }
+                        } else {
+                            null
+                        }
+                        FeedList(f, top = publish)
+                    }
+                }
             },
             state = shownState,
             firstSteps = rememberFirstSteps(container, currentMember, onOpenTastes = onOpenMyProfile, onOpenGoodNews = onOpenGoodNewsFeed),
