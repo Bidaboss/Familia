@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
@@ -25,10 +23,8 @@ import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
-import androidx.compose.material.icons.outlined.Park
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -83,7 +79,6 @@ import java.time.temporal.ChronoUnit
 /** What the new tab leads to. */
 internal class GiftsV2Actions(
     val onOpenList: (String) -> Unit,
-    val onSelectMoment: (GiftMoment?) -> Unit,
     val onAllBirthdays: () -> Unit,
     val onOpenMyPage: (() -> Unit)?,
     val onAddWish: (listId: String) -> Unit,
@@ -93,15 +88,13 @@ internal fun LazyListScope.giftsV2Content(state: GiftsUiState.Success, actions: 
     // A child reads the wishes of the others, never their ideas (PRODUIT, 18/11).
     val adult = state.canPrepareSurprise
     val mine = state.sections.firstOrNull { it.isMe }
+    val door: (String) -> Boolean = { id -> adult && surpriseDoor(state, id, showPreparing) }
     if (showPreparing && state.surpriseButton) {
         items(preparingLines(state), key = { "preparing-${it.key}" }) { line -> SurpriseCard(state, line, actions.onOpenList) }
     }
     // A child finds their own wishes first (C5).
     if (!adult && mine != null) item(key = "my-wishes") { MyWishesCard(state, mine, actions, showTitles = true) }
-    if (state.moment == null) upcomingV2(state, actions, adult)
-    if (state.occasions.isNotEmpty()) {
-        item(key = "moments") { OccasionChips(state.occasions, state.moment, actions.onSelectMoment) }
-    }
+    if (state.moment == null) upcomingV2(state, actions, door)
     if (adult && mine != null && state.moment !is GiftMoment.BirthdayOf) {
         item(key = "my-wishes") { MyWishesCard(state, mine, actions, showTitles = false) }
     }
@@ -110,7 +103,7 @@ internal fun LazyListScope.giftsV2Content(state: GiftsUiState.Success, actions: 
         item(key = "family-title") { TitleWithRule(stringResource(R.string.gifts_v2_family)) }
         householdBlocks(others, mine?.member?.householdId).forEach { block ->
             item(key = "household-${block.key}") {
-                HouseholdSection(state, block, openAtFirst = block.mine || state.moment != null, adult = adult, onOpenList = actions.onOpenList)
+                HouseholdSection(state, block, openAtFirst = block.mine || state.moment != null, door = door, onOpenList = actions.onOpenList)
             }
         }
     }
@@ -188,37 +181,27 @@ internal fun birthdayInRelief(state: GiftsUiState.Success): Birthday? =
     state.birthdays.firstOrNull()?.takeIf { it.date <= state.today.plusDays(UPCOMING_BIRTHDAY_DAYS) }
 
 /** « À venir »: the birthday in relief, then the other occasions in compact lines. */
-private fun LazyListScope.upcomingV2(state: GiftsUiState.Success, actions: GiftsV2Actions, adult: Boolean) {
+private fun LazyListScope.upcomingV2(state: GiftsUiState.Success, actions: GiftsV2Actions, door: (String) -> Boolean) {
     item(key = "upcoming-title") { TitleWithRule(stringResource(R.string.gifts_upcoming_title)) }
     val relief = birthdayInRelief(state)
-    relief?.let { birthday -> item(key = "relief") { ReliefBirthday(state, birthday, actions, adult) } }
+    relief?.let { birthday -> item(key = "relief") { ReliefBirthday(state, birthday, actions, door) } }
     val until = state.today.plusDays(UPCOMING_BIRTHDAY_DAYS)
     val birthdays = state.birthdays.filter { it != relief && (relief == null || it.date <= until) }
-    val christmas = LocalDate.of(state.today.year, 12, 25).let { if (it >= state.today) it else it.plusYears(1) }
-    val showChristmas = state.today >= LocalDate.of(christmas.year, 11, 1)
-    val lines: List<Pair<LocalDate, Birthday?>> = (birthdays.map { it.date to it } + if (showChristmas) listOf(christmas to null) else emptyList())
-        .sortedBy { it.first }
-    lines.forEach { (date, birthday) ->
-        item(key = birthday?.let { "line-${it.member.id}" } ?: "line-christmas") {
-            if (birthday != null) {
-                val me = state.sections.any { it.isMe && it.member.id == birthday.member.id }
-                CompactLine(
-                    icon = Icons.Outlined.Cake,
-                    title = stringResource(R.string.gifts_birthday_of, birthday.member.firstName),
-                    subtitle = dateLine(state.today, date),
-                    onClick = {
-                        if (me) actions.onOpenMyPage?.invoke() ?: actions.onOpenList(wishesListId(birthday.member.id))
-                        else actions.onSelectMoment(GiftMoment.BirthdayOf(birthday.member, birthday.date))
-                    },
-                )
-            } else {
-                CompactLine(
-                    icon = Icons.Outlined.Park,
-                    title = stringResource(R.string.gifts_v2_christmas),
-                    subtitle = dateLine(state.today, date),
-                    onClick = { actions.onSelectMoment(GiftMoment.Christmas(date.year)) },
-                )
-            }
+    // No Christmas line any more (PRODUIT-134): only the birthdays. Christmas stays an occasion of the wishes.
+    birthdays.sortedBy { it.date }.forEach { birthday ->
+        val date = birthday.date
+        item(key = "line-${birthday.member.id}") {
+            val me = state.sections.any { it.isMe && it.member.id == birthday.member.id }
+            CompactLine(
+                icon = Icons.Outlined.Cake,
+                title = stringResource(R.string.gifts_birthday_of, birthday.member.firstName),
+                subtitle = dateLine(state.today, date),
+                onClick = {
+                    // No more filter by occasion (PRODUIT-134): their wishes, as « Ses envies ».
+                    if (me) actions.onOpenMyPage?.invoke() ?: actions.onOpenList(wishesListId(birthday.member.id))
+                    else actions.onOpenList(wishesFor(state, birthday.member.id))
+                },
+            )
         }
     }
     item(key = "birthdays-all") { ClayLink(stringResource(R.string.gifts_all_birthdays), onClick = actions.onAllBirthdays) }
@@ -229,9 +212,9 @@ private fun LazyListScope.upcomingV2(state: GiftsUiState.Success, actions: Gifts
 private fun dateLine(today: LocalDate, date: LocalDate): String =
     stringResource(R.string.gifts_v2_date_line, frenchDate(date, "EEEE d MMMM").replaceFirstChar { it.uppercase() }, inDays(today, date))
 
-/** The next birthday in relief (C2): bordered in the person's color, with « Ses envies » and « Idées ». */
+/** The next birthday in relief (C2): bordered in the person's color, with « Ses envies » and « Surprise » (PRODUIT-133). */
 @Composable
-private fun ReliefBirthday(state: GiftsUiState.Success, birthday: Birthday, actions: GiftsV2Actions, adult: Boolean) {
+private fun ReliefBirthday(state: GiftsUiState.Success, birthday: Birthday, actions: GiftsV2Actions, door: (String) -> Boolean) {
     val member = birthday.member
     val color = memberColor(member)
     val me = state.sections.any { it.isMe && it.member.id == member.id }
@@ -257,11 +240,11 @@ private fun ReliefBirthday(state: GiftsUiState.Success, birthday: Birthday, acti
                 description = if (me) null else stringResource(R.string.gift_wishes_of, member.firstName),
                 onClick = wishes,
             )
-            if (adult && !me) {
+            if (!me && door(member.id)) {
                 OutlineButton(
-                    stringResource(R.string.gifts_v2_ideas),
+                    stringResource(R.string.gifts_v2_surprise),
                     Modifier.weight(1f),
-                    description = stringResource(R.string.gifts_ideas_for, member.firstName),
+                    description = stringResource(R.string.gift_ideas_of, member.firstName),
                 ) { actions.onOpenList(ideasFor(state, member.id)) }
             }
         }
@@ -271,10 +254,18 @@ private fun ReliefBirthday(state: GiftsUiState.Success, birthday: Birthday, acti
 private fun wishesFor(state: GiftsUiState.Success, memberId: String): String =
     state.sections.firstOrNull { it.member.id == memberId }?.wishes?.id ?: wishesListId(memberId)
 
+/**
+ * The « Surprise » of a person's card (PRODUIT-133): only once a surprise is in progress for them,
+ * since « Préparer une surprise » starts one; on every card while that button is off, the only way in.
+ * Never in « Voir comme »: it would tell that a surprise is there. Pure, for the tests.
+ */
+internal fun surpriseDoor(state: GiftsUiState.Success, memberId: String, showPreparing: Boolean): Boolean =
+    showPreparing && (!state.surpriseButton || memberId in state.surprisePreparedFor)
+
 private fun ideasFor(state: GiftsUiState.Success, memberId: String): String =
     state.sections.firstOrNull { it.member.id == memberId }?.ideas?.id ?: ideasListId(memberId)
 
-/** Noël, or a birthday after the one in relief: an icon, the day, a chevron. */
+/** A birthday after the one in relief: an icon, the day, a chevron. */
 @Composable
 private fun CompactLine(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String, onClick: () -> Unit) {
     ClayCard(Modifier.fillMaxWidth().heightIn(min = 56.dp), onClick = onClick, onClickLabel = stringResource(R.string.gifts_v2_open), contentPadding = ClaySpacing.card) {
@@ -287,21 +278,6 @@ private fun CompactLine(icon: androidx.compose.ui.graphics.vector.ImageVector, t
                 Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null)
-        }
-    }
-}
-
-/** « Toutes », « Anniversaire de … », « Noël 2026 » on one line that scrolls. */
-@Composable
-private fun OccasionChips(moments: List<GiftMoment>, selected: GiftMoment?, onSelect: (GiftMoment?) -> Unit) {
-    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        (listOf(null) + moments).forEach { moment ->
-            val label = when (moment) {
-                null -> stringResource(R.string.gifts_v2_all)
-                is GiftMoment.Christmas -> stringResource(R.string.gifts_moment_christmas, moment.year)
-                is GiftMoment.BirthdayOf -> stringResource(R.string.gifts_birthday_of, moment.member.firstName)
-            }
-            FilterChip(selected = selected == moment, onClick = { onSelect(moment) }, label = { Text(label) }, modifier = Modifier.heightIn(min = 56.dp))
         }
     }
 }
@@ -336,7 +312,7 @@ private fun MyWishesCard(state: GiftsUiState.Success, mine: GiftPersonSection, a
 
 /** A household: open, its people one card each; folded, one line with their avatars. */
 @Composable
-private fun HouseholdSection(state: GiftsUiState.Success, block: HouseholdBlock, openAtFirst: Boolean, adult: Boolean, onOpenList: (String) -> Unit) {
+private fun HouseholdSection(state: GiftsUiState.Success, block: HouseholdBlock, openAtFirst: Boolean, door: (String) -> Boolean, onOpenList: (String) -> Unit) {
     var open by rememberSaveable(block.key, openAtFirst) { mutableStateOf(openAtFirst) }
     val name = block.name ?: stringResource(R.string.members_other_household)
     Column(verticalArrangement = Arrangement.spacedBy(ClaySpacing.between)) {
@@ -357,7 +333,7 @@ private fun HouseholdSection(state: GiftsUiState.Success, block: HouseholdBlock,
                 Icon(if (open) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown, contentDescription = null)
             }
         }
-        if (open) block.sections.forEach { PersonCard(state, it, adult, onOpenList) }
+        if (open) block.sections.forEach { PersonCard(state, it, door, onOpenList) }
     }
 }
 
@@ -366,7 +342,7 @@ private fun HouseholdSection(state: GiftsUiState.Success, block: HouseholdBlock,
  * pill « 6 envies » and two buttons. Never how many ideas nor reservations (PRODUIT-120).
  */
 @Composable
-private fun PersonCard(state: GiftsUiState.Success, section: GiftPersonSection, adult: Boolean, onOpenList: (String) -> Unit) {
+private fun PersonCard(state: GiftsUiState.Success, section: GiftPersonSection, door: (String) -> Boolean, onOpenList: (String) -> Unit) {
     val member = section.member
     val count = section.wishes?.let { state.wishPreviews[it.id]?.count } ?: 0
     EdgedCard(memberColor(member)) {
@@ -398,8 +374,8 @@ private fun PersonCard(state: GiftsUiState.Success, section: GiftPersonSection, 
                 colors = ButtonDefaults.buttonColors(containerColor = Peach.copy(alpha = 0.3f), contentColor = MaterialTheme.colorScheme.onSurface),
                 modifier = item.heightIn(min = 56.dp).labelled(stringResource(R.string.gift_wishes_of, member.firstName)),
             ) { Text(stringResource(R.string.gifts_v2_their_wishes)) }
-            if (adult) {
-                OutlineButton(stringResource(R.string.gifts_v2_ideas), item, description = stringResource(R.string.gifts_ideas_for, member.firstName)) {
+            if (door(member.id)) {
+                OutlineButton(stringResource(R.string.gifts_v2_surprise), item, description = stringResource(R.string.gift_ideas_of, member.firstName)) {
                     onOpenList(section.ideas?.id ?: ideasListId(member.id))
                 }
             }
