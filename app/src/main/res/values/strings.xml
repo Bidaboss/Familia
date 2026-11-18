@@ -1274,8 +1274,8 @@
     <string name="albums_feed_open">ouvrir la bonne nouvelle</string>
     <string name="albums_feed_photo">Photo de %1$s</string>
     <string name="album_photo_position">%1$d sur %2$d</string>
-    <string name="album_photo_remove">Retirer</string>
-    <string name="album_photo_remove_title">Retirer cette photo ?</string>
+    <string name="album_photo_remove">Supprimer</string>
+    <string name="album_photo_remove_title">Supprimer cette photo ?</string>
     <string name="album_photo_remove_body">Elle disparaît de l\'album pour tout le monde.</string>
     <string name="album_photo_keep">Garder</string>
     <string name="album_film_make">Faire le film</string>
