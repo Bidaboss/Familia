@@ -176,7 +176,7 @@ internal fun TreeOfLifeDrawing(
                 translate(ox.toPx(), oy.toPx()) { drawScenery(life) }
             }
             life.units.forEach { unit ->
-                val radius = if (unit.level == 0 && unit.ids.size > 1) TreeOfLife.TRUNK_RADIUS else TreeOfLife.RADIUS
+                val radius = life.radiusOf(unit.ids.first())
                 unit.ids.forEach { id ->
                     val (x, y) = life.centers.getValue(id)
                     Medallion(tree.people.getValue(id), tree.drawnName(id), radius.dp, words[id], outlined, onOpen, Modifier.centerAt(ox + x.dp, oy + y.dp))
@@ -305,7 +305,7 @@ private fun DrawScope.drawScenery(life: TreeOfLife) {
         style = Stroke(2 * d, pathEffect = PathEffect.dashPathEffect(floatArrayOf(6 * d, 6 * d))),
     )
 
-    val trunkX = life.units.filter { it.level == 0 }.map { it.x }.average().toFloat().takeIf { !it.isNaN() } ?: 0f
+    val trunkX = life.trunk?.x ?: 0f
     val ground = TreeOfLife.GROUND_Y
     // The ground and the roots: lines from the foot of the trunk to each relative.
     drawLine(Palette.Ground, p(trunkX - 120, ground), p(trunkX + 120, ground), 6 * d)
