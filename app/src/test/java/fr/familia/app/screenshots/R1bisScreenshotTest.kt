@@ -10,7 +10,9 @@ import androidx.compose.runtime.Composable
 import com.github.takahirom.roborazzi.captureRoboImage
 import fr.familia.app.R
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.theme.BodyFont
 import fr.familia.app.core.theme.FamiliaThemeId
+import fr.familia.app.core.theme.TitleFont
 import fr.familia.app.feature.all.AllFamiliaScreen
 import fr.familia.app.feature.all.AllModule
 import fr.familia.app.feature.all.ModuleFamily
@@ -83,10 +85,19 @@ class R1bisScreenshotTest {
     fun homeClassic() = capture("r1bis_accueil_classique", content = home)
 
     @Test
-    fun homeArcade() = capture("r1bis_accueil_arcade", theme = FamiliaThemeId.Arcade, content = home)
+    fun homeOlive() = capture("r1bis_accueil_olivier", theme = FamiliaThemeId.Olive, content = home)
 
     @Test
-    fun homeCosmos() = capture("r1bis_accueil_cosmos", theme = FamiliaThemeId.Cosmos, content = home)
+    fun homeNight() = capture("r1bis_accueil_nuit", theme = FamiliaThemeId.Night, content = home)
+
+    /** Olivier and Nuit at 130 %, with the two other fonts (DESIGN-43, 45 and 46). */
+    @Test
+    @Config(fontScale = 1.3f)
+    fun homeOliveFontScale130() = capture("r1bis_accueil_olivier_130", theme = FamiliaThemeId.Olive, titleFont = TitleFont.Elegant, bodyFont = BodyFont.Legible, content = home)
+
+    @Test
+    @Config(fontScale = 1.3f)
+    fun homeNightFontScale130() = capture("r1bis_accueil_nuit_130", theme = FamiliaThemeId.Night, titleFont = TitleFont.Sober, bodyFont = BodyFont.Legible, content = home)
 
     @Test
     @Config(fontScale = 2f)
@@ -103,9 +114,15 @@ class R1bisScreenshotTest {
     @Config(fontScale = 2f)
     fun allFamiliaFontScale200() = capture("r1bis_tout_familia_police_200", content = all)
 
-    private fun capture(name: String, theme: FamiliaThemeId = FamiliaThemeId.Classic, content: @Composable () -> Unit) {
+    private fun capture(
+        name: String,
+        theme: FamiliaThemeId = FamiliaThemeId.Classic,
+        titleFont: TitleFont = TitleFont.Round,
+        bodyFont: BodyFont = BodyFont.Normal,
+        content: @Composable () -> Unit,
+    ) {
         captureRoboImage("build/outputs/roborazzi/$name.png") {
-            FamiliaTheme(darkTheme = false, theme = theme, seeds = true) { content() }
+            FamiliaTheme(darkTheme = false, theme = theme, seeds = true, titleFont = titleFont, bodyFont = bodyFont) { content() }
         }
     }
 }

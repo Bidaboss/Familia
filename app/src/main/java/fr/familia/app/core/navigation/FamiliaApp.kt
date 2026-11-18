@@ -223,7 +223,9 @@ import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.theme.FamiliaThemeId
 import fr.familia.app.core.theme.themeBackground
-import fr.familia.app.core.theme.themeTopBand
+import fr.familia.app.core.theme.TitleFont
+import fr.familia.app.core.theme.BodyFont
+import fr.familia.app.core.theme.LocalClayStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -405,6 +407,8 @@ fun FamiliaApp(
     val homePrefs = remember(context) { HomePreferences(context.applicationContext) }
     val themePrefs = remember(context) { ThemePreferences(context.applicationContext) }
     var chosenTheme by remember { mutableStateOf(themePrefs.theme) }
+    var chosenTitleFont by remember { mutableStateOf(themePrefs.titleFont) }
+    var chosenBodyFont by remember { mutableStateOf(themePrefs.bodyFont) }
     val iconSwitcher = remember(context) { AppIconSwitcher(context.applicationContext) }
     var showOnboarding by rememberSaveable { mutableStateOf(!onboarding.seen) }
     // The welcome plays at each opening while « Longue » is chosen in Apparence, the default
@@ -753,7 +757,12 @@ fun FamiliaApp(
 
     // The theme chosen on this phone shows once the Thèmes module is on; before, Classique (DESIGN-7).
     val themesOn = features.isOn(Feature.Themes)
-    FamiliaTheme(theme = if (themesOn) chosenTheme else FamiliaThemeId.Classic, seeds = true) {
+    FamiliaTheme(
+        theme = if (themesOn) chosenTheme else FamiliaThemeId.Classic,
+        seeds = true,
+        titleFont = if (themesOn) chosenTitleFont else TitleFont.Round,
+        bodyFont = if (themesOn) chosenBodyFont else BodyFont.Normal,
+    ) {
     CompositionLocalProvider(
         LocalOpenHelp provides { navController.navigate(HelpDestination) { launchSingleTop = true } },
         LocalMemberPhotos provides photos,
@@ -819,7 +828,7 @@ fun FamiliaApp(
         }
         Scaffold(
             // The theme's background and its pattern show behind the tabs.
-            modifier = Modifier.themeBackground(withTopBand = false).themeTopBand().nestedScroll(topBarScroll.nestedScrollConnection),
+            modifier = Modifier.themeBackground().nestedScroll(topBarScroll.nestedScrollConnection),
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onBackground,
             snackbarHost = { SnackbarHost(snackbar) },
@@ -860,7 +869,7 @@ fun FamiliaApp(
                             selected = selected,
                             onClick = { navController.navigateToTab(destination) },
                             // R1 bis: the tab on shows in a yellow pill, its icon dark on it.
-                            colors = NavigationBarItemDefaults.colors(indicatorColor = R1_TAB_PILL, selectedIconColor = Color(0xFF1B1B1B)),
+                            colors = NavigationBarItemDefaults.colors(indicatorColor = LocalClayStyle.current.tabPill, selectedIconColor = Color(0xFF1B1B1B)),
                             icon = {
                                 val badge = if (destination == TopLevelDestination.HelpRequests) helpBadge else 0
                                 BadgedBox(badge = { if (badge > 0) Badge { Text(badge.toString()) } }) {
@@ -895,7 +904,7 @@ fun FamiliaApp(
                         NavigationRailItem(
                             selected = selected,
                             onClick = { navController.navigateToTab(destination) },
-                            colors = NavigationRailItemDefaults.colors(indicatorColor = R1_TAB_PILL, selectedIconColor = Color(0xFF1B1B1B)),
+                            colors = NavigationRailItemDefaults.colors(indicatorColor = LocalClayStyle.current.tabPill, selectedIconColor = Color(0xFF1B1B1B)),
                             icon = {
                                 val badge = if (destination == TopLevelDestination.HelpRequests) helpBadge else 0
                                 BadgedBox(badge = { if (badge > 0) Badge { Text(badge.toString()) } }) {
@@ -1855,6 +1864,16 @@ fun FamiliaApp(
                                 chosenTheme = theme
                                 themePrefs.theme = theme
                             },
+                            titleFont = chosenTitleFont,
+                            onChooseTitleFont = { font ->
+                                chosenTitleFont = font
+                                themePrefs.titleFont = font
+                            },
+                            bodyFont = chosenBodyFont,
+                            onChooseBodyFont = { font ->
+                                chosenBodyFont = font
+                                themePrefs.bodyFont = font
+                            },
                             onBack = { navController.popBackStack() },
                             icon = chosenIcon,
                             onChooseIcon = { icon ->
@@ -2073,7 +2092,6 @@ private fun TabLabel(text: String) {
 
 private const val MIN_TAB_LABEL_SP = 9f
 
-private val R1_TAB_PILL = Color(0xFFF2C14E)
 
 /**
  * The modules of « Tout Familia » (R1 bis, §3), each only while it is on for me. Comptes stays out

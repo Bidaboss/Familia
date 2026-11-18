@@ -7,6 +7,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 
@@ -76,6 +77,9 @@ fun FamiliaTheme(
     theme: FamiliaThemeId = FamiliaThemeId.Classic,
     /** The R1 bis presentation gives Classique its « pépins » (light only); the other themes keep theirs. */
     seeds: Boolean = false,
+    /** « Police des titres » and « Police du texte », chosen apart from the theme (DESIGN-45 and 46). */
+    titleFont: TitleFont = TitleFont.Round,
+    bodyFont: BodyFont = BodyFont.Normal,
     content: @Composable () -> Unit,
 ) {
     val spec = themeSpec(theme)
@@ -84,10 +88,11 @@ fun FamiliaTheme(
     CompositionLocalProvider(
         LocalClayColors provides if (dark) spec.darkClay ?: spec.lightClay else spec.lightClay,
         LocalClayStyle provides style,
+        LocalTitleFont provides titleFont,
     ) {
         MaterialTheme(
             colorScheme = if (dark) spec.dark ?: spec.light else spec.light,
-            typography = familiaTypography(spec.style),
+            typography = familiaTypography(titleFont, bodyFont),
             shapes = FamiliaShapes,
             content = content,
         )
@@ -106,10 +111,13 @@ object FamiliaClay {
         get() = LocalClayStyle.current
 }
 
-/** Day headers of the planning: the day font and color of the theme (Classique: Fredoka, primary). */
+/** The title font chosen on this phone, for the day headers. */
+val LocalTitleFont = staticCompositionLocalOf { TitleFont.Round }
+
+/** Day headers of the planning: the title font and the day color of the theme (Argile: Fredoka, primary). */
 @Composable
 @ReadOnlyComposable
-fun dayHeaderTextStyle(): TextStyle = dayHeaderStyle(LocalClayStyle.current, MaterialTheme.typography.titleLarge)
+fun dayHeaderTextStyle(): TextStyle = dayHeaderStyle(LocalTitleFont.current, MaterialTheme.typography.titleLarge)
 
 @Composable
 @ReadOnlyComposable

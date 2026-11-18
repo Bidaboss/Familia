@@ -1,7 +1,7 @@
 package fr.familia.app.feature.polls.edit
 
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -53,16 +54,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.data.familyToday
-import fr.familia.app.core.ui.HouseholdMemberPicker
-import fr.familia.app.core.ui.PickGroup
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.Poll
@@ -70,6 +72,8 @@ import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.HouseholdMemberPicker
+import fr.familia.app.core.ui.PickGroup
 import fr.familia.app.core.ui.formatDay
 import fr.familia.app.core.ui.formatTime
 import fr.familia.app.feature.polls.closingDayLabel
@@ -153,17 +157,43 @@ private fun FormContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        SectionTitle(stringResource(R.string.poll_kind))
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Poll.Kind.entries.forEach { kind ->
-                val selected = form.kind == kind
-                FilterChip(
-                    selected = selected,
-                    onClick = { onChange { it.copy(kind = kind) } },
-                    label = { Text(kindLabel(kind), style = MaterialTheme.typography.labelLarge) },
-                    leadingIcon = if (selected) ({ Icon(Icons.Outlined.Check, contentDescription = null) }) else null,
-                    modifier = Modifier.heightIn(min = 56.dp),
-                )
+        val event = state.forEvent
+        if (event != null) {
+            // Asked from an event (retour du 18/11): about it only, the event never changes here.
+            EventHeader(event, today)
+            SectionTitle(stringResource(R.string.poll_motive))
+            val questions = PollMotive.entries.associateWith { motiveQuestion(it, event.title) }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                PollMotive.entries.forEach { motive ->
+                    val selected = form.motive == motive
+                    FilterChip(
+                        selected = selected,
+                        onClick = {
+                            onChange { f ->
+                                // « Autre question » keeps what was typed, only a question written in by a motive goes.
+                                val written = questions.getValue(motive).ifEmpty { f.question.takeUnless { it in questions.values }.orEmpty() }
+                                f.withMotive(motive, written)
+                            }
+                        },
+                        label = { Text(motiveLabel(motive, event.title), style = MaterialTheme.typography.labelLarge) },
+                        leadingIcon = if (selected) ({ Icon(Icons.Outlined.Check, contentDescription = null) }) else null,
+                        modifier = Modifier.heightIn(min = 56.dp),
+                    )
+                }
+            }
+        } else {
+            SectionTitle(stringResource(R.string.poll_kind))
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Poll.Kind.entries.forEach { kind ->
+                    val selected = form.kind == kind
+                    FilterChip(
+                        selected = selected,
+                        onClick = { onChange { it.copy(kind = kind) } },
+                        label = { Text(kindLabel(kind), style = MaterialTheme.typography.labelLarge) },
+                        leadingIcon = if (selected) ({ Icon(Icons.Outlined.Check, contentDescription = null) }) else null,
+                        modifier = Modifier.heightIn(min = 56.dp),
+                    )
+                }
             }
         }
 
@@ -172,7 +202,10 @@ private fun FormContent(
             onValueChange = { value -> onChange { it.copy(question = value) } },
             label = { Text(stringResource(R.string.poll_question)) },
             placeholder = {
-                Text(stringResource(if (form.kind == Poll.Kind.Date) R.string.poll_question_hint_date else R.string.poll_question_hint_choice))
+                Text(
+                    event?.let { stringResource(R.string.poll_question_hint_event, it.title) }
+                        ?: stringResource(if (form.kind == Poll.Kind.Date) R.string.poll_question_hint_date else R.string.poll_question_hint_choice),
+                )
             },
             isError = PollFormError.QuestionMissing in errors || PollFormError.QuestionTooLong in errors,
             supportingText = errorText(errors, PollFormError.QuestionMissing, PollFormError.QuestionTooLong),
@@ -407,6 +440,39 @@ private fun ClosesSection(form: PollForm, errors: Set<PollFormError>, today: Loc
             dismissButton = { TextButton(onClick = { picker = false }) { Text(stringResource(R.string.action_cancel)) } },
         ) { DatePicker(state = pickerState) }
     }
+}
+
+/** « Pour : <titre> · <date> », at the top of a poll asked from an event; it cannot be changed. */
+@Composable
+private fun EventHeader(event: PollEvent, today: LocalDate) {
+    Text(
+        stringResource(R.string.poll_for_event, event.title, formatDay(event.date, today)),
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        color = MaterialTheme.colorScheme.onSecondaryContainer,
+    )
+}
+
+@Composable
+private fun motiveLabel(motive: PollMotive, title: String): String = when (motive) {
+    PollMotive.Date -> stringResource(R.string.poll_motive_date)
+    PollMotive.Place -> stringResource(R.string.poll_motive_place)
+    PollMotive.Menu -> stringResource(R.string.poll_motive_menu)
+    PollMotive.Other -> stringResource(R.string.poll_motive_other, title)
+}
+
+/** The question each motive writes in; « Autre question » leaves it to write. */
+@Composable
+private fun motiveQuestion(motive: PollMotive, title: String): String = when (motive) {
+    PollMotive.Date -> stringResource(R.string.poll_motive_q_date, title)
+    PollMotive.Place -> stringResource(R.string.poll_motive_q_place, title)
+    PollMotive.Menu -> stringResource(R.string.poll_motive_q_menu, title)
+    PollMotive.Other -> ""
 }
 
 @Composable
