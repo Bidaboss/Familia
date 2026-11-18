@@ -227,6 +227,14 @@ export async function deleteClaimShares(db: Firestore, listId: string, itemId: s
   await db.recursiveDelete(db.collection('giftLists').doc(listId).collection('claims').doc(itemId).collection('shares'));
 }
 
+/**
+ * « Déjà acheté » (récit 68): a removed wish, or one marked « Reçue », leaves no participation behind.
+ * Nobody could read nor take them back any more.
+ */
+export async function deleteItemContributions(db: Firestore, listId: string, itemId: string): Promise<void> {
+  await db.recursiveDelete(db.collection('giftLists').doc(listId).collection('items').doc(itemId).collection('contributions'));
+}
+
 /** Who reserved the item, or took part in its joint gift. */
 async function reservers(db: Firestore, listId: string, itemId: string): Promise<{ claim: DocumentSnapshot; ids: string[] }> {
   const claim = await db.collection('giftLists').doc(listId).collection('claims').doc(itemId).get();

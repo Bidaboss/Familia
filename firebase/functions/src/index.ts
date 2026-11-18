@@ -16,7 +16,7 @@ import { deleteCalendarFeedOf, feedFor } from './calendarFeed';
 import { RECURRING_EVENTS, ruleLabel, syncSeries, writtenBySeries, type SeriesData } from './series';
 import { CARPOOL, clearRidesOf, clearRidesOfMember, onRideChanged, type RideData } from './carpool';
 import {
-  deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
+  deleteClaimShares, deleteItemContributions, deleteGiftListContent, deleteMemberGiftLists, GiftItemData, onGiftItemChanged, revealGiftLists,
   sendBirthdayGiftReminders, updateSharesTotal,
 } from './gifts';
 import { countLeftovers, deleteLeftovers, openDueCapsules } from './capsules';
@@ -425,6 +425,8 @@ export const onGiftItemWritten = onDocumentWritten('giftLists/{listId}/items/{it
     await deleteItemPhoto(photo);
   }
   if (before && after) await syncNotebookItem(getFirestore(), event.params.listId, event.params.itemId);
+  // Récit 68: the participations of a removed wish go with it.
+  if (before && !after) await deleteItemContributions(getFirestore(), event.params.listId, event.params.itemId);
 });
 
 // « Liste unique » (récit 9 ter): when its switch is turned on in Administration, the open lists of an occasion

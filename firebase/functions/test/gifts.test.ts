@@ -7,7 +7,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { Notice } from '../src/logic';
 import { Sender } from '../src/store';
 import {
-  birthdayRecipients, birthdaysIn, deleteClaimShares, deleteGiftListContent, deleteMemberGiftLists, GiftMember, isDueForReveal,
+  birthdayRecipients, birthdaysIn, deleteClaimShares, deleteItemContributions, deleteGiftListContent, deleteMemberGiftLists, GiftMember, isDueForReveal,
   nextBirthday, onGiftItemChanged, revealGiftLists, sendBirthdayGiftReminders, updateSharesTotal,
 } from '../src/gifts';
 
@@ -200,6 +200,14 @@ describe('functions', () => {
     await onGiftItemChanged(db, send, 'noel', 'i1', item, { ...item, note: 'En bleu' });
     assert.equal(sent.length, 2);
     assert.equal(sent.some((s) => s.token === 'token-camille'), false); // Never the beneficiary.
+  });
+
+  test('a removed wish already bought leaves no participation behind (récit 68)', async () => {
+    await db.doc('giftLists/wishes-ines/items/w9/contributions/camille').set({ amount: 20, memberName: 'Camille' });
+    await db.doc('giftLists/wishes-ines/items/w8/contributions/camille').set({ amount: 10, memberName: 'Camille' });
+    await deleteItemContributions(db, 'wishes-ines', 'w9');
+    assert.equal((await db.collection('giftLists/wishes-ines/items/w9/contributions').get()).size, 0);
+    assert.equal((await db.collection('giftLists/wishes-ines/items/w8/contributions').get()).size, 1);
   });
 
   test('a deleted list, a released joint gift and a removed member leave nothing behind', async () => {

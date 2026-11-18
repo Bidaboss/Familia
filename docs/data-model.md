@@ -405,7 +405,7 @@ Une participation à une envie déjà achetée, une par adulte. Ce n'est pas une
 
 - **Lire** : sa propre participation ; toutes, par qui tient les listes de la personne (elle-même, ou le parent d'un enfant sans l'appli). Les autres ne voient que le total `contributedTotal` sur l'envie (PRODUIT-109).
 - **Participer, changer, retirer** : un adulte qui ne tient pas les listes de la personne, pour lui-même, sur une envie `alreadyBought`, en changeant `contributedTotal` du même montant dans le même lot.
-- Une envie retirée laisse ses participations sans lecteur ; « Je le prends » est refusé sur une envie déjà achetée.
+- Une envie retirée ou marquée « Reçue » perd ses participations sur le serveur (`onGiftItemWritten`) ; « Je le prends » est refusé sur une envie déjà achetée.
 
 ### `giftLists/{listId}/received/{itemId}` (« On m'a offert », PRD, récit 10 bis)
 
