@@ -68,6 +68,7 @@ private val HELP: Map<Feature, Int> = mapOf(
     Feature.FirstSteps to R.string.feature_help_first_steps,
     Feature.OpeningAnimation to R.string.feature_help_opening_animation,
     Feature.FamilyTabV2 to R.string.feature_help_family_tab_v2,
+    Feature.ChallengeDetails to R.string.feature_help_challenge_details,
 )
 
 @StringRes
@@ -90,6 +91,7 @@ val NEEDS_FIREBASE_PUBLISH: Set<Feature> = setOf(
     Feature.EventAlbums,
     Feature.Souvenirs,
     Feature.Tree,
+    Feature.ChallengeDetails,
     Feature.Digest,
     Feature.Polls,
     Feature.Recipes,

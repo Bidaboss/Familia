@@ -768,7 +768,7 @@ service cloud.firestore {
     }
 
     function isValidHostedChallenge(c, month) {
-      return c.keys().hasOnly(['householdId', 'status', 'kind', 'title', 'emoji', 'illustration', 'target', 'updatedBy', 'updatedAt'])
+      return c.keys().hasOnly(['householdId', 'status', 'kind', 'title', 'emoji', 'illustration', 'target', 'note', 'updatedBy', 'updatedAt'])
         && c.householdId == me().householdId
         && c.householdId == hostOf(month)
         && c.status in ['draft', 'published', 'skipped']
@@ -777,6 +777,8 @@ service cloud.firestore {
         && c.emoji is string && c.emoji.size() > 0 && c.emoji.size() <= 8
         && c.illustration in ['sun', 'heart', 'leaf', 'star', 'camera', 'pot']
         && c.target is int && c.target >= 3 && c.target <= 50
+        // The optional word of the foyer for « Comment ça marche » (récit 65).
+        && (!('note' in c) || (c.note is string && c.note.size() <= 140))
         && c.updatedBy == myMemberId()
         && c.updatedAt == request.time;
     }
