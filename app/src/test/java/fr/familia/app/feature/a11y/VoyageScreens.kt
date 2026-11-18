@@ -124,6 +124,34 @@ internal object VoyageScreens {
             )
             GenealogyScreen(GenealogyUiState.Ready(tree, mapOf("jeanne" to "Arrière-grand-mère"), "noe"), onBack = {})
         },
+        screen("the tree of life") {
+            val jeanne = Kin("jeanne", "Jeanne", "Martin", living = false, born = "1921", died = "1999", householdId = "h1")
+            val tree = GenealogyTree(
+                listOf(member("camille", "Camille"), member("ines", "Inès"), member("noe", "Noé"), member("sam", "Sam"), member("lou", "Lou")),
+                listOf(jeanne),
+                listOf(
+                    KinLink.parent("jeanne", "camille"), KinLink.partners("camille", "ines"),
+                    KinLink.parent("camille", "noe"), KinLink.parent("ines", "noe"), KinLink.partners("noe", "sam"), KinLink.parent("noe", "lou"),
+                ),
+            )
+            GenealogyScreen(GenealogyUiState.Ready(tree, emptyMap(), "noe", isOwner = true), onBack = {}, treeOfLife = true)
+        },
+        screen("the tree of life, without relatives") {
+            val tree = GenealogyTree(
+                listOf(member("camille", "Camille"), member("ines", "Inès"), member("noe", "Noé")),
+                emptyList(),
+                listOf(KinLink.partners("camille", "ines"), KinLink.parent("camille", "noe")),
+            )
+            GenealogyScreen(GenealogyUiState.Ready(tree, emptyMap(), "noe"), onBack = {}, treeOfLife = true)
+        },
+        screen("the tree of life, four generations") {
+            val tree = GenealogyTree(
+                listOf(member("a", "Adèle"), member("b", "Basile"), member("c", "Céleste"), member("d", "Daphné")),
+                emptyList(),
+                listOf(KinLink.parent("a", "b"), KinLink.parent("b", "c"), KinLink.parent("c", "d")),
+            )
+            GenealogyScreen(GenealogyUiState.Ready(tree, emptyMap(), "d"), onBack = {}, treeOfLife = true)
+        },
         screen("the poster of the tree") {
             val tree = GenealogyTree(
                 listOf(

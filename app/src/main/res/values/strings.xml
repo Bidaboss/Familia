@@ -257,6 +257,7 @@
     <string name="feature_help_lending">Dans Entraide, « On se prête » : les objets qu\'on peut emprunter, et qui les a en ce moment.</string>
     <string name="feature_help_carpool">Sur la fiche d\'un événement, sous « Je viens » : on propose ses places en voiture, ou on en demande une.</string>
     <string name="feature_help_recurring_events">En créant un événement, « Se répète » : chaque semaine, chaque mois… Les dates suivantes se créent seules.</string>
+    <string name="feature_help_arbre_de_vie">Montre l\'arbre de la famille dessiné comme un arbre de vie.</string>
     <string name="feature_help_tree_poster">Dans l\'arbre généalogique, « Faire l\'affiche » : l\'arbre en PDF A4 ou A3 à imprimer.</string>
     <string name="feature_help_photo_book">Dans l\'album d\'un voyage ou d\'un événement, « Faire le livre photo » en PDF.</string>
     <string name="feature_help_year_in_review">Le récit de l\'année : sur l\'Accueil du 26/12 au 10/01, et toute l\'année dans le tiroir, sous Se souvenir.</string>
@@ -377,6 +378,16 @@
     <string name="genealogy_word_label">Ton mot</string>
     <string name="genealogy_word_action">Choisir ton mot pour %1$s</string>
     <string name="genealogy_save">Enregistrer</string>
+    <string name="genealogy_pick_no_account">sans compte</string>
+    <string name="tree_of_life_tab_tree">Arbre</string>
+    <string name="tree_of_life_tab_list">Liste</string>
+    <string name="tree_of_life_hint">Pince pour zoomer. Touche quelqu\'un pour voir sa fiche.</string>
+    <string name="tree_of_life_add_kin">Ajouter un proche</string>
+    <string name="tree_of_life_roots">Nos racines</string>
+    <string name="tree_of_life_couple">%1$s et %2$s</string>
+    <string name="genealogy_join_members">Relier deux membres</string>
+    <string name="genealogy_join_title">Qui veux-tu relier ?</string>
+    <string name="genealogy_join_next">Suivant</string>
     <string name="genealogy_link_add">Ajouter un lien</string>
     <string name="genealogy_link_title">Relier quelqu\'un à %1$s</string>
     <string name="genealogy_link_who">Qui ?</string>
@@ -2718,6 +2729,7 @@
     <!-- Récit 49 : le planning dans Google Agenda -->
     <string name="feature_calendar_feed">Planning dans mon agenda</string>
     <string name="feature_tree_poster">Affiche de l\'arbre</string>
+    <string name="feature_arbre_de_vie">Arbre de vie</string>
     <string name="feature_photo_book">Livre photo</string>
     <string name="account_calendar_feed">Voir dans mon agenda</string>
     <string name="calendar_feed_title">Voir dans mon agenda</string>

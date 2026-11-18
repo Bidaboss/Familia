@@ -2047,7 +2047,7 @@ private fun NavHostController.seeWhere(feature: Feature, meId: String, nextEvent
         Feature.Polls -> ({ navigate(PollsDestination) { launchSingleTop = true } })
         Feature.Recipes -> ({ navigate(RecipesDestination()) { launchSingleTop = true } })
         Feature.Capsules -> ({ navigate(CapsulesDestination) { launchSingleTop = true } })
-        Feature.Genealogy, Feature.TreePoster -> ({ navigate(GenealogyDestination) { launchSingleTop = true } })
+        Feature.Genealogy, Feature.TreePoster, Feature.ArbreDeVie -> ({ navigate(GenealogyDestination) { launchSingleTop = true } })
         Feature.Places -> ({ navigate(JoinMeDestination) { launchSingleTop = true } })
         Feature.WhoIsIt -> ({ navigate(WhoIsItDestination) { launchSingleTop = true } })
         Feature.RecipeBook -> ({ navigate(RecipeBookDestination) { launchSingleTop = true } })

@@ -51,5 +51,6 @@ fun GenealogyRoute(
         onFailureShown = viewModel::failureShown,
         // Not in « Voir comme »: the poster would be made with someone else's rights (récit 53).
         onMakePoster = onMakePoster?.takeIf { LocalFeatureFlags.current.isOn(Feature.TreePoster) && LocalViewAs.current.viewed == null },
+        treeOfLife = LocalFeatureFlags.current.isOn(Feature.ArbreDeVie),
     )
 }

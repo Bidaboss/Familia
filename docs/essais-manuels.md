@@ -1136,3 +1136,10 @@ Avec le module « Bons plans » allumé. Deux téléphones : celui qui publie, c
 3. Publie un bon plan sans photo. **Attendu :** la carte montre le titre, l'auteur et le début du texte, sans cadre vide.
 4. Sur le téléphone qui a publié. **Attendu :** pas de carte : on ne voit pas son propre bon plan.
 5. Deux jours plus tard, ou après la fin du bon plan. **Attendu :** la carte disparaît.
+
+## Arbre vide : relier deux membres (retour d'essai du 17/11)
+1. En admin principal, avec un arbre sans aucun lien ni proche, ouvre Tout Familia › Arbre généalogique. **Attendu :** l'écran vide propose « Relier deux membres » (bouton plein) et « Ajouter un proche sans compte ».
+2. Touche « Relier deux membres ». **Attendu :** « Qui veux-tu relier ? » liste les membres, ton foyer d'abord. Choisis-en un, puis « Suivant ».
+3. Choisis « Le conjoint ou la conjointe de … » (ou un parent, un enfant), puis la seconde personne, et « Relier ». **Attendu :** l'arbre s'affiche avec tous les membres et le lien tracé.
+4. En chef de famille (ou « Voir comme » un chef), même écran vide. **Attendu :** « Qui veux-tu relier ? » ne liste que son foyer. En simple adulte, aucun de ces boutons, seulement « Revenir ».
+5. Ajoute un proche sans compte « en souvenir » qui porte le même prénom qu'un membre, puis ouvre « Relier deux membres », ou « Ajouter un lien » sur une fiche. **Attendu :** les deux lignes se distinguent : le membre avec le nom de son foyer, le proche avec son nom de famille, sinon ses années, sinon « En souvenir ». Un prénom unique reste seul.
