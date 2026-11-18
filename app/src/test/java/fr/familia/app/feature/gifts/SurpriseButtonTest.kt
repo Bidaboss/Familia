@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
@@ -127,5 +128,19 @@ class SurpriseButtonTest {
         assertEquals(GiftOccasion.Christmas to LocalDate.of(2026, 12, 25), nearestOccasionOf(later, today))
         val none = adult1.copy(birthDate = null)
         assertEquals(GiftOccasion.Christmas to LocalDate.of(2027, 12, 25), nearestOccasionOf(none, LocalDate.of(2026, 12, 26)))
+    }
+
+    private fun topOf(text: String) = compose.onNodeWithText(text).fetchSemanticsNode().boundsInRoot.top
+
+    @Test
+    fun `the surprises in progress come first, above the birthdays`() {
+        show(stateFor("adult2"))
+        assertTrue(topOf("Surprises en préparation") < topOf("Anniversaires à venir"))
+    }
+
+    @Test
+    fun `with the presentation of the tab, the surprises in progress come first too`() {
+        show(stateFor("adult2").copy(presentation = true))
+        assertTrue(topOf("Surprises en préparation") < topOf("Anniversaires à venir"))
     }
 }

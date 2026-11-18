@@ -113,6 +113,9 @@ fun GiftsScreen(
                         )
                     }
                 }
+                // At the very top of the tab (PRD rév. 291), never while presenting nor in « Voir comme »
+                // (récit 63): nothing of a surprise on screen.
+                if (!state.presentation && !presenting && !someListsHidden) preparingSection(state, onOpenList)
                 if (state.presentation) {
                     presentationContent(
                         state, onOpenList, onSelectMoment, onAllBirthdays, onPrepareSurprise, onOpenNotebook, onOpenMyPage,
@@ -135,8 +138,6 @@ fun GiftsScreen(
                 }
                 // Once an occasion is chosen, its people come first: the birthdays wait.
                 if (state.moment == null) birthdaysSection(state, onAllBirthdays, onPrepareSurprise, onOpenList)
-                // Never while presenting nor in « Voir comme » (récit 63): nothing of a surprise on screen.
-                if (!presenting && !someListsHidden) preparingSection(state, onOpenList)
                 state.sections.filter { it.keptByMe }.forEach { section ->
                     personSection(section, state.today, state.wishPreviews, onOpenList, state.singleList, presenting, onOpenMyPage)
                 }
