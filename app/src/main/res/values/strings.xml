@@ -266,6 +266,7 @@
     <string name="feature_help_first_steps">Sur l\'Accueil, une carte propose à chacun 3 gestes pendant 14 jours : sa photo, ses goûts, une réaction.</string>
     <string name="feature_help_packing_list">Dans un voyage, « À emporter » : la liste pour tout le monde, et « Ma valise ».</string>
     <string name="feature_help_already_bought">Sur une envie déjà achetée, la famille ne la prend plus : chacun participe, avec une jauge du montant reçu.</string>
+    <string name="feature_help_news_feed">En haut de l\'Accueil, « Aujourd\'hui » ou « Le fil » : ce qui s\'est passé dans la famille, jour par jour.</string>
     <string name="feature_help_admin_announcements">Dans Administration, « Envoyer une notification » : tu écris un message à toute la famille ou à quelques foyers. On ne peut pas y répondre.</string>
     <string name="feature_help_challenge_details">Toucher le défi explique ce qui compte et ce qu\'on gagne ; le foyer qui le lance peut ajouter un mot. Éteint, tu gardes l\'écran actuel.</string>
     <string name="feature_help_family_tab_v2">L\'onglet Famille commence par ta fiche et ton foyer ; les autres foyers sont plus bas, repliés. Éteint, même toi tu gardes l\'onglet actuel.</string>
@@ -2895,6 +2896,7 @@
     <string name="gift_contributors_title">Qui participe</string>
     <string name="gift_contributors_none">Personne n\'a encore participé.</string>
     <string name="feature_admin_announcements">Annonces de l\'admin</string>
+    <string name="feature_news_feed">Fil d\'actualité</string>
     <string name="packing_title">À emporter</string>
     <string name="notifications_packing">Ma valise</string>
     <string name="notifications_packing_help">La veille d\'un voyage, à 18 h, s\'il reste des objets à mettre dans ta valise.</string>
@@ -3062,4 +3064,25 @@
     <string name="announcement_signature">%1$s (admin)</string>
     <string name="announcement_gone_title">Ce message n\'est plus là</string>
     <string name="announcement_gone_body">Il a été retiré, ou il ne t\'était pas adressé.</string>
+
+    <!-- Fil d'actualité (récit 67) -->
+    <string name="feed_tab_today">Aujourd\'hui</string>
+    <string name="feed_tab_feed">Le fil</string>
+    <plurals name="feed_tab_new">
+        <item quantity="one">%1$d nouveauté</item>
+        <item quantity="other">%1$d nouveautés</item>
+    </plurals>
+    <string name="feed_day_today">Aujourd\'hui</string>
+    <string name="feed_day_yesterday">Hier</string>
+    <string name="feed_empty">Rien de nouveau dans la famille ces deux dernières semaines.</string>
+    <string name="feed_more">Voir plus ancien</string>
+    <string name="feed_label_planning">Planning</string>
+    <string name="feed_event_going">J\'y vais</string>
+    <string name="feed_label_birthday">Anniversaire</string>
+    <plurals name="feed_birthday_age">
+        <item quantity="one">%1$s a %2$d an</item>
+        <item quantity="other">%1$s a %2$d ans</item>
+    </plurals>
+    <string name="feed_birthday_mine">C\'est ton anniversaire !</string>
+    <string name="feed_birthday_wish">Lui souhaiter</string>
 </resources>

@@ -73,6 +73,7 @@ private val HELP: Map<Feature, Int> = mapOf(
     Feature.ChallengeDetails to R.string.feature_help_challenge_details,
     Feature.AlreadyBought to R.string.feature_help_already_bought,
     Feature.AdminAnnouncements to R.string.feature_help_admin_announcements,
+    Feature.NewsFeed to R.string.feature_help_news_feed,
 )
 
 @StringRes

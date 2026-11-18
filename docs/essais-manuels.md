@@ -1176,3 +1176,14 @@ Après « Publier Firebase ». Deux téléphones : celui de l'admin principal et
 7. Après 22 h, sans « Urgent ». **Attendu :** la fenêtre dit qu'il partira à 8 h, « Déjà envoyées » dit « part à 8 h », et la notification arrive seule à 8 h, pas dans « Cette nuit dans Familia ».
 8. Après 22 h, avec « Urgent ». **Attendu :** elle arrive tout de suite.
 9. Allume le mode présentation. **Attendu :** l'écran dit que rien ne part, et le bouton reste éteint.
+
+## Fil d'actualité de l'Accueil (récit 67)
+
+Module « Fil d'actualité » allumé dans Administration > Modules (éteint, l'Accueil ne change pas, même pour l'admin principal).
+
+1. Ouvre l'appli. **Attendu :** l'Accueil s'ouvre sur « Aujourd'hui », avec « Aujourd'hui | Le fil » sous « Bonjour ». Un chiffre jaune à côté de « Le fil » compte ce que les autres ont ajouté depuis ta dernière visite.
+2. Touche « Le fil ». **Attendu :** les cartes du plus récent au plus ancien, sous « Aujourd'hui », « Hier », puis « Lundi 16 novembre ». « Tout Familia » reste en bas. Le chiffre disparaît.
+3. Sur un autre téléphone, ajoute un événement au Planning. **Attendu :** une carte « Planning » arrive en haut du fil, avec la date, l'heure, « J'y vais » et le dernier commentaire s'il y en a. « J'y vais » répond « Oui » et disparaît. Toucher la carte ouvre l'événement.
+4. Un jour d'anniversaire. **Attendu :** une carte « Anniversaire · Prénom a N ans », avec « Lui souhaiter » qui ouvre sa fiche (si les vœux d'anniversaire sont allumés).
+5. Touche « Voir plus ancien ». **Attendu :** les 14 jours d'avant s'ajoutent en bas.
+6. En mode présentation, puis en « Voir comme ». **Attendu :** le fil se lit, sans « J'y vais » ni « Lui souhaiter ». Jamais rien des Cadeaux.

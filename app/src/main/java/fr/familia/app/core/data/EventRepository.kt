@@ -27,6 +27,12 @@ interface EventRepository {
     /** The events of [days] (ten at most), for « Il y a N ans » (récit 36). */
     fun observeOnDays(days: List<LocalDate>): Flow<List<Event>> = flowOf(emptyList())
 
+    /**
+     * The events put in the Planning since [since], newest first, [limit] at most: the cards of the
+     * fil d'actualité (récit 67). A range on createdAt alone: no new index.
+     */
+    fun observeCreatedSince(since: java.time.Instant, limit: Int): Flow<List<Event>> = flowOf(emptyList())
+
     /** A fresh id for an event that is not saved yet. */
     fun newEventId(): String
 

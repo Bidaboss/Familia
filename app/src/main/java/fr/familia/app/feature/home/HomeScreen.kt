@@ -38,6 +38,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
+import fr.familia.app.feature.feed.FeedList
+import fr.familia.app.feature.feed.FeedNavigation
+import fr.familia.app.feature.feed.HomeFeedSwitch
+import fr.familia.app.feature.feed.LocalFeedNavigation
+import fr.familia.app.feature.feed.rememberFeedState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
@@ -173,6 +180,8 @@ fun HomeRoute(
     onOpenYear: (Int) -> Unit = {},
     /** My profile, where « Goûts et passions » is filled (« Mes premiers pas », récit 61). */
     onOpenMyProfile: () -> Unit = {},
+    /** A member's page, from a card of the fil (« Lui souhaiter », récit 67). */
+    onOpenMember: (String) -> Unit = {},
 ) {
     val flags = LocalFeatureFlags.current
     val giftsOn = flags.isOn(Feature.Gifts)
@@ -281,7 +290,27 @@ fun HomeRoute(
         } else {
             state
         }
+        // Le fil d'actualité (récit 67): off, the Accueil does not change, even for the admin principal.
+        val feedOn = flags.isOnForFamily(Feature.NewsFeed)
+        val feed = if (feedOn) rememberFeedState(container, currentMember) else null
+        // The app always opens on « Aujourd'hui ».
+        var onFeed by rememberSaveable { mutableStateOf(false) }
+        val feedNavigation = remember(actions) {
+            FeedNavigation(
+                onOpenEvent = actions.onOpenEvent,
+                onOpenMember = onOpenMember,
+                onOpenGoodNews = onOpenGoodNews,
+                onOpenHelpRequest = actions.onOpenHelpRequest,
+                onOpenTrip = actions.onOpenTrip,
+                onOpenRecipe = onOpenRecipe,
+                onOpenWeeklyQuestion = onOpenWeeklyQuestion,
+            )
+        }
         HomeR1bisScreen(
+            switcher = feed?.let { f -> { HomeFeedSwitch(onFeed, f.unseen, onChoose = { onFeed = it }) } },
+            feed = feed?.takeIf { onFeed }?.let { f ->
+                { CompositionLocalProvider(LocalFeedNavigation provides feedNavigation) { FeedList(f) } }
+            },
             state = shownState,
             firstSteps = rememberFirstSteps(container, currentMember, onOpenTastes = onOpenMyProfile, onOpenGoodNews = onOpenGoodNewsFeed),
             challenge = if (hasChallenge) {

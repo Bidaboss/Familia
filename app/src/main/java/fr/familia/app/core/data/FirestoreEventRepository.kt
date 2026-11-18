@@ -1,6 +1,8 @@
 package fr.familia.app.core.data
 
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import fr.familia.app.core.model.Event
@@ -9,8 +11,10 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.Date
 
 /** Events live in `events/{eventId}`. See docs/data-model.md for the fields and the rights. */
 class FirestoreEventRepository(private val db: FirebaseFirestore) : EventRepository {
@@ -47,6 +51,21 @@ class FirestoreEventRepository(private val db: FirebaseFirestore) : EventReposit
     override fun observeOnDays(days: List<LocalDate>): Flow<List<Event>> = callbackFlow {
         val registration = db.collection(EVENTS)
             .whereIn("date", days.take(MAX_DAYS).map { it.toString() })
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                } else if (snapshot != null) {
+                    trySend(snapshot.documents.mapNotNull { it.toEvent() })
+                }
+            }
+        awaitClose { registration.remove() }
+    }
+
+    override fun observeCreatedSince(since: Instant, limit: Int): Flow<List<Event>> = callbackFlow {
+        val registration = db.collection(EVENTS)
+            .whereGreaterThanOrEqualTo("createdAt", Timestamp(Date.from(since)))
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .limit(limit.toLong())
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(error)
@@ -125,6 +144,7 @@ class FirestoreEventRepository(private val db: FirebaseFirestore) : EventReposit
             coverPhoto = getString("coverPhoto"),
             seriesId = getString("seriesId"),
             occurrence = getString("occurrence")?.let { runCatching { LocalDate.parse(it) }.getOrNull() },
+            createdAt = getTimestamp("createdAt", DocumentSnapshot.ServerTimestampBehavior.ESTIMATE)?.toInstant(),
         )
     }
 
