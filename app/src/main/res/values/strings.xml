@@ -266,6 +266,7 @@
     <string name="feature_help_first_steps">Sur l\'Accueil, une carte propose à chacun 3 gestes pendant 14 jours : sa photo, ses goûts, une réaction.</string>
     <string name="feature_help_packing_list">Dans un voyage, « À emporter » : la liste pour tout le monde, et « Ma valise ».</string>
     <string name="feature_help_already_bought">Sur une envie déjà achetée, la famille ne la prend plus : chacun participe, avec une jauge du montant reçu.</string>
+    <string name="feature_help_admin_announcements">Dans Administration, « Envoyer une notification » : tu écris un message à toute la famille ou à quelques foyers. On ne peut pas y répondre.</string>
     <string name="feature_help_challenge_details">Toucher le défi explique ce qui compte et ce qu\'on gagne ; le foyer qui le lance peut ajouter un mot. Éteint, tu gardes l\'écran actuel.</string>
     <string name="feature_help_family_tab_v2">L\'onglet Famille commence par ta fiche et ton foyer ; les autres foyers sont plus bas, repliés. Éteint, même toi tu gardes l\'onglet actuel.</string>
     <string name="feature_help_opening_animation">À chaque ouverture, les fruits de l\'arbre deviennent la famille. Dans Apparence, chacun choisit l\'animation longue, courte ou aucune.</string>
@@ -1132,7 +1133,7 @@
     <string name="channel_weekly">Rendez-vous de la semaine</string>
     <string name="channel_weekly_description">La question de la semaine, chaque lundi.</string>
     <string name="channel_admin">Administration</string>
-    <string name="channel_admin_description">Quand Familia approche d\'une limite gratuite de Firebase. Seul l\'admin principal la reçoit.</string>
+    <string name="channel_admin_description">Les messages de l\'admin principal à la famille, et pour l\'admin les alertes de limite gratuite de Firebase.</string>
     <string name="channel_souvenirs">Souvenirs</string>
     <string name="channel_souvenirs_description">Quand tu gagnes un nouveau souvenir.</string>
     <string name="channel_tree">Défi du mois</string>
@@ -2893,6 +2894,7 @@
     <string name="gift_my_contribution">Ta participation : %1$s</string>
     <string name="gift_contributors_title">Qui participe</string>
     <string name="gift_contributors_none">Personne n\'a encore participé.</string>
+    <string name="feature_admin_announcements">Annonces de l\'admin</string>
     <string name="packing_title">À emporter</string>
     <string name="notifications_packing">Ma valise</string>
     <string name="notifications_packing_help">La veille d\'un voyage, à 18 h, s\'il reste des objets à mettre dans ta valise.</string>
@@ -3014,4 +3016,50 @@
     <string name="turns_done_title">C\'est fait ?</string>
     <string name="turns_done_label">Une précision (facultatif)</string>
     <string name="turns_done_label_hint">Noël 2026</string>
+
+    <!-- Annonces de l'admin (récit 69) -->
+    <string name="announcements_title">Envoyer une notification</string>
+    <string name="announcements_entry_help">Un message de toi à toute la famille ou à quelques foyers.</string>
+    <string name="announcements_help">Le message arrive sur les téléphones choisis. On ne peut pas y répondre, et personne ne peut couper ces notifications dans Familia.</string>
+    <string name="announcements_presenting">Le mode présentation est allumé : rien ne part. Éteins-le dans Administration pour envoyer.</string>
+    <string name="announcements_field_title">Titre</string>
+    <string name="announcements_field_text">Message</string>
+    <string name="announcements_count">%1$d sur %2$d caractères</string>
+    <string name="announcements_urgent">Urgent</string>
+    <string name="announcements_urgent_help">Entre 22 h et 8 h, un message attend 8 h. « Urgent » le fait arriver tout de suite.</string>
+    <string name="announcements_to">Qui le reçoit</string>
+    <string name="announcements_others">Sans foyer</string>
+    <string name="announcements_preview">Aperçu</string>
+    <string name="announcements_preview_app">Familia · Administration</string>
+    <string name="announcements_preview_no_title">Ton titre</string>
+    <string name="announcements_preview_no_text">Ton message</string>
+    <plurals name="announcements_send">
+        <item quantity="one">Envoyer à %1$d personne</item>
+        <item quantity="other">Envoyer à %1$d personnes</item>
+    </plurals>
+    <plurals name="announcements_confirm_title">
+        <item quantity="one">Envoyer à %1$d personne ?</item>
+        <item quantity="other">Envoyer à %1$d personnes ?</item>
+    </plurals>
+    <string name="announcements_confirm_now">Le message part tout de suite. Tu ne pourras pas le reprendre.</string>
+    <string name="announcements_confirm_morning">Il est entre 22 h et 8 h : le message partira à 8 h. Tu ne pourras pas le reprendre.</string>
+    <string name="announcements_confirm_send">Envoyer</string>
+    <string name="announcements_sent_toast">Message envoyé.</string>
+    <string name="announcements_failed_title">Le message n\'est pas parti</string>
+    <string name="announcements_failed_body">Vérifie ta connexion, puis réessaie. Pendant le mode présentation, ou module éteint, l\'envoi est refusé.</string>
+    <string name="announcements_sent_title">Déjà envoyées</string>
+    <string name="announcements_sent_empty">Rien d\'envoyé pour l\'instant.</string>
+    <plurals name="announcements_sent_to">
+        <item quantity="one">%1$d personne</item>
+        <item quantity="other">%1$d personnes</item>
+    </plurals>
+    <string name="announcements_delivery_pending">en cours</string>
+    <string name="announcements_delivery_sent">envoyé</string>
+    <string name="announcements_delivery_urgent">envoyé, urgent</string>
+    <string name="announcements_delivery_morning">part à 8 h</string>
+    <string name="announcements_delivery_refused">refusé</string>
+    <string name="announcement_title">Message de l\'admin</string>
+    <string name="announcement_signature">%1$s (admin)</string>
+    <string name="announcement_gone_title">Ce message n\'est plus là</string>
+    <string name="announcement_gone_body">Il a été retiré, ou il ne t\'était pas adressé.</string>
 </resources>

@@ -3010,6 +3010,42 @@ service cloud.firestore {
       allow delete: if isMember() && resource.data.authorId == myMemberId();
     }
 
+    // announcements/{announcementId}: Annonces de l'admin (PRD, récit 69). Only the admin principal
+    // writes one, with the module « Annonces de l'admin » on and never during the mode présentation:
+    // a title of 1 to 60 characters, a message of 1 to 300, « Urgent », and the members ticked. Each
+    // member ticked reads it (the notification opens it), the admin principal reads them all. Never
+    // changed by the app: the server writes back `delivery` (sent, morning, refused).
+    function presentingNow() {
+      let p = /databases/$(database)/documents/config/presentation;
+      return exists(p) && get(p).data.on == true
+        && (!('until' in get(p).data) || get(p).data.until == null || get(p).data.until > request.time);
+    }
+
+    function announcementsOn() {
+      let app = /databases/$(database)/documents/config/app;
+      return exists(app) && get(app).data.get('features', {}).get('adminAnnouncements', false) == true;
+    }
+
+    match /announcements/{announcementId} {
+      allow read: if isMember() && (isOwner() || myMemberId() in resource.data.recipientIds);
+      allow create: if isOwner()
+        && announcementsOn()
+        && !presentingNow()
+        && request.resource.data.keys().hasOnly(['title', 'text', 'urgent', 'recipientIds', 'authorId', 'authorName', 'createdAt'])
+        && request.resource.data.keys().hasAll(['title', 'text', 'urgent', 'recipientIds', 'authorId', 'authorName', 'createdAt'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 60
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 300
+        && request.resource.data.urgent is bool
+        && request.resource.data.recipientIds is list
+        && request.resource.data.recipientIds.size() > 0 && request.resource.data.recipientIds.size() <= 60
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+
     // feedback/{feedbackId}: « Une idée ? Un souci ? » (PRD, récit 6 sexies). Any member with the
     // app, a child included, sends an idea or a problem in their own name: a text of 1 to 1000
     // characters, and the context added by the phone (versions, model, the screen it came from).

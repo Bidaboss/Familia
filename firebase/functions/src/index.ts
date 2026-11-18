@@ -29,6 +29,7 @@ import { deleteEndedGoodDeals, sendGoodDealsSummary } from './goodDeals';
 import { onTurnWritten, type TurnData } from './turns';
 import { deleteLoanOf, onLendLoanWritten, releaseLendItemsOf, sendLendReminders, type LendLoanData } from './lendItems';
 import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
+import { AnnouncementData, deleteAnnouncementsOf, onAnnouncementCreated } from './announcements';
 import { closeDuePolls, closeEventPolls, deletePollVotes, deleteVotesOf, onPollClosed, onPollCreated, PollData } from './polls';
 import { cloudMonitoring } from './monitoring';
 import { deleteMemberNotebook, syncNotebookEntry, syncNotebookItem } from './notebook';
@@ -105,6 +106,7 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.goodDeals ? { goodDeals: notice.goodDeals } : {}),
         ...(notice.lendItemId ? { lendItemId: notice.lendItemId } : {}),
         ...(notice.turnId ? { turnId: notice.turnId } : {}),
+        ...(notice.announcementId ? { announcementId: notice.announcementId } : {}),
         ...(notice.tag ? { notificationTag: notice.tag } : {}),
       },
       // A surprise never shows on the lock screen (audit 2.2): only « Familia » and the channel.
@@ -805,6 +807,7 @@ export const onMemberDeletedAnswers = onDocumentDeleted('members/{memberId}', as
   await deleteTreeDataOf(getFirestore(), event.params.memberId);
   await deleteJoinMeOf(getFirestore(), event.params.memberId);
   await deleteDigestOf(getFirestore(), event.params.memberId);
+  await deleteAnnouncementsOf(getFirestore(), event.params.memberId);
 });
 
 // --- Sondages (récits 2 bis et 2 ter) ---------------------------------------------------------
@@ -833,6 +836,13 @@ export const onPollDeleted = onDocumentDeleted('polls/{pollId}', async (event) =
 export const onJoinMeCreatedNotify = onDocumentCreated('joinMe/{shareId}', async (event) => {
   const data = event.data?.data() as JoinMeData | undefined;
   if (data) await onJoinMeCreated(getFirestore(), send, event.params.shareId, data);
+});
+
+// --- Annonces de l'admin (récit 69) ---------------------------------------------------------
+
+export const onAnnouncementCreatedNotify = onDocumentCreated('announcements/{announcementId}', async (event) => {
+  const data = event.data?.data() as AnnouncementData | undefined;
+  if (data) await onAnnouncementCreated(getFirestore(), send, event.params.announcementId, data, new Date());
 });
 
 /**

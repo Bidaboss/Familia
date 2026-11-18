@@ -40,7 +40,8 @@ object NotificationChannels {
 
     /**
      * [feature]: the module that uses the channel; it is created only once that module shows.
-     * [ownerOnly]: a channel of the admin principal, never shown on the phones of the family.
+     * [ownerOnly]: a channel of the admin principal, shown on the phones of the family only once
+     * [orFeature] is on for the family.
      */
     private data class Spec(
         val id: String,
@@ -67,8 +68,12 @@ object NotificationChannels {
         ),
         // The question of the week for now (récit 37); later the other weekly rendez-vous (AVIS-14).
         Spec(WEEKLY, R.string.channel_weekly, R.string.channel_weekly_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.WeeklyQuestion),
-        // The consumption alert of the database (récit 1 sexies), for the admin principal only.
-        Spec(ADMIN, R.string.channel_admin, R.string.channel_admin_description, NotificationManager.IMPORTANCE_DEFAULT, ownerOnly = true),
+        // The consumption alert of the database (récit 1 sexies), for the admin principal only, and
+        // the announcements of the admin principal (récit 69): on every phone once that module is on.
+        Spec(
+            ADMIN, R.string.channel_admin, R.string.channel_admin_description, NotificationManager.IMPORTANCE_DEFAULT,
+            ownerOnly = true, orFeature = Feature.AdminAnnouncements,
+        ),
         Spec(SOUVENIRS, R.string.channel_souvenirs, R.string.channel_souvenirs_description, NotificationManager.IMPORTANCE_LOW, Feature.Souvenirs),
         Spec(TREE, R.string.channel_tree, R.string.channel_tree_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.Tree),
         // « Rejoignez-moi » (récit 33): someone waits for me, so it rings.
@@ -105,7 +110,7 @@ object NotificationChannels {
         manager.createNotificationChannels(
             specs.filter { spec ->
                 (spec.feature == null || features.isOn(spec.feature) || (spec.orFeature != null && features.isOn(spec.orFeature))) &&
-                    (!spec.ownerOnly || features.isOwner)
+                    (!spec.ownerOnly || features.isOwner || (spec.orFeature != null && features.isOnForFamily(spec.orFeature)))
             }.map { spec ->
                 NotificationChannel(spec.id, context.getString(spec.name), spec.importance)
                     .apply {

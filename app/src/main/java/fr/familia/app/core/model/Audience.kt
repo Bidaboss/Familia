@@ -21,3 +21,11 @@ private fun isInMyScope(memberId: String, me: Member, family: Family): Boolean {
     val member = family.members.firstOrNull { it.id == memberId } ?: return false
     return member.householdId == me.householdId || me.id in member.parentIds
 }
+
+/**
+ * Everyone a message to the whole family can reach (PRD récit 69, same rule as withApp in
+ * functions/src/audience.ts): the members who have the app, so not a child without it. A future
+ * « cercle » only changes this function; never list « tous les membres » elsewhere.
+ */
+fun familyAudience(family: Family): List<Member> =
+    family.members.filter { it.profile != MemberProfile.ChildWithoutApp }

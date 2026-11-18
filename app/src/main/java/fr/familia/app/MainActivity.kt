@@ -59,6 +59,8 @@ class MainActivity : ComponentActivity() {
     /** A thing to lend whose ask, answer or reminder was touched (récit 51). */
     private val openLendItemId = mutableStateOf<String?>(null)
     private val openTurnId = mutableStateOf<String?>(null)
+    /** A message of the admin principal whose notification was touched (récit 69). */
+    private val openAnnouncementId = mutableStateOf<String?>(null)
 
     /** A link shared from another app, for « Mes envies » (récit 8 bis). */
     private val sharedWish = mutableStateOf<SharedWish?>(null)
@@ -90,6 +92,7 @@ class MainActivity : ComponentActivity() {
             val goodDealsToOpen by openGoodDeals
             val lendItemToOpen by openLendItemId
             val turnToOpen by openTurnId
+            val announcementToOpen by openAnnouncementId
             val wishToAdd by sharedWish
             val memberToOpen by openMemberId
             FamiliaTheme {
@@ -131,6 +134,8 @@ class MainActivity : ComponentActivity() {
                                 onLendItemOpened = { openLendItemId.value = null },
                                 openTurnId = turnToOpen,
                                 onTurnOpened = { openTurnId.value = null },
+                                openAnnouncementId = announcementToOpen,
+                                onAnnouncementOpened = { openAnnouncementId.value = null },
                                 sharedWish = wishToAdd,
                                 onSharedWishOpened = { sharedWish.value = null },
                                 openMemberId = memberToOpen,
@@ -169,6 +174,7 @@ class MainActivity : ComponentActivity() {
                 DeepLink.GoodDeals -> openGoodDeals.value = true
                 is DeepLink.LendItem -> openLendItemId.value = link.id
                 is DeepLink.Turn -> openTurnId.value = link.id
+                is DeepLink.Announcement -> openAnnouncementId.value = link.id
             }
         }
         intent.sharedWish()?.let { sharedWish.value = it }

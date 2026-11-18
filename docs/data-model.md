@@ -191,7 +191,7 @@ Droits : seul le membre lui-même lit, ajoute ou supprime ses téléphones. Les 
 
 Droits : seul le membre lui-même lit et modifie ses réglages. L'appli écrit chaque réglage en fusion, pour ne pas effacer l'autre.
 
-Le filtre (`functions/src/prefs.ts`) s'applique côté serveur à chaque envoi, dans `notify` et dans les envois des Bonnes nouvelles et des coups de main : une notification coupée n'est pas envoyée du tout. Chaque canal Android appartient à une famille : `events` au Planning, `reminders` aux Rappels, `gifts` aux Cadeaux, `goodNews` aux Bonnes nouvelles, `comments` aux Commentaires et réactions, `helpRequests` à l'Entraide, `trips` aux Voyages, et `weekly`, `souvenirs`, `tree`, `recap` et `birthdays` aux Rendez-vous de la semaine. Ce qui me vise directement ne se coupe jamais : les canaux `joinMe`, `capsules`, `feedback` et `admin` (l'alerte de consommation), la Bonne nouvelle d'un enfant pour ses adultes responsables (AVIS-12), et ce qui concerne un coup de main que j'ai pris (merci, annulation, changement). Un enfant règle ses propres notifications : ses adultes responsables ne les rallument pas.
+Le filtre (`functions/src/prefs.ts`) s'applique côté serveur à chaque envoi, dans `notify` et dans les envois des Bonnes nouvelles et des coups de main : une notification coupée n'est pas envoyée du tout. Chaque canal Android appartient à une famille : `events` au Planning, `reminders` aux Rappels, `gifts` aux Cadeaux, `goodNews` aux Bonnes nouvelles, `comments` aux Commentaires et réactions, `helpRequests` à l'Entraide, `trips` aux Voyages, et `weekly`, `souvenirs`, `tree`, `recap` et `birthdays` aux Rendez-vous de la semaine. Ce qui me vise directement ne se coupe jamais : les canaux `joinMe`, `capsules`, `feedback` et `admin` (l'alerte de consommation, les annonces de l'admin), la Bonne nouvelle d'un enfant pour ses adultes responsables (AVIS-12), et ce qui concerne un coup de main que j'ai pris (merci, annulation, changement). Un enfant règle ses propres notifications : ses adultes responsables ne les rallument pas.
 
 ### `quietQueue/{memberId}` (récit 6 quinquies)
 
@@ -1167,6 +1167,29 @@ Cloud Functions (`functions/src/joinMe.ts`) :
 |---|---|---|
 | `onJoinMeCreatedNotify` | partage créé | Prévient les destinataires tout de suite, sans regroupement (carte AVIS-14) : « Camille : rejoins-moi », le lieu et le mot. Canal `joinMe` (sonne), donnée `joinMeId` : un appui ouvre l'Accueil. Tant que le module est éteint pour la famille, seul l'admin principal est prévenu, et seulement s'il est coché. |
 | `onMemberDeletedAnswers` | suppression d'un membre | Retire aussi les partages qu'il avait envoyés. |
+
+## Annonces de l'admin (PRD, récit 69)
+
+### `announcements/{announcementId}`
+
+| Champ | Type | Description |
+|---|---|---|
+| `title` | texte (1 à 60) | Le titre de l'annonce, aussi titre de la notification |
+| `text` | texte (1 à 300) | Le message, en entier dans l'appli (coupé à 180 caractères sur la notification) |
+| `urgent` | booléen | Coché : elle sonne tout de suite, même entre 22 h et 8 h |
+| `recipientIds` | liste de `memberId` (1 à 60) | Les membres cochés, par foyer (tous au départ) |
+| `authorId`, `authorName` | `memberId` et texte | L'admin principal, et son prénom (« Prénom (admin) » sur l'annonce) |
+| `createdAt` | horodatage serveur | |
+| `delivery` | `sent`, `morning` ou `refused` | Écrit par le serveur seulement : envoyée, partira à 8 h, ou refusée (mode présentation, module éteint) |
+
+Droits : seul l'admin principal l'écrit, module « Annonces de l'admin » (`adminAnnouncements`) allumé, jamais pendant le mode présentation. Chaque membre coché la lit (la notification l'ouvre), l'admin principal les lit toutes (« Déjà envoyées », les 50 dernières). Personne ne la modifie ni ne la retire depuis l'appli.
+
+Cloud Functions (`functions/src/announcements.ts`, audience dans `functions/src/audience.ts`) :
+
+| Fonction | Déclencheur | Rôle |
+|---|---|---|
+| `onAnnouncementCreatedNotify` | annonce créée | Envoie aux membres cochés qui ont l'appli (`familyMembers` puis `withApp`), jamais à l'auteur. Canal `admin`, `direct` : aucun réglage ne la coupe, ni le plafond de l'heure. Entre 22 h et 8 h, elle attend 8 h dans `quietQueue` pour tout le monde, sauf si « Urgent » est coché. Pendant le mode présentation, rien ne part. Donnée `announcementId` : un appui ouvre l'annonce en entier. Écrit `delivery`. |
+| `onMemberDeletedAnswers` | suppression d'un membre | Retire aussi les annonces qu'il avait envoyées. |
 
 ## Utilisation (PRD, récit 1 nonies)
 
