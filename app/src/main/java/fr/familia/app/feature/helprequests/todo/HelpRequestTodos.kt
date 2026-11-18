@@ -33,6 +33,8 @@ import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.MemberAvatar
+import fr.familia.app.core.ui.SideBySide
+import fr.familia.app.core.ui.isLargeText
 import fr.familia.app.feature.helprequests.declineHelp
 import fr.familia.app.feature.helprequests.detail.HelpActionError
 import fr.familia.app.feature.helprequests.needsMe
@@ -141,7 +143,7 @@ fun rememberHelpRequestTodos(container: AppContainer?, member: Member): HelpRequ
 /**
  * One coup de main that waits for me, with its buttons on the card (R1 bis): « J'y vais » and
  * « Non » on the Accueil, « Je m'en occupe » and « Pas dispo » at the top of Entraide ([large]).
- * Buttons are 48 dp, as inside every card. A tap elsewhere on the card opens the request.
+ * Buttons are 56 dp (relecture #403). A tap elsewhere on the card opens the request.
  */
 @Composable
 fun HelpRequestTodoCard(
@@ -173,11 +175,13 @@ fun HelpRequestTodoCard(
                 style = MaterialTheme.typography.bodyLarge,
             )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            Button(onClick = onTake, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+        // Large text: one button per line, or « Je m'en occupe » is cut (retour d'essai du 18/11).
+        SideBySide(Modifier.fillMaxWidth()) { item ->
+            Button(onClick = onTake, modifier = item.heightIn(min = 56.dp)) {
                 Text(stringResource(if (large) R.string.helprequest_todo_take_large else R.string.helprequest_todo_take))
             }
-            OutlinedButton(onClick = onDecline, modifier = Modifier.heightIn(min = 48.dp)) {
+            // Beside « J'y vais », « Non » keeps its own width.
+            OutlinedButton(onClick = onDecline, modifier = (if (isLargeText()) item else Modifier).heightIn(min = 56.dp)) {
                 Text(stringResource(if (large) R.string.helprequest_todo_decline_large else R.string.helprequest_todo_decline))
             }
         }

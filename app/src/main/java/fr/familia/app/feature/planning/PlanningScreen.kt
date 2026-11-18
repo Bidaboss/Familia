@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.IconButton
 import fr.familia.app.core.ui.aboveSnackbar
+import fr.familia.app.core.ui.SideBySide
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.size
@@ -273,11 +274,11 @@ private fun MonthNavigation(month: YearMonth, canGoBack: Boolean, canGoForward: 
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.semantics { heading() },
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = onPrevious, enabled = canGoBack, modifier = Modifier.weight(1f).heightIn(min = 56.dp)) {
+        SideBySide { item ->
+            OutlinedButton(onClick = onPrevious, enabled = canGoBack, modifier = item.heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.planning_month_previous), textAlign = TextAlign.Center)
             }
-            OutlinedButton(onClick = onNext, enabled = canGoForward, modifier = Modifier.weight(1f).heightIn(min = 56.dp)) {
+            OutlinedButton(onClick = onNext, enabled = canGoForward, modifier = item.heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.planning_month_next), textAlign = TextAlign.Center)
             }
         }
