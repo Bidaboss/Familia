@@ -6,6 +6,7 @@ import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.frenchDate
+import fr.familia.app.feature.yearago.MemoryAlbum
 import kotlinx.coroutines.flow.Flow
 import java.time.Duration
 import java.time.Instant
@@ -80,6 +81,8 @@ class FeedNavigation(
     val onOpenHelpRequest: (String) -> Unit = {},
     val onOpenTrip: (String) -> Unit = {},
     val onOpenRecipe: (String) -> Unit = {},
+    /** An album of an event or a trip, on one of its photos (fil voyage). */
+    val onOpenAlbumPhoto: (MemoryAlbum, String) -> Unit = { _, _ -> },
     val onOpenWeeklyQuestion: () -> Unit = {},
 )
 

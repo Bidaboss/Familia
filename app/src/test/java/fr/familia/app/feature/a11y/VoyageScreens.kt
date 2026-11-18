@@ -1,6 +1,9 @@
 package fr.familia.app.feature.a11y
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
 import fr.familia.app.core.album.AlbumPhoto
 import fr.familia.app.core.album.AlbumScreen
 import fr.familia.app.core.album.FilmActions
@@ -8,12 +11,16 @@ import fr.familia.app.core.album.FilmState
 import fr.familia.app.core.album.PhotoActions
 import fr.familia.app.core.album.PhotoViewer
 import fr.familia.app.core.album.previewAlbumPhotos
+import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.GenealogyTree
+import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Kin
 import fr.familia.app.core.model.KinLink
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.PackingLine
+import fr.familia.app.core.model.Recipe
+import fr.familia.app.core.model.RecipeComment
 import fr.familia.app.core.model.WhoIsItPost
 import fr.familia.app.feature.albums.AlbumEntry
 import fr.familia.app.feature.albums.AlbumsScreen
@@ -25,6 +32,10 @@ import fr.familia.app.feature.capsules.CapsulesScreen
 import fr.familia.app.feature.capsules.previewCapsuleDetail
 import fr.familia.app.feature.capsules.previewCapsuleEdit
 import fr.familia.app.feature.capsules.previewCapsulesState
+import fr.familia.app.feature.feed.AlbumFeedCard
+import fr.familia.app.feature.feed.FeedAlbum
+import fr.familia.app.feature.feed.FeedContext
+import fr.familia.app.feature.feed.RecipeFeedCard
 import fr.familia.app.feature.genealogy.GenealogyScreen
 import fr.familia.app.feature.genealogy.GenealogyUiState
 import fr.familia.app.feature.genealogy.poster.PosterChoice
@@ -34,6 +45,7 @@ import fr.familia.app.feature.genealogy.poster.TreePosterScreen
 import fr.familia.app.feature.genealogy.poster.TreePosterUiState
 import fr.familia.app.feature.month.MonthSlideshowScreen
 import fr.familia.app.feature.month.previewMonthSlideshow
+import fr.familia.app.feature.recipes.FakeRecipes
 import fr.familia.app.feature.recipes.RecipeDetailScreen
 import fr.familia.app.feature.recipes.RecipesScreen
 import fr.familia.app.feature.recipes.book.BookRecipe
@@ -57,6 +69,8 @@ import fr.familia.app.feature.whoisit.WhoIsItListScreen
 import fr.familia.app.feature.whoisit.WhoIsItListUiState
 import fr.familia.app.feature.whoisit.WhoIsItPostScreen
 import fr.familia.app.feature.whoisit.previewWhoIsIt
+import fr.familia.app.feature.yearago.MemoryAlbum
+import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -166,6 +180,19 @@ internal object VoyageScreens {
                 TreePosterActions({}, {}, {}, {}, {}),
                 onBack = {},
             )
+        },
+        screen("the fil, photos and a recipe") {
+            val camille = member("camille", "Camille")
+            val ines = member("ines", "Inès")
+            val context = FeedContext(camille, Family(listOf(Household("h1", "Les Martin")), listOf(camille, ines)), LocalDate.of(2026, 11, 18), readOnly = false)
+            val album = FeedAlbum(MemoryAlbum(MemoryAlbum.Kind.Trip, "t1", "Une semaine à la mer"), "trips/t1", LocalDate.of(2026, 11, 10))
+            val photos = (1..5).map { AlbumPhoto("trips/t1", if (it % 2 == 0) "ines" else "camille", if (it % 2 == 0) "Inès" else "Camille", it, Instant.parse("2026-11-18T0${it}:00:00Z")) }
+            val recipes = FakeRecipes().apply { comments.value = listOf(RecipeComment("c1", "Je la fais dimanche !", "camille", "Camille", null)) }
+            val recipe = Recipe("r1", "Tarte aux pommes", "Mamie Jeanne", null, 6, "", "", emptyList(), "ines", "Inès", Instant.parse("2026-11-18T09:00:00Z"))
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                AlbumFeedCard(album, LocalDate.of(2026, 11, 18), photos.reversed()).Content(context)
+                RecipeFeedCard(recipe, recipes, null).Content(context)
+            }
         },
         screen("Qui est-ce ?, the list") { WhoIsItListScreen(WhoIsItListUiState.Ready(listOf(WhoIsItPost("w1", "a", "Camille", "Un mariage, au printemps", null))), {}, onAdd = {}, onBack = {}) },
         screen("Qui est-ce ?, a photo to guess") { WhoIsItPostScreen(previewWhoIsIt(revealed = false), WhoIsItActions(), {}, {}) },
