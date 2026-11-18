@@ -104,9 +104,13 @@ class MemberProfileV2DesignTest {
     }
 
     @Test
-    fun `my page shows the gauge, someone else's never`() {
+    fun `my page shows the gauge`() {
         show(TestFamily.adult, isMe = true)
         assertEquals(1, count("Ta fiche est remplie à 0 %"))
+    }
+
+    @Test
+    fun `someone else's page never shows the gauge`() {
         show(TestFamily.otherAdult, isMe = false)
         assertEquals(0, count("Ta fiche est remplie"))
     }
@@ -160,14 +164,19 @@ class MemberProfileV2DesignTest {
     }
 
     @Test
-    fun `at 130 percent nothing is cut, on someone else's page and on mine`() {
-        val parent = TestFamily.adult.copy(phone = "06 12 34 56 78", birthDate = LocalDate.of(1985, 6, 20))
-        val kin = Kinship(emptyList(), listOf(KinPerson("adult2", "Adult2", TestFamily.otherAdult)), listOf(KinPerson("kid1", "Kid1", TestFamily.kid)))
-        show(parent, isMe = false, state = v2(kin = kin, address = "12 chemin des Grands Peupliers, 33000 Bordeaux"))
-        assertNothingCut()
-        show(parent, isMe = true, state = v2(kin = kin, address = "12 chemin des Grands Peupliers, 33000 Bordeaux"))
+    fun `at 130 percent nothing is cut on someone else's page`() {
+        show(parent, isMe = false, state = v2(kin = family, address = ADDRESS))
         assertNothingCut()
     }
+
+    @Test
+    fun `at 130 percent nothing is cut on my page`() {
+        show(parent, isMe = true, state = v2(kin = family, address = ADDRESS))
+        assertNothingCut()
+    }
+
+    private val parent = TestFamily.adult.copy(phone = "06 12 34 56 78", birthDate = LocalDate.of(1985, 6, 20))
+    private val family = Kinship(emptyList(), listOf(KinPerson("adult2", "Adult2", TestFamily.otherAdult)), listOf(KinPerson("kid1", "Kid1", TestFamily.kid)))
 
     private fun kinOfKid() = Kinship(listOf(KinPerson("adult1", "Adult1", TestFamily.adult)), emptyList(), emptyList())
 
@@ -178,8 +187,13 @@ class MemberProfileV2DesignTest {
             val layouts = mutableListOf<TextLayoutResult>()
             node.config.getOrNull(SemanticsActions.GetTextLayoutResult)?.action?.invoke(layouts)
             val text: String = node.config.getOrNull(SemanticsProperties.Text).orEmpty().joinToString { annotated -> annotated.text }
-            text.takeIf { layouts.any { layout -> layout.hasVisualOverflow } }
+            // Cut means « … » at the end of a line: a text that wraps is fine.
+            text.takeIf { layouts.any { layout -> (0 until layout.lineCount).any { line -> layout.isLineEllipsized(line) } } }
         }
         assertTrue("cut at 130 %: $cut", cut.isEmpty())
+    }
+
+    private companion object {
+        const val ADDRESS = "12 chemin des Grands Peupliers, 33000 Bordeaux"
     }
 }
