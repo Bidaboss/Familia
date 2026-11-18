@@ -27,7 +27,7 @@ class TopLevelDestinationTest {
     }
 
     @Test
-    fun `the accueil, gifts and entraide tabs are in the base: always there, for everyone`() {
+    fun `the accueil, gifts and entraide tabs are in the base, always there for everyone`() {
         // « La base » has no switch any more (Kévin le 18/11, 20 h 39).
         assertEquals(TopLevelDestination.entries.toList(), TopLevelDestination.visible(FeatureFlags()))
         assertEquals(TopLevelDestination.entries.toList(), TopLevelDestination.visible(FeatureFlags(mapOf("gifts" to false))))

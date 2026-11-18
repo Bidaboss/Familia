@@ -69,7 +69,7 @@ class WelcomeTest {
     }
 
     @Test
-    fun `the welcome is in the base: it plays for everyone, whatever config app says`() = runTest {
+    fun `the welcome is in the base, it plays for everyone whatever config app says`() = runTest {
         // « La base » has no switch any more (Kévin le 18/11, 20 h 39).
         assertNotNull(chooseWelcome(flowOf(family), flowOf(config(on = false)), ines) as? WelcomeChoice.Play)
         assertNotNull(chooseWelcome(flowOf(family), flowOf(config(on = false)), camille) as? WelcomeChoice.Play)
