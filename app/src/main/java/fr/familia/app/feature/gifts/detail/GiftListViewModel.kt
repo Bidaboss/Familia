@@ -252,7 +252,7 @@ class GiftListViewModel(
         items: List<GiftItem>,
         claims: List<GiftClaim>,
         shares: Map<String, List<GiftShare>>,
-        parts: Map<String, List<GiftContribution>>,
+        contributionsById: Map<String, List<GiftContribution>>,
         day: LocalDate,
         didFail: Failure?,
     ): GiftListUiState.Success {
@@ -293,7 +293,7 @@ class GiftListViewModel(
                     )
                 },
                 contributions = if (alreadyBought && list.kind == GiftListKind.Wishes && item.alreadyBought && item.visibleToBeneficiary) {
-                    val itemParts = parts[item.id].orEmpty()
+                    val itemParts = contributionsById[item.id].orEmpty()
                     ContributionView(
                         total = item.contributedTotal,
                         mine = itemParts.firstOrNull { it.memberId == me.id }?.amount,
