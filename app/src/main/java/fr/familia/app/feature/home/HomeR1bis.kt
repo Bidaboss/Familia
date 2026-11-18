@@ -119,6 +119,10 @@ fun HomeR1bisScreen(
     yearInReview: (@Composable () -> Unit)? = null,
     /** « Mes premiers pas » (récit 61), right after the chosen day, only while it has something to show. */
     firstSteps: (@Composable () -> Unit)? = null,
+    /** « Aujourd'hui » | « Le fil » (récit 67), at the top while the fil is on. */
+    switcher: (@Composable () -> Unit)? = null,
+    /** « Le fil », shown instead of the day while chosen; « Tout Familia » stays under it. */
+    feed: (@Composable () -> Unit)? = null,
 ) {
     val ready = state as? HomeUiState.Ready ?: return
     var chosen by rememberSaveable { mutableStateOf(ready.today.toEpochDay()) }
@@ -164,7 +168,12 @@ fun HomeR1bisScreen(
     }
     val padding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = 24.dp)
     Column(Modifier.fillMaxSize()) {
-        BoxWithConstraints(Modifier.fillMaxWidth().weight(1f)) {
+        if (switcher != null) {
+            Box(Modifier.padding(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = 12.dp)) { switcher() }
+        }
+        if (feed != null) {
+            Box(Modifier.fillMaxWidth().weight(1f)) { feed() }
+        } else BoxWithConstraints(Modifier.fillMaxWidth().weight(1f)) {
             when {
                 // Expanded (§5): two panes, each scrolling on its own.
                 maxWidth >= 840.dp -> Row(horizontalArrangement = Arrangement.spacedBy(24.dp), modifier = Modifier.padding(horizontal = ClaySpacing.screen)) {

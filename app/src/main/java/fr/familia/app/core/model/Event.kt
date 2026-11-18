@@ -30,4 +30,6 @@ data class Event(
     val coverPhoto: String? = null,
     val seriesId: String? = null,
     val occurrence: LocalDate? = null,
+    /** When it was put in the Planning (null before the server time arrives): the date of its card in the fil (récit 67). */
+    val createdAt: java.time.Instant? = null,
 )

@@ -185,6 +185,11 @@ enum class Feature(
      * pas l'entrée, et le serveur refuse l'envoi.
      */
     AdminAnnouncements("adminAnnouncements", R.string.feature_admin_announcements),
+    /**
+     * Le fil d'actualité de l'Accueil (PRD récit 67) : « Aujourd'hui » | « Le fil » sous « Bonjour ».
+     * Lu avec isOnForFamily : éteint, l'Accueil ne change pas, même pour l'admin principal.
+     */
+    NewsFeed("newsFeed", R.string.feature_news_feed),
 }
 
 /**

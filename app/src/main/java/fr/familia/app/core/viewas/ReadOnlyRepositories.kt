@@ -167,6 +167,7 @@ class ReadOnlyEventRepository(private val inner: EventRepository, private val gu
     override suspend fun getEvent(id: String): Event? = inner.getEvent(id)
     override fun observeEvent(id: String): Flow<Event?> = inner.observeEvent(id)
     override fun observeOnDays(days: List<LocalDate>): Flow<List<Event>> = inner.observeOnDays(days)
+    override fun observeCreatedSince(since: java.time.Instant, limit: Int): Flow<List<Event>> = inner.observeCreatedSince(since, limit)
     override fun newEventId(): String = inner.newEventId()
     override suspend fun saveEvent(event: Event, isNew: Boolean) = guard.refuse()
     override suspend fun deleteEvent(id: String) = guard.refuse()
