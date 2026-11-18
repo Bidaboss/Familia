@@ -227,9 +227,10 @@ class GiftsTabV2Test {
     }
 
     @Test
-    fun `Christmas shows from the 1st of November`() {
+    fun `no Christmas line in the tab, even in November`() {
+        // PRODUIT-134: Christmas stays an occasion of the wishes, never a line of « À venir ».
         show(stateFor("adult1"))
-        assertTrue(count("Noël") > 0)
+        assertEquals(0, count("Noël"))
     }
 
     @Test

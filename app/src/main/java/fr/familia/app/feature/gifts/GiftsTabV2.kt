@@ -23,7 +23,6 @@ import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
-import androidx.compose.material.icons.outlined.Park
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -187,33 +186,21 @@ private fun LazyListScope.upcomingV2(state: GiftsUiState.Success, actions: Gifts
     relief?.let { birthday -> item(key = "relief") { ReliefBirthday(state, birthday, actions, door) } }
     val until = state.today.plusDays(UPCOMING_BIRTHDAY_DAYS)
     val birthdays = state.birthdays.filter { it != relief && (relief == null || it.date <= until) }
-    val christmas = LocalDate.of(state.today.year, 12, 25).let { if (it >= state.today) it else it.plusYears(1) }
-    val showChristmas = state.today >= LocalDate.of(christmas.year, 11, 1)
-    val lines: List<Pair<LocalDate, Birthday?>> = (birthdays.map { it.date to it } + if (showChristmas) listOf(christmas to null) else emptyList())
-        .sortedBy { it.first }
-    lines.forEach { (date, birthday) ->
-        item(key = birthday?.let { "line-${it.member.id}" } ?: "line-christmas") {
-            if (birthday != null) {
-                val me = state.sections.any { it.isMe && it.member.id == birthday.member.id }
-                CompactLine(
-                    icon = Icons.Outlined.Cake,
-                    title = stringResource(R.string.gifts_birthday_of, birthday.member.firstName),
-                    subtitle = dateLine(state.today, date),
-                    onClick = {
-                        // No more filter by occasion (PRODUIT-134): their wishes, as « Ses envies ».
-                        if (me) actions.onOpenMyPage?.invoke() ?: actions.onOpenList(wishesListId(birthday.member.id))
-                        else actions.onOpenList(wishesFor(state, birthday.member.id))
-                    },
-                )
-            } else {
-                CompactLine(
-                    icon = Icons.Outlined.Park,
-                    title = stringResource(R.string.gifts_v2_christmas),
-                    subtitle = dateLine(state.today, date),
-                    // A reminder of the day only: each person's card below holds what to give.
-                    onClick = null,
-                )
-            }
+    // No Christmas line any more (PRODUIT-134): only the birthdays. Christmas stays an occasion of the wishes.
+    birthdays.sortedBy { it.date }.forEach { birthday ->
+        val date = birthday.date
+        item(key = "line-${birthday.member.id}") {
+            val me = state.sections.any { it.isMe && it.member.id == birthday.member.id }
+            CompactLine(
+                icon = Icons.Outlined.Cake,
+                title = stringResource(R.string.gifts_birthday_of, birthday.member.firstName),
+                subtitle = dateLine(state.today, date),
+                onClick = {
+                    // No more filter by occasion (PRODUIT-134): their wishes, as « Ses envies ».
+                    if (me) actions.onOpenMyPage?.invoke() ?: actions.onOpenList(wishesListId(birthday.member.id))
+                    else actions.onOpenList(wishesFor(state, birthday.member.id))
+                },
+            )
         }
     }
     item(key = "birthdays-all") { ClayLink(stringResource(R.string.gifts_all_birthdays), onClick = actions.onAllBirthdays) }
@@ -277,10 +264,10 @@ internal fun surpriseDoor(state: GiftsUiState.Success, memberId: String, showPre
 private fun ideasFor(state: GiftsUiState.Success, memberId: String): String =
     state.sections.firstOrNull { it.member.id == memberId }?.ideas?.id ?: ideasListId(memberId)
 
-/** Noël, or a birthday after the one in relief: an icon, the day, and a chevron when it opens something. */
+/** A birthday after the one in relief: an icon, the day, a chevron. */
 @Composable
-private fun CompactLine(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String, onClick: (() -> Unit)?) {
-    ClayCard(Modifier.fillMaxWidth().heightIn(min = 56.dp), onClick = onClick, onClickLabel = onClick?.let { stringResource(R.string.gifts_v2_open) }, contentPadding = ClaySpacing.card) {
+private fun CompactLine(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String, onClick: () -> Unit) {
+    ClayCard(Modifier.fillMaxWidth().heightIn(min = 56.dp), onClick = onClick, onClickLabel = stringResource(R.string.gifts_v2_open), contentPadding = ClaySpacing.card) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Box(Modifier.size(40.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
                 Icon(icon, contentDescription = null)
@@ -289,7 +276,7 @@ private fun CompactLine(icon: androidx.compose.ui.graphics.vector.ImageVector, t
                 Text(title, style = MaterialTheme.typography.titleMedium)
                 Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            if (onClick != null) Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null)
+            Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null)
         }
     }
 }

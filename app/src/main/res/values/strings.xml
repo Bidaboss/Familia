@@ -2322,7 +2322,6 @@
     <string name="gifts_v2_date_line">%1$s · %2$s</string>
     <string name="gifts_v2_their_wishes">Ses envies</string>
     <string name="gifts_v2_surprise">Surprise</string>
-    <string name="gifts_v2_christmas">Noël</string>
     <string name="gifts_v2_open">ouvrir</string>
     <string name="gifts_v2_my_wishes_none">Aucune envie pour l\'instant</string>
     <plurals name="gifts_v2_my_wishes_line">
