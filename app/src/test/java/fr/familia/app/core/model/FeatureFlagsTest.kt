@@ -29,14 +29,6 @@ class FeatureFlagsTest {
     }
 
     @Test
-    fun `the new presentation is on by default, and its switch turns it off for everyone, the admin too`() {
-        assertTrue(FeatureFlags().isOn(Feature.PresentationR1bis))
-        assertTrue(FeatureFlags().isOnForFamily(Feature.PresentationR1bis))
-        assertFalse(FeatureFlags(mapOf("presentationR1bis" to false), isOwner = true).isOn(Feature.PresentationR1bis))
-        assertFalse(FeatureFlags(mapOf("presentationR1bis" to false)).isOnForFamily(Feature.PresentationR1bis))
-    }
-
-    @Test
     fun `every module has its own key`() {
         assertEquals(Feature.entries.size, Feature.entries.map { it.key }.toSet().size)
     }

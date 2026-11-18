@@ -2,7 +2,6 @@ package fr.familia.app.feature
 
 import android.os.Looper
 import androidx.compose.foundation.layout.Column
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -22,14 +21,11 @@ import fr.familia.app.core.data.AppConfig
 import fr.familia.app.core.data.AppConfigRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Family
-import fr.familia.app.core.model.Feature
-import fr.familia.app.core.model.FeatureFlags
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.PresentationMode
 import fr.familia.app.core.model.Rsvp
 import fr.familia.app.core.model.RsvpStatus
 import fr.familia.app.core.theme.FamiliaTheme
-import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.auth.AuthRepository
 import fr.familia.app.feature.auth.AuthUser
 import fr.familia.app.feature.auth.GoogleTokenResult
@@ -53,7 +49,6 @@ import fr.familia.app.feature.goodnews.edit.GoodNewsEditViewModel
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedScreen
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedViewModel
 import fr.familia.app.feature.home.HomeActions
-import fr.familia.app.feature.home.HomeScreen
 import fr.familia.app.feature.home.HomeViewModel
 import fr.familia.app.feature.presentation.PresentationBanner
 import fr.familia.app.feature.presentation.PresentationSection
@@ -74,6 +69,8 @@ import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import java.time.Instant
 import java.time.LocalDate
+import fr.familia.app.feature.home.HomeR1bisActions
+import fr.familia.app.feature.home.HomeR1bisScreen
 
 /**
  * The other steps of the demo of 21 November (docs/scenario-demo.md), on the real screens and
@@ -122,7 +119,8 @@ class DemoScenarioJourneyTest {
         val family = TestFamily.family.copy(members = TestFamily.family.members + newcomer)
         val members = FirstSignInMembers(family)
         val auth = FakeAuth(AuthUser("uid-new1", "new1@example.com", emailVerified = true))
-        val events = FakeEvents(listOf(TestFamily.event("e1", admin, date = today.plusDays(1))))
+        // Today: the Accueil shows the day chosen, today at first.
+        val events = FakeEvents(listOf(TestFamily.event("e1", admin, date = today)))
         val session = SessionViewModel(auth, members)
         idleUntil { session.uiState.value is SessionUiState.SignedOut }
 
@@ -145,7 +143,7 @@ class DemoScenarioJourneyTest {
                         HomeViewModel(members, events, signedIn.member.id, FakeRsvps(), today = flowOf(today))
                     }
                     val homeState by home.uiState.collectAsStateWithLifecycle()
-                    HomeScreen(homeState, HomeActions())
+                    HomeR1bisScreen(homeState, HomeActions(), HomeR1bisActions())
                 }
             }
         }
@@ -326,11 +324,8 @@ class DemoScenarioJourneyTest {
         val vm = AlbumPhotosViewModel(album, rights, uploader, null, admin.id, folder)
         compose.setContent {
             FamiliaTheme {
-                // « Lancer le diaporama » stays behind the switch of the new presentation (on by default).
-                CompositionLocalProvider(LocalFeatureFlags provides FeatureFlags(mapOf(Feature.PresentationR1bis.key to true))) {
-                    val state by vm.uiState.collectAsStateWithLifecycle()
-                    AlbumScreen("Photos", state, rememberPhotoActions(vm), onBack = {})
-                }
+                val state by vm.uiState.collectAsStateWithLifecycle()
+                AlbumScreen("Photos", state, rememberPhotoActions(vm), onBack = {})
             }
         }
         // The admin said « je viens » and it is the day: the album takes photos.

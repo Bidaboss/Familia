@@ -73,7 +73,7 @@ fun TripDetailRoute(
         photos = photos,
         photoActions = photoActions,
         onOpenExpenses = onOpenExpenses,
-        illustrated = LocalFeatureFlags.current.isOn(Feature.PresentationR1bis),
+        illustrated = true,
         onSeePhotos = onSeePhotos,
         onShare = shown?.takeIf { shareOn && it.canShare }?.let { success -> { share(context, tripShare(context, success.trip, success.today)) } },
     )
