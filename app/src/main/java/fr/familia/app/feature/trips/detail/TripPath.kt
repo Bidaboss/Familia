@@ -6,7 +6,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -17,10 +16,10 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -52,6 +51,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.familia.app.R
+import fr.familia.app.core.ui.SideBySide
 import fr.familia.app.core.ui.frenchDate
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -250,10 +250,10 @@ fun TripDayCard(
             color = TripPathColors.Ink,
             modifier = Modifier.semantics { heading() },
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            DayButton(pluralStringResource(R.plurals.trip_photo_count, photoCount, photoCount), onPhotos, Modifier.weight(1f))
-            DayButton(stringResource(R.string.trip_notebook), onNotebook, Modifier.weight(1f))
-            if (onExpenses != null) DayButton(stringResource(R.string.trip_expenses_short), onExpenses, Modifier.weight(1f))
+        SideBySide { item ->
+            DayButton(pluralStringResource(R.plurals.trip_photo_count, photoCount, photoCount), onPhotos, item)
+            DayButton(stringResource(R.string.trip_notebook), onNotebook, item)
+            if (onExpenses != null) DayButton(stringResource(R.string.trip_expenses_short), onExpenses, item)
         }
     }
 }

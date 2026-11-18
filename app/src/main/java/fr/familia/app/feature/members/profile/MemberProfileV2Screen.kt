@@ -552,7 +552,7 @@ private fun RecipesAndSouvenirs(state: MemberProfileUiState.Ready, data: Profile
     ProfileSectionCard(title = title, icon = Icons.Outlined.Description, accent = SectionAccent.Green) {
         onOpenRecipes?.let { open ->
             OutlinedButton(onClick = open, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.profile_recipes))
+                Text(stringResource(if (state.isMe) R.string.profile_recipes_mine else R.string.profile_recipes))
             }
         }
         if (state.isMe || shown) SouvenirsContent(state, onSetShown)
