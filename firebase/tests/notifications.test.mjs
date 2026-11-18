@@ -95,6 +95,18 @@ describe('settings', () => {
     await assertFails(getDoc(doc(db, 'quietQueue/adult1')));
     await assertFails(setDoc(doc(db, 'quietQueue/adult1'), { items: [] }));
   });
+
+  test('récit 70: each kind of the résumé du soir is a yes or no of the member alone', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(settings(db, 'adult1'), {
+      eveningReactions: true, eveningComments: false, eveningWeekly: true, eveningSouvenirs: false,
+    }, { merge: true }));
+    await assertFails(setDoc(settings(db, 'adult1'), { eveningComments: 'tout de suite' }, { merge: true }));
+    await assertFails(setDoc(settings(db, 'adult1'), { eveningHour: 20 }, { merge: true }));
+    await assertFails(setDoc(settings(as(env, ADMIN), 'adult1'), { eveningComments: false }, { merge: true }));
+    await assertFails(getDoc(doc(db, 'eveningQueue/adult1')));
+    await assertFails(setDoc(doc(db, 'eveningQueue/adult1'), { items: [] }));
+  });
 });
 
 // « Mes rappels sur un événement » (PRD rév. 248, récit 56).

@@ -73,6 +73,7 @@ private val HELP: Map<Feature, Int> = mapOf(
     Feature.AdminAnnouncements to R.string.feature_help_admin_announcements,
     Feature.NewsFeed to R.string.feature_help_news_feed,
     Feature.PlanningV2 to R.string.feature_help_planning_v2,
+    Feature.EveningDigest to R.string.feature_help_evening_digest,
 )
 
 @StringRes
@@ -97,6 +98,8 @@ val NEEDS_FIREBASE_PUBLISH: Set<Feature> = setOf(
     Feature.Tree,
     Feature.ChallengeDetails,
     Feature.Digest,
+    // The evening queue and the new settings of each one (récit 70).
+    Feature.EveningDigest,
     Feature.Polls,
     Feature.Recipes,
     Feature.Capsules,

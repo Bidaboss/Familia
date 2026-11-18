@@ -1279,3 +1279,17 @@ Depuis le 18/11 (PRODUIT-131), c'est la seule fiche : plus d'interrupteur ni d'a
 7. Réseau faible : ouvre une fiche déjà vue en mode avion, puis en « 2G seulement », comme dans « Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible ». **Attendu :** la fiche s'affiche, sans écran blanc. « Appeler » ouvre le téléphone même sans réseau.
 8. **Administration**, puis **Modules**. **Attendu :** plus de « Nouvelle fiche de membre » dans « Nouvelles versions ».
 9. Sur ta fiche, ajoute ton téléphone dans « Coordonnées ». **Attendu :** il s'enregistre. S'il affiche une erreur, Publier Firebase n'a pas été lancé depuis l'arrivée de la fiche : lance-le.
+
+## Résumé du soir des notifications (récit 70, DESIGN-31)
+
+Avant : « Publier Firebase », puis l'APK. Deux téléphones, A et B, de deux membres adultes.
+
+1. Interrupteur « Résumé du soir des notifications » éteint (Administration > Modules). Dans la journée, B commente un événement de A : A reçoit la notification tout de suite, comme avant. Les réglages de notifications de A ne montrent pas la partie « Résumé du soir ».
+2. Allumer l'interrupteur. Sur A, Famille > Notifications : la partie « Résumé du soir » montre Réactions, Commentaires, Question de la semaine, Souvenirs, tous sur « Dans le résumé de 19 h ».
+3. Avant 19 h, B réagit à une Bonne nouvelle de A et commente un événement : rien ne sonne chez A.
+4. B ajoute un événement, publie une Bonne nouvelle, demande un coup de main : A les reçoit tout de suite.
+5. À 19 h (la tâche passe toutes les 30 minutes, donc entre 19 h et 19 h 30) : A reçoit une seule notification « Ce soir dans Familia », « 2 notifications : … ». Le « Résumé du jour », s'il est allumé, part aussi à partir de 19 h et plus à 18 h.
+6. Sur A, couper « Commentaires » (le texte passe à « Tout de suite »). Avant 19 h, B commente : A reçoit la notification tout de suite. Une réaction attend toujours 19 h.
+7. Après 19 h, un commentaire ou une réaction arrive tout de suite.
+8. « Calme la nuit » reste prioritaire : après 22 h, un commentaire attend 8 h, comme avant.
+9. Éteindre l'interrupteur : tout repart comme au point 1, et la partie « Résumé du soir » disparaît des réglages.

@@ -3,6 +3,7 @@ package fr.familia.app.feature.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.NotificationRepository
+import fr.familia.app.core.model.EveningKind
 import fr.familia.app.core.model.NotificationFamily
 import fr.familia.app.core.model.NotificationLevel
 import fr.familia.app.core.model.NotificationPrefs
@@ -99,6 +100,9 @@ class NotificationSettingsViewModel(
 
     /** From 22 h to 8 h, notices wait until 8 h, grouped. */
     fun setQuietHours(enabled: Boolean) = save { it.setQuietHours(memberId, enabled) }
+
+    /** Résumé du soir (récit 70): this kind in the 19 h résumé, or at once. */
+    fun setEvening(kind: EveningKind, inSummary: Boolean) = save { it.setEvening(memberId, kind, inSummary) }
 
     private fun save(write: suspend (NotificationRepository) -> Unit) {
         val repo = notifications ?: return

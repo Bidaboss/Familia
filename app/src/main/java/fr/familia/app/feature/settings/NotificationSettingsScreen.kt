@@ -44,9 +44,11 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.model.EveningKind
 import fr.familia.app.core.model.FeatureFlags
 import fr.familia.app.core.model.NotificationFamily
 import fr.familia.app.core.model.NotificationLevel
+import fr.familia.app.core.model.NotificationPrefs
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.EmptyState
@@ -75,6 +77,8 @@ fun NotificationSettingsScreen(
     onLevelChange: (NotificationLevel) -> Unit = {},
     onFamilyChange: (NotificationFamily, Boolean) -> Unit = { _, _ -> },
     onQuietHoursChange: (Boolean) -> Unit = {},
+    /** Résumé du soir (récit 70): a kind in the 19 h résumé (true) or at once (false). */
+    onEveningChange: (EveningKind, Boolean) -> Unit = { _, _ -> },
     /** « Rappels quand je viens » (récit 56), shown only with its switch on. */
     defaultReminders: (@Composable () -> Unit)? = null,
 ) {
@@ -136,6 +140,28 @@ fun NotificationSettingsScreen(
                         checked = state.prefs.quietHours,
                         onChange = onQuietHoursChange,
                     )
+                    // Résumé du soir (récit 70): shown only with its module on, as the server reads it.
+                    val eveningKinds = eveningKindsShown(state.prefs, flags)
+                    if (eveningKinds.isNotEmpty()) {
+                        HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                        SectionTitle(stringResource(R.string.notifications_evening_title))
+                        Text(
+                            stringResource(R.string.notifications_evening_help),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        )
+                        eveningKinds.forEach { kind ->
+                            val inSummary = kind in state.prefs.evening
+                            SettingSwitch(
+                                title = stringResource(eveningTitle(kind)),
+                                help = stringResource(
+                                    if (inSummary) R.string.notifications_evening_in_summary else R.string.notifications_evening_immediate,
+                                ),
+                                checked = inSummary,
+                                onChange = { onEveningChange(kind, it) },
+                            )
+                        }
+                    }
                     if (defaultReminders != null) {
                         HorizontalDivider(Modifier.padding(vertical = 8.dp))
                         defaultReminders()
@@ -213,6 +239,24 @@ fun NotificationSettingsScreen(
             }
         }
     }
+}
+
+/**
+ * The kinds of the résumé du soir to choose from: none while its module is off for the family (read
+ * with isOnForFamily, as the server does), and only those whose family the member keeps on.
+ */
+internal fun eveningKindsShown(prefs: NotificationPrefs, flags: FeatureFlags): List<EveningKind> =
+    if (!flags.isOnForFamily(Feature.EveningDigest)) {
+        emptyList()
+    } else {
+        EveningKind.entries.filter { prefs.isOn(it.family) && familyShown(it.family, flags) }
+    }
+
+private fun eveningTitle(kind: EveningKind): Int = when (kind) {
+    EveningKind.Reactions -> R.string.notifications_evening_reactions
+    EveningKind.Comments -> R.string.notifications_evening_comments
+    EveningKind.Weekly -> R.string.notifications_evening_weekly
+    EveningKind.Souvenirs -> R.string.notifications_evening_souvenirs
 }
 
 /** A family shows once its module is on; the planning and the reminders always. */
