@@ -147,6 +147,29 @@ class GiftsTabV2Test {
     }
 
     @Test
+    fun `in « Voir comme » the person celebrated, nothing reserved, prepared nor given shows`() {
+        // adult2 celebrates in nine days; the admin looks as them, and someone prepares something for adult1.
+        show(stateFor("adult2").copy(surprisePreparedFor = setOf("adult1")), someListsHidden = true)
+        assertEquals(1, count("Tu fêtes tes 38 ans"))
+        assertEquals(0, count("SURPRISE"))
+        assertEquals(0, count("Surprise"))
+        assertEquals(0, button("Préparer une surprise"))
+        assertEquals(0, count("réserv"))
+        assertEquals(0, count("Réserv"))
+        assertEquals(0, count("Ce que j"))
+        assertEquals(0, count("idée"))
+    }
+
+    @Test
+    fun `in presentation mode on the phone of a giver, the same`() {
+        show(stateFor("adult1").copy(surprisePreparedFor = setOf("adult2")), presenting = true)
+        assertEquals(0, count("Surprise"))
+        assertEquals(0, count("réserv"))
+        assertEquals(0, count("Ce que j"))
+        assertEquals(0, button("Préparer une surprise"))
+    }
+
+    @Test
     fun `a child finds their wishes first, and never « Idées »`() {
         show(stateFor("kid1"))
         assertTrue(top("Mes envies") < top("À venir"))
