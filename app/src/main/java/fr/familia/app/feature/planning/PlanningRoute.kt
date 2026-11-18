@@ -41,29 +41,14 @@ fun PlanningRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val v2On = LocalFeatureFlags.current.isOnForFamily(Feature.PlanningV2)
     val screenContext = LocalContext.current
     val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)
     PlanningScreen(
         state = state,
         onRetry = viewModel::retry,
-        onAddEvent = onAddEvent,
+        me = currentMember,
         onOpenEvent = onOpenEvent,
         onOpenTrip = onOpenTrip,
-        r1 = true,
         onShareBirthday = if (shareOn) ({ birthday -> share(screenContext, birthdayShare(screenContext, birthday, familyToday())) }) else null,
-        v2 = if (v2On) {
-            { success ->
-                PlanningV2(
-                    state = success,
-                    me = currentMember,
-                    onOpenEvent = onOpenEvent,
-                    onOpenTrip = onOpenTrip,
-                    onShareBirthday = if (shareOn) ({ birthday -> share(screenContext, birthdayShare(screenContext, birthday, familyToday())) }) else null,
-                )
-            }
-        } else {
-            null
-        },
     )
 }

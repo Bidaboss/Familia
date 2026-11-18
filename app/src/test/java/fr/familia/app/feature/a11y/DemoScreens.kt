@@ -31,12 +31,12 @@ internal object DemoScreens {
     val all: List<Pair<String, @Composable () -> Unit>> = listOf(
         screen("l'Accueil") { HomeR1bisScreen(previewHome(), HomeActions(onOpenWishes = {}), HomeR1bisActions()) },
         screen("le Planning par mois") {
-            PlanningScreen(previewPlanning(), {}, {}, {}, initialMode = PlanningMode.Month)
+            PlanningScreen(previewPlanning(), {}, null, {}, initialMode = PlanningMode.Month)
         },
-        screen("le Planning en liste") {
-            PlanningScreen(previewPlanning(), {}, {}, {}, initialMode = PlanningMode.List, onShareBirthday = {})
+        screen("le Planning avec Partager") {
+            PlanningScreen(previewPlanning(), {}, null, {}, onShareBirthday = {})
         },
-        screen("le Planning par semaine") { PlanningScreen(previewPlanning(), {}, {}, {}, r1 = true) },
+        screen("le Planning par semaine") { PlanningScreen(previewPlanning(), {}, null, {}) },
         screen("un événement, pour qui le gère") {
             EventDetailScreen(previewEventDetail(), { _, _ -> }, {}, {}, {}, onAddToCalendar = {}, onShare = {}, onOpenExpenses = {})
         },

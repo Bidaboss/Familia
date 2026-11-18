@@ -769,8 +769,6 @@ fun FamiliaApp(
         val topBarScroll = TopAppBarDefaults.pinnedScrollBehavior()
         // The sheet of my photo (DESIGN-12): my profile and the settings that were under Famille.
         var accountOpen by rememberSaveable { mutableStateOf(false) }
-        // The new Planning (PRODUIT-126): its filter is a round button of the bar, kept here.
-        val planningV2On = features.isOnForFamily(Feature.PlanningV2)
         // A tablet of 7 inches or more, in portrait (600 dp) or landscape: the rail instead of the bar.
         val useRail = LocalConfiguration.current.screenWidthDp >= 600
         var addOpen by rememberSaveable { mutableStateOf(false) }
@@ -842,7 +840,7 @@ fun FamiliaApp(
                         greeting = if (tab == TopLevelDestination.Home) stringResource(R.string.home_r1_greeting, currentMember.firstName) else null,
                         onAdd = when {
                             tab == TopLevelDestination.Home -> ({ addOpen = true })
-                            planningV2On && tab == TopLevelDestination.Planning -> ({ navController.navigate(EventEditDestination()) })
+                            tab == TopLevelDestination.Planning -> ({ navController.navigate(EventEditDestination()) })
                             else -> null
                         },
                     )

@@ -45,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -93,7 +94,7 @@ import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 /**
- * The new Planning tab (PRODUIT-126, maquettes PL1 à PL5, haut C), under the switch planningV2:
+ * The Planning tab (PRODUIT-126, maquettes PL1 à PL5, haut C), the only one since PRODUIT-131:
  * Semaine or Mois, chosen by touching the title between the two round arrows; the frise of the
  * Accueil for the week (the same word of the day), a grid of the same boxes for the month; then the
  * cards of the days, with the hour in a block on the pale color of the event. The filter and the
@@ -436,7 +437,9 @@ private fun CardBody(
             }
         }
         if (!note.isNullOrBlank()) {
-            Text(note, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = toneColors(tone).text)
+            // The tone ink is made for pale tiles: on a dark card (dark themes) it would be unreadable.
+            val noteInk = if (MaterialTheme.colorScheme.surface.luminance() < 0.5f) MaterialTheme.colorScheme.onSurface else toneColors(tone).text
+            Text(note, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = noteInk)
         }
         footer()
     }

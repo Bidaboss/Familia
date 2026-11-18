@@ -16,7 +16,6 @@
     <string name="planning_by">Ajouté par %1$s</string>
     <string name="planning_birthday_of">Anniversaire de %1$s</string>
     <string name="planning_open_action">voir</string>
-    <string name="planning_mode_list">Liste</string>
     <string name="event_detail_title">Événement</string>
     <string name="event_detail_edit">Modifier</string>
     <string name="event_detail_expenses">Comptes de l\'événement</string>
@@ -3000,7 +2999,6 @@
     <string name="gift_contributors_none">Personne n\'a encore participé.</string>
     <string name="feature_admin_announcements">Annonces de l\'admin</string>
     <string name="feature_news_feed">Fil d\'actualité</string>
-    <string name="feature_planning_v2">Nouveau Planning</string>
     <string name="feature_evening_digest">Résumé du soir des notifications</string>
     <string name="feature_help_evening_digest">Résumé du soir : les petites nouvelles arrivent groupées à 19 h.</string>
     <string name="notifications_evening_title">Résumé du soir</string>
@@ -3011,7 +3009,6 @@
     <string name="notifications_evening_souvenirs">Souvenirs, « Pensez à moi » et récaps</string>
     <string name="notifications_evening_in_summary">Dans le résumé de 19 h</string>
     <string name="notifications_evening_immediate">Tout de suite</string>
-    <string name="feature_help_planning_v2">Nouveau Planning : cartes avec l\'heure en bloc et frise d\'un mot par jour.</string>
     <string name="planning_v2_week_range">Du %1$s au %2$s</string>
     <string name="planning_v2_subtitle">%1$s · %2$s</string>
     <string name="planning_v2_scope_family">toute la famille</string>
