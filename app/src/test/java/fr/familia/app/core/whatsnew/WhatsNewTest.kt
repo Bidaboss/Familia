@@ -89,6 +89,22 @@ class WhatsNewTest {
     }
 
     @Test
+    fun `each update shows its own cards, one after the other`() {
+        val decider = WhatsNewDecider(FakeStore())
+        val first = listOf(release(10, card("a")))
+        decider.markSeen("m1", decider.cardsToShow("m1", first, 10, false, allOn))
+        // The next publication adds its file with its own number (retour du 19/11).
+        val second = first + release(11, card("b"))
+        assertTrue(decider.cardsToShow("m1", second, 10, false, allOn).isEmpty())
+        val shown = decider.cardsToShow("m1", second, 11, false, allOn)
+        assertEquals(listOf("b"), shown.map { it.card.id })
+        assertEquals("1.11", shown.single().release.versionName)
+        decider.markSeen("m1", shown)
+        val third = second + release(12, card("c"))
+        assertEquals(listOf("c"), decider.cardsToShow("m1", third, 12, false, allOn).map { it.card.id })
+    }
+
+    @Test
     fun `plus tard shows the cards once more, at the next opening only`() {
         val decider = WhatsNewDecider(FakeStore())
         val releases = listOf(release(10, card("a")))

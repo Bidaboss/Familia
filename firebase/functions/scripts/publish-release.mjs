@@ -13,7 +13,7 @@ import { createHash, createSign } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { mergeWhatsNew, readWhatsNew } from './whats-new.mjs';
+import { dueFiles, mergeWhatsNew, parisToday, readWhatsNew } from './whats-new.mjs';
 
 const apkPath = process.env.APK_PATH;
 const versionCode = Number(process.env.VERSION_CODE);
@@ -134,6 +134,7 @@ await configApp.set({
   apkFileId: files[0].id,
   apkSize: apk.length,
   apkSha256: createHash('sha256').update(apk).digest('hex'),
-  whatsNew: mergeWhatsNew(current.get('whatsNew'), whatsNewFiles, versionCode, versionName),
+  // A file dated later waits for its own version (18/11: all files had taken the same number).
+  whatsNew: mergeWhatsNew(current.get('whatsNew'), dueFiles(whatsNewFiles, parisToday()), versionCode, versionName),
 }, { merge: true });
 console.log(`Version ${versionName} (${versionCode}) annoncée dans config/app.`);

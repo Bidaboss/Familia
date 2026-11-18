@@ -83,6 +83,20 @@ export function readWhatsNew(where) {
 }
 
 /**
+ * The files to publish today: a file named by a date later than [today] (YYYY-MM-DD, Paris) waits
+ * for a later publication, so each version gets only its own cards and its own number. A file
+ * whose name is not a date is always published.
+ */
+export function dueFiles(files, today) {
+  return files.filter(({ id }) => !/^\d{4}-\d{2}-\d{2}$/.test(id) || id <= today);
+}
+
+/** Today's date in Paris, YYYY-MM-DD. */
+export function parisToday(now = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+}
+
+/**
  * The new config/app.whatsNew. A file already published keeps its version number, with its texts
  * brought up to date; a new file takes the version being published; a removed file leaves the
  * history. Oldest first.
