@@ -22,4 +22,17 @@ class AllFamiliaTest {
         assertEquals(listOf("goodNews"), filterModules(modules, "nouv").map { it.key })
         assertEquals(emptyList<String>(), filterModules(modules, "zzz").map { it.key })
     }
+
+    @Test
+    fun `the sub-tabs of Entraide are found by a word of their name (PRODUIT-118)`() {
+        val entraide = listOf(
+            module("help") to "Entraide",
+            module("goodDeals") to "Bons plans",
+            module("lending") to "On se prête",
+            module("turns") to "À qui le tour ?",
+        )
+        assertEquals(listOf("lending"), filterModules(entraide, "prêt").map { it.key })
+        assertEquals(listOf("turns"), filterModules(entraide, "tour").map { it.key })
+        assertEquals(listOf("goodDeals"), filterModules(entraide, "plan").map { it.key })
+    }
 }
