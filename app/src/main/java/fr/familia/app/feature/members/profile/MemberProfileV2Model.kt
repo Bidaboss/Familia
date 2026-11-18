@@ -45,7 +45,7 @@ import java.time.temporal.ChronoUnit
 
 /*
  * « Une fiche de membre organisée » (PRD rév. 290, récit 66): what the new page reads besides the
- * old one, and the pure rules of its order. Behind « Nouvelle fiche de membre » (memberProfileV2).
+ * old one, and the pure rules of its order. The only page since the 18/11 (PRODUIT-131).
  */
 
 /** One person of « Sa famille »: a member opens their page, a relative without an account does not. */

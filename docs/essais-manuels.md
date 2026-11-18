@@ -1270,7 +1270,7 @@ Avant de commencer : **Administration**, puis **Modules**, groupe « Nouvelles v
 
 ## Nouvelle fiche de membre (PRODUIT-114 à 117)
 
-Avant de commencer : **Administration**, puis **Modules**, groupe « Nouvelles versions ». Allume « Nouvelle fiche de membre ».
+Depuis le 18/11 (PRODUIT-131), c'est la seule fiche : plus d'interrupteur ni d'ancienne fiche. Fais ces essais sur ton téléphone et celui d'ta compagne avant le gel du 20 au soir.
 
 1. Dans **Famille**, ouvre la fiche d'un adulte. **Attendu :** un bandeau à sa couleur, sa photo ronde, son âge, « Anniversaire dans … ». Puis les boutons ronds (Vœux, Pensez à moi, Appeler, Itinéraire) et une carte par section. Jamais de menu ⋮.
 2. Ouvre ta propre fiche. **Attendu :** « Ma fiche » en haut, un crayon sur les cartes que tu peux remplir, la jauge « Ta fiche est remplie à … % », et le bouton appareil photo sur ta photo. Tes envies ne montrent que leurs titres, jamais « Réservé » ni « Pris ».
@@ -1279,4 +1279,5 @@ Avant de commencer : **Administration**, puis **Modules**, groupe « Nouvelles v
 5. **Administration**, « Voir comme… » cette personne, puis ouvre sa fiche. **Attendu :** aucune surprise, réservation ni « Ce que j'offre ». Pas de jauge ni de bouton photo, car « Voir comme » n'écrit rien.
 6. Mets la taille du texte à 200 %. **Attendu :** le prénom, l'adresse et les boutons passent à la ligne sans être coupés. Avec TalkBack, chaque bouton dit ce qu'il fait.
 7. Réseau faible : ouvre une fiche déjà vue en mode avion, puis en « 2G seulement », comme dans « Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible ». **Attendu :** la fiche s'affiche, sans écran blanc. « Appeler » ouvre le téléphone même sans réseau.
-8. Éteins le module. **Attendu :** l'ancienne fiche revient telle qu'elle était.
+8. **Administration**, puis **Modules**. **Attendu :** plus de « Nouvelle fiche de membre » dans « Nouvelles versions ».
+9. Sur ta fiche, ajoute ton téléphone dans « Coordonnées ». **Attendu :** il s'enregistre. S'il affiche une erreur, Publier Firebase n'a pas été lancé depuis l'arrivée de la fiche : lance-le.

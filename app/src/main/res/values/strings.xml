@@ -253,7 +253,6 @@
     <string name="feature_help_think_of_me">« Pensez à moi » : on note un moment important, et la famille encourage le jour J.</string>
     <string name="feature_help_who_is_it">« Qui est-ce ? » sur l\'Accueil : une vieille photo, la famille devine qui c\'est et en quelle année.</string>
     <string name="feature_help_surprise_button">Un bouton « Préparer une surprise » dans Cadeaux, et les surprises en préparation en haut. La personne fêtée ne voit rien.</string>
-    <string name="feature_help_member_profile_v2">Une fiche par personne, rangée en sections : cadeaux, goûts, famille, moments, et un téléphone ou une adresse si on veut.</string>
     <string name="feature_help_old_lists_cleanup">Après le 21/11 : efface les anciennes listes déjà copiées dans « Mes envies » et les idées. Rien de ce qu\'elles contiennent ne se perd.</string>
     <string name="feature_help_single_list">Une seule liste d\'envies par personne et « Idées de la famille », à la place des listes d\'occasion.</string>
     <string name="feature_help_more_photos">Une photo de couverture sur un événement, et une photo sur une envie.</string>
@@ -1331,7 +1330,7 @@
     <string name="recipe_comment_remove_title">Retirer ce commentaire ?</string>
     <string name="recipe_comment_remove_failed">Le commentaire n\'a pas pu être retiré. Vérifie ta connexion, puis réessaie.</string>
     <string name="recipes_from_title">Recettes de %1$s</string>
-    <!-- Récit 66 : la fiche de membre organisée (interrupteur memberProfileV2). -->
+    <!-- Récit 66 : la fiche de membre organisée. -->
     <string name="profile_v2_photo_open">Voir la photo de %1$s en grand</string>
     <string name="profile_v2_photo_close">Fermer la photo</string>
     <string name="profile_v2_photo_of">Photo de %1$s</string>
@@ -2299,7 +2298,6 @@
     <string name="feature_single_list">Une seule liste d\'envies par personne</string>
     <string name="feature_old_lists_cleanup">Effacer les anciennes listes</string>
     <string name="feature_surprise_button">Bouton surprise</string>
-    <string name="feature_member_profile_v2">Nouvelle fiche de membre</string>
     <string name="old_lists_cleanup_confirm_title">Effacer les anciennes listes ?</string>
     <string name="old_lists_cleanup_confirm_body">Les listes d\'occasion déjà copiées seront effacées pour de bon. Leurs envies, réservations et parts restent dans « Mes envies » et les idées. Avant le 22 novembre, rien ne se passe : rallume-le après le 22.</string>
     <string name="old_lists_cleanup_confirm">Effacer</string>
