@@ -1257,7 +1257,7 @@ Avant de commencer : **Administration**, puis **Modules**, et allume « Nouveau 
 
 ## Nouvel onglet Cadeaux (PRODUIT-119 à 121)
 
-Avant de commencer : **Administration**, puis **Modules**, groupe « Nouvelles versions ». Allume « Nouvel onglet Cadeaux » et « Liste unique ». Éteint, l'onglet Cadeaux ne change pas, même pour toi.
+Depuis le 18/11 (PRODUIT-131), le nouvel onglet n'a plus d'interrupteur à lui : il vient avec « Liste unique ». Allume « Liste unique » dans **Administration**, **Modules**. Fais ces essais sur ton téléphone et celui de ta compagne avant le gel du 20 au soir.
 
 1. Ouvre **Cadeaux**. **Attendu :** si tu prépares une surprise, une carte noire « Surprise en préparation » en tête. Puis « À venir » : le prochain anniversaire des 30 jours en relief (« … fête ses … ans », « Ses envies », « Idées »), puis Noël à partir du 1er novembre. Puis « Mes envies », puis « La famille » : ton foyer ouvert, les autres repliés.
 2. Regarde une carte de personne. **Attendu :** sa couleur à gauche, son anniversaire et seulement « N envies ». Jamais un nombre d'idées ni de réservations.
@@ -1266,7 +1266,7 @@ Avant de commencer : **Administration**, puis **Modules**, groupe « Nouvelles v
 5. « Voir comme » un enfant. **Attendu :** « Mes envies » en tête. Sur les cartes des autres, « Ses envies » seulement, jamais « Idées » ni « Préparer une surprise ».
 6. Mets la taille du texte à 200 %. **Attendu :** les noms de foyer passent sur deux lignes, rien n'est coupé et tous les boutons restent faciles à toucher. Avec TalkBack, « Ses envies » se lit « Envies de … », et « Idées » se lit « Idées pour … ».
 7. Réseau faible : refais les étapes 1 et 3 en mode avion, puis en « 2G seulement », comme dans « Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible ». **Attendu :** l'onglet déjà vu s'affiche avec le bandeau « Hors ligne », sans écran blanc ni roue sans fin.
-8. Éteins le module. **Attendu :** l'ancien onglet Cadeaux revient tel qu'il était.
+8. **Administration**, puis **Modules**. **Attendu :** plus de « Nouvel onglet Cadeaux ». La phrase sous « Liste unique » dit qu'elle apporte le nouvel onglet.
 
 ## Nouvelle fiche de membre (PRODUIT-114 à 117)
 
