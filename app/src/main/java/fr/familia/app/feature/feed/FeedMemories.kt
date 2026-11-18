@@ -149,7 +149,7 @@ class YearAgoFeedCard(val memory: YearAgoMemory, day: LocalDate) : FeedCard {
                     Text(detail, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            OutlinedButton(onClick = open, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.feed_year_ago_again)) }
+            OutlinedButton(onClick = open, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.feed_year_ago_again)) }
         }
     }
 }
@@ -212,7 +212,7 @@ class WeekFeedCard(val week: WeekRecap, sunday: LocalDate) : FeedCard {
                     repeat(WeekRecap.PHOTOS - week.photos.size) { Box(Modifier.weight(1f)) }
                 }
             }
-            OutlinedButton(onClick = navigation.onOpenRecap, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.feed_week_again)) }
+            OutlinedButton(onClick = navigation.onOpenRecap, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.feed_week_again)) }
         }
     }
 }
@@ -257,7 +257,7 @@ private fun MemoryLine(label: String, tone: FeedTone, text: String, action: Stri
             fontWeight = FontWeight.ExtraBold,
             modifier = Modifier.weight(1f),
         )
-        Button(onClick = onAction, modifier = Modifier.heightIn(min = 48.dp)) { Text(action) }
+        Button(onClick = onAction, modifier = Modifier.heightIn(min = 56.dp)) { Text(action) }
     }
 }
 
@@ -282,7 +282,7 @@ fun FeedPublishBar(me: Member, onPublish: () -> Unit, modifier: Modifier = Modif
                     containerColor = FeedTone.Green.labelBackground,
                     contentColor = FeedTone.Green.label,
                 ),
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(56.dp),
             ) {
                 Icon(
                     Icons.Outlined.PhotoCamera,
@@ -295,7 +295,7 @@ fun FeedPublishBar(me: Member, onPublish: () -> Unit, modifier: Modifier = Modif
                     containerColor = Color(0xFF1B1B1B),
                     contentColor = Color.White,
                 ),
-                modifier = Modifier.heightIn(min = 48.dp),
+                modifier = Modifier.heightIn(min = 56.dp),
             ) { Text(stringResource(R.string.feed_publish)) }
         }
         val sentence = @Composable { textModifier: Modifier ->
@@ -304,7 +304,7 @@ fun FeedPublishBar(me: Member, onPublish: () -> Unit, modifier: Modifier = Modif
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = textModifier
-                    .heightIn(min = 48.dp)
+                    .heightIn(min = 56.dp)
                     .clickable(onClickLabel = stringResource(R.string.feed_publish), onClick = onPublish)
                     .wrapContentHeight(Alignment.CenterVertically),
             )
