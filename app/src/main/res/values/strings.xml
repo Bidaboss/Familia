@@ -3158,6 +3158,9 @@
     <!-- Fil d'actualité (récit 67) -->
     <string name="feed_tab_today">Aujourd\'hui</string>
     <string name="feed_tab_feed">Le fil</string>
+    <string name="feed_switch_feed_title">Le fil de la famille</string>
+    <string name="feed_switch_back">Revenir à Aujourd\'hui</string>
+    <string name="feed_switch_open">Voir le fil</string>
     <plurals name="feed_tab_new">
         <item quantity="one">%1$d nouveauté</item>
         <item quantity="other">%1$d nouveautés</item>

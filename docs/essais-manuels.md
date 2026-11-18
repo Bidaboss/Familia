@@ -1213,6 +1213,17 @@ Module « Fil d'actualité » allumé.
 2. **Attendu :** 8 dp entre deux actualités d'un même jour, un peu plus avant et après « Aujourd'hui », « Hier ».
 3. En thème sombre, puis à 130 % de taille de texte. **Attendu :** les cartes restent lisibles et séparées, rien n'est coupé.
 
+## Fil d'actualité : la bascule « Aujourd'hui | Le fil » (PRODUIT-128)
+
+Interrupteur newsFeed allumé.
+
+1. Accueil, côté Aujourd'hui : la date à gauche (« Mercredi 18 novembre »), à droite un bouton vert pâle « Le fil » avec la pastille jaune des nouveautés et une flèche. Plus de segment noir.
+2. Toucher le bouton : le fil s'ouvre. À gauche « Le fil de la famille », à droite un bouton blanc « < Aujourd'hui », sans pastille.
+3. Toucher « Aujourd'hui » : retour à l'Accueil du jour.
+4. TalkBack : « Voir le fil, 4 nouveautés » puis « Revenir à Aujourd'hui ».
+5. Taille du texte à 130 % : les deux boutons restent lisibles ; si la place manque, le bouton passe sous le titre.
+6. Interrupteur newsFeed éteint : aucune bascule, l'Accueil est inchangé.
+
 ## Fil d'actualité de l'Accueil (récit 67)
 
 Module « Fil d'actualité » allumé dans Administration > Modules (éteint, l'Accueil ne change pas, même pour l'admin principal).
