@@ -27,13 +27,10 @@ class TopLevelDestinationTest {
     }
 
     @Test
-    fun `the accueil, gifts and entraide tabs wait for their module, except for the admin principal`() {
-        val off = TopLevelDestination.visible(FeatureFlags())
-        assertEquals(listOf(TopLevelDestination.Planning, TopLevelDestination.Members), off)
-        assertEquals(
-            listOf(TopLevelDestination.Planning, TopLevelDestination.Gifts, TopLevelDestination.Members),
-            TopLevelDestination.visible(FeatureFlags(mapOf("gifts" to true))),
-        )
+    fun `the accueil, gifts and entraide tabs are in the base: always there, for everyone`() {
+        // « La base » has no switch any more (Kévin le 18/11, 20 h 39).
+        assertEquals(TopLevelDestination.entries.toList(), TopLevelDestination.visible(FeatureFlags()))
+        assertEquals(TopLevelDestination.entries.toList(), TopLevelDestination.visible(FeatureFlags(mapOf("gifts" to false))))
         assertEquals(TopLevelDestination.entries.toList(), TopLevelDestination.visible(FeatureFlags(isOwner = true)))
     }
 }
