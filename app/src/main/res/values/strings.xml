@@ -252,7 +252,7 @@
     <string name="feature_help_who_is_it">« Qui est-ce ? » sur l\'Accueil : une vieille photo, la famille devine qui c\'est et en quelle année.</string>
     <string name="feature_help_surprise_button">Un bouton « Préparer une surprise » dans Cadeaux, et les surprises en préparation en haut. La personne fêtée ne voit rien.</string>
     <string name="feature_help_old_lists_cleanup">Après le 21/11 : efface les anciennes listes déjà copiées dans « Mes envies » et les idées. Rien de ce qu\'elles contiennent ne se perd.</string>
-    <string name="feature_help_single_list">Une seule liste d\'envies par personne, « Idées de la famille » et le nouvel onglet Cadeaux, à la place des listes d\'occasion.</string>
+    <string name="feature_help_single_list">Une seule liste d\'envies par personne, sa liste « Surprise » cachée et le nouvel onglet Cadeaux, à la place des listes d\'occasion.</string>
     <string name="feature_help_more_photos">Une photo de couverture sur un événement, et une photo sur une envie.</string>
     <string name="feature_help_recipe_book">Dans Recettes, « Faire le livre » : toutes les recettes dans un PDF à imprimer.</string>
     <string name="feature_help_good_deals">Dans Entraide, les bons plans et les bonnes adresses de la famille.</string>
@@ -733,7 +733,7 @@
     <string name="gifts_preparing_for">Pour %1$s</string>
     <string name="gifts_preparing_ideas_title">Surprise pour %1$s</string>
     <string name="gifts_preparing_ideas_birthday">Dans ses idées, pour son anniversaire : %1$s</string>
-    <string name="gifts_preparing_ideas">Dans ses idées de la famille</string>
+    <string name="gifts_preparing_ideas">Dans la surprise de la famille</string>
     <string name="surprise_pick_title">Préparer une surprise</string>
     <string name="surprise_pick_question">Pour qui ?</string>
     <string name="surprise_pick_next">Prochain anniversaire</string>
@@ -756,10 +756,10 @@
     <string name="gift_wish_for_birthday">Pour son anniversaire</string>
     <string name="gifts_moment_all">Tout le monde</string>
     <string name="gifts_moment_christmas">Noël %1$d</string>
-    <string name="gift_ideas_title">Idées de la famille</string>
-    <string name="gift_ideas_of">Idées pour %1$s</string>
+    <string name="gift_ideas_title">La surprise de la famille</string>
+    <string name="gift_ideas_of">Surprise pour %1$s</string>
     <string name="gift_ideas_subtitle">%1$s ne voit jamais cette partie</string>
-    <string name="gift_ideas_notice">%1$s ne voit jamais ces idées, ni qui les a prises.</string>
+    <string name="gift_ideas_notice">La surprise de la famille pour %1$s : note et prends des idées. %1$s ne voit jamais cette liste, ni qui a pris quoi.</string>
     <string name="gift_ideas_empty">Aucune idée pour l\'instant : ajoute la première.</string>
     <string name="gift_add_idea">Ajouter une idée</string>
     <string name="gift_occasion_christmas">Noël</string>
@@ -2330,10 +2330,8 @@
     <string name="gifts_v2_my_age">Tu fêtes tes %1$s</string>
     <string name="gifts_v2_date_line">%1$s · %2$s</string>
     <string name="gifts_v2_their_wishes">Ses envies</string>
-    <string name="gifts_v2_ideas">Idées</string>
-    <string name="gifts_v2_christmas">Noël</string>
+    <string name="gifts_v2_surprise">Surprise</string>
     <string name="gifts_v2_open">ouvrir</string>
-    <string name="gifts_v2_all">Toutes</string>
     <string name="gifts_v2_my_wishes_none">Aucune envie pour l\'instant</string>
     <plurals name="gifts_v2_my_wishes_line">
         <item quantity="one">%d envie · la famille la voit</item>
