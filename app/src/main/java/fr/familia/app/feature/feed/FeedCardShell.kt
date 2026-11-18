@@ -1,5 +1,6 @@
 package fr.familia.app.feature.feed
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,17 +20,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.theme.LocalClayColors
 import fr.familia.app.core.ui.MemberAvatar
 
 /**
@@ -48,9 +48,10 @@ enum class FeedTone(val bar: Color, val labelBackground: Color, val label: Color
 }
 
 /**
- * The frame of every card of the fil: one tile per actualité (PRODUIT-127, variante A). A white
- * card with corners of 22 dp like the cards of the Planning, a very soft shadow and a thin line of
- * the color of its type under it; the label of the type says the rest. [header] on one line, then
+ * The frame of every card of the fil: one tile per actualité (PRODUIT-127, then PRODUIT-130
+ * variante A). The card color of the theme, like ClayCard (the surface of Material is the screen
+ * background in some themes, and the tile vanished there), corners of 22 dp, a 1.5 dp outline of
+ * the theme and a soft shadow; the label of the type says the rest. [header] on one line, then
  * [content]. The whole card opens [onOpen].
  */
 @Composable
@@ -62,19 +63,17 @@ fun FeedCardShell(
     content: @Composable () -> Unit,
 ) {
     val shape = RoundedCornerShape(TILE_CORNER)
-    val line = tone.bar.copy(alpha = 0.25f)
+    val card = LocalClayColors.current.card
+    // Brown-black shadow: 10 % on a light card, 35 % on a dark one, so it still lifts the tile.
+    val shadow = Color.Black.copy(alpha = if (card.luminance() < 0.5f) 0.35f else 0.10f)
     Surface(
         shape = shape,
-        color = MaterialTheme.colorScheme.surface,
+        color = card,
+        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = modifier
             .fillMaxWidth()
-            .padding(bottom = TILE_LINE)
-            // The thin colored line: the same tile, TILE_LINE lower, behind the card.
-            .drawBehind {
-                val radius = CornerRadius(TILE_CORNER.toPx())
-                drawRoundRect(line, topLeft = Offset(0f, TILE_LINE.toPx()), size = size, cornerRadius = radius)
-            }
-            .shadow(elevation = 1.dp, shape = shape, ambientColor = TILE_SHADOW, spotColor = TILE_SHADOW),
+            // About 2 dp down and 8 dp of blur.
+            .shadow(elevation = 4.dp, shape = shape, ambientColor = shadow, spotColor = shadow),
     ) {
         Column(
             Modifier
@@ -91,10 +90,6 @@ fun FeedCardShell(
 }
 
 private val TILE_CORNER = 22.dp
-private val TILE_LINE = 2.dp
-
-/** Brown at 7 %: a shadow that only lifts the tile off the dotted background. */
-private val TILE_SHADOW = Color(0x12503A28)
 
 /** « (I) Inès · 9 h 12          [Bonne nouvelle] »: who, when, and the module. */
 @Composable
