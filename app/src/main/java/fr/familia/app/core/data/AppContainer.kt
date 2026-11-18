@@ -51,6 +51,9 @@ interface AppContainer {
     /** « Ma valise » (récit 62). */
     val packingRepository: PackingRepository? get() = null
     val eventCommentRepository: EventCommentRepository?
+
+    /** The comments of a good news (récit 67), with the same calls as those of an event. */
+    val goodNewsCommentRepository: EventCommentRepository? get() = null
     val helpRequestRepository: HelpRequestRepository?
     val tripRepository: TripRepository?
     val expenseRepository: ExpenseRepository?
@@ -163,6 +166,9 @@ class FirebaseAppContainer(context: Context) : AppContainer {
 
     /** The comments of an event (PRD, récit 28). */
     override val eventCommentRepository: EventCommentRepository? by lazy { firestore?.let { FirestoreEventCommentRepository(it) } }
+    override val goodNewsCommentRepository: EventCommentRepository? by lazy {
+        firestore?.let { FirestoreEventCommentRepository(it, parent = "goodNews", expires = false) }
+    }
 
     override val helpRequestRepository: HelpRequestRepository? by lazy { firestore?.let { FirestoreHelpRequestRepository(it, sendJournal) } }
     override val tripRepository: TripRepository? by lazy { firestore?.let { FirestoreTripRepository(it) } }

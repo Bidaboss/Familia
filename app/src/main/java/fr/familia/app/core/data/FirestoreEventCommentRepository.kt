@@ -16,9 +16,17 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.Date
 
-class FirestoreEventCommentRepository(private val db: FirebaseFirestore) : EventCommentRepository {
+/**
+ * The comments under a document of [parent]: an event (récit 28, kept 12 months), or a good news
+ * (récit 67, [expires] false: they go with the news).
+ */
+class FirestoreEventCommentRepository(
+    private val db: FirebaseFirestore,
+    private val parent: String = "events",
+    private val expires: Boolean = true,
+) : EventCommentRepository {
 
-    private fun event(eventId: String) = db.collection("events").document(eventId)
+    private fun event(eventId: String) = db.collection(parent).document(eventId)
     private fun comments(eventId: String) = event(eventId).collection("comments")
 
     override fun observe(eventId: String, limit: Int): Flow<CommentPage> = callbackFlow {
@@ -38,16 +46,14 @@ class FirestoreEventCommentRepository(private val db: FirebaseFirestore) : Event
     }
 
     override suspend fun add(eventId: String, text: String, me: Member) {
-        val expireAt = Instant.now().plus(EventComment.KEPT_DAYS, ChronoUnit.DAYS)
-        comments(eventId).document().set(
-            mapOf(
-                "text" to text,
-                "authorId" to me.id,
-                "authorName" to me.firstName,
-                "createdAt" to FieldValue.serverTimestamp(),
-                "expireAt" to Timestamp(Date.from(expireAt)),
-            ),
-        ).await()
+        val fields = mutableMapOf<String, Any>(
+            "text" to text,
+            "authorId" to me.id,
+            "authorName" to me.firstName,
+            "createdAt" to FieldValue.serverTimestamp(),
+        )
+        if (expires) fields["expireAt"] = Timestamp(Date.from(Instant.now().plus(EventComment.KEPT_DAYS, ChronoUnit.DAYS)))
+        comments(eventId).document().set(fields).await()
     }
 
     override suspend fun edit(eventId: String, commentId: String, text: String) {

@@ -7,6 +7,7 @@ import fr.familia.app.core.data.CommentPage
 import fr.familia.app.core.data.EventCommentRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.EventComment
+import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.canEditComment
 import fr.familia.app.core.model.canRemoveComment
@@ -53,6 +54,8 @@ class EventCommentsViewModel(
     private val eventId: String,
     private val savedState: SavedStateHandle = SavedStateHandle(),
     private val writeTimeoutMillis: Long = 4_000,
+    /** Who removes a comment: for an event, [canRemoveComment]; a good news has its own rule (récit 67). */
+    private val canRemove: (Family, EventComment, Member) -> Boolean = { family, comment, me -> family.canRemoveComment(comment, me) },
 ) : ViewModel() {
 
     private val draft = savedState.getStateFlow(DRAFT, "")
@@ -76,7 +79,7 @@ class EventCommentsViewModel(
                         EventCommentRow(
                             c,
                             canEdit = current != null && canEditComment(c, current),
-                            canRemove = current != null && family.canRemoveComment(c, current),
+                            canRemove = current != null && canRemove(family, c, current),
                         )
                     },
                     hasMore = shown.hasMore,

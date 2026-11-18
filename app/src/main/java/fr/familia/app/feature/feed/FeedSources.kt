@@ -20,7 +20,10 @@ fun rememberFeedSources(container: AppContainer?, me: Member, family: Family?, t
     val flags = LocalFeatureFlags.current
     val commentsOn = flags.isOn(Feature.Comments)
     val wishesOn = flags.isOn(Feature.BirthdayWishes)
-    return remember(container, me.id, family, today, commentsOn, wishesOn) {
+    val goodNewsOn = flags.isOn(Feature.GoodNews)
+    val helpOn = flags.isOn(Feature.HelpRequests)
+    val weeklyOn = flags.isOn(Feature.WeeklyQuestion)
+    return remember(container, me.id, family, today, commentsOn, wishesOn, goodNewsOn, helpOn, weeklyOn) {
         buildList {
             // Planning (fil principal): the events put in the Planning, with « J'y vais » and their last comment.
             container?.eventRepository?.let { events ->
@@ -28,6 +31,12 @@ fun rememberFeedSources(container: AppContainer?, me: Member, family: Family?, t
             }
             // Anniversaires du jour (fil principal).
             if (family != null) add(BirthdayFeedSource(family.members, today, wishesOn))
+            // Bonnes nouvelles, with their comments (fil coups de main).
+            if (goodNewsOn) container?.goodNewsRepository?.let { add(GoodNewsFeedSource(it, container.goodNewsCommentRepository, me.id)) }
+            // Coups de main demandés ou pris, as Entraide shows them to me (fil coups de main).
+            if (helpOn) container?.helpRequestRepository?.let { add(HelpFeedSource(it, me.id)) }
+            // Question de la semaine (fil coups de main).
+            if (weeklyOn) container?.weeklyQuestionRepository?.let { add(WeeklyFeedSource(it, me.id)) }
         }
     }
 }

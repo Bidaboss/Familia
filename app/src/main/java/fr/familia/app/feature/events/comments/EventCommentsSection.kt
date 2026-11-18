@@ -1,5 +1,6 @@
 package fr.familia.app.feature.events.comments
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,6 +32,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.data.EventCommentRepository
+import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.EventComment
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.theme.ClayTint
@@ -43,23 +46,43 @@ import java.time.Instant
 /** The comments inside an event (PRD, récit 28), with their own ViewModel. */
 @Composable
 fun EventCommentsSection(container: AppContainer?, currentMember: Member, eventId: String) {
+    CommentsSection(container?.eventCommentRepository, container, currentMember, "event-comments-$eventId", eventId)
+}
+
+/**
+ * Comments under a document, from [repository]: an event, or a good news (récit 67, with its own
+ * [canRemove]). [readOnly] in the Mode présentation and « Voir comme »: they are read, never written.
+ */
+@Composable
+fun CommentsSection(
+    repository: EventCommentRepository?,
+    container: AppContainer?,
+    currentMember: Member,
+    key: String,
+    parentId: String,
+    readOnly: Boolean = false,
+    canRemove: ((Family, EventComment, Member) -> Boolean)? = null,
+    @StringRes empty: Int = R.string.event_comments_empty,
+) {
     val viewModel: EventCommentsViewModel = viewModel(
-        key = "event-comments-$eventId",
+        key = key,
         factory = viewModelFactory {
             initializer {
-                EventCommentsViewModel(
-                    container?.eventCommentRepository,
-                    container?.memberRepository,
-                    currentMember.id,
-                    eventId,
-                    createSavedStateHandle(),
-                )
+                if (canRemove == null) {
+                    EventCommentsViewModel(repository, container?.memberRepository, currentMember.id, parentId, createSavedStateHandle())
+                } else {
+                    EventCommentsViewModel(
+                        repository, container?.memberRepository, currentMember.id, parentId, createSavedStateHandle(), canRemove = canRemove,
+                    )
+                }
             }
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     EventCommentsContent(
         state = state,
+        readOnly = readOnly,
+        empty = empty,
         onType = viewModel::type,
         onSend = viewModel::send,
         onShowMore = viewModel::showMore,
@@ -79,6 +102,8 @@ fun EventCommentsContent(
     onEdit: (EventCommentRow, String) -> Boolean,
     onRemove: (EventCommentRow) -> Unit,
     onMute: (Boolean) -> Unit,
+    readOnly: Boolean = false,
+    @StringRes empty: Int = R.string.event_comments_empty,
 ) {
     var removing by rememberSaveable { mutableStateOf<String?>(null) }
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
@@ -90,14 +115,14 @@ fun EventCommentsContent(
             TextButton(onClick = onShowMore, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.event_comments_more)) }
         }
         if (!state.isLoading && state.rows.isEmpty()) {
-            Text(stringResource(R.string.event_comments_empty), style = MaterialTheme.typography.bodyLarge, color = muted)
+            Text(stringResource(empty), style = MaterialTheme.typography.bodyLarge, color = muted)
         }
         state.rows.forEach { row ->
             ClayCard(modifier = Modifier.fillMaxWidth()) {
                 Text(row.comment.authorName, style = MaterialTheme.typography.titleSmall)
                 Text(row.comment.text, style = MaterialTheme.typography.bodyLarge)
                 commentWhen(row.comment)?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = muted) }
-                if (row.canEdit || row.canRemove) {
+                if (!readOnly && (row.canEdit || row.canRemove)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (row.canEdit) {
                             TextButton(
@@ -117,6 +142,7 @@ fun EventCommentsContent(
         state.problem?.let {
             Text(stringResource(problemText(it)), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
         }
+        if (readOnly) return@Column
         OutlinedTextField(
             value = state.draft,
             onValueChange = onType,

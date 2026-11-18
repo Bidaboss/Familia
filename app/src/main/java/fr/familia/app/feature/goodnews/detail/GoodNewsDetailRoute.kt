@@ -21,6 +21,11 @@ import fr.familia.app.core.share.goodNewsShare
 import fr.familia.app.core.share.share
 import fr.familia.app.core.share.sharePhoto
 import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.R
+import fr.familia.app.core.viewas.LocalViewAs
+import fr.familia.app.feature.events.comments.CommentsSection
+import fr.familia.app.feature.goodnews.canRemoveGoodNewsComment
+import fr.familia.app.feature.presentation.LocalPresenting
 import kotlinx.coroutines.launch
 import fr.familia.app.feature.wishes.BirthdayCardsSection
 
@@ -44,6 +49,8 @@ fun GoodNewsDetailRoute(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val wishesOn = LocalFeatureFlags.current.isOn(Feature.BirthdayWishes)
     val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)
+    val commentsOn = LocalFeatureFlags.current.isOn(Feature.NewsFeed)
+    val readOnly = LocalPresenting.current || LocalViewAs.current.viewed != null
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var sharing by remember { mutableStateOf(false) }
@@ -60,6 +67,22 @@ fun GoodNewsDetailRoute(
         onHide = viewModel::setHidden,
         onDismissError = viewModel::dismissError,
         onBack = onBack,
+        comments = if (commentsOn) {
+            { news ->
+                CommentsSection(
+                    repository = container?.goodNewsCommentRepository,
+                    container = container,
+                    currentMember = currentMember,
+                    key = "goodNews-comments-$postId",
+                    parentId = postId,
+                    readOnly = readOnly,
+                    canRemove = { family, comment, me -> canRemoveGoodNewsComment(news, comment, me, family) },
+                    empty = R.string.goodnews_comments_empty,
+                )
+            }
+        } else {
+            null
+        },
         wishes = if (wishesOn) ({ person -> BirthdayCardsSection(container, currentMember, person, BirthdayCard.yearOfNews(postId)) }) else null,
         onShare = (state as? GoodNewsDetailUiState.Success)?.takeIf { shareOn }?.let { shown ->
             {

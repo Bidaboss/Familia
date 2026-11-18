@@ -1,5 +1,6 @@
 package fr.familia.app.feature.goodnews
 
+import fr.familia.app.core.model.EventComment
 import fr.familia.app.core.model.Reaction
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.goodnews.edit.GoodNewsForm
@@ -40,6 +41,18 @@ class GoodNewsRightsTest {
         assertFalse(canRemoveGoodNews(forKid, TestFamily.adult, family))
         assertTrue(canEditGoodNews(forKid, TestFamily.otherAdult))
         assertFalse(canEditGoodNews(forKid, TestFamily.admin))
+    }
+
+    @Test
+    fun `a comment is removed by its author, the author of the news, a parent and the admin principal (récit 67)`() {
+        val news = goodNews("n1", TestFamily.otherAdult)
+        val byKid = EventComment("c1", "Bravo", "kid1", "Kid", null)
+        assertTrue(canRemoveGoodNewsComment(news, byKid, TestFamily.kid, family))
+        assertTrue(canRemoveGoodNewsComment(news, byKid, TestFamily.otherAdult, family))
+        assertTrue(canRemoveGoodNewsComment(news, byKid, TestFamily.adult, family))
+        assertTrue(canRemoveGoodNewsComment(news, byKid, TestFamily.admin, family))
+        val byAdult = EventComment("c2", "Bravo", "adult1", "Adult", null)
+        assertFalse(canRemoveGoodNewsComment(news, byAdult, TestFamily.kid, family))
     }
 
     @Test

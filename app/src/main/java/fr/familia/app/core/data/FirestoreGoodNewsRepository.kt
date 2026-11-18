@@ -148,5 +148,6 @@ private fun DocumentSnapshot.toGoodNews(): GoodNews? {
         littleOnes = getBoolean("littleOnes") == true,
         // Not yet on the server: its creation time is still the one this phone will ask for.
         pending = metadata.hasPendingWrites() && getTimestamp("createdAt") == null,
+        commentCount = (getLong("commentCount") ?: 0L).toInt().coerceAtLeast(0),
     )
 }
