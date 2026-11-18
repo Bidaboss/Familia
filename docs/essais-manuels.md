@@ -1204,6 +1204,8 @@ Dans « Le fil » de l'Accueil :
 10. Sur un autre téléphone, demande un coup de main en te prévenant. **Attendu :** une carte « Coup de main » avec « Je m'en occupe » et « Pas dispo ». « Je m'en occupe » la change en une ligne « Prénom s'en occupe : … ✓ ». Un coup de main annulé disparaît.
 11. Un lundi, après 9 h. **Attendu :** une carte « Question de la semaine · N réponses » avec « Répondre », qui devient « Voir les réponses » une fois répondu.
 12. En mode présentation, puis en « Voir comme ». **Attendu :** les cartes se lisent, sans réaction possible, sans « Commenter », « Je m'en occupe » ni « Répondre ».
+13. Passe le téléphone en réseau faible (Options pour les développeurs > réseau limité, ou mode avion juste après avoir touché « Envoyer »), puis commente une Bonne nouvelle depuis le fil. **Attendu :** « Envoyer » se grise pendant au plus 4 s, puis le champ se ferme ; un second toucher n'envoie pas le commentaire deux fois ; le fil reste utilisable pendant ce temps. Le commentaire part au retour du réseau.
+14. En « Voir comme » un membre fêté prochainement. **Attendu :** aucune carte du fil ne parle d'un cadeau ou d'une surprise pour elle ; un coup de main dont elle n'est pas prévenue n'apparaît pas.
 
 ## Fil d'actualité : une tuile par actualité (PRODUIT-127)
 

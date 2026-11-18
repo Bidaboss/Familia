@@ -167,6 +167,8 @@ private fun GoodNewsFeedActions(
     var writing by rememberSaveable(news.id) { mutableStateOf(false) }
     var draft by rememberSaveable(news.id) { mutableStateOf("") }
     var failed by remember(news.id) { mutableStateOf(false) }
+    // On a weak network the send waits up to 4 s: one tap, one comment.
+    var sending by remember(news.id) { mutableStateOf(false) }
     val canWrite = !context.readOnly
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         val meId = context.me.id
@@ -225,9 +227,10 @@ private fun GoodNewsFeedActions(
             }
             Spacer(Modifier.weight(1f))
             TextButton(
-                enabled = draft.isNotBlank(),
+                enabled = draft.isNotBlank() && !sending,
                 onClick = {
                     val text = draft.trim()
+                    sending = true
                     scope.launch {
                         try {
                             // Offline, Firestore keeps it and sends it later.
@@ -238,6 +241,8 @@ private fun GoodNewsFeedActions(
                             throw e
                         } catch (_: Exception) {
                             failed = true
+                        } finally {
+                            sending = false
                         }
                     }
                 },
