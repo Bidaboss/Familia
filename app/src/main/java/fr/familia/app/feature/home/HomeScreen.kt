@@ -303,6 +303,7 @@ fun HomeRoute(
                 onOpenHelpRequest = actions.onOpenHelpRequest,
                 onOpenTrip = actions.onOpenTrip,
                 onOpenRecipe = onOpenRecipe,
+                onOpenAlbumPhoto = actions.onOpenAlbumPhoto,
                 onOpenWeeklyQuestion = onOpenWeeklyQuestion,
             )
         }

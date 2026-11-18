@@ -23,7 +23,10 @@ fun rememberFeedSources(container: AppContainer?, me: Member, family: Family?, t
     val goodNewsOn = flags.isOn(Feature.GoodNews)
     val helpOn = flags.isOn(Feature.HelpRequests)
     val weeklyOn = flags.isOn(Feature.WeeklyQuestion)
-    return remember(container, me.id, family, today, commentsOn, wishesOn, goodNewsOn, helpOn, weeklyOn) {
+    val tripsOn = flags.isOn(Feature.Trips)
+    val eventAlbumsOn = flags.isOn(Feature.EventAlbums)
+    val recipesOn = flags.isOn(Feature.Recipes)
+    return remember(container, me.id, family, today, commentsOn, wishesOn, goodNewsOn, helpOn, weeklyOn, tripsOn, eventAlbumsOn, recipesOn) {
         buildList {
             // Planning (fil principal): the events put in the Planning, with « J'y vais » and their last comment.
             container?.eventRepository?.let { events ->
@@ -37,6 +40,14 @@ fun rememberFeedSources(container: AppContainer?, me: Member, family: Family?, t
             if (helpOn) container?.helpRequestRepository?.let { add(HelpFeedSource(it, me.id)) }
             // Question de la semaine (fil coups de main).
             if (weeklyOn) container?.weeklyQuestionRepository?.let { add(WeeklyFeedSource(it, me.id)) }
+            // Photos des albums des événements et des voyages (fil voyage): never a surprise trip.
+            val events = container?.eventRepository
+            val albums = container?.albumPhotoRepository
+            if (family != null && events != null && albums != null && (tripsOn || eventAlbumsOn)) {
+                add(AlbumFeedSource(container.tripRepository, events, albums, family, me.id, today, tripsOn, eventAlbumsOn))
+            }
+            // Recettes ajoutées (fil voyage), with their last comment.
+            container?.recipeRepository?.takeIf { recipesOn }?.let { add(RecipeFeedSource(it, container.albumPhotoRepository)) }
         }
     }
 }

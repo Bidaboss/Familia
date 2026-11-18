@@ -3104,4 +3104,16 @@
     </plurals>
     <string name="feed_birthday_mine">C\'est ton anniversaire !</string>
     <string name="feed_birthday_wish">Lui souhaiter</string>
+    <string name="feed_label_album">Photos</string>
+    <plurals name="feed_album_photos">
+        <item quantity="one">%1$d nouvelle photo</item>
+        <item quantity="other">%1$d nouvelles photos</item>
+    </plurals>
+    <plurals name="feed_album_authors">
+        <item quantity="one">%1$s et %2$d autre</item>
+        <item quantity="other">%1$s et %2$d autres</item>
+    </plurals>
+    <string name="feed_album_more">+%1$d</string>
+    <string name="feed_label_recipe">Recette</string>
+    <string name="feed_recipe_origin">La recette de %1$s</string>
 </resources>

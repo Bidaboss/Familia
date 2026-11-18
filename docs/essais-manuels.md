@@ -1207,3 +1207,6 @@ Module « Fil d'actualité » allumé dans Administration > Modules (éteint, l'
 4. Un jour d'anniversaire. **Attendu :** une carte « Anniversaire · Prénom a N ans », avec « Lui souhaiter » qui ouvre sa fiche (si les vœux d'anniversaire sont allumés).
 5. Touche « Voir plus ancien ». **Attendu :** les 14 jours d'avant s'ajoutent en bas.
 6. En mode présentation, puis en « Voir comme ». **Attendu :** le fil se lit, sans « J'y vais » ni « Lui souhaiter ». Jamais rien des Cadeaux.
+7. Ajoute trois photos à l'album d'un événement passé, ou d'un voyage que toute la famille suit. **Attendu :** une carte verte « Photos » avec le titre, « 3 nouvelles photos » et les vignettes. Les photos d'un même jour et d'un même album font une seule carte. Toucher la carte ouvre l'album sur la photo la plus récente.
+8. Ajoute des photos à un voyage que quelqu'un ne suit pas (un voyage surprise). **Attendu :** aucune carte, même sur le téléphone de quelqu'un qui le suit.
+9. Ajoute une recette. **Attendu :** une carte orange « Recette » avec son titre, « La recette de … » si l'origine est notée, la photo du plat si elle existe et le dernier commentaire. Toucher la carte ouvre la recette.
