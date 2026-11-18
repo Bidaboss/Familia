@@ -38,6 +38,8 @@ import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.ui.graphics.vector.ImageVector
+import fr.familia.app.feature.albums.FeedPhotosDestination
+import fr.familia.app.feature.albums.FeedPhotosRoute
 import fr.familia.app.feature.all.AllFamiliaScreen
 import fr.familia.app.feature.all.AllModule
 import fr.familia.app.feature.all.ModuleFamily
@@ -1028,6 +1030,17 @@ fun FamiliaApp(
                             },
                             onOpenMonth = { month -> navController.navigate(MonthSlideshowDestination(month.year, month.monthValue)) },
                             onOpenTrips = if (features.isOn(Feature.Trips)) ({ navController.navigate(TripsDestination) { launchSingleTop = true } }) else null,
+                            onOpenFeedPhotos = { month -> navController.navigate(FeedPhotosDestination(month.year, month.monthValue)) },
+                        )
+                    }
+                    composable<FeedPhotosDestination> { entry ->
+                        val route = entry.toRoute<FeedPhotosDestination>()
+                        FeedPhotosRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            month = YearMonth.of(route.year, route.month),
+                            onBack = { navController.popBackStack() },
+                            onOpenNews = { id -> navController.navigate(GoodNewsDetailDestination(id)) },
                         )
                     }
                     composable<ChallengesDestination> {
