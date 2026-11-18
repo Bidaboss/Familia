@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.model.GoodNews
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Reaction
 import fr.familia.app.core.share.ShareButton
@@ -56,6 +57,8 @@ fun GoodNewsDetailScreen(
     wishes: (@Composable (Member) -> Unit)? = null,
     /** « Partager » (récit 31), while its module is on. */
     onShare: (() -> Unit)? = null,
+    /** Its comments (récit 67), while the fil d'actualité is on. */
+    comments: (@Composable (GoodNews) -> Unit)? = null,
 ) {
     var removing by rememberSaveable { mutableStateOf(false) }
     Scaffold(
@@ -93,6 +96,7 @@ fun GoodNewsDetailScreen(
                     )
                     val person = state.birthdayPerson
                     if (person != null && wishes != null) wishes(person)
+                    comments?.invoke(state.item.news)
                 }
             }
         }

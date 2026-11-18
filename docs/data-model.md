@@ -543,6 +543,7 @@ Une Bonne nouvelle a un texte court, une à trois photos et peut nommer des memb
 | `createdAt`, `updatedAt` | horodatage serveur | `updatedAt` change quand l'auteur modifie, pas pour une réaction |
 | `forChallenge` | `AAAA-MM`, facultatif | Compte pour le défi lancé par un foyer ce mois-là (récit 35 bis). Fixé à la publication, l'auteur ne le change pas en modifiant |
 | `littleOnes` | `true`, facultatif | « Les petits » (récit 43, module `littleOnes`) : le dessin ou la réussite d'un jeune enfant, publié pour lui par un adulte responsable. Seulement quand `forMemberId` n'est pas l'auteur, jamais écrit à `false`, fixé à la publication. Le fil des Bonnes nouvelles a un filtre « Les petits » |
+| `commentCount` | entier, facultatif | Le nombre de commentaires (récit 67), tenu par le serveur seul : l'appli ne l'écrit jamais, une création qui le porte est refusée |
 
 Le fil se lit par `orderBy('createdAt', 'desc')` et pages de 20 ; la carte d'accueil prend les 3 dernières des 14 derniers jours (même requête, filtrée par l'appli).
 
@@ -568,6 +569,19 @@ Cloud Functions (`functions/src/goodNews.ts`) :
 | `goodNewsReactionDigests` | toutes les 15 min | Envoie à l'auteur les avis groupés arrivés à échéance : « Inès et 3 autres ont réagi à ta Bonne nouvelle » (PRD rév. 174). Chaque personne n'est nommée qu'une fois. Canal `comments`, hors résumé du jour. |
 | `onGoodNewsDeleted` | suppression | Efface toutes les photos, quel que soit l'auteur du retrait, et l'avis groupé en attente. |
 | `reportOrphanGoodNewsPhotos`, appelée par `arrivalReminder` | toutes les 30 minutes, agit le dimanche entre 4 h 00 et 4 h 29 | Liste dans les journaux les photos de `goodNews/` reliées à aucune bonne nouvelle (envoi annulé, vignette échouée), plus de 24 h après leur envoi, avec leur taille. Lecture seule : rien n'est supprimé avant le 21/11. Pas de tâche planifiée à part : Cloud Scheduler n'en offre que 3 gratuites. |
+
+### `goodNews/{postId}/comments/{commentId}` (récit 67)
+
+| Champ | Type | Description |
+|---|---|---|
+| `text` | texte, 1 à 500 caractères | Texte seul |
+| `authorId`, `authorName` | `memberId`, texte | Qui a écrit, et son prénom à ce moment-là |
+| `createdAt` | horodatage serveur | |
+| `editedAt` | horodatage serveur, facultatif | Posé quand l'auteur change le texte |
+
+Pas de date d'expiration : les commentaires restent tant que la nouvelle existe et partent avec elle (`onGoodNewsDeleted`). Tous les membres les lisent et écrivent les leurs, un enfant avec l'appli aussi, sans validation (PRODUIT-102). L'auteur change le texte ; l'auteur, l'auteur de la nouvelle, un adulte responsable de l'auteur, un chef de famille du foyer de la nouvelle et l'admin principal le retirent. `goodNews/{postId}/commentMutes/{memberId}` (`mutedAt`) : « Ne plus être prévenu », écrit et lu par ce membre seul.
+
+Cloud Functions (`functions/src/goodNewsComments.ts`) : `onGoodNewsCommentWritten` ajoute 1 à `commentCount` et prévient l'auteur de la nouvelle, la personne concernée et ceux qui ont déjà commenté, jamais celui qui écrit, ni ceux qui ont choisi « Ne plus être prévenu » ou masqué la nouvelle (canal `comments`, donnée `goodNewsId`, gardé pendant le mode présentation). Tant que le module `newsFeed` est éteint, seul l'admin principal est prévenu. `onGoodNewsCommentRemoved` retire 1, sans descendre sous 0 ni recréer une nouvelle retirée.
 
 `goodNewsDigests/{postId}` (fonctions seules, aucune règle ne l'ouvre à l'appli) : `authorId`, `dueAt` (horodatage, absent quand rien n'attend) et `notifiedIds` (ceux déjà nommés).
 

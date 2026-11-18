@@ -1,5 +1,6 @@
 package fr.familia.app.feature.goodnews
 
+import fr.familia.app.core.model.EventComment
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.GoodNews
 import fr.familia.app.core.model.Member
@@ -39,4 +40,15 @@ fun canRemoveGoodNews(news: GoodNews, me: Member, family: Family): Boolean =
     if (news.challengeMonth != null) family.isOwner(me) else news.authorId == me.id ||
         family.isParentOf(me, news.authorId) ||
         (news.forMemberId != news.authorId && family.isParentOf(me, news.forMemberId)) ||
+        family.managesHousehold(me, news.householdId)
+
+/**
+ * Who removes a comment of a good news (récit 67): its author, the author of the news, a
+ * responsible adult of the one who wrote it, a chef de famille of the household of the news and the
+ * admin principal. The security rules check the same.
+ */
+fun canRemoveGoodNewsComment(news: GoodNews, comment: EventComment, me: Member, family: Family): Boolean =
+    comment.authorId == me.id ||
+        news.authorId == me.id ||
+        family.isParentOf(me, comment.authorId) ||
         family.managesHousehold(me, news.householdId)

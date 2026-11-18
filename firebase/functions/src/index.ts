@@ -52,6 +52,7 @@ import { queueAlbumInvitations } from './albumInvites';
 import { deleteDigestOf, sendDigests } from './digest';
 import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { sendWeeklyRecap } from './recap';
+import { deleteGoodNewsComments, GoodNewsCommentData, onGoodNewsCommentCreated, onGoodNewsCommentDeleted } from './goodNewsComments';
 import { orphanReportDue, reportOrphanGoodNewsPhotos, type StoredFile } from './orphanPhotos';
 import { capBursts, deleteQuietQueueOf, presentationFrom, presentingNow, PRIVATE_CHANNELS, sendBurstHeld, sendHeldNotices, sendPresentationHeld } from './prefs';
 import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type BirthdayCard } from './birthdayWishes';
@@ -575,6 +576,18 @@ export const onGoodNewsDeleted = onDocumentDeleted('goodNews/{postId}', async (e
   const data = event.data?.data() as GoodNewsData | undefined;
   if (data) await onGoodNewsRemoved(removeFiles, event.params.postId, data);
   await deleteReactionDigest(getFirestore(), event.params.postId);
+  await deleteGoodNewsComments(getFirestore(), event.params.postId);
+});
+
+// Commentaires des bonnes nouvelles (récit 67): the count of the news, and who is told.
+export const onGoodNewsCommentWritten = onDocumentCreated('goodNews/{postId}/comments/{commentId}', async (event) => {
+  const data = event.data?.data() as GoodNewsCommentData | undefined;
+  if (!data) return;
+  await onGoodNewsCommentCreated(getFirestore(), sendGoodNews, event.params.postId, event.params.commentId, data);
+});
+
+export const onGoodNewsCommentRemoved = onDocumentDeleted('goodNews/{postId}/comments/{commentId}', async (event) => {
+  await onGoodNewsCommentDeleted(getFirestore(), event.params.postId);
 });
 
 // Grouped reactions (PRD rév. 174): every 15 minutes, the notices due an hour after a first reaction.
