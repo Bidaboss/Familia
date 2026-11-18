@@ -118,6 +118,8 @@ fun PlanningScreen(
     onShareBirthday: ((Birthday) -> Unit)? = null,
     /** R1 bis (§4, R3): the frise of the week first, with « Semaine » beside « Mois » and « Liste ». */
     r1: Boolean = false,
+    /** The new Planning (PRODUIT-126) once loaded: it takes the whole screen, its « + » is in the bar. */
+    v2: (@Composable (PlanningUiState.Success) -> Unit)? = null,
 ) {
     var mode by rememberSaveable { mutableStateOf(if (r1) PlanningMode.Week else initialMode) }
     Box(modifier.fillMaxSize()) {
@@ -133,7 +135,7 @@ fun PlanningScreen(
                     }
                 },
             )
-            is PlanningUiState.Success -> Column(Modifier.fillMaxSize()) {
+            is PlanningUiState.Success -> if (v2 != null) v2(state) else Column(Modifier.fillMaxSize()) {
                 // One row (audit DESIGN n°3): « Mois | Liste » on the left, « Mon foyer » on the right.
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
@@ -166,7 +168,7 @@ fun PlanningScreen(
                 }
             }
         }
-        if (state !is PlanningUiState.Loading) {
+        if (state !is PlanningUiState.Loading && v2 == null) {
             ExtendedFloatingActionButton(
                 onClick = onAddEvent,
                 // The text of an extended button is hidden from TalkBack (Material 3): the icon says it.

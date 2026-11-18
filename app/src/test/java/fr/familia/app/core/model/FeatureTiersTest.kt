@@ -14,9 +14,10 @@ class FeatureTiersTest {
         assertEquals(FeatureTier.NewVersion, Feature.FamilyTabV2.tier)
         assertEquals(FeatureTier.Choice, Feature.Trips.tier)
         assertEquals(FeatureTier.Choice, Feature.NewsFeed.tier)
+        assertEquals(FeatureTier.NewVersion, Feature.PlanningV2.tier)
         val counts = Feature.entries.groupingBy { it.tier }.eachCount()
         assertEquals(18, counts[FeatureTier.Base])
-        assertEquals(6, counts[FeatureTier.NewVersion])
+        assertEquals(7, counts[FeatureTier.NewVersion])
         assertTrue(counts.getValue(FeatureTier.Choice) > 0)
         assertEquals(Feature.entries.size, counts.values.sum())
     }
