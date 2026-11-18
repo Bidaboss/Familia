@@ -17,6 +17,13 @@
 // summary when it ends (the arrivals, the rest in one notice, a surprise apart): turned off in the
 // app, or at the first send after its end.
 // « Rejoignez-moi », the retours and the admin always go. No scheduled task of its own.
+//
+// Résumé du soir (récit 70, DESIGN-31): while the module `eveningDigest` is on, the small news of
+// the day (reactions, comments, question of the week, souvenirs) wait in eveningQueue/{memberId}
+// from 8 h to 19 h and go out at 19 h as one notice. Each member may keep a kind immediate
+// (`eveningReactions`, `eveningComments`, `eveningWeekly`, `eveningSouvenirs` set to `false`).
+// The quiet hours come first; what aims at the member directly never waits. Only the functions use
+// eveningQueue. While the module is off, nothing changes.
 
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import type { Channel } from './logic';
@@ -61,17 +68,36 @@ export interface Filtered {
   fromOwner?: boolean;
 }
 
+/** The kinds of small news that can wait for the résumé du soir (récit 70). */
+export type EveningKind = 'reactions' | 'comments' | 'weekly' | 'souvenirs';
+
+/** The key of each kind in the settings document: `false` keeps it immediate. */
+export const EVENING_KEYS: Readonly<Record<EveningKind, string>> = {
+  reactions: 'eveningReactions',
+  comments: 'eveningComments',
+  weekly: 'eveningWeekly',
+  souvenirs: 'eveningSouvenirs',
+};
+
+const EVENING_KINDS = Object.keys(EVENING_KEYS) as EveningKind[];
+
 export interface Prefs {
   off: ReadonlySet<Family>;
   quietHours: boolean;
+  /** The kinds this member lets wait for 19 h when the résumé du soir is on: all by default. */
+  evening: ReadonlySet<EveningKind>;
 }
 
-export const DEFAULT_PREFS: Prefs = { off: new Set(), quietHours: true };
+export const DEFAULT_PREFS: Prefs = { off: new Set(), quietHours: true, evening: new Set(EVENING_KINDS) };
 
 /** The settings document as the app writes it; anything unknown keeps the default. */
 export function prefsFrom(data: Record<string, unknown> | undefined): Prefs {
   if (!data) return DEFAULT_PREFS;
-  return { off: new Set(FAMILIES.filter((f) => data[f] === false)), quietHours: data.quietHours !== false };
+  return {
+    off: new Set(FAMILIES.filter((f) => data[f] === false)),
+    quietHours: data.quietHours !== false,
+    evening: new Set(EVENING_KINDS.filter((k) => data[EVENING_KEYS[k]] !== false)),
+  };
 }
 
 /** Whether [notice] may reach a member with [prefs] at all. */
@@ -81,10 +107,45 @@ export function allows(prefs: Prefs, notice: Filtered): boolean {
   return !prefs.off.has(family);
 }
 
+function parisHour(now: Date): number {
+  return Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', hour: '2-digit', hourCycle: 'h23' }).format(now));
+}
+
 /** From 22 h to 8 h in Paris. */
 export function isQuietHour(now: Date): boolean {
-  const hour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', hour: '2-digit', hourCycle: 'h23' }).format(now));
+  const hour = parisHour(now);
   return hour >= 22 || hour < 8;
+}
+
+/** The résumé du soir leaves from this hour in Paris (récit 70). */
+export const EVENING_HOUR = 19;
+
+/** From 8 h to 19 h in Paris: the small news then wait for the résumé du soir. */
+export function isEveningWait(now: Date): boolean {
+  const hour = parisHour(now);
+  return hour >= 8 && hour < EVENING_HOUR;
+}
+
+/**
+ * The kind of small news [notice] is, or null when it always goes at once: a planning event, a
+ * coup de main, a Bonne nouvelle, and whatever aims at the member directly.
+ */
+export function eveningKind(notice: Filtered): EveningKind | null {
+  if (notice.direct) return null;
+  if (notice.reaction) return 'reactions';
+  switch (notice.channel) {
+    case 'comments': return 'comments';
+    case 'weekly': return 'weekly';
+    // « Pensez à moi », the souvenirs and the récaps of the week or of the month.
+    case 'souvenirs': case 'thinkOfMe': case 'recap': return 'souvenirs';
+    default: return null;
+  }
+}
+
+/** Whether the module « Résumé du soir » is on (Administration > Modules). */
+export async function eveningDigestOn(db: Firestore): Promise<boolean> {
+  const features = (await db.collection('config').doc('app').get()).get('features') as Record<string, boolean> | undefined;
+  return features?.eveningDigest === true;
 }
 
 export async function loadPrefs(db: Firestore, memberIds: string[]): Promise<Map<string, Prefs>> {
@@ -95,16 +156,22 @@ export async function loadPrefs(db: Firestore, memberIds: string[]): Promise<Map
   return prefs;
 }
 
-/** Who gets [notice] now, and who gets it at 8 h; the others turned it off. */
-export async function audience(db: Firestore, memberIds: string[], notice: Filtered, now: Date): Promise<{ now: string[]; later: string[] }> {
+/**
+ * Who gets [notice] now, who gets it at 8 h, and who at 19 h ([evening]: the résumé du soir is on
+ * and it is its time to wait); the others turned it off.
+ */
+export async function audience(db: Firestore, memberIds: string[], notice: Filtered, now: Date, evening = false): Promise<{ now: string[]; later: string[]; tonight: string[] }> {
   const prefs = await loadPrefs(db, memberIds);
   // What aims at the member directly rings even at night: a « rejoins-moi » cannot wait for 8 h.
   const quiet = isQuietHour(now) && !notice.direct && FAMILY_OF[notice.channel] !== null;
-  const result = { now: [] as string[], later: [] as string[] };
+  const kind = evening ? eveningKind(notice) : null;
+  const result = { now: [] as string[], later: [] as string[], tonight: [] as string[] };
   for (const id of memberIds) {
     const p = prefs.get(id) ?? DEFAULT_PREFS;
     if (!allows(p, notice)) continue;
-    (quiet && p.quietHours ? result.later : result.now).push(id);
+    if (quiet && p.quietHours) result.later.push(id);
+    else if (kind !== null && p.evening.has(kind)) result.tonight.push(id);
+    else result.now.push(id);
   }
   return result;
 }
@@ -196,7 +263,17 @@ export function setClockForTests(next: () => Date): void {
 
 /** The single way out for a notice: filtered by each member's settings, held during quiet hours. */
 export async function deliver<N extends Filtered>(db: Firestore, send: AnySender<N>, memberIds: string[], notice: N, now: Date = noticeTime()): Promise<number> {
-  const { now: ready, later } = await audience(db, memberIds, notice, now);
+  // The module is read only for a small news in the day, so the other notices cost nothing more.
+  // A failed read never stops a notice: it then goes as usual.
+  let evening = false;
+  if (eveningKind(notice) !== null && isEveningWait(now)) {
+    try {
+      evening = await eveningDigestOn(db);
+    } catch (e) {
+      console.error('eveningDigest: read failed', e);
+    }
+  }
+  const { now: ready, later, tonight } = await audience(db, memberIds, notice, now, evening);
   // Every send looks at the mode présentation, so its end is seen at the first send that follows.
   // A failed read of config/presentation never stops a notice: it then goes as usual.
   let presenting = false;
@@ -205,10 +282,10 @@ export async function deliver<N extends Filtered>(db: Firestore, send: AnySender
   } catch (e) {
     console.error('presentation: read failed', e);
   }
-  if (presenting && heldByPresentation(notice) && ready.length + later.length > 0) {
+  if (presenting && heldByPresentation(notice) && ready.length + later.length + tonight.length > 0) {
     const item = { ...JSON.parse(JSON.stringify(notice)), heldAt: now.toISOString() };
     const batch = db.batch();
-    for (const id of [...ready, ...later]) batch.set(db.collection('presentationQueue').doc(id), { items: FieldValue.arrayUnion(item) }, { merge: true });
+    for (const id of [...ready, ...later, ...tonight]) batch.set(db.collection('presentationQueue').doc(id), { items: FieldValue.arrayUnion(item) }, { merge: true });
     await batch.commit();
     return 0;
   }
@@ -217,6 +294,12 @@ export async function deliver<N extends Filtered>(db: Firestore, send: AnySender
     const item = { ...JSON.parse(JSON.stringify(notice)), heldAt: now.toISOString() };
     const batch = db.batch();
     for (const id of later) batch.set(db.collection('quietQueue').doc(id), { items: FieldValue.arrayUnion(item) }, { merge: true });
+    await batch.commit();
+  }
+  if (tonight.length > 0) {
+    const item = { ...JSON.parse(JSON.stringify(notice)), heldAt: now.toISOString() };
+    const batch = db.batch();
+    for (const id of tonight) batch.set(db.collection(EVENING_QUEUE).doc(id), { items: FieldValue.arrayUnion(item) }, { merge: true });
     await batch.commit();
   }
   // What was held above (night, mode présentation) is not counted: it was not sent.
@@ -442,9 +525,66 @@ export async function sendHeldNotices<N extends Filtered & { title: string; body
   return sent;
 }
 
+const EVENING_QUEUE = 'eveningQueue';
+
+/**
+ * From 19 h, the small news that waited go out as one notice per member, « Ce soir dans Familia »
+ * (récit 70). Run by the task of every 30 minutes. What is still there at night (a failed send)
+ * waits for 8 h with the night, for a member who keeps « Calme la nuit ». During the mode
+ * présentation, what it holds waits for its summary. A notice that reached
+ * none of the member's phones is tried again by the next run, for a day at most. Returns how many
+ * phones got something.
+ */
+export async function sendEveningHeld<N extends Filtered & { title: string; body: string; tag?: string }>(db: Firestore, send: AnySender<N>, now: Date): Promise<number> {
+  if (parisHour(now) < EVENING_HOUR && !isQuietHour(now)) return 0;
+  const queues = await db.collection(EVENING_QUEUE).get();
+  if (queues.empty) return 0;
+  // A mode présentation at an evening meal: what it holds waits for its summary (B1 de #393).
+  let presenting = false;
+  try {
+    presenting = await presentingNow(db, now);
+  } catch (e) {
+    console.error('presentation: read failed', e);
+  }
+  let sent = 0;
+  for (const queue of queues.docs) {
+    // Taken and emptied at once, so two runs never send the same evening twice.
+    const items = await db.runTransaction(async (tx) => {
+      const doc = await tx.get(queue.ref);
+      tx.delete(queue.ref);
+      return ((doc.get('items') as (N & { heldAt?: string })[] | undefined) ?? []);
+    });
+    const recent = items.filter((n) => !n.heldAt || now.getTime() - Date.parse(n.heldAt) < MAX_HELD_MS);
+    const shown = presenting ? recent.filter((n) => heldByPresentation(n)) : [];
+    if (shown.length > 0) await db.collection('presentationQueue').doc(queue.id).set({ items: FieldValue.arrayUnion(...shown) }, { merge: true });
+    const fresh = recent.filter((n) => !shown.includes(n));
+    if (fresh.length === 0) continue;
+    const prefs = (await loadPrefs(db, [queue.id])).get(queue.id) ?? DEFAULT_PREFS;
+    if (isQuietHour(now) && prefs.quietHours) {
+      await db.collection('quietQueue').doc(queue.id).set({ items: FieldValue.arrayUnion(...fresh) }, { merge: true });
+      continue;
+    }
+    let failed = false;
+    for (const notice of burstNotices(fresh.map(({ heldAt: _heldAt, ...n }) => n as unknown as N), 'Ce soir dans Familia')) {
+      let result = { sent: 0, failed: 0 };
+      try {
+        result = await sendCounting(db, send, [queue.id], notice);
+      } catch (e) {
+        console.error('eveningQueue: send failed', queue.id, e);
+        result = { sent: 0, failed: 1 };
+      }
+      sent += result.sent;
+      if (result.sent === 0 && result.failed > 0) failed = true;
+    }
+    if (failed) await queue.ref.set({ items: FieldValue.arrayUnion(...fresh) }, { merge: true });
+  }
+  return sent;
+}
+
 /** A member who leaves takes their held notices with them. */
 export async function deleteQuietQueueOf(db: Firestore, memberId: string): Promise<void> {
   await db.collection('quietQueue').doc(memberId).delete();
+  await db.collection(EVENING_QUEUE).doc(memberId).delete();
   await db.collection('presentationQueue').doc(memberId).delete();
   await db.collection(BURST_QUEUE).doc(memberId).delete();
   await db.collection(NOTIFY_LOG).doc(memberId).delete();

@@ -1,5 +1,6 @@
 package fr.familia.app.core.data
 
+import fr.familia.app.core.model.EveningKind
 import fr.familia.app.core.model.NotificationFamily
 import fr.familia.app.core.model.NotificationPrefs
 import kotlinx.coroutines.flow.Flow
@@ -58,4 +59,7 @@ interface NotificationRepository {
 
     /** From 22 h to 8 h, notices wait until 8 h, grouped. */
     suspend fun setQuietHours(memberId: String, enabled: Boolean) = Unit
+
+    /** Résumé du soir (récit 70): [kind] waits for 19 h, or rings at once when [inSummary] is false. */
+    suspend fun setEvening(memberId: String, kind: EveningKind, inSummary: Boolean) = Unit
 }

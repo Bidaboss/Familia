@@ -713,7 +713,13 @@ service cloud.firestore {
 
     function isValidNotificationSettings(n) {
       return n.keys().hasOnly(['dayBeforeReminder', 'goodNews', 'weekly', 'souvenirs', 'tree', 'recap', 'birthdayWishes',
-          'planning', 'reminders', 'gifts', 'comments', 'helpRequests', 'trips', 'quietHours', 'defaultReminders', 'packingReminder'])
+          'planning', 'reminders', 'gifts', 'comments', 'helpRequests', 'trips', 'quietHours', 'defaultReminders', 'packingReminder',
+          'eveningReactions', 'eveningComments', 'eveningWeekly', 'eveningSouvenirs'])
+        // Récit 70: `false` keeps a kind of small news immediate when the résumé du soir is on.
+        && (!('eveningReactions' in n) || n.eveningReactions is bool)
+        && (!('eveningComments' in n) || n.eveningComments is bool)
+        && (!('eveningWeekly' in n) || n.eveningWeekly is bool)
+        && (!('eveningSouvenirs' in n) || n.eveningSouvenirs is bool)
         // Récit 62: `false` turns off the reminder of the day before a trip, for the bag.
         && (!('packingReminder' in n) || n.packingReminder is bool)
         // Récit 56: the reminders given to the events I say « Je viens » to.

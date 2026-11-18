@@ -1,6 +1,9 @@
 package fr.familia.app.feature.settings
 
 import fr.familia.app.core.data.NotificationRepository
+import fr.familia.app.core.model.EveningKind
+import fr.familia.app.core.model.Feature
+import fr.familia.app.core.model.FeatureFlags
 import fr.familia.app.core.model.NotificationFamily
 import fr.familia.app.core.model.NotificationLevel
 import fr.familia.app.core.model.NotificationPrefs
@@ -62,6 +65,9 @@ private class FakeNotifications(
     }
     override suspend fun setQuietHours(memberId: String, enabled: Boolean) {
         prefs.value = prefs.value.copy(quietHours = enabled)
+    }
+    override suspend fun setEvening(memberId: String, kind: EveningKind, inSummary: Boolean) {
+        prefs.value = prefs.value.copy(evening = if (inSummary) prefs.value.evening + kind else prefs.value.evening - kind)
     }
 }
 
@@ -162,5 +168,27 @@ class NotificationSettingsViewModelTest {
         assertEquals(false, prefs().quietHours)
         vm.setQuietHours(true)
         assertEquals(true, prefs().quietHours)
+    }
+
+    @Test
+    fun `each kind of the résumé du soir can ring at once, then wait again (récit 70)`() = runTest {
+        val repo = FakeNotifications()
+        val vm = NotificationSettingsViewModel(repo, "adult1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        fun prefs() = (vm.uiState.value as NotificationSettingsUiState.Ready).prefs
+        assertEquals(EveningKind.entries.toSet(), prefs().evening)
+        vm.setEvening(EveningKind.Comments, false)
+        assertEquals(EveningKind.entries.toSet() - EveningKind.Comments, prefs().evening)
+        vm.setEvening(EveningKind.Comments, true)
+        assertEquals(EveningKind.entries.toSet(), prefs().evening)
+    }
+
+    @Test
+    fun `the résumé du soir shows only with its module on for the family, and for the families kept on`() {
+        val prefs = NotificationPrefs(off = setOf(NotificationFamily.Weekly))
+        val off = FeatureFlags(mapOf(Feature.Comments.key to true), isOwner = true)
+        assertEquals(emptyList<EveningKind>(), eveningKindsShown(prefs, off))
+        val on = FeatureFlags(mapOf(Feature.Comments.key to true, Feature.EveningDigest.key to true))
+        assertEquals(listOf(EveningKind.Reactions, EveningKind.Comments), eveningKindsShown(prefs, on))
     }
 }

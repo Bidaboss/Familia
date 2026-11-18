@@ -42,6 +42,7 @@ fun NotificationSettingsRoute(container: AppContainer?, currentMember: Member, o
         onLevelChange = viewModel::setLevel,
         onFamilyChange = viewModel::setFamily,
         onQuietHoursChange = viewModel::setQuietHours,
+        onEveningChange = viewModel::setEvening,
         defaultReminders = if (LocalFeatureFlags.current.isOn(Feature.MyReminders)) {
             { DefaultRemindersSection(container, currentMember) }
         } else {

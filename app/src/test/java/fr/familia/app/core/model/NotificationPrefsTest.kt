@@ -30,4 +30,11 @@ class NotificationPrefsTest {
         assertEquals(true, mixed.quietHours)
         assertEquals(null, mixed.level)
     }
+
+    @Test
+    fun `every small news waits for the résumé du soir unless false keeps it immediate`() {
+        assertEquals(EveningKind.entries.toSet(), NotificationPrefs.from(null).evening)
+        val prefs = NotificationPrefs.from(mapOf("eveningComments" to false, "eveningWeekly" to "non"))
+        assertEquals(setOf(EveningKind.Reactions, EveningKind.Weekly, EveningKind.Souvenirs), prefs.evening)
+    }
 }
