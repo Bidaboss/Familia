@@ -40,7 +40,6 @@ import fr.familia.app.feature.albums.FeedPhotosRoute
 import fr.familia.app.feature.all.AllFamiliaScreen
 import fr.familia.app.feature.all.AllModule
 import fr.familia.app.feature.all.ModuleFamily
-import fr.familia.app.feature.all.rememberMemoriesNote
 import fr.familia.app.feature.feed.FeedOpenRequest
 import fr.familia.app.feature.home.HomeAddOptions
 import fr.familia.app.feature.home.HomeAddSheet
@@ -994,9 +993,9 @@ fun FamiliaApp(
                     }
                     composable<AllFamiliaDestination> {
                         // Se souvenir en un seul lieu (récit 71): only with the fil on; off, nothing moves.
+                        // No green note about the memories that moved (Kévin le 18/11, 23 h 47).
                         val memoriesInFeed = features.isOnForFamily(Feature.NewsFeed)
                         AllFamiliaScreen(
-                            note = if (rememberMemoriesNote(memoriesInFeed)) stringResource(R.string.all_memories_note) else null,
                             modules = allModules(
                                 features,
                                 helpBadge,
