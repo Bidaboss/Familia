@@ -95,6 +95,39 @@ class TreeOfLifeTest {
         assertTrue(life.sprinkles(42, 10) == life.sprinkles(42, 10))
     }
 
+    /** A couple of the app whose son-in-law added his parents as relatives (PRODUIT-108). */
+    private fun inLaws(father: String, mother: String): GenealogyTree {
+        val members = listOf(member("gp1", "Camille"), member("gp2", "Inès"), member("c1", "Lou", "h2"), member("p1", "Alix", "h2"), member("g1", "Tom", "h2"))
+        val kin = listOf(Kin("k1", father, living = true, householdId = "h2"), Kin("k2", mother, living = true, householdId = "h2"))
+        val links = listOf(
+            KinLink.partners("gp1", "gp2"), KinLink.parent("gp1", "c1"), KinLink.parent("gp2", "c1"),
+            KinLink.partners("k1", "k2"), KinLink.parent("k1", "p1"), KinLink.parent("k2", "p1"),
+            KinLink.partners("c1", "p1"), KinLink.parent("c1", "g1"), KinLink.parent("p1", "g1"),
+        )
+        return GenealogyTree(members, kin, links)
+    }
+
+    @Test
+    fun `a couple hangs from the parents of the app, the parents of a son-in-law get a thin branch`() {
+        // Their first names before and after those of the app: the order of the row never decides.
+        for ((father, mother) in listOf("Aimé" to "Agathe", "Yves" to "Zélie")) {
+            val life = TreeOfLife(inLaws(father, mother))
+            val trunk = life.trunk!!
+            assertEquals(listOf("gp1", "gp2"), trunk.ids.sorted())
+            assertEquals(0f, trunk.x)
+            val couple = life.units.single { "c1" in it.ids }
+            val inLaws = life.units.single { "k1" in it.ids }
+            assertEquals(0, inLaws.level)
+            val main = life.branches.single { it.toX == couple.x && it.toY == couple.y && it.width == 16f }
+            assertEquals(trunk.x, main.fromX)
+            val thin = life.branches.single { it.toX == couple.x && it.toY == couple.y && it.width == 4f }
+            assertEquals(inLaws.x, thin.fromX)
+            assertEquals(TreeOfLife.RADIUS, life.radiusOf("k1"))
+            assertEquals(TreeOfLife.TRUNK_RADIUS, life.radiusOf("gp1"))
+            assertApart(life)
+        }
+    }
+
     @Test
     fun `a big name widens its place, never the medallions into each other`() {
         val life = TreeOfLife(example()) { text -> text.length * 14f } // police à 200 %

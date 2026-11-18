@@ -373,6 +373,7 @@ internal fun TreeDrawing(tree: GenealogyTree, words: Map<String, String>, onOpen
                     val person = tree.people.getValue(id)
                     PersonNode(
                         person = person,
+                        name = tree.drawnName(id),
                         word = words[id],
                         onClick = { onOpen(id) },
                         modifier = Modifier.onGloballyPositioned { coords ->
@@ -389,7 +390,7 @@ internal fun TreeDrawing(tree: GenealogyTree, words: Map<String, String>, onOpen
 }
 
 @Composable
-private fun PersonNode(person: TreePerson, word: String?, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun PersonNode(person: TreePerson, name: String, word: String?, onClick: () -> Unit, modifier: Modifier = Modifier) {
     ClayCard(
         modifier = modifier.width(128.dp),
         onClick = onClick,
@@ -399,7 +400,7 @@ private fun PersonNode(person: TreePerson, word: String?, onClick: () -> Unit, m
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Avatar(person)
             Text(
-                person.firstName,
+                name,
                 style = MaterialTheme.typography.titleSmall,
                 textAlign = TextAlign.Center,
                 maxLines = 2,

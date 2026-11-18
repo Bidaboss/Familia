@@ -176,12 +176,12 @@ internal fun TreeOfLifeDrawing(
                 translate(ox.toPx(), oy.toPx()) { drawScenery(life) }
             }
             life.units.forEach { unit ->
-                val radius = if (unit.level == 0 && unit.ids.size > 1) TreeOfLife.TRUNK_RADIUS else TreeOfLife.RADIUS
+                val radius = life.radiusOf(unit.ids.first())
                 unit.ids.forEach { id ->
                     val (x, y) = life.centers.getValue(id)
-                    Medallion(tree.people.getValue(id), radius.dp, words[id], outlined, onOpen, Modifier.centerAt(ox + x.dp, oy + y.dp))
+                    Medallion(tree.people.getValue(id), tree.drawnName(id), radius.dp, words[id], outlined, onOpen, Modifier.centerAt(ox + x.dp, oy + y.dp))
                 }
-                val names = unit.ids.map { tree.people.getValue(it).firstName }
+                val names = unit.ids.map { tree.drawnName(it) }
                 val label = if (names.size == 2) String.format(couple, names[0], names[1]) else names.joinToString(", ")
                 Pill(label, pillStyle, outlined, Modifier.centerAt(ox + unit.x.dp, oy + unit.y.dp + radius.dp + 14.dp))
             }
@@ -194,12 +194,12 @@ internal fun TreeOfLifeDrawing(
             }
             life.roots.forEach { root ->
                 val person = tree.people.getValue(root.id)
-                Medallion(person, TreeOfLife.ROOT_RADIUS.dp, words[root.id], outlined, onOpen, Modifier.centerAt(ox + root.x.dp, oy + root.y.dp))
+                Medallion(person, tree.drawnName(root.id), TreeOfLife.ROOT_RADIUS.dp, words[root.id], outlined, onOpen, Modifier.centerAt(ox + root.x.dp, oy + root.y.dp))
                 Column(
                     Modifier.centerAt(ox + root.x.dp, oy + root.y.dp + TreeOfLife.ROOT_RADIUS.dp + 18.dp).clearAndSetSemantics {},
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    Text(person.firstName, style = pillStyle, textAlign = TextAlign.Center)
+                    Text(tree.drawnName(root.id), style = pillStyle, textAlign = TextAlign.Center)
                     lifeLine(person)?.let { Text(it, style = pillStyle.copy(fontWeight = FontWeight.Normal), textAlign = TextAlign.Center) }
                 }
             }
@@ -230,8 +230,8 @@ private fun Pill(text: String, style: TextStyle, outlined: Boolean, modifier: Mo
 
 /** One person: the photo or the initial in two rings, 56 dp to touch whatever its size (grille). */
 @Composable
-private fun Medallion(person: TreePerson, radius: Dp, word: String?, outlined: Boolean, onOpen: (String) -> Unit, modifier: Modifier) {
-    val spoken = listOfNotNull(person.firstName, word, lifeLine(person)).joinToString(", ")
+private fun Medallion(person: TreePerson, name: String, radius: Dp, word: String?, outlined: Boolean, onOpen: (String) -> Unit, modifier: Modifier) {
+    val spoken = listOfNotNull(name, word, lifeLine(person)).joinToString(", ")
     val openLabel = stringResource(R.string.genealogy_open_card)
     val size = radius * 2
     Box(
@@ -305,7 +305,7 @@ private fun DrawScope.drawScenery(life: TreeOfLife) {
         style = Stroke(2 * d, pathEffect = PathEffect.dashPathEffect(floatArrayOf(6 * d, 6 * d))),
     )
 
-    val trunkX = life.units.filter { it.level == 0 }.map { it.x }.average().toFloat().takeIf { !it.isNaN() } ?: 0f
+    val trunkX = life.trunk?.x ?: 0f
     val ground = TreeOfLife.GROUND_Y
     // The ground and the roots: lines from the foot of the trunk to each relative.
     drawLine(Palette.Ground, p(trunkX - 120, ground), p(trunkX + 120, ground), 6 * d)

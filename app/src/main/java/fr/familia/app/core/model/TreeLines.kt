@@ -29,7 +29,8 @@ fun treeFamilies(links: List<KinLink>): List<TreeFamily> =
 fun treeParentLines(links: List<KinLink>, boxes: Map<String, TreeBox>): List<TreeSegment> {
     val partners = links.filter { it.kind == KinLinkKind.Partner }.map { setOf(it.aId, it.bId) }.toSet()
 
-    class Drop(val x: Float, val y: Float, val below: Float, val children: List<TreeBox>)
+    /** [from]: where a line goes down from to the bar, one per parent when they are not partners. */
+    class Drop(val x: Float, val y: Float, val below: Float, val children: List<TreeBox>, val from: List<Float> = listOf(x))
 
     val drops = treeFamilies(links).mapNotNull { family ->
         val parents = family.parents.mapNotNull { boxes[it] }
@@ -41,7 +42,9 @@ fun treeParentLines(links: List<KinLink>, boxes: Map<String, TreeBox>): List<Tre
             val (left, right) = parents.sortedBy { it.centerX }
             Drop((left.right + right.left) / 2, left.centerY, below, children)
         } else {
-            Drop(parents.map { it.centerX }.average().toFloat(), below, below, children)
+            // Two parents without a « partner » link: a line from under each card to the bar, so
+            // the bar never starts in the void between them (retour du 18/11).
+            Drop(parents.map { it.centerX }.average().toFloat(), below, below, children, parents.map { it.centerX })
         }
     }
 
@@ -52,8 +55,8 @@ fun treeParentLines(links: List<KinLink>, boxes: Map<String, TreeBox>): List<Tre
         sorted.forEachIndexed { i, drop ->
             val gapBottom = drop.children.minOf { it.top }
             val barY = drop.below + (gapBottom - drop.below) * (i + 1) / (sorted.size + 1)
-            lines += TreeSegment(drop.x, drop.y, drop.x, barY)
-            val xs = drop.children.map { it.centerX } + drop.x
+            drop.from.forEach { x -> lines += TreeSegment(x, drop.y, x, barY) }
+            val xs = drop.children.map { it.centerX } + drop.from
             lines += TreeSegment(xs.min(), barY, xs.max(), barY)
             drop.children.forEach { child -> lines += TreeSegment(child.centerX, barY, child.centerX, child.top) }
         }

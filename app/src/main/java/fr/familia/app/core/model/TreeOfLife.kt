@@ -28,6 +28,9 @@ class TreeOfLife(tree: GenealogyTree, labelWidth: (String) -> Float = ::estimate
     data class Circle(val x: Float, val y: Float, val radius: Float)
 
     val units: List<Unit>
+
+    /** The household on the trunk: the one of the app, whose branches carry the most members. */
+    val trunk: Unit?
     val roots: List<Root>
     val branches: List<Branch>
 
@@ -37,7 +40,7 @@ class TreeOfLife(tree: GenealogyTree, labelWidth: (String) -> Float = ::estimate
     /** The radius of [id]'s medallion: larger for the couple of the trunk, smaller in the roots. */
     fun radiusOf(id: String): Float = when {
         roots.any { it.id == id } -> ROOT_RADIUS
-        units.any { it.level == 0 && it.ids.size > 1 && id in it.ids } -> TRUNK_RADIUS
+        trunk?.let { it.ids.size > 1 && id in it.ids } == true -> TRUNK_RADIUS
         else -> RADIUS
     }
 
@@ -56,12 +59,29 @@ class TreeOfLife(tree: GenealogyTree, labelWidth: (String) -> Float = ::estimate
         val flat = levels.flatMapIndexed { level, households -> households.map { level to it } }
         flat.forEachIndexed { i, (_, ids) -> ids.forEach { unitOf[it] = i } }
 
-        // Each household hangs from the household of its parents, when it stands lower.
+        // How many members of the app descend from each household: where the family of the app goes.
+        val memberDescendants = IntArray(flat.size) { i ->
+            val seen = HashSet<String>()
+            val queue = ArrayDeque(flat[i].second.flatMap { tree.childrenOf(it) })
+            while (queue.isNotEmpty()) {
+                val id = queue.removeFirst()
+                if (seen.add(id)) queue.addAll(tree.childrenOf(id))
+            }
+            seen.count { tree.people[it] is TreePerson.OfMember }
+        }
+        fun hasMember(i: Int) = flat[i].second.any { tree.people[it] is TreePerson.OfMember }
+        val preferred = compareBy<Int>({ flat[it].first }, { hasMember(it) }, { memberDescendants[it] }, { -it })
+
+        // Each household hangs from the household of its parents, when it stands lower. Two
+        // households of parents (a son-in-law's parents added as relatives, PRODUIT-108): it hangs
+        // from the one of the app, the other one gets a thin branch.
         val parentOf = IntArray(flat.size) { -1 }
+        val otherParents = Array(flat.size) { emptyList<Int>() }
         flat.forEachIndexed { i, (level, ids) ->
             if (level == 0) return@forEachIndexed
-            val above = ids.flatMap { tree.parentsOf(it) }.mapNotNull { unitOf[it] }.filter { flat[it].first < level }
-            parentOf[i] = above.maxByOrNull { flat[it].first } ?: -1
+            val above = ids.flatMap { tree.parentsOf(it) }.mapNotNull { unitOf[it] }.filter { flat[it].first < level }.distinct()
+            parentOf[i] = above.maxWithOrNull(preferred) ?: -1
+            otherParents[i] = above - parentOf[i]
         }
         val children = Array(flat.size) { mutableListOf<Int>() }
         flat.indices.forEach { i -> if (parentOf[i] >= 0) children[parentOf[i]].add(i) }
@@ -70,7 +90,7 @@ class TreeOfLife(tree: GenealogyTree, labelWidth: (String) -> Float = ::estimate
             val ids = flat[i].second
             // Each medallion is touched in a square of TOUCH dp, SPACING dp from the next one.
             val medallions = ids.size * TOUCH + (ids.size - 1) * SPACING
-            val label = labelWidth(ids.joinToString(" et ") { tree.people.getValue(it).firstName }) + 2 * PILL_PADDING
+            val label = labelWidth(ids.joinToString(" et ") { tree.drawnName(it) }) + 2 * PILL_PADDING
             return max(medallions, label) + SPACING
         }
 
@@ -105,13 +125,22 @@ class TreeOfLife(tree: GenealogyTree, labelWidth: (String) -> Float = ::estimate
             place(t, left)
             left += subtree[t]
         }
+        // The trunk stands under the household of the app, the others of its row beside it.
+        val trunkAt = flat.indices.filter { flat[it].first == 0 }.maxWithOrNull(preferred)
+        if (trunkAt != null) {
+            val shift = xs[trunkAt]
+            xs.indices.forEach { xs[it] -= shift }
+        }
 
         units = flat.mapIndexed { i, (level, ids) -> Unit(ids, level, xs[i], -level * LEVEL_GAP, ownWidth(i) - SPACING) }
+        trunk = trunkAt?.let { units[it] }
         branches = flat.indices.mapNotNull { i ->
             val p = parentOf[i]
             val from = if (p >= 0) xs[p] to -flat[p].first * LEVEL_GAP else if (flat[i].first > 0) 0f to 0f else return@mapNotNull null
             val width = BRANCH_WIDTHS[(flat[i].first - 1).coerceIn(0, BRANCH_WIDTHS.lastIndex)]
             Branch(from.first, from.second, xs[i], -flat[i].first * LEVEL_GAP, width)
+        } + flat.indices.flatMap { i ->
+            otherParents[i].map { p -> Branch(xs[p], -flat[p].first * LEVEL_GAP, xs[i], -flat[i].first * LEVEL_GAP, BRANCH_WIDTHS.last()) }
         }
 
         val older = rows.take(trunkIndex).flatten().mapNotNull { tree.people[it] as? TreePerson.OfKin }
@@ -182,12 +211,12 @@ class TreeOfLife(tree: GenealogyTree, labelWidth: (String) -> Float = ::estimate
         /** About the width of a name in Nunito 800 at 12 sp; the screen passes the measured one. */
         fun estimatedLabelWidth(text: String): Float = text.length * 7f
 
-        /** Partners side by side in a row make one household, the others stand alone. */
+        /** Couples side by side in a row (partners, or the parents of one child) make one household. */
         private fun households(row: List<String>, tree: GenealogyTree): List<List<String>> {
             val out = mutableListOf<MutableList<String>>()
             for (id in row) {
                 val last = out.lastOrNull()
-                if (last != null && last.any { it in tree.partnersOf(id) }) last.add(id) else out.add(mutableListOf(id))
+                if (last != null && last.any { it in tree.coupleOf(id) }) last.add(id) else out.add(mutableListOf(id))
             }
             return out
         }
