@@ -158,7 +158,9 @@ class SurpriseButtonTest {
         val state = presentationFor("adult2")
         val next = state.next as GiftMoment.BirthdayOf
         assertEquals("adult1", next.member.id)
-        val after = upcomingAfterNext(state)
+        // Christmas is 40 days away on the 15th: further than 30 days, it waits.
+        assertTrue(upcomingAfterNext(state).none { it is Upcoming.OfChristmas })
+        val after = upcomingAfterNext(state.copy(today = LocalDate.of(2026, 11, 26)))
         assertTrue(after.none { it is Upcoming.OfBirthday && it.birthday.member.id == "adult1" })
         assertTrue(after.any { it is Upcoming.OfChristmas && it.year == 2026 })
         assertEquals(after.sortedBy { it.date }, after)
