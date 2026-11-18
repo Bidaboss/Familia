@@ -897,14 +897,6 @@ fun FamiliaApp(
             }
             Column(Modifier.weight(1f)) {
                 AnimatedVisibility(visible = isOffline) { OfflineBanner() }
-                val shownUpdate = update?.takeIf { onTab && !updateDismissed }
-                if (shownUpdate != null) {
-                    UpdateBanner(
-                        update = shownUpdate,
-                        onUpdate = { updater.start(shownUpdate) },
-                        onLater = { updateDismissed = true },
-                    )
-                }
                 // A double tap opens one screen, not two (démo du 21).
                 Box(Modifier.weight(1f)) {
                 NavHost(
@@ -1861,6 +1853,19 @@ fun FamiliaApp(
                             onBack = { navController.popBackStack() },
                         )
                     }
+                }
+                // Variante A (PRODUIT-129): floating over the screen, never pushing it; on the Accueil
+                // just above « Tout Familia » (56 dp, 12 dp under it), elsewhere just above the tabs.
+                val shownUpdate = update?.takeIf { onTab && !updateDismissed }
+                if (shownUpdate != null) {
+                    val onHome = currentDestination.isOn(TopLevelDestination.Home)
+                    UpdateBanner(
+                        onUpdate = { updater.start(shownUpdate) },
+                        onLater = { updateDismissed = true },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(start = 12.dp, end = 12.dp, bottom = if (onHome) 76.dp else 12.dp),
+                    )
                 }
                 TapGuardWhileNavigating(navController)
                 }
