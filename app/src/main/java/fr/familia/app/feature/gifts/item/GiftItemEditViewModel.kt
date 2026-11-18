@@ -42,6 +42,8 @@ data class GiftItemForm(
     val photo: PhotoEdit = PhotoEdit.Unchanged,
     /** « Je l'ai déjà acheté, une participation me ferait plaisir » (récit 68). */
     val alreadyBought: Boolean = false,
+    /** « Cadeau commun avec… » (récit 73): the member of the household it is shared with, or null. */
+    val coBeneficiaryId: String? = null,
 )
 
 /** Where a link shared from another app goes (récit 50): my wishes when [memberId] is null, else an idea for them. */
@@ -83,6 +85,13 @@ sealed interface GiftItemEditUiState {
         val showAlreadyBought: Boolean = false,
         /** Someone already takes part: the box stays checked. */
         val alreadyBoughtLocked: Boolean = false,
+        /**
+         * « Cadeau commun avec… » (récit 73): the other members of the household of the person, on a
+         * wish their keeper writes; empty hides the choice.
+         */
+        val coChoices: List<ShareTarget> = emptyList(),
+        /** Edited by whoever shares it (récit 73): « Cadeau commun avec » stays, and it is not removed here. */
+        val sharedByOther: String? = null,
     ) : GiftItemEditUiState
 
     data object Done : GiftItemEditUiState
@@ -140,6 +149,9 @@ class GiftItemEditViewModel(
     private var initialForm = GiftItemForm()
     private var showErrors = false
 
+    /** Who edits the wish because they share it (récit 73), not as its author. Declared before init. */
+    private var sharedEditor = false
+
     init {
         viewModelScope.launch { load() }
     }
@@ -181,8 +193,13 @@ class GiftItemEditViewModel(
                 null
             }
         }
-        if (itemId != null && (existing == null || existing.authorId != current.id)) return unavailable()
+        // Récit 73: whoever shares the wish, or keeps the lists of a child who does, edits it too.
+        val coEditor = existing?.coBeneficiaryId
+            ?.let { co -> loadedFamily.members.firstOrNull { it.id == co } }
+            ?.takeIf { co -> target.kind == GiftListKind.Wishes && keepsListsOf(current, co) }
+        if (itemId != null && (existing == null || (existing.authorId != current.id && coEditor == null))) return unavailable()
         val beneficiary = loadedFamily.members.firstOrNull { it.id == target.beneficiaryId } ?: return unavailable()
+        sharedEditor = coEditor != null && existing?.authorId != current.id
 
         list = target
         listExists = stored != null
@@ -196,6 +213,7 @@ class GiftItemEditViewModel(
                 note = it.note.orEmpty(),
                 occasion = it.occasion,
                 alreadyBought = it.alreadyBought,
+                coBeneficiaryId = it.coBeneficiaryId,
             )
         } ?: GiftItemForm()
         val form = restoredDraft() ?: shared?.takeIf { existing == null } ?: initialForm
@@ -215,8 +233,22 @@ class GiftItemEditViewModel(
             targetId = savedTarget,
             showAlreadyBought = showsAlreadyBought(target),
             alreadyBoughtLocked = existing?.let { it.alreadyBought && it.contributedTotal > 0 } == true,
+            coChoices = if (sharedEditor) emptyList() else coChoices(loadedFamily, target),
+            sharedByOther = if (sharedEditor) beneficiary.firstName else null,
         )
         if (shared != null && existing == null) readPreview(shared.url)
+    }
+
+    /**
+     * « Cadeau commun avec… » (récit 73): the other members of the household of the person, children
+     * included, in the order of the Famille tab; only on a wish of « Mes envies » the person sees.
+     */
+    private fun coChoices(family: Family, target: GiftList): List<ShareTarget> {
+        if (target.kind != GiftListKind.Wishes || !visible) return emptyList()
+        val owner = family.members.firstOrNull { it.id == target.beneficiaryId } ?: return emptyList()
+        return householdGroups(family).flatMap { it.members }
+            .filter { it.householdId == owner.householdId && it.id != owner.id }
+            .map { ShareTarget(it.id, it.firstName) }
     }
 
     /** « Déjà acheté » only on a wish the person sees: the one their keeper writes (récit 68). */
@@ -268,6 +300,8 @@ class GiftItemEditViewModel(
                 forMe = beneficiary.id == current.id,
                 saveFailed = false,
                 showAlreadyBought = showsAlreadyBought(target),
+                coChoices = coChoices(known, target),
+                form = now.form.copy(coBeneficiaryId = now.form.coBeneficiaryId?.takeIf { co -> coChoices(known, target).any { it.memberId == co } }),
             )
         }
     }
@@ -332,6 +366,7 @@ class GiftItemEditViewModel(
         return GiftItemForm(
             title, saved[DRAFT_URL] ?: "", saved[DRAFT_PRICE] ?: "", saved[DRAFT_NOTE] ?: "", occasion,
             alreadyBought = saved[DRAFT_BOUGHT] ?: false,
+            coBeneficiaryId = saved[DRAFT_CO],
         )
     }
 
@@ -344,6 +379,7 @@ class GiftItemEditViewModel(
         saved[DRAFT_NOTE] = form.note
         saved[DRAFT_OCCASION] = form.occasion?.name
         saved[DRAFT_BOUGHT] = form.alreadyBought
+        saved[DRAFT_CO] = form.coBeneficiaryId
         _uiState.value = state.copy(
             form = form,
             errors = errorsFor(form),
@@ -381,6 +417,9 @@ class GiftItemEditViewModel(
             occasion = form.occasion?.takeIf { state.showOccasion } ?: original?.occasion?.takeIf { !state.showOccasion },
             // Switch off, the wish keeps what it had; while someone takes part, it stays checked.
             alreadyBought = if (state.showAlreadyBought) form.alreadyBought || state.alreadyBoughtLocked else original?.alreadyBought == true,
+            // Récit 73: chosen by the keeper of the wish; whoever shares it never changes it.
+            coBeneficiaryId = form.coBeneficiaryId?.takeIf { co -> state.coChoices.any { it.memberId == co } }
+                ?: original?.coBeneficiaryId?.takeIf { state.coChoices.isEmpty() },
         )
         val before = original?.photo
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
@@ -445,6 +484,7 @@ private const val DRAFT_NOTE = "draft.note"
 private const val DRAFT_OCCASION = "draft.occasion"
 private const val DRAFT_TARGET = "draft.target"
 private const val DRAFT_BOUGHT = "draft.alreadyBought"
+private const val DRAFT_CO = "draft.coBeneficiary"
 
 /** The same limits as the security rules. */
 fun validateItem(form: GiftItemForm): Set<GiftItemFormError> = buildSet {

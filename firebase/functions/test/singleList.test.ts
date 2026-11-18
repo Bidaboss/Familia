@@ -217,6 +217,25 @@ describe('single list migration', () => {
     assert.equal((await lists.doc('surprise-ines').get()).get('revealed'), true);
   });
 
+  test('a wish shared with the household (récit 73) is left as it is by the copy and the cleanup', async () => {
+    const wishes = lists.doc('wishes-ines');
+    await wishes.set({
+      kind: 'wishes', title: 'Mes envies', occasion: null, date: null, beneficiaryId: 'ines', viewerIds: [],
+      creatorId: 'ines', creatorName: 'Inès', revealed: false, coBeneficiaryIds: ['jules'],
+    });
+    await wishes.collection('items').doc('tent').set({ ...item('Une tente', true), coBeneficiaryId: 'jules' });
+    await migrateToSingleList(db);
+    assert.deepEqual((await wishes.get()).get('coBeneficiaryIds'), ['jules']);
+    const tent = await wishes.collection('items').doc('tent').get();
+    assert.equal(tent.get('coBeneficiaryId'), 'jules');
+    assert.equal(tent.get('title'), 'Une tente');
+    // Not an old list: it never gets a mark, so the cleanup never reads it.
+    assert.equal((await db.doc('migrations/singleList/lists/wishes-ines').get()).exists, false);
+    await db.doc('config/app').set({ features: { gifts: true, singleList: true } });
+    await cleanupOldLists(db);
+    assert.equal((await wishes.collection('items').doc('tent').get()).get('coBeneficiaryId'), 'jules');
+  });
+
   test('nothing while the switch is off', async () => {
     await db.doc('config/app').set({ features: { gifts: true } });
     assert.equal(await migrateToSingleList(db), 0);

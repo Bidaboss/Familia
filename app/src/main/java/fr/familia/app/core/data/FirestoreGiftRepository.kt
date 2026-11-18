@@ -16,6 +16,7 @@ import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftShare
 import fr.familia.app.core.model.ReceivedGift
+import fr.familia.app.core.model.SharedWish
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
@@ -136,26 +137,72 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
             "occasion" to item.occasion?.takeIf { it == GiftOccasion.Christmas || it == GiftOccasion.Birthday }?.firestoreValue,
             "updatedAt" to FieldValue.serverTimestamp(),
         )
+        val batch = db.batch()
         if (isNew) {
             // Left out when there is none, so the item fits the rules of before the photo too.
             val photo = item.photo?.let { mapOf("photo" to it) }.orEmpty()
             // The same for « Déjà acheté » (récit 68), before « Publier Firebase ».
             val bought = if (item.alreadyBought) mapOf("alreadyBought" to true) else emptyMap()
-            ref.set(
-                fields + photo + bought + mapOf(
+            val shared = item.coBeneficiaryId?.let { mapOf("coBeneficiaryId" to it) }.orEmpty()
+            batch.set(
+                ref,
+                fields + photo + bought + shared + mapOf(
                     "authorId" to item.authorId,
                     "authorName" to item.authorName,
                     "visibleToBeneficiary" to item.visibleToBeneficiary,
                     "createdAt" to FieldValue.serverTimestamp(),
                 ),
-            ).await()
+            )
         } else {
             // Removing a field that is not there changes nothing, under the old rules too.
-            ref.update(
+            batch.update(
+                ref,
                 fields + ("photo" to (item.photo ?: FieldValue.delete())) +
-                    ("alreadyBought" to (if (item.alreadyBought) true else FieldValue.delete())),
-            ).await()
+                    ("alreadyBought" to (if (item.alreadyBought) true else FieldValue.delete())) +
+                    ("coBeneficiaryId" to (item.coBeneficiaryId ?: FieldValue.delete())),
+            )
         }
+        // « Cadeau commun avec… » (récit 73): the list names who shares one of its wishes, in the same
+        // write, so that the rules keep its reservations from them from then on.
+        item.coBeneficiaryId?.let { co ->
+            batch.update(
+                db.collection(LISTS).document(listId),
+                mapOf("coBeneficiaryIds" to FieldValue.arrayUnion(co), "updatedAt" to FieldValue.serverTimestamp()),
+            )
+        }
+        batch.commit().await()
+    }
+
+    override fun observeClaimsOf(listId: String, itemIds: List<String>): Flow<List<GiftClaim>> {
+        if (itemIds.isEmpty()) return flowOf(emptyList())
+        val claims = db.collection(LISTS).document(listId).collection(CLAIMS)
+        // One by one: the rules let whoever shares a wish of the list read the others' reservations
+        // this way only (récit 73). A reservation refused or missing reads as none.
+        return combine(itemIds.map { id -> claims.document(id).observeClaim() }) { all -> all.filterNotNull() }
+    }
+
+    override fun observeWishesSharedWith(memberId: String, listIds: List<String>): Flow<List<SharedWish>> {
+        if (listIds.isEmpty()) return flowOf(emptyList())
+        return combine(
+            listIds.map { listId ->
+                db.collection(LISTS).document(listId).collection(ITEMS)
+                    .whereEqualTo("coBeneficiaryId", memberId)
+                    .whereEqualTo("visibleToBeneficiary", true)
+                    .observe { doc -> doc.toGiftItem()?.let { SharedWish(listId, it) } }
+                    // A « Mes envies » nobody created yet cannot be read: it shares nothing.
+                    .catch { e ->
+                        if (e is CancellationException) throw e
+                        emit(emptyList())
+                    }
+            },
+        ) { all -> all.flatMap { it } }
+    }
+
+    private fun DocumentReference.observeClaim(): Flow<GiftClaim?> = callbackFlow {
+        val registration = addSnapshotListener { snapshot, error ->
+            trySend(if (error != null) null else snapshot?.takeIf { it.exists() }?.toGiftClaim())
+        }
+        awaitClose { registration.remove() }
     }
 
     override suspend fun deleteItem(listId: String, itemId: String) {
@@ -371,6 +418,7 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
             creatorId = getString("creatorId").orEmpty(),
             creatorName = getString("creatorName").orEmpty(),
             revealed = getBoolean("revealed") == true,
+            coBeneficiaryIds = (get("coBeneficiaryIds") as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
         )
     }
 
@@ -390,6 +438,7 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
             photo = getString("photo"),
             alreadyBought = getBoolean("alreadyBought") == true,
             contributedTotal = getLong("contributedTotal")?.toInt()?.coerceAtLeast(0) ?: 0,
+            coBeneficiaryId = getString("coBeneficiaryId"),
         )
     }
 

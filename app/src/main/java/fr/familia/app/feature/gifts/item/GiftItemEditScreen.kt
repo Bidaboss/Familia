@@ -53,6 +53,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import fr.familia.app.R
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.ClaySpacing
@@ -203,6 +205,18 @@ private fun FormContent(
         if (state.showOccasion) {
             WishOccasionChoice(form.occasion, state.forMe) { value -> onChange { it.copy(occasion = value) } }
         }
+        if (state.coChoices.isNotEmpty()) {
+            CoBeneficiaryChoice(state.coChoices, form.coBeneficiaryId, enabled = !state.isSaving) { value ->
+                onChange { it.copy(coBeneficiaryId = value) }
+            }
+        }
+        state.sharedByOther?.let { owner ->
+            Text(
+                stringResource(R.string.gift_item_co_with, owner),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         if (state.showAlreadyBought) {
             AlreadyBoughtBox(
                 checked = form.alreadyBought || state.alreadyBoughtLocked,
@@ -229,7 +243,8 @@ private fun FormContent(
                 Text(stringResource(R.string.member_save))
             }
         }
-        if (!state.isNew) DeleteButton(form.title, !state.isSaving, onDelete)
+        // Whoever shares the wish edits it, but only its keeper removes it (récit 73).
+        if (!state.isNew && state.sharedByOther == null) DeleteButton(form.title, !state.isSaving, onDelete)
     }
 }
 
@@ -358,6 +373,45 @@ private fun ShareTargetChoice(targets: List<ShareTarget>, selected: String?, ena
                 )
             }
         }
+    }
+}
+
+/**
+ * « Cadeau commun avec… » (récit 73), optional: « Personne », or a member of the household of the
+ * person. The wish then shows in their wishes too, and nobody tells them who reserved it.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CoBeneficiaryChoice(choices: List<ShareTarget>, selected: String?, enabled: Boolean, onSelect: (String?) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            stringResource(R.string.gift_item_co_label),
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.semantics { heading() },
+        )
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(
+                selected = selected == null,
+                onClick = { onSelect(null) },
+                enabled = enabled,
+                label = { Text(stringResource(R.string.gift_item_co_none)) },
+                modifier = Modifier.heightIn(min = 56.dp),
+            )
+            choices.forEach { choice ->
+                FilterChip(
+                    selected = selected == choice.memberId,
+                    onClick = { onSelect(choice.memberId) },
+                    enabled = enabled,
+                    label = { Text(choice.name) },
+                    modifier = Modifier.heightIn(min = 56.dp),
+                )
+            }
+        }
+        Text(
+            stringResource(R.string.gift_item_co_hint),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
