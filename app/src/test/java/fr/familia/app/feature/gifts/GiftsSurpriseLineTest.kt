@@ -1,6 +1,5 @@
 package fr.familia.app.feature.gifts
 
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
@@ -11,7 +10,6 @@ import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.viewas.listsSeenBy
 import fr.familia.app.feature.events.TestFamily
-import fr.familia.app.feature.presentation.LocalPresenting
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -22,8 +20,7 @@ import java.time.LocalDate
 
 /**
  * « 1 surprise en préparation » on the birthday card (retour d'essai du 17/11): shown to those who
- * prepare it, opening it, and hidden while the mode présentation is on (the tab may be on screen at
- * the party). Fictional family only (TestFamily).
+ * prepare it, and opening it. Fictional family only (TestFamily).
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], qualifiers = "w360dp-h780dp-xxhdpi")
@@ -43,13 +40,11 @@ class GiftsSurpriseLineTest {
         "adult1", listOf("admin1", "adult2"), "adult2", "Adult2", false,
     )
 
-    private fun show(reader: String, presenting: Boolean = false, opened: MutableList<String> = mutableListOf()) {
+    private fun show(reader: String, opened: MutableList<String> = mutableListOf()) {
         val state = giftsState(family, listsSeenBy(listOf(surprise), reader), reader, today) as GiftsUiState.Success
         compose.setContent {
             FamiliaTheme {
-                CompositionLocalProvider(LocalPresenting provides presenting) {
-                    GiftsScreen(state, onOpenList = { opened += it }, onNewList = {}, onRetry = {})
-                }
+                GiftsScreen(state, onOpenList = { opened += it }, onNewList = {}, onRetry = {})
             }
         }
         compose.waitForIdle()
@@ -70,21 +65,5 @@ class GiftsSurpriseLineTest {
     fun `its person sees nothing of it`() {
         show("adult1")
         assertEquals(0, count("en préparation"))
-    }
-
-    @Test
-    fun `while the mode présentation is on, the line is hidden and the button stays`() {
-        show("adult2", presenting = true)
-        assertEquals(0, count("en préparation"))
-        assertEquals(1, count("Préparer une surprise"))
-    }
-
-    @Test
-    fun `while the mode présentation is on, a surprise in progress leaves the lists, a revealed one stays`() {
-        val own = surprise.copy(id = "o1", kind = GiftListKind.Own, title = "Liste o1")
-        val revealed = surprise.copy(id = "s2", revealed = true)
-        val lists = listOf(own, surprise, revealed)
-        assertEquals(listOf("o1", "s2"), shownLists(lists, presenting = true).map { it.id })
-        assertEquals(listOf("o1", "s1", "s2"), shownLists(lists, presenting = false).map { it.id })
     }
 }

@@ -6,11 +6,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.Source
-import com.google.firebase.Timestamp
-import fr.familia.app.core.model.PresentationMode
 import fr.familia.app.core.whatsnew.WhatsNew
-import java.time.Instant
-import java.util.Date
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -47,35 +43,6 @@ class FirestoreAppConfigRepository(private val db: FirebaseFirestore) : AppConfi
 
     override suspend fun hideMemory(key: String) {
         db.collection("config").document("app").set(mapOf("memoriesHidden" to FieldValue.arrayUnion(key)), SetOptions.merge()).await()
-    }
-
-    override fun observePresentation(): Flow<PresentationMode?> = callbackFlow {
-        val registration = db.collection("config").document("presentation").addSnapshotListener { snapshot, error ->
-            if (error != null) {
-                close(error)
-            } else {
-                trySend(
-                    snapshot?.takeIf { it.exists() }?.let {
-                        PresentationMode(on = it.getBoolean("on") == true, until = it.getTimestamp("until")?.toDate()?.toInstant())
-                    },
-                )
-            }
-        }
-        awaitClose { registration.remove() }
-    }
-
-    override suspend fun startPresentation(until: Instant?, now: Instant) {
-        db.collection("config").document("presentation").set(
-            mapOf(
-                "on" to true,
-                "until" to until?.let { Timestamp(Date.from(it)) },
-                "since" to Timestamp(Date.from(now)),
-            ),
-        ).await()
-    }
-
-    override suspend fun stopPresentation() {
-        db.collection("config").document("presentation").update("on", false).await()
     }
 
     private fun toConfig(snapshot: DocumentSnapshot?) = AppConfig(

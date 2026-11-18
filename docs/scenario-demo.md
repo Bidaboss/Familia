@@ -16,7 +16,7 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du café. L
 
 ## Le jour J : le repas d'abord, Familia au café
 
-Le repas reste celui de la personne fêtée. Familia n'arrive qu'au café, une fois le gâteau mangé (décision du 17/11, carte AVIS-21). On ne fait plus de présentation sur ton écran : chacun découvre l'appli sur son propre téléphone. « Voir comme » ne sert plus qu'à aider quelqu'un de perdu (voir « Les petits pièges »).
+Le repas reste celui de la personne fêtée. Familia n'arrive qu'au café, une fois le gâteau mangé (décision du 17/11, carte AVIS-21). On ne fait plus de présentation sur ton écran : chacun découvre l'appli sur son propre téléphone. « Voir comme » un autre membre que la personne fêtée sert à montrer les Cadeaux sans risque, et à aider quelqu'un de perdu (voir « Les petits pièges »).
 
 **Avant de partir**
 1. Mets ton téléphone en « Ne pas déranger ».
@@ -25,11 +25,11 @@ Le repas reste celui de la personne fêtée. Familia n'arrive qu'au café, une f
 **1. Pendant le repas : la photo, sans Familia**
 Prends la photo de la table avec l'appareil photo du téléphone, comme d'habitude. N'ouvre pas Familia. La photo reste dans ta galerie pour plus tard (étape 6).
 
-**2. Au café : le Mode présentation**
-Vérifie le réseau du lieu : ouvre Familia, le bandeau « Hors ligne » ne doit pas apparaître (sinon, voir « Plan B si le réseau tombe »). Puis **Administration**, carte « Mode présentation » tout en haut, touche « 4 h ». Le bandeau « Mode présentation jusqu'à … » apparaît au-dessus des onglets, sur ton téléphone seulement. Pendant ce temps, les arrivées, les réactions, les commentaires, les coups de main, les bonnes nouvelles des autres, les cadeaux et les capsules attendent, puis partent en un seul résumé à la fin. « Rejoignez-moi » passe toujours, et **ta** bonne nouvelle aussi.
+**2. Au café : le réseau, et ce que tu ne montres pas**
+Vérifie le réseau du lieu : ouvre Familia, le bandeau « Hors ligne » ne doit pas apparaître (sinon, voir « Plan B si le réseau tombe »). Le Mode présentation n'existe plus (retiré le 18/11) : rien n'est retenu, alors pendant toute la démo, **n'ouvre pas l'onglet Cadeaux, ni ta propre fiche, ni la fiche de la personne fêtée**, écran tourné vers la table. Pour montrer ce que voit un membre, passe par **Administration**, « Démo », « Voir comme… » et choisis **un autre membre** que la personne fêtée.
 
 **3. Les invitations**
-Dans **Famille**, ouvre chaque fiche puis « Envoyer l'invitation », par WhatsApp ou SMS. Commence par ceux qui sont le plus à l'aise : un ado de la famille peut ensuite aider ses grands-parents à installer. Si Android bloque l'installation, l'invitation explique quoi faire (autoriser l'installation depuis WhatsApp ou les fichiers). Grâce au Mode présentation, personne n'est bombardé de « vient d'arriver ».
+Dans **Famille**, ouvre chaque fiche puis « Envoyer l'invitation », par WhatsApp ou SMS. Commence par ceux qui sont le plus à l'aise : un ado de la famille peut ensuite aider ses grands-parents à installer. Si Android bloque l'installation, l'invitation explique quoi faire (autoriser l'installation depuis WhatsApp ou les fichiers). Personne n'est bombardé de « vient d'arriver » : les arrivées partent groupées, et aucun téléphone ne sonne plus de 3 fois par heure.
 
 **4. La connexion et le tuto**
 Chacun ouvre Familia, se connecte avec son compte Google, puis suit le tuto. Laisse-les faire : n'aide que si quelqu'un est bloqué. Note qui a eu besoin d'aide, et à quelle étape (voir « Ce que tu notes », en bas).
@@ -38,16 +38,16 @@ Chacun ouvre Familia, se connecte avec son compte Google, puis suit le tuto. Lai
 Tu guides à voix haute, chacun touche sur son téléphone :
 1. **L'Accueil** : les prochains rendez-vous, les anniversaires qui arrivent, « À faire ». Si « Fil d'actualité » est allumé, chacun touche « Le fil » sous « Bonjour » : ce qui s'est passé dans la famille, jour par jour, puis « ‹ Aujourd'hui » pour revenir.
 2. **Un événement** : le repas de Noël (ou celui préparé la veille), depuis le Planning. Si « Nouveau Planning » est allumé, montre d'abord la frise de la semaine, puis touche le titre et choisis « Mois » pour trouver le jour. Chacun touche « Je viens ». Puis « Qui apporte quoi » : chacun prend une ligne, préparée la veille (voir [veille-du-21.md](veille-du-21.md)).
-3. **Les Cadeaux** : chacun regarde sa liste d'envies et celles des autres. La personne fêtée peut le faire aussi : le serveur lui cache ce qui est réservé pour elle, et la liste de son anniversaire préparée par les autres. Toi, ne tourne pas ton propre onglet Cadeaux vers la table.
+3. **Les Cadeaux** : chacun regarde sa liste d'envies et celles des autres. La personne fêtée peut le faire aussi : le serveur lui cache ce qui est réservé pour elle, et la liste de son anniversaire préparée par les autres. Toi, n'ouvre pas ton onglet Cadeaux : montre-les avec « Voir comme » un autre membre que la personne fêtée.
 
 **6. La photo du repas, en Bonne nouvelle puis dans l'album**
-C'est le moment fort : toute la table la reçoit. **C'est toi qui postes, depuis ton propre compte** : pendant le Mode présentation, seule ta bonne nouvelle d'admin principal sonne tout de suite.
+C'est le moment fort : toute la table la reçoit. **C'est toi qui postes, depuis ton propre compte**.
 1. **Écran tourné vers toi**, ouvre le fil des Bonnes nouvelles (ton Accueil ne doit pas être montré) et touche « Publier ». Écris une phrase (« Joyeux anniversaire ! »), touche « Choisir des photos » et prends celle du repas, dans ta galerie. Tu peux nommer des membres. Ne parle pas du cadeau.
 2. Touche « Publier pour toute la famille ». Une barre se remplit au-dessus du bouton. **Reste sur cet écran** jusqu'à ce qu'il se ferme : tant qu'il est ouvert, l'envoi continue.
 3. L'écran revient sur le fil, où elle apparaît une seule fois. Les téléphones de la table sonnent.
 4. Puis verse-la dans l'album : ouvre l'événement du repas, section « Photos », et ajoute la même photo. Invite chacun à ajouter les siennes.
 
-**7. Avant 22 h : éteindre le Mode présentation** (voir « À la fin »).
+**7. Avant 22 h : finir la démo** (voir « À la fin »). Après 22 h, « Calme la nuit » garde les notifications jusqu'à 8 h pour presque tout le monde.
 
 ## Plan B si l'envoi de la photo bloque
 
@@ -93,15 +93,15 @@ C'est le moment fort : toute la table la reçoit. **C'est toi qui postes, depuis
 
 ## À la fin
 
-1. **Administration**, « Éteindre » le Mode présentation (sur le bandeau ou dans la carte).
-2. **Attendu :** en moins d'une minute, chacun reçoit un seul résumé, par exemple « 6 personnes ont rejoint Familia ». S'il n'arrive pas, il part au plus tard 30 minutes après. Après 22 h, il attend le lendemain à 8 h pour ceux qui ont « Calme la nuit », c'est-à-dire presque tout le monde : éteins le Mode présentation avant 22 h si tu veux qu'il arrive le soir même.
+1. Si tu es encore en « Voir comme », touche « Quitter » sur le bandeau.
+2. Ce qui a été posté pendant la démo est déjà parti : il n'y a plus de résumé de fin. Ce qui arrive après 22 h attend 8 h pour ceux qui ont « Calme la nuit ».
 3. Enlève « Ne pas déranger ».
 
 ## Plan B si le réseau tombe
 
 - **Le réseau est faible :** active le partage de connexion de ton téléphone (4G) et fais-y connecter les autres, deux ou trois à la fois.
 - **Plus de réseau du tout au café :** sans réseau, personne ne peut se connecter. Montre l'appli sur ton téléphone, hors ligne, avec ce que tu as ouvert la veille, et chacun se connectera en rentrant.
-- **Plus de réseau pour installer :** envoie l'APK téléchargé la veille par **Partage à proximité** (Quick Share) d'Android, depuis « Téléchargements ». Chacun peut l'installer, mais la connexion Google demande du réseau : chacun se connectera en rentrant chez soi. Laisse le Mode présentation allumé jusqu'à ce moment-là, ou éteins-le à la fin du repas, comme prévu.
+- **Plus de réseau pour installer :** envoie l'APK téléchargé la veille par **Partage à proximité** (Quick Share) d'Android, depuis « Téléchargements ». Chacun peut l'installer, mais la connexion Google demande du réseau : chacun se connectera en rentrant chez soi.
 - **Un téléphone refuse d'installer :** Android demande d'autoriser l'installation depuis WhatsApp ou les fichiers. Ouvre le réglage qu'il propose, autorise, puis reviens.
 - **Quelqu'un n'arrive pas à se connecter :** vérifie l'adresse Google dans sa fiche. Ne la change pas devant tout le monde : note-le et fais-le après le repas.
 

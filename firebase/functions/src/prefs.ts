@@ -12,11 +12,8 @@
 //
 // quietQueue/{memberId} holds the notices kept for the morning (`items`); only the functions use it.
 //
-// Mode présentation (récit 48): while config/presentation is on, the arrivals (bienvenue), the
-// reactions, the gifts and the capsules wait in presentationQueue/{memberId}, then go out as a
-// summary when it ends (the arrivals, the rest in one notice, a surprise apart): turned off in the
-// app, or at the first send after its end.
-// « Rejoignez-moi », the retours and the admin always go. No scheduled task of its own.
+// The Mode présentation (récit 48) was removed on 18/11 (PRODUIT-132): config/presentation, if it
+// still exists, is ignored.
 //
 // Résumé du soir (récit 70, DESIGN-31): while the module `eveningDigest` is on, the small news of
 // the day (reactions, comments, question of the week, souvenirs) wait in eveningQueue/{memberId}
@@ -62,9 +59,9 @@ export interface Filtered {
   channel: Channel;
   /** Aimed at the member directly: never muted, whatever the settings. */
   direct?: boolean;
-  /** A reaction (« Inès a réagi »): held during the mode présentation like the arrivals. */
+  /** A reaction (« Inès a réagi »): it waits for the résumé du soir (récit 70). */
   reaction?: boolean;
-  /** Sent by the admin principal (a good news of the meal): rings even during the mode présentation. */
+  /** Sent by the admin principal (a good news of the meal): never held back by the burst cap. */
   fromOwner?: boolean;
 }
 
@@ -199,52 +196,6 @@ async function sendCounting<N>(db: Firestore, send: AnySender<N>, memberIds: str
   return { sent, failed };
 }
 
-/** config/presentation, written by the admin principal from Administration. */
-export const PRESENTATION_DOC = 'config/presentation';
-
-/** The mode présentation: [until] null means « jusqu'à ce que je l'éteigne ». */
-export interface Presentation {
-  on: boolean;
-  until: Date | null;
-}
-
-export function presentationFrom(data: Record<string, unknown> | undefined): Presentation {
-  const until = data?.until as { toDate?: () => Date } | null | undefined;
-  return { on: data?.on === true, until: typeof until?.toDate === 'function' ? until.toDate() : null };
-}
-
-export function isPresenting(p: Presentation, now: Date): boolean {
-  return p.on && (p.until === null || p.until.getTime() > now.getTime());
-}
-
-/** Channels that wait during the mode présentation; joinMe, feedback and admin never wait. */
-// While the whole family tries the app at the same table, what everyone posts waits for the summary
-// (coups de main, comments, good news). Only the admin principal's good news rings at once.
-const HELD_WHILE_PRESENTING: ReadonlySet<Channel> = new Set<Channel>(['welcome', 'gifts', 'capsules', 'helpRequests', 'comments', 'goodNews']);
-
-export function heldByPresentation(notice: Filtered): boolean {
-  if (notice.channel === 'joinMe' || notice.channel === 'feedback' || notice.channel === 'admin') return false;
-  if (notice.channel === 'goodNews' && notice.fromOwner === true) return false;
-  return HELD_WHILE_PRESENTING.has(notice.channel) || notice.reaction === true;
-}
-
-/**
- * Turns off a mode présentation whose end has passed, once (a transaction): the trigger on
- * config/presentation then sends the summary. Returns whether the mode is on at [now].
- */
-export async function presentingNow(db: Firestore, now: Date): Promise<boolean> {
-  const ref = db.doc(PRESENTATION_DOC);
-  const p = presentationFrom((await ref.get()).data());
-  if (isPresenting(p, now)) return true;
-  if (p.on) {
-    await db.runTransaction(async (tx) => {
-      const again = presentationFrom((await tx.get(ref)).data());
-      if (again.on && !isPresenting(again, now)) tx.set(ref, { on: false }, { merge: true });
-    });
-  }
-  return false;
-}
-
 /**
  * The clock of [deliver] when no `now` is given: the real time in production. The tests fix it to
  * the afternoon (test/setup.ts), so a suite run at night is not held by « Calme la nuit ».
@@ -274,21 +225,6 @@ export async function deliver<N extends Filtered>(db: Firestore, send: AnySender
     }
   }
   const { now: ready, later, tonight } = await audience(db, memberIds, notice, now, evening);
-  // Every send looks at the mode présentation, so its end is seen at the first send that follows.
-  // A failed read of config/presentation never stops a notice: it then goes as usual.
-  let presenting = false;
-  try {
-    presenting = await presentingNow(db, now);
-  } catch (e) {
-    console.error('presentation: read failed', e);
-  }
-  if (presenting && heldByPresentation(notice) && ready.length + later.length + tonight.length > 0) {
-    const item = { ...JSON.parse(JSON.stringify(notice)), heldAt: now.toISOString() };
-    const batch = db.batch();
-    for (const id of [...ready, ...later, ...tonight]) batch.set(db.collection('presentationQueue').doc(id), { items: FieldValue.arrayUnion(item) }, { merge: true });
-    await batch.commit();
-    return 0;
-  }
   if (later.length > 0) {
     // Firestore refuses undefined fields: the notice is kept as plain JSON.
     const item = { ...JSON.parse(JSON.stringify(notice)), heldAt: now.toISOString() };
@@ -302,7 +238,7 @@ export async function deliver<N extends Filtered>(db: Firestore, send: AnySender
     for (const id of tonight) batch.set(db.collection(EVENING_QUEUE).doc(id), { items: FieldValue.arrayUnion(item) }, { merge: true });
     await batch.commit();
   }
-  // What was held above (night, mode présentation) is not counted: it was not sent.
+  // What was held above (night, résumé du soir) is not counted: it was not sent.
   const { go, wait } = burstCap && cappable(notice) ? await splitBurst(db, ready, now) : { go: ready, wait: [] };
   if (wait.length > 0) {
     const item = { ...JSON.parse(JSON.stringify(notice)), heldAt: now.toISOString() };
@@ -342,7 +278,7 @@ export function capBursts(on = true): void {
 }
 
 export function cappable(notice: Filtered): boolean {
-  // The good news of the admin principal (the photo of the meal) rings at once, as in the mode présentation.
+  // The good news of the admin principal (the photo of the meal) rings at once.
   return !NEVER_CAPPED.has(notice.channel) && notice.fromOwner !== true;
 }
 
@@ -404,23 +340,15 @@ export function burstNotices<N extends Filtered & { title: string; body: string;
 
 /**
  * From arrivalReminder: for each member who has a free place again, what waited goes out grouped,
- * taking one place. The night waits for 8 h and the mode présentation for its summary, as in
- * [deliver]; what reached none of the phones waits for the next run, for a day at most.
+ * taking one place. The night waits for 8 h, as in [deliver]; what reached none of the phones waits for the next run, for a day at most.
  */
 export async function sendBurstHeld<N extends Filtered & { title: string; body: string; tag?: string }>(db: Firestore, send: AnySender<N>, now: Date): Promise<number> {
   const queues = await db.collection(BURST_QUEUE).get();
   if (queues.empty) return 0;
-  let presenting = false;
-  try {
-    presenting = await presentingNow(db, now);
-  } catch (e) {
-    console.error('presentation: read failed', e);
-  }
   let sent = 0;
   for (const queue of queues.docs) {
     const prefs = (await loadPrefs(db, [queue.id])).get(queue.id) ?? DEFAULT_PREFS;
-    const waits = (notice: N): 'presentationQueue' | 'quietQueue' | null => {
-      if (presenting && heldByPresentation(notice)) return 'presentationQueue';
+    const waits = (notice: N): 'quietQueue' | null => {
       if (isQuietHour(now) && prefs.quietHours && !notice.direct && FAMILY_OF[notice.channel] !== null) return 'quietQueue';
       return null;
     };
@@ -530,8 +458,7 @@ const EVENING_QUEUE = 'eveningQueue';
 /**
  * From 19 h, the small news that waited go out as one notice per member, « Ce soir dans Familia »
  * (récit 70). Run by the task of every 30 minutes. What is still there at night (a failed send)
- * waits for 8 h with the night, for a member who keeps « Calme la nuit ». During the mode
- * présentation, what it holds waits for its summary. A notice that reached
+ * waits for 8 h with the night, for a member who keeps « Calme la nuit ». A notice that reached
  * none of the member's phones is tried again by the next run, for a day at most. Returns how many
  * phones got something.
  */
@@ -539,13 +466,6 @@ export async function sendEveningHeld<N extends Filtered & { title: string; body
   if (parisHour(now) < EVENING_HOUR && !isQuietHour(now)) return 0;
   const queues = await db.collection(EVENING_QUEUE).get();
   if (queues.empty) return 0;
-  // A mode présentation at an evening meal: what it holds waits for its summary (B1 de #393).
-  let presenting = false;
-  try {
-    presenting = await presentingNow(db, now);
-  } catch (e) {
-    console.error('presentation: read failed', e);
-  }
   let sent = 0;
   for (const queue of queues.docs) {
     // Taken and emptied at once, so two runs never send the same evening twice.
@@ -554,10 +474,7 @@ export async function sendEveningHeld<N extends Filtered & { title: string; body
       tx.delete(queue.ref);
       return ((doc.get('items') as (N & { heldAt?: string })[] | undefined) ?? []);
     });
-    const recent = items.filter((n) => !n.heldAt || now.getTime() - Date.parse(n.heldAt) < MAX_HELD_MS);
-    const shown = presenting ? recent.filter((n) => heldByPresentation(n)) : [];
-    if (shown.length > 0) await db.collection('presentationQueue').doc(queue.id).set({ items: FieldValue.arrayUnion(...shown) }, { merge: true });
-    const fresh = recent.filter((n) => !shown.includes(n));
+    const fresh = items.filter((n) => !n.heldAt || now.getTime() - Date.parse(n.heldAt) < MAX_HELD_MS);
     if (fresh.length === 0) continue;
     const prefs = (await loadPrefs(db, [queue.id])).get(queue.id) ?? DEFAULT_PREFS;
     if (isQuietHour(now) && prefs.quietHours) {
@@ -585,72 +502,8 @@ export async function sendEveningHeld<N extends Filtered & { title: string; body
 export async function deleteQuietQueueOf(db: Firestore, memberId: string): Promise<void> {
   await db.collection('quietQueue').doc(memberId).delete();
   await db.collection(EVENING_QUEUE).doc(memberId).delete();
+  // What the Mode présentation (removed on 18/11) may have left behind.
   await db.collection('presentationQueue').doc(memberId).delete();
   await db.collection(BURST_QUEUE).doc(memberId).delete();
   await db.collection(NOTIFY_LOG).doc(memberId).delete();
-}
-
-/** « Bienvenue » titles end with this (welcome.ts): the summary names those who arrived. */
-const ARRIVED = " vient d'arriver";
-
-/**
- * The summary of the mode présentation for one member: the arrivals as « 9 personnes ont rejoint
- * Familia », the rest as one notice, and a surprise on its private channel.
- */
-export function presentationNotices<N extends Filtered & { title: string; body: string }>(items: N[]): N[] {
-  const welcome = items.filter((n) => n.channel === 'welcome');
-  // The rest as one notice (avalanche du 21), a surprise keeping its private channel.
-  const others = burstNotices(items.filter((n) => n.channel !== 'welcome'), 'Pendant la présentation');
-  if (welcome.length <= 1) return [...welcome, ...others];
-  // A grouped bienvenue (welcome.ts) carries its names.
-  const names = [...new Set(welcome.flatMap((n) => {
-    const grouped = (n as { welcomeNames?: unknown }).welcomeNames;
-    if (Array.isArray(grouped)) return grouped.map(String);
-    return [n.title.endsWith(ARRIVED) ? n.title.slice(0, -ARRIVED.length) : n.title];
-  }))];
-  const shown = names.length <= 3
-    ? `${names.slice(0, -1).join(', ')} et ${names[names.length - 1]}`
-    : `${names.slice(0, 3).join(', ')} et ${names.length - 3} autres`;
-  const body = `${shown}. Dis-leur bonjour !`;
-  const summary = { channel: 'welcome' as Channel, title: `${names.length} personnes ont rejoint Familia`, body: body.length > MAX_BODY ? `${body.slice(0, MAX_BODY - 1)}…` : body } as N;
-  return [summary, ...others];
-}
-
-/**
- * Once the mode présentation is off, what it held goes out: the summary of each member,
- * held again until 8 h for a member with quiet hours at night. Returns how many phones got something.
- */
-export async function sendPresentationHeld<N extends Filtered & { title: string; body: string }>(db: Firestore, send: AnySender<N>, now: Date): Promise<number> {
-  const queues = await db.collection('presentationQueue').get();
-  let sent = 0;
-  for (const queue of queues.docs) {
-    // Taken and emptied at once, so two triggers never send the same summary twice.
-    const items = await db.runTransaction(async (tx) => {
-      const doc = await tx.get(queue.ref);
-      tx.delete(queue.ref);
-      return ((doc.get('items') as (N & { heldAt?: string })[] | undefined) ?? []);
-    });
-    const notices = presentationNotices(items.map(({ heldAt: _heldAt, ...n }) => n as unknown as N));
-    const prefs = (await loadPrefs(db, [queue.id])).get(queue.id) ?? DEFAULT_PREFS;
-    for (const notice of notices) {
-      // The night waits for 8 h; a summary that reached none of the phones is tried again by the
-      // morning queue (every 30 min, for a day at most), so it is never lost.
-      const quiet = isQuietHour(now) && prefs.quietHours && !notice.direct && FAMILY_OF[notice.channel] !== null;
-      let result = { sent: 0, failed: 0 };
-      if (!quiet) {
-        try {
-          result = await sendCounting(db, send, [queue.id], notice);
-        } catch (e) {
-          console.error('presentationQueue: send failed', queue.id, e);
-          result = { sent: 0, failed: 1 };
-        }
-      }
-      sent += result.sent;
-      if (quiet || (result.sent === 0 && result.failed > 0)) {
-        const item = { ...JSON.parse(JSON.stringify(notice)), heldAt: now.toISOString() };
-        await db.collection('quietQueue').doc(queue.id).set({ items: FieldValue.arrayUnion(item) }, { merge: true });
-      }
-    }
-  }
-  return sent;
 }

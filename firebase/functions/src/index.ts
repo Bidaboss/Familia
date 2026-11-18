@@ -54,7 +54,7 @@ import { applyHostedChallenge, remindHost } from './hostChallenge';
 import { sendWeeklyRecap } from './recap';
 import { deleteGoodNewsComments, GoodNewsCommentData, onGoodNewsCommentCreated, onGoodNewsCommentDeleted } from './goodNewsComments';
 import { orphanReportDue, reportOrphanGoodNewsPhotos, type StoredFile } from './orphanPhotos';
-import { capBursts, deleteQuietQueueOf, presentationFrom, presentingNow, PRIVATE_CHANNELS, sendBurstHeld, sendEveningHeld, sendHeldNotices, sendPresentationHeld } from './prefs';
+import { capBursts, deleteQuietQueueOf, PRIVATE_CHANNELS, sendBurstHeld, sendEveningHeld, sendHeldNotices } from './prefs';
 import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type BirthdayCard } from './birthdayWishes';
 import { deleteWelcomeOf, isFirstSignIn, sendQueuedWelcomes, welcomeMember } from './welcome';
 import { deleteCheersOf, deleteMomentsOf, onMomentCheerCreated, startMoments, type MomentCheer } from './thinkOfMe';
@@ -712,23 +712,15 @@ const sendHeld = async (token: string, notice: Notice & { goodNewsId?: string; h
 };
 
 /**
- * Mode présentation (récit 48): when it goes off (turned off in Administration, or its end seen by
- * a send), what it held goes out as one summary per member.
+ * The Mode présentation (récit 48) was removed on 18/11 (PRODUIT-132). Its trigger stays, doing
+ * nothing: « Publier Firebase » runs without --force and would stop on a function to delete. To
+ * remove after the 21st, with the function deleted by hand in the console.
  */
-export const onPresentationWritten = onDocumentWritten('config/presentation', async (event) => {
-  const before = presentationFrom(event.data?.before.data());
-  const after = presentationFrom(event.data?.after.data());
-  if (!before.on || after.on) return;
-  await sendPresentationHeld(getFirestore(), sendHeld, new Date());
+export const onPresentationWritten = onDocumentWritten('config/presentation', async () => {
+  // Nothing: config/presentation is ignored.
 });
 
 export const arrivalReminder = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/Paris' }, async () => {
-  // The end of a mode présentation is seen here too, even when nothing else is sent (récit 48).
-  try {
-    await presentingNow(getFirestore(), new Date());
-  } catch (e) {
-    console.error('presentation', e);
-  }
   // First what was held during the quiet hours (récit 6 quinquies), from 8 h. A failure waits
   // for the next run and never stops the rest.
   try {

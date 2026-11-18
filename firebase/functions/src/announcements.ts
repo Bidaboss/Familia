@@ -4,14 +4,13 @@
 //   `direct`, so neither the settings nor the cap of the hour (prefs.ts) hold it.
 // - From 22 h to 8 h it waits for 8 h in quietQueue, for everyone, unless the admin ticked
 //   « Urgent »: then it rings at once.
-// - Never during the mode présentation: the rules refuse the write, and this side checks again.
 // The app writes announcements/{id}; this trigger sends it and writes back `delivery`. Data model:
 // docs/data-model.md.
 
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import { familyMembers, withApp } from './audience';
 import { Notice } from './logic';
-import { isQuietHour, presentingNow } from './prefs';
+import { isQuietHour } from './prefs';
 import { featureOn, notify, Sender } from './store';
 
 export interface AnnouncementData {
@@ -23,7 +22,7 @@ export interface AnnouncementData {
   authorName: string;
 }
 
-/** How it went: `sent` at once, `morning` at 8 h, `refused` (mode présentation or module off). */
+/** How it went: `sent` at once, `morning` at 8 h, `refused` (module off). */
 export type Delivery = 'sent' | 'morning' | 'refused';
 
 const MAX_BODY = 180;
@@ -46,7 +45,7 @@ export async function onAnnouncementCreated(db: Firestore, send: Sender, id: str
   const ref = db.collection('announcements').doc(id);
   const owner = (await db.doc('config/family').get()).get('ownerMemberId');
   let delivery: Delivery;
-  if (owner !== a.authorId || !(await featureOn(db, 'adminAnnouncements')) || (await presentingNow(db, now))) {
+  if (owner !== a.authorId || !(await featureOn(db, 'adminAnnouncements'))) {
     delivery = 'refused';
   } else {
     const to = announcementRecipients(a, withApp(await familyMembers(db)));

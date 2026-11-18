@@ -173,8 +173,8 @@
     <string name="administration_household_delete_body">Il n\'a plus de membres. Ses anciens événements restent dans le planning.</string>
     <string name="administration_household_delete_confirm">Supprimer</string>
     <string name="administration_features_title">Modules</string>
-    <string name="administration_group_demo">Démo et présentation</string>
-    <string name="administration_group_demo_help">Le mode présentation, et voir l\'appli comme un autre membre.</string>
+    <string name="administration_group_demo">Démo</string>
+    <string name="administration_group_demo_help">Voir l\'appli comme un autre membre.</string>
     <string name="administration_group_feedback">Retours et plantages</string>
     <string name="administration_group_feedback_help">Les idées et soucis envoyés par la famille, et les plantages de l\'appli.</string>
     <string name="administration_group_family">Famille</string>
@@ -2807,18 +2807,6 @@
     <string name="gooddeal_field_category">Catégorie</string>
     <string name="gooddeal_error_category">Choisis une catégorie.</string>
     <string name="gooddeal_error_phone">Ce numéro ne fonctionne pas : des chiffres, des espaces et + seulement.</string>
-    <!-- Mode présentation (récit 48) -->
-    <string name="presentation_title">Mode présentation</string>
-    <string name="presentation_help">Pendant que toute la famille installe l\'appli, les arrivées, les réactions, les commentaires, les coups de main, les bonnes nouvelles, les cadeaux et les capsules attendent, puis partent en un seul résumé à la fin. Tes bonnes nouvelles, « Rejoignez-moi », les retours et l\'admin passent toujours.</string>
-    <string name="presentation_two_hours">2 h</string>
-    <string name="presentation_four_hours">4 h</string>
-    <string name="presentation_until_off">Jusqu\'à ce que je l\'éteigne</string>
-    <string name="presentation_on_until">Allumé jusqu\'à %1$s. Le résumé partira à la fin.</string>
-    <string name="presentation_on">Allumé jusqu\'à ce que tu l\'éteignes. Le résumé partira à ce moment-là.</string>
-    <string name="presentation_stop">Éteindre</string>
-    <string name="presentation_banner_until">Mode présentation jusqu\'à %1$s</string>
-    <string name="presentation_banner">Mode présentation allumé</string>
-    <string name="presentation_failed">Le mode présentation n\'a pas changé. Vérifie ta connexion, puis réessaie.</string>
     <!-- Récit 49 : le planning dans Google Agenda -->
     <string name="feature_calendar_feed">Planning dans mon agenda</string>
     <string name="feature_tree_poster">Affiche de l\'arbre</string>
@@ -3146,7 +3134,6 @@
     <string name="announcements_title">Envoyer une notification</string>
     <string name="announcements_entry_help">Un message de toi à toute la famille ou à quelques foyers.</string>
     <string name="announcements_help">Le message arrive sur les téléphones choisis. On ne peut pas y répondre, et personne ne peut couper ces notifications dans Familia.</string>
-    <string name="announcements_presenting">Le mode présentation est allumé : rien ne part. Éteins-le dans Administration pour envoyer.</string>
     <string name="announcements_field_title">Titre</string>
     <string name="announcements_field_text">Message</string>
     <string name="announcements_count">%1$d sur %2$d caractères</string>
@@ -3171,7 +3158,7 @@
     <string name="announcements_confirm_send">Envoyer</string>
     <string name="announcements_sent_toast">Message envoyé.</string>
     <string name="announcements_failed_title">Le message n\'est pas parti</string>
-    <string name="announcements_failed_body">Vérifie ta connexion, puis réessaie. Pendant le mode présentation, ou module éteint, l\'envoi est refusé.</string>
+    <string name="announcements_failed_body">Vérifie ta connexion, puis réessaie. Module éteint, l\'envoi est refusé.</string>
     <string name="announcements_sent_title">Déjà envoyées</string>
     <string name="announcements_sent_empty">Rien d\'envoyé pour l\'instant.</string>
     <plurals name="announcements_sent_to">

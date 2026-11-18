@@ -55,7 +55,6 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.core.viewas.LocalViewAs
-import fr.familia.app.feature.presentation.LocalPresenting
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
@@ -97,8 +96,8 @@ fun rememberFeedState(container: AppContainer?, me: Member): FeedState {
     val context = LocalContext.current
     val prefs = remember(context) { FeedPreferences(context.applicationContext) }
     var seenAt by remember(me.id) { mutableStateOf(prefs.seenAt(me.id)) }
-    // Read only, in the Mode présentation and in « Voir comme » (récit 67).
-    val readOnly = LocalPresenting.current || LocalViewAs.current.viewed != null
+    // Read only in « Voir comme » (récit 67).
+    val readOnly = LocalViewAs.current.viewed != null
     return FeedState(
         cards = cards,
         context = family?.let { FeedContext(me, it, today, readOnly) },
@@ -108,7 +107,7 @@ fun rememberFeedState(container: AppContainer?, me: Member): FeedState {
         onSeen = {
             val at = Instant.now()
             seenAt = at
-            // Read only (« Voir comme », présentation): looking does not mark the fil as seen.
+            // Read only (« Voir comme »): looking does not mark the fil as seen.
             if (!readOnly) prefs.setSeenAt(me.id, at)
         },
     )

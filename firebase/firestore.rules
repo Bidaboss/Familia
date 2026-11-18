@@ -3061,16 +3061,10 @@ service cloud.firestore {
     }
 
     // announcements/{announcementId}: Annonces de l'admin (PRD, récit 69). Only the admin principal
-    // writes one, with the module « Annonces de l'admin » on and never during the mode présentation:
+    // writes one, with the module « Annonces de l'admin » on:
     // a title of 1 to 60 characters, a message of 1 to 300, « Urgent », and the members ticked. Each
     // member ticked reads it (the notification opens it), the admin principal reads them all. Never
     // changed by the app: the server writes back `delivery` (sent, morning, refused).
-    function presentingNow() {
-      let p = /databases/$(database)/documents/config/presentation;
-      return exists(p) && get(p).data.on == true
-        && (!('until' in get(p).data) || get(p).data.until == null || get(p).data.until > request.time);
-    }
-
     function announcementsOn() {
       let app = /databases/$(database)/documents/config/app;
       return exists(app) && get(app).data.get('features', {}).get('adminAnnouncements', false) == true;
@@ -3080,7 +3074,6 @@ service cloud.firestore {
       allow read: if isMember() && (isOwner() || myMemberId() in resource.data.recipientIds);
       allow create: if isOwner()
         && announcementsOn()
-        && !presentingNow()
         && request.resource.data.keys().hasOnly(['title', 'text', 'urgent', 'recipientIds', 'authorId', 'authorName', 'createdAt'])
         && request.resource.data.keys().hasAll(['title', 'text', 'urgent', 'recipientIds', 'authorId', 'authorName', 'createdAt'])
         && request.resource.data.title is string
@@ -3277,14 +3270,8 @@ service cloud.firestore {
         && (!('memoriesHidden' in request.resource.data)
             || (request.resource.data.memoriesHidden is list && request.resource.data.memoriesHidden.size() <= 300))
         && isOwner();
-      // Mode présentation (récit 48): only the admin principal reads and writes config/presentation.
-      // `on` turns it on or off, `until` is its end (null: until turned off), `since` when it began.
-      allow read: if docId == 'presentation' && isOwner();
-      allow create, update: if docId == 'presentation' && isOwner()
-        && request.resource.data.keys().hasOnly(['on', 'until', 'since'])
-        && request.resource.data.on is bool
-        && (!('until' in request.resource.data) || request.resource.data.until == null || request.resource.data.until is timestamp)
-        && (!('since' in request.resource.data) || request.resource.data.since is timestamp);
+      // config/presentation: the Mode présentation (récit 48) was removed on 18/11 (PRODUIT-132).
+      // The document may stay, ignored; nobody reads or writes it any more.
       allow delete: if false;
     }
 

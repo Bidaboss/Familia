@@ -17,7 +17,6 @@ import fr.familia.app.core.model.Announcement
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.announcementCandidates
-import fr.familia.app.feature.presentation.rememberPresentation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -43,8 +42,6 @@ fun AnnouncementsRoute(container: AppContainer?, currentMember: Member, onBack: 
         repository?.observeSent()?.map<List<Announcement>, List<Announcement>?> { it }?.catch { emit(emptyList()) } ?: flowOf(emptyList())
     }
     val sent by sentFlow.collectAsStateWithLifecycle(initialValue = null)
-    // Only the admin principal comes here: the mode présentation is read as theirs.
-    val presentation = rememberPresentation(container, isOwner = true)
     var title by rememberSaveable { mutableStateOf("") }
     var text by rememberSaveable { mutableStateOf("") }
     var urgent by rememberSaveable { mutableStateOf(false) }
@@ -70,7 +67,6 @@ fun AnnouncementsRoute(container: AppContainer?, currentMember: Member, onBack: 
         onUrgent = { urgent = it },
         selected = selected,
         onSelect = { now -> unticked = candidates.map { it.id }.filter { it !in now }.joinToString("\n") },
-        presenting = presentation?.isOn == true,
         sending = sending,
         sent = sent,
         onBack = onBack,

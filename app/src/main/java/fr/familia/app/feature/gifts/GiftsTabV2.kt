@@ -76,7 +76,7 @@ import java.time.temporal.ChronoUnit
  * mine open and the others folded, one compact card per person in their color.
  *
  * Never a count of ideas nor of reservations: only « N envies », what the person sees of their own
- * list. Nothing of a surprise while presenting nor in « Voir comme » (the caller says so).
+ * list. Nothing of a surprise in « Voir comme » (the caller says so).
  */
 
 /** What the new tab leads to. */

@@ -1,6 +1,5 @@
 package fr.familia.app.feature.gifts
 
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
@@ -15,7 +14,6 @@ import fr.familia.app.core.viewas.listsSeenBy
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.gifts.edit.nearestOccasionOf
 import fr.familia.app.feature.gifts.surprise.surprisePickState
-import fr.familia.app.feature.presentation.LocalPresenting
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -28,7 +26,7 @@ import java.time.LocalDate
 /**
  * « Préparer une surprise » depuis un seul bouton (PRD rév. 287, récit 63): the button, the choice of
  * the person, the nearest occasion, and « Surprises en préparation », never seen by the person
- * celebrated nor while presenting. Fictional family only (TestFamily).
+ * celebrated. Fictional family only (TestFamily).
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], qualifiers = "w360dp-h780dp-xxhdpi")
@@ -51,12 +49,10 @@ class SurpriseButtonTest {
     private fun stateFor(reader: String, button: Boolean = true) =
         giftsState(family, listsSeenBy(listOf(surprise), reader), reader, today, surpriseButton = button) as GiftsUiState.Success
 
-    private fun show(state: GiftsUiState.Success, presenting: Boolean = false, onPicker: () -> Unit = {}) {
+    private fun show(state: GiftsUiState.Success, onPicker: () -> Unit = {}) {
         compose.setContent {
             FamiliaTheme {
-                CompositionLocalProvider(LocalPresenting provides presenting) {
-                    GiftsScreen(state, onOpenList = {}, onNewList = {}, onRetry = {}, onOpenSurprisePicker = onPicker)
-                }
+                GiftsScreen(state, onOpenList = {}, onNewList = {}, onRetry = {}, onOpenSurprisePicker = onPicker)
             }
         }
         compose.waitForIdle()
@@ -87,12 +83,6 @@ class SurpriseButtonTest {
         assertTrue(count("Surprise s1") >= 1)
         compose.onNodeWithContentDescription("Préparer une surprise").performClick()
         assertEquals(1, opened)
-    }
-
-    @Test
-    fun `nothing of it while presenting`() {
-        show(stateFor("adult2"), presenting = true)
-        assertEquals(0, count("Surprises en préparation"))
     }
 
     @Test
