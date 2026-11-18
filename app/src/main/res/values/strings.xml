@@ -222,7 +222,7 @@
     <string name="feature_help_help_requests">L\'onglet Entraide : on demande un coup de main à la famille, chacun répond « J\'y vais » ou « Non ».</string>
     <string name="feature_help_trips">Le carnet de voyage, dans Tout Familia : les étapes, qui part, et les photos du voyage.</string>
     <string name="feature_help_good_news">Les bonnes nouvelles : une phrase et des photos pour toute la famille, sur l\'Accueil et dans leur fil.</string>
-    <string name="feature_help_themes">Les thèmes de couleurs : touche ta photo en haut, puis Apparence, pour choisir Hiver, Jardin…</string>
+    <string name="feature_help_themes">Les thèmes de couleurs : touche ta photo en haut, puis Apparence, pour choisir Olivier, Lavande, Nuit… et la police des titres et du texte.</string>
     <string name="feature_help_usage">Compte le temps passé dans l\'appli, visible dans Administration. Préviens la famille avant de l\'allumer.</string>
     <string name="feature_help_weekly_question">Chaque lundi, une question pour toute la famille sur l\'Accueil : on répond, puis on lit les autres.</string>
     <string name="feature_help_event_albums">Sur la fiche d\'un événement, section Photos : l\'album où chacun ajoute les siennes, dès le jour même.</string>
@@ -1940,17 +1940,24 @@
     <string name="welcome_animation_title">Bienvenue dans Familia</string>
     <string name="welcome_animation_hello">Bonjour %1$s, tu es chez toi.</string>
     <string name="welcome_animation_skip">Passer</string>
-    <string name="theme_classic">Classique</string>
-    <string name="theme_arcade">Arcade</string>
-    <string name="theme_retro">Rétro 70</string>
-    <string name="theme_travel">Carnet de voyage</string>
-    <string name="theme_garden">Jardin</string>
-    <string name="theme_cosmos">Cosmos</string>
-    <string name="theme_winter">Hiver</string>
+    <string name="theme_classic">Argile</string>
+    <string name="theme_olive">Olivier</string>
     <string name="theme_spain">Espagne</string>
+    <string name="theme_winter">Hiver</string>
+    <string name="theme_lavender">Lavande</string>
+    <string name="theme_night">Nuit</string>
     <string name="theme_contrast">Contraste fort</string>
+    <string name="appearance_title_font_title">Police des titres</string>
+    <string name="appearance_title_font_help">Pour les titres des écrans, des cartes et des jours, sur ce téléphone.</string>
+    <string name="appearance_title_font_round">Ronde</string>
+    <string name="appearance_title_font_elegant">Élégante</string>
+    <string name="appearance_title_font_sober">Sobre</string>
+    <string name="appearance_body_font_title">Police du texte</string>
+    <string name="appearance_body_font_help">Pour tout le reste du texte, sur ce téléphone. « Très lisible » distingue bien les lettres et les chiffres.</string>
+    <string name="appearance_body_font_normal">Normale</string>
+    <string name="appearance_body_font_legible">Très lisible</string>
     <string name="help_topic_appearance_title">Changer l\'apparence</string>
-    <string name="help_topic_appearance_body">Touche ta photo en haut à droite, puis « Apparence », et choisis un thème, puis l\'icône de l\'appli tout en bas. Ils ne changent que ce téléphone. « Contraste fort » est le plus facile à lire.</string>
+    <string name="help_topic_appearance_body">Touche ta photo en haut à droite, puis « Apparence », et choisis un thème, la police des titres et celle du texte, puis l\'icône de l\'appli tout en bas. Ils ne changent que ce téléphone. « Contraste fort » et la police « Très lisible » sont les plus faciles à lire.</string>
 
     <!-- Question de la semaine (récit 37) -->
     <string name="weekly_title">Question de la semaine</string>

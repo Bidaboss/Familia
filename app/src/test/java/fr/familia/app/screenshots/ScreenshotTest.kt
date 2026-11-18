@@ -12,7 +12,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import com.github.takahirom.roborazzi.captureRoboImage
 import fr.familia.app.core.navigation.FamiliaApp
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.theme.BodyFont
 import fr.familia.app.core.theme.FamiliaThemeId
+import fr.familia.app.core.theme.TitleFont
 import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.feature.settings.appearance.AppIcon
 import fr.familia.app.feature.usage.UsageReportScreen
@@ -327,7 +329,7 @@ class ScreenshotTest {
 
     @Test
     fun appearanceLight() = capture("apparence_clair") {
-        AppearanceScreen(FamiliaThemeId.Spain, {}, {})
+        AppearanceScreen(FamiliaThemeId.Spain, {}, {}, titleFont = TitleFont.Elegant, bodyFont = BodyFont.Legible)
     }
 
     @Test
