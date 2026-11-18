@@ -254,7 +254,7 @@
     <string name="feature_help_who_is_it">« Qui est-ce ? » sur l\'Accueil : une vieille photo, la famille devine qui c\'est et en quelle année.</string>
     <string name="feature_help_surprise_button">Un bouton « Préparer une surprise » dans Cadeaux, et les surprises en préparation en haut. La personne fêtée ne voit rien.</string>
     <string name="feature_help_old_lists_cleanup">Après le 21/11 : efface les anciennes listes déjà copiées dans « Mes envies » et les idées. Rien de ce qu\'elles contiennent ne se perd.</string>
-    <string name="feature_help_single_list">Une seule liste d\'envies par personne et « Idées de la famille », à la place des listes d\'occasion.</string>
+    <string name="feature_help_single_list">Une seule liste d\'envies par personne, « Idées de la famille » et le nouvel onglet Cadeaux, à la place des listes d\'occasion.</string>
     <string name="feature_help_more_photos">Une photo de couverture sur un événement, et une photo sur une envie.</string>
     <string name="feature_help_recipe_book">Dans Recettes, « Faire le livre » : toutes les recettes dans un PDF à imprimer.</string>
     <string name="feature_help_presentation_r1bis">La nouvelle présentation : frise de l\'Accueil, Tout Familia, pastilles. L\'éteindre rend l\'ancienne.</string>
@@ -275,7 +275,6 @@
     <string name="feature_help_news_feed">En haut de l\'Accueil, « Aujourd\'hui » ou « Le fil » : ce qui s\'est passé dans la famille, jour par jour.</string>
     <string name="feature_help_admin_announcements">Dans Administration, « Envoyer une notification » : tu écris un message à toute la famille ou à quelques foyers. On ne peut pas y répondre.</string>
     <string name="feature_help_challenge_details">Toucher le défi explique ce qui compte et ce qu\'on gagne ; le foyer qui le lance peut ajouter un mot. Éteint, tu gardes l\'écran actuel.</string>
-    <string name="feature_help_gifts_tab_v2">Une carte par personne à sa couleur, les foyers repliés sauf le tien. Avec la liste unique. Éteint, même toi tu gardes l\'onglet actuel.</string>
     <string name="feature_help_family_tab_v2">L\'onglet Famille commence par ta fiche et ton foyer ; les autres foyers sont plus bas, repliés. Éteint, même toi tu gardes l\'onglet actuel.</string>
     <string name="feature_help_opening_animation">À chaque ouverture, les fruits de l\'arbre deviennent la famille. Dans Apparence, chacun choisit l\'animation longue, courte ou aucune.</string>
     <string name="feature_home">Accueil</string>
@@ -2969,7 +2968,6 @@
     <string name="feature_packing_list">À emporter</string>
     <string name="feature_opening_animation">Animation de bienvenue</string>
     <string name="feature_family_tab_v2">Famille par foyer</string>
-    <string name="feature_gifts_tab_v2">Nouvel onglet Cadeaux</string>
     <string name="feature_challenge_details">Défis expliqués</string>
     <string name="feature_already_bought">Déjà acheté</string>
     <string name="gift_item_already_bought_check">Je l\'ai déjà acheté, une participation me ferait plaisir</string>

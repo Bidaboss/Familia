@@ -209,7 +209,7 @@ fun FeedList(state: FeedState, modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = 24.dp),
         // 8 dp between two actualités of a day (PRODUIT-127); the day titles keep their 12 dp.
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         if (cards.isEmpty()) {
             item(key = "empty") {

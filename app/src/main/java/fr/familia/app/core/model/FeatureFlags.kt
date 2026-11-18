@@ -163,12 +163,6 @@ enum class Feature(
      */
     FamilyTabV2("familyTabV2", R.string.feature_family_tab_v2),
     /**
-     * Le nouvel onglet Cadeaux (PRODUIT-119 et 120, maquettes C1 à C5) : une carte compacte par
-     * personne à sa couleur, les foyers repliés sauf le mien, « N envies » seulement. Avec « Liste
-     * unique ». Lu avec isOnForFamily : éteint, même l'admin principal garde l'onglet actuel.
-     */
-    GiftsTabV2("giftsTabV2", R.string.feature_gifts_tab_v2),
-    /**
      * « Comment ça marche » sous le défi du mois, et le mot facultatif du foyer qui le lance (PRD
      * récit 65, rév. 289). Lu avec isOnForFamily : éteint, même l'admin principal garde l'écran d'avant.
      */

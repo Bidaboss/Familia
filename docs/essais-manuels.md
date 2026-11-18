@@ -1207,13 +1207,14 @@ Dans « Le fil » de l'Accueil :
 13. Passe le téléphone en réseau faible (Options pour les développeurs > réseau limité, ou mode avion juste après avoir touché « Envoyer »), puis commente une Bonne nouvelle depuis le fil. **Attendu :** « Envoyer » se grise pendant au plus 4 s, puis le champ se ferme ; un second toucher n'envoie pas le commentaire deux fois ; le fil reste utilisable pendant ce temps. Le commentaire part au retour du réseau.
 14. En « Voir comme » un membre fêté prochainement. **Attendu :** aucune carte du fil ne parle d'un cadeau ou d'une surprise pour elle ; un coup de main dont elle n'est pas prévenue n'apparaît pas.
 
-## Fil d'actualité : une tuile par actualité (PRODUIT-127)
+## Fil d'actualité : une tuile par actualité (PRODUIT-127, PRODUIT-130)
 
 Module « Fil d'actualité » allumé.
 
-1. Ouvre « Le fil ». **Attendu :** chaque actualité est une carte blanche aux coins arrondis comme celles du Planning, avec une ombre très douce et un fin trait de sa couleur dessous. Il n'y a plus de liseré coloré à gauche ; la pastille du type reste en haut à droite.
-2. **Attendu :** 8 dp entre deux actualités d'un même jour, un peu plus avant et après « Aujourd'hui », « Hier ».
-3. En thème sombre, puis à 130 % de taille de texte. **Attendu :** les cartes restent lisibles et séparées, rien n'est coupé.
+1. Ouvre « Le fil ». **Attendu :** chaque actualité est une tuile aux coins arrondis comme les cartes du Planning, de la couleur des cartes du thème, avec un fin contour et une ombre douce. Il n'y a ni liseré coloré à gauche ni trait coloré dessous ; la pastille du type reste en haut à droite.
+2. **Attendu :** 10 dp entre deux actualités d'un même jour, un peu plus avant et après « Aujourd'hui », « Hier ».
+3. Dans Réglages > Apparence, passe par Classique, Contraste fort, Hiver, Espagne, puis le thème sombre. **Attendu :** dans chaque thème, les tuiles se détachent nettement du fond ; aucune ne se fond dedans.
+4. À 130 % de taille de texte. **Attendu :** les tuiles restent lisibles et séparées, rien n'est coupé.
 
 ## Fil d'actualité : la bascule « Aujourd'hui | Le fil » (PRODUIT-128)
 
@@ -1257,7 +1258,7 @@ Avant de commencer : **Administration**, puis **Modules**, et allume « Nouveau 
 
 ## Nouvel onglet Cadeaux (PRODUIT-119 à 121)
 
-Avant de commencer : **Administration**, puis **Modules**, groupe « Nouvelles versions ». Allume « Nouvel onglet Cadeaux » et « Liste unique ». Éteint, l'onglet Cadeaux ne change pas, même pour toi.
+Depuis le 18/11 (PRODUIT-131), le nouvel onglet n'a plus d'interrupteur à lui : il vient avec « Liste unique ». Allume « Liste unique » dans **Administration**, **Modules**. Fais ces essais sur ton téléphone et celui de ta compagne avant le gel du 20 au soir.
 
 1. Ouvre **Cadeaux**. **Attendu :** si tu prépares une surprise, une carte noire « Surprise en préparation » en tête. Puis « À venir » : le prochain anniversaire des 30 jours en relief (« … fête ses … ans », « Ses envies », « Idées »), puis Noël à partir du 1er novembre. Puis « Mes envies », puis « La famille » : ton foyer ouvert, les autres repliés.
 2. Regarde une carte de personne. **Attendu :** sa couleur à gauche, son anniversaire et seulement « N envies ». Jamais un nombre d'idées ni de réservations.
@@ -1266,7 +1267,7 @@ Avant de commencer : **Administration**, puis **Modules**, groupe « Nouvelles v
 5. « Voir comme » un enfant. **Attendu :** « Mes envies » en tête. Sur les cartes des autres, « Ses envies » seulement, jamais « Idées » ni « Préparer une surprise ».
 6. Mets la taille du texte à 200 %. **Attendu :** les noms de foyer passent sur deux lignes, rien n'est coupé et tous les boutons restent faciles à toucher. Avec TalkBack, « Ses envies » se lit « Envies de … », et « Idées » se lit « Idées pour … ».
 7. Réseau faible : refais les étapes 1 et 3 en mode avion, puis en « 2G seulement », comme dans « Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible ». **Attendu :** l'onglet déjà vu s'affiche avec le bandeau « Hors ligne », sans écran blanc ni roue sans fin.
-8. Éteins le module. **Attendu :** l'ancien onglet Cadeaux revient tel qu'il était.
+8. **Administration**, puis **Modules**. **Attendu :** plus de « Nouvel onglet Cadeaux ». La phrase sous « Liste unique » dit qu'elle apporte le nouvel onglet.
 
 ## Nouvelle fiche de membre (PRODUIT-114 à 117)
 
