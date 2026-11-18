@@ -29,13 +29,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
-import fr.familia.app.core.model.Feature
 import fr.familia.app.core.photo.StorageImage
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.FamiliaPreviews
-import fr.familia.app.core.ui.LocalFeatureFlags
 import java.time.Instant
 
 /**
@@ -83,7 +81,7 @@ fun AlbumScreen(
             item(key = "top", span = { GridItemSpan(maxLineSpan) }) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     top()
-                    if (LocalFeatureFlags.current.isOn(Feature.PresentationR1bis)) SlideshowButton(state.photos)
+                    SlideshowButton(state.photos)
                     PhotoStatus(state, actions.onDismissProblem)
                     if (state.canAdd) AddPhotosButton(state.placesLeft, actions.onAdd, max = state.maxPerMember)
                 }

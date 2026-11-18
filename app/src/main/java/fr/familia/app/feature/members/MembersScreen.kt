@@ -2,29 +2,17 @@ package fr.familia.app.feature.members
 
 import androidx.compose.ui.res.pluralStringResource
 import fr.familia.app.core.data.familyToday
-import fr.familia.app.core.ui.SectionLabel
 import fr.familia.app.core.theme.ClayTint
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import androidx.compose.material.icons.rounded.RestaurantMenu
-import androidx.compose.material.icons.rounded.AccountTree
-import androidx.compose.material.icons.rounded.HourglassTop
-import fr.familia.app.feature.souvenirs.SouvenirFamily
 import fr.familia.app.core.ui.ClayCard
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.background
-import androidx.compose.ui.unit.em
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import fr.familia.app.core.ui.aboveSnackbar
-import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,7 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CardGiftcard
@@ -41,7 +28,6 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.PersonAdd
-import androidx.compose.material.icons.outlined.PhotoAlbum
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -58,7 +44,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
@@ -111,11 +96,6 @@ fun MembersScreen(
     onOpenWishes: ((memberId: String) -> Unit)? = null,
     /** Set: every row opens the member's page, whose Modifier keeps the rights of [onEditMember]. */
     onOpenProfile: ((memberId: String) -> Unit)? = null,
-    /**
-     * R1 bis (§4, R5): « Nous 13, en 4 foyers », one card of color per household with all its
-     * members.
-     */
-    r1: Boolean = false,
     /**
      * « Famille par foyer » (récit 64, Kévin le 18/11): me first, my household, then the other
      * households folded. Behind its switch, off for everyone until Kévin turns it on.
@@ -192,7 +172,7 @@ fun MembersScreen(
                         onToggle = { key -> unfolded = if (key in unfolded) unfolded - key else unfolded + key },
                     )
                 }
-                if (!byHousehold && r1 && state.groups.isNotEmpty()) {
+                if (!byHousehold && state.groups.isNotEmpty()) {
                     item(key = "count") {
                         val people = state.groups.sumOf { it.members.size }
                         val homes = state.groups.count { it.household != null }
@@ -212,7 +192,7 @@ fun MembersScreen(
                         )
                     }
                 }
-                if (!byHousehold && r1) {
+                if (!byHousehold) {
                     state.groups.forEachIndexed { index, group ->
                         item(key = "card-${group.household?.id ?: "other"}") {
                             val household = group.household
@@ -249,40 +229,6 @@ fun MembersScreen(
                                 }
                             }
                         }
-                    }
-                }
-                if (!byHousehold && !r1) state.groups.forEach { group ->
-                    item(key = "household-${group.household?.id ?: "other"}") {
-                        val household = group.household
-                        HouseholdHeader(
-                            name = household?.name ?: stringResource(R.string.members_other_household),
-                            // The admin principal renames every household in Administration (DESIGN-5);
-                            // a chef de famille keeps the pencil on their own household here.
-                            onRename = if (household != null && onRenameHousehold != null && !state.isOwner &&
-                                household.id in state.renamableHouseholdIds
-                            ) {
-                                { renaming = household.id }
-                            } else {
-                                null
-                            },
-                        )
-                    }
-                    items(group.members, key = { "member-${it.id}" }) { member ->
-                        MemberRow(
-                            member = member,
-                            isMe = member.id == state.currentMemberId,
-                            isOwner = member.id == state.ownerId,
-                            onClick = onOpenProfile?.let { open -> { open(member.id) } }
-                                ?: onEditMember?.takeIf { member.id in state.editableMemberIds }?.let { edit -> { edit(member.id) } },
-                            hasPhoto = member.id in photos,
-                            // A photo opens in full screen; without one, those who may add it choose one.
-                            onPhotoClick = when {
-                                member.id in photos -> { { viewing = member.id } }
-                                onSavePhoto != null && member.id in state.photoEditableMemberIds -> { { photoOf = member.id } }
-                                else -> null
-                            },
-                            onWishesClick = onOpenWishes?.let { open -> { open(member.id) } },
-                        )
                     }
                 }
             }

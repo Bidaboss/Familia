@@ -257,7 +257,6 @@
     <string name="feature_help_single_list">Une seule liste d\'envies par personne, « Idées de la famille » et le nouvel onglet Cadeaux, à la place des listes d\'occasion.</string>
     <string name="feature_help_more_photos">Une photo de couverture sur un événement, et une photo sur une envie.</string>
     <string name="feature_help_recipe_book">Dans Recettes, « Faire le livre » : toutes les recettes dans un PDF à imprimer.</string>
-    <string name="feature_help_presentation_r1bis">La nouvelle présentation : frise de l\'Accueil, Tout Familia, pastilles. L\'éteindre rend l\'ancienne.</string>
     <string name="feature_help_good_deals">Dans Entraide, les bons plans et les bonnes adresses de la famille.</string>
     <string name="feature_help_calendar_feed">Le planning dans Google Agenda : touche ta photo en haut, puis « Voir dans mon agenda ».</string>
     <string name="feature_help_lending">Dans Entraide, « On se prête » : les objets qu\'on peut emprunter, et qui les a en ce moment.</string>
@@ -2379,7 +2378,6 @@
     </plurals>
     <string name="gifts_ideas_for">Idées pour %1$s</string>
     <string name="feature_who_is_it">Qui est-ce ?</string>
-    <string name="feature_presentation_r1bis">Nouvelle présentation</string>
     <string name="channel_welcome">Bienvenue</string>
     <string name="channel_welcome_description">Quand un membre de la famille arrive dans Familia</string>
     <string name="feature_think_of_me">Pensez à moi</string>
