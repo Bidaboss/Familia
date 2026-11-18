@@ -18,6 +18,8 @@ import fr.familia.app.feature.members.card.MemberCardSection
 import fr.familia.app.feature.thinkofme.ThinkOfMeSection
 import fr.familia.app.feature.wishes.BirthdayCardsSection
 import fr.familia.app.feature.souvenirs.SouvenirCelebrationPreferences
+import java.time.LocalDate
+import java.time.ZoneId
 
 /** Connects a member's page to its ViewModel. */
 @Composable
@@ -31,6 +33,9 @@ fun MemberProfileRoute(
     onOpenRecipes: (() -> Unit)? = null,
     /** What the Cadeaux sections of the page open (retour d'essai, 17/11). */
     giftActions: ProfileGiftActions = ProfileGiftActions(),
+    /** The new page (récit 66): « Sa famille » opens a page, « Ses moments » an event. */
+    onOpenMember: (memberId: String) -> Unit = {},
+    onOpenEvent: (eventId: String) -> Unit = {},
 ) {
     val context = LocalContext.current.applicationContext
     val viewModel: MemberProfileViewModel = viewModel(
@@ -51,6 +56,33 @@ fun MemberProfileRoute(
     val giftsOn = LocalFeatureFlags.current.isOn(Feature.Gifts)
     val singleList = LocalFeatureFlags.current.isOn(Feature.SingleList)
     val notebookOn = LocalFeatureFlags.current.isOn(Feature.GiftNotebook)
+    // For the whole family only (récit 66): off, the admin principal keeps the old page too.
+    val v2On = LocalFeatureFlags.current.isOnForFamily(Feature.MemberProfileV2)
+    val v2 = if (v2On) {
+        val genealogyOn = LocalFeatureFlags.current.isOn(Feature.Genealogy)
+        val goodNewsOn = LocalFeatureFlags.current.isOn(Feature.GoodNews)
+        val v2Model: MemberProfileV2ViewModel = viewModel(
+            key = "profile-v2-$memberId-$genealogyOn-$goodNewsOn",
+            factory = viewModelFactory {
+                initializer {
+                    MemberProfileV2ViewModel(
+                        container?.memberRepository,
+                        container?.genealogyRepository?.takeIf { genealogyOn },
+                        container?.eventRepository,
+                        container?.rsvpRepository,
+                        container?.goodNewsRepository?.takeIf { goodNewsOn },
+                        readerId = currentMember.id,
+                        memberId = memberId,
+                        today = LocalDate.now(ZoneId.of("Europe/Paris")),
+                    )
+                }
+            },
+        )
+        val v2State by v2Model.state.collectAsStateWithLifecycle()
+        ProfileV2Ui(v2State, onOpenMember, onOpenEvent, v2Model::savePhone, v2Model::saveAddress)
+    } else {
+        null
+    }
     MemberProfileScreen(
         state = state,
         onBack = onBack,
@@ -78,6 +110,7 @@ fun MemberProfileRoute(
         } else {
             null
         },
+        v2 = v2,
     )
 }
 

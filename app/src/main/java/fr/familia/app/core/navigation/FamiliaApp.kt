@@ -1652,6 +1652,8 @@ fun FamiliaApp(
                                 onEditIdea = { id -> navController.navigate(NotebookIdeaDestination(entryId = id)) },
                                 onProposeIdea = { id -> navController.navigate(ProposeIdeaDestination(id)) },
                             ),
+                            onOpenMember = { id -> navController.navigate(MemberProfileDestination(id)) },
+                            onOpenEvent = { id -> navController.navigate(EventDetailDestination(id)) },
                         )
                     }
                     composable<WeeklyArchiveDestination> {

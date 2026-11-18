@@ -39,6 +39,9 @@ interface MemberRepository {
     suspend fun removeMember(member: Member, updatedChildren: List<Member>)
 
     /** A fresh id for a household that is not saved yet. */
+    /** Coordonnées (récit 66): my own phone, or none; an adult only, nothing else changes. */
+    suspend fun savePhone(memberId: String, phone: String?) {}
+
     fun newHouseholdId(): String
 
     /** The admin principal creates or renames any household; a chef de famille renames their own. */

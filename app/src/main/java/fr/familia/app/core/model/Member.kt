@@ -32,13 +32,20 @@ data class Member(
     val uid: String?,
     /** Index in the 13 member colors, chosen by an admin. Null until one is chosen. */
     val colorIndex: Int? = null,
+    /** Coordonnées (récit 66): optional, for an adult only, set by the member themselves. */
+    val phone: String? = null,
 )
 
 /** Firestore stores emails in lower case so a member is recognised whatever the casing typed. */
 fun normalizeEmail(email: String): String = email.trim().lowercase()
 
 /** A household of the family (Parents, a sister's family…). */
-data class Household(val id: String, val name: String)
+data class Household(
+    val id: String,
+    val name: String,
+    /** Coordonnées (récit 66): optional, set by who manages the household. */
+    val address: String? = null,
+)
 
 /**
  * Everything the Famille tab shows. [ownerId] is the admin principal (config/family), who has every

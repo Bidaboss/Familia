@@ -113,6 +113,12 @@ enum class Feature(
      * garde l'écran d'avant.
      */
     SurpriseButton("surpriseButton", R.string.feature_surprise_button),
+    /**
+     * La fiche de membre organisée (PRD rév. 290, récit 66) : une page à sections fixes, Cadeaux ou
+     * Goûts et passions d'abord selon la saison, Sa famille, Ses moments, les coordonnées. Lu avec
+     * isOnForFamily : éteint, même l'admin principal garde l'ancienne fiche.
+     */
+    MemberProfileV2("memberProfileV2", R.string.feature_member_profile_v2),
     /** Une photo de couverture sur un événement et une photo sur une envie (PRD, récit 44). */
     MorePhotos("morePhotos", R.string.feature_more_photos),
     /**

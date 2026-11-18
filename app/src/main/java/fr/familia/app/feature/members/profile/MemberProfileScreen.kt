@@ -70,6 +70,8 @@ fun MemberProfileScreen(
     thinkOfMe: (@Composable (Member) -> Unit)? = null,
     /** « Ses envies » and « Ce que je lui offre » (retour d'essai, 17/11), while Cadeaux is on. */
     gifts: (@Composable (Member) -> Unit)? = null,
+    /** « Nouvelle fiche de membre » (récit 66): null keeps the page as it was. */
+    v2: ProfileV2Ui? = null,
 ) {
     (state as? MemberProfileUiState.Ready)?.bravo?.let { souvenir ->
         SouvenirKind.of(souvenir.key)?.let { kind ->
@@ -108,7 +110,11 @@ fun MemberProfileScreen(
                     title = stringResource(R.string.member_not_found_title),
                     body = stringResource(R.string.profile_not_found_body),
                 )
-                is MemberProfileUiState.Ready -> Content(state, onSetShown, onOpenRecipes, wishes, card, thinkOfMe, gifts)
+                is MemberProfileUiState.Ready -> if (v2 != null) {
+                    ContentV2(state, v2, onSetShown, onOpenRecipes, wishes, card, thinkOfMe, gifts)
+                } else {
+                    Content(state, onSetShown, onOpenRecipes, wishes, card, thinkOfMe, gifts)
+                }
             }
         }
     }
@@ -154,26 +160,34 @@ private fun Content(
         }
 
         Text(stringResource(R.string.souvenirs_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
-        val earned = state.souvenirs.mapNotNull { s -> SouvenirKind.of(s.key)?.let { it to s } }
-        if (state.isMe) {
-            Text(stringResource(R.string.souvenirs_private_help), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            earned.forEach { (kind, souvenir) -> MySouvenir(kind, souvenir, onSetShown) }
-            val next = nextSouvenirs(state.souvenirs)
-            if (next.isNotEmpty()) {
-                Text(stringResource(R.string.souvenirs_next), style = MaterialTheme.typography.titleMedium)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    next.forEach { SouvenirMedal(it, earnedAt = null, counters = state.counters) }
-                }
-            }
-        } else if (earned.isEmpty()) {
-            Text(stringResource(R.string.souvenirs_none_shown, member.firstName), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        } else {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                earned.forEach { (kind, souvenir) -> SouvenirMedal(kind, souvenir.earnedAt) }
-            }
-        }
+        SouvenirsContent(state, onSetShown)
         if (state.saveFailed) {
             Text(stringResource(R.string.notifications_save_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+}
+
+/** My souvenirs with their switch, or the ones this member shows (récit 34), without their title. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun SouvenirsContent(state: MemberProfileUiState.Ready, onSetShown: (String, Boolean) -> Unit) {
+    val member = state.member
+    val earned = state.souvenirs.mapNotNull { s -> SouvenirKind.of(s.key)?.let { it to s } }
+    if (state.isMe) {
+        Text(stringResource(R.string.souvenirs_private_help), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        earned.forEach { (kind, souvenir) -> MySouvenir(kind, souvenir, onSetShown) }
+        val next = nextSouvenirs(state.souvenirs)
+        if (next.isNotEmpty()) {
+            Text(stringResource(R.string.souvenirs_next), style = MaterialTheme.typography.titleMedium)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                next.forEach { SouvenirMedal(it, earnedAt = null, counters = state.counters) }
+            }
+        }
+    } else if (earned.isEmpty()) {
+        Text(stringResource(R.string.souvenirs_none_shown, member.firstName), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    } else {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            earned.forEach { (kind, souvenir) -> SouvenirMedal(kind, souvenir.earnedAt) }
         }
     }
 }
