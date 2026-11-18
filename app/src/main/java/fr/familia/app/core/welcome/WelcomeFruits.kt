@@ -58,21 +58,21 @@ class WelcomePreferences(context: Context) {
 /** One fruit of the icon's tree, in the 108 × 108 grid of the launcher icon. */
 internal data class TreeFruit(val center: Offset, val radius: Float, val color: Color)
 
-/** The 13 fruits of « l'olivier au soleil » (ic_launcher_foreground.xml), with their colors. */
+/** The 13 fruits of « l'olivier au soleil » (ic_launcher_foreground.xml), all of the same size since 18/11, with their colors. */
 internal val TREE_FRUITS: List<TreeFruit> = listOf(
-    TreeFruit(Offset(48.5f, 51f), 5.4f, Color(0xFF3E6B8A)),
-    TreeFruit(Offset(59.5f, 51f), 5.4f, Color(0xFF9B4E8C)),
+    TreeFruit(Offset(48.5f, 51f), 4.9f, Color(0xFF3E6B8A)),
+    TreeFruit(Offset(59.5f, 51f), 4.9f, Color(0xFF9B4E8C)),
     TreeFruit(Offset(38.965f, 55.472f), 4.9f, Color(0xFFD9603B)),
     TreeFruit(Offset(38.965f, 44.528f), 4.9f, Color(0xFFE0A21F)),
     TreeFruit(Offset(44.823f, 36.894f), 4.9f, Color(0xFF2F8A6E)),
     TreeFruit(Offset(63.177f, 36.894f), 4.9f, Color(0xFF5562B5)),
     TreeFruit(Offset(69.035f, 44.528f), 4.9f, Color(0xFFC2456A)),
     TreeFruit(Offset(69.035f, 55.472f), 4.9f, Color(0xFF7A55B0)),
-    TreeFruit(Offset(32.368f, 38.498f), 4.3f, Color(0xFF2D7FA8)),
-    TreeFruit(Offset(42.498f, 28.368f), 4.3f, Color(0xFFF2B33D)),
-    TreeFruit(Offset(65.502f, 28.368f), 4.3f, Color(0xFFE2574C)),
-    TreeFruit(Offset(75.632f, 38.498f), 4.3f, Color(0xFFE27A3E)),
-    TreeFruit(Offset(54f, 25.5f), 3.6f, Color(0xFF3BA39A)),
+    TreeFruit(Offset(32.368f, 38.498f), 4.9f, Color(0xFF2D7FA8)),
+    TreeFruit(Offset(42.498f, 28.368f), 4.9f, Color(0xFFF2B33D)),
+    TreeFruit(Offset(65.502f, 28.368f), 4.9f, Color(0xFFE2574C)),
+    TreeFruit(Offset(75.632f, 38.498f), 4.9f, Color(0xFFE27A3E)),
+    TreeFruit(Offset(54f, 25.5f), 4.9f, Color(0xFF3BA39A)),
 )
 
 /** The same fruits, clockwise from the top, like the places on the circle. */

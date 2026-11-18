@@ -27,6 +27,25 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import fr.familia.app.R
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
+import fr.familia.app.core.data.MemberPhotoRepository
+import fr.familia.app.core.model.Family
+import fr.familia.app.core.model.Member
+import fr.familia.app.core.theme.Fredoka
+import fr.familia.app.core.ui.rememberMemberPhotos
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -122,10 +141,17 @@ fun rememberInAppUpdater(): InAppUpdater {
 
 /**
  * The dialogs of [updater]: the permission explanation, the progress, the failure with the Drive.
- * [lastUpdate] is offered again when Android refuses the install.
+ * [lastUpdate] is offered again when Android refuses the install. [family], [me] and the photos of
+ * [photoRepository] make the round of the family while it downloads.
  */
 @Composable
-fun InAppUpdateDialogs(updater: InAppUpdater, lastUpdate: AppUpdate?) {
+fun InAppUpdateDialogs(
+    updater: InAppUpdater,
+    lastUpdate: AppUpdate?,
+    family: Family? = null,
+    me: Member? = null,
+    photoRepository: MemberPhotoRepository? = null,
+) {
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { updater.resumeAfterSetting() }
     val installFailed by ApkInstaller.failed.collectAsState()
     LaunchedEffect(installFailed) { if (installFailed) updater.installFailed(lastUpdate) }
@@ -150,13 +176,13 @@ fun InAppUpdateDialogs(updater: InAppUpdater, lastUpdate: AppUpdate?) {
         is UpdateStep.Downloading -> AlertDialog(
             onDismissRequest = {},
             properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
-            title = { Text(stringResource(R.string.update_downloading_title)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(stringResource(R.string.update_downloading_body, (step.progress * 100).toInt()))
-                    LinearProgressIndicator(progress = { step.progress }, modifier = Modifier.fillMaxWidth())
-                }
+            title = {
+                Text(
+                    stringResource(R.string.update_downloading_title),
+                    style = TextStyle(fontFamily = Fredoka, fontWeight = FontWeight.SemiBold, fontSize = 22.sp),
+                )
             },
+            text = { DownloadingContent(step.progress, family, me, photoRepository) },
             confirmButton = {},
         )
         is UpdateStep.Failed -> AlertDialog(
@@ -173,6 +199,51 @@ fun InAppUpdateDialogs(updater: InAppUpdater, lastUpdate: AppUpdate?) {
                     Text(stringResource(R.string.action_cancel))
                 }
             },
+        )
+    }
+}
+
+/**
+ * « Mise à jour en cours » (spec DESIGN « la ronde de la famille », choisie par Kévin le 18/11): a
+ * line, the round of the family, the real percentage and its bar, then what Android asks next.
+ */
+@Composable
+private fun DownloadingContent(progress: Float, family: Family?, me: Member?, photoRepository: MemberPhotoRepository?) {
+    val photos by rememberMemberPhotos(photoRepository)
+    val percent = (progress * 100).toInt()
+    val read = stringResource(R.string.update_downloading_progress, percent)
+    Column(
+        modifier = Modifier.verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            stringResource(R.string.update_downloading_line),
+            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        FamilyRound(family, me, photos, modifier = Modifier.clearAndSetSemantics {})
+        Text(
+            stringResource(R.string.update_downloading_percent, percent),
+            style = TextStyle(fontFamily = Fredoka, fontWeight = FontWeight.SemiBold, fontSize = 30.sp),
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.semantics { contentDescription = read },
+        )
+        LinearProgressIndicator(
+            progress = { progress },
+            modifier = Modifier.fillMaxWidth().height(8.dp).clearAndSetSemantics {},
+            color = Color(0xFF1F5C3C),
+            trackColor = Color(0xFFEDF7F0),
+            strokeCap = StrokeCap.Round,
+            gapSize = 0.dp,
+            drawStopIndicator = {},
+        )
+        Text(
+            stringResource(R.string.update_downloading_help),
+            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }

@@ -100,4 +100,23 @@ class WelcomeTest {
         assertEquals(OpeningStyle.Long, OpeningStyle.of("autre"))
         OpeningStyle.entries.forEach { assertEquals(it, OpeningStyle.of(it.key)) }
     }
+
+    @Test
+    fun `the final olive tree has 13 fruits of the same size and well formed leaves`() {
+        assertEquals(13, TREE_FRUITS.size)
+        assertTrue(TREE_FRUITS.all { it.radius == 4.9f })
+        assertEquals(0, OLIVE_LEAVES.size % 6)
+        // 258 olive leaves, then the small leaf of each of the 13 fruits.
+        assertEquals(271, OLIVE_LEAVES.size / 6)
+        for (i in 0 until OLIVE_LEAVES.size / 6) {
+            assertTrue(OLIVE_LEAVES[i * 6 + 5].toInt() in OLIVE_LEAF_COLORS.indices)
+            assertTrue(OLIVE_LEAVES[i * 6 + 2] > 0f && OLIVE_LEAVES[i * 6 + 3] > 0f)
+        }
+    }
+
+    @Test
+    fun `the thin red ring sits on the edge of the sun`() {
+        assertTrue(OLIVE_RING_RADIUS < OLIVE_SUN_RADIUS)
+        assertTrue(OLIVE_RING_RADIUS + OLIVE_RING_WIDTH / 2 > OLIVE_SUN_RADIUS)
+    }
 }

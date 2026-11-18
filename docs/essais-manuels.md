@@ -1150,3 +1150,15 @@ Présentation R1 bis et liste unique allumées.
 
 1. Ouvre Cadeaux. **Attendu :** sous « Prochaine occasion », seuls les anniversaires des 30 prochains jours, et Noël à partir du 1er novembre s'il n'est pas déjà la prochaine occasion.
 2. Si aucun anniversaire ne tombe dans les 30 jours. **Attendu :** aucune carte d'anniversaire sous la prochaine occasion. « Tous les anniversaires » les montre tous.
+## Le nouvel olivier : icône, démarrage, bienvenue
+
+1. Installe l'APK et regarde l'icône sur l'écran d'accueil du téléphone. **Attendu :** l'olivier final, avec un feuillage dense, 13 fruits de même taille, des racines en éventail aux bouts arrondis et un anneau rouge fin autour du soleil. Les icônes Terre et Or ne changent pas.
+2. Ferme l'appli complètement, puis rouvre-la (Android 12 ou plus). **Attendu :** l'arbre pousse dans cet ordre : le soleil, les racines, le tronc, le feuillage, puis les fruits.
+3. Avec « Animation de bienvenue » allumée, ouvre l'appli sur un compte neuf. **Attendu :** le même olivier, avec son anneau rouge fin. Chaque fruit est un membre : sa photo de profil, dans un anneau blanc et un contour de sa couleur, ou son initiale sur sa couleur s'il n'a pas de photo. Les fruits partent ensuite en cercle comme avant.
+
+## Mise à jour en cours : la ronde de la famille
+
+1. Publie une version plus récente, puis touche « Mettre à jour ». **Attendu :** « Mise à jour en cours », la phrase « La nouvelle version arrive. », puis l'olivier sans fruits dans son soleil. Autour, les membres de la famille (photo ou initiale) tournent lentement, en restant droits, et le feuillage se balance.
+2. **Attendu :** sous le dessin, le pourcentage avance avec le téléchargement, puis la barre verte. Le texte d'aide dit de toucher « Installer sans analyser » si Android propose d'analyser l'appli.
+3. Avec TalkBack. **Attendu :** le titre, « Téléchargement : 42 % » (le vrai pourcentage), puis le texte d'aide. Le dessin n'est pas lu.
+4. Coupe les animations du téléphone (Options pour les développeurs, échelle d'animation désactivée). **Attendu :** la ronde est fixe. Seuls le pourcentage et la barre avancent.
