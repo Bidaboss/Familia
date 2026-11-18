@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.SideBySide
 import fr.familia.app.core.welcome.OLIVE_RING_RADIUS
 import fr.familia.app.core.welcome.OLIVE_RING_WIDTH
 import fr.familia.app.core.welcome.drawOlive
@@ -77,19 +78,20 @@ fun UpdateBanner(onUpdate: () -> Unit, onLater: () -> Unit, modifier: Modifier =
                     )
                 }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            // Side by side, or one under the other with large text, so « Mettre à jour » is never cut.
+            SideBySide(spacing = 12.dp) { item ->
                 OutlinedButton(
                     onClick = onLater,
                     border = BorderStroke(1.5.dp, BANNER_OUTLINE),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = BANNER_CARD, contentColor = BANNER_INK),
-                    modifier = Modifier.weight(0.45f).heightIn(min = 56.dp),
+                    modifier = item.heightIn(min = 56.dp),
                 ) {
                     Text(stringResource(R.string.update_later), textAlign = TextAlign.Center)
                 }
                 Button(
                     onClick = onUpdate,
                     colors = ButtonDefaults.buttonColors(containerColor = BANNER_INK, contentColor = Color.White),
-                    modifier = Modifier.weight(0.55f).heightIn(min = 56.dp),
+                    modifier = item.heightIn(min = 56.dp),
                 ) {
                     Text(stringResource(R.string.update_action), textAlign = TextAlign.Center)
                 }

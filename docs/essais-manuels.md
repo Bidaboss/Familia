@@ -1150,7 +1150,7 @@ Liste unique allumée.
 2. Va sur l'onglet Planning. **Attendu :** la même carte, juste au-dessus des onglets.
 3. Touche « Plus tard ». **Attendu :** la carte disparaît, et revient au prochain retour dans l'appli, comme avant.
 4. Thème sombre. **Attendu :** la carte reste blanche, le texte noir, lisible.
-5. Taille du texte à 130 %. **Attendu :** les deux lignes passent à la ligne sans être coupées, et les deux boutons restent côte à côte, entiers.
+5. Taille du texte à 130 %. **Attendu :** les deux lignes passent à la ligne sans être coupées, et les deux boutons se mettent l'un sous l'autre, sur toute la largeur, sans mot coupé.
 6. Avec TalkBack. **Attendu :** l'arrivée de la carte est annoncée ; le dessin n'est pas lu ; « Plus tard » et « Mettre à jour » sont des boutons.
 
 ## Mise à jour en cours : la ronde de la famille
