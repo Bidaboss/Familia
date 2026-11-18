@@ -784,7 +784,7 @@ Avant de commencer :
 
 La mise à jour :
 4. Lance « APK de publication » (voir [mise-a-jour.md](mise-a-jour.md)), puis « Publier Firebase » s'il y a eu des fusions qui touchent Firebase.
-5. Ferme Familia, puis rouvre-la. **Attendu :** l'encadré « Nouvelle version disponible ». S'il n'apparaît pas, onglet **Famille**, « Vérifier les mises à jour ».
+5. Ferme Familia, puis rouvre-la. **Attendu :** la carte blanche « Une nouvelle version est prête ». S'il n'apparaît pas, onglet **Famille**, « Vérifier les mises à jour ».
 6. Touche « Mettre à jour », puis « Mettre à jour » dans la fenêtre d'Android. **Attendu :** la barre d'avancement, puis l'installation. Aucune demande de connexion Google après l'installation.
 7. Rouvre Familia. **Attendu :** tu arrives directement sur l'Accueil, connecté, sans écran de connexion.
 8. Onglet **Famille**, tout en bas. **Attendu :** le nouveau numéro de version.
@@ -1146,6 +1146,15 @@ Liste unique allumée.
 1. Installe l'APK et regarde l'icône sur l'écran d'accueil du téléphone. **Attendu :** l'olivier final, avec un feuillage dense, 13 fruits de même taille, des racines en éventail aux bouts arrondis et un anneau rouge fin autour du soleil. Les icônes Terre et Or ne changent pas.
 2. Ferme l'appli complètement, puis rouvre-la (Android 12 ou plus). **Attendu :** l'arbre pousse dans cet ordre : le soleil, les racines, le tronc, le feuillage, puis les fruits.
 3. Avec « Animation de bienvenue » allumée, ouvre l'appli sur un compte neuf. **Attendu :** le même olivier, avec son anneau rouge fin. Chaque fruit est un membre : sa photo de profil, dans un anneau blanc et un contour de sa couleur, ou son initiale sur sa couleur s'il n'a pas de photo. Les fruits partent ensuite en cercle comme avant.
+
+## Le bandeau de mise à jour, variante A (PRODUIT-129)
+
+1. Publie une version plus récente, puis ouvre Familia sur l'Accueil. **Attendu :** une carte blanche aux coins arrondis, avec une ombre douce, posée juste au-dessus de « Tout Familia » : le petit olivier dans son anneau, « Une nouvelle version est prête », « 2 minutes, et tes données ne bougent pas. », puis « Plus tard » (blanc, bordé) et « Mettre à jour » (noir). Le contenu ne descend pas : la carte passe par-dessus.
+2. Va sur l'onglet Planning. **Attendu :** la même carte, juste au-dessus des onglets.
+3. Touche « Plus tard ». **Attendu :** la carte disparaît, et revient au prochain retour dans l'appli, comme avant.
+4. Thème sombre. **Attendu :** la carte reste blanche, le texte noir, lisible.
+5. Taille du texte à 130 %. **Attendu :** les deux lignes passent à la ligne sans être coupées, et les deux boutons se mettent l'un sous l'autre, sur toute la largeur, sans mot coupé.
+6. Avec TalkBack. **Attendu :** l'arrivée de la carte est annoncée ; le dessin n'est pas lu ; « Plus tard » et « Mettre à jour » sont des boutons.
 
 ## Mise à jour en cours : la ronde de la famille
 

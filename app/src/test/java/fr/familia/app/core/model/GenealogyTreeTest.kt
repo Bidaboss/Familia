@@ -192,4 +192,44 @@ class GenealogyTreeTest {
         assertEquals(null, Kin.parseDate("31/02/1921"))
         assertEquals(null, Kin.parseDate("mars 1921"))
     }
+
+    @Test
+    fun `the children stand under the middle of their parents, never over their cousins`() {
+        // Retour du 18/11: the two children of a couple stood left of them, under an aunt.
+        val gran = m("gran", "Gaby")
+        val gramps = m("gramps", "Gilles")
+        val aunt = m("aunt", "Agathe")
+        val uncle = m("uncle", "Hugo")
+        val mum = m("mum", "Romane")
+        val dad = m("dad", "Victor")
+        val cousin = m("cousin", "Elio")
+        val kids = listOf(m("kid1", "Mila"), m("kid2", "Tao"))
+        val tree = GenealogyTree(
+            listOf(gran, gramps, aunt, uncle, mum, dad, cousin) + kids,
+            emptyList(),
+            listOf(
+                KinLink.partners("gran", "gramps"),
+                KinLink.parent("gran", "aunt"),
+                KinLink.parent("gramps", "aunt"),
+                KinLink.parent("gran", "mum"),
+                KinLink.parent("gramps", "mum"),
+                KinLink.partners("aunt", "uncle"),
+                KinLink.partners("mum", "dad"),
+                KinLink.parent("aunt", "cousin"),
+                KinLink.parent("uncle", "cousin"),
+                KinLink.parent("mum", "kid1"),
+                KinLink.parent("dad", "kid1"),
+                KinLink.parent("mum", "kid2"),
+                KinLink.parent("dad", "kid2"),
+            ),
+        )
+        val at = tree.columns
+        assertEquals((at.getValue("mum") + at.getValue("dad")) / 2, (at.getValue("kid1") + at.getValue("kid2")) / 2, 0.001)
+        assertEquals((at.getValue("aunt") + at.getValue("uncle")) / 2, at.getValue("cousin"), 0.001)
+        tree.rows.forEach { row ->
+            val columns = row.map { at.getValue(it) }.sorted()
+            columns.zipWithNext().forEach { (a, b) -> assertTrue("$row overlaps", b - a >= 1.0 - 1e-9) }
+        }
+        assertEquals(0.0, at.values.min(), 0.0)
+    }
 }

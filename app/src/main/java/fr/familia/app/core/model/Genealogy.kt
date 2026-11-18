@@ -177,6 +177,17 @@ class GenealogyTree(members: List<Member>, kin: List<Kin>, links: List<KinLink>)
         }
     }
 
+    /**
+     * Where each one is drawn, in columns of one card (retour du 18/11: the children stood left of
+     * their parents). Each family of brothers and sisters, with their partners, is centered under
+     * the middle of its parents, pushed right only as far as needed not to cover the one before.
+     * The leftmost card is at column 0.
+     */
+    val columns: Map<String, Double> by lazy { treeColumns(rows, ::parentsOf) }
+
+    /** How many columns the widest row needs. */
+    val width: Double by lazy { (columns.values.maxOrNull() ?: -1.0) + 1.0 }
+
     private fun orderRow(ids: List<String>, place: Map<String, Double>): List<String> {
         // Two of one first name: the last name, then the id, so the order never changes.
         val sorted = ids.sortedWith(compareBy({ people.getValue(it).firstName.lowercase() }, { drawnName(it).lowercase() }, { it }))
@@ -200,3 +211,40 @@ class GenealogyTree(members: List<Member>, kin: List<Kin>, links: List<KinLink>)
         }.flatMap { it.value }
     }
 }
+
+/**
+ * The columns of [rows] (see GenealogyTree.columns). A person whose parents are not drawn (a
+ * partner who married in) stays with the family next to them.
+ */
+fun treeColumns(rows: List<List<String>>, parentsOf: (String) -> List<String>): Map<String, Double> {
+    val column = HashMap<String, Double>()
+    for (row in rows) {
+        // Families of one row, in its order: the same parents drawn, and the partners with them.
+        val blocks = mutableListOf<Pair<MutableList<String>, Set<String>?>>()
+        for (id in row) {
+            val above = parentsOf(id).filter { it in column }.toSet().ifEmpty { null }
+            val last = blocks.lastOrNull()
+            when {
+                last == null -> blocks += mutableListOf(id) to above
+                above == null -> last.first += id
+                last.second == null -> blocks[blocks.lastIndex] = (last.first.apply { add(id) }) to above
+                last.second == above -> last.first += id
+                else -> blocks += mutableListOf(id) to above
+            }
+        }
+        var cursor = Double.NEGATIVE_INFINITY
+        for ((ids, above) in blocks) {
+            val wanted = above?.let { parents -> parents.map { column.getValue(it) }.average() - (ids.size - 1) / 2.0 }
+            val start = when {
+                cursor == Double.NEGATIVE_INFINITY -> wanted ?: 0.0
+                wanted == null -> cursor
+                else -> maxOf(wanted, cursor)
+            }
+            ids.forEachIndexed { i, id -> column[id] = start + i }
+            cursor = start + ids.size
+        }
+    }
+    val left = column.values.minOrNull() ?: 0.0
+    return column.mapValues { it.value - left }
+}
+
