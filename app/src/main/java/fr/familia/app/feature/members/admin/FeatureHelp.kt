@@ -132,6 +132,8 @@ val NEEDS_FIREBASE_PUBLISH: Set<Feature> = setOf(
     // The parts of a wish already bought (récit 68).
     Feature.AlreadyBought,
     Feature.AdminAnnouncements,
+    // The comments of the bonnes nouvelles in the fil (récit 67, #376).
+    Feature.NewsFeed,
 )
 
 /** « Voir où » under a switch: opens the screen where the module shows, or null when there is none. */
