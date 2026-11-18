@@ -294,30 +294,30 @@ class ScreenshotTest {
 
     @Test
     fun planningListLight() = capture("planning_liste_clair") {
-        Surface { PlanningScreen(previewPlanning(), {}, {}, {}) }
+        Surface { PlanningScreen(previewPlanning(), {}, null, {}) }
     }
 
     @Test
     fun planningHouseholdLight() = capture("planning_mon_foyer_clair") {
-        Surface { PlanningScreen(previewPlanning().copy(scope = PlanningScope.Household), {}, {}, {}, onScopeChange = {}) }
+        Surface { PlanningScreen(previewPlanning().copy(scope = PlanningScope.Household), {}, null, {}) }
     }
 
     @Test
     @Config(fontScale = 2f)
     fun planningHouseholdFontScale200() = capture("planning_mon_foyer_police_200") {
-        Surface { PlanningScreen(previewPlanning().copy(scope = PlanningScope.Household), {}, {}, {}, onScopeChange = {}) }
+        Surface { PlanningScreen(previewPlanning().copy(scope = PlanningScope.Household), {}, null, {}) }
     }
 
     @Test
     @Config(qualifiers = "+night")
     fun planningListDark() = capture("planning_liste_sombre", darkTheme = true) {
-        Surface { PlanningScreen(previewPlanning(), {}, {}, {}) }
+        Surface { PlanningScreen(previewPlanning(), {}, null, {}) }
     }
 
     @Test
     @Config(fontScale = 2f)
     fun planningListFontScale200() = capture("planning_liste_police_200") {
-        Surface { PlanningScreen(previewPlanning(), {}, {}, {}) }
+        Surface { PlanningScreen(previewPlanning(), {}, null, {}) }
     }
 
     @Test
@@ -392,19 +392,19 @@ class ScreenshotTest {
 
     @Test
     fun planningMonthLight() = capture("planning_mois_clair") {
-        Surface { PlanningScreen(previewPlanning(), {}, {}, {}, initialMode = PlanningMode.Month) }
+        Surface { PlanningScreen(previewPlanning(), {}, null, {}, initialMode = PlanningMode.Month) }
     }
 
     @Test
     @Config(qualifiers = "+night")
     fun planningMonthDark() = capture("planning_mois_sombre", darkTheme = true) {
-        Surface { PlanningScreen(previewPlanning(), {}, {}, {}, initialMode = PlanningMode.Month) }
+        Surface { PlanningScreen(previewPlanning(), {}, null, {}, initialMode = PlanningMode.Month) }
     }
 
     @Test
     @Config(fontScale = 2f)
     fun planningMonthFontScale200() = capture("planning_mois_police_200") {
-        Surface { PlanningScreen(previewPlanning(), {}, {}, {}, initialMode = PlanningMode.Month) }
+        Surface { PlanningScreen(previewPlanning(), {}, null, {}, initialMode = PlanningMode.Month) }
     }
 
     @Test

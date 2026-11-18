@@ -93,7 +93,7 @@ import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 /**
- * The new Planning tab (PRODUIT-126, maquettes PL1 à PL5, haut C), under the switch planningV2:
+ * The Planning tab (PRODUIT-126, maquettes PL1 à PL5, haut C), the only one since PRODUIT-131:
  * Semaine or Mois, chosen by touching the title between the two round arrows; the frise of the
  * Accueil for the week (the same word of the day), a grid of the same boxes for the month; then the
  * cards of the days, with the hour in a block on the pale color of the event. The filter and the

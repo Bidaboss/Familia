@@ -47,16 +47,16 @@ class MainScreensAccessibilityTest {
 
     @Test
     fun `the Planning by month`() = compose.checkAccessibility {
-        PlanningScreen(previewPlanning(), {}, {}, {}, initialMode = PlanningMode.Month, onScopeChange = {})
+        PlanningScreen(previewPlanning(), {}, null, {}, initialMode = PlanningMode.Month)
     }
 
     @Test
-    fun `the Planning as a list`() = compose.checkAccessibility {
-        PlanningScreen(previewPlanning(), {}, {}, {}, initialMode = PlanningMode.List, onShareBirthday = {})
+    fun `the Planning with Partager on a birthday`() = compose.checkAccessibility {
+        PlanningScreen(previewPlanning(), {}, null, {}, onShareBirthday = {})
     }
 
     @Test
-    fun `the Planning by week`() = compose.checkAccessibility { PlanningScreen(previewPlanning(), {}, {}, {}, r1 = true) }
+    fun `the Planning by week`() = compose.checkAccessibility { PlanningScreen(previewPlanning(), {}, null, {}) }
 
     @Test
     fun `an event, for who manages it`() = compose.checkAccessibility {

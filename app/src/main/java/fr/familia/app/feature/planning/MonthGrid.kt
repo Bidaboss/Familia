@@ -5,7 +5,7 @@ import java.time.LocalDate
 import java.time.YearMonth
 
 /** How the Planning tab shows the days: the list by default, the month grid as a choice (design principles). */
-enum class PlanningMode { List, Month, Week }
+enum class PlanningMode { Month, Week }
 
 /** The Monday of the week of [date], as in France. */
 fun weekStart(date: LocalDate): LocalDate = date.minusDays((date.dayOfWeek.value - 1).toLong())

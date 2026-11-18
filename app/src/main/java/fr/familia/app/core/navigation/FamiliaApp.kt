@@ -770,8 +770,7 @@ fun FamiliaApp(
         val topBarScroll = TopAppBarDefaults.pinnedScrollBehavior()
         // The sheet of my photo (DESIGN-12): my profile and the settings that were under Famille.
         var accountOpen by rememberSaveable { mutableStateOf(false) }
-        // The new Planning (PRODUIT-126): its filter is a round button of the bar, kept here.
-        val planningV2On = features.isOnForFamily(Feature.PlanningV2)
+        // The Planning (PRODUIT-126): its filter is a round button of the bar, kept here.
         var planningScope by rememberSaveable { mutableStateOf(PlanningScope.Family) }
         // A tablet of 7 inches or more, in portrait (600 dp) or landscape: the rail instead of the bar.
         val useRail = LocalConfiguration.current.screenWidthDp >= 600
@@ -844,10 +843,10 @@ fun FamiliaApp(
                         greeting = if (tab == TopLevelDestination.Home) stringResource(R.string.home_r1_greeting, currentMember.firstName) else null,
                         onAdd = when {
                             tab == TopLevelDestination.Home -> ({ addOpen = true })
-                            planningV2On && tab == TopLevelDestination.Planning -> ({ navController.navigate(EventEditDestination()) })
+                            tab == TopLevelDestination.Planning -> ({ navController.navigate(EventEditDestination()) })
                             else -> null
                         },
-                        planningScope = if (planningV2On) planningScope else null,
+                        planningScope = planningScope,
                         onPlanningScope = { planningScope = it },
                     )
                 }
@@ -1067,7 +1066,7 @@ fun FamiliaApp(
                             onAddEvent = { navController.navigate(EventEditDestination()) },
                             onOpenEvent = { id -> navController.navigate(EventDetailDestination(id)) },
                             onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
-                            scope = if (planningV2On) planningScope else null,
+                            scope = planningScope,
                         )
                     }
                     // --- Sondages (récits 2 bis et 2 ter), from the Planning bar ---

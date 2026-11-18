@@ -17,7 +17,7 @@ private val BASE = setOf(
 /** Kept on once tried; after the 21st the old version and its switch go away. */
 private val NEW_VERSIONS = setOf(
     Feature.SingleList, Feature.FamilyTabV2,
-    Feature.ChallengeDetails, Feature.MorePhotos, Feature.PlanningV2,
+    Feature.ChallengeDetails, Feature.MorePhotos,
 )
 
 val Feature.tier: FeatureTier

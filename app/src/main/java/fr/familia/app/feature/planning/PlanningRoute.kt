@@ -24,7 +24,7 @@ fun PlanningRoute(
     onAddEvent: () -> Unit,
     onOpenEvent: (eventId: String) -> Unit,
     onOpenTrip: (tripId: String) -> Unit = {},
-    /** The filter of the new Planning (PRODUIT-126), held by the bar of the tab; null keeps the old switch. */
+    /** The filter of the Planning (PRODUIT-126), held by the bar of the tab; null leaves the scope as it is. */
     scope: PlanningScope? = null,
 ) {
     // Trips show in the planning once their module is switched on (PRD rév. 120).
@@ -45,30 +45,14 @@ fun PlanningRoute(
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(scope) { scope?.let(viewModel::setScope) }
-    val v2On = LocalFeatureFlags.current.isOnForFamily(Feature.PlanningV2)
     val screenContext = LocalContext.current
     val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)
     PlanningScreen(
         state = state,
         onRetry = viewModel::retry,
-        onAddEvent = onAddEvent,
+        me = currentMember,
         onOpenEvent = onOpenEvent,
-        onScopeChange = viewModel::setScope,
         onOpenTrip = onOpenTrip,
-        r1 = true,
         onShareBirthday = if (shareOn) ({ birthday -> share(screenContext, birthdayShare(screenContext, birthday, familyToday())) }) else null,
-        v2 = if (v2On) {
-            { success ->
-                PlanningV2(
-                    state = success,
-                    me = currentMember,
-                    onOpenEvent = onOpenEvent,
-                    onOpenTrip = onOpenTrip,
-                    onShareBirthday = if (shareOn) ({ birthday -> share(screenContext, birthdayShare(screenContext, birthday, familyToday())) }) else null,
-                )
-            }
-        } else {
-            null
-        },
     )
 }

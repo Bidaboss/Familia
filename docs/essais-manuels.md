@@ -10,7 +10,7 @@ PRD, récit 3 et cas limite « Pas de réseau » : le planning reste consultable
 2. Ferme l'appli complètement (glisse-la hors de la liste des applis récentes).
 3. Active le mode avion.
 4. Rouvre l'appli. **Attendu :** le bandeau « Hors ligne » apparaît en haut, le planning, les anniversaires et la famille s'affichent avec les dernières données, sans écran d'erreur.
-5. Le planning s'ouvre sur « Mois ». Passe à « Liste », puis reviens à « Mois » et change de mois. **Attendu :** tout s'affiche normalement.
+5. Le planning s'ouvre sur « Semaine ». Touche le titre et choisis « Mois », puis change de mois. **Attendu :** tout s'affiche normalement.
 6. Ajoute un événement « Essai hors ligne » pour demain. **Attendu :** le formulaire se ferme après quelques secondes au plus, et l'événement apparaît tout de suite dans ton planning.
 7. Sur un deuxième téléphone connecté, regarde le planning. **Attendu :** l'événement n'y est pas encore.
 8. Désactive le mode avion sur le premier téléphone. **Attendu :** le bandeau disparaît, et l'événement apparaît sur le deuxième téléphone en moins d'une minute.
@@ -94,12 +94,6 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 2. Touche « Fermer » en haut à gauche, puis recommence et fais le geste retour d'Android. **Attendu :** les deux referment la photo.
 3. Sur ta propre photo (ou celle d'un enfant de ton foyer), **attendu :** le bouton « Changer la photo » est en bas et ouvre le choix galerie ou appareil photo. Sur la photo d'un autre foyer, ce bouton n'apparaît pas.
 4. Sur un membre sans photo que tu peux modifier, touche l'avatar. **Attendu :** le choix de la photo s'ouvre directement, comme avant.
-
-## Haut du planning sur une rangée (audit DESIGN n°3)
-
-1. Ouvre le planning. **Attendu :** une seule rangée en haut, avec « Mois | Liste » à gauche (Mois choisi) et l'interrupteur « Mon foyer » éteint à droite.
-2. Active « Mon foyer ». **Attendu :** l'interrupteur s'allume et seuls les événements de ton foyer restent. Éteins-le : toute la famille revient.
-3. En police à 200 %, **attendu :** rien n'est coupé, et les boutons gardent au moins la hauteur d'un doigt.
 
 ## Plantages (récit 6 sexies, rév. 220)
 
@@ -1252,9 +1246,9 @@ Module « Fil d'actualité » allumé. Éteint, Tout Familia et l'Accueil resten
 8. Un dimanche avec des photos, un anniversaire ou un voyage en cours. **Attendu :** une carte lilas « La semaine de la famille » avec les chiffres, les vignettes et « Revoir la semaine », qui ouvre le récap. Les autres jours, pas de carte.
 9. Du 26/12 au 10/01. **Attendu :** une carte verte « Notre année » avec « Regarder », qui ouvre l'année.
 
-## Nouveau Planning (PRODUIT-126)
+## Le Planning (PRODUIT-126)
 
-Avant de commencer : **Administration**, puis **Modules**, et allume « Nouveau Planning ». Éteint, l'onglet Planning ne change pas, même pour toi.
+Seul Planning depuis PRODUIT-131 : l'interrupteur « Nouveau Planning », l'ancien écran et sa vue « Liste » sont retirés.
 
 1. Ouvre l'onglet **Planning**. **Attendu :** en haut, « ‹ Du … au … ▾ › », avec en dessous « Semaine · toute la famille ». Dans la barre, à côté de « ? », un rond lilas avec deux personnages, et un « + » rond. Il n'y a plus de bouton « Ajouter » en bas, ni d'onglets « Mois | Liste ».
 2. **Attendu :** la frise de 7 jours, comme sur l'Accueil, avec le même mot pour chaque jour. Aujourd'hui est choisi. Sous la frise, « Aujourd'hui, … », puis les jours suivants de la semaine qui ont quelque chose.
@@ -1265,7 +1259,7 @@ Avant de commencer : **Administration**, puis **Modules**, et allume « Nouveau 
 7. Touche le rond lilas. **Attendu :** il devient plein, et le sous-titre dit « mon foyer ». Seuls les événements de ton foyer restent, avec tous les anniversaires. Touche-le encore pour revenir à toute la famille.
 8. Sur le téléphone d'un enfant qui a l'appli : **attendu :** le sous-titre dit « mon foyer », et « Ajouté par toi » apparaît sur ce qu'il a créé.
 9. Mets la taille du texte à 130 %. **Attendu :** le titre passe sur deux lignes, sans être coupé. Les mots de la frise peuvent être coupés, mais la carte du jour touché les donne en entier.
-10. Éteins le module. **Attendu :** l'ancien Planning revient tel qu'il était.
+10. Dans Administration > Modules. **Attendu :** plus de ligne « Nouveau Planning ».
 
 ## Nouvel onglet Cadeaux (PRODUIT-119 à 121)
 
