@@ -1088,6 +1088,24 @@
     <string name="goodnews_error_title">Les bonnes nouvelles ne s\'affichent pas</string>
     <string name="goodnews_error_body">L\'appli n\'a pas pu les lire. Réessaie, et si ça continue, préviens un chef de famille.</string>
     <string name="goodnews_missing_title">Cette bonne nouvelle n\'existe plus</string>
+    <string name="feed_label_good_news">Bonne nouvelle</string>
+    <string name="feed_good_news_photo">Photo de la Bonne nouvelle</string>
+    <string name="feed_read_more">Lire la suite</string>
+    <string name="feed_comment">Commenter</string>
+    <string name="feed_comment_field">Écrire un commentaire</string>
+    <plurals name="feed_comment_count">
+        <item quantity="one">%d commentaire, les lire</item>
+        <item quantity="many">%d commentaires, les lire</item>
+        <item quantity="other">%d commentaires, les lire</item>
+    </plurals>
+    <string name="feed_label_help">Coup de main</string>
+    <string name="feed_help_taken">%1$s s\'en occupe : %2$s · %3$s</string>
+    <string name="feed_help_take">Je m\'en occupe</string>
+    <string name="feed_help_no">Pas dispo</string>
+    <string name="feed_help_already_taken">Quelqu\'un l\'a pris juste avant toi.</string>
+    <string name="feed_help_failed">Pas de réseau : réessaie dans un moment.</string>
+    <string name="feed_label_weekly">Question de la semaine</string>
+    <string name="feed_weekly_answer">Répondre</string>
     <string name="goodnews_comments_empty">Pas encore de commentaire. Un bravo, un souvenir, une question ?</string>
     <string name="goodnews_missing_body">Elle a été retirée, ou elle n\'est pas encore arrivée sur ce téléphone.</string>
     <string name="goodnews_text_field">Ta bonne nouvelle</string>

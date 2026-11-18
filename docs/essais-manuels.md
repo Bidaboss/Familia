@@ -1177,7 +1177,7 @@ Après « Publier Firebase ». Deux téléphones : celui de l'admin principal et
 8. Après 22 h, avec « Urgent ». **Attendu :** elle arrive tout de suite.
 9. Allume le mode présentation. **Attendu :** l'écran dit que rien ne part, et le bouton reste éteint.
 
-## Commentaires des Bonnes nouvelles (récit 67)
+## Fil d'actualité : Bonnes nouvelles et leurs commentaires, coups de main, question (récit 67)
 
 Module « Fil d'actualité » allumé dans Administration > Modules, après « Publier Firebase ». Éteint, la Bonne nouvelle ne montre pas de commentaires.
 
@@ -1187,6 +1187,15 @@ Module « Fil d'actualité » allumé dans Administration > Modules, après « P
 4. Modifie ton commentaire, puis retire-le. **Attendu :** « modifié » s'affiche, puis le commentaire disparaît. L'auteur de la nouvelle et l'admin principal ont aussi « Retirer ».
 5. Retire la nouvelle. **Attendu :** ses commentaires partent avec elle.
 6. En mode présentation, puis en « Voir comme ». **Attendu :** les commentaires se lisent, sans champ, sans « Modifier » ni « Retirer ».
+
+Dans « Le fil » de l'Accueil :
+
+7. Publie une Bonne nouvelle avec une photo et un long texte. **Attendu :** une carte « Bonne nouvelle » avec une vignette carrée, le texte coupé à 3 lignes et « Lire la suite », les réactions, puis « Commenter ». Toucher la carte ouvre la nouvelle.
+8. Touche « ❤️ », puis « Commenter », écris et envoie. **Attendu :** le cœur compte 1 ; le champ se ferme, la carte montre « Prénom : ton texte » sur une ligne et « 💬 1 ». « 💬 1 » ouvre la nouvelle avec ses commentaires.
+9. Masque pour toi une nouvelle qui te nomme. **Attendu :** elle quitte ton fil, pas celui des autres.
+10. Sur un autre téléphone, demande un coup de main en te prévenant. **Attendu :** une carte « Coup de main » avec « Je m'en occupe » et « Pas dispo ». « Je m'en occupe » la change en une ligne « Prénom s'en occupe : … ✓ ». Un coup de main annulé disparaît.
+11. Un lundi, après 9 h. **Attendu :** une carte « Question de la semaine · N réponses » avec « Répondre », qui devient « Voir les réponses » une fois répondu.
+12. En mode présentation, puis en « Voir comme ». **Attendu :** les cartes se lisent, sans réaction possible, sans « Commenter », « Je m'en occupe » ni « Répondre ».
 
 ## Fil d'actualité de l'Accueil (récit 67)
 
