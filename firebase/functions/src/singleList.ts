@@ -25,7 +25,6 @@ import type { DocumentReference, DocumentSnapshot, Firestore } from 'firebase-ad
 import { FieldValue } from 'firebase-admin/firestore';
 import { notebookEntryId } from './notebook';
 import { copiedItemPhoto, PhotoCopier, storageCopier } from './itemPhoto';
-import { parisDay } from './logic';
 
 export type SingleListTarget = 'wishes' | 'ideas';
 
@@ -166,31 +165,24 @@ async function ensureList(ref: DocumentReference, kind: SingleListTarget, benefi
   });
 }
 
-// --- After the 21st: the old lists go (PRODUIT-58) ------------------------------------------------
+// --- The old lists go (PRODUIT-58, then the admin's go of 18/11) ----------------------------------
 //
-// Behind its own switch, config/app.features.oldListsCleanup, turned on by hand in Administration,
-// never by itself, and only with « Liste unique » on. The admin chose that nothing is deleted before the
-// party: before CLEANUP_NOT_BEFORE (Paris), the switch does nothing, and turning it on again later
-// runs it. A list goes only when nothing would be lost:
+// Right after the copy, in the same run as the migration, when « Liste unique » is turned on. A list goes
+// only when nothing would be lost:
 // - it was copied whole (mark « copied »), never one skipped, partly copied or already revealed;
 // - every item it holds now has its copy (an item added after the copy keeps the list);
 // - an item with a photo has a copy with a photo (« Plus de photos » off at the copy keeps the list).
+// Without a migration there is no mark, so nothing goes.
 // The mark says « deleted » before the deletion: the triggers of the items then tell nobody
 // (onGiftItemChanged), and the old notebook entries, which only point to their copy, go too.
 
-export const CLEANUP_NOT_BEFORE = '2026-11-22';
-
 export interface CleanupResult { deleted: number; kept: number }
 
-/** Deletes the old lists whose copy is whole. Does nothing while a switch is off, or before the 22nd. */
-export async function cleanupOldLists(db: Firestore, now: Date): Promise<CleanupResult> {
+/** Deletes the old lists whose copy is whole. Does nothing while « Liste unique » is off. */
+export async function cleanupOldLists(db: Firestore): Promise<CleanupResult> {
   const result: CleanupResult = { deleted: 0, kept: 0 };
   const config = await db.doc('config/app').get();
-  if (config.get('features.singleList') !== true || config.get('features.oldListsCleanup') !== true) return result;
-  if (parisDay(now) < CLEANUP_NOT_BEFORE) {
-    console.warn(`oldListsCleanup: not before ${CLEANUP_NOT_BEFORE}, nothing deleted`);
-    return result;
-  }
+  if (config.get('features.singleList') !== true) return result;
   const marks = await db.collection(LIST_MARKS).where('status', '==', 'copied').get();
   for (const mark of marks.docs) {
     const list = await db.collection('giftLists').doc(mark.id).get();

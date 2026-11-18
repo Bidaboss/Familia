@@ -683,18 +683,18 @@ private fun AdultSwitchRow(row: AdultRow, onSetChef: (Member, Boolean) -> Unit) 
 private fun FeatureSwitchRow(feature: Feature, on: Boolean, onSetFeature: (Feature, Boolean) -> Unit) {
     val name = stringResource(feature.labelRes)
     val seeWhere = LocalFeatureSeeWhere.current(feature)
-    // Erasing the old lists cannot be undone: it is confirmed first.
+    // « Liste unique » turned on erases the old lists copied whole, which cannot be undone: it is confirmed first.
     var confirming by rememberSaveable { mutableStateOf(false) }
     if (confirming) {
         AlertDialog(
             onDismissRequest = { confirming = false },
-            title = { Text(stringResource(R.string.old_lists_cleanup_confirm_title)) },
-            text = { Text(stringResource(R.string.old_lists_cleanup_confirm_body)) },
+            title = { Text(stringResource(R.string.single_list_confirm_title)) },
+            text = { Text(stringResource(R.string.single_list_confirm_body)) },
             confirmButton = {
                 TextButton(
                     onClick = { onSetFeature(feature, true); confirming = false },
                     modifier = Modifier.heightIn(min = 56.dp),
-                ) { Text(stringResource(R.string.old_lists_cleanup_confirm), color = MaterialTheme.colorScheme.error) }
+                ) { Text(stringResource(R.string.single_list_confirm), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
                 TextButton(onClick = { confirming = false }, modifier = Modifier.heightIn(min = 56.dp)) {
@@ -708,7 +708,7 @@ private fun FeatureSwitchRow(feature: Feature, on: Boolean, onSetFeature: (Featu
             modifier = Modifier
                 .fillMaxWidth()
                 .toggleable(on, role = Role.Switch) {
-                    if (it && feature == Feature.OldListsCleanup) confirming = true else onSetFeature(feature, it)
+                    if (it && feature == Feature.SingleList) confirming = true else onSetFeature(feature, it)
                 }
                 .heightIn(min = 56.dp)
                 .padding(horizontal = ClaySpacing.screen, vertical = 8.dp),

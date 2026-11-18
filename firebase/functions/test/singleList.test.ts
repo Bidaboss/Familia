@@ -224,16 +224,15 @@ describe('single list migration', () => {
     assert.equal((await db.collection('migrations').doc('singleList').collection('items').get()).size, 0);
   });
 
-  // After the 21st (PRODUIT-58): the old lists go, by hand, only when nothing would be lost.
-  const after21 = new Date('2026-11-23T09:00:00Z');
-  const cleanupOn = { features: { gifts: true, singleList: true, oldListsCleanup: true } };
+  // PRODUIT-58: right after the copy, the old lists go, only when nothing would be lost.
+  const cleanupOn = { features: { gifts: true, singleList: true } };
 
-  test('the old lists copied whole go after the 21st, their copies and the revealed list stay', async () => {
+  test('the old lists copied whole go, their copies and the revealed list stay', async () => {
     // Without a photo: one not copied keeps its list (next test).
     await lists.doc('noel-ines').collection('items').doc('book').set(item('Un livre', true));
     await migrateToSingleList(db);
     await db.doc('config/app').set(cleanupOn);
-    assert.deepEqual(await cleanupOldLists(db, after21), { deleted: 2, kept: 0 });
+    assert.deepEqual(await cleanupOldLists(db), { deleted: 2, kept: 0 });
     assert.equal((await lists.doc('noel-ines').get()).exists, false);
     assert.equal((await lists.doc('noel-ines').collection('items').get()).size, 0);
     assert.equal((await lists.doc('surprise-ines').get()).exists, false);
@@ -249,15 +248,15 @@ describe('single list migration', () => {
     assert.equal((await db.doc('migrations/singleList/lists/noel-ines').get()).get('status'), 'deleted');
   });
 
-  test('nothing goes before the 22nd, nor with a switch off', async () => {
-    await migrateToSingleList(db);
+  test('nothing goes without the migration, nor with « Liste unique » off', async () => {
     await db.doc('config/app').set(cleanupOn);
-    assert.deepEqual(await cleanupOldLists(db, new Date('2026-11-21T20:00:00Z')), { deleted: 0, kept: 0 });
-    await db.doc('config/app').set({ features: { gifts: true, singleList: true } });
-    assert.deepEqual(await cleanupOldLists(db, after21), { deleted: 0, kept: 0 });
-    await db.doc('config/app').set({ features: { gifts: true, oldListsCleanup: true } });
-    assert.deepEqual(await cleanupOldLists(db, after21), { deleted: 0, kept: 0 });
+    // No migration yet: no list is marked « copied ».
+    assert.deepEqual(await cleanupOldLists(db), { deleted: 0, kept: 0 });
+    await migrateToSingleList(db);
+    await db.doc('config/app').set({ features: { gifts: true, singleList: false } });
+    assert.deepEqual(await cleanupOldLists(db), { deleted: 0, kept: 0 });
     assert.equal((await lists.doc('noel-ines').get()).exists, true);
+    assert.equal((await lists.doc('surprise-ines').get()).exists, true);
   });
 
   test('a list with an item added after the copy, or a photo not copied, stays', async () => {
@@ -265,7 +264,7 @@ describe('single list migration', () => {
     await db.doc('config/app').set(cleanupOn);
     await lists.doc('surprise-ines').collection('items').doc('late').set(item('Un pull', false, 'camille'));
     // « Plus de photos » was off at the copy: the photo of the book is only in the old list.
-    assert.deepEqual(await cleanupOldLists(db, after21), { deleted: 0, kept: 2 });
+    assert.deepEqual(await cleanupOldLists(db), { deleted: 0, kept: 2 });
     assert.equal((await lists.doc('noel-ines').get()).exists, true);
     assert.equal((await lists.doc('surprise-ines').get()).exists, true);
     assert.equal((await db.doc('migrations/singleList/lists/noel-ines').get()).get('cleanup'), 'photo not copied');
@@ -276,11 +275,11 @@ describe('single list migration', () => {
     await db.doc('config/app').set(cleanupOn);
     await db.doc('migrations/singleList/lists/noel-ines').set({ status: 'partial' });
     await db.doc('migrations/singleList/lists/surprise-ines').set({ status: 'skipped' });
-    assert.deepEqual(await cleanupOldLists(db, after21), { deleted: 0, kept: 0 });
+    assert.deepEqual(await cleanupOldLists(db), { deleted: 0, kept: 0 });
     assert.equal((await lists.doc('noel-ines').get()).exists, true);
   });
 
-  test('the items of an old list removed after the 21st tell nobody', async () => {
+  test('the items of an old list being removed tell nobody', async () => {
     await db.doc('migrations/singleList/lists/noel-ines').set({ status: 'deleted' });
     const sent: string[][] = [];
     const send: Sender = async (token) => { sent.push([token]); return 'ok'; };
