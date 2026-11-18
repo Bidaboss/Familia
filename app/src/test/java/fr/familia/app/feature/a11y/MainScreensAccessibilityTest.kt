@@ -46,7 +46,7 @@ class MainScreensAccessibilityTest {
 
     @Test
     fun `the Planning by month`() = compose.checkAccessibility {
-        PlanningScreen(previewPlanning(), {}, {}, {}, initialMode = PlanningMode.Month, onScopeChange = {})
+        PlanningScreen(previewPlanning(), {}, {}, {}, initialMode = PlanningMode.Month)
     }
 
     @Test

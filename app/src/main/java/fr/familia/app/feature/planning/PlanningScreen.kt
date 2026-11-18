@@ -63,9 +63,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
-import androidx.compose.material3.Switch
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -111,8 +108,6 @@ fun PlanningScreen(
     modifier: Modifier = Modifier,
     /** The month first (16/11), the list one tap away. */
     initialMode: PlanningMode = PlanningMode.Month,
-    /** « Toute la famille » / « Mon foyer » (carte AVIS-8); hidden when null. */
-    onScopeChange: ((PlanningScope) -> Unit)? = null,
     onOpenTrip: (tripId: String) -> Unit = {},
     /** « Partager » on a birthday (PRD, récit 31); hidden when null. */
     onShareBirthday: ((Birthday) -> Unit)? = null,
@@ -136,14 +131,13 @@ fun PlanningScreen(
                 },
             )
             is PlanningUiState.Success -> if (v2 != null) v2(state) else Column(Modifier.fillMaxSize()) {
-                // One row (audit DESIGN n°3): « Mois | Liste » on the left, « Mon foyer » on the right.
+                // One row (audit DESIGN n°3): « Mois | Liste ». No filter by household (Kévin le 18/11).
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     ModeSwitch(mode, onModeChange = { mode = it }, modifier = Modifier.weight(1f), withWeek = r1)
-                    if (onScopeChange != null) ScopeChip(state.scope, onScopeChange)
                 }
                 when (mode) {
                     PlanningMode.List -> if (state.days.isEmpty()) {
@@ -200,27 +194,6 @@ private fun ModeSwitch(mode: PlanningMode, onModeChange: (PlanningMode) -> Unit,
                 Text(stringResource(label), style = MaterialTheme.typography.labelLarge)
             }
         }
-    }
-}
-
-/**
- * « Mon foyer », a switch, off at first (16/11): on, it keeps the events for the whole family, for
- * my household, for its members and for the children I am responsible for, and every birthday.
- * Off is the whole family. The whole row toggles it, 56 dp high.
- */
-@Composable
-private fun ScopeChip(scope: PlanningScope, onScopeChange: (PlanningScope) -> Unit) {
-    val on = scope == PlanningScope.Household
-    Row(
-        modifier = Modifier
-            .heightIn(min = 56.dp)
-            .toggleable(value = on, role = Role.Switch, onValueChange = { onScopeChange(if (it) PlanningScope.Household else PlanningScope.Family) })
-            .padding(horizontal = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Text(stringResource(R.string.planning_scope_household), style = MaterialTheme.typography.labelLarge)
-        Switch(checked = on, onCheckedChange = null)
     }
 }
 
