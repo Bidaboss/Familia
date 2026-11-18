@@ -127,7 +127,6 @@ fun HomeFeedSwitch(onFeed: Boolean, unseen: Int, onChoose: (Boolean) -> Unit, mo
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalArrangement = Arrangement.spacedBy(6.dp),
-        itemVerticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             if (onFeed) {
@@ -137,7 +136,7 @@ fun HomeFeedSwitch(onFeed: Boolean, unseen: Int, onChoose: (Boolean) -> Unit, mo
             },
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(end = 12.dp),
+            modifier = Modifier.align(Alignment.CenterVertically).padding(end = 12.dp),
         )
         if (onFeed) {
             val description = stringResource(R.string.feed_switch_back)
@@ -146,7 +145,7 @@ fun HomeFeedSwitch(onFeed: Boolean, unseen: Int, onChoose: (Boolean) -> Unit, mo
                 shape = RoundedCornerShape(24.dp),
                 color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant),
-                modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = description },
+                modifier = Modifier.align(Alignment.CenterVertically).heightIn(min = 56.dp).semantics { contentDescription = description },
             ) {
                 Row(Modifier.padding(start = 12.dp, end = 18.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null)
@@ -162,7 +161,7 @@ fun HomeFeedSwitch(onFeed: Boolean, unseen: Int, onChoose: (Boolean) -> Unit, mo
                 shape = RoundedCornerShape(24.dp),
                 color = FEED_BUTTON_GREEN,
                 contentColor = FEED_BUTTON_GREEN_TEXT,
-                modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = description },
+                modifier = Modifier.align(Alignment.CenterVertically).heightIn(min = 56.dp).semantics { contentDescription = description },
             ) {
                 Row(Modifier.padding(start = 18.dp, end = 12.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(R.string.feed_tab_feed), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold)
