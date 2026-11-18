@@ -3264,7 +3264,7 @@ service cloud.firestore {
       allow update: if docId == 'app'
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['features', 'discoverOrder', 'memoriesHidden'])
         && (('features' in request.resource.data
-                && request.resource.data.features is map && request.resource.data.features.size() <= 60)
+                && request.resource.data.features is map && request.resource.data.features.size() <= 150)
             || (!('features' in request.resource.data) && !('features' in resource.data)))
         && (!('discoverOrder' in request.resource.data)
             || (request.resource.data.discoverOrder is list && request.resource.data.discoverOrder.size() <= 20))
