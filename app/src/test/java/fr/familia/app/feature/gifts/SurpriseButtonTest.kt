@@ -170,4 +170,15 @@ class SurpriseButtonTest {
         assertEquals(1, count("Ton anniversaire, dans 5 jours"))
         assertEquals(0, count("Surprises en préparation"))
     }
+
+    @Test
+    fun `after the next occasion, no birthday further than 30 days`() {
+        val state = presentationFor("adult2")
+        val far = state.birthdays.first().copy(date = today.plusDays(150))
+        val edge = state.birthdays.first().copy(date = today.plusDays(30))
+        val after = upcomingAfterNext(state.copy(birthdays = listOf(far)))
+        assertTrue(after.none { it is Upcoming.OfBirthday })
+        val withEdge = upcomingAfterNext(state.copy(birthdays = listOf(edge, far)))
+        assertEquals(listOf(today.plusDays(30)), withEdge.filterIsInstance<Upcoming.OfBirthday>().map { it.date })
+    }
 }

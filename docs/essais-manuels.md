@@ -1143,3 +1143,10 @@ Avec le module « Bons plans » allumé. Deux téléphones : celui qui publie, c
 3. Choisis « Le conjoint ou la conjointe de … » (ou un parent, un enfant), puis la seconde personne, et « Relier ». **Attendu :** l'arbre s'affiche avec tous les membres et le lien tracé.
 4. En chef de famille (ou « Voir comme » un chef), même écran vide. **Attendu :** « Qui veux-tu relier ? » ne liste que son foyer. En simple adulte, aucun de ces boutons, seulement « Revenir ».
 5. Ajoute un proche sans compte « en souvenir » qui porte le même prénom qu'un membre, puis ouvre « Relier deux membres », ou « Ajouter un lien » sur une fiche. **Attendu :** les deux lignes se distinguent : le membre avec le nom de son foyer, le proche avec son nom de famille, sinon ses années, sinon « En souvenir ». Un prénom unique reste seul.
+
+## « À venir » des Cadeaux : anniversaires des 30 prochains jours
+
+Présentation R1 bis et liste unique allumées.
+
+1. Ouvre Cadeaux. **Attendu :** sous « Prochaine occasion », seuls les anniversaires des 30 prochains jours, puis Noël s'il n'est pas déjà la prochaine occasion.
+2. Si aucun anniversaire ne tombe dans les 30 jours. **Attendu :** aucune carte d'anniversaire sous la prochaine occasion. « Tous les anniversaires » les montre tous.
