@@ -129,6 +129,15 @@ class TreeOfLifeTest {
     }
 
     @Test
+    fun `someone with two partners never makes a household of three`() {
+        val members = listOf(member("a", "Camille"), member("b", "Inès"), member("c", "Noé"), member("k", "Lou"))
+        val links = listOf(KinLink.partners("a", "b"), KinLink.partners("a", "c"), KinLink.parent("a", "k"), KinLink.parent("b", "k"))
+        val life = TreeOfLife(GenealogyTree(members, emptyList(), links))
+        assertTrue(life.units.all { it.ids.size <= 2 })
+        assertApart(life)
+    }
+
+    @Test
     fun `a big name widens its place, never the medallions into each other`() {
         val life = TreeOfLife(example()) { text -> text.length * 14f } // police à 200 %
         assertApart(life)

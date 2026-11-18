@@ -111,6 +111,25 @@ class GenealogyTreeTest {
     }
 
     @Test
+    fun `in a shared custody, the other parent never joins the couple`() {
+        // Alix lives with Sam; Noé is the child of Alix and Lou, who has no partner.
+        val tree = GenealogyTree(
+            listOf(m("alix", "Alix"), m("sam", "Sam"), m("noe", "Noé"), m("tom", "Tom")),
+            listOf(Kin("lou", "Lou", living = true, householdId = "h1")),
+            listOf(
+                KinLink.partners("alix", "sam"),
+                KinLink.parent("alix", "noe"), KinLink.parent("lou", "noe"),
+                KinLink.parent("alix", "tom"), KinLink.parent("sam", "tom"),
+            ),
+        )
+        assertEquals(listOf("sam"), tree.coupleOf("alix"))
+        assertEquals(emptyList<String>(), tree.coupleOf("lou"))
+        val life = TreeOfLife(tree)
+        assertEquals(listOf("alix", "sam"), life.units.single { "alix" in it.ids }.ids.sorted())
+        assertEquals(listOf("lou"), life.units.single { "lou" in it.ids }.ids)
+    }
+
+    @Test
     fun `the parents of one child without a partner link each send a line to the bar`() {
         val links = listOf(KinLink.parent("a", "c"), KinLink.parent("b", "c"))
         val boxes = mapOf(
