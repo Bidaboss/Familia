@@ -44,7 +44,7 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 6. Sur B, ouvre Famille, puis Notifications, et coupe « Rappel la veille à 18 h ». **Attendu :** le soir suivant, B ne reçoit plus de rappel.
 7. Sur A, supprime l'événement. **Attendu :** B reçoit « Événement annulé ».
 8. Sur B, bloque les notifications de Familia dans les réglages Android, puis rouvre Famille et Notifications. **Attendu :** un encadré dit que les notifications sont bloquées, avec un bouton pour les autoriser.
-9. Avec A et B dans deux foyers différents : sur A, ajoute un événement pour son foyer seulement. **Attendu :** B ne reçoit rien, mais le voit dans le planning avec « Toute la famille ». Sur B, active l'interrupteur « Mon foyer » en haut du planning. **Attendu :** l'événement disparaît, les anniversaires restent. Ferme et rouvre l'appli : le planning revient sur toute la famille, interrupteur éteint.
+9. Avec A et B dans deux foyers différents : sur A, ajoute un événement pour son foyer seulement. **Attendu :** B ne reçoit rien, mais le voit dans le planning avec « Toute la famille ». Le planning n'a plus de filtre par foyer (Kévin le 18/11) : B voit toujours toute la famille.
 10. Sur B, ajoute-toi en « Je viens » sur l'événement du foyer de A (repasse sur « Toute la famille »), puis sur A, change son heure. **Attendu :** B reçoit « Événement modifié ».
 11. Sur B, ouvre Famille, Notifications, puis « Réglages Android des notifications ». **Attendu :** les catégories Planning, Rappels et Cadeaux apparaissent (les autres arrivent avec leur module), chacune avec son interrupteur.
 
@@ -97,8 +97,8 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 
 ## Haut du planning sur une rangée (audit DESIGN n°3)
 
-1. Ouvre le planning. **Attendu :** une seule rangée en haut, avec « Mois | Liste » à gauche (Mois choisi) et l'interrupteur « Mon foyer » éteint à droite.
-2. Active « Mon foyer ». **Attendu :** l'interrupteur s'allume et seuls les événements de ton foyer restent. Éteins-le : toute la famille revient.
+1. Ouvre le planning. **Attendu :** une seule rangée en haut, avec « Mois | Liste » (Mois choisi), et plus d'interrupteur « Mon foyer » (Kévin le 18/11).
+2. **Attendu :** tous les événements de la famille s'affichent, quel que soit le foyer.
 3. En police à 200 %, **attendu :** rien n'est coupé, et les boutons gardent au moins la hauteur d'un doigt.
 
 ## Plantages (récit 6 sexies, rév. 220)
@@ -1267,14 +1267,14 @@ Module « Fil d'actualité » allumé. Éteint, Albums reste la liste d'avant.
 
 Avant de commencer : **Administration**, puis **Modules**, et allume « Nouveau Planning ». Éteint, l'onglet Planning ne change pas, même pour toi.
 
-1. Ouvre l'onglet **Planning**. **Attendu :** en haut, « ‹ Du … au … ▾ › », avec en dessous « Semaine · toute la famille ». Dans la barre, à côté de « ? », un rond lilas avec deux personnages, et un « + » rond. Il n'y a plus de bouton « Ajouter » en bas, ni d'onglets « Mois | Liste ».
+1. Ouvre l'onglet **Planning**. **Attendu :** en haut, « ‹ Du … au … ▾ › », avec en dessous « Semaine · toute la famille ». Dans la barre, à côté de « ? », un « + » rond, et plus de rond lilas du foyer (Kévin le 18/11). Il n'y a plus de bouton « Ajouter » en bas, ni d'onglets « Mois | Liste ».
 2. **Attendu :** la frise de 7 jours, comme sur l'Accueil, avec le même mot pour chaque jour. Aujourd'hui est choisi. Sous la frise, « Aujourd'hui, … », puis les jours suivants de la semaine qui ont quelque chose.
 3. Regarde une carte. **Attendu :** à gauche, un bloc pâle avec l'heure en gros (« 18 ») et les minutes dessous (« h00 »), « Journée » s'il n'y a pas d'heure. Au milieu : le titre, le lieu, la note s'il y en a une, les photos de ceux qui y vont (4 au plus, puis « +2 »), et « 3 y vont » en vert, ou « Tu y vas ». À droite, la photo de couverture s'il y en a une.
 4. Pour un anniversaire, **attendu :** un gâteau et « Journée » dans le bloc. Pour un voyage de plusieurs jours, **attendu :** « JOUR 2 sur 3 », avec les dates à la place du lieu.
 5. Touche les flèches. **Attendu :** la semaine change. La flèche de gauche est grisée sur la semaine d'aujourd'hui.
 6. Touche le titre. **Attendu :** le choix « Semaine » ou « Mois ». Choisis « Mois ». **Attendu :** « Novembre 2026 ▾ », une grille blanche avec le chiffre, le mot et la pastille de chaque jour. Touche un jour : il passe en noir et ses cartes s'affichent dessous.
-7. Touche le rond lilas. **Attendu :** il devient plein, et le sous-titre dit « mon foyer ». Seuls les événements de ton foyer restent, avec tous les anniversaires. Touche-le encore pour revenir à toute la famille.
-8. Sur le téléphone d'un enfant qui a l'appli : **attendu :** le sous-titre dit « mon foyer », et « Ajouté par toi » apparaît sur ce qu'il a créé.
+7. **Attendu :** le sous-titre dit toujours « toute la famille » : il n'y a plus de filtre par foyer.
+8. Sur le téléphone d'un enfant qui a l'appli : **attendu :** « Ajouté par toi » apparaît sur ce qu'il a créé.
 9. Mets la taille du texte à 130 %. **Attendu :** le titre passe sur deux lignes, sans être coupé. Les mots de la frise peuvent être coupés, mais la carte du jour touché les donne en entier.
 10. Éteins le module. **Attendu :** l'ancien Planning revient tel qu'il était.
 
