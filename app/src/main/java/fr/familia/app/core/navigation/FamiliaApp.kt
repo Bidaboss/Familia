@@ -3,13 +3,10 @@ package fr.familia.app.core.navigation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
-import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.ui.Alignment
-import fr.familia.app.feature.planning.PlanningScope
 import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.data.familyToday
 import fr.familia.app.feature.presentation.LocalPresenting
@@ -770,8 +767,6 @@ fun FamiliaApp(
         val topBarScroll = TopAppBarDefaults.pinnedScrollBehavior()
         // The sheet of my photo (DESIGN-12): my profile and the settings that were under Famille.
         var accountOpen by rememberSaveable { mutableStateOf(false) }
-        // The Planning (PRODUIT-126): its filter is a round button of the bar, kept here.
-        var planningScope by rememberSaveable { mutableStateOf(PlanningScope.Family) }
         // A tablet of 7 inches or more, in portrait (600 dp) or landscape: the rail instead of the bar.
         val useRail = LocalConfiguration.current.screenWidthDp >= 600
         var addOpen by rememberSaveable { mutableStateOf(false) }
@@ -846,8 +841,6 @@ fun FamiliaApp(
                             tab == TopLevelDestination.Planning -> ({ navController.navigate(EventEditDestination()) })
                             else -> null
                         },
-                        planningScope = planningScope,
-                        onPlanningScope = { planningScope = it },
                     )
                 }
             },
@@ -1066,7 +1059,6 @@ fun FamiliaApp(
                             onAddEvent = { navController.navigate(EventEditDestination()) },
                             onOpenEvent = { id -> navController.navigate(EventDetailDestination(id)) },
                             onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
-                            scope = planningScope,
                         )
                     }
                     // --- Sondages (récits 2 bis et 2 ter), from the Planning bar ---
@@ -1904,8 +1896,6 @@ private fun TabTopBar(
     /** The « + » of the R1 bis Accueil, before « ? », and of the new Planning. */
     onAdd: (() -> Unit)? = null,
     /** The round filter of the new Planning (PRODUIT-126), left of its « + »; null hides it. */
-    planningScope: PlanningScope? = null,
-    onPlanningScope: (PlanningScope) -> Unit = {},
 ) {
     TopAppBar(
         scrollBehavior = scrollBehavior,
@@ -1928,7 +1918,6 @@ private fun TabTopBar(
         actions = {
             when (tab) {
                 TopLevelDestination.Planning -> {
-                    if (planningScope != null) PlanningScopeButton(planningScope, child = member.profile != MemberProfile.Adult, onChange = onPlanningScope)
                     onAdd?.let { add -> RoundAddButton(stringResource(R.string.planning_add), add) }
                     if (onGoodNews != null) {
                         IconButton(onClick = onGoodNews, modifier = Modifier.size(56.dp)) {
@@ -2000,33 +1989,6 @@ private fun TabTopBar(
             onAccount?.let { AccountButton(member, onClick = it) }
         },
     )
-}
-
-/**
- * « Mon foyer seulement » (« Ma maison » for a child), a round button of 48 dp: lilac when on, the
- * whole family when off. The line under the title of the Planning says which one shows.
- */
-@Composable
-private fun PlanningScopeButton(scope: PlanningScope, child: Boolean, onChange: (PlanningScope) -> Unit) {
-    val on = scope == PlanningScope.Household
-    val name = stringResource(if (child) R.string.planning_v2_scope_button_house else R.string.planning_v2_scope_button_household)
-    val lilac = Color(0xFF4A3F8C)
-    // 56 dp to touch (règle du projet), the round drawn at 48 dp inside.
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(56.dp)
-            .clip(CircleShape)
-            .toggleable(value = on, role = Role.Switch, onValueChange = { onChange(if (it) PlanningScope.Household else PlanningScope.Family) })
-            .semantics { contentDescription = name },
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.size(48.dp).clip(CircleShape).background(if (on) lilac else Color(0xFFF4F0FD)),
-        ) {
-            Icon(Icons.Outlined.Groups, contentDescription = null, tint = if (on) Color.White else lilac)
-        }
-    }
 }
 
 /** The round « + » of the new Planning, bordered in dark like on the maquettes. */

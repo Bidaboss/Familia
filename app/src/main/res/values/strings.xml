@@ -44,7 +44,6 @@
     <string name="planning_mode_week">Semaine</string>
     <string name="planning_week_previous">Semaine précédente</string>
     <string name="planning_week_next">Semaine suivante</string>
-    <string name="planning_scope_household">Mon foyer</string>
     <string name="planning_scope_empty_body">Rien de prévu pour ton foyer. « Toute la famille » montre aussi les événements des autres foyers.</string>
     <string name="planning_month_previous">Mois précédent</string>
     <string name="planning_month_next">Mois suivant</string>
@@ -2999,8 +2998,6 @@
     <string name="planning_v2_scope_family">toute la famille</string>
     <string name="planning_v2_scope_household">mon foyer</string>
     <string name="planning_v2_scope_house">mon foyer</string>
-    <string name="planning_v2_scope_button_household">Mon foyer seulement</string>
-    <string name="planning_v2_scope_button_house">Mon foyer seulement</string>
     <string name="planning_v2_choose_view">Choisir Semaine ou Mois</string>
     <string name="planning_v2_previous">Précédent</string>
     <string name="planning_v2_next">Suivant</string>
