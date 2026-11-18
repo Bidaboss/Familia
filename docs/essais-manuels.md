@@ -1205,6 +1205,14 @@ Dans « Le fil » de l'Accueil :
 11. Un lundi, après 9 h. **Attendu :** une carte « Question de la semaine · N réponses » avec « Répondre », qui devient « Voir les réponses » une fois répondu.
 12. En mode présentation, puis en « Voir comme ». **Attendu :** les cartes se lisent, sans réaction possible, sans « Commenter », « Je m'en occupe » ni « Répondre ».
 
+## Fil d'actualité : une tuile par actualité (PRODUIT-127)
+
+Module « Fil d'actualité » allumé.
+
+1. Ouvre « Le fil ». **Attendu :** chaque actualité est une carte blanche aux coins arrondis comme celles du Planning, avec une ombre très douce et un fin trait de sa couleur dessous. Il n'y a plus de liseré coloré à gauche ; la pastille du type reste en haut à droite.
+2. **Attendu :** 8 dp entre deux actualités d'un même jour, un peu plus avant et après « Aujourd'hui », « Hier ».
+3. En thème sombre, puis à 130 % de taille de texte. **Attendu :** les cartes restent lisibles et séparées, rien n'est coupé.
+
 ## Fil d'actualité de l'Accueil (récit 67)
 
 Module « Fil d'actualité » allumé dans Administration > Modules (éteint, l'Accueil ne change pas, même pour l'admin principal).

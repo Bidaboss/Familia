@@ -178,7 +178,8 @@ fun FeedList(state: FeedState, modifier: Modifier = Modifier) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        // 8 dp between two actualités of a day (PRODUIT-127); the day titles keep their 12 dp.
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (cards.isEmpty()) {
             item(key = "empty") {
@@ -191,7 +192,9 @@ fun FeedList(state: FeedState, modifier: Modifier = Modifier) {
             }
         }
         feedDays(cards).forEach { (day, onDay) ->
-            item(key = "day-$day") { FeedDayHeader(feedDayLabel(day, context.today, todayLabel, yesterdayLabel)) }
+            item(key = "day-$day") {
+                FeedDayHeader(feedDayLabel(day, context.today, todayLabel, yesterdayLabel), Modifier.padding(vertical = 4.dp))
+            }
             items(onDay, key = { it.key }) { card -> card.Content(context) }
         }
         if (state.canLoadMore) {
