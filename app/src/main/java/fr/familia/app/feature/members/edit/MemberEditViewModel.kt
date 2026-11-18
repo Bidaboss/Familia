@@ -181,7 +181,8 @@ class MemberEditViewModel(
             markFailed()
             return
         }
-        val member = withEmail.toMember(editedId, original?.uid)
+        // The phone is the member's own (récit 66): the form never changes it, an adult keeps it.
+        val member = withEmail.toMember(editedId, original?.uid).let { m -> m.copy(phone = original?.phone?.takeIf { m.profile == MemberProfile.Adult }) }
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
             savedState?.let { markSent(it, if (original == null) SENT_ADDED else SENT_SAVED, member) }
