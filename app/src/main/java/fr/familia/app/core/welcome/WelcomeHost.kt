@@ -1,6 +1,8 @@
 package fr.familia.app.core.welcome
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -69,7 +71,13 @@ fun WelcomeHost(
         choice = if (family == null || config == null) WelcomeChoice.Skip else chooseWelcome(family, config, me, waitMillis)
     }
     when (val shown = choice) {
-        WelcomeChoice.Waiting -> Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+        // A touch goes straight on even while the family is still read (Kévin, 18/11).
+        WelcomeChoice.Waiting -> Box(
+            Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { done() },
+        )
         WelcomeChoice.Skip -> LaunchedEffect(Unit) { done() }
         WelcomeChoice.Off -> LaunchedEffect(Unit) {
             off()

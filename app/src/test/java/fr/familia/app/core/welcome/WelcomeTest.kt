@@ -119,4 +119,16 @@ class WelcomeTest {
         assertTrue(OLIVE_RING_RADIUS < OLIVE_SUN_RADIUS)
         assertTrue(OLIVE_RING_RADIUS + OLIVE_RING_WIDTH / 2 > OLIVE_SUN_RADIUS)
     }
+
+    @Test
+    fun `the welcome lasts 8 s with the last picture held 2 s`() {
+        // Every step slowed in proportion: the leaves of the tree end at 700 ms of the spec.
+        assertEquals(700f, pictureTime(1_120f), 0.01f)
+        // The circle and the words are complete at 5.44 s, then held still until the fade.
+        assertEquals(3_400f, pictureTime(5_440f), 0.01f)
+        assertEquals(3_400f, pictureTime(7_400f), 0.01f)
+        assertEquals(0f, welcomeFade(7_440f), 0.001f)
+        assertTrue(welcomeFade(7_700f) in 0.01f..0.99f)
+        assertEquals(1f, welcomeFade(8_000f), 0.001f)
+    }
 }

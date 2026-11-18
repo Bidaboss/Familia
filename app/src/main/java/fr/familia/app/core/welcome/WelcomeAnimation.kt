@@ -55,24 +55,33 @@ import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
 
-/** The whole welcome, in milliseconds (spec DESIGN « animation d'ouverture », part 2). */
-private const val END = 5_000f
-
 /**
- * When the last picture starts to fade. Kévin, 17/11: it stays half a second more on the family
- * and their photos before the Accueil, which also leaves the app time to load.
+ * How much slower the clock runs than the steps below, which keep the timings of the spec DESIGN
+ * (« animation d'ouverture », part 2). Kévin, 18/11: « 8 s, tout ralenti », every step in proportion.
  */
-private const val FADE = 4_600f
+private const val SLOW = 1.6f
 
-/** Where the screen stays still when the animations are off on the phone: the circle and the words. */
+/** Where the picture is complete and stays still, on the timings of the spec: the circle and the words. */
 private const val STILL = 3_400f
 
 /**
- * The welcome of the first opening (spec DESIGN, 17/11, DESIGN-22): the tree of the icon grows, its
+ * When the last picture starts to fade, in real milliseconds: it is held 2 s on the family around
+ * the sun and « Bonjour {prénom}, tu es chez toi. » (Kévin, 18/11), which also leaves the app time to load.
+ */
+private const val FADE = STILL * SLOW + 2_000f
+
+/** The whole welcome, in real milliseconds: 8 s. */
+private const val END = 8_000f
+
+/** How long the last picture alone stays when the animations are off on the phone. */
+private const val STILL_HOLD = 3_000L
+
+/**
+ * The welcome of each opening in « Longue » (spec DESIGN, 17/11, DESIGN-22): the tree of the icon grows, its
  * fruits become the family around the sun, each in the member's color with their letters, then
- * « Bienvenue dans Familia » and « Bonjour {prénom}, tu es chez toi. ». About 5 s, the last picture
- * held half a second; a touch anywhere goes straight on. Animations off on the phone: the last
- * picture alone, for 2 s.
+ * « Bienvenue dans Familia » and « Bonjour {prénom}, tu es chez toi. ». 8 s in all, the last picture
+ * held 2 s before it fades; a touch anywhere goes straight on. Animations off on the phone: the last
+ * picture alone, for 3 s.
  */
 @Composable
 fun WelcomeAnimation(family: Family, me: Member, photos: Map<String, ImageBitmap> = emptyMap(), onDone: () -> Unit) {
@@ -82,10 +91,10 @@ fun WelcomeAnimation(family: Family, me: Member, photos: Map<String, ImageBitmap
         Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
     }
     val done by rememberUpdatedState(onDone)
-    val time = remember { Animatable(if (still) STILL else 0f) }
+    val time = remember { Animatable(if (still) STILL * SLOW else 0f) }
     LaunchedEffect(still) {
         if (still) {
-            delay(2_000)
+            delay(STILL_HOLD)
         } else {
             time.animateTo(END, tween(durationMillis = END.toInt(), easing = LinearEasing))
         }
@@ -97,7 +106,8 @@ fun WelcomeAnimation(family: Family, me: Member, photos: Map<String, ImageBitmap
     WelcomePicture(
         fruits = fruits,
         photos = photos,
-        time = time.value,
+        time = pictureTime(time.value),
+        fade = welcomeFade(time.value),
         title = title,
         hello = hello,
         modifier = Modifier
@@ -110,7 +120,10 @@ fun WelcomeAnimation(family: Family, me: Member, photos: Map<String, ImageBitmap
     )
 }
 
-/** The picture at [time] ms: drawn apart from the clock, for the previews. */
+/**
+ * The picture at [time] ms on the timings of the spec, faded by [fade] from 0 to 1: drawn apart
+ * from the clock, for the previews.
+ */
 @Composable
 internal fun WelcomePicture(
     fruits: List<WelcomeFruit>,
@@ -119,6 +132,7 @@ internal fun WelcomePicture(
     hello: String,
     modifier: Modifier = Modifier,
     photos: Map<String, ImageBitmap> = emptyMap(),
+    fade: Float = 0f,
 ) {
     val sunColor = OLIVE_SUN_COLOR
     val measurer = rememberTextMeasurer()
@@ -126,7 +140,7 @@ internal fun WelcomePicture(
         modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .alpha(1f - phase(time, FADE, END)),
+            .alpha(1f - fade),
     ) {
         // The circle shrinks on a narrow phone so that every fruit stays on screen.
         val ring: Dp = min(128f, maxWidth.value / 2f - 26f - 16f).dp
@@ -206,6 +220,12 @@ internal fun WelcomePicture(
         }
     }
 }
+
+/** Where the picture is, on the timings of the spec, at [real] ms of the welcome. */
+internal fun pictureTime(real: Float): Float = min(real / SLOW, STILL)
+
+/** How far the last picture has faded at [real] ms of the welcome, from 0 to 1. */
+internal fun welcomeFade(real: Float): Float = phase(real, FADE, END)
 
 /** How far [time] is between [start] and [end], from 0 to 1. */
 internal fun phase(time: Float, start: Float, end: Float): Float = ((time - start) / (end - start)).coerceIn(0f, 1f)

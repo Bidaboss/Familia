@@ -1057,14 +1057,14 @@ Sur un téléphone de test, une seule fois : Paramètres > À propos du téléph
 
 Avant de commencer : **Administration**, puis **Modules**, et allume « Animation de bienvenue ». Sur ton téléphone d'admin principal, elle se joue même éteinte, pour l'essayer d'abord.
 
-1. Sur le deuxième téléphone, installe la nouvelle version et ouvre Familia. **Attendu :** l'arbre de l'icône pousse, puis ses fruits glissent en cercle autour du soleil, chacun de la couleur d'un membre avec ses lettres. Puis « Bienvenue dans Familia » et « Bonjour {prénom}, tu es chez toi. » apparaissent. Vers 4 secondes et demie, l'appli continue : le tuto sur une nouvelle installation, l'Accueil sinon.
+1. Sur le deuxième téléphone, installe la nouvelle version et ouvre Familia. **Attendu :** l'arbre de l'icône pousse, puis ses fruits glissent en cercle autour du soleil, chacun de la couleur d'un membre avec ses lettres. Puis « Bienvenue dans Familia » et « Bonjour {prénom}, tu es chez toi. » apparaissent. Tout se déroule lentement, puis la dernière image reste 2 secondes. Vers 8 secondes, l'appli continue : le tuto sur une nouvelle installation, l'Accueil sinon.
 2. **Attendu :** il y a autant de fruits que de membres, ton foyer en premier, en partant du haut.
    - Pour un membre qui a une photo de profil, **attendu :** sa photo apparaît dans son fruit, ronde, avec un bord de sa couleur. Les membres sans photo gardent leurs lettres.
 3. Ferme et rouvre Familia. **Attendu :** l'animation ne revient pas.
 4. Touche ta photo en haut à droite, puis « Apparence », puis « Revoir l'animation de bienvenue » tout en bas. **Attendu :** elle se rejoue, puis tu reviens sur Apparence.
 5. Pendant qu'elle se joue, touche l'écran n'importe où. **Attendu :** elle s'arrête tout de suite.
 6. Avec TalkBack allumé, rejoue-la. **Attendu :** TalkBack lit une seule fois « Bienvenue dans Familia. Bonjour {prénom}, tu es chez toi. », sans lire les fruits un par un.
-7. Dans Réglages, puis Accessibilité, allume « Supprimer les animations », et rejoue-la. **Attendu :** le cercle, le titre et la phrase s'affichent d'un coup, sans mouvement, pendant une seconde et demie. Éteins ensuite ce réglage.
+7. Dans Réglages, puis Accessibilité, allume « Supprimer les animations », et rejoue-la. **Attendu :** le cercle, le titre et la phrase s'affichent d'un coup, sans mouvement, pendant 3 secondes. Éteins ensuite ce réglage.
 8. En mode avion, rejoue-la après avoir fermé l'appli. **Attendu :** si la famille n'est pas encore lue, l'appli s'ouvre normalement au bout de 2 secondes et demie au plus, et l'animation attend la prochaine ouverture.
 9. Éteins le module, puis ouvre « Apparence » sur le deuxième téléphone. **Attendu :** la ligne « Revoir l'animation de bienvenue » n'y est plus.
 10. Module éteint, sur un téléphone qui ne l'a jamais vue : ferme et rouvre Familia deux fois. **Attendu :** à la deuxième ouverture, l'Accueil arrive presque tout de suite, sans écran vide. Rallume le module, puis rouvre Familia. **Attendu :** l'animation se joue.
