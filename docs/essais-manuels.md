@@ -1242,6 +1242,17 @@ Module « Fil d'actualité » allumé. Éteint, Tout Familia et l'Accueil resten
 8. Un dimanche avec des photos, un anniversaire ou un voyage en cours. **Attendu :** une carte lilas « La semaine de la famille » avec les chiffres, les vignettes et « Revoir la semaine », qui ouvre le récap. Les autres jours, pas de carte.
 9. Du 26/12 au 10/01. **Attendu :** une carte verte « Notre année » avec « Regarder », qui ouvre l'année.
 
+## Albums par mois (récit 71)
+
+Module « Fil d'actualité » allumé. Éteint, Albums reste la liste d'avant.
+
+1. Ouvre **Tout Familia**, puis **Albums**. **Attendu :** « Toutes les photos de la famille, rangées toutes seules. », puis un bouton noir « Diaporama de novembre » qui ouvre le diaporama du mois.
+2. **Attendu :** les albums rangés par mois (« Novembre 2026 », « Octobre 2026 »…), deux par ligne, avec une couverture aux coins arrondis, le titre, puis « 12 photos · Prénom ».
+3. Publie une bonne nouvelle avec une photo. **Attendu :** en tête du mois, un album « Photos du fil » avec la pastille verte « Du fil ». Touche-le : toutes les photos du fil du mois, trois par ligne. Une photo ouvre sa bonne nouvelle.
+4. Masque une bonne nouvelle pour toi. **Attendu :** ses photos quittent « Photos du fil » chez toi seulement.
+5. Un voyage surprise (que quelqu'un ne suit pas). **Attendu :** il n'apparaît pas dans Albums, même chez ceux qui le suivent. Il reste dans l'écran Voyages.
+6. Mets la taille du texte à 200 %. **Attendu :** un album par ligne, les titres restent lisibles.
+
 ## Nouveau Planning (PRODUIT-126)
 
 Avant de commencer : **Administration**, puis **Modules**, et allume « Nouveau Planning ». Éteint, l'onglet Planning ne change pas, même pour toi.

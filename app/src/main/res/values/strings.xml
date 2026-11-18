@@ -1263,6 +1263,16 @@
     <string name="albums_row_detail">%1$s, %2$s %3$d</string>
     <string name="albums_open">ouvrir l\'album</string>
     <string name="albums_open_month">ouvrir le diaporama du mois</string>
+    <!-- Albums par mois (récit 71) -->
+    <string name="albums_subtitle">Toutes les photos de la famille, rangées toutes seules.</string>
+    <string name="albums_slideshow">Diaporama de %1$s</string>
+    <string name="albums_tile_detail">%1$s · %2$s</string>
+    <string name="albums_feed_title">Photos du fil</string>
+    <string name="albums_feed_pill">Du fil</string>
+    <string name="albums_feed_screen_title">Photos du fil, %1$s %2$d</string>
+    <string name="albums_feed_empty">Pas encore de photo ce mois-ci</string>
+    <string name="albums_feed_open">ouvrir la bonne nouvelle</string>
+    <string name="albums_feed_photo">Photo de %1$s</string>
     <string name="album_photo_position">%1$d sur %2$d</string>
     <string name="album_photo_remove">Retirer</string>
     <string name="album_photo_remove_title">Retirer cette photo ?</string>
