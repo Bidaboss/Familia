@@ -82,14 +82,14 @@ fun UpdateBanner(onUpdate: () -> Unit, onLater: () -> Unit, modifier: Modifier =
                     onClick = onLater,
                     border = BorderStroke(1.5.dp, BANNER_OUTLINE),
                     colors = ButtonDefaults.outlinedButtonColors(containerColor = BANNER_CARD, contentColor = BANNER_INK),
-                    modifier = Modifier.weight(0.45f).heightIn(min = 48.dp),
+                    modifier = Modifier.weight(0.45f).heightIn(min = 56.dp),
                 ) {
                     Text(stringResource(R.string.update_later), textAlign = TextAlign.Center)
                 }
                 Button(
                     onClick = onUpdate,
                     colors = ButtonDefaults.buttonColors(containerColor = BANNER_INK, contentColor = Color.White),
-                    modifier = Modifier.weight(0.55f).heightIn(min = 48.dp),
+                    modifier = Modifier.weight(0.55f).heightIn(min = 56.dp),
                 ) {
                     Text(stringResource(R.string.update_action), textAlign = TextAlign.Center)
                 }
