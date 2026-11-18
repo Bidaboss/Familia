@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.EventRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.PollRepository
+import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
@@ -73,7 +74,8 @@ class PollEditViewModel(
         family = loaded
         me = current
         val everyone = loaded.members.map { it.id }.toSet()
-        initialForm = PollForm(askedIds = eventGuests(loaded) ?: everyone)
+        val event = loadEvent()
+        initialForm = PollForm(askedIds = eventGuests(loaded, event) ?: everyone)
         // My household first, then the others; in each, the adults then the children.
         val households = loaded.households.sortedWith(compareBy({ it.id != current.householdId }, { it.name.lowercase() }))
         val groups = households.mapNotNull { household ->
@@ -89,21 +91,31 @@ class PollEditViewModel(
             hasChanges = form != initialForm,
             groups = groups,
             shortcuts = listOf(AskShortcut(null, everyone)) + groups.map { g -> AskShortcut(g.name, g.members.map { it.id }.toSet()) },
+            forEvent = event?.let { PollEvent(it.title, it.date) },
         )
     }
 
-    /** Those the event concerns, or null outside an event; an event gone meanwhile ticks nobody. */
-    private suspend fun eventGuests(family: Family): Set<String>? {
+    /** The event the poll is asked from, or null outside an event or when it cannot be read. */
+    private suspend fun loadEvent(): Event? {
         val id = eventId ?: return null
-        val event = try {
+        return try {
             events?.getEvent(id)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             null
-        } ?: return emptySet()
+        }
+    }
+
+    /** Those the event concerns, or null outside an event; an event gone meanwhile ticks nobody. */
+    private fun eventGuests(family: Family, event: Event?): Set<String>? {
+        if (eventId == null) return null
+        event ?: return emptySet()
         return family.members.filter { concerns(event.target, it, family) }.map { it.id }.toSet()
     }
+
+    /** From an event: [motive] chosen, with its [question] written in (still to change). */
+    fun chooseMotive(motive: PollMotive, question: String) = update { it.withMotive(motive, question) }
 
     private fun unavailable() {
         _uiState.value = PollEditUiState.Unavailable
@@ -218,6 +230,7 @@ internal fun saveDraft(handle: SavedStateHandle, form: PollForm) {
     handle[KEY_DRAFT + "multiple"] = form.multiple
     handle[KEY_DRAFT + "asked"] = ArrayList(form.askedIds)
     handle[KEY_DRAFT + "closesOn"] = form.closesOn?.toString()
+    handle[KEY_DRAFT + "motive"] = form.motive?.name
 }
 
 /** The form kept before Android stopped the app, or null when nothing was typed yet. */
@@ -236,5 +249,6 @@ internal fun restoreDraft(handle: SavedStateHandle): PollForm? {
         multiple = handle.get<Boolean>(KEY_DRAFT + "multiple") ?: false,
         askedIds = handle.get<ArrayList<String>>(KEY_DRAFT + "asked").orEmpty().toSet(),
         closesOn = handle.get<String>(KEY_DRAFT + "closesOn")?.let(day),
+        motive = PollMotive.entries.firstOrNull { it.name == handle.get<String>(KEY_DRAFT + "motive") },
     )
 }
