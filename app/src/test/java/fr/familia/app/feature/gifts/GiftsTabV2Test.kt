@@ -100,7 +100,28 @@ class GiftsTabV2Test {
         compose.onNodeWithText("Foyer Deux").performClick()
         compose.waitForIdle()
         assertEquals(1, count("Anniversaire le 3 juin"))
-        assertTrue(compose.onAllNodesWithContentDescription("Idées pour Kid2").fetchSemanticsNodes().isNotEmpty())
+        // No surprise in progress for Kid2: no « Surprise » on the card, « Préparer une surprise » starts one.
+        assertEquals(0, button("Surprise pour Kid2"))
+    }
+
+    @Test
+    fun `« Surprise » shows on a card only once a surprise is in progress`() {
+        show(stateFor("adult1").copy(surprisePreparedFor = setOf("adult2")))
+        // In relief: adult2 has a surprise, so the door is there, on the card in relief only.
+        assertEquals(1, button("Surprise pour Adult2"))
+        assertEquals(0, button("Surprise pour Admin1"))
+    }
+
+    @Test
+    fun `while « Préparer une surprise » is off, « Surprise » stays on every card`() {
+        val state = stateFor("adult1").copy(surpriseButton = false)
+        assertTrue(surpriseDoor(state, "admin1", showPreparing = true))
+        assertTrue(surpriseDoor(state, "adult2", showPreparing = true))
+        assertFalse(surpriseDoor(state, "adult2", showPreparing = false))
+        val on = stateFor("adult1").copy(surprisePreparedFor = setOf("adult2"))
+        assertTrue(surpriseDoor(on, "adult2", showPreparing = true))
+        assertFalse(surpriseDoor(on, "admin1", showPreparing = true))
+        assertFalse(surpriseDoor(on, "adult2", showPreparing = false))
     }
 
     @Test
@@ -170,9 +191,10 @@ class GiftsTabV2Test {
     }
 
     @Test
-    fun `a child finds their wishes first, and never « Idées »`() {
+    fun `a child finds their wishes first, and never « Surprise »`() {
         show(stateFor("kid1"))
         assertTrue(top("Mes envies") < top("À venir"))
+        assertEquals(0, count("Surprise"))
         assertEquals(0, count("Idées"))
         assertEquals(0, button("Préparer une surprise"))
         assertTrue(count("Ses envies") > 0)
