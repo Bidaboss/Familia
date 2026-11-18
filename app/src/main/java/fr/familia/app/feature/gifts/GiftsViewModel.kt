@@ -74,6 +74,8 @@ sealed interface GiftsUiState {
          * a child without the app see it, as the rules let them read the child's ideas.
          */
         val surprisePreparedFor: Set<String> = emptySet(),
+        /** « Bouton surprise » (récit 63): one button to prepare a surprise, and the surprises in progress on top. */
+        val surpriseButton: Boolean = false,
         /** One list of wishes per person, and the ideas of the family (récit 9 ter): no list for an occasion. */
         val singleList: Boolean = false,
         /** The occasions to prepare (récit 9 ter): the next Christmas, then the next birthdays. */
@@ -111,6 +113,8 @@ class GiftsViewModel(
     private val presentation: Boolean = false,
     /** When this phone last opened each list, from [GiftSeenPreferences]. */
     private val seen: Flow<Map<String, Long>> = flowOf(emptyMap()),
+    /** The switch « Bouton surprise » (récit 63). */
+    private val surpriseButton: Boolean = false,
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
@@ -122,7 +126,7 @@ class GiftsViewModel(
                 flowOf(GiftsUiState.Error)
             } else {
                 combine(members.observeFamily(), gifts.observeVisibleLists(currentMemberId), today) { family, lists, day ->
-                    giftsState(family, lists, currentMemberId, day, singleList, presentation)
+                    giftsState(family, lists, currentMemberId, day, singleList, presentation, surpriseButton)
                 }
                     .flatMapLatest { state -> withPreviews(gifts, state) }
                     .let { states ->
@@ -194,7 +198,9 @@ internal fun surpriseIdeasToRead(state: GiftsUiState.Success): List<String> =
     if (!state.singleList) {
         emptyList()
     } else {
-        state.birthdays.map { it.member.id }.distinct()
+        // « Surprises en préparation » (récit 63) names everyone with a surprise, not only the next birthdays.
+        val people = if (state.surpriseButton) state.sections.map { it.member.id } else state.birthdays.map { it.member.id }
+        people.distinct()
             .filter { id -> state.sections.none { it.member.id == id && it.isMe } }
     }
 
@@ -307,6 +313,7 @@ internal fun giftsState(
     today: LocalDate,
     singleList: Boolean = false,
     presentation: Boolean = false,
+    surpriseButton: Boolean = false,
 ): GiftsUiState {
     val me = family.members.firstOrNull { it.id == meId } ?: return GiftsUiState.Error
     val byId = family.members.associateBy { it.id }
@@ -348,6 +355,7 @@ internal fun giftsState(
         singleList = singleList,
         presentation = presentation && singleList,
         next = if (presentation && singleList) nextOccasion(today, family.members) else null,
+        surpriseButton = surpriseButton,
     )
 }
 

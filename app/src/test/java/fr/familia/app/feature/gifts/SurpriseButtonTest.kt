@@ -1,0 +1,131 @@
+package fr.familia.app.feature.gifts
+
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.performClick
+import fr.familia.app.core.model.GiftList
+import fr.familia.app.core.model.GiftListKind
+import fr.familia.app.core.model.GiftOccasion
+import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.viewas.listsSeenBy
+import fr.familia.app.feature.events.TestFamily
+import fr.familia.app.feature.gifts.edit.nearestOccasionOf
+import fr.familia.app.feature.gifts.surprise.surprisePickState
+import fr.familia.app.feature.presentation.LocalPresenting
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import java.time.LocalDate
+
+/**
+ * « Préparer une surprise » depuis un seul bouton (PRD rév. 287, récit 63): the button, the choice of
+ * the person, the nearest occasion, and « Surprises en préparation », never seen by the person
+ * celebrated nor while presenting. Fictional family only (TestFamily).
+ */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34], qualifiers = "w360dp-h780dp-xxhdpi")
+class SurpriseButtonTest {
+
+    @get:Rule
+    val compose = createComposeRule()
+
+    private val today = LocalDate.of(2026, 11, 15)
+
+    /** adult1 has a birthday in five days; adult2 prepares a surprise for it. */
+    private val family = TestFamily.family.copy(
+        members = TestFamily.family.members.map { if (it.id == "adult1") it.copy(birthDate = LocalDate.of(1990, 11, 20)) else it },
+    )
+    private val surprise = GiftList(
+        "s1", GiftListKind.Surprise, "Surprise s1", GiftOccasion.Birthday, LocalDate.of(2026, 11, 20),
+        "adult1", listOf("admin1", "adult2"), "adult2", "Adult2", false,
+    )
+
+    private fun stateFor(reader: String, button: Boolean = true) =
+        giftsState(family, listsSeenBy(listOf(surprise), reader), reader, today, surpriseButton = button) as GiftsUiState.Success
+
+    private fun show(state: GiftsUiState.Success, presenting: Boolean = false, onPicker: () -> Unit = {}) {
+        compose.setContent {
+            FamiliaTheme {
+                CompositionLocalProvider(LocalPresenting provides presenting) {
+                    GiftsScreen(state, onOpenList = {}, onNewList = {}, onRetry = {}, onOpenSurprisePicker = onPicker)
+                }
+            }
+        }
+        compose.waitForIdle()
+    }
+
+    private fun count(text: String) = compose.onAllNodesWithText(text, substring = true).fetchSemanticsNodes().size
+
+    @Test
+    fun `the giver sees the surprise in progress`() {
+        val lines = preparingLines(stateFor("adult2"))
+        assertEquals(listOf("s1"), lines.map { it.key })
+    }
+
+    @Test
+    fun `the person celebrated sees nothing`() {
+        assertTrue(preparingLines(stateFor("adult1")).isEmpty())
+        show(stateFor("adult1"))
+        assertEquals(0, count("Surprises en préparation"))
+        assertEquals(0, count("Surprise s1"))
+    }
+
+    @Test
+    fun `the section and the button show for the giver`() {
+        var opened = 0
+        show(stateFor("adult2"), onPicker = { opened++ })
+        assertEquals(1, count("Surprises en préparation"))
+        // In « Surprises en préparation », and maybe again among the lists of the person further down.
+        assertTrue(count("Surprise s1") >= 1)
+        compose.onNodeWithContentDescription("Préparer une surprise").performClick()
+        assertEquals(1, opened)
+    }
+
+    @Test
+    fun `nothing of it while presenting`() {
+        show(stateFor("adult2"), presenting = true)
+        assertEquals(0, count("Surprises en préparation"))
+    }
+
+    @Test
+    fun `switched off, the tab stays as it was`() {
+        show(stateFor("adult2", button = false))
+        assertEquals(0, count("Surprises en préparation"))
+        assertEquals(0, compose.onAllNodesWithContentDescription("Préparer une surprise").fetchSemanticsNodes().size)
+        assertEquals(1, count("Préparer une surprise"))
+    }
+
+    @Test
+    fun `with the button, every other member is read for a surprise idea`() {
+        val state = giftsState(family, emptyList(), "adult2", today, singleList = true, surpriseButton = true) as GiftsUiState.Success
+        assertEquals(setOf("admin1", "adult1", "kid1", "kid2"), surpriseIdeasToRead(state).toSet())
+        val ideas = preparingLines(state.copy(surprisePreparedFor = setOf("adult1")))
+        assertEquals(listOf("ideas-adult1"), ideas.map { it.key })
+    }
+
+    @Test
+    fun `the choice of the person leaves me out, the next birthday first`() {
+        val pick = surprisePickState(family, "adult2", today)
+        assertEquals("adult1", pick.next?.member?.id)
+        val everyone = pick.groups.flatMap { group -> group.members.map { it.id } }
+        assertTrue("adult2" !in everyone)
+        assertEquals(listOf("Foyer Deux", "Foyer Un"), pick.groups.map { it.name })
+    }
+
+    @Test
+    fun `the nearest occasion is chosen`() {
+        val adult1 = family.members.first { it.id == "adult1" }
+        assertEquals(GiftOccasion.Birthday to LocalDate.of(2026, 11, 20), nearestOccasionOf(adult1, today))
+        val later = adult1.copy(birthDate = LocalDate.of(1990, 2, 3))
+        assertEquals(GiftOccasion.Christmas to LocalDate.of(2026, 12, 25), nearestOccasionOf(later, today))
+        val none = adult1.copy(birthDate = null)
+        assertEquals(GiftOccasion.Christmas to LocalDate.of(2027, 12, 25), nearestOccasionOf(none, LocalDate.of(2026, 12, 26)))
+    }
+}

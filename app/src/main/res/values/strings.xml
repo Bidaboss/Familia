@@ -245,6 +245,7 @@
     <string name="feature_help_daily_nudge">Sur l\'Accueil, un « petit geste du jour » dans À faire, sans notification.</string>
     <string name="feature_help_think_of_me">« Pensez à moi » : on note un moment important, et la famille encourage le jour J.</string>
     <string name="feature_help_who_is_it">« Qui est-ce ? » sur l\'Accueil : une vieille photo, la famille devine qui c\'est et en quelle année.</string>
+    <string name="feature_help_surprise_button">Un bouton « Préparer une surprise » dans Cadeaux, et les surprises en préparation en haut. La personne fêtée ne voit rien.</string>
     <string name="feature_help_old_lists_cleanup">Après le 21/11 : efface les anciennes listes déjà copiées dans « Mes envies » et les idées. Rien de ce qu\'elles contiennent ne se perd.</string>
     <string name="feature_help_single_list">Une seule liste d\'envies par personne et « Idées de la famille », à la place des listes d\'occasion.</string>
     <string name="feature_help_more_photos">Une photo de couverture sur un événement, et une photo sur une envie.</string>
@@ -706,6 +707,16 @@
         <item quantity="other">%d surprises en préparation</item>
     </plurals>
     <string name="gifts_surprise_prepared">Une surprise est déjà en préparation</string>
+    <string name="gifts_preparing_title">Surprises en préparation</string>
+    <string name="gifts_preparing_for">Pour %1$s</string>
+    <string name="gifts_preparing_ideas_title">Surprise pour %1$s</string>
+    <string name="gifts_preparing_ideas_birthday">Dans ses idées, pour son anniversaire : %1$s</string>
+    <string name="gifts_preparing_ideas">Dans ses idées de la famille</string>
+    <string name="surprise_pick_title">Préparer une surprise</string>
+    <string name="surprise_pick_question">Pour qui ?</string>
+    <string name="surprise_pick_next">Prochain anniversaire</string>
+    <string name="surprise_pick_birthday">Anniversaire : %1$s</string>
+    <string name="surprise_pick_error">Impossible d\'afficher la famille. Vérifie ta connexion, puis réessaie.</string>
     <string name="gifts_all_birthdays">Tous les anniversaires</string>
     <string name="gifts_archived_title">Listes passées</string>
     <string name="gifts_archived_for">Pour %1$s · %2$s</string>
@@ -2141,6 +2152,7 @@
     <string name="feature_welcome">La bienvenue</string>
     <string name="feature_single_list">Une seule liste d\'envies par personne</string>
     <string name="feature_old_lists_cleanup">Effacer les anciennes listes</string>
+    <string name="feature_surprise_button">Bouton surprise</string>
     <string name="old_lists_cleanup_confirm_title">Effacer les anciennes listes ?</string>
     <string name="old_lists_cleanup_confirm_body">Les listes d\'occasion déjà copiées seront effacées pour de bon. Leurs envies, réservations et parts restent dans « Mes envies » et les idées. Avant le 22 novembre, rien ne se passe : rallume-le après le 22.</string>
     <string name="old_lists_cleanup_confirm">Effacer</string>

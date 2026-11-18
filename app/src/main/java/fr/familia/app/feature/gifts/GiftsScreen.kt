@@ -54,6 +54,7 @@ import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.dayShortLabel
 import fr.familia.app.core.model.Birthday
+import fr.familia.app.core.model.nextBirthday
 import fr.familia.app.feature.presentation.LocalPresenting
 import java.time.LocalDate
 import fr.familia.app.core.ui.LoadingState
@@ -75,6 +76,8 @@ fun GiftsScreen(
     onSelectMoment: (GiftMoment?) -> Unit = {},
     /** « Mes envies » now live on the member's page (retour d'essai, 17/11): the tab only leads there. */
     onOpenMyPage: (() -> Unit)? = null,
+    /** « Préparer une surprise » (récit 63): the one button, while « Bouton surprise » is on. */
+    onOpenSurprisePicker: (() -> Unit)? = null,
 ) {
     // Mode présentation (récit 48): the tab may be on screen at the party, in front of the person.
     val presenting = LocalPresenting.current
@@ -94,7 +97,11 @@ fun GiftsScreen(
             is GiftsUiState.Success -> LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 // Room at the bottom so the add button never hides the last list.
-                contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 16.dp, bottom = 96.dp),
+                // Two buttons stacked when « Bouton surprise » meets the lists by occasion.
+                contentPadding = PaddingValues(
+                    start = ClaySpacing.screen, end = ClaySpacing.screen, top = 16.dp,
+                    bottom = if (state.surpriseButton && !state.singleList) 168.dp else 96.dp,
+                ),
                 verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
             ) {
                 if (someListsHidden) {
@@ -107,7 +114,10 @@ fun GiftsScreen(
                     }
                 }
                 if (state.presentation) {
-                    presentationContent(state, onOpenList, onSelectMoment, onAllBirthdays, onPrepareSurprise, onOpenNotebook, onOpenMyPage)
+                    presentationContent(
+                        state, onOpenList, onSelectMoment, onAllBirthdays, onPrepareSurprise, onOpenNotebook, onOpenMyPage,
+                        showPreparing = !presenting && !someListsHidden,
+                    )
                     return@LazyColumn
                 }
                 onOpenNotebook?.let { open ->
@@ -125,6 +135,8 @@ fun GiftsScreen(
                 }
                 // Once an occasion is chosen, its people come first: the birthdays wait.
                 if (state.moment == null) birthdaysSection(state, onAllBirthdays, onPrepareSurprise, onOpenList)
+                // Never while presenting nor in « Voir comme » (récit 63): nothing of a surprise on screen.
+                if (!presenting && !someListsHidden) preparingSection(state, onOpenList)
                 state.sections.filter { it.keptByMe }.forEach { section ->
                     personSection(section, state.today, state.wishPreviews, onOpenList, state.singleList, presenting, onOpenMyPage)
                 }
@@ -136,15 +148,30 @@ fun GiftsScreen(
                 if (state.archived.isNotEmpty()) archivedSection(state.archived, state.today, onOpenList)
             }
         }
-        // With the single list (récit 9 ter), nobody makes a list any more: each person has theirs.
-        if (state is GiftsUiState.Success && !state.singleList) {
-            ExtendedFloatingActionButton(
-                onClick = onNewList,
-                // The text of an extended button is hidden from TalkBack (Material 3): the icon says it.
-                icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.gifts_new_list)) },
-                text = { Text(stringResource(R.string.gifts_new_list)) },
-                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
-            )
+        val surpriseButton = (state as? GiftsUiState.Success)
+            ?.takeIf { it.surpriseButton && it.canPrepareSurprise && !someListsHidden }
+            ?.let { onOpenSurprisePicker }
+        Column(
+            Modifier.align(Alignment.BottomEnd).padding(16.dp),
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            // With the single list (récit 9 ter), nobody makes a list any more: each person has theirs.
+            if (state is GiftsUiState.Success && !state.singleList) {
+                ExtendedFloatingActionButton(
+                    onClick = onNewList,
+                    // The text of an extended button is hidden from TalkBack (Material 3): the icon says it.
+                    icon = { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.gifts_new_list)) },
+                    text = { Text(stringResource(R.string.gifts_new_list)) },
+                )
+            }
+            surpriseButton?.let { open ->
+                ExtendedFloatingActionButton(
+                    onClick = open,
+                    icon = { Icon(Icons.Outlined.CardGiftcard, contentDescription = stringResource(R.string.gifts_prepare_surprise)) },
+                    text = { Text(stringResource(R.string.gifts_prepare_surprise)) },
+                )
+            }
         }
     }
 }
@@ -224,6 +251,67 @@ internal fun MyWishesOnPageCard(onOpenMyPage: () -> Unit) {
     )
 }
 
+/**
+ * « Surprises en préparation » (récit 63): one line per person with a surprise this member can read,
+ * never their own (the server and listsSeenBy keep it from them). With the single list, a surprise is
+ * an idea of the family kept from its person. The caller hides it while presenting and in « Voir comme ».
+ */
+internal fun LazyListScope.preparingSection(state: GiftsUiState.Success, onOpenList: (String) -> Unit) {
+    val lines = preparingLines(state)
+    if (!state.surpriseButton || lines.isEmpty()) return
+    item(key = "preparing-title") {
+        Text(
+            stringResource(R.string.gifts_preparing_title),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(top = 16.dp).semantics { heading() },
+        )
+    }
+    items(lines, key = { "preparing-${it.key}" }) { line ->
+        when (line) {
+            is PreparingLine.OfList -> ListCard(
+                title = line.list.title,
+                subtitle = stringResource(R.string.gifts_preparing_for, line.member.firstName),
+                tint = ClayTint.Birthday,
+                onClick = { onOpenList(line.list.id) },
+            )
+            is PreparingLine.OfIdeas -> ListCard(
+                title = stringResource(R.string.gifts_preparing_ideas_title, line.member.firstName),
+                subtitle = line.birthday?.let { stringResource(R.string.gifts_preparing_ideas_birthday, dayShortLabel(it, state.today)) }
+                    ?: stringResource(R.string.gifts_preparing_ideas),
+                tint = ClayTint.Birthday,
+                onClick = { onOpenList(ideasListId(line.member.id)) },
+            )
+        }
+    }
+}
+
+/** One line of « Surprises en préparation ». */
+internal sealed interface PreparingLine {
+    val key: String
+
+    data class OfList(val list: GiftList, val member: Member) : PreparingLine {
+        override val key: String get() = list.id
+    }
+
+    data class OfIdeas(val member: Member, val birthday: LocalDate?) : PreparingLine {
+        override val key: String get() = "ideas-${member.id}"
+    }
+}
+
+/** The surprises in progress, nearest first: never this member's own. */
+internal fun preparingLines(state: GiftsUiState.Success): List<PreparingLine> {
+    val others = state.sections.filter { !it.isMe }
+    val lists = others.flatMap { section -> surprisesFor(state, section.member.id).map { PreparingLine.OfList(it, section.member) } }
+    val ideas = others.filter { it.member.id in state.surprisePreparedFor }
+        .map { section -> PreparingLine.OfIdeas(section.member, section.member.birthDate?.let { nextBirthday(it, state.today) }) }
+    return (lists + ideas).sortedBy { line ->
+        when (line) {
+            is PreparingLine.OfList -> line.list.date ?: LocalDate.MAX
+            is PreparingLine.OfIdeas -> line.birthday ?: LocalDate.MAX
+        }
+    }
+}
+
 /** While presenting, a surprise in progress stays out of sight: its title names the occasion. */
 internal fun shownLists(lists: List<GiftList>, presenting: Boolean): List<GiftList> =
     if (presenting) lists.filter { it.kind != GiftListKind.Surprise || it.revealed } else lists
@@ -288,7 +376,8 @@ internal fun LazyListScope.birthdaysSection(
                     modifier = Modifier.padding(top = 4.dp),
                 )
             }
-            if (state.canPrepareSurprise && !isMine) {
+            // With « Bouton surprise » (récit 63), the one button of the tab replaces this link.
+            if (state.canPrepareSurprise && !isMine && !state.surpriseButton) {
                 ClayLink(
                     stringResource(R.string.gifts_prepare_surprise),
                     onClick = { onPrepareSurprise(birthday.member.id) },

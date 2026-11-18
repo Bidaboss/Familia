@@ -129,6 +129,7 @@ import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
 import fr.familia.app.feature.members.profile.MemberProfileRoute
 import fr.familia.app.feature.members.profile.ProfileGiftActions
+import fr.familia.app.feature.gifts.surprise.SurprisePickRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyArchiveRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionRoute
 import fr.familia.app.feature.help.LocalOpenHelp
@@ -1362,17 +1363,25 @@ fun FamiliaApp(
                             onNewList = { navController.navigate(GiftListEditDestination()) },
                             onAllBirthdays = { navController.navigate(BirthdaysRoute) },
                             // With the single list (récit 9 ter), a surprise is an idea of the family.
-                            onPrepareSurprise = if (features.isOn(Feature.SingleList)) {
-                                { id -> navController.navigate(GiftListDestination(ideasListId(id))) }
-                            } else {
-                                { id -> navController.navigate(GiftListEditDestination(forMemberId = id)) }
-                            },
+                            onPrepareSurprise = { id -> prepareSurprise(navController, features.isOn(Feature.SingleList), id, nearestOccasion = false) },
                             onOpenNotebook = if (features.isOn(Feature.GiftNotebook)) {
                                 { navController.navigate(NotebookDestination) }
                             } else {
                                 null
                             },
                             onOpenMyPage = { navController.navigate(MemberProfileDestination(currentMember.id)) },
+                            onOpenSurprisePicker = { navController.navigate(SurprisePickDestination) },
+                        )
+                    }
+                    composable<SurprisePickDestination> {
+                        SurprisePickRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onBack = { navController.popBackStack() },
+                            onPick = { id ->
+                                navController.popBackStack()
+                                prepareSurprise(navController, features.isOn(Feature.SingleList), id, nearestOccasion = true)
+                            },
                         )
                     }
                     composable<NotebookDestination> {
@@ -1446,6 +1455,7 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             listId = route.listId,
                             forMemberId = route.forMemberId,
+                            nearestOccasion = route.nearestOccasion,
                             onDone = { deleted ->
                                 // A deleted list closes its screen too.
                                 if (deleted) navController.popBackStack(GiftsRoute, inclusive = false) else navController.popBackStack()
@@ -2079,5 +2089,14 @@ private fun NavHostController.navigateToTab(destination: TopLevelDestination) {
         popUpTo(graph.findStartDestination().id) { saveState = true }
         launchSingleTop = true
         restoreState = true
+    }
+}
+
+/** With the single list a surprise is an idea of the family (récit 9 ter); else a surprise list. */
+private fun prepareSurprise(navController: NavHostController, singleList: Boolean, memberId: String, nearestOccasion: Boolean) {
+    if (singleList) {
+        navController.navigate(GiftListDestination(ideasListId(memberId)))
+    } else {
+        navController.navigate(GiftListEditDestination(forMemberId = memberId, nearestOccasion = nearestOccasion))
     }
 }
