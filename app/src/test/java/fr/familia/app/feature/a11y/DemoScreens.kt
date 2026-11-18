@@ -31,7 +31,7 @@ internal object DemoScreens {
     val all: List<Pair<String, @Composable () -> Unit>> = listOf(
         screen("l'Accueil") { HomeR1bisScreen(previewHome(), HomeActions(onOpenWishes = {}), HomeR1bisActions()) },
         screen("le Planning par mois") {
-            PlanningScreen(previewPlanning(), {}, {}, {}, initialMode = PlanningMode.Month, onScopeChange = {})
+            PlanningScreen(previewPlanning(), {}, {}, {}, initialMode = PlanningMode.Month)
         },
         screen("le Planning en liste") {
             PlanningScreen(previewPlanning(), {}, {}, {}, initialMode = PlanningMode.List, onShareBirthday = {})
