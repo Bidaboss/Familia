@@ -6,11 +6,11 @@ Ce document te suit pas à pas, de la veille au soir jusqu'à la fin du café. L
 
 1. Fais la mise à jour sur ton téléphone et sur le deuxième téléphone de test, avec la marche à suivre « Mise à jour du 20 au soir » de [essais-manuels.md](essais-manuels.md).
 2. Sur les deux téléphones, touche « C'est parti » sur la feuille « Quoi de neuf ? », pour qu'elle ne s'ouvre pas devant tout le monde.
-3. **Administration**, **Modules** : allume ce que tu veux montrer, éteins le reste. Un module éteint ne laisse aucune trace chez les autres (ni pastille, ni carte « À découvrir », ni aide, ni notification). Toi, tu vois toujours tout : regarde avec « Voir comme » pour juger.
+3. **Administration**, **Modules** : allume ce que tu veux montrer, éteins le reste. La famille découvre les nouvelles versions (AVIS-22) : « Nouvel onglet Cadeaux », « Nouvelle fiche de membre », « Nouveau Planning » et « Fil d'actualité ». Allume chacune seulement si [DEV] t'a confirmé qu'elle est prête, sinon l'ancienne reste (liste détaillée à l'étape 3 de [veille-du-21.md](veille-du-21.md)). Un module éteint ne laisse aucune trace chez les autres (ni pastille, ni carte « À découvrir », ni aide, ni notification). Toi, tu vois toujours tout : regarde avec « Voir comme » pour juger.
 4. Vérifie que chaque membre a son adresse Google dans sa fiche. Sans adresse, la personne ne pourra pas se connecter demain.
 5. Prépare les invitations : dans **Famille**, ouvre une fiche, « Envoyer l'invitation », et vérifie que le message contient le lien d'installation. Ne les envoie pas encore.
-6. Fais une répétition avec « Voir comme » : parcours la visite guidée du jour J (étape 5, plus bas) en « Voir comme » un membre qui n'est **pas** la personne fêtée, puis l'onglet Cadeaux en « Voir comme » la personne fêtée. **Attendu :** rien ne lui montre ce qui est réservé pour elle. Note ce qui pourrait gêner.
-7. Ouvre une fois, avec le réseau, Accueil, Planning, Entraide et Famille : ils resteront lisibles si le réseau tombe demain.
+6. Fais une répétition avec « Voir comme » : parcours la visite guidée du jour J (étape 5, plus bas) en « Voir comme » un membre qui n'est **pas** la personne fêtée, puis, en « Voir comme » la personne fêtée, l'onglet Cadeaux, sa fiche, le Planning et « Le fil » de l'Accueil. **Attendu :** rien ne lui montre ce qui est réservé ou préparé pour elle. Note ce qui pourrait gêner.
+7. Ouvre une fois, avec le réseau, Accueil (et « Le fil »), Planning (Semaine et Mois), Cadeaux, Entraide et Famille : ils resteront lisibles si le réseau tombe demain.
 8. Télécharge l'APK du Drive sur ton téléphone, dans « Téléchargements ». C'est ton plan B si le réseau du lieu est mauvais.
 9. Recharge les deux téléphones à 100 %.
 
@@ -36,8 +36,8 @@ Chacun ouvre Familia, se connecte avec son compte Google, puis suit le tuto. Lai
 
 **5. La visite guidée, 5 minutes, sur leurs propres téléphones**
 Tu guides à voix haute, chacun touche sur son téléphone :
-1. **L'Accueil** : les prochains rendez-vous, les anniversaires qui arrivent, « À faire ».
-2. **Un événement** : le repas de Noël (ou celui préparé la veille), depuis le Planning. Chacun touche « Je viens ». Puis « Qui apporte quoi » : chacun prend une ligne, préparée la veille (voir [veille-du-21.md](veille-du-21.md)).
+1. **L'Accueil** : les prochains rendez-vous, les anniversaires qui arrivent, « À faire ». Si « Fil d'actualité » est allumé, chacun touche « Le fil » sous « Bonjour » : ce qui s'est passé dans la famille, jour par jour, puis « ‹ Aujourd'hui » pour revenir.
+2. **Un événement** : le repas de Noël (ou celui préparé la veille), depuis le Planning. Si « Nouveau Planning » est allumé, montre d'abord la frise de la semaine, puis touche le titre et choisis « Mois » pour trouver le jour. Chacun touche « Je viens ». Puis « Qui apporte quoi » : chacun prend une ligne, préparée la veille (voir [veille-du-21.md](veille-du-21.md)).
 3. **Les Cadeaux** : chacun regarde sa liste d'envies et celles des autres. La personne fêtée peut le faire aussi : le serveur lui cache ce qui est réservé pour elle, et la liste de son anniversaire préparée par les autres. Toi, ne tourne pas ton propre onglet Cadeaux vers la table.
 
 **6. La photo du repas, en Bonne nouvelle puis dans l'album**
@@ -66,6 +66,7 @@ C'est le moment fort : toute la table la reçoit. **C'est toi qui postes, depuis
 - **Le téléphone tourne, ou tu reviens dans Familia après un appel :** le bandeau « Voir comme » reste, un rond tourne un instant, puis l'appli du membre revient, sur son Accueil. Ton propre Accueil ne s'affiche pas.
 - **Ne ferme pas Familia depuis les applis récentes pendant « Voir comme » :** à la réouverture, c'est ton propre Accueil. Si ça arrive, tourne l'écran vers toi et relance « Voir comme ».
 - **Sur l'Accueil d'un membre, ne touche pas la pastille « Anniversaire de … » :** elle ouvre la liste de la personne fêtée, avec ce qui est déjà réservé.
+- **Une nouvelle version gêne quelqu'un** (Cadeaux, fiche, Planning ou fil) : ne l'éteins pas pendant le café, l'écran changerait sous les yeux de tous. Note-le, et décide le soir même.
 - **Un téléphone d'enfant suivi par Family Link** peut refuser d'installer une appli qui ne vient pas du Play Store. Essaie avant le 21 sur le téléphone d'un enfant de ton foyer. Si ça bloque le jour J, l'enfant découvre l'appli sur le téléphone d'un parent, et on règle son installation après le repas.
 - **Police très grande chez quelqu'un :** les écrans s'adaptent (essayés jusqu'à 200 %). Si un texte paraît coupé, fais défiler l'écran.
 
