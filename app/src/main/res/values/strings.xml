@@ -193,7 +193,7 @@
     <string name="administration_features_new">Nouvelles versions</string>
     <string name="administration_features_new_help">À garder allumées une fois validées. Après le 21, l\'ancienne version et son interrupteur disparaîtront.</string>
     <string name="administration_features_base">La base</string>
-    <string name="administration_features_base_help">Les modules de tous les jours, à laisser allumés.</string>
+    <string name="administration_features_base_help">Toujours allumés pour toute la famille, sans interrupteur : %1$s.</string>
     <string name="administration_challenge_title">Défi du mois</string>
     <string name="administration_challenge_change">Changer le défi de %1$s</string>
     <string name="administration_challenge_locked">La jauge a commencé : ce défi reste jusqu\'à la fin du mois.</string>
@@ -274,6 +274,7 @@
     <string name="feature_help_news_feed">En haut de l\'Accueil, « Aujourd\'hui » ou « Le fil » : ce qui s\'est passé dans la famille, jour par jour.</string>
     <string name="feature_help_admin_announcements">Dans Administration, « Envoyer une notification » : tu écris un message à toute la famille ou à quelques foyers. On ne peut pas y répondre.</string>
     <string name="feature_help_challenge_details">Toucher le défi explique ce qui compte et ce qu\'on gagne ; le foyer qui le lance peut ajouter un mot. Éteint, tu gardes l\'écran actuel.</string>
+    <string name="feature_help_gifts_tab_v2">Une carte par personne à sa couleur, les foyers repliés sauf le tien. Avec la liste unique. Éteint, même toi tu gardes l\'onglet actuel.</string>
     <string name="feature_help_family_tab_v2">L\'onglet Famille commence par ta fiche et ton foyer ; les autres foyers sont plus bas, repliés. Éteint, même toi tu gardes l\'onglet actuel.</string>
     <string name="feature_help_opening_animation">À chaque ouverture, les fruits de l\'arbre deviennent la famille. Dans Apparence, chacun choisit l\'animation longue, courte ou aucune.</string>
     <string name="feature_home">Accueil</string>
@@ -2311,6 +2312,32 @@
     <string name="gifts_next_birthday">Anniversaire de %1$s, %2$s</string>
     <string name="gifts_next_my_birthday">Ton anniversaire, %1$s</string>
     <string name="gifts_upcoming_title">À venir</string>
+    <!-- Nouvel onglet Cadeaux (PRODUIT-119 et 120) -->
+    <string name="gifts_v2_surprise_label">Surprise en préparation</string>
+    <string name="gifts_v2_surprise_birthday">Son anniversaire, %1$s</string>
+    <string name="gifts_v2_open_surprise">Ouvrir la surprise</string>
+    <string name="gifts_v2_next_birthday">Prochain anniversaire</string>
+    <string name="gifts_v2_their_age">%1$s fête ses %2$s</string>
+    <string name="gifts_v2_my_age">Tu fêtes tes %1$s</string>
+    <string name="gifts_v2_date_line">%1$s · %2$s</string>
+    <string name="gifts_v2_their_wishes">Ses envies</string>
+    <string name="gifts_v2_ideas">Idées</string>
+    <string name="gifts_v2_christmas">Noël</string>
+    <string name="gifts_v2_open">ouvrir</string>
+    <string name="gifts_v2_all">Toutes</string>
+    <string name="gifts_v2_my_wishes_none">Aucune envie pour l\'instant</string>
+    <plurals name="gifts_v2_my_wishes_line">
+        <item quantity="one">%d envie · la famille la voit</item>
+        <item quantity="other">%d envies · la famille les voit</item>
+    </plurals>
+    <string name="gifts_v2_add_wish">Ajouter une envie</string>
+    <string name="gifts_v2_see">Voir</string>
+    <string name="gifts_v2_see_my_wishes">Voir mes envies</string>
+    <string name="gifts_v2_family">La famille</string>
+    <string name="gifts_v2_fold">replier %1$s</string>
+    <string name="gifts_v2_unfold">ouvrir %1$s</string>
+    <string name="gifts_v2_birthday_on">Anniversaire le %1$s</string>
+    <string name="gifts_v2_archived">Listes archivées (%1$d)</string>
     <plurals name="gifts_in_days">
         <item quantity="one">demain</item>
         <item quantity="other">dans %d jours</item>
@@ -2942,6 +2969,7 @@
     <string name="feature_packing_list">À emporter</string>
     <string name="feature_opening_animation">Animation de bienvenue</string>
     <string name="feature_family_tab_v2">Famille par foyer</string>
+    <string name="feature_gifts_tab_v2">Nouvel onglet Cadeaux</string>
     <string name="feature_challenge_details">Défis expliqués</string>
     <string name="feature_already_bought">Déjà acheté</string>
     <string name="gift_item_already_bought_check">Je l\'ai déjà acheté, une participation me ferait plaisir</string>
@@ -3158,6 +3186,9 @@
     <!-- Fil d'actualité (récit 67) -->
     <string name="feed_tab_today">Aujourd\'hui</string>
     <string name="feed_tab_feed">Le fil</string>
+    <string name="feed_switch_feed_title">Le fil de la famille</string>
+    <string name="feed_switch_back">Revenir à Aujourd\'hui</string>
+    <string name="feed_switch_open">Voir le fil</string>
     <plurals name="feed_tab_new">
         <item quantity="one">%1$d nouveauté</item>
         <item quantity="other">%1$d nouveautés</item>

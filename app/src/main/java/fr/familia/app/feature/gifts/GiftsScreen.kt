@@ -17,6 +17,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CardGiftcard
+import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -77,6 +81,8 @@ fun GiftsScreen(
     onOpenMyPage: (() -> Unit)? = null,
     /** « Préparer une surprise » (récit 63): the one button, while « Bouton surprise » is on. */
     onOpenSurprisePicker: (() -> Unit)? = null,
+    /** « Ajouter une envie » on the new tab (PRODUIT-119). */
+    onAddWish: (listId: String) -> Unit = onOpenList,
 ) {
     // Mode présentation (récit 48): the tab may be on screen at the party, in front of the person.
     val presenting = LocalPresenting.current
@@ -112,6 +118,16 @@ fun GiftsScreen(
                         )
                     }
                 }
+                // The new tab (PRODUIT-119 and 120, C1 à C5): nothing of a surprise while presenting nor
+                // in « Voir comme », as below.
+                if (state.tabV2) {
+                    giftsV2Content(
+                        state,
+                        GiftsV2Actions(onOpenList, onSelectMoment, onAllBirthdays, onOpenMyPage, onAddWish),
+                        showPreparing = !presenting && !someListsHidden,
+                    )
+                    return@LazyColumn
+                }
                 // At the very top of the tab (PRD rév. 291), never while presenting nor in « Voir comme »
                 // (récit 63): nothing of a surprise on screen.
                 if (!state.presentation && !presenting && !someListsHidden) preparingSection(state, onOpenList)
@@ -141,8 +157,10 @@ fun GiftsScreen(
             }
         }
         val surpriseButton = (state as? GiftsUiState.Success)
-            ?.takeIf { it.surpriseButton && it.canPrepareSurprise && !someListsHidden }
+            // On the new tab, not even the button while presenting (C3): it would say a surprise may exist.
+            ?.takeIf { it.surpriseButton && it.canPrepareSurprise && !someListsHidden && !(it.tabV2 && presenting) }
             ?.let { onOpenSurprisePicker }
+        val v2 = (state as? GiftsUiState.Success)?.tabV2 == true
         Column(
             Modifier.align(Alignment.BottomEnd).padding(16.dp),
             horizontalAlignment = Alignment.End,
@@ -160,8 +178,17 @@ fun GiftsScreen(
             surpriseButton?.let { open ->
                 ExtendedFloatingActionButton(
                     onClick = open,
-                    icon = { Icon(Icons.Outlined.CardGiftcard, contentDescription = stringResource(R.string.gifts_prepare_surprise)) },
+                    icon = {
+                        Icon(
+                            if (v2) Icons.Outlined.AutoAwesome else Icons.Outlined.CardGiftcard,
+                            contentDescription = stringResource(R.string.gifts_prepare_surprise),
+                            tint = if (v2) V2_SUN else LocalContentColor.current,
+                        )
+                    },
                     text = { Text(stringResource(R.string.gifts_prepare_surprise)) },
+                    // Dark on the new tab (C2).
+                    containerColor = if (v2) MaterialTheme.colorScheme.inverseSurface else FloatingActionButtonDefaults.containerColor,
+                    contentColor = if (v2) MaterialTheme.colorScheme.inverseOnSurface else contentColorFor(FloatingActionButtonDefaults.containerColor),
                 )
             }
         }
