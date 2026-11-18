@@ -5,10 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,6 +19,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -46,8 +48,10 @@ enum class FeedTone(val bar: Color, val labelBackground: Color, val label: Color
 }
 
 /**
- * The frame of every card of the fil (maquette F2 bis): a white card with a colored bar on its
- * left; [header] on one line, then [content]. The whole card opens [onOpen], at least 56 dp high.
+ * The frame of every card of the fil: one tile per actualité (PRODUIT-127, variante A). A white
+ * card with corners of 22 dp like the cards of the Planning, a very soft shadow and a thin line of
+ * the color of its type under it; the label of the type says the rest. [header] on one line, then
+ * [content]. The whole card opens [onOpen].
  */
 @Composable
 fun FeedCardShell(
@@ -57,25 +61,40 @@ fun FeedCardShell(
     header: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
-    val shape = RoundedCornerShape(20.dp)
-    Surface(shape = shape, color = MaterialTheme.colorScheme.surface, modifier = modifier.fillMaxWidth()) {
-        Row(
-            Modifier
-                .height(IntrinsicSize.Min)
-                .clip(shape)
-                .then(if (onOpen != null) Modifier.clickable(onClick = onOpen) else Modifier),
-        ) {
-            Box(Modifier.width(5.dp).fillMaxHeight().background(tone.bar))
-            Column(
-                Modifier.weight(1f).padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                header?.invoke()
-                content()
+    val shape = RoundedCornerShape(TILE_CORNER)
+    val line = tone.bar.copy(alpha = 0.25f)
+    Surface(
+        shape = shape,
+        color = MaterialTheme.colorScheme.surface,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(bottom = TILE_LINE)
+            // The thin colored line: the same tile, TILE_LINE lower, behind the card.
+            .drawBehind {
+                val radius = CornerRadius(TILE_CORNER.toPx())
+                drawRoundRect(line, topLeft = Offset(0f, TILE_LINE.toPx()), size = size, cornerRadius = radius)
             }
+            .shadow(elevation = 1.dp, shape = shape, ambientColor = TILE_SHADOW, spotColor = TILE_SHADOW),
+    ) {
+        Column(
+            Modifier
+                .clip(shape)
+                .then(if (onOpen != null) Modifier.clickable(onClick = onOpen) else Modifier)
+                // The 5 dp of the former bar go to the left margin: the content does not move.
+                .padding(start = 17.dp, end = 12.dp, top = 12.dp, bottom = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            header?.invoke()
+            content()
         }
     }
 }
+
+private val TILE_CORNER = 22.dp
+private val TILE_LINE = 2.dp
+
+/** Brown at 7 %: a shadow that only lifts the tile off the dotted background. */
+private val TILE_SHADOW = Color(0x12503A28)
 
 /** « (I) Inès · 9 h 12          [Bonne nouvelle] »: who, when, and the module. */
 @Composable
