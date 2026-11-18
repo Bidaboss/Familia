@@ -2,6 +2,7 @@ package fr.familia.app.feature
 
 import android.os.Looper
 import androidx.compose.foundation.layout.Column
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -46,6 +47,8 @@ import fr.familia.app.feature.goodnews.feed.GoodNewsFeedScreen
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedViewModel
 import fr.familia.app.feature.home.HomeActions
 import fr.familia.app.feature.home.HomeViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import org.junit.Assert.assertEquals
@@ -230,6 +233,20 @@ class DemoScenarioJourneyTest {
         // Back on the feed, where it shows once.
         waitForText("Joyeux anniversaire !")
         assertEquals(1, compose.onAllNodesWithText("Joyeux anniversaire !").fetchSemanticsNodes().size)
+    }
+
+    // --- Les photos: the album of the meal, then « Lancer le diaporama ».
+
+    private class FakeAlbum(initial: List<AlbumPhoto>) : AlbumPhotoRepository {
+        val photos = MutableStateFlow(initial)
+        override fun observePhotos(folder: String): Flow<List<AlbumPhoto>> =
+            photos.map { list -> list.filter { it.folder == folder }.sortedWith(albumPhotoOrder) }
+        override suspend fun addPhoto(folder: String, slot: Int, me: Member) {
+            photos.value = photos.value + AlbumPhoto(folder, me.id, me.firstName, slot, createdAt = null)
+        }
+        override suspend fun deletePhoto(photo: AlbumPhoto) {
+            photos.value = photos.value.filterNot { it.id == photo.id }
+        }
     }
 
     @Test
