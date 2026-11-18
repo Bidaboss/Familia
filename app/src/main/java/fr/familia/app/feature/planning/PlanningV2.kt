@@ -32,7 +32,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -280,7 +279,7 @@ private fun PlanningV2Header(
                 modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
                     .clickable(onClickLabel = choose, role = Role.Button) { choosing = true }
-                    .heightIn(min = 48.dp)
+                    .heightIn(min = 56.dp)
                     .padding(horizontal = 8.dp, vertical = 4.dp),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -314,7 +313,7 @@ private fun PlanningV2Header(
                             choosing = false
                             onMode(value)
                         },
-                        modifier = Modifier.heightIn(min = 48.dp),
+                        modifier = Modifier.heightIn(min = 56.dp),
                     )
                 }
             }
@@ -330,16 +329,17 @@ private fun PlanningV2Header(
 
 @Composable
 private fun RoundArrow(back: Boolean, enabled: Boolean, label: String, onClick: () -> Unit) {
-    IconButton(
-        onClick = onClick,
-        enabled = enabled,
-        colors = IconButtonDefaults.iconButtonColors(containerColor = FamiliaClay.colors.card),
-        modifier = Modifier.size(48.dp),
-    ) {
-        Icon(
-            if (back) Icons.AutoMirrored.Outlined.KeyboardArrowLeft else Icons.AutoMirrored.Outlined.KeyboardArrowRight,
-            contentDescription = label,
-        )
+    // 56 dp to touch (règle du projet), the white round drawn at 48 dp inside.
+    IconButton(onClick = onClick, enabled = enabled, modifier = Modifier.size(56.dp)) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(48.dp).clip(CircleShape).background(FamiliaClay.colors.card),
+        ) {
+            Icon(
+                if (back) Icons.AutoMirrored.Outlined.KeyboardArrowLeft else Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                contentDescription = label,
+            )
+        }
     }
 }
 

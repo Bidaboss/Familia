@@ -2007,17 +2007,21 @@ private fun PlanningScopeButton(scope: PlanningScope, child: Boolean, onChange: 
     val on = scope == PlanningScope.Household
     val name = stringResource(if (child) R.string.planning_v2_scope_button_house else R.string.planning_v2_scope_button_household)
     val lilac = Color(0xFF4A3F8C)
+    // 56 dp to touch (règle du projet), the round drawn at 48 dp inside.
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .padding(horizontal = 4.dp)
-            .size(48.dp)
+            .size(56.dp)
             .clip(CircleShape)
-            .background(if (on) lilac else Color(0xFFF4F0FD))
             .toggleable(value = on, role = Role.Switch, onValueChange = { onChange(if (it) PlanningScope.Household else PlanningScope.Family) })
             .semantics { contentDescription = name },
     ) {
-        Icon(Icons.Outlined.Groups, contentDescription = null, tint = if (on) Color.White else lilac)
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(48.dp).clip(CircleShape).background(if (on) lilac else Color(0xFFF4F0FD)),
+        ) {
+            Icon(Icons.Outlined.Groups, contentDescription = null, tint = if (on) Color.White else lilac)
+        }
     }
 }
 
@@ -2027,14 +2031,17 @@ private fun RoundAddButton(label: String, onClick: () -> Unit) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .padding(horizontal = 4.dp)
-            .size(48.dp)
+            .size(56.dp)
             .clip(CircleShape)
-            .border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
             .clickable(onClickLabel = label, role = Role.Button, onClick = onClick)
             .semantics { contentDescription = label },
     ) {
-        Icon(Icons.Outlined.Add, contentDescription = null)
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(48.dp).border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
+        ) {
+            Icon(Icons.Outlined.Add, contentDescription = null)
+        }
     }
 }
 
