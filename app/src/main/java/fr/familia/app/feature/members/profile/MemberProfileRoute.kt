@@ -56,9 +56,8 @@ fun MemberProfileRoute(
     val giftsOn = LocalFeatureFlags.current.isOn(Feature.Gifts)
     val singleList = LocalFeatureFlags.current.isOn(Feature.SingleList)
     val notebookOn = LocalFeatureFlags.current.isOn(Feature.GiftNotebook)
-    // For the whole family only (récit 66): off, the admin principal keeps the old page too.
-    val v2On = LocalFeatureFlags.current.isOnForFamily(Feature.MemberProfileV2)
-    val v2 = if (v2On) {
+    // The page organised in sections (récit 66), the only one since the 18/11 (PRODUIT-131).
+    val v2 = run {
         val genealogyOn = LocalFeatureFlags.current.isOn(Feature.Genealogy)
         val goodNewsOn = LocalFeatureFlags.current.isOn(Feature.GoodNews)
         val v2Model: MemberProfileV2ViewModel = viewModel(
@@ -88,8 +87,6 @@ fun MemberProfileRoute(
             onSavePhoto = v2Model::savePhoto,
             onRemovePhoto = v2Model::removePhoto,
         )
-    } else {
-        null
     }
     MemberProfileScreen(
         state = state,
