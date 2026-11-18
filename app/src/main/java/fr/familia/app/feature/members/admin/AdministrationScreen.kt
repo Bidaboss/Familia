@@ -423,10 +423,19 @@ private fun ReadyContent(
                 items(byTier[FeatureTier.NewVersion].orEmpty(), key = { "feature-${it.key}" }) { feature ->
                     FeatureSwitchRow(feature, on = features[feature.key] ?: feature.onByDefault, onSetFeature = onSetFeature)
                 }
-                adminGroup("features-base", R.string.administration_features_base, R.string.administration_features_base_help, open, ::toggle) {
-                    items(byTier[FeatureTier.Base].orEmpty(), key = { "feature-${it.key}" }) { feature ->
-                        FeatureSwitchRow(feature, on = features[feature.key] ?: feature.onByDefault, onSetFeature = onSetFeature)
-                    }
+                // « La base » has no switch any more (Kévin le 18/11, 20 h 39): always on, only named here.
+                item(key = "features-base") {
+                    HorizontalDivider(Modifier.padding(top = 8.dp))
+                    SectionTitle(R.string.administration_features_base)
+                    Text(
+                        stringResource(
+                            R.string.administration_features_base_help,
+                            byTier[FeatureTier.Base].orEmpty().map { stringResource(it.labelRes) }.joinToString(", "),
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
+                    )
                 }
             }
         }
