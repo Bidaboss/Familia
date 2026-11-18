@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -50,6 +51,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import fr.familia.app.R
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.ClaySpacing
@@ -200,6 +203,13 @@ private fun FormContent(
         if (state.showOccasion) {
             WishOccasionChoice(form.occasion, state.forMe) { value -> onChange { it.copy(occasion = value) } }
         }
+        if (state.showAlreadyBought) {
+            AlreadyBoughtBox(
+                checked = form.alreadyBought || state.alreadyBoughtLocked,
+                locked = state.alreadyBoughtLocked,
+                enabled = !state.isSaving,
+            ) { value -> onChange { it.copy(alreadyBought = value) } }
+        }
         if (state.showPhoto) {
             // The product, or a screenshot (récit 44).
             PhotoField(
@@ -220,6 +230,34 @@ private fun FormContent(
             }
         }
         if (!state.isNew) DeleteButton(form.title, !state.isSaving, onDelete)
+    }
+}
+
+/**
+ * « Je l'ai déjà acheté, une participation me ferait plaisir » (récit 68). Once someone takes part,
+ * the box stays checked, and says why.
+ */
+@Composable
+private fun AlreadyBoughtBox(checked: Boolean, locked: Boolean, enabled: Boolean, onChange: (Boolean) -> Unit) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .toggleable(value = checked, enabled = enabled && !locked, role = Role.Checkbox, onValueChange = onChange),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Checkbox(checked = checked, onCheckedChange = null, enabled = enabled && !locked)
+            Text(stringResource(R.string.gift_item_already_bought_check), style = MaterialTheme.typography.bodyLarge)
+        }
+        if (locked) {
+            Text(
+                stringResource(R.string.gift_item_already_bought_locked),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 

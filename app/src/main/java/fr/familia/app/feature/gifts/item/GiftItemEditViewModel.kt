@@ -40,6 +40,8 @@ data class GiftItemForm(
     val occasion: GiftOccasion? = null,
     /** The photo (récit 44): sent by the ViewModel before the item, not kept in the draft. */
     val photo: PhotoEdit = PhotoEdit.Unchanged,
+    /** « Je l'ai déjà acheté, une participation me ferait plaisir » (récit 68). */
+    val alreadyBought: Boolean = false,
 )
 
 /** Where a link shared from another app goes (récit 50): my wishes when [memberId] is null, else an idea for them. */
@@ -77,6 +79,10 @@ sealed interface GiftItemEditUiState {
         val targets: List<ShareTarget> = emptyList(),
         /** The member of the chosen idea, null for my wishes. */
         val targetId: String? = null,
+        /** « Déjà acheté » (récit 68): on a wish its keeper writes, while the switch is on. */
+        val showAlreadyBought: Boolean = false,
+        /** Someone already takes part: the box stays checked. */
+        val alreadyBoughtLocked: Boolean = false,
     ) : GiftItemEditUiState
 
     data object Done : GiftItemEditUiState
@@ -108,6 +114,8 @@ class GiftItemEditViewModel(
      * another member, hidden from them; a child adds only to their own wishes.
      */
     private val fromShare: Boolean = false,
+    /** The switch « Déjà acheté » (récit 68), read with isOnForFamily. */
+    private val alreadyBought: Boolean = false,
 ) : ViewModel() {
 
     /** Récit 50 reads nothing from the shop: no network call on a link from « Ajouter à mes envies ». */
@@ -187,6 +195,7 @@ class GiftItemEditViewModel(
                 price = it.price?.let(::priceText).orEmpty(),
                 note = it.note.orEmpty(),
                 occasion = it.occasion,
+                alreadyBought = it.alreadyBought,
             )
         } ?: GiftItemForm()
         val form = restoredDraft() ?: shared?.takeIf { existing == null } ?: initialForm
@@ -204,9 +213,14 @@ class GiftItemEditViewModel(
             storedPhoto = existing?.photo,
             targets = targets,
             targetId = savedTarget,
+            showAlreadyBought = showsAlreadyBought(target),
+            alreadyBoughtLocked = existing?.let { it.alreadyBought && it.contributedTotal > 0 } == true,
         )
         if (shared != null && existing == null) readPreview(shared.url)
     }
+
+    /** « Déjà acheté » only on a wish the person sees: the one their keeper writes (récit 68). */
+    private fun showsAlreadyBought(target: GiftList): Boolean = alreadyBought && target.kind == GiftListKind.Wishes && visible
 
     /** « Pour moi », then « Une idée pour… » each other member: for an adult only (récit 50). */
     private fun shareTargets(family: Family, me: Member): List<ShareTarget> {
@@ -253,6 +267,7 @@ class GiftItemEditViewModel(
                 showOccasion = showOccasion,
                 forMe = beneficiary.id == current.id,
                 saveFailed = false,
+                showAlreadyBought = showsAlreadyBought(target),
             )
         }
     }
@@ -314,7 +329,10 @@ class GiftItemEditViewModel(
     private fun restoredDraft(): GiftItemForm? {
         val title = saved.get<String>(DRAFT_TITLE) ?: return null
         val occasion = GiftOccasion.entries.firstOrNull { it.name == saved.get<String>(DRAFT_OCCASION) }
-        return GiftItemForm(title, saved[DRAFT_URL] ?: "", saved[DRAFT_PRICE] ?: "", saved[DRAFT_NOTE] ?: "", occasion)
+        return GiftItemForm(
+            title, saved[DRAFT_URL] ?: "", saved[DRAFT_PRICE] ?: "", saved[DRAFT_NOTE] ?: "", occasion,
+            alreadyBought = saved[DRAFT_BOUGHT] ?: false,
+        )
     }
 
     fun update(change: (GiftItemForm) -> GiftItemForm) {
@@ -325,6 +343,7 @@ class GiftItemEditViewModel(
         saved[DRAFT_PRICE] = form.price
         saved[DRAFT_NOTE] = form.note
         saved[DRAFT_OCCASION] = form.occasion?.name
+        saved[DRAFT_BOUGHT] = form.alreadyBought
         _uiState.value = state.copy(
             form = form,
             errors = errorsFor(form),
@@ -360,6 +379,8 @@ class GiftItemEditViewModel(
             imageUrl = state.imageUrl,
             // Only a wish says what it is for; an idea keeps none.
             occasion = form.occasion?.takeIf { state.showOccasion } ?: original?.occasion?.takeIf { !state.showOccasion },
+            // Switch off, the wish keeps what it had; while someone takes part, it stays checked.
+            alreadyBought = if (state.showAlreadyBought) form.alreadyBought || state.alreadyBoughtLocked else original?.alreadyBought == true,
         )
         val before = original?.photo
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
@@ -423,6 +444,7 @@ private const val DRAFT_PRICE = "draft.price"
 private const val DRAFT_NOTE = "draft.note"
 private const val DRAFT_OCCASION = "draft.occasion"
 private const val DRAFT_TARGET = "draft.target"
+private const val DRAFT_BOUGHT = "draft.alreadyBought"
 
 /** The same limits as the security rules. */
 fun validateItem(form: GiftItemForm): Set<GiftItemFormError> = buildSet {

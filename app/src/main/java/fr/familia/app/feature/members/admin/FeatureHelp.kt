@@ -71,6 +71,7 @@ private val HELP: Map<Feature, Int> = mapOf(
     Feature.OpeningAnimation to R.string.feature_help_opening_animation,
     Feature.FamilyTabV2 to R.string.feature_help_family_tab_v2,
     Feature.ChallengeDetails to R.string.feature_help_challenge_details,
+    Feature.AlreadyBought to R.string.feature_help_already_bought,
 )
 
 @StringRes
@@ -126,6 +127,8 @@ val NEEDS_FIREBASE_PUBLISH: Set<Feature> = setOf(
     Feature.MyReminders,
     Feature.Turns,
     Feature.PackingList,
+    // The parts of a wish already bought (récit 68).
+    Feature.AlreadyBought,
 )
 
 /** « Voir où » under a switch: opens the screen where the module shows, or null when there is none. */

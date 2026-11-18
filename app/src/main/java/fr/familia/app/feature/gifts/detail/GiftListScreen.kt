@@ -38,6 +38,7 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -55,6 +56,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import androidx.compose.ui.platform.LocalUriHandler
@@ -74,6 +76,7 @@ import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
 import fr.familia.app.core.model.isPermanent
 import fr.familia.app.core.model.GiftOccasion
+import fr.familia.app.core.model.GiftContribution
 import fr.familia.app.core.model.GiftShare
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
@@ -95,6 +98,7 @@ import fr.familia.app.feature.gifts.listTitle
 import fr.familia.app.feature.gifts.wishOccasionLabel
 import fr.familia.app.feature.gifts.parseEuros
 import fr.familia.app.feature.help.HelpButton
+import fr.familia.app.feature.presentation.LocalPresenting
 import fr.familia.app.feature.help.HelpLink
 import fr.familia.app.feature.help.ScreenHelp
 import fr.familia.app.core.share.ShareButton
@@ -123,6 +127,9 @@ data class GiftListActions(
     val onMarkWishReceived: ((GiftItem) -> Unit)? = null,
     /** « Partager » « Mes envies » outside the app (récit 31); null while that module is off. */
     val onShareOutside: (() -> Unit)? = null,
+    /** « Je participe » on a wish already bought (récit 68), in whole euros. */
+    val onContribute: (itemId: String, amount: Int) -> Unit = { _, _ -> },
+    val onWithdrawContribution: (itemId: String) -> Unit = {},
 )
 
 /** One gift list: its items, and the reservations for everyone but the beneficiary. Stateless. */
@@ -323,7 +330,8 @@ private fun ItemCard(row: ItemRow, state: GiftListUiState.Success, onOpen: () ->
             // The shop link shows on the card itself, as a link, so nobody has to guess it is there.
             item.url?.let { url -> ItemLink(url, prominent = false) }
             claim?.let { ClaimStatus(it, item, tint) }
-            if (state.canReserve && claim == null) {
+            row.contributions?.let { AlreadyBoughtStatus(it, item, tint) }
+            if (state.canReserve && claim == null && row.contributions == null) {
                 // Tonal: the screen keeps a single filled action, « Ajouter ».
                 FilledTonalButton(onClick = onTake, modifier = Modifier.padding(top = 4.dp).heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.gift_take))
@@ -406,13 +414,14 @@ internal fun ItemSheetContent(row: ItemRow, state: GiftListUiState.Success, acti
         ItemDetails(row, ClayTint.Plain)
         item.note?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
         row.claim?.let { ClaimStatus(it, item, ClayTint.Plain) }
+        row.contributions?.let { AlreadyBoughtStatus(it, item, ClayTint.Plain, detailed = true, seesContributors = state.seesContributors) }
         actions.onSetClaimOccasion?.let { set -> row.claim?.let { claim -> ClaimOccasion(claim) { set(item.id, it) } } }
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.padding(top = 4.dp),
         ) {
-            ReservationButtons(row, state, actions)
+            if (row.contributions != null) ContributionButtons(row, state, actions) else ReservationButtons(row, state, actions)
             item.url?.let { url -> ItemLink(url, prominent = true) }
             if (row.canEdit) {
                 OutlinedButton(onClick = onEdit, modifier = Modifier.heightIn(min = 56.dp)) {
@@ -455,6 +464,95 @@ private fun ClaimStatus(claim: ClaimView, item: GiftItem, tint: ClayTint) {
                 color = color,
             )
         }
+    }
+}
+
+/**
+ * « Déjà acheté, participation bienvenue » (récit 68) and its gauge, « 45 € sur 120 € ». In the
+ * sheet ([detailed]): my part, and for whoever keeps the person's lists who takes part and how much.
+ * Neither in presentation mode, nor in « Voir comme » (no part is read there).
+ */
+@Composable
+private fun AlreadyBoughtStatus(
+    view: ContributionView,
+    item: GiftItem,
+    tint: ClayTint,
+    detailed: Boolean = false,
+    seesContributors: Boolean = false,
+) {
+    val color = FamiliaClay.colors.onTintVariant(tint)
+    val presenting = LocalPresenting.current
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(stringResource(R.string.gift_already_bought_label), style = MaterialTheme.typography.titleSmall, color = color)
+        val total = formatEuros(view.total.toDouble())
+        val gauge = contributionGauge(view.total, item.price)
+        val spoken = item.price?.let { stringResource(R.string.gift_contributed_of, total, formatEuros(it)) }
+            ?: stringResource(R.string.gift_contributed, total)
+        if (gauge != null) {
+            LinearProgressIndicator(
+                progress = { gauge },
+                drawStopIndicator = {},
+                gapSize = 0.dp,
+                modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
+            )
+        }
+        Text(spoken, style = MaterialTheme.typography.bodyMedium, color = color)
+        if (!detailed || presenting) return@Column
+        view.mine?.let {
+            Text(stringResource(R.string.gift_my_contribution, formatEuros(it.toDouble())), style = MaterialTheme.typography.bodyLarge)
+        }
+        if (seesContributors) Contributors(view.parts)
+    }
+}
+
+/** How full the gauge is, from 0 to 1; null without a price to fill. */
+internal fun contributionGauge(total: Int, price: Double?): Float? {
+    val of = price?.takeIf { it > 0 } ?: return null
+    return (total / of).toFloat().coerceIn(0f, 1f)
+}
+
+/** Who takes part and how much: for whoever keeps the person's lists only (PRODUIT-109). */
+@Composable
+private fun Contributors(parts: List<GiftContribution>) {
+    Text(
+        stringResource(R.string.gift_contributors_title),
+        style = MaterialTheme.typography.titleSmall,
+        modifier = Modifier.padding(top = 4.dp).semantics { heading() },
+    )
+    if (parts.isEmpty()) {
+        Text(stringResource(R.string.gift_contributors_none), style = MaterialTheme.typography.bodyLarge)
+    }
+    parts.forEach { part ->
+        Text(
+            stringResource(R.string.gift_share_line, part.memberName, formatEuros(part.amount.toDouble())),
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(vertical = 4.dp),
+        )
+    }
+}
+
+/** « Je participe », or change or take back my part: nothing to reserve on a wish already bought. */
+@Composable
+private fun ContributionButtons(row: ItemRow, state: GiftListUiState.Success, actions: GiftListActions) {
+    if (!state.canContribute) return
+    val id = row.item.id
+    val mine = row.contributions?.mine
+    var amountDialog by rememberSaveable(id) { mutableStateOf(false) }
+    Button(onClick = { amountDialog = true }, modifier = Modifier.heightIn(min = 56.dp)) {
+        Text(stringResource(if (mine == null) R.string.gift_contribute else R.string.gift_contribute_change))
+    }
+    if (mine != null) {
+        TextButton(onClick = { actions.onWithdrawContribution(id) }, modifier = Modifier.heightIn(min = 56.dp)) {
+            Text(stringResource(R.string.gift_contribute_leave))
+        }
+    }
+    if (amountDialog) {
+        AmountDialog(
+            initial = mine?.toDouble(),
+            wholeEuros = true,
+            onConfirm = { amount -> amountDialog = false; actions.onContribute(id, amount.toInt()) },
+            onDismiss = { amountDialog = false },
+        )
     }
 }
 
@@ -603,22 +701,23 @@ internal fun WishReceivedDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     )
 }
 
+/** [wholeEuros]: a part of a wish already bought (récit 68), « 20 » but not « 12,50 ». */
 @Composable
-private fun AmountDialog(initial: Double?, onConfirm: (Double) -> Unit, onDismiss: () -> Unit) {
+private fun AmountDialog(initial: Double?, onConfirm: (Double) -> Unit, onDismiss: () -> Unit, wholeEuros: Boolean = false) {
     var text by rememberSaveable { mutableStateOf(initial?.let { formatEuros(it).replace("€", "").trim() } ?: "") }
-    val amount = parseEuros(text)?.takeIf { it > 0 && it <= 10_000 }
+    val amount = parseEuros(text)?.takeIf { it > 0 && it <= 10_000 && (!wholeEuros || it % 1.0 == 0.0) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.gift_share_dialog_title)) },
+        title = { Text(stringResource(if (wholeEuros) R.string.gift_contribute_dialog_title else R.string.gift_share_dialog_title)) },
         text = {
             OutlinedTextField(
                 value = text,
                 onValueChange = { text = it },
                 label = { Text(stringResource(R.string.gift_share_amount)) },
                 isError = text.isNotBlank() && amount == null,
-                supportingText = { Text(stringResource(R.string.gift_share_hint)) },
+                supportingText = { Text(stringResource(if (wholeEuros) R.string.gift_contribute_hint else R.string.gift_share_hint)) },
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                keyboardOptions = KeyboardOptions(keyboardType = if (wholeEuros) KeyboardType.Number else KeyboardType.Decimal),
             )
         },
         confirmButton = {

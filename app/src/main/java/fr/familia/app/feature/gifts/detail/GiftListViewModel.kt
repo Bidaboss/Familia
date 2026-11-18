@@ -8,6 +8,7 @@ import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.core.model.ClaimType
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.GiftClaim
+import fr.familia.app.core.model.GiftContribution
 import fr.familia.app.core.model.GiftItem
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
@@ -16,6 +17,7 @@ import fr.familia.app.core.model.ideasListId
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftShare
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.defaultWishOccasion
 import fr.familia.app.core.model.wishesListId
 import fr.familia.app.feature.gifts.canManageList
@@ -58,6 +60,16 @@ data class ClaimView(
     val occasion: GiftOccasion? = null,
 )
 
+/**
+ * A wish already bought (récit 68): the total of the parts, mine, and for whoever keeps the lists
+ * of the person every first name and amount ([parts], empty for the others).
+ */
+data class ContributionView(
+    val total: Int,
+    val mine: Int? = null,
+    val parts: List<GiftContribution> = emptyList(),
+)
+
 data class ItemRow(
     val item: GiftItem,
     /** Edit and delete: the author, until it is reserved; the beneficiary's side always. */
@@ -66,6 +78,8 @@ data class ItemRow(
     val isSurpriseIdea: Boolean,
     /** Null when free, or when the reservations are hidden from this member. */
     val claim: ClaimView?,
+    /** « Déjà acheté, participation bienvenue » (récit 68): never reserved, only taken part in. */
+    val contributions: ContributionView? = null,
 )
 
 /** Why a reservation did not hold, told gently rather than as a failure. */
@@ -104,6 +118,10 @@ sealed interface GiftListUiState {
         val canMarkReceived: Boolean = false,
         /** « Partager » outside the app (récit 31): see [fr.familia.app.feature.gifts.canShareWishesOutside]. */
         val canSendOutside: Boolean = false,
+        /** « Je participe » on a wish already bought (récit 68): an adult who does not keep the person's lists. */
+        val canContribute: Boolean = false,
+        /** Who takes part, with their amounts: only whoever keeps the person's lists, never in « Voir comme ». */
+        val seesContributors: Boolean = false,
     ) : GiftListUiState
 
     /** Deleted, or not one this member may see. */
@@ -126,6 +144,8 @@ class GiftListViewModel(
     private val today: Flow<LocalDate> = currentDayFlow(),
     /** Who really reads: the admin principal in « Voir comme », else the member themselves. */
     private val readerId: String = currentMemberId,
+    /** The switch « Déjà acheté » (récit 68), read with isOnForFamily. */
+    private val alreadyBought: Boolean = false,
 ) : ViewModel() {
 
     private val attempt = MutableStateFlow(0)
@@ -174,9 +194,36 @@ class GiftListViewModel(
                     emit(emptyMap())
                 }
             }
-        return combine(items, claims, shares, today, failed) { itemList, claimList, shareMap, day, didFail ->
-            state(list, stored != null, beneficiary, me, family, itemList, claimList, shareMap, day, didFail)
+        val parts = contributions(repo, list, beneficiary, me, items)
+        val reservations = combine(claims, shares, parts) { c, s, p -> Triple(c, s, p) }
+        return combine(items, reservations, today, failed) { itemList, (claimList, shareMap, partMap), day, didFail ->
+            state(list, stored != null, beneficiary, me, family, itemList, claimList, shareMap, partMap, day, didFail)
         }
+    }
+
+    /**
+     * The parts of the wishes already bought (récit 68): every one for whoever keeps the person's
+     * lists, my own for the others. None in « Voir comme »: the rules answer for the admin principal.
+     */
+    private fun contributions(
+        repo: GiftRepository,
+        list: GiftList,
+        beneficiary: Member,
+        me: Member,
+        items: Flow<List<GiftItem>>,
+    ): Flow<Map<String, List<GiftContribution>>> {
+        if (!alreadyBought || list.kind != GiftListKind.Wishes || readerId != currentMemberId) return flowOf(emptyMap())
+        val all = keepsListsOf(me, beneficiary)
+        return items.map { rows -> rows.filter { it.alreadyBought && it.visibleToBeneficiary }.map { it.id }.sorted() }
+            .distinctUntilChanged()
+            .flatMapLatest { ids ->
+                // A part never takes the whole list down: the wish then shows its total only.
+                repo.observeContributions(list.id, ids, me.id, all).catch { e ->
+                    if (e is CancellationException) throw e
+                    emit(emptyMap())
+                }
+            }
+            .onStart { emit(emptyMap()) }
     }
 
     /**
@@ -205,9 +252,11 @@ class GiftListViewModel(
         items: List<GiftItem>,
         claims: List<GiftClaim>,
         shares: Map<String, List<GiftShare>>,
+        parts: Map<String, List<GiftContribution>>,
         day: LocalDate,
         didFail: Failure?,
     ): GiftListUiState.Success {
+        val seesContributors = keepsListsOf(me, beneficiary) && readerId == currentMemberId
         val kept = isKeptFrom(list, me) || keptFromReader(list)
         val claimById = claims.associateBy { it.itemId }
         // Read from the live list: the server keeps one reservation per idea, so a refused one
@@ -243,6 +292,16 @@ class GiftListViewModel(
                         occasion = if (list.kind.isPermanent) it.occasion ?: defaultWishOccasion(beneficiary.birthDate, it.createdOn ?: day) else null,
                     )
                 },
+                contributions = if (alreadyBought && list.kind == GiftListKind.Wishes && item.alreadyBought && item.visibleToBeneficiary) {
+                    val itemParts = parts[item.id].orEmpty()
+                    ContributionView(
+                        total = item.contributedTotal,
+                        mine = itemParts.firstOrNull { it.memberId == me.id }?.amount,
+                        parts = if (seesContributors) itemParts.sortedBy { it.memberName.lowercase() } else emptyList(),
+                    )
+                } else {
+                    null
+                },
             )
         }
         return GiftListUiState.Success(
@@ -259,6 +318,9 @@ class GiftListViewModel(
             canShare = exists && canShare(list, me) && !kept,
             canSendOutside = exists && canShareWishesOutside(list, me, family),
             canMarkReceived = exists && list.kind == GiftListKind.Wishes && !list.revealed && keepsListsOf(me, beneficiary),
+            canContribute = exists && alreadyBought && list.kind == GiftListKind.Wishes && !kept &&
+                me.profile == MemberProfile.Adult && !keepsListsOf(me, beneficiary),
+            seesContributors = seesContributors,
             items = rows,
             myName = me.firstName,
             actionFailed = didFail != null && lost == null,
@@ -293,6 +355,20 @@ class GiftListViewModel(
     }
 
     fun leaveShare(itemId: String) = write { it.leaveShare(listId, itemId, currentMemberId) }
+
+    /** « Je participe » with [amount] whole euros, or a new amount (récit 68). */
+    fun contribute(itemId: String, amount: Int) {
+        val state = currentSuccess()?.takeIf { it.canContribute } ?: return
+        val row = state.items.firstOrNull { it.item.id == itemId }?.contributions ?: return
+        if (amount !in 1..CONTRIBUTION_MAX) return
+        val previous = row.mine ?: 0
+        write { it.setContribution(listId, itemId, GiftContribution(currentMemberId, state.myName, amount), previous) }
+    }
+
+    fun withdrawContribution(itemId: String) {
+        val mine = currentSuccess()?.items?.firstOrNull { it.item.id == itemId }?.contributions?.mine ?: return
+        write { it.removeContribution(listId, itemId, currentMemberId, mine) }
+    }
 
     fun markReceived(itemId: String, memberId: String, received: Boolean) =
         write { it.markShareReceived(listId, itemId, memberId, received) }
@@ -369,3 +445,6 @@ class GiftListViewModel(
         false
     }
 }
+
+/** The largest part the rules accept, in whole euros (récit 68). */
+const val CONTRIBUTION_MAX = 10_000

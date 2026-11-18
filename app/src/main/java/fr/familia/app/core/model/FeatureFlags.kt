@@ -173,6 +173,12 @@ enum class Feature(
      * récit 65, rév. 289). Lu avec isOnForFamily : éteint, même l'admin principal garde l'écran d'avant.
      */
     ChallengeDetails("challengeDetails", R.string.feature_challenge_details),
+    /**
+     * « Déjà acheté, participation bienvenue » sur une envie (PRD rév. 309, récit 68) : plus de « Je le
+     * prends », seulement « Je participe » et une jauge. Lu avec isOnForFamily : éteint, même l'admin
+     * principal ne voit pas la case.
+     */
+    AlreadyBought("alreadyBought", R.string.feature_already_bought),
 }
 
 /**
