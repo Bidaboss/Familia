@@ -9,9 +9,16 @@ class FeatureFlagsTest {
 
     @Test
     fun `a module stays hidden from the family until it is switched on`() {
-        assertFalse(FeatureFlags().isOn(Feature.Gifts))
-        assertFalse(FeatureFlags(mapOf("gifts" to false)).isOn(Feature.Gifts))
-        assertTrue(FeatureFlags(mapOf("gifts" to true)).isOn(Feature.Gifts))
+        assertFalse(FeatureFlags().isOn(Feature.Trips))
+        assertFalse(FeatureFlags(mapOf("trips" to false)).isOn(Feature.Trips))
+        assertTrue(FeatureFlags(mapOf("trips" to true)).isOn(Feature.Trips))
+    }
+
+    @Test
+    fun `the base is always on, for everyone, whatever config app says`() {
+        assertTrue(FeatureFlags().isOn(Feature.Gifts))
+        assertTrue(FeatureFlags(mapOf("gifts" to false)).isOn(Feature.Gifts))
+        assertTrue(FeatureFlags(mapOf("comments" to false)).isOnForFamily(Feature.Comments))
     }
 
     @Test
