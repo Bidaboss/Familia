@@ -154,9 +154,12 @@ class MemberProfileV2Test {
     @Test
     fun `someone else's phone and address give Appeler and Itinéraire`() {
         show(TestFamily.adult.copy(phone = "06 12 34 56 78"), isMe = false, state = v2(address = "1 rue des Lilas"))
-        assertEquals(1, count("Appeler"))
-        assertEquals(1, count("Itinéraire"))
-        assertEquals(1, count("Téléphone : 06 12 34 56 78"))
+        // One round button under the name (P1), and one in « Coordonnées ».
+        assertEquals(2, count("Appeler"))
+        assertEquals(2, count("Itinéraire"))
+        assertEquals(1, count("06 12 34 56 78"))
+        assertEquals(1, count("Téléphone de Adult1"))
+        assertEquals(1, count("1 rue des Lilas"))
     }
 
     @Test
@@ -174,7 +177,7 @@ class MemberProfileV2Test {
     }
 
     @Test
-    fun `the links of the tree under the name`() {
+    fun `the links of the tree in « Sa famille »`() {
         val kin = Kinship(listOf(KinPerson("adult1", "Adult1", TestFamily.adult)), emptyList(), emptyList())
         show(TestFamily.kid, isMe = false, state = v2(kin = kin))
         assertEquals(1, count("Enfant de Adult1"))

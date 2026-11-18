@@ -25,6 +25,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.ButtonDefaults
+import fr.familia.app.core.theme.OnMemberColor
+import fr.familia.app.core.ui.memberColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -88,13 +92,38 @@ fun MemberProfileScreen(
     }
     Scaffold(
         topBar = {
+            val ready = state as? MemberProfileUiState.Ready
+            // The new page (PRODUIT-114): the bar takes the color of the band under it, and the first
+            // name lives in the page; « Ma fiche » on mine. Never a ⋮ menu.
+            val banded = v2 != null && ready != null
             TopAppBar(
-                title = { Text((state as? MemberProfileUiState.Ready)?.member?.firstName.orEmpty(), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                title = {
+                    val title = when {
+                        !banded -> ready?.member?.firstName.orEmpty()
+                        ready?.isMe == true -> stringResource(R.string.profile_v2_my_page)
+                        else -> ""
+                    }
+                    Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                },
+                colors = if (banded && ready != null) {
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = memberColor(ready.member),
+                        titleContentColor = OnMemberColor,
+                        navigationIconContentColor = OnMemberColor,
+                        actionIconContentColor = OnMemberColor,
+                    )
+                } else {
+                    TopAppBarDefaults.topAppBarColors()
+                },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = {
                     // « Modifier » up on the right, for those who may (DESIGN, 16/11): never from the list.
-                    if ((state as? MemberProfileUiState.Ready)?.canEdit == true) {
-                        TextButton(onClick = onEdit, modifier = Modifier.heightIn(min = 56.dp)) {
+                    if (ready?.canEdit == true) {
+                        TextButton(
+                            onClick = onEdit,
+                            modifier = Modifier.heightIn(min = 56.dp),
+                            colors = if (banded) ButtonDefaults.textButtonColors(contentColor = OnMemberColor) else ButtonDefaults.textButtonColors(),
+                        ) {
                             Text(stringResource(R.string.profile_edit))
                         }
                     }

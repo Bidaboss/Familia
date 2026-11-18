@@ -1,5 +1,7 @@
 package fr.familia.app.feature.gifts.profile
 
+import fr.familia.app.feature.members.profile.LocalProfileSection
+import fr.familia.app.feature.members.profile.ProfileSectionLabel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -84,6 +86,20 @@ fun ProfileWishesContent(
     keptByMe: Boolean,
     onOpen: () -> Unit,
 ) {
+    // Inside « Cadeaux » of the new member page (PRODUIT-115): a part of its card, never a card.
+    // Only titles: never « Réservé » nor « Pris », above all on my own page.
+    if (LocalProfileSection.current) {
+        val count = preview?.count ?: 0
+        ProfileSectionLabel(
+            if (isMe) stringResource(R.string.profile_v2_my_wishes_count, count) else stringResource(R.string.profile_v2_wishes_count, count),
+        )
+        if (count == 0) {
+            Text(wishesSubtitle(preview, empty = false, keptByMe = keptByMe), style = MaterialTheme.typography.bodyLarge)
+        }
+        preview?.titles?.forEach { Text(it, style = MaterialTheme.typography.bodyLarge) }
+        ClayLink(stringResource(R.string.profile_wishes_open), onClick = onOpen)
+        return
+    }
     ClayCard(Modifier.fillMaxWidth(), contentPadding = ClaySpacing.card) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             ClayCardTitle(if (isMe) stringResource(R.string.gift_my_wishes) else stringResource(R.string.gift_wishes_of, member.firstName))
