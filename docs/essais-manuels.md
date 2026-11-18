@@ -1252,3 +1252,29 @@ Avant de commencer : **Administration**, puis **Modules**, et allume « Nouveau 
 8. Sur le téléphone d'un enfant qui a l'appli : **attendu :** le sous-titre dit « ma maison », et « Ajouté par toi » apparaît sur ce qu'il a créé.
 9. Mets la taille du texte à 130 %. **Attendu :** le titre passe sur deux lignes, sans être coupé. Les mots de la frise peuvent être coupés, mais la carte du jour touché les donne en entier.
 10. Éteins le module. **Attendu :** l'ancien Planning revient tel qu'il était.
+
+## Nouvel onglet Cadeaux (PRODUIT-119 à 121)
+
+Avant de commencer : **Administration**, puis **Modules**, groupe « Nouvelles versions ». Allume « Nouvel onglet Cadeaux » et « Liste unique ». Éteint, l'onglet Cadeaux ne change pas, même pour toi.
+
+1. Ouvre **Cadeaux**. **Attendu :** si tu prépares une surprise, une carte noire « Surprise en préparation » en tête. Puis « À venir » : le prochain anniversaire des 30 jours en relief (« … fête ses … ans », « Ses envies », « Idées »), puis Noël à partir du 1er novembre. Puis « Mes envies », puis « La famille » : ton foyer ouvert, les autres repliés.
+2. Regarde une carte de personne. **Attendu :** sa couleur à gauche, son anniversaire et seulement « N envies ». Jamais un nombre d'idées ni de réservations.
+3. Allume le **Mode présentation**. **Attendu :** plus de carte « Surprise en préparation », plus de bouton « Préparer une surprise ». Rien n'indique qu'une surprise existe.
+4. **Administration**, « Voir comme… », choisis la personne dont l'anniversaire approche. **Attendu :** « Tu fêtes tes … ans » en relief. Aucune surprise, aucune réservation, aucun « Ce que j'offre ».
+5. « Voir comme » un enfant. **Attendu :** « Mes envies » en tête. Sur les cartes des autres, « Ses envies » seulement, jamais « Idées » ni « Préparer une surprise ».
+6. Mets la taille du texte à 200 %. **Attendu :** les noms de foyer passent sur deux lignes, rien n'est coupé et tous les boutons restent faciles à toucher. Avec TalkBack, « Ses envies » se lit « Envies de … », et « Idées » se lit « Idées pour … ».
+7. Réseau faible : refais les étapes 1 et 3 en mode avion, puis en « 2G seulement », comme dans « Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible ». **Attendu :** l'onglet déjà vu s'affiche avec le bandeau « Hors ligne », sans écran blanc ni roue sans fin.
+8. Éteins le module. **Attendu :** l'ancien onglet Cadeaux revient tel qu'il était.
+
+## Nouvelle fiche de membre (PRODUIT-114 à 117)
+
+Avant de commencer : **Administration**, puis **Modules**, groupe « Nouvelles versions ». Allume « Nouvelle fiche de membre ».
+
+1. Dans **Famille**, ouvre la fiche d'un adulte. **Attendu :** un bandeau à sa couleur, sa photo ronde, son âge, « Anniversaire dans … ». Puis les boutons ronds (Vœux, Pensez à moi, Appeler, Itinéraire) et une carte par section. Jamais de menu ⋮.
+2. Ouvre ta propre fiche. **Attendu :** « Ma fiche » en haut, un crayon sur les cartes que tu peux remplir, la jauge « Ta fiche est remplie à … % », et le bouton appareil photo sur ta photo. Tes envies ne montrent que leurs titres, jamais « Réservé » ni « Pris ».
+3. Ouvre la fiche d'un enfant. **Attendu :** pas de « Coordonnées », mais « Pour joindre …, passe par ses parents », avec « Appeler … » pour chaque parent qui a donné son téléphone.
+4. Allume le **Mode présentation** et ouvre la fiche de la personne dont l'anniversaire approche. **Attendu :** pas de « Ce que je lui offre », ni de « Mes cadeaux à offrir » sur ta fiche.
+5. **Administration**, « Voir comme… » cette personne, puis ouvre sa fiche. **Attendu :** aucune surprise, réservation ni « Ce que j'offre ». Pas de jauge ni de bouton photo, car « Voir comme » n'écrit rien.
+6. Mets la taille du texte à 200 %. **Attendu :** le prénom, l'adresse et les boutons passent à la ligne sans être coupés. Avec TalkBack, chaque bouton dit ce qu'il fait.
+7. Réseau faible : ouvre une fiche déjà vue en mode avion, puis en « 2G seulement », comme dans « Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible ». **Attendu :** la fiche s'affiche, sans écran blanc. « Appeler » ouvre le téléphone même sans réseau.
+8. Éteins le module. **Attendu :** l'ancienne fiche revient telle qu'elle était.
