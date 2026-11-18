@@ -53,13 +53,9 @@ describe('sending', () => {
     await assertFails(setDoc(announcement(as(env, ADMIN)), written(ADMIN)));
   });
 
-  test('not during the mode présentation, again once it ended', async () => {
+  test('a config/presentation left on stops nothing any more (PRODUIT-132)', async () => {
     await env.withSecurityRulesDisabled(async (ctx) => {
       await setDoc(doc(ctx.firestore(), 'config/presentation'), { on: true, until: null });
-    });
-    await assertFails(setDoc(announcement(as(env, ADMIN)), written(ADMIN)));
-    await env.withSecurityRulesDisabled(async (ctx) => {
-      await setDoc(doc(ctx.firestore(), 'config/presentation'), { on: true, until: Timestamp.fromMillis(Date.now() - 60_000) });
     });
     await assertSucceeds(setDoc(announcement(as(env, ADMIN)), written(ADMIN)));
   });

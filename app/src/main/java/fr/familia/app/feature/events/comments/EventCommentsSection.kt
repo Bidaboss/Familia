@@ -51,7 +51,7 @@ fun EventCommentsSection(container: AppContainer?, currentMember: Member, eventI
 
 /**
  * Comments under a document, from [repository]: an event, or a good news (récit 67, with its own
- * [canRemove]). [readOnly] in the Mode présentation and « Voir comme »: they are read, never written.
+ * [canRemove]). [readOnly] in « Voir comme »: they are read, never written.
  */
 @Composable
 fun CommentsSection(

@@ -112,7 +112,7 @@ data class ProfileV2Ui(
  * (PRODUIT-114 à 116): a band of the member's color, the round photo over it, then one Argile card
  * per section. An empty section is hidden, except on my own page, where it invites to fill it. The
  * gifts keep their own rules: nothing of what is given to someone shows on their page when they look
- * (Mode présentation and « Voir comme » included).
+ * (« Voir comme » included).
  */
 @Composable
 internal fun ContentV2(

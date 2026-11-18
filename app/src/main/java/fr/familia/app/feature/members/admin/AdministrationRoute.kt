@@ -20,8 +20,6 @@ import fr.familia.app.core.share.hasInstallLink
 import fr.familia.app.core.share.shareApp
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.viewas.LocalViewAs
-import fr.familia.app.feature.presentation.PresentationSection
-import fr.familia.app.feature.presentation.rememberPresentation
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -83,8 +81,6 @@ fun AdministrationRoute(
         container?.crashRepository?.observeAll()?.map { crashGroups(it).size }?.catch { emit(0) } ?: flowOf(0)
     }
     val crashCount by crashKinds.collectAsStateWithLifecycle(initialValue = 0)
-    // Only the admin principal opens Administration; the Voir comme copy refuses the write.
-    val presentation = rememberPresentation(container, isOwner = true)
     CompositionLocalProvider(LocalFeatureSeeWhere provides seeWhere) {
         AdministrationScreen(
             state = state,
@@ -123,7 +119,6 @@ fun AdministrationRoute(
             discoverOrder = Discover.order(discoverKeys),
             discoverInTutorial = Discover.inTutorial(flags::isOn),
             onSaveDiscoverOrder = if (flags.isOn(Feature.Discover)) viewModel::saveDiscoverOrder else null,
-            presentation = presentation?.let { p -> { PresentationSection(p) } },
             calendarLinks = calendarLinksCard(container, family, flags.isOn(Feature.CalendarFeed)),
         )
     }

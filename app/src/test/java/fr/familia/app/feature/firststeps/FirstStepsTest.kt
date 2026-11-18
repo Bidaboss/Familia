@@ -1,14 +1,11 @@
 package fr.familia.app.feature.firststeps
 
-import fr.familia.app.core.data.AppConfig
-import fr.familia.app.core.data.AppConfigRepository
 import fr.familia.app.core.data.MemberCardRepository
 import fr.familia.app.core.data.MemberPhoto
 import fr.familia.app.core.data.MemberPhotoRepository
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberCard
 import fr.familia.app.core.model.MemberProfile
-import fr.familia.app.core.model.PresentationMode
 import fr.familia.app.core.model.Reaction
 import fr.familia.app.feature.goodnews.FakeGoodNews
 import fr.familia.app.feature.goodnews.NOW
@@ -88,7 +85,7 @@ class FirstStepsTest {
         val cards = FakeCards()
         val news = FakeGoodNews(listOf(goodNews("n1", INES)))
         val store = MemoryStore()
-        val vm = FirstStepsViewModel(photos, cards, news, null, store, CAMILLE.id, tastesOn = true, clock = { NOW })
+        val vm = FirstStepsViewModel(photos, cards, news, store, CAMILLE.id, tastesOn = true, clock = { NOW })
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.card.collect {} }
         assertEquals(listOf(false, false, false), (vm.card.value as FirstStepsCard.Steps).lines.map { it.done })
 
@@ -102,19 +99,9 @@ class FirstStepsTest {
     }
 
     @Test
-    fun `hidden during the Mode presentation`() = runTest {
-        val config = FakeConfig(PresentationMode(on = true, until = null))
-        val vm = FirstStepsViewModel(FakePhotos(), FakeCards(), FakeGoodNews(), config, MemoryStore(), CAMILLE.id, tastesOn = true, clock = { NOW })
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.card.collect {} }
-        assertNull(vm.card.value)
-        config.mode.value = null
-        assertTrue(vm.card.value is FirstStepsCard.Steps)
-    }
-
-    @Test
     fun `Plus tard and Ne plus afficher are kept on the phone`() = runTest {
         val store = MemoryStore()
-        val vm = FirstStepsViewModel(FakePhotos(), FakeCards(), FakeGoodNews(), null, store, CAMILLE.id, tastesOn = false, clock = { NOW })
+        val vm = FirstStepsViewModel(FakePhotos(), FakeCards(), FakeGoodNews(), store, CAMILLE.id, tastesOn = false, clock = { NOW })
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.card.collect {} }
         assertEquals(2, (vm.card.value as FirstStepsCard.Steps).lines.size)
         vm.later()
@@ -149,15 +136,6 @@ class FirstStepsTest {
         override suspend fun saveCard(card: MemberCard, byId: String) {
             this.card.value = card
         }
-    }
-
-    private class FakeConfig(initial: PresentationMode?) : AppConfigRepository {
-        val mode = MutableStateFlow(initial)
-        override fun observePresentation(): Flow<PresentationMode?> = mode
-        override fun observeAppConfig(): Flow<AppConfig> = error("not used")
-        override suspend fun fetchAppConfig(): AppConfig = error("not used")
-        override suspend fun setFeature(key: String, enabled: Boolean) = Unit
-        override suspend fun setDiscoverOrder(keys: List<String>) = Unit
     }
 
     private companion object {

@@ -31,7 +31,7 @@ export interface GoodNewsNotice {
   goodNewsId: string;
   /** The post of a child, to their responsible adults (AVIS-12): never muted (récit 6 quinquies). */
   direct?: boolean;
-  /** Grouped reactions: held during the mode présentation (récit 48). */
+  /** Grouped reactions (they may wait for the résumé du soir). */
   reaction?: boolean;
 }
 
@@ -137,7 +137,7 @@ async function loadMembers(db: Firestore): Promise<GoodNewsMember[]> {
 
 export async function onGoodNewsPublished(db: Firestore, send: GoodNewsSender, id: string, n: GoodNewsData, now: Date = noticeTime()): Promise<number> {
   const members = await loadMembers(db);
-  // During the mode présentation, only the admin principal's good news rings at once (récit 48).
+  // The admin principal's good news (the photo of the meal) is never capped (see deliver).
   const owner = (await db.doc('config/family').get()).get('ownerMemberId');
   const fromOwner = typeof owner === 'string' && owner === n.authorId;
   let sent = 0;

@@ -1,6 +1,5 @@
 package fr.familia.app.feature.gifts
 
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
@@ -9,7 +8,6 @@ import androidx.compose.ui.test.performClick
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.checkAccessibility
 import fr.familia.app.feature.events.TestFamily
-import fr.familia.app.feature.presentation.LocalPresenting
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -48,12 +46,10 @@ class GiftsTabV2Test {
     private fun stateFor(reader: String, day: LocalDate = today, tabV2: Boolean = true, singleList: Boolean = true): GiftsUiState.Success =
         (giftsState(family, emptyList(), reader, day, singleList = singleList, surpriseButton = true, tabV2 = tabV2) as GiftsUiState.Success)
 
-    private fun show(state: GiftsUiState.Success, presenting: Boolean = false, someListsHidden: Boolean = false) {
+    private fun show(state: GiftsUiState.Success, someListsHidden: Boolean = false) {
         compose.setContent {
             FamiliaTheme {
-                CompositionLocalProvider(LocalPresenting provides presenting) {
-                    GiftsScreen(state, onOpenList = {}, onNewList = {}, onRetry = {}, someListsHidden = someListsHidden, onOpenSurprisePicker = {}, onOpenMyPage = {})
-                }
+                GiftsScreen(state, onOpenList = {}, onNewList = {}, onRetry = {}, someListsHidden = someListsHidden, onOpenSurprisePicker = {}, onOpenMyPage = {})
             }
         }
         compose.waitForIdle()
@@ -121,22 +117,13 @@ class GiftsTabV2Test {
     }
 
     @Test
-    fun `a surprise in progress leads the tab, never while presenting nor in « Voir comme »`() {
+    fun `a surprise in progress leads the tab, never in « Voir comme »`() {
         val state = stateFor("adult1").copy(surprisePreparedFor = setOf("adult2"))
         show(state)
         assertEquals(1, count("SURPRISE EN PRÉPARATION"))
         assertEquals(1, count("Ouvrir la surprise"))
         assertEquals(1, button("Préparer une surprise"))
         assertTrue(top("SURPRISE EN PRÉPARATION") < top("À venir"))
-    }
-
-    @Test
-    fun `in presentation mode, no surprise and no button to prepare one`() {
-        show(stateFor("adult1").copy(surprisePreparedFor = setOf("adult2")), presenting = true)
-        assertEquals(0, count("Surprise"))
-        assertEquals(0, count("SURPRISE"))
-        assertEquals(0, button("Préparer une surprise"))
-        assertEquals(1, count("Adult2 fête ses 38 ans"))
     }
 
     @Test
@@ -158,15 +145,6 @@ class GiftsTabV2Test {
         assertEquals(0, count("Réserv"))
         assertEquals(0, count("Ce que j"))
         assertEquals(0, count("idée"))
-    }
-
-    @Test
-    fun `in presentation mode on the phone of a giver, the same`() {
-        show(stateFor("adult1").copy(surprisePreparedFor = setOf("adult2")), presenting = true)
-        assertEquals(0, count("Surprise"))
-        assertEquals(0, count("réserv"))
-        assertEquals(0, count("Ce que j"))
-        assertEquals(0, button("Préparer une surprise"))
     }
 
     @Test

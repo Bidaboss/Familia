@@ -14,7 +14,6 @@ import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.gifts.profile.ProfileGivingSection
 import fr.familia.app.feature.gifts.profile.ProfileNotebookSection
 import fr.familia.app.feature.gifts.profile.ProfileWishesSection
-import fr.familia.app.feature.presentation.LocalPresenting
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -26,7 +25,7 @@ import java.time.LocalDate
 
 /**
  * The new member page in front of the person celebrated (essais avant le 21, AVIS-22): in « Voir
- * comme » them and in presentation mode, nothing of what is given to them shows, nor my notebook,
+ * comme » them, nothing of what is given to them shows, nor my notebook,
  * nor a reservation. The real sections of the Cadeaux module are drawn, as the page draws them.
  * Fictional family only (TestFamily): adult1 celebrates in ten days, adult2 gives.
  */
@@ -51,7 +50,7 @@ class MemberProfileV2SafetyTest {
     )
 
     /** The page of [member] read by [reader], with the gifts slot the route gives it. */
-    private fun show(reader: Member, member: Member, viewing: Member? = null, presenting: Boolean = false) {
+    private fun show(reader: Member, member: Member, viewing: Member? = null) {
         val gifts: @Composable (Member) -> Unit = { person ->
             ProfileWishesSection(null, reader, person, onOpenList = {})
             ProfileNotebookSection(reader, person, notebookOn = true, onOpenNotebook = {})
@@ -59,7 +58,7 @@ class MemberProfileV2SafetyTest {
         }
         compose.setContent {
             FamiliaTheme {
-                CompositionLocalProvider(LocalViewAs provides ViewAsControl(viewed = viewing), LocalPresenting provides presenting) {
+                CompositionLocalProvider(LocalViewAs provides ViewAsControl(viewed = viewing)) {
                     Column {
                         ContentV2(
                             MemberProfileUiState.Ready(member, "Foyer Un", reader.id == member.id, canEdit = reader.id == member.id, souvenirs = emptyList()),
@@ -90,7 +89,7 @@ class MemberProfileV2SafetyTest {
 
     @Test
     fun `the giver sees what they give, kept private`() {
-        // The control: without « Voir comme » nor presentation, the box is there.
+        // The control: without « Voir comme », the box is there.
         show(giver, celebrated)
         assertTrue(count("Ce que je lui offre") > 0)
         assertTrue(count("Adult1 ne le voit pas") > 0)
@@ -112,20 +111,8 @@ class MemberProfileV2SafetyTest {
     }
 
     @Test
-    fun `in presentation mode, the giver's own phone shows nothing given`() {
-        show(giver, celebrated, presenting = true)
-        assertNothingHidden()
-    }
-
-    @Test
-    fun `in presentation mode, my notebook stays out of my page`() {
-        show(celebrated, celebrated, presenting = true)
-        assertNothingHidden()
-    }
-
-    @Test
-    fun `my notebook is on my page outside presentation and « Voir comme »`() {
-        // The control of the two tests above.
+    fun `my notebook is on my page outside « Voir comme »`() {
+        // The control of the « Voir comme » tests above.
         show(celebrated, celebrated)
         assertTrue(count("Mes cadeaux à offrir") > 0)
     }

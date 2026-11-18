@@ -4,12 +4,10 @@
 //
 // Avalanche du 21: at most one bienvenue every 30 min. The first arrival is told at once; those who
 // come in the next 30 min wait in welcomeQueue/family (only the functions use it), and arrivalReminder
-// tells them in one notice, « Inès et 3 autres viennent d'arriver ». During the mode présentation
-// every arrival goes to its summary as before, so nothing is counted twice.
+// tells them in one notice, « Inès et 3 autres viennent d'arriver ».
 
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import type { Notice } from './logic';
-import { presentingNow } from './prefs';
 import { featureOn, notify, type Sender } from './store';
 import { householdKindOf } from './testHousehold';
 
@@ -42,7 +40,7 @@ export async function welcomeMember(db: Firestore, send: Sender, memberId: strin
     if ((e as { code?: number }).code === ALREADY_EXISTS) return null;
     throw e;
   }
-  if (!(await presenting(db, now)) && !(await welcomeNow(db, memberId, now))) return 0;
+  if (!(await welcomeNow(db, memberId, now))) return 0;
   const members = await db.collection('members').get();
   const newcomer = members.docs.find((m) => m.id === memberId);
   const firstName = String(newcomer?.get('firstName') ?? '');
@@ -54,15 +52,6 @@ export async function welcomeMember(db: Firestore, send: Sender, memberId: strin
 /** At most one bienvenue in this time. */
 export const WELCOME_GAP_MS = 30 * 60 * 1000;
 const WELCOME_QUEUE = 'welcomeQueue/family';
-
-async function presenting(db: Firestore, now: Date): Promise<boolean> {
-  try {
-    return await presentingNow(db, now);
-  } catch (e) {
-    console.error('presentation: read failed', e);
-    return false;
-  }
-}
 
 /** True when [memberId] may be told at once; otherwise they wait in the queue for arrivalReminder. */
 async function welcomeNow(db: Firestore, memberId: string, now: Date): Promise<boolean> {

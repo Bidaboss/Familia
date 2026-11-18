@@ -17,12 +17,9 @@ import fr.familia.app.core.album.AlbumPhotosViewModel
 import fr.familia.app.core.album.AlbumScreen
 import fr.familia.app.core.album.albumPhotoOrder
 import fr.familia.app.core.album.rememberPhotoActions
-import fr.familia.app.core.data.AppConfig
-import fr.familia.app.core.data.AppConfigRepository
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
-import fr.familia.app.core.model.PresentationMode
 import fr.familia.app.core.model.Rsvp
 import fr.familia.app.core.model.RsvpStatus
 import fr.familia.app.core.theme.FamiliaTheme
@@ -50,10 +47,6 @@ import fr.familia.app.feature.goodnews.feed.GoodNewsFeedScreen
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedViewModel
 import fr.familia.app.feature.home.HomeActions
 import fr.familia.app.feature.home.HomeViewModel
-import fr.familia.app.feature.presentation.PresentationBanner
-import fr.familia.app.feature.presentation.PresentationSection
-import fr.familia.app.feature.presentation.PresentationState
-import fr.familia.app.feature.presentation.PresentationViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -240,57 +233,6 @@ class DemoScenarioJourneyTest {
         // Back on the feed, where it shows once.
         waitForText("Joyeux anniversaire !")
         assertEquals(1, compose.onAllNodesWithText("Joyeux anniversaire !").fetchSemanticsNodes().size)
-    }
-
-    // --- H − 10 min and « À la fin »: the mode présentation, on for 4 h, then off.
-
-    /** config/presentation as the admin principal reads and writes it. */
-    private class FakePresentationConfig : AppConfigRepository {
-        val mode = MutableStateFlow<PresentationMode?>(null)
-        var stops = 0
-        override fun observeAppConfig(): Flow<AppConfig> = flowOf(AppConfig(null, null))
-        override suspend fun fetchAppConfig(): AppConfig = AppConfig(null, null)
-        override suspend fun setFeature(key: String, enabled: Boolean) = Unit
-        override suspend fun setDiscoverOrder(keys: List<String>) = Unit
-        override fun observePresentation(): Flow<PresentationMode?> = mode
-        override suspend fun startPresentation(until: Instant?, now: Instant) {
-            mode.value = PresentationMode(on = true, until = until)
-        }
-        override suspend fun stopPresentation() {
-            stops++
-            mode.value = PresentationMode(on = false, until = null)
-        }
-    }
-
-    @Test
-    fun `the mode présentation goes on for 4 h with its banner, then off`() {
-        val now = Instant.parse("2026-11-21T11:20:00Z")
-        val config = FakePresentationConfig()
-        val vm = PresentationViewModel(config) { now }
-        compose.setContent {
-            FamiliaTheme {
-                val mode by vm.mode.collectAsStateWithLifecycle()
-                val state = PresentationState(mode, now, vm::start, vm::stop)
-                Column {
-                    PresentationBanner(state)
-                    PresentationSection(state)
-                }
-            }
-        }
-        waitForText("4 h")
-        assertNoText("Mode présentation jusqu")
-        compose.onNodeWithText("4 h").performClick()
-
-        waitForText("Mode présentation jusqu", substring = true)
-        assertEquals(PresentationMode(on = true, until = Instant.parse("2026-11-21T15:20:00Z")), config.mode.value)
-        assertNoText("4 h")
-
-        // « Éteindre » is on the banner and in the card; the banner's is the first.
-        compose.onAllNodesWithText("Éteindre").onFirst().performClick()
-        waitForText("4 h")
-        assertEquals(1, config.stops)
-        assertNoText("Mode présentation jusqu")
-        assertNoText("Éteindre")
     }
 
     // --- Les photos: the album of the meal, then « Lancer le diaporama ».

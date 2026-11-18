@@ -44,13 +44,11 @@ import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.home.HomeChip
-import fr.familia.app.feature.presentation.LocalPresenting
 import kotlinx.coroutines.flow.StateFlow
 import java.time.LocalDate
 
 /**
- * The « Il y a N ans » card of the Accueil (récit 36): shown only on a day that has a souvenir, and
- * never while the Mode présentation is on (récit 48).
+ * The « Il y a N ans » card of the Accueil (récit 36): shown only on a day that has a souvenir.
  */
 @Composable
 fun YearAgoHomeCard(
@@ -71,7 +69,6 @@ fun YearAgoHomeCard(
             viewModel.hideFailureShown()
         }
     }
-    if (LocalPresenting.current) return
     memory?.let { m ->
         YearAgoContent(
             memory = m,
@@ -93,14 +90,13 @@ fun YearAgoHomeCard(
 fun YearAgoHomeChip(container: AppContainer?, currentMember: Member, selected: Boolean, onToggle: () -> Unit) {
     val memory by yearAgoViewModel(container, currentMember).memory.collectAsStateWithLifecycle()
     val m = memory ?: return
-    if (LocalPresenting.current) return
     HomeChip(label = yearAgoTitle(m.years), onClick = onToggle, selected = selected)
 }
 
-/** The souvenir of the day for the fil (récit 71): the same as the card of the Accueil, none in présentation. */
+/** The souvenir of the day for the fil (récit 71): the same as the card of the Accueil. */
 @Composable
 fun rememberYearAgoMemory(container: AppContainer?, currentMember: Member): StateFlow<YearAgoMemory?>? =
-    if (LocalPresenting.current) null else yearAgoViewModel(container, currentMember).memory
+    yearAgoViewModel(container, currentMember).memory
 
 /** « Il y a un an », « Il y a 3 ans »… */
 @Composable
