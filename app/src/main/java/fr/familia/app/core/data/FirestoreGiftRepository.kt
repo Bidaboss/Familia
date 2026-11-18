@@ -9,6 +9,7 @@ import com.google.firebase.firestore.MetadataChanges
 import com.google.firebase.firestore.Query
 import fr.familia.app.core.model.ClaimType
 import fr.familia.app.core.model.GiftClaim
+import fr.familia.app.core.model.GiftContribution
 import fr.familia.app.core.model.GiftItem
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
@@ -138,8 +139,10 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
         if (isNew) {
             // Left out when there is none, so the item fits the rules of before the photo too.
             val photo = item.photo?.let { mapOf("photo" to it) }.orEmpty()
+            // The same for « Déjà acheté » (récit 68), before « Publier Firebase ».
+            val bought = if (item.alreadyBought) mapOf("alreadyBought" to true) else emptyMap()
             ref.set(
-                fields + photo + mapOf(
+                fields + photo + bought + mapOf(
                     "authorId" to item.authorId,
                     "authorName" to item.authorName,
                     "visibleToBeneficiary" to item.visibleToBeneficiary,
@@ -148,7 +151,10 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
             ).await()
         } else {
             // Removing a field that is not there changes nothing, under the old rules too.
-            ref.update(fields + ("photo" to (item.photo ?: FieldValue.delete()))).await()
+            ref.update(
+                fields + ("photo" to (item.photo ?: FieldValue.delete())) +
+                    ("alreadyBought" to (if (item.alreadyBought) true else FieldValue.delete())),
+            ).await()
         }
     }
 
@@ -227,6 +233,55 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
             .await()
     }
 
+    override fun observeContributions(
+        listId: String,
+        itemIds: List<String>,
+        memberId: String,
+        all: Boolean,
+    ): Flow<Map<String, List<GiftContribution>>> {
+        if (itemIds.isEmpty()) return flowOf(emptyMap())
+        val items = db.collection(LISTS).document(listId).collection(ITEMS)
+        val flows = itemIds.map { itemId ->
+            val parts = items.document(itemId).collection(CONTRIBUTIONS)
+            val read = if (all) parts.observe { it.toContribution() } else parts.document(memberId).observeOneContribution()
+            // The parts never take the list down: without them, the wish shows its total only.
+            read.catch { e ->
+                if (e is CancellationException) throw e
+                emit(emptyList())
+            }
+        }
+        return combine(flows) { parts -> itemIds.zip(parts.toList()).toMap() }
+    }
+
+    /**
+     * The part and the total of the wish in one batch, as the rules want: an increment rather than a
+     * transaction, so it waits in the queue offline like the other writes.
+     */
+    override suspend fun setContribution(listId: String, itemId: String, contribution: GiftContribution, previous: Int) {
+        val item = db.collection(LISTS).document(listId).collection(ITEMS).document(itemId)
+        db.batch()
+            .set(
+                item.collection(CONTRIBUTIONS).document(contribution.memberId),
+                mapOf(
+                    "amount" to contribution.amount.toLong(),
+                    "memberName" to contribution.memberName,
+                    "updatedAt" to FieldValue.serverTimestamp(),
+                ),
+            )
+            .update(item, "contributedTotal", FieldValue.increment((contribution.amount - previous).toLong()))
+            .commit()
+            .await()
+    }
+
+    override suspend fun removeContribution(listId: String, itemId: String, memberId: String, previous: Int) {
+        val item = db.collection(LISTS).document(listId).collection(ITEMS).document(itemId)
+        db.batch()
+            .delete(item.collection(CONTRIBUTIONS).document(memberId))
+            .update(item, "contributedTotal", FieldValue.increment(-previous.toLong()))
+            .commit()
+            .await()
+    }
+
     override fun observeReceived(listId: String): Flow<List<ReceivedGift>> =
         db.collection(LISTS).document(listId).collection(RECEIVED).observe { it.toReceivedGift() }
 
@@ -265,6 +320,18 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
                 close(error)
             } else if (snapshot != null) {
                 trySend(listOfNotNull(snapshot.takeIf { it.exists() }?.toGiftShare()))
+            }
+        }
+        awaitClose { registration.remove() }
+    }
+
+    /** One part of a wish already bought, as a list of zero or one (récit 68). */
+    private fun DocumentReference.observeOneContribution(): Flow<List<GiftContribution>> = callbackFlow {
+        val registration = addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+            } else if (snapshot != null) {
+                trySend(listOfNotNull(snapshot.takeIf { it.exists() }?.toContribution()))
             }
         }
         awaitClose { registration.remove() }
@@ -321,6 +388,16 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
             occasion = GiftOccasion.fromFirestore(getString("occasion")),
             addedAt = getTimestamp("createdAt")?.toDate()?.toInstant(),
             photo = getString("photo"),
+            alreadyBought = getBoolean("alreadyBought") == true,
+            contributedTotal = getLong("contributedTotal")?.toInt()?.coerceAtLeast(0) ?: 0,
+        )
+    }
+
+    private fun DocumentSnapshot.toContribution(): GiftContribution? {
+        return GiftContribution(
+            memberId = id,
+            memberName = getString("memberName").orEmpty(),
+            amount = getLong("amount")?.toInt()?.takeIf { it > 0 } ?: return null,
         )
     }
 
@@ -368,6 +445,7 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
         const val ITEMS = "items"
         const val CLAIMS = "claims"
         const val SHARES = "shares"
+        const val CONTRIBUTIONS = "contributions"
         const val RECEIVED = "received"
         const val SHARE_RETRIES = 20L
         const val SHARE_RETRY_DELAY_MILLIS = 750L

@@ -453,6 +453,11 @@ class ReadOnlyGiftRepository(
     override suspend fun markShareReceived(listId: String, itemId: String, memberId: String, received: Boolean) = guard.refuse()
     override suspend fun leaveShare(listId: String, itemId: String, memberId: String) = guard.refuse()
     override suspend fun setClaimOccasion(listId: String, itemId: String, occasion: GiftOccasion) = guard.refuse()
+    override fun observeContributions(listId: String, itemIds: List<String>, memberId: String, all: Boolean) =
+        inner.observeContributions(listId, itemIds, memberId, all)
+    override suspend fun setContribution(listId: String, itemId: String, contribution: fr.familia.app.core.model.GiftContribution, previous: Int) =
+        guard.refuse()
+    override suspend fun removeContribution(listId: String, itemId: String, memberId: String, previous: Int) = guard.refuse()
     override fun observeReceived(listId: String): Flow<List<ReceivedGift>> = inner.observeReceived(listId)
     override suspend fun thank(listId: String, itemId: String) = guard.refuse()
 }

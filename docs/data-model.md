@@ -351,6 +351,8 @@ Requêtes de l'appli, toutes acceptées par les règles : `viewerIds array-conta
 | `authorId`, `authorName` | `memberId`, texte | Qui l'a ajouté, jamais modifiés |
 | `visibleToBeneficiary` | booléen | Vrai seulement si l'auteur tient les listes du bénéficiaire et que la liste n'est ni une surprise ni « Idées de la famille ». Les règles l'imposent |
 | `occasion` | `christmas` \| `birthday`, null ou absent | Récit 9 ter : l'occasion pour laquelle une envie est notée. Null ou absent : « Quand tu veux » |
+| `alreadyBought` | booléen ou absent | Récit 68 (interrupteur « Déjà acheté ») : « Je l'ai déjà acheté, une participation me ferait plaisir ». Seulement sur « Mes envies », sur une envie que la personne voit. Personne ne la réserve ; on y participe. Reste vrai tant que `contributedTotal` n'est pas 0 |
+| `contributedTotal` | entier positif ou absent | Récit 68 : total des participations en euros ronds. Jamais écrit par l'auteur : chaque participant le change de sa propre part, dans le même lot d'écritures que sa part |
 | `createdAt`, `updatedAt` | horodatage serveur | |
 
 - **Lire** : ceux qui voient la liste. Le bénéficiaire ne lit que `visibleToBeneficiary == true` (l'appli filtre sa requête ainsi) jusqu'à la révélation.
@@ -390,6 +392,20 @@ Une part d'un cadeau commun, une par adulte. Aucun paiement ne passe par l'appli
 - **Rejoindre** : un adulte qui voit la liste, pour lui-même, sur un cadeau commun.
 - **Modifier** : le membre change son montant ; le responsable marque la part reçue ou non. Personne d'autre.
 - **Retirer** : le membre ou le responsable.
+
+### `giftLists/{listId}/items/{itemId}/contributions/{memberId}` (récit 68)
+
+Une participation à une envie déjà achetée, une par adulte. Ce n'est pas une surprise : rien n'est caché puis dévoilé. Aucun paiement ne passe par l'appli.
+
+| Champ | Type | Description |
+|---|---|---|
+| `amount` | entier de 1 à 10 000 | Participation en euros ronds |
+| `memberName` | texte | Prénom de celui qui participe |
+| `updatedAt` | horodatage serveur | |
+
+- **Lire** : sa propre participation ; toutes, par qui tient les listes de la personne (elle-même, ou le parent d'un enfant sans l'appli). Les autres ne voient que le total `contributedTotal` sur l'envie (PRODUIT-109).
+- **Participer, changer, retirer** : un adulte qui ne tient pas les listes de la personne, pour lui-même, sur une envie `alreadyBought`, en changeant `contributedTotal` du même montant dans le même lot.
+- Une envie retirée ou marquée « Reçue » perd ses participations sur le serveur (`onGiftItemWritten`) ; « Je le prends » est refusé sur une envie déjà achetée.
 
 ### `giftLists/{listId}/received/{itemId}` (« On m'a offert », PRD, récit 10 bis)
 

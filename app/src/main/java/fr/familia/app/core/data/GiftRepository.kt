@@ -1,6 +1,7 @@
 package fr.familia.app.core.data
 
 import fr.familia.app.core.model.GiftClaim
+import fr.familia.app.core.model.GiftContribution
 import fr.familia.app.core.model.GiftItem
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftOccasion
@@ -73,6 +74,19 @@ interface GiftRepository {
      * birthday or the next Christmas of the beneficiary (PRD rév. 186). It is revealed the day after.
      */
     suspend fun setClaimOccasion(listId: String, itemId: String, occasion: GiftOccasion) {}
+
+    /**
+     * The parts of the wishes already bought [itemIds] (récit 68): all of them when [all] (whoever
+     * keeps the lists of the person), else only the part of [memberId]. The rules refuse the rest.
+     */
+    fun observeContributions(listId: String, itemIds: List<String>, memberId: String, all: Boolean): Flow<Map<String, List<GiftContribution>>> =
+        flowOf(emptyMap())
+
+    /** « Je participe »: sets the part of [contribution]'s member, [previous] being what it was (0 for none). */
+    suspend fun setContribution(listId: String, itemId: String, contribution: GiftContribution, previous: Int) {}
+
+    /** Takes back the part [previous] of [memberId]. */
+    suspend fun removeContribution(listId: String, itemId: String, memberId: String, previous: Int) {}
 
     /** « On m'a offert » of the wishes [listId] (récit 10 bis). Only its owner and who keeps their lists read it. */
     fun observeReceived(listId: String): Flow<List<ReceivedGift>> = flowOf(emptyList())

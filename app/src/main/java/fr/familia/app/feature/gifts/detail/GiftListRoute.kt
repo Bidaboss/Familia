@@ -33,10 +33,16 @@ fun GiftListRoute(
 ) {
     // « Voir comme »: the admin principal still reads with their own account.
     val readerId = LocalViewAs.current.readerId ?: currentMember.id
+    // « Déjà acheté » (récit 68): for the whole family or nobody, not the admin principal first.
+    val alreadyBought = LocalFeatureFlags.current.isOnForFamily(Feature.AlreadyBought)
     val viewModel: GiftListViewModel = viewModel(
         factory = viewModelFactory {
             initializer {
-                GiftListViewModel(container?.giftRepository, container?.memberRepository, currentMember.id, listId, readerId = readerId)
+                GiftListViewModel(
+                    container?.giftRepository, container?.memberRepository, currentMember.id, listId,
+                    readerId = readerId,
+                    alreadyBought = alreadyBought,
+                )
             }
         },
     )
@@ -60,6 +66,8 @@ fun GiftListRoute(
             onSetShare = viewModel::setShare,
             onLeaveShare = viewModel::leaveShare,
             onMarkReceived = viewModel::markReceived,
+            onContribute = viewModel::contribute,
+            onWithdrawContribution = viewModel::withdrawContribution,
             onOpenReceived = onOpenReceived,
             onOpenBeneficiary = onOpenBeneficiary,
             onMarkWishReceived = if (showClaimOccasion && readerId == currentMember.id) viewModel::askWishReceived else null,

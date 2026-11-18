@@ -1887,7 +1887,12 @@ service cloud.firestore {
       return i.keys().hasAll(['title', 'url', 'price', 'note', 'authorId', 'authorName',
                               'visibleToBeneficiary', 'createdAt', 'updatedAt'])
         && i.keys().hasOnly(['title', 'url', 'price', 'note', 'authorId', 'authorName',
-                             'visibleToBeneficiary', 'createdAt', 'updatedAt', 'imageUrl', 'occasion', 'photo'])
+                             'visibleToBeneficiary', 'createdAt', 'updatedAt', 'imageUrl', 'occasion', 'photo',
+                             'alreadyBought', 'contributedTotal'])
+        // « Déjà acheté, participation bienvenue » (récit 68): a bool, and the total of the
+        // participations in whole euros, kept by those who take part (see contributions below).
+        && (!('alreadyBought' in i) || i.alreadyBought is bool)
+        && (!('contributedTotal' in i) || (i.contributedTotal is int && i.contributedTotal >= 0))
         // The occasion a wish is for (récit 9 ter): absent or null for « Quand tu veux ».
         && (!('occasion' in i) || i.occasion == null || i.occasion in ['christmas', 'birthday'])
         && i.title is string && i.title.size() > 0 && i.title.size() <= 80
@@ -1926,6 +1931,16 @@ service cloud.firestore {
         return /databases/$(database)/documents/giftLists/$(listId)/claims/$(itemId);
       }
 
+      function myContributionPath() {
+        return /databases/$(database)/documents/giftLists/$(listId)/items/$(itemId)/contributions/$(myMemberId());
+      }
+
+      // Récit 68: « Déjà acheté » only on a wish its keeper sees, and never with a total of its own.
+      function isValidAlreadyBought(i) {
+        return i.get('alreadyBought', false) == false
+          || (list().kind == 'wishes' && i.visibleToBeneficiary == true);
+      }
+
       allow read: if isMember()
         && canSeeList(list())
         && (!isKeptFromMe(list()) || resource.data.visibleToBeneficiary == true);
@@ -1939,6 +1954,8 @@ service cloud.firestore {
         && request.resource.data.authorId == myMemberId()
         && request.resource.data.authorName == me().firstName
         && request.resource.data.createdAt == request.time
+        && isValidAlreadyBought(request.resource.data)
+        && !('contributedTotal' in request.resource.data)
         && request.resource.data.visibleToBeneficiary
              == (!(list().kind in ['surprise', 'ideas']) && keepsListsOf(list().beneficiaryId));
 
@@ -1954,7 +1971,22 @@ service cloud.firestore {
         && request.resource.data.authorId == resource.data.authorId
         && request.resource.data.authorName == resource.data.authorName
         && request.resource.data.visibleToBeneficiary == resource.data.visibleToBeneficiary
-        && request.resource.data.createdAt == resource.data.createdAt;
+        && request.resource.data.createdAt == resource.data.createdAt
+        // The total belongs to those who take part; « Déjà acheté » stays while someone does.
+        && request.resource.data.get('contributedTotal', 0) == resource.data.get('contributedTotal', 0)
+        && isValidAlreadyBought(request.resource.data)
+        && (request.resource.data.get('alreadyBought', false) == true
+            || resource.data.get('contributedTotal', 0) == 0);
+
+      // Récit 68: whoever takes part changes the total by their own part, in the same write as it.
+      allow update: if isMember()
+        && list().kind == 'wishes'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['contributedTotal'])
+        && request.resource.data.contributedTotal is int
+        && request.resource.data.contributedTotal
+             == resource.data.get('contributedTotal', 0)
+                - (exists(myContributionPath()) ? get(myContributionPath()).data.amount : 0)
+                + (existsAfter(myContributionPath()) ? getAfter(myContributionPath()).data.amount : 0);
 
       // A revealed list is archived: nothing leaves it any more.
       allow delete: if isMember()
@@ -1985,7 +2017,9 @@ service cloud.firestore {
         && request.resource.data.holderId == myMemberId()
         && request.resource.data.holderName == me().firstName
         && request.resource.data.createdAt == request.time
-        && (request.resource.data.type == 'solo' || me().profile == 'adult');
+        && (request.resource.data.type == 'solo' || me().profile == 'adult')
+        // Récit 68: a wish already bought is never reserved, one only takes part in it.
+        && get(/databases/$(database)/documents/giftLists/$(listId)/items/$(itemId)).data.get('alreadyBought', false) != true;
 
       // On « Mes envies », the holder chooses the occasion the gift is meant for (PRD rév. 186):
       // the next birthday or the next Christmas after the reservation, revealed the day after.
@@ -2047,6 +2081,51 @@ service cloud.firestore {
                 && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['received', 'updatedAt'])));
 
       allow delete: if isMember() && (memberId == myMemberId() || claim().holderId == myMemberId());
+    }
+
+    // giftLists/{listId}/items/{itemId}/contributions/{memberId}: « Je participe » on a wish its
+    // keeper already bought (récit 68), in whole euros. Not a surprise: whoever keeps the lists of
+    // the person reads every first name and amount; the others only their own part, and the total
+    // on the item. Each write changes the total of the item by the same amount, in one batch.
+    match /giftLists/{listId}/items/{itemId}/contributions/{memberId} {
+      function list() {
+        return get(giftListPath(listId)).data;
+      }
+
+      function itemPath() {
+        return /databases/$(database)/documents/giftLists/$(listId)/items/$(itemId);
+      }
+
+      function totalBefore() {
+        return get(itemPath()).data.get('contributedTotal', 0);
+      }
+
+      function totalAfter() {
+        return getAfter(itemPath()).data.get('contributedTotal', 0);
+      }
+
+      allow read: if isMember()
+        && list().kind == 'wishes'
+        && (memberId == myMemberId() || keepsListsOf(list().beneficiaryId));
+
+      allow create, update: if isMember()
+        && memberId == myMemberId()
+        && me().profile == 'adult'
+        && list().kind == 'wishes'
+        && !keepsListsOf(list().beneficiaryId)
+        && get(itemPath()).data.get('alreadyBought', false) == true
+        && request.resource.data.keys().hasAll(['amount', 'memberName', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['amount', 'memberName', 'updatedAt'])
+        && request.resource.data.amount is int
+        && request.resource.data.amount > 0 && request.resource.data.amount <= 10000
+        && request.resource.data.memberName == me().firstName
+        && request.resource.data.updatedAt == request.time
+        && totalAfter() == totalBefore() - (resource == null ? 0 : resource.data.amount) + request.resource.data.amount;
+
+      // Taking one's part back lowers the total by as much.
+      allow delete: if isMember()
+        && memberId == myMemberId()
+        && totalAfter() == totalBefore() - resource.data.amount;
     }
 
     // giftLists/{listId}/received/{itemId}: « On m'a offert » (récit 10 bis), the wishes revealed

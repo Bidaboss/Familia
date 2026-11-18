@@ -79,7 +79,20 @@ data class GiftItem(
     val addedAt: java.time.Instant? = null,
     /** The base of the photo sent by its author (core/photo/SinglePhoto, PRD récit 44), or null. */
     val photo: String? = null,
+    /**
+     * « Déjà acheté, participation bienvenue » (récit 68): its keeper already bought this wish and
+     * would welcome a part. Nobody reserves it; the family takes part with « Je participe ».
+     */
+    val alreadyBought: Boolean = false,
+    /** The total of those parts, in whole euros, kept with each part (see [GiftContribution]). */
+    val contributedTotal: Int = 0,
 )
+
+/**
+ * A part of [memberId] in a wish already bought (récit 68), in whole euros. Not a surprise: whoever
+ * keeps the lists of the person reads every one, the others only their own.
+ */
+data class GiftContribution(val memberId: String, val memberName: String, val amount: Int)
 
 enum class ClaimType(val firestoreValue: String) {
     /** « Je le prends ». */

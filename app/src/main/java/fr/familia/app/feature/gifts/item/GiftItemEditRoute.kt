@@ -30,6 +30,8 @@ fun GiftItemEditRoute(
 ) {
     val singleList = LocalFeatureFlags.current.isOn(Feature.SingleList)
     val morePhotos = LocalFeatureFlags.current.isOn(Feature.MorePhotos)
+    // « Déjà acheté » (récit 68): for the whole family or nobody.
+    val alreadyBought = LocalFeatureFlags.current.isOnForFamily(Feature.AlreadyBought)
     val viewModel: GiftItemEditViewModel = viewModel(
         factory = viewModelFactory {
             initializer {
@@ -41,6 +43,7 @@ fun GiftItemEditRoute(
                     singleList = singleList,
                     photos = if (morePhotos) photoSaver(container) else null,
                     fromShare = fromShare,
+                    alreadyBought = alreadyBought,
                 )
             }
         },
