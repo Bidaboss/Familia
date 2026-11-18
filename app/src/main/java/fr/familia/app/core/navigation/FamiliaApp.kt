@@ -12,7 +12,6 @@ import fr.familia.app.core.data.familyToday
 import fr.familia.app.feature.presentation.LocalPresenting
 import fr.familia.app.feature.presentation.PresentationBanner
 import fr.familia.app.feature.presentation.rememberPresentation
-
 import androidx.compose.material.icons.outlined.PhotoAlbum
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.EmojiEvents
@@ -27,6 +26,7 @@ import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material.icons.outlined.AccountTree
+import androidx.compose.material.icons.outlined.DynamicFeed
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Autorenew
@@ -41,6 +41,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import fr.familia.app.feature.all.AllFamiliaScreen
 import fr.familia.app.feature.all.AllModule
 import fr.familia.app.feature.all.ModuleFamily
+import fr.familia.app.feature.all.rememberMemoriesNote
+import fr.familia.app.feature.feed.FeedOpenRequest
 import fr.familia.app.feature.home.HomeAddOptions
 import fr.familia.app.feature.home.HomeAddSheet
 import androidx.compose.runtime.mutableStateOf
@@ -316,6 +318,7 @@ import fr.familia.app.feature.whoisit.WhoIsItPostRoute
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
+
 
 /** Root of the UI: bottom navigation bar plus the single NavHost of the app. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -745,12 +748,12 @@ fun FamiliaApp(
 
     // The theme chosen on this phone shows once the Thèmes module is on; before, Classique (DESIGN-7).
     val themesOn = features.isOn(Feature.Themes)
-    FamiliaTheme(theme = if (themesOn) chosenTheme else FamiliaThemeId.Classic, seeds = features.isOn(Feature.PresentationR1bis)) {
+    FamiliaTheme(theme = if (themesOn) chosenTheme else FamiliaThemeId.Classic, seeds = true) {
     CompositionLocalProvider(
         LocalOpenHelp provides { navController.navigate(HelpDestination) { launchSingleTop = true } },
         LocalMemberPhotos provides photos,
-        LocalMemberInitials provides remember(liveFamily?.members, features.isOn(Feature.PresentationR1bis)) {
-            if (features.isOn(Feature.PresentationR1bis)) memberInitials(liveFamily?.members.orEmpty()) else emptyMap()
+        LocalMemberInitials provides remember(liveFamily?.members) {
+            memberInitials(liveFamily?.members.orEmpty())
         },
         LocalFeatureFlags provides features,
         LocalPresenting provides (presentation?.isOn == true),
@@ -764,14 +767,13 @@ fun FamiliaApp(
         val topBarScroll = TopAppBarDefaults.pinnedScrollBehavior()
         // The sheet of my photo (DESIGN-12): my profile and the settings that were under Famille.
         var accountOpen by rememberSaveable { mutableStateOf(false) }
-        // The « + » of the R1 bis Accueil: what can be added, each only with its module.
-        val r1On = features.isOn(Feature.PresentationR1bis)
         // The new Planning (PRODUIT-126): its filter is a round button of the bar, kept here.
         val planningV2On = features.isOnForFamily(Feature.PlanningV2)
         // A tablet of 7 inches or more, in portrait (600 dp) or landscape: the rail instead of the bar.
-        val useRail = r1On && LocalConfiguration.current.screenWidthDp >= 600
+        val useRail = LocalConfiguration.current.screenWidthDp >= 600
         var addOpen by rememberSaveable { mutableStateOf(false) }
-        if (addOpen && r1On) {
+        // The « + » of the Accueil: what can be added, each only with its module.
+        if (addOpen) {
             HomeAddSheet(
                 options = HomeAddOptions(
                     // « Dire où je suis » first (DESIGN, 17/11): it left the Accueil for « + ».
@@ -835,9 +837,9 @@ fun FamiliaApp(
                         onPolls = if (pollsOn) ({ navController.navigate(PollsDestination) { launchSingleTop = true } }) else null,
                         pollsToVote = if (pollsOn && tab == TopLevelDestination.Planning) rememberPollsToVote(container, currentMember.id) else 0,
                         onAccount = { accountOpen = true },
-                        greeting = if (r1On && tab == TopLevelDestination.Home) stringResource(R.string.home_r1_greeting, currentMember.firstName) else null,
+                        greeting = if (tab == TopLevelDestination.Home) stringResource(R.string.home_r1_greeting, currentMember.firstName) else null,
                         onAdd = when {
-                            r1On && tab == TopLevelDestination.Home -> ({ addOpen = true })
+                            tab == TopLevelDestination.Home -> ({ addOpen = true })
                             planningV2On && tab == TopLevelDestination.Planning -> ({ navController.navigate(EventEditDestination()) })
                             else -> null
                         },
@@ -852,11 +854,7 @@ fun FamiliaApp(
                             selected = selected,
                             onClick = { navController.navigateToTab(destination) },
                             // R1 bis: the tab on shows in a yellow pill, its icon dark on it.
-                            colors = if (r1On) {
-                                NavigationBarItemDefaults.colors(indicatorColor = R1_TAB_PILL, selectedIconColor = Color(0xFF1B1B1B))
-                            } else {
-                                NavigationBarItemDefaults.colors()
-                            },
+                            colors = NavigationBarItemDefaults.colors(indicatorColor = R1_TAB_PILL, selectedIconColor = Color(0xFF1B1B1B)),
                             icon = {
                                 val badge = if (destination == TopLevelDestination.HelpRequests) helpBadge else 0
                                 BadgedBox(badge = { if (badge > 0) Badge { Text(badge.toString()) } }) {
@@ -878,7 +876,7 @@ fun FamiliaApp(
             if (onTab && useRail) {
                 NavigationRail(
                     header = {
-                        if (r1On && currentDestination.isOn(TopLevelDestination.Home)) {
+                        if (currentDestination.isOn(TopLevelDestination.Home)) {
                             FloatingActionButton(onClick = { addOpen = true }) {
                                 Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.home_r1_add))
                             }
@@ -975,6 +973,8 @@ fun FamiliaApp(
                             onOpenYear = { year -> navController.navigate(YearInReviewDestination(year)) { launchSingleTop = true } },
                             onOpenMyProfile = { navController.navigate(MemberProfileDestination(currentMember.id)) { launchSingleTop = true } },
                             onOpenMember = { id -> navController.navigate(MemberProfileDestination(id)) },
+                            onOpenCapsule = { id -> navController.navigate(CapsuleDetailDestination(id)) },
+                            onOpenRecap = { navController.navigate(RecapDestination) { launchSingleTop = true } },
                             onOpenDiscover = { module ->
                                 when (module) {
                                     DiscoverModule.WeeklyQuestion -> navController.navigate(WeeklyQuestionDestination())
@@ -989,13 +989,17 @@ fun FamiliaApp(
                         )
                     }
                     composable<AllFamiliaDestination> {
+                        // Se souvenir en un seul lieu (récit 71): only with the fil on; off, nothing moves.
+                        val memoriesInFeed = features.isOnForFamily(Feature.NewsFeed)
                         AllFamiliaScreen(
+                            note = if (rememberMemoriesNote(memoriesInFeed)) stringResource(R.string.all_memories_note) else null,
                             modules = allModules(
                                 features,
                                 helpBadge,
                                 navController,
                                 currentMember.id,
-                                reviewYear = openableReviewYear(LocalDate.now(), forCard = false),
+                                reviewYear = openableReviewYear(LocalDate.now(), forCard = memoriesInFeed),
+                                memoriesInFeed = memoriesInFeed,
                                 onEntraideTab = { tab ->
                                     entraideTab = tab
                                     navController.navigateToTab(TopLevelDestination.HelpRequests)
@@ -2046,6 +2050,12 @@ private fun allModules(
     reviewYear: Int? = null,
     /** Bons plans, On se prête, À qui le tour ?: Entraide, turned to that sub-tab (PRODUIT-118). */
     onEntraideTab: (EntraideTab) -> Unit = {},
+    /**
+     * Se souvenir en un seul lieu (récit 71), with the fil on: « Se souvenir » keeps Le fil, Albums,
+     * Arbre and Capsule (to write one); « Qui est-ce ? » goes to « Se faire plaisir »; Souvenirs and
+     * Bonnes nouvelles are cards of the fil; « Notre année » only from 26/12 to 10/01.
+     */
+    memoriesInFeed: Boolean = false,
 ): List<AllModule> = buildList {
     fun module(on: Boolean, key: String, label: Int, icon: ImageVector, family: ModuleFamily, badge: Int = 0, open: () -> Unit) {
         if (on) this.add(AllModule(key, label, icon, family, badge, open))
@@ -2085,6 +2095,10 @@ private fun allModules(
     module(features.isOn(Feature.Tree), "challenges", R.string.all_challenges, Icons.Outlined.EmojiEvents, ModuleFamily.Treat) {
         navController.navigate(ChallengesDestination) { launchSingleTop = true }
     }
+    module(memoriesInFeed, "feed", R.string.all_feed, Icons.Outlined.DynamicFeed, ModuleFamily.Remember) {
+        FeedOpenRequest.ask()
+        navController.navigateToTab(TopLevelDestination.Home)
+    }
     module(features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums), "albums", R.string.all_albums, Icons.Outlined.PhotoLibrary, ModuleFamily.Remember) {
         navController.navigate(AlbumsDestination) { launchSingleTop = true }
     }
@@ -2095,14 +2109,15 @@ private fun allModules(
         navController.navigate(CapsulesDestination) { launchSingleTop = true }
     }
     // « Qui est-ce ? » was only in « Nos trésors » of the Famille tab, gone on 18/11 (Kévin).
-    module(features.isOn(Feature.WhoIsIt), "whoIsIt", R.string.all_who_is_it, Icons.Outlined.PhotoAlbum, ModuleFamily.Remember) {
+    val whoIsItFamily = if (memoriesInFeed) ModuleFamily.Treat else ModuleFamily.Remember
+    module(features.isOn(Feature.WhoIsIt), "whoIsIt", R.string.all_who_is_it, Icons.Outlined.PhotoAlbum, whoIsItFamily) {
         navController.navigate(WhoIsItDestination) { launchSingleTop = true }
     }
     // My own profile, whose souvenirs are never empty (DESIGN, 17/11).
-    module(features.isOn(Feature.Souvenirs), "souvenirs", R.string.all_souvenirs, Icons.Outlined.AutoStories, ModuleFamily.Remember) {
+    module(!memoriesInFeed && features.isOn(Feature.Souvenirs), "souvenirs", R.string.all_souvenirs, Icons.Outlined.AutoStories, ModuleFamily.Remember) {
         navController.navigate(MemberProfileDestination(meId)) { launchSingleTop = true }
     }
-    module(features.isOn(Feature.GoodNews), "goodNews", R.string.all_good_news, Icons.Outlined.Celebration, ModuleFamily.Remember) {
+    module(!memoriesInFeed && features.isOn(Feature.GoodNews), "goodNews", R.string.all_good_news, Icons.Outlined.Celebration, ModuleFamily.Remember) {
         navController.navigate(GoodNewsFeedDestination) { launchSingleTop = true }
     }
     reviewYear?.let { year ->
@@ -2120,7 +2135,7 @@ private fun allModules(
 private fun NavHostController.seeWhere(feature: Feature, meId: String, nextEventId: String?): (() -> Unit)? {
     val lastMonth = YearMonth.now().minusMonths(1)
     return when (feature) {
-        Feature.Home, Feature.YearAgo, Feature.BirthdayWishes, Feature.Discover, Feature.DailyNudge, Feature.ThinkOfMe, Feature.PresentationR1bis -> ({ navigateToTab(TopLevelDestination.Home) })
+        Feature.Home, Feature.YearAgo, Feature.BirthdayWishes, Feature.Discover, Feature.DailyNudge, Feature.ThinkOfMe -> ({ navigateToTab(TopLevelDestination.Home) })
         Feature.Gifts, Feature.GiftNotebook, Feature.WishesReveal, Feature.GiftBudget, Feature.SingleList -> ({ navigateToTab(TopLevelDestination.Gifts) })
         Feature.HelpRequests, Feature.GoodDeals, Feature.Lending, Feature.Turns -> ({ navigateToTab(TopLevelDestination.HelpRequests) })
         Feature.Trips, Feature.Expenses, Feature.PackingList -> ({ navigate(TripsDestination) { launchSingleTop = true } })

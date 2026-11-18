@@ -32,7 +32,7 @@ fun GiftsRoute(
     onAddWish: (listId: String) -> Unit = onOpenList,
 ) {
     val singleList = LocalFeatureFlags.current.isOn(Feature.SingleList)
-    val presentation = LocalFeatureFlags.current.isOn(Feature.PresentationR1bis)
+    val presentation = true
     // For the whole family only (récit 63): off, the admin principal keeps the tab as it was.
     val surpriseButton = LocalFeatureFlags.current.isOnForFamily(Feature.SurpriseButton)
     // The new tab comes with the single list (PRODUIT-131): off, the old tab stays until it leaves.

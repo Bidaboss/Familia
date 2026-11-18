@@ -1,5 +1,6 @@
 package fr.familia.app.feature.all
 
+import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
@@ -31,6 +33,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -38,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -91,7 +95,7 @@ private fun plain(text: String): String =
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AllFamiliaScreen(modules: List<AllModule>, onBack: () -> Unit) {
+fun AllFamiliaScreen(modules: List<AllModule>, onBack: () -> Unit, note: String? = null) {
     var query by rememberSaveable { mutableStateOf("") }
     val named = modules.map { it to stringResource(it.labelRes) }
     val shown = filterModules(named, query)
@@ -124,6 +128,9 @@ fun AllFamiliaScreen(modules: List<AllModule>, onBack: () -> Unit) {
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     modifier = Modifier.fillMaxWidth(),
                 )
+            }
+            note?.let { text ->
+                item(key = "note") { MovedNote(text) }
             }
             if (shown.isEmpty()) {
                 item(key = "none") {
@@ -181,4 +188,39 @@ private fun ModuleIcon(module: AllModule, modifier: Modifier) {
             modifier = Modifier.padding(top = 6.dp),
         )
     }
+}
+
+/**
+ * The green note of « Se souvenir » (récit 71, maquette SF3): where the other modules went. Shown
+ * on the first visit after the update only; the next visits no longer show it.
+ */
+@Composable
+fun rememberMemoriesNote(show: Boolean): Boolean {
+    val context = LocalContext.current
+    val firstTime = remember(show) {
+        show && runCatching {
+            val prefs = context.getSharedPreferences(ALL_PREFS, Context.MODE_PRIVATE)
+            val seen = prefs.getBoolean(MEMORIES_NOTE_SEEN, false)
+            if (!seen) prefs.edit().putBoolean(MEMORIES_NOTE_SEEN, true).apply()
+            !seen
+        }.getOrDefault(false)
+    }
+    return firstTime
+}
+
+private const val ALL_PREFS = "familia_all"
+private const val MEMORIES_NOTE_SEEN = "memoriesNoteSeen"
+
+@Composable
+private fun MovedNote(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = Color(0xFF1F5C3C),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0xFFEDF7F0))
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    )
 }

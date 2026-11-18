@@ -54,7 +54,6 @@ fun MembersRoute(
         photoFailed = photoFailed,
         onPhotoFailureShown = viewModel::photoFailureShown,
         onOpenWishes = onOpenWishes,
-        r1 = LocalFeatureFlags.current.isOn(Feature.PresentationR1bis),
         // Off for everyone, the admin principal too, until switched on in Administration.
         byHousehold = LocalFeatureFlags.current.isOnForFamily(Feature.FamilyTabV2),
     )

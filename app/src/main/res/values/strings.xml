@@ -256,7 +256,6 @@
     <string name="feature_help_single_list">Une seule liste d\'envies par personne, « Idées de la famille » et le nouvel onglet Cadeaux, à la place des listes d\'occasion.</string>
     <string name="feature_help_more_photos">Une photo de couverture sur un événement, et une photo sur une envie.</string>
     <string name="feature_help_recipe_book">Dans Recettes, « Faire le livre » : toutes les recettes dans un PDF à imprimer.</string>
-    <string name="feature_help_presentation_r1bis">La nouvelle présentation : frise de l\'Accueil, Tout Familia, pastilles. L\'éteindre rend l\'ancienne.</string>
     <string name="feature_help_good_deals">Dans Entraide, les bons plans et les bonnes adresses de la famille.</string>
     <string name="feature_help_calendar_feed">Le planning dans Google Agenda : touche ta photo en haut, puis « Voir dans mon agenda ».</string>
     <string name="feature_help_lending">Dans Entraide, « On se prête » : les objets qu\'on peut emprunter, et qui les a en ce moment.</string>
@@ -1845,6 +1844,8 @@
     <string name="all_year_in_review">Notre année</string>
     <string name="all_challenges">Défis</string>
     <string name="all_albums">Albums</string>
+    <string name="all_feed">Le fil</string>
+    <string name="all_memories_note">Les souvenirs arrivent maintenant tout seuls dans le fil : bonnes nouvelles, capsules ouvertes, Il y a un an et la semaine de la famille. « Qui est-ce ? » est passé dans « Se faire plaisir ».</string>
     <string name="home_r1_add">Ajouter</string>
     <string name="home_r1_add_where">Dire où je suis</string>
     <string name="home_r1_add_event">Un événement</string>
@@ -2366,7 +2367,6 @@
     </plurals>
     <string name="gifts_ideas_for">Idées pour %1$s</string>
     <string name="feature_who_is_it">Qui est-ce ?</string>
-    <string name="feature_presentation_r1bis">Nouvelle présentation</string>
     <string name="channel_welcome">Bienvenue</string>
     <string name="channel_welcome_description">Quand un membre de la famille arrive dans Familia</string>
     <string name="feature_think_of_me">Pensez à moi</string>
@@ -3222,5 +3222,29 @@
     </plurals>
     <string name="feed_album_more">+%1$d</string>
     <string name="feed_label_recipe">Recette</string>
+    <!-- Se souvenir en un seul lieu (récit 71) -->
+    <string name="feed_label_capsule">Capsule</string>
+    <string name="feed_capsule_opened">La capsule de %1$s s\'est ouverte</string>
+    <string name="feed_capsule_open">Ouvrir</string>
+    <string name="feed_year_ago_again">Revoir l\'album</string>
+    <string name="feed_label_week">La semaine de la famille</string>
+    <plurals name="feed_week_photos">
+        <item quantity="one">%1$d photo</item>
+        <item quantity="other">%1$d photos</item>
+    </plurals>
+    <plurals name="feed_week_birthdays">
+        <item quantity="one">%1$d anniversaire</item>
+        <item quantity="other">%1$d anniversaires</item>
+    </plurals>
+    <plurals name="feed_week_trips">
+        <item quantity="one">%1$d voyage</item>
+        <item quantity="other">%1$d voyages</item>
+    </plurals>
+    <string name="feed_week_again">Revoir la semaine</string>
+    <string name="feed_label_year">Notre année</string>
+    <string name="feed_year_watch">Regarder</string>
+    <string name="feed_publish_prompt">Une photo, une bonne nouvelle…</string>
+    <string name="feed_publish">Publier</string>
+    <string name="feed_publish_photo">Publier une photo</string>
     <string name="feed_recipe_origin">La recette de %1$s</string>
 </resources>

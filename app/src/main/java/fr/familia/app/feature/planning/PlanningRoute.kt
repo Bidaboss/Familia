@@ -50,7 +50,7 @@ fun PlanningRoute(
         onAddEvent = onAddEvent,
         onOpenEvent = onOpenEvent,
         onOpenTrip = onOpenTrip,
-        r1 = LocalFeatureFlags.current.isOn(Feature.PresentationR1bis),
+        r1 = true,
         onShareBirthday = if (shareOn) ({ birthday -> share(screenContext, birthdayShare(screenContext, birthday, familyToday())) }) else null,
         v2 = if (v2On) {
             { success ->

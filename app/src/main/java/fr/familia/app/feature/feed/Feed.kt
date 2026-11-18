@@ -84,9 +84,27 @@ class FeedNavigation(
     /** An album of an event or a trip, on one of its photos (fil voyage). */
     val onOpenAlbumPhoto: (MemoryAlbum, String) -> Unit = { _, _ -> },
     val onOpenWeeklyQuestion: () -> Unit = {},
+    /** Se souvenir en un seul lieu (récit 71): a capsule opened, the récap of the week, « Notre année ». */
+    val onOpenCapsule: (String) -> Unit = {},
+    val onOpenRecap: () -> Unit = {},
+    val onOpenYear: (Int) -> Unit = {},
 )
 
 val LocalFeedNavigation = staticCompositionLocalOf { FeedNavigation() }
+
+/** « Le fil » of Tout Familia (récit 71): asks the Accueil to open on the fil, once. */
+object FeedOpenRequest {
+    private val state = kotlinx.coroutines.flow.MutableStateFlow(false)
+    val asked: kotlinx.coroutines.flow.StateFlow<Boolean> = state
+
+    fun ask() {
+        state.value = true
+    }
+
+    fun consume() {
+        state.value = false
+    }
+}
 
 /** Every source together: newest first, a card given twice kept once. */
 fun mergeFeed(lists: List<List<FeedCard>>): List<FeedCard> =

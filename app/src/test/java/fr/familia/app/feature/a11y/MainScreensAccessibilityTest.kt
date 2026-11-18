@@ -11,7 +11,6 @@ import fr.familia.app.core.ui.checkAccessibility
 import fr.familia.app.feature.events.detail.EventDetailScreen
 import fr.familia.app.feature.events.detail.previewEventDetail
 import fr.familia.app.feature.home.HomeActions
-import fr.familia.app.feature.home.HomeScreen
 import fr.familia.app.feature.home.previewHome
 import fr.familia.app.feature.members.admin.AdministrationScreen
 import fr.familia.app.feature.members.admin.previewAdministrationState
@@ -26,6 +25,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import fr.familia.app.feature.home.HomeR1bisActions
+import fr.familia.app.feature.home.HomeR1bisScreen
 
 /**
  * Police 200 % and TalkBack on the main screens (Accueil, Planning, an event, Administration,
@@ -42,7 +43,7 @@ class MainScreensAccessibilityTest {
     private val me = Member("a", "Camille", null, null, "h1", MemberProfile.Adult, false, emptyList(), null)
 
     @Test
-    fun `the Accueil`() = compose.checkAccessibility { HomeScreen(previewHome(), HomeActions(onOpenWishes = {})) }
+    fun `the Accueil`() = compose.checkAccessibility { HomeR1bisScreen(previewHome(), HomeActions(onOpenWishes = {}), HomeR1bisActions()) }
 
     @Test
     fun `the Planning by month`() = compose.checkAccessibility {

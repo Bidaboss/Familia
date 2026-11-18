@@ -9,7 +9,6 @@ import fr.familia.app.core.theme.FamiliaThemeId
 import fr.familia.app.feature.events.detail.EventDetailScreen
 import fr.familia.app.feature.events.detail.previewEventDetail
 import fr.familia.app.feature.home.HomeActions
-import fr.familia.app.feature.home.HomeScreen
 import fr.familia.app.feature.home.previewHome
 import fr.familia.app.feature.members.admin.AdministrationScreen
 import fr.familia.app.feature.members.admin.previewAdministrationState
@@ -19,6 +18,8 @@ import fr.familia.app.feature.planning.previewPlanning
 import fr.familia.app.feature.settings.NotificationSettingsScreen
 import fr.familia.app.feature.settings.NotificationSettingsUiState
 import fr.familia.app.feature.settings.appearance.AppearanceScreen
+import fr.familia.app.feature.home.HomeR1bisActions
+import fr.familia.app.feature.home.HomeR1bisScreen
 
 /** The screens of the demo of the 21, in their preview states, for the contrast pass. Fictional family only. */
 internal object DemoScreens {
@@ -28,7 +29,7 @@ internal object DemoScreens {
     private fun screen(name: String, content: @Composable () -> Unit) = name to content
 
     val all: List<Pair<String, @Composable () -> Unit>> = listOf(
-        screen("l'Accueil") { HomeScreen(previewHome(), HomeActions(onOpenWishes = {})) },
+        screen("l'Accueil") { HomeR1bisScreen(previewHome(), HomeActions(onOpenWishes = {}), HomeR1bisActions()) },
         screen("le Planning par mois") {
             PlanningScreen(previewPlanning(), {}, {}, {}, initialMode = PlanningMode.Month)
         },

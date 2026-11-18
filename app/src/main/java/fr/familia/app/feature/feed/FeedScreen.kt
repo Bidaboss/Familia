@@ -195,7 +195,7 @@ private val FEED_BUTTON_GREEN_TEXT = Color(0xFF1F5C3C)
  * says when nothing happened in the window.
  */
 @Composable
-fun FeedList(state: FeedState, modifier: Modifier = Modifier) {
+fun FeedList(state: FeedState, modifier: Modifier = Modifier, top: (@Composable () -> Unit)? = null) {
     val cards = state.cards
     val context = state.context
     LaunchedEffect(cards) { state.onSeen() }
@@ -211,6 +211,7 @@ fun FeedList(state: FeedState, modifier: Modifier = Modifier) {
         // 8 dp between two actualités of a day (PRODUIT-127); the day titles keep their 12 dp.
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        top?.let { item(key = "top") { it() } }
         if (cards.isEmpty()) {
             item(key = "empty") {
                 Text(

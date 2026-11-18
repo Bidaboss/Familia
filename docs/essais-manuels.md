@@ -569,7 +569,6 @@ Avec l'interrupteur « Sondages » allumé :
 1. Ouvre l'album d'un voyage, d'un événement ou du mois avec au moins 2 photos : « Lancer le diaporama » est sous le titre. Avec une seule photo, il n'y est pas.
 2. Touche-le : les photos défilent sur fond noir, de la plus ancienne à la plus récente, toutes les 4 secondes, en fondu, puis recommencent. L'écran ne s'éteint pas pendant ce temps.
 3. « Pause » s'arrête sur la photo, « Reprendre » repart. « Fermer » ou le bouton retour revient à l'album.
-4. Interrupteur presentationR1bis éteint : le bouton disparaît.
 
 ## L'écran Albums (R1 bis, Tout Familia)
 
@@ -580,8 +579,6 @@ Avec l'interrupteur « Sondages » allumé :
 5. Voyages ou albums d'événements éteints dans Administration : leurs albums disparaissent de la liste.
 
 ## Le voyage en chemin illustré (R1 bis, maquette R6)
-
-Interrupteur « presentationR1bis » allumé (c'est le réglage par défaut).
 
 1. Ouvre un voyage en cours. En haut, sur le ciel bleu : le nom du voyage et qui part, puis la frise des jours (« Jour 1 », « dim 15 »…). Le jour d'aujourd'hui est en noir.
 2. Dessous, le paysage : le chemin passe par 4 jours au plus. Les jours passés sont des ronds noirs, le jour choisi est jaune avec l'étiquette « Aujourd'hui, » et le lieu de sa première étape, les jours à venir sont en pointillés.
@@ -612,9 +609,9 @@ Avec les modules « Plus de photos » et « Liste unique » allumés, après « 
 4. Supprime une envie qui avait une photo. **Attendu :** elle disparaît, et sa photo aussi (le serveur la retire).
 5. Module éteint. **Attendu :** ni bouton photo, ni vignette.
 
-## Nouvelle présentation « R1 bis » (spec DESIGN du 17/11)
+## La présentation « R1 bis » (spec DESIGN du 17/11)
 
-Interrupteur « Nouvelle présentation » (presentationR1bis), allumé par défaut, admin principal compris. L'éteindre dans Administration rend l'ancienne présentation à tout le monde.
+Seule présentation depuis DESIGN-29 / PRODUIT-131 : l'interrupteur « Nouvelle présentation » et l'ancien Accueil sont retirés.
 
 1. Ouvre l'**Accueil**. **Attendu :** « Bonjour » et ton prénom en titre, puis « + », « ? » et ta photo en haut ; la frise des 7 jours à partir d'aujourd'hui, aujourd'hui entouré.
 2. Touche un autre jour de la frise. **Attendu :** il passe en noir, aujourd'hui garde son contour, et la carte dessous montre ce jour : heure, trait de couleur, quoi. Un jour vide dit « Rien de prévu. Une journée tranquille. ».
@@ -627,7 +624,7 @@ Interrupteur « Nouvelle présentation » (presentationR1bis), allumé par défa
 9. En Classique clair, regarde le fond. **Attendu :** de petits pépins discrets ; en Contraste fort, aucun motif. L'onglet allumé est dans une pilule jaune.
 10. Taille de police à 130 % puis 200 % : la frise défile de côté, rien ne passe sous la barre du bas.
 11. Sur une tablette (ou en paysage large) : le rail de navigation à gauche, « + » en tête sur l'Accueil, l'Accueil sur deux colonnes.
-12. Dans Administration, éteins « Nouvelle présentation ». **Attendu :** l'ancien Accueil revient, pour toi aussi. Rallume-la.
+12. Dans Administration > Modules. **Attendu :** plus de ligne « Nouvelle présentation ».
 
 ## Bons plans dans Entraide (récit 45)
 Avec l'interrupteur « Bons plans » allumé (l'admin principal le voit toujours) :
@@ -827,7 +824,7 @@ Avec l'interrupteur « Notre année » allumé dans Administration. Avant le 26/
 
 Avec l'interrupteur « Notre année en famille » allumé.
 
-1. Entre le 26/12 et le 10/01, ouvre l'Accueil. **Attendu :** la puce « Notre année 2026 » en tête, avant « Anniversaires ». Avec la nouvelle présentation, elle est en fin de liste, juste au-dessus de la barre « Tout Familia ».
+1. Entre le 26/12 et le 10/01, ouvre l'Accueil. **Attendu :** « Notre année 2026 » en fin de liste, juste au-dessus de la barre « Tout Familia ».
 2. Touche-la. **Attendu :** l'écran de l'année s'ouvre.
 3. Hors de ces dates, avec n'importe quel compte, l'admin principal compris : **Attendu :** pas de puce sur l'Accueil (PRD rév. 259).
 4. « Tout Familia », famille « Se souvenir ». **Attendu :** « Notre année ». L'admin principal l'y trouve toute l'année, pour l'essayer. Les autres l'y trouvent à partir du 26/12.
@@ -1146,7 +1143,7 @@ Avec le module « Bons plans » allumé. Deux téléphones : celui qui publie, c
 
 ## « À venir » des Cadeaux : anniversaires des 30 prochains jours, Noël dès le 1er novembre
 
-Présentation R1 bis et liste unique allumées.
+Liste unique allumée.
 
 1. Ouvre Cadeaux. **Attendu :** sous « Prochaine occasion », seuls les anniversaires des 30 prochains jours, et Noël à partir du 1er novembre s'il n'est pas déjà la prochaine occasion.
 2. Si aucun anniversaire ne tombe dans les 30 jours. **Attendu :** aucune carte d'anniversaire sous la prochaine occasion. « Tous les anniversaires » les montre tous.
@@ -1240,6 +1237,20 @@ Module « Fil d'actualité » allumé dans Administration > Modules (éteint, l'
 7. Ajoute trois photos à l'album d'un événement passé, ou d'un voyage que toute la famille suit. **Attendu :** une carte verte « Photos » avec le titre, « 3 nouvelles photos » et les vignettes. Les photos d'un même jour et d'un même album font une seule carte. Toucher la carte ouvre l'album sur la photo la plus récente.
 8. Ajoute des photos à un voyage que quelqu'un ne suit pas (un voyage surprise). **Attendu :** aucune carte, même sur le téléphone de quelqu'un qui le suit.
 9. Ajoute une recette. **Attendu :** une carte orange « Recette » avec son titre, « La recette de … » si l'origine est notée, la photo du plat si elle existe et le dernier commentaire. Toucher la carte ouvre la recette.
+
+## Se souvenir en un seul lieu (récit 71)
+
+Module « Fil d'actualité » allumé. Éteint, Tout Familia et l'Accueil restent comme avant : c'est le retour arrière.
+
+1. Ouvre **Tout Familia**. **Attendu :** une note verte en haut explique où sont passés les souvenirs. Sous « Se souvenir » : Le fil, Albums, Arbre et Capsule. « Qui est-ce ? » est sous « Se faire plaisir ». Plus de Souvenirs ni de Bonnes nouvelles. « Notre année » n'y est que du 26/12 au 10/01.
+2. Reviens, puis rouvre **Tout Familia**. **Attendu :** la note verte ne revient plus.
+3. Touche **Le fil**. **Attendu :** l'Accueil s'ouvre directement sur « Le fil ».
+4. En haut du fil. **Attendu :** ton avatar, « Une photo, une bonne nouvelle… », un bouton photo vert pâle et « Publier » en noir. Les trois ouvrent l'écran pour publier une bonne nouvelle. En mode présentation et en « Voir comme », la barre n'est pas là.
+5. Mets la taille du texte à 130 %. **Attendu :** la phrase passe au-dessus, les deux boutons dessous, rien n'est coupé.
+6. Le jour où une capsule s'ouvre pour toi. **Attendu :** une carte pêche « Capsule », « La capsule de … s'est ouverte » et « Ouvrir », qui ouvre la capsule. Elle n'arrive pas chez ceux à qui elle n'est pas destinée.
+7. Un jour avec un souvenir d'il y a un an. **Attendu :** une carte verte « Il y a un an » avec la vignette, le titre et « Revoir l'album ». La carte de l'Accueil « Aujourd'hui » est toujours là.
+8. Un dimanche avec des photos, un anniversaire ou un voyage en cours. **Attendu :** une carte lilas « La semaine de la famille » avec les chiffres, les vignettes et « Revoir la semaine », qui ouvre le récap. Les autres jours, pas de carte.
+9. Du 26/12 au 10/01. **Attendu :** une carte verte « Notre année » avec « Regarder », qui ouvre l'année.
 
 ## Nouveau Planning (PRODUIT-126)
 
