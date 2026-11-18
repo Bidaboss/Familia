@@ -3,7 +3,6 @@ package fr.familia.app.feature.home
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -79,11 +78,10 @@ fun HomeAddSheet(options: HomeAddOptions, onDismiss: () -> Unit) {
                 options.onWish?.let { Choice(Icons.Outlined.CardGiftcard, R.string.home_r1_add_wish, it) },
                 options.onHelp?.let { Choice(Icons.Outlined.VolunteerActivism, R.string.home_r1_add_help, it) },
             )
-            choices.chunked(2).forEach { row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                    row.forEach { choice -> ChoiceButton(choice, onDismiss, Modifier.weight(1f)) }
-                }
-            }
+            // One choice per line (retour d'essai du 18/11, « Cassé ») : sur deux colonnes, avec
+            // un grand texte, « Un événement » se coupait en plein mot et les boutons n'avaient pas la
+            // même hauteur.
+            choices.forEach { choice -> ChoiceButton(choice, onDismiss, Modifier.fillMaxWidth()) }
             TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.action_cancel))
             }
@@ -100,10 +98,10 @@ private fun ChoiceButton(choice: Choice, onDismiss: () -> Unit, modifier: Modifi
             onDismiss()
             choice.onClick()
         },
-        modifier = modifier.heightIn(min = 64.dp),
+        modifier = modifier.heightIn(min = 56.dp),
     ) {
         Icon(choice.icon, contentDescription = null)
-        Spacer(Modifier.width(8.dp))
-        Text(stringResource(choice.label))
+        Spacer(Modifier.width(12.dp))
+        Text(stringResource(choice.label), modifier = Modifier.weight(1f))
     }
 }

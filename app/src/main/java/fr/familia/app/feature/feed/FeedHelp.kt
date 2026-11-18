@@ -29,6 +29,7 @@ import fr.familia.app.core.data.HelpRequestRepository
 import fr.familia.app.core.model.HelpRequest
 import fr.familia.app.core.model.HelpStatus
 import fr.familia.app.core.ui.MemberAvatar
+import fr.familia.app.core.ui.SideBySide
 import fr.familia.app.core.ui.dayShortLabel
 import fr.familia.app.core.ui.formatTime
 import fr.familia.app.feature.helprequests.declineHelp
@@ -111,7 +112,7 @@ class HelpFeedCard(val request: HelpRequest, private val requests: HelpRequestRe
             }
             val repo = requests
             if (repo != null && !context.readOnly && needsMe(request, context.me, context.today)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SideBySide { item ->
                     Button(
                         enabled = !busy,
                         onClick = {
@@ -121,8 +122,8 @@ class HelpFeedCard(val request: HelpRequest, private val requests: HelpRequestRe
                                 busy = false
                             }
                         },
-                        modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-                    ) { Text(stringResource(R.string.feed_help_take), maxLines = 1) }
+                        modifier = item.heightIn(min = 48.dp),
+                    ) { Text(stringResource(R.string.feed_help_take)) }
                     OutlinedButton(
                         enabled = !busy,
                         onClick = {
@@ -132,8 +133,8 @@ class HelpFeedCard(val request: HelpRequest, private val requests: HelpRequestRe
                                 busy = false
                             }
                         },
-                        modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-                    ) { Text(stringResource(R.string.feed_help_no), maxLines = 1) }
+                        modifier = item.heightIn(min = 48.dp),
+                    ) { Text(stringResource(R.string.feed_help_no)) }
                 }
             }
             error?.let {
