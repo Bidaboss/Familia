@@ -245,8 +245,12 @@ internal fun WeekFrise(days: List<HomeDay>, today: LocalDate, chosen: LocalDate,
     }
 }
 
+/**
+ * One box of the frise. The month grid of the new Planning (PRODUIT-126) uses the same box, without
+ * the name of the day ([weekday] false), the names being above the columns.
+ */
 @Composable
-private fun DayBox(day: HomeDay, today: LocalDate, chosen: Boolean, width: Dp, onChoose: (LocalDate) -> Unit) {
+internal fun DayBox(day: HomeDay, today: LocalDate, chosen: Boolean, width: Dp, onChoose: (LocalDate) -> Unit, weekday: Boolean = true, minHeight: Dp = 72.dp) {
     val surface = MaterialTheme.colorScheme.surface
     val ink = MaterialTheme.colorScheme.onSurface
     val shape = RoundedCornerShape(16.dp)
@@ -264,7 +268,7 @@ private fun DayBox(day: HomeDay, today: LocalDate, chosen: Boolean, width: Dp, o
     Box(
         modifier = Modifier
             .width(width)
-            .heightIn(min = 72.dp)
+            .heightIn(min = minHeight)
             .clip(shape)
             .background(background)
             .then(if (day.date == today && !chosen) Modifier.border(BorderStroke(2.dp, ink), shape) else Modifier)
@@ -278,12 +282,14 @@ private fun DayBox(day: HomeDay, today: LocalDate, chosen: Boolean, width: Dp, o
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp, horizontal = 2.dp).clearAndSetSemantics { },
         ) {
-            Text(
-                day.date.format(DOW).replace(".", "").replaceFirstChar { it.titlecase(Locale.FRANCE) },
-                fontSize = 12.sp,
-                color = text,
-                maxLines = 1,
-            )
+            if (weekday) {
+                Text(
+                    day.date.format(DOW).replace(".", "").replaceFirstChar { it.titlecase(Locale.FRANCE) },
+                    fontSize = 12.sp,
+                    color = text,
+                    maxLines = 1,
+                )
+            }
             Text(day.date.dayOfMonth.toString(), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = text, maxLines = 1)
             if (first != null) {
                 val tone = toneColors(first.tone)

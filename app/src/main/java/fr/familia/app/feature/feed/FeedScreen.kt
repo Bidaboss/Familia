@@ -1,8 +1,11 @@
 package fr.familia.app.feature.feed
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,10 +16,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -36,7 +41,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -49,6 +53,7 @@ import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.ClaySpacing
+import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.presentation.LocalPresenting
 import kotlinx.coroutines.flow.Flow
@@ -56,6 +61,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import java.time.Instant
+import java.util.Locale
 
 /** The fil as the Accueil holds it: the cards (null while they load) and the badge of « Le fil ». */
 class FeedState(
@@ -109,56 +115,80 @@ fun rememberFeedState(container: AppContainer?, me: Member): FeedState {
 }
 
 /**
- * « Aujourd'hui » | « Le fil » under « Bonjour » (maquette F1): two buttons stuck together, 56 dp,
- * the chosen one dark; the number of new cards beside « Le fil ».
+ * Under « Bonjour » (PRODUIT-128, variante C): a line that says where I am, and one button that
+ * says where it leads. On Aujourd'hui, the date and a pale green « Le fil 4 › » with the number of
+ * new cards; on the fil, « Le fil de la famille » and a white « ‹ Aujourd'hui ». Targets of 56 dp;
+ * at large text the button goes under the words.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun HomeFeedSwitch(onFeed: Boolean, unseen: Int, onChoose: (Boolean) -> Unit, modifier: Modifier = Modifier) {
-    Surface(
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surface,
-        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp),
+    FlowRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Row(Modifier.padding(4.dp).selectableGroup(), verticalAlignment = Alignment.CenterVertically) {
-            SwitchSide(stringResource(R.string.feed_tab_today), selected = !onFeed, badge = 0, onClick = { onChoose(false) }, modifier = Modifier.weight(1f))
-            SwitchSide(stringResource(R.string.feed_tab_feed), selected = onFeed, badge = unseen, onClick = { onChoose(true) }, modifier = Modifier.weight(1f))
-        }
-    }
-}
-
-@Composable
-private fun SwitchSide(label: String, selected: Boolean, badge: Int, onClick: () -> Unit, modifier: Modifier) {
-    val news = if (badge > 0) pluralStringResource(R.plurals.feed_tab_new, badge, badge) else null
-    val background = if (selected) MaterialTheme.colorScheme.inverseSurface else Color.Transparent
-    val content = if (selected) MaterialTheme.colorScheme.inverseOnSurface else MaterialTheme.colorScheme.onSurface
-    Box(
-        modifier
-            .heightIn(min = 48.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(background)
-            .selectable(selected = selected, role = Role.Tab, onClick = onClick)
-            .semantics { if (news != null) contentDescription = "$label, $news" }
-            .padding(horizontal = 8.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(label, color = content, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold)
-            if (badge > 0) {
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    if (badge > 99) "99+" else badge.toString(),
-                    color = Color(0xFF1E1B18),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color(0xFFF2C14E))
-                        .padding(horizontal = 7.dp, vertical = 1.dp),
-                )
+        Text(
+            if (onFeed) {
+                stringResource(R.string.feed_switch_feed_title)
+            } else {
+                frenchDate(familyToday(), "EEEE d MMMM").replaceFirstChar { it.titlecase(Locale.FRANCE) }
+            },
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.align(Alignment.CenterVertically).padding(end = 12.dp),
+        )
+        if (onFeed) {
+            val description = stringResource(R.string.feed_switch_back)
+            Surface(
+                onClick = { onChoose(false) },
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant),
+                modifier = Modifier.align(Alignment.CenterVertically).heightIn(min = 56.dp).semantics { contentDescription = description },
+            ) {
+                Row(Modifier.padding(start = 12.dp, end = 18.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null)
+                    Spacer(Modifier.width(4.dp))
+                    Text(stringResource(R.string.feed_tab_today), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold)
+                }
+            }
+        } else {
+            val news = if (unseen > 0) pluralStringResource(R.plurals.feed_tab_new, unseen, unseen) else null
+            val description = stringResource(R.string.feed_switch_open) + (news?.let { ", $it" } ?: "")
+            Surface(
+                onClick = { onChoose(true) },
+                shape = RoundedCornerShape(24.dp),
+                color = FEED_BUTTON_GREEN,
+                contentColor = FEED_BUTTON_GREEN_TEXT,
+                modifier = Modifier.align(Alignment.CenterVertically).heightIn(min = 56.dp).semantics { contentDescription = description },
+            ) {
+                Row(Modifier.padding(start = 18.dp, end = 12.dp, top = 10.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.feed_tab_feed), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold)
+                    if (unseen > 0) {
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            if (unseen > 99) "99+" else unseen.toString(),
+                            color = Color(0xFF1E1B18),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Color(0xFFF2C14E))
+                                .padding(horizontal = 7.dp, vertical = 1.dp),
+                        )
+                    }
+                    Spacer(Modifier.width(4.dp))
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                }
             }
         }
     }
 }
+
+/** The pale green of the button « Le fil », and its text: kept in both themes, like the labels of the cards. */
+private val FEED_BUTTON_GREEN = Color(0xFFEDF7F0)
+private val FEED_BUTTON_GREEN_TEXT = Color(0xFF1F5C3C)
 
 /**
  * « Le fil » (maquette F2 bis): the cards newest first, cut by day, then « Voir plus ancien ». It
@@ -178,7 +208,8 @@ fun FeedList(state: FeedState, modifier: Modifier = Modifier) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 4.dp, bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        // 8 dp between two actualités of a day (PRODUIT-127); the day titles keep their 12 dp.
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (cards.isEmpty()) {
             item(key = "empty") {
@@ -191,7 +222,9 @@ fun FeedList(state: FeedState, modifier: Modifier = Modifier) {
             }
         }
         feedDays(cards).forEach { (day, onDay) ->
-            item(key = "day-$day") { FeedDayHeader(feedDayLabel(day, context.today, todayLabel, yesterdayLabel)) }
+            item(key = "day-$day") {
+                FeedDayHeader(feedDayLabel(day, context.today, todayLabel, yesterdayLabel), Modifier.padding(vertical = 4.dp))
+            }
             items(onDay, key = { it.key }) { card -> card.Content(context) }
         }
         if (state.canLoadMore) {

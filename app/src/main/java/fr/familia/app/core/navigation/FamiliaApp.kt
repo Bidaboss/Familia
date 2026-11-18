@@ -1,5 +1,15 @@
 package fr.familia.app.core.navigation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.ui.Alignment
+import fr.familia.app.feature.planning.PlanningScope
 import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.data.familyToday
 import fr.familia.app.feature.presentation.LocalPresenting
@@ -759,6 +769,9 @@ fun FamiliaApp(
         var accountOpen by rememberSaveable { mutableStateOf(false) }
         // The « + » of the R1 bis Accueil: what can be added, each only with its module.
         val r1On = features.isOn(Feature.PresentationR1bis)
+        // The new Planning (PRODUIT-126): its filter is a round button of the bar, kept here.
+        val planningV2On = features.isOnForFamily(Feature.PlanningV2)
+        var planningScope by rememberSaveable { mutableStateOf(PlanningScope.Family) }
         // A tablet of 7 inches or more, in portrait (600 dp) or landscape: the rail instead of the bar.
         val useRail = r1On && LocalConfiguration.current.screenWidthDp >= 600
         var addOpen by rememberSaveable { mutableStateOf(false) }
@@ -827,7 +840,13 @@ fun FamiliaApp(
                         pollsToVote = if (pollsOn && tab == TopLevelDestination.Planning) rememberPollsToVote(container, currentMember.id) else 0,
                         onAccount = { accountOpen = true },
                         greeting = if (r1On && tab == TopLevelDestination.Home) stringResource(R.string.home_r1_greeting, currentMember.firstName) else null,
-                        onAdd = if (r1On && tab == TopLevelDestination.Home) ({ addOpen = true }) else null,
+                        onAdd = when {
+                            r1On && tab == TopLevelDestination.Home -> ({ addOpen = true })
+                            planningV2On && tab == TopLevelDestination.Planning -> ({ navController.navigate(EventEditDestination()) })
+                            else -> null
+                        },
+                        planningScope = if (planningV2On) planningScope else null,
+                        onPlanningScope = { planningScope = it },
                     )
                 }
             },
@@ -1044,6 +1063,7 @@ fun FamiliaApp(
                             onAddEvent = { navController.navigate(EventEditDestination()) },
                             onOpenEvent = { id -> navController.navigate(EventDetailDestination(id)) },
                             onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
+                            scope = if (planningV2On) planningScope else null,
                         )
                     }
                     // --- Sondages (récits 2 bis et 2 ter), from the Planning bar ---
@@ -1878,8 +1898,11 @@ private fun TabTopBar(
     onAccount: (() -> Unit)? = null,
     /** « Bonjour Camille » in place of the tab name, on the R1 bis Accueil. */
     greeting: String? = null,
-    /** The « + » of the R1 bis Accueil, before « ? ». */
+    /** The « + » of the R1 bis Accueil, before « ? », and of the new Planning. */
     onAdd: (() -> Unit)? = null,
+    /** The round filter of the new Planning (PRODUIT-126), left of its « + »; null hides it. */
+    planningScope: PlanningScope? = null,
+    onPlanningScope: (PlanningScope) -> Unit = {},
 ) {
     TopAppBar(
         scrollBehavior = scrollBehavior,
@@ -1902,6 +1925,8 @@ private fun TabTopBar(
         actions = {
             when (tab) {
                 TopLevelDestination.Planning -> {
+                    if (planningScope != null) PlanningScopeButton(planningScope, child = member.profile != MemberProfile.Adult, onChange = onPlanningScope)
+                    onAdd?.let { add -> RoundAddButton(stringResource(R.string.planning_add), add) }
                     if (onGoodNews != null) {
                         IconButton(onClick = onGoodNews, modifier = Modifier.size(56.dp)) {
                             Icon(Icons.Outlined.Celebration, contentDescription = stringResource(R.string.goodnews_open_feed))
@@ -1972,6 +1997,53 @@ private fun TabTopBar(
             onAccount?.let { AccountButton(member, onClick = it) }
         },
     )
+}
+
+/**
+ * « Mon foyer seulement » (« Ma maison » for a child), a round button of 48 dp: lilac when on, the
+ * whole family when off. The line under the title of the Planning says which one shows.
+ */
+@Composable
+private fun PlanningScopeButton(scope: PlanningScope, child: Boolean, onChange: (PlanningScope) -> Unit) {
+    val on = scope == PlanningScope.Household
+    val name = stringResource(if (child) R.string.planning_v2_scope_button_house else R.string.planning_v2_scope_button_household)
+    val lilac = Color(0xFF4A3F8C)
+    // 56 dp to touch (règle du projet), the round drawn at 48 dp inside.
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(56.dp)
+            .clip(CircleShape)
+            .toggleable(value = on, role = Role.Switch, onValueChange = { onChange(if (it) PlanningScope.Household else PlanningScope.Family) })
+            .semantics { contentDescription = name },
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(48.dp).clip(CircleShape).background(if (on) lilac else Color(0xFFF4F0FD)),
+        ) {
+            Icon(Icons.Outlined.Groups, contentDescription = null, tint = if (on) Color.White else lilac)
+        }
+    }
+}
+
+/** The round « + » of the new Planning, bordered in dark like on the maquettes. */
+@Composable
+private fun RoundAddButton(label: String, onClick: () -> Unit) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(56.dp)
+            .clip(CircleShape)
+            .clickable(onClickLabel = label, role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = label },
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(48.dp).border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
+        ) {
+            Icon(Icons.Outlined.Add, contentDescription = null)
+        }
+    }
 }
 
 /**

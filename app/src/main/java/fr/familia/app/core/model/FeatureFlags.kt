@@ -196,6 +196,11 @@ enum class Feature(
      * Lu avec isOnForFamily : éteint, l'Accueil ne change pas, même pour l'admin principal.
      */
     NewsFeed("newsFeed", R.string.feature_news_feed),
+    /**
+     * Le nouvel onglet Planning (PRODUIT-126, maquettes PL1 à PL5, haut C) : Semaine et Mois, la vue
+     * dans le titre, des cartes avec l'heure en bloc. Lu avec isOnForFamily : éteint, rien ne change.
+     */
+    PlanningV2("planningV2", R.string.feature_planning_v2),
 }
 
 /**
@@ -203,9 +208,16 @@ enum class Feature(
  * Administration; the admin principal always sees every module, to try it first.
  */
 data class FeatureFlags(val switchedOn: Map<String, Boolean> = emptyMap(), val isOwner: Boolean = false) {
-    fun isOn(feature: Feature): Boolean =
-        if (feature.onByDefault) isOnForFamily(feature) else isOwner || switchedOn[feature.key] == true
+    fun isOn(feature: Feature): Boolean = when {
+        feature.tier == FeatureTier.Base -> true
+        feature.onByDefault -> isOnForFamily(feature)
+        else -> isOwner || switchedOn[feature.key] == true
+    }
 
-    /** Switched on for the whole family (what Administration shows). */
-    fun isOnForFamily(feature: Feature): Boolean = switchedOn[feature.key] ?: feature.onByDefault
+    /**
+     * Switched on for the whole family (what Administration shows). « La base » is always on and has
+     * no switch any more (Kévin le 18/11, 20 h 39).
+     */
+    fun isOnForFamily(feature: Feature): Boolean =
+        feature.tier == FeatureTier.Base || (switchedOn[feature.key] ?: feature.onByDefault)
 }

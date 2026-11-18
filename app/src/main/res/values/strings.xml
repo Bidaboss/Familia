@@ -193,7 +193,7 @@
     <string name="administration_features_new">Nouvelles versions</string>
     <string name="administration_features_new_help">À garder allumées une fois validées. Après le 21, l\'ancienne version et son interrupteur disparaîtront.</string>
     <string name="administration_features_base">La base</string>
-    <string name="administration_features_base_help">Les modules de tous les jours, à laisser allumés.</string>
+    <string name="administration_features_base_help">Toujours allumés pour toute la famille, sans interrupteur : %1$s.</string>
     <string name="administration_challenge_title">Défi du mois</string>
     <string name="administration_challenge_change">Changer le défi de %1$s</string>
     <string name="administration_challenge_locked">La jauge a commencé : ce défi reste jusqu\'à la fin du mois.</string>
@@ -2987,6 +2987,34 @@
     <string name="gift_contributors_none">Personne n\'a encore participé.</string>
     <string name="feature_admin_announcements">Annonces de l\'admin</string>
     <string name="feature_news_feed">Fil d\'actualité</string>
+    <string name="feature_planning_v2">Nouveau Planning</string>
+    <string name="feature_help_planning_v2">Nouveau Planning : cartes avec l\'heure en bloc et frise d\'un mot par jour.</string>
+    <string name="planning_v2_week_range">Du %1$s au %2$s</string>
+    <string name="planning_v2_subtitle">%1$s · %2$s</string>
+    <string name="planning_v2_scope_family">toute la famille</string>
+    <string name="planning_v2_scope_household">mon foyer</string>
+    <string name="planning_v2_scope_house">ma maison</string>
+    <string name="planning_v2_scope_button_household">Mon foyer seulement</string>
+    <string name="planning_v2_scope_button_house">Ma maison seulement</string>
+    <string name="planning_v2_choose_view">Choisir Semaine ou Mois</string>
+    <string name="planning_v2_previous">Précédent</string>
+    <string name="planning_v2_next">Suivant</string>
+    <string name="planning_v2_trip_day">JOUR</string>
+    <string name="planning_v2_trip_of">sur %1$d</string>
+    <string name="planning_v2_trip_day_spoken">Jour %1$d sur %2$d</string>
+    <string name="planning_v2_trip_dates">du %1$s au %2$s</string>
+    <string name="planning_v2_you_go">Tu y vas</string>
+    <string name="planning_v2_added_by_you">Ajouté par toi</string>
+    <plurals name="planning_v2_going">
+        <item quantity="one">%d y va</item>
+        <item quantity="many">%d y vont</item>
+        <item quantity="other">%d y vont</item>
+    </plurals>
+    <plurals name="planning_v2_day_count">
+        <item quantity="one">%d événement</item>
+        <item quantity="many">%d événements</item>
+        <item quantity="other">%d événements</item>
+    </plurals>
     <string name="packing_title">À emporter</string>
     <string name="notifications_packing">Ma valise</string>
     <string name="notifications_packing_help">La veille d\'un voyage, à 18 h, s\'il reste des objets à mettre dans ta valise.</string>
@@ -3158,6 +3186,9 @@
     <!-- Fil d'actualité (récit 67) -->
     <string name="feed_tab_today">Aujourd\'hui</string>
     <string name="feed_tab_feed">Le fil</string>
+    <string name="feed_switch_feed_title">Le fil de la famille</string>
+    <string name="feed_switch_back">Revenir à Aujourd\'hui</string>
+    <string name="feed_switch_open">Voir le fil</string>
     <plurals name="feed_tab_new">
         <item quantity="one">%1$d nouveauté</item>
         <item quantity="other">%1$d nouveautés</item>

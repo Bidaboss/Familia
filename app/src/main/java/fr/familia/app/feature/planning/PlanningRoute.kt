@@ -1,6 +1,7 @@
 package fr.familia.app.feature.planning
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -23,6 +24,8 @@ fun PlanningRoute(
     onAddEvent: () -> Unit,
     onOpenEvent: (eventId: String) -> Unit,
     onOpenTrip: (tripId: String) -> Unit = {},
+    /** The filter of the new Planning (PRODUIT-126), held by the bar of the tab; null keeps the old switch. */
+    scope: PlanningScope? = null,
 ) {
     // Trips show in the planning once their module is switched on (PRD rév. 120).
     val tripsOn = LocalFeatureFlags.current.isOn(Feature.Trips)
@@ -41,6 +44,8 @@ fun PlanningRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(scope) { scope?.let(viewModel::setScope) }
+    val v2On = LocalFeatureFlags.current.isOnForFamily(Feature.PlanningV2)
     val screenContext = LocalContext.current
     val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)
     PlanningScreen(
@@ -52,5 +57,18 @@ fun PlanningRoute(
         onOpenTrip = onOpenTrip,
         r1 = LocalFeatureFlags.current.isOn(Feature.PresentationR1bis),
         onShareBirthday = if (shareOn) ({ birthday -> share(screenContext, birthdayShare(screenContext, birthday, familyToday())) }) else null,
+        v2 = if (v2On) {
+            { success ->
+                PlanningV2(
+                    state = success,
+                    me = currentMember,
+                    onOpenEvent = onOpenEvent,
+                    onOpenTrip = onOpenTrip,
+                    onShareBirthday = if (shareOn) ({ birthday -> share(screenContext, birthdayShare(screenContext, birthday, familyToday())) }) else null,
+                )
+            }
+        } else {
+            null
+        },
     )
 }
