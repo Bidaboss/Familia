@@ -70,8 +70,8 @@ import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 /*
- * The new Cadeaux tab (PRODUIT-119 and 120, maquettes C1 à C5), behind « Nouvel onglet Cadeaux »
- * (giftsTabV2) and with the single list only. From the top: the surprises in progress, « À venir »
+ * The new Cadeaux tab (PRODUIT-119 and 120, maquettes C1 à C5), with the single list (PRODUIT-131:
+ * no switch of its own). From the top: the surprises in progress, « À venir »
  * with the next birthday in relief, the occasions, « Mes envies », then the family by household,
  * mine open and the others folded, one compact card per person in their color.
  *

@@ -36,8 +36,6 @@ Fais d'abord le deuxième téléphone, puis le tien. La marche détaillée se tr
 - [ ] Ouvre **Administration**, puis **Modules**.
 - [ ] Allume ce que tu veux montrer demain. Sous chaque interrupteur, une phrase dit à quoi il sert, et « Voir où » ouvre l'écran concerné.
 - [ ] **Les nouvelles versions** (décision AVIS-22) : la famille les découvre demain. Allume chacune seulement si [DEV] t'a confirmé qu'elle est fusionnée et que ses essais sont passés. Sinon, laisse-la éteinte : l'ancienne version reste, sans rien perdre.
-  - [ ] « Nouvel onglet Cadeaux »
-  - [ ] « Nouvelle fiche de membre »
   - [ ] « Nouveau Planning »
   - [ ] « Fil d'actualité » (il demande « Publier Firebase », déjà fait à l'étape 1)
 - [ ] Laisse **éteints** les modules prévus pour après le 21. Un module éteint ne laisse aucune trace chez les autres : ni pastille, ni carte, ni aide, ni notification.

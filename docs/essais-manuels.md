@@ -61,7 +61,7 @@ Il faut deux téléphones connectés avec deux membres différents, et les fonct
 1. Installe l'appli sur un téléphone où elle n'a jamais été ouverte, puis connecte-toi avec un compte adulte. **Attendu :** « Bienvenue dans Familia » s'affiche, avec « 1 sur 4 » en haut.
 2. Touche « Suivant » jusqu'au 3e écran. **Attendu :** « Dire si tu viens » parle aussi de répondre pour tes enfants. Avec un compte enfant, ou un adulte sans enfant rattaché (un grand-parent par exemple), cette phrase n’apparaît pas.
 3. Touche le bouton retour d'Android. **Attendu :** l'écran précédent s'affiche.
-4. Touche « Passer ». **Attendu :** l'écran « Rester prévenu » s'affiche (4 sur 4), avec « Autoriser les notifications » et « Pas maintenant ».
+4. Touche « Passer ». **Attendu :** l'écran « Rester prévenu » s'affiche (4 sur 4), avec « Autoriser les notifications » et « Plus tard ».
 5. Touche « Autoriser les notifications », puis accepte dans la fenêtre d'Android. **Attendu :** le planning s'ouvre.
 6. Ferme l'appli, puis rouvre-la. **Attendu :** le tuto ne s'affiche plus.
 
@@ -480,7 +480,7 @@ Il faut une version publiée avec un fichier dans `docs/whats-new`, et un télé
 
 ## Ma photo en haut à droite (DESIGN-12)
 1. Sur chacun des 5 onglets : **Attendu :** ta photo (ou tes initiales) à droite de la barre du haut, après le « ? ». TalkBack lit « Mon compte et réglages ».
-2. Touche-la. **Attendu :** une feuille s'ouvre avec, dans l'ordre : Mon profil, Apparence, Notifications, Aide, Vérifier les mises à jour, « Une idée ? Un souci ? », puis Partager Familia pour l'admin principal seulement. Une ligne absente veut dire que son module est éteint.
+2. Touche-la. **Attendu :** une feuille s'ouvre avec, dans l'ordre : Ma fiche, Apparence, Notifications, Aide, Vérifier les mises à jour, « Une idée ? Un souci ? », puis Partager Familia pour l'admin principal seulement. Une ligne absente veut dire que son module est éteint.
 3. Avec le compte de l'admin principal : **Attendu :** « Administration » en dernier, après un trait. Avec un autre compte, pas de ligne Administration.
 4. Avec un parent d'un enfant qui a l'appli (pas l'admin) : **Attendu :** « Temps de mes enfants » dans la feuille.
 5. Touche une ligne. **Attendu :** la feuille se ferme et l'écran s'ouvre.
@@ -1108,7 +1108,7 @@ Si quelque chose ne va pas le 20 au soir, préviens [DEV] : on revient à l'icô
 ## Ouverture rapide d'un compte déjà connecté
 
 1. Sur un téléphone déjà connecté, ferme Familia en la balayant des applis récentes. Coupe le Wi-Fi et la 4G, puis rouvre Familia. **Attendu :** l'Accueil s'ouvre tout de suite, sans écran de connexion ni « Réessayer ».
-2. Remets le réseau. Depuis un autre téléphone d'admin, change le prénom de ce membre. Ferme et rouvre Familia sur le premier téléphone. **Attendu :** l'appli s'ouvre tout de suite, et le nouveau prénom apparaît quelques secondes après au plus (par exemple dans Mon profil).
+2. Remets le réseau. Depuis un autre téléphone d'admin, change le prénom de ce membre. Ferme et rouvre Familia sur le premier téléphone. **Attendu :** l'appli s'ouvre tout de suite, et le nouveau prénom apparaît quelques secondes après au plus (par exemple dans Ma fiche).
 3. Sur un téléphone partagé, déconnecte-toi puis connecte un autre membre. **Attendu :** c'est bien l'autre membre qui entre, jamais le précédent.
 
 ## Planning allégé : les compteurs « viennent »
@@ -1207,13 +1207,14 @@ Dans « Le fil » de l'Accueil :
 13. Passe le téléphone en réseau faible (Options pour les développeurs > réseau limité, ou mode avion juste après avoir touché « Envoyer »), puis commente une Bonne nouvelle depuis le fil. **Attendu :** « Envoyer » se grise pendant au plus 4 s, puis le champ se ferme ; un second toucher n'envoie pas le commentaire deux fois ; le fil reste utilisable pendant ce temps. Le commentaire part au retour du réseau.
 14. En « Voir comme » un membre fêté prochainement. **Attendu :** aucune carte du fil ne parle d'un cadeau ou d'une surprise pour elle ; un coup de main dont elle n'est pas prévenue n'apparaît pas.
 
-## Fil d'actualité : une tuile par actualité (PRODUIT-127)
+## Fil d'actualité : une tuile par actualité (PRODUIT-127, PRODUIT-130)
 
 Module « Fil d'actualité » allumé.
 
-1. Ouvre « Le fil ». **Attendu :** chaque actualité est une carte blanche aux coins arrondis comme celles du Planning, avec une ombre très douce et un fin trait de sa couleur dessous. Il n'y a plus de liseré coloré à gauche ; la pastille du type reste en haut à droite.
-2. **Attendu :** 8 dp entre deux actualités d'un même jour, un peu plus avant et après « Aujourd'hui », « Hier ».
-3. En thème sombre, puis à 130 % de taille de texte. **Attendu :** les cartes restent lisibles et séparées, rien n'est coupé.
+1. Ouvre « Le fil ». **Attendu :** chaque actualité est une tuile aux coins arrondis comme les cartes du Planning, de la couleur des cartes du thème, avec un fin contour et une ombre douce. Il n'y a ni liseré coloré à gauche ni trait coloré dessous ; la pastille du type reste en haut à droite.
+2. **Attendu :** 10 dp entre deux actualités d'un même jour, un peu plus avant et après « Aujourd'hui », « Hier ».
+3. Dans Réglages > Apparence, passe par Classique, Contraste fort, Hiver, Espagne, puis le thème sombre. **Attendu :** dans chaque thème, les tuiles se détachent nettement du fond ; aucune ne se fond dedans.
+4. À 130 % de taille de texte. **Attendu :** les tuiles restent lisibles et séparées, rien n'est coupé.
 
 ## Fil d'actualité : la bascule « Aujourd'hui | Le fil » (PRODUIT-128)
 
@@ -1265,13 +1266,13 @@ Avant de commencer : **Administration**, puis **Modules**, et allume « Nouveau 
 5. Touche les flèches. **Attendu :** la semaine change. La flèche de gauche est grisée sur la semaine d'aujourd'hui.
 6. Touche le titre. **Attendu :** le choix « Semaine » ou « Mois ». Choisis « Mois ». **Attendu :** « Novembre 2026 ▾ », une grille blanche avec le chiffre, le mot et la pastille de chaque jour. Touche un jour : il passe en noir et ses cartes s'affichent dessous.
 7. Touche le rond lilas. **Attendu :** il devient plein, et le sous-titre dit « mon foyer ». Seuls les événements de ton foyer restent, avec tous les anniversaires. Touche-le encore pour revenir à toute la famille.
-8. Sur le téléphone d'un enfant qui a l'appli : **attendu :** le sous-titre dit « ma maison », et « Ajouté par toi » apparaît sur ce qu'il a créé.
+8. Sur le téléphone d'un enfant qui a l'appli : **attendu :** le sous-titre dit « mon foyer », et « Ajouté par toi » apparaît sur ce qu'il a créé.
 9. Mets la taille du texte à 130 %. **Attendu :** le titre passe sur deux lignes, sans être coupé. Les mots de la frise peuvent être coupés, mais la carte du jour touché les donne en entier.
 10. Éteins le module. **Attendu :** l'ancien Planning revient tel qu'il était.
 
 ## Nouvel onglet Cadeaux (PRODUIT-119 à 121)
 
-Avant de commencer : **Administration**, puis **Modules**, groupe « Nouvelles versions ». Allume « Nouvel onglet Cadeaux » et « Liste unique ». Éteint, l'onglet Cadeaux ne change pas, même pour toi.
+Depuis le 18/11 (PRODUIT-131), le nouvel onglet n'a plus d'interrupteur à lui : il vient avec « Liste unique ». Allume « Liste unique » dans **Administration**, **Modules**. Fais ces essais sur ton téléphone et celui de ta compagne avant le gel du 20 au soir.
 
 1. Ouvre **Cadeaux**. **Attendu :** si tu prépares une surprise, une carte noire « Surprise en préparation » en tête. Puis « À venir » : le prochain anniversaire des 30 jours en relief (« … fête ses … ans », « Ses envies », « Idées »), puis Noël à partir du 1er novembre. Puis « Mes envies », puis « La famille » : ton foyer ouvert, les autres repliés.
 2. Regarde une carte de personne. **Attendu :** sa couleur à gauche, son anniversaire et seulement « N envies ». Jamais un nombre d'idées ni de réservations.
@@ -1280,11 +1281,11 @@ Avant de commencer : **Administration**, puis **Modules**, groupe « Nouvelles v
 5. « Voir comme » un enfant. **Attendu :** « Mes envies » en tête. Sur les cartes des autres, « Ses envies » seulement, jamais « Idées » ni « Préparer une surprise ».
 6. Mets la taille du texte à 200 %. **Attendu :** les noms de foyer passent sur deux lignes, rien n'est coupé et tous les boutons restent faciles à toucher. Avec TalkBack, « Ses envies » se lit « Envies de … », et « Idées » se lit « Idées pour … ».
 7. Réseau faible : refais les étapes 1 et 3 en mode avion, puis en « 2G seulement », comme dans « Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible ». **Attendu :** l'onglet déjà vu s'affiche avec le bandeau « Hors ligne », sans écran blanc ni roue sans fin.
-8. Éteins le module. **Attendu :** l'ancien onglet Cadeaux revient tel qu'il était.
+8. **Administration**, puis **Modules**. **Attendu :** plus de « Nouvel onglet Cadeaux ». La phrase sous « Liste unique » dit qu'elle apporte le nouvel onglet.
 
 ## Nouvelle fiche de membre (PRODUIT-114 à 117)
 
-Avant de commencer : **Administration**, puis **Modules**, groupe « Nouvelles versions ». Allume « Nouvelle fiche de membre ».
+Depuis le 18/11 (PRODUIT-131), c'est la seule fiche : plus d'interrupteur ni d'ancienne fiche. Fais ces essais sur ton téléphone et celui d'ta compagne avant le gel du 20 au soir.
 
 1. Dans **Famille**, ouvre la fiche d'un adulte. **Attendu :** un bandeau à sa couleur, sa photo ronde, son âge, « Anniversaire dans … ». Puis les boutons ronds (Vœux, Pensez à moi, Appeler, Itinéraire) et une carte par section. Jamais de menu ⋮.
 2. Ouvre ta propre fiche. **Attendu :** « Ma fiche » en haut, un crayon sur les cartes que tu peux remplir, la jauge « Ta fiche est remplie à … % », et le bouton appareil photo sur ta photo. Tes envies ne montrent que leurs titres, jamais « Réservé » ni « Pris ».
@@ -1293,4 +1294,5 @@ Avant de commencer : **Administration**, puis **Modules**, groupe « Nouvelles v
 5. **Administration**, « Voir comme… » cette personne, puis ouvre sa fiche. **Attendu :** aucune surprise, réservation ni « Ce que j'offre ». Pas de jauge ni de bouton photo, car « Voir comme » n'écrit rien.
 6. Mets la taille du texte à 200 %. **Attendu :** le prénom, l'adresse et les boutons passent à la ligne sans être coupés. Avec TalkBack, chaque bouton dit ce qu'il fait.
 7. Réseau faible : ouvre une fiche déjà vue en mode avion, puis en « 2G seulement », comme dans « Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible ». **Attendu :** la fiche s'affiche, sans écran blanc. « Appeler » ouvre le téléphone même sans réseau.
-8. Éteins le module. **Attendu :** l'ancienne fiche revient telle qu'elle était.
+8. **Administration**, puis **Modules**. **Attendu :** plus de « Nouvelle fiche de membre » dans « Nouvelles versions ».
+9. Sur ta fiche, ajoute ton téléphone dans « Coordonnées ». **Attendu :** il s'enregistre. S'il affiche une erreur, Publier Firebase n'a pas été lancé depuis l'arrivée de la fiche : lance-le.
