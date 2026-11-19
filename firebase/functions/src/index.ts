@@ -26,7 +26,6 @@ import { checkConsumptionIfDue } from './consumption';
 import { CrashData, onCrashReported } from './crashes';
 import { FeedbackData, onFeedbackChanged, onFeedbackCreated, screenshotToDelete } from './feedback';
 import { deleteEndedGoodDeals, sendGoodDealsSummary } from './goodDeals';
-import { onTurnWritten, type TurnData } from './turns';
 import { deleteLoanOf, onLendLoanWritten, releaseLendItemsOf, sendLendReminders, type LendLoanData } from './lendItems';
 import { deleteJoinMeOf, JoinMeData, onJoinMeCreated } from './joinMe';
 import { AnnouncementData, deleteAnnouncementsOf, onAnnouncementCreated } from './announcements';
@@ -105,7 +104,6 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.welcomeOf ? { welcomeOf: notice.welcomeOf } : {}),
         ...(notice.goodDeals ? { goodDeals: notice.goodDeals } : {}),
         ...(notice.lendItemId ? { lendItemId: notice.lendItemId } : {}),
-        ...(notice.turnId ? { turnId: notice.turnId } : {}),
         ...(notice.announcementId ? { announcementId: notice.announcementId } : {}),
         ...(notice.tag ? { notificationTag: notice.tag } : {}),
       },
@@ -357,16 +355,11 @@ export const onLendLoanChanged = onDocumentWrittenWithAuthContext('lendLoans/{it
 // delete a function that left the code (same trigger kept too). The notices of a loan moved to onLendLoanChanged.
 export const onLendItemChanged = onDocumentUpdatedWithAuthContext('lendItems/{itemId}', async () => {});
 
-// --- À qui le tour ? (récit 58) -------------------------------------------------------------
+// --- À qui le tour ? (récit 58), supprimé le 20/11 ------------------------------------------
 
-export const onTurnChanged = onDocumentWrittenWithAuthContext('turns/{turnId}', async (event) => {
-  const db = getFirestore();
-  const before = event.data?.before.data() as TurnData | undefined;
-  const after = event.data?.after.data() as TurnData | undefined;
-  // turns off: the admin principal tries it alone, nobody else is told.
-  const only = await featureAudience(db, 'turns');
-  await onTurnWritten(db, send, event.params.turnId, before, after, actorUid(event), new Date(), only);
-});
+// Nothing is sent any more. Kept, empty: the deploy runs --non-interactive and would stop rather
+// than delete a function that left the code.
+export const onTurnChanged = onDocumentWrittenWithAuthContext('turns/{turnId}', async () => {});
 
 // A thing removed takes its loan and its photo with it.
 export const onLendItemDeleted = onDocumentDeleted('lendItems/{itemId}', async (event) => {

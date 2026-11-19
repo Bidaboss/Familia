@@ -67,14 +67,6 @@ data class LendItemDetailDestination(val itemId: String)
 @Serializable
 data class LendItemEditDestination(val itemId: String? = null)
 
-/** À qui le tour ? (récit 58): one rotation, its order and history. */
-@Serializable
-data class TurnDetailDestination(val turnId: String)
-
-/** À qui le tour ? (récit 58): a new rotation ([turnId] null) or a change to one. */
-@Serializable
-data class TurnEditDestination(val turnId: String? = null)
-
 /** All the « Bonnes nouvelles », opened from the home card (récit 32). */
 @Serializable
 data object GoodNewsFeedDestination
