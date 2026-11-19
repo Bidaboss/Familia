@@ -16,14 +16,6 @@
       "childBody": "Dans l'album d'un voyage, fais un vrai livre avec tes photos préférées, à imprimer.",
       "feature": "photoBook",
       "open": "trips"
-    },
-    {
-      "id": "a-qui-le-tour",
-      "title": "À qui le tour ?",
-      "body": "Dans Entraide, « À qui le tour ? » fait tourner entre les foyers qui reçoit Noël ou le repas du dimanche, sans oublier personne.",
-      "feature": "turns",
-      "open": "helpRequests",
-      "adultsOnly": true
     }
   ]
 }

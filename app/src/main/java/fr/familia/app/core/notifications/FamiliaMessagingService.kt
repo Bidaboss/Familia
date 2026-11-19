@@ -77,15 +77,12 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         // On se prête (récit 51): an ask, its answer or the reminder opens the thing.
         val lendItemId = message.data[EXTRA_LEND_ITEM_ID]
         lendItemId?.let { open.putExtra(EXTRA_LEND_ITEM_ID, it) }
-        // À qui le tour ? (récit 58): the rotation.
-        val turnId = message.data[EXTRA_TURN_ID]
-        turnId?.let { open.putExtra(EXTRA_TURN_ID, it) }
         // Annonces de l'admin (récit 69): the whole message.
         val announcementId = message.data[EXTRA_ANNOUNCEMENT_ID]
         announcementId?.let { open.putExtra(EXTRA_ANNOUNCEMENT_ID, it) }
         val pending = PendingIntent.getActivity(
             this,
-            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId ?: joinMeId ?: capsuleId ?: recapWeek ?: birthdayOf ?: welcomeOf ?: feedback ?: goodDeals ?: lendItemId ?: turnId ?: announcementId).hashCode(),
+            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId ?: joinMeId ?: capsuleId ?: recapWeek ?: birthdayOf ?: welcomeOf ?: feedback ?: goodDeals ?: lendItemId ?: announcementId).hashCode(),
             open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -156,8 +153,6 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         const val EXTRA_GOOD_DEALS = "goodDeals"
         /** Same key as functions/src/lendItems.ts (récit 51). */
         const val EXTRA_LEND_ITEM_ID = "lendItemId"
-        /** Same key as functions/src/turns.ts (récit 58). */
-        const val EXTRA_TURN_ID = "turnId"
         const val EXTRA_ANNOUNCEMENT_ID = "announcementId"
     }
 }

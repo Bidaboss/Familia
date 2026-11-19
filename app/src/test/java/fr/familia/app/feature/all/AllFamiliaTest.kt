@@ -29,10 +29,8 @@ class AllFamiliaTest {
             module("help") to "Entraide",
             module("goodDeals") to "Bons plans",
             module("lending") to "On se prête",
-            module("turns") to "À qui le tour ?",
         )
         assertEquals(listOf("lending"), filterModules(entraide, "prêt").map { it.key })
-        assertEquals(listOf("turns"), filterModules(entraide, "tour").map { it.key })
         assertEquals(listOf("goodDeals"), filterModules(entraide, "plan").map { it.key })
     }
 }

@@ -22,11 +22,6 @@ import fr.familia.app.feature.gooddeals.list.GoodDealsScreen
 import fr.familia.app.feature.gooddeals.list.previewGoodDeals
 import fr.familia.app.feature.lending.list.LendItemsScreen
 import fr.familia.app.feature.lending.list.previewLendItems
-import fr.familia.app.feature.turns.TurnDetailActions
-import fr.familia.app.feature.turns.TurnDetailScreen
-import fr.familia.app.feature.turns.TurnsScreen
-import fr.familia.app.feature.turns.previewTurnDetail
-import fr.familia.app.feature.turns.previewTurns
 import fr.familia.app.feature.wishes.BirthdayCardsContent
 import fr.familia.app.feature.wishes.BirthdayCardsState
 import fr.familia.app.feature.yearinreview.ReviewPage
@@ -41,7 +36,7 @@ import java.time.Instant
 import java.time.LocalDate
 
 /**
- * The 200 % font pass of the small modules (PRODUIT, 17/11): Bons plans, On se prête, À qui le tour ?,
+ * The 200 % font pass of the small modules (PRODUIT, 17/11): Bons plans, On se prête,
  * Notre année, Mes premiers pas and the cartes de vœux. Entraide and Bonnes nouvelles
  * already have theirs in [ScreenshotTest]. Fictional data.
  */
@@ -60,21 +55,6 @@ class EntraideA11yScreenshotTest {
     @Test
     fun lendItemsFontScale200() = capture("on_se_prete_police_200") {
         Surface { LendItemsScreen(previewLendItems(), {}, {}, {}) }
-    }
-
-    @Test
-    fun turnsFontScale200() = capture("a_qui_le_tour_police_200") {
-        Surface { TurnsScreen(previewTurns(), {}, {}, {}) }
-    }
-
-    @Test
-    fun turnDetailFontScale200() = capture("a_qui_le_tour_detail_police_200") {
-        Surface { TurnDetailScreen(previewTurnDetail(), TurnDetailActions(), {}) }
-    }
-
-    @Test
-    fun turnSwapFontScale200() = capture("a_qui_le_tour_echange_police_200") {
-        Surface { TurnDetailScreen(previewTurnDetail(swapForUs = true), TurnDetailActions(), {}) }
     }
 
     @Test
