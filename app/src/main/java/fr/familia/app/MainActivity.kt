@@ -49,7 +49,6 @@ class MainActivity : ComponentActivity() {
     private val openJoinMe = mutableStateOf(false)
     /** The birthday of a shared link: the member's page opens (récit 31). */
     private val openMemberId = mutableStateOf<String?>(null)
-    private val openThinkOfMeId = mutableStateOf<String?>(null)
     /** The time capsule of a tapped notification (récit 39). */
     private val openCapsuleId = mutableStateOf<String?>(null)
     private val openRecap = mutableStateOf<String?>(null)
@@ -96,7 +95,6 @@ class MainActivity : ComponentActivity() {
             val announcementToOpen by openAnnouncementId
             val wishToAdd by sharedWish
             val memberToOpen by openMemberId
-            val thinkOfMeToOpen by openThinkOfMeId
             FamiliaTheme {
                 CompositionLocalProvider(LocalOnline provides isOnline) {
                     SessionRoute(container = container) { member ->
@@ -142,8 +140,6 @@ class MainActivity : ComponentActivity() {
                                 onSharedWishOpened = { sharedWish.value = null },
                                 openMemberId = memberToOpen,
                                 onMemberOpened = { openMemberId.value = null },
-                                openThinkOfMeId = thinkOfMeToOpen,
-                                onThinkOfMeOpened = { openThinkOfMeId.value = null },
                             )
                         }
                     }
@@ -174,7 +170,6 @@ class MainActivity : ComponentActivity() {
                 is DeepLink.Capsule -> openCapsuleId.value = link.id
                 is DeepLink.Recap -> openRecap.value = link.week
                 is DeepLink.Member -> openMemberId.value = link.id
-                is DeepLink.ThinkOfMe -> openThinkOfMeId.value = link.id
                 is DeepLink.Feedback -> openFeedback.value = link.key
                 DeepLink.GoodDeals -> openGoodDeals.value = true
                 is DeepLink.LendItem -> openLendItemId.value = link.id

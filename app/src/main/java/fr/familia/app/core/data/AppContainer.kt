@@ -67,8 +67,6 @@ interface AppContainer {
     val weeklyQuestionRepository: WeeklyQuestionRepository?
     val souvenirRepository: SouvenirRepository?
     val birthdayCardRepository: BirthdayCardRepository?
-    /** « Pensez à moi » (récit 43). */
-    val momentRepository: MomentRepository? get() = null
     /** Bons plans et bonnes adresses (récit 45). */
     val goodDealRepository: GoodDealRepository? get() = null
 
@@ -192,7 +190,6 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     override val weeklyQuestionRepository: WeeklyQuestionRepository? by lazy { firestore?.let { FirestoreWeeklyQuestionRepository(it) } }
     override val souvenirRepository: SouvenirRepository? by lazy { firestore?.let { FirestoreSouvenirRepository(it) } }
     override val birthdayCardRepository: BirthdayCardRepository? by lazy { firestore?.let { FirestoreBirthdayCardRepository(it) } }
-    override val momentRepository: MomentRepository? by lazy { firestore?.let { FirestoreMomentRepository(it) } }
     override val goodDealRepository: GoodDealRepository? by lazy { firestore?.let { FirestoreGoodDealRepository(it, sendJournal) } }
     override val calendarFeedRepository: CalendarFeedRepository? by lazy { firestore?.let { FirestoreCalendarFeedRepository(it) } }
     override val lendItemRepository: LendItemRepository? by lazy { firestore?.let { FirestoreLendItemRepository(it, sendJournal) } }

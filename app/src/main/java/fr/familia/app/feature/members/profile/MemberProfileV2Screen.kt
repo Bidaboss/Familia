@@ -153,7 +153,6 @@ internal fun ContentV2(
                 tastes()
                 GiftsPart(member, state.isMe, today, gifts)
             }
-            // « Pensez à moi » left the page for the « + » of the Accueil (PRODUIT-135).
             data?.let { FamilyPart(it.kinship, state.isMe, v2.onOpenMember) }
             data?.let { MomentsPart(it, state.isMe, v2.onOpenEvent) }
             RecipesAndSouvenirs(state, data, onSetShown, onOpenRecipes)

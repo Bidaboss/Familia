@@ -68,8 +68,6 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         // La bienvenue: the page of the newcomer (récit 43).
         val welcomeOf = message.data[EXTRA_WELCOME_OF]
         welcomeOf?.let { open.putExtra(EXTRA_WELCOME_OF, it) }
-        val thinkOfMeOf = message.data[EXTRA_THINK_OF_ME_OF]
-        thinkOfMeOf?.let { open.putExtra(EXTRA_THINK_OF_ME_OF, it) }
         // « Une idée ? Un souci ? » (récit 6 sexies): Retours or « Mes demandes ».
         val feedback = message.data[EXTRA_FEEDBACK]
         feedback?.let { open.putExtra(EXTRA_FEEDBACK, it) }
@@ -87,7 +85,7 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         announcementId?.let { open.putExtra(EXTRA_ANNOUNCEMENT_ID, it) }
         val pending = PendingIntent.getActivity(
             this,
-            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId ?: joinMeId ?: capsuleId ?: recapWeek ?: birthdayOf ?: welcomeOf ?: thinkOfMeOf ?: feedback ?: goodDeals ?: lendItemId ?: turnId ?: announcementId).hashCode(),
+            (eventId ?: listId ?: helpRequestId ?: tripId ?: goodNewsId ?: weeklyQuestionId ?: souvenirKey ?: pollId ?: joinMeId ?: capsuleId ?: recapWeek ?: birthdayOf ?: welcomeOf ?: feedback ?: goodDeals ?: lendItemId ?: turnId ?: announcementId).hashCode(),
             open,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -151,7 +149,6 @@ class FamiliaMessagingService : FirebaseMessagingService() {
         /** The member celebrated, same key as functions/src/birthdayWishes.ts. */
         const val EXTRA_BIRTHDAY_OF = "birthdayOf"
         const val EXTRA_WELCOME_OF = "welcomeOf"
-        const val EXTRA_THINK_OF_ME_OF = "thinkOfMeOf"
         const val EXTRA_NOTIFICATION_TAG = "notificationTag"
         /** "list", "mine" or "crashes", same key as functions/src/feedback.ts and crashes.ts. */
         const val EXTRA_FEEDBACK = "feedback"

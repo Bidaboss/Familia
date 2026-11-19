@@ -39,11 +39,15 @@ class DeepLinksTest {
     }
 
     @Test
-    fun `a birthday and a welcome open the member's page, once, « Pensez à moi » its own screen`() {
+    fun `a birthday and a welcome open the member's page, once`() {
         assertEquals(listOf(DeepLink.Member("m1")), fromExtras("birthdayOf" to "m1"))
         assertEquals(listOf(DeepLink.Member("m2")), fromExtras("welcomeOf" to "m2"))
-        assertEquals(listOf(DeepLink.ThinkOfMe("m3")), fromExtras("thinkOfMeOf" to "m3"))
         assertEquals(listOf(DeepLink.Member("m1")), fromExtras("birthdayOf" to "m1", "welcomeOf" to "m2"))
+    }
+
+    @Test
+    fun `an old « Pensez à moi » notification just opens the app`() {
+        assertEquals(emptyList<DeepLink>(), fromExtras("thinkOfMeOf" to "m3"))
     }
 
     @Test

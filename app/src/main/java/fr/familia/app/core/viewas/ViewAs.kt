@@ -74,7 +74,6 @@ class ViewAsContainer(private val base: AppContainer, guard: ViewAsGuard, adminI
     override val weeklyQuestionRepository = base.weeklyQuestionRepository?.let { ReadOnlyWeeklyQuestionRepository(it, guard) }
     override val souvenirRepository = base.souvenirRepository?.let { ReadOnlySouvenirRepository(it, guard) }
     override val birthdayCardRepository = base.birthdayCardRepository?.let { ReadOnlyBirthdayCardRepository(it, guard) }
-    override val momentRepository = base.momentRepository?.let { ReadOnlyMomentRepository(it, guard) }
     override val goodDealRepository = base.goodDealRepository?.let { ReadOnlyGoodDealRepository(it, guard) }
     override val lendItemRepository = base.lendItemRepository?.let { ReadOnlyLendItemRepository(it, guard) }
     override val turnRepository = base.turnRepository?.let { ReadOnlyTurnRepository(it, guard) }

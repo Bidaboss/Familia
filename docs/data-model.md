@@ -1327,27 +1327,11 @@ depuis `at`, en une seule notification sur le canal `trips` (`events` pour un é
 ouvre l'événement), sans relance. Interrupteur éteint :
 seul l'admin principal la reçoit.
 
-## Pensez à moi (PRD, récit 43)
+## Pensez à moi (PRD, récit 43), retiré le 19/11 (PRODUIT-136)
 
-Module `thinkOfMe`. Canal `thinkOfMe` (famille de réglages « Rendez-vous de la semaine »), donnée `thinkOfMeOf` : l'appli ouvre la fiche du membre.
+Plus d'écran, plus d'entrée dans le « + » de l'Accueil, plus de ligne dans Administration > Modules, plus de canal de notification (l'appli supprime le canal `thinkOfMe` du téléphone). Une clé `features.thinkOfMe` restée dans `config/app` est simplement ignorée. Côté serveur, `birthdayGiftReminders` ne lance plus de moment et rien n'est plus envoyé ; `onMomentCheerWritten` reste exporté sans rien faire, car « Publier Firebase » déploie sans `--force`.
 
-### `moments/{id}`
-
-| Champ | Type | Rôle |
-|---|---|---|
-| `forMemberId` | id | Le membre du moment |
-| `authorId`, `authorName` | id, texte | Qui l'a noté : le membre lui-même, ou un adulte responsable pour un enfant |
-| `title` | texte, 1 à 80 | « Examen de piano » |
-| `day` | `AAAA-MM-JJ` | Le jour J |
-| `status` | `accepted` \| `pending` | `pending` quand un parent le note pour un ado de 15 ans ou plus : l'ado l'accepte (seul changement permis) ou le supprime |
-| `createdAt` | date | |
-| `startedAt` | date, fonctions seulement | Posé à 10 h le jour J par `startMoments` (tâche `birthdayGiftReminders`), une seule fois ; ouvre les encouragements pendant 24 h |
-
-Lu par toute la famille une fois accepté ; en `pending`, seulement par l'ado, l'auteur et les adultes responsables (l'appli des autres demande `status == 'accepted'`). L'âge vient de `birthDate` : né un 29 février, 15 ans le 1er mars ; sans date, l'enfant compte comme plus jeune. Supprimé par son auteur ou par le membre du moment. Le jour J, à 10 h, la famille qui a l'appli (pas le membre) reçoit « Pensez à Camille aujourd'hui », « « Examen de piano » : envoie-lui un encouragement. » Pas de relance le lendemain.
-
-### `momentCheers/{momentId}-{authorId}`
-
-`momentId`, `forMemberId`, `authorId`, `authorName`, `text` (1 à 280), `createdAt`. Un par membre et par moment, seulement pendant les 24 h qui suivent `startedAt`, jamais pour soi. L'auteur le supprime ; un moment supprimé emporte ses encouragements (`onMomentDeleted`). Chaque encouragement prévient le membre avec les prénoms de tous ceux qui ont écrit (« Inès et Noé pensent à toi. »), jamais un nombre. `onMemberDeleted` supprime les moments et encouragements d'un membre supprimé.
+Les données restent en base, sans effacement : `moments/{id}` (`forMemberId`, `authorId`, `authorName`, `title`, `day`, `status`, `createdAt`, `startedAt`) et `momentCheers/{momentId}-{authorId}` (`momentId`, `forMemberId`, `authorId`, `authorName`, `text`, `createdAt`). Les règles les ferment à toute écriture nouvelle : elles se lisent comme avant (un moment `pending` seulement par l'ado, l'auteur et les adultes responsables) et se suppriment par leur auteur (ou le membre du moment). Un moment supprimé emporte ses encouragements (`onMomentDeleted`), et `onMemberDeleted` supprime ceux d'un membre supprimé.
 
 ## La bienvenue (PRD, récit 43)
 

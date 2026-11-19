@@ -494,18 +494,14 @@ Avec les modules « Qui apporte quoi » et Recettes allumés, et au moins une re
 3. Ajoute la ligne. **Attendu :** la ligne montre « Voir la recette », qui ouvre la recette. Pareil sur un autre téléphone.
 4. Module Recettes éteint : **Attendu :** ni « Joindre une recette » ni « Voir la recette ».
 
-## Pensez à moi (récit 43)
+## « Pensez à moi » retiré (PRODUIT-136)
 
-Avec le module « Pensez à moi » allumé, un adulte parent d'un enfant de moins de 15 ans et d'un ado de 15 ans ou plus (date de naissance remplie), et un autre compte. Depuis le 18/11 (PRODUIT-135), « Pensez à moi » n'est plus sur la fiche : il s'ouvre depuis le « + » de l'Accueil, « Penser à quelqu'un ».
+Après « Publier Firebase », puis le nouvel APK.
 
-1. Accueil, « + », « Penser à quelqu'un ». **Attendu :** « Moi » en tête, puis la famille rangée par foyer. Touche « Moi » et note « Examen » pour demain. **Attendu :** il apparaît avec « Retirer ».
-2. Revient à « Penser à quelqu'un », choisis l'enfant et note un moment. **Attendu :** il est accepté tout de suite. Pour l'ado : « … choisira de l'accepter ou non », puis « En attente de la réponse de … ».
-3. Avec le compte de l'ado, « + », « Penser à quelqu'un », « Moi ». **Attendu :** « Noté par … » avec « Oui » et « Non merci ».
-4. Le jour J vers 10 h. **Attendu :** les autres reçoivent « Pensez à … aujourd'hui ». Toucher la notification ouvre « Pensez à … », avec « Aujourd'hui : « … » » et un champ pour un mot. Le membre reçoit « … pense à toi. » à chaque mot. Rien le lendemain.
-5. Un autre jour, choisis quelqu'un sans moment. **Attendu :** « Pas de moment à encourager pour … aujourd'hui », sans écran vide.
-6. Ouvre la fiche d'un membre. **Attendu :** ni bouton rond « Pensez à moi », ni section « Pensez à moi ».
-7. En « Voir comme », ouvre « Penser à quelqu'un » puis une personne. **Attendu :** ni champ ni bouton, la lecture seule.
-8. Éteins le module. **Attendu :** plus de « Penser à quelqu'un » dans le « + ».
+1. Accueil, « + ». **Attendu :** plus de « Penser à quelqu'un », les autres choix sont là comme avant.
+2. Administration > Modules. **Attendu :** plus de ligne « Pensez à moi ».
+3. Réglages du téléphone > Applis > Familia > Notifications. **Attendu :** plus de catégorie « Pensez à moi ».
+4. Ouvre la fiche d'un membre. **Attendu :** rien sur « Pensez à moi », la fiche s'affiche comme avant.
 
 ## La photo d'un événement (récit 44)
 
