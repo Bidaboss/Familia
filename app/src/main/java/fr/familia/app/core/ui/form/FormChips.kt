@@ -47,7 +47,7 @@ import java.time.ZoneOffset
 import java.util.Locale
 
 /**
- * A choice of a form in a pill (DESIGN-50): outlined, dark when chosen, 48 dp high. It is a radio
+ * A choice of a form in a pill (DESIGN-50): outlined, dark when chosen, 56 dp high. It is a radio
  * button for TalkBack, inside a [ChipGroup]. [description] replaces the text when it says too
  * little (« Mer. 25 » is read « mercredi 25 novembre »).
  */
@@ -68,7 +68,7 @@ fun FormChip(
         contentColor = if (selected) colors.inverseOnSurface else colors.onSurface,
         border = if (selected) null else BorderStroke(1.5.dp, colors.outlineVariant),
         modifier = modifier
-            .heightIn(min = 48.dp)
+            .heightIn(min = 56.dp)
             .selectable(selected = selected, enabled = enabled, role = Role.RadioButton, onClick = onClick)
             .then(if (description != null) Modifier.semantics { contentDescription = description } else Modifier),
     ) {

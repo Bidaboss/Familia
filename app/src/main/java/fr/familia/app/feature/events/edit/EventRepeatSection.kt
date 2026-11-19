@@ -120,7 +120,7 @@ internal fun RepeatSection(
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                     modifier = Modifier.weight(1f).padding(vertical = 10.dp),
                 )
-                TextButton(onClick = { ending = !ending }, modifier = Modifier.heightIn(min = 48.dp)) {
+                TextButton(onClick = { ending = !ending }, modifier = Modifier.heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.event_for_whom_change), color = MaterialTheme.colorScheme.onSecondaryContainer)
                 }
             }
