@@ -85,6 +85,7 @@ import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClaySpacing
+import fr.familia.app.core.ui.KinAvatar
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.dayShortLabel
@@ -456,8 +457,12 @@ private fun KinChip(person: KinPerson, role: String, onOpenMember: (String) -> U
             .padding(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        val kinPhoto = LocalMemberPhotos.current[person.id].takeIf { member == null }
         if (member != null) {
             MemberAvatar(member, size = 56.dp)
+        } else if (kinPhoto != null) {
+            // A relative of the tree with a photo (récit 79).
+            KinAvatar(kinPhoto, person.name, size = 56.dp)
         } else {
             Box(Modifier.size(56.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape), contentAlignment = Alignment.Center) {
                 Text(person.name.take(1).uppercase(), style = MaterialTheme.typography.titleMedium)

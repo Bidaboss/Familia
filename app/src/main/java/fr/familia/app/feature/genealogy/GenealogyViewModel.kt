@@ -3,6 +3,7 @@ package fr.familia.app.feature.genealogy
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.GenealogyRepository
+import fr.familia.app.core.data.KinPhotoChange
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.GenealogyTree
@@ -159,9 +160,9 @@ class GenealogyViewModel(
     /**
      * Adds a relative, or edits one ([kin] with an existing id). A new one goes to the household
      * of the person they are joined to when I manage it, else to mine; with [joinTo], the link
-     * goes in the same batch.
+     * goes in the same batch, and so does [photo] (récit 79).
      */
-    fun saveKin(kin: Kin, joinTo: Pair<String, Relation>? = null) {
+    fun saveKin(kin: Kin, joinTo: Pair<String, Relation>? = null, photo: KinPhotoChange? = null) {
         val state = ready ?: return
         val firstName = kin.firstName.trim()
         if (firstName.isEmpty()) return
@@ -178,7 +179,9 @@ class GenealogyViewModel(
         val id = if (existing != null) kin.id else genealogy?.newKinId() ?: return
         val saved = kin.copy(id = id, firstName = firstName, householdId = household, died = kin.died.takeUnless { kin.living })
         val link = joinTo?.takeIf { existing == null }?.let { (personId, relation) -> relation.link(personId, id) }
-        write { saveKin(saved, currentMemberId, link) }
+        // Nothing to take away from someone new.
+        val change = photo.takeUnless { existing == null && it == KinPhotoChange.Remove }
+        write { saveKin(saved, currentMemberId, link, change) }
     }
 
     /** Takes a relative out of the tree; the server removes their links. */

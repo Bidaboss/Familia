@@ -10,7 +10,7 @@ class MemberPhoto(val memberId: String, val jpeg: ByteArray, val version: Long)
 
 /** Profile photos of the family. Screens never talk to Firestore directly. */
 interface MemberPhotoRepository {
-    /** Every photo, by member id, updated live and served from the offline cache. */
+    /** Every photo, by member id (and by id for the relatives of the tree), updated live and served from the offline cache. */
     fun observePhotos(): Flow<Map<String, MemberPhoto>>
 
     /** The member, an adult of their household for a child, or the admin principal (the rules check it). */

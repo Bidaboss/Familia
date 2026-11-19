@@ -92,10 +92,20 @@ import kotlin.math.roundToInt
  * then a framing screen. Only pictures taken or chosen here are used, never the Google account
  * photo. [onSave] receives the finished JPEG; [onDismiss] closes everything.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MemberPhotoEditor(
     member: Member,
+    hasPhoto: Boolean,
+    onSave: (ByteArray) -> Unit,
+    onRemove: () -> Unit,
+    onDismiss: () -> Unit,
+) = PhotoEditor(stringResource(R.string.photo_of, member.firstName), hasPhoto, onSave, onRemove, onDismiss)
+
+/** The same sheet, under [title], and framing, for anyone: a relative of the tree too (récit 79). */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PhotoEditor(
+    title: String,
     hasPhoto: Boolean,
     onSave: (ByteArray) -> Unit,
     onRemove: () -> Unit,
@@ -124,7 +134,7 @@ fun MemberPhotoEditor(
         ModalBottomSheet(onDismissRequest = onDismiss) {
             Column(Modifier.navigationBarsPadding().padding(bottom = 16.dp)) {
                 Text(
-                    text = stringResource(R.string.photo_of, member.firstName),
+                    text = title,
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp).semantics { heading() },
                 )

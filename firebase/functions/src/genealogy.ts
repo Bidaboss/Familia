@@ -17,6 +17,11 @@ export async function deleteLinksOf(db: Firestore, personId: string): Promise<nu
   return asA.size + asB.size;
 }
 
+/** A relative removed from the tree (récit 79): their links and their photo. */
+export async function removeKinFromTree(db: Firestore, kinId: string): Promise<void> {
+  await Promise.all([deleteLinksOf(db, kinId), db.doc(`kinPhotos/${kinId}`).delete()]);
+}
+
 /** A member removed from the family: their links, and the words they chose for the others. */
 export async function removeMemberFromTree(db: Firestore, memberId: string): Promise<void> {
   await deleteLinksOf(db, memberId);

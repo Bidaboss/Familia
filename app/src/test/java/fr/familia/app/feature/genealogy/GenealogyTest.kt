@@ -1,6 +1,7 @@
 package fr.familia.app.feature.genealogy
 
 import fr.familia.app.core.data.GenealogyRepository
+import fr.familia.app.core.data.KinPhotoChange
 import fr.familia.app.core.model.Kin
 import fr.familia.app.core.model.KinLink
 import fr.familia.app.feature.events.FakeMembers
@@ -34,9 +35,15 @@ class FakeGenealogy(
     override fun observeWords(memberId: String): Flow<Map<String, String>> =
         if (wordsFail) flow { throw IOException("refused") } else MutableStateFlow(words.value[memberId].orEmpty())
     override fun newKinId(): String = "kin-new"
-    override suspend fun saveKin(kin: Kin, byMemberId: String, firstLink: KinLink?) {
+    val photos = MutableStateFlow<Map<String, ByteArray>>(emptyMap())
+    override suspend fun saveKin(kin: Kin, byMemberId: String, firstLink: KinLink?, photo: KinPhotoChange?) {
         this.kin.value = this.kin.value.filterNot { it.id == kin.id } + kin
         firstLink?.let { links.value = links.value + it }
+        when (photo) {
+            is KinPhotoChange.Set -> photos.value = photos.value + (kin.id to photo.jpeg)
+            KinPhotoChange.Remove -> photos.value = photos.value - kin.id
+            null -> Unit
+        }
     }
     override suspend fun deleteKin(id: String) {
         kin.value = kin.value.filterNot { it.id == id }
@@ -172,6 +179,25 @@ class GenealogyTest {
         assertEquals("h2", saved.householdId)
         assertEquals(null, saved.died)
         assertEquals(listOf(KinLink.parent("kin-new", "adult2")), repo.links.value)
+    }
+
+    @Test
+    fun `a relative's photo goes with them, and only who may edit them changes it (récit 79)`() = runTest {
+        val repo = FakeGenealogy(listOf(jeanne))
+        val vm = GenealogyViewModel(repo, FakeMembers(), "admin1")
+        ready(vm)
+        vm.saveKin(Kin("", "Lucien", living = true, householdId = ""), "adult2" to Relation.Partner, KinPhotoChange.Set(byteArrayOf(1, 2)))
+        assertEquals(listOf<Byte>(1, 2), repo.photos.value.getValue("kin-new").toList())
+        vm.saveKin(jeanne, photo = KinPhotoChange.Set(byteArrayOf(3)))
+        vm.saveKin(Kin("", "Paule", living = true, householdId = ""), photo = KinPhotoChange.Remove)
+        assertEquals(setOf("kin-new", "jeanne"), repo.photos.value.keys)
+        vm.saveKin(jeanne, photo = KinPhotoChange.Remove)
+        assertEquals(setOf("kin-new"), repo.photos.value.keys)
+
+        val adult = GenealogyViewModel(repo, FakeMembers(), "adult1")
+        ready(adult)
+        adult.saveKin(jeanne, photo = KinPhotoChange.Set(byteArrayOf(4)))
+        assertEquals(setOf("kin-new"), repo.photos.value.keys)
     }
 
     @Test
