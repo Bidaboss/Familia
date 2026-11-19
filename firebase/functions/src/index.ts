@@ -22,6 +22,7 @@ import {
 import { countLeftovers, deleteLeftovers, openDueCapsules } from './capsules';
 import { CommentData, deleteCommentMutesOf, deleteEventComments, onCommentCreated } from './comments';
 import { removeKinFromTree, removeMemberFromTree } from './genealogy';
+import { notifyEventMentions } from './mentions';
 import { checkConsumptionIfDue } from './consumption';
 import { CrashData, onCrashReported } from './crashes';
 import { FeedbackData, onFeedbackChanged, onFeedbackCreated, screenshotToDelete } from './feedback';
@@ -39,7 +40,7 @@ import {
 import {
   HelpNotice, HelpRequestData, HelpSender, onHelpRequestWritten, reopenRequestsOf, sendStillOpenReminders,
 } from './helpRequests';
-import { actorUid, addDays, changeNotice, EventData, hasVisibleChange, Notice, parisDay } from './logic';
+import { actorUid, addDays, changeNotice, EventData, hasVisibleChange, Member, Notice, parisDay } from './logic';
 import { comingMembers, deleteEventAnswers, featureAudience, loadMembers, deleteMemberData, memberForUid, notify, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
 import { deleteExpenseBook, ExpenseData, historyEntry, sendExpenseNotices, writeExpenseHistory } from './expenses';
 import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
@@ -122,18 +123,27 @@ export const onEventCreated = onDocumentCreatedWithAuthContext('events/{eventId}
   const data = event.data?.data() as EventData | undefined;
   // An occurrence of a series (récit 54) is written by the server: the series sends one notice.
   if (!data || writtenBySeries(undefined, event.data?.data())) return;
-  await notifyChange(getFirestore(), send, 'added', event.params.eventId, data, actorUid(event), new Date());
+  const db = getFirestore();
+  const now = new Date();
+  // Who is named « @Prénom » in the note (Kévin, 19/11) hears it once, as « t'a nommé ».
+  const named = await notifyEventMentions(db, send, event.params.eventId, undefined, data, actorUid(event), await loadMembers(db), now);
+  await notifyChange(db, send, 'added', event.params.eventId, data, actorUid(event), now, new Set(), undefined, '', (ids) => ids.filter((id) => !named.includes(id)));
 });
 
 export const onEventUpdated = onDocumentUpdatedWithAuthContext('events/{eventId}', async (event) => {
   const before = event.data?.before.data() as EventData | undefined;
   const after = event.data?.after.data() as EventData | undefined;
-  if (!before || !after || !hasVisibleChange(before, after)) return;
+  if (!before || !after) return;
+  const renamed = JSON.stringify(before.mentionIds ?? []) !== JSON.stringify(after.mentionIds ?? []);
+  if (!hasVisibleChange(before, after) && !renamed) return;
   if (writtenBySeries(event.data?.before.data(), event.data?.after.data())) return;
   const db = getFirestore();
+  const now = new Date();
   const members = await loadMembers(db);
+  const named = await notifyEventMentions(db, send, event.params.eventId, before, after, actorUid(event), members, now);
+  if (!hasVisibleChange(before, after)) return;
   const answered = await comingMembers(db, event.params.eventId, members);
-  await notifyChange(db, send, 'edited', event.params.eventId, after, actorUid(event), new Date(), answered, members);
+  await notifyChange(db, send, 'edited', event.params.eventId, after, actorUid(event), now, answered, members, '', (ids) => ids.filter((id) => !named.includes(id)));
 });
 
 export const onEventDeleted = onDocumentDeletedWithAuthContext('events/{eventId}', async (event) => {
@@ -182,16 +192,22 @@ export const onSeriesWritten = onDocumentWrittenWithAuthContext('eventSeries/{se
   const repeat = ` Puis ${ruleLabel(after.rule)}.`;
   // recurringEvents off: the admin principal tries it alone, nobody else is told.
   const only = await featureAudience(db, RECURRING_EVENTS);
+  // Who is named « @Prénom » in the note of the series hears it once, on its first day.
+  const told = async (first: string, data: EventData, members: Member[]) => {
+    const named = await notifyEventMentions(db, send, first, before as EventData | undefined, { ...data, mentionIds: after.mentionIds ?? [] }, actorUid(event), members, now, only);
+    return (ids: string[]) => only(ids).filter((id) => !named.includes(id));
+  };
   if (!before && result.created.length > 0) {
     const first = [...result.created].sort()[0];
     const data = (await db.collection('events').doc(first).get()).data() as EventData;
-    await notifyChange(db, send, 'added', first, data, actorUid(event), now, new Set(), undefined, repeat, only);
+    const members = await loadMembers(db);
+    await notifyChange(db, send, 'added', first, data, actorUid(event), now, new Set(), members, repeat, await told(first, data, members));
   } else if (before && result.updated.length > 0) {
     const first = [...result.updated].sort()[0];
     const data = (await db.collection('events').doc(first).get()).data() as EventData;
     const members = await loadMembers(db);
     const answered = await comingMembers(db, first, members);
-    await notifyChange(db, send, 'edited', first, data, actorUid(event), now, answered, members, ` Et les suivantes.`, only);
+    await notifyChange(db, send, 'edited', first, data, actorUid(event), now, answered, members, ` Et les suivantes.`, await told(first, data, members));
   }
 });
 

@@ -71,6 +71,18 @@ describe('reading', () => {
   });
 });
 
+describe('« @Prénom » in the note (Kévin, 19/11)', () => {
+  test('an event names up to 20 members, each once, and its author changes them', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(doc(db, 'events/m1'), event(ADULT, { note: '@Noé le pain', mentionIds: [OTHER_ADULT.memberId] })));
+    await assertFails(setDoc(doc(db, 'events/m2'), event(ADULT, { mentionIds: ['a', 'a'] })));
+    await assertFails(setDoc(doc(db, 'events/m3'), event(ADULT, { mentionIds: Array.from({ length: 21 }, (_, i) => `m${i}`) })));
+    await stored('m4', ADULT);
+    await assertSucceeds(updateDoc(doc(db, 'events/m4'), { note: '@Noé', mentionIds: [OTHER_ADULT.memberId], updatedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(db, 'events/m4'), { note: null, mentionIds: deleteField(), updatedAt: serverTimestamp() }));
+  });
+});
+
 describe('creating', () => {
   test('an adult creates for themselves, their household, the family and their child', async () => {
     const db = as(env, ADULT);

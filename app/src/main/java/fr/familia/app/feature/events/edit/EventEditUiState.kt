@@ -2,6 +2,7 @@ package fr.familia.app.feature.events.edit
 
 import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.model.Household
+import fr.familia.app.core.ui.PickGroup
 import fr.familia.app.core.ui.Confirmation
 
 /** A choice of the "Pour qui" list, with the household or child name when there is one. */
@@ -30,6 +31,8 @@ sealed interface EventEditUiState {
         val isOccurrence: Boolean = false,
         /** The households of « Chez un foyer » (récit 74), by name. */
         val households: List<Household> = emptyList(),
+        /** Whom « @ » suggests in the note (Kévin, 19/11): everyone else, by household. */
+        val mentionGroups: List<PickGroup> = emptyList(),
     ) : EventEditUiState
 
     /** Saved or deleted (or queued until the network is back): the screen closes. */

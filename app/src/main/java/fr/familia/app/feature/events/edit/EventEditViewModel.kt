@@ -18,6 +18,7 @@ import fr.familia.app.core.photo.SinglePhoto
 import fr.familia.app.core.photo.SinglePhotoSaver
 import fr.familia.app.feature.events.allowedTargets
 import fr.familia.app.feature.events.canManage
+import fr.familia.app.core.ui.pickGroups
 import fr.familia.app.feature.events.targetName
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -135,6 +136,7 @@ class EventEditViewModel(
             showRepeat = recurring && series != null && (existing == null || occurrenceOf != null),
             isOccurrence = occurrenceOf != null,
             households = family.households.sortedBy { it.name.lowercase() },
+            mentionGroups = pickGroups(family.members.filter { it.id != current.id }, family, current.householdId),
         )
     }
 
@@ -308,6 +310,7 @@ class EventEditViewModel(
         const val KEY_TIME = "eventDraft.time"
         const val KEY_PLACE = "eventDraft.place"
         const val KEY_NOTE = "eventDraft.note"
+        const val KEY_MENTIONS = "eventDraft.mentions"
         const val KEY_TARGET = "eventDraft.target"
         const val KEY_REPEAT = "eventDraft.repeat"
         const val KEY_PLACE_KIND = "eventDraft.placeKind"
@@ -319,6 +322,7 @@ class EventEditViewModel(
             handle[KEY_TIME] = form.time?.toString()
             handle[KEY_PLACE] = form.place
             handle[KEY_NOTE] = form.note
+            handle[KEY_MENTIONS] = ArrayList(form.mentionIds)
             handle[KEY_TARGET] = form.target?.let(::encodeTarget)
             handle[KEY_REPEAT] = form.repeat.name
             handle[KEY_PLACE_KIND] = form.placeKind.name
@@ -333,6 +337,7 @@ class EventEditViewModel(
                 time = handle.get<String>(KEY_TIME)?.let { runCatching { LocalTime.parse(it) }.getOrNull() },
                 place = handle.get<String>(KEY_PLACE).orEmpty(),
                 note = handle.get<String>(KEY_NOTE).orEmpty(),
+                mentionIds = handle.get<ArrayList<String>>(KEY_MENTIONS).orEmpty(),
                 target = handle.get<String>(KEY_TARGET)?.let(::decodeTarget),
                 repeat = handle.get<String>(KEY_REPEAT)?.let { name -> RepeatChoice.entries.firstOrNull { it.name == name } }
                     ?: RepeatChoice.None,

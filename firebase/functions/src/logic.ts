@@ -29,6 +29,8 @@ export interface EventData {
   /** Récit 74: 'household' or 'address'; left out or null for « Autre » (place is still the text). */
   placeKind?: string | null;
   placeHouseholdId?: string | null;
+  /** The members named « @Prénom » in the note (Kévin, 19/11). */
+  mentionIds?: string[];
 }
 
 export type RsvpStatus = 'yes' | 'maybe' | 'no';

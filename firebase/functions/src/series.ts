@@ -36,6 +36,8 @@ export interface SeriesData {
   householdId: string | null;
   placeKind?: string | null;
   placeHouseholdId?: string | null;
+  /** The members named « @Prénom » in the note (Kévin, 19/11), copied to each day. */
+  mentionIds?: string[];
   authorId: string;
   authorName: string;
   rule: SeriesRule;
@@ -109,6 +111,7 @@ export function occurrenceContent(series: SeriesData, day: string): EventData {
     title: series.title, date: day, time: series.time, place: series.place, note: series.note,
     targetType: series.targetType, targetMemberId: series.targetMemberId, householdId: series.householdId,
     placeKind: series.placeKind ?? null, placeHouseholdId: series.placeHouseholdId ?? null,
+    mentionIds: series.mentionIds ?? [],
   };
 }
 
@@ -117,7 +120,8 @@ const CONTENT: (keyof SeriesData & keyof EventData)[] = ['title', 'time', 'place
 
 /** True when an occurrence no longer says what its series says. */
 export function differs(series: SeriesData, event: Record<string, unknown>): boolean {
-  return CONTENT.some((k) => (series[k] ?? null) !== (event[k] ?? null));
+  const named = (ids: unknown) => JSON.stringify(Array.isArray(ids) ? [...ids].sort() : []);
+  return CONTENT.some((k) => (series[k] ?? null) !== (event[k] ?? null)) || named(series.mentionIds) !== named(event.mentionIds);
 }
 
 export interface SyncResult {

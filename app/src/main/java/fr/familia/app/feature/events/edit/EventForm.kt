@@ -21,6 +21,8 @@ data class EventForm(
     val time: LocalTime? = null,
     val place: String = "",
     val note: String = "",
+    /** The members named « @Prénom » in [note] (Kévin, 19/11). */
+    val mentionIds: List<String> = emptyList(),
     val target: EventTarget? = null,
     /** The cover (récit 44): sent by the ViewModel before the event, not kept in the draft. */
     val photo: PhotoEdit = PhotoEdit.Unchanged,
@@ -72,6 +74,7 @@ data class EventForm(
             applyFrom = base?.applyFrom,
             placeKind = savedPlace.second,
             placeHouseholdId = savedPlace.third,
+            mentionIds = savedMentions,
         )
 
     fun toEvent(id: String, authorId: String, authorName: String, coverPhoto: String? = null): Event = Event(
@@ -87,7 +90,12 @@ data class EventForm(
         coverPhoto = coverPhoto,
         placeKind = savedPlace.second,
         placeHouseholdId = savedPlace.third,
+        mentionIds = savedMentions,
     )
+
+    /** No note, nobody named. */
+    private val savedMentions: List<String>
+        get() = if (note.isBlank()) emptyList() else mentionIds.distinct()
 
     companion object {
         fun from(event: Event) = EventForm(
@@ -96,6 +104,7 @@ data class EventForm(
             time = event.time,
             place = event.place.orEmpty(),
             note = event.note.orEmpty(),
+            mentionIds = event.mentionIds,
             target = event.target,
             placeKind = event.placeKind,
             placeHouseholdId = event.placeHouseholdId,

@@ -1269,6 +1269,17 @@ Deux téléphones, A et B, de deux membres différents. Publier Firebase a été
 10. Modifie un de tes commentaires d'événement et retire le nom. **Attendu :** le texte change, sans gras.
 11. **Administration**, « Voir comme… » un membre. **Attendu :** les noms sont en gras, mais les toucher n'ouvre rien, et il n'y a aucun champ pour écrire.
 
+## Nommer quelqu'un dans la description d'un événement ou d'un coup de main (Kévin, 19/11)
+
+Deux téléphones, A et B, de deux membres différents. Publier Firebase a été lancé avant l'APK.
+
+1. Sur A, **Planning** > **+ Ajouter** > un événement, puis « Ajouter une note ». Écris « @ ». **Attendu :** la liste des membres par foyer, sans toi. Choisis B : « @B » s'écrit en gras. Un retour arrière juste après l'efface d'un bloc.
+2. Enregistre. **Attendu :** B reçoit « A t'a nommé dans « Titre » », avec le début de la note, et pas en plus la notification habituelle du nouvel événement. Toucher la notification ouvre l'événement. Sur l'écran de l'événement, « @B » est en gras et ouvre la fiche de B.
+3. Modifie l'heure de l'événement sans toucher la note. **Attendu :** B reçoit la notification habituelle du changement, pas un second « t'a nommé ».
+4. Même essai sur un événement qui se répète. **Attendu :** une seule notification « t'a nommé » pour la série, et chaque jour de la série montre le nom en gras.
+5. **Entraide** > demander un coup de main, préviens B et une autre personne. Dans la note, écris « @ ». **Attendu :** seules les personnes prévenues sont proposées. Choisis B et envoie. **Attendu :** B reçoit « A t'a nommé dans « Titre » » à la place de la demande habituelle. L'autre personne reçoit la demande habituelle.
+6. En « Voir comme », ouvre l'événement et le coup de main. **Attendu :** les noms sont en gras, mais les toucher n'ouvre rien.
+
 ## Fil d'actualité de l'Accueil (récit 67)
 
 Module « Fil d'actualité » allumé dans Administration > Modules (éteint, l'Accueil ne change pas, même pour l'admin principal).

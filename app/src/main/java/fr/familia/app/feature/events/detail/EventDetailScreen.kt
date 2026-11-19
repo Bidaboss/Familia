@@ -51,6 +51,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.mention.MentionText
 import fr.familia.app.core.share.ShareButton
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
@@ -188,7 +189,7 @@ private fun Content(
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        event.note?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
+        event.note?.let { MentionText(it, event.mentionIds, style = MaterialTheme.typography.bodyLarge) }
 
         HorizontalDivider(Modifier.padding(vertical = 8.dp))
 
