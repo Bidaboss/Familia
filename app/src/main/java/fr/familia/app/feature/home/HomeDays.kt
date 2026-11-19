@@ -36,6 +36,7 @@ data class HomeDay(val date: LocalDate, val items: List<DayItem>) {
 
 /**
  * The 7 days of the frise from [today]: my events, the help I can give or took, and the birthdays.
+ * A coup de main cancelled after I took it leaves the frise (retour de Kévin, 19/11).
  * The birthdays come first in their day (no hour), then by hour, the ones without an hour last.
  */
 internal fun homeDays(
@@ -51,7 +52,7 @@ internal fun homeDays(
     }
     val dated = events.filter { it.date == date }.map {
         DayItem(it.time, it.title, null, shortWord(it.title), if (isFestive(it.title)) DayTone.Party else DayTone.Organise, DayOpen.Event(it.id))
-    } + help.filter { it.date == date && (it.status == HelpStatus.Open || it.volunteerId == me.id) }.map {
+    } + help.filter { it.date == date && (it.status == HelpStatus.Open || (it.status == HelpStatus.Taken && it.volunteerId == me.id)) }.map {
         DayItem(it.startTime, it.title, it.authorName, shortWord(it.title), DayTone.Help, DayOpen.Help(it.id))
     }
     HomeDay(date, party + dated.sortedWith(compareBy(nullsLast()) { it.time }))

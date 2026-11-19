@@ -47,6 +47,13 @@ class HomeDaysTest {
     }
 
     @Test
+    fun `a help request cancelled leaves the day, even when I had taken it`() {
+        val cancelledOpen = helpRequest("h1", TestFamily.otherAdult, listOf(me.id), date = today, status = HelpStatus.Cancelled)
+        val cancelledMine = helpRequest("h2", TestFamily.otherAdult, listOf(me.id), date = today, status = HelpStatus.Cancelled).copy(volunteerId = me.id)
+        assertTrue(homeDays(me, today, emptyList(), listOf(cancelledOpen, cancelledMine), emptyList()).first().items.isEmpty())
+    }
+
+    @Test
     fun `one short word, without the small words`() {
         assertEquals("Repas", shortWord("Repas d'anniversaire de Sam"))
         assertEquals("Judo", shortWord("Le judo"))
