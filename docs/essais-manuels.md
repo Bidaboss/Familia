@@ -1395,3 +1395,15 @@ Un téléphone avec l'appli d'avant, puis « APK de publication » lancé pour u
 2. Avec un événement déjà créé avant cette version à une date de naissance (par exemple « Anniversaire de … » le 7 décembre 1990). **Attendu :** la carte du fil montre le prochain anniversaire (« Lundi 7 décembre », sans l'année de naissance), et pas « J'y vais ».
 3. Un événement de la semaine dernière garde sa propre date.
 4. Planning, « + Ajouter », Événement : titre « Anniversaire de Nina », date le 7 décembre 1990, Enregistrer. **Attendu :** sous la date, « Cette date est passée depuis plus d'un an. Pour un anniversaire, ajoute plutôt la date de naissance sur la fiche de la personne… », et rien n'est enregistré. Un événement d'il y a une semaine s'enregistre comme avant, et modifier un ancien événement reste possible.
+
+## Formulaire d'événement en tuiles (récit 77, DESIGN-50)
+
+1. Planning, « + Ajouter », Événement. **Attendu :** fond du thème, rond Retour, « Nouvel événement » et le rond « ? ». Quatre tuiles : L'événement, Quand, Où, Pour qui, puis « Ajouter une note » et le bouton noir « Ajouter au planning » fixé en bas.
+2. Quand : touche « Demain ». **Attendu :** la pilule devient foncée. « Autre jour » ouvre le calendrier, et le jour choisi s'affiche en pilule.
+3. Touche la case « À » : l'horloge s'ouvre. Choisis 14 h 00 : la case affiche « 14 h 00 ». « Sans heure » l'efface.
+4. Se répète : « Chaque semaine ». **Attendu :** une ligne colorée « Chaque semaine, le … » avec « Changer », qui montre « Se termine ». « Autre… » ouvre tous les rythmes. Il n'y a pas de photo de couverture pour une nouvelle série.
+5. Où : « Chez un foyer » affiche les foyers en pilules. « Une adresse » montre le champ, et un lien Maps collé devient l'adresse. « Autre » donne un texte libre.
+6. Pour qui : tous les choix sont visibles en ronds (Toute la famille, le foyer, Moi, les enfants avec leur photo). Un toucher suffit.
+7. Laisse le titre vide et touche « Ajouter au planning ». **Attendu :** la page remonte au titre, avec l'erreur dessous.
+8. Ouvre un événement existant, puis Modifier. **Attendu :** « Modifier l'événement », le bouton « Enregistrer » en bas, et « Supprimer l'événement » tout en bas de la page, en rouge pâle. Pour une série, « Enregistrer » demande toujours « Cette fois seulement » ou « Celle-ci et les suivantes ».
+9. Avec le texte à 130 % puis au maximum : les pilules vont à la ligne, rien n'est coupé. TalkBack lit les titres de tuile comme des en-têtes, et les pilules et les ronds comme des boutons radio.
