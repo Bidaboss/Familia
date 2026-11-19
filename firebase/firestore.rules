@@ -1895,6 +1895,14 @@ service cloud.firestore {
         && get(itemDocPath(listId, itemId)).data.get('coBeneficiaryId', null) == myMemberId();
     }
 
+    // Whoever shares a wish of the list [l] reads the reservation of [itemId] only if it is a wish
+    // that exists and that they do not share: a removed wish may have been theirs.
+    function readsReservationOf(l, listId, itemId) {
+      return !sharesAWishOf(l)
+        || (exists(itemDocPath(listId, itemId))
+            && get(itemDocPath(listId, itemId)).data.get('coBeneficiaryId', null) != myMemberId());
+    }
+
     // The member [memberId] may share a wish of the list [l]: another member of the same household.
     function canShareWishWith(l, memberId) {
       return l.kind == 'wishes'
@@ -2082,6 +2090,9 @@ service cloud.firestore {
         && request.resource.data.get('contributedTotal', 0) == resource.data.get('contributedTotal', 0)
         && isValidAlreadyBought(request.resource.data)
         && isValidCoBeneficiary(request.resource.data)
+        // Once shared, a wish stays shared with the same member: otherwise they would read its reservation.
+        && (resource.data.get('coBeneficiaryId', null) == null
+            || request.resource.data.get('coBeneficiaryId', null) == resource.data.coBeneficiaryId)
         && (request.resource.data.get('alreadyBought', false) == true
             || resource.data.get('contributedTotal', 0) == 0);
 
@@ -2131,7 +2142,7 @@ service cloud.firestore {
 
       // Récit 73: whoever shares a wish of the list reads its reservations one by one, never theirs.
       allow get: if isMember() && canSeeList(list()) && !isKeptFromMe(list())
-        && (!sharesAWishOf(list()) || !sharesWish(listId, itemId));
+        && readsReservationOf(list(), listId, itemId);
       allow list: if isMember() && canSeeList(list()) && !isKeptFromMe(list()) && !sharesAWishOf(list());
 
       allow create: if isMember()
@@ -2188,7 +2199,7 @@ service cloud.firestore {
       }
 
       allow read: if isMember() && canSeeList(list()) && !isKeptFromMe(list())
-        && !sharesWish(listId, itemId)
+        && readsReservationOf(list(), listId, itemId)
         && (memberId == myMemberId() || claim().holderId == myMemberId());
 
       allow create: if isMember()

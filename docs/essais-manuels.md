@@ -666,7 +666,7 @@ Pas d'interrupteur : c'est actif dès le nouvel APK, après « Publier Firebase 
 4. Sur le téléphone de l'autre foyer, ouvre tes envies et réserve « Un barbecue » (« Je le prends »). **Attendu :** la réservation tient, comme pour une envie seule.
 5. Sur ton téléphone puis sur celui de ta compagne, rouvre tes envies. **Attendu :** ni l'un ni l'autre ne voit que « Un barbecue » est réservé, ni par qui. Ta compagne voit toujours les réservations de tes autres envies.
 6. Sur le téléphone de ta compagne, ouvre « Un barbecue » depuis tes envies et touche « Modifier ». **Attendu :** « Cadeau commun avec » suivi de ton prénom, sans choix à changer, et pas de bouton « Supprimer ». Change le prix et enregistre : ça tient.
-7. Sur ton téléphone, ouvre l'envie, choisis « Personne » et enregistre. **Attendu :** elle disparaît des « Cadeaux communs » de ta compagne.
+7. Sur ton téléphone, ouvre « Un barbecue » et touche « Modifier ». **Attendu :** « Cadeau commun avec » suivi de son prénom, sans choix à changer : une fois enregistré, le cadeau commun reste, sinon ta compagne verrait qui l'a réservé.
 
 La révélation du lendemain de l'occasion range l'envie offerte dans « On m'a offert » des deux, et chacun est prévenu : vérifiable seulement à la date, pas pendant l'essai.
 

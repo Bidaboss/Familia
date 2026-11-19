@@ -805,7 +805,7 @@
     <!-- « Cadeau commun avec… » (récit 73) -->
     <string name="gift_item_co_label">Cadeau commun avec… (facultatif)</string>
     <string name="gift_item_co_none">Personne</string>
-    <string name="gift_item_co_hint">L\'envie apparaît aussi dans ses envies. Comme pour toi, on ne lui dit pas qui l\'a réservée.</string>
+    <string name="gift_item_co_hint">L\'envie apparaît aussi dans ses envies. Comme pour toi, on ne lui dit pas qui l\'a réservée. Ce choix ne se change plus ensuite.</string>
     <string name="gift_item_co_with">Cadeau commun avec %1$s</string>
     <string name="gift_shared_wishes_title">Cadeaux communs</string>
     <string name="gift_shared_wish_open">Ouvrir dans les envies de %1$s</string>

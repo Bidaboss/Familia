@@ -154,6 +154,20 @@ class SharedWishTest {
     }
 
     @Test
+    fun `once shared, the author no longer changes who shares the wish`() = runTest {
+        val gifts = SharingGifts(wishes("adult1", co = listOf("admin1")))
+        gifts.items.value = listOf(shared)
+        val vm = GiftItemEditViewModel(gifts, FakeMembers(), "adult1", "wishes-adult1", "tent")
+        val state = editing(vm)
+        assertTrue(state.coChoices.isEmpty())
+        assertEquals("Admin1", state.sharedWith)
+        vm.update { it.copy(price = "99", coBeneficiaryId = null) }
+        vm.save()
+        vm.uiState.first { it is GiftItemEditUiState.Done }
+        assertEquals("admin1", gifts.saved.last().coBeneficiaryId)
+    }
+
+    @Test
     fun `whoever shares the wish edits it without changing who shares it, and cannot remove it`() = runTest {
         val gifts = SharingGifts(wishes("adult1", co = listOf("admin1")))
         gifts.items.value = listOf(shared)

@@ -210,9 +210,9 @@ private fun FormContent(
                 onChange { it.copy(coBeneficiaryId = value) }
             }
         }
-        state.sharedByOther?.let { owner ->
+        state.sharedWith?.let { other ->
             Text(
-                stringResource(R.string.gift_item_co_with, owner),
+                stringResource(R.string.gift_item_co_with, other),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

@@ -92,6 +92,16 @@ describe('sharing a wish', () => {
     await assertSucceeds(batch.commit());
   });
 
+  test('once shared, the author neither removes nor changes who shares it', async () => {
+    const db = as(env, ADULT);
+    await assertFails(updateDoc(doc(db, `${WISHES}/items/free`), { coBeneficiaryId: null, updatedAt: serverTimestamp() }));
+    const batch = writeBatch(db);
+    batch.update(doc(db, `${WISHES}/items/free`), { coBeneficiaryId: 'admin1', updatedAt: serverTimestamp() });
+    batch.update(doc(db, WISHES), { coBeneficiaryIds: arrayUnion('admin1'), updatedAt: serverTimestamp() });
+    await assertFails(batch.commit());
+    await assertSucceeds(updateDoc(doc(db, `${WISHES}/items/free`), { coBeneficiaryId: 'adult2', price: 80, updatedAt: serverTimestamp() }));
+  });
+
   test('the list never forgets who shares one of its wishes', async () => {
     await assertFails(updateDoc(doc(as(env, ADULT), WISHES), { coBeneficiaryIds: [], updatedAt: serverTimestamp() }));
   });
@@ -107,6 +117,14 @@ describe('whoever shares the wish never learns it is reserved', () => {
     await assertFails(getDoc(doc(db, `${WISHES}/claims/shared`)));
     await assertFails(getDoc(doc(db, `${WISHES}/claims/shared/shares/adult3`)));
     await assertFails(getDocs(collection(db, `${WISHES}/claims/shared/shares`)));
+  });
+
+  test('nor once the wish is removed: it may have been theirs', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => { await deleteDoc(doc(ctx.firestore(), SHARED)); });
+    const db = as(env, OTHER_ADULT);
+    await assertFails(getDoc(doc(db, `${WISHES}/claims/shared`)));
+    await assertFails(getDoc(doc(db, `${WISHES}/claims/shared/shares/adult3`)));
+    await assertSucceeds(getDoc(doc(as(env, NEIGHBOUR), `${WISHES}/claims/shared`)));
   });
 
   test('a reservation of a wish they do not share stays readable one by one', async () => {

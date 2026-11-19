@@ -90,7 +90,12 @@ sealed interface GiftItemEditUiState {
          * wish their keeper writes; empty hides the choice.
          */
         val coChoices: List<ShareTarget> = emptyList(),
-        /** Edited by whoever shares it (récit 73): « Cadeau commun avec » stays, and it is not removed here. */
+        /**
+         * The other person of a wish already shared (récit 73): « Cadeau commun avec » stays as it is,
+         * so that the member it was shared with never reads its reservation.
+         */
+        val sharedWith: String? = null,
+        /** Edited by whoever shares it (récit 73): it is not removed here. */
         val sharedByOther: String? = null,
     ) : GiftItemEditUiState
 
@@ -233,7 +238,8 @@ class GiftItemEditViewModel(
             targetId = savedTarget,
             showAlreadyBought = showsAlreadyBought(target),
             alreadyBoughtLocked = existing?.let { it.alreadyBought && it.contributedTotal > 0 } == true,
-            coChoices = if (sharedEditor) emptyList() else coChoices(loadedFamily, target),
+            coChoices = if (existing?.coBeneficiaryId != null) emptyList() else coChoices(loadedFamily, target),
+            sharedWith = if (sharedEditor) beneficiary.firstName else coEditorName(loadedFamily, existing),
             sharedByOther = if (sharedEditor) beneficiary.firstName else null,
         )
         if (shared != null && existing == null) readPreview(shared.url)
@@ -244,12 +250,16 @@ class GiftItemEditViewModel(
      * included, in the order of the Famille tab; only on a wish of « Mes envies » the person sees.
      */
     private fun coChoices(family: Family, target: GiftList): List<ShareTarget> {
-        if (target.kind != GiftListKind.Wishes || !visible) return emptyList()
+        if (target.kind != GiftListKind.Wishes || !visible || original?.coBeneficiaryId != null) return emptyList()
         val owner = family.members.firstOrNull { it.id == target.beneficiaryId } ?: return emptyList()
         return householdGroups(family).flatMap { it.members }
             .filter { it.householdId == owner.householdId && it.id != owner.id }
             .map { ShareTarget(it.id, it.firstName) }
     }
+
+    /** Who an existing wish is already shared with, as its keeper sees it. */
+    private fun coEditorName(family: Family, existing: GiftItem?): String? =
+        existing?.coBeneficiaryId?.let { co -> family.members.firstOrNull { it.id == co }?.firstName }
 
     /** « Déjà acheté » only on a wish the person sees: the one their keeper writes (récit 68). */
     private fun showsAlreadyBought(target: GiftList): Boolean = alreadyBought && target.kind == GiftListKind.Wishes && visible
@@ -417,7 +427,7 @@ class GiftItemEditViewModel(
             occasion = form.occasion?.takeIf { state.showOccasion } ?: original?.occasion?.takeIf { !state.showOccasion },
             // Switch off, the wish keeps what it had; while someone takes part, it stays checked.
             alreadyBought = if (state.showAlreadyBought) form.alreadyBought || state.alreadyBoughtLocked else original?.alreadyBought == true,
-            // Récit 73: chosen by the keeper of the wish; whoever shares it never changes it.
+            // Récit 73: chosen once by the keeper of the wish, then nobody changes it.
             coBeneficiaryId = form.coBeneficiaryId?.takeIf { co -> state.coChoices.any { it.memberId == co } }
                 ?: original?.coBeneficiaryId?.takeIf { state.coChoices.isEmpty() },
         )
