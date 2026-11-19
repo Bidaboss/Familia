@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
@@ -28,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.FilterChip
@@ -98,6 +101,7 @@ fun GiftsScreen(
             )
             is GiftsUiState.Success -> LazyColumn(
                 modifier = Modifier.fillMaxSize(),
+                state = rememberTopListState(preparingLines(state).map { it.key }),
                 // Room at the bottom so the add button never hides the last list.
                 // Two buttons stacked when « Bouton surprise » meets the lists by occasion.
                 contentPadding = PaddingValues(
@@ -309,6 +313,21 @@ internal sealed interface PreparingLine {
     data class OfIdeas(val member: Member, val birthday: LocalDate?) : PreparingLine {
         override val key: String get() = "ideas-${member.id}"
     }
+}
+
+/**
+ * The list of the tab, kept at the very top when the surprises arrive after the rest (retour d'essai,
+ * 19/11): a lazy list keeps its first item in place, so a card added above it stayed out of sight.
+ */
+@Composable
+private fun rememberTopListState(topKeys: List<String>): LazyListState {
+    val listState = rememberLazyListState()
+    LaunchedEffect(topKeys) {
+        if (listState.firstVisibleItemIndex <= topKeys.size && listState.firstVisibleItemScrollOffset == 0) {
+            listState.scrollToItem(0)
+        }
+    }
+    return listState
 }
 
 /** The surprises in progress, nearest first: never this member's own. */
