@@ -1,76 +1,84 @@
 package fr.familia.app.feature.events.edit
 
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Notes
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.EventBusy
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.data.familyToday
-import fr.familia.app.feature.help.HelpButton
-import fr.familia.app.feature.help.ScreenHelp
-import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.PlaceKind
-import fr.familia.app.core.place.addressFromPasted
 import fr.familia.app.core.model.RepeatChoice
 import fr.familia.app.core.photo.PhotoField
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.theme.LocalClayColors
+import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
-import fr.familia.app.core.ui.formatTime
+import fr.familia.app.core.ui.form.DayChips
+import fr.familia.app.core.ui.form.FormHint
+import fr.familia.app.core.ui.form.FormLabel
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.FormTopBar
+import fr.familia.app.core.ui.form.PeopleRow
+import fr.familia.app.core.ui.form.PersonChoice
+import fr.familia.app.core.ui.form.PlaceChooser
+import fr.familia.app.core.ui.form.StickyActionBar
+import fr.familia.app.core.ui.form.TimeBox
+import fr.familia.app.feature.help.HelpButton
+import fr.familia.app.feature.help.ScreenHelp
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -114,23 +122,34 @@ fun EventEditScreen(
             },
         )
     }
+    val editing = state as? EventEditUiState.Editing
     Scaffold(
+        containerColor = Color.Transparent,
+        modifier = Modifier.themeBackground(),
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(
-                            if ((state as? EventEditUiState.Editing)?.isNew == false) R.string.event_edit_title else R.string.event_add_title,
-                        ),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
-                navigationIcon = {
-                    BackButton(onClick = back)
-                },
+            FormTopBar(
+                title = stringResource(if (editing?.isNew == false) R.string.event_edit_title else R.string.event_add_title),
+                onBack = back,
                 actions = { HelpButton(ScreenHelp.EventEdit) },
             )
+        },
+        bottomBar = {
+            if (editing != null) {
+                var askScope by rememberSaveable { mutableStateOf(false) }
+                StickyActionBar(
+                    text = stringResource(if (editing.isNew) R.string.event_add_action else R.string.member_save),
+                    onClick = { if (editing.isOccurrence) askScope = true else onSave(SeriesScope.ThisOnly) },
+                    busy = editing.isSaving,
+                )
+                if (askScope) {
+                    SeriesScopeDialog(
+                        title = R.string.event_scope_save_title,
+                        body = R.string.event_scope_save_body,
+                        onPick = { scope -> askScope = false; onSave(scope) },
+                        onDismiss = { askScope = false },
+                    )
+                }
+            }
         },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
@@ -142,250 +161,144 @@ fun EventEditScreen(
                     title = stringResource(R.string.event_unavailable_title),
                     body = stringResource(R.string.event_unavailable_body),
                 )
-                is EventEditUiState.Editing -> EventFormContent(state, onChange, onSave, onDelete)
+                is EventEditUiState.Editing -> EventFormContent(state, onChange, onDelete)
             }
         }
     }
+}
+
+/** The tiles of DESIGN-50, in the order of the questions: what, when, where, for whom. */
+private enum class FormPart { Event, When, Where, Who, Note }
+
+private fun EventFormError.part(): FormPart = when (this) {
+    EventFormError.TitleMissing, EventFormError.TitleTooLong -> FormPart.Event
+    EventFormError.DateMissing, EventFormError.DateTooOld, EventFormError.RepeatEndInvalid -> FormPart.When
+    EventFormError.PlaceTooLong -> FormPart.Where
+    EventFormError.TargetMissing -> FormPart.Who
+    EventFormError.NoteTooLong -> FormPart.Note
 }
 
 @Composable
 private fun EventFormContent(
     state: EventEditUiState.Editing,
     onChange: ((EventForm) -> EventForm) -> Unit,
-    onSave: (SeriesScope) -> Unit,
     onDelete: (SeriesScope) -> Unit,
 ) {
-    var askScope by rememberSaveable { mutableStateOf(false) }
     val form = state.form
     val errors = state.errors
+    val scroll = rememberScrollState()
+    val tops = remember { mutableStateMapOf<FormPart, Int>() }
+    // After a refused « Enregistrer », the page goes up to the first question to fix.
+    LaunchedEffect(errors) {
+        val first = errors.map { it.part() }.minOrNull() ?: return@LaunchedEffect
+        tops[first]?.let { scroll.animateScrollTo(it) }
+    }
+    fun Modifier.part(part: FormPart) = onGloballyPositioned { tops[part] = it.positionInParent().y.toInt() }
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .imePadding()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .verticalScroll(scroll)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        OutlinedTextField(
-            value = form.title,
-            onValueChange = { value -> onChange { it.copy(title = value) } },
-            label = { Text(stringResource(R.string.event_title)) },
-            isError = EventFormError.TitleMissing in errors || EventFormError.TitleTooLong in errors,
-            supportingText = errorText(errors, EventFormError.TitleMissing, EventFormError.TitleTooLong),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-        DateTimeSection(form, errors, onChange)
-        if (state.showRepeat) RepeatSection(form, state.isOccurrence, EventFormError.RepeatEndInvalid in errors, onChange)
-
-        PlaceSection(form, state.households, errors, onChange)
-        NoteField(form, errors, onChange)
-
-        // A series has no cover of its own: each time can get one afterwards.
-        if (state.showPhoto && !(state.isNew && form.repeat != RepeatChoice.None)) {
-            PhotoField(
-                stored = state.storedCover,
-                edit = form.photo,
-                onEdit = { photo -> onChange { it.copy(photo = photo) } },
-                enabled = !state.isSaving,
-            )
-        }
-
-        TargetLine(state, onChange)
-
-        if (state.saveFailed) {
-            Text(
-                stringResource(R.string.event_save_failed),
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-        Button(
-            onClick = { if (state.isOccurrence) askScope = true else onSave(SeriesScope.ThisOnly) },
-            enabled = !state.isSaving,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-        ) {
-            if (state.isSaving) {
-                CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-            } else {
-                Text(stringResource(R.string.member_save))
-            }
-        }
-        if (!state.isNew) DeleteButton(form.title, state.isOccurrence, enabled = !state.isSaving, onDelete)
-    }
-    if (askScope) {
-        SeriesScopeDialog(
-            title = R.string.event_scope_save_title,
-            body = R.string.event_scope_save_body,
-            onPick = { scope -> askScope = false; onSave(scope) },
-            onDismiss = { askScope = false },
-        )
-    }
-}
-
-/**
- * « Où » (récit 74): chez un foyer of the family, an address (typed, or a Maps link pasted, read
- * without any API key), or a free text as before. The choice is a radio group of 56 dp rows.
- */
-@Composable
-private fun PlaceSection(
-    form: EventForm,
-    households: List<Household>,
-    errors: Set<EventFormError>,
-    onChange: ((EventForm) -> EventForm) -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            stringResource(R.string.event_where),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.semantics { heading() },
-        )
-        Column(Modifier.selectableGroup()) {
-            val kinds = buildList {
-                if (households.isNotEmpty()) add(PlaceKind.Household to R.string.event_place_household)
-                add(PlaceKind.Address to R.string.event_place_address)
-                add(PlaceKind.Other to R.string.event_place_other)
-            }
-            kinds.forEach { (kind, label) ->
-                RadioRow(
-                    text = stringResource(label),
-                    selected = form.placeKind == kind,
-                    onClick = { onChange { it.withPlaceKind(kind) } },
-                )
-            }
-        }
-        val tooLong = EventFormError.PlaceTooLong in errors
-        val addressHelp: @Composable () -> Unit = { Text(stringResource(R.string.event_place_address_help)) }
-        when (form.placeKind) {
-            PlaceKind.Household -> {
-                Column(Modifier.selectableGroup().padding(start = 24.dp)) {
-                    households.forEach { household ->
-                        RadioRow(
-                            text = household.name,
-                            selected = form.placeHouseholdId == household.id,
-                            onClick = { onChange { it.atHousehold(household) } },
-                        )
-                    }
-                }
-                val chosen = households.firstOrNull { it.id == form.placeHouseholdId }
-                if (chosen != null && chosen.address.isNullOrBlank()) {
-                    Text(
-                        stringResource(R.string.event_place_no_address),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            PlaceKind.Address -> OutlinedTextField(
-                value = form.place,
-                // A pasted Maps link becomes the place it names (core/place, récit 33).
-                onValueChange = { value -> onChange { it.copy(place = addressFromPasted(value)) } },
-                label = { Text(stringResource(R.string.event_place_address_label)) },
-                isError = tooLong,
-                supportingText = errorText(errors, EventFormError.PlaceTooLong) ?: addressHelp,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-                modifier = Modifier.fillMaxWidth(),
-            )
-            PlaceKind.Other -> OutlinedTextField(
-                value = form.place,
-                onValueChange = { value -> onChange { it.copy(place = value) } },
-                label = { Text(stringResource(R.string.event_place_other_label)) },
-                isError = tooLong,
-                supportingText = errorText(errors, EventFormError.PlaceTooLong),
+        FormTile(Icons.Outlined.StarOutline, stringResource(R.string.event_tile_event), Modifier.part(FormPart.Event)) {
+            FormLabel(stringResource(R.string.event_title_label))
+            OutlinedTextField(
+                value = form.title,
+                onValueChange = { value -> onChange { it.copy(title = value) } },
+                isError = EventFormError.TitleMissing in errors || EventFormError.TitleTooLong in errors,
                 singleLine = true,
+                shape = RoundedCornerShape(16.dp),
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 modifier = Modifier.fillMaxWidth(),
             )
+            val titleError = errorMessage(errors, EventFormError.TitleMissing, EventFormError.TitleTooLong)
+            FormHint(titleError ?: stringResource(R.string.event_title_help), isError = titleError != null)
+            // A series has no cover of its own: each time can get one afterwards.
+            if (state.showPhoto && !(state.isNew && form.repeat != RepeatChoice.None)) {
+                PhotoField(
+                    stored = state.storedCover,
+                    edit = form.photo,
+                    onEdit = { photo -> onChange { it.copy(photo = photo) } },
+                    enabled = !state.isSaving,
+                )
+            }
         }
+
+        FormTile(Icons.Outlined.CalendarMonth, stringResource(R.string.event_when), Modifier.part(FormPart.When)) {
+            DayChips(date = form.date, today = familyToday(), onPick = { day -> onChange { it.copy(date = day) } })
+            errorMessage(errors, EventFormError.DateMissing, EventFormError.DateTooOld)?.let { FormHint(it, isError = true) }
+            TimeBox(time = form.time, onPick = { time -> onChange { it.copy(time = time) } })
+            if (state.showRepeat) RepeatSection(form, state.isOccurrence, EventFormError.RepeatEndInvalid in errors, onChange)
+        }
+
+        FormTile(Icons.Outlined.Place, stringResource(R.string.event_where_tile), Modifier.part(FormPart.Where)) {
+            PlaceChooser(
+                kind = form.placeKind,
+                onKind = { kind -> onChange { it.withPlaceKind(kind) } },
+                households = state.households,
+                householdId = form.placeHouseholdId,
+                onHousehold = { household -> onChange { it.atHousehold(household) } },
+                text = form.place,
+                onText = { text -> onChange { it.copy(place = text) } },
+                error = errorMessage(errors, EventFormError.PlaceTooLong),
+            )
+        }
+
+        FormTile(Icons.Outlined.Groups, stringResource(R.string.event_for_whom), Modifier.part(FormPart.Who)) {
+            PeopleRow(
+                choices = state.targets.map { personChoice(it, it.target == form.target) },
+                multiple = false,
+                onToggle = { key -> state.targets.firstOrNull { it.target.key() == key }?.let { choice -> onChange { it.copy(target = choice.target) } } },
+            )
+            val targetError = errorMessage(errors, EventFormError.TargetMissing)
+            FormHint(targetError ?: stringResource(R.string.event_for_whom_help), isError = targetError != null)
+        }
+
+        Box(Modifier.part(FormPart.Note)) { NoteField(form, errors, onChange) }
+
+        if (state.saveFailed) FormHint(stringResource(R.string.event_save_failed), isError = true)
+        if (!state.isNew) DeleteButton(form.title, state.isOccurrence, enabled = !state.isSaving, onDelete)
+        Spacer(Modifier.height(8.dp))
     }
 }
 
-@Composable
-private fun RadioRow(text: String, selected: Boolean, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = selected, onClick = null)
-        Spacer(Modifier.width(16.dp))
-        Text(text, style = MaterialTheme.typography.bodyLarge)
-    }
+/** A stable key of a target, for the rounds of « Pour qui ». */
+private fun EventTarget.key(): String = when (this) {
+    EventTarget.ForFamily -> "family"
+    is EventTarget.ForHousehold -> "household:$householdId"
+    is EventTarget.ForSelf -> "self:$memberId"
+    is EventTarget.ForChild -> "child:$memberId"
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DateTimeSection(form: EventForm, errors: Set<EventFormError>, onChange: ((EventForm) -> EventForm) -> Unit) {
-    var datePicker by rememberSaveable { mutableStateOf(false) }
-    var timePicker by rememberSaveable { mutableStateOf(false) }
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            stringResource(R.string.event_when),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.semantics { heading() },
-        )
-        OutlinedButton(onClick = { datePicker = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            Text(form.date?.format(dateFormatter) ?: stringResource(R.string.event_pick_date))
-        }
-        errorText(errors, EventFormError.DateMissing, EventFormError.DateTooOld)?.invoke()
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { timePicker = true }, modifier = Modifier.heightIn(min = 56.dp)) {
-                Text(form.time?.let(::formatTime) ?: stringResource(R.string.event_pick_time))
-            }
-            if (form.time != null) {
-                TextButton(onClick = { onChange { it.copy(time = null) } }, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.event_no_time))
-                }
-            }
-        }
-    }
-    if (datePicker) {
-        val pickerState = rememberDatePickerState(initialSelectedDateMillis = (form.date ?: familyToday()).toUtcMillis())
-        DatePickerDialog(
-            onDismissRequest = { datePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    pickerState.selectedDateMillis?.let { millis -> onChange { it.copy(date = millis.toUtcDate()) } }
-                    datePicker = false
-                }) { Text(stringResource(R.string.action_ok)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { datePicker = false }) { Text(stringResource(R.string.action_cancel)) }
-            },
-        ) { DatePicker(state = pickerState) }
-    }
-    if (timePicker) {
-        val initial = form.time ?: LocalTime.of(12, 0)
-        val pickerState = rememberTimePickerState(initialHour = initial.hour, initialMinute = initial.minute, is24Hour = true)
-        AlertDialog(
-            onDismissRequest = { timePicker = false },
-            text = { TimePicker(state = pickerState) },
-            confirmButton = {
-                TextButton(onClick = {
-                    onChange { it.copy(time = LocalTime.of(pickerState.hour, pickerState.minute)) }
-                    timePicker = false
-                }) { Text(stringResource(R.string.action_ok)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { timePicker = false }) { Text(stringResource(R.string.action_cancel)) }
-            },
-        )
+private fun personChoice(choice: TargetChoice, selected: Boolean): PersonChoice {
+    val clay = LocalClayColors.current
+    val label = targetLabel(choice)
+    return when (val target = choice.target) {
+        EventTarget.ForFamily -> PersonChoice(target.key(), label, selected, icon = Icons.Outlined.Groups, tint = clay.family)
+        is EventTarget.ForHousehold -> PersonChoice(target.key(), label, selected, icon = Icons.Outlined.Home, tint = clay.household)
+        is EventTarget.ForSelf -> PersonChoice(target.key(), label, selected, memberId = target.memberId)
+        is EventTarget.ForChild -> PersonChoice(target.key(), label, selected, memberId = target.memberId)
     }
 }
 
 @Composable
 private fun DeleteButton(title: String, isOccurrence: Boolean, enabled: Boolean, onDelete: (SeriesScope) -> Unit) {
     var confirm by rememberSaveable { mutableStateOf(false) }
+    val error = MaterialTheme.colorScheme.error
     OutlinedButton(
         onClick = { confirm = true },
         enabled = enabled,
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-    ) { Text(stringResource(R.string.event_delete)) }
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.5.dp, error.copy(alpha = 0.35f)),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = error, containerColor = LocalClayColors.current.card),
+        modifier = Modifier.fillMaxWidth().padding(top = 16.dp).heightIn(min = 56.dp),
+    ) {
+        Icon(Icons.Outlined.Delete, contentDescription = null)
+        Spacer(Modifier.width(8.dp))
+        Text(stringResource(R.string.event_delete), fontWeight = FontWeight.Bold)
+    }
     if (confirm && isOccurrence) {
         SeriesScopeDialog(
             title = R.string.event_scope_delete_title,
@@ -419,82 +332,29 @@ private fun NoteField(
 ) {
     var open by rememberSaveable { mutableStateOf(false) }
     if (!open && form.note.isEmpty()) {
-        TextButton(onClick = { open = true }, modifier = Modifier.heightIn(min = 56.dp)) {
+        OutlinedButton(
+            onClick = { open = true },
+            shape = RoundedCornerShape(18.dp),
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = LocalClayColors.current.card, contentColor = MaterialTheme.colorScheme.onSurface),
+            modifier = Modifier.heightIn(min = 56.dp),
+        ) {
             Icon(Icons.Outlined.Add, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.event_note_add))
+            Text(stringResource(R.string.event_note_add), fontWeight = FontWeight.Bold)
         }
         return
     }
-    OutlinedTextField(
-        value = form.note,
-        onValueChange = { value -> onChange { it.copy(note = value) } },
-        label = { Text(stringResource(R.string.event_note)) },
-        isError = EventFormError.NoteTooLong in errors,
-        supportingText = errorText(errors, EventFormError.NoteTooLong),
-        minLines = 3,
-        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-        modifier = Modifier.fillMaxWidth(),
-    )
-}
-
-/**
- * « Pour qui » on one line, « Toute la famille » by default; touching it opens the list
- * (audit DESIGN du 15/11).
- */
-@Composable
-private fun TargetLine(state: EventEditUiState.Editing, onChange: ((EventForm) -> EventForm) -> Unit) {
-    var picking by rememberSaveable { mutableStateOf(false) }
-    val chosen = state.targets.firstOrNull { it.target == state.form.target }
-    val forWhom = stringResource(R.string.event_for_whom)
-    val value = chosen?.let { targetLabel(it) } ?: stringResource(R.string.event_for_whom_none)
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .clickable(enabled = state.targets.size > 1, role = Role.Button) { picking = true },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(Modifier.weight(1f)) {
-                Text(forWhom, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(value, style = MaterialTheme.typography.bodyLarge)
-            }
-            if (state.targets.size > 1) {
-                Text(stringResource(R.string.event_for_whom_change), color = MaterialTheme.colorScheme.primary)
-            }
-        }
-        errorText(state.errors, EventFormError.TargetMissing)?.invoke()
-    }
-    if (picking) {
-        AlertDialog(
-            onDismissRequest = { picking = false },
-            title = { Text(forWhom) },
-            text = {
-                Column(Modifier.selectableGroup().verticalScroll(rememberScrollState())) {
-                    state.targets.forEach { choice ->
-                        val selected = state.form.target == choice.target
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(min = 56.dp)
-                                .selectable(selected = selected, role = Role.RadioButton) {
-                                    onChange { it.copy(target = choice.target) }
-                                    picking = false
-                                },
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            RadioButton(selected = selected, onClick = null)
-                            Spacer(Modifier.width(16.dp))
-                            Text(targetLabel(choice), style = MaterialTheme.typography.bodyLarge)
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { picking = false }) { Text(stringResource(R.string.action_ok)) }
-            },
+    FormTile(Icons.AutoMirrored.Outlined.Notes, stringResource(R.string.event_note)) {
+        OutlinedTextField(
+            value = form.note,
+            onValueChange = { value -> onChange { it.copy(note = value) } },
+            isError = EventFormError.NoteTooLong in errors,
+            minLines = 3,
+            shape = RoundedCornerShape(16.dp),
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+            modifier = Modifier.fillMaxWidth(),
         )
+        errorMessage(errors, EventFormError.NoteTooLong)?.let { FormHint(it, isError = true) }
     }
 }
 
@@ -508,9 +368,9 @@ fun targetLabel(choice: TargetChoice): String = when (choice.target) {
 }
 
 @Composable
-private fun errorText(errors: Set<EventFormError>, vararg kinds: EventFormError): (@Composable () -> Unit)? {
+private fun errorMessage(errors: Set<EventFormError>, vararg kinds: EventFormError): String? {
     val error = kinds.firstOrNull { it in errors } ?: return null
-    val message = stringResource(
+    return stringResource(
         when (error) {
             EventFormError.TitleMissing -> R.string.error_event_title_missing
             EventFormError.TitleTooLong -> R.string.error_event_title_too_long
@@ -522,7 +382,6 @@ private fun errorText(errors: Set<EventFormError>, vararg kinds: EventFormError)
             EventFormError.DateTooOld -> R.string.error_event_date_too_old
         },
     )
-    return { Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
 }
 
 internal val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(Locale.FRANCE)
