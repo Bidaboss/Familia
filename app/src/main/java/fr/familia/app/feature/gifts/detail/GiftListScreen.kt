@@ -129,6 +129,8 @@ data class GiftListActions(
     /** « Je participe » on a wish already bought (récit 68), in whole euros. */
     val onContribute: (itemId: String, amount: Int) -> Unit = { _, _ -> },
     val onWithdrawContribution: (itemId: String) -> Unit = {},
+    /** « Cadeaux communs » (récit 73): opens the list where the shared wish lives. */
+    val onOpenList: (listId: String) -> Unit = {},
 )
 
 /** One gift list: its items, and the reservations for everyone but the beneficiary. Stateless. */
@@ -243,6 +245,19 @@ private fun Content(state: GiftListUiState.Success, actions: GiftListActions) {
                 onTake = { actions.onTake(row.item.id) },
             )
         }
+        // « Cadeaux communs » (récit 73): reserved, taken part in and edited in the list of their author.
+        if (state.sharedWishes.isNotEmpty()) {
+            item(key = "shared-title") {
+                Text(
+                    stringResource(R.string.gift_shared_wishes_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 8.dp).semantics { heading() },
+                )
+            }
+            items(state.sharedWishes, key = { "shared-${it.listId}-${it.item.id}" }) { shared ->
+                SharedWishCard(shared, onOpen = { actions.onOpenList(shared.listId) })
+            }
+        }
     }
     // The row is looked up again at each change, so that the sheet follows the live list
     // and closes by itself if the idea is removed meanwhile.
@@ -330,12 +345,35 @@ private fun ItemCard(row: ItemRow, state: GiftListUiState.Success, onOpen: () ->
             item.url?.let { url -> ItemLink(url, prominent = false) }
             claim?.let { ClaimStatus(it, item, tint) }
             row.contributions?.let { AlreadyBoughtStatus(it, item, tint) }
-            if (state.canReserve && claim == null && row.contributions == null) {
+            if (state.canReserve && claim == null && row.contributions == null && !row.sharedWithMe) {
                 // Tonal: the screen keeps a single filled action, « Ajouter ».
                 FilledTonalButton(onClick = onTake, modifier = Modifier.padding(top = 4.dp).heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.gift_take))
                 }
             }
+        }
+    }
+}
+
+/** A wish shared with the person (récit 73): « Cadeau commun avec X », opened in the list of X. */
+@Composable
+private fun SharedWishCard(shared: SharedWishRow, onOpen: () -> Unit) {
+    ClayCard(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onOpen,
+        onClickLabel = stringResource(R.string.gift_shared_wish_open, shared.ownerName),
+        contentPadding = ClaySpacing.card,
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                ClayCardTitle(shared.item.title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null)
+            }
+            val details = listOfNotNull(
+                shared.item.price?.let { stringResource(R.string.gift_item_price, formatEuros(it)) },
+                stringResource(R.string.gift_item_co_with, shared.ownerName),
+            ).joinToString(" · ")
+            Text(details, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -371,6 +409,8 @@ private fun ItemDetails(row: ItemRow, tint: ClayTint, forMe: Boolean = false) {
         // What a wish is for (récit 9 ter), when it says so.
         row.item.occasion?.let { wishOccasionLabel(it, forMe) },
         if (row.isSurpriseIdea) stringResource(R.string.gift_item_idea_of, row.item.authorName) else null,
+        // « Cadeau commun avec… » (récit 73).
+        row.sharedWithName?.let { stringResource(R.string.gift_item_co_with, it) },
     ).joinToString(" · ")
     if (details.isNotEmpty()) {
         Text(details, style = MaterialTheme.typography.bodyMedium, color = FamiliaClay.colors.onTintVariant(tint))
@@ -532,7 +572,7 @@ private fun Contributors(parts: List<GiftContribution>) {
 /** « Je participe », or change or take back my part: nothing to reserve on a wish already bought. */
 @Composable
 private fun ContributionButtons(row: ItemRow, state: GiftListUiState.Success, actions: GiftListActions) {
-    if (!state.canContribute) return
+    if (!state.canContribute || row.sharedWithMe) return
     val id = row.item.id
     val mine = row.contributions?.mine
     var amountDialog by rememberSaveable(id) { mutableStateOf(false) }
@@ -593,7 +633,7 @@ private fun ClaimOccasion(claim: ClaimView, onSelect: (GiftOccasion) -> Unit) {
 
 @Composable
 private fun ReservationButtons(row: ItemRow, state: GiftListUiState.Success, actions: GiftListActions) {
-    if (!state.canReserve) return
+    if (!state.canReserve || row.sharedWithMe) return
     val id = row.item.id
     val claim = row.claim
     var amountDialog by rememberSaveable(id) { mutableStateOf(false) }

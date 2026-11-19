@@ -7,8 +7,10 @@ import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.GiftShare
 import fr.familia.app.core.model.ReceivedGift
+import fr.familia.app.core.model.SharedWish
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 
 /**
  * Access to the gift lists (PRD, récits 7 to 10 bis). The security rules keep the surprise: each
@@ -26,6 +28,16 @@ interface GiftRepository {
 
     /** Reservations of the list. Never called for its beneficiary before the reveal. */
     fun observeClaims(listId: String): Flow<List<GiftClaim>>
+
+    /**
+     * The reservations of [itemIds] only, read one by one (récit 73): what whoever shares a wish of
+     * the list may read. A reservation they may not read counts as none.
+     */
+    fun observeClaimsOf(listId: String, itemIds: List<String>): Flow<List<GiftClaim>> =
+        observeClaims(listId).map { claims -> claims.filter { it.itemId in itemIds } }
+
+    /** The wishes of [listIds] shared with [memberId] (récit 73), for their own list. */
+    fun observeWishesSharedWith(memberId: String, listIds: List<String>): Flow<List<SharedWish>> = flowOf(emptyList())
 
     /** Parts of the joint gifts of the list, by item id. Same restriction as [observeClaims]. */
     /**

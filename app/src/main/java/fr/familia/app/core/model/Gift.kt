@@ -50,6 +50,11 @@ data class GiftList(
     val creatorName: String,
     /** Set by the server the day after the occasion: the list is archived and nothing is hidden any more. */
     val revealed: Boolean = false,
+    /**
+     * « Cadeau commun avec… » (récit 73): everyone who shares one of its wishes. They read its
+     * reservations one by one, never those of their shared wishes. Only grows.
+     */
+    val coBeneficiaryIds: List<String> = emptyList(),
 )
 
 /** The id of the « Mes envies » list of [memberId]: there is exactly one. */
@@ -86,7 +91,15 @@ data class GiftItem(
     val alreadyBought: Boolean = false,
     /** The total of those parts, in whole euros, kept with each part (see [GiftContribution]). */
     val contributedTotal: Int = 0,
+    /**
+     * « Cadeau commun avec… » (récit 73): a wish of « Mes envies » shared with this member of the
+     * household. It shows in their wishes too; like the beneficiary, they never see who reserved it.
+     */
+    val coBeneficiaryId: String? = null,
 )
+
+/** A wish of [listId] shared with a member (récit 73), as their own list shows it. */
+data class SharedWish(val listId: String, val item: GiftItem)
 
 /**
  * A part of [memberId] in a wish already bought (récit 68), in whole euros. Not a surprise: whoever
