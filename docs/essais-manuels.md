@@ -1408,6 +1408,16 @@ Un téléphone avec l'appli d'avant, puis « APK de publication » lancé pour u
 8. Ouvre un événement existant, puis Modifier. **Attendu :** « Modifier l'événement », le bouton « Enregistrer » en bas, et « Supprimer l'événement » tout en bas de la page, en rouge pâle. Pour une série, « Enregistrer » demande toujours « Cette fois seulement » ou « Celle-ci et les suivantes ».
 9. Avec le texte à 130 % puis au maximum : les pilules vont à la ligne, rien n'est coupé. TalkBack lit les titres de tuile comme des en-têtes, et les pilules et les ronds comme des boutons radio.
 
+## Barre du bas : Tout Familia au centre, Planning en page (récit 82, DESIGN-55)
+
+1. Ouvre Familia. **Attendu :** la barre affiche Accueil, Cadeaux, un rond noir au centre (légèrement au-dessus de la barre, avec un anneau clair et la pastille jaune s'il y a des nouveautés), Entraide et Famille. Il n'y a plus d'onglet Planning, ni la barre noire « Tout Familia » au-dessus des onglets.
+2. Touche le rond noir : « Tout Familia » s'ouvre, avec Planning en tête.
+3. Sur l'Accueil, touche « Tout le planning ». **Attendu :** le Planning s'ouvre comme une page, avec un rond Retour à gauche du titre, « + Ajouter » en bas et la carte Sondages. Dans la barre, Accueil reste allumé.
+4. Touche le rond Retour, puis refais l'étape 3 et utilise le retour d'Android : les deux ramènent à l'Accueil.
+5. Touche une notification d'événement ou d'un sondage : l'événement ou le Planning s'ouvre comme avant.
+6. TalkBack sur le rond : « Tout Familia, 3 nouveautés » (ou « Tout Familia » sans nouveauté).
+7. Avec le texte à 130 % puis au maximum : les libellés des 4 onglets tiennent sur une ligne. Sur une tablette, le rond est en bas de la barre latérale, sous les onglets.
+
 ## Formulaires Bon plan et Bonne adresse en tuiles (récit 78, DESIGN-51)
 
 1. Entraide, Bons plans, « Publier », « Un bon plan ». **Attendu :** un bandeau jaune pâle avec un bouclier, « Partagé avec toute la famille : pas de mot de passe ni de code de porte ici. ». Puis trois tuiles : « Le bon plan », « Jusqu'à quand » et « Où le trouver ». En bas, un bouton noir « Publier pour la famille » qui reste en place quand tu fais défiler.
