@@ -39,10 +39,10 @@ class PlanningAddTest {
     @Test
     fun `« Ajouter » offers an event or a poll, in a sheet`() {
         show()
-        compose.onNodeWithText("Ajouter").performClick()
+        compose.onNodeWithText("Ajouter", useUnmergedTree = true).performClick()
         compose.onNodeWithText("Un sondage").performClick()
         compose.waitForIdle()
-        compose.onNodeWithText("Ajouter").performClick()
+        compose.onNodeWithText("Ajouter", useUnmergedTree = true).performClick()
         compose.onNodeWithText("Un événement").performClick()
         compose.waitForIdle()
         assertEquals(listOf("poll", "event"), done)
@@ -51,7 +51,7 @@ class PlanningAddTest {
     @Test
     fun `without polls « Ajouter » opens an event at once, and there is no card`() {
         show(pollsOn = false)
-        compose.onNodeWithText("Ajouter").performClick()
+        compose.onNodeWithText("Ajouter", useUnmergedTree = true).performClick()
         compose.onAllNodesWithText("Un sondage").assertCountEquals(0)
         compose.onAllNodesWithText("Sondages").assertCountEquals(0)
         assertEquals(listOf("event"), done)

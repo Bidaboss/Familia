@@ -38,9 +38,6 @@ internal object DemoScreens {
             PlanningScreen(previewPlanning(), {}, null, {}, onShareBirthday = {})
         },
         screen("le Planning par semaine") { PlanningScreen(previewPlanning(), {}, null, {}) },
-        screen("le Planning avec « + Ajouter » et les sondages") {
-            PlanningScreen(previewPlanning(), {}, null, {}, onAddEvent = {}, onAddPoll = {}, onOpenPolls = {}, polls = PollsSummary(open = 2, toVote = 1))
-        },
         screen("un événement, pour qui le gère") {
             EventDetailScreen(previewEventDetail(), { _, _ -> }, {}, {}, {}, onAddToCalendar = {}, onShare = {}, onOpenExpenses = {})
         },
@@ -93,5 +90,8 @@ internal object DemoScreens {
             )
         },
         screen("l'Apparence") { AppearanceScreen(FamiliaThemeId.Spain, {}, {}) },
+        screen("le Planning avec « + Ajouter » et les sondages") {
+            PlanningScreen(previewPlanning(), {}, null, {}, onAddEvent = {}, onAddPoll = {}, onOpenPolls = {}, polls = PollsSummary(open = 2, toVote = 1))
+        },
     )
 }
