@@ -142,4 +142,22 @@ class TreeOfLifeTest {
         val life = TreeOfLife(example()) { text -> text.length * 14f } // police à 200 %
         assertApart(life)
     }
+
+    @Test
+    fun `a child of one of a couple branches from that parent, not from the middle`() {
+        val tree = GenealogyTree(
+            listOf(member("gp", "Robert"), member("dad", "Hugo"), member("new", "Sarah"), member("kid", "Nina"), member("both", "Malo")),
+            emptyList(),
+            listOf(
+                KinLink.parent("gp", "dad"), KinLink.partners("dad", "new"),
+                KinLink.parent("dad", "kid"), KinLink.parent("dad", "both"), KinLink.parent("new", "both"),
+            ),
+        )
+        val life = TreeOfLife(tree)
+        val couple = life.units.single { "dad" in it.ids }
+        val kid = life.units.single { "kid" in it.ids }
+        val both = life.units.single { "both" in it.ids }
+        assertEquals(life.centers.getValue("dad").first, life.branches.single { it.toX == kid.x && it.toY == kid.y }.fromX, 0.01f)
+        assertEquals(couple.x, life.branches.single { it.toX == both.x && it.toY == both.y }.fromX, 0.01f)
+    }
 }

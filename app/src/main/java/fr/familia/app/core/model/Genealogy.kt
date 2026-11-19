@@ -188,19 +188,44 @@ class GenealogyTree(members: List<Member>, kin: List<Kin>, links: List<KinLink>)
     /** How many columns the widest row needs. */
     val width: Double by lazy { (columns.values.maxOrNull() ?: -1.0) + 1.0 }
 
+    /**
+     * [couple] and, next to them, the other parent of a child of theirs who is in no couple of
+     * [ids] (retour du 20/11: a shared custody, the children stood far from their mother, joined
+     * by a long bar). The other parent goes on the far side of the one they share the children
+     * with, so the children stand between their two parents: « Partner, Parent, Other parent ».
+     */
+    private fun withCoParents(couple: List<String>, ids: List<String>, placed: Set<String>): List<String> {
+        val row = couple.toMutableList()
+        for (parent in couple) {
+            val others = childrenOf(parent).flatMap { parentsOf(it) }
+                .filter { it != parent && it in ids && it !in placed && it !in row && partnersOf(it).none { p -> p in ids } }
+                .distinct()
+                .sortedBy { people.getValue(it).firstName.lowercase() }
+            if (others.isEmpty()) continue
+            val at = row.indexOf(parent)
+            // The far side: after the parent when their partner stands before, before when after.
+            if (at == row.lastIndex || at == 0 && row.size == 1) row.addAll(at + 1, others) else row.addAll(at, others)
+        }
+        return row
+    }
+
     private fun orderRow(ids: List<String>, place: Map<String, Double>): List<String> {
         // Two of one first name: the last name, then the id, so the order never changes.
         val sorted = ids.sortedWith(compareBy({ people.getValue(it).firstName.lowercase() }, { drawnName(it).lowercase() }, { it }))
         val placed = HashSet<String>()
         val groups = mutableListOf<List<String>>()
-        for (id in sorted) {
+        // The other parent of a couple's children waits for that couple, to stand next to them.
+        fun waits(id: String) = partnersOf(id).none { it in ids } &&
+            childrenOf(id).flatMap { parentsOf(it) }.any { it != id && it in ids && partnersOf(it).any { p -> p in ids } }
+        for (id in sorted.filterNot(::waits) + sorted.filter(::waits)) {
             if (id in placed) continue
-            val group = (listOf(id) + coupleOf(id).filter { it in ids && it !in placed }.sortedBy { people.getValue(it).firstName.lowercase() })
+            val couple = (listOf(id) + coupleOf(id).filter { it in ids && it !in placed }.sortedBy { people.getValue(it).firstName.lowercase() })
                 // Within a couple, each one stands on the side of their own parents.
                 .let { couple ->
                     val sides = couple.map { member -> parentsOf(member).mapNotNull { place[it] }.ifEmpty { null }?.average() }
                     if (sides.all { it != null }) couple.zip(sides).sortedBy { it.second }.map { it.first } else couple
                 }
+            val group = withCoParents(couple, ids, placed)
             placed += group
             groups += group
         }
