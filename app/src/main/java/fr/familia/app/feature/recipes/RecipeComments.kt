@@ -170,7 +170,7 @@ fun RecipeCommentsSection(state: RecipeCommentsUiState, onType: (String) -> Unit
             value = state.draft,
             onValueChange = onType,
             label = { Text(stringResource(R.string.recipe_comment_field)) },
-            supportingText = { Text(stringResource(R.string.recipe_comment_count, state.draft.length, RecipeComment.MAX_TEXT)) },
+            supportingText = fr.familia.app.feature.events.comments.commentCount(state.draft.length, RecipeComment.MAX_TEXT),
             minLines = 2,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             modifier = Modifier.fillMaxWidth(),

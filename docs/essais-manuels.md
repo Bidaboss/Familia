@@ -268,6 +268,7 @@ Avant ces essais : « Publier Firebase » a publié les règles, l'index TTL et 
 7. Écris plus de 30 commentaires (ou ouvre un événement qui en a). **Attendu :** les 30 plus récents, et « Voir les commentaires plus anciens » en haut qui montre les autres.
 8. Supprime l'événement. **Attendu :** ses commentaires disparaissent aussi (console Firebase).
 9. Éteins le module. **Attendu :** la partie disparaît pour tout le monde sauf l'admin principal, et seul l'admin principal reçoit encore les notifications.
+10. Sous le champ « Ton commentaire » (un événement, une actualité ou une recette). **Attendu :** plus de phrase sur les surprises, et pas de compteur tant que le texte est court. À partir de 450 caractères, « 450 sur 500 caractères » apparaît ; on ne peut pas dépasser 500.
 
 ## Voir comme (PRD, rôles)
 
