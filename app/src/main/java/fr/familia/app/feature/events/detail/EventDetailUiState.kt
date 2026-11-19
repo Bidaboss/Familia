@@ -1,6 +1,7 @@
 package fr.familia.app.feature.events.detail
 
 import fr.familia.app.core.model.Event
+import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.RsvpStatus
 import fr.familia.app.feature.events.edit.TargetChoice
@@ -30,6 +31,8 @@ sealed interface EventDetailUiState {
         val comingMembers: List<Member> = emptyList(),
         /** The last answer could not be sent (refused, or an error other than being offline). */
         val sendFailed: Boolean = false,
+        /** For « Chez un foyer » (récit 74): the household's name and address as they are now. */
+        val households: List<Household> = emptyList(),
     ) : EventDetailUiState
 
     /** The event was deleted, or never existed. */

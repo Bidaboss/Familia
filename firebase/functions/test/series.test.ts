@@ -111,6 +111,19 @@ describe('the occurrences against the emulator', () => {
     assert.deepEqual(await syncSeries(db, 's1', today), { created: [], updated: [], cancelled: [] });
   });
 
+  test('the place of récit 74 goes to every day, and a series of before rewrites nothing', async () => {
+    await db.doc('eventSeries/s1').set(series());
+    await syncSeries(db, 's1', today);
+    assert.deepEqual(await syncSeries(db, 's1', today), { created: [], updated: [], cancelled: [] });
+    await db.doc('eventSeries/s1').update({ place: 'Foyer 1', placeKind: 'household', placeHouseholdId: 'h1' });
+    const r = await syncSeries(db, 's1', today);
+    assert.equal(r.updated.length, 5);
+    const first = (await db.doc('events/s1_20261206').get()).data()!;
+    assert.equal(first.place, 'Foyer 1');
+    assert.equal(first.placeKind, 'household');
+    assert.equal(first.placeHouseholdId, 'h1');
+  });
+
   test('« celle-ci et les suivantes » rewrites from that day, never one changed by hand', async () => {
     await db.doc('eventSeries/s1').set(series());
     await syncSeries(db, 's1', today);

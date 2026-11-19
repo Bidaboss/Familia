@@ -254,7 +254,8 @@ service cloud.firestore {
       return e.keys().hasAll(['title', 'date', 'time', 'place', 'note', 'targetType', 'targetMemberId',
                               'householdId', 'authorId', 'authorName', 'createdAt', 'updatedAt'])
         && e.keys().hasOnly(['title', 'date', 'time', 'place', 'note', 'targetType', 'targetMemberId',
-                             'householdId', 'authorId', 'authorName', 'createdAt', 'updatedAt', 'coverPhoto'].concat(extra))
+                             'householdId', 'authorId', 'authorName', 'createdAt', 'updatedAt', 'coverPhoto',
+                             'placeKind', 'placeHouseholdId'].concat(extra))
         && isDay(e.date)
         && e.updatedAt == request.time
         && isValidEventContent(e);
@@ -265,6 +266,7 @@ service cloud.firestore {
       return e.title is string && e.title.size() > 0 && e.title.size() <= 80
         && (e.time == null || (e.time is string && e.time.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')))
         && (e.place == null || (e.place is string && e.place.size() <= 120))
+        && isValidPlace(e)
         && (e.note == null || (e.note is string && e.note.size() <= 1000))
         && e.authorName is string && e.authorName.size() > 0 && e.authorName.size() <= 40
         && ((e.targetType == 'self' && e.targetMemberId == e.authorId && e.householdId == null)
@@ -274,6 +276,18 @@ service cloud.firestore {
             || (e.targetType == 'household' && e.targetMemberId == null && e.householdId is string
                 && exists(/databases/$(database)/documents/households/$(e.householdId)))
             || (e.targetType == 'family' && e.targetMemberId == null && e.householdId == null));
+    }
+
+    // Where it takes place (récit 74). place stays the text every screen shows; placeKind says what it
+    // is: left out or null for « Autre » (the events of before), 'address' for an address, 'household'
+    // for « Chez un foyer », with the household in placeHouseholdId (its name in place).
+    function isValidPlace(e) {
+      let kind = e.get('placeKind', null);
+      let householdId = e.get('placeHouseholdId', null);
+      return (kind == null && householdId == null)
+        || (kind == 'address' && householdId == null && e.place is string && e.place.size() > 0)
+        || (kind == 'household' && householdId is string && e.place is string && e.place.size() > 0
+            && exists(/databases/$(database)/documents/households/$(householdId)));
     }
 
     // Plus de photos (PRD, récit 44): coverPhoto, optional, names the cover sent to Storage beforehand,
@@ -377,7 +391,8 @@ service cloud.firestore {
       return e.keys().hasAll(['title', 'time', 'place', 'note', 'targetType', 'targetMemberId', 'householdId',
                               'authorId', 'authorName', 'rule', 'exdates', 'applyFrom', 'createdAt', 'updatedAt'])
         && e.keys().hasOnly(['title', 'time', 'place', 'note', 'targetType', 'targetMemberId', 'householdId',
-                             'authorId', 'authorName', 'rule', 'exdates', 'applyFrom', 'createdAt', 'updatedAt'])
+                             'authorId', 'authorName', 'rule', 'exdates', 'applyFrom', 'createdAt', 'updatedAt',
+                             'placeKind', 'placeHouseholdId'])
         && isValidRule(e.rule)
         && e.exdates is list && e.exdates.size() <= 100
         && (e.applyFrom == null || isDay(e.applyFrom))

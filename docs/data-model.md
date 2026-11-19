@@ -100,7 +100,9 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 | `title` | texte, 1 à 80 caractères | Obligatoire |
 | `date` | texte `AAAA-MM-JJ` | Obligatoire |
 | `time` | texte `HH:mm` ou null | Heure facultative |
-| `place` | texte (120 au plus) ou null | Lieu facultatif |
+| `place` | texte (120 au plus) ou null | Lieu facultatif : le texte que montrent tous les écrans (pour « Chez un foyer », le nom du foyer) |
+| `placeKind` | `address` \| `household` \| null, facultatif | Ce qu'est le lieu (récit 74). Absent ou null : « Autre », le texte libre des événements d'avant. `address` : une adresse, « Itinéraire » l'ouvre dans Maps ou Waze. `household` : « Chez un foyer ». Avec `address` ou `household`, `place` n'est jamais vide |
+| `placeHouseholdId` | `householdId` ou null, facultatif | Le foyer de « Chez un foyer », qui doit exister ; null sinon. Ce n'est pas le destinataire : on peut fêter chez un autre foyer. L'adresse vient de la fiche du foyer (« Adresse du foyer », récit 66) ; sans elle, pas d'« Itinéraire » |
 | `note` | texte (1 000 au plus) ou null | Note facultative |
 | `targetType` | `self` \| `child` \| `household` \| `family` | Pour qui : moi, un enfant, un foyer, toute la famille |
 | `targetMemberId` | `memberId` ou null | L'auteur pour `self`, l'enfant pour `child`, sinon null |
@@ -131,7 +133,7 @@ Droits (PRD, « Droits par profil ») :
 
 Derrière l'interrupteur `recurringEvents`. Ce qui se répète, et comment. L'appli n'écrit que la série ; le serveur (`functions/src/series.ts`) écrit ses occurrences comme des événements ordinaires, `events/{seriesId}_{AAAAMMJJ}`, pour les 12 mois à venir. Le rappel de 18 h complète l'horizon chaque soir, sans nouvelle tâche planifiée.
 
-- `title`, `time`, `place`, `note`, `targetType`, `targetMemberId`, `householdId`, `authorId`, `authorName`, `createdAt`, `updatedAt` : comme un événement.
+- `title`, `time`, `place`, `note`, `targetType`, `targetMemberId`, `householdId`, `authorId`, `authorName`, `createdAt`, `updatedAt` : comme un événement. `placeKind` et `placeHouseholdId` (récit 74), facultatifs, aussi : le serveur les recopie sur chaque jour.
 - `rule` : `freq` (`weekly`, `monthly`, `yearly`), `interval` (1, ou 2 pour « toutes les 2 semaines »), `monthlyBy` (`date` ou `weekday` pour un mensuel, sinon null), `start` (AAAA-MM-JJ), `until` (jour ou null), `count` (2 à 200, ou null). Jamais `until` et `count` ensemble. Comme le RFC 5545 : un 31 ou un 29 février seulement là où il existe, un 5e dimanche seulement dans les mois qui en ont un, et `count` compte aussi les jours retirés.
 - `exdates` : les jours retirés un par un (« Cette fois seulement » supprimé), 100 au plus.
 - `applyFrom` : « Celle-ci et les suivantes », le premier jour où les textes s'appliquent, ou null.

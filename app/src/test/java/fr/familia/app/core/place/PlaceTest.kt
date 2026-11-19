@@ -58,4 +58,15 @@ class PlaceTest {
             streetViewUri(Place(46.4915, -1.7931, name = "Plage des Sables")),
         )
     }
+
+    @Test
+    fun `an event's address from a pasted link, a short link kept, a typed text as is (récit 74)`() {
+        val link = "https://www.google.com/maps/place/Plage+des+Sables/@46.4912,-1.7923,17z/data=!3m1!4b1!8m2!3d46.4915!4d-1.7931"
+        assertEquals("Plage des Sables", addressFromPasted(link))
+        assertEquals("46.49, -1.79", addressFromPasted("geo:46.49,-1.79"))
+        assertEquals("https://maps.app.goo.gl/AbCd123", addressFromPasted("Ici https://maps.app.goo.gl/AbCd123"))
+        assertEquals("12 rue des Roses", addressFromPasted("12 rue des Roses"))
+        assertEquals("https://maps.app.goo.gl/AbCd123", directionsUriForAddress("https://maps.app.goo.gl/AbCd123"))
+        assertEquals("geo:0,0?q=12%20rue%20des%20Roses", directionsUriForAddress(" 12 rue des Roses "))
+    }
 }
