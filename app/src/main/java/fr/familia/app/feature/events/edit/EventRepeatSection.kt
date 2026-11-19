@@ -1,7 +1,20 @@
 package fr.familia.app.feature.events.edit
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Repeat
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.text.font.FontWeight
+import fr.familia.app.core.ui.form.ChipGroup
+import fr.familia.app.core.ui.form.FormChip
+import fr.familia.app.core.ui.form.FormHint
+import fr.familia.app.core.ui.form.FormLabel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,9 +59,10 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 /**
- * « Se répète » and « Se termine » (PRD, récit 54). One line each, touching it opens the choices,
- * like « Pour qui ». An event of a series cannot stop repeating here: that is « Supprimer », then
- * « Celle-ci et les suivantes ».
+ * « Se répète » in pills (DESIGN-50): « Une fois », « Chaque semaine », « Chaque mois » and
+ * « Autre… », which opens every rhythm. Once it repeats, a soft line says the rule and its end,
+ * with « Changer » for « Se termine ». An event of a series cannot stop repeating here: that is
+ * « Supprimer », then « Celle-ci et les suivantes ».
  */
 @Composable
 internal fun RepeatSection(
@@ -58,29 +72,60 @@ internal fun RepeatSection(
     onChange: ((EventForm) -> EventForm) -> Unit,
 ) {
     var picking by rememberSaveable { mutableStateOf(false) }
+    var ending by rememberSaveable { mutableStateOf(false) }
     val date = form.date
     val choices = RepeatChoice.entries.filter { !(isOccurrence && it == RepeatChoice.None) }
+    val quick = listOf(
+        RepeatChoice.None to R.string.event_repeat_once,
+        RepeatChoice.Weekly to R.string.event_repeat_each_week,
+        RepeatChoice.MonthlyDate to R.string.event_repeat_each_month,
+    ).filter { (choice, _) -> choice in choices }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        ChoiceLine(
-            label = stringResource(R.string.event_repeat),
-            value = repeatLabel(form.repeat, date),
-            enabled = date != null,
-            onClick = { picking = true },
-        )
-        if (date == null) {
-            Text(
-                stringResource(R.string.event_repeat_date_first),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Outlined.Repeat, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(6.dp))
+            FormLabel(stringResource(R.string.event_repeat))
+        }
+        ChipGroup {
+            quick.forEach { (choice, label) ->
+                FormChip(
+                    stringResource(label),
+                    selected = form.repeat == choice,
+                    enabled = date != null,
+                    onClick = { onChange { it.copy(repeat = choice) } },
+                    description = if (date != null) repeatLabel(choice, date) else null,
+                )
+            }
+            FormChip(
+                stringResource(R.string.event_repeat_other),
+                selected = quick.none { it.first == form.repeat },
+                enabled = date != null,
+                onClick = { picking = true },
             )
         }
+        if (date == null) FormHint(stringResource(R.string.event_repeat_date_first))
         if (form.repeat != RepeatChoice.None && date != null) {
-            EndSection(form, endInvalid, onChange)
-            Text(
-                stringResource(R.string.event_repeat_each_own),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                    .padding(start = 14.dp, end = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    repeatSummary(form.repeat, form.end, date),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.weight(1f).padding(vertical = 10.dp),
+                )
+                TextButton(onClick = { ending = !ending }, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.event_for_whom_change), color = MaterialTheme.colorScheme.onSecondaryContainer)
+                }
+            }
+            if (ending || endInvalid) EndSection(form, endInvalid, onChange)
+            FormHint(stringResource(R.string.event_repeat_each_own))
         }
     }
     if (picking && date != null) {
@@ -99,6 +144,17 @@ internal fun RepeatSection(
             },
             confirmButton = { TextButton(onClick = { picking = false }) { Text(stringResource(R.string.action_ok)) } },
         )
+    }
+}
+
+/** « Chaque semaine, le mercredi, jusqu'au 1er juillet », « Chaque mois, le 2, 10 fois »… */
+@Composable
+internal fun repeatSummary(choice: RepeatChoice, end: RepeatEnd, date: LocalDate): String {
+    val rule = repeatLabel(choice, date)
+    return when (end) {
+        RepeatEnd.Never -> rule
+        is RepeatEnd.OnDay -> stringResource(R.string.event_repeat_summary_until, rule, frenchDate(end.day, "d MMMM"))
+        is RepeatEnd.After -> pluralStringResource(R.plurals.event_repeat_summary_times, end.times, rule, end.times)
     }
 }
 
@@ -190,23 +246,6 @@ internal fun SeriesScopeDialog(
         confirmButton = {},
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
-}
-
-@Composable
-private fun ChoiceLine(label: String, value: String, enabled: Boolean, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(value, style = MaterialTheme.typography.bodyLarge)
-        }
-        if (enabled) Text(stringResource(R.string.event_for_whom_change), color = MaterialTheme.colorScheme.primary)
-    }
 }
 
 @Composable
