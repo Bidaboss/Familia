@@ -12,15 +12,15 @@ data class ChallengeChoice(val id: String, val title: String, val emoji: String)
  */
 object ChallengeCatalog {
     val choices = listOf(
-        ChallengeChoice("goodNewsStart", "10 bonnes nouvelles pour bien commencer", "✨"),
+        ChallengeChoice("goodNewsStart", "10 actualités pour bien commencer", "✨"),
         ChallengeChoice("winterPhotos", "15 photos de l'hiver", "❄️"),
         ChallengeChoice("springSigns", "10 premiers signes du printemps", "🌱"),
-        ChallengeChoice("springNews", "12 bonnes nouvelles du printemps", "🌷"),
+        ChallengeChoice("springNews", "12 actualités du printemps", "🌷"),
         ChallengeChoice("outdoorPhotos", "15 photos en plein air", "🌳"),
-        ChallengeChoice("summerNews", "12 bonnes nouvelles avant l'été", "☀️"),
+        ChallengeChoice("summerNews", "12 actualités avant l'été", "☀️"),
         ChallengeChoice("holidayPhotos", "20 photos de vacances", "🏖️"),
         ChallengeChoice("postcards", "20 cartes postales en photo", "📸"),
-        ChallengeChoice("backToSchool", "10 bonnes nouvelles de la rentrée", "🎒"),
+        ChallengeChoice("backToSchool", "10 actualités de la rentrée", "🎒"),
         ChallengeChoice("autumnColours", "15 couleurs d'automne", "🍂"),
         ChallengeChoice("littleJoys", "12 petits bonheurs", "🧡"),
         ChallengeChoice("christmasPhotos", "20 photos de Noël", "🎄"),

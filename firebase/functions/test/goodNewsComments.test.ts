@@ -21,8 +21,8 @@ describe('who is told', () => {
   test('the author and the member it is for, then the earlier commenters, never the one who writes', () => {
     const messages = goodNewsCommentMessages('n1', { authorId: 'camille', forMemberId: 'noe' }, comment(), ['ines', 'jules', 'ines'], new Set(), everyone);
     assert.deepEqual(messages.map((m) => m.recipientIds), [['camille', 'noe'], ['ines']]);
-    assert.equal(messages[0].notice.title, 'Jules a commenté ta Bonne nouvelle');
-    assert.equal(messages[1].notice.title, 'Jules a aussi commenté la Bonne nouvelle');
+    assert.equal(messages[0].notice.title, 'Jules a commenté ton actualité');
+    assert.equal(messages[1].notice.title, 'Jules a aussi commenté l\'actualité');
     assert.equal(messages[0].notice.channel, 'comments');
     assert.equal(messages[0].notice.goodNewsId, 'n1');
     assert.equal(messages[0].notice.body, 'Champion !');

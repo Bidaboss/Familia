@@ -21,7 +21,7 @@ Au lieu du repas, où le réseau peut être faible (passe hors ligne du 16/11). 
 10. Accueil. **Attendu :** le bandeau « Hors ligne » et les dernières données, sans écran d'erreur.
 11. Sur un événement, réponds « Je viens », puis change pour « Peut-être », deux fois de suite. **Attendu :** la réponse change tout de suite et aucun message d'erreur ne s'affiche. Au retour du réseau, le deuxième téléphone montre une seule réponse, la dernière.
 12. « Qui apporte quoi » : ajoute « Essai gâteau ». **Attendu :** le champ se vide et la ligne apparaît tout de suite, une seule fois. Au retour du réseau, il n'y a qu'une ligne sur le deuxième téléphone.
-13. Bonnes nouvelles : écris un texte avec une photo et publie. **Attendu :** « Il faut du réseau pour envoyer les photos », sans rien publier. Ton texte et ta photo restent dans le formulaire. Désactive le mode avion puis publie : **Attendu :** une seule bonne nouvelle.
+13. Actualités : écris un texte avec une photo et publie. **Attendu :** « Il faut du réseau pour envoyer les photos », sans rien publier. Ton texte et ta photo restent dans le formulaire. Désactive le mode avion puis publie : **Attendu :** une seule actualité.
 14. Réactive le réseau. **Attendu :** le bandeau disparaît et tout arrive sur le deuxième téléphone, sans doublon.
 15. Remets le mode avion, crée un coup de main « Essai fermé », puis ferme l'appli (balaye-la des applis récentes). Réactive le réseau et rouvre Familia. **Attendu :** le coup de main arrive sur le deuxième téléphone, et aucune fenêtre « Pas parti » ne s'ouvre. Elle ne s'ouvre que si le serveur a refusé ce qui avait été préparé sans réseau, et elle le nomme. Annule ensuite « Essai fermé ».
 
@@ -248,7 +248,7 @@ Avec le module « Arbre » visible (admin principal, ou module allumé), deux co
 
 Après « Publier Firebase », allume « Défis expliqués » dans Administration > Modules.
 
-1. Ouvre Défis et touche n'importe où sur la carte du défi. **Attendu :** une feuille « Comment ça marche » : ce qui compte, l'objectif (« 7 sur 20 »), la date de fin, ce qu'on gagne, puis « Ajouter ma photo » ou « Partager une bonne nouvelle », ou « Défi réussi ». Aucun prénom.
+1. Ouvre Défis et touche n'importe où sur la carte du défi. **Attendu :** une feuille « Comment ça marche » : ce qui compte, l'objectif (« 7 sur 20 »), la date de fin, ce qu'on gagne, puis « Ajouter ma photo » ou « Partager une actualité », ou « Défi réussi ». Aucun prénom.
 2. Avant le 1er décembre, touche la carte du défi, puis celle de la question. **Attendu :** le principe, avec « Premier défi le 1er décembre. » et « Première question le lundi 30 novembre. »
 3. Touche n'importe où sur la carte de la question (même interrupteur éteint). **Attendu :** l'écran pour répondre, ou les réponses si tu as déjà répondu.
 4. Touche une tuile « Défi … réussi ». **Attendu :** l'explication de ce défi, avec « Défi réussi ».
@@ -314,15 +314,15 @@ Avec le module « Récap du dimanche » allumé, et deux comptes : un qui suit u
 1. Un dimanche après 18 h, regarde les notifications. **Attendu :** une seule « La semaine de la famille », discrète, avec par exemple « 3 photos, 1 anniversaire à venir, défi à 40 %, 1 voyage en cours. »
 2. Avec le compte décoché du voyage, lis la même notification. **Attendu :** elle ne parle pas de ce voyage.
 3. Touche la notification. **Attendu :** l'écran « La semaine de la famille » s'ouvre, avec au plus 3 photos (une par jour où il y en a, de personnes différentes quand c'est possible, jamais choisies selon les cœurs), les anniversaires des 14 prochains jours, la jauge du défi et les voyages en cours. Aucun nombre de réactions, aucun nom sous les photos.
-4. Touche une photo, puis reviens, puis touche un voyage. **Attendu :** la Bonne nouvelle, puis le voyage, s'ouvrent.
+4. Touche une photo, puis reviens, puis touche un voyage. **Attendu :** l'Actualité, puis le voyage, s'ouvrent.
 5. Réglages > Notifications : coupe « La semaine de la famille ». **Attendu :** le dimanche suivant, plus de notification pour ce compte.
 
 ## Il y a un an (récit 36)
 
-Avec le module « Il y a un an » allumé, et une Bonne nouvelle (ou une photo dans l'album d'un voyage) publiée le même jour, un an plus tôt. Pour l'essai, change la date du téléphone d'un an en avant.
+Avec le module « Il y a un an » allumé, et une Actualité (ou une photo dans l'album d'un voyage) publiée le même jour, un an plus tôt. Pour l'essai, change la date du téléphone d'un an en avant.
 
-1. Ouvre l'Accueil. **Attendu :** la carte « Il y a un an » montre la Bonne nouvelle (ou la photo de voyage), sans notification.
-2. Touche-la. **Attendu :** la Bonne nouvelle, ou le voyage, s'ouvre.
+1. Ouvre l'Accueil. **Attendu :** la carte « Il y a un an » montre l'Actualité (ou la photo de voyage), sans notification.
+2. Touche-la. **Attendu :** l'Actualité, ou le voyage, s'ouvre.
 3. Avec un compte qui ne suit pas ce voyage, ouvre l'Accueil. **Attendu :** pas de carte pour cette photo.
 4. Touche « Ne plus me montrer ce souvenir ». **Attendu :** la carte disparaît (ou passe au souvenir suivant du même jour), et ne revient pas en rouvrant l'appli.
 
@@ -337,7 +337,7 @@ Avec le module « Vœux d'anniversaire » allumé, un membre dont c'est l'annive
 5. Change ta carte, puis retire-la. **Attendu :** le texte change, puis la carte disparaît.
 6. Le lendemain, rouvre la fiche. **Attendu :** les cartes sont toujours là, mais plus de champ pour écrire.
 7. Réglages > Notifications : coupe « Vœux d'anniversaire ». **Attendu :** plus d'avis de vœux pour ce compte.
-8. Ouvre les Bonnes nouvelles. **Attendu :** « 🎂 Joyeux anniversaire … ! » de Familia, avec un gâteau à la place de la photo de profil. Touche-la : les mêmes cartes de vœux s'affichent sous la nouvelle, avec le champ pour écrire le jour même.
+8. Ouvre les Actualités. **Attendu :** « 🎂 Joyeux anniversaire … ! » de Familia, avec un gâteau à la place de la photo de profil. Touche-la : les mêmes cartes de vœux s'affichent sous la nouvelle, avec le champ pour écrire le jour même.
 
 ## Une idée ? Un souci ? (récit 6 sexies)
 
@@ -358,7 +358,7 @@ Avant ces essais : « Publier Firebase » a publié les règles (Firestore et St
 13. Sur un retour avec capture, touche **Enregistrer la capture**. **Attendu :** « Capture enregistrée dans la galerie, album Familia ». Dans Galerie (ou Google Photos), l'album Familia contient la capture. Dans l'appli Claude, ouvre le projet, touche « + » puis Photos : elle y est. Sans capture, pas de bouton. Mode avion : « Capture non enregistrée ».
 
 ## Accueil plus calme (DESIGN-11, PRD rév. 205)
-1. Thème Classique clair : au plus 4 blocs, dans cet ordre : « À faire pour moi » (en relief), « Cette semaine » (3 lignes et « Tout le planning › »), « Bonnes nouvelles ». Les cartes sont blanches, avec une pastille de couleur devant le titre quand il y en a une.
+1. Thème Classique clair : au plus 4 blocs, dans cet ordre : « À faire pour moi » (en relief), « Cette semaine » (3 lignes et « Tout le planning › »), « Actualités ». Les cartes sont blanches, avec une pastille de couleur devant le titre quand il y en a une.
 2. Sous les blocs, une rangée de puces : Anniversaires d'abord, puis la question, l'arbre, le diaporama (à partir du dernier dimanche du mois), les voyages, la prochaine occasion, « Il y a un an » et « Dire où je suis ». Une puce n'apparaît que si elle a quelque chose à dire.
 3. Toucher « Anniversaires », « L'arbre », « Voyages » ou « Il y a un an » ouvre sa carte sous la rangée ; la toucher encore la referme. Une seule carte est ouverte à la fois. Les autres puces ouvrent leur écran.
 4. Avec un deuxième téléphone, envoyer « Rejoignez-moi » : le lieu reçu apparaît en tête de « À faire pour moi », avec « Itinéraire ». Le bloc apparaît même sans autre chose à faire.
@@ -407,9 +407,9 @@ Avec le module « La bienvenue » allumé, un membre ajouté qui ne s'est jamais
 
 Avec le module « Le coin des petits » allumé, un compte adulte qui a un enfant dans son foyer, et un autre compte.
 
-1. Publie une Bonne nouvelle « Pour moi ». **Attendu :** pas d'interrupteur « Les petits ».
+1. Publie une Actualité « Pour moi ». **Attendu :** pas d'interrupteur « Les petits ».
 2. Publie-en une pour l'enfant, et allume « Dans « Les petits » ». **Attendu :** la carte porte l'étiquette « Les petits », dans le fil et sur sa page.
-3. Avec l'autre compte, ouvre les Bonnes nouvelles et touche le filtre « Les petits ». **Attendu :** seules celles des petits restent. Touche-le encore : tout revient.
+3. Avec l'autre compte, ouvre les Actualités et touche le filtre « Les petits ». **Attendu :** seules celles des petits restent. Touche-le encore : tout revient.
 4. Éteins le module. **Attendu :** ni l'interrupteur, ni le filtre, ni l'étiquette pour les membres (l'admin principal voit toujours tout).
 
 ## Voir comme : aucune écriture à l'ouverture
@@ -420,14 +420,14 @@ Avec le module « Le coin des petits » allumé, un compte adulte qui a un enfan
 
 Avec le module « Le petit geste du jour » allumé, deux comptes adultes.
 
-1. Avec le premier compte, publie une Bonne nouvelle avec une photo. **Attendu :** sur l'Accueil du second compte, le bloc « À faire pour moi » montre « La photo de … attend ta réaction » et « Voir la photo ».
+1. Avec le premier compte, publie une Actualité avec une photo. **Attendu :** sur l'Accueil du second compte, le bloc « À faire pour moi » montre « La photo de … attend ta réaction » et « Voir la photo ».
 2. Touche « Voir la photo », puis réagis. **Attendu :** de retour sur l'Accueil, la ligne a disparu. Aucune notification n'est partie.
 3. En « Voir comme », ouvre l'Accueil d'un membre. **Attendu :** la ligne s'affiche pour lui, et rien n'est écrit.
 4. Éteins le module. **Attendu :** plus de ligne pour les membres.
 
 ## À découvrir (AVIS-19)
 Avec l'interrupteur « À découvrir » allumé (l'admin principal le voit même éteint). Pour essayer avant le 30/11, mets la date du téléphone au lundi 30/11/2026 ou après.
-1. Lundi 30/11 : l'Accueil montre « À découvrir » en 4e bloc, après « Bonnes nouvelles », avec « La question de la semaine ». **Attendu :** « Essayer » ouvre la question de la semaine.
+1. Lundi 30/11 : l'Accueil montre « À découvrir » en 4e bloc, après « Actualités », avec « La question de la semaine ». **Attendu :** « Essayer » ouvre la question de la semaine.
 2. Reviens sur l'Accueil. **Attendu :** la carte a disparu, et elle ne revient pas après avoir fermé l'appli.
 3. Avec un autre compte, touche « Plus tard ». **Attendu :** la carte disparaît pour ce compte seulement.
 4. Lundi 07/12 : **Attendu :** « Sondages et Qui apporte quoi ». L'Entraide est sautée, car le tuto la montre déjà.
@@ -447,9 +447,9 @@ Avec l'interrupteur « À découvrir » allumé (l'admin principal le voit même
 5. En Voir comme : **Attendu :** on lit, mais on ne devine pas, on ne publie pas et on ne retire rien.
 
 ## Le petit geste du jour dans « À faire pour moi »
-Avec l'interrupteur « Le petit geste du jour » allumé, et une Bonne nouvelle avec photo publiée par un autre membre, sans ta réaction.
+Avec l'interrupteur « Le petit geste du jour » allumé, et une Actualité avec photo publiée par un autre membre, sans ta réaction.
 1. Accueil : **Attendu :** une ligne dans « À faire pour moi », sous ce que « Rejoignez-moi » t'a envoyé et au-dessus des réponses à donner, avec un trait entre chaque partie.
-2. Touche le lien. **Attendu :** la Bonne nouvelle s'ouvre.
+2. Touche le lien. **Attendu :** l'Actualité s'ouvre.
 3. Sans rien d'autre à faire : **Attendu :** le bloc « À faire pour moi » s'affiche quand même, avec la ligne seule.
 
 ## Un sondage voté reste sur l'Accueil
@@ -460,7 +460,7 @@ Avec l'interrupteur « Le petit geste du jour » allumé, et une Bonne nouvelle 
 1. Planning : en tête de page, une carte « Sondages », avec une pastille qui compte les sondages qui attendent ta réponse (récit 75). TalkBack lit le nombre.
 2. Accueil : un bloc « Sondages » après « Cette semaine ». **Attendu :** d'abord ceux où tu n'as pas répondu (« Sondage de … · à toi de répondre »), puis ceux où tu as voté. « Nouveau sondage » pour un adulte, et « Tous les sondages ».
 3. Sans aucun sondage à montrer : **Attendu :** pas de bloc Sondages.
-5. Avec 4 blocs (À faire, Cette semaine, Sondages, Bonnes nouvelles) et la carte « À découvrir » de la semaine (dès le 30/11) : **Attendu :** « À découvrir » devient la première puce, et la toucher ouvre sa carte sous la rangée.
+5. Avec 4 blocs (À faire, Cette semaine, Sondages, Actualités) et la carte « À découvrir » de la semaine (dès le 30/11) : **Attendu :** « À découvrir » devient la première puce, et la toucher ouvre sa carte sous la rangée.
 4. « À faire pour moi » ne liste plus les sondages.
 
 ## Les recettes faciles à trouver
@@ -540,10 +540,10 @@ Avec le module Partager allumé.
 1. Réglages Android, taille de police au maximum. Planning : **Attendu :** la barre du haut n'a plus que le titre « Planning », le « ? » et ta photo. La carte « Sondages » en tête de page reste lisible, et TalkBack lit « Sondages » et le nombre en attente (récit 75).
 2. Taille normale : **Attendu :** pareil, la carte « Sondages » en tête de page.
 
-## Partager une bonne nouvelle ou un coup de main (récit 31)
+## Partager une actualité ou un coup de main (récit 31)
 Avec l'interrupteur « Partager » allumé :
-1. Ouvre une bonne nouvelle d'un adulte avec une photo, touche Partager en haut : l'image porte la photo, le message donne le début du texte et le lien.
-2. Ouvre la bonne nouvelle d'un enfant d'un autre foyer : l'image part sans la photo. Celle de ton enfant part avec.
+1. Ouvre une actualité d'un adulte avec une photo, touche Partager en haut : l'image porte la photo, le message donne le début du texte et le lien.
+2. Ouvre l'actualité d'un enfant d'un autre foyer : l'image part sans la photo. Celle de ton enfant part avec.
 3. Ouvre un coup de main que tu as demandé à toute la famille, encore ouvert : Partager donne le titre et le moment, sans le lieu ni la note. Le bouton n'apparaît pas sur une demande faite à quelques personnes seulement, ni une fois la demande prise, ni sur celle de quelqu'un d'autre.
 
 ## Une photo dans un coup de main (Kévin 16/11)
@@ -555,7 +555,7 @@ Avec l'interrupteur « Partager » allumé :
 ## L'écran Défis (R1 bis, maquette R7)
 
 1. Ouvre « Défis » depuis Tout Familia. En haut, la carte noire : « DÉFI DE DÉCEMBRE », le défi, la jauge jaune et « On le réussit ensemble, sans classement ». Avant décembre : « Premier défi le 1er décembre ».
-2. Défi lancé par un foyer : « Ajouter ma photo » ouvre une bonne nouvelle liée au défi. Si c'est au tour de ton foyer : « Préparer le défi ».
+2. Défi lancé par un foyer : « Ajouter ma photo » ouvre une actualité liée au défi. Si c'est au tour de ton foyer : « Préparer le défi ».
 3. Carte blanche « QUESTION DU LUNDI » : la question et le nombre de réponses, jamais qui. Sans réponse de ta part : « Tu réponds pour les voir » et « Répondre ». Avant le 30/11 : « Première question le lundi 30 novembre ».
 4. « Nos souvenirs gagnés ensemble » : l'arbre et ses feuilles, un souvenir par défi réussi, puis « À venir ». Rien n'appartient à une seule personne.
 5. Arbre ou question éteints dans Administration : leur carte disparaît de l'écran.
@@ -620,7 +620,7 @@ Seule présentation depuis DESIGN-29 / PRODUIT-131 : l'interrupteur « Nouvelle 
 2. Touche un autre jour de la frise. **Attendu :** il passe en noir, aujourd'hui garde son contour, et la carte dessous montre ce jour : heure, trait de couleur, quoi. Un jour vide dit « Rien de prévu. Une journée tranquille. ».
 3. Un jour avec 2 événements ou plus. **Attendu :** un petit rond avec le nombre en haut à droite de la case. TalkBack lit « Mercredi 18, 2 événements ».
 4. Un événement auquel tu n'as pas répondu. **Attendu :** une carte dans « À faire » avec « J'y vais » et « Non ». Touche « J'y vais » : la carte disparaît, et l'événement te compte parmi ceux qui viennent.
-5. Touche « + ». **Attendu :** Un événement, Une photo, Une bonne nouvelle, Une envie (2 × 2), Un coup de main sur toute la largeur, puis Annuler. « Une photo » ouvre le choix de l'album ; les autres choix ouvrent leur formulaire. Voyages et albums d'événements éteints : « Une photo » disparaît et « Un coup de main » rejoint la grille.
+5. Touche « + ». **Attendu :** Un événement, Une photo, Une actualité, Une envie (2 × 2), Un coup de main sur toute la largeur, puis Annuler. « Une photo » ouvre le choix de l'album ; les autres choix ouvrent leur formulaire. Voyages et albums d'événements éteints : « Une photo » disparaît et « Un coup de main » rejoint la grille.
 6. Touche « Tout Familia ». **Attendu :** « Chercher un module », puis les modules en ronds sous S'organiser, Se faire plaisir et Se souvenir. Défis et Albums y sont quand leur module est allumé. Tape « ou je » : seul « Où je suis » reste.
 7. Onglet **Famille**. **Attendu :** « Nous N, en M foyers », une carte de couleur par foyer avec tous ses membres, puis « Nos trésors ». Deux prénoms qui commencent par la même lettre ont deux lettres dans leur pastille.
 8. Onglet **Planning**. **Attendu :** « Semaine » d'abord, la frise du lundi au dimanche, les flèches changent de semaine, « Aujourd'hui » revient à cette semaine. Sous un événement avec des « oui » : les petites pastilles de ceux qui viennent (6 au plus, puis « +N »).
@@ -713,7 +713,7 @@ Le Mode présentation a été retiré le 18/11 (PRODUIT-132). Après « Publier 
 
 1. Ouvre **Administration**. **Attendu :** plus de carte « Mode présentation », ni de bandeau au-dessus des onglets. Le groupe s'appelle « Démo » et ne garde que « Voir comme… ».
 2. Fais se connecter un compte pour la première fois. **Attendu :** la famille reçoit « … vient d'arriver », comme hors présentation.
-3. Si le mode était allumé avant la mise à jour, rien n'est plus retenu : une bonne nouvelle, un commentaire ou une annonce de l'admin partent comme d'habitude.
+3. Si le mode était allumé avant la mise à jour, rien n'est plus retenu : une actualité, un commentaire ou une annonce de l'admin partent comme d'habitude.
 
 ## Le planning dans mon agenda (récit 49)
 
@@ -793,7 +793,7 @@ Répétition sur le code, le 17/11 : de la version publiée le 17/11 à 15 h 35 
 
 Avant de commencer :
 1. Note la version installée : onglet **Famille**, tout en bas.
-2. Note trois repères : le nombre d'événements de la semaine dans Planning, une liste d'envies avec ses lignes, et la dernière bonne nouvelle.
+2. Note trois repères : le nombre d'événements de la semaine dans Planning, une liste d'envies avec ses lignes, et la dernière actualité.
 3. Dans **Administration**, note quels modules sont allumés.
 
 La mise à jour :
@@ -802,7 +802,7 @@ La mise à jour :
 6. Touche « Mettre à jour », puis « Mettre à jour » dans la fenêtre d'Android. **Attendu :** la barre d'avancement, puis l'installation. Aucune demande de connexion Google après l'installation.
 7. Rouvre Familia. **Attendu :** tu arrives directement sur l'Accueil, connecté, sans écran de connexion.
 8. Onglet **Famille**, tout en bas. **Attendu :** le nouveau numéro de version.
-9. Vérifie tes trois repères. **Attendu :** les mêmes événements, les mêmes lignes, la même bonne nouvelle.
+9. Vérifie tes trois repères. **Attendu :** les mêmes événements, les mêmes lignes, la même actualité.
 10. **Administration**. **Attendu :** les mêmes modules allumés qu'à l'étape 3. Aucun ne s'est allumé tout seul.
 11. **Attendu :** si tu n'as pas encore vu les cartes, la feuille « Quoi de neuf ? » s'ouvre une fois (4 cartes au plus). Touche « C'est parti ». Ferme et rouvre l'appli : elle ne revient pas.
 12. Sur le deuxième téléphone, encore en ancienne version, ouvre Familia. **Attendu :** il voit les mêmes données et peut toujours répondre à un événement. Puis mets-le à jour à son tour.
@@ -814,12 +814,12 @@ Si quelque chose ne va pas à l'étape 7 (écran de connexion) ou 9 (données ab
 
 Avec l'interrupteur « Notre année » allumé dans Administration. Avant le 26/12, seul l'admin principal voit le récit : il montre l'année en cours jusqu'à aujourd'hui (date simulée). Un autre membre ne voit rien avant le 26/12.
 
-1. Bonnes nouvelles, avec le compte de l'admin principal. **Attendu :** en haut du fil, « Revoir notre année 2026 ». Avec un autre compte, avant le 26/12 : pas de bouton.
+1. Actualités, avec le compte de l'admin principal. **Attendu :** en haut du fil, « Revoir notre année 2026 ». Avec un autre compte, avant le 26/12 : pas de bouton.
 2. Touche-le. **Attendu :** un récit plein écran, avec des traits en haut pour les pages et « Page 1 sur … ». La première page dit « Notre année 2026 ».
 3. Touche la droite de l'écran. **Attendu :** la page suivante. La gauche revient en arrière, et le bouton retour d'Android aussi.
-4. Les pages, dans l'ordre et seulement s'il y a de quoi les remplir : les chiffres de la famille (bonnes nouvelles, moments vécus ensemble, coups de main rendus), une photo par mois au plus, en variant les foyers (jamais choisie au nombre de réactions), le voyage le plus long déjà fini, les enfants nés dans l'année, une question de la semaine avec trois réponses, puis « Merci à toute la famille ». **Attendu :** aucun prénom n'est classé ni compté, et rien ne parle de cadeaux, de réservations ni de capsules.
-5. Masque pour toi une bonne nouvelle avec photo, très aimée, puis rouvre le récit. **Attendu :** sa photo n'y est plus.
-6. Dernière page, « Fermer ». **Attendu :** retour à Bonnes nouvelles.
+4. Les pages, dans l'ordre et seulement s'il y a de quoi les remplir : les chiffres de la famille (actualités, moments vécus ensemble, coups de main rendus), une photo par mois au plus, en variant les foyers (jamais choisie au nombre de réactions), le voyage le plus long déjà fini, les enfants nés dans l'année, une question de la semaine avec trois réponses, puis « Merci à toute la famille ». **Attendu :** aucun prénom n'est classé ni compté, et rien ne parle de cadeaux, de réservations ni de capsules.
+5. Masque pour toi une actualité avec photo, très aimée, puis rouvre le récit. **Attendu :** sa photo n'y est plus.
+6. Dernière page, « Fermer ». **Attendu :** retour à Actualités.
 7. Interrupteur éteint. **Attendu :** pas de bouton « Revoir », même pour l'admin principal.
 
 ## Une photo dès la création d'une recette
@@ -841,20 +841,20 @@ Avec l'interrupteur « Notre année en famille » allumé.
 4. « Tout Familia », famille « Se souvenir ». **Attendu :** « Notre année ». L'admin principal l'y trouve toute l'année, pour l'essayer. Les autres l'y trouvent à partir du 26/12.
 5. Interrupteur éteint, avec un autre compte : **Attendu :** ni puce, ni entrée dans le tiroir.
 
-## Bonnes nouvelles : envoi de la photo sur un réseau faible ou coupé
+## Actualités : envoi de la photo sur un réseau faible ou coupé
 
-1. Publier une bonne nouvelle avec 2 photos, réseau normal. Une barre se remplit au-dessus du bouton « Envoi de la photo 1 sur 2… », puis la bonne nouvelle apparaît une seule fois dans le fil.
-2. Recommencer en mode avion avant de toucher « Publier ». La barre reste en attente et la phrase « Plus de réseau : l'envoi reprendra tout seul dès son retour » s'affiche. Couper le mode avion sans toucher l'écran : l'envoi repart seul et la bonne nouvelle arrive une seule fois.
-3. Recommencer et passer en mode avion pendant l'envoi de la photo 2. La phrase apparaît, puis l'envoi reprend tout seul au retour du réseau. Vérifier dans le fil : une seule bonne nouvelle, avec ses 2 photos.
-4. Pendant un envoi, toucher « Annuler l'envoi » : le formulaire revient avec le texte et les photos, rien n'est publié. Toucher « Publier » : la bonne nouvelle part une seule fois.
-5. Si l'envoi échoue avec le réseau (rare), le message dit que le texte et les photos sont gardés. Toucher « Publier » de nouveau : une seule bonne nouvelle au bout.
+1. Publier une actualité avec 2 photos, réseau normal. Une barre se remplit au-dessus du bouton « Envoi de la photo 1 sur 2… », puis l'actualité apparaît une seule fois dans le fil.
+2. Recommencer en mode avion avant de toucher « Publier ». La barre reste en attente et la phrase « Plus de réseau : l'envoi reprendra tout seul dès son retour » s'affiche. Couper le mode avion sans toucher l'écran : l'envoi repart seul et l'actualité arrive une seule fois.
+3. Recommencer et passer en mode avion pendant l'envoi de la photo 2. La phrase apparaît, puis l'envoi reprend tout seul au retour du réseau. Vérifier dans le fil : une seule actualité, avec ses 2 photos.
+4. Pendant un envoi, toucher « Annuler l'envoi » : le formulaire revient avec le texte et les photos, rien n'est publié. Toucher « Publier » : l'actualité part une seule fois.
+5. Si l'envoi échoue avec le réseau (rare), le message dit que le texte et les photos sont gardés. Toucher « Publier » de nouveau : une seule actualité au bout.
 
-## Photos orphelines des bonnes nouvelles (lecture seule)
+## Photos orphelines des actualités (lecture seule)
 
 Le rapport part chaque dimanche vers 4 h, avec la tâche `arrivalReminder`. Il ne supprime rien.
 1. Console Firebase, **Functions**, `arrivalReminder`, **Journaux**, et chercher « orphanPhotos ».
 2. La ligne « orphanPhotos (lecture seule) : N photo(s) orpheline(s) sur M, X Ko, rien n'est supprimé » donne le bilan. Les lignes « serait supprimée … » donnent les chemins, 50 au plus.
-3. Attendu : quelques photos au plus, celles d'un envoi annulé. Une photo d'une bonne nouvelle visible dans l'appli ne doit jamais y figurer. Si c'est le cas, le signaler.
+3. Attendu : quelques photos au plus, celles d'un envoi annulé. Une photo d'une actualité visible dans l'appli ne doit jamais y figurer. Si c'est le cas, le signaler.
 
 ## Me le rappeler (récit 56)
 
@@ -899,12 +899,12 @@ Avec l'interrupteur « À qui le tour ? » allumé (l'admin principal le voit to
 11. Touche une notification « C'est ton tour ». **Attendu :** le tour s'ouvre. Interrupteur éteint pour ce membre : rien ne s'ouvre.
 12. L'auteur ou l'admin principal : le crayon change le titre ou l'ordre, la corbeille supprime le tour après confirmation. **Attendu :** retour à la liste, le tour a disparu chez tout le monde.
 
-## Démo du 21 : Bonnes nouvelles et Entraide sur un réseau faible
+## Démo du 21 : Actualités et Entraide sur un réseau faible
 
 Passe chaque étape deux fois : d'abord en mode avion, puis en 2G (réglages du téléphone, Réseau mobile, Type de réseau préféré « 2G seulement », Wi-Fi coupé). Ouvre d'abord une fois le fil et Entraide avec un bon réseau. Il faut deux téléphones de deux foyers pour l'étape 6.
-1. Ouvre les Bonnes nouvelles. **Attendu :** le fil déjà vu s'affiche tout de suite, avec le bandeau « Hors ligne » en mode avion. Jamais d'écran vide ni de plantage. Sur un téléphone qui n'a jamais ouvert le fil : la roue, puis « Pas de réseau pour l'instant… » en mode avion, ou « Le réseau est lent, ça arrive… » en 2G après quelques secondes, mais jamais « Pas encore de bonne nouvelle ».
-2. Publie une bonne nouvelle sans photo. **Attendu :** l'écran se ferme et elle est en haut du fil avec « En attente du réseau ». Remets le réseau sans toucher l'écran : la mention disparaît, et l'autre téléphone la reçoit une seule fois. Avec une photo, l'écran reste ouvert et la phrase « Plus de réseau : l'envoi reprendra tout seul… » s'affiche (voir la section sur l'envoi de la photo).
-3. Ouvre une bonne nouvelle déjà vue et ajoute une réaction. **Attendu :** la fiche s'affiche, la réaction aussi, et elle part au retour du réseau.
+1. Ouvre les Actualités. **Attendu :** le fil déjà vu s'affiche tout de suite, avec le bandeau « Hors ligne » en mode avion. Jamais d'écran vide ni de plantage. Sur un téléphone qui n'a jamais ouvert le fil : la roue, puis « Pas de réseau pour l'instant… » en mode avion, ou « Le réseau est lent, ça arrive… » en 2G après quelques secondes, mais jamais « Pas encore d'actualité ».
+2. Publie une actualité sans photo. **Attendu :** l'écran se ferme et elle est en haut du fil avec « En attente du réseau ». Remets le réseau sans toucher l'écran : la mention disparaît, et l'autre téléphone la reçoit une seule fois. Avec une photo, l'écran reste ouvert et la phrase « Plus de réseau : l'envoi reprendra tout seul… » s'affiche (voir la section sur l'envoi de la photo).
+3. Ouvre une actualité déjà vue et ajoute une réaction. **Attendu :** la fiche s'affiche, la réaction aussi, et elle part au retour du réseau.
 4. Ouvre Entraide, puis chaque onglet (Coups de main, Bons plans, Prêts, À qui le tour ?). **Attendu :** ce qui est déjà vu s'affiche. Sinon, la roue avec la phrase qui dit pourquoi. Jamais d'écran blanc.
 5. Sur une demande où on a besoin de toi, touche « Je m'en occupe ». **Attendu :** pas de message d'erreur, la demande passe dans « Déjà pris en charge » avec « En attente du réseau ». Remets le réseau : la mention disparaît, et l'auteur de la demande est prévenu une seule fois.
 6. Deux téléphones, une même demande ouverte. Le téléphone A en mode avion touche « Je m'en occupe ». Le téléphone B, avec le réseau, touche « Je m'en occupe » juste après. Remets le réseau sur A. **Attendu :** B l'a. Sur A, la demande montre que B s'en occupe, sans doublon, et un message en bas dit « … s'en occupait déjà. Merci d'avoir proposé ton aide ! », sans erreur rouge.
@@ -917,7 +917,7 @@ Avec l'interrupteur « Mes premiers pas » allumé pour la famille. Éteint, per
 1. Ouvre l'Accueil. **Attendu :** la carte « Mes premiers pas » juste après la carte du jour, avec trois gestes à faire. Pas de nombre, pas de pourcentage. Avec « Goûts et passions » éteint : deux gestes.
 2. Touche « Mettre ma photo », choisis et cadre une photo. **Attendu :** la photo est enregistrée, et la ligne se coche toute seule.
 3. Touche « Remplir « Goûts et passions » », écris un goût sur ta fiche, reviens. **Attendu :** la ligne est cochée.
-4. Touche « Réagir à une bonne nouvelle », mets un cœur sur une bonne nouvelle, reviens. **Attendu :** la carte dit « Bravo, c'est parti ! ». Le lendemain, ou après « Fermer », elle a disparu.
+4. Touche « Réagir à une actualité », mets un cœur sur une actualité, reviens. **Attendu :** la carte dit « Bravo, c'est parti ! ». Le lendemain, ou après « Fermer », elle a disparu.
 5. Sur un autre membre, touche « Plus tard ». **Attendu :** la carte disparaît pour la journée, et revient le lendemain. « Ne plus afficher » : elle ne revient plus sur ce téléphone.
 6. En « Voir comme » : jamais de carte.
 7. Aucune notification n'arrive pour ces gestes. Au bout de 14 jours après sa première apparition sur le téléphone, la carte ne s'affiche plus.
@@ -927,14 +927,14 @@ Il faut trois téléphones de test (A, B, C) et le module « La bienvenue » all
 1. Connecte A pour la première fois. **Attendu :** B et C reçoivent tout de suite « … vient d'arriver ».
 2. Dans les 30 minutes, connecte B, puis C pour la première fois. **Attendu :** rien n'arrive tout de suite.
 3. Attends le passage suivant de la tâche, au moins 30 minutes après l'étape 1. **Attendu :** A reçoit une seule notification « B et C viennent d'arriver ». B ne reçoit que « C vient d'arriver », et C que « B vient d'arriver ».
-4. Depuis B, publie cinq bonnes nouvelles en quelques minutes. **Attendu :** A reçoit les trois premières, puis plus rien. Une heure environ après la première, A reçoit une seule notification « Dans Familia », « 2 notifications : … ». Pendant ce temps, un « Rejoins-moi » de B arrive tout de suite.
+4. Depuis B, publie cinq actualités en quelques minutes. **Attendu :** A reçoit les trois premières, puis plus rien. Une heure environ après la première, A reçoit une seule notification « Dans Familia », « 2 notifications : … ». Pendant ce temps, un « Rejoins-moi » de B arrive tout de suite.
 
 ## Écrans vides et profils enfant
 
 Sur une famille où rien n'a encore été publié, ou en « Voir comme » sur un membre. Le téléphone a le réseau.
-1. Ouvre Entraide, puis Coups de main, Bons plans, Prêts et À qui le tour ?, puis les Bonnes nouvelles. **Attendu :** chaque écran vide a une phrase et un seul bouton (« Demander le premier », « Partager le premier », « Ajouter un objet », « Créer le premier tour », « Partager la première »). Le bouton flottant n'apparaît pas en plus. Le toucher ouvre le formulaire. Défis et Question de la semaine, avant leur date : « Partager une bonne nouvelle en attendant », qui ouvre le formulaire d'une bonne nouvelle.
+1. Ouvre Entraide, puis Coups de main, Bons plans, Prêts et À qui le tour ?, puis les Actualités. **Attendu :** chaque écran vide a une phrase et un seul bouton (« Demander le premier », « Partager le premier », « Ajouter un objet », « Créer le premier tour », « Partager la première »). Le bouton flottant n'apparaît pas en plus. Le toucher ouvre le formulaire. Défis et Question de la semaine, avant leur date : « Partager une actualité en attendant », qui ouvre le formulaire d'une actualité.
 2. Publie une première chose sur chacun. **Attendu :** la liste remplace le message, et le bouton flottant revient.
-3. Recommence en « Voir comme » sur un enfant de 11 ans, puis de 16 ans. **Attendu :** Coups de main et Bonnes nouvelles gardent leur bouton, car un enfant peut demander et publier. Bons plans, Prêts et À qui le tour ? disent que ce sont les adultes qui les remplissent, sans aucun bouton. Aucun bouton ne finit sur un refus.
+3. Recommence en « Voir comme » sur un enfant de 11 ans, puis de 16 ans. **Attendu :** Coups de main et Actualités gardent leur bouton, car un enfant peut demander et publier. Bons plans, Prêts et À qui le tour ? disent que ce sont les adultes qui les remplissent, sans aucun bouton. Aucun bouton ne finit sur un refus.
 
 ## Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible
 
@@ -977,7 +977,7 @@ Sur ton téléphone, avec la rotation automatique allumée (volet des réglages 
 
 **Double toucher**
 1. Planning, touche deux fois très vite un événement. **Attendu :** il s'ouvre une seule fois : un seul « Retour » ramène au Planning.
-2. Fil des Bonnes nouvelles, touche deux fois très vite « Publier ». **Attendu :** un seul formulaire. Ferme-le : tu es sur le fil, pas sur un deuxième formulaire.
+2. Fil des Actualités, touche deux fois très vite « Publier ». **Attendu :** un seul formulaire. Ferme-le : tu es sur le fil, pas sur un deuxième formulaire.
 3. Juste après avoir changé d'onglet, touche tout de suite un bouton. **Attendu :** pendant moins d'une seconde, le toucher peut ne rien faire. Ensuite tout répond normalement.
 
 **« Voir comme »**
@@ -1007,10 +1007,10 @@ Avec le deuxième téléphone de test, sous Android 13 ou plus, et Familia dési
 
 Avec ton téléphone et deux téléphones de test, A et B, déjà connectés. Sur B, coupe les notifications de Familia dans les réglages d'Android.
 
-1. Sur ton téléphone, publie une bonne nouvelle avec une photo, depuis ton propre compte. **Attendu :** A sonne tout de suite. Touche la notification sur A, l'appli fermée : la bonne nouvelle s'ouvre, avec la photo.
-2. Sur B, rien ne sonne. Ouvre Familia. **Attendu :** la photo est sur l'Accueil, dans « Bonnes nouvelles ».
+1. Sur ton téléphone, publie une actualité avec une photo, depuis ton propre compte. **Attendu :** A sonne tout de suite. Touche la notification sur A, l'appli fermée : l'actualité s'ouvre, avec la photo.
+2. Sur B, rien ne sonne. Ouvre Familia. **Attendu :** la photo est sur l'Accueil, dans « Actualités ».
 3. Sur un troisième téléphone, ou sur B après « Utiliser un autre compte », connecte un membre qui ne s'était jamais connecté, puis finis le tuto. **Attendu :** la photo est sur son Accueil, sans notification.
-4. Mets A en économie d'énergie, écran éteint, et publie une deuxième bonne nouvelle. **Attendu :** A sonne dans la minute.
+4. Mets A en économie d'énergie, écran éteint, et publie une deuxième actualité. **Attendu :** A sonne dans la minute.
 
 
 ## Démo du 21 : la nuit et le réveil du 22 (rév. 266)
@@ -1018,7 +1018,7 @@ Avec ton téléphone et deux téléphones de test, A et B, déjà connectés. Su
 Avec le deuxième téléphone de test, sur un compte qui n'a jamais ouvert ses réglages de notifications.
 
 1. Ta photo en haut à droite, puis les réglages des notifications. **Attendu :** « Calme la nuit » est déjà allumé.
-2. Après 22 h, depuis ton téléphone, publie une bonne nouvelle et réagis à une autre. **Attendu :** le deuxième téléphone ne sonne pas.
+2. Après 22 h, depuis ton téléphone, publie une actualité et réagis à une autre. **Attendu :** le deuxième téléphone ne sonne pas.
 3. Le lendemain, entre 8 h et 8 h 30. **Attendu :** une seule notification « Cette nuit dans Familia » avec les titres de la nuit. Une surprise (cadeaux, capsule) arriverait à part.
 4. Sur un compte où tu as éteint « Calme la nuit » toi-même, refais l'étape 2. **Attendu :** il sonne tout de suite, comme avant.
 5. Une capsule prévue pour aujourd'hui. **Attendu :** elle s'ouvre et sonne à partir de 8 h, jamais en pleine nuit.
@@ -1198,26 +1198,26 @@ Après « Publier Firebase ». Deux téléphones : celui de l'admin principal et
 4. Cherche « prêt », puis « tour ». **Attendu :** « On se prête », puis « À qui le tour ? ».
 5. Éteins « On se prête » dans Administration > Modules. **Attendu :** son icône disparaît de « Tout Familia ».
 
-## Fil d'actualité : Bonnes nouvelles et leurs commentaires, coups de main, question (récit 67)
+## Fil d'actualité : Actualités et leurs commentaires, coups de main, question (récit 67)
 
-Module « Fil d'actualité » allumé dans Administration > Modules, après « Publier Firebase ». Éteint, la Bonne nouvelle ne montre pas de commentaires.
+Module « Fil d'actualité » allumé dans Administration > Modules, après « Publier Firebase ». Éteint, l'Actualité ne montre pas de commentaires.
 
-1. Ouvre une Bonne nouvelle d'un autre membre. **Attendu :** sous la nouvelle, « Commentaires », « Pas encore de commentaire… », un champ et « Envoyer ».
-2. Écris « Bravo ! » et envoie. **Attendu :** le commentaire apparaît, signé de ton prénom et de l'heure. L'auteur de la nouvelle reçoit « Prénom a commenté ta Bonne nouvelle ».
-3. Sur un troisième téléphone, commente aussi. **Attendu :** tu reçois « Prénom a aussi commenté la Bonne nouvelle ». Touche « Ne plus être prévenu des commentaires », puis fais commenter encore : plus rien n'arrive.
+1. Ouvre une Actualité d'un autre membre. **Attendu :** sous la nouvelle, « Commentaires », « Pas encore de commentaire… », un champ et « Envoyer ».
+2. Écris « Bravo ! » et envoie. **Attendu :** le commentaire apparaît, signé de ton prénom et de l'heure. L'auteur de la nouvelle reçoit « Prénom a commenté ton Actualité ».
+3. Sur un troisième téléphone, commente aussi. **Attendu :** tu reçois « Prénom a aussi commenté l'Actualité ». Touche « Ne plus être prévenu des commentaires », puis fais commenter encore : plus rien n'arrive.
 4. Modifie ton commentaire, puis retire-le. **Attendu :** « modifié » s'affiche, puis le commentaire disparaît. L'auteur de la nouvelle et l'admin principal ont aussi « Retirer ».
 5. Retire la nouvelle. **Attendu :** ses commentaires partent avec elle.
 6. En « Voir comme ». **Attendu :** les commentaires se lisent, sans champ, sans « Modifier » ni « Retirer ».
 
 Dans « Le fil » de l'Accueil :
 
-7. Publie une Bonne nouvelle avec une photo et un long texte. **Attendu :** une carte « Bonne nouvelle » avec une vignette carrée, le texte coupé à 3 lignes et « Lire la suite », les réactions, puis « Commenter ». Toucher la carte ouvre la nouvelle.
+7. Publie une Actualité avec une photo et un long texte. **Attendu :** une carte « Actualité » avec une vignette carrée, le texte coupé à 3 lignes et « Lire la suite », les réactions, puis « Commenter ». Toucher la carte ouvre la nouvelle.
 8. Touche « ❤️ », puis « Commenter », écris et envoie. **Attendu :** le cœur compte 1 ; le champ se ferme, la carte montre « Prénom : ton texte » sur une ligne et « 💬 1 ». « 💬 1 » ouvre la nouvelle avec ses commentaires.
 9. Masque pour toi une nouvelle qui te nomme. **Attendu :** elle quitte ton fil, pas celui des autres.
 10. Sur un autre téléphone, demande un coup de main en te prévenant. **Attendu :** une carte « Coup de main » avec « Je m'en occupe » et « Pas dispo ». « Je m'en occupe » la change en une ligne « Prénom s'en occupe : … ✓ ». Un coup de main annulé disparaît.
 11. Un lundi, après 9 h. **Attendu :** une carte « Question de la semaine · N réponses » avec « Répondre », qui devient « Voir les réponses » une fois répondu.
 12. En « Voir comme ». **Attendu :** les cartes se lisent, sans réaction possible, sans « Commenter », « Je m'en occupe » ni « Répondre ».
-13. Passe le téléphone en réseau faible (Options pour les développeurs > réseau limité, ou mode avion juste après avoir touché « Envoyer »), puis commente une Bonne nouvelle depuis le fil. **Attendu :** « Envoyer » se grise pendant au plus 4 s, puis le champ se ferme ; un second toucher n'envoie pas le commentaire deux fois ; le fil reste utilisable pendant ce temps. Le commentaire part au retour du réseau.
+13. Passe le téléphone en réseau faible (Options pour les développeurs > réseau limité, ou mode avion juste après avoir touché « Envoyer »), puis commente une Actualité depuis le fil. **Attendu :** « Envoyer » se grise pendant au plus 4 s, puis le champ se ferme ; un second toucher n'envoie pas le commentaire deux fois ; le fil reste utilisable pendant ce temps. Le commentaire part au retour du réseau.
 14. En « Voir comme » un membre fêté prochainement. **Attendu :** aucune carte du fil ne parle d'un cadeau ou d'une surprise pour elle ; un coup de main dont elle n'est pas prévenue n'apparaît pas.
 
 ## Fil d'actualité : une tuile par actualité (PRODUIT-127, PRODUIT-130)
@@ -1258,10 +1258,10 @@ Module « Fil d'actualité » allumé dans Administration > Modules (éteint, l'
 
 Module « Fil d'actualité » allumé. Éteint, Tout Familia et l'Accueil restent comme avant : c'est le retour arrière.
 
-1. Ouvre **Tout Familia**. **Attendu :** une note verte en haut explique où sont passés les souvenirs. Sous « Se souvenir » : Le fil, Albums, Arbre et Capsule. « Qui est-ce ? » est sous « Se faire plaisir ». Plus de Souvenirs ni de Bonnes nouvelles. « Notre année » n'y est que du 26/12 au 10/01.
+1. Ouvre **Tout Familia**. **Attendu :** une note verte en haut explique où sont passés les souvenirs. Sous « Se souvenir » : Le fil, Albums, Arbre et Capsule. « Qui est-ce ? » est sous « Se faire plaisir ». Plus de Souvenirs ni de Actualités. « Notre année » n'y est que du 26/12 au 10/01.
 2. Reviens, puis rouvre **Tout Familia**. **Attendu :** la note verte ne revient plus.
 3. Touche **Le fil**. **Attendu :** l'Accueil s'ouvre directement sur « Le fil ».
-4. En haut du fil. **Attendu :** ton avatar, « Une photo, une bonne nouvelle… », un bouton photo vert pâle et « Publier » en noir. Les trois ouvrent l'écran pour publier une bonne nouvelle. En « Voir comme », la barre n'est pas là.
+4. En haut du fil. **Attendu :** ton avatar, « Une photo, une actualité… », un bouton photo vert pâle et « Publier » en noir. Les trois ouvrent l'écran pour publier une actualité. En « Voir comme », la barre n'est pas là.
 5. Mets la taille du texte à 130 %. **Attendu :** la phrase passe au-dessus, les deux boutons dessous, rien n'est coupé.
 6. Le jour où une capsule s'ouvre pour toi. **Attendu :** une carte pêche « Capsule », « La capsule de … s'est ouverte » et « Ouvrir », qui ouvre la capsule. Elle n'arrive pas chez ceux à qui elle n'est pas destinée.
 7. Un jour avec un souvenir d'il y a un an. **Attendu :** une carte verte « Il y a un an » avec la vignette, le titre et « Revoir l'album ». La carte de l'Accueil « Aujourd'hui » est toujours là.
@@ -1274,8 +1274,8 @@ Module « Fil d'actualité » allumé. Éteint, Albums reste la liste d'avant.
 
 1. Ouvre **Tout Familia**, puis **Albums**. **Attendu :** « Toutes les photos de la famille, rangées toutes seules. », puis un bouton noir « Diaporama de novembre » qui ouvre le diaporama du mois.
 2. **Attendu :** les albums rangés par mois (« Novembre 2026 », « Octobre 2026 »…), deux par ligne, avec une couverture aux coins arrondis, le titre, puis « 12 photos · Prénom ».
-3. Publie une bonne nouvelle avec une photo. **Attendu :** en tête du mois, un album « Photos du fil » avec la pastille verte « Du fil ». Touche-le : toutes les photos du fil du mois, trois par ligne. Une photo ouvre sa bonne nouvelle.
-4. Masque une bonne nouvelle pour toi. **Attendu :** ses photos quittent « Photos du fil » chez toi seulement.
+3. Publie une actualité avec une photo. **Attendu :** en tête du mois, un album « Photos du fil » avec la pastille verte « Du fil ». Touche-le : toutes les photos du fil du mois, trois par ligne. Une photo ouvre sa actualité.
+4. Masque une actualité pour toi. **Attendu :** ses photos quittent « Photos du fil » chez toi seulement.
 5. Un voyage surprise (que quelqu'un ne suit pas). **Attendu :** il n'apparaît pas dans Albums, même chez ceux qui le suivent. Il reste dans l'écran Voyages.
 6. Mets la taille du texte à 200 %. **Attendu :** un album par ligne, les titres restent lisibles.
 
@@ -1336,8 +1336,8 @@ Avant : « Publier Firebase », puis l'APK. Deux téléphones, A et B, de deux m
 
 1. Interrupteur « Résumé du soir des notifications » éteint (Administration > Modules). Dans la journée, B commente un événement de A : A reçoit la notification tout de suite, comme avant. Les réglages de notifications de A ne montrent pas la partie « Résumé du soir ».
 2. Allumer l'interrupteur. Sur A, Famille > Notifications : la partie « Résumé du soir » montre Réactions, Commentaires, Question de la semaine, Souvenirs, tous sur « Dans le résumé de 19 h ».
-3. Avant 19 h, B réagit à une Bonne nouvelle de A et commente un événement : rien ne sonne chez A.
-4. B ajoute un événement, publie une Bonne nouvelle, demande un coup de main : A les reçoit tout de suite.
+3. Avant 19 h, B réagit à une Actualité de A et commente un événement : rien ne sonne chez A.
+4. B ajoute un événement, publie une Actualité, demande un coup de main : A les reçoit tout de suite.
 5. À 19 h (la tâche passe toutes les 30 minutes, donc entre 19 h et 19 h 30) : A reçoit une seule notification « Ce soir dans Familia », « 2 notifications : … ». Le « Résumé du jour », s'il est allumé, part aussi à partir de 19 h et plus à 18 h.
 6. Sur A, couper « Commentaires » (le texte passe à « Tout de suite »). Avant 19 h, B commente : A reçoit la notification tout de suite. Une réaction attend toujours 19 h.
 7. Après 19 h, un commentaire ou une réaction arrive tout de suite.

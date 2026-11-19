@@ -53,13 +53,13 @@ export function goodNewsCommentMessages(
   if (owners.length > 0) {
     messages.push({
       recipientIds: owners,
-      notice: { channel: 'comments', title: `${comment.authorName} a commenté ta Bonne nouvelle`, body, goodNewsId: postId },
+      notice: { channel: 'comments', title: `${comment.authorName} a commenté ton actualité`, body, goodNewsId: postId },
     });
   }
   if (others.length > 0) {
     messages.push({
       recipientIds: others,
-      notice: { channel: 'comments', title: `${comment.authorName} a aussi commenté la Bonne nouvelle`, body, goodNewsId: postId },
+      notice: { channel: 'comments', title: `${comment.authorName} a aussi commenté l'actualité`, body, goodNewsId: postId },
     });
   }
   return messages;

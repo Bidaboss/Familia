@@ -51,10 +51,10 @@ Fais d'abord le deuxième téléphone, puis le tien. La marche détaillée se tr
 Passe chaque essai d'abord en mode avion, puis en « 2G seulement ». Pour la 2G : Réglages du téléphone, puis Réseau mobile, puis Type de réseau préféré, puis « 2G seulement », avec le Wi-Fi coupé. Remets le réseau normal à la fin.
 
 - [ ] « Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible », dans [essais-manuels.md](essais-manuels.md).
-- [ ] « Démo du 21 : Bonnes nouvelles et Entraide sur un réseau faible ».
+- [ ] « Démo du 21 : Actualités et Entraide sur un réseau faible ».
 - [ ] « Démo du 21 : album, diaporama, recettes, arbre et Qui est-ce ? sur un réseau faible », si tu montres ces modules.
-- [ ] « Bonnes nouvelles : envoi de la photo sur un réseau faible ou coupé ».
-- [ ] « Voir comme » sur un enfant : **Administration**, puis « Démo », puis « Voir comme… », puis un enfant d'environ 11 ans. Parcours Accueil, Planning, Entraide et Bonnes nouvelles. **Attendu :** aucun bouton qui finit sur un refus, et aucun texte d'adulte. Recommence avec un enfant d'environ 16 ans. C'est l'étape 3 de « Écrans vides et profils enfant ».
+- [ ] « Actualités : envoi de la photo sur un réseau faible ou coupé ».
+- [ ] « Voir comme » sur un enfant : **Administration**, puis « Démo », puis « Voir comme… », puis un enfant d'environ 11 ans. Parcours Accueil, Planning, Entraide et Actualités. **Attendu :** aucun bouton qui finit sur un refus, et aucun texte d'adulte. Recommence avec un enfant d'environ 16 ans. C'est l'étape 3 de « Écrans vides et profils enfant ».
 - [ ] Touche « Quitter » sur le bandeau « Tu vois l'appli comme … ».
 - [ ] **Les nouvelles versions allumées à l'étape 3**, une par une, en mode avion puis en 2G : le nouvel onglet Cadeaux, la nouvelle fiche d'un membre, le Planning en Semaine puis en Mois, et sur l'Accueil « Le fil ». **Attendu :** chaque écran s'ouvre avec ce que tu as déjà vu, sans rond qui tourne sans fin, et une action faite hors ligne part au retour du réseau.
 - [ ] Les mêmes écrans avec la police au plus grand : Réglages du téléphone, puis Affichage, puis Taille de la police, au maximum. **Attendu :** rien n'est coupé, et tout se lit en faisant défiler. Remets la taille normale.
@@ -88,7 +88,7 @@ Passe chaque essai d'abord en mode avion, puis en « 2G seulement ». Pour la 2G
 - [ ] Ne tourne jamais **ton propre** Accueil ni **ton propre** onglet Cadeaux vers la table : l'occasion de la personne fêtée y apparaît, et « Surprises en préparation » est tout en haut de Cadeaux.
 - [ ] N'ouvre pas **ta propre** fiche : la carte « Mes cadeaux à offrir », ton carnet privé, y est.
 - [ ] N'ouvre pas la fiche de la personne fêtée (ni d'un autre membre) : sa fiche montre « Ce que j'offre à … », avec tes réservations et les surprises en cours.
-- [ ] Publie la photo du repas depuis le fil des Bonnes nouvelles, **écran tourné vers toi**, puis ajoute-la à l'album de l'événement (étape 6 de [scenario-demo.md](scenario-demo.md)).
+- [ ] Publie la photo du repas depuis le fil des Actualités, **écran tourné vers toi**, puis ajoute-la à l'album de l'événement (étape 6 de [scenario-demo.md](scenario-demo.md)).
 - [ ] Pour montrer l'appli, et surtout les Cadeaux, passe par **Administration**, « Démo », « Voir comme… » **un autre membre** que la personne fêtée. Touche « Quitter » sur le bandeau ensuite.
 
 **À la fin**

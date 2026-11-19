@@ -33,15 +33,15 @@ export interface Challenge {
  * reach. The app keeps the same list (ChallengeCatalog.kt): add an entry on both sides.
  */
 export const CATALOG: Record<string, Challenge> = {
-  goodNewsStart: { title: '10 bonnes nouvelles pour bien commencer', emoji: '✨', measure: 'goodNews', target: 10 },
+  goodNewsStart: { title: '10 actualités pour bien commencer', emoji: '✨', measure: 'goodNews', target: 10 },
   winterPhotos: { title: '15 photos de l\'hiver', emoji: '❄️', measure: 'photos', target: 15 },
   springSigns: { title: '10 premiers signes du printemps', emoji: '🌱', measure: 'photos', target: 10 },
-  springNews: { title: '12 bonnes nouvelles du printemps', emoji: '🌷', measure: 'goodNews', target: 12 },
+  springNews: { title: '12 actualités du printemps', emoji: '🌷', measure: 'goodNews', target: 12 },
   outdoorPhotos: { title: '15 photos en plein air', emoji: '🌳', measure: 'photos', target: 15 },
-  summerNews: { title: '12 bonnes nouvelles avant l\'été', emoji: '☀️', measure: 'goodNews', target: 12 },
+  summerNews: { title: '12 actualités avant l\'été', emoji: '☀️', measure: 'goodNews', target: 12 },
   holidayPhotos: { title: '20 photos de vacances', emoji: '🏖️', measure: 'photos', target: 20 },
   postcards: { title: '20 cartes postales en photo', emoji: '📸', measure: 'photos', target: 20 },
-  backToSchool: { title: '10 bonnes nouvelles de la rentrée', emoji: '🎒', measure: 'goodNews', target: 10 },
+  backToSchool: { title: '10 actualités de la rentrée', emoji: '🎒', measure: 'goodNews', target: 10 },
   autumnColours: { title: '15 couleurs d\'automne', emoji: '🍂', measure: 'photos', target: 15 },
   littleJoys: { title: '12 petits bonheurs', emoji: '🧡', measure: 'goodNews', target: 12 },
   christmasPhotos: { title: '20 photos de Noël', emoji: '🎄', measure: 'photos', target: 20 },

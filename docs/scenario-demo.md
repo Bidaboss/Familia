@@ -40,9 +40,9 @@ Tu guides à voix haute, chacun touche sur son téléphone :
 2. **Un événement** : le repas de Noël (ou celui préparé la veille), depuis le Planning. Montre d'abord la frise de la semaine, puis touche le titre et choisis « Mois » pour trouver le jour. Chacun touche « Je viens ». Puis « Qui apporte quoi » : chacun prend une ligne, préparée la veille (voir [veille-du-21.md](veille-du-21.md)).
 3. **Les Cadeaux** : chacun regarde sa liste d'envies et celles des autres. La personne fêtée peut le faire aussi : le serveur lui cache ce qui est réservé pour elle, et la liste de son anniversaire préparée par les autres. Toi, n'ouvre pas ton onglet Cadeaux : montre-les avec « Voir comme » un autre membre que la personne fêtée.
 
-**6. La photo du repas, en Bonne nouvelle puis dans l'album**
+**6. La photo du repas, en Actualité puis dans l'album**
 C'est le moment fort : toute la table la reçoit. **C'est toi qui postes, depuis ton propre compte**.
-1. **Écran tourné vers toi**, ouvre le fil des Bonnes nouvelles (ton Accueil ne doit pas être montré) et touche « Publier ». Écris une phrase (« Joyeux anniversaire ! »), touche « Choisir des photos » et prends celle du repas, dans ta galerie. Tu peux nommer des membres. Ne parle pas du cadeau.
+1. **Écran tourné vers toi**, ouvre le fil des Actualités (ton Accueil ne doit pas être montré) et touche « Publier ». Écris une phrase (« Joyeux anniversaire ! »), touche « Choisir des photos » et prends celle du repas, dans ta galerie. Tu peux nommer des membres. Ne parle pas du cadeau.
 2. Touche « Publier pour toute la famille ». Une barre se remplit au-dessus du bouton. **Reste sur cet écran** jusqu'à ce qu'il se ferme : tant qu'il est ouvert, l'envoi continue.
 3. L'écran revient sur le fil, où elle apparaît une seule fois. Les téléphones de la table sonnent.
 4. Puis verse-la dans l'album : ouvre l'événement du repas, section « Photos », et ajoute la même photo. Invite chacun à ajouter les siennes.
@@ -51,11 +51,11 @@ C'est le moment fort : toute la table la reçoit. **C'est toi qui postes, depuis
 
 ## Plan B si l'envoi de la photo bloque
 
-- **Quelqu'un n'a rien reçu** (il s'est connecté après l'envoi, ou les notifications de Familia sont coupées sur son téléphone) : qu'il ouvre Familia. La photo est sur son Accueil, dans « Bonnes nouvelles », sans attendre de notification. Ne la publie pas une deuxième fois.
+- **Quelqu'un n'a rien reçu** (il s'est connecté après l'envoi, ou les notifications de Familia sont coupées sur son téléphone) : qu'il ouvre Familia. La photo est sur son Accueil, dans « Actualités », sans attendre de notification. Ne la publie pas une deuxième fois.
 
 - **La phrase « Plus de réseau : l'envoi reprendra tout seul dès son retour » apparaît :** ne touche à rien. Active le partage de connexion 4G, ou rapproche-toi de la box. L'envoi repart seul, sans doublon.
-- **La barre n'avance plus et rien ne bouge depuis une minute :** touche « Annuler l'envoi ». Le texte et la photo restent, rien n'est publié. Passe en 4G, puis touche de nouveau « Publier » : une seule bonne nouvelle partira, et les photos déjà envoyées ne repartent pas.
-- **Un message dit que la bonne nouvelle n'a pas pu être publiée :** touche « OK », puis « Publier » de nouveau. Le texte et la photo sont gardés.
+- **La barre n'avance plus et rien ne bouge depuis une minute :** touche « Annuler l'envoi ». Le texte et la photo restent, rien n'est publié. Passe en 4G, puis touche de nouveau « Publier » : une seule actualité partira, et les photos déjà envoyées ne repartent pas.
+- **Un message dit que l'actualité n'a pas pu être publiée :** touche « OK », puis « Publier » de nouveau. Le texte et la photo sont gardés.
 - **Rien ne passe du tout :** écran tourné vers toi, ferme le formulaire, puis continue la présentation. Garde la photo dans ta galerie et publie-la en rentrant : chacun la recevra ce soir.
 
 ## Les petits pièges, et quoi faire

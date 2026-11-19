@@ -74,14 +74,14 @@ export function goodNewsMessages(
 
   const messages: GoodNewsMessage[] = [];
   if (others.length > 0) {
-    const title = forName ? `Bonne nouvelle pour ${forName}` : `Bonne nouvelle de ${n.authorName}`;
+    const title = forName ? `Actualité pour ${forName}` : `Actualité de ${n.authorName}`;
     const body = forName ? `${n.authorName} : ${preview(n.text)}` : preview(n.text);
     messages.push({ recipientIds: others, notice: { channel: 'goodNews', title, body, goodNewsId: id } });
   }
   if (parents.length > 0) {
     messages.push({
       recipientIds: parents,
-      notice: { channel: 'goodNews', title: `${n.authorName} a publié une Bonne nouvelle`, body: preview(n.text), goodNewsId: id, direct: true },
+      notice: { channel: 'goodNews', title: `${n.authorName} a publié une actualité`, body: preview(n.text), goodNewsId: id, direct: true },
     });
   }
   return messages;
@@ -108,7 +108,7 @@ export function reactionsNotice(id: string, n: GoodNewsData, names: string[]): G
   const who = names.length === 1 ? `${names[0]} a réagi`
     : names.length === 2 ? `${names[0]} et ${names[1]} ont réagi`
       : `${names[0]} et ${names.length - 1} autres ont réagi`;
-  return { channel: 'comments', title: `${who} à ta Bonne nouvelle`, body: preview(n.text), goodNewsId: id, reaction: true };
+  return { channel: 'comments', title: `${who} à ton actualité`, body: preview(n.text), goodNewsId: id, reaction: true };
 }
 
 /** The two Storage files of each photo: the photo and its thumbnail. */
