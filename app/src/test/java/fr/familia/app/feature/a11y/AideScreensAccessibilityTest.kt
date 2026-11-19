@@ -23,6 +23,8 @@ import fr.familia.app.feature.firststeps.FirstStepsCardContent
 import fr.familia.app.feature.gooddeals.detail.GoodDealDetailScreen
 import fr.familia.app.feature.gooddeals.detail.GoodDealDetailUiState
 import fr.familia.app.feature.gooddeals.edit.GoodDealEditScreen
+import fr.familia.app.feature.gooddeals.edit.GoodDealFormError
+import fr.familia.app.core.model.GoodDealCategory
 import fr.familia.app.feature.gooddeals.edit.GoodDealEditUiState
 import fr.familia.app.feature.gooddeals.edit.GoodDealForm
 import fr.familia.app.feature.gooddeals.list.GoodDealsScreen
@@ -121,6 +123,20 @@ class AideScreensAccessibilityTest {
     @Test
     fun `share a bon plan`() = check {
         GoodDealEditScreen(GoodDealEditUiState.Editing(GoodDealForm(title = "Fraises à cueillir", lastDay = today.plusDays(7)), isNew = true, today = today), {}, {}, {})
+    }
+
+    @Test
+    fun `share a bonne adresse`() = check {
+        GoodDealEditScreen(
+            GoodDealEditUiState.Editing(
+                GoodDealForm(title = "Garage du Pont", category = GoodDealCategory.Car),
+                isNew = true,
+                kind = GoodDealKind.Address,
+                today = today,
+                errors = setOf(GoodDealFormError.PhoneInvalid),
+            ),
+            {}, {}, {},
+        )
     }
 
     @Test

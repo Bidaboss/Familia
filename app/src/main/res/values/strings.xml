@@ -2808,13 +2808,10 @@
     <string name="gooddeal_remove">Supprimer</string>
     <string name="gooddeal_remove_title">Supprimer ce bon plan ?</string>
     <string name="gooddeal_remove_body">Il disparaît pour toute la famille.</string>
-    <string name="gooddeal_no_secret">Pas de mot de passe ni de code de porte ici.</string>
     <string name="gooddeal_field_title">Titre</string>
     <string name="gooddeal_field_text">En une phrase (facultatif)</string>
     <string name="gooddeal_field_place">Lieu (facultatif)</string>
     <string name="gooddeal_field_link">Lien (facultatif)</string>
-    <string name="gooddeal_ends_on">Jusqu\'au %1$s</string>
-    <string name="gooddeal_pick_end">Choisir le dernier jour</string>
     <string name="gooddeal_error_title_missing">Donne un titre au bon plan.</string>
     <string name="gooddeal_error_link">Ce lien ne fonctionne pas. Colle l\'adresse complète du site.</string>
     <string name="gooddeal_error_end">Choisis un dernier jour entre aujourd\'hui et dans 3 mois.</string>
@@ -2846,12 +2843,26 @@
     <string name="gooddeal_recommend">Je recommande aussi</string>
     <string name="gooddeal_not_recommend">Je ne la recommande plus</string>
     <string name="gooddeal_field_name">Nom</string>
-    <string name="gooddeal_field_why">Pourquoi je la recommande (facultatif)</string>
+    <string name="gooddeal_field_why">Pourquoi tu la conseilles (facultatif)</string>
     <string name="gooddeal_field_city">Ville (facultatif)</string>
     <string name="gooddeal_field_phone">Téléphone (facultatif)</string>
     <string name="gooddeal_field_category">Catégorie</string>
     <string name="gooddeal_error_category">Choisis une catégorie.</string>
     <string name="gooddeal_error_phone">Ce numéro ne fonctionne pas : des chiffres, des espaces et + seulement.</string>
+    <!-- Récit 78 (DESIGN-51) : le formulaire du bon plan et de la bonne adresse en tuiles. -->
+    <string name="gooddeal_no_secret_banner">Partagé avec toute la famille : pas de mot de passe ni de code de porte ici.</string>
+    <string name="gooddeal_tile_deal">Le bon plan</string>
+    <string name="gooddeal_tile_address">La bonne adresse</string>
+    <string name="gooddeal_title_hint">Ce qu\'on voit en premier dans Entraide.</string>
+    <string name="gooddeal_tile_until">Jusqu\'à quand</string>
+    <string name="gooddeal_day_weekend">Ce week-end</string>
+    <string name="gooddeal_day_week">Dans une semaine</string>
+    <string name="gooddeal_until_summary">Jusqu\'au %1$s, puis il disparaît tout seul.</string>
+    <string name="gooddeal_tile_where">Où le trouver</string>
+    <string name="gooddeal_tile_reach">Pour la joindre</string>
+    <string name="gooddeal_link_hint">Colle l\'adresse complète du site.</string>
+    <string name="gooddeal_address_link_hint">Le lien de prise de rendez-vous, par exemple.</string>
+    <string name="gooddeal_publish_family">Publier pour la famille</string>
     <!-- Récit 49 : le planning dans Google Agenda -->
     <string name="feature_calendar_feed">Planning dans mon agenda</string>
     <string name="feature_tree_poster">Affiche de l\'arbre</string>
