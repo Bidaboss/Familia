@@ -61,6 +61,7 @@ import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -161,7 +162,8 @@ private fun Form(state: LendItemEditUiState.Editing, onChange: ((LendItemForm) -
         BigPhoto(stored = state.storedPhoto, edit = form.photo, onEdit = { edit -> onChange { it.copy(photo = edit) } }, enabled = enabled)
 
         FormTile(Icons.Outlined.Inventory2, stringResource(R.string.lend_tile_item), Modifier.part(LendPart.Item), accent = accent) {
-            FormLabel(stringResource(R.string.lend_field_name))
+            val nameLabel = stringResource(R.string.lend_field_name)
+            FormLabel(nameLabel)
             OutlinedTextField(
                 value = form.name,
                 onValueChange = { v -> onChange { it.copy(name = v.take(LEND_NAME_MAX)) } },
@@ -170,10 +172,11 @@ private fun Form(state: LendItemEditUiState.Editing, onChange: ((LendItemForm) -
                 enabled = enabled,
                 shape = RoundedCornerShape(16.dp),
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().semantics { contentDescription = nameLabel },
             )
             if (LendFormError.NameMissing in errors) FormHint(stringResource(R.string.lend_error_name), isError = true)
-            FormLabel(stringResource(R.string.lend_field_note))
+            val noteLabel = stringResource(R.string.lend_field_note)
+            FormLabel(noteLabel)
             OutlinedTextField(
                 value = form.note,
                 onValueChange = { v -> onChange { it.copy(note = v.take(LEND_NOTE_MAX)) } },
@@ -182,7 +185,7 @@ private fun Form(state: LendItemEditUiState.Editing, onChange: ((LendItemForm) -
                 enabled = enabled,
                 shape = RoundedCornerShape(16.dp),
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().semantics { contentDescription = noteLabel },
             )
         }
 
