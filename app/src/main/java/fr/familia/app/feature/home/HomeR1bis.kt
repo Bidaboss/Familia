@@ -223,8 +223,6 @@ fun HomeR1bisScreen(
                 }
             }
         }
-        // Fixed under the list, which stops above it: the last block is never hidden.
-        AllFamiliaBar(r1, allBadge)
     }
 }
 
@@ -444,37 +442,3 @@ private fun TodoShell(title: String, detail: String, onOpen: () -> Unit, buttons
     }
 }
 
-/**
- * « Tout Familia », dark and 56 dp, with the sum of the badges of the drawer, fixed just above the
- * tabs (§2.7, Kévin 17/11): 20 dp on each side, 12 dp above the tabs, on the background of the theme.
- */
-@Composable
-private fun AllFamiliaBar(r1: HomeR1bisActions, allBadge: Int) {
-    val ink = MaterialTheme.colorScheme.onSurface
-    val news = if (allBadge > 0) pluralStringResource(R.plurals.home_r1_all_news, allBadge, allBadge) else null
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 12.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Button(
-            onClick = r1.onOpenAll,
-            colors = ButtonDefaults.buttonColors(containerColor = ink, contentColor = MaterialTheme.colorScheme.surface),
-            modifier = Modifier
-                // Never stretched across a tablet (DESIGN, 17/11).
-                .widthIn(max = 480.dp)
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .semantics { if (news != null) stateDescription = news },
-        ) {
-            BadgedBox(
-                badge = { if (allBadge > 0) Badge(containerColor = Color(0xFFF2C14E), contentColor = Color(0xFF1B1B1B)) { Text(allBadge.toString()) } },
-                modifier = Modifier.clearAndSetSemantics { },
-            ) { Icon(Icons.Outlined.Apps, contentDescription = null) }
-            Spacer(Modifier.width(12.dp))
-            Text(stringResource(R.string.home_r1_all))
-        }
-    }
-}
