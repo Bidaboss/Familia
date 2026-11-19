@@ -1,6 +1,7 @@
 package fr.familia.app.feature.events.edit
 
 import fr.familia.app.core.model.EventTarget
+import fr.familia.app.core.model.Household
 import fr.familia.app.core.ui.Confirmation
 
 /** A choice of the "Pour qui" list, with the household or child name when there is one. */
@@ -27,6 +28,8 @@ sealed interface EventEditUiState {
         val showRepeat: Boolean = false,
         /** One of a series: saving and deleting ask « Cette fois seulement » or « Celle-ci et les suivantes ». */
         val isOccurrence: Boolean = false,
+        /** The households of « Chez un foyer » (récit 74), by name. */
+        val households: List<Household> = emptyList(),
     ) : EventEditUiState
 
     /** Saved or deleted (or queued until the network is back): the screen closes. */

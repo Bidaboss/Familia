@@ -3,7 +3,7 @@
 // kid2 (child without the app, parents adult2 and admin1).
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc, Timestamp } from 'firebase/firestore';
+import { deleteDoc, deleteField, doc, getDoc, serverTimestamp, setDoc, updateDoc, Timestamp } from 'firebase/firestore';
 import { ADMIN, ADULT, OTHER_ADULT, STRANGER, adultDoc, as, createEnv, seed } from './helpers.mjs';
 
 let env;
@@ -214,5 +214,38 @@ describe('cover photo (récit 44)', () => {
     await assertFails(setDoc(doc(db, 'events/n1'), event(ADULT, { coverPhoto: 'goodNews/adult1/p1/c1' })));
     await assertFails(setDoc(doc(db, 'events/n1'), event(ADULT, { coverPhoto: `${cover('n1', 'adult1')}.jpg` })));
     await assertFails(setDoc(doc(db, 'events/n1'), event(ADULT, { coverPhoto: 42 })));
+  });
+});
+
+describe('place (récit 74)', () => {
+  test('a place is « Autre » text, an address or a household of the family', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(doc(db, 'events/p1'), event(ADULT, { place: 'Au parc' })));
+    await assertSucceeds(setDoc(doc(db, 'events/p2'), event(ADULT, { place: '3 rue des Lilas, Nantes', placeKind: 'address' })));
+    // Another household than one's own: the place is not the target.
+    await assertSucceeds(setDoc(doc(db, 'events/p3'), event(ADULT, { place: 'Foyer 2', placeKind: 'household', placeHouseholdId: 'h2' })));
+    await assertSucceeds(setDoc(doc(db, 'events/p4'), event(ADULT, { placeKind: null, placeHouseholdId: null })));
+  });
+
+  test('an unknown household, a missing one or a wrong shape is refused', async () => {
+    const db = as(env, ADULT);
+    await assertFails(setDoc(doc(db, 'events/p1'), event(ADULT, { place: 'Foyer 9', placeKind: 'household', placeHouseholdId: 'h9' })));
+    await assertFails(setDoc(doc(db, 'events/p2'), event(ADULT, { place: 'Foyer 2', placeKind: 'household' })));
+    await assertFails(setDoc(doc(db, 'events/p3'), event(ADULT, { place: 'Foyer 2', placeKind: 'address', placeHouseholdId: 'h2' })));
+    await assertFails(setDoc(doc(db, 'events/p4'), event(ADULT, { place: null, placeKind: 'address' })));
+    await assertFails(setDoc(doc(db, 'events/p5'), event(ADULT, { place: 'Ici', placeKind: 'garden' })));
+    await assertFails(setDoc(doc(db, 'events/p6'), event(ADULT, { place: 'Ici', placeHouseholdId: 'h2' })));
+  });
+
+  test('an event of before keeps working, and its place can become a household and back', async () => {
+    await stored('e1', ADULT, { place: 'Chez nous' });
+    const db = as(env, ADULT);
+    await assertSucceeds(updateDoc(doc(db, 'events/e1'), { title: 'Goûter', updatedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(db, 'events/e1'), {
+      place: 'Foyer 1', placeKind: 'household', placeHouseholdId: 'h1', updatedAt: serverTimestamp(),
+    }));
+    await assertSucceeds(updateDoc(doc(db, 'events/e1'), {
+      place: 'Au parc', placeKind: deleteField(), placeHouseholdId: deleteField(), updatedAt: serverTimestamp(),
+    }));
   });
 });

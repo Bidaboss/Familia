@@ -77,6 +77,22 @@ fun streetViewUri(place: Place): String =
 /** The same, for a place known only by its text (the « Lieu » of an event). */
 fun directionsUri(address: String): String = "geo:0,0?q=${encode(address.trim())}"
 
+/**
+ * The « Adresse » of an event (récit 74) from what was typed or pasted: a Google Maps or geo: link
+ * becomes the place it names (or its coordinates), a short link (maps.app.goo.gl) stays the link
+ * alone, which Maps opens as is. Anything else is kept as typed.
+ */
+fun addressFromPasted(text: String): String {
+    val link = linkIn(text) ?: return text
+    if (isShortMapsLink(text)) return link
+    val pasted = parsePastedPlace(text) ?: return text
+    return pasted.name ?: pasted.query ?: if (pasted.lat != null && pasted.lng != null) "${coord(pasted.lat)}, ${coord(pasted.lng)}" else text
+}
+
+/** « Itinéraire » to an address of [addressFromPasted]: a link opens itself, a text is searched. */
+fun directionsUriForAddress(address: String): String =
+    address.trim().let { if (it.startsWith("https://", ignoreCase = true)) it else directionsUri(it) }
+
 /** A link anyone can open, with or without Familia (sharing to a messaging app, récit 31). */
 fun webMapsLink(place: Place): String =
     "https://www.google.com/maps/search/?api=1&query=${coord(place.lat)}%2C${coord(place.lng)}"

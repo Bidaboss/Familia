@@ -98,6 +98,13 @@ describe('eventSeries', () => {
     await assertFails(deleteDoc(ref(as(env, NEIGHBOUR))));
     await assertSucceeds(deleteDoc(ref(db)));
   });
+
+  test('a series takes the place of récit 74, an unknown household is refused', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(ref(db, 'p1'), series(ADULT, { place: 'Foyer 1', placeKind: 'household', placeHouseholdId: 'h1' })));
+    await assertSucceeds(setDoc(ref(db, 'p2'), series(ADULT, { place: '3 rue des Lilas', placeKind: 'address' })));
+    await assertFails(setDoc(ref(db, 'p3'), series(ADULT, { place: 'Foyer 9', placeKind: 'household', placeHouseholdId: 'h9' })));
+  });
 });
 
 describe('the occurrences of a series', () => {

@@ -12,7 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.pluralStringResource
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.place.DirectionsButton
-import fr.familia.app.core.place.directionsUri
+import fr.familia.app.feature.events.eventPlaceView
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.ui.MemberAvatar
 import androidx.compose.foundation.layout.Arrangement
@@ -174,10 +174,10 @@ private fun Content(
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary,
         )
-        event.place?.let { place ->
-            Text(place, style = MaterialTheme.typography.bodyLarge)
-            // The common place component (récit 33): the route in Google Maps or Waze.
-            if (LocalFeatureFlags.current.isOn(Feature.Places)) DirectionsButton(directionsUri(place))
+        // Under the time (récit 74), with the route in Google Maps or Waze as soon as there is an address.
+        eventPlaceView(event, state.households, LocalFeatureFlags.current.isOn(Feature.Places))?.let { place ->
+            Text(place.text, style = MaterialTheme.typography.bodyLarge)
+            place.directions?.let { DirectionsButton(it) }
         }
         Text(
             if (event.target is EventTarget.ForFamily) {

@@ -26,6 +26,9 @@ export interface EventData {
   targetType: string;
   targetMemberId: string | null;
   householdId: string | null;
+  /** Récit 74: 'household' or 'address'; left out or null for « Autre » (place is still the text). */
+  placeKind?: string | null;
+  placeHouseholdId?: string | null;
 }
 
 export type RsvpStatus = 'yes' | 'maybe' | 'no';

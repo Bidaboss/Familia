@@ -118,6 +118,7 @@ class EventDetailViewModel(
             notComing = names(RsvpStatus.No),
             comingMembers = members(RsvpStatus.Yes),
             sendFailed = failed,
+            households = family.households,
         )
     }
 }
