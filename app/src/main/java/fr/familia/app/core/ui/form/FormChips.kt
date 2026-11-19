@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.FlowRowScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
@@ -89,13 +88,12 @@ fun FormChip(
 /** Pills that go to the line when they no longer fit (large text): one radio group for TalkBack. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ChipGroup(modifier: Modifier = Modifier, content: @Composable FlowRowScope.() -> Unit) {
+fun ChipGroup(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     FlowRow(
         modifier = modifier.selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        content = content,
-    )
+    ) { content() }
 }
 
 /** Today and the 3 days after it: the days of [DayChips]. */
