@@ -34,7 +34,6 @@ class DeepLinksTest {
         assertEquals(listOf(DeepLink.Feedback("crashes")), fromExtras("feedback" to "crashes"))
         assertEquals(listOf(DeepLink.GoodDeals), fromExtras("goodDeals" to "list"))
         assertEquals(listOf(DeepLink.LendItem("i1")), fromExtras("lendItemId" to "i1"))
-        assertEquals(listOf(DeepLink.Turn("t1")), fromExtras("turnId" to "t1"))
         assertEquals(listOf(DeepLink.Announcement("a1")), fromExtras("announcementId" to "a1"))
     }
 
@@ -46,8 +45,9 @@ class DeepLinksTest {
     }
 
     @Test
-    fun `an old « Pensez à moi » notification just opens the app`() {
+    fun `an old « Pensez à moi » or « À qui le tour ? » notification just opens the app`() {
         assertEquals(emptyList<DeepLink>(), fromExtras("thinkOfMeOf" to "m3"))
+        assertEquals(emptyList<DeepLink>(), fromExtras("turnId" to "t1"))
     }
 
     @Test

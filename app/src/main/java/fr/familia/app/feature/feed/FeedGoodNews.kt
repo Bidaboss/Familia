@@ -42,6 +42,7 @@ import fr.familia.app.core.model.GoodNews
 import fr.familia.app.core.model.Reaction
 import fr.familia.app.core.photo.StorageImage
 import fr.familia.app.core.ui.formatTime
+import fr.familia.app.feature.goodnews.HeartReaction
 import fr.familia.app.feature.goodnews.nextReaction
 import fr.familia.app.feature.goodnews.reactionName
 import kotlinx.coroutines.CancellationException
@@ -152,7 +153,7 @@ class GoodNewsFeedCard(
     }
 }
 
-/** « ❤️ 7  👏 4   💬 5  Commenter », then the field once « Commenter » is touched. */
+/** « ♡ ❤️👏 11   💬 5  Commenter », then the field once « Commenter » is touched. */
 @Composable
 private fun GoodNewsFeedActions(
     news: GoodNews,
@@ -173,31 +174,27 @@ private fun GoodNewsFeedActions(
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         val meId = context.me.id
         val live = mine?.let { news.reactions + (meId to it) } ?: (news.reactions - meId)
-        feedReactions(news.copy(reactions = live)).forEach { (reaction, shown) ->
-            val name = stringResource(reactionName(reaction))
-            FilterChip(
-                selected = mine == reaction,
-                enabled = canWrite && goodNews != null,
-                onClick = {
-                    val next = nextReaction(mine, reaction)
-                    val before = mine
-                    mine = next
-                    scope.launch {
-                        try {
-                            goodNews?.react(news.id, context.me.id, next)
-                        } catch (e: CancellationException) {
-                            throw e
-                        } catch (_: Exception) {
-                            mine = before
-                        }
+        // One heart, a long press for the six (PRODUIT-139).
+        HeartReaction(
+            reactions = live,
+            mine = mine,
+            enabled = canWrite && goodNews != null,
+            nameOf = { id -> context.member(id)?.firstName },
+            onTouch = { reaction ->
+                val next = nextReaction(mine, reaction)
+                val before = mine
+                mine = next
+                scope.launch {
+                    try {
+                        goodNews?.react(news.id, context.me.id, next)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (_: Exception) {
+                        mine = before
                     }
-                },
-                label = { Text(if (shown > 0) "${reaction.emoji} $shown" else reaction.emoji) },
-                modifier = Modifier.heightIn(min = 48.dp).semantics {
-                    contentDescription = name
-                },
-            )
-        }
+                }
+            },
+        )
         Spacer(Modifier.weight(1f))
         if (news.commentCount > 0) {
             val description = pluralStringResource(R.plurals.feed_comment_count, news.commentCount, news.commentCount)

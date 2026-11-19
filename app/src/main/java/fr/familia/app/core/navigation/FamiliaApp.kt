@@ -21,7 +21,6 @@ import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.DynamicFeed
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.Autorenew
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.LocalOffer
 import androidx.compose.material.icons.outlined.CardGiftcard
@@ -133,9 +132,6 @@ import fr.familia.app.feature.gooddeals.GoodDealsRoute
 import fr.familia.app.feature.lending.LendItemDetailRoute
 import fr.familia.app.feature.lending.LendItemEditRoute
 import fr.familia.app.feature.lending.LendItemsRoute
-import fr.familia.app.feature.turns.TurnDetailRoute
-import fr.familia.app.feature.turns.TurnEditRoute
-import fr.familia.app.feature.turns.TurnsRoute
 import fr.familia.app.feature.goodnews.detail.GoodNewsDetailRoute
 import fr.familia.app.feature.goodnews.edit.GoodNewsEditRoute
 import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
@@ -364,9 +360,6 @@ fun FamiliaApp(
     /** A thing to lend whose ask, answer or reminder was touched (récit 51). */
     openLendItemId: String? = null,
     onLendItemOpened: () -> Unit = {},
-    /** A rotation whose turn or exchange was touched (récit 58). */
-    openTurnId: String? = null,
-    onTurnOpened: () -> Unit = {},
     /** A message of the admin principal whose notification was touched (récit 69). */
     openAnnouncementId: String? = null,
     onAnnouncementOpened: () -> Unit = {},
@@ -670,13 +663,6 @@ fun FamiliaApp(
         }
     }
 
-    // À qui le tour ? (récit 58): the rotation itself, once the modules are known; module off, the tap is spent.
-    LaunchedEffect(openTurnId, appConfig, ownerId) {
-        if (openTurnId != null && appConfig != null && ownerId != null) {
-            if (features.isOn(Feature.Turns)) navController.navigate(TurnDetailDestination(openTurnId))
-            onTurnOpened()
-        }
-    }
 
     // Annonces de l'admin (récit 69): the whole message, whatever the module says now (it was sent).
     LaunchedEffect(openAnnouncementId) {
@@ -1522,7 +1508,6 @@ fun FamiliaApp(
                         // Récit 45: the « Bons plans » beside the coups de main, behind their switch.
                         val goodDealsOn = LocalFeatureFlags.current.isOn(Feature.GoodDeals)
                         val lendingOn = LocalFeatureFlags.current.isOn(Feature.Lending)
-                        val turnsOn = LocalFeatureFlags.current.isOn(Feature.Turns)
                         EntraideTabs(
                             goodDealsOn = goodDealsOn,
                             help = {
@@ -1531,7 +1516,7 @@ fun FamiliaApp(
                                     currentMember = currentMember,
                                     onAsk = { navController.navigate(HelpRequestEditDestination()) },
                                     onOpenRequest = { id -> navController.navigate(HelpRequestDetailDestination(id)) },
-                                    showTitle = !goodDealsOn && !lendingOn && !turnsOn,
+                                    showTitle = !goodDealsOn && !lendingOn,
                                 )
                             },
                             goodDeals = {
@@ -1553,16 +1538,6 @@ fun FamiliaApp(
                                     currentMember = currentMember,
                                     onAdd = { navController.navigate(LendItemEditDestination()) },
                                     onOpen = { id -> navController.navigate(LendItemDetailDestination(id)) },
-                                )
-                            },
-                            // Récit 58: « À qui le tour ? », behind its switch.
-                            turnsOn = turnsOn,
-                            turns = {
-                                TurnsRoute(
-                                    container = container,
-                                    currentMember = currentMember,
-                                    onCreate = { navController.navigate(TurnEditDestination()) },
-                                    onOpen = { id -> navController.navigate(TurnDetailDestination(id)) },
                                 )
                             },
                         )
@@ -1602,25 +1577,6 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             itemId = entry.toRoute<LendItemEditDestination>().itemId,
-                            onDone = { navController.popBackStack() },
-                        )
-                    }
-                    composable<TurnDetailDestination> { entry ->
-                        val turnId = entry.toRoute<TurnDetailDestination>().turnId
-                        TurnDetailRoute(
-                            container = container,
-                            currentMember = currentMember,
-                            turnId = turnId,
-                            onEdit = { navController.navigate(TurnEditDestination(turnId)) },
-                            onCreateEvent = { title -> navController.navigate(EventEditDestination(title = title)) },
-                            onBack = { navController.popBackStack() },
-                        )
-                    }
-                    composable<TurnEditDestination> { entry ->
-                        TurnEditRoute(
-                            container = container,
-                            currentMember = currentMember,
-                            turnId = entry.toRoute<TurnEditDestination>().turnId,
                             onDone = { navController.popBackStack() },
                         )
                     }
@@ -2020,7 +1976,7 @@ private fun allModules(
     meId: String,
     /** « Notre année », findable all year long under « Se souvenir » (PRD rév. 259); null: not yet. */
     reviewYear: Int? = null,
-    /** Bons plans, On se prête, À qui le tour ?: Entraide, turned to that sub-tab (PRODUIT-118). */
+    /** Bons plans, On se prête: Entraide, turned to that sub-tab (PRODUIT-118). */
     onEntraideTab: (EntraideTab) -> Unit = {},
     /**
      * Se souvenir en un seul lieu (récit 71), with the fil on: « Se souvenir » keeps Le fil, Albums,
@@ -2046,9 +2002,6 @@ private fun allModules(
     module(entraideOn && features.isOn(Feature.Lending), "lending", R.string.entraide_tab_lending, Icons.Outlined.Category, ModuleFamily.Organise) {
         onEntraideTab(EntraideTab.Lending)
     }
-    module(entraideOn && features.isOn(Feature.Turns), "turns", R.string.entraide_tab_turns, Icons.Outlined.Autorenew, ModuleFamily.Organise) {
-        onEntraideTab(EntraideTab.Turns)
-    }
     module(features.isOn(Feature.Polls), "polls", R.string.all_polls, Icons.Outlined.Poll, ModuleFamily.Organise) {
         navController.navigate(PollsDestination) { launchSingleTop = true }
     }
@@ -2069,7 +2022,9 @@ private fun allModules(
     }
     module(memoriesInFeed, "feed", R.string.all_feed, Icons.Outlined.DynamicFeed, ModuleFamily.Remember) {
         FeedOpenRequest.ask()
-        navController.navigateToTab(TopLevelDestination.Home)
+        // Back down to the Accueil under Tout Familia: going to the tab would bring Tout Familia back,
+        // saved with the Accueil, and nothing seemed to happen (retour d'essai, 20/11).
+        if (!navController.popBackStack(HomeRoute, inclusive = false)) navController.navigateToTab(TopLevelDestination.Home)
     }
     module(features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums), "albums", R.string.all_albums, Icons.Outlined.PhotoLibrary, ModuleFamily.Remember) {
         navController.navigate(AlbumsDestination) { launchSingleTop = true }
@@ -2109,7 +2064,7 @@ private fun NavHostController.seeWhere(feature: Feature, meId: String, nextEvent
     return when (feature) {
         Feature.Home, Feature.YearAgo, Feature.BirthdayWishes, Feature.Discover, Feature.DailyNudge -> ({ navigateToTab(TopLevelDestination.Home) })
         Feature.Gifts, Feature.GiftNotebook, Feature.WishesReveal, Feature.GiftBudget, Feature.SingleList -> ({ navigateToTab(TopLevelDestination.Gifts) })
-        Feature.HelpRequests, Feature.GoodDeals, Feature.Lending, Feature.Turns -> ({ navigateToTab(TopLevelDestination.HelpRequests) })
+        Feature.HelpRequests, Feature.GoodDeals, Feature.Lending -> ({ navigateToTab(TopLevelDestination.HelpRequests) })
         Feature.Trips, Feature.Expenses, Feature.PackingList -> ({ navigate(TripsDestination) { launchSingleTop = true } })
         Feature.GoodNews, Feature.LittleOnes -> ({ navigate(GoodNewsFeedDestination) { launchSingleTop = true } })
         Feature.Themes -> ({ navigate(AppearanceDestination) { launchSingleTop = true } })

@@ -37,10 +37,6 @@ fun EntraideTabs(
     showGoodDeals: Int = 0,
     lendingOn: Boolean = false,
     lending: @Composable () -> Unit = {},
-    turnsOn: Boolean = false,
-    turns: @Composable () -> Unit = {},
-    /** Each new value turns to « À qui le tour ? » (a touched notification). */
-    showTurns: Int = 0,
     /** A sub-tab asked once from « Tout Familia » (PRODUIT-118); [onOpened] spends it. */
     open: EntraideTab? = null,
     onOpened: () -> Unit = {},
@@ -49,7 +45,6 @@ fun EntraideTabs(
         add(EntraideTab.Help)
         if (goodDealsOn) add(EntraideTab.GoodDeals)
         if (lendingOn) add(EntraideTab.Lending)
-        if (turnsOn) add(EntraideTab.Turns)
     }
     if (tabs.size == 1) {
         if (open != null) LaunchedEffect(open) { onOpened() }
@@ -59,9 +54,6 @@ fun EntraideTabs(
     var selected by rememberSaveable { mutableStateOf(if (showGoodDeals > 0 && goodDealsOn) EntraideTab.GoodDeals else EntraideTab.Help) }
     LaunchedEffect(showGoodDeals) {
         if (showGoodDeals > 0 && goodDealsOn) selected = EntraideTab.GoodDeals
-    }
-    LaunchedEffect(showTurns) {
-        if (showTurns > 0 && turnsOn) selected = EntraideTab.Turns
     }
     LaunchedEffect(open) {
         if (open != null) {
@@ -93,7 +85,6 @@ fun EntraideTabs(
                 EntraideTab.Help -> help()
                 EntraideTab.GoodDeals -> goodDeals()
                 EntraideTab.Lending -> lending()
-                EntraideTab.Turns -> turns()
             }
         }
     }
@@ -103,5 +94,4 @@ enum class EntraideTab(@StringRes val label: Int) {
     Help(R.string.entraide_tab_help),
     GoodDeals(R.string.entraide_tab_good_deals),
     Lending(R.string.entraide_tab_lending),
-    Turns(R.string.entraide_tab_turns),
 }
