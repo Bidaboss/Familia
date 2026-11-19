@@ -113,6 +113,8 @@ enum class EventFormError {
     TitleMissing, TitleTooLong, DateMissing, PlaceTooLong, NoteTooLong, TargetMissing,
     /** « Se termine le » before the first day, or a number of times out of 2 to 200 (récit 54). */
     RepeatEndInvalid,
+    /** A new event more than a year in the past: an anniversary typed on the birth date (retour d'essai 20/11). */
+    DateTooOld,
 }
 
 const val MAX_TITLE = 80
@@ -120,11 +122,12 @@ const val MAX_PLACE = 120
 const val MAX_NOTE = 1000
 
 /** Same limits as the security rules; "a title or a date missing prevents saving" (PRD, récit 2). */
-fun validate(form: EventForm, allowedTargets: List<EventTarget>): Set<EventFormError> = buildSet {
+fun validate(form: EventForm, allowedTargets: List<EventTarget>, oldest: LocalDate? = null): Set<EventFormError> = buildSet {
     val title = form.title.trim()
     if (title.isEmpty()) add(EventFormError.TitleMissing)
     if (title.length > MAX_TITLE) add(EventFormError.TitleTooLong)
     if (form.date == null) add(EventFormError.DateMissing)
+    if (form.date != null && oldest != null && form.date < oldest) add(EventFormError.DateTooOld)
     if (form.place.trim().length > MAX_PLACE) add(EventFormError.PlaceTooLong)
     if (form.note.trim().length > MAX_NOTE) add(EventFormError.NoteTooLong)
     if (form.target == null || form.target !in allowedTargets) add(EventFormError.TargetMissing)

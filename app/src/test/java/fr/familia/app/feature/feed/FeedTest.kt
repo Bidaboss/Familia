@@ -84,4 +84,16 @@ class FeedTest {
         val list = birthdaysOn(listOf(m("noe", LocalDate.of(2017, 11, 18)), m("lou", LocalDate.of(1990, 11, 19)), m("sam", null)), today)
         assertEquals(listOf("noe" to 9), list.map { it.member.id to it.age })
     }
+
+    @Test
+    fun `an event typed on a birth date shows its next return, a recent one keeps its own day`() {
+        fun e(date: LocalDate) = Event("a", "Anniversaire de Nina", date, null, null, null, EventTarget.ForFamily, "ines", "Inès")
+        val today = LocalDate.of(2026, 11, 20)
+        assertEquals(LocalDate.of(2026, 12, 7), feedEventDay(e(LocalDate.of(1987, 12, 7)), today))
+        assertEquals(LocalDate.of(2027, 3, 2), feedEventDay(e(LocalDate.of(1990, 3, 2)), today))
+        // Last week, or in December of last year seen in January: its own day.
+        assertEquals(LocalDate.of(2026, 11, 13), feedEventDay(e(LocalDate.of(2026, 11, 13)), today))
+        assertEquals(LocalDate.of(2026, 12, 31), feedEventDay(e(LocalDate.of(2026, 12, 31)), LocalDate.of(2027, 1, 2)))
+        assertEquals(LocalDate.of(2026, 12, 24), feedEventDay(e(LocalDate.of(2026, 12, 24)), today))
+    }
 }

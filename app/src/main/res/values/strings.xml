@@ -99,6 +99,7 @@
     <string name="error_event_title_missing">Écris un titre.</string>
     <string name="error_event_title_too_long">80 caractères au plus.</string>
     <string name="error_event_date_missing">Choisis une date.</string>
+    <string name="error_event_date_too_old">Cette date est passée depuis plus d\'un an. Pour un anniversaire, ajoute plutôt la date de naissance sur la fiche de la personne : il apparaît tout seul dans le Planning, chaque année.</string>
     <string name="error_event_place_too_long">120 caractères au plus.</string>
     <string name="error_event_note_too_long">1 000 caractères au plus.</string>
     <string name="error_event_target_missing">Choisis pour qui est l\'événement.</string>

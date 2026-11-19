@@ -286,7 +286,7 @@ class EventEditViewModel(
     }
 
     private fun errorsFor(form: EventForm, state: EventEditUiState.Editing): Set<EventFormError> =
-        if (showErrors) validate(form, state.targets.map { it.target }) else emptySet()
+        if (showErrors) validate(form, state.targets.map { it.target }, oldest = today().minusYears(1).takeIf { original == null }) else emptySet()
 
     private fun markFailed() {
         savedState?.remove<String>(KEY_SENT)
