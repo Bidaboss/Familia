@@ -16,6 +16,8 @@ export interface GiftMember {
   profile: Profile;
   parentIds: string[];
   birthDate: string | null; // AAAA-MM-JJ
+  /** Read for « Cadeau commun avec… » (récit 73): a wish is shared within a household only. */
+  householdId?: string;
 }
 
 export interface GiftItemData {
@@ -128,6 +130,7 @@ export async function loadGiftMembers(db: Firestore): Promise<GiftMember[]> {
     profile: doc.get('profile'),
     parentIds: (doc.get('parentIds') as string[] | undefined) ?? [],
     birthDate: (doc.get('birthDate') as string | null | undefined) ?? null,
+    householdId: String(doc.get('householdId') ?? ''),
   }));
 }
 

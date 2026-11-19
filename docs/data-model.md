@@ -319,6 +319,7 @@ PRD, récits 7 à 10 bis. **La surprise est gardée par le serveur** : les règl
 | `viewerIds` | liste de `memberId` (40 au plus) | Ceux qui voient la liste. Vide pour « Mes envies », que toute la famille voit |
 | `creatorId`, `creatorName` | `memberId`, texte | Qui a créé la liste, jamais modifiés |
 | `revealed` | booléen | Faux à la création. Passé à vrai par la Cloud Function le lendemain de l'occasion : la liste est alors archivée et le bénéficiaire découvre tout |
+| `coBeneficiaryIds` | liste de `memberId` (20 au plus) ou absent | « Mes envies » seulement (récit 73) : ceux avec qui l'une de ses envies est un cadeau commun. Écrit dans le même lot que l'envie, ne fait que grandir. Ces membres ne listent jamais les réservations de la liste : ils lisent celles des autres envies une par une |
 | `createdAt`, `updatedAt` | horodatage serveur | |
 
 - « Mes envies » d'un membre a l'identifiant `wishes-{memberId}`, il n'y en a donc qu'une. Elle est créée à la première envie ajoutée, et ne se supprime pas.
@@ -347,11 +348,13 @@ Requêtes de l'appli, toutes acceptées par les règles : `viewerIds array-conta
 | `occasion` | `christmas` \| `birthday`, null ou absent | Récit 9 ter : l'occasion pour laquelle une envie est notée. Null ou absent : « Quand tu veux » |
 | `alreadyBought` | booléen ou absent | Récit 68 (interrupteur « Déjà acheté ») : « Je l'ai déjà acheté, une participation me ferait plaisir ». Seulement sur « Mes envies », sur une envie que la personne voit. Personne ne la réserve ; on y participe. Reste vrai tant que `contributedTotal` n'est pas 0 |
 | `contributedTotal` | entier positif ou absent | Récit 68 : total des participations en euros ronds. Jamais écrit par l'auteur : chaque participant le change de sa propre part, dans le même lot d'écritures que sa part |
+| `coBeneficiaryId` | `memberId`, null ou absent | « Cadeau commun avec… » (récit 73), sur « Mes envies » seulement : un autre membre du foyer de la personne, enfants compris. La liste le nomme dans `coBeneficiaryIds` dans le même lot. L'envie apparaît aussi en bas de ses envies, sous « Cadeaux communs » (requête `coBeneficiaryId == lui` avec `visibleToBeneficiary == true` sur les « Mes envies » de son foyer). Une fois posé, il ne change plus et ne s'enlève plus : sinon ce membre lirait sa réservation. Si l'envie est supprimée, sa réservation reste cachée à tous ceux qui partagent une envie de la liste |
 | `createdAt`, `updatedAt` | horodatage serveur | |
 
 - **Lire** : ceux qui voient la liste. Le bénéficiaire ne lit que `visibleToBeneficiary == true` (l'appli filtre sa requête ainsi) jusqu'à la révélation.
 - **Ajouter** : ceux qui voient la liste, tant qu'elle n'est pas révélée.
 - **Modifier, supprimer** : l'auteur, tant que l'article n'est pas réservé et que la liste n'est pas révélée. Exception : le côté du bénéficiaire peut toujours modifier ou retirer ses propres articles, car un refus lui apprendrait que l'article est réservé. La Cloud Function prévient alors le réservant (PR des fonctions).
+- **Cadeau commun avec…** (récit 73) : celui avec qui l'envie est partagée, ou le parent d'un enfant qui la partage, la modifie aussi, réservée ou non, sans changer `coBeneficiaryId`, `authorId` ni `visibleToBeneficiary`. Il ne la supprime pas. Il ne la réserve pas, n'y prend pas de part et n'y participe pas ; il ne lit ni sa réservation ni ses parts, comme le bénéficiaire. À la révélation, l'envie offerte va aussi dans son « On m'a offert », en `received/with-{bénéficiaire}-{itemId}`, et il est prévenu.
 
 ### `giftLists/{listId}/claims/{itemId}`
 

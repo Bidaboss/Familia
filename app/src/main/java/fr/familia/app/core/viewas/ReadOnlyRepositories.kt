@@ -437,6 +437,9 @@ class ReadOnlyGiftRepository(
     override fun observeList(listId: String): Flow<GiftList?> = inner.observeList(listId).map { listSeenBy(it, viewedId) }
     override fun observeItems(listId: String, hiddenFromMe: Boolean): Flow<List<GiftItem>> = inner.observeItems(listId, hiddenFromMe)
     override fun observeClaims(listId: String): Flow<List<GiftClaim>> = inner.observeClaims(listId)
+    override fun observeClaimsOf(listId: String, itemIds: List<String>): Flow<List<GiftClaim>> = inner.observeClaimsOf(listId, itemIds)
+    override fun observeWishesSharedWith(memberId: String, listIds: List<String>): Flow<List<fr.familia.app.core.model.SharedWish>> =
+        inner.observeWishesSharedWith(memberId, listIds)
     override fun observeShares(listId: String, itemIds: List<String>, memberId: String, allOf: Set<String>): Flow<Map<String, List<GiftShare>>> =
         inner.observeShares(listId, itemIds, memberId, allOf)
     override fun newListId(): String = inner.newListId()

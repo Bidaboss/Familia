@@ -1876,6 +1876,42 @@ service cloud.firestore {
       return l.beneficiaryId == myMemberId() && l.revealed != true;
     }
 
+    // Récit 73, « Cadeau commun avec… »: a wish of « Mes envies » shared with a member of the household
+    // of its beneficiary, its coBeneficiaryId. The list names everyone who shares one of its wishes in
+    // coBeneficiaryIds, a list that only grows: they may not list its reservations, only read one by
+    // one those of the wishes they do not share. Like the beneficiary, they never learn that their
+    // shared wish is reserved, nor by whom.
+    function sharesAWishOf(l) {
+      return myMemberId() in l.get('coBeneficiaryIds', []);
+    }
+
+    function itemDocPath(listId, itemId) {
+      return /databases/$(database)/documents/giftLists/$(listId)/items/$(itemId);
+    }
+
+    // The caller shares the wish [itemId] of [listId]. A removed wish is shared with nobody.
+    function sharesWish(listId, itemId) {
+      return exists(itemDocPath(listId, itemId))
+        && get(itemDocPath(listId, itemId)).data.get('coBeneficiaryId', null) == myMemberId();
+    }
+
+    // Whoever shares a wish of the list [l] reads the reservation of [itemId] only if it is a wish
+    // that exists and that they do not share: a removed wish may have been theirs.
+    function readsReservationOf(l, listId, itemId) {
+      return !sharesAWishOf(l)
+        || (exists(itemDocPath(listId, itemId))
+            && get(itemDocPath(listId, itemId)).data.get('coBeneficiaryId', null) != myMemberId());
+    }
+
+    // The member [memberId] may share a wish of the list [l]: another member of the same household.
+    function canShareWishWith(l, memberId) {
+      return l.kind == 'wishes'
+        && memberId is string
+        && memberId != l.beneficiaryId
+        && exists(memberPath(memberId))
+        && get(memberPath(memberId)).data.householdId == get(memberPath(l.beneficiaryId)).data.householdId;
+    }
+
     // The creator manages a list; the keeper of the beneficiary manages their own list and wishes.
     function canManageList(l) {
       return l.creatorId == myMemberId() || (!(l.kind in ['surprise', 'ideas']) && keepsListsOf(l.beneficiaryId));
@@ -1890,8 +1926,10 @@ service cloud.firestore {
       return l.keys().hasAll(['kind', 'title', 'occasion', 'date', 'beneficiaryId', 'viewerIds',
                               'creatorId', 'creatorName', 'revealed', 'createdAt', 'updatedAt'])
         && l.keys().hasOnly(['kind', 'title', 'occasion', 'date', 'beneficiaryId', 'viewerIds',
-                             'creatorId', 'creatorName', 'revealed', 'createdAt', 'updatedAt'])
+                             'creatorId', 'creatorName', 'revealed', 'createdAt', 'updatedAt', 'coBeneficiaryIds'])
         && l.kind in ['wishes', 'own', 'surprise', 'ideas']
+        // Récit 73: who shares a wish of this list (see coBeneficiaryId on the items), on « Mes envies » only.
+        && (!('coBeneficiaryIds' in l) || (l.kind == 'wishes' && l.coBeneficiaryIds is list && l.coBeneficiaryIds.size() <= 20))
         && l.title is string && l.title.size() > 0 && l.title.size() <= 60
         && l.beneficiaryId is string && exists(memberPath(l.beneficiaryId))
         && l.viewerIds is list && l.viewerIds.size() <= 40
@@ -1942,7 +1980,8 @@ service cloud.firestore {
         && request.resource.data.creatorId == resource.data.creatorId
         && request.resource.data.creatorName == resource.data.creatorName
         && request.resource.data.revealed == resource.data.revealed
-        && request.resource.data.createdAt == resource.data.createdAt;
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.get('coBeneficiaryIds', []).hasAll(resource.data.get('coBeneficiaryIds', []));
 
       // « Mes envies » is permanent. Items, reservations and shares are removed on the server.
       allow delete: if isMember() && !isPermanentList(resource.data.kind) && canManageList(resource.data);
@@ -1953,7 +1992,7 @@ service cloud.firestore {
                               'visibleToBeneficiary', 'createdAt', 'updatedAt'])
         && i.keys().hasOnly(['title', 'url', 'price', 'note', 'authorId', 'authorName',
                              'visibleToBeneficiary', 'createdAt', 'updatedAt', 'imageUrl', 'occasion', 'photo',
-                             'alreadyBought', 'contributedTotal'])
+                             'alreadyBought', 'contributedTotal', 'coBeneficiaryId'])
         // « Déjà acheté, participation bienvenue » (récit 68): a bool, and the total of the
         // participations in whole euros, kept by those who take part (see contributions below).
         && (!('alreadyBought' in i) || i.alreadyBought is bool)
@@ -2000,6 +2039,15 @@ service cloud.firestore {
         return /databases/$(database)/documents/giftLists/$(listId)/items/$(itemId)/contributions/$(myMemberId());
       }
 
+      // Récit 73: absent or null, or another member of the household, whom the list names in the same
+      // write (coBeneficiaryIds), so that from then on they may not list its reservations.
+      function isValidCoBeneficiary(i) {
+        return i.get('coBeneficiaryId', null) == null
+          || (canShareWishWith(list(), i.coBeneficiaryId)
+              && i.visibleToBeneficiary == true
+              && i.coBeneficiaryId in getAfter(giftListPath(listId)).data.get('coBeneficiaryIds', []));
+      }
+
       // Récit 68: « Déjà acheté » only on a wish its keeper sees, and never with a total of its own.
       function isValidAlreadyBought(i) {
         return i.get('alreadyBought', false) == false
@@ -2020,6 +2068,7 @@ service cloud.firestore {
         && request.resource.data.authorName == me().firstName
         && request.resource.data.createdAt == request.time
         && isValidAlreadyBought(request.resource.data)
+        && isValidCoBeneficiary(request.resource.data)
         && !('contributedTotal' in request.resource.data)
         && request.resource.data.visibleToBeneficiary
              == (!(list().kind in ['surprise', 'ideas']) && keepsListsOf(list().beneficiaryId));
@@ -2038,6 +2087,29 @@ service cloud.firestore {
         && request.resource.data.visibleToBeneficiary == resource.data.visibleToBeneficiary
         && request.resource.data.createdAt == resource.data.createdAt
         // The total belongs to those who take part; « Déjà acheté » stays while someone does.
+        && request.resource.data.get('contributedTotal', 0) == resource.data.get('contributedTotal', 0)
+        && isValidAlreadyBought(request.resource.data)
+        && isValidCoBeneficiary(request.resource.data)
+        // Once shared, a wish stays shared with the same member: otherwise they would read its reservation.
+        && (resource.data.get('coBeneficiaryId', null) == null
+            || request.resource.data.get('coBeneficiaryId', null) == resource.data.coBeneficiaryId)
+        && (request.resource.data.get('alreadyBought', false) == true
+            || resource.data.get('contributedTotal', 0) == 0);
+
+      // Récit 73: whoever shares the wish, or keeps the lists of a child who does, edits it too, as its
+      // author would, without changing who shares it. Never refused for a reservation: it would tell.
+      allow update: if isMember()
+        && list().kind == 'wishes'
+        && list().revealed == false
+        && resource.data.get('coBeneficiaryId', null) != null
+        && keepsListsOf(resource.data.coBeneficiaryId)
+        && isValidGiftItem(request.resource.data)
+        && isValidItemPhoto(listId, request.resource.data, resource.data)
+        && request.resource.data.coBeneficiaryId == resource.data.coBeneficiaryId
+        && request.resource.data.authorId == resource.data.authorId
+        && request.resource.data.authorName == resource.data.authorName
+        && request.resource.data.visibleToBeneficiary == resource.data.visibleToBeneficiary
+        && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.get('contributedTotal', 0) == resource.data.get('contributedTotal', 0)
         && isValidAlreadyBought(request.resource.data)
         && (request.resource.data.get('alreadyBought', false) == true
@@ -2068,13 +2140,17 @@ service cloud.firestore {
         return get(giftListPath(listId)).data;
       }
 
-      allow read: if isMember() && canSeeList(list()) && !isKeptFromMe(list());
+      // Récit 73: whoever shares a wish of the list reads its reservations one by one, never theirs.
+      allow get: if isMember() && canSeeList(list()) && !isKeptFromMe(list())
+        && readsReservationOf(list(), listId, itemId);
+      allow list: if isMember() && canSeeList(list()) && !isKeptFromMe(list()) && !sharesAWishOf(list());
 
       allow create: if isMember()
         && exists(giftListPath(listId))
         && canSeeList(list())
         && list().revealed == false
         && list().beneficiaryId != myMemberId()
+        && !sharesWish(listId, itemId)
         && exists(/databases/$(database)/documents/giftLists/$(listId)/items/$(itemId))
         && request.resource.data.keys().hasAll(['type', 'holderId', 'holderName', 'createdAt'])
         && request.resource.data.keys().hasOnly(['type', 'holderId', 'holderName', 'createdAt'])
@@ -2123,6 +2199,7 @@ service cloud.firestore {
       }
 
       allow read: if isMember() && canSeeList(list()) && !isKeptFromMe(list())
+        && readsReservationOf(list(), listId, itemId)
         && (memberId == myMemberId() || claim().holderId == myMemberId());
 
       allow create: if isMember()
@@ -2131,6 +2208,7 @@ service cloud.firestore {
         && canSeeList(list())
         && list().revealed == false
         && list().beneficiaryId != myMemberId()
+        && !sharesWish(listId, itemId)
         && claim().type == 'shared'
         && isValidShare(request.resource.data)
         && request.resource.data.memberName == me().firstName
@@ -2178,6 +2256,7 @@ service cloud.firestore {
         && me().profile == 'adult'
         && list().kind == 'wishes'
         && !keepsListsOf(list().beneficiaryId)
+        && get(itemPath()).data.get('coBeneficiaryId', null) != myMemberId()
         && get(itemPath()).data.get('alreadyBought', false) == true
         && request.resource.data.keys().hasAll(['amount', 'memberName', 'updatedAt'])
         && request.resource.data.keys().hasOnly(['amount', 'memberName', 'updatedAt'])

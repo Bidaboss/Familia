@@ -157,6 +157,33 @@ describe('wishes reveal', () => {
     assert.equal(sent[0].notice.listId, LIST);
   });
 
+  test('a wish shared with a member of the household goes to the « On m\'a offert » of both (récit 73)', async () => {
+    await db.doc('members/jules/devices/token-jules').set({});
+    await list().collection('items').doc('book').update({ coBeneficiaryId: 'jules' });
+    const { sent, send } = fakeSender();
+    assert.equal(await revealWishes(db, send, DAY_AFTER), 2);
+    const mine = await list().collection('received').doc('book').get();
+    assert.deepEqual(mine.get('givers'), ['Camille']);
+    // Jules had no « Mes envies »: it is made for the archive.
+    const jules = db.collection('giftLists').doc('wishes-jules');
+    assert.equal((await jules.get()).get('beneficiaryId'), 'jules');
+    const theirs = await jules.collection('received').doc('with-ines-book').get();
+    assert.equal(theirs.get('title'), 'Un livre');
+    assert.deepEqual(theirs.get('givers'), ['Camille']);
+    assert.equal(theirs.get('thanked'), false);
+    assert.equal((await list().collection('items').doc('book').get()).exists, false);
+    // Jules is told once, about their own « On m'a offert ».
+    const toJules = sent.filter((s) => s.token === 'token-jules' && s.notice.listId === 'wishes-jules');
+    assert.equal(toJules.length, 1);
+  });
+
+  test('a shared wish naming someone of another household is archived for its beneficiary only', async () => {
+    await db.doc('members/jules').update({ householdId: 'h2' });
+    await list().collection('items').doc('book').update({ coBeneficiaryId: 'jules' });
+    assert.equal(await revealWishes(db, fakeSender().send, DAY_AFTER), 2);
+    assert.equal((await db.collection('giftLists').doc('wishes-jules').collection('received').get()).size, 0);
+  });
+
   test('a gift meant for Christmas stays hidden after the birthday, and is revealed after Christmas', async () => {
     await list().collection('claims').doc('book').update({ occasion: 'christmas' });
     assert.equal(await revealWishes(db, fakeSender().send, DAY_AFTER), 1);

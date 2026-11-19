@@ -80,7 +80,17 @@ data class ItemRow(
     val claim: ClaimView?,
     /** « Déjà acheté, participation bienvenue » (récit 68): never reserved, only taken part in. */
     val contributions: ContributionView? = null,
+    /** « Cadeau commun avec… » (récit 73): the first name of the member this wish is shared with. */
+    val sharedWithName: String? = null,
+    /**
+     * The reader shares this wish (récit 73): like its beneficiary, they see neither whether it is
+     * reserved nor by whom, and have nothing to reserve or take part in.
+     */
+    val sharedWithMe: Boolean = false,
 )
+
+/** A wish of someone of the household shared with the person of the list (récit 73), shown at its foot. */
+data class SharedWishRow(val listId: String, val item: GiftItem, val ownerName: String)
 
 /** Why a reservation did not hold, told gently rather than as a failure. */
 data class ClaimLost(val itemId: String, val reason: Reason) {
@@ -122,6 +132,8 @@ sealed interface GiftListUiState {
         val canContribute: Boolean = false,
         /** Who takes part, with their amounts: only whoever keeps the person's lists, never in « Voir comme ». */
         val seesContributors: Boolean = false,
+        /** « Cadeaux communs » (récit 73): the wishes of the household shared with the person, opened in their list. */
+        val sharedWishes: List<SharedWishRow> = emptyList(),
     ) : GiftListUiState
 
     /** Deleted, or not one this member may see. */
@@ -180,7 +192,16 @@ class GiftListViewModel(
         val beneficiary = family.members.firstOrNull { it.id == list.beneficiaryId } ?: return flowOf(GiftListUiState.Missing)
         val kept = isKeptFrom(list, me) || keptFromReader(list)
         val items = if (stored == null) flowOf(emptyList<GiftItem>()) else repo.observeItems(list.id, hiddenFromMe = kept)
-        val claims = if (stored == null || kept) flowOf(emptyList<GiftClaim>()) else repo.observeClaims(list.id)
+        // Récit 73: whoever shares a wish of the list reads the reservations of the others one by one.
+        val sharing = setOf(me.id, readerId).filter { it in list.coBeneficiaryIds }.toSet()
+        val claims = when {
+            stored == null || kept -> flowOf(emptyList<GiftClaim>())
+            sharing.isNotEmpty() -> items
+                .map { all -> all.filter { it.coBeneficiaryId !in sharing }.map { it.id }.sorted() }
+                .distinctUntilChanged()
+                .flatMapLatest { ids -> repo.observeClaimsOf(list.id, ids) }
+            else -> repo.observeClaims(list.id)
+        }
         val shares = claims
             .map { all ->
                 val joint = all.filter { it.type == ClaimType.Shared }
@@ -196,8 +217,10 @@ class GiftListViewModel(
             }
         val parts = contributions(repo, list, beneficiary, me, items)
         val reservations = combine(claims, shares, parts) { c, s, p -> Triple(c, s, p) }
-        return combine(items, reservations, today, failed) { itemList, (claimList, shareMap, partMap), day, didFail ->
+        val shared = sharedWishes(repo, list, beneficiary, family)
+        return combine(items, reservations, today, failed, shared) { itemList, (claimList, shareMap, partMap), day, didFail, sharedList ->
             state(list, stored != null, beneficiary, me, family, itemList, claimList, shareMap, partMap, day, didFail)
+                .copy(sharedWishes = sharedList)
         }
     }
 
@@ -224,6 +247,27 @@ class GiftListViewModel(
                 }
             }
             .onStart { emit(emptyMap()) }
+    }
+
+    /**
+     * « Cadeaux communs » (récit 73): on « Mes envies » of [beneficiary], the wishes the other members
+     * of their household share with them. They never take the list down.
+     */
+    private fun sharedWishes(repo: GiftRepository, list: GiftList, beneficiary: Member, family: Family): Flow<List<SharedWishRow>> {
+        if (list.kind != GiftListKind.Wishes) return flowOf(emptyList())
+        val household = family.members.filter { it.householdId == beneficiary.householdId && it.id != beneficiary.id }
+        if (household.isEmpty()) return flowOf(emptyList())
+        val names = household.associate { wishesListId(it.id) to it.firstName }
+        return repo.observeWishesSharedWith(beneficiary.id, names.keys.sorted())
+            .map { wishes ->
+                wishes.map { SharedWishRow(it.listId, it.item, names[it.listId].orEmpty()) }
+                    .sortedBy { it.item.title.lowercase() }
+            }
+            .catch { e ->
+                if (e is CancellationException) throw e
+                emit(emptyList())
+            }
+            .onStart { emit(emptyList()) }
     }
 
     /**
@@ -268,12 +312,20 @@ class GiftListViewModel(
                 else -> null
             }
         }
+        val sharing = setOf(me.id, readerId)
         val rows = items.sortedBy { it.title.lowercase() }.map { item ->
-            val claim = claimById[item.id]
+            val sharedWithMe = item.coBeneficiaryId != null && item.coBeneficiaryId in sharing
+            val claim = claimById[item.id]?.takeIf { !sharedWithMe }
             val parts = shares[item.id].orEmpty().sortedBy { it.memberName.lowercase() }
             ItemRow(
                 item = item,
-                canEdit = !list.revealed && item.authorId == me.id && (item.visibleToBeneficiary || claim == null),
+                canEdit = !list.revealed && (
+                    (item.authorId == me.id && (item.visibleToBeneficiary || claim == null)) ||
+                        // Récit 73: whoever shares the wish, or keeps the lists of a child who does.
+                        (list.kind == GiftListKind.Wishes && item.coBeneficiaryId?.let { co ->
+                            family.members.firstOrNull { it.id == co }?.let { keepsListsOf(me, it) }
+                        } == true)
+                    ),
                 isSurpriseIdea = !item.visibleToBeneficiary && list.kind != GiftListKind.Surprise && list.kind != GiftListKind.Ideas,
                 claim = claim?.let {
                     ClaimView(
@@ -302,6 +354,8 @@ class GiftListViewModel(
                 } else {
                     null
                 },
+                sharedWithName = item.coBeneficiaryId?.let { co -> family.members.firstOrNull { it.id == co }?.firstName },
+                sharedWithMe = sharedWithMe,
             )
         }
         return GiftListUiState.Success(

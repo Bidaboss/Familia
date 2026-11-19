@@ -9,9 +9,12 @@
 // « Idées de la famille » (récit 9 ter, behind config/app.features.singleList): the ideas taken
 // for a member are revealed the same way, into the same « On m'a offert » of their « Mes envies »,
 // as received/idea-{itemId}. The idea list itself stays: it is permanent, like « Mes envies ».
+//
+// « Cadeau commun avec… » (récit 73): a wish shared with a member of the household (coBeneficiaryId)
+// is archived in the « On m'a offert » of both, as received/with-{beneficiaryId}-{itemId} for the other.
 
 import { deleteItemPhoto, PhotoCopier, receivedPhoto, storageCopier } from './itemPhoto';
-import type { Firestore } from 'firebase-admin/firestore';
+import type { DocumentReference, Firestore } from 'firebase-admin/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
 import { giftAudience, GiftMember, loadGiftMembers, nextBirthday } from './gifts';
 import { Notice, parisDay } from './logic';
@@ -100,9 +103,14 @@ export async function revealWishes(db: Firestore, send: Sender, now: Date, copyP
     if (member.profile === 'childWithoutApp') continue;
     let count = 0;
     const asks: GivenAsk[] = [];
-    for (const source of sources) count += await revealWishesOf(db, member, members, today, source, asks, photos);
+    const shared: string[] = [];
+    for (const source of sources) count += await revealWishesOf(db, member, members, today, source, asks, photos, shared);
     revealed += count;
     if (count > 0 && audience([member.id]).length > 0) await notify(db, send, [member.id], wishesRevealNotice(`wishes-${member.id}`, count));
+    // Récit 73: whoever shared a wish just revealed is told too, once per wish.
+    for (const coId of shared) {
+      if (audience([coId]).length > 0) await notify(db, send, [coId], wishesRevealNotice(`wishes-${coId}`, 1));
+    }
     // « Tu l'as offert ? » (récit 10 bis, rév. 232): the one who reserved says it in their notebook.
     for (const ask of asks) {
       const to = audience([ask.holderId].filter((id) => id !== member.id));
@@ -143,7 +151,7 @@ export function receivedPath(listId: string, itemId: string): { listId: string; 
  */
 export async function revealWishesOf(
   db: Firestore, member: GiftMember, members: GiftMember[], today: string, source: RevealSource = 'wishes',
-  asks?: GivenAsk[], copyPhoto?: PhotoCopier,
+  asks?: GivenAsk[], copyPhoto?: PhotoCopier, shared?: string[],
 ): Promise<number> {
   const list = db.collection('giftLists').doc(`${source}-${member.id}`);
   const wishes = db.collection('giftLists').doc(`wishes-${member.id}`);
@@ -184,12 +192,10 @@ export async function revealWishesOf(
     const archivedPhoto = copyPhoto && typeof photo === 'string' && photo.startsWith(`giftLists/${list.id}/`)
       && (await copyPhoto(photo, receivedPhoto(archive.listId, archive.receivedId)))
       ? receivedPhoto(archive.listId, archive.receivedId) : null;
-    const batch = db.batch();
-    batch.set(wishes.collection('received').doc(archive.receivedId), {
+    const received = {
       title: String(item.get('title') ?? ''),
       url: (item.get('url') as string | null) ?? null,
       imageUrl: (item.get('imageUrl') as string | null) ?? null,
-      ...(archivedPhoto ? { photo: archivedPhoto } : {}),
       // Who to thank (rév. 189): ids, read by the server only to send the « Merci ».
       giverIds: [...new Set([String(claim.get('holderId') ?? ''), ...(joint ? shares.docs.map((s) => s.id) : [])])].filter((id) => id.length > 0),
       givers: giverNames(String(claim.get('holderId') ?? ''), joint ? shares.docs.map((s) => s.id) : [], members, String(claim.get('holderName') ?? '')),
@@ -198,12 +204,22 @@ export async function revealWishesOf(
       year: meant.year,
       thanked: false,
       revealedAt: FieldValue.serverTimestamp(),
+    };
+    // Récit 73: the other member of a shared wish gets it in their « On m'a offert » too.
+    const co = source === 'wishes' ? sharedWith(item.get('coBeneficiaryId'), member, members) : null;
+    const coArchive = co ? await coReceived(db, co, member.id, claim.id, photo, list.id, copyPhoto) : null;
+    const batch = db.batch();
+    batch.set(wishes.collection('received').doc(archive.receivedId), {
+      ...received,
+      ...(archivedPhoto ? { photo: archivedPhoto } : {}),
     });
+    if (coArchive) batch.set(coArchive.ref, { ...received, ...(coArchive.photo ? { photo: coArchive.photo } : {}) });
     batch.delete(claim.ref);
     batch.delete(item.ref);
     await batch.commit();
     await db.recursiveDelete(claim.ref.collection('shares'));
     count++;
+    if (co && shared) shared.push(co.id);
     // The notebook entry of the holder stays after the reveal: ask only while it is not « Offert ».
     const holderId = String(claim.get('holderId') ?? '');
     if (asks && holderId) {
@@ -212,6 +228,34 @@ export async function revealWishesOf(
     }
   }
   return count;
+}
+
+/** The member a wish of [member] is shared with (récit 73): another member of their household, or null. */
+export function sharedWith(coId: unknown, member: GiftMember, members: GiftMember[]): GiftMember | null {
+  if (typeof coId !== 'string' || coId === member.id) return null;
+  const co = members.find((m) => m.id === coId);
+  return co && !!co.householdId && co.householdId === member.householdId ? co : null;
+}
+
+/** Where the shared wish [itemId] of [ownerId] goes for [co], with a copy of its photo when it has one. */
+async function coReceived(
+  db: Firestore, co: GiftMember, ownerId: string, itemId: string, photo: unknown, listId: string, copyPhoto?: PhotoCopier,
+): Promise<{ ref: DocumentReference; photo: string | null }> {
+  const wishes = db.collection('giftLists').doc(`wishes-${co.id}`);
+  if (!(await wishes.get()).exists) {
+    await wishes.create({
+      kind: 'wishes', title: 'Mes envies', occasion: null, date: null, beneficiaryId: co.id, viewerIds: [],
+      creatorId: co.id, creatorName: co.firstName, revealed: false,
+      createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(),
+    }).catch((e: { code?: number }) => {
+      if (e?.code !== 6) throw e;
+    });
+  }
+  const receivedId = `with-${ownerId}-${itemId}`;
+  const target = receivedPhoto(wishes.id, receivedId);
+  const copied = copyPhoto && typeof photo === 'string' && photo.startsWith(`giftLists/${listId}/`)
+    && (await copyPhoto(photo, target));
+  return { ref: wishes.collection('received').doc(receivedId), photo: copied ? target : null };
 }
 
 /** « X te dit merci ! » to each giver, once: `thanked` only ever goes from false to true. */

@@ -656,6 +656,20 @@ Interrupteur « Ajouter une envie depuis une autre appli » (wishFromShare) allu
 6. Avec le compte d'un enfant, partage un lien : il n'y a pas « C'est pour qui ? », l'envie va dans ses propres envies.
 7. Éteins l'interrupteur, ouvre Familia puis reviens au navigateur : Familia n'est plus dans « Partager ».
 
+## Cadeau commun avec un membre du foyer (récit 73)
+
+Pas d'interrupteur : c'est actif dès le nouvel APK, après « Publier Firebase ». Il faut trois téléphones : le tien, celui de ta compagne (même foyer) et celui d'un adulte d'un autre foyer.
+
+1. Sur ton téléphone, ouvre « Mes envies » et touche « Ajouter une envie ». **Attendu :** sous la note, « Cadeau commun avec… (facultatif) » propose « Personne » (choisi) puis chaque membre de ton foyer, enfants compris, et personne d'un autre foyer.
+2. Choisis ta compagne, écris « Un barbecue » et enregistre. **Attendu :** l'envie porte « Cadeau commun avec » suivi de son prénom.
+3. Sur le téléphone de ta compagne, ouvre ses envies. **Attendu :** en bas, sous « Cadeaux communs », « Un barbecue » avec « Cadeau commun avec » suivi de ton prénom. Un toucher ouvre tes envies.
+4. Sur le téléphone de l'autre foyer, ouvre tes envies et réserve « Un barbecue » (« Je le prends »). **Attendu :** la réservation tient, comme pour une envie seule.
+5. Sur ton téléphone puis sur celui de ta compagne, rouvre tes envies. **Attendu :** ni l'un ni l'autre ne voit que « Un barbecue » est réservé, ni par qui. Ta compagne voit toujours les réservations de tes autres envies.
+6. Sur le téléphone de ta compagne, ouvre « Un barbecue » depuis tes envies et touche « Modifier ». **Attendu :** « Cadeau commun avec » suivi de ton prénom, sans choix à changer, et pas de bouton « Supprimer ». Change le prix et enregistre : ça tient.
+7. Sur ton téléphone, ouvre « Un barbecue » et touche « Modifier ». **Attendu :** « Cadeau commun avec » suivi de son prénom, sans choix à changer : une fois enregistré, le cadeau commun reste, sinon ta compagne verrait qui l'a réservé.
+
+La révélation du lendemain de l'occasion range l'envie offerte dans « On m'a offert » des deux, et chacun est prévenu : vérifiable seulement à la date, pas pendant l'essai.
+
 ## Mon budget cadeaux (récit 57)
 
 Interrupteurs « Budget cadeaux » (giftBudget) et « Carnet de cadeaux » allumés, avec « Cadeaux ».
