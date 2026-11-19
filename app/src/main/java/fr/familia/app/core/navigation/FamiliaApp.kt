@@ -1,11 +1,6 @@
 package fr.familia.app.core.navigation
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.Alignment
 import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.data.familyToday
@@ -47,7 +42,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import fr.familia.app.BuildConfig
 import fr.familia.app.R
 import fr.familia.app.core.viewas.LocalViewAs
@@ -235,13 +229,12 @@ import fr.familia.app.feature.home.HomeRoute as HomeTab
 import fr.familia.app.feature.discover.Discover
 import fr.familia.app.feature.discover.DiscoverModule
 import fr.familia.app.feature.discover.LocalDiscoverOrder
-import fr.familia.app.feature.polls.rememberPollsToVote
+import fr.familia.app.feature.polls.PollsSummary
+import fr.familia.app.feature.polls.canAskPoll
+import fr.familia.app.feature.polls.rememberPollsSummary
 import fr.familia.app.core.share.shareApp
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.res.pluralStringResource
 import fr.familia.app.feature.settings.NotificationSettingsRoute
 import fr.familia.app.feature.export.ExportRoute
 import fr.familia.app.feature.members.admin.AdministrationRoute
@@ -847,13 +840,10 @@ fun FamiliaApp(
                         onOpenTrips = onTrips,
                         onGoodNews = onGoodNews,
                         onWeeklyQuestion = onWeekly,
-                        onPolls = if (pollsOn) ({ navController.navigate(PollsDestination) { launchSingleTop = true } }) else null,
-                        pollsToVote = if (pollsOn && tab == TopLevelDestination.Planning) rememberPollsToVote(container, currentMember.id) else 0,
                         onAccount = { accountOpen = true },
                         greeting = if (tab == TopLevelDestination.Home) stringResource(R.string.home_r1_greeting, currentMember.firstName) else null,
                         onAdd = when {
                             tab == TopLevelDestination.Home -> ({ addOpen = true })
-                            tab == TopLevelDestination.Planning -> ({ navController.navigate(EventEditDestination()) })
                             else -> null
                         },
                     )
@@ -1074,6 +1064,10 @@ fun FamiliaApp(
                             onAddEvent = { navController.navigate(EventEditDestination()) },
                             onOpenEvent = { id -> navController.navigate(EventDetailDestination(id)) },
                             onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
+                            // « + Ajouter » and the card « Sondages » replace the buttons of the bar (récit 75).
+                            onAddPoll = if (pollsOn && canAskPoll(currentMember)) ({ navController.navigate(PollEditDestination) }) else null,
+                            onOpenPolls = if (pollsOn) ({ navController.navigate(PollsDestination) { launchSingleTop = true } }) else null,
+                            polls = if (pollsOn) rememberPollsSummary(container, currentMember.id) else PollsSummary(),
                         )
                     }
                     // --- Sondages (récits 2 bis et 2 ter), from the Planning bar ---
@@ -1932,7 +1926,6 @@ fun FamiliaApp(
 private const val TAB_TITLE_SCALE = 26f / 22f
 
 /** From this font scale on, the Planning bar shows « Sondages » as its icon and badge only. */
-private const val LARGE_FONT_SCALE = 1.5f
 
 /** Title bar of a tab, with its « ? » where the spec has one. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1944,16 +1937,12 @@ private fun TabTopBar(
     onOpenTrips: (() -> Unit)? = null,
     onGoodNews: (() -> Unit)? = null,
     onWeeklyQuestion: (() -> Unit)? = null,
-    onPolls: (() -> Unit)? = null,
-    /** The polls that wait for my vote: the badge of « Sondages » (BUG-1). */
-    pollsToVote: Int = 0,
     /** My photo, last at the right, opens the sheet of my account and the settings (DESIGN-12). */
     onAccount: (() -> Unit)? = null,
     /** « Bonjour Camille » in place of the tab name, on the R1 bis Accueil. */
     greeting: String? = null,
-    /** The « + » of the R1 bis Accueil, before « ? », and of the new Planning. */
+    /** The « + » of the R1 bis Accueil, before « ? ». The Planning has its « + Ajouter » at the bottom (récit 75). */
     onAdd: (() -> Unit)? = null,
-    /** The round filter of the new Planning (PRODUIT-126), left of its « + »; null hides it. */
 ) {
     TopAppBar(
         scrollBehavior = scrollBehavior,
@@ -1976,7 +1965,6 @@ private fun TabTopBar(
         actions = {
             when (tab) {
                 TopLevelDestination.Planning -> {
-                    onAdd?.let { add -> RoundAddButton(stringResource(R.string.planning_add), add) }
                     if (onGoodNews != null) {
                         IconButton(onClick = onGoodNews, modifier = Modifier.size(56.dp)) {
                             Icon(Icons.Outlined.Celebration, contentDescription = stringResource(R.string.goodnews_open_feed))
@@ -1985,41 +1973,6 @@ private fun TabTopBar(
                     if (onWeeklyQuestion != null) {
                         IconButton(onClick = onWeeklyQuestion, modifier = Modifier.size(56.dp)) {
                             Icon(Icons.Outlined.QuestionAnswer, contentDescription = stringResource(R.string.weekly_open))
-                        }
-                    }
-                    // Named, with the number that waits for my vote, so it is found (BUG-1).
-                    // At a large font size the named button would leave no room for the title: the
-                    // icon and its badge stay, with the name and the count read by TalkBack.
-                    val largeFont = LocalDensity.current.fontScale >= LARGE_FONT_SCALE
-                    if (onPolls != null && largeFont) {
-                        val waiting = if (pollsToVote > 0) pluralStringResource(R.plurals.polls_to_vote, pollsToVote, pollsToVote) else null
-                        val name = stringResource(R.string.polls_title)
-                        IconButton(
-                            onClick = onPolls,
-                            modifier = Modifier.size(56.dp).semantics {
-                                contentDescription = name
-                                if (waiting != null) stateDescription = waiting
-                            },
-                        ) {
-                            BadgedBox(badge = { if (pollsToVote > 0) Badge { Text(pollsToVote.toString()) } }, modifier = Modifier.clearAndSetSemantics { }) {
-                                Icon(Icons.Outlined.Poll, contentDescription = null)
-                            }
-                        }
-                    } else if (onPolls != null) {
-                        val waiting = if (pollsToVote > 0) pluralStringResource(R.plurals.polls_to_vote, pollsToVote, pollsToVote) else null
-                        TextButton(
-                            onClick = onPolls,
-                            modifier = Modifier
-                                .heightIn(min = 56.dp)
-                                .semantics(mergeDescendants = true) { if (waiting != null) stateDescription = waiting },
-                        ) {
-                            Icon(Icons.Outlined.Poll, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
-                            Text(stringResource(R.string.polls_title))
-                            if (pollsToVote > 0) {
-                                Spacer(Modifier.width(6.dp))
-                                Badge(modifier = Modifier.clearAndSetSemantics { }) { Text(pollsToVote.toString()) }
-                            }
                         }
                     }
                     // Trips have no tab (carte DESIGN-4): from here only while the Accueil is off.
@@ -2047,26 +2000,6 @@ private fun TabTopBar(
             onAccount?.let { AccountButton(member, onClick = it) }
         },
     )
-}
-
-/** The round « + » of the new Planning, bordered in dark like on the maquettes. */
-@Composable
-private fun RoundAddButton(label: String, onClick: () -> Unit) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(56.dp)
-            .clip(CircleShape)
-            .clickable(onClickLabel = label, role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = label },
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.size(48.dp).border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape),
-        ) {
-            Icon(Icons.Outlined.Add, contentDescription = null)
-        }
-    }
 }
 
 /**

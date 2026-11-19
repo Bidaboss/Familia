@@ -110,6 +110,8 @@ fun PlanningV2(
     onShareBirthday: ((Birthday) -> Unit)?,
     modifier: Modifier = Modifier,
     initialMode: PlanningMode = PlanningMode.Week,
+    /** Above the header: the card « Sondages » (récit 75). */
+    top: (@Composable () -> Unit)? = null,
 ) {
     var mode by rememberSaveable { mutableStateOf(initialMode) }
     var chosen by rememberSaveable { mutableLongStateOf(state.today.toEpochDay()) }
@@ -117,7 +119,13 @@ fun PlanningV2(
     val byDate = state.days.associateBy { it.date }
     val child = me != null && me.profile != MemberProfile.Adult
     val cards = PlanningCards(me?.id, child, state.today, onOpenEvent, onOpenTrip, onShareBirthday)
-    LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 32.dp)) {
+    // Room at the bottom so that « + Ajouter » never hides the last card (récit 75).
+    LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 104.dp)) {
+        top?.let { card ->
+            item(key = "v2-polls") {
+                Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) { card() }
+            }
+        }
         item(key = "v2-header") {
             PlanningV2Header(
                 mode = mode,

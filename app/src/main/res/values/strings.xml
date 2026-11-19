@@ -11,6 +11,18 @@
     <string name="planning_error_title">Le planning ne s\'affiche pas</string>
     <string name="planning_error_body">L\'appli n\'a pas pu lire le planning. Réessaie, et si ça continue, préviens un chef de famille.</string>
     <string name="planning_add">Ajouter</string>
+    <!-- Récit 75 : le « + Ajouter » du bas du Planning, et la carte des sondages. -->
+    <string name="planning_add_what">Que veux-tu ajouter ?</string>
+    <string name="planning_add_event">Un événement</string>
+    <string name="planning_add_event_hint">Une date à mettre au Planning</string>
+    <string name="planning_add_poll">Un sondage</string>
+    <string name="planning_add_poll_hint">Demander l\'avis de la famille</string>
+    <string name="planning_polls_open">Voir les sondages en cours</string>
+    <plurals name="planning_polls_count">
+        <item quantity="one">%d sondage en cours</item>
+        <item quantity="many">%d sondages en cours</item>
+        <item quantity="other">%d sondages en cours</item>
+    </plurals>
     <string name="planning_all_day">Journée</string>
     <string name="planning_for">Pour %1$s</string>
     <string name="planning_by">Ajouté par %1$s</string>

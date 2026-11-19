@@ -6,6 +6,12 @@ import fr.familia.app.feature.home.DayTone
 import fr.familia.app.feature.home.isFestive
 import fr.familia.app.feature.home.shortWord
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import fr.familia.app.feature.polls.PollsSummary
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.Icons
@@ -49,7 +55,15 @@ fun PlanningScreen(
     /** « Partager » on a birthday (PRD, récit 31); hidden when null. */
     onShareBirthday: ((Birthday) -> Unit)? = null,
     initialMode: PlanningMode = PlanningMode.Week,
+    /** « + Ajouter » at the bottom (récit 75); null hides it. */
+    onAddEvent: (() -> Unit)? = null,
+    /** « Un sondage » in the choice of « + Ajouter »; null (module off) adds an event at once. */
+    onAddPoll: (() -> Unit)? = null,
+    /** The card « Sondages » at the top, while one is open; null hides it. */
+    onOpenPolls: (() -> Unit)? = null,
+    polls: PollsSummary = PollsSummary(),
 ) {
+    var choosing by rememberSaveable { mutableStateOf(false) }
     Box(modifier.fillMaxSize()) {
         when (state) {
             PlanningUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
@@ -63,8 +77,24 @@ fun PlanningScreen(
                     }
                 },
             )
-            is PlanningUiState.Success -> PlanningV2(state, me, onOpenEvent, onOpenTrip, onShareBirthday, initialMode = initialMode)
+            is PlanningUiState.Success -> {
+                val pollsCard: @Composable () -> Unit = { if (onOpenPolls != null) PlanningPollsCard(polls, onOpenPolls) }
+                PlanningV2(
+                    state, me, onOpenEvent, onOpenTrip, onShareBirthday,
+                    initialMode = initialMode,
+                    top = pollsCard.takeIf { onOpenPolls != null && polls.open > 0 },
+                )
+            }
         }
+        if (onAddEvent != null && state !is PlanningUiState.Loading) {
+            PlanningAddButton(
+                onClick = { if (onAddPoll == null) onAddEvent() else choosing = true },
+                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+            )
+        }
+    }
+    if (choosing && onAddEvent != null && onAddPoll != null) {
+        PlanningAddSheet(onEvent = onAddEvent, onPoll = onAddPoll, onDismiss = { choosing = false })
     }
 }
 
