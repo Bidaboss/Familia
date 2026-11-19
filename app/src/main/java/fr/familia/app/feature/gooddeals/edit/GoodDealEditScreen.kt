@@ -58,6 +58,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -180,8 +181,8 @@ private fun Form(state: GoodDealEditUiState.Editing, onChange: ((GoodDealForm) -
             Modifier.part(DealPart.Main),
             accent = accent,
         ) {
-            FormLabel(stringResource(if (address) R.string.gooddeal_field_name else R.string.gooddeal_field_title))
             FormField(
+                label = stringResource(if (address) R.string.gooddeal_field_name else R.string.gooddeal_field_title),
                 value = form.title,
                 onValueChange = { v -> onChange { it.copy(title = v.take(80)) } },
                 isError = GoodDealFormError.TitleMissing in errors,
@@ -192,8 +193,8 @@ private fun Form(state: GoodDealEditUiState.Editing, onChange: ((GoodDealForm) -
                 GoodDealFormError.TitleMissing in errors -> FormHint(stringResource(R.string.gooddeal_error_title_missing), isError = true)
                 !address -> FormHint(stringResource(R.string.gooddeal_title_hint))
             }
-            FormLabel(stringResource(if (address) R.string.gooddeal_field_why else R.string.gooddeal_field_text))
             FormField(
+                label = stringResource(if (address) R.string.gooddeal_field_why else R.string.gooddeal_field_text),
                 value = form.text,
                 onValueChange = { v -> onChange { it.copy(text = v.take(500)) } },
                 enabled = enabled,
@@ -236,11 +237,16 @@ private fun Form(state: GoodDealEditUiState.Editing, onChange: ((GoodDealForm) -
             Modifier.part(DealPart.Where),
             accent = accent,
         ) {
-            FormLabel(stringResource(if (address) R.string.gooddeal_field_city else R.string.gooddeal_field_place))
-            FormField(value = form.place, onValueChange = { v -> onChange { it.copy(place = v.take(80)) } }, enabled = enabled, capitalize = true)
+            FormField(
+                label = stringResource(if (address) R.string.gooddeal_field_city else R.string.gooddeal_field_place),
+                value = form.place,
+                onValueChange = { v -> onChange { it.copy(place = v.take(80)) } },
+                enabled = enabled,
+                capitalize = true,
+            )
             if (address) {
-                FormLabel(stringResource(R.string.gooddeal_field_phone))
                 FormField(
+                    label = stringResource(R.string.gooddeal_field_phone),
                     value = form.phone,
                     onValueChange = { v -> onChange { it.copy(phone = v.take(20)) } },
                     isError = GoodDealFormError.PhoneInvalid in errors,
@@ -249,8 +255,8 @@ private fun Form(state: GoodDealEditUiState.Editing, onChange: ((GoodDealForm) -
                 )
                 if (GoodDealFormError.PhoneInvalid in errors) FormHint(stringResource(R.string.gooddeal_error_phone), isError = true)
             }
-            FormLabel(stringResource(R.string.gooddeal_field_link))
             FormField(
+                label = stringResource(R.string.gooddeal_field_link),
                 value = form.link,
                 onValueChange = { v -> onChange { it.copy(link = v.trim().take(500)) } },
                 isError = GoodDealFormError.LinkInvalid in errors,
@@ -281,6 +287,7 @@ private fun Form(state: GoodDealEditUiState.Editing, onChange: ((GoodDealForm) -
 
 @Composable
 private fun FormField(
+    label: String,
     value: String,
     onValueChange: (String) -> Unit,
     enabled: Boolean,
@@ -289,6 +296,8 @@ private fun FormField(
     singleLine: Boolean = true,
     keyboardType: KeyboardType = KeyboardType.Text,
 ) {
+    // The label above the field, and the same words for TalkBack on the field itself.
+    FormLabel(label)
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
@@ -301,7 +310,7 @@ private fun FormField(
             capitalization = if (capitalize) KeyboardCapitalization.Sentences else KeyboardCapitalization.None,
             keyboardType = keyboardType,
         ),
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
     )
 }
 
