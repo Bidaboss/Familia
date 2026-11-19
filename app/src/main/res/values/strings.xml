@@ -638,6 +638,11 @@
     <string name="update_banner_title">Une nouvelle version est prête</string>
     <string name="update_banner_line">2 minutes, et tes données ne bougent pas.</string>
     <string name="update_later">Plus tard</string>
+    <!-- DESIGN-47 : la feuille à la première ouverture (F), puis la carte foncée (D). -->
+    <string name="update_banner_new">NOUVEAU</string>
+    <string name="update_sheet_kicker">NOUVELLE VERSION</string>
+    <string name="update_sheet_line">Ça prend 2 minutes. Tes photos, tes listes et ton planning ne bougent pas.</string>
+    <string name="update_sheet_action">Mettre à jour maintenant</string>
     <string name="update_check_title">Vérifier les mises à jour</string>
     <string name="update_check_installed">Version installée : %1$s</string>
     <string name="update_check_in_progress">Vérification en cours…</string>

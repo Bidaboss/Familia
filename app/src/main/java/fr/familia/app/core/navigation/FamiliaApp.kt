@@ -60,6 +60,9 @@ import fr.familia.app.core.whatsnew.WhatsNewHost
 import fr.familia.app.core.whatsnew.WhatsNewRoute
 import fr.familia.app.core.whatsnew.WhatsNewTarget
 import fr.familia.app.feature.update.UpdateBanner
+import fr.familia.app.feature.update.UpdatePreferences
+import fr.familia.app.feature.update.UpdateSheet
+import fr.familia.app.feature.update.shouldShowUpdateSheet
 import fr.familia.app.feature.update.availableUpdate
 import fr.familia.app.feature.update.InAppUpdateDialogs
 import fr.familia.app.feature.update.LocalInAppUpdater
@@ -685,6 +688,10 @@ fun FamiliaApp(
 
     var updateDismissed by rememberSaveable { mutableStateOf(false) }
     LifecycleEventEffect(Lifecycle.Event.ON_START) { updateDismissed = false }
+    // DESIGN-47 (F): the sheet comes once per version, then the dark card stays until the update.
+    val updateContext = LocalContext.current
+    val updatePrefs = remember(updateContext) { UpdatePreferences(updateContext) }
+    var updateSheetSeen by remember(updatePrefs) { mutableStateOf(updatePrefs.sheetSeen) }
 
     // Récit 15: the Entraide tab counts the open requests where I was warned and can still help,
     // and that I have not seen yet in the « Coups de main » tab (retour [BUG] du 18/11).
@@ -1868,9 +1875,20 @@ fun FamiliaApp(
                         )
                     }
                 }
-                // Variante A (PRODUIT-129): floating over the screen, never pushing it; on the Accueil
+                // Variante D (DESIGN-47), at the place of A (PRODUIT-129): floating over the screen, never pushing it; on the Accueil
                 // just above « Tout Familia » (56 dp, 12 dp under it), elsewhere just above the tabs.
-                val shownUpdate = update?.takeIf { onTab && !updateDismissed }
+                val sheetUpdate = update?.takeIf { onTab && shouldShowUpdateSheet(it, updateSheetSeen) }
+                if (sheetUpdate != null) {
+                    val seen = {
+                        updatePrefs.sheetSeen = sheetUpdate.versionName
+                        updateSheetSeen = sheetUpdate.versionName
+                    }
+                    UpdateSheet(
+                        onUpdate = { seen(); updater.start(sheetUpdate) },
+                        onLater = seen,
+                    )
+                }
+                val shownUpdate = update?.takeIf { onTab && !updateDismissed && sheetUpdate == null }
                 if (shownUpdate != null) {
                     val onHome = currentDestination.isOn(TopLevelDestination.Home)
                     UpdateBanner(
