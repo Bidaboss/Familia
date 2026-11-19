@@ -11,9 +11,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object TripsDestination
 
-/** One trip: its steps and « bien arrivé ». */
+/**
+ * One trip: its steps and « bien arrivé ». [open]: the part to show first, the name of a
+ * TripPart (« Étapes » or « À prévoir » from the list, récit 80); null: the top.
+ */
 @Serializable
-data class TripDetailDestination(val tripId: String)
+data class TripDetailDestination(val tripId: String, val open: String? = null)
 
 /** Trip form: a new trip when [tripId] is null. */
 @Serializable
