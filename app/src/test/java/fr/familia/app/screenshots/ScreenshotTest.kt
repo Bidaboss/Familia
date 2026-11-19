@@ -44,6 +44,7 @@ import fr.familia.app.feature.help.helpTopics
 import fr.familia.app.feature.onboarding.OnboardingScreen
 import fr.familia.app.feature.onboarding.onboardingPages
 import fr.familia.app.feature.update.UpdateBanner
+import fr.familia.app.feature.update.UpdateSheetContent
 import fr.familia.app.feature.update.UpdateCheckScreen
 import fr.familia.app.feature.update.UpdateCheckUiState
 import fr.familia.app.feature.export.ExportUiState
@@ -523,6 +524,15 @@ class ScreenshotTest {
     @Config(fontScale = 2f)
     fun updateBannerFontScale200() = capture("mise_a_jour_police_200") {
         UpdateBanner({}, {})
+    }
+
+    @Test
+    fun updateSheetLight() = capture("mise_a_jour_feuille") { Surface(color = androidx.compose.ui.graphics.Color.White) { UpdateSheetContent({}, {}) } }
+
+    @Test
+    @Config(fontScale = 1.3f)
+    fun updateSheetFontScale130() = capture("mise_a_jour_feuille_police_130") {
+        Surface(color = androidx.compose.ui.graphics.Color.White) { UpdateSheetContent({}, {}) }
     }
 
     @Test

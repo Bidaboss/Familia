@@ -1374,3 +1374,15 @@ Un téléphone d'adulte, l'interrupteur « Sondages » allumé.
 9. Sur le téléphone d'un enfant avec l'appli : « + Ajouter » ouvre directement un événement (un enfant ne crée pas de sondage), et la carte « Sondages » reste là pour répondre.
 10. Avec le texte à 130 % puis au maximum : le bouton, la feuille et la carte restent lisibles, rien n'est coupé.
 
+## Mise à jour plus visible (DESIGN-47, F puis D)
+
+Un téléphone avec l'appli d'avant, puis « APK de publication » lancé pour une version plus récente.
+
+1. Ouvre Familia. **Attendu :** l'écran s'assombrit et une feuille blanche monte du bas : l'olivier, « NOUVELLE VERSION », « Une nouvelle version est prête », « Ça prend 2 minutes… », un gros bouton noir « Mettre à jour maintenant » et « Plus tard » en dessous.
+2. Touche « Plus tard ». **Attendu :** la feuille se ferme, et une carte foncée apparaît au-dessus de « Tout Familia » (au-dessus des onglets ailleurs) : olivier cerclé de jaune, étiquette jaune « NOUVEAU », bouton jaune « Mettre à jour ».
+3. Ferme Familia complètement puis rouvre-la. **Attendu :** pas de feuille cette fois (une seule fois par version), seulement la carte foncée.
+4. Touche « Mettre à jour » sur la carte : la mise à jour démarre comme avant (la famille qui tourne autour de l'arbre).
+5. Variante : à l'étape 1, touche « Mettre à jour maintenant » : la mise à jour démarre directement. Glisser la feuille vers le bas ou le bouton Retour font comme « Plus tard ».
+6. Avec le texte à 130 % : la feuille défile si besoin, et sur la carte « Plus tard » et « Mettre à jour » passent l'un sous l'autre, sans rien couper.
+7. TalkBack : sur la feuille, il lit le titre, puis la phrase, puis les deux boutons.
+
