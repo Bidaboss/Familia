@@ -1116,6 +1116,18 @@
     <string name="goodnews_reaction_laugh">un rire</string>
     <string name="goodnews_reaction_wow">la surprise</string>
     <string name="goodnews_reaction_thumbs_up">un pouce levé</string>
+    <!-- Un seul cœur (PRODUIT-139) -->
+    <string name="goodnews_heart_add">Mettre un cœur</string>
+    <string name="goodnews_heart_remove">Ta réaction : %1$s. Touche pour la retirer</string>
+    <string name="goodnews_reaction_choose">Choisir une réaction</string>
+    <string name="goodnews_reaction_hint">Reste appuyé pour choisir une autre réaction</string>
+    <string name="goodnews_reactions_who">Qui a réagi</string>
+    <string name="goodnews_reactions_someone">Quelqu\'un</string>
+    <string name="goodnews_reactions_close">Fermer</string>
+    <plurals name="goodnews_reactions_total">
+        <item quantity="one">%d réaction</item>
+        <item quantity="other">%d réactions</item>
+    </plurals>
     <string name="goodnews_load_more">Voir les plus anciennes</string>
     <string name="goodnews_empty_title">Le fil attend sa première actualité</string>
     <string name="goodnews_empty_body">Une réussite, une photo du jour, un petit bonheur : toute la famille sera contente de la voir.</string>
