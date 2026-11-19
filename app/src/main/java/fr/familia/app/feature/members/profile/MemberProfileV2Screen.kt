@@ -135,7 +135,7 @@ internal fun ContentV2(
             state, data, today, mayFill,
             onSavePhoto = v2.onSavePhoto?.takeIf { mayFill },
             onRemovePhoto = v2.onRemovePhoto,
-            onWish = if (wishes != null && !state.isMe) ({ scope.launch { scroll.animateScrollTo(wishesAt.coerceAtLeast(0)) }; Unit }) else null,
+            onWish = if (wishes != null && !state.isMe && birthdayToday(member.birthDate, today)) ({ scope.launch { scroll.animateScrollTo(wishesAt.coerceAtLeast(0)) }; Unit }) else null,
         )
         Column(
             Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
