@@ -1,7 +1,8 @@
 // « Une seule liste d'envies par personne » (PRD rév. 209, récit 9 ter, carte PRODUIT-58): once
 // the switch config/app.features.singleList is turned on, the lists of an occasion still open are
-// copied into the two permanent lists of their beneficiary. Nothing is deleted: the old lists stay
-// as they are until they are removed after the 21st, so turning the switch back off loses nothing.
+// copied into the two permanent lists of their beneficiary. Right after, in the same run, the old
+// lists copied whole are deleted for good (see cleanupOldLists below); those skipped or copied in
+// part stay. Turned back off, the switch brings back only what was not deleted.
 //
 // - An item the beneficiary sees goes to « Mes envies » (wishes-{id}), tagged with the occasion of
 //   its list when it is Christmas or a birthday.
