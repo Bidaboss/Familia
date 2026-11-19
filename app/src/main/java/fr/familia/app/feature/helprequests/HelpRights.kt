@@ -57,10 +57,10 @@ fun canDecline(request: HelpRequest, me: Member): Boolean =
 fun canWithdraw(request: HelpRequest, me: Member): Boolean =
     request.status == HelpStatus.Taken && request.volunteerId == me.id
 
-/** « Merci » from the day of the request on (récit 17), once. */
+/** « Merci » from the day of the request on (récit 17), once, never to oneself (retour d'essai, 19/11). */
 fun canThank(request: HelpRequest, me: Member, family: Family, today: LocalDate): Boolean =
     request.status == HelpStatus.Taken && request.thankedAt == null && request.date <= today &&
-        canManageHelp(request, me, family)
+        request.volunteerId != me.id && canManageHelp(request, me, family)
 
 /**
  * Whether the tab still lists [request] (récit 15): until the day after its date. The person who
