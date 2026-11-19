@@ -83,6 +83,12 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Surface
+import fr.familia.app.core.ui.BackButton
+import fr.familia.app.core.theme.LocalClayColors
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Celebration
@@ -513,17 +519,15 @@ fun FamiliaApp(
 
     // The Accueil (récit 29) is the first tab and the start screen once its module shows. The start
     // is read from the phone at once, and kept for this opening even if the module changes.
-    val startTab = rememberSaveable { TopLevelDestination.startFor(homePrefs.homeOn) }
+    val startTab = TopLevelDestination.START
     LaunchedEffect(appConfig, ownerId) {
         if (appConfig != null && ownerId != null) homePrefs.homeOn = features.isOn(Feature.Home)
     }
 
     // The Entraide tab and its entry points stay hidden while the module is off (PRD rév. 120).
     val helpRequestsOn = features.isOn(Feature.HelpRequests)
-    val tabs = TopLevelDestination.visible(features).let { visible ->
-        // The start screen keeps its tab until the next opening, so the bar always shows where one is.
-        if (startTab in visible) visible else listOf(startTab) + visible
-    }
+    // The Planning is a page since DESIGN-55 (récit 82): the bar holds the others, « Tout Familia » at its center.
+    val tabs = TopLevelDestination.visible(features)
     // A list or a trip opens only once its module shows (démo du 21: no trace of a module off).
     val giftsOn = features.isOn(Feature.Gifts)
     val tripsOn = features.isOn(Feature.Trips)
@@ -699,6 +703,7 @@ fun FamiliaApp(
 
     // The bar only shows on the tabs, not on screens opened from them.
     val onTab = TopLevelDestination.entries.any { currentDestination.isOn(it) }
+    val onPlanningPage = currentDestination.isOn(TopLevelDestination.Planning)
 
     // Profile photos (PRD, récit 3 bis): read once here, shown by every avatar of the app.
     val photos by rememberMemberPhotos(container?.memberPhotoRepository)
@@ -822,6 +827,8 @@ fun FamiliaApp(
                         onWeeklyQuestion = onWeekly,
                         onAccount = { accountOpen = true },
                         greeting = if (tab == TopLevelDestination.Home) stringResource(R.string.home_r1_greeting, currentMember.firstName) else null,
+                        // The Planning is a page (récit 82): its round « Retour » goes back to the Accueil.
+                        onBack = if (tab == TopLevelDestination.Planning) ({ if (!navController.popBackStack()) navController.navigateToTab(TopLevelDestination.Home) }) else null,
                         onAdd = when {
                             tab == TopLevelDestination.Home -> ({ addOpen = true })
                             else -> null
@@ -830,9 +837,13 @@ fun FamiliaApp(
                 }
             },
             bottomBar = {
-                if (onTab && !useRail) NavigationBar {
-                    tabs.forEach { destination ->
-                        val selected = currentDestination.isOn(destination)
+                if (onTab && !useRail) Box {
+                NavigationBar {
+                    tabs.forEachIndexed { index, destination ->
+                        // « Tout Familia » takes the center: 2 tabs on each side (DESIGN-55, variante A).
+                        if (index == tabs.size / 2) Box(Modifier.weight(1f))
+                        // The Planning opens as a page of the Accueil, which stays lit.
+                        val selected = currentDestination.isOn(destination) || (destination == TopLevelDestination.Home && onPlanningPage)
                         NavigationBarItem(
                             selected = selected,
                             onClick = { navController.navigateToTab(destination) },
@@ -851,6 +862,12 @@ fun FamiliaApp(
                         )
                     }
                 }
+                AllFamiliaRound(
+                    news = helpBadge,
+                    onClick = { navController.navigate(AllFamiliaDestination) { launchSingleTop = true } },
+                    modifier = Modifier.align(Alignment.TopCenter).offset(y = -ALL_ROUND_RISE),
+                )
+                }
             },
         ) { innerPadding ->
             // Consumed here, so the inner screens with their own Scaffold do not add the system bars again.
@@ -868,7 +885,7 @@ fun FamiliaApp(
                     modifier = Modifier.width(88.dp),
                 ) {
                     tabs.forEach { destination ->
-                        val selected = currentDestination.isOn(destination)
+                        val selected = currentDestination.isOn(destination) || (destination == TopLevelDestination.Home && onPlanningPage)
                         NavigationRailItem(
                             selected = selected,
                             onClick = { navController.navigateToTab(destination) },
@@ -885,6 +902,8 @@ fun FamiliaApp(
                             label = { TabLabel(stringResource(destination.labelFor(currentMember))) },
                         )
                     }
+                    Spacer(Modifier.height(12.dp))
+                    AllFamiliaRound(news = helpBadge, onClick = { navController.navigate(AllFamiliaDestination) { launchSingleTop = true } })
                 }
             }
             Column(Modifier.weight(1f)) {
@@ -1846,13 +1865,12 @@ fun FamiliaApp(
                 }
                 val shownUpdate = update?.takeIf { onTab && !updateDismissed && sheetUpdate == null }
                 if (shownUpdate != null) {
-                    val onHome = currentDestination.isOn(TopLevelDestination.Home)
                     UpdateBanner(
                         onUpdate = { updater.start(shownUpdate) },
                         onLater = { updateDismissed = true },
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .padding(start = 12.dp, end = 12.dp, bottom = if (onHome) 76.dp else 12.dp),
+                            .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
                     )
                 }
                 TapGuardWhileNavigating(navController)
@@ -1883,9 +1901,18 @@ private fun TabTopBar(
     greeting: String? = null,
     /** The « + » of the R1 bis Accueil, before « ? ». The Planning has its « + Ajouter » at the bottom (récit 75). */
     onAdd: (() -> Unit)? = null,
+    /** The round « Retour » of a tab opened as a page: the Planning (récit 82). */
+    onBack: (() -> Unit)? = null,
 ) {
     TopAppBar(
         scrollBehavior = scrollBehavior,
+        navigationIcon = {
+            if (onBack != null) {
+                Surface(shape = CircleShape, color = LocalClayColors.current.card, shadowElevation = 2.dp, modifier = Modifier.padding(start = 4.dp)) {
+                    BackButton(onClick = onBack)
+                }
+            }
+        },
         // Transparent at rest, so the theme's pattern shows behind the title; the surface color once
         // the content scrolls under it.
         colors = TopAppBarDefaults.topAppBarColors(
@@ -2022,7 +2049,9 @@ private fun allModules(
     }
     module(memoriesInFeed, "feed", R.string.all_feed, Icons.Outlined.DynamicFeed, ModuleFamily.Remember) {
         FeedOpenRequest.ask()
-        navController.navigateToTab(TopLevelDestination.Home)
+        // Back down to the Accueil under Tout Familia: going to the tab would bring Tout Familia back,
+        // saved with the Accueil, and nothing seemed to happen (retour d'essai, 20/11).
+        if (!navController.popBackStack(HomeRoute, inclusive = false)) navController.navigateToTab(TopLevelDestination.Home)
     }
     module(features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums), "albums", R.string.all_albums, Icons.Outlined.PhotoLibrary, ModuleFamily.Remember) {
         navController.navigate(AlbumsDestination) { launchSingleTop = true }

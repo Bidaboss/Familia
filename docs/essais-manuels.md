@@ -1228,6 +1228,19 @@ Interrupteur newsFeed allumé.
 5. Taille du texte à 130 % : les deux boutons restent lisibles ; si la place manque, le bouton passe sous le titre.
 6. Interrupteur newsFeed éteint : aucune bascule, l'Accueil est inchangé.
 
+## Un seul cœur pour réagir (PRODUIT-139)
+
+Deux téléphones, A et B. Le fil d'actualité est allumé.
+
+1. Sur A, ouvre le fil. **Attendu :** sous chaque actualité, un seul cœur vide, puis « 💬 » et « Commenter ». Il n'y a plus les six cases, ni « Modifier », « Masquer pour moi » ou « Retirer » sur la carte.
+2. Touche le cœur une première fois. **Attendu :** il devient ❤️, et « ❤️ 1 » s'affiche à côté. Une bulle sombre apparaît au-dessus, « Reste appuyé pour choisir une autre réaction », avec les six émojis. Elle part seule après 4 s, ou quand tu la touches.
+3. Touche encore le cœur. **Attendu :** ta réaction est retirée. La bulle ne revient plus, même après avoir fermé l'appli.
+4. Reste appuyé sur le cœur. **Attendu :** une barre avec ❤️ 👏 🎉 😂 😮 👍 au-dessus. Choisis 👏. **Attendu :** le bouton montre 👏. Un toucher le retire.
+5. Sur B, mets ❤️ sur la même actualité. **Attendu :** sur A, « 👏❤️ 2 » ou « ❤️👏 2 ». Touche ce total : la liste « Qui a réagi », avec chaque prénom et son émoji.
+6. Touche la carte pour ouvrir l'actualité. **Attendu :** le même cœur. En bas, en petit, « Modifier · Retirer » si tu es l'auteur. « Masquer pour moi » n'apparaît que pour une personne nommée. L'admin principal voit « Retirer ».
+7. Avec TalkBack, place-toi sur le cœur. **Attendu :** « Mettre un cœur », puis l'action « Choisir une réaction ».
+8. **Administration**, « Voir comme… » un membre. **Attendu :** le cœur ne réagit pas, et aucune bulle ne s'affiche.
+
 ## Fil d'actualité de l'Accueil (récit 67)
 
 Module « Fil d'actualité » allumé dans Administration > Modules (éteint, l'Accueil ne change pas, même pour l'admin principal).
@@ -1382,3 +1395,25 @@ Un téléphone avec l'appli d'avant, puis « APK de publication » lancé pour u
 2. Avec un événement déjà créé avant cette version à une date de naissance (par exemple « Anniversaire de … » le 7 décembre 1990). **Attendu :** la carte du fil montre le prochain anniversaire (« Lundi 7 décembre », sans l'année de naissance), et pas « J'y vais ».
 3. Un événement de la semaine dernière garde sa propre date.
 4. Planning, « + Ajouter », Événement : titre « Anniversaire de Nina », date le 7 décembre 1990, Enregistrer. **Attendu :** sous la date, « Cette date est passée depuis plus d'un an. Pour un anniversaire, ajoute plutôt la date de naissance sur la fiche de la personne… », et rien n'est enregistré. Un événement d'il y a une semaine s'enregistre comme avant, et modifier un ancien événement reste possible.
+
+## Formulaire d'événement en tuiles (récit 77, DESIGN-50)
+
+1. Planning, « + Ajouter », Événement. **Attendu :** fond du thème, rond Retour, « Nouvel événement » et le rond « ? ». Quatre tuiles : L'événement, Quand, Où, Pour qui, puis « Ajouter une note » et le bouton noir « Ajouter au planning » fixé en bas.
+2. Quand : touche « Demain ». **Attendu :** la pilule devient foncée. « Autre jour » ouvre le calendrier, et le jour choisi s'affiche en pilule.
+3. Touche la case « À » : l'horloge s'ouvre. Choisis 14 h 00 : la case affiche « 14 h 00 ». « Sans heure » l'efface.
+4. Se répète : « Chaque semaine ». **Attendu :** une ligne colorée « Chaque semaine, le … » avec « Changer », qui montre « Se termine ». « Autre… » ouvre tous les rythmes. Il n'y a pas de photo de couverture pour une nouvelle série.
+5. Où : « Chez un foyer » affiche les foyers en pilules. « Une adresse » montre le champ, et un lien Maps collé devient l'adresse. « Autre » donne un texte libre.
+6. Pour qui : tous les choix sont visibles en ronds (Toute la famille, le foyer, Moi, les enfants avec leur photo). Un toucher suffit.
+7. Laisse le titre vide et touche « Ajouter au planning ». **Attendu :** la page remonte au titre, avec l'erreur dessous.
+8. Ouvre un événement existant, puis Modifier. **Attendu :** « Modifier l'événement », le bouton « Enregistrer » en bas, et « Supprimer l'événement » tout en bas de la page, en rouge pâle. Pour une série, « Enregistrer » demande toujours « Cette fois seulement » ou « Celle-ci et les suivantes ».
+9. Avec le texte à 130 % puis au maximum : les pilules vont à la ligne, rien n'est coupé. TalkBack lit les titres de tuile comme des en-têtes, et les pilules et les ronds comme des boutons radio.
+
+## Barre du bas : Tout Familia au centre, Planning en page (récit 82, DESIGN-55)
+
+1. Ouvre Familia. **Attendu :** la barre affiche Accueil, Cadeaux, un rond noir au centre (légèrement au-dessus de la barre, avec un anneau clair et la pastille jaune s'il y a des nouveautés), Entraide et Famille. Il n'y a plus d'onglet Planning, ni la barre noire « Tout Familia » au-dessus des onglets.
+2. Touche le rond noir : « Tout Familia » s'ouvre, avec Planning en tête.
+3. Sur l'Accueil, touche « Tout le planning ». **Attendu :** le Planning s'ouvre comme une page, avec un rond Retour à gauche du titre, « + Ajouter » en bas et la carte Sondages. Dans la barre, Accueil reste allumé.
+4. Touche le rond Retour, puis refais l'étape 3 et utilise le retour d'Android : les deux ramènent à l'Accueil.
+5. Touche une notification d'événement ou d'un sondage : l'événement ou le Planning s'ouvre comme avant.
+6. TalkBack sur le rond : « Tout Familia, 3 nouveautés » (ou « Tout Familia » sans nouveauté).
+7. Avec le texte à 130 % puis au maximum : les libellés des 4 onglets tiennent sur une ligne. Sur une tablette, le rond est en bas de la barre latérale, sous les onglets.
