@@ -1240,6 +1240,19 @@ Interrupteur newsFeed allumé.
 5. Taille du texte à 130 % : les deux boutons restent lisibles ; si la place manque, le bouton passe sous le titre.
 6. Interrupteur newsFeed éteint : aucune bascule, l'Accueil est inchangé.
 
+## Un seul cœur pour réagir (PRODUIT-139)
+
+Deux téléphones, A et B. Le fil d'actualité est allumé.
+
+1. Sur A, ouvre le fil. **Attendu :** sous chaque actualité, un seul cœur vide, puis « 💬 » et « Commenter ». Il n'y a plus les six cases, ni « Modifier », « Masquer pour moi » ou « Retirer » sur la carte.
+2. Touche le cœur une première fois. **Attendu :** il devient ❤️, et « ❤️ 1 » s'affiche à côté. Une bulle sombre apparaît au-dessus, « Reste appuyé pour choisir une autre réaction », avec les six émojis. Elle part seule après 4 s, ou quand tu la touches.
+3. Touche encore le cœur. **Attendu :** ta réaction est retirée. La bulle ne revient plus, même après avoir fermé l'appli.
+4. Reste appuyé sur le cœur. **Attendu :** une barre avec ❤️ 👏 🎉 😂 😮 👍 au-dessus. Choisis 👏. **Attendu :** le bouton montre 👏. Un toucher le retire.
+5. Sur B, mets ❤️ sur la même actualité. **Attendu :** sur A, « 👏❤️ 2 » ou « ❤️👏 2 ». Touche ce total : la liste « Qui a réagi », avec chaque prénom et son émoji.
+6. Touche la carte pour ouvrir l'actualité. **Attendu :** le même cœur. En bas, en petit, « Modifier · Retirer » si tu es l'auteur. « Masquer pour moi » n'apparaît que pour une personne nommée. L'admin principal voit « Retirer ».
+7. Avec TalkBack, place-toi sur le cœur. **Attendu :** « Mettre un cœur », puis l'action « Choisir une réaction ».
+8. **Administration**, « Voir comme… » un membre. **Attendu :** le cœur ne réagit pas, et aucune bulle ne s'affiche.
+
 ## Fil d'actualité de l'Accueil (récit 67)
 
 Module « Fil d'actualité » allumé dans Administration > Modules (éteint, l'Accueil ne change pas, même pour l'admin principal).
