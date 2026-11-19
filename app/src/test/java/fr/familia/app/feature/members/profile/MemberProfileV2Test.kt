@@ -56,6 +56,14 @@ class MemberProfileV2Test {
     }
 
     @Test
+    fun `lui souhaiter only on the day of the birthday`() {
+        assertTrue(birthdayToday(LocalDate.of(1990, 6, 10), june))
+        assertFalse(birthdayToday(LocalDate.of(1990, 6, 22), june))
+        assertFalse(birthdayToday(LocalDate.of(1990, 6, 9), june))
+        assertFalse(birthdayToday(null, june))
+    }
+
+    @Test
     fun `the family of a person, from the tree and the parents of the members, with my words`() {
         val grandma = Kin("k1", "Mamie Rose", living = true, householdId = "h1")
         val links = listOf(KinLink.parent("k1", "adult1"), KinLink.partners("adult1", "admin1"))
