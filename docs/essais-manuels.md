@@ -192,7 +192,7 @@ Repli si ça bloque :
 
 ## Sondages (récits 2 bis et 2 ter)
 
-1. Allume « Sondages » dans Administration > Modules. Dans le Planning, touche l'icône des sondages en haut. **Attendu :** la page « Sondages », vide, avec « Nouveau sondage ».
+1. Allume « Sondages » dans Administration > Modules. Dans le Planning, touche la carte « Sondages » en haut de la page (elle n'apparaît qu'avec un sondage en cours), ou « + Ajouter » > « Un sondage ». **Attendu :** la page « Sondages », vide, avec « Nouveau sondage ».
 2. Touche « Nouveau sondage », garde « Trouver une date », écris une question, choisis 3 dates (une avec une heure), laisse « Toute la famille » cochée et une date de fin dans une semaine. Envoie. **Attendu :** le sondage apparaît dans « En cours » ; les autres téléphones reçoivent « Nouveau sondage ».
 3. Sur le téléphone d'un parent, ouvre la notification. **Attendu :** le sondage s'ouvre sur « Ma réponse », avec une carte « Réponse de … » pour chacun de ses enfants. Réponds pour chaque date, puis touche « Envoyer ma réponse ». Essaie d'envoyer la réponse d'un enfant avec une date vide. **Attendu :** « Réponds pour chaque date. », rien n'est envoyé.
 4. Regarde « Résultats » et « Par foyer ». **Attendu :** les noms sous chaque date, la date en tête marquée « En tête », un tableau par foyer avec ✓ ? ✗, et « Pas encore répondu : … ».
@@ -456,7 +456,7 @@ Avec l'interrupteur « Le petit geste du jour » allumé, et une Bonne nouvelle 
 2. Un sondage dont la date de fin est passée depuis moins de 2 jours : **Attendu :** « Terminé · en tête : … » (ou « retenu : … » si l'auteur a choisi). Au-delà de 2 jours, il disparaît.
 
 ## Des sondages faciles à trouver (BUG-1)
-1. Planning : en haut, un bouton « Sondages », avec une pastille qui compte les sondages qui attendent ta réponse. TalkBack lit le nombre.
+1. Planning : en tête de page, une carte « Sondages », avec une pastille qui compte les sondages qui attendent ta réponse (récit 75). TalkBack lit le nombre.
 2. Accueil : un bloc « Sondages » après « Cette semaine ». **Attendu :** d'abord ceux où tu n'as pas répondu (« Sondage de … · à toi de répondre »), puis ceux où tu as voté. « Nouveau sondage » pour un adulte, et « Tous les sondages ».
 3. Sans aucun sondage à montrer : **Attendu :** pas de bloc Sondages.
 5. Avec 4 blocs (À faire, Cette semaine, Sondages, Bonnes nouvelles) et la carte « À découvrir » de la semaine (dès le 30/11) : **Attendu :** « À découvrir » devient la première puce, et la toucher ouvre sa carte sous la rangée.
@@ -536,8 +536,8 @@ Avec le module Partager allumé.
 3. « Voir comme » un autre lecteur de la liste. **Attendu :** la liste s'ouvre.
 
 ## Le Planning à 200 %
-1. Réglages Android, taille de police au maximum. Planning : **Attendu :** « Sondages » devient son icône seule, avec la pastille du nombre. Le titre « Planning », le « ? » et ta photo tiennent sur la barre. TalkBack lit « Sondages » et le nombre en attente.
-2. Taille normale : **Attendu :** le bouton « Sondages » écrit, comme avant.
+1. Réglages Android, taille de police au maximum. Planning : **Attendu :** la barre du haut n'a plus que le titre « Planning », le « ? » et ta photo. La carte « Sondages » en tête de page reste lisible, et TalkBack lit « Sondages » et le nombre en attente (récit 75).
+2. Taille normale : **Attendu :** pareil, la carte « Sondages » en tête de page.
 
 ## Partager une bonne nouvelle ou un coup de main (récit 31)
 Avec l'interrupteur « Partager » allumé :
@@ -1358,4 +1358,19 @@ Avant : « Publier Firebase », puis l'APK. Un téléphone d'adulte. Dans Famill
 9. Changer d'avis : choisir un foyer puis « Autre » vide le champ (le nom du foyer n'y reste pas). « Chez un foyer » sans foyer touché enregistre l'événement sans lieu.
 10. Un événement qui revient (si « Événements qui reviennent » est allumé), « Chez un foyer » A : chaque jour de la série montre A et son « Itinéraire ».
 11. Avec le texte à 130 % (Réglages Android) : les lignes restent lisibles, rien n'est coupé.
+
+## « + Ajouter » en bas du Planning (récit 75)
+
+Un téléphone d'adulte, l'interrupteur « Sondages » allumé.
+
+1. Planning : la barre du haut n'a plus ni « + » rond ni « Sondages ». En bas à droite, un bouton jaune « + Ajouter », comme « Demander » dans Entraide.
+2. Touche « + Ajouter » : une feuille monte du bas, « Que veux-tu ajouter ? », avec « Un événement » et « Un sondage ». Glisser la feuille vers le bas la ferme sans rien faire.
+3. « Un événement » ouvre le formulaire d'un nouvel événement, comme l'ancien « + ».
+4. « Un sondage » ouvre la création d'un sondage, où l'on choisit son motif (date ou question libre).
+5. Tant qu'un sondage est en cours, une carte « Sondages » est en tête du Planning : « 2 sondages en cours », ou « 1 sondage attend ta réponse » avec une pastille. La toucher ouvre la liste des sondages. Sans sondage en cours, il n'y a pas de carte.
+6. Fais défiler jusqu'en bas : le dernier événement n'est pas caché par « + Ajouter ».
+7. Le sondage depuis la fiche d'un événement marche comme avant.
+8. Éteins « Sondages » : « + Ajouter » ouvre tout de suite le formulaire d'événement, sans la feuille, et la carte disparaît.
+9. Sur le téléphone d'un enfant avec l'appli : « + Ajouter » ouvre directement un événement (un enfant ne crée pas de sondage), et la carte « Sondages » reste là pour répondre.
+10. Avec le texte à 130 % puis au maximum : le bouton, la feuille et la carte restent lisibles, rien n'est coupé.
 

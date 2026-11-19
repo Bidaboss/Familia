@@ -43,6 +43,15 @@ class PollsToVoteViewModel(
 ) : ViewModel() {
     private fun <T> Flow<T>.orElse(value: T): Flow<T> = catch { e -> if (e is CancellationException) throw e else emit(value) }
 
+    /** The open polls I see (récit 75): the card « Sondages » of the Planning shows only with one. */
+    val open: StateFlow<Int> = (
+        repository?.observeMine(memberId)
+            ?.map { list -> list.count { it.isOpen(clock()) } }
+            ?.distinctUntilChanged()
+            ?.orElse(0)
+            ?: flowOf(0)
+        ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+
     val count: StateFlow<Int> = (
         repository?.let { repo ->
             repo.observeMine(memberId)
@@ -62,13 +71,18 @@ class PollsToVoteViewModel(
         ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
 }
 
-/** The number for the badge of « Sondages », 0 while the module is off or nothing waits. */
+/** The polls of the card « Sondages » of the Planning (récit 75): those open, and those that wait for my vote. */
+data class PollsSummary(val open: Int = 0, val toVote: Int = 0)
+
+/** Both numbers, 0 while the module is off or nothing is open. */
 @Composable
-fun rememberPollsToVote(container: AppContainer?, memberId: String): Int {
+fun rememberPollsSummary(container: AppContainer?, memberId: String): PollsSummary {
     val viewModel: PollsToVoteViewModel = viewModel(
         key = "pollsToVote-$memberId",
         factory = viewModelFactory { initializer { PollsToVoteViewModel(container?.pollRepository, memberId) } },
     )
+    val open by viewModel.open.collectAsStateWithLifecycle()
     val count by viewModel.count.collectAsStateWithLifecycle()
-    return count
+    return PollsSummary(open, count)
 }
+

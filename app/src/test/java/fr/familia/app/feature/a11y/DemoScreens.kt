@@ -15,6 +15,7 @@ import fr.familia.app.feature.members.admin.previewAdministrationState
 import fr.familia.app.feature.planning.PlanningMode
 import fr.familia.app.feature.planning.PlanningScreen
 import fr.familia.app.feature.planning.previewPlanning
+import fr.familia.app.feature.polls.PollsSummary
 import fr.familia.app.feature.settings.NotificationSettingsScreen
 import fr.familia.app.feature.settings.NotificationSettingsUiState
 import fr.familia.app.feature.settings.appearance.AppearanceScreen
@@ -89,5 +90,8 @@ internal object DemoScreens {
             )
         },
         screen("l'Apparence") { AppearanceScreen(FamiliaThemeId.Spain, {}, {}) },
+        screen("le Planning avec « + Ajouter » et les sondages") {
+            PlanningScreen(previewPlanning(), {}, null, {}, onAddEvent = {}, onAddPoll = {}, onOpenPolls = {}, polls = PollsSummary(open = 2, toVote = 1))
+        },
     )
 }

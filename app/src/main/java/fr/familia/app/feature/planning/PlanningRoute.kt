@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.data.familyToday
+import fr.familia.app.feature.polls.PollsSummary
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.share.birthdayShare
@@ -23,6 +24,10 @@ fun PlanningRoute(
     onAddEvent: () -> Unit,
     onOpenEvent: (eventId: String) -> Unit,
     onOpenTrip: (tripId: String) -> Unit = {},
+    /** Récit 75: « Un sondage » of « + Ajouter », and the card « Sondages »; null while the module is off. */
+    onAddPoll: (() -> Unit)? = null,
+    onOpenPolls: (() -> Unit)? = null,
+    polls: PollsSummary = PollsSummary(),
 ) {
     // Trips show in the planning once their module is switched on (PRD rév. 120).
     val tripsOn = LocalFeatureFlags.current.isOn(Feature.Trips)
@@ -50,5 +55,9 @@ fun PlanningRoute(
         onOpenEvent = onOpenEvent,
         onOpenTrip = onOpenTrip,
         onShareBirthday = if (shareOn) ({ birthday -> share(screenContext, birthdayShare(screenContext, birthday, familyToday())) }) else null,
+        onAddEvent = onAddEvent,
+        onAddPoll = onAddPoll,
+        onOpenPolls = onOpenPolls,
+        polls = polls,
     )
 }
