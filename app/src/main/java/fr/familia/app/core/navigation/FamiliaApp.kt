@@ -1925,8 +1925,6 @@ fun FamiliaApp(
 /** 26 sp instead of the 22 sp of titleLarge. */
 private const val TAB_TITLE_SCALE = 26f / 22f
 
-/** From this font scale on, the Planning bar shows « Sondages » as its icon and badge only. */
-
 /** Title bar of a tab, with its « ? » where the spec has one. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -54,22 +54,28 @@ fun PlanningAddButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
 @Composable
 fun PlanningAddSheet(onEvent: () -> Unit, onPoll: () -> Unit, onDismiss: () -> Unit) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
-        // It scrolls, so that it holds at a large font size.
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(start = ClaySpacing.screen, end = ClaySpacing.screen, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Text(
-                stringResource(R.string.planning_add_what),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.semantics { heading() },
-            )
-            AddChoice(Icons.Outlined.Event, R.string.planning_add_event, R.string.planning_add_event_hint) { onDismiss(); onEvent() }
-            AddChoice(Icons.Outlined.Poll, R.string.planning_add_poll, R.string.planning_add_poll_hint) { onDismiss(); onPoll() }
-        }
+        PlanningAddChoices(onEvent = { onDismiss(); onEvent() }, onPoll = { onDismiss(); onPoll() })
+    }
+}
+
+/** What the sheet of « + Ajouter » holds. */
+@Composable
+internal fun PlanningAddChoices(onEvent: () -> Unit, onPoll: () -> Unit) {
+    // It scrolls, so that it holds at a large font size.
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(start = ClaySpacing.screen, end = ClaySpacing.screen, bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(
+            stringResource(R.string.planning_add_what),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.semantics { heading() },
+        )
+        AddChoice(Icons.Outlined.Event, R.string.planning_add_event, R.string.planning_add_event_hint, onEvent)
+        AddChoice(Icons.Outlined.Poll, R.string.planning_add_poll, R.string.planning_add_poll_hint, onPoll)
     }
 }
 

@@ -37,14 +37,22 @@ class PlanningAddTest {
     }
 
     @Test
-    fun `« Ajouter » offers an event or a poll, in a sheet`() {
+    fun `« Ajouter » opens the choice of an event or a poll`() {
         show()
         compose.onNodeWithText("Ajouter", useUnmergedTree = true).performClick()
+        compose.waitForIdle()
+        compose.onAllNodesWithText("Un sondage").assertCountEquals(1)
+        compose.onAllNodesWithText("Un événement").assertCountEquals(1)
+        assertEquals(emptyList<String>(), done)
+    }
+
+    @Test
+    fun `the choice adds an event or a poll`() {
+        compose.setContent {
+            FamiliaTheme { PlanningAddChoices(onEvent = { done += "event" }, onPoll = { done += "poll" }) }
+        }
         compose.onNodeWithText("Un sondage").performClick()
-        compose.waitForIdle()
-        compose.onNodeWithText("Ajouter", useUnmergedTree = true).performClick()
         compose.onNodeWithText("Un événement").performClick()
-        compose.waitForIdle()
         assertEquals(listOf("poll", "event"), done)
     }
 

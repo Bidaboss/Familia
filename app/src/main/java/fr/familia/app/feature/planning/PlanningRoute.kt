@@ -1,6 +1,5 @@
 package fr.familia.app.feature.planning
 
-import fr.familia.app.feature.polls.PollsSummary
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
@@ -10,6 +9,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.data.familyToday
+import fr.familia.app.feature.polls.PollsSummary
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.share.birthdayShare
