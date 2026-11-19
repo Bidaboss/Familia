@@ -44,6 +44,7 @@ import fr.familia.app.feature.helprequests.list.HelpRequestsScreen
 import fr.familia.app.feature.helprequests.list.previewHelpRequests
 import fr.familia.app.feature.lending.detail.LendItemDetailScreen
 import fr.familia.app.feature.lending.detail.LendItemDetailUiState
+import fr.familia.app.feature.lending.edit.LendFormError
 import fr.familia.app.feature.lending.edit.LendItemEditScreen
 import fr.familia.app.feature.lending.edit.LendItemEditUiState
 import fr.familia.app.feature.lending.edit.LendItemForm
@@ -154,6 +155,14 @@ class AideScreensAccessibilityTest {
     @Test
     fun `lend a thing`() = check {
         LendItemEditScreen(LendItemEditUiState.Editing(LendItemForm(name = "Appareil à raclette", category = LendCategory.Kitchen), isNew = true), {}, {}, {})
+    }
+
+    @Test
+    fun `lend a thing with errors`() = check {
+        LendItemEditScreen(
+            LendItemEditUiState.Editing(LendItemForm(), isNew = true, errors = setOf(LendFormError.NameMissing, LendFormError.CategoryMissing)),
+            {}, {}, {},
+        )
     }
 
     @Test

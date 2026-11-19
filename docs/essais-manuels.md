@@ -1416,3 +1416,12 @@ Un téléphone avec l'appli d'avant, puis « APK de publication » lancé pour u
 9. TalkBack sur les catégories. **Attendu :** chaque tuile est lue comme une case d'option (« Auto, sélectionné »), dans un groupe.
 10. Modifie un bon plan existant. **Attendu :** le bouton du bas dit « Enregistrer », et le bon plan garde ses valeurs.
 11. Thème sombre. **Attendu :** les tuiles restent lisibles, le bandeau jaune et la ligne lilas gardent leurs couleurs.
+
+## Formulaire On se prête en tuiles (récit 78, DESIGN-51)
+
+1. Entraide, On se prête, « Ajouter un objet ». **Attendu :** en premier, une grande zone en pointillés « Ajouter une photo ». Puis les tuiles « L'objet » et « Catégorie », et en bas de page « Pas d'argent entre nous : on prête, on rend. ». Le bouton noir « Ajouter l'objet » reste fixé en bas.
+2. Touche la zone en pointillés et choisis une photo. **Attendu :** la photo s'affiche en grand, avec « Changer » posé dessus en bas à droite et « Retirer la photo » dessous. « Retirer la photo » demande d'abord une confirmation.
+3. Touche « Ajouter l'objet » sans rien remplir. **Attendu :** la page remonte à « L'objet », et « Donne un nom à l'objet. » s'affiche sous le nom, puis « Choisis une catégorie. » sous les catégories.
+4. Catégorie : **Attendu :** 6 tuiles avec une icône (Cuisine, Bricolage et jardin, Bébé et enfants, Sport et loisirs, Voyage, Autre), sur 3 colonnes, ou 2 avec le texte à 130 %. La tuile choisie devient lilas, avec une coche. TalkBack les lit comme des cases d'option.
+5. Modifie un objet qui a une photo. **Attendu :** sa photo est en haut, et le bouton dit « Enregistrer ».
+
