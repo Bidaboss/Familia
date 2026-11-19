@@ -62,6 +62,9 @@ import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.model.EventTarget
+import fr.familia.app.core.model.Household
+import fr.familia.app.core.model.PlaceKind
+import fr.familia.app.core.place.addressFromPasted
 import fr.familia.app.core.model.RepeatChoice
 import fr.familia.app.core.photo.PhotoField
 import fr.familia.app.core.theme.FamiliaTheme
@@ -177,16 +180,7 @@ private fun EventFormContent(
         DateTimeSection(form, EventFormError.DateMissing in errors, onChange)
         if (state.showRepeat) RepeatSection(form, state.isOccurrence, EventFormError.RepeatEndInvalid in errors, onChange)
 
-        OutlinedTextField(
-            value = form.place,
-            onValueChange = { value -> onChange { it.copy(place = value) } },
-            label = { Text(stringResource(R.string.event_place)) },
-            isError = EventFormError.PlaceTooLong in errors,
-            supportingText = errorText(errors, EventFormError.PlaceTooLong),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
-        )
+        PlaceSection(form, state.households, errors, onChange)
         NoteField(form, errors, onChange)
 
         // A series has no cover of its own: each time can get one afterwards.
@@ -228,6 +222,98 @@ private fun EventFormContent(
             onPick = { scope -> askScope = false; onSave(scope) },
             onDismiss = { askScope = false },
         )
+    }
+}
+
+/**
+ * « Où » (récit 74): chez un foyer of the family, an address (typed, or a Maps link pasted, read
+ * without any API key), or a free text as before. The choice is a radio group of 56 dp rows.
+ */
+@Composable
+private fun PlaceSection(
+    form: EventForm,
+    households: List<Household>,
+    errors: Set<EventFormError>,
+    onChange: ((EventForm) -> EventForm) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            stringResource(R.string.event_where),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.semantics { heading() },
+        )
+        Column(Modifier.selectableGroup()) {
+            val kinds = buildList {
+                if (households.isNotEmpty()) add(PlaceKind.Household to R.string.event_place_household)
+                add(PlaceKind.Address to R.string.event_place_address)
+                add(PlaceKind.Other to R.string.event_place_other)
+            }
+            kinds.forEach { (kind, label) ->
+                RadioRow(
+                    text = stringResource(label),
+                    selected = form.placeKind == kind,
+                    onClick = { onChange { it.withPlaceKind(kind) } },
+                )
+            }
+        }
+        val tooLong = EventFormError.PlaceTooLong in errors
+        val addressHelp: @Composable () -> Unit = { Text(stringResource(R.string.event_place_address_help)) }
+        when (form.placeKind) {
+            PlaceKind.Household -> {
+                Column(Modifier.selectableGroup().padding(start = 24.dp)) {
+                    households.forEach { household ->
+                        RadioRow(
+                            text = household.name,
+                            selected = form.placeHouseholdId == household.id,
+                            onClick = { onChange { it.atHousehold(household) } },
+                        )
+                    }
+                }
+                val chosen = households.firstOrNull { it.id == form.placeHouseholdId }
+                if (chosen != null && chosen.address.isNullOrBlank()) {
+                    Text(
+                        stringResource(R.string.event_place_no_address),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            PlaceKind.Address -> OutlinedTextField(
+                value = form.place,
+                // A pasted Maps link becomes the place it names (core/place, récit 33).
+                onValueChange = { value -> onChange { it.copy(place = addressFromPasted(value)) } },
+                label = { Text(stringResource(R.string.event_place_address_label)) },
+                isError = tooLong,
+                supportingText = errorText(errors, EventFormError.PlaceTooLong) ?: addressHelp,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            PlaceKind.Other -> OutlinedTextField(
+                value = form.place,
+                onValueChange = { value -> onChange { it.copy(place = value) } },
+                label = { Text(stringResource(R.string.event_place_other_label)) },
+                isError = tooLong,
+                supportingText = errorText(errors, EventFormError.PlaceTooLong),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun RadioRow(text: String, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(selected = selected, onClick = null)
+        Spacer(Modifier.width(16.dp))
+        Text(text, style = MaterialTheme.typography.bodyLarge)
     }
 }
 
@@ -450,8 +536,10 @@ internal fun previewEventState(isNew: Boolean = true, errors: Set<EventFormError
         title = "Repas de Noël",
         date = LocalDate.of(2026, 12, 24),
         time = LocalTime.of(19, 30),
-        place = "Chez les parents",
+        place = "Foyer Martin",
         target = EventTarget.ForFamily,
+        placeKind = PlaceKind.Household,
+        placeHouseholdId = "h1",
     ),
     isNew = isNew,
     targets = listOf(
@@ -461,6 +549,7 @@ internal fun previewEventState(isNew: Boolean = true, errors: Set<EventFormError
         TargetChoice(EventTarget.ForChild("c"), "Noé"),
     ),
     errors = errors,
+    households = listOf(Household("h1", "Foyer Martin", "3 rue des Lilas, Nantes"), Household("h2", "Foyer Durand")),
 )
 
 @FamiliaPreviews

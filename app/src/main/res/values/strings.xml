@@ -59,6 +59,15 @@
     <string name="event_pick_time">Ajouter une heure</string>
     <string name="event_no_time">Sans heure</string>
     <string name="event_place">Lieu (facultatif)</string>
+    <!-- Récit 74 : où se passe l'événement. -->
+    <string name="event_where">Où (facultatif)</string>
+    <string name="event_place_household">Chez un foyer</string>
+    <string name="event_place_address">Adresse</string>
+    <string name="event_place_other">Autre</string>
+    <string name="event_place_address_label">Adresse ou lien Google Maps</string>
+    <string name="event_place_address_help">Tapez l\'adresse, ou collez un lien de Maps. « Itinéraire » l\'ouvrira dans Maps ou Waze.</string>
+    <string name="event_place_other_label">Lieu (au parc, au gymnase…)</string>
+    <string name="event_place_no_address">Ce foyer n\'a pas encore d\'adresse dans sa fiche : pas d\'itinéraire pour l\'instant.</string>
     <string name="event_note">Note (facultative)</string>
     <string name="event_for_whom">Pour qui</string>
     <string name="event_for_whom_none">À choisir</string>

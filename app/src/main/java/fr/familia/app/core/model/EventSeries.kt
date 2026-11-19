@@ -73,6 +73,9 @@ data class EventSeries(
     val rule: SeriesRule,
     val exdates: List<LocalDate> = emptyList(),
     val applyFrom: LocalDate? = null,
+    /** As on [Event] (récit 74): the server copies them to each day. */
+    val placeKind: PlaceKind = PlaceKind.Other,
+    val placeHouseholdId: String? = null,
 ) {
     /** The days still to come before [day] (from [today]), which a change from [day] must not touch. */
     fun comingBefore(day: LocalDate, today: LocalDate): List<LocalDate> =

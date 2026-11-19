@@ -58,16 +58,17 @@ class FirestoreEventSeriesRepository(private val db: FirebaseFirestore) : EventS
             "applyFrom" to series.applyFrom?.toString(),
             "updatedAt" to FieldValue.serverTimestamp(),
         )
+        val place = placeFields(series.placeKind, series.placeHouseholdId)
         if (isNew) {
             doc(series.id).set(
-                fields + mapOf(
+                fields + place.filterValues { it != null } + mapOf(
                     "authorId" to series.authorId,
                     "authorName" to series.authorName,
                     "createdAt" to FieldValue.serverTimestamp(),
                 ),
             ).await()
         } else {
-            doc(series.id).update(fields).await()
+            doc(series.id).update(fields + place.mapValues { (_, v) -> v ?: FieldValue.delete() }).await()
         }
     }
 
@@ -110,6 +111,8 @@ class FirestoreEventSeriesRepository(private val db: FirebaseFirestore) : EventS
             rule = rule,
             exdates = (get("exdates") as? List<*>).orEmpty().mapNotNull { (it as? String)?.toDay() },
             applyFrom = getString("applyFrom")?.toDay(),
+            placeKind = readPlaceKind(),
+            placeHouseholdId = readPlaceHouseholdId(),
         )
     }
 

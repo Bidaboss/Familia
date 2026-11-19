@@ -7,6 +7,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventTarget
+import fr.familia.app.core.model.PlaceKind
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -109,7 +110,7 @@ class FirestoreEventRepository(private val db: FirebaseFirestore) : EventReposit
             // Left out when there is none, so the event fits the rules of before the cover too.
             val cover = event.coverPhoto?.let { mapOf("coverPhoto" to it) }.orEmpty()
             ref.set(
-                fields + cover + mapOf(
+                fields + cover + placeFields(event.placeKind, event.placeHouseholdId).filterValues { it != null } + mapOf(
                     "authorId" to event.authorId,
                     "authorName" to event.authorName,
                     "createdAt" to FieldValue.serverTimestamp(),
@@ -119,7 +120,8 @@ class FirestoreEventRepository(private val db: FirebaseFirestore) : EventReposit
             // Removing a field that is not there changes nothing, under the old rules too. An event of a
             // series changed by hand is « Cette fois seulement » (récit 54): the series leaves it be.
             val detached = if (event.seriesId != null) mapOf("detached" to true) else emptyMap()
-            ref.update(fields + detached + ("coverPhoto" to (event.coverPhoto ?: FieldValue.delete()))).await()
+            val place = placeFields(event.placeKind, event.placeHouseholdId).mapValues { (_, v) -> v ?: FieldValue.delete() }
+            ref.update(fields + detached + place + ("coverPhoto" to (event.coverPhoto ?: FieldValue.delete()))).await()
         }
     }
 
@@ -145,6 +147,8 @@ class FirestoreEventRepository(private val db: FirebaseFirestore) : EventReposit
             seriesId = getString("seriesId"),
             occurrence = getString("occurrence")?.let { runCatching { LocalDate.parse(it) }.getOrNull() },
             createdAt = getTimestamp("createdAt", DocumentSnapshot.ServerTimestampBehavior.ESTIMATE)?.toInstant(),
+            placeKind = readPlaceKind(),
+            placeHouseholdId = readPlaceHouseholdId(),
         )
     }
 
@@ -182,3 +186,20 @@ internal fun DocumentSnapshot.readTarget(): EventTarget? {
         else -> null
     }
 }
+
+/**
+ * The place of récit 74: null for « Autre », so an event of before keeps its shape. A household
+ * without its id, or an id without the household, is read as « Autre » (never a crash).
+ */
+internal fun placeFields(kind: PlaceKind, householdId: String?): Map<String, String?> = mapOf(
+    "placeKind" to kind.firestoreValue,
+    "placeHouseholdId" to householdId.takeIf { kind == PlaceKind.Household },
+)
+
+internal fun DocumentSnapshot.readPlaceKind(): PlaceKind {
+    val kind = PlaceKind.from(getString("placeKind"))
+    return if (kind == PlaceKind.Household && getString("placeHouseholdId") == null) PlaceKind.Other else kind
+}
+
+internal fun DocumentSnapshot.readPlaceHouseholdId(): String? =
+    getString("placeHouseholdId").takeIf { readPlaceKind() == PlaceKind.Household }

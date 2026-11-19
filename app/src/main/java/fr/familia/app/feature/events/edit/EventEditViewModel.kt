@@ -13,6 +13,7 @@ import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.PlaceKind
 import fr.familia.app.core.photo.SinglePhoto
 import fr.familia.app.core.photo.SinglePhotoSaver
 import fr.familia.app.feature.events.allowedTargets
@@ -117,7 +118,7 @@ class EventEditViewModel(
             existing != null && occurrenceOf != null -> EventForm.from(existing, occurrenceOf)
             existing != null -> EventForm.from(existing)
             else -> EventForm(title = prefillTitle.orEmpty().take(MAX_TITLE), target = allowed.first())
-        }
+        }.withCurrentHousehold(family)
         val draft = savedState?.let { restoreDraft(it) }
             ?.takeIf { d -> d.target == null || choices.any { it.target == d.target } }
             // The end of a series is not in the draft: it stays the one loaded while the rhythm does.
@@ -133,6 +134,7 @@ class EventEditViewModel(
             storedCover = existing?.coverPhoto,
             showRepeat = recurring && series != null && (existing == null || occurrenceOf != null),
             isOccurrence = occurrenceOf != null,
+            households = family.households.sortedBy { it.name.lowercase() },
         )
     }
 
@@ -308,6 +310,8 @@ class EventEditViewModel(
         const val KEY_NOTE = "eventDraft.note"
         const val KEY_TARGET = "eventDraft.target"
         const val KEY_REPEAT = "eventDraft.repeat"
+        const val KEY_PLACE_KIND = "eventDraft.placeKind"
+        const val KEY_PLACE_HOUSEHOLD = "eventDraft.placeHousehold"
 
         fun saveDraft(handle: SavedStateHandle, form: EventForm) {
             handle[KEY_TITLE] = form.title
@@ -317,6 +321,8 @@ class EventEditViewModel(
             handle[KEY_NOTE] = form.note
             handle[KEY_TARGET] = form.target?.let(::encodeTarget)
             handle[KEY_REPEAT] = form.repeat.name
+            handle[KEY_PLACE_KIND] = form.placeKind.name
+            handle[KEY_PLACE_HOUSEHOLD] = form.placeHouseholdId
         }
 
         fun restoreDraft(handle: SavedStateHandle): EventForm? {
@@ -330,9 +336,23 @@ class EventEditViewModel(
                 target = handle.get<String>(KEY_TARGET)?.let(::decodeTarget),
                 repeat = handle.get<String>(KEY_REPEAT)?.let { name -> RepeatChoice.entries.firstOrNull { it.name == name } }
                     ?: RepeatChoice.None,
+                placeKind = handle.get<String>(KEY_PLACE_KIND)?.let { name -> PlaceKind.entries.firstOrNull { it.name == name } }
+                    ?: PlaceKind.Other,
+                placeHouseholdId = handle.get<String>(KEY_PLACE_HOUSEHOLD),
             )
         }
     }
+}
+
+/**
+ * « Chez un foyer » shows the household's name as it is now; a household gone leaves the name
+ * that was saved, as a plain text (« Autre »).
+ */
+private fun EventForm.withCurrentHousehold(family: Family): EventForm {
+    if (placeKind != PlaceKind.Household) return this
+    val household = family.households.firstOrNull { it.id == placeHouseholdId }
+        ?: return copy(placeKind = PlaceKind.Other, placeHouseholdId = null)
+    return atHousehold(household)
 }
 
 /** The series stopped on the day before [day]: what came before stays as it was. */

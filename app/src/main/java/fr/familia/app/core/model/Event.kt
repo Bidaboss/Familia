@@ -32,4 +32,21 @@ data class Event(
     val occurrence: LocalDate? = null,
     /** When it was put in the Planning (null before the server time arrives): the date of its card in the fil (récit 67). */
     val createdAt: java.time.Instant? = null,
+    /** What [place] is (récit 74): free text, an address, or a household of the family. */
+    val placeKind: PlaceKind = PlaceKind.Other,
+    /** The household of « Chez un foyer »; [place] then holds its name, for the screens and old apps. */
+    val placeHouseholdId: String? = null,
 )
+
+/**
+ * Where an event takes place (récit 74). [Other] is the free text of before (an event without the
+ * field), [Address] an address that « Itinéraire » hands to Maps or Waze, [Household] « Chez un foyer »,
+ * whose address comes from the household's Coordonnées (récit 66).
+ */
+enum class PlaceKind(val firestoreValue: String?) {
+    Other(null), Address("address"), Household("household");
+
+    companion object {
+        fun from(value: String?): PlaceKind = entries.firstOrNull { it.firestoreValue != null && it.firestoreValue == value } ?: Other
+    }
+}

@@ -1325,3 +1325,20 @@ Avant : « Publier Firebase », puis l'APK. Deux téléphones, A et B, de deux m
 7. Après 19 h, un commentaire ou une réaction arrive tout de suite.
 8. « Calme la nuit » reste prioritaire : après 22 h, un commentaire attend 8 h, comme avant.
 9. Éteindre l'interrupteur : tout repart comme au point 1, et la partie « Résumé du soir » disparaît des réglages.
+
+## Où se passe un événement (récit 74)
+
+Avant : « Publier Firebase », puis l'APK. Un téléphone d'adulte. Dans Famille, un foyer A avec une « Adresse du foyer » remplie, un foyer B sans adresse.
+
+1. Planning > « + ». Sous la date, la partie « Où (facultatif) » propose « Chez un foyer », « Adresse » et « Autre », chaque ligne facile à toucher. « Autre » est choisi.
+2. Choisir « Chez un foyer » : la liste des foyers de la famille s'ouvre en dessous. Toucher A. Enregistrer. La fiche de l'événement montre « A » sous l'heure, avec le bouton « Itinéraire » : il ouvre Maps (ou demande Maps ou Waze) sur l'adresse du foyer A.
+3. Modifier l'événement, choisir le foyer B : la phrase « Ce foyer n'a pas encore d'adresse… » s'affiche. Enregistrer : la fiche montre « B », sans « Itinéraire ». Ajouter une adresse au foyer B dans Famille : la fiche de l'événement montre « Itinéraire » tout de suite.
+4. Renommer le foyer A dans Famille : l'événement chez A montre le nouveau nom.
+5. Nouvel événement, « Adresse », taper « 10 rue de la Paix, Paris ». Enregistrer : « Itinéraire » ouvre Maps sur cette adresse, même avec l'interrupteur « Lieux et « Rejoignez-moi » » éteint.
+6. Dans Maps, « Partager » un lieu et copier le lien. Nouvel événement, « Adresse », coller le lien : le champ montre le nom du lieu (un lien court maps.app.goo.gl reste tel quel). « Itinéraire » ouvre ce lieu.
+7. « Autre », taper « Au gymnase » : la fiche montre « Au gymnase », avec « Itinéraire » seulement si l'interrupteur « Lieux et « Rejoignez-moi » » est allumé, comme avant.
+8. Un événement créé avant cette version, avec un lieu : il s'ouvre en « Autre », son texte est là, rien ne change.
+9. Changer d'avis : choisir un foyer puis « Autre » vide le champ (le nom du foyer n'y reste pas). « Chez un foyer » sans foyer touché enregistre l'événement sans lieu.
+10. Un événement qui revient (si « Événements qui reviennent » est allumé), « Chez un foyer » A : chaque jour de la série montre A et son « Itinéraire ».
+11. Avec le texte à 130 % (Réglages Android) : les lignes restent lisibles, rien n'est coupé.
+

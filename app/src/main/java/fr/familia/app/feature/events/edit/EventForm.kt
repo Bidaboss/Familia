@@ -3,6 +3,8 @@ package fr.familia.app.feature.events.edit
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventSeries
 import fr.familia.app.core.model.EventTarget
+import fr.familia.app.core.model.Household
+import fr.familia.app.core.model.PlaceKind
 import fr.familia.app.core.model.RepeatChoice
 import fr.familia.app.core.model.RepeatEnd
 import fr.familia.app.core.model.SeriesRule
@@ -25,7 +27,32 @@ data class EventForm(
     /** « Se répète » (récit 54), and how it ends. */
     val repeat: RepeatChoice = RepeatChoice.None,
     val end: RepeatEnd = RepeatEnd.Never,
+    /** « Où ? » (récit 74): [place] is the text of « Autre » or of « Adresse », or the household's name. */
+    val placeKind: PlaceKind = PlaceKind.Other,
+    val placeHouseholdId: String? = null,
 ) {
+    /** Another choice of « Où ? »: the name of a household never stays as a text to edit. */
+    fun withPlaceKind(kind: PlaceKind): EventForm = if (kind == placeKind) this else copy(
+        placeKind = kind,
+        placeHouseholdId = null,
+        place = if (placeKind == PlaceKind.Household || kind == PlaceKind.Household) "" else place,
+    )
+
+    /** « Chez un foyer »: [household] chosen, its name is the text every screen shows. */
+    fun atHousehold(household: Household): EventForm =
+        copy(placeKind = PlaceKind.Household, placeHouseholdId = household.id, place = household.name)
+
+    /** What is saved: no text, no place at all; a household is kept only with its id. */
+    private val savedPlace: Triple<String?, PlaceKind, String?>
+        get() {
+            val text = place.trim().ifEmpty { null } ?: return Triple(null, PlaceKind.Other, null)
+            return when {
+                placeKind == PlaceKind.Household && placeHouseholdId == null -> Triple(text, PlaceKind.Other, null)
+                placeKind == PlaceKind.Household -> Triple(text, PlaceKind.Household, placeHouseholdId)
+                else -> Triple(text, placeKind, null)
+            }
+        }
+
     /** The rule the form describes, from its date; null when it does not repeat. */
     fun rule(): SeriesRule? = date?.let { ruleFor(repeat, end, it) }
 
@@ -35,7 +62,7 @@ data class EventForm(
             id = id,
             title = title.trim(),
             time = time,
-            place = place.trim().ifEmpty { null },
+            place = savedPlace.first,
             note = note.trim().ifEmpty { null },
             target = requireNotNull(target),
             authorId = authorId,
@@ -43,6 +70,8 @@ data class EventForm(
             rule = rule,
             exdates = base?.exdates.orEmpty(),
             applyFrom = base?.applyFrom,
+            placeKind = savedPlace.second,
+            placeHouseholdId = savedPlace.third,
         )
 
     fun toEvent(id: String, authorId: String, authorName: String, coverPhoto: String? = null): Event = Event(
@@ -50,12 +79,14 @@ data class EventForm(
         title = title.trim(),
         date = requireNotNull(date),
         time = time,
-        place = place.trim().ifEmpty { null },
+        place = savedPlace.first,
         note = note.trim().ifEmpty { null },
         target = requireNotNull(target),
         authorId = authorId,
         authorName = authorName,
         coverPhoto = coverPhoto,
+        placeKind = savedPlace.second,
+        placeHouseholdId = savedPlace.third,
     )
 
     companion object {
@@ -66,6 +97,8 @@ data class EventForm(
             place = event.place.orEmpty(),
             note = event.note.orEmpty(),
             target = event.target,
+            placeKind = event.placeKind,
+            placeHouseholdId = event.placeHouseholdId,
         )
 
         /** An occurrence of [series]: the form shows how the series repeats. */
