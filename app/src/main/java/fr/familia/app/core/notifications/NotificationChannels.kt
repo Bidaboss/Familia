@@ -33,7 +33,6 @@ object NotificationChannels {
     const val RECAP = "recap"
     const val BIRTHDAYS = "birthdays"
     const val WELCOME = "welcome"
-    const val THINK_OF_ME = "thinkOfMe"
     const val FEEDBACK = "feedback"
     const val JOIN_ME = "joinMe"
     const val CAPSULES = "capsules"
@@ -84,7 +83,6 @@ object NotificationChannels {
         // Vœux d'anniversaire (récit 36): « C'est l'anniversaire de … » and the cards received.
         Spec(BIRTHDAYS, R.string.channel_birthdays, R.string.channel_birthdays_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.BirthdayWishes),
         Spec(WELCOME, R.string.channel_welcome, R.string.channel_welcome_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.Welcome),
-        Spec(THINK_OF_ME, R.string.channel_think_of_me, R.string.channel_think_of_me_description, NotificationManager.IMPORTANCE_DEFAULT, Feature.ThinkOfMe),
         // « Une idée ? Un souci ? » (récit 6 sexies): the answer to one's own request. No module switch.
         Spec(FEEDBACK, R.string.channel_feedback, R.string.channel_feedback_description, NotificationManager.IMPORTANCE_DEFAULT),
     )
@@ -94,6 +92,9 @@ object NotificationChannels {
      * notification came, never its text (audit 2.2). Same list as PRIVATE_CHANNELS in index.ts.
      */
     val privateIds: Set<String> = setOf(GIFTS, CAPSULES)
+
+    /** Channels of a module taken out of the app: removed from the phone, as nothing comes on them any more. */
+    val retiredIds: Set<String> = setOf("thinkOfMe")
 
     /** Every id the app knows: a notice for another channel falls back on [EVENTS]. */
     val ids: Set<String> = specs.map { it.id }.toSet()
@@ -106,6 +107,8 @@ object NotificationChannels {
     fun create(context: Context, features: FeatureFlags = FeatureFlags()) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
+        // « Pensez à moi » left the app (PRODUIT-136): its channel goes from the phone's settings.
+        retiredIds.forEach(manager::deleteNotificationChannel)
         // Creating an existing channel only updates its name and description, never the member's choice.
         manager.createNotificationChannels(
             specs.filter { spec ->

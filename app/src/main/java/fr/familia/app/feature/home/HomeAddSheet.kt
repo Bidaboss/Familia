@@ -17,7 +17,6 @@ import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Celebration
 import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.Place
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -46,8 +45,6 @@ class HomeAddOptions(
     val onGoodNews: (() -> Unit)? = null,
     val onWish: (() -> Unit)? = null,
     val onHelp: (() -> Unit)? = null,
-    /** « Penser à quelqu'un » (PRODUIT-135), while « Pensez à moi » is on: it left the member's page. */
-    val onThinkOfMe: (() -> Unit)? = null,
 )
 
 /**
@@ -80,7 +77,6 @@ fun HomeAddSheet(options: HomeAddOptions, onDismiss: () -> Unit) {
                 options.onGoodNews?.let { Choice(Icons.Outlined.Celebration, R.string.home_r1_add_good_news, it) },
                 options.onWish?.let { Choice(Icons.Outlined.CardGiftcard, R.string.home_r1_add_wish, it) },
                 options.onHelp?.let { Choice(Icons.Outlined.VolunteerActivism, R.string.home_r1_add_help, it) },
-                options.onThinkOfMe?.let { Choice(Icons.Outlined.FavoriteBorder, R.string.home_r1_add_think_of_me, it) },
             )
             // One choice per line (retour d'essai du 18/11, « Cassé ») : sur deux colonnes, avec
             // un grand texte, « Un événement » se coupait en plein mot et les boutons n'avaient pas la

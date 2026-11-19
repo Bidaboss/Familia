@@ -35,7 +35,7 @@ export type RsvpStatus = 'yes' | 'maybe' | 'no';
 
 /** The ids of NotificationChannels in the app. `events` is the « Planning » channel. */
 // Each module adds its id here and its channel in the app, in the same pull request.
-export type Channel = 'events' | 'reminders' | 'gifts' | 'helpRequests' | 'goodNews' | 'trips' | 'comments' | 'weekly' | 'admin' | 'souvenirs' | 'tree' | 'joinMe' | 'capsules' | 'recap' | 'birthdays' | 'feedback' | 'welcome' | 'thinkOfMe';
+export type Channel = 'events' | 'reminders' | 'gifts' | 'helpRequests' | 'goodNews' | 'trips' | 'comments' | 'weekly' | 'admin' | 'souvenirs' | 'tree' | 'joinMe' | 'capsules' | 'recap' | 'birthdays' | 'feedback' | 'welcome';
 
 export interface Notice {
   /**
@@ -66,8 +66,6 @@ export interface Notice {
   birthdayOf?: string;
   /** La bienvenue (récit 43): the newcomer, the app opens their page. */
   welcomeOf?: string;
-  /** « Pensez à moi » (récit 43): the member of the moment, the app opens their page. */
-  thinkOfMeOf?: string;
   /** The summary of the new bons plans (récit 45): the app opens the Bons plans of Entraide. */
   goodDeals?: 'list';
   /** On se prête (récit 51): an ask, its answer or the reminder, the app opens the thing. */

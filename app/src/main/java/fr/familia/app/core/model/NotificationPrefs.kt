@@ -26,7 +26,7 @@ enum class EveningKind(val key: String, val family: NotificationFamily) {
     Comments("eveningComments", NotificationFamily.Comments),
     Weekly("eveningWeekly", NotificationFamily.Weekly),
 
-    /** The souvenirs, « Pensez à moi » and the récaps. */
+    /** The souvenirs and the récaps. */
     Souvenirs("eveningSouvenirs", NotificationFamily.Weekly),
 }
 

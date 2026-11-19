@@ -24,7 +24,6 @@ describe('the résumé du soir, without the emulator', () => {
     assert.equal(eveningKind(comment), 'comments');
     assert.equal(eveningKind(question), 'weekly');
     assert.equal(eveningKind(souvenir), 'souvenirs');
-    assert.equal(eveningKind({ channel: 'thinkOfMe' }), 'souvenirs');
     assert.equal(eveningKind({ channel: 'recap' }), 'souvenirs');
     for (const n of [event, news, help, joinMe, { channel: 'reminders' }, { channel: 'admin' }, { channel: 'capsules' }, { channel: 'feedback' }] as Notice[]) {
       assert.equal(eveningKind(n), null, n.channel);

@@ -57,7 +57,7 @@ import { orphanReportDue, reportOrphanGoodNewsPhotos, type StoredFile } from './
 import { capBursts, deleteQuietQueueOf, PRIVATE_CHANNELS, sendBurstHeld, sendEveningHeld, sendHeldNotices } from './prefs';
 import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type BirthdayCard } from './birthdayWishes';
 import { deleteWelcomeOf, isFirstSignIn, sendQueuedWelcomes, welcomeMember } from './welcome';
-import { deleteCheersOf, deleteMomentsOf, onMomentCheerCreated, startMoments, type MomentCheer } from './thinkOfMe';
+import { deleteCheersOf, deleteMomentsOf } from './thinkOfMe';
 import { keepReceivedPhoto, revealWishes, thankGivers } from './wishesReveal';
 import { cleanupOldLists, migrateToSingleList } from './singleList';
 import { deleteEventReminders, deleteSeriesReminders, sendMyReminders } from './reminders';
@@ -103,7 +103,6 @@ const send: Sender = async (token: string, notice: Notice) => {
         ...(notice.recapWeek ? { recapWeek: notice.recapWeek } : {}),
         ...(notice.birthdayOf ? { birthdayOf: notice.birthdayOf } : {}),
         ...(notice.welcomeOf ? { welcomeOf: notice.welcomeOf } : {}),
-        ...(notice.thinkOfMeOf ? { thinkOfMeOf: notice.thinkOfMeOf } : {}),
         ...(notice.goodDeals ? { goodDeals: notice.goodDeals } : {}),
         ...(notice.lendItemId ? { lendItemId: notice.lendItemId } : {}),
         ...(notice.turnId ? { turnId: notice.turnId } : {}),
@@ -480,8 +479,6 @@ export const birthdayGiftReminders = onSchedule({ schedule: '0 10 * * *', timeZo
   try { await sendBirthdayGiftReminders(getFirestore(), send, now); } catch (e) { console.error('birthday gift reminders', e); }
   // On the day, « C'est l'anniversaire de … » and its Bonne nouvelle (récit 36).
   try { await startBirthdays(getFirestore(), send, now); } catch (e) { console.error('birthday wishes', e); }
-  // « Pensez à moi » (récit 43): the important moments of the day.
-  try { await startMoments(getFirestore(), send, now); } catch (e) { console.error('think of me', e); }
 });
 
 // A moment removed takes its encouragements with it (récit 43).
@@ -489,11 +486,9 @@ export const onMomentDeleted = onDocumentDeleted('moments/{momentId}', async (ev
   await deleteCheersOf(getFirestore(), event.params.momentId);
 });
 
-// Each encouragement of « Pensez à moi » tells the person (récit 43).
-export const onMomentCheerWritten = onDocumentCreated('momentCheers/{cheerId}', async (event) => {
-  const cheer = event.data?.data() as MomentCheer | undefined;
-  if (cheer) await onMomentCheerCreated(getFirestore(), send, cheer);
-});
+// « Pensez à moi » is retired (PRODUIT-136): this one does nothing any more. It stays exported, as
+// « Publier Firebase » deploys without --force and would stop on a function to remove.
+export const onMomentCheerWritten = onDocumentCreated('momentCheers/{cheerId}', async () => {});
 
 // Each card of vœux tells the person celebrated (récit 36).
 export const onBirthdayCardWritten = onDocumentCreated('birthdayCards/{cardId}', async (event) => {

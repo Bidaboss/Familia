@@ -46,8 +46,6 @@ export const FAMILY_OF: Readonly<Record<Channel, Family | null>> = {
   tree: 'weekly',
   recap: 'weekly',
   birthdays: 'weekly',
-  // « Pensez à moi » (récit 43): like the vœux, the invitation of the day.
-  thinkOfMe: 'weekly',
   joinMe: null,
   capsules: null,
   feedback: null,
@@ -133,8 +131,8 @@ export function eveningKind(notice: Filtered): EveningKind | null {
   switch (notice.channel) {
     case 'comments': return 'comments';
     case 'weekly': return 'weekly';
-    // « Pensez à moi », the souvenirs and the récaps of the week or of the month.
-    case 'souvenirs': case 'thinkOfMe': case 'recap': return 'souvenirs';
+    // The souvenirs and the récaps of the week or of the month.
+    case 'souvenirs': case 'recap': return 'souvenirs';
     default: return null;
   }
 }

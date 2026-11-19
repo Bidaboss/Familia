@@ -11,8 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.github.takahirom.roborazzi.captureRoboImage
 import fr.familia.app.core.model.BirthdayCard
-import fr.familia.app.core.model.Moment
-import fr.familia.app.core.model.MomentCheer
 import fr.familia.app.core.model.WeeklyAnswer
 import fr.familia.app.core.model.WeeklyQuestion
 import fr.familia.app.core.theme.FamiliaTheme
@@ -24,8 +22,6 @@ import fr.familia.app.feature.gooddeals.list.GoodDealsScreen
 import fr.familia.app.feature.gooddeals.list.previewGoodDeals
 import fr.familia.app.feature.lending.list.LendItemsScreen
 import fr.familia.app.feature.lending.list.previewLendItems
-import fr.familia.app.feature.thinkofme.ThinkOfMeContent
-import fr.familia.app.feature.thinkofme.ThinkOfMeState
 import fr.familia.app.feature.turns.TurnDetailActions
 import fr.familia.app.feature.turns.TurnDetailScreen
 import fr.familia.app.feature.turns.TurnsScreen
@@ -46,7 +42,7 @@ import java.time.LocalDate
 
 /**
  * The 200 % font pass of the small modules (PRODUIT, 17/11): Bons plans, On se prête, À qui le tour ?,
- * Notre année, Mes premiers pas, Pensez à moi and the cartes de vœux. Entraide and Bonnes nouvelles
+ * Notre année, Mes premiers pas and the cartes de vœux. Entraide and Bonnes nouvelles
  * already have theirs in [ScreenshotTest]. Fictional data.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -107,20 +103,6 @@ class EntraideA11yScreenshotTest {
                 {}, {}, {}, {}, {},
             )
         }
-    }
-
-    @Test
-    fun thinkOfMeFontScale200() = capture("pensez_a_moi_police_200") {
-        val exam = Moment("m1", "lou", "lou", "Lou", "Mon examen de piano", today, startedAt = Instant.parse("2026-11-20T07:00:00Z"))
-        val match = Moment("m2", "lou", "camille", "Camille", "Le match de handball", today.plusDays(4), pending = true)
-        val state = ThinkOfMeState(
-            today = exam,
-            cheers = listOf(MomentCheer("m1", "lou", "ines", "Inès", "Tu vas assurer, on pense fort à toi !")),
-            canManage = true,
-            upcoming = listOf(match),
-            canAccept = true,
-        )
-        Page { ThinkOfMeContent(state, "Lou", today, false, { _, _ -> }, {}, {}, {}, {}) }
     }
 
     @Test
