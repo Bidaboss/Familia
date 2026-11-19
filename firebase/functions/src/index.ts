@@ -433,24 +433,21 @@ export const onGiftItemWritten = onDocumentWritten('giftLists/{listId}/items/{it
 });
 
 // « Liste unique » (récit 9 ter): when its switch is turned on in Administration, the open lists of an occasion
-// are copied into « Mes envies » and the ideas of the family, without deleting anything. Turned on
-// again, it copies only what was not copied yet.
-export const onSingleListSwitched = onDocumentWritten({ document: 'config/app', timeoutSeconds: 300 }, async (event) => {
+// are copied into « Mes envies » and the ideas of the family, then the old lists copied whole are deleted
+// (PRODUIT-58). Turned on again, it copies only what was not copied yet, then deletes what can go.
+export const onSingleListSwitched = onDocumentWritten({ document: 'config/app', timeoutSeconds: 540 }, async (event) => {
   const before = event.data?.before.get('features.singleList') === true;
   const after = event.data?.after.get('features.singleList') === true;
   if (before || !after) return;
   const copied = await migrateToSingleList(getFirestore());
   console.log(`singleList: ${copied} items copied`);
-});
-
-// After the 21st (PRODUIT-58): turned on by hand, its switch removes the old lists whose copy is whole.
-export const onOldListsCleanupSwitched = onDocumentWritten({ document: 'config/app', timeoutSeconds: 540 }, async (event) => {
-  const before = event.data?.before.get('features.oldListsCleanup') === true;
-  const after = event.data?.after.get('features.oldListsCleanup') === true;
-  if (before || !after) return;
-  const { deleted, kept } = await cleanupOldLists(getFirestore(), new Date());
+  const { deleted, kept } = await cleanupOldLists(getFirestore());
   console.log(`oldListsCleanup: ${deleted} lists deleted, ${kept} kept`);
 });
+
+// Its switch is gone: the old lists go with « Liste unique » above. Still exported, because the
+// deployment (non interactive) refuses to delete a function; it does nothing.
+export const onOldListsCleanupSwitched = onDocumentWritten('config/app', async () => {});
 
 export const onMemberDeletedGifts = onDocumentDeleted('members/{memberId}', async (event) => {
   await deleteMemberGiftLists(getFirestore(), event.params.memberId);

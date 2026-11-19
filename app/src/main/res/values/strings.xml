@@ -251,7 +251,6 @@
     <string name="feature_help_think_of_me">« Penser à quelqu\'un », dans le « + » de l\'Accueil : on note un moment important, et la famille encourage le jour J.</string>
     <string name="feature_help_who_is_it">« Qui est-ce ? » sur l\'Accueil : une vieille photo, la famille devine qui c\'est et en quelle année.</string>
     <string name="feature_help_surprise_button">Un bouton « Préparer une surprise » dans Cadeaux, et les surprises en préparation en haut. La personne fêtée ne voit rien.</string>
-    <string name="feature_help_old_lists_cleanup">Après le 21/11 : efface les anciennes listes déjà copiées dans « Mes envies » et les idées. Rien de ce qu\'elles contiennent ne se perd.</string>
     <string name="feature_help_single_list">Une seule liste d\'envies par personne, sa liste « Surprise » cachée et le nouvel onglet Cadeaux, à la place des listes d\'occasion.</string>
     <string name="feature_help_more_photos">Une photo de couverture sur un événement, et une photo sur une envie.</string>
     <string name="feature_help_recipe_book">Dans Recettes, « Faire le livre » : toutes les recettes dans un PDF à imprimer.</string>
@@ -2324,11 +2323,10 @@
     <string name="channel_birthdays">Vœux d\'anniversaire</string>
     <string name="feature_welcome">La bienvenue</string>
     <string name="feature_single_list">Une seule liste d\'envies par personne</string>
-    <string name="feature_old_lists_cleanup">Effacer les anciennes listes</string>
     <string name="feature_surprise_button">Bouton surprise</string>
-    <string name="old_lists_cleanup_confirm_title">Effacer les anciennes listes ?</string>
-    <string name="old_lists_cleanup_confirm_body">Les listes d\'occasion déjà copiées seront effacées pour de bon. Leurs envies, réservations et parts restent dans « Mes envies » et les idées. Avant le 22 novembre, rien ne se passe : rallume-le après le 22.</string>
-    <string name="old_lists_cleanup_confirm">Effacer</string>
+    <string name="single_list_confirm_title">Passer à une seule liste par personne ?</string>
+    <string name="single_list_confirm_body">Les listes d\'occasion sont copiées dans « Mes envies » et les surprises, puis les anciennes listes copiées en entier sont effacées pour de bon. Leurs envies, réservations, parts et photos restent dans les copies.</string>
+    <string name="single_list_confirm">Allumer</string>
     <string name="gift_mark_received">Je l\'ai reçue</string>
     <string name="gift_mark_received_title">Tu l\'as déjà reçue ?</string>
     <string name="gift_mark_received_text">Elle passera dans « On m\'a offert ».</string>

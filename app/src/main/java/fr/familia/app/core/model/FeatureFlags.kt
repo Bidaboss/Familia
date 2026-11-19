@@ -99,14 +99,10 @@ enum class Feature(
     WhoIsIt("whoIsIt", R.string.feature_who_is_it),
     /**
      * Une seule liste d'envies par personne et « Idées de la famille » à la place des listes d'occasion
-     * et des listes surprises (PRD rév. 209, récit 9 ter). Allumé, l'ancien écran des listes disparaît.
+     * et des listes surprises (PRD rév. 209, récit 9 ter). Allumé, l'ancien écran des listes disparaît, et le
+     * serveur efface les anciennes listes copiées en entier (PRODUIT-58, singleList.ts).
      */
     SingleList("singleList", R.string.feature_single_list),
-    /**
-     * Après le 21 (PRODUIT-58) : allumé à la main, il efface les anciennes listes copiées en entier par
-     * « Liste unique ». Le serveur ne fait rien avant le 22/11 ni sans « Liste unique » (singleList.ts).
-     */
-    OldListsCleanup("oldListsCleanup", R.string.feature_old_lists_cleanup),
     /**
      * « Préparer une surprise » depuis un seul bouton de Cadeaux, et « Surprises en préparation » en
      * haut de l'onglet (PRD rév. 287, récit 63). Lu avec isOnForFamily : éteint, même l'admin principal
