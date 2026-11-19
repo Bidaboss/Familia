@@ -69,6 +69,13 @@ class HelpRightsTest {
     }
 
     @Test
+    fun `the admin who took a request never thanks themselves`() {
+        val taken = helpRequest("r1", TestFamily.adult, listOf("admin1"), date = today, status = HelpStatus.Taken, volunteer = TestFamily.admin)
+        assertFalse(canThank(taken, TestFamily.admin, family, today))
+        assertTrue(canThank(taken, TestFamily.adult, family, today))
+    }
+
+    @Test
     fun `a past request leaves the list the next day, except to say « Merci » for a week`() {
         val past = helpRequest("r1", TestFamily.adult, listOf("adult2"), date = today.minusDays(1))
         assertFalse(isListed(past, TestFamily.adult, family, today))
