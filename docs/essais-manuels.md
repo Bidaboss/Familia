@@ -879,21 +879,14 @@ Avec deux comptes : Camille (adulte) et Inès (adulte). « Publier Firebase » d
 7. Mode avion, ouvre « Qui est-ce ? » sur l'Accueil puis la page de la photo. **Attendu :** la roue tourne sur la photo si elle n'a jamais été vue, puis le dessin ; le reste de la carte s'affiche. Une réponse envoyée hors ligne affiche un message d'échec, et ce qui est tapé reste dans les cases.
 8. Remets le réseau normal et rouvre chaque écran. **Attendu :** tout est revenu, sans avoir fermé l'appli.
 
-## À qui le tour ? dans Entraide (récit 58)
+## « À qui le tour ? » supprimé (20/11)
 
-Avec l'interrupteur « À qui le tour ? » allumé (l'admin principal le voit toujours). Il faut deux téléphones de deux foyers différents.
-1. Entraide : **Attendu :** un onglet « À qui le tour ? » après les autres. Avec 4 onglets, la rangée défile de côté. Interrupteur éteint, pour un autre membre : pas d'onglet.
-2. Sans tour : **Attendu :** « Aucun tour pour l'instant », et un bouton « Créer un tour » pour un adulte. Un enfant n'a pas le bouton.
-3. « Créer un tour » : écris « Recevoir à Noël », coche deux foyers, change l'ordre avec les flèches. Sans titre ou avec un seul foyer : **Attendu :** « Écris pour quoi c'est le tour. » ou « Il faut au moins deux foyers. ». Les foyers sont rangés par nom.
-4. Enregistré : **Attendu :** la carte dit « C'est à ton foyer » (avec « À toi ») ou « C'est à … ». Les adultes du premier foyer reçoivent « C'est ton tour », sauf toi si tu es dans ce foyer.
-5. Ouvre le tour depuis le foyer dont c'est le tour. **Attendu :** « Ensuite : … », l'ordre, « Déjà fait : Rien encore. », et les boutons « Créer l'événement », « C'est fait », « On passe notre tour ».
-6. « Créer l'événement » : **Attendu :** le formulaire d'un nouvel événement du Planning, avec le titre déjà écrit. Reviens sans rien changer : il ne demande pas d'abandonner.
-7. « C'est fait », écris « Noël 2026 », valide. **Attendu :** « Noël 2026 : … » dans l'historique, et c'est au foyer suivant, qui reçoit « C'est ton tour ».
-8. « On passe notre tour » puis confirme. **Attendu :** c'est au foyer d'après, et ton foyer prend la place suivante dans l'ordre.
-9. Depuis un foyer, « Proposer un échange », choisis l'autre foyer, puis « Envoyer la proposition ». **Attendu :** l'autre foyer reçoit la notification, et voit « Accepter » et « Refuser ». Toi, tu vois « on attend sa réponse » et « Retirer la proposition ». « Accepter » : les deux places sont échangées. « Refuser » : tu reçois la réponse, rien ne change.
-10. Un enfant ouvre le tour. **Attendu :** il voit l'ordre et l'historique, sans aucun bouton.
-11. Touche une notification « C'est ton tour ». **Attendu :** le tour s'ouvre. Interrupteur éteint pour ce membre : rien ne s'ouvre.
-12. L'auteur ou l'admin principal : le crayon change le titre ou l'ordre, la corbeille supprime le tour après confirmation. **Attendu :** retour à la liste, le tour a disparu chez tout le monde.
+Après « Publier Firebase », puis le nouvel APK.
+
+1. Entraide. **Attendu :** plus d'onglet « À qui le tour ? », les autres onglets sont là comme avant.
+2. « Tout Familia », puis cherche « tour ». **Attendu :** aucune icône « À qui le tour ? ».
+3. Administration > Modules. **Attendu :** plus de ligne « À qui le tour ? ».
+4. Toujours dans Administration > Modules, éteins puis rallume un interrupteur, par exemple « Qui est-ce ? ». **Attendu :** dans la console Firebase, Firestore, la collection `turns` a disparu et `migrations/turnsErased` donne le nombre de documents effacés.
 
 ## Démo du 21 : Actualités et Entraide sur un réseau faible
 
@@ -901,11 +894,10 @@ Passe chaque étape deux fois : d'abord en mode avion, puis en 2G (réglages du 
 1. Ouvre les Actualités. **Attendu :** le fil déjà vu s'affiche tout de suite, avec le bandeau « Hors ligne » en mode avion. Jamais d'écran vide ni de plantage. Sur un téléphone qui n'a jamais ouvert le fil : la roue, puis « Pas de réseau pour l'instant… » en mode avion, ou « Le réseau est lent, ça arrive… » en 2G après quelques secondes, mais jamais « Pas encore d'actualité ».
 2. Publie une actualité sans photo. **Attendu :** l'écran se ferme et elle est en haut du fil avec « En attente du réseau ». Remets le réseau sans toucher l'écran : la mention disparaît, et l'autre téléphone la reçoit une seule fois. Avec une photo, l'écran reste ouvert et la phrase « Plus de réseau : l'envoi reprendra tout seul… » s'affiche (voir la section sur l'envoi de la photo).
 3. Ouvre une actualité déjà vue et ajoute une réaction. **Attendu :** la fiche s'affiche, la réaction aussi, et elle part au retour du réseau.
-4. Ouvre Entraide, puis chaque onglet (Coups de main, Bons plans, Prêts, À qui le tour ?). **Attendu :** ce qui est déjà vu s'affiche. Sinon, la roue avec la phrase qui dit pourquoi. Jamais d'écran blanc.
+4. Ouvre Entraide, puis chaque onglet (Coups de main, Bons plans, Prêts). **Attendu :** ce qui est déjà vu s'affiche. Sinon, la roue avec la phrase qui dit pourquoi. Jamais d'écran blanc.
 5. Sur une demande où on a besoin de toi, touche « Je m'en occupe ». **Attendu :** pas de message d'erreur, la demande passe dans « Déjà pris en charge » avec « En attente du réseau ». Remets le réseau : la mention disparaît, et l'auteur de la demande est prévenu une seule fois.
 6. Deux téléphones, une même demande ouverte. Le téléphone A en mode avion touche « Je m'en occupe ». Le téléphone B, avec le réseau, touche « Je m'en occupe » juste après. Remets le réseau sur A. **Attendu :** B l'a. Sur A, la demande montre que B s'en occupe, sans doublon, et un message en bas dit « … s'en occupait déjà. Merci d'avoir proposé ton aide ! », sans erreur rouge.
-7. Sur « À qui le tour ? », touche « C'est fait » sur un tour où c'est à ton foyer. **Attendu :** le tour passe au foyer suivant avec « En attente du réseau », et les boutons restent utilisables. Au retour du réseau, la mention disparaît, et le foyer suivant reçoit « C'est ton tour » une seule fois.
-8. Remets le réseau normal et rouvre chaque écran. **Attendu :** tout est à jour, sans avoir fermé l'appli.
+7. Remets le réseau normal et rouvre chaque écran. **Attendu :** tout est à jour, sans avoir fermé l'appli.
 
 ## Mes premiers pas (récit 61)
 
@@ -928,9 +920,9 @@ Il faut trois téléphones de test (A, B, C) et le module « La bienvenue » all
 ## Écrans vides et profils enfant
 
 Sur une famille où rien n'a encore été publié, ou en « Voir comme » sur un membre. Le téléphone a le réseau.
-1. Ouvre Entraide, puis Coups de main, Bons plans, Prêts et À qui le tour ?, puis les Actualités. **Attendu :** chaque écran vide a une phrase et un seul bouton (« Demander le premier », « Partager le premier », « Ajouter un objet », « Créer le premier tour », « Partager la première »). Le bouton flottant n'apparaît pas en plus. Le toucher ouvre le formulaire. Défis et Question de la semaine, avant leur date : « Partager une actualité en attendant », qui ouvre le formulaire d'une actualité.
+1. Ouvre Entraide, puis Coups de main, Bons plans et Prêts, puis les Actualités. **Attendu :** chaque écran vide a une phrase et un seul bouton (« Demander le premier », « Partager le premier », « Ajouter un objet », « Créer le premier tour », « Partager la première »). Le bouton flottant n'apparaît pas en plus. Le toucher ouvre le formulaire. Défis et Question de la semaine, avant leur date : « Partager une actualité en attendant », qui ouvre le formulaire d'une actualité.
 2. Publie une première chose sur chacun. **Attendu :** la liste remplace le message, et le bouton flottant revient.
-3. Recommence en « Voir comme » sur un enfant de 11 ans, puis de 16 ans. **Attendu :** Coups de main et Actualités gardent leur bouton, car un enfant peut demander et publier. Bons plans, Prêts et À qui le tour ? disent que ce sont les adultes qui les remplissent, sans aucun bouton. Aucun bouton ne finit sur un refus.
+3. Recommence en « Voir comme » sur un enfant de 11 ans, puis de 16 ans. **Attendu :** Coups de main et Actualités gardent leur bouton, car un enfant peut demander et publier. Bons plans et Prêts disent que ce sont les adultes qui les remplissent, sans aucun bouton. Aucun bouton ne finit sur un refus.
 
 ## Démo du 21 : première arrivée, Accueil, Planning et événement sur un réseau faible
 
@@ -1186,12 +1178,12 @@ Après « Publier Firebase ». Deux téléphones : celui de l'admin principal et
 7. Après 22 h, sans « Urgent ». **Attendu :** la fenêtre dit qu'il partira à 8 h, « Déjà envoyées » dit « part à 8 h », et la notification arrive seule à 8 h, pas dans « Cette nuit dans Familia ».
 8. Après 22 h, avec « Urgent ». **Attendu :** elle arrive tout de suite.
 
-## Tout Familia : Bons plans, On se prête et À qui le tour ? (PRODUIT-118)
+## Tout Familia : Bons plans et On se prête (PRODUIT-118)
 
-1. Avec Entraide et les trois modules allumés, ouvre « Tout Familia ». **Attendu :** sous « Entraide », trois icônes de plus : « Bons plans », « On se prête », « À qui le tour ? ».
-2. Touche « On se prête ». **Attendu :** l'onglet Entraide s'ouvre directement sur son sous-onglet « On se prête ». Même chose pour les deux autres.
+1. Avec Entraide et les deux modules allumés, ouvre « Tout Familia ». **Attendu :** sous « Entraide », deux icônes de plus : « Bons plans » et « On se prête ».
+2. Touche « On se prête ». **Attendu :** l'onglet Entraide s'ouvre directement sur son sous-onglet « On se prête ». Même chose pour « Bons plans ».
 3. Reviens à l'Accueil, puis touche l'onglet Entraide en bas. **Attendu :** il garde le sous-onglet où tu étais, sans sauter ailleurs.
-4. Cherche « prêt », puis « tour ». **Attendu :** « On se prête », puis « À qui le tour ? ».
+4. Cherche « prêt ». **Attendu :** « On se prête ».
 5. Éteins « On se prête » dans Administration > Modules. **Attendu :** son icône disparaît de « Tout Familia ».
 
 ## Fil d'actualité : Actualités et leurs commentaires, coups de main, question (récit 67)
@@ -1383,3 +1375,10 @@ Un téléphone avec l'appli d'avant, puis « APK de publication » lancé pour u
 6. Avec le texte à 130 % : la feuille défile si besoin, et sur la carte « Plus tard » et « Mettre à jour » passent l'un sous l'autre, sans rien couper.
 7. TalkBack : sur la feuille, il lit le titre, puis la phrase, puis les deux boutons.
 
+
+## Cartes Planning du fil d'actualité plus simples (retour d'essai, 20/11)
+
+1. Ajoute un événement dans le Planning, puis ouvre les Actualités. **Attendu :** la carte montre l'étiquette « Planning », le bloc de date, le titre, le jour et l'heure de l'événement, et « J'y vais ». Plus de photo, de prénom ni d'heure de création en haut.
+2. Avec un événement déjà créé avant cette version à une date de naissance (par exemple « Anniversaire de … » le 7 décembre 1990). **Attendu :** la carte du fil montre le prochain anniversaire (« Lundi 7 décembre », sans l'année de naissance), et pas « J'y vais ».
+3. Un événement de la semaine dernière garde sa propre date.
+4. Planning, « + Ajouter », Événement : titre « Anniversaire de Nina », date le 7 décembre 1990, Enregistrer. **Attendu :** sous la date, « Cette date est passée depuis plus d'un an. Pour un anniversaire, ajoute plutôt la date de naissance sur la fiche de la personne… », et rien n'est enregistré. Un événement d'il y a une semaine s'enregistre comme avant, et modifier un ancien événement reste possible.

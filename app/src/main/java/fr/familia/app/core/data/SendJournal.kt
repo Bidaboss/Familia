@@ -8,7 +8,6 @@ enum class SendKind(val key: String) {
     GoodNews("goodNews"),
     GoodDeal("goodDeal"),
     LendItem("lend"),
-    Turn("turn"),
     ;
 
     companion object {

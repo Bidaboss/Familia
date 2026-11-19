@@ -61,7 +61,6 @@ private val HELP: Map<Feature, Int> = mapOf(
     Feature.PhotoBook to R.string.feature_help_photo_book,
     Feature.YearInReview to R.string.feature_help_year_in_review,
     Feature.MyReminders to R.string.feature_help_my_reminders,
-    Feature.Turns to R.string.feature_help_turns,
     Feature.PackingList to R.string.feature_help_packing_list,
     Feature.FirstSteps to R.string.feature_help_first_steps,
     Feature.OpeningAnimation to R.string.feature_help_opening_animation,
@@ -121,7 +120,6 @@ val NEEDS_FIREBASE_PUBLISH: Set<Feature> = setOf(
     Feature.Carpool,
     Feature.RecurringEvents,
     Feature.MyReminders,
-    Feature.Turns,
     Feature.PackingList,
     // The parts of a wish already bought (récit 68).
     Feature.AlreadyBought,
