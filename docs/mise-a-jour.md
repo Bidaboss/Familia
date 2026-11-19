@@ -54,6 +54,6 @@ L'API Google Drive s'active toute seule au premier lancement. Ce lancement atten
 - **En cas d'échec,** le message dit ce qui manque : un secret, le partage du dossier, ou un deuxième APK dans le dossier.
 - **Coût :** environ 8 minutes de GitHub Actions par publication, sous le plafond de 5 $.
 
-« Plus tard » cache l'encadré jusqu'à ce que l'appli revienne à l'écran.
+La première fois qu'une version est annoncée, une feuille monte du bas sur un fond assombri (DESIGN-47, F), une seule fois par version (clé `updateSheetSeen` dans les préférences du téléphone). Après « Plus tard », la carte foncée « NOUVEAU » reste au-dessus des onglets jusqu'à la mise à jour (D). Le « Plus tard » de la carte la cache jusqu'à ce que l'appli revienne à l'écran.
 
 Chacun peut aussi vérifier à la main : dans l'onglet **Famille**, la ligne **Vérifier les mises à jour** interroge directement le serveur. Elle répond « Tu as la dernière version », ou bien elle propose « Mettre à jour ». Hors ligne, elle demande de se connecter à Internet.
