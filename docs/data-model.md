@@ -600,6 +600,7 @@ Spec : « Spec Familia : coups de main » (tenue par [PRODUIT]), avec les cartes
 | `startTime`, `endTime` | texte `HH:mm` ou null | Facultatives ; la fin après le début |
 | `place` | texte (120 au plus) ou null | Lieu facultatif |
 | `note` | texte (1 000 au plus) ou null | Note facultative |
+| `mentionIds` | liste de `memberId`, facultative, 20 au plus, tous dans `notifyIds` | Les personnes prévenues nommées « @Prénom » dans la note (Kévin, 19/11). Chacune nouvellement nommée reçoit « X t'a nommé dans « Titre » », directement |
 | `photo` | texte ou absent/null | Facultatif (Kévin 16/11 : un QR code, ce qu'il faut récupérer) : la base `helpRequests/{requestId}/{memberId}/{photoId}` de deux fichiers Storage, `.jpg` (500 Ko au plus) et `-thumb.jpg`, envoyés avant la demande dans le dossier de qui écrit. Seuls ceux de `viewerIds` les lisent (pas même l'admin principal, limite de deux lectures de Storage). Le serveur les efface avec la demande |
 | `authorId`, `authorName` | `memberId`, texte | Le demandeur et son prénom au moment de la demande, jamais modifiés |
 | `forMemberId` | `memberId` | Le membre aidé : le demandeur, ou un de ses enfants pour un adulte |

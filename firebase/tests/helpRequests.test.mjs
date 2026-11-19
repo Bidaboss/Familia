@@ -60,6 +60,14 @@ beforeEach(async () => {
   });
 });
 
+describe('« @Prénom » in the note (Kévin, 19/11)', () => {
+  test('a request names only people it warns', async () => {
+    await assertSucceeds(setDoc(ref(as(env, ADULT)), request(ADULT, ['adult2', 'adult3'], { note: '@Noé', mentionIds: ['adult2'] })));
+    await assertFails(setDoc(ref(as(env, ADULT), 'r2'), request(ADULT, ['adult2'], { mentionIds: ['adult3'] })));
+    await assertFails(setDoc(ref(as(env, ADULT), 'r3'), request(ADULT, ['adult2'], { mentionIds: ['adult2', 'adult2'] })));
+  });
+});
+
 describe('asking for help (récit 13)', () => {
   test('an adult asks two people for themselves', async () => {
     await assertSucceeds(setDoc(ref(as(env, ADULT)), request(ADULT, ['adult2', 'adult3'])));

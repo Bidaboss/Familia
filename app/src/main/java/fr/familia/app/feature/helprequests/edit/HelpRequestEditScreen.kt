@@ -58,6 +58,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.mention.MentionTextField
 import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.photo.PhotoField
 import fr.familia.app.core.model.HelpKind
@@ -197,15 +198,17 @@ private fun FormContent(
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             modifier = Modifier.fillMaxWidth(),
         )
-        OutlinedTextField(
-            value = form.note,
-            onValueChange = { value -> onChange { it.copy(note = value) } },
+        // « @Prénom » names one of those warned (Kévin, 19/11).
+        val warned = form.notifyIds + state.lockedIds
+        MentionTextField(
+            text = form.note,
+            mentionIds = form.mentionIds,
+            onChange = { text, ids -> onChange { it.copy(note = text, mentionIds = ids) } },
+            groups = state.groups.map { g -> g.copy(members = g.members.filter { it.id in warned }) }.filter { it.members.isNotEmpty() },
             label = { Text(stringResource(R.string.event_note)) },
             isError = HelpFormError.NoteTooLong in errors,
             supportingText = errorText(errors, HelpFormError.NoteTooLong),
             minLines = 3,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
         )
 
         // A photo to show what it is about: a QR code, a parcel, a place (Kévin 16/11).

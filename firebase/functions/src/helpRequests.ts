@@ -4,6 +4,7 @@
 
 import type { Firestore } from 'firebase-admin/firestore';
 import { addDays, formatDay, formatTime, parisDay, type Channel } from './logic';
+import { newlyNamed, notePreview, noteMentionTitle } from './mentions';
 import { deliver } from './prefs';
 
 export interface HelpRequestData {
@@ -26,6 +27,9 @@ export interface HelpRequestData {
   /** « Pas dispo » (présentation R1 bis) from people warned among several: nobody is told. */
   unavailableIds?: string[];
   thankedAt: unknown | null;
+  note?: string | null;
+  /** The members named « @Prénom » in the note (Kévin, 19/11), all among notifyIds. */
+  mentionIds?: string[];
 }
 
 export interface HelpMember {
@@ -186,7 +190,26 @@ export async function onHelpRequestWritten(
   if (!after) return 0;
   const members = await loadHelpMembers(db);
   const actorId = actorUid ? members.find((m) => m.uid === actorUid)?.id ?? null : null;
-  return sendAll(db, send, helpMessages(id, before, after, actorId, members, parisDay(now)));
+  return sendAll(db, send, withHelpMentions(id, before, after, actorId, members, helpMessages(id, before, after, actorId, members, parisDay(now))));
+}
+
+/**
+ * « @Prénom » in the note (Kévin, 19/11): who is newly named, among those warned, hears « X t'a
+ * nommé dans « … » » directly, first, and is left out of the other messages of this write. Never
+ * on a cancelled request.
+ */
+export function withHelpMentions(
+  id: string, before: HelpRequestData | undefined, after: HelpRequestData, actorId: string | null, members: HelpMember[], messages: HelpMessage[],
+): HelpMessage[] {
+  if (after.status === 'cancelled') return messages;
+  const warned = new Set(after.notifyIds.filter((m) => members.some((x) => x.id === m && x.profile !== 'childWithoutApp')));
+  const named = newlyNamed(before, after, actorId, warned);
+  if (named.length === 0) return messages;
+  const actor = members.find((m) => m.id === actorId)?.firstName ?? after.authorName;
+  const others = messages
+    .map((m) => ({ ...m, recipientIds: m.recipientIds.filter((r) => !named.includes(r)) }))
+    .filter((m) => m.recipientIds.length > 0);
+  return [...message(id, named, noteMentionTitle(actor, after.title), notePreview(after.note), true), ...others];
 }
 
 /** Récit 18, every evening: tomorrow's requests still without a volunteer. */
