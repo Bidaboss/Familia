@@ -19,8 +19,10 @@ sealed interface DeepLink {
     data class Capsule(val id: String) : DeepLink
     /** The Sunday of the recap (AAAA-MM-JJ). */
     data class Recap(val week: String) : DeepLink
-    /** A member's page: a birthday, a welcome or « Pensez à moi ». */
+    /** A member's page: a birthday or a welcome. */
     data class Member(val id: String) : DeepLink
+    /** « Pensez à moi » of a member, on its own screen since it left their page (PRODUIT-135). */
+    data class ThinkOfMe(val id: String) : DeepLink
     /** « list » (Retours), « mine » (Mes demandes) or « crashes » (Plantages). */
     data class Feedback(val key: String) : DeepLink
     /** The bons plans of the day (récit 45): Entraide, on its Bons plans. */
@@ -50,7 +52,8 @@ fun deepLinks(extra: (String) -> String?, action: String?, scheme: String?, host
     if (extra(FamiliaMessagingService.EXTRA_JOIN_ME_ID) != null) add(DeepLink.JoinMe)
     extra(FamiliaMessagingService.EXTRA_CAPSULE_ID)?.let { add(DeepLink.Capsule(it)) }
     extra(FamiliaMessagingService.EXTRA_RECAP_WEEK)?.let { add(DeepLink.Recap(it)) }
-    (extra(FamiliaMessagingService.EXTRA_BIRTHDAY_OF) ?: extra(FamiliaMessagingService.EXTRA_WELCOME_OF) ?: extra(FamiliaMessagingService.EXTRA_THINK_OF_ME_OF))?.let { add(DeepLink.Member(it)) }
+    (extra(FamiliaMessagingService.EXTRA_BIRTHDAY_OF) ?: extra(FamiliaMessagingService.EXTRA_WELCOME_OF))?.let { add(DeepLink.Member(it)) }
+    extra(FamiliaMessagingService.EXTRA_THINK_OF_ME_OF)?.let { add(DeepLink.ThinkOfMe(it)) }
     extra(FamiliaMessagingService.EXTRA_FEEDBACK)?.let { add(DeepLink.Feedback(it)) }
     if (extra(FamiliaMessagingService.EXTRA_GOOD_DEALS) != null) add(DeepLink.GoodDeals)
     extra(FamiliaMessagingService.EXTRA_LEND_ITEM_ID)?.let { add(DeepLink.LendItem(it)) }

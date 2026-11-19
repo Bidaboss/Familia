@@ -145,6 +145,8 @@ import fr.familia.app.feature.goodnews.feed.GoodNewsFeedRoute
 import fr.familia.app.feature.members.profile.MemberProfileRoute
 import fr.familia.app.feature.members.profile.ProfileGiftActions
 import fr.familia.app.feature.gifts.surprise.SurprisePickRoute
+import fr.familia.app.feature.thinkofme.ThinkOfMePickRoute
+import fr.familia.app.feature.thinkofme.ThinkOfMeRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyArchiveRoute
 import fr.familia.app.feature.weeklyquestion.WeeklyQuestionRoute
 import fr.familia.app.feature.help.LocalOpenHelp
@@ -380,6 +382,9 @@ fun FamiliaApp(
     /** The member of a shared birthday link (récit 31): their page opens once. */
     openMemberId: String? = null,
     onMemberOpened: () -> Unit = {},
+    /** The member of a « Pensez à moi » of the day (PRODUIT-135): their screen opens once. */
+    openThinkOfMeId: String? = null,
+    onThinkOfMeOpened: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
     // Each time the app opens, this phone is (re)registered for the notifications of this member;
@@ -591,6 +596,12 @@ fun FamiliaApp(
             onMemberOpened()
         }
     }
+    LaunchedEffect(openThinkOfMeId) {
+        if (openThinkOfMeId != null) {
+            navController.navigate(ThinkOfMeDestination(openThinkOfMeId))
+            onThinkOfMeOpened()
+        }
+    }
     LaunchedEffect(openPollId, pollsOn) {
         if (openPollId != null && pollsOn) {
             navController.navigate(PollDetailDestination(openPollId))
@@ -784,6 +795,8 @@ fun FamiliaApp(
                     onGoodNews = if (features.isOn(Feature.GoodNews)) ({ navController.navigate(GoodNewsEditDestination()) }) else null,
                     // « Ajouter une envie » only on the screen of the wishes (retour de Kévin, 18/11).
                     onHelp = if (features.isOn(Feature.HelpRequests)) ({ navController.navigate(HelpRequestEditDestination()) }) else null,
+                    // « Pensez à moi » left the member's page (PRODUIT-135).
+                    onThinkOfMe = if (features.isOn(Feature.ThinkOfMe)) ({ navController.navigate(ThinkOfMePickDestination) }) else null,
                 ),
                 onDismiss = { addOpen = false },
             )
@@ -1411,6 +1424,25 @@ fun FamiliaApp(
                             onOpenMyPage = { navController.navigate(MemberProfileDestination(currentMember.id)) },
                             onOpenSurprisePicker = { navController.navigate(SurprisePickDestination) },
                             onAddWish = { id -> navController.navigate(GiftItemEditDestination(id)) },
+                        )
+                    }
+                    composable<ThinkOfMePickDestination> {
+                        ThinkOfMePickRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            onBack = { navController.popBackStack() },
+                            onPick = { id ->
+                                navController.popBackStack()
+                                navController.navigate(ThinkOfMeDestination(id))
+                            },
+                        )
+                    }
+                    composable<ThinkOfMeDestination> { entry ->
+                        ThinkOfMeRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            memberId = entry.toRoute<ThinkOfMeDestination>().memberId,
+                            onBack = { navController.popBackStack() },
                         )
                     }
                     composable<SurprisePickDestination> {

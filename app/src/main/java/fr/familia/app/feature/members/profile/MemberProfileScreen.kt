@@ -64,8 +64,6 @@ fun MemberProfileScreen(
     wishes: (@Composable (Member) -> Unit)? = null,
     /** Pointure, goûts et passions (récit 7 bis), while their module is on. */
     card: (@Composable (Member) -> Unit)? = null,
-    /** « Pensez à moi » (récit 43), while its module is on. */
-    thinkOfMe: (@Composable (Member) -> Unit)? = null,
     /** « Ses envies » and « Ce que je lui offre » (retour d'essai, 17/11), while Cadeaux is on. */
     gifts: (@Composable (Member) -> Unit)? = null,
     /** What the page organised in sections reads besides the member (récit 66). */
@@ -128,7 +126,7 @@ fun MemberProfileScreen(
                     title = stringResource(R.string.member_not_found_title),
                     body = stringResource(R.string.profile_not_found_body),
                 )
-                is MemberProfileUiState.Ready -> ContentV2(state, v2, onSetShown, onOpenRecipes, wishes, card, thinkOfMe, gifts)
+                is MemberProfileUiState.Ready -> ContentV2(state, v2, onSetShown, onOpenRecipes, wishes, card, gifts)
             }
         }
     }

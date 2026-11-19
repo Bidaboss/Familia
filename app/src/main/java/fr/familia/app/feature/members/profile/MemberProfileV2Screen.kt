@@ -33,7 +33,6 @@ import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Directions
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.PhotoCamera
@@ -122,7 +121,6 @@ internal fun ContentV2(
     onOpenRecipes: (() -> Unit)?,
     wishes: (@Composable (Member) -> Unit)?,
     card: (@Composable (Member) -> Unit)?,
-    thinkOfMe: (@Composable (Member) -> Unit)?,
     gifts: (@Composable (Member) -> Unit)?,
 ) {
     val member = state.member
@@ -130,7 +128,6 @@ internal fun ContentV2(
     val scroll = rememberScrollState()
     val scope = rememberCoroutineScope()
     var wishesAt by remember { mutableIntStateOf(-1) }
-    var thinkAt by remember { mutableIntStateOf(-1) }
     val today = data?.today ?: java.time.LocalDate.now(java.time.ZoneId.of("Europe/Paris"))
     val mayFill = state.isMe && LocalViewAs.current.viewed == null
     Column(Modifier.fillMaxSize().verticalScroll(scroll)) {
@@ -138,7 +135,6 @@ internal fun ContentV2(
             state, data, today, mayFill,
             onSavePhoto = v2.onSavePhoto?.takeIf { mayFill },
             onRemovePhoto = v2.onRemovePhoto,
-            onThinkOfMe = if (thinkOfMe != null && !state.isMe) ({ scope.launch { scroll.animateScrollTo(thinkAt.coerceAtLeast(0)) }; Unit }) else null,
             onWish = if (wishes != null && !state.isMe) ({ scope.launch { scroll.animateScrollTo(wishesAt.coerceAtLeast(0)) }; Unit }) else null,
         )
         Column(
@@ -157,7 +153,7 @@ internal fun ContentV2(
                 tastes()
                 GiftsPart(member, state.isMe, today, gifts)
             }
-            thinkOfMe?.let { slot -> Box(Modifier.onGloballyPositioned { thinkAt = it.positionInParent().y.toInt() }) { slot(member) } }
+            // « Pensez à moi » left the page for the « + » of the Accueil (PRODUIT-135).
             data?.let { FamilyPart(it.kinship, state.isMe, v2.onOpenMember) }
             data?.let { MomentsPart(it, state.isMe, v2.onOpenEvent) }
             RecipesAndSouvenirs(state, data, onSetShown, onOpenRecipes)
@@ -190,7 +186,6 @@ private fun Header(
     mine: Boolean,
     onSavePhoto: ((ByteArray) -> Unit)?,
     onRemovePhoto: () -> Unit,
-    onThinkOfMe: (() -> Unit)?,
     onWish: (() -> Unit)?,
 ) {
     val member = state.member
@@ -261,14 +256,13 @@ private fun Header(
             }
             val phone = member.phone?.takeIf { hasCoordinates(member) && !state.isMe }
             val address = data?.household?.address?.takeIf { hasCoordinates(member) && !state.isMe }
-            if (onThinkOfMe != null || onWish != null || phone != null || address != null) {
+            if (onWish != null || phone != null || address != null) {
                 FlowRow(
                     Modifier.fillMaxWidth().padding(top = 4.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     onWish?.let { RoundAction(Icons.Outlined.Cake, stringResource(R.string.profile_v2_wishes_button), dark = soon, onClick = it) }
-                    onThinkOfMe?.let { RoundAction(Icons.Outlined.FavoriteBorder, stringResource(R.string.think_of_me_title), onClick = it) }
                     phone?.let { number -> RoundAction(Icons.Outlined.Phone, stringResource(R.string.profile_v2_call)) { dial(context, number) } }
                     address?.let { place -> RoundAction(Icons.Outlined.Directions, stringResource(R.string.profile_v2_directions)) { directions(context, place) } }
                 }

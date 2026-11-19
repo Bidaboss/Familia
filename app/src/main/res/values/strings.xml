@@ -248,7 +248,7 @@
     <string name="feature_help_little_ones">Dans les bonnes nouvelles, l\'étiquette « Les petits » et son filtre, pour les nouvelles des enfants.</string>
     <string name="feature_help_discover">Dès le lundi 30/11, une carte de l\'Accueil présente un module par semaine. L\'ordre se règle plus bas.</string>
     <string name="feature_help_daily_nudge">Sur l\'Accueil, un « petit geste du jour » dans À faire, sans notification.</string>
-    <string name="feature_help_think_of_me">« Pensez à moi » : on note un moment important, et la famille encourage le jour J.</string>
+    <string name="feature_help_think_of_me">« Penser à quelqu\'un », dans le « + » de l\'Accueil : on note un moment important, et la famille encourage le jour J.</string>
     <string name="feature_help_who_is_it">« Qui est-ce ? » sur l\'Accueil : une vieille photo, la famille devine qui c\'est et en quelle année.</string>
     <string name="feature_help_surprise_button">Un bouton « Préparer une surprise » dans Cadeaux, et les surprises en préparation en haut. La personne fêtée ne voit rien.</string>
     <string name="feature_help_old_lists_cleanup">Après le 21/11 : efface les anciennes listes déjà copiées dans « Mes envies » et les idées. Rien de ce qu\'elles contiennent ne se perd.</string>
@@ -2415,6 +2415,15 @@
     <string name="think_of_me_teen_hint">%1$s choisira de l\'accepter ou non.</string>
     <string name="think_of_me_failed">Ce n\'est pas parti. Vérifie ta connexion, puis réessaie.</string>
     <string name="channel_think_of_me_description">Le jour d\'un moment important, et les encouragements reçus</string>
+    <!-- PRODUIT-135 : « Pensez à moi » quitte la fiche pour le « + » de l'Accueil. -->
+    <string name="home_r1_add_think_of_me">Penser à quelqu\'un</string>
+    <string name="think_of_me_pick_title">Penser à quelqu\'un</string>
+    <string name="think_of_me_pick_intro">Note un moment important pour toi ou ton enfant, ou encourage quelqu\'un le jour J.</string>
+    <string name="think_of_me_pick_me">Moi</string>
+    <string name="think_of_me_pick_me_detail">Noter un moment important à venir</string>
+    <string name="think_of_me_pick_error">Impossible d\'afficher la famille. Vérifie ta connexion, puis réessaie.</string>
+    <string name="think_of_me_for">Penser à %1$s</string>
+    <string name="think_of_me_nothing_today">Pas de moment à encourager pour %1$s aujourd\'hui. Le jour J d\'un moment noté, tu pourras lui écrire ici.</string>
     <string name="feature_little_ones">Le coin des petits</string>
     <string name="feature_discover">À découvrir</string>
     <string name="goodnews_little_ones_switch">Dans « Les petits » : un dessin ou une réussite à garder</string>

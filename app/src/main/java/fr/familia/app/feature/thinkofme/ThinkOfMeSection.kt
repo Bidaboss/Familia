@@ -45,9 +45,12 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 
 
-/** « Pensez à moi » on a member's page (récit 43), while its module is on. */
+/**
+ * « Pensez à moi » of [person] (récit 43), while its module is on: on its own screen since PRODUIT-135,
+ * opened from « Penser à quelqu'un » in the « + » of the Accueil or from the notification of the day.
+ */
 @Composable
-fun ThinkOfMeSection(container: AppContainer?, currentMember: Member, person: Member) {
+fun ThinkOfMeSection(container: AppContainer?, currentMember: Member, person: Member, showTitle: Boolean = true) {
     val today = LocalDate.now(ZoneId.of("Europe/Paris"))
     val viewAs = LocalViewAs.current
     val viewingAs = viewAs.viewed != null
@@ -67,6 +70,7 @@ fun ThinkOfMeSection(container: AppContainer?, currentMember: Member, person: Me
         state, person.firstName, today, viewModel.notedForTeen,
         onNote = viewModel::note, onAccept = viewModel::accept, onRemove = viewModel::remove,
         onCheer = viewModel::cheer, onRemoveCheer = viewModel::removeCheer,
+        showTitle = showTitle,
     )
 }
 
@@ -81,10 +85,16 @@ fun ThinkOfMeContent(
     onRemove: (Moment) -> Unit,
     onCheer: (String) -> Unit,
     onRemoveCheer: () -> Unit,
+    /** False on the screen of its own, whose bar already says « Pensez à moi ». */
+    showTitle: Boolean = true,
 ) {
-    if (state.isEmpty) return
+    if (state.isEmpty) {
+        // On its own screen, an empty page says why (PRODUIT-135): nothing to encourage today.
+        if (!showTitle) Text(stringResource(R.string.think_of_me_nothing_today, firstName), style = MaterialTheme.typography.bodyLarge)
+        return
+    }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(stringResource(R.string.think_of_me_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+        if (showTitle) Text(stringResource(R.string.think_of_me_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         state.today?.let { moment ->
             ClayCard(Modifier.fillMaxWidth(), tint = ClayTint.Birthday) {
                 Text(stringResource(R.string.think_of_me_today, moment.title), style = MaterialTheme.typography.titleMedium)
