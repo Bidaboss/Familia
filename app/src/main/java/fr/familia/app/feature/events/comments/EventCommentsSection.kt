@@ -43,6 +43,16 @@ import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.frenchDateTime
 import java.time.Instant
 
+/** The counter under a comment field is shown from this many characters on (Kévin, 19/11); the limit stays. */
+internal const val COMMENT_COUNT_FROM = 450
+
+/** Whether the « … sur 500 caractères » counter shows for a comment of [length] characters. */
+internal fun showsCommentCount(length: Int): Boolean = length >= COMMENT_COUNT_FROM
+
+/** The counter of a comment field, or null (no line at all) while the comment is short. */
+internal fun commentCount(length: Int, max: Int): (@Composable () -> Unit)? =
+    if (showsCommentCount(length)) ({ Text(stringResource(R.string.recipe_comment_count, length, max)) }) else null
+
 /** The comments inside an event (PRD, récit 28), with their own ViewModel. */
 @Composable
 fun EventCommentsSection(container: AppContainer?, currentMember: Member, eventId: String) {
@@ -147,13 +157,8 @@ fun EventCommentsContent(
             value = state.draft,
             onValueChange = onType,
             label = { Text(stringResource(R.string.recipe_comment_field)) },
-            supportingText = {
-                Column {
-                    // Carte RELECTURE (#110) : a surprise is easily spoilt under a birthday.
-                    Text(stringResource(R.string.event_comments_public))
-                    Text(stringResource(R.string.recipe_comment_count, state.draft.length, EventComment.MAX_TEXT))
-                }
-            },
+            // Kévin, 19/11: nothing under the field until the end is near.
+            supportingText = commentCount(state.draft.length, EventComment.MAX_TEXT),
             minLines = 2,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
             modifier = Modifier.fillMaxWidth(),
@@ -190,7 +195,7 @@ fun EventCommentsContent(
                     value = editText,
                     onValueChange = { editText = it.take(EventComment.MAX_TEXT) },
                     isError = tooLong,
-                    supportingText = { Text(stringResource(R.string.recipe_comment_count, editText.length, EventComment.MAX_TEXT)) },
+                    supportingText = commentCount(editText.length, EventComment.MAX_TEXT),
                     minLines = 2,
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     modifier = Modifier.fillMaxWidth(),

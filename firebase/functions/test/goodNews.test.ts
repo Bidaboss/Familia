@@ -32,14 +32,14 @@ describe('who is told what', () => {
     const messages = goodNewsMessages('n1', news(), members, none);
     assert.equal(messages.length, 1);
     assert.deepEqual(messages[0].recipientIds, ['ines', 'jules', 'noe']);
-    assert.equal(messages[0].notice.title, 'Bonne nouvelle de Camille');
+    assert.equal(messages[0].notice.title, 'Actualité de Camille');
     assert.equal(messages[0].notice.body, 'Premier tour de vélo sans roulettes');
     assert.equal(messages[0].notice.goodNewsId, 'n1');
   });
 
   test('a good news for a child names the child', () => {
     const [message] = goodNewsMessages('n1', news({ forMemberId: 'lou', authorId: 'ines', authorName: 'Inès' }), members, none);
-    assert.equal(message.notice.title, 'Bonne nouvelle pour Lou');
+    assert.equal(message.notice.title, 'Actualité pour Lou');
     assert.equal(message.notice.body, 'Inès : Premier tour de vélo sans roulettes');
   });
 
@@ -53,7 +53,7 @@ describe('who is told what', () => {
     // Inès turned them off, so only the parents' own notice is left.
     assert.equal(messages.length, 1);
     assert.deepEqual(messages[0].recipientIds, ['camille', 'jules']);
-    assert.equal(messages[0].notice.title, 'Noé a publié une Bonne nouvelle');
+    assert.equal(messages[0].notice.title, 'Noé a publié une actualité');
     const unmuted = goodNewsMessages('n1', news({ authorId: 'noe', authorName: 'Noé', forMemberId: 'noe' }), members, none);
     assert.deepEqual(unmuted.map((m) => m.recipientIds), [['ines'], ['camille', 'jules']]);
   });
@@ -84,10 +84,10 @@ describe('grouped reactions (PRD rév. 174)', () => {
   });
 
   test('one, two, then several names', () => {
-    assert.equal(reactionsNotice('n1', news(), ['Inès'])?.title, 'Inès a réagi à ta Bonne nouvelle');
-    assert.equal(reactionsNotice('n1', news(), ['Inès', 'Jules'])?.title, 'Inès et Jules ont réagi à ta Bonne nouvelle');
+    assert.equal(reactionsNotice('n1', news(), ['Inès'])?.title, 'Inès a réagi à ton actualité');
+    assert.equal(reactionsNotice('n1', news(), ['Inès', 'Jules'])?.title, 'Inès et Jules ont réagi à ton actualité');
     const many = reactionsNotice('n1', news(), ['Inès', 'Jules', 'Noé', 'Lou']);
-    assert.equal(many?.title, 'Inès et 3 autres ont réagi à ta Bonne nouvelle');
+    assert.equal(many?.title, 'Inès et 3 autres ont réagi à ton actualité');
     assert.equal(many?.channel, 'comments');
     assert.equal(many?.goodNewsId, 'n1');
     assert.equal(reactionsNotice('n1', news(), []), null);
@@ -148,7 +148,7 @@ describe('sending, against the emulator', () => {
     const send: GoodNewsSender = async (token, notice) => { sent.push([token, notice]); return 'ok'; };
     assert.equal(await sendReactionDigests(db, send, new Date(t0.getTime() + DIGEST_DELAY_MS - 1)), 0);
     assert.equal(await sendReactionDigests(db, send, new Date(t0.getTime() + DIGEST_DELAY_MS)), 1);
-    assert.deepEqual(sent.map(([t, n]) => [t, n.title]), [['phone-camille', 'Inès et Jules ont réagi à ta Bonne nouvelle']]);
+    assert.deepEqual(sent.map(([t, n]) => [t, n.title]), [['phone-camille', 'Inès et Jules ont réagi à ton actualité']]);
     assert.equal(await sendReactionDigests(db, send, new Date(t0.getTime() + 2 * DIGEST_DELAY_MS)), 0);
 
     // Noé reacts the next day: only Noé is named.
@@ -157,7 +157,7 @@ describe('sending, against the emulator', () => {
     const t1 = new Date(t0.getTime() + 86_400_000);
     await onGoodNewsReacted(db, 'n1', post, later, t1);
     await sendReactionDigests(db, send, new Date(t1.getTime() + DIGEST_DELAY_MS));
-    assert.equal(sent[1][1].title, 'Noé a réagi à ta Bonne nouvelle');
+    assert.equal(sent[1][1].title, 'Noé a réagi à ton actualité');
 
     await deleteReactionDigest(db, 'n1');
     assert.equal((await db.collection('goodNewsDigests').doc('n1').get()).exists, false);

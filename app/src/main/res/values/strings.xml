@@ -233,7 +233,7 @@
     <string name="administration_feature_publish_first">Si tu n\'as pas lancé « Publier Firebase » depuis son arrivée, fais-le avant d\'allumer.</string>
     <string name="administration_feature_see_where">Voir où</string>
     <string name="administration_feature_see_where_label">voir où apparaît %1$s</string>
-    <string name="feature_help_home">L\'onglet Accueil : la semaine en frise, le jour choisi, ce que tu as à faire et les bonnes nouvelles.</string>
+    <string name="feature_help_home">L\'onglet Accueil : la semaine en frise, le jour choisi, ce que tu as à faire et les actualités.</string>
     <string name="feature_help_gifts">L\'onglet Cadeaux : les envies de chacun, où l\'on réserve un cadeau sans que la personne le sache.</string>
     <string name="feature_help_gift_notebook">Sur ta fiche, ton carnet privé : tes idées de cadeaux et ce que tu as déjà offert, pour chaque personne.</string>
     <string name="feature_help_share_to_wishes">Depuis une autre appli, « Partager » puis Familia ajoute le lien à tes envies. Version simple.</string>
@@ -242,7 +242,7 @@
     <string name="feature_help_gift_budget">Dans le carnet de Cadeaux, ton budget pour une occasion et ce qu\'il te reste. Privé, adultes seulement.</string>
     <string name="feature_help_help_requests">L\'onglet Entraide : on demande un coup de main à la famille, chacun répond « J\'y vais » ou « Non ».</string>
     <string name="feature_help_trips">Le carnet de voyage, dans Tout Familia : les étapes, qui part, et les photos du voyage.</string>
-    <string name="feature_help_good_news">Les bonnes nouvelles : une phrase et des photos pour toute la famille, sur l\'Accueil et dans leur fil.</string>
+    <string name="feature_help_good_news">Les actualités : une phrase et des photos pour toute la famille, sur l\'Accueil et dans leur fil.</string>
     <string name="feature_help_themes">Les thèmes de couleurs : touche ta photo en haut, puis Apparence, pour choisir Olivier, Lavande, Nuit… et la police des titres et du texte.</string>
     <string name="feature_help_usage">Compte le temps passé dans l\'appli, visible dans Administration. Préviens la famille avant de l\'allumer.</string>
     <string name="feature_help_weekly_question">Chaque lundi, une question pour toute la famille sur l\'Accueil : on répond, puis on lit les autres.</string>
@@ -258,7 +258,7 @@
     <string name="feature_help_genealogy">L\'arbre généalogique, dans Tout Familia : on peut y ajouter des parents ou grands-parents sans compte.</string>
     <string name="feature_help_bring">Sur la fiche d\'un événement, « Qui apporte quoi » : chacun dit ce qu\'il apporte.</string>
     <string name="feature_help_places">Un lieu avec itinéraire sur les événements, et « Dire où je suis » dans « + » pour envoyer où tu es.</string>
-    <string name="feature_help_share">« Partager » envoie un événement ou une bonne nouvelle par WhatsApp ou SMS, avec un lien vers l\'appli.</string>
+    <string name="feature_help_share">« Partager » envoie un événement ou une actualité par WhatsApp ou SMS, avec un lien vers l\'appli.</string>
     <string name="feature_help_comments">Sous la fiche d\'un événement, les commentaires de la famille.</string>
     <string name="feature_help_expenses">Dans un voyage, les comptes : qui a payé quoi, et qui doit combien à qui.</string>
     <string name="feature_help_recap">Chaque dimanche à 18 h, « La semaine de la famille » : ce qui s\'est passé et ce qui arrive.</string>
@@ -266,7 +266,7 @@
     <string name="feature_help_birthday_wishes">Le jour d\'un anniversaire, chacun peut signer une carte de vœux pour la personne fêtée.</string>
     <string name="feature_help_welcome">Quand un membre se connecte pour la première fois, la famille est prévenue de son arrivée.</string>
     <string name="feature_help_member_card">Sur la fiche d\'un membre : ses goûts et ses passions, pour trouver le bon cadeau.</string>
-    <string name="feature_help_little_ones">Dans les bonnes nouvelles, l\'étiquette « Les petits » et son filtre, pour les nouvelles des enfants.</string>
+    <string name="feature_help_little_ones">Dans les actualités, l\'étiquette « Les petits » et son filtre, pour les nouvelles des enfants.</string>
     <string name="feature_help_discover">Dès le lundi 30/11, une carte de l\'Accueil présente un module par semaine. L\'ordre se règle plus bas.</string>
     <string name="feature_help_daily_nudge">Sur l\'Accueil, un « petit geste du jour » dans À faire, sans notification.</string>
     <string name="feature_help_think_of_me">« Penser à quelqu\'un », dans le « + » de l\'Accueil : on note un moment important, et la famille encourage le jour J.</string>
@@ -319,7 +319,7 @@
     <string name="share_add_to_wishes">Ajouter à mes envies</string>
     <string name="gift_item_preview_loading">Lecture de la page de la boutique…</string>
     <string name="feature_trips">Carnet de voyage</string>
-    <string name="feature_good_news">Bonnes nouvelles</string>
+    <string name="feature_good_news">Actualités</string>
     <string name="feature_themes">Thèmes au choix</string>
     <string name="feature_usage">Utilisation (temps passé)</string>
     <string name="usage_title">Utilisation</string>
@@ -340,8 +340,8 @@
     <string name="usage_health_title">Santé de la famille</string>
     <string name="usage_health_week">Semaine du %1$s : %2$s, %3$s</string>
     <plurals name="usage_health_posts">
-        <item quantity="one">%d bonne nouvelle</item>
-        <item quantity="other">%d bonnes nouvelles</item>
+        <item quantity="one">%d actualité</item>
+        <item quantity="other">%d actualités</item>
     </plurals>
     <plurals name="usage_health_reactions">
         <item quantity="one">%d réaction</item>
@@ -355,7 +355,7 @@
     <string name="usage_last_on">Dernière visite : le %1$s</string>
     <string name="usage_minutes">%1$d min</string>
     <string name="usage_hours">%1$d h %2$s</string>
-    <string name="usage_screen_good_news">Bonnes nouvelles</string>
+    <string name="usage_screen_good_news">Actualités</string>
     <string name="usage_screen_weekly_question">Question de la semaine</string>
     <string name="usage_screen_trips">Voyages</string>
     <string name="usage_screen_other">Autres écrans</string>
@@ -1085,13 +1085,13 @@
     <string name="helprequest_r1bis_handled_by_me">Tu t\'en occupes, %1$s</string>
 
     <!-- Bonnes nouvelles (PRD, récit 32) : fil [DEV] coups de main -->
-    <string name="goodnews_title">Bonnes nouvelles</string>
-    <string name="goodnews_open_feed">Ouvrir les Bonnes nouvelles</string>
-    <string name="goodnews_detail_title">Bonne nouvelle</string>
+    <string name="goodnews_title">Actualités</string>
+    <string name="goodnews_open_feed">Ouvrir les actualités</string>
+    <string name="goodnews_detail_title">Actualité</string>
     <string name="goodnews_publish">Publier</string>
-    <string name="goodnews_publish_title">Publier une bonne nouvelle</string>
-    <string name="goodnews_edit_title">Modifier la bonne nouvelle</string>
-    <string name="goodnews_open">voir la bonne nouvelle</string>
+    <string name="goodnews_publish_title">Publier une actualité</string>
+    <string name="goodnews_edit_title">Modifier l\'actualité</string>
+    <string name="goodnews_open">voir l\'actualité</string>
     <string name="goodnews_just_now">À l\'instant</string>
     <string name="goodnews_today_at">Aujourd\'hui à %1$s</string>
     <string name="goodnews_yesterday_at">Hier à %1$s</string>
@@ -1104,7 +1104,7 @@
     <string name="goodnews_remove">Retirer</string>
     <string name="goodnews_hide">Masquer pour moi</string>
     <string name="goodnews_unhide">Afficher à nouveau pour moi</string>
-    <string name="goodnews_remove_title">Retirer cette bonne nouvelle ?</string>
+    <string name="goodnews_remove_title">Retirer cette actualité ?</string>
     <string name="goodnews_remove_body">Elle disparaîtra pour toute la famille, avec ses photos.</string>
     <string name="goodnews_remove_confirm">Retirer</string>
     <string name="goodnews_action_failed_title">Ça n\'a pas marché</string>
@@ -1118,15 +1118,15 @@
     <string name="goodnews_reaction_wow">la surprise</string>
     <string name="goodnews_reaction_thumbs_up">un pouce levé</string>
     <string name="goodnews_load_more">Voir les plus anciennes</string>
-    <string name="goodnews_empty_title">Le fil attend sa première bonne nouvelle</string>
+    <string name="goodnews_empty_title">Le fil attend sa première actualité</string>
     <string name="goodnews_empty_body">Une réussite, une photo du jour, un petit bonheur : toute la famille sera contente de la voir.</string>
     <string name="goodnews_empty_action">Partager la première</string>
-    <string name="empty_share_good_news">Partager une bonne nouvelle en attendant</string>
-    <string name="goodnews_error_title">Les bonnes nouvelles ne s\'affichent pas</string>
+    <string name="empty_share_good_news">Partager une actualité en attendant</string>
+    <string name="goodnews_error_title">Les actualités ne s\'affichent pas</string>
     <string name="goodnews_error_body">L\'appli n\'a pas pu les lire. Réessaie, et si ça continue, préviens un chef de famille.</string>
-    <string name="goodnews_missing_title">Cette bonne nouvelle n\'existe plus</string>
-    <string name="feed_label_good_news">Bonne nouvelle</string>
-    <string name="feed_good_news_photo">Photo de la Bonne nouvelle</string>
+    <string name="goodnews_missing_title">Cette actualité n\'existe plus</string>
+    <string name="feed_label_good_news">Actualité</string>
+    <string name="feed_good_news_photo">Photo de l\'actualité</string>
     <string name="feed_read_more">Lire la suite</string>
     <string name="feed_comment">Commenter</string>
     <string name="feed_comment_field">Écrire un commentaire</string>
@@ -1145,7 +1145,7 @@
     <string name="feed_weekly_answer">Répondre</string>
     <string name="goodnews_comments_empty">Pas encore de commentaire. Un bravo, un souvenir, une question ?</string>
     <string name="goodnews_missing_body">Elle a été retirée, ou elle n\'est pas encore arrivée sur ce téléphone.</string>
-    <string name="goodnews_text_field">Ta bonne nouvelle</string>
+    <string name="goodnews_text_field">Ton actualité</string>
     <string name="goodnews_text_hint">Raconte en quelques mots</string>
     <string name="goodnews_text_count">%1$d sur %2$d caractères</string>
     <string name="goodnews_error_text_missing">Écris quelques mots</string>
@@ -1156,7 +1156,7 @@
     <string name="goodnews_photo_number">Photo %1$d</string>
     <string name="goodnews_photo_remove">Retirer la photo %1$d</string>
     <string name="goodnews_error_no_photo">Ajoute au moins une photo</string>
-    <string name="goodnews_photos_fixed">Les photos ne se changent pas. Pour en mettre d\'autres, retire cette bonne nouvelle et publies-en une nouvelle.</string>
+    <string name="goodnews_photos_fixed">Les photos ne se changent pas. Pour en mettre d\'autres, retire cette actualité et publies-en une nouvelle.</string>
     <string name="goodnews_for">De qui est cette nouvelle ?</string>
     <string name="goodnews_for_me">Moi</string>
     <string name="goodnews_mentions">Nommer des membres (facultatif)</string>
@@ -1164,20 +1164,20 @@
     <string name="goodnews_save_action">Enregistrer</string>
     <string name="goodnews_saving">Publication…</string>
     <string name="goodnews_sending_photo">Envoi de la photo %1$d sur %2$d…</string>
-    <string name="goodnews_leave_title">Abandonner cette bonne nouvelle ?</string>
+    <string name="goodnews_leave_title">Abandonner cette actualité ?</string>
     <string name="goodnews_waiting_network">Plus de réseau : l\'envoi reprendra tout seul dès son retour. Garde cet écran ouvert.</string>
     <string name="goodnews_cancel_sending">Annuler l\'envoi</string>
     <string name="goodnews_photo_unreadable">Une des photos n\'a pas pu être lue. Retire-la ou choisis-en une autre.</string>
-    <string name="goodnews_publish_failed">La bonne nouvelle n\'a pas pu être publiée. Ton texte et tes photos sont gardés : touche « Publier » pour réessayer.</string>
-    <string name="goodnews_home_empty">Rien de neuf depuis deux semaines. Partage une photo ou une bonne nouvelle !</string>
-    <string name="goodnews_home_all">Toutes les bonnes nouvelles</string>
-    <string name="goodnews_home_compact_label">Bonne nouvelle</string>
+    <string name="goodnews_publish_failed">L\'actualité n\'a pas pu être publiée. Ton texte et tes photos sont gardés : touche « Publier » pour réessayer.</string>
+    <string name="goodnews_home_empty">Rien de neuf depuis deux semaines. Partage une photo ou une actualité !</string>
+    <string name="goodnews_home_all">Toutes les actualités</string>
+    <string name="goodnews_home_compact_label">Actualité</string>
     <string name="goodnews_home_compact_empty">Rien de neuf. Partage la tienne !</string>
     <string name="goodnews_home_row_title">%1$s · %2$s</string>
-    <string name="channel_good_news">Bonnes nouvelles</string>
-    <string name="channel_good_news_description">Quand quelqu\'un de la famille partage une bonne nouvelle</string>
-    <string name="notifications_good_news">Bonnes nouvelles</string>
-    <string name="notifications_good_news_help">Être prévenu quand quelqu\'un partage une bonne nouvelle. Si ton enfant en publie une, tu es toujours prévenu.</string>
+    <string name="channel_good_news">Actualités</string>
+    <string name="channel_good_news_description">Quand quelqu\'un de la famille partage une actualité</string>
+    <string name="notifications_good_news">Actualités</string>
+    <string name="notifications_good_news_help">Être prévenu quand quelqu\'un partage une actualité. Si ton enfant en publie une, tu es toujours prévenu.</string>
     <string name="notifications_weekly">Question de la semaine</string>
     <string name="notifications_weekly_help">Être prévenu le lundi quand la nouvelle question arrive. Elle reste visible sur l\'Accueil.</string>
     <string name="notifications_souvenirs">Nouveau souvenir</string>
@@ -1304,7 +1304,7 @@
     <string name="albums_feed_pill">Du fil</string>
     <string name="albums_feed_screen_title">Photos du fil, %1$s %2$d</string>
     <string name="albums_feed_empty">Pas encore de photo ce mois-ci</string>
-    <string name="albums_feed_open">ouvrir la bonne nouvelle</string>
+    <string name="albums_feed_open">ouvrir l\'actualité</string>
     <string name="albums_feed_photo">Photo de %1$s</string>
     <string name="album_photo_position">%1$d sur %2$d</string>
     <string name="album_photo_remove">Supprimer</string>
@@ -1396,7 +1396,7 @@
     <string name="profile_v2_moments_mine">Mes moments</string>
     <string name="profile_v2_moments_empty">Quand tu réponds « Je viens » à un événement, il apparaît ici.</string>
     <string name="profile_v2_open_event">ouvrir l\'événement</string>
-    <string name="profile_v2_photo_news">Photo d\'une bonne nouvelle</string>
+    <string name="profile_v2_photo_news">Photo d\'une actualité</string>
     <string name="profile_v2_recipes_souvenirs">Recettes et souvenirs</string>
     <string name="profile_v2_coordinates">Coordonnées</string>
     <string name="profile_v2_coordinates_help">Facultatif. Toute la famille les voit, pour t\'appeler ou venir chez toi.</string>
@@ -1452,7 +1452,7 @@
     <string name="profile_v2_soon">Bientôt</string>
     <string name="profile_v2_birthday_band">Son anniversaire est %1$s</string>
     <string name="profile_v2_birthday_band_today">C\'est son anniversaire aujourd\'hui</string>
-    <string name="profile_v2_good_news">Bonnes nouvelles</string>
+    <string name="profile_v2_good_news">Actualités</string>
     <string name="profile_v2_recipes_souvenirs_mine">Mes recettes et souvenirs</string>
     <string name="profile_v2_recipes_invite">Partage une recette de famille ou un souvenir : tes proches les retrouvent ici.</string>
     <string name="profile_v2_recipes_add">Ajouter une recette</string>
@@ -1591,7 +1591,7 @@
     <string name="share_poll_line">Sondage de la famille</string>
     <string name="share_poll_text">Sondage dans Familia : %1$s Réponds ici :</string>
     <string name="share_trip_text">%1$s, %2$s. Le carnet de voyage est dans Familia :</string>
-    <string name="share_goodnews_title">Bonne nouvelle de %1$s</string>
+    <string name="share_goodnews_title">Actualité de %1$s</string>
     <string name="share_goodnews_text">%1$s : « %2$s » Viens réagir dans Familia :</string>
     <string name="share_help_line">Coup de main · %1$s</string>
     <string name="share_help_text">Coup de main demandé : %1$s, %2$s. Qui peut aider ? Réponds dans Familia :</string>
@@ -1729,7 +1729,6 @@
     <string name="event_comment_when_edited">%1$s · modifié</string>
     <string name="event_comments_mute">Ne plus être prévenu des commentaires</string>
     <string name="event_comments_unmute">Être à nouveau prévenu des commentaires</string>
-    <string name="event_comments_public">Tout le monde lit les commentaires, y compris la personne fêtée : garde les surprises pour toi.</string>
     <string name="event_comments_mute_failed">Le réglage n\'a pas pu être changé. Vérifie ta connexion, puis réessaie.</string>
     <string name="share_consent_title">Avant de partager</string>
     <string name="share_consent_body">Des enfants apparaissent peut-être sur ces photos. Pense à demander l\'accord de leurs parents avant d\'envoyer la vidéo hors de Familia.</string>
@@ -1827,7 +1826,7 @@
     <string name="help_topic_weekly_title">Répondre à la question de la semaine</string>
     <string name="help_topic_weekly_body">Chaque lundi à 9 h, une question arrive pour toute la famille, sur l\'Accueil. Réponds en quelques mots, ou touche « Passer ». Tu vois les réponses des autres dès que tu as répondu ou passé, et tout le monde les voit le mercredi vers 9 h. Tu peux modifier ou retirer ta réponse. « Nos réponses » garde les questions des semaines passées. Pour ne plus être prévenu le lundi, va dans les réglages des notifications.</string>
     <string name="help_topic_souvenirs_title">Mes souvenirs</string>
-    <string name="help_topic_souvenirs_body">Familia te donne un souvenir pour certains gestes : ta première Bonne nouvelle, 10 réactions, 5 coups de main rendus, ton premier « bien arrivé » en voyage, tes réponses à la question de la semaine, et ta première année dans Familia. Tu les trouves sur ta fiche : touche ta photo en haut à droite, puis « Ma fiche ». Ils sont privés : touche « Montrer sur ma fiche » pour que la famille voie ceux que tu choisis. Il n\'y a ni classement ni score. Pour ne plus être prévenu d\'un nouveau souvenir, va dans les réglages des notifications.</string>
+    <string name="help_topic_souvenirs_body">Familia te donne un souvenir pour certains gestes : ta première actualité, 10 réactions, 5 coups de main rendus, ton premier « bien arrivé » en voyage, tes réponses à la question de la semaine, et ta première année dans Familia. Tu les trouves sur ta fiche : touche ta photo en haut à droite, puis « Ma fiche ». Ils sont privés : touche « Montrer sur ma fiche » pour que la famille voie ceux que tu choisis. Il n\'y a ni classement ni score. Pour ne plus être prévenu d\'un nouveau souvenir, va dans les réglages des notifications.</string>
     <!-- Accueil (PRD, récit 29, « Tableau de bord d'accueil ») -->
     <string name="nav_home">Accueil</string>
     <string name="home_empty_title">Rien de prévu pour l\'instant</string>
@@ -1884,7 +1883,7 @@
     <string name="all_capsule">Capsule</string>
     <string name="all_who_is_it">Qui est-ce ?</string>
     <string name="all_souvenirs">Souvenirs</string>
-    <string name="all_good_news">Bonnes nouvelles</string>
+    <string name="all_good_news">Actualités</string>
     <string name="all_year_in_review">Notre année</string>
     <string name="all_challenges">Défis</string>
     <string name="all_albums">Albums</string>
@@ -1893,7 +1892,7 @@
     <string name="home_r1_add_where">Dire où je suis</string>
     <string name="home_r1_add_event">Un événement</string>
     <string name="home_r1_add_photo">Une photo</string>
-    <string name="home_r1_add_good_news">Une bonne nouvelle</string>
+    <string name="home_r1_add_good_news">Une actualité</string>
     <string name="home_r1_add_wish">Une envie</string>
     <string name="home_r1_add_help">Un coup de main</string>
     <string name="home_todo_answer">%1$s · Dis si tu viens</string>
@@ -2071,14 +2070,14 @@
     <string name="souvenir_badge_5">5</string>
     <string name="souvenir_badge_10">10</string>
     <string name="souvenir_badge_year">1 an</string>
-    <string name="souvenir_first_good_news">Première Bonne nouvelle</string>
+    <string name="souvenir_first_good_news">Première actualité</string>
     <string name="souvenir_reactions_10">10 réactions données</string>
     <string name="souvenir_first_weekly_answer">Première réponse à la question</string>
     <string name="souvenir_weekly_answers_10">10 réponses à la question</string>
     <string name="souvenir_help_given_5">5 coups de main rendus</string>
     <string name="souvenir_first_arrival">Premier « bien arrivé »</string>
     <string name="souvenir_one_year">Un an dans Familia</string>
-    <string name="souvenir_hint_first_good_news">Partage ta première bonne nouvelle.</string>
+    <string name="souvenir_hint_first_good_news">Partage ta première actualité.</string>
     <string name="souvenir_hint_first_weekly_answer">Réponds à une question de la semaine.</string>
     <string name="souvenir_hint_first_arrival">Dis « bien arrivé » pendant un voyage.</string>
     <string name="souvenir_hint_one_year">Il viendra pour ton premier anniversaire dans Familia.</string>
@@ -2261,7 +2260,7 @@
         <item quantity="other">Encore %d feuilles avant qu\'il grandisse</item>
     </plurals>
     <string name="tree_top">Il a atteint sa plus belle taille.</string>
-    <string name="tree_how">L\'arbre de la famille grandit avec vous : chaque Bonne nouvelle, réaction, « Je viens », coup de main ou « bien arrivé » lui ajoute une feuille.</string>
+    <string name="tree_how">L\'arbre de la famille grandit avec vous : chaque actualité, réaction, « Je viens », coup de main ou « bien arrivé » lui ajoute une feuille.</string>
     <string name="tree_challenge">Défi du mois : %1$s %2$s</string>
     <string name="tree_challenge_progress">%1$d sur %2$d</string>
     <string name="tree_host_turn">C\'est à vous de lancer le défi %1$s !</string>
@@ -2286,7 +2285,7 @@
     <string name="host_kind_kindness">Gentillesse</string>
     <string name="host_kind_creative">Créations</string>
     <string name="host_target_title">Quel objectif ?</string>
-    <string name="host_target_help">Une Bonne nouvelle avec photo fait avancer la jauge d\'un cran. Familia propose à peu près une par personne de la famille sur le mois.</string>
+    <string name="host_target_help">Une actualité avec photo fait avancer la jauge d\'un cran. Familia propose à peu près une par personne de la famille sur le mois.</string>
     <string name="host_target_less">Un de moins</string>
     <string name="host_target_more">Un de plus</string>
     <string name="host_look_title">Son nom et son dessin</string>
@@ -2302,7 +2301,7 @@
     <string name="host_illustration_pot">Cuisine</string>
     <string name="host_preview_title">Aperçu</string>
     <string name="host_preview_help">Voici le défi tel que la famille le verra sur l\'Accueil.</string>
-    <string name="host_preview_how">Pour participer : publier une Bonne nouvelle liée au défi, avec une photo.</string>
+    <string name="host_preview_how">Pour participer : publier une actualité liée au défi, avec une photo.</string>
     <string name="host_publish">Publier le défi</string>
     <string name="host_save_draft">Garder en brouillon</string>
     <string name="host_save_for_adults">Enregistrer pour le foyer</string>
@@ -2324,16 +2323,16 @@
     <string name="challenges_won_next">À venir</string>
     <string name="challenge_how_title">Comment ça marche</string>
     <string name="challenge_how_open">voir comment ça marche</string>
-    <string name="challenge_how_counts_photos">Chaque photo d\'une Bonne nouvelle publiée ce mois-ci compte.</string>
-    <string name="challenge_how_counts_good_news">Chaque Bonne nouvelle publiée ce mois-ci compte, avec ou sans photo.</string>
-    <string name="challenge_how_counts_linked">Chaque Bonne nouvelle liée à ce défi, avec une photo, compte.</string>
+    <string name="challenge_how_counts_photos">Chaque photo d\'une actualité publiée ce mois-ci compte.</string>
+    <string name="challenge_how_counts_good_news">Chaque actualité publiée ce mois-ci compte, avec ou sans photo.</string>
+    <string name="challenge_how_counts_linked">Chaque actualité liée à ce défi, avec une photo, compte.</string>
     <string name="challenge_how_host_note">Le mot du foyer : « %1$s »</string>
     <string name="challenge_how_goal">Objectif : %1$s</string>
     <string name="challenge_how_until">Jusqu\'au %1$s.</string>
     <string name="challenge_how_win">À la clé : l\'arbre fleurit, et un souvenir arrive pour toute la famille.</string>
-    <string name="challenge_how_share">Partager une bonne nouvelle</string>
+    <string name="challenge_how_share">Partager une actualité</string>
     <string name="challenge_how_done">Défi réussi</string>
-    <string name="challenge_how_principle">Chaque mois, un défi pour toute la famille : des photos ou des Bonnes nouvelles à réunir ensemble. Réussi, l\'arbre fleurit et un souvenir arrive pour tous. Jamais de classement.</string>
+    <string name="challenge_how_principle">Chaque mois, un défi pour toute la famille : des photos ou des actualités à réunir ensemble. Réussi, l\'arbre fleurit et un souvenir arrive pour tous. Jamais de classement.</string>
     <string name="challenge_how_principle_start">Premier défi le %1$s.</string>
     <string name="question_how_title">La question du lundi</string>
     <string name="question_how_principle">Chaque lundi, une question pour toute la famille. Tu réponds, puis tu vois les réponses des autres. Personne n\'est obligé.</string>
@@ -2463,7 +2462,7 @@
     <string name="feature_daily_nudge">Le petit geste du jour</string>
     <string name="daily_nudge_react">La photo de %1$s attend ta réaction</string>
     <string name="daily_nudge_react_action">Voir la photo</string>
-    <string name="goodnews_little_ones_empty">Pas encore de Bonne nouvelle des petits par ici.</string>
+    <string name="goodnews_little_ones_empty">Pas encore d\'actualité des petits par ici.</string>
     <string name="channel_birthdays_description">Le jour d\'un anniversaire, et les cartes de vœux reçues</string>
     <string name="wishes_title">Cartes de vœux</string>
     <string name="notifications_birthday_wishes">Vœux d\'anniversaire</string>
@@ -2476,14 +2475,14 @@
     <string name="wishes_from">De %1$s</string>
     <string name="wishes_failed">La carte n\'est pas partie. Vérifie ta connexion et réessaie.</string>
     <string name="year_ago_title">Il y a un an</string>
-    <string name="year_ago_news">Une Bonne nouvelle de %1$s</string>
+    <string name="year_ago_news">Une actualité de %1$s</string>
     <string name="year_ago_title_years">Il y a %1$d ans</string>
     <string name="year_ago_trip">Une photo de voyage de %1$s</string>
     <string name="year_ago_event">Une photo de %1$s</string>
     <string name="year_ago_dismiss">Ne plus me montrer ce souvenir</string>
     <string name="year_ago_hide_all">Retirer ce souvenir pour tous</string>
     <string name="year_ago_hide_all_title">Retirer ce souvenir pour toute la famille ?</string>
-    <string name="year_ago_hide_all_text">Plus personne ne le verra dans « Il y a N ans ». La photo ou la Bonne nouvelle reste à sa place.</string>
+    <string name="year_ago_hide_all_text">Plus personne ne le verra dans « Il y a N ans ». La photo ou l\'actualité reste à sa place.</string>
     <string name="year_ago_hide_all_confirm">Retirer pour tous</string>
     <string name="year_ago_hide_failed">Le souvenir n\'a pas pu être retiré. Vérifie ta connexion, puis réessaie.</string>
     <string name="recap_photos">Les photos de la semaine</string>
@@ -2492,7 +2491,7 @@
     <string name="recap_trip_open">voir le voyage</string>
     <string name="recap_quiet">Une semaine calme. Les nouvelles de la famille apparaîtront ici.</string>
     <string name="help_topic_tree_title">L\'arbre de la famille et le défi du mois</string>
-    <string name="help_topic_tree_body">L\'arbre, sur l\'Accueil, grandit avec les gestes de tous : une Bonne nouvelle, une réaction, un « Je viens », un coup de main ou un « bien arrivé » lui ajoutent chacun une feuille, 5 par jour au plus pour chaque personne. Il ne rétrécit jamais et change avec les saisons. Chaque mois a son défi, par exemple « 20 photos de Noël » : publie une Bonne nouvelle avec des photos et la jauge avance toute seule. Quand le défi est réussi, l\'arbre fleurit et toute la famille est prévenue. Personne ne voit qui a le plus aidé.</string>
+    <string name="help_topic_tree_body">L\'arbre, sur l\'Accueil, grandit avec les gestes de tous : une actualité, une réaction, un « Je viens », un coup de main ou un « bien arrivé » lui ajoutent chacun une feuille, 5 par jour au plus pour chaque personne. Il ne rétrécit jamais et change avec les saisons. Chaque mois a son défi, par exemple « 20 photos de Noël » : publie une actualité avec des photos et la jauge avance toute seule. Quand le défi est réussi, l\'arbre fleurit et toute la famille est prévenue. Personne ne voit qui a le plus aidé.</string>
     <!-- Capsule temporelle (récit 39) -->
     <string name="capsules_title">Capsules temporelles</string>
     <string name="capsules_add">Nouvelle capsule</string>
@@ -2617,7 +2616,7 @@
     <string name="notifications_family_gifts">Cadeaux</string>
     <string name="notifications_family_gifts_help">Les listes et les cadeaux réservés. Rien ne gâche une surprise.</string>
     <string name="notifications_family_comments">Commentaires</string>
-    <string name="notifications_family_comments_help">Un commentaire sous un événement ou une photo, une réaction à ta Bonne nouvelle.</string>
+    <string name="notifications_family_comments_help">Un commentaire sous un événement ou une photo, une réaction à ton actualité.</string>
     <string name="notifications_family_help">Coups de main</string>
     <string name="notifications_family_help_help">Une nouvelle demande de coup de main dans la famille.</string>
     <string name="notifications_family_trips">Voyages</string>
@@ -2756,7 +2755,7 @@
     <string name="send_lost_title">Pas parti</string>
     <string name="send_lost_body">Ce que tu avais préparé sans réseau n\'a pas été accepté. Tu peux le refaire :</string>
     <string name="send_lost_help">Le coup de main « %1$s »</string>
-    <string name="send_lost_good_news">La Bonne nouvelle « %1$s »</string>
+    <string name="send_lost_good_news">L\'actualité « %1$s »</string>
     <string name="send_lost_good_deal">Le bon plan « %1$s »</string>
     <string name="send_lost_lend">L\'objet à prêter « %1$s »</string>
     <string name="send_lost_turn">Le tour « %1$s »</string>
@@ -3010,7 +3009,7 @@
     <string name="first_steps_body">Trois petits gestes pour bien commencer dans Familia.</string>
     <string name="first_steps_photo">Mettre ma photo</string>
     <string name="first_steps_tastes">Remplir « Goûts et passions »</string>
-    <string name="first_steps_reaction">Réagir à une bonne nouvelle</string>
+    <string name="first_steps_reaction">Réagir à une actualité</string>
     <string name="first_steps_done">Fait</string>
     <string name="first_steps_to_do">À faire</string>
     <string name="first_steps_later">Plus tard</string>
@@ -3107,8 +3106,8 @@
     <string name="year_intro_body">Quelques images de l\'année de la famille. Touche la droite de l\'écran pour avancer, la gauche pour revenir.</string>
     <string name="year_numbers_title">En %1$d, la famille a partagé</string>
     <plurals name="year_numbers_good_news">
-        <item quantity="one">%d bonne nouvelle</item>
-        <item quantity="other">%d bonnes nouvelles</item>
+        <item quantity="one">%d actualité</item>
+        <item quantity="other">%d actualités</item>
     </plurals>
     <plurals name="year_numbers_events">
         <item quantity="one">%d moment vécu ensemble</item>
@@ -3295,7 +3294,7 @@
     <string name="feed_week_again">Revoir la semaine</string>
     <string name="feed_label_year">Notre année</string>
     <string name="feed_year_watch">Regarder</string>
-    <string name="feed_publish_prompt">Une photo, une bonne nouvelle…</string>
+    <string name="feed_publish_prompt">Une photo, une actualité…</string>
     <string name="feed_publish">Publier</string>
     <string name="feed_publish_photo">Publier une photo</string>
     <string name="feed_recipe_origin">La recette de %1$s</string>

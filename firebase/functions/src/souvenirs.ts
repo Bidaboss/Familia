@@ -22,7 +22,7 @@ export interface SouvenirSpec {
 
 /** The list of the PRD. Its keys never change: the app draws each souvenir from its key. */
 export const SOUVENIRS: SouvenirSpec[] = [
-  { key: 'firstGoodNews', title: 'Première Bonne nouvelle' },
+  { key: 'firstGoodNews', title: 'Première actualité' },
   { key: 'reactions10', title: '10 réactions données', counter: 'reactions', threshold: 10 },
   { key: 'helpGiven5', title: '5 coups de main rendus', counter: 'helpGiven', threshold: 5 },
   { key: 'firstArrival', title: 'Premier « bien arrivé »' },
