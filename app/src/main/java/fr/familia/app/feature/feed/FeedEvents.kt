@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -28,10 +29,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.familia.app.R
 import fr.familia.app.core.data.EventCommentRepository
 import fr.familia.app.core.data.EventRepository
-import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.data.RsvpRepository
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.RsvpStatus
+import fr.familia.app.core.model.nextBirthday
 import fr.familia.app.core.ui.dayShortLabel
 import fr.familia.app.core.ui.formatTime
 import fr.familia.app.core.ui.frenchDate
@@ -44,6 +45,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.time.Instant
+import java.time.LocalDate
 import java.util.Locale
 
 /**
@@ -80,6 +82,14 @@ class EventFeedSource(
 /** The events of the fil: with their creation time, and not one of a series. */
 fun newEvents(events: List<Event>): List<Event> = events.filter { it.createdAt != null && it.seriesId == null }
 
+/**
+ * The day the card shows. An event dated more than a year ago is an anniversary typed with its first
+ * date (« Anniversaire de … » on the birth date, retour d'essai 20/11): it shows its next return,
+ * and « J'y vais » stays hidden since the event itself is past.
+ */
+fun feedEventDay(event: Event, today: LocalDate): LocalDate =
+    if (event.date.isBefore(today.minusYears(1))) nextBirthday(event.date, today) else event.date
+
 class EventFeedCard(
     val event: Event,
     /** I have not answered yet: « J'y vais » shows while the event is to come. */
@@ -95,6 +105,7 @@ class EventFeedCard(
     override fun Content(context: FeedContext) {
         val navigation = LocalFeedNavigation.current
         val tone = FeedTone.Lilac
+        val day = feedEventDay(event, context.today)
         var answered by remember(event.id) { mutableStateOf(false) }
         val scope = rememberCoroutineScope()
         val last = remember(event.id, comments) {
@@ -104,14 +115,11 @@ class EventFeedCard(
         FeedCardShell(
             tone = tone,
             onOpen = { navigation.onOpenEvent(event.id) },
+            // Retour d'essai (20/11): no photo, name or time of who added it, only the label.
             header = {
-                FeedHeader(
-                    member = context.member(event.authorId),
-                    name = event.authorName,
-                    time = formatTime(at.atZone(FAMILY_ZONE).toLocalTime()),
-                    label = stringResource(R.string.feed_label_planning),
-                    tone = tone,
-                )
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    FeedLabel(stringResource(R.string.feed_label_planning), tone)
+                }
             },
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -126,12 +134,12 @@ class EventFeedCard(
                     verticalArrangement = Arrangement.Center,
                 ) {
                     Text(
-                        frenchDate(event.date, "EEE").removeSuffix(".").uppercase(Locale.FRANCE),
+                        frenchDate(day, "EEE").removeSuffix(".").uppercase(Locale.FRANCE),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.ExtraBold,
                         color = tone.label,
                     )
-                    Text(event.date.dayOfMonth.toString(), style = MaterialTheme.typography.titleMedium, color = tone.label)
+                    Text(day.dayOfMonth.toString(), style = MaterialTheme.typography.titleMedium, color = tone.label)
                 }
                 Column(Modifier.weight(1f)) {
                     Text(
@@ -141,9 +149,9 @@ class EventFeedCard(
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
-                    val day = dayShortLabel(event.date, context.today)
+                    val dayLabel = dayShortLabel(day, context.today)
                     Text(
-                        event.time?.let { "$day · ${formatTime(it)}" } ?: day,
+                        event.time?.let { "$dayLabel · ${formatTime(it)}" } ?: dayLabel,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

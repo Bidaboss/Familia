@@ -1387,3 +1387,9 @@ Un téléphone avec l'appli d'avant, puis « APK de publication » lancé pour u
 6. Avec le texte à 130 % : la feuille défile si besoin, et sur la carte « Plus tard » et « Mettre à jour » passent l'un sous l'autre, sans rien couper.
 7. TalkBack : sur la feuille, il lit le titre, puis la phrase, puis les deux boutons.
 
+
+## Cartes Planning du fil d'actualité plus simples (retour d'essai, 20/11)
+
+1. Ajoute un événement dans le Planning, puis ouvre les Actualités. **Attendu :** la carte montre l'étiquette « Planning », le bloc de date, le titre, le jour et l'heure de l'événement, et « J'y vais ». Plus de photo, de prénom ni d'heure de création en haut.
+2. Ajoute un événement « Anniversaire de Nina » à la date de naissance (par exemple le 7 décembre 1990). **Attendu :** la carte du fil montre le prochain anniversaire (« Lundi 7 décembre », sans l'année de naissance), et pas « J'y vais ».
+3. Un événement de la semaine dernière garde sa propre date.
