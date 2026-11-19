@@ -886,6 +886,7 @@ Après « Publier Firebase », puis le nouvel APK.
 1. Entraide. **Attendu :** plus d'onglet « À qui le tour ? », les autres onglets sont là comme avant.
 2. « Tout Familia », puis cherche « tour ». **Attendu :** aucune icône « À qui le tour ? ».
 3. Administration > Modules. **Attendu :** plus de ligne « À qui le tour ? ».
+4. Toujours dans Administration > Modules, éteins puis rallume un interrupteur, par exemple « Qui est-ce ? ». **Attendu :** dans la console Firebase, Firestore, la collection `turns` a disparu et `migrations/turnsErased` donne le nombre de documents effacés.
 
 ## Démo du 21 : Actualités et Entraide sur un réseau faible
 

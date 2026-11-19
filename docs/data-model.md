@@ -709,7 +709,7 @@ Un objet écrit avant le 17/11 (avec `status` et `borrowerId`) se lit comme libr
 
 ## À qui le tour ? (PRD, récit 58), supprimé le 20/11
 
-La fonction n'existe plus : plus d'onglet dans Entraide, plus d'icône dans « Tout Familia », plus de ligne dans Administration > Modules, plus de lien de notification (`turnId`). Une clé `features.turns` restée dans `config/app` est ignorée. `onTurnChanged` reste exporté sans rien faire, car « Publier Firebase » déploie sans `--force`. Les règles refusent toute lecture et toute écriture sous `turns/`.
+La fonction n'existe plus : plus d'onglet dans Entraide, plus d'icône dans « Tout Familia », plus de ligne dans Administration > Modules, plus de lien de notification (`turnId`). Une clé `features.turns` restée dans `config/app` est ignorée. `onTurnChanged` reste exporté sans rien faire, car « Publier Firebase » déploie sans `--force`. Les règles refusent toute lecture et toute écriture sous `turns/`. Avec l'accord de Kévin (20/11), les données sont effacées une seule fois par `eraseTurns` (`functions/src/turns.ts`) : au premier changement de `config/app` après le déploiement (`onTurnsErase`), sinon par la tâche de 18 h. Le nombre de documents est écrit dans le journal avant l'effacement, puis gardé dans `migrations/turnsErased` (`count`, `at`), qui empêche un second passage.
 
 ## Arbre généalogique (PRD, récit 40)
 

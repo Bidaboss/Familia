@@ -57,6 +57,7 @@ import { capBursts, deleteQuietQueueOf, PRIVATE_CHANNELS, sendBurstHeld, sendEve
 import { deleteBirthdayCardsOf, onBirthdayCardCreated, startBirthdays, type BirthdayCard } from './birthdayWishes';
 import { deleteWelcomeOf, isFirstSignIn, sendQueuedWelcomes, welcomeMember } from './welcome';
 import { deleteCheersOf, deleteMomentsOf } from './thinkOfMe';
+import { eraseTurns } from './turns';
 import { keepReceivedPhoto, revealWishes, thankGivers } from './wishesReveal';
 import { cleanupOldLists, migrateToSingleList } from './singleList';
 import { deleteEventReminders, deleteSeriesReminders, sendMyReminders } from './reminders';
@@ -336,6 +337,12 @@ export const helpRequestStillOpen = onSchedule({ schedule: '0 18 * * *', timeZon
   } catch (e) {
     console.error('lend reminders', e);
   }
+  // À qui le tour ? is removed: its data goes once, if Administration did not do it first.
+  try {
+    await eraseTurns(getFirestore(), now);
+  } catch (e) {
+    console.error('turns erase', e);
+  }
 });
 
 // A bon plan removed (by its author, the admin principal or the cleanup) takes its photo with it.
@@ -360,6 +367,12 @@ export const onLendItemChanged = onDocumentUpdatedWithAuthContext('lendItems/{it
 // Nothing is sent any more. Kept, empty: the deploy runs --non-interactive and would stop rather
 // than delete a function that left the code.
 export const onTurnChanged = onDocumentWrittenWithAuthContext('turns/{turnId}', async () => {});
+
+// The turns are erased once (Kévin, 20/11), at the first change in Administration > Modules after
+// the deploy (any switch), or else by the task of 18 h. migrations/turnsErased keeps it to once.
+export const onTurnsErase = onDocumentWritten({ document: 'config/app', timeoutSeconds: 300 }, async () => {
+  await eraseTurns(getFirestore(), new Date());
+});
 
 // A thing removed takes its loan and its photo with it.
 export const onLendItemDeleted = onDocumentDeleted('lendItems/{itemId}', async (event) => {
