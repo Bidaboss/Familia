@@ -76,6 +76,17 @@ describe('write', () => {
   });
 });
 
+describe('« @Prénom » (Kévin, 19/11)', () => {
+  test('a comment names up to 20 members, each once, and its author changes them with the text', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(comment(db), newComment(ADULT, { text: '@Noé bravo', mentionIds: ['adult2'] })));
+    await assertFails(setDoc(comment(db, 'c2'), newComment(ADULT, { mentionIds: Array.from({ length: 21 }, (_, i) => `m${i}`) })));
+    await assertFails(setDoc(comment(db, 'c3'), newComment(ADULT, { mentionIds: ['a', 'a'] })));
+    await assertSucceeds(updateDoc(comment(db), { text: 'Bravo', mentionIds: [], editedAt: serverTimestamp() }));
+    await assertFails(updateDoc(comment(as(env, NEIGHBOUR)), { mentionIds: ['adult3'], editedAt: serverTimestamp() }));
+  });
+});
+
 describe('change and remove', () => {
   test('its author alone changes the text', async () => {
     await stored(ADULT);

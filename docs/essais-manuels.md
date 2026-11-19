@@ -1241,6 +1241,22 @@ Deux téléphones, A et B. Le fil d'actualité est allumé.
 7. Avec TalkBack, place-toi sur le cœur. **Attendu :** « Mettre un cœur », puis l'action « Choisir une réaction ».
 8. **Administration**, « Voir comme… » un membre. **Attendu :** le cœur ne réagit pas, et aucune bulle ne s'affiche.
 
+## Nommer quelqu'un avec « @ » (Kévin, 19/11)
+
+Deux téléphones, A et B, de deux membres différents. Publier Firebase a été lancé avant l'APK (règles et notifications).
+
+1. Sur A, **Une actualité**. **Attendu :** plus de cases à cocher « Nommer des membres ». Sous le texte, « Pour nommer quelqu'un, écris « @ » puis son prénom. »
+2. Écris « Bravo @ ». **Attendu :** une liste sous le champ, par foyer, avec la photo et le prénom de chacun, enfants compris, sans toi. Écris « @no » : seuls les prénoms qui commencent par « no » restent, avec ou sans accent.
+3. Touche un prénom. **Attendu :** « @Prénom » s'écrit en gras, dans la couleur de l'appli, suivi d'un espace. La liste se ferme.
+4. Mets le curseur juste après ce nom et efface une fois. **Attendu :** tout « @Prénom » part d'un coup.
+5. Nomme B, puis publie. **Attendu :** sur la carte du fil et sur l'écran de l'actualité, « @Prénom » est en gras. Le toucher ouvre la fiche de B. B reçoit la notification habituelle d'une actualité où il est nommé, et « Masquer pour moi » lui est proposé en bas de l'actualité.
+6. Ouvre une ancienne actualité où quelqu'un avait été coché. **Attendu :** « Avec Prénom » reste affiché sous le texte. Modifie le texte et enregistre : la personne reste nommée.
+7. Sous un événement, écris un commentaire « @B tu prends le pain ? » en choisissant B dans la liste. **Attendu :** le nom est en gras dans le commentaire. B reçoit « A t'a nommé dans un commentaire », avec le titre de l'événement, même si B avait choisi « Ne plus être prévenu ». B ne reçoit pas en plus « A a commenté ». Toucher la notification ouvre l'événement.
+8. Même essai sous une actualité, depuis le fil (« Commenter ») puis depuis l'écran de l'actualité. **Attendu :** la même notification, qui ouvre l'actualité.
+9. Sous une recette, nomme B. **Attendu :** le nom est en gras et ouvre la fiche de B. Pas de notification : les commentaires de recettes n'en envoient pas.
+10. Modifie un de tes commentaires d'événement et retire le nom. **Attendu :** le texte change, sans gras.
+11. **Administration**, « Voir comme… » un membre. **Attendu :** les noms sont en gras, mais les toucher n'ouvre rien, et il n'y a aucun champ pour écrire.
+
 ## Fil d'actualité de l'Accueil (récit 67)
 
 Module « Fil d'actualité » allumé dans Administration > Modules (éteint, l'Accueil ne change pas, même pour l'admin principal).

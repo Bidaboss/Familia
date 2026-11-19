@@ -4,11 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -18,12 +16,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fr.familia.app.R
+import fr.familia.app.core.mention.MentionText
+import fr.familia.app.core.mention.MentionTextField
+import fr.familia.app.core.ui.PickGroup
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.RecipeRepository
 import fr.familia.app.core.model.Member
@@ -47,6 +47,8 @@ data class CommentRow(val comment: RecipeComment, val canRemove: Boolean)
 data class RecipeCommentsUiState(
     val comments: List<CommentRow> = emptyList(),
     val draft: String = "",
+    /** The members named « @Prénom » in [draft] so far. */
+    val draftMentionIds: List<String> = emptyList(),
     val isSending: Boolean = false,
     val problem: CommentProblem? = null,
 ) {
@@ -69,6 +71,7 @@ class RecipeCommentsViewModel(
 ) : ViewModel() {
 
     private val draft = savedState.getStateFlow(DRAFT, "")
+    private val draftMentions = savedState.getStateFlow(DRAFT_MENTIONS, arrayListOf<String>())
     private val sending = MutableStateFlow(false)
     private val problem = MutableStateFlow<CommentProblem?>(null)
     private var me: Member? = null
@@ -77,14 +80,15 @@ class RecipeCommentsViewModel(
         if (recipes == null || members == null) {
             MutableStateFlow(RecipeCommentsUiState()) // Firebase not configured (previews).
         } else {
-            combine(recipes.observeComments(recipeId), recipes.observeRecipe(recipeId), members.observeFamily(), draft, combine(sending, problem) { isSending, issue -> isSending to issue }) {
-                    list, recipe, family, text, (isSending, issue) ->
+            combine(recipes.observeComments(recipeId), recipes.observeRecipe(recipeId), members.observeFamily(), combine(draft, draftMentions) { t, ids -> t to ids.toList() }, combine(sending, problem) { isSending, issue -> isSending to issue }) {
+                    list, recipe, family, (text, mentionIds), (isSending, issue) ->
                 val current = family.members.firstOrNull { it.id == currentMemberId }
                 me = current
                 val manages = recipe != null && current != null && canManageRecipe(recipe, current, family)
                 RecipeCommentsUiState(
                     comments = list.map { CommentRow(it, manages || it.authorId == currentMemberId) },
                     draft = text,
+                    draftMentionIds = mentionIds,
                     isSending = isSending,
                     problem = issue,
                 )
@@ -93,8 +97,10 @@ class RecipeCommentsViewModel(
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RecipeCommentsUiState())
         }
 
-    fun type(text: String) {
+    /** [mentionIds]: the members still named « @Prénom » in [text]. */
+    fun type(text: String, mentionIds: List<String> = emptyList()) {
         savedState[DRAFT] = text.take(RecipeComment.MAX_TEXT)
+        savedState[DRAFT_MENTIONS] = ArrayList(mentionIds.distinct())
         problem.value = null
     }
 
@@ -105,11 +111,13 @@ class RecipeCommentsViewModel(
         val state = uiState.value
         if (!state.canSend) return
         val text = state.draft.trim()
+        val mentionIds = state.draftMentionIds
         sending.value = true
         viewModelScope.launch {
             try {
-                withTimeoutOrNull(writeTimeoutMillis) { repo.addComment(recipeId, text, author) }
+                withTimeoutOrNull(writeTimeoutMillis) { repo.addComment(recipeId, text, author, mentionIds) }
                 savedState[DRAFT] = ""
+                savedState[DRAFT_MENTIONS] = arrayListOf<String>()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -136,12 +144,20 @@ class RecipeCommentsViewModel(
 
     private companion object {
         const val DRAFT = "recipe_comment_draft"
+        const val DRAFT_MENTIONS = "recipe_comment_draft_mentions"
     }
 }
 
 /** The « Commentaires » part of a recipe: the comments, then a field and « Publier ». */
 @Composable
-fun RecipeCommentsSection(state: RecipeCommentsUiState, onType: (String) -> Unit, onSend: () -> Unit, onRemove: (CommentRow) -> Unit) {
+fun RecipeCommentsSection(
+    state: RecipeCommentsUiState,
+    onType: (String, List<String>) -> Unit,
+    onSend: () -> Unit,
+    onRemove: (CommentRow) -> Unit,
+    /** Whom « @ » suggests (Kévin, 19/11). */
+    groups: List<PickGroup> = emptyList(),
+) {
     var removing by rememberSaveable { mutableStateOf<String?>(null) }
     val muted = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -151,7 +167,7 @@ fun RecipeCommentsSection(state: RecipeCommentsUiState, onType: (String) -> Unit
         state.comments.forEach { row ->
             ClayCard(modifier = Modifier.fillMaxWidth()) {
                 Text(row.comment.authorName, style = MaterialTheme.typography.titleSmall)
-                Text(row.comment.text, style = MaterialTheme.typography.bodyLarge)
+                MentionText(row.comment.text, row.comment.mentionIds, style = MaterialTheme.typography.bodyLarge)
                 if (row.canRemove) {
                     TextButton(onClick = { removing = row.comment.id }, modifier = Modifier.heightIn(min = 56.dp)) {
                         Text(stringResource(R.string.recipe_comment_remove))
@@ -166,14 +182,15 @@ fun RecipeCommentsSection(state: RecipeCommentsUiState, onType: (String) -> Unit
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
-        OutlinedTextField(
-            value = state.draft,
-            onValueChange = onType,
+        MentionTextField(
+            text = state.draft,
+            mentionIds = state.draftMentionIds,
+            onChange = onType,
+            groups = groups,
             label = { Text(stringResource(R.string.recipe_comment_field)) },
             supportingText = fr.familia.app.feature.events.comments.commentCount(state.draft.length, RecipeComment.MAX_TEXT),
             minLines = 2,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
+            maxLength = RecipeComment.MAX_TEXT,
         )
         OutlinedButton(onClick = onSend, enabled = state.canSend, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Text(stringResource(R.string.recipe_comment_send))

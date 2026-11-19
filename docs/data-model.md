@@ -512,8 +512,9 @@ Un commentaire sous un événement. Visible dans l'événement une fois le modul
 | `createdAt` | horodatage serveur | |
 | `expireAt` | horodatage | 365 jours après l'écriture, posé par le téléphone (les règles acceptent 360 à 370 jours). Firestore efface le commentaire à cette date (TTL, groupe de collections `comments`) |
 | `editedAt` | horodatage serveur, absent tant que le texte n'a pas changé | Affiche « modifié » |
+| `mentionIds` | liste de `memberId`, facultative, 20 au plus, sans doublon | Les membres nommés « @Prénom » dans le texte (Kévin, 19/11). Chacun reçoit une fois, directement, « X t'a nommé dans un commentaire » (pas pour les recettes) |
 
-Droits : tous les membres lisent et écrivent les leurs. Seul l'auteur change le texte (et rien d'autre). L'auteur, l'admin principal et un chef du foyer de l'auteur retirent un commentaire. L'appli montre les 30 plus récents, puis 30 de plus à chaque « Voir les commentaires plus anciens ».
+Droits : tous les membres lisent et écrivent les leurs. Seul l'auteur change le texte et les membres nommés (et rien d'autre). L'auteur, l'admin principal et un chef du foyer de l'auteur retirent un commentaire. L'appli montre les 30 plus récents, puis 30 de plus à chaque « Voir les commentaires plus anciens ».
 
 ### `events/{eventId}/commentMutes/{memberId}`
 
@@ -575,6 +576,7 @@ Cloud Functions (`functions/src/goodNews.ts`) :
 | `authorId`, `authorName` | `memberId`, texte | Qui a écrit, et son prénom à ce moment-là |
 | `createdAt` | horodatage serveur | |
 | `editedAt` | horodatage serveur, facultatif | Posé quand l'auteur change le texte |
+| `mentionIds` | liste de `memberId`, facultative, 20 au plus, sans doublon | Les membres nommés « @Prénom » dans le texte (Kévin, 19/11). Chacun reçoit une fois, directement, « X t'a nommé dans un commentaire » (pas pour les recettes) |
 
 Pas de date d'expiration : les commentaires restent tant que la nouvelle existe et partent avec elle (`onGoodNewsDeleted`). Tous les membres les lisent et écrivent les leurs, un enfant avec l'appli aussi, sans validation (PRODUIT-102). L'auteur change le texte ; l'auteur, l'auteur de la nouvelle, un adulte responsable de l'auteur, un chef de famille du foyer de la nouvelle et l'admin principal le retirent. `goodNews/{postId}/commentMutes/{memberId}` (`mutedAt`) : « Ne plus être prévenu », écrit et lu par ce membre seul.
 
@@ -815,6 +817,7 @@ Droits : tous les membres les voient. L'auteur de la recette et l'admin principa
 | `text` | texte | Le commentaire, de 1 à 500 caractères, jamais modifié |
 | `authorId`, `authorName` | texte | Le membre qui l'a écrit et son prénom |
 | `createdAt` | horodatage | Heure du serveur |
+| `mentionIds` | liste de `memberId`, facultative, 20 au plus, sans doublon | Les membres nommés « @Prénom » dans le texte (Kévin, 19/11). Chacun reçoit une fois, directement, « X t'a nommé dans un commentaire » (pas pour les recettes) |
 
 Droits : tous les membres lisent les commentaires et en écrivent en leur nom. Son auteur, l'auteur de la recette ou l'admin principal retire un commentaire.
 

@@ -42,6 +42,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.mention.MentionText
+import fr.familia.app.core.mention.mentionMembers
+import fr.familia.app.core.mention.mentionedIds
+import fr.familia.app.core.mention.openMemberFromMention
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Reaction
 import fr.familia.app.core.photo.StorageImage
@@ -104,16 +108,22 @@ fun GoodNewsCard(
                 }
             }
         }
-        Text(
+        // « @Prénom » in bold, a touch opens the member (Kévin, 19/11).
+        val named = mentionMembers(item.news.mentionIds)
+        MentionText(
             item.news.text,
+            named,
+            openMemberFromMention(),
             style = MaterialTheme.typography.bodyLarge,
             maxLines = if (full) Int.MAX_VALUE else 6,
-            overflow = TextOverflow.Ellipsis,
         )
         Photos(item, full)
-        if (item.mentionNames.isNotEmpty()) {
+        // Older news named members with boxes, not in the text: « Avec … » for those.
+        val inText = mentionedIds(item.news.text, named)
+        val withNames = if (named.isEmpty()) item.mentionNames else named.filter { it.id !in inText }.map { it.firstName }
+        if (withNames.isNotEmpty()) {
             Text(
-                stringResource(R.string.goodnews_with, item.mentionNames.joinToString(", ")),
+                stringResource(R.string.goodnews_with, withNames.joinToString(", ")),
                 style = MaterialTheme.typography.bodyMedium,
                 color = FamiliaClay.colors.onTintVariant(tint),
             )

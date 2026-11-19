@@ -1124,6 +1124,7 @@
     <string name="goodnews_reactions_who">Qui a réagi</string>
     <string name="goodnews_reactions_someone">Quelqu\'un</string>
     <string name="goodnews_reactions_close">Fermer</string>
+    <string name="mention_pick">Nommer %1$s</string>
     <plurals name="goodnews_reactions_total">
         <item quantity="one">%d réaction</item>
         <item quantity="other">%d réactions</item>
@@ -1170,7 +1171,7 @@
     <string name="goodnews_photos_fixed">Les photos ne se changent pas. Pour en mettre d\'autres, retire cette actualité et publies-en une nouvelle.</string>
     <string name="goodnews_for">De qui est cette nouvelle ?</string>
     <string name="goodnews_for_me">Moi</string>
-    <string name="goodnews_mentions">Nommer des membres (facultatif)</string>
+    <string name="goodnews_mentions">Pour nommer quelqu\'un, écris « @ » puis son prénom.</string>
     <string name="goodnews_publish_action">Publier pour toute la famille</string>
     <string name="goodnews_save_action">Enregistrer</string>
     <string name="goodnews_saving">Publication…</string>
