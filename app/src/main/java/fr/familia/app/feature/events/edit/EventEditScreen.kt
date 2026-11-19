@@ -177,7 +177,7 @@ private fun EventFormContent(
             modifier = Modifier.fillMaxWidth(),
         )
 
-        DateTimeSection(form, EventFormError.DateMissing in errors, onChange)
+        DateTimeSection(form, errors, onChange)
         if (state.showRepeat) RepeatSection(form, state.isOccurrence, EventFormError.RepeatEndInvalid in errors, onChange)
 
         PlaceSection(form, state.households, errors, onChange)
@@ -319,7 +319,7 @@ private fun RadioRow(text: String, selected: Boolean, onClick: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DateTimeSection(form: EventForm, dateMissing: Boolean, onChange: ((EventForm) -> EventForm) -> Unit) {
+private fun DateTimeSection(form: EventForm, errors: Set<EventFormError>, onChange: ((EventForm) -> EventForm) -> Unit) {
     var datePicker by rememberSaveable { mutableStateOf(false) }
     var timePicker by rememberSaveable { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -331,7 +331,7 @@ private fun DateTimeSection(form: EventForm, dateMissing: Boolean, onChange: ((E
         OutlinedButton(onClick = { datePicker = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Text(form.date?.format(dateFormatter) ?: stringResource(R.string.event_pick_date))
         }
-        if (dateMissing) errorText(setOf(EventFormError.DateMissing), EventFormError.DateMissing)?.invoke()
+        errorText(errors, EventFormError.DateMissing, EventFormError.DateTooOld)?.invoke()
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick = { timePicker = true }, modifier = Modifier.heightIn(min = 56.dp)) {
                 Text(form.time?.let(::formatTime) ?: stringResource(R.string.event_pick_time))
@@ -519,6 +519,7 @@ private fun errorText(errors: Set<EventFormError>, vararg kinds: EventFormError)
             EventFormError.NoteTooLong -> R.string.error_event_note_too_long
             EventFormError.TargetMissing -> R.string.error_event_target_missing
             EventFormError.RepeatEndInvalid -> R.string.error_event_repeat_end
+            EventFormError.DateTooOld -> R.string.error_event_date_too_old
         },
     )
     return { Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }

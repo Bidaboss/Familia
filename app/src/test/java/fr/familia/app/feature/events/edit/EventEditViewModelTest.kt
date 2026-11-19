@@ -63,6 +63,19 @@ class EventEditViewModelTest {
     }
 
     @Test
+    fun `a new event dated more than a year ago is refused, with the birth date as the way`() {
+        val events = FakeEvents()
+        val viewModel = EventEditViewModel(events, FakeMembers(), "adult1", null, today = { LocalDate.of(2026, 11, 20) })
+        viewModel.update { it.copy(title = "Anniversaire de Nina", date = LocalDate.of(1990, 12, 7)) }
+        viewModel.save()
+        assertEquals(setOf(EventFormError.DateTooOld), viewModel.editing().errors)
+        assertTrue(events.saved.isEmpty())
+        viewModel.update { it.copy(date = LocalDate.of(2026, 11, 13)) }
+        viewModel.save()
+        assertEquals(EventEditUiState.Done(Confirmation.Saved), viewModel.uiState.value)
+    }
+
+    @Test
     fun `saving a new event records the author and closes the form`() {
         val events = FakeEvents()
         val viewModel = vm(events)

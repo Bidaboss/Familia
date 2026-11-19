@@ -1391,5 +1391,6 @@ Un téléphone avec l'appli d'avant, puis « APK de publication » lancé pour u
 ## Cartes Planning du fil d'actualité plus simples (retour d'essai, 20/11)
 
 1. Ajoute un événement dans le Planning, puis ouvre les Actualités. **Attendu :** la carte montre l'étiquette « Planning », le bloc de date, le titre, le jour et l'heure de l'événement, et « J'y vais ». Plus de photo, de prénom ni d'heure de création en haut.
-2. Ajoute un événement « Anniversaire de Nina » à la date de naissance (par exemple le 7 décembre 1990). **Attendu :** la carte du fil montre le prochain anniversaire (« Lundi 7 décembre », sans l'année de naissance), et pas « J'y vais ».
+2. Avec un événement déjà créé avant cette version à une date de naissance (par exemple « Anniversaire de … » le 7 décembre 1990). **Attendu :** la carte du fil montre le prochain anniversaire (« Lundi 7 décembre », sans l'année de naissance), et pas « J'y vais ».
 3. Un événement de la semaine dernière garde sa propre date.
+4. Planning, « + Ajouter », Événement : titre « Anniversaire de Nina », date le 7 décembre 1990, Enregistrer. **Attendu :** sous la date, « Cette date est passée depuis plus d'un an. Pour un anniversaire, ajoute plutôt la date de naissance sur la fiche de la personne… », et rien n'est enregistré. Un événement d'il y a une semaine s'enregistre comme avant, et modifier un ancien événement reste possible.
