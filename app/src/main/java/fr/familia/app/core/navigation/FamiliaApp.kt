@@ -2022,7 +2022,9 @@ private fun allModules(
     }
     module(memoriesInFeed, "feed", R.string.all_feed, Icons.Outlined.DynamicFeed, ModuleFamily.Remember) {
         FeedOpenRequest.ask()
-        navController.navigateToTab(TopLevelDestination.Home)
+        // Back down to the Accueil under Tout Familia: going to the tab would bring Tout Familia back,
+        // saved with the Accueil, and nothing seemed to happen (retour d'essai, 20/11).
+        if (!navController.popBackStack(HomeRoute, inclusive = false)) navController.navigateToTab(TopLevelDestination.Home)
     }
     module(features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums), "albums", R.string.all_albums, Icons.Outlined.PhotoLibrary, ModuleFamily.Remember) {
         navController.navigate(AlbumsDestination) { launchSingleTop = true }
