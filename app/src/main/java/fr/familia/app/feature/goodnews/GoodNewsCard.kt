@@ -141,7 +141,7 @@ private fun PostActions(item: GoodNewsItem, onEdit: () -> Unit, onRemove: () -> 
     FlowRow {
         actions.forEachIndexed { index, (label, action) ->
             if (index > 0) Text("·", style = MaterialTheme.typography.bodyMedium, color = color, modifier = Modifier.align(Alignment.CenterVertically).clearAndSetSemantics { })
-            TextButton(onClick = action, modifier = Modifier.heightIn(min = 48.dp), contentPadding = PaddingValues(horizontal = 8.dp)) {
+            TextButton(onClick = action, modifier = Modifier.heightIn(min = 56.dp), contentPadding = PaddingValues(horizontal = 8.dp)) {
                 Text(label, style = MaterialTheme.typography.bodyMedium, color = color)
             }
         }

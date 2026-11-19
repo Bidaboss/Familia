@@ -124,7 +124,7 @@ fun HeartReaction(
                 }
             }
             if (picking) {
-                AboveAnchorPopup(onDismiss = { picking = false }) {
+                AboveAnchorPopup(onDismiss = { picking = false }, focusable = true) {
                     ReactionPicker(mine) { touched ->
                         picking = false
                         onTouch(touched)
@@ -136,7 +136,8 @@ fun HeartReaction(
                     delay(HINT_MILLIS)
                     hint = false
                 }
-                AboveAnchorPopup(onDismiss = { hint = false }) { ReactionHintBubble(onTap = { hint = false }) }
+                // Not focusable: the next touch on the screen goes where it is aimed (relecture renfort, C1).
+                AboveAnchorPopup(onDismiss = { hint = false }, focusable = false) { ReactionHintBubble(onTap = { hint = false }) }
             }
         }
         val total = reactions.size
@@ -147,7 +148,7 @@ fun HeartReaction(
                 summary,
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier
-                    .heightIn(min = 48.dp)
+                    .heightIn(min = 56.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .clickable(onClickLabel = stringResource(R.string.goodnews_reactions_who), role = Role.Button) { who = true }
                     .padding(horizontal = 8.dp, vertical = 12.dp)
@@ -158,7 +159,7 @@ fun HeartReaction(
     if (who) ReactorsDialog(reactions, nameOf, onDismiss = { who = false })
 }
 
-/** The six reactions in a small bar; the one already given is marked. */
+/** The six reactions in a small bar (56 dp each, 344 dp in all): the one already given is marked. */
 @Composable
 private fun ReactionPicker(mine: Reaction?, onTouch: (Reaction) -> Unit) {
     Surface(shape = RoundedCornerShape(28.dp), tonalElevation = 6.dp, shadowElevation = 6.dp) {
@@ -168,7 +169,7 @@ private fun ReactionPicker(mine: Reaction?, onTouch: (Reaction) -> Unit) {
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(56.dp)
                         .clip(CircleShape)
                         .then(if (reaction == mine) Modifier.background(MaterialTheme.colorScheme.secondaryContainer) else Modifier)
                         .clickable(role = Role.Button) { onTouch(reaction) }
@@ -225,8 +226,8 @@ private fun ReactorsDialog(reactions: Map<String, Reaction>, nameOf: (String) ->
 
 /** A popup drawn just above its anchor, kept inside the screen. */
 @Composable
-private fun AboveAnchorPopup(onDismiss: () -> Unit, content: @Composable () -> Unit) {
-    Popup(popupPositionProvider = AboveAnchor, onDismissRequest = onDismiss, properties = PopupProperties(focusable = true)) {
+private fun AboveAnchorPopup(onDismiss: () -> Unit, focusable: Boolean, content: @Composable () -> Unit) {
+    Popup(popupPositionProvider = AboveAnchor, onDismissRequest = onDismiss, properties = PopupProperties(focusable = focusable)) {
         content()
     }
 }
