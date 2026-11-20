@@ -23,7 +23,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import fr.familia.app.core.model.TripLandscape
 import fr.familia.app.feature.trips.detail.TripPathColors
+import fr.familia.app.feature.trips.detail.drawLandscape
+import fr.familia.app.feature.trips.detail.palette
 
 /** Where the path of the list leads: to a flag, through the days of a trip, or to a question mark. */
 sealed interface LandscapeGoal {
@@ -43,7 +46,8 @@ sealed interface LandscapeGoal {
  * Decorative for TalkBack: the card under it says the same.
  */
 @Composable
-fun TripsLandscape(goal: LandscapeGoal, todayLabel: String, modifier: Modifier = Modifier) {
+fun TripsLandscape(goal: LandscapeGoal, todayLabel: String, modifier: Modifier = Modifier, landscape: TripLandscape = TripLandscape.Dunes) {
+    val palette = landscape.palette
     val measurer = rememberTextMeasurer()
     val bubbleStyle = TextStyle(color = TripPathColors.Ink, fontSize = 15.sp, fontWeight = FontWeight.Bold)
     val todayStyle = TextStyle(color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
@@ -52,11 +56,8 @@ fun TripsLandscape(goal: LandscapeGoal, todayLabel: String, modifier: Modifier =
         val sx = size.width / 390f
         val sy = size.height / 420f
         fun p(x: Float, y: Float) = Offset(x * sx, y * sy)
-        drawRect(TripPathColors.Sky)
-        drawCircle(TripPathColors.Sun, radius = 34.dp.toPx(), center = p(330f, 70f))
-        dune(TripPathColors.DuneFar, 190f, p(110f, 120f), p(220f, 170f), p(330f, 220f), 140f)
-        dune(TripPathColors.DuneMid, 280f, p(120f, 230f), p(240f, 260f), p(360f, 290f), 230f)
-        dune(TripPathColors.DuneNear, 360f, p(140f, 330f), p(260f, 350f), p(380f, 370f), 330f)
+        // The landscape of the trip shown (récit 81), dunes when there is none.
+        drawLandscape(landscape)
 
         val road = Path().apply {
             moveTo(p(46f, 396f).x, p(46f, 396f).y)
@@ -64,10 +65,10 @@ fun TripsLandscape(goal: LandscapeGoal, todayLabel: String, modifier: Modifier =
             cubicTo(p(300f, 230f).x, p(300f, 230f).y, p(90f, 250f).x, p(90f, 250f).y, p(120f, 190f).x, p(120f, 190f).y)
             cubicTo(p(150f, 140f).x, p(150f, 140f).y, p(300f, 170f).x, p(300f, 170f).y, p(318f, 128f).x, p(318f, 128f).y)
         }
-        drawPath(road, TripPathColors.Road, style = Stroke(16.dp.toPx(), cap = StrokeCap.Round))
+        drawPath(road, palette.road, style = Stroke(16.dp.toPx(), cap = StrokeCap.Round))
         drawPath(
             road,
-            TripPathColors.RoadDash,
+            palette.dash,
             style = Stroke(3.dp.toPx(), cap = StrokeCap.Round, pathEffect = PathEffect.dashPathEffect(floatArrayOf(7.dp.toPx(), 8.dp.toPx()))),
         )
         val measure = PathMeasure().apply { setPath(road, false) }
@@ -116,19 +117,6 @@ fun TripsLandscape(goal: LandscapeGoal, todayLabel: String, modifier: Modifier =
         drawCircle(TripPathColors.Ink, 12.dp.toPx(), start)
         pill(Offset(start.x + 18.dp.toPx(), start.y), todayLabel, measurer, todayStyle, TripPathColors.Ink, centered = false)
     }
-}
-
-private fun DrawScope.dune(color: Color, startY: Float, control: Offset, middle: Offset, mirror: Offset, endY: Float) {
-    val sy = size.height / 420f
-    val path = Path().apply {
-        moveTo(0f, startY * sy)
-        quadraticTo(control.x, control.y, middle.x, middle.y)
-        quadraticTo(mirror.x, mirror.y, size.width, endY * sy)
-        lineTo(size.width, size.height)
-        lineTo(0f, size.height)
-        close()
-    }
-    drawPath(path, color)
 }
 
 /** The red flag at the end of the path. */
