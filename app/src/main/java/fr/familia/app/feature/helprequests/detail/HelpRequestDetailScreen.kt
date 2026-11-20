@@ -1,29 +1,20 @@
 package fr.familia.app.feature.helprequests.detail
 
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material3.Icon
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import fr.familia.app.core.photo.SinglePhoto
-import fr.familia.app.core.photo.StorageImage
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -31,13 +22,13 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,28 +36,41 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import fr.familia.app.R
 import fr.familia.app.core.mention.MentionText
-import fr.familia.app.core.share.ShareButton
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.HelpKind
 import fr.familia.app.core.model.HelpRequest
 import fr.familia.app.core.model.HelpStatus
 import fr.familia.app.core.model.VOLUNTEER_NOTE_MAX
+import fr.familia.app.core.photo.SinglePhoto
+import fr.familia.app.core.photo.StorageImage
+import fr.familia.app.core.place.DirectionsButton
+import fr.familia.app.core.share.ShareButton
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.FamiliaTopBar
 import fr.familia.app.core.ui.LoadingState
+import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.ui.PendingSign
+import fr.familia.app.feature.events.placeView
 import fr.familia.app.feature.helprequests.kindLabel
 import fr.familia.app.feature.helprequests.whenLabel
 import java.time.LocalDate
@@ -168,7 +172,11 @@ private fun Content(
         Text(kindLabel(request.kind), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
         Text(request.title, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
         Text(whenLabel(request, state.today), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-        request.place?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
+        // Like an event (récit 74): the place, with the route as soon as there is an address.
+        placeView(request.placeKind, request.place, request.placeHouseholdId, state.households, LocalFeatureFlags.current.isOn(Feature.Places))?.let { place ->
+            Text(place.text, style = MaterialTheme.typography.bodyLarge)
+            place.directions?.let { DirectionsButton(it) }
+        }
         val author = if (state.isMine) stringResource(R.string.helprequest_by_me) else request.authorName
         Text(
             state.helpedName?.let { stringResource(R.string.helprequest_for_by, it, author) }

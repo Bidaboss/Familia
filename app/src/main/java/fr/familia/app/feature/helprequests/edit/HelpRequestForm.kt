@@ -2,6 +2,8 @@ package fr.familia.app.feature.helprequests.edit
 
 import fr.familia.app.core.model.HelpKind
 import fr.familia.app.core.model.HelpRequest
+import fr.familia.app.core.model.Household
+import fr.familia.app.core.model.PlaceKind
 import fr.familia.app.core.photo.PhotoEdit
 import java.time.LocalDate
 import java.time.LocalTime
@@ -22,7 +24,31 @@ data class HelpRequestForm(
     val notifyIds: Set<String> = emptySet(),
     /** What was done with the photo since the form opened (Kévin 16/11). */
     val photo: PhotoEdit = PhotoEdit.Unchanged,
+    /** « Où » like the events (récit 74, Kévin 20/11): [place] is the text of « Autre » or « Adresse », or the household's name. */
+    val placeKind: PlaceKind = PlaceKind.Other,
+    val placeHouseholdId: String? = null,
 ) {
+    /** Another choice of « Où »: the name of a household never stays as a text to edit. */
+    fun withPlaceKind(kind: PlaceKind): HelpRequestForm = if (kind == placeKind) this else copy(
+        placeKind = kind,
+        placeHouseholdId = null,
+        place = if (placeKind == PlaceKind.Household || kind == PlaceKind.Household) "" else place,
+    )
+
+    /** « Chez un foyer »: [household] chosen, its name is the text every screen shows. */
+    fun atHousehold(household: Household): HelpRequestForm =
+        copy(placeKind = PlaceKind.Household, placeHouseholdId = household.id, place = household.name)
+
+    /** What is saved: no text, no place at all; a household is kept only with its id. */
+    fun savedPlace(): Triple<String?, PlaceKind, String?> {
+        val text = place.trim().ifEmpty { null } ?: return Triple(null, PlaceKind.Other, null)
+        return when {
+            placeKind == PlaceKind.Household && placeHouseholdId == null -> Triple(text, PlaceKind.Other, null)
+            placeKind == PlaceKind.Household -> Triple(text, PlaceKind.Household, placeHouseholdId)
+            else -> Triple(text, placeKind, null)
+        }
+    }
+
     companion object {
         /** [keepDate] is false for « Dupliquer », which asks for another date (carte PRODUIT-23). */
         fun from(request: HelpRequest, keepDate: Boolean = true) = HelpRequestForm(
@@ -36,6 +62,9 @@ data class HelpRequestForm(
             mentionIds = request.mentionIds,
             forMemberId = request.forMemberId,
             notifyIds = request.notifyIds.toSet(),
+            // An old request with a free-text place opens on « Autre ».
+            placeKind = request.placeKind,
+            placeHouseholdId = request.placeHouseholdId,
         )
     }
 }

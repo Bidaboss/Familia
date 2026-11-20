@@ -68,6 +68,28 @@ describe('« @Prénom » in the note (Kévin, 19/11)', () => {
   });
 });
 
+describe('« Où » like the events (récit 74, Kévin 20/11)', () => {
+  test('autre, une adresse or chez un foyer, as for an event', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(ref(db, 'r1'), request(ADULT, ['adult2'], { place: 'Au parc' })));
+    await assertSucceeds(setDoc(ref(db, 'r2'), request(ADULT, ['adult2'], { place: '3 rue des Lilas', placeKind: 'address' })));
+    await assertSucceeds(setDoc(ref(db, 'r3'), request(ADULT, ['adult2'], { place: 'Foyer 2', placeKind: 'household', placeHouseholdId: 'h2' })));
+  });
+
+  test('a household that does not exist, or one without its id, is refused', async () => {
+    const db = as(env, ADULT);
+    await assertFails(setDoc(ref(db, 'r1'), request(ADULT, ['adult2'], { place: 'Foyer 9', placeKind: 'household', placeHouseholdId: 'h9' })));
+    await assertFails(setDoc(ref(db, 'r2'), request(ADULT, ['adult2'], { place: 'Foyer 2', placeKind: 'household' })));
+    await assertFails(setDoc(ref(db, 'r3'), request(ADULT, ['adult2'], { placeKind: 'address' })));
+    await assertFails(setDoc(ref(db, 'r4'), request(ADULT, ['adult2'], { place: 'Ici', placeKind: 'ailleurs' })));
+  });
+
+  test('its author changes an old free-text place into a household', async () => {
+    await stored(request(ADULT, ['adult2'], { place: 'Chez nous' }));
+    await assertSucceeds(updateDoc(ref(as(env, ADULT)), { place: 'Foyer 1', placeKind: 'household', placeHouseholdId: 'h1', ...now() }));
+  });
+});
+
 describe('asking for help (récit 13)', () => {
   test('an adult asks two people for themselves', async () => {
     await assertSucceeds(setDoc(ref(as(env, ADULT)), request(ADULT, ['adult2', 'adult3'])));
