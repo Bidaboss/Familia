@@ -56,6 +56,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.mention.MentionTextField
+import fr.familia.app.core.ui.PickGroup
 import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.EventTarget
 import fr.familia.app.core.model.Household
@@ -255,7 +257,7 @@ private fun EventFormContent(
             FormHint(targetError ?: stringResource(R.string.event_for_whom_help), isError = targetError != null)
         }
 
-        Box(Modifier.part(FormPart.Note)) { NoteField(form, errors, onChange) }
+        Box(Modifier.part(FormPart.Note)) { NoteField(form, errors, onChange, state.mentionGroups) }
 
         if (state.saveFailed) FormHint(stringResource(R.string.event_save_failed), isError = true)
         if (!state.isNew) DeleteButton(form.title, state.isOccurrence, enabled = !state.isSaving, onDelete)
@@ -329,6 +331,7 @@ private fun NoteField(
     form: EventForm,
     errors: Set<EventFormError>,
     onChange: ((EventForm) -> EventForm) -> Unit,
+    groups: List<PickGroup>,
 ) {
     var open by rememberSaveable { mutableStateOf(false) }
     if (!open && form.note.isEmpty()) {
@@ -345,14 +348,15 @@ private fun NoteField(
         return
     }
     FormTile(Icons.AutoMirrored.Outlined.Notes, stringResource(R.string.event_note)) {
-        OutlinedTextField(
-            value = form.note,
-            onValueChange = { value -> onChange { it.copy(note = value) } },
+        // « @Prénom » names someone of the family (Kévin, 19/11).
+        MentionTextField(
+            text = form.note,
+            mentionIds = form.mentionIds,
+            onChange = { text, ids -> onChange { it.copy(note = text, mentionIds = ids) } },
+            groups = groups,
+            label = null,
             isError = EventFormError.NoteTooLong in errors,
             minLines = 3,
-            shape = RoundedCornerShape(16.dp),
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
         )
         errorMessage(errors, EventFormError.NoteTooLong)?.let { FormHint(it, isError = true) }
     }

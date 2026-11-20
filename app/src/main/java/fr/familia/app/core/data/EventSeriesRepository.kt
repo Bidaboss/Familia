@@ -61,14 +61,16 @@ class FirestoreEventSeriesRepository(private val db: FirebaseFirestore) : EventS
         val place = placeFields(series.placeKind, series.placeHouseholdId)
         if (isNew) {
             doc(series.id).set(
-                fields + place.filterValues { it != null } + mapOf(
+                fields + place.filterValues { it != null } +
+                    series.mentionIds.takeIf { it.isNotEmpty() }?.let { mapOf("mentionIds" to it) }.orEmpty() + mapOf(
                     "authorId" to series.authorId,
                     "authorName" to series.authorName,
                     "createdAt" to FieldValue.serverTimestamp(),
                 ),
             ).await()
         } else {
-            doc(series.id).update(fields + place.mapValues { (_, v) -> v ?: FieldValue.delete() }).await()
+            val mentions = "mentionIds" to (series.mentionIds.takeIf { it.isNotEmpty() } ?: FieldValue.delete())
+            doc(series.id).update(fields + place.mapValues { (_, v) -> v ?: FieldValue.delete() } + mentions).await()
         }
     }
 
@@ -113,6 +115,7 @@ class FirestoreEventSeriesRepository(private val db: FirebaseFirestore) : EventS
             applyFrom = getString("applyFrom")?.toDay(),
             placeKind = readPlaceKind(),
             placeHouseholdId = readPlaceHouseholdId(),
+            mentionIds = (get("mentionIds") as? List<*>).orEmpty().filterIsInstance<String>(),
         )
     }
 

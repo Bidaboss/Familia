@@ -255,7 +255,7 @@ service cloud.firestore {
                               'householdId', 'authorId', 'authorName', 'createdAt', 'updatedAt'])
         && e.keys().hasOnly(['title', 'date', 'time', 'place', 'note', 'targetType', 'targetMemberId',
                              'householdId', 'authorId', 'authorName', 'createdAt', 'updatedAt', 'coverPhoto',
-                             'placeKind', 'placeHouseholdId'].concat(extra))
+                             'placeKind', 'placeHouseholdId', 'mentionIds'].concat(extra))
         && isDay(e.date)
         && e.updatedAt == request.time
         && isValidEventContent(e);
@@ -268,6 +268,7 @@ service cloud.firestore {
         && (e.place == null || (e.place is string && e.place.size() <= 120))
         && isValidPlace(e)
         && (e.note == null || (e.note is string && e.note.size() <= 1000))
+        && hasCommentMentions(e)
         && e.authorName is string && e.authorName.size() > 0 && e.authorName.size() <= 40
         && ((e.targetType == 'self' && e.targetMemberId == e.authorId && e.householdId == null)
             || (e.targetType == 'child' && e.targetMemberId is string && e.householdId == null
@@ -392,7 +393,7 @@ service cloud.firestore {
                               'authorId', 'authorName', 'rule', 'exdates', 'applyFrom', 'createdAt', 'updatedAt'])
         && e.keys().hasOnly(['title', 'time', 'place', 'note', 'targetType', 'targetMemberId', 'householdId',
                              'authorId', 'authorName', 'rule', 'exdates', 'applyFrom', 'createdAt', 'updatedAt',
-                             'placeKind', 'placeHouseholdId'])
+                             'placeKind', 'placeHouseholdId', 'mentionIds'])
         && isValidRule(e.rule)
         && e.exdates is list && e.exdates.size() <= 100
         && (e.applyFrom == null || isDay(e.applyFrom))
@@ -611,7 +612,7 @@ service cloud.firestore {
       return text is string && text.size() > 0 && text.size() <= 500;
     }
 
-    // The members named « @Prénom » in a comment or in the note of a coup de main
+    // The members named « @Prénom » in a comment or in the note of an event or a coup de main
     // (Kévin, 19/11): optional, at most 20, no duplicate. The server tells each of them once.
     function hasCommentMentions(data) {
       return !('mentionIds' in data) || isIdList(data.mentionIds, 0, 20);

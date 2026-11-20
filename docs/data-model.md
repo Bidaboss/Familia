@@ -104,6 +104,7 @@ Une personne connectée mais absente de la famille peut lire uniquement sa propr
 | `placeKind` | `address` \| `household` \| null, facultatif | Ce qu'est le lieu (récit 74). Absent ou null : « Autre », le texte libre des événements d'avant. `address` : une adresse, « Itinéraire » l'ouvre dans Maps ou Waze. `household` : « Chez un foyer ». Avec `address` ou `household`, `place` n'est jamais vide |
 | `placeHouseholdId` | `householdId` ou null, facultatif | Le foyer de « Chez un foyer », qui doit exister ; null sinon. Ce n'est pas le destinataire : on peut fêter chez un autre foyer. L'adresse vient de la fiche du foyer (« Adresse du foyer », récit 66) ; sans elle, pas d'« Itinéraire » |
 | `note` | texte (1 000 au plus) ou null | Note facultative |
+| `mentionIds` | liste de `memberId`, facultative, 20 au plus | Les membres nommés « @Prénom » dans la note (Kévin, 19/11). Chacun nouvellement nommé reçoit « X t'a nommé dans « Titre » », directement, sans la notification habituelle en plus. Une série la copie sur chaque jour |
 | `targetType` | `self` \| `child` \| `household` \| `family` | Pour qui : moi, un enfant, un foyer, toute la famille |
 | `targetMemberId` | `memberId` ou null | L'auteur pour `self`, l'enfant pour `child`, sinon null |
 | `householdId` | `householdId` ou null | Le foyer pour `household`, sinon null |

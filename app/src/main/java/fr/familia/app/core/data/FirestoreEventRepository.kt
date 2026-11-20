@@ -110,7 +110,8 @@ class FirestoreEventRepository(private val db: FirebaseFirestore) : EventReposit
             // Left out when there is none, so the event fits the rules of before the cover too.
             val cover = event.coverPhoto?.let { mapOf("coverPhoto" to it) }.orEmpty()
             ref.set(
-                fields + cover + placeFields(event.placeKind, event.placeHouseholdId).filterValues { it != null } + mapOf(
+                fields + cover + placeFields(event.placeKind, event.placeHouseholdId).filterValues { it != null } +
+                    event.mentionIds.takeIf { it.isNotEmpty() }?.let { mapOf("mentionIds" to it) }.orEmpty() + mapOf(
                     "authorId" to event.authorId,
                     "authorName" to event.authorName,
                     "createdAt" to FieldValue.serverTimestamp(),
@@ -121,7 +122,8 @@ class FirestoreEventRepository(private val db: FirebaseFirestore) : EventReposit
             // series changed by hand is « Cette fois seulement » (récit 54): the series leaves it be.
             val detached = if (event.seriesId != null) mapOf("detached" to true) else emptyMap()
             val place = placeFields(event.placeKind, event.placeHouseholdId).mapValues { (_, v) -> v ?: FieldValue.delete() }
-            ref.update(fields + detached + place + ("coverPhoto" to (event.coverPhoto ?: FieldValue.delete()))).await()
+            val mentions = "mentionIds" to (event.mentionIds.takeIf { it.isNotEmpty() } ?: FieldValue.delete())
+            ref.update(fields + detached + place + mentions + ("coverPhoto" to (event.coverPhoto ?: FieldValue.delete()))).await()
         }
     }
 
@@ -149,6 +151,7 @@ class FirestoreEventRepository(private val db: FirebaseFirestore) : EventReposit
             createdAt = getTimestamp("createdAt", DocumentSnapshot.ServerTimestampBehavior.ESTIMATE)?.toInstant(),
             placeKind = readPlaceKind(),
             placeHouseholdId = readPlaceHouseholdId(),
+            mentionIds = (get("mentionIds") as? List<*>).orEmpty().filterIsInstance<String>(),
         )
     }
 

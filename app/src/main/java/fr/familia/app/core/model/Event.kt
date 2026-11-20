@@ -36,6 +36,8 @@ data class Event(
     val placeKind: PlaceKind = PlaceKind.Other,
     /** The household of « Chez un foyer »; [place] then holds its name, for the screens and old apps. */
     val placeHouseholdId: String? = null,
+    /** The members named « @Prénom » in [note] (Kévin, 19/11). */
+    val mentionIds: List<String> = emptyList(),
 )
 
 /**
