@@ -907,7 +907,7 @@ service cloud.firestore {
         && r.keys().hasOnly(['kind', 'title', 'date', 'startTime', 'endTime', 'place', 'note', 'authorId',
                              'authorName', 'forMemberId', 'notifyIds', 'viewerIds', 'status', 'volunteerId',
                              'volunteerName', 'declinedBy', 'thankedAt', 'createdAt', 'updatedAt',
-                             'volunteerNote', 'photo', 'unavailableIds', 'mentionIds'])
+                             'volunteerNote', 'photo', 'unavailableIds', 'mentionIds', 'placeKind', 'placeHouseholdId'])
         && isVolunteerNote(r.get('volunteerNote', null))
         && r.get('unavailableIds', []) is list && r.get('unavailableIds', []).size() <= 20
         && r.kind in ['childcare', 'ride', 'other']
@@ -916,6 +916,8 @@ service cloud.firestore {
         && isHelpTime(r.startTime) && isHelpTime(r.endTime)
         && (r.startTime == null || r.endTime == null || r.startTime < r.endTime)
         && (r.place == null || (r.place is string && r.place.size() <= 120))
+        // « Où » like the events (récit 74, Kévin 20/11): autre, une adresse, or chez un foyer.
+        && isValidPlace(r)
         && (r.note == null || (r.note is string && r.note.size() <= 1000))
         // « @Prénom » in the note names only people who are warned (Kévin, 19/11).
         && hasCommentMentions(r) && r.notifyIds.hasAll(r.get('mentionIds', []))

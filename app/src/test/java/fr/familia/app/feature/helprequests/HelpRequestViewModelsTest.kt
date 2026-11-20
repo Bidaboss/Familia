@@ -3,6 +3,7 @@ package fr.familia.app.feature.helprequests
 import fr.familia.app.core.data.AlreadyTakenException
 import fr.familia.app.core.data.HelpRequestRepository
 import fr.familia.app.core.model.HelpStatus
+import fr.familia.app.core.model.PlaceKind
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.TestFamily
 import fr.familia.app.feature.helprequests.detail.HelpActionError
@@ -145,6 +146,36 @@ class HelpRequestViewModelsTest {
         assertEquals("Garde r1", form.title)
         assertNull(form.date)
         assertEquals(setOf("adult2", "admin1"), form.notifyIds)
+    }
+
+    @Test
+    fun `« Où » saves a household by its id, and an old free-text place opens on « Autre »`() {
+        val old = helpRequest("r1", TestFamily.adult, listOf("adult2")).copy(place = "Au parc")
+        val repo = FakeHelpRequests(listOf(old))
+        val viewModel = edit(repo, requestId = "r1")
+        assertEquals(PlaceKind.Other, viewModel.editing().form.placeKind)
+        assertEquals("Au parc", viewModel.editing().form.place)
+        assertEquals(listOf("h2", "h1"), viewModel.editing().households.map { it.id })
+        viewModel.update { it.withPlaceKind(PlaceKind.Household) }
+        assertEquals("", viewModel.editing().form.place)
+        viewModel.update { it.atHousehold(TestFamily.family.households.first { h -> h.id == "h2" }) }
+        viewModel.save()
+        val request = repo.saved.single().first
+        assertEquals(PlaceKind.Household, request.placeKind)
+        assertEquals("h2", request.placeHouseholdId)
+        assertEquals("Foyer Deux", request.place)
+    }
+
+    @Test
+    fun `an address is saved trimmed, without a household`() {
+        val repo = FakeHelpRequests(listOf(helpRequest("r1", TestFamily.adult, listOf("adult2"))))
+        val viewModel = edit(repo, requestId = "r1")
+        viewModel.update { it.withPlaceKind(PlaceKind.Address).copy(place = " 3 rue des Lilas ") }
+        viewModel.save()
+        val request = repo.saved.single().first
+        assertEquals(PlaceKind.Address, request.placeKind)
+        assertEquals("3 rue des Lilas", request.place)
+        assertNull(request.placeHouseholdId)
     }
 
     @Test

@@ -75,6 +75,7 @@ class HelpRequestDetailViewModel(
             canManage = canManageHelp(request, me, family) && request.status != HelpStatus.Cancelled,
             canThank = canThank(request, me, family, today),
             seenByWholeFamily = family.members.all { it.id == request.authorId || it.id in request.notifyIds },
+            households = family.households,
             isBusy = act.busy,
             error = act.refusedOn?.let { seen ->
                 // Read from the live request: if it moved meanwhile, someone came first.

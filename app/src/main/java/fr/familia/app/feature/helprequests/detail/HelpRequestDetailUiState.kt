@@ -1,6 +1,7 @@
 package fr.familia.app.feature.helprequests.detail
 
 import fr.familia.app.core.model.HelpRequest
+import fr.familia.app.core.model.Household
 import java.time.LocalDate
 
 /** Why the last action did not go through. */
@@ -35,6 +36,8 @@ sealed interface HelpRequestDetailUiState {
         val canThank: Boolean,
         /** The whole family reads it (author and people warned): only then may it leave Familia. */
         val seenByWholeFamily: Boolean = false,
+        /** For « Chez un foyer » and its « Itinéraire » (Kévin 20/11). */
+        val households: List<Household> = emptyList(),
         val isBusy: Boolean = false,
         val error: HelpActionError? = null,
     ) : HelpRequestDetailUiState

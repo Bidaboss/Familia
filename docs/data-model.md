@@ -599,6 +599,7 @@ Spec : « Spec Familia : coups de main » (tenue par [PRODUIT]), avec les cartes
 | `date` | texte `AAAA-MM-JJ` | Obligatoire, pas dans le passé à la création ni quand on la change |
 | `startTime`, `endTime` | texte `HH:mm` ou null | Facultatives ; la fin après le début |
 | `place` | texte (120 au plus) ou null | Lieu facultatif |
+| `placeKind`, `placeHouseholdId` | comme un événement, facultatifs | « Où » comme les événements (récit 74, Kévin 20/11) : absent pour « Autre » (les demandes d'avant), `address` pour une adresse, `household` pour « Chez un foyer » avec son foyer. `place` garde le texte affiché (le nom du foyer) |
 | `note` | texte (1 000 au plus) ou null | Note facultative |
 | `mentionIds` | liste de `memberId`, facultative, 20 au plus, tous dans `notifyIds` | Les personnes prévenues nommées « @Prénom » dans la note (Kévin, 19/11). Chacune nouvellement nommée reçoit « X t'a nommé dans « Titre » », directement |
 | `photo` | texte ou absent/null | Facultatif (Kévin 16/11 : un QR code, ce qu'il faut récupérer) : la base `helpRequests/{requestId}/{memberId}/{photoId}` de deux fichiers Storage, `.jpg` (500 Ko au plus) et `-thumb.jpg`, envoyés avant la demande dans le dossier de qui écrit. Seuls ceux de `viewerIds` les lisent (pas même l'admin principal, limite de deux lectures de Storage). Le serveur les efface avec la demande |
