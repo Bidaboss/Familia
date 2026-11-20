@@ -66,26 +66,8 @@ fun StickyActionBar(
     }
 }
 
-/**
- * The top of a form in the Argile style (DESIGN-50): the round « Retour », the [title] in the
- * title font of the theme, and [actions] at the end (the « ? » of the help).
- */
+/** The top of a form (DESIGN-50): now [FamiliaTopBar], for every screen (récit 83). Kept for the time of the change. */
 @Composable
 fun FormTopBar(title: String, onBack: () -> Unit, modifier: Modifier = Modifier, actions: @Composable () -> Unit = {}) {
-    Row(
-        modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 8.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Surface(shape = CircleShape, color = LocalClayColors.current.card, shadowElevation = 2.dp) { BackButton(onClick = onBack) }
-        Text(
-            title,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f).semantics { heading() },
-        )
-        actions()
-    }
+    FamiliaTopBar(title = title, onBack = onBack, modifier = modifier, actions = { actions() })
 }
