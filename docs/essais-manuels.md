@@ -1518,3 +1518,9 @@ Avant l'APK : lance « Publier Firebase » (les règles acceptent le champ lands
 12. Quand : choisis un Départ (Jour et Heure), puis une Arrivée prévue plus tôt le même jour. **Attendu :** « L'arrivée ne peut pas être avant le départ » sous l'arrivée, et la bande bleu pâle avec l'horloge explique le rappel « Bien arrivé ».
 13. Modifie une étape. **Attendu :** « Enregistrer » en bas et « Supprimer l'étape » tout en bas, en rouge pâle ; la confirmation ne change pas.
 14. Thème sombre, texte à 130 % puis au maximum. **Attendu :** le fond reste ciel, les tuiles restent lisibles, rien n'est coupé.
+
+## Fil d'actualité sans tuiles Planning (20/11)
+
+1. Ajoute un événement dans le Planning, puis ouvre le fil. **Attendu :** aucune tuile « Planning ». L'événement est sur l'Accueil, dans le Planning et dans la notification.
+2. Ajoute une photo à l'album d'un événement passé : la photo apparaît toujours dans le fil.
+3. Un jour d'anniversaire, la carte « Anniversaire » est toujours en tête de « Aujourd'hui », avec l'âge, sans date de naissance.
