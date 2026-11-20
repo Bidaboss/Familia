@@ -53,6 +53,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.mention.MentionText
 import fr.familia.app.core.share.ShareButton
 import fr.familia.app.core.model.HelpKind
 import fr.familia.app.core.model.HelpRequest
@@ -175,7 +176,7 @@ private fun Content(
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        request.note?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
+        request.note?.let { MentionText(it, request.mentionIds, style = MaterialTheme.typography.bodyLarge) }
         request.photo?.let { HelpPhoto(it) }
         Text(
             stringResource(R.string.helprequest_warned, state.warnedNames.joinToString(", ")),

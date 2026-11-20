@@ -611,8 +611,8 @@ service cloud.firestore {
       return text is string && text.size() > 0 && text.size() <= 500;
     }
 
-    // The members named « @Prénom » in a comment (Kévin, 19/11): optional, at most 20, no duplicate.
-    // The server tells each of them once.
+    // The members named « @Prénom » in a comment or in the note of a coup de main
+    // (Kévin, 19/11): optional, at most 20, no duplicate. The server tells each of them once.
     function hasCommentMentions(data) {
       return !('mentionIds' in data) || isIdList(data.mentionIds, 0, 20);
     }
@@ -907,7 +907,7 @@ service cloud.firestore {
         && r.keys().hasOnly(['kind', 'title', 'date', 'startTime', 'endTime', 'place', 'note', 'authorId',
                              'authorName', 'forMemberId', 'notifyIds', 'viewerIds', 'status', 'volunteerId',
                              'volunteerName', 'declinedBy', 'thankedAt', 'createdAt', 'updatedAt',
-                             'volunteerNote', 'photo', 'unavailableIds'])
+                             'volunteerNote', 'photo', 'unavailableIds', 'mentionIds'])
         && isVolunteerNote(r.get('volunteerNote', null))
         && r.get('unavailableIds', []) is list && r.get('unavailableIds', []).size() <= 20
         && r.kind in ['childcare', 'ride', 'other']
@@ -917,6 +917,8 @@ service cloud.firestore {
         && (r.startTime == null || r.endTime == null || r.startTime < r.endTime)
         && (r.place == null || (r.place is string && r.place.size() <= 120))
         && (r.note == null || (r.note is string && r.note.size() <= 1000))
+        // « @Prénom » in the note names only people who are warned (Kévin, 19/11).
+        && hasCommentMentions(r) && r.notifyIds.hasAll(r.get('mentionIds', []))
         && r.authorName is string && r.authorName.size() > 0 && r.authorName.size() <= 40
         && r.forMemberId is string && exists(memberPath(r.forMemberId))
         && r.status in ['open', 'taken', 'cancelled']

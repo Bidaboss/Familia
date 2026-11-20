@@ -79,7 +79,7 @@ class FirestoreHelpRequestRepository(
         if (isNew) {
             journal.track(SendEntry(ref.path, SendKind.HelpRequest, request.title, request.authorId)) {
                 ref.set(
-                    fields + mapOf(
+                    fields + request.mentionIds.takeIf { it.isNotEmpty() }?.let { mapOf("mentionIds" to it) }.orEmpty() + mapOf(
                         "authorId" to request.authorId,
                         "authorName" to request.authorName,
                         "forMemberId" to request.forMemberId,
@@ -92,7 +92,7 @@ class FirestoreHelpRequestRepository(
                 )
             }
         } else {
-            ref.update(fields).await()
+            ref.update(fields + ("mentionIds" to (request.mentionIds.takeIf { it.isNotEmpty() } ?: FieldValue.delete()))).await()
         }
     }
 
@@ -208,6 +208,7 @@ class FirestoreHelpRequestRepository(
             createdAt = getTimestamp("createdAt")?.toInstant(),
             pending = metadata.hasPendingWrites(),
             photo = getString("photo"),
+            mentionIds = (get("mentionIds") as? List<*>).orEmpty().filterIsInstance<String>(),
         )
     }
 

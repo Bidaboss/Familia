@@ -984,7 +984,6 @@
     <!-- Coups de main (PRD, récits 13 à 18) : fil [DEV] coups de main -->
     <string name="nav_help_requests">Entraide</string>
     <string name="helprequest_screen_title">Entraide</string>
-    <string name="helprequest_photo_title">Photo</string>
     <string name="helprequest_photo_hint">Un QR code de colis, ce qu\'il faut récupérer, l\'endroit : seuls ceux que tu préviens la voient.</string>
     <string name="helprequest_photo_label">Photo jointe à la demande</string>
     <string name="helprequest_photo_open">Voir la photo en grand</string>
@@ -1019,20 +1018,35 @@
     <string name="helprequest_add_title">Demander un coup de main</string>
     <string name="helprequest_edit_title">Modifier la demande</string>
     <string name="helprequest_leave_title">Abandonner la demande ?</string>
-    <string name="helprequest_kind">Type d\'aide</string>
-    <string name="helprequest_title_field">Titre</string>
-    <string name="helprequest_title_hint">Par exemple : garder Noé mercredi</string>
-    <string name="helprequest_start">Début</string>
-    <string name="helprequest_end">Fin</string>
-    <string name="helprequest_time_value">%1$s : %2$s</string>
-    <string name="helprequest_time_add">Heure de %1$s (facultative)</string>
     <string name="helprequest_for_whom">Pour qui</string>
     <string name="helprequest_notify">Qui prévenir</string>
     <string name="helprequest_notify_hint">Seules ces personnes verront ta demande.</string>
-    <string name="helprequest_notify_everyone">Tout le monde</string>
-    <string name="helprequest_notify_always">Toujours prévenu pour un enfant</string>
+    <string name="helprequest_notify_everyone">Toute la famille</string>
     <string name="helprequest_notify_others">Autres</string>
-    <string name="helprequest_send">Envoyer la demande</string>
+    <string name="helprequest_need">De quoi as-tu besoin ?</string>
+    <string name="helprequest_tile_request">Ta demande</string>
+    <string name="helprequest_question">Ta question</string>
+    <string name="helprequest_question_placeholder">Par exemple : qui peut garder Noé mercredi ?</string>
+    <string name="helprequest_question_hint">Écris-la comme une question : c\'est ce que la famille lira en premier.</string>
+    <string name="helprequest_details">Précisions (facultatif)</string>
+    <string name="helprequest_details_hint">Tape @ pour citer quelqu\'un : il est prévenu.</string>
+    <string name="helprequest_when">Quand</string>
+    <string name="helprequest_today">Aujourd\'hui</string>
+    <string name="helprequest_tomorrow">Demain</string>
+    <string name="helprequest_other_day">Autre jour</string>
+    <string name="helprequest_from">De</string>
+    <string name="helprequest_to">À</string>
+    <string name="helprequest_time_empty">Choisir</string>
+    <string name="helprequest_time_clear">Retirer l\'heure « %1$s »</string>
+    <string name="helprequest_times_optional">Les heures sont facultatives.</string>
+    <string name="helprequest_where">Où</string>
+    <string name="helprequest_always_short">toujours</string>
+    <string name="helprequest_always_description">%1$s, toujours prévenu</string>
+    <plurals name="helprequest_send_to">
+        <item quantity="one">Envoyer à %1$d personne</item>
+        <item quantity="many">Envoyer à %1$d personnes</item>
+        <item quantity="other">Envoyer à %1$d personnes</item>
+    </plurals>
     <string name="helprequest_error_date_past">Cette date est déjà passée.</string>
     <string name="helprequest_error_end_before_start">La fin doit venir après le début.</string>
     <string name="helprequest_error_nobody">Coche au moins une personne à prévenir.</string>
@@ -3190,6 +3204,7 @@
     <string name="announcements_preview_no_text">Ton message</string>
     <plurals name="announcements_send">
         <item quantity="one">Envoyer à %1$d personne</item>
+        <item quantity="many">Envoyer à %1$d personnes</item>
         <item quantity="other">Envoyer à %1$d personnes</item>
     </plurals>
     <plurals name="announcements_confirm_title">
