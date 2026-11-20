@@ -330,11 +330,12 @@ private fun HeaderTile(
 /** « SAM » over « 28 », in a pale square: the date is said by the line next to it. */
 @Composable
 private fun DayBox(date: LocalDate) {
-    val accent = MaterialTheme.colorScheme.primary
+    // The container pair of the theme, so the small « JEU » keeps 4.5:1 in every theme.
+    val accent = MaterialTheme.colorScheme.onPrimaryContainer
     Column(
         Modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(accent.copy(alpha = 0.16f))
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .widthIn(min = 60.dp)
             .padding(horizontal = 10.dp, vertical = 8.dp)
             .clearAndSetSemantics {},
