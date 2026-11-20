@@ -49,3 +49,7 @@ Chaque fichier contient de 1 à 3 cartes. Les champs :
 - Tous les modules sont allumés le 21/11 (DESIGN-10) : « feature » sert surtout pour un module ajouté plus tard.
 
 Un test vérifie chaque fichier à chaque PR (`firebase/tests/whatsNew.test.mjs`). Le workflow refuse aussi de publier si un fichier a un problème, avant de toucher au Drive.
+
+## Corrections (automatique)
+
+À chaque « APK de publication », le workflow ajoute aussi une carte « Corrections » pour cette version, sans fichier à écrire : la liste des PR fusionnées depuis la version précédente (leur titre, sans le numéro ni les références comme « (PRODUIT-12) »), six lignes au plus. L'appli la dessine à part des nouveautés et la montre après elles. Le dernier commit publié est gardé dans `config/app.latestCommit` ; la première fois, ce sont les commits des dernières 24 heures. Un titre de PR est donc lu par la famille : l'écrire en français simple, sans prénom.

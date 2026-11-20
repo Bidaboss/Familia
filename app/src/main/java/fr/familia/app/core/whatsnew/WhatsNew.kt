@@ -13,7 +13,9 @@ import fr.familia.app.core.model.MemberProfile
  * One card. [feature] is the key of the module it talks about (config/app.features): the card
  * waits while the module is off for the family. [open] names the screen of « Essayer »
  * ([WhatsNewTarget]); unknown or missing, the card has no button. A child reads [childTitle] and
- * [childBody] when there are some, and never sees an [adultsOnly] card.
+ * [childBody] when there are some, and never sees an [adultsOnly] card. A [fixes] card is written by
+ * the workflow itself from what was merged since the last version (Kévin le 20/11): drawn apart
+ * from the new features, one line per correction, always after them.
  */
 data class WhatsNewCard(
     val id: String,
@@ -24,6 +26,7 @@ data class WhatsNewCard(
     val feature: String? = null,
     val open: String? = null,
     val adultsOnly: Boolean = false,
+    val fixes: Boolean = false,
 ) {
     fun titleFor(child: Boolean): String = if (child) childTitle ?: title else title
     fun bodyFor(child: Boolean): String = if (child) childBody ?: body else body
@@ -68,6 +71,8 @@ object WhatsNew {
     ): List<ShownCard> = history(releases, installedVersion, child, isOnForFamily)
         .flatMap { (release, cards) -> cards.map { ShownCard(it, release) } }
         .filter { it.card.id !in seen }
+        // The new features first, the corrections after them.
+        .sortedBy { it.card.fixes }
         .take(MAX_CARDS)
 
     /** Every version up to the installed one, the most recent first, with the cards that concern me. */
@@ -106,6 +111,7 @@ object WhatsNew {
             feature = text("feature"),
             open = text("open"),
             adultsOnly = map["adultsOnly"] == true,
+            fixes = map["kind"] == "fixes",
         )
     }
 }

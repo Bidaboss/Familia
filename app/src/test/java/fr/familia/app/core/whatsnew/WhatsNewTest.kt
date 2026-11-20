@@ -123,6 +123,25 @@ class WhatsNewTest {
     }
 
     @Test
+    fun `the corrections come after the new features, even those of an older version`() {
+        val fixes12 = WhatsNewCard("corrections-12", "Corrigé", "• Une ligne", fixes = true)
+        val releases = listOf(release(11, card("a")), release(12, card("b"), fixes12))
+        val ids = WhatsNew.pending(releases, 12, emptySet(), child = false, isOnForFamily = allOn).map { it.card.id }
+        assertEquals(listOf("b", "a", "corrections-12"), ids)
+    }
+
+    @Test
+    fun `parse reads a card of corrections`() {
+        val raw = listOf(
+            mapOf(
+                "id" to "corrections-300", "versionCode" to 300L, "versionName" to "1.300",
+                "cards" to listOf(mapOf("id" to "corrections-300", "title" to "Corrigé", "body" to "• Une ligne", "kind" to "fixes")),
+            ),
+        )
+        assertTrue(WhatsNew.parse(raw).single().cards.single().fixes)
+    }
+
+    @Test
     fun `parse leaves out an incomplete card or version`() {
         val raw = listOf(
             mapOf(
