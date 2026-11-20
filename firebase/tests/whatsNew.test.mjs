@@ -101,3 +101,14 @@ test('the corrections of the earlier versions stay in the history, beside the fi
   assert.equal(history.length, CORRECTIONS_KEPT);
   assert.equal(history.at(-1).id, `corrections-${CORRECTIONS_KEPT + 5}`);
 });
+
+test('a title about gifts or surprises never reaches the card', () => {
+  const titles = correctionTitles([
+    'Cadeaux s\'ouvre tout en haut quand une surprise arrive après le reste (#420)',
+    'Cadeau commun avec un membre du foyer (récit 73) (#413)',
+    'Fiche : « Lui souhaiter » seulement le jour de l\'anniversaire (#415)',
+    'Mes envies : réserver une idée (#500)',
+    'Coup de main : jamais « Dire merci » à soi-même (#423)',
+  ]);
+  assert.deepEqual(titles, ['Coup de main : jamais « Dire merci » à soi-même']);
+});

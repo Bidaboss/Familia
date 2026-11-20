@@ -127,7 +127,16 @@ export const CORRECTIONS_KEPT = 30;
 export const CORRECTIONS_LINES = 6;
 export const CORRECTIONS_TITLE = 'Ce qui a été corrigé ou retouché';
 
-/** The titles of the pull requests among [subjects] (git log), without their number nor references. */
+/**
+ * Words that keep a title out of the card: read by the whole family, children included, it must
+ * never give a surprise away (relecture de la #433).
+ */
+export const CORRECTIONS_HIDDEN = /surprise|cadeau|envie|r[ée]serv|anniversaire|no[ëe]l/i;
+
+/**
+ * The titles of the pull requests among [subjects] (git log), without their number nor references,
+ * nor those that touch gifts ([CORRECTIONS_HIDDEN]).
+ */
 export function correctionTitles(subjects) {
   return subjects
     .map((subject) => subject.trim())
@@ -136,7 +145,7 @@ export function correctionTitles(subjects) {
       .replace(/\s*\(#\d+\)$/, '')
       .replace(/\s*\([^()]*\b(?:PRODUIT|DESIGN|BUG|CADEAUX|AIDE|VOYAGE|ORGA|COORD|DEV|PRD|récit)\b[^()]*\)\s*$/i, '')
       .trim())
-    .filter(Boolean);
+    .filter((title) => title && !CORRECTIONS_HIDDEN.test(title));
 }
 
 /** The version's card of corrections, or null when nothing was merged. */
