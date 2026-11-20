@@ -1,5 +1,7 @@
 package fr.familia.app.core.navigation
 
+import fr.familia.app.core.mention.LocalMentionFamily
+import fr.familia.app.core.mention.LocalOpenMember
 import fr.familia.app.core.welcome.OliveMascot
 import fr.familia.app.core.welcome.LocalMascotFruits
 import fr.familia.app.core.welcome.welcomeFruits
@@ -757,6 +759,9 @@ fun FamiliaApp(
             liveFamily?.let { welcomeFruits(it, currentMember) }.orEmpty()
         },
         LocalFeatureFlags provides features,
+        // « @Prénom » in the texts and comments (Kévin, 19/11).
+        LocalMentionFamily provides liveFamily,
+        LocalOpenMember provides { id -> navController.navigate(MemberProfileDestination(id)) },
         LocalDiscoverOrder provides remember(appConfig?.discoverOrder) { Discover.order(appConfig?.discoverOrder.orEmpty()) },
         LocalInAppUpdater provides updater,
         LocalSnackbarHost provides snackbar,

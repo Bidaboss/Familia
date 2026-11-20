@@ -37,7 +37,7 @@ class RecipeScreenshotTest {
                 {},
                 // Two photos of the dish, one place left: no photo being sent, so no moving bar.
                 photos = { AlbumPhotosSection(previewAlbumPhotos("recipes/1", count = 2).copy(maxPerMember = 3), PhotoActions(), "", showSeeAll = false) },
-                comments = { RecipeCommentsSection(previewRecipeComments(), {}, {}, {}) },
+                comments = { RecipeCommentsSection(previewRecipeComments(), { _, _ -> }, {}, {}) },
             )
         }
     }

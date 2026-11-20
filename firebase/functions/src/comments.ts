@@ -7,12 +7,15 @@
 
 import { Firestore } from 'firebase-admin/firestore';
 import { Notice } from './logic';
+import { mentionTitle, namedIn } from './mentions';
 import { comingMembers, featureOn, loadMembers, notify, Sender } from './store';
 
 export interface CommentData {
   text: string;
   authorId: string;
   authorName: string;
+  /** The members named « @Prénom » (Kévin, 19/11). */
+  mentionIds?: string[];
 }
 
 const PREVIEW = 120;
@@ -22,6 +25,12 @@ export function commentNotice(eventId: string, eventTitle: string, comment: Comm
   const text = comment.text.trim().replace(/\s+/g, ' ');
   const body = text.length > PREVIEW ? `${text.slice(0, PREVIEW - 1)}…` : text;
   return { channel: 'comments', title: `${comment.authorName} a commenté « ${eventTitle} »`, body, eventId };
+}
+
+/** « Camille t'a nommé dans un commentaire », with the event and the start of the text, directly. */
+export function commentMentionNotice(eventId: string, eventTitle: string, comment: CommentData): Notice {
+  const { body } = commentNotice(eventId, eventTitle, comment);
+  return { channel: 'comments', title: mentionTitle(comment.authorName), body: `« ${eventTitle} » : ${body}`, eventId, direct: true };
 }
 
 /** Who is told of [comment] on the event [eventId], before the module switch is applied. */
@@ -50,13 +59,22 @@ export async function onCommentCreated(
   db: Firestore, send: Sender, eventId: string, commentId: string, comment: CommentData,
 ): Promise<number> {
   let to = await commentRecipients(db, eventId, commentId, comment);
+  const withApp = new Set((await loadMembers(db)).filter((m) => m.profile !== 'childWithoutApp').map((m) => m.id));
+  let named = namedIn(comment, withApp);
   if (!(await featureOn(db, 'comments'))) {
     const owner = (await db.doc('config/family').get()).get('ownerMemberId');
-    to = to.filter((id) => typeof owner === 'string' && id === owner);
+    const only = (id: string) => typeof owner === 'string' && id === owner;
+    to = to.filter(only);
+    named = named.filter(only);
   }
-  if (to.length === 0) return 0;
+  // Who is named hears it once, as « t'a nommé ».
+  to = to.filter((id) => !named.includes(id));
+  if (to.length === 0 && named.length === 0) return 0;
   const title = String((await db.collection('events').doc(eventId).get()).get('title') ?? '');
-  return notify(db, send, to, commentNotice(eventId, title, comment));
+  let sent = 0;
+  if (named.length > 0) sent += await notify(db, send, named, commentMentionNotice(eventId, title, comment));
+  if (to.length > 0) sent += await notify(db, send, to, commentNotice(eventId, title, comment));
+  return sent;
 }
 
 /** A deleted event: its comments and the « Ne plus être prévenu » go with it. */

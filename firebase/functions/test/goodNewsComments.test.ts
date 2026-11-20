@@ -28,6 +28,18 @@ describe('who is told', () => {
     assert.equal(messages[0].notice.body, 'Champion !');
   });
 
+  test('who is named « @Prénom » hears it once, directly, even with the comments muted', () => {
+    const messages = goodNewsCommentMessages(
+      'n1', { authorId: 'camille', forMemberId: 'noe', hiddenByIds: ['lou'] },
+      comment({ text: '@Inès @Noé bravo', mentionIds: ['ines', 'noe', 'jules', 'lou', 'nina'] }), ['ines'], new Set(['ines']), everyone,
+    );
+    assert.deepEqual(messages.map((m) => m.recipientIds), [['ines', 'noe'], ['camille']]);
+    assert.equal(messages[0].notice.title, 'Jules t\'a nommé dans un commentaire');
+    assert.equal(messages[0].notice.direct, true);
+    assert.equal(messages[0].notice.goodNewsId, 'n1');
+    assert.equal(messages[1].notice.title, 'Jules a commenté ton actualité');
+  });
+
   test('not those who muted the comments, hid the news or have no app', () => {
     const messages = goodNewsCommentMessages(
       'n1', { authorId: 'camille', forMemberId: 'noe', hiddenByIds: ['noe'] }, comment(), ['ines', 'lou', 'nina'],

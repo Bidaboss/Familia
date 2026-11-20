@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,12 +26,13 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import fr.familia.app.R
+import fr.familia.app.core.mention.MentionText
+import fr.familia.app.core.mention.MentionTextField
+import fr.familia.app.core.mention.mentionGroups
 import fr.familia.app.core.data.EventCommentRepository
 import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.data.GoodNewsRepository
@@ -130,11 +129,11 @@ class GoodNewsFeedCard(
                 }
                 Column(Modifier.weight(1f)) {
                     var cut by remember(news.id) { mutableStateOf(false) }
-                    Text(
+                    MentionText(
                         news.text,
+                        news.mentionIds,
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 3,
-                        overflow = TextOverflow.Ellipsis,
                         onTextLayout = { cut = it.hasVisualOverflow },
                     )
                     if (cut) {
@@ -167,6 +166,7 @@ private fun GoodNewsFeedActions(
     var mine by remember(news.id, news.reactions[context.me.id]) { mutableStateOf(news.reactions[context.me.id]) }
     var writing by rememberSaveable(news.id) { mutableStateOf(false) }
     var draft by rememberSaveable(news.id) { mutableStateOf("") }
+    var draftMentions by rememberSaveable(news.id) { mutableStateOf(listOf<String>()) }
     var failed by remember(news.id) { mutableStateOf(false) }
     // On a weak network the send waits up to 4 s: one tap, one comment.
     var sending by remember(news.id) { mutableStateOf(false) }
@@ -209,14 +209,15 @@ private fun GoodNewsFeedActions(
         }
     }
     if (canWrite && comments != null && writing) {
-        OutlinedTextField(
-            value = draft,
-            onValueChange = { draft = it.take(EventComment.MAX_TEXT); failed = false },
+        MentionTextField(
+            text = draft,
+            mentionIds = draftMentions,
+            onChange = { text, ids -> draft = text; draftMentions = ids; failed = false },
+            groups = mentionGroups(context.me),
             label = { Text(stringResource(R.string.feed_comment_field)) },
             isError = failed,
             supportingText = if (failed) ({ Text(stringResource(R.string.recipe_comment_send_failed)) }) else null,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
+            maxLength = EventComment.MAX_TEXT,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             TextButton(onClick = { writing = false }, modifier = Modifier.heightIn(min = 48.dp)) {
@@ -227,12 +228,14 @@ private fun GoodNewsFeedActions(
                 enabled = draft.isNotBlank() && !sending,
                 onClick = {
                     val text = draft.trim()
+                    val mentionIds = draftMentions
                     sending = true
                     scope.launch {
                         try {
                             // Offline, Firestore keeps it and sends it later.
-                            withTimeoutOrNull(4_000) { comments.add(news.id, text, context.me) }
+                            withTimeoutOrNull(4_000) { comments.add(news.id, text, context.me, mentionIds) }
                             draft = ""
+                            draftMentions = emptyList()
                             writing = false
                         } catch (e: CancellationException) {
                             throw e

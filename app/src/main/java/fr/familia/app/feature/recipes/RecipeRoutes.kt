@@ -11,6 +11,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
+import fr.familia.app.core.mention.mentionGroups
 import fr.familia.app.core.album.AlbumPhotosSection
 import fr.familia.app.core.album.AlbumPhotosViewModel
 import fr.familia.app.core.album.AlbumSends
@@ -107,7 +108,7 @@ fun RecipeDetailRoute(container: AppContainer?, currentMember: Member, recipeId:
             val empty = if (photos.canAdd) R.string.recipe_photos_empty_author else R.string.recipe_photos_empty
             AlbumPhotosSection(photos, actions, stringResource(empty), showSeeAll = false)
         },
-        comments = { RecipeCommentsSection(comments, commentsViewModel::type, commentsViewModel::send, commentsViewModel::remove) },
+        comments = { RecipeCommentsSection(comments, commentsViewModel::type, commentsViewModel::send, commentsViewModel::remove, mentionGroups(currentMember)) },
         onShare = {
             (state as? RecipeDetailUiState.Ready)?.let { ready -> shareText(context, recipeShareText(ready.recipe, ready.origin, labels), chooser) }
         },

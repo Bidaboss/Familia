@@ -42,8 +42,8 @@ class FakeRecipes(initial: List<Recipe> = emptyList()) : RecipeRepository {
 
     val comments = MutableStateFlow<List<RecipeComment>>(emptyList())
     override fun observeComments(recipeId: String): Flow<List<RecipeComment>> = comments
-    override suspend fun addComment(recipeId: String, text: String, me: Member) {
-        comments.value = comments.value + RecipeComment("c${comments.value.size + 1}", text, me.id, me.firstName, null)
+    override suspend fun addComment(recipeId: String, text: String, me: Member, mentionIds: List<String>) {
+        comments.value = comments.value + RecipeComment("c${comments.value.size + 1}", text, me.id, me.firstName, null, mentionIds)
     }
     override suspend fun deleteComment(recipeId: String, commentId: String) {
         comments.value = comments.value.filterNot { it.id == commentId }
