@@ -94,6 +94,7 @@ fun HelpRequestsScreen(
                         action = {
                             Button(onClick = onAsk, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.helprequest_empty_action)) }
                         },
+                        mascot = true,
                     )
                 } else if (r1bis) {
                     R1bisRequestList(state, onOpenRequest, onTake, onDecline, showTitle)

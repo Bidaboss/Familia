@@ -102,6 +102,7 @@ fun LendItemsScreen(
                         // A child cannot add an object (the rules too): the message says who does, with no button.
                         body = stringResource(if (state.canAdd) R.string.lend_empty_body else R.string.lend_empty_body_child),
                         action = { if (state.canAdd && onAdd != null) Button(onClick = onAdd, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.lend_add)) } },
+                        mascot = true,
                     )
                 } else {
                     // The bottom padding keeps the last card above the « Ajouter un objet » button.

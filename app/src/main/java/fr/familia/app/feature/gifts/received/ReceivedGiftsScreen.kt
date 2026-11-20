@@ -77,6 +77,7 @@ fun ReceivedGiftsScreen(state: ReceivedGiftsUiState, onBack: () -> Unit = {}, on
                             icon = Icons.Outlined.CardGiftcard,
                             title = stringResource(R.string.received_empty_title),
                             body = stringResource(R.string.received_empty_body),
+                            mascot = true,
                         )
                     } else {
                         GiftsContent(state, onThank)

@@ -100,6 +100,7 @@ fun GoodDealsScreen(
                         // A child cannot publish (the rules too): the message says who does, with no button.
                         body = stringResource(if (state.canPublish) R.string.gooddeal_empty_body else R.string.gooddeal_empty_body_child),
                         action = { if (state.canPublish && onPublish != null) Button(onClick = { choosing = true }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.gooddeal_empty_action)) } },
+                        mascot = true,
                     )
                 } else {
                     // The bottom padding keeps the last card above the « Publier » button.
