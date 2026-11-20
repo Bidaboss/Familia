@@ -191,6 +191,14 @@ fun HomeRoute(
             FeedOpenRequest.consume()
         }
     }
+    // A « rejoins-moi » opens the Accueil on « Aujourd'hui », where its tile is (Kévin, 20/11).
+    val todayAsked by TodayOpenRequest.asked.collectAsState()
+    LaunchedEffect(todayAsked) {
+        if (todayAsked) {
+            onFeed = false
+            TodayOpenRequest.consume()
+        }
+    }
     val feedNavigation = remember(actions) {
         FeedNavigation(
             onOpenEvent = actions.onOpenEvent,
@@ -271,6 +279,23 @@ fun HomeRoute(
         },
         allBadge = allBadge,
     )
+}
+
+/**
+ * Asks the Accueil to show « Aujourd'hui » rather than « Le fil »: the notification « rejoins-moi »
+ * (MainActivity), whose place is at the top of the day. Kept until the Accueil reads it.
+ */
+object TodayOpenRequest {
+    private val state = kotlinx.coroutines.flow.MutableStateFlow(false)
+    val asked: kotlinx.coroutines.flow.StateFlow<Boolean> = state
+
+    fun ask() {
+        state.value = true
+    }
+
+    fun consume() {
+        state.value = false
+    }
 }
 
 /** Fictional home screen for previews and screenshots. */
