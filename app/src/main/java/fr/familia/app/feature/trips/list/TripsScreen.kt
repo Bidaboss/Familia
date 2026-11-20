@@ -139,6 +139,7 @@ fun TripsScreen(
                             title = stringResource(R.string.trips_empty_title),
                             body = stringResource(R.string.trips_empty_body_child),
                             action = onOpenAlbums?.let { open -> { ClayLink(stringResource(R.string.trips_empty_albums), onClick = open) } },
+                            mascot = true,
                         )
                         souvenirs -> Souvenirs(state, onOpenTrip)
                         else -> Coming(state, onOpenTrip, onOpenPart, expensesOn)

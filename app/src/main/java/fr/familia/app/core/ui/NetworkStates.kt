@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.photo.LocalOnline
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.welcome.OliveMascot
 import kotlinx.coroutines.delay
 
 /** Past this, a screen still loading says why it takes time. */
@@ -53,7 +54,8 @@ fun LoadingState(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        CircularProgressIndicator()
+        // Offline, the olive tree in grey waits with the screen (DESIGN-58), instead of the wheel.
+        if (online) CircularProgressIndicator() else OliveMascot(110.dp, grey = true)
         val line = when {
             !online -> R.string.loading_offline
             slow -> R.string.loading_slow

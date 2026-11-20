@@ -22,8 +22,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.welcome.OliveMascot
 
-/** Centered message shown when a screen has nothing to display yet, with an optional button. */
+/**
+ * Centered message shown when a screen has nothing to display yet, with an optional button.
+ * [mascot]: an empty list shows the olive tree with the family's photos instead of [icon]
+ * (DESIGN-58); never for an error.
+ */
 @Composable
 fun EmptyState(
     icon: ImageVector,
@@ -31,6 +36,7 @@ fun EmptyState(
     body: String,
     modifier: Modifier = Modifier,
     action: (@Composable () -> Unit)? = null,
+    mascot: Boolean = false,
 ) {
     Column(
         modifier = modifier
@@ -39,12 +45,16 @@ fun EmptyState(
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null, // Decorative: the title says the same thing.
-            modifier = Modifier.size(48.dp),
-            tint = MaterialTheme.colorScheme.primary,
-        )
+        if (mascot) {
+            OliveMascot(120.dp) // Decorative, like the icon: the title says it.
+        } else {
+            Icon(
+                imageVector = icon,
+                contentDescription = null, // Decorative: the title says the same thing.
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge,

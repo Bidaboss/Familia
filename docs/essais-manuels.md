@@ -1467,6 +1467,15 @@ Un téléphone avec l'appli d'avant, puis « APK de publication » lancé pour u
 8. Un voyage surprise que je ne dois pas voir. **Attendu :** il n'apparaît ni dans « À venir », ni dans « Souvenirs ».
 9. TalkBack sur la carte. **Attendu :** « La Palmyre, du dimanche 11 avril 2027 au vendredi 16 avril 2027, dans 142 jours, avec Inès, Hugo et Noé ».
 
+## L'olivier en mascotte (récit 84, DESIGN-58 variante A)
+
+1. Ouvre l'Accueil. **Attendu :** l'olivier de l'icône (56 dp, fruits de couleur) est à gauche de « Bonjour … ». Le reste de l'Accueil ne change pas.
+2. Entraide, Coups de main, sans aucun coup de main. **Attendu :** au centre, l'olivier en grand (120 dp). Ses fruits sont les photos de la famille, ton foyer d'abord : la photo ronde dans un anneau blanc et un contour de la couleur du membre, ou l'initiale sur sa couleur sans photo. Puis la phrase et le bouton, comme avant.
+3. Même chose pour Bons plans, On se prête, « Reçus » et le carnet d'idées des Cadeaux quand ils sont vides.
+4. Une erreur (pas de réseau au premier chargement, élément supprimé). **Attendu :** l'icône d'avant, pas l'olivier.
+5. Coupe le réseau puis ouvre un écran pas encore chargé. **Attendu :** l'olivier en gris à la place de la roue, avec « Pas de réseau pour l'instant… ». Le réseau revient : l'écran se remplit.
+6. TalkBack. **Attendu :** l'olivier n'est jamais lu ; seuls les textes à côté le sont.
+7. Avec les animations coupées dans Android : rien ne bouge (l'olivier ne bouge jamais).
 
 ## Six paysages, Nouveau voyage et Étape refaits (récit 81, DESIGN-53, 56 et 57)
 

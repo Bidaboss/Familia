@@ -185,6 +185,7 @@ private fun Content(state: NotebookUiState.Success, actions: NotebookActions) {
                     icon = Icons.Outlined.CardGiftcard,
                     title = stringResource(R.string.notebook_empty_title),
                     body = stringResource(R.string.notebook_empty_body),
+                    mascot = true,
                 )
             }
         } else {
