@@ -40,7 +40,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -101,7 +101,7 @@ fun FeedbackFormScreen(
     }
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.feedback_title), maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) })
+            FamiliaTopBar(title = { Text(stringResource(R.string.feedback_title), maxLines = 2, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) })
         },
     ) { padding ->
         Column(
@@ -224,8 +224,8 @@ fun FeedbackListScreen(
     val clipboard = LocalClipboardManager.current
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(if (forAdmin) R.string.feedback_list_title else R.string.feedback_mine_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            FamiliaTopBar(
+                title = { Text(stringResource(if (forAdmin) R.string.feedback_list_title else R.string.feedback_mine_title), maxLines = 2, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
             )
         },
