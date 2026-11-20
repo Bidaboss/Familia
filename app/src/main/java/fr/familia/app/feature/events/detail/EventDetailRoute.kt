@@ -1,7 +1,6 @@
 package fr.familia.app.feature.events.detail
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -70,7 +69,7 @@ fun EventDetailRoute(
         // Deleted from the form opened here, or by someone else: back to the planning.
         if (state is EventDetailUiState.Success) wasShown = true
         if (state == EventDetailUiState.Missing && wasShown) onBack()
-    }
+                }
     val context = LocalContext.current
     val calendarOn = LocalFeatureFlags.current.isOn(Feature.Calendar)
     val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)
@@ -99,39 +98,45 @@ fun EventDetailRoute(
             val success = state as? EventDetailUiState.Success
             // « Me le rappeler » (récit 56), private, right under « Je viens ».
             if (success != null && LocalFeatureFlags.current.isOn(Feature.MyReminders) && container?.eventReminderRepository != null) {
-                HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                EventRemindersSection(
-                    container, currentMember, success.event,
-                    coming = success.answerers.any { it.isMe && it.status == RsvpStatus.Yes },
-                )
+                EventSectionTile {
+                    EventRemindersSection(
+                        container, currentMember, success.event,
+                        coming = success.answerers.any { it.isMe && it.status == RsvpStatus.Yes },
+                    )
+                }
             }
             // « On y va ensemble » (récit 52), right under « Je viens »: me and the children I answer for.
             if (success != null && LocalFeatureFlags.current.isOn(Feature.Carpool)) {
-                HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                CarpoolSection(
-                    container, currentMember, eventId,
-                    riderIds = success.answerers.map { it.member.id },
-                    iAmComing = success.answerers.any { it.isMe && it.status == RsvpStatus.Yes },
-                )
+                EventSectionTile {
+                    CarpoolSection(
+                        container, currentMember, eventId,
+                        riderIds = success.answerers.map { it.member.id },
+                        iAmComing = success.answerers.any { it.isMe && it.status == RsvpStatus.Yes },
+                    )
+                }
             }
             // « Qui apporte quoi » (récit 4 bis), before the album.
             if (success != null && LocalFeatureFlags.current.isOn(Feature.Bring)) {
-                HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                BringSection(container, currentMember, eventId, success.canManage, onOpenRecipe = onOpenRecipe)
+                EventSectionTile {
+                    BringSection(container, currentMember, eventId, success.canManage, onOpenRecipe = onOpenRecipe)
+                }
             }
             if (success != null && LocalFeatureFlags.current.isOn(Feature.EventAlbums)) {
-                HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                EventAlbumSection(container, currentMember, eventId, isAlbumOpen(success.event, success.today), onOpenAlbum)
+                EventSectionTile {
+                    EventAlbumSection(container, currentMember, eventId, isAlbumOpen(success.event, success.today), onOpenAlbum)
+                }
             }
             // Its polls (récit 2 quater): a date, a menu, a place, asked to its guests.
             if (success != null && LocalFeatureFlags.current.isOn(Feature.Polls)) {
-                HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                EventPollsSection(container, currentMember, eventId, success.today, onNewPoll, onOpenPoll)
+                EventSectionTile {
+                    EventPollsSection(container, currentMember, eventId, success.today, onNewPoll, onOpenPoll)
+                }
             }
             // The comments (récit 28), last: they can grow long.
             if (success != null && LocalFeatureFlags.current.isOn(Feature.Comments)) {
-                HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                EventCommentsSection(container, currentMember, eventId)
+                EventSectionTile {
+                    EventCommentsSection(container, currentMember, eventId)
+                }
             }
         },
     )

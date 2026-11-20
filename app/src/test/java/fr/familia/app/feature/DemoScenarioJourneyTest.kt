@@ -178,7 +178,7 @@ class DemoScenarioJourneyTest {
         }
         compose.waitUntil(TIMEOUT) { vm.uiState.value is EventDetailUiState.Success }
         waitForText("Repas e1")
-        compose.onAllNodesWithText("Je viens").onFirst().performClick()
+        compose.onAllNodesWithText("Oui").onFirst().performClick()
 
         compose.waitUntil(TIMEOUT) { rsvps.answers.value["e1"].orEmpty().isNotEmpty() }
         assertEquals(listOf(Rsvp("adult2", RsvpStatus.Yes, "adult2")), rsvps.answers.value["e1"])
