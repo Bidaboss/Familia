@@ -36,11 +36,15 @@
     <string name="event_detail_missing_body">Il a sans doute été supprimé.</string>
     <string name="event_detail_back_to_planning">Retour au planning</string>
     <string name="event_detail_error_title">L\'événement ne s\'affiche pas</string>
-    <string name="rsvp_title">Qui vient&#160;?</string>
+    <string name="rsvp_title">Tu viens&#160;?</string>
     <string name="rsvp_me">Toi</string>
     <string name="rsvp_yes">Je viens</string>
     <string name="rsvp_maybe">Peut-être</string>
     <string name="rsvp_no">Je ne viens pas</string>
+    <!-- The short words of the 3 buttons of « Tu viens ? » (récit 85); TalkBack reads the long ones. -->
+    <string name="rsvp_short_yes">Oui</string>
+    <string name="rsvp_short_no">Non</string>
+    <string name="rsvp_answers_see">Voir</string>
     <string name="rsvp_chip_description">%1$s&#160;: %2$s</string>
     <string name="rsvp_pending">En attente du réseau : la réponse partira toute seule à son retour.</string>
     <string name="rsvp_send_failed">Ta réponse n\'est pas partie. Vérifie ta connexion, puis réessaie.</string>

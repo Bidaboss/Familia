@@ -1,79 +1,99 @@
 package fr.familia.app.feature.events.detail
 
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Row
-import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
-import androidx.compose.material3.AlertDialog
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.res.pluralStringResource
-import fr.familia.app.core.model.Feature
-import fr.familia.app.core.place.DirectionsButton
-import fr.familia.app.feature.events.eventPlaceView
-import fr.familia.app.core.ui.LocalFeatureFlags
-import fr.familia.app.core.ui.MemberAvatar
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Event
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.mention.MentionText
-import fr.familia.app.core.share.ShareButton
-import fr.familia.app.feature.help.HelpButton
-import fr.familia.app.feature.help.ScreenHelp
-import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventTarget
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.RsvpStatus
+import fr.familia.app.core.place.DirectionsButton
+import fr.familia.app.core.share.ShareButton
 import fr.familia.app.core.theme.FamiliaTheme
-import fr.familia.app.core.ui.ClayCardTitle
-import fr.familia.app.core.ui.ClayLink
+import fr.familia.app.core.theme.LocalClayColors
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.FamiliaTopBar
+import fr.familia.app.core.ui.LoadingState
+import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.dayTitle
+import fr.familia.app.core.ui.form.ChipGroup
+import fr.familia.app.core.ui.form.FormChip
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.FormTileShape
 import fr.familia.app.core.ui.formatTime
 import fr.familia.app.feature.events.edit.TargetChoice
 import fr.familia.app.feature.events.edit.targetLabel
+import fr.familia.app.feature.events.eventPlaceView
+import fr.familia.app.feature.help.HelpButton
+import fr.familia.app.feature.help.ScreenHelp
 import java.time.LocalDate
 import java.time.LocalTime
-import fr.familia.app.core.ui.LoadingState
+import java.time.format.TextStyle as JavaTextStyle
+import java.util.Locale
 
 /**
  * « Comptes de l'événement » (PRODUIT-57) opens for an adult who answered « Je viens », or for the
@@ -84,7 +104,6 @@ internal fun canOpenExpenses(state: EventDetailUiState.Success, me: Member): Boo
         (state.event.authorId == me.id || state.answerers.any { it.isMe && it.status == RsvpStatus.Yes })
 
 /** An event, read only, and "qui vient" for the member and their children. Stateless. */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventDetailScreen(
     state: EventDetailUiState,
@@ -106,13 +125,18 @@ fun EventDetailScreen(
 ) {
     Scaffold(
         modifier = modifier,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.event_detail_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                navigationIcon = {
-                    BackButton(onClick = onBack)
-                },
+            // The common bar (récit 85): « Modifier » and « Partager » in its round, no more link at the bottom.
+            FamiliaTopBar(
+                title = stringResource(R.string.event_detail_title),
+                onBack = onBack,
                 actions = {
+                    if (state is EventDetailUiState.Success && state.canManage) {
+                        IconButton(onClick = onEdit, modifier = Modifier.size(56.dp)) {
+                            Icon(Icons.Outlined.Edit, contentDescription = stringResource(R.string.event_detail_edit))
+                        }
+                    }
                     if (onShare != null && state is EventDetailUiState.Success) ShareButton(onClick = onShare)
                     HelpButton(ScreenHelp.EventDetail)
                 },
@@ -142,9 +166,37 @@ fun EventDetailScreen(
                         }
                     },
                 )
-                is EventDetailUiState.Success -> Content(state, onAnswer, onEdit, onAddToCalendar, onOpenExpenses, album, header)
+                is EventDetailUiState.Success -> Content(state, onAnswer, onAddToCalendar, onOpenExpenses, album, header)
             }
         }
+    }
+}
+
+/**
+ * A tile of the page of an event (récit 85), drawn like a [fr.familia.app.core.ui.form.FormTile]
+ * but without its title: the sections (« On y va ensemble », « Qui apporte quoi »…) keep their own
+ * for now, so each one only moves into a tile instead of sitting between two lines.
+ */
+@Composable
+fun EventSectionTile(
+    modifier: Modifier = Modifier,
+    accent: Color = MaterialTheme.colorScheme.primary,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Surface(
+        shape = FormTileShape,
+        color = LocalClayColors.current.card,
+        shadowElevation = 2.dp,
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        Column(
+            Modifier
+                .clip(FormTileShape)
+                .drawBehind { drawRect(accent, size = Size(5.dp.toPx(), size.height)) }
+                .padding(start = 21.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            content = content,
+        )
     }
 }
 
@@ -152,69 +204,37 @@ fun EventDetailScreen(
 private fun Content(
     state: EventDetailUiState.Success,
     onAnswer: (String, RsvpStatus) -> Unit,
-    onEdit: () -> Unit,
     onAddToCalendar: (() -> Unit)?,
     onOpenExpenses: (() -> Unit)?,
     album: @Composable () -> Unit,
     header: @Composable () -> Unit,
 ) {
-    val event = state.event
     var showAnswers by rememberSaveable { mutableStateOf(false) }
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         header()
-        Text(event.title, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
-        val day = dayTitle(event.date, state.today)
-        Text(
-            event.time?.let { stringResource(R.string.event_detail_when, day, formatTime(it)) } ?: day,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        // Under the time (récit 74), with the route in Google Maps or Waze as soon as there is an address.
-        eventPlaceView(event, state.households, LocalFeatureFlags.current.isOn(Feature.Places))?.let { place ->
-            Text(place.text, style = MaterialTheme.typography.bodyLarge)
-            place.directions?.let { DirectionsButton(it) }
+        HeaderTile(state, onAddToCalendar, onOpenExpenses)
+        FormTile(Icons.Outlined.Groups, stringResource(R.string.rsvp_title)) {
+            state.answerers.forEach { AnswerRow(it, onAnswer) }
+            if (state.sendFailed) {
+                Text(
+                    stringResource(R.string.rsvp_send_failed),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                )
+            }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            // « N viennent » with their avatars; a tap shows every answer (DESIGN-5).
+            ComingLine(state, onClick = { showAnswers = true })
         }
-        Text(
-            if (event.target is EventTarget.ForFamily) {
-                stringResource(R.string.planning_by, state.authorName)
-            } else {
-                stringResource(R.string.event_detail_for_by, targetLabel(state.target), state.authorName)
-            },
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        event.note?.let { MentionText(it, event.mentionIds, style = MaterialTheme.typography.bodyLarge) }
-
-        HorizontalDivider(Modifier.padding(vertical = 8.dp))
-
-        ClayCardTitle(stringResource(R.string.rsvp_title))
-        state.answerers.forEach { AnswerRow(it, onAnswer) }
-        if (state.sendFailed) {
-            Text(
-                stringResource(R.string.rsvp_send_failed),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-            )
-        }
-
-        // « N viennent » with their avatars; a tap shows every answer (DESIGN-5).
-        ComingLine(state, onClick = { showAnswers = true })
-
-        // Secondary actions are links (DESIGN-11): the one filled action of the screen is the answer.
-        onAddToCalendar?.let { ClayLink(stringResource(R.string.calendar_add), onClick = it) }
-        onOpenExpenses?.let { ClayLink(stringResource(R.string.event_detail_expenses), onClick = it) }
-        // The album of the event (récit 41), when its module is on.
+        // Each section in its tile, in the same order (récit 85).
         album()
-        if (state.canManage) {
-            ClayLink(stringResource(R.string.event_detail_edit), onClick = onEdit)
-        }
     }
     if (showAnswers) {
         AlertDialog(
@@ -236,7 +256,116 @@ private fun Content(
     }
 }
 
-/** Up to five avatars of those who come, then « 3 viennent · 1 peut-être ». */
+/**
+ * The head of the page (récit 85): the box of the day and the title, the day and the hour, the
+ * place in a band with « Itinéraire » (récit 74), who it is for, the note with its @, then
+ * « Ajouter à mon agenda » and « Les comptes » when they are offered.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun HeaderTile(
+    state: EventDetailUiState.Success,
+    onAddToCalendar: (() -> Unit)?,
+    onOpenExpenses: (() -> Unit)?,
+) {
+    val event = state.event
+    val colors = MaterialTheme.colorScheme
+    EventSectionTile {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            DayBox(event.date)
+            Column(Modifier.padding(start = 14.dp).weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    event.title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.semantics { heading() },
+                )
+                val day = dayTitle(event.date, state.today)
+                Text(
+                    event.time?.let { stringResource(R.string.event_detail_when, day, formatTime(it)) } ?: day,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colors.primary,
+                )
+            }
+        }
+        // Under the time (récit 74), with the route in Google Maps or Waze as soon as there is an address.
+        eventPlaceView(event, state.households, LocalFeatureFlags.current.isOn(Feature.Places))?.let { place ->
+            FlowRow(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(colors.background)
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Row(Modifier.heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Outlined.Home, contentDescription = null, tint = colors.primary, modifier = Modifier.size(20.dp))
+                    Text(place.text, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 8.dp))
+                }
+                place.directions?.let { DirectionsButton(it) }
+            }
+        }
+        Text(
+            if (event.target is EventTarget.ForFamily) {
+                stringResource(R.string.planning_by, state.authorName)
+            } else {
+                stringResource(R.string.event_detail_for_by, targetLabel(state.target), state.authorName)
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            color = colors.onSurfaceVariant,
+        )
+        event.note?.let { MentionText(it, event.mentionIds, style = MaterialTheme.typography.bodyLarge) }
+        if (onAddToCalendar != null || onOpenExpenses != null) {
+            // Secondary actions stay outlined (DESIGN-11): the one dark choice of the page is the answer.
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                onAddToCalendar?.let { PillButton(Icons.Outlined.CalendarMonth, stringResource(R.string.calendar_add), it) }
+                onOpenExpenses?.let { PillButton(Icons.AutoMirrored.Outlined.ReceiptLong, stringResource(R.string.event_detail_expenses), it) }
+            }
+        }
+    }
+}
+
+/** « SAM » over « 28 », in a pale square: the date is said by the line next to it. */
+@Composable
+private fun DayBox(date: LocalDate) {
+    // The container pair of the theme, so the small « JEU » keeps 4.5:1 in every theme.
+    val accent = MaterialTheme.colorScheme.onPrimaryContainer
+    Column(
+        Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .widthIn(min = 60.dp)
+            .padding(horizontal = 10.dp, vertical = 8.dp)
+            .clearAndSetSemantics {},
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            date.dayOfWeek.getDisplayName(JavaTextStyle.SHORT, Locale.FRANCE).trimEnd('.').uppercase(Locale.FRANCE),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = accent,
+        )
+        Text(date.dayOfMonth.toString(), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = accent)
+    }
+}
+
+@Composable
+private fun PillButton(icon: ImageVector, label: String, onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
+        modifier = Modifier.heightIn(min = 56.dp),
+    ) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
+        Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(start = 8.dp))
+    }
+}
+
+/** Up to five avatars of those who come, then « 3 viennent · 1 peut-être » and « Voir ». */
 @Composable
 private fun ComingLine(state: EventDetailUiState.Success, onClick: () -> Unit) {
     val coming = state.coming.size
@@ -252,8 +381,7 @@ private fun ComingLine(state: EventDetailUiState.Success, onClick: () -> Unit) {
         Modifier
             .fillMaxWidth()
             .clickable(onClickLabel = stringResource(R.string.rsvp_answers_open), onClick = onClick)
-            .heightIn(min = 56.dp)
-            .padding(vertical = 8.dp),
+            .heightIn(min = 56.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         val shown = state.comingMembers.take(5)
@@ -264,32 +392,45 @@ private fun ComingLine(state: EventDetailUiState.Success, onClick: () -> Unit) {
                 }
             }
         }
-        Text(label, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
-        Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null)
+        Text(label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+        Text(
+            stringResource(R.string.rsvp_answers_see),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier.padding(start = 8.dp),
+        )
     }
 }
 
-/** "Je viens", "Peut-être", "Je ne viens pas" for one person, always visible, 56 dp high. */
+/**
+ * One person I answer for (me, then my children): the avatar, the name, then Oui, Peut-être, Non
+ * as one radio group, the chosen one dark. The buttons go under the name when the text is large.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AnswerRow(answerer: Answerer, onAnswer: (String, RsvpStatus) -> Unit) {
     val name = if (answerer.isMe) stringResource(R.string.rsvp_me) else answerer.member.firstName
-    Column(Modifier.fillMaxWidth().padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(name, style = MaterialTheme.typography.titleMedium)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            RsvpStatus.entries.forEach { status ->
-                val label = stringResource(status.label())
-                val selected = answerer.status == status
-                val description = stringResource(R.string.rsvp_chip_description, name, label)
-                FilterChip(
-                    selected = selected,
-                    onClick = { onAnswer(answerer.member.id, status) },
-                    label = { Text(label, style = MaterialTheme.typography.labelLarge) },
-                    leadingIcon = if (selected) ({ Icon(Icons.Outlined.Check, contentDescription = null) }) else null,
-                    modifier = Modifier
-                        .heightIn(min = 56.dp)
-                        .semantics { contentDescription = description },
-                )
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        FlowRow(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(Modifier.heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
+                MemberAvatar(answerer.member, size = 40.dp)
+                Text(name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 10.dp, end = 4.dp))
+            }
+            // A FlowRow too: at 200 % on a small phone, « Non » goes to the next line instead of off screen.
+            ChipGroup {
+                RsvpStatus.entries.forEach { status ->
+                    FormChip(
+                        label = stringResource(status.shortLabel()),
+                        selected = answerer.status == status,
+                        onClick = { onAnswer(answerer.member.id, status) },
+                        description = stringResource(R.string.rsvp_chip_description, name, stringResource(status.label())),
+                    )
+                }
             }
         }
         if (answerer.pending) {
@@ -319,6 +460,13 @@ private fun RsvpStatus.label(): Int = when (this) {
     RsvpStatus.Yes -> R.string.rsvp_yes
     RsvpStatus.Maybe -> R.string.rsvp_maybe
     RsvpStatus.No -> R.string.rsvp_no
+}
+
+/** The word on the button; [label] is what TalkBack reads. */
+private fun RsvpStatus.shortLabel(): Int = when (this) {
+    RsvpStatus.Yes -> R.string.rsvp_short_yes
+    RsvpStatus.Maybe -> R.string.rsvp_maybe
+    RsvpStatus.No -> R.string.rsvp_short_no
 }
 
 /** Fictional event for previews and screenshots. */
