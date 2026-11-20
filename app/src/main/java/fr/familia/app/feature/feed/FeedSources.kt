@@ -13,13 +13,14 @@ import java.time.LocalDate
 
 /**
  * Every module of the fil (récit 67), each under its own switch: only a module that shows has its
- * cards, except the Planning (retour de Kévin, 20/11). One line per module; the fil coups de main adds the bonnes nouvelles, the coups de main and
+ * cards. One line per module; the fil coups de main adds the bonnes nouvelles, the coups de main and
  * the question of the week, the fil voyage the photos of the albums and trips and the recipes.
  * Never the Cadeaux, the surprises nor the capsules.
  */
 @Composable
 fun rememberFeedSources(container: AppContainer?, me: Member, family: Family?, today: LocalDate): List<FeedSource> {
     val flags = LocalFeatureFlags.current
+    val commentsOn = flags.isOn(Feature.Comments)
     val wishesOn = flags.isOn(Feature.BirthdayWishes)
     val goodNewsOn = flags.isOn(Feature.GoodNews)
     val helpOn = flags.isOn(Feature.HelpRequests)
@@ -33,11 +34,14 @@ fun rememberFeedSources(container: AppContainer?, me: Member, family: Family?, t
     val yearAgo = if (flags.isOn(Feature.YearAgo)) rememberYearAgoMemory(container, me) else null
     val reviewYear = openableReviewYear(today, forCard = true)
     return remember(
-        container, me.id, family, today, wishesOn, goodNewsOn, helpOn, weeklyOn, tripsOn, eventAlbumsOn, recipesOn,
+        container, me.id, family, today, commentsOn, wishesOn, goodNewsOn, helpOn, weeklyOn, tripsOn, eventAlbumsOn, recipesOn,
         capsulesOn, recapOn, yearAgo, reviewYear,
     ) {
         buildList {
-            // No Planning tiles (Kévin, 20/11): the events stay on the Accueil, in the Planning and in the notifications.
+            // Planning (fil principal): the events put in the Planning, with « J'y vais » and their last comment.
+            container?.eventRepository?.let { events ->
+                add(EventFeedSource(events, container.rsvpRepository, container.eventCommentRepository.takeIf { commentsOn }, me.id))
+            }
             // Anniversaires du jour (fil principal).
             if (family != null) add(BirthdayFeedSource(family.members, today, wishesOn))
             // Bonnes nouvelles, with their comments (fil coups de main).

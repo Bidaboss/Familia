@@ -1519,8 +1519,7 @@ Avant l'APK : lance « Publier Firebase » (les règles acceptent le champ lands
 13. Modifie une étape. **Attendu :** « Enregistrer » en bas et « Supprimer l'étape » tout en bas, en rouge pâle ; la confirmation ne change pas.
 14. Thème sombre, texte à 130 % puis au maximum. **Attendu :** le fond reste ciel, les tuiles restent lisibles, rien n'est coupé.
 
-## Fil d'actualité sans tuiles Planning (20/11)
+## Tuiles Planning du fil centrées (20/11)
 
-1. Ajoute un événement dans le Planning, puis ouvre le fil. **Attendu :** aucune tuile « Planning ». L'événement est sur l'Accueil, dans le Planning et dans la notification.
-2. Ajoute une photo à l'album d'un événement passé : la photo apparaît toujours dans le fil.
-3. Un jour d'anniversaire, la carte « Anniversaire » est toujours en tête de « Aujourd'hui », avec l'âge, sans date de naissance.
+1. Ajoute un événement, puis ouvre le fil. **Attendu :** une seule rangée centrée verticalement : la case du jour, puis « PLANNING » en petit au-dessus du titre et du jour, puis « J'y vais ». Il n'y a plus de pastille seule sur sa ligne au-dessus.
+2. Avec le texte à 130 % : la rangée reste lisible et le titre tient sur 2 lignes au plus.
