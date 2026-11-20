@@ -501,7 +501,7 @@ private fun WhenFields(form: HelpRequestForm, errors: Set<HelpFormError>, onChan
     }
 }
 
-/** A day to choose: dark when chosen. 48 dp high, inside the tile. */
+/** A day to choose: dark when chosen. 56 dp high, inside the tile. */
 @Composable
 private fun DayChip(label: String, selected: Boolean, description: String? = null, icon: ImageVector? = null, onClick: () -> Unit) {
     val shape = RoundedCornerShape(16.dp)
@@ -510,7 +510,7 @@ private fun DayChip(label: String, selected: Boolean, description: String? = nul
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         modifier = Modifier
-            .heightIn(min = 48.dp)
+            .heightIn(min = 56.dp)
             .clip(shape)
             .background(if (selected) MaterialTheme.colorScheme.onSurface else LocalClayColors.current.card)
             .border(1.5.dp, if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant, shape)
@@ -551,7 +551,7 @@ private fun TimeBox(labelRes: Int, time: LocalTime?, modifier: Modifier, onPick:
             )
         }
         if (time != null) {
-            IconButton(onClick = onClear, modifier = Modifier.size(48.dp)) {
+            IconButton(onClick = onClear, modifier = Modifier.size(56.dp)) {
                 Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.helprequest_time_clear, label))
             }
         }
@@ -624,7 +624,7 @@ private fun NotifyFields(state: HelpRequestEditUiState.Editing, onPick: (Set<Str
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier
-                    .heightIn(min = 48.dp)
+                    .heightIn(min = 56.dp)
                     .clip(shape)
                     .background(if (on) FeedTone.Lilac.labelBackground else LocalClayColors.current.card)
                     .border(1.5.dp, if (on) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant, shape)
@@ -647,7 +647,7 @@ private fun NotifyFields(state: HelpRequestEditUiState.Editing, onPick: (Set<Str
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 48.dp)
+                .heightIn(min = 56.dp)
                 .triStateToggleable(state = household, enabled = !state.isSaving && free.isNotEmpty(), role = Role.Checkbox) {
                     onPick(toggleHousehold(picked, free))
                 },
