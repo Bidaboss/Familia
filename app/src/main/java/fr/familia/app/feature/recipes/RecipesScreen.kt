@@ -24,7 +24,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,8 +59,8 @@ fun RecipesScreen(
     val origin = (state as? RecipesUiState.Ready)?.originName
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(if (origin != null) stringResource(R.string.recipes_from_title, origin) else stringResource(R.string.recipes_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            FamiliaTopBar(
+                title = { Text(if (origin != null) stringResource(R.string.recipes_from_title, origin) else stringResource(R.string.recipes_title), maxLines = 2, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = { HelpButton(ScreenHelp.Recipes) },
             )

@@ -28,7 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,7 +74,7 @@ fun AlbumsByMonthScreen(
     val perLine = if (LocalDensity.current.fontScale >= 1.8f) 1 else 2
     Scaffold(
         topBar = {
-            TopAppBar(
+            FamiliaTopBar(
                 title = { Text(stringResource(R.string.albums_title)) },
                 navigationIcon = { BackButton(onClick = onBack) },
             )

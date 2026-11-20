@@ -43,7 +43,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -142,8 +142,8 @@ fun HostChallengeScreen(state: HostGuideState, onBack: () -> Unit, actions: Host
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.host_title, ofMonth(state.month)), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            FamiliaTopBar(
+                title = { Text(stringResource(R.string.host_title, ofMonth(state.month)), maxLines = 2, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = {
                     if (state.canPublish) {

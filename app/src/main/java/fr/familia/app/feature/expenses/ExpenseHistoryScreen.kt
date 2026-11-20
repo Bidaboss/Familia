@@ -18,7 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,12 +45,12 @@ fun ExpenseHistoryScreen(state: ExpenseHistoryUiState, onRetry: () -> Unit, onBa
     val success = state as? ExpenseHistoryUiState.Success
     Scaffold(
         topBar = {
-            TopAppBar(
+            FamiliaTopBar(
                 title = {
                     Text(
                         success?.title?.takeIf { it.isNotBlank() }?.let { stringResource(R.string.expense_history_title_of, it) }
                             ?: stringResource(R.string.expense_history_title),
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                 },

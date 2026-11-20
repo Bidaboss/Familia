@@ -18,7 +18,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -91,7 +91,7 @@ fun FeedPhotosRoute(container: AppContainer?, currentMember: Member, month: Year
 fun FeedPhotosScreen(state: FeedPhotosUiState, month: YearMonth, onBack: () -> Unit, onOpenNews: (String) -> Unit) {
     Scaffold(
         topBar = {
-            TopAppBar(
+            FamiliaTopBar(
                 title = { Text(stringResource(R.string.albums_feed_screen_title, monthName(month).lowercase(), month.year)) },
                 navigationIcon = { BackButton(onClick = onBack) },
             )
