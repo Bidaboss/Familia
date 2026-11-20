@@ -24,7 +24,7 @@ interface RecipeRepository {
     fun observeComments(recipeId: String): Flow<List<RecipeComment>>
 
     /** Adds a comment signed by [me]. */
-    suspend fun addComment(recipeId: String, text: String, me: Member)
+    suspend fun addComment(recipeId: String, text: String, me: Member, mentionIds: List<String> = emptyList())
 
     suspend fun deleteComment(recipeId: String, commentId: String)
 }

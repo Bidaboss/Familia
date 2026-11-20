@@ -9,11 +9,12 @@
 // The Drive folder must be shared with the service account as editor, and hold exactly one APK,
 // uploaded once by the main admin. A service account has no Drive space of its own: it can replace the
 // content of a file someone shared, but not create one. No dependency besides firebase-admin.
+import { execFileSync } from 'node:child_process';
 import { createHash, createSign } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { dueFiles, mergeWhatsNew, parisToday, readWhatsNew } from './whats-new.mjs';
+import { correctionsRelease, correctionTitles, dueFiles, mergeWhatsNew, parisToday, readWhatsNew } from './whats-new.mjs';
 
 const apkPath = process.env.APK_PATH;
 const versionCode = Number(process.env.VERSION_CODE);
@@ -45,6 +46,24 @@ const current = await configApp.get();
 const published = current.get('latestVersionCode') ?? 0;
 if (versionCode <= published) {
   fail(`La version ${published} est déjà annoncée et rien de nouveau n'a été fusionné depuis : il n'y a rien à publier.`);
+}
+
+// What was merged since the last version (Kévin le 20/11): the commits after config/app.latestCommit,
+// or those of the last day the first time. Never blocks the publication.
+function git(...args) {
+  return execFileSync('git', args, { encoding: 'utf8' });
+}
+let headCommit = null;
+let corrections = null;
+try {
+  headCommit = git('rev-parse', 'HEAD').trim();
+  const since = current.get('latestCommit');
+  const range = since ? [`${since}..HEAD`] : ['--since=24 hours ago', 'HEAD'];
+  const titles = correctionTitles(git('log', '--format=%s', ...range).split('\n'));
+  corrections = correctionsRelease(titles, versionCode, versionName);
+  console.log(`Corrections de cette version : ${titles.length}.`);
+} catch (error) {
+  console.log(`Corrections non calculées (${error.message.split('\n')[0]}) : la version part sans elles.`);
 }
 
 // --- Google access token for the service account (OAuth 2.0 JWT bearer flow) -------------------
@@ -135,6 +154,7 @@ await configApp.set({
   apkSize: apk.length,
   apkSha256: createHash('sha256').update(apk).digest('hex'),
   // A file dated later waits for its own version (18/11: all files had taken the same number).
-  whatsNew: mergeWhatsNew(current.get('whatsNew'), dueFiles(whatsNewFiles, parisToday()), versionCode, versionName),
+  whatsNew: mergeWhatsNew(current.get('whatsNew'), dueFiles(whatsNewFiles, parisToday()), versionCode, versionName, corrections),
+  ...(headCommit ? { latestCommit: headCommit } : {}),
 }, { merge: true });
 console.log(`Version ${versionName} (${versionCode}) annoncée dans config/app.`);

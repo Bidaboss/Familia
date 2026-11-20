@@ -15,11 +15,11 @@ interface EventCommentRepository {
     /** The [limit] most recent comments of an event, oldest first, updated live. */
     fun observe(eventId: String, limit: Int): Flow<CommentPage>
 
-    /** Adds a comment signed by [me]. */
-    suspend fun add(eventId: String, text: String, me: Member)
+    /** Adds a comment signed by [me], naming [mentionIds] (« @Prénom »). */
+    suspend fun add(eventId: String, text: String, me: Member, mentionIds: List<String> = emptyList())
 
-    /** Its author changes the text. */
-    suspend fun edit(eventId: String, commentId: String, text: String)
+    /** Its author changes the text, and with it who is named. */
+    suspend fun edit(eventId: String, commentId: String, text: String, mentionIds: List<String> = emptyList())
 
     suspend fun delete(eventId: String, commentId: String)
 

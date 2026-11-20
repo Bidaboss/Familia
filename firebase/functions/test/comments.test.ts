@@ -6,7 +6,7 @@ import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { Notice } from '../src/logic';
 import {
-  CommentData, commentNotice, commentRecipients, deleteCommentMutesOf, deleteEventComments, onCommentCreated,
+  CommentData, commentMentionNotice, commentNotice, commentRecipients, deleteCommentMutesOf, deleteEventComments, onCommentCreated,
 } from '../src/comments';
 import { Sender } from '../src/store';
 
@@ -20,6 +20,14 @@ describe('text', () => {
     assert.equal(n.title, 'Inès a commenté « Pique-nique »');
     assert.equal(n.body, 'Je prends le gâteau');
     assert.equal(n.channel, 'comments');
+    assert.equal(n.eventId, 'e1');
+  });
+
+  test('a member named « @Prénom » is told directly, with the event', () => {
+    const n = commentMentionNotice('e1', 'Pique-nique', comment({ text: '@Noé tu prends le pain ?' }));
+    assert.equal(n.title, 'Inès t\'a nommé dans un commentaire');
+    assert.equal(n.body, '« Pique-nique » : @Noé tu prends le pain ?');
+    assert.equal(n.direct, true);
     assert.equal(n.eventId, 'e1');
   });
 
@@ -88,6 +96,18 @@ describe('against the emulator', () => {
     await onCommentCreated(db, send, 'e1', 'c1', comment());
     assert.deepEqual(sent.map((s) => s.token).sort(), ['token-camille', 'token-lou']);
     assert.equal(sent[0].notice.title, 'Inès a commenté « Pique-nique »');
+  });
+
+  test('who is named hears « t\'a nommé » once, never the writer nor a child without the app', async () => {
+    await db.doc('events/e1/rsvps/lou').set({ status: 'yes' });
+    const { sent, send } = fakeSender();
+    await onCommentCreated(db, send, 'e1', 'c1', comment({ mentionIds: ['lou', 'jules', 'ines', 'nina', 'lou'] }));
+    const byToken = new Map(sent.map((s) => [s.token, s.notice.title]));
+    assert.deepEqual([...byToken.keys()].sort(), ['token-camille', 'token-jules', 'token-lou']);
+    assert.equal(byToken.get('token-lou'), 'Inès t\'a nommé dans un commentaire');
+    assert.equal(byToken.get('token-jules'), 'Inès t\'a nommé dans un commentaire');
+    assert.equal(byToken.get('token-camille'), 'Inès a commenté « Pique-nique »');
+    assert.equal(sent.length, 3);
   });
 
   test('module off: only the admin principal, when concerned', async () => {

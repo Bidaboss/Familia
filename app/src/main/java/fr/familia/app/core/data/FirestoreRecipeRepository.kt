@@ -77,15 +77,15 @@ class FirestoreRecipeRepository(private val db: FirebaseFirestore) : RecipeRepos
         awaitClose { registration.remove() }
     }
 
-    override suspend fun addComment(recipeId: String, text: String, me: Member) {
-        comments(recipeId).document().set(
-            mapOf(
-                "text" to text,
-                "authorId" to me.id,
-                "authorName" to me.firstName,
-                "createdAt" to FieldValue.serverTimestamp(),
-            ),
-        ).await()
+    override suspend fun addComment(recipeId: String, text: String, me: Member, mentionIds: List<String>) {
+        val fields = mutableMapOf<String, Any>(
+            "text" to text,
+            "authorId" to me.id,
+            "authorName" to me.firstName,
+            "createdAt" to FieldValue.serverTimestamp(),
+        )
+        if (mentionIds.isNotEmpty()) fields["mentionIds"] = mentionIds.distinct()
+        comments(recipeId).document().set(fields).await()
     }
 
     override suspend fun deleteComment(recipeId: String, commentId: String) {
@@ -102,6 +102,7 @@ class FirestoreRecipeRepository(private val db: FirebaseFirestore) : RecipeRepos
             authorId = getString("authorId").orEmpty(),
             authorName = getString("authorName").orEmpty(),
             createdAt = getTimestamp("createdAt")?.toDate()?.toInstant(),
+            mentionIds = (get("mentionIds") as? List<*>).orEmpty().filterIsInstance<String>(),
         )
     }
 

@@ -6,11 +6,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -22,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -31,6 +28,10 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
+import fr.familia.app.core.mention.MentionText
+import fr.familia.app.core.mention.MentionTextField
+import fr.familia.app.core.mention.mentionGroups
+import fr.familia.app.core.ui.PickGroup
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.data.EventCommentRepository
 import fr.familia.app.core.model.Family
@@ -91,6 +92,7 @@ fun CommentsSection(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     EventCommentsContent(
         state = state,
+        groups = mentionGroups(currentMember),
         readOnly = readOnly,
         empty = empty,
         onType = viewModel::type,
@@ -106,18 +108,21 @@ fun CommentsSection(
 @Composable
 fun EventCommentsContent(
     state: EventCommentsUiState,
-    onType: (String) -> Unit,
+    onType: (String, List<String>) -> Unit,
     onSend: () -> Unit,
     onShowMore: () -> Unit,
-    onEdit: (EventCommentRow, String) -> Boolean,
+    onEdit: (EventCommentRow, String, List<String>) -> Boolean,
     onRemove: (EventCommentRow) -> Unit,
     onMute: (Boolean) -> Unit,
+    /** Whom « @ » suggests (Kévin, 19/11); empty, « @ » suggests nobody. */
+    groups: List<PickGroup> = emptyList(),
     readOnly: Boolean = false,
     @StringRes empty: Int = R.string.event_comments_empty,
 ) {
     var removing by rememberSaveable { mutableStateOf<String?>(null) }
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
     var editText by rememberSaveable { mutableStateOf("") }
+    var editMentions by rememberSaveable { mutableStateOf(listOf<String>()) }
     val muted = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(stringResource(R.string.event_comments_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
@@ -130,13 +135,13 @@ fun EventCommentsContent(
         state.rows.forEach { row ->
             ClayCard(modifier = Modifier.fillMaxWidth()) {
                 Text(row.comment.authorName, style = MaterialTheme.typography.titleSmall)
-                Text(row.comment.text, style = MaterialTheme.typography.bodyLarge)
+                MentionText(row.comment.text, row.comment.mentionIds, style = MaterialTheme.typography.bodyLarge)
                 commentWhen(row.comment)?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = muted) }
                 if (!readOnly && (row.canEdit || row.canRemove)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (row.canEdit) {
                             TextButton(
-                                onClick = { editing = row.comment.id; editText = row.comment.text },
+                                onClick = { editing = row.comment.id; editText = row.comment.text; editMentions = row.comment.mentionIds },
                                 modifier = Modifier.heightIn(min = 56.dp),
                             ) { Text(stringResource(R.string.event_comment_edit)) }
                         }
@@ -153,15 +158,16 @@ fun EventCommentsContent(
             Text(stringResource(problemText(it)), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
         }
         if (readOnly) return@Column
-        OutlinedTextField(
-            value = state.draft,
-            onValueChange = onType,
+        MentionTextField(
+            text = state.draft,
+            mentionIds = state.draftMentionIds,
+            onChange = onType,
+            groups = groups,
             label = { Text(stringResource(R.string.recipe_comment_field)) },
             // Kévin, 19/11: nothing under the field until the end is near.
             supportingText = commentCount(state.draft.length, EventComment.MAX_TEXT),
             minLines = 2,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
+            maxLength = EventComment.MAX_TEXT,
         )
         OutlinedButton(onClick = onSend, enabled = state.canSend, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Text(stringResource(R.string.recipe_comment_send))
@@ -191,19 +197,21 @@ fun EventCommentsContent(
             onDismissRequest = { editing = null },
             title = { Text(stringResource(R.string.event_comment_edit_title)) },
             text = {
-                OutlinedTextField(
-                    value = editText,
-                    onValueChange = { editText = it.take(EventComment.MAX_TEXT) },
+                MentionTextField(
+                    text = editText,
+                    mentionIds = editMentions,
+                    onChange = { text, ids -> editText = text; editMentions = ids },
+                    groups = groups,
+                    label = { Text(stringResource(R.string.recipe_comment_field)) },
                     isError = tooLong,
                     supportingText = commentCount(editText.length, EventComment.MAX_TEXT),
                     minLines = 2,
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                    modifier = Modifier.fillMaxWidth(),
+                    maxLength = EventComment.MAX_TEXT,
                 )
             },
             confirmButton = {
                 TextButton(
-                    onClick = { if (onEdit(target, editText)) editing = null },
+                    onClick = { if (onEdit(target, editText, editMentions)) editing = null },
                     enabled = editText.isNotBlank() && !tooLong,
                     modifier = Modifier.heightIn(min = 56.dp),
                 ) { Text(stringResource(R.string.event_comment_edit_save)) }
@@ -251,6 +259,6 @@ internal fun previewEventComments(): EventCommentsUiState = EventCommentsUiState
 @Composable
 private fun EventCommentsPreview() {
     FamiliaTheme {
-        EventCommentsContent(previewEventComments(), {}, {}, {}, { _, _ -> true }, {}, {})
+        EventCommentsContent(previewEventComments(), { _, _ -> }, {}, {}, { _, _, _ -> true }, {}, {})
     }
 }

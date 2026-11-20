@@ -99,16 +99,68 @@ export function parisToday(now = new Date()) {
 /**
  * The new config/app.whatsNew. A file already published keeps its version number, with its texts
  * brought up to date; a new file takes the version being published; a removed file leaves the
- * history. Oldest first.
+ * history. The corrections of the earlier versions stay (the last [CORRECTIONS_KEPT]), and
+ * [corrections] (correctionsRelease) joins them. Oldest first.
  */
-export function mergeWhatsNew(history, files, versionCode, versionName) {
-  const known = new Map((Array.isArray(history) ? history : []).map((entry) => [entry.id, entry]));
-  return files
-    .map(({ id, cards }) => {
-      const before = known.get(id);
-      return before
-        ? { id, versionCode: before.versionCode, versionName: before.versionName ?? '', cards }
-        : { id, versionCode, versionName, cards };
-    })
+export function mergeWhatsNew(history, files, versionCode, versionName, corrections = null) {
+  const past = Array.isArray(history) ? history : [];
+  const known = new Map(past.map((entry) => [entry.id, entry]));
+  const fromFiles = files.map(({ id, cards }) => {
+    const before = known.get(id);
+    return before
+      ? { id, versionCode: before.versionCode, versionName: before.versionName ?? '', cards }
+      : { id, versionCode, versionName, cards };
+  });
+  const keptFixes = past
+    .filter((entry) => entry?.fixes === true && entry.id !== corrections?.id)
+    .sort((a, b) => a.versionCode - b.versionCode)
+    .slice(corrections ? 1 - CORRECTIONS_KEPT : -CORRECTIONS_KEPT);
+  return [...fromFiles, ...keptFixes, ...(corrections ? [corrections] : [])]
     .sort((a, b) => a.versionCode - b.versionCode || a.id.localeCompare(b.id));
+}
+
+// --- Corrections (Kévin le 20/11) ---------------------------------------------------------------
+// Each version also tells what was merged since the one before, from the titles of the pull
+// requests (squash commits « Titre (#123) »), on a card of its own that the app draws apart.
+
+export const CORRECTIONS_KEPT = 30;
+export const CORRECTIONS_LINES = 6;
+export const CORRECTIONS_TITLE = 'Ce qui a été corrigé ou retouché';
+
+/**
+ * Words that keep a title out of the card: read by the whole family, children included, it must
+ * never give a surprise away (relecture de la #433).
+ */
+export const CORRECTIONS_HIDDEN = /surprise|cadeau|envie|r[ée]serv|anniversaire|no[ëe]l/i;
+
+/**
+ * The titles of the pull requests among [subjects] (git log), without their number nor references,
+ * nor those that touch gifts ([CORRECTIONS_HIDDEN]).
+ */
+export function correctionTitles(subjects) {
+  return subjects
+    .map((subject) => subject.trim())
+    .filter((subject) => /\(#\d+\)$/.test(subject))
+    .map((subject) => subject
+      .replace(/\s*\(#\d+\)$/, '')
+      .replace(/\s*\([^()]*\b(?:PRODUIT|DESIGN|BUG|CADEAUX|AIDE|VOYAGE|ORGA|COORD|DEV|PRD|récit)\b[^()]*\)\s*$/i, '')
+      .trim())
+    .filter((title) => title && !CORRECTIONS_HIDDEN.test(title));
+}
+
+/** The version's card of corrections, or null when nothing was merged. */
+export function correctionsRelease(titles, versionCode, versionName) {
+  if (!titles.length) return null;
+  const lines = titles.slice(0, CORRECTIONS_LINES).map((title) => `• ${title}`);
+  const more = titles.length - CORRECTIONS_LINES;
+  if (more === 1) lines.push('• et une autre retouche');
+  if (more > 1) lines.push(`• et ${more} autres retouches`);
+  const id = `corrections-${versionCode}`;
+  return {
+    id,
+    versionCode,
+    versionName,
+    fixes: true,
+    cards: [{ id, title: CORRECTIONS_TITLE, body: lines.join('\n'), kind: 'fixes' }],
+  };
 }

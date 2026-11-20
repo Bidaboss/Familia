@@ -135,6 +135,8 @@ describe('recipes (récit 38)', () => {
     await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'recipes/r1/comments/c6'), comment(OTHER_ADULT, 'x'.repeat(501))));
     await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'recipes/nope/comments/c7'), comment(OTHER_ADULT)));
     await assertFails(setDoc(doc(as(env, STRANGER), 'recipes/r1/comments/c8'), { ...comment(OTHER_ADULT), authorId: 'stranger' }));
+    await assertSucceeds(setDoc(doc(as(env, OTHER_ADULT), 'recipes/r1/comments/c9'), { ...comment(OTHER_ADULT, '@Noé à tester'), mentionIds: [NEIGHBOUR.memberId] }));
+    await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'recipes/r1/comments/c10'), { ...comment(OTHER_ADULT), mentionIds: ['a', 'a'] }));
     await assertSucceeds(getDocs(collection(as(env, NEIGHBOUR), 'recipes/r1/comments')));
     await assertFails(updateDoc(doc(as(env, NEIGHBOUR), 'recipes/r1/comments/c1'), { text: 'Changé' }));
     await assertFails(deleteDoc(doc(as(env, NEIGHBOUR), 'recipes/r1/comments/c2')));
