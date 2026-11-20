@@ -611,13 +611,20 @@ service cloud.firestore {
       return text is string && text.size() > 0 && text.size() <= 500;
     }
 
+    // The members named « @Prénom » in a comment (Kévin, 19/11): optional, at most 20, no duplicate.
+    // The server tells each of them once.
+    function hasCommentMentions(data) {
+      return !('mentionIds' in data) || isIdList(data.mentionIds, 0, 20);
+    }
+
     match /events/{eventId}/comments/{commentId} {
       allow read: if isMember();
       allow create: if isMember()
         && exists(/databases/$(database)/documents/events/$(eventId))
         && request.resource.data.keys().hasAll(['text', 'authorId', 'authorName', 'createdAt', 'expireAt'])
-        && request.resource.data.keys().hasOnly(['text', 'authorId', 'authorName', 'createdAt', 'expireAt'])
+        && request.resource.data.keys().hasOnly(['text', 'authorId', 'authorName', 'createdAt', 'expireAt', 'mentionIds'])
         && isCommentText(request.resource.data.text)
+        && hasCommentMentions(request.resource.data)
         && request.resource.data.authorId == myMemberId()
         && request.resource.data.authorName == me().firstName
         && request.resource.data.createdAt == request.time
@@ -626,8 +633,9 @@ service cloud.firestore {
         && request.resource.data.expireAt < request.time + duration.value(370, 'd');
       allow update: if isMember()
         && resource.data.authorId == myMemberId()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'editedAt'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'editedAt', 'mentionIds'])
         && isCommentText(request.resource.data.text)
+        && hasCommentMentions(request.resource.data)
         && request.resource.data.editedAt == request.time;
       allow delete: if isMember()
         && (resource.data.authorId == myMemberId()
@@ -1173,15 +1181,17 @@ service cloud.firestore {
       allow create: if isMember()
         && exists(/databases/$(database)/documents/goodNews/$(postId))
         && request.resource.data.keys().hasAll(['text', 'authorId', 'authorName', 'createdAt'])
-        && request.resource.data.keys().hasOnly(['text', 'authorId', 'authorName', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['text', 'authorId', 'authorName', 'createdAt', 'mentionIds'])
         && isCommentText(request.resource.data.text)
+        && hasCommentMentions(request.resource.data)
         && request.resource.data.authorId == myMemberId()
         && request.resource.data.authorName == me().firstName
         && request.resource.data.createdAt == request.time;
       allow update: if isMember()
         && resource.data.authorId == myMemberId()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'editedAt'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'editedAt', 'mentionIds'])
         && isCommentText(request.resource.data.text)
+        && hasCommentMentions(request.resource.data)
         && request.resource.data.editedAt == request.time;
       allow delete: if isMember()
         && (resource.data.authorId == myMemberId()
@@ -2362,9 +2372,10 @@ service cloud.firestore {
       allow create: if isMember()
         && exists(/databases/$(database)/documents/recipes/$(recipeId))
         && request.resource.data.keys().hasAll(['text', 'authorId', 'authorName', 'createdAt'])
-        && request.resource.data.keys().hasOnly(['text', 'authorId', 'authorName', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['text', 'authorId', 'authorName', 'createdAt', 'mentionIds'])
         && request.resource.data.text is string
         && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 500
+        && hasCommentMentions(request.resource.data)
         && request.resource.data.authorId == myMemberId()
         && request.resource.data.authorName == me().firstName
         && request.resource.data.createdAt == request.time;

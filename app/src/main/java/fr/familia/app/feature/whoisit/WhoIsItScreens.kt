@@ -40,7 +40,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -162,7 +162,7 @@ private fun guessLine(guess: WhoIsItGuess): String = when {
 @Composable
 fun WhoIsItPostScreen(state: WhoIsItPostUiState, actions: WhoIsItActions, onDelete: () -> Unit, onBack: () -> Unit) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.feature_who_is_it), maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) }) },
+        topBar = { FamiliaTopBar(title = { Text(stringResource(R.string.feature_who_is_it), maxLines = 2, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) }) },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
@@ -214,7 +214,7 @@ private fun RemoveButton(onDelete: () -> Unit) {
 @Composable
 fun WhoIsItListScreen(state: WhoIsItListUiState, onOpen: (String) -> Unit, onAdd: (() -> Unit)?, onBack: () -> Unit) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.feature_who_is_it), maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) }) },
+        topBar = { FamiliaTopBar(title = { Text(stringResource(R.string.feature_who_is_it), maxLines = 2, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) }) },
         floatingActionButton = {
             if (onAdd != null) {
                 ExtendedFloatingActionButton(
@@ -296,7 +296,7 @@ fun WhoIsItEditScreen(state: WhoIsItEditUiState.Editing, actions: WhoIsItEditAct
         }
     }
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.who_is_it_add), maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) }) },
+        topBar = { FamiliaTopBar(title = { Text(stringResource(R.string.who_is_it_add), maxLines = 2, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) }) },
     ) { padding ->
         Column(
             Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = ClaySpacing.screen, vertical = 16.dp),

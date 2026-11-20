@@ -30,13 +30,13 @@ private class FakeComments(initial: List<EventComment> = emptyList(), private va
         val sorted = all.sortedWith(eventCommentOrder)
         CommentPage(sorted.takeLast(limit), hasMore = sorted.size > limit)
     }
-    override suspend fun add(eventId: String, text: String, me: Member) {
+    override suspend fun add(eventId: String, text: String, me: Member, mentionIds: List<String>) {
         failWith?.let { throw it }
-        comments.value = comments.value + EventComment("n${next++}", text, me.id, me.firstName, null)
+        comments.value = comments.value + EventComment("n${next++}", text, me.id, me.firstName, null, mentionIds = mentionIds)
     }
-    override suspend fun edit(eventId: String, commentId: String, text: String) {
+    override suspend fun edit(eventId: String, commentId: String, text: String, mentionIds: List<String>) {
         failWith?.let { throw it }
-        comments.value = comments.value.map { if (it.id == commentId) it.copy(text = text, editedAt = Instant.EPOCH) else it }
+        comments.value = comments.value.map { if (it.id == commentId) it.copy(text = text, editedAt = Instant.EPOCH, mentionIds = mentionIds) else it }
     }
     override suspend fun delete(eventId: String, commentId: String) {
         failWith?.let { throw it }
@@ -77,6 +77,28 @@ class EventCommentsViewModelTest {
         assertEquals("", vm.uiState.value.draft)
         assertTrue(row.canEdit)
         assertTrue(row.canRemove)
+    }
+
+    @Test
+    fun `the members named with an at sign go with the comment, then the draft forgets them`() = runTest {
+        val repo = FakeComments()
+        val vm = viewModel(repo, "adult1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        vm.type("@Adult2 tu viens ?", listOf("adult2", "adult2"))
+        assertEquals(listOf("adult2"), vm.uiState.value.draftMentionIds)
+        vm.send()
+        assertEquals(listOf("adult2"), vm.uiState.value.rows.single().comment.mentionIds)
+        assertEquals(emptyList<String>(), vm.uiState.value.draftMentionIds)
+    }
+
+    @Test
+    fun `changing a comment changes who is named`() = runTest {
+        val repo = FakeComments(listOf(comment("c1", "adult1", 1)))
+        val vm = viewModel(repo, "adult1")
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        val row = vm.uiState.value.rows.single()
+        assertTrue(vm.edit(row, row.comment.text, listOf("adult2")))
+        assertEquals(listOf("adult2"), vm.uiState.value.rows.single().comment.mentionIds)
     }
 
     @Test

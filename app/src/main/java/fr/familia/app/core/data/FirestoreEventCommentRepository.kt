@@ -45,20 +45,21 @@ class FirestoreEventCommentRepository(
         awaitClose { registration.remove() }
     }
 
-    override suspend fun add(eventId: String, text: String, me: Member) {
+    override suspend fun add(eventId: String, text: String, me: Member, mentionIds: List<String>) {
         val fields = mutableMapOf<String, Any>(
             "text" to text,
             "authorId" to me.id,
             "authorName" to me.firstName,
             "createdAt" to FieldValue.serverTimestamp(),
         )
+        if (mentionIds.isNotEmpty()) fields["mentionIds"] = mentionIds.distinct()
         if (expires) fields["expireAt"] = Timestamp(Date.from(Instant.now().plus(EventComment.KEPT_DAYS, ChronoUnit.DAYS)))
         comments(eventId).document().set(fields).await()
     }
 
-    override suspend fun edit(eventId: String, commentId: String, text: String) {
+    override suspend fun edit(eventId: String, commentId: String, text: String, mentionIds: List<String>) {
         comments(eventId).document(commentId)
-            .update(mapOf("text" to text, "editedAt" to FieldValue.serverTimestamp()))
+            .update(mapOf("text" to text, "mentionIds" to mentionIds.distinct(), "editedAt" to FieldValue.serverTimestamp()))
             .await()
     }
 
@@ -89,6 +90,7 @@ class FirestoreEventCommentRepository(
             // A comment just sent offline has no server time yet: the estimate keeps it last.
             createdAt = getTimestamp("createdAt", DocumentSnapshot.ServerTimestampBehavior.NONE)?.toDate()?.toInstant(),
             editedAt = getTimestamp("editedAt", DocumentSnapshot.ServerTimestampBehavior.ESTIMATE)?.toDate()?.toInstant(),
+            mentionIds = (get("mentionIds") as? List<*>).orEmpty().filterIsInstance<String>(),
         )
     }
 }

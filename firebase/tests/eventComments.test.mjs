@@ -61,6 +61,24 @@ describe('writing', () => {
   });
 });
 
+describe('« @Prénom » (Kévin, 19/11)', () => {
+  test('a comment names up to 20 members, each once', async () => {
+    const many = Array.from({ length: 21 }, (_, i) => `m${i}`);
+    await assertSucceeds(setDoc(comment(as(env, ADULT)), written(ADULT, { text: '@Noé tu viens ?', mentionIds: [OTHER_ADULT.memberId] })));
+    await assertSucceeds(setDoc(comment(as(env, ADULT), 'c2'), written(ADULT, { mentionIds: [] })));
+    await assertFails(setDoc(comment(as(env, ADULT), 'c3'), written(ADULT, { mentionIds: many })));
+    await assertFails(setDoc(comment(as(env, ADULT), 'c4'), written(ADULT, { mentionIds: ['a', 'a'] })));
+    await assertFails(setDoc(comment(as(env, ADULT), 'c5'), written(ADULT, { mentionIds: 'a' })));
+  });
+
+  test('its author changes who is named with the text', async () => {
+    await seedComment();
+    await assertSucceeds(updateDoc(comment(as(env, ADULT)), { text: '@Noé merci', mentionIds: [OTHER_ADULT.memberId], editedAt: serverTimestamp() }));
+    await assertFails(updateDoc(comment(as(env, ADULT)), { text: 'x', mentionIds: ['a', 'a'], editedAt: serverTimestamp() }));
+    await assertFails(updateDoc(comment(as(env, OTHER_ADULT)), { text: 'x', mentionIds: [], editedAt: serverTimestamp() }));
+  });
+});
+
 describe('reading', () => {
   test('every member reads the comments of an event, nobody outside the family', async () => {
     await seedComment();

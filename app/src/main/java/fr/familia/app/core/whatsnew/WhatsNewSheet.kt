@@ -54,6 +54,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Build
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.background
@@ -189,6 +190,10 @@ fun WhatsNewSheetContent(cards: List<ShownCard>, child: Boolean, onGo: () -> Uni
 /** One card: the Argile illustration of its screen, the title, one sentence and « Essayer ». */
 @Composable
 fun WhatsNewCardView(card: WhatsNewCard, child: Boolean, onTry: ((WhatsNewTarget) -> Unit)?, modifier: Modifier = Modifier) {
+    if (card.fixes) {
+        FixesCardView(card, child, modifier)
+        return
+    }
     val target = card.target
     ClayCard(modifier.fillMaxWidth()) {
         Column(
@@ -217,6 +222,41 @@ fun WhatsNewCardView(card: WhatsNewCard, child: Boolean, onTry: ((WhatsNewTarget
     }
 }
 
+/**
+ * The corrections of a version (Kévin le 20/11): told apart from the new features, a small tool on
+ * the side, a « Corrections » label, and the lines as a list, read from the left.
+ */
+@Composable
+private fun FixesCardView(card: WhatsNewCard, child: Boolean, modifier: Modifier = Modifier) {
+    ClayCard(modifier.fillMaxWidth()) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Surface(shape = CircleShape, color = MaterialTheme.colorScheme.secondaryContainer, modifier = Modifier.size(48.dp)) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            Icons.Outlined.Build,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                }
+                Column {
+                    Text(
+                        stringResource(R.string.whats_new_fixes_label),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(card.titleFor(child), style = MaterialTheme.typography.titleMedium)
+                }
+            }
+            card.bodyFor(child).lines().filter { it.isNotBlank() }.forEach { line ->
+                Text(line, style = MaterialTheme.typography.bodyLarge)
+            }
+        }
+    }
+}
+
 /** Fictional cards, for previews and screenshots. */
 internal val previewWhatsNew = WhatsNewRelease(
     id = "exemple",
@@ -229,6 +269,10 @@ internal val previewWhatsNew = WhatsNewRelease(
             childBody = "Regarde où part la famille et ajoute tes photos.", open = "trips",
         ),
         WhatsNewCard("theme", "Plus de couleurs", "Choisis la couleur de l'appli dans les réglages."),
+        WhatsNewCard(
+            "corrections-200", "Ce qui a été corrigé",
+            "• Cadeaux s'ouvre tout en haut\n• La photo d'une fiche s'ouvre en plein écran", fixes = true,
+        ),
     ),
 )
 

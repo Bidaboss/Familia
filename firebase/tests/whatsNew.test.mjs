@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { checkFile, dueFiles, mergeWhatsNew, parisToday, readWhatsNew } from '../functions/scripts/whats-new.mjs';
+import { checkFile, correctionsRelease, correctionTitles, CORRECTIONS_KEPT, dueFiles, mergeWhatsNew, parisToday, readWhatsNew } from '../functions/scripts/whats-new.mjs';
 
 const card = (id, more = {}) => ({ id, title: `Titre ${id}`, body: `Une phrase pour ${id}.`, ...more });
 
@@ -65,4 +65,50 @@ test('a file dated later waits for its own publication, and leaves a history it 
 test("today is read in Paris", () => {
   assert.equal(parisToday(new Date('2026-11-20T23:30:00Z')), '2026-11-21');
   assert.equal(parisToday(new Date('2026-11-20T12:00:00Z')), '2026-11-20');
+});
+
+test('the corrections are the titles of the merged pull requests, without number nor reference', () => {
+  const titles = correctionTitles([
+    'Tout Familia : « Le fil » ouvre bien l\'Accueil sur le fil (#425)',
+    'Supprimer « À qui le tour ? » (récit 58) (#424)',
+    'Thèmes revus : 7 thèmes (DESIGN-43, 45, 46) (#409)',
+    'Merge remote-tracking branch \'origin/main\' into a-branch',
+    '',
+  ]);
+  assert.deepEqual(titles, ['Tout Familia : « Le fil » ouvre bien l\'Accueil sur le fil', 'Supprimer « À qui le tour ? »', 'Thèmes revus : 7 thèmes']);
+});
+
+test('a card of corrections per version, six lines at most, none when nothing was merged', () => {
+  assert.equal(correctionsRelease([], 60, '1.60'), null);
+  const release = correctionsRelease(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], 60, '1.60');
+  assert.equal(release.id, 'corrections-60');
+  assert.equal(release.fixes, true);
+  const card = release.cards[0];
+  assert.equal(card.kind, 'fixes');
+  assert.ok(card.title.length <= 40);
+  assert.deepEqual(card.body.split('\n'), ['• a', '• b', '• c', '• d', '• e', '• f', '• et 2 autres retouches']);
+});
+
+test('the corrections of the earlier versions stay in the history, beside the files', () => {
+  const files = [{ id: '2026-11-18', cards: [{ id: 'x', title: 'X', body: 'x' }] }];
+  const first = mergeWhatsNew([], files, 50, '1.50', correctionsRelease(['a'], 50, '1.50'));
+  const second = mergeWhatsNew(first, files, 51, '1.51', correctionsRelease(['b'], 51, '1.51'));
+  assert.deepEqual(second.map((entry) => [entry.id, entry.versionCode]), [['2026-11-18', 50], ['corrections-50', 50], ['corrections-51', 51]]);
+  const third = mergeWhatsNew(second, files, 52, '1.52', null);
+  assert.deepEqual(third.map((entry) => entry.id), ['2026-11-18', 'corrections-50', 'corrections-51']);
+  let history = [];
+  for (let code = 1; code <= CORRECTIONS_KEPT + 5; code++) history = mergeWhatsNew(history, [], code, `1.${code}`, correctionsRelease(['a'], code, `1.${code}`));
+  assert.equal(history.length, CORRECTIONS_KEPT);
+  assert.equal(history.at(-1).id, `corrections-${CORRECTIONS_KEPT + 5}`);
+});
+
+test('a title about gifts or surprises never reaches the card', () => {
+  const titles = correctionTitles([
+    'Cadeaux s\'ouvre tout en haut quand une surprise arrive après le reste (#420)',
+    'Cadeau commun avec un membre du foyer (récit 73) (#413)',
+    'Fiche : « Lui souhaiter » seulement le jour de l\'anniversaire (#415)',
+    'Mes envies : réserver une idée (#500)',
+    'Coup de main : jamais « Dire merci » à soi-même (#423)',
+  ]);
+  assert.deepEqual(titles, ['Coup de main : jamais « Dire merci » à soi-même']);
 });
