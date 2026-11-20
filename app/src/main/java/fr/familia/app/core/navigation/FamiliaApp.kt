@@ -1006,7 +1006,7 @@ fun FamiliaApp(
                                 memoriesInFeed = memoriesInFeed,
                                 onEntraideTab = { tab ->
                                     entraideTab = tab
-                                    navController.navigateToTab(TopLevelDestination.HelpRequests)
+                                    navController.leaveAllFamiliaFor(TopLevelDestination.HelpRequests)
                                 },
                             ),
                             onBack = { navController.popBackStack() },
@@ -2047,10 +2047,10 @@ private fun allModules(
         if (on) this.add(AllModule(key, label, icon, family, badge, open))
     }
     module(true, "planning", R.string.all_planning, Icons.Outlined.CalendarMonth, ModuleFamily.Organise) {
-        navController.navigateToTab(TopLevelDestination.Planning)
+        navController.leaveAllFamiliaFor(TopLevelDestination.Planning)
     }
     module(features.isOn(Feature.HelpRequests), "help", R.string.all_help, Icons.Outlined.VolunteerActivism, ModuleFamily.Organise, helpBadge) {
-        navController.navigateToTab(TopLevelDestination.HelpRequests)
+        navController.leaveAllFamiliaFor(TopLevelDestination.HelpRequests)
     }
     // Each sub-tab of Entraide also by itself (PRODUIT-118), while its module and Entraide are on.
     val entraideOn = features.isOn(Feature.HelpRequests)
@@ -2067,7 +2067,7 @@ private fun allModules(
         navController.navigate(JoinMeDestination) { launchSingleTop = true }
     }
     module(features.isOn(Feature.Gifts), "gifts", R.string.all_gifts, Icons.Outlined.CardGiftcard, ModuleFamily.Treat) {
-        navController.navigateToTab(TopLevelDestination.Gifts)
+        navController.leaveAllFamiliaFor(TopLevelDestination.Gifts)
     }
     module(features.isOn(Feature.Trips), "trips", R.string.all_trips, Icons.Outlined.CardTravel, ModuleFamily.Treat) {
         navController.navigate(TripsDestination) { launchSingleTop = true }
@@ -2082,7 +2082,7 @@ private fun allModules(
         FeedOpenRequest.ask()
         // Back down to the Accueil under Tout Familia: going to the tab would bring Tout Familia back,
         // saved with the Accueil, and nothing seemed to happen (retour d'essai, 20/11).
-        if (!navController.popBackStack(HomeRoute, inclusive = false)) navController.navigateToTab(TopLevelDestination.Home)
+        if (!navController.popBackStack(HomeRoute, inclusive = false)) navController.leaveAllFamiliaFor(TopLevelDestination.Home)
     }
     module(features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums), "albums", R.string.all_albums, Icons.Outlined.PhotoLibrary, ModuleFamily.Remember) {
         navController.navigate(AlbumsDestination) { launchSingleTop = true }
@@ -2171,6 +2171,15 @@ private fun NavHostController.openWhatsNew(target: WhatsNewTarget) {
         WhatsNewTarget.Appearance -> navigate(AppearanceDestination) { launchSingleTop = true }
         WhatsNewTarget.WhoIsIt -> navigate(WhoIsItDestination) { launchSingleTop = true }
     }
+}
+
+/**
+ * From Tout Familia to a tab: Tout Familia closes first, so that it is not saved with the tab it was
+ * opened from and does not come back over it (retour d'essai, 20/11: Famille brought it back).
+ */
+private fun NavHostController.leaveAllFamiliaFor(destination: TopLevelDestination) {
+    popBackStack<AllFamiliaDestination>(inclusive = true)
+    navigateToTab(destination)
 }
 
 private fun NavHostController.navigateToTab(destination: TopLevelDestination) {
