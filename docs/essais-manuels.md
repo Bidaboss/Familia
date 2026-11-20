@@ -1499,3 +1499,22 @@ Un téléphone avec l'appli d'avant, puis « APK de publication » lancé pour u
 5. Coupe le réseau puis ouvre un écran pas encore chargé. **Attendu :** l'olivier en gris à la place de la roue, avec « Pas de réseau pour l'instant… ». Le réseau revient : l'écran se remplit.
 6. TalkBack. **Attendu :** l'olivier n'est jamais lu ; seuls les textes à côté le sont.
 7. Avec les animations coupées dans Android : rien ne bouge (l'olivier ne bouge jamais).
+
+## Six paysages, Nouveau voyage et Étape refaits (récit 81, DESIGN-53, 56 et 57)
+
+Avant l'APK : lance « Publier Firebase » (les règles acceptent le champ landscape).
+
+1. Voyages, « + Nouveau voyage ». **Attendu :** fond ciel, rond Retour, « Nouveau voyage » et le rond « ? ». En haut, le paysage des dunes avec une étiquette blanche « Ton voyage ». Puis quatre tuiles au bord bleu clair : Le voyage, Le paysage, Qui part ?, Qui suit le voyage ?, et le bouton noir « Créer le voyage » fixé en bas.
+2. Tape un nom, puis choisis Départ et Retour. **Attendu :** l'étiquette du haut affiche le nom, puis « dim. 11 → ven. 16 avril · 6 jours ». Un retour avant le départ n'est pas possible : choisir un départ après le retour déplace le retour.
+3. Le paysage : touche « Bord de mer ». **Attendu :** la vignette prend un contour foncé et une coche, et le haut de l'écran passe à la mer. Avec le texte à 130 %, les vignettes passent sur 2 colonnes. TalkBack les lit comme des cases d'option.
+4. Qui part ? **Attendu :** chaque foyer a une case « Tout le foyer », puis les visages de ses membres. Toi, tu restes coché. Cocher un foyer coche tous ses membres.
+5. Qui suit le voyage ? **Attendu :** une ligne « Toute la famille, N personnes, dont les X qui partent » et « Changer ». « Changer » ouvre le choix par foyer ; ceux qui partent restent cochés. Décoche quelqu'un : la ligne devient « N personnes sur M, … ».
+6. Laisse le nom vide et touche « Créer le voyage ». **Attendu :** la page remonte à « Le voyage », avec l'erreur sous le nom.
+7. Crée le voyage. **Attendu :** l'intérieur du voyage montre le chemin dans la mer (bateaux, parasol), et le ciel du haut suit le paysage. Dans la liste Voyages, le paysage du haut et les vignettes suivent aussi.
+8. Modifie le voyage. **Attendu :** « Modifier le voyage », le paysage choisi est coché, « Enregistrer » en bas et « Supprimer le voyage » tout en bas, en rouge pâle.
+9. Un ancien voyage, créé avant cette version. **Attendu :** il reste dans les dunes, sans erreur.
+10. Dans un voyage, « Ajouter une étape ». **Attendu :** fond ciel, une carte blanche « Dans le voyage · … · 11 → 16 avril », puis les tuiles « Quel type d'étape ? » (5 tuiles avec icône), « Où ? », « Quand ? » et « Une note ». Le bouton noir dit « Ajouter l'étape ».
+11. Type Hébergement. **Attendu :** l'aide du lieu devient « Le nom et la ville : … ».
+12. Quand : choisis un Départ (Jour et Heure), puis une Arrivée prévue plus tôt le même jour. **Attendu :** « L'arrivée ne peut pas être avant le départ » sous l'arrivée, et la bande bleu pâle avec l'horloge explique le rappel « Bien arrivé ».
+13. Modifie une étape. **Attendu :** « Enregistrer » en bas et « Supprimer l'étape » tout en bas, en rouge pâle ; la confirmation ne change pas.
+14. Thème sombre, texte à 130 % puis au maximum. **Attendu :** le fond reste ciel, les tuiles restent lisibles, rien n'est coupé.

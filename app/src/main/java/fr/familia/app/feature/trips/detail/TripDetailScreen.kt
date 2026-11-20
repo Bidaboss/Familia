@@ -134,8 +134,8 @@ fun TripDetailScreen(
                 navigationIcon = { BackButton(onClick = onBack) },
                 colors = if (path) {
                     TopAppBarDefaults.topAppBarColors(
-                        containerColor = TripPathColors.Sky,
-                        scrolledContainerColor = TripPathColors.Sky,
+                        containerColor = success?.trip?.landscape?.palette?.sky ?: TripPathColors.Sky,
+                        scrolledContainerColor = success?.trip?.landscape?.palette?.sky ?: TripPathColors.Sky,
                         navigationIconContentColor = TripPathColors.Ink,
                         titleContentColor = TripPathColors.Ink,
                         actionIconContentColor = TripPathColors.Ink,
@@ -334,13 +334,13 @@ private fun PathContent(
                 chosen = chosen,
                 today = state.today,
                 onChoose = { chosenEpoch = it.toEpochDay() },
-                modifier = Modifier.background(TripPathColors.Sky).padding(bottom = 8.dp),
+                modifier = Modifier.background(state.trip.landscape.palette.sky).padding(bottom = 8.dp),
             )
         }
-        item(key = "path") { TripPathIllustration(days, chosen, state.today, label) }
+        item(key = "path") { TripPathIllustration(days, chosen, state.today, label, landscape = state.trip.landscape) }
         item(key = "day") {
             // The card sits on the bottom of the landscape, as on the maquette.
-            Box(Modifier.fillMaxWidth().background(TripPathColors.DuneNear).padding(horizontal = ClaySpacing.screen, vertical = 12.dp)) {
+            Box(Modifier.fillMaxWidth().background(state.trip.landscape.palette.near).padding(horizontal = ClaySpacing.screen, vertical = 12.dp)) {
                 TripDayCard(
                     number = number,
                     places = places,

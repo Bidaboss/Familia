@@ -42,6 +42,9 @@ fun FormTile(
     title: String,
     modifier: Modifier = Modifier,
     accent: Color = MaterialTheme.colorScheme.primary,
+    /** The small square of the icon and the icon; by default, a pale [accent] and [accent]. */
+    iconBackground: Color = accent.copy(alpha = 0.16f),
+    iconTint: Color = accent,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Surface(
@@ -62,10 +65,10 @@ fun FormTile(
                     Modifier
                         .size(36.dp)
                         .clip(RoundedCornerShape(10.dp))
-                        .background(accent.copy(alpha = 0.16f)),
+                        .background(iconBackground),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(icon, contentDescription = null, tint = accent, modifier = Modifier.size(22.dp))
+                    Icon(icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(22.dp))
                 }
                 Text(
                     title,

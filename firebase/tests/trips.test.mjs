@@ -116,6 +116,16 @@ describe('creating a trip', () => {
     await assertFails(setDoc(doc(db, 'trips/f'), trip(ADULT, { createdAt: Timestamp.fromMillis(0) })));
     await assertFails(setDoc(doc(db, 'trips/g'), trip(ADULT, { budget: 1200 })));
   });
+
+  test('the landscape is one of the six, and an older trip without one stays valid (récit 81)', async () => {
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(doc(db, 'trips/l1'), trip(ADULT, { landscape: 'mer' })));
+    await assertSucceeds(setDoc(doc(db, 'trips/l2'), trip(ADULT)));
+    await assertFails(setDoc(doc(db, 'trips/l3'), trip(ADULT, { landscape: 'lune' })));
+    await assertFails(setDoc(doc(db, 'trips/l4'), trip(ADULT, { landscape: 3 })));
+    await storedTrip('l5', ADULT);
+    await assertSucceeds(updateDoc(doc(db, 'trips/l5'), { landscape: 'neige', updatedAt: serverTimestamp() }));
+  });
 });
 
 describe('who follows a trip (récit 12)', () => {

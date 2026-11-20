@@ -8,6 +8,7 @@ import fr.familia.app.core.data.TripRepository
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Trip
+import fr.familia.app.core.model.TripLandscape
 import fr.familia.app.core.ui.PickGroup
 import fr.familia.app.core.ui.pickGroups
 import fr.familia.app.feature.trips.canCreateTrip
@@ -145,6 +146,7 @@ class TripEditViewModel(
         savedState[DRAFT_END] = form.endDate?.toString().orEmpty()
         savedState[DRAFT_PARTICIPANTS] = ArrayList(form.participantIds)
         savedState[DRAFT_READERS] = ArrayList(form.readerIds)
+        savedState[DRAFT_LANDSCAPE] = form.landscape.key
     }
 
     /** The draft kept before Android stopped the app, or null when there is none. */
@@ -156,6 +158,7 @@ class TripEditViewModel(
             endDate = savedState.get<String>(DRAFT_END).toDate(),
             participantIds = savedState.get<ArrayList<String>>(DRAFT_PARTICIPANTS).orEmpty().toSet(),
             readerIds = savedState.get<ArrayList<String>>(DRAFT_READERS).orEmpty().toSet(),
+            landscape = TripLandscape.of(savedState.get<String>(DRAFT_LANDSCAPE)),
         )
     }
 
@@ -184,6 +187,7 @@ class TripEditViewModel(
             readerIds = readers,
             creatorId = creatorId,
             creatorName = original?.creatorName ?: author.firstName,
+            landscape = form.landscape,
         )
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
@@ -228,6 +232,7 @@ class TripEditViewModel(
         const val DRAFT_END = "trip_draft_end"
         const val DRAFT_PARTICIPANTS = "trip_draft_participants"
         const val DRAFT_READERS = "trip_draft_readers"
+        const val DRAFT_LANDSCAPE = "trip_draft_landscape"
         const val DRAFT_ID = "trip_draft_id"
     }
 }

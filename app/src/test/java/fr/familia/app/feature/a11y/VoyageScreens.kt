@@ -57,7 +57,13 @@ import fr.familia.app.feature.recipes.previewRecipes
 import fr.familia.app.feature.recipes.previewRecipesState
 import fr.familia.app.feature.trips.detail.TripDetailScreen
 import fr.familia.app.feature.trips.detail.previewTripDetail
+import fr.familia.app.feature.trips.edit.TripEditScreen
+import fr.familia.app.feature.trips.edit.TripFormError
+import fr.familia.app.feature.trips.edit.previewTripEditState
 import fr.familia.app.feature.trips.list.TripsScreen
+import fr.familia.app.feature.trips.step.StepEditScreen
+import fr.familia.app.feature.trips.step.StepFormError
+import fr.familia.app.feature.trips.step.previewStepEditState
 import fr.familia.app.feature.trips.list.previewTrips
 import fr.familia.app.feature.trips.packing.BagOwner
 import fr.familia.app.feature.trips.packing.BagUiState
@@ -88,6 +94,14 @@ internal object VoyageScreens {
 
     val all: List<Pair<String, @Composable () -> Unit>> = listOf(
         screen("the trips") { TripsScreen(previewTrips(), {}, {}, {}, {}) },
+        screen("a new trip") { TripEditScreen(previewTripEditState(), {}, {}, {}, {}) },
+        screen("edit a trip, with errors") {
+            TripEditScreen(previewTripEditState(isNew = false, errors = setOf(TripFormError.TitleMissing, TripFormError.TooManyParticipants)), {}, {}, {}, {})
+        },
+        screen("a new step") { StepEditScreen(previewStepEditState(isNew = true), {}, {}, {}, {}) },
+        screen("edit a step, with errors") {
+            StepEditScreen(previewStepEditState(errors = setOf(StepFormError.PlaceMissing, StepFormError.ArriveBeforeDepart)), {}, {}, {}, {})
+        },
         screen("a trip") { TripDetailScreen(previewTripDetail(), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos(), onOpenExpenses = {}) },
         screen("a trip, for who does not take part") { TripDetailScreen(previewTripDetail(isParticipant = false), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos()) },
         screen("À emporter") {

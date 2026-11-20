@@ -51,6 +51,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.familia.app.R
+import fr.familia.app.core.model.TripLandscape
 import fr.familia.app.core.ui.SideBySide
 import fr.familia.app.core.ui.frenchDate
 import java.time.LocalDate
@@ -107,7 +108,15 @@ private enum class StopLook { Passed, Chosen, ToCome }
  * label beside the chosen one. Decorative for TalkBack: the strip above says the same.
  */
 @Composable
-fun TripPathIllustration(days: List<LocalDate>, chosen: LocalDate, today: LocalDate, label: String?, modifier: Modifier = Modifier) {
+fun TripPathIllustration(
+    days: List<LocalDate>,
+    chosen: LocalDate,
+    today: LocalDate,
+    label: String?,
+    modifier: Modifier = Modifier,
+    landscape: TripLandscape = TripLandscape.Dunes,
+) {
+    val palette = landscape.palette
     val measurer = rememberTextMeasurer()
     val chosenIndex = days.indexOf(chosen).coerceAtLeast(0)
     val shown = TripDays.window(days.size, chosenIndex)
@@ -117,15 +126,8 @@ fun TripPathIllustration(days: List<LocalDate>, chosen: LocalDate, today: LocalD
         val sx = size.width / 390f
         val sy = size.height / 420f
         fun p(x: Float, y: Float) = Offset(x * sx, y * sy)
-        drawRect(TripPathColors.Sky)
-        drawCircle(TripPathColors.Sun, radius = 30.dp.toPx(), center = p(320f, 50f))
-        // A small white village on the far dune, as on the maquette.
-        drawRect(Color.White, topLeft = p(250f, 92f), size = Size(18f * sx, 44f * sy))
-        drawRect(Color.White, topLeft = p(276f, 108f), size = Size(30f * sx, 28f * sy))
-        drawPath(Path().apply { to(p(247f, 92f)); line(p(259f, 78f)); line(p(271f, 92f)); close() }, TripPathColors.Roof)
-        drawDune(TripPathColors.DuneFar, 150f, p(90f, 100f), p(190f, 140f), p(290f, 180f), 120f, sy)
-        drawDune(TripPathColors.DuneMid, 240f, p(120f, 190f), p(240f, 230f), p(360f, 270f), 215f, sy)
-        drawDune(TripPathColors.DuneNear, 330f, p(140f, 290f), p(260f, 320f), p(380f, 350f), 310f, sy)
+        // The sky, the sun, the three layers and the decor of the landscape of the trip (récit 81).
+        drawLandscape(landscape)
 
         val road = Path().apply {
             // « M60 400 C150 370 300 360 280 300 S80 270 110 220 S290 190 300 150 », the S made explicit.
@@ -134,10 +136,10 @@ fun TripPathIllustration(days: List<LocalDate>, chosen: LocalDate, today: LocalD
             curve(p(260f, 240f), p(80f, 270f), p(110f, 220f))
             curve(p(140f, 170f), p(290f, 190f), p(300f, 150f))
         }
-        drawPath(road, TripPathColors.Road, style = Stroke(16.dp.toPx(), cap = StrokeCap.Round))
+        drawPath(road, palette.road, style = Stroke(16.dp.toPx(), cap = StrokeCap.Round))
         drawPath(
             road,
-            TripPathColors.RoadDash,
+            palette.dash,
             style = Stroke(3.dp.toPx(), cap = StrokeCap.Round, pathEffect = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 8.dp.toPx()))),
         )
 
@@ -163,22 +165,7 @@ fun TripPathIllustration(days: List<LocalDate>, chosen: LocalDate, today: LocalD
 
 private fun Path.to(o: Offset) = moveTo(o.x, o.y)
 
-private fun Path.line(o: Offset) = lineTo(o.x, o.y)
-
 private fun Path.curve(a: Offset, b: Offset, c: Offset) = cubicTo(a.x, a.y, b.x, b.y, c.x, c.y)
-
-/** One dune of the maquette: « M0 y Q c m T 390 y », [mirror] being the control that T reflects. */
-private fun DrawScope.drawDune(color: Color, startY: Float, control: Offset, middle: Offset, mirror: Offset, endY: Float, sy: Float) {
-    val path = Path().apply {
-        moveTo(0f, startY * sy)
-        quadraticTo(control.x, control.y, middle.x, middle.y)
-        quadraticTo(mirror.x, mirror.y, size.width, endY * sy)
-        lineTo(size.width, size.height)
-        lineTo(0f, size.height)
-        close()
-    }
-    drawPath(path, color)
-}
 
 private fun DrawScope.drawStop(at: Offset, look: StopLook, number: String, measurer: androidx.compose.ui.text.TextMeasurer, style: TextStyle) {
     val ink = TripPathColors.Ink
