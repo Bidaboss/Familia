@@ -2,7 +2,7 @@
 // (chef de famille) in h1 with adult1 and adult2; adult3 alone in h2.
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
+import { Bytes, deleteDoc, doc, getDoc, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
 import { ADMIN, ADULT, NEIGHBOUR, OTHER_ADULT, SECOND_ADMIN, STRANGER, as, createEnv, seed } from './helpers.mjs';
 
 let env;
@@ -118,5 +118,33 @@ describe('family tree (récit 40)', () => {
     await assertFails(setDoc(doc(as(env, OTHER_ADULT), 'kinWords/adult1'), mine));
     await assertFails(setDoc(doc(as(env, ADULT), 'kinWords/adult1'), { ...mine, extra: true }));
     await assertSucceeds(deleteDoc(doc(as(env, ADULT), 'kinWords/adult1')));
+  });
+
+  test('the photo of a relative follows who may edit them (récit 79)', async () => {
+    await seedKin('mine', 'h1');
+    await seedKin('theirs', 'h2');
+    const chef = as(env, SECOND_ADMIN);
+    const photo = (size = 1000) => ({ jpeg: Bytes.fromUint8Array(new Uint8Array(size).fill(7)), updatedAt: serverTimestamp() });
+    await assertSucceeds(setDoc(doc(chef, 'kinPhotos/mine'), photo()));
+    await assertSucceeds(getDoc(doc(as(env, NEIGHBOUR), 'kinPhotos/mine')));
+    await assertFails(getDoc(doc(as(env, STRANGER), 'kinPhotos/mine')));
+    await assertFails(setDoc(doc(chef, 'kinPhotos/theirs'), photo()));
+    await assertFails(setDoc(doc(as(env, ADULT), 'kinPhotos/mine'), photo()));
+    await assertFails(deleteDoc(doc(as(env, ADULT), 'kinPhotos/mine')));
+    await assertSucceeds(setDoc(doc(as(env, ADMIN), 'kinPhotos/theirs'), photo()));
+    await assertFails(setDoc(doc(chef, 'kinPhotos/nobody'), photo()));
+    await assertFails(setDoc(doc(chef, 'kinPhotos/mine'), photo(150001)));
+    await assertFails(setDoc(doc(chef, 'kinPhotos/mine'), photo(0)));
+    await assertFails(setDoc(doc(chef, 'kinPhotos/mine'), { ...photo(), extra: true }));
+    await assertFails(setDoc(doc(chef, 'kinPhotos/mine'), { ...photo(), updatedAt: new Date(2020, 0, 1) }));
+    await assertSucceeds(deleteDoc(doc(chef, 'kinPhotos/mine')));
+  });
+
+  test('a new relative and their photo go in one batch (récit 79)', async () => {
+    const chef = as(env, SECOND_ADMIN);
+    const batch = writeBatch(chef);
+    batch.set(doc(chef, 'kin/new'), kin(SECOND_ADMIN));
+    batch.set(doc(chef, 'kinPhotos/new'), { jpeg: Bytes.fromUint8Array(new Uint8Array(10).fill(7)), updatedAt: serverTimestamp() });
+    await assertSucceeds(batch.commit());
   });
 });

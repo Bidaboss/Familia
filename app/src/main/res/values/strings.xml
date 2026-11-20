@@ -443,9 +443,11 @@
     <string name="genealogy_kin_date_help">Une année, comme 1921, ou un jour, comme 04/03/1921</string>
     <string name="genealogy_kin_date_error">Écris une année (1921) ou un jour (04/03/1921)</string>
     <string name="genealogy_kin_note">Quelques mots (facultatif)</string>
+    <string name="genealogy_kin_photo">Photo</string>
+    <string name="genealogy_kin_photo_add">Ajouter une photo (facultatif)</string>
     <string name="genealogy_kin_remove">Retirer de l\'arbre</string>
     <string name="genealogy_kin_remove_title">Retirer %1$s de l\'arbre ?</string>
-    <string name="genealogy_kin_remove_body">Sa fiche et ses liens disparaissent de l\'arbre pour toute la famille.</string>
+    <string name="genealogy_kin_remove_body">Sa fiche, sa photo et ses liens disparaissent de l\'arbre pour toute la famille.</string>
     <string name="household_rename_action">Renommer le foyer %1$s</string>
     <string name="household_rename_title">Renommer le foyer</string>
     <string name="household_rename_failed_title">Le nom n\'a pas changé</string>
