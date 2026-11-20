@@ -27,7 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -103,7 +103,7 @@ fun AllFamiliaScreen(modules: List<AllModule>, onBack: () -> Unit) {
     }
     Scaffold(
         topBar = {
-            TopAppBar(
+            FamiliaTopBar(
                 title = { Text(stringResource(R.string.home_r1_all)) },
                 navigationIcon = { BackButton(onClick = onBack) },
             )

@@ -22,7 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,8 +62,8 @@ fun UsageReportScreen(state: UsageUiState, onRetry: () -> Unit, onBack: () -> Un
     val full = (state as? UsageUiState.Ready)?.family != null
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(if (full || state !is UsageUiState.Ready) R.string.usage_title else R.string.usage_children_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            FamiliaTopBar(
+                title = { Text(stringResource(if (full || state !is UsageUiState.Ready) R.string.usage_title else R.string.usage_children_title), maxLines = 2, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
             )
         },
