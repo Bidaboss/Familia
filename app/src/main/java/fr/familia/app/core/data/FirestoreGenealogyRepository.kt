@@ -1,5 +1,6 @@
 package fr.familia.app.core.data
 
+import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -13,7 +14,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 /**
- * kin/{kinId}, kinLinks/{linkId} and kinWords/{memberId}. Every member reads the tree; the rules
+ * kin/{kinId}, kinLinks/{linkId}, kinWords/{memberId} and kinPhotos/{kinId}. Every member reads the tree; the rules
  * let the admin principal and the chefs of the household change it. See docs/data-model.md.
  */
 class FirestoreGenealogyRepository(private val db: FirebaseFirestore) : GenealogyRepository {
@@ -42,7 +43,7 @@ class FirestoreGenealogyRepository(private val db: FirebaseFirestore) : Genealog
 
     override fun newKinId(): String = db.collection(KIN).document().id
 
-    override suspend fun saveKin(kin: Kin, byMemberId: String, firstLink: KinLink?) {
+    override suspend fun saveKin(kin: Kin, byMemberId: String, firstLink: KinLink?, photo: KinPhotoChange?) {
         val fields = buildMap<String, Any> {
             put("firstName", kin.firstName.trim().take(Kin.MAX_NAME))
             kin.lastName?.trim()?.takeIf { it.isNotEmpty() }?.let { put("lastName", it.take(Kin.MAX_NAME)) }
@@ -57,6 +58,12 @@ class FirestoreGenealogyRepository(private val db: FirebaseFirestore) : Genealog
         val batch = db.batch()
         batch.set(db.collection(KIN).document(kin.id), fields)
         firstLink?.let { batch.set(db.collection(LINKS).document(it.id), linkFields(it, byMemberId)) }
+        val photoDoc = db.collection(KIN_PHOTOS).document(kin.id)
+        when (photo) {
+            is KinPhotoChange.Set -> batch.set(photoDoc, mapOf("jpeg" to Blob.fromBytes(photo.jpeg), "updatedAt" to FieldValue.serverTimestamp()))
+            KinPhotoChange.Remove -> batch.delete(photoDoc)
+            null -> Unit
+        }
         batch.commit().await()
     }
 
@@ -115,5 +122,6 @@ class FirestoreGenealogyRepository(private val db: FirebaseFirestore) : Genealog
         const val KIN = "kin"
         const val LINKS = "kinLinks"
         const val WORDS = "kinWords"
+        const val KIN_PHOTOS = FirestoreMemberPhotoRepository.KIN_PHOTOS
     }
 }

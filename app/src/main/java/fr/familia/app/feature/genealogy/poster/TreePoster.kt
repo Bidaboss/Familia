@@ -98,8 +98,8 @@ fun posterRows(tree: GenealogyTree, ids: Set<String>): List<List<String>> {
 
 /**
  * How [person] is drawn for [makerId]. Carte EXPERT-2 and récit 47: a child's photo leaves the app
- * only when the maker is one of that child's adults; otherwise, and for a relative without an
- * account, the initial. Only the year of birth is kept.
+ * only when the maker is one of that child's adults; otherwise the initial. A relative without an
+ * account shows the photo added in the tree, if any (récit 79). Only the year of birth is kept.
  */
 fun posterPerson(
     person: TreePerson,
@@ -113,7 +113,8 @@ fun posterPerson(
         val allowed = member.profile == MemberProfile.Adult || photoAllowed(makerId, listOf(member.parentIds))
         PosterPerson(member.id, name, member.birthDate?.year, member.id.takeIf { withPhotos && allowed && hasPhoto(it) })
     }
-    is TreePerson.OfKin -> PosterPerson(person.kin.id, name, person.kin.born?.take(4)?.toIntOrNull(), null)
+    // A relative's photo (récit 79) was added by an adult who manages their household.
+    is TreePerson.OfKin -> PosterPerson(person.kin.id, name, person.kin.born?.take(4)?.toIntOrNull(), person.kin.id.takeIf { withPhotos && hasPhoto(it) })
 }
 
 /** Everything the poster shows, ready to print. */

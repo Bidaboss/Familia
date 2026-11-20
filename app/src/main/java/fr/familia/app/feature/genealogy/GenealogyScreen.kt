@@ -59,6 +59,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.data.KinPhotoChange
 import fr.familia.app.core.model.GenealogyTree
 import fr.familia.app.core.model.Kin
 import fr.familia.app.core.model.KinLink
@@ -70,7 +71,9 @@ import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.EmptyState
+import fr.familia.app.core.ui.KinAvatar
 import fr.familia.app.core.ui.LoadingState
+import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.SideBySide
 import fr.familia.app.feature.help.HelpButton
@@ -139,7 +142,7 @@ fun GenealogyScreen(
 data class GenealogyActions(
     val onAddLink: (personId: String, relation: Relation, otherId: String) -> Unit,
     val onRemoveLink: (KinLink) -> Unit,
-    val onSaveKin: (kin: Kin, joinTo: Pair<String, Relation>?) -> Unit,
+    val onSaveKin: (kin: Kin, joinTo: Pair<String, Relation>?, photo: KinPhotoChange?) -> Unit,
     val onDeleteKin: (String) -> Unit,
     val onSetWord: (personId: String, word: String) -> Unit,
 )
@@ -321,9 +324,9 @@ private fun ReadyTree(
                 joinPerson = null
                 joinRelation = null
             }
-            KinDialog(kin, onSave = { saved ->
+            KinDialog(kin, photo = kin?.let { LocalMemberPhotos.current[it.id] }, onSave = { saved, photo ->
                 val join = joinPerson?.let { p -> joinRelation?.let { r -> p to r } }
-                editing?.onSaveKin(saved, join)
+                editing?.onSaveKin(saved, join, photo)
                 close()
             }, onDismiss = close)
         }
@@ -425,16 +428,7 @@ private fun PersonNode(person: TreePerson, name: String, word: String?, onClick:
 private fun Avatar(person: TreePerson) {
     when (person) {
         is TreePerson.OfMember -> MemberAvatar(person.member, size = 48.dp)
-        is TreePerson.OfKin -> Box(
-            Modifier.size(48.dp).background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                person.firstName.take(1).uppercase(),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-            )
-        }
+        is TreePerson.OfKin -> KinAvatar(person.id, person.firstName, size = 48.dp)
     }
 }
 

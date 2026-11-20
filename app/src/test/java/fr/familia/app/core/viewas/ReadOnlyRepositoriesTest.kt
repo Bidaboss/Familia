@@ -1,6 +1,7 @@
 package fr.familia.app.core.viewas
 
 import fr.familia.app.core.data.GenealogyRepository
+import fr.familia.app.core.data.KinPhotoChange
 import fr.familia.app.core.data.NotificationRepository
 import fr.familia.app.core.model.GiftList
 import fr.familia.app.core.model.GiftListKind
@@ -125,7 +126,7 @@ class ReadOnlyRepositoriesTest {
             override fun observeLinks(): Flow<List<KinLink>> = flowOf(emptyList())
             override fun observeWords(memberId: String): Flow<Map<String, String>> = flowOf(emptyMap())
             override fun newKinId(): String = "k2"
-            override suspend fun saveKin(kin: Kin, byMemberId: String, firstLink: KinLink?) = fail("written")
+            override suspend fun saveKin(kin: Kin, byMemberId: String, firstLink: KinLink?, photo: KinPhotoChange?) = fail("written")
             override suspend fun deleteKin(id: String) = fail("written")
             override suspend fun addLink(link: KinLink, byMemberId: String) = fail("written")
             override suspend fun removeLink(link: KinLink) = fail("written")
