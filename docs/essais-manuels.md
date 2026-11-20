@@ -1518,3 +1518,16 @@ Avant l'APK : lance « Publier Firebase » (les règles acceptent le champ lands
 12. Quand : choisis un Départ (Jour et Heure), puis une Arrivée prévue plus tôt le même jour. **Attendu :** « L'arrivée ne peut pas être avant le départ » sous l'arrivée, et la bande bleu pâle avec l'horloge explique le rappel « Bien arrivé ».
 13. Modifie une étape. **Attendu :** « Enregistrer » en bas et « Supprimer l'étape » tout en bas, en rouge pâle ; la confirmation ne change pas.
 14. Thème sombre, texte à 130 % puis au maximum. **Attendu :** le fond reste ciel, les tuiles restent lisibles, rien n'est coupé.
+
+## Tuiles Planning du fil centrées (20/11)
+
+1. Ajoute un événement, puis ouvre le fil. **Attendu :** une seule rangée centrée verticalement : la case du jour, puis « PLANNING » en petit au-dessus du titre et du jour, puis « J'y vais ». Il n'y a plus de pastille seule sur sa ligne au-dessus.
+2. Avec le texte à 130 % : la rangée reste lisible et le titre tient sur 2 lignes au plus.
+
+## Carte anniversaire du jour J (20/11, DESIGN-59)
+
+1. Le jour de l'anniversaire d'un membre fictif (Noé), ouvre le fil. **Attendu :** une grande carte pêche, tout en haut de « Aujourd'hui », au-dessus des nouveautés du jour : la pastille « 🎂 Anniversaire · aujourd'hui », la photo de 72 dp dans un anneau pêche, « Noé fête ses 10 ans » en police des titres, la date dessous, quelques confettis en haut, et un bouton noir « Lui souhaiter » sur toute la largeur. Rien sur les cadeaux.
+2. Deux anniversaires le même jour : deux cartes l'une sous l'autre, le plus jeune en premier.
+3. Sur son propre anniversaire : la même carte, « C'est ton anniversaire ! », sans bouton.
+4. Avec TalkBack : la carte se lit « Anniversaire. Noé fête ses 10 ans aujourd'hui. », puis « Lui souhaiter, bouton ». Les confettis ne sont pas lus et ne bougent pas.
+5. Le lendemain : la carte redescend sous « Hier », à sa place.

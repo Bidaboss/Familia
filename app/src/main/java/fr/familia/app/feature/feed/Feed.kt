@@ -36,6 +36,12 @@ interface FeedCard {
     /** Who it comes from, if anyone: my own cards never count in the « Le fil » badge. */
     val authorId: String?
 
+    /**
+     * Not null: pinned at the top of its day, the smallest rank first (the birthday of the day,
+     * DESIGN-59, the youngest first). The next day it is simply a card of its day.
+     */
+    val pinRank: Int? get() = null
+
     @Composable
     fun Content(context: FeedContext)
 }
@@ -106,9 +112,14 @@ object FeedOpenRequest {
     }
 }
 
-/** Every source together: newest first, a card given twice kept once. */
+/** Every source together: newest day first, its pinned cards on top, then newest first; a card given twice kept once. */
 fun mergeFeed(lists: List<List<FeedCard>>): List<FeedCard> =
-    lists.flatten().distinctBy { it.key }.sortedWith(compareByDescending<FeedCard> { it.at }.thenBy { it.key })
+    lists.flatten().distinctBy { it.key }.sortedWith(
+        compareByDescending<FeedCard> { feedDay(it) }
+            .thenBy { it.pinRank ?: Int.MAX_VALUE }
+            .thenByDescending { it.at }
+            .thenBy { it.key },
+    )
 
 /** The day of Paris of a card: its separator. */
 fun feedDay(card: FeedCard): LocalDate = card.at.atZone(FAMILY_ZONE).toLocalDate()

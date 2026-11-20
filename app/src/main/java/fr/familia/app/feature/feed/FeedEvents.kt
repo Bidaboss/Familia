@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -115,13 +114,9 @@ class EventFeedCard(
         FeedCardShell(
             tone = tone,
             onOpen = { navigation.onOpenEvent(event.id) },
-            // Retour d'essai (20/11): no photo, name or time of who added it, only the label.
-            header = {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    FeedLabel(stringResource(R.string.feed_label_planning), tone)
-                }
-            },
         ) {
+            // Retour d'essai (20/11): one row centered, [day] [PLANNING / title / when] [J'y vais], the
+            // small label at the top of the title like « ANNIVERSAIRE », no header line of its own.
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Column(
                     Modifier
@@ -142,6 +137,12 @@ class EventFeedCard(
                     Text(day.dayOfMonth.toString(), style = MaterialTheme.typography.titleMedium, color = tone.label)
                 }
                 Column(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.feed_label_planning).uppercase(Locale.FRANCE),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = tone.label,
+                    )
                     Text(
                         event.title,
                         style = MaterialTheme.typography.titleSmall,
