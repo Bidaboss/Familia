@@ -271,19 +271,29 @@ private fun Medallion(person: TreePerson, name: String, radius: Dp, word: String
                     }
                 }
             }
-            is TreePerson.OfKin -> Box(
-                Modifier
-                    .size(size)
-                    .clearAndSetSemantics {}
-                    .then(if (outlined) Modifier.border(2.dp, Palette.Outline, CircleShape) else Modifier.border(2.dp, Palette.DiscEdge, CircleShape))
-                    .background(Color.White, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                // No photo for a relative yet (after the 21): the initial, in the sepia of old photos.
-                Text(
-                    person.firstName.take(1).uppercase(),
-                    style = TextStyle(fontFamily = Fredoka, fontWeight = FontWeight.SemiBold, fontSize = (radius.value * 0.8f).sp, color = Palette.KinInitial),
-                )
+            is TreePerson.OfKin -> {
+                val photo = LocalMemberPhotos.current[person.id]
+                Box(
+                    Modifier
+                        .size(size)
+                        .clearAndSetSemantics {}
+                        .then(if (outlined) Modifier.border(2.dp, Palette.Outline, CircleShape) else Modifier.border(2.dp, Palette.DiscEdge, CircleShape))
+                        .background(Color.White, CircleShape)
+                        .padding(2.dp)
+                        .clip(CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (photo != null) {
+                        // Their photo when someone added one (récit 79).
+                        Image(photo, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                    } else {
+                        // Else the initial, in the sepia of old photos.
+                        Text(
+                            person.firstName.take(1).uppercase(),
+                            style = TextStyle(fontFamily = Fredoka, fontWeight = FontWeight.SemiBold, fontSize = (radius.value * 0.8f).sp, color = Palette.KinInitial),
+                        )
+                    }
+                }
             }
         }
     }

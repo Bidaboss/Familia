@@ -134,13 +134,23 @@ class TreeOfLife(tree: GenealogyTree, labelWidth: (String) -> Float = ::estimate
 
         units = flat.mapIndexed { i, (level, ids) -> Unit(ids, level, xs[i], -level * LEVEL_GAP, ownWidth(i) - SPACING) }
         trunk = trunkAt?.let { units[it] }
+        // A branch leaves from the parents themselves: from the middle of a couple who are both
+        // parents, from the one medallion when only one of the household is (retour du 20/11: a
+        // child seemed to be the child of a stepparent).
+        fun fromX(p: Int, i: Int): Float {
+            val household = flat[p].second
+            val parents = flat[i].second.flatMap { tree.parentsOf(it) }.filter { it in household }.distinct()
+            if (parents.isEmpty() || parents.size == household.size) return xs[p]
+            val span = household.size * TOUCH + (household.size - 1) * SPACING
+            return parents.map { id -> xs[p] - span / 2 + TOUCH / 2 + household.indexOf(id) * (TOUCH + SPACING) }.average().toFloat()
+        }
         branches = flat.indices.mapNotNull { i ->
             val p = parentOf[i]
-            val from = if (p >= 0) xs[p] to -flat[p].first * LEVEL_GAP else if (flat[i].first > 0) 0f to 0f else return@mapNotNull null
+            val from = if (p >= 0) fromX(p, i) to -flat[p].first * LEVEL_GAP else if (flat[i].first > 0) 0f to 0f else return@mapNotNull null
             val width = BRANCH_WIDTHS[(flat[i].first - 1).coerceIn(0, BRANCH_WIDTHS.lastIndex)]
             Branch(from.first, from.second, xs[i], -flat[i].first * LEVEL_GAP, width)
         } + flat.indices.flatMap { i ->
-            otherParents[i].map { p -> Branch(xs[p], -flat[p].first * LEVEL_GAP, xs[i], -flat[i].first * LEVEL_GAP, BRANCH_WIDTHS.last()) }
+            otherParents[i].map { p -> Branch(fromX(p, i), -flat[p].first * LEVEL_GAP, xs[i], -flat[i].first * LEVEL_GAP, BRANCH_WIDTHS.last()) }
         }
 
         val older = rows.take(trunkIndex).flatten().mapNotNull { tree.people[it] as? TreePerson.OfKin }

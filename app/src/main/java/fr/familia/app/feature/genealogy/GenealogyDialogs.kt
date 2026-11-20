@@ -1,14 +1,17 @@
 package fr.familia.app.feature.genealogy
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
@@ -23,18 +26,26 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.data.KinPhotoChange
 import fr.familia.app.core.model.GenealogyTree
 import fr.familia.app.core.model.Kin
 import fr.familia.app.core.model.TreePerson
+import fr.familia.app.core.photo.PhotoProcessing
+import fr.familia.app.core.ui.KinAvatar
+import fr.familia.app.feature.members.photo.PhotoEditor
 
 /** Stands for « someone new, without an account » in the list of people to join. */
 internal const val NEW_KIN = "__new__"
@@ -191,16 +202,23 @@ private fun Choice(label: String, selected: Boolean, onSelect: () -> Unit) {
 
 /**
  * A relative without an account (PRD, récit 40): a first name, then whatever is known. Dates are a
- * year or a day, typed as « 1921 » or « 04/03/1921 ». [kin] null adds one.
+ * year or a day, typed as « 1921 » or « 04/03/1921 ». [kin] null adds one. [photo] is the one they
+ * have; the « Photo » tile (récit 79) changes or removes it, and [onSave] gets the change, or null.
  */
 @Composable
-internal fun KinDialog(kin: Kin?, onSave: (Kin) -> Unit, onDismiss: () -> Unit) {
+internal fun KinDialog(kin: Kin?, onSave: (Kin, KinPhotoChange?) -> Unit, onDismiss: () -> Unit, photo: ImageBitmap? = null) {
     var firstName by rememberSaveable { mutableStateOf(kin?.firstName.orEmpty()) }
     var lastName by rememberSaveable { mutableStateOf(kin?.lastName.orEmpty()) }
     var living by rememberSaveable { mutableStateOf(kin?.living ?: false) }
     var born by rememberSaveable { mutableStateOf(kin?.born.orEmpty()) }
     var died by rememberSaveable { mutableStateOf(kin?.died.orEmpty()) }
     var note by rememberSaveable { mutableStateOf(kin?.note.orEmpty()) }
+    // The photo framed here and not saved yet (kept out of the saved state: 100 KB), or the one taken away.
+    var newPhoto by remember { mutableStateOf<ByteArray?>(null) }
+    var photoRemoved by rememberSaveable { mutableStateOf(false) }
+    var editingPhoto by rememberSaveable { mutableStateOf(false) }
+    val newBitmap = remember(newPhoto) { newPhoto?.let { PhotoProcessing.decodeAvatar(it)?.asImageBitmap() } }
+    val shownPhoto = newBitmap ?: photo.takeUnless { photoRemoved }
     val bornValue = Kin.parseDate(born)
     val diedValue = if (living) "" else Kin.parseDate(died)
     val valid = firstName.isNotBlank() && bornValue != null && diedValue != null
@@ -235,6 +253,7 @@ internal fun KinDialog(kin: Kin?, onSave: (Kin) -> Unit, onDismiss: () -> Unit) 
                     Text(stringResource(R.string.genealogy_kin_living_switch), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
                     Switch(checked = living, onCheckedChange = null)
                 }
+                PhotoTile(shownPhoto, firstName) { editingPhoto = true }
                 DateField(born, { born = it }, R.string.genealogy_kin_born, bornValue == null)
                 if (!living) DateField(died, { died = it }, R.string.genealogy_kin_died, diedValue == null)
                 OutlinedTextField(
@@ -261,6 +280,7 @@ internal fun KinDialog(kin: Kin?, onSave: (Kin) -> Unit, onDismiss: () -> Unit) 
                             note = note.trim().ifEmpty { null },
                             householdId = kin?.householdId.orEmpty(),
                         ),
+                        newPhoto?.let { KinPhotoChange.Set(it) } ?: KinPhotoChange.Remove.takeIf { photoRemoved && photo != null },
                     )
                 },
                 enabled = valid,
@@ -271,6 +291,44 @@ internal fun KinDialog(kin: Kin?, onSave: (Kin) -> Unit, onDismiss: () -> Unit) 
             TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
         },
     )
+    if (editingPhoto) {
+        val name = firstName.trim()
+        PhotoEditor(
+            title = if (name.isEmpty()) stringResource(R.string.genealogy_kin_photo) else stringResource(R.string.photo_of, name),
+            hasPhoto = shownPhoto != null,
+            onSave = { jpeg ->
+                newPhoto = jpeg
+                photoRemoved = false
+            },
+            onRemove = {
+                newPhoto = null
+                photoRemoved = true
+            },
+            onDismiss = { editingPhoto = false },
+        )
+    }
+}
+
+/** « Photo » (récit 79): the photo or the initial, and what touching it does. 56 dp high. */
+@Composable
+private fun PhotoTile(photo: ImageBitmap?, firstName: String, onClick: () -> Unit) {
+    val action = stringResource(if (photo == null) R.string.genealogy_kin_photo_add else R.string.photo_viewer_change)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        KinAvatar(photo, firstName.trim().ifEmpty { "?" }, size = 48.dp)
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(R.string.genealogy_kin_photo), style = MaterialTheme.typography.titleSmall)
+            Text(action, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+        }
+    }
 }
 
 @Composable

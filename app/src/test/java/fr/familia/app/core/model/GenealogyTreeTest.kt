@@ -232,4 +232,28 @@ class GenealogyTreeTest {
         }
         assertEquals(0.0, at.values.min(), 0.0)
     }
+
+    @Test
+    fun `children of a shared custody stand between their two parents`() {
+        // A father with a new partner, and the mother of his children noted as a relative,
+        // whatever the order of the first names (retour du 20/11).
+        listOf("Anne", "Zélie").forEach { motherName ->
+            val tree = GenealogyTree(
+                listOf(m("gp", "Robert"), m("dad", "Hugo"), m("new", "Sarah"), m("kid1", "Nina"), m("kid2", "Malo")),
+                listOf(Kin("mum", motherName, living = true, householdId = "h1")),
+                listOf(
+                    KinLink.parent("gp", "dad"),
+                    KinLink.partners("dad", "new"),
+                    KinLink.parent("dad", "kid1"), KinLink.parent("mum", "kid1"),
+                    KinLink.parent("dad", "kid2"), KinLink.parent("mum", "kid2"),
+                ),
+            )
+            val row = tree.rows.single { "dad" in it }
+            val dad = row.indexOf("dad")
+            assertEquals("$motherName: $row", 1, kotlin.math.abs(row.indexOf("mum") - dad))
+            assertEquals("$motherName: $row", 1, kotlin.math.abs(row.indexOf("new") - dad))
+            val at = tree.columns
+            assertEquals(motherName, (at.getValue("dad") + at.getValue("mum")) / 2, (at.getValue("kid1") + at.getValue("kid2")) / 2, 0.001)
+        }
+    }
 }

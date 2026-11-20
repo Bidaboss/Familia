@@ -24,6 +24,7 @@ import fr.familia.app.core.data.FamilyData
 import fr.familia.app.core.data.FeedbackRepository
 import fr.familia.app.core.data.ExportRepository
 import fr.familia.app.core.data.GenealogyRepository
+import fr.familia.app.core.data.KinPhotoChange
 import fr.familia.app.core.data.GiftRepository
 import fr.familia.app.core.data.BirthdayCardRepository
 import fr.familia.app.core.data.GoodNewsRepository
@@ -359,7 +360,7 @@ class ReadOnlyGenealogyRepository(private val inner: GenealogyRepository, privat
     override fun observeLinks(): Flow<List<KinLink>> = inner.observeLinks()
     override fun observeWords(memberId: String): Flow<Map<String, String>> = inner.observeWords(memberId)
     override fun newKinId(): String = inner.newKinId()
-    override suspend fun saveKin(kin: Kin, byMemberId: String, firstLink: KinLink?) = guard.refuse()
+    override suspend fun saveKin(kin: Kin, byMemberId: String, firstLink: KinLink?, photo: KinPhotoChange?) = guard.refuse()
     override suspend fun deleteKin(id: String) = guard.refuse()
     override suspend fun addLink(link: KinLink, byMemberId: String) = guard.refuse()
     override suspend fun removeLink(link: KinLink) = guard.refuse()
