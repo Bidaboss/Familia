@@ -2439,6 +2439,11 @@
     <string name="challenge_home_label">Défi du mois</string>
     <string name="challenge_home_host">Lancé par %1$s</string>
     <string name="challenge_home_open">ouvrir les défis</string>
+    <plurals name="challenge_home_days_left">
+        <item quantity="one">dernier jour</item>
+        <item quantity="many">encore %1$d jours</item>
+        <item quantity="other">encore %1$d jours</item>
+    </plurals>
     <string name="notifications_tree">Défi du mois</string>
     <string name="notifications_tree_help">Quand la famille réussit le défi du mois.</string>
     <string name="notifications_recap">La semaine de la famille</string>

@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -41,6 +42,7 @@ import fr.familia.app.core.model.MonthChallenge
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.feature.tree.ChallengeCatalog
 import fr.familia.app.feature.tree.TreeUiState
 import fr.familia.app.feature.tree.TreeViewModel
 import kotlinx.coroutines.flow.emptyFlow
@@ -62,6 +64,10 @@ private val FIRST_CHALLENGE_MONTH = YearMonth.of(2026, 12)
 
 /** Whether the Accueil gives the card a place: a challenge this month, or the wait for the first one. */
 fun showsChallenge(challenge: MonthChallenge?, month: YearMonth): Boolean = challenge != null || month < FIRST_CHALLENGE_MONTH
+
+/** The days left in the challenge's month, today included (1 on the last day); null outside that month. */
+fun challengeDaysLeft(month: YearMonth, today: LocalDate): Int? =
+    if (YearMonth.from(today) == month) month.lengthOfMonth() - today.dayOfMonth + 1 else null
 
 @Composable
 private fun challengeHomeViewModel(container: AppContainer?, member: Member): TreeViewModel {
@@ -113,6 +119,7 @@ fun ChallengeHomeContent(
     onOpen: () -> Unit,
     onAddPhoto: () -> Unit,
     modifier: Modifier = Modifier,
+    today: LocalDate = LocalDate.now(ZoneId.of("Europe/Paris")),
 ) {
     val challenge = state.challenge
     Column(
@@ -145,6 +152,10 @@ fun ChallengeHomeContent(
             maxLines = if (wide) 3 else 2,
             overflow = TextOverflow.Ellipsis,
         )
+        val hint = ChallengeCatalog.of(challenge.choiceId)?.hint?.takeIf { it.isNotBlank() }
+        if (hint != null) {
+            Text(hint, color = HomeChallengeColors.Label, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
         if (wide && host != null) {
             Text(stringResource(R.string.challenge_home_host, host), color = HomeChallengeColors.Label, style = MaterialTheme.typography.bodyMedium)
         }
@@ -157,8 +168,12 @@ fun ChallengeHomeContent(
             gapSize = 0.dp,
             modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)).semantics { contentDescription = spoken },
         )
+        val daysLeft = challengeDaysLeft(challenge.month, today)
+        val counted = if (daysLeft == null) spoken else {
+            "$spoken · ${pluralStringResource(R.plurals.challenge_home_days_left, daysLeft, daysLeft)}"
+        }
         Text(
-            if (challenge.achieved) stringResource(R.string.tree_challenge_done) else spoken,
+            if (challenge.achieved) stringResource(R.string.tree_challenge_done) else counted,
             color = HomeChallengeColors.Ink,
             style = MaterialTheme.typography.labelLarge,
         )
@@ -178,10 +193,17 @@ fun ChallengeHomeContent(
 private fun ChallengeHomeWidePreview() {
     val state = TreeUiState(
         fr.familia.app.core.model.FamilyTree(leaves = 30),
-        MonthChallenge(YearMonth.of(2026, 12), "Une photo de votre sapin", "🎄", 4, 2, false, hostHouseholdId = "h1"),
+        MonthChallenge(YearMonth.of(2026, 12), "20 photos de Noël", "🎄", 20, 5, false, choiceId = "christmasPhotos", hostHouseholdId = "h1"),
         YearMonth.of(2026, 12),
     )
-    FamiliaTheme { Surface { ChallengeHomeContent(state, "Foyer des Martin", wide = true, onOpen = {}, onAddPhoto = {}, modifier = Modifier.padding(16.dp)) } }
+    FamiliaTheme {
+        Surface {
+            ChallengeHomeContent(
+                state, "Foyer des Martin", wide = true, onOpen = {}, onAddPhoto = {},
+                modifier = Modifier.padding(16.dp), today = LocalDate.of(2026, 12, 10),
+            )
+        }
+    }
 }
 
 @FamiliaPreviews

@@ -255,6 +255,14 @@ Après « Publier Firebase », allume « Défis expliqués » dans Administratio
 5. Dans le guide « Préparer le défi », écris un mot à l'étape 3, puis publie. **Attendu :** le mot apparaît dans « Comment ça marche » pour toute la famille. Sans mot, le texte automatique.
 6. Avec TalkBack, passe sur chaque carte. **Attendu :** TalkBack dit « bouton » et ce que fait la carte.
 
+## Défi du mois de l'Accueil précisé (Kévin, 20/11)
+
+Sans interrupteur. À partir du 1er décembre, quand un défi tourne.
+
+1. Regarde la carte « Défi du mois » de l'Accueil, petite et grande. **Attendu :** sous le titre, une phrase qui dit quoi partager (en décembre : « Le sapin, les décorations, les préparatifs de Noël. »), sur deux lignes au plus.
+2. Sous la jauge. **Attendu :** « 5 sur 20 · encore 22 jours » (le 10 décembre), « dernier jour » le 31. Défi réussi : « Défi réussi : l'arbre est en fleurs ! » sans les jours.
+3. Avant le 1er décembre. **Attendu :** la carte dit toujours quand commence le premier défi, sans phrase ni jours.
+
 ## Commentaires sous un événement (récit 28)
 
 Avant ces essais : « Publier Firebase » a publié les règles, l'index TTL et les fonctions, et le module « Commentaires sous les événements » est allumé dans Administration > Modules.
