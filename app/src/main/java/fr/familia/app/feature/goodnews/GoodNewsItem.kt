@@ -24,6 +24,8 @@ data class GoodNewsItem(
     val canHide: Boolean = false,
     /** Hidden by the member looking at it: only the page of the post still shows it. */
     val isHiddenForMe: Boolean = false,
+    /** First names of those who reacted, for « Qui a réagi » (PRODUIT-139). */
+    val reactorNames: Map<String, String> = emptyMap(),
 )
 
 fun goodNewsItem(news: GoodNews, me: Member, family: Family): GoodNewsItem {
@@ -39,6 +41,7 @@ fun goodNewsItem(news: GoodNews, me: Member, family: Family): GoodNewsItem {
         canRemove = canRemoveGoodNews(news, me, family),
         canHide = news.isAbout(me.id),
         isHiddenForMe = news.isHiddenFor(me.id),
+        reactorNames = news.reactions.keys.mapNotNull { id -> name(id)?.let { id to it } }.toMap(),
     )
 }
 

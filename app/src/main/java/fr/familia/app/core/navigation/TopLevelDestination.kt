@@ -67,14 +67,6 @@ data class LendItemDetailDestination(val itemId: String)
 @Serializable
 data class LendItemEditDestination(val itemId: String? = null)
 
-/** À qui le tour ? (récit 58): one rotation, its order and history. */
-@Serializable
-data class TurnDetailDestination(val turnId: String)
-
-/** À qui le tour ? (récit 58): a new rotation ([turnId] null) or a change to one. */
-@Serializable
-data class TurnEditDestination(val turnId: String? = null)
-
 /** All the « Bonnes nouvelles », opened from the home card (récit 32). */
 @Serializable
 data object GoodNewsFeedDestination
@@ -257,11 +249,15 @@ enum class TopLevelDestination(
         if (this == Gifts && member.profile != MemberProfile.Adult) R.string.nav_gifts_child else labelRes
 
     companion object {
-        /** The app opens on the Accueil once its module shows, on the planning before. */
-        fun startFor(homeOn: Boolean): TopLevelDestination = if (homeOn) Home else Planning
+        /** The app opens on the Accueil, in the base since 18/11 (it was the Planning before). */
+        val START: TopLevelDestination = Home
 
-        /** The tabs of the bar: those of the modules switched off stay hidden. */
-        fun visible(flags: FeatureFlags): List<TopLevelDestination> = entries.filter { it.feature?.let(flags::isOn) ?: true }
+        /**
+         * The tabs of the bar: those of the modules switched off stay hidden, and the Planning is a
+         * page of the Accueil since DESIGN-55 (récit 82), opened by « Tout le planning » or Tout Familia.
+         */
+        fun visible(flags: FeatureFlags): List<TopLevelDestination> =
+            entries.filter { it != Planning && (it.feature?.let(flags::isOn) ?: true) }
     }
 }
 

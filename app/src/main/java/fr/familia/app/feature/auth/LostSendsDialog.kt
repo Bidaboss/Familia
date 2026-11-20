@@ -39,7 +39,6 @@ private fun lostLabel(entry: SendEntry): String = stringResource(
         SendKind.GoodNews -> R.string.send_lost_good_news
         SendKind.GoodDeal -> R.string.send_lost_good_deal
         SendKind.LendItem -> R.string.send_lost_lend
-        SendKind.Turn -> R.string.send_lost_turn
     },
     entry.title,
 )

@@ -4,7 +4,7 @@ import { after, beforeEach, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { deleteApp, initializeApp } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { deleteLinksOf, removeMemberFromTree } from '../src/genealogy';
+import { deleteLinksOf, removeKinFromTree, removeMemberFromTree } from '../src/genealogy';
 
 describe('the family tree, against the emulator', () => {
   assert.ok(process.env.FIRESTORE_EMULATOR_HOST, 'Start these tests with the emulator: npm run test:functions');
@@ -15,6 +15,7 @@ describe('the family tree, against the emulator', () => {
   beforeEach(async () => {
     await db.recursiveDelete(db.collection('kinLinks'));
     await db.recursiveDelete(db.collection('kinWords'));
+    await db.recursiveDelete(db.collection('kinPhotos'));
     const batch = db.batch();
     const link = (kind: string, aId: string, bId: string) =>
       batch.set(db.doc(`kinLinks/${kind}_${aId}_${bId}`), { kind, aId, bId, updatedBy: 'camille', updatedAt: new Date(0) });
@@ -24,6 +25,8 @@ describe('the family tree, against the emulator', () => {
     link('parent', 'ines', 'noe');
     batch.set(db.doc('kinWords/camille'), { words: { jeanne: 'Mamie' }, updatedAt: new Date(0) });
     batch.set(db.doc('kinWords/noe'), { words: { ines: 'bonus-maman' }, updatedAt: new Date(0) });
+    batch.set(db.doc('kinPhotos/jeanne'), { jpeg: Buffer.from([7, 7, 7]), updatedAt: new Date(0) });
+    batch.set(db.doc('kinPhotos/ines'), { jpeg: Buffer.from([7, 7, 7]), updatedAt: new Date(0) });
     await batch.commit();
   });
 
@@ -39,5 +42,12 @@ describe('the family tree, against the emulator', () => {
     assert.deepEqual(await remaining(), ['parent_ines_noe']);
     assert.equal((await db.doc('kinWords/camille').get()).exists, false);
     assert.equal((await db.doc('kinWords/noe').get()).exists, true);
+  });
+
+  test('a relative removed from the tree takes their photo with them (récit 79)', async () => {
+    await removeKinFromTree(db, 'jeanne');
+    assert.deepEqual(await remaining(), ['parent_camille_noe', 'parent_ines_noe', 'partner_camille_ines']);
+    assert.equal((await db.doc('kinPhotos/jeanne').get()).exists, false);
+    assert.equal((await db.doc('kinPhotos/ines').get()).exists, true);
   });
 });

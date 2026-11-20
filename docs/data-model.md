@@ -707,25 +707,9 @@ Serveur (`firebase/functions/src/lendItems.ts`) : `onLendLoanChanged` prévient 
 
 Un objet écrit avant le 17/11 (avec `status` et `borrowerId`) se lit comme libre, et l'appli ne peut plus le modifier : il faut le retirer et le remettre. Le module est éteint, donc seul l'admin principal a pu en créer.
 
-## À qui le tour ? (PRD, récit 58)
+## À qui le tour ? (PRD, récit 58), supprimé le 20/11
 
-Dans l'onglet Entraide, derrière l'interrupteur « À qui le tour » (`config/app.features.turns`), éteint le 21. Un tour de rôle entre foyers (« Qui reçoit Noël », « Repas du dimanche »). Aucun compteur ni classement.
-
-### `turns/{turnId}`
-
-| Champ | Type | Description |
-|---|---|---|
-| `title` | texte | Le nom du tour de rôle, de 1 à 60 caractères |
-| `householdIds` | liste de textes | Les foyers qui y participent, dans l'ordre, de 2 à 12, chacun une fois |
-| `current` | entier | La place dans `householdIds` du foyer dont c'est le tour |
-| `history` | liste | Les tours faits, le plus récent en dernier, sans limite (l'appli en montre 50, puis 50 de plus à chaque « Voir plus ») : `{householdId, label, at}`. `label` (« Noël 2026 ») fait 40 caractères au plus et peut être vide. `at` est l'heure du téléphone, car Firestore n'a pas d'heure du serveur dans une liste : au plus 10 minutes dans le futur, et jusqu'à 7 jours dans le passé, pour un « C'est fait » dit hors ligne qui part au retour du réseau |
-| `swap` | objet ou `null` | L'échange proposé : `{fromId, toId, fromIndex, toIndex, byId, byName}`, les deux foyers, leurs places, l'adulte qui propose et son prénom. Un seul à la fois |
-| `createdBy` | texte | L'adulte qui l'a créé |
-| `createdAt`, `updatedAt` | horodatage | Heure du serveur |
-
-Droits : tous les membres lisent tout, les enfants ne modifient rien. Un adulte crée un tour de rôle, qui commence au premier foyer, sans historique. Son auteur et l'admin principal changent le titre, les foyers, leur ordre et le foyer dont c'est le tour, et le suppriment. Un échange en attente tombe alors. Un adulte du foyer dont c'est le tour, l'auteur ou l'admin principal dit « C'est fait » : une ligne s'ajoute à la fin de l'historique et le tour passe au foyer suivant. Un adulte du foyer dont c'est le tour dit « On passe notre tour » : son foyer change de place avec le suivant. Un adulte propose d'échanger la place de son foyer avec un autre. Les adultes de l'autre foyer acceptent (les deux changent de place) ou refusent, et le foyer qui a proposé peut retirer sa proposition.
-
-Serveur (`firebase/functions/src/turns.ts`) : `onTurnChanged` prévient directement les adultes du foyer dont c'est le tour, chaque fois qu'il change (création, « C'est fait », tour passé, échange, modification), sauf l'adulte qui a fait le changement. Une proposition d'échange va aux adultes de l'autre foyer. Un refus, c'est-à-dire un adulte de l'autre foyer qui retire la proposition sans échanger, revient à celui qui a proposé. Une proposition retirée par son propre foyer, ou effacée par une modification de l'auteur ou de l'admin principal, ne prévient personne. Interrupteur éteint, seul l'admin principal est prévenu (`featureAudience`). Le canal est Coups de main (`direct`). Un tap ouvre le tour de rôle (`turnId`), avec « Créer l'événement ».
+La fonction n'existe plus : plus d'onglet dans Entraide, plus d'icône dans « Tout Familia », plus de ligne dans Administration > Modules, plus de lien de notification (`turnId`). Une clé `features.turns` restée dans `config/app` est ignorée. `onTurnChanged` reste exporté sans rien faire, car « Publier Firebase » déploie sans `--force`. Les règles refusent toute lecture et toute écriture sous `turns/`. Avec l'accord de Kévin (20/11), les données sont effacées une seule fois par `eraseTurns` (`functions/src/turns.ts`) : au premier changement de `config/app` après le déploiement (`onTurnsErase`), sinon par la tâche de 18 h. Le nombre de documents est écrit dans le journal avant l'effacement, puis gardé dans `migrations/turnsErased` (`count`, `at`), qui empêche un second passage.
 
 ## Arbre généalogique (PRD, récit 40)
 
@@ -755,7 +739,20 @@ Un lien entre deux personnes de l'arbre, membres ou proches. Son identifiant est
 | `aId`, `bId` | texte | Deux personnes différentes, qui existent |
 | `updatedBy`, `updatedAt` | texte, horodatage | Qui l'a écrit, et l'heure du serveur |
 
-Un proche et son premier lien partent dans le même batch. Quand un proche est supprimé, `onKinDeleted` retire ses liens. Quand un membre est retiré, `onMemberDeletedKin` retire ses liens et ses mots.
+Un proche et son premier lien partent dans le même batch. Quand un proche est supprimé, `onKinDeleted` retire ses liens et sa photo. Quand un membre est retiré, `onMemberDeletedKin` retire ses liens et ses mots.
+
+### `kinPhotos/{kinId}` (récit 79)
+
+La photo d'un proche sans compte, faite comme une photo de profil (même format que `memberPhotos`).
+
+| Champ | Type | Description |
+|---|---|---|
+| `jpeg` | bytes | Photo carrée de 512 px au plus, 150 Ko au maximum dans les règles |
+| `updatedAt` | horodatage | Heure du serveur |
+
+- **Qui la change :** ceux qui peuvent modifier le proche, donc l'admin principal et les chefs de son foyer. Elle part dans le même batch que la fiche du proche.
+- **Qui la lit :** toute la famille. L'appli la mêle aux photos de profil (les identifiants ne se croisent pas) : le fruit de l'arbre, la fiche, l'affiche et les liens du profil la montrent, sinon l'initiale.
+- **Quand le proche est retiré**, `onKinDeleted` retire aussi sa photo.
 
 ### `kinWords/{memberId}`
 

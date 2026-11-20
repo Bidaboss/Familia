@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -101,8 +103,6 @@ fun GoodNewsCard(
                     )
                 }
             }
-            // In the feed the actions sit in the ⋮ menu; on the page of the post they are visible buttons.
-            if (!full && (item.canEdit || item.canRemove || item.canHide)) PostMenu(item, onEdit, onRemove, onHide)
         }
         Text(
             item.news.text,
@@ -118,30 +118,32 @@ fun GoodNewsCard(
                 color = FamiliaClay.colors.onTintVariant(tint),
             )
         }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            item.reactionCounts.forEach { (reaction, count) -> ReactionChip(reaction, count, item.myReaction == reaction, onReact) }
-        }
-        if (full && (item.canEdit || item.canRemove || item.canHide)) PostActions(item, onEdit, onRemove, onHide)
+        // One heart, a long press for the six (PRODUIT-139).
+        HeartReaction(item.news.reactions, item.myReaction, onTouch = onReact, nameOf = { item.reactorNames[it] })
+        // In the list, only the heart and the comments; the actions are on the page of the post, discreet.
+        if (full && (item.canEdit || item.canRemove || item.canHide)) PostActions(item, onEdit, onRemove, onHide, tint)
     }
 }
 
+/** « Modifier · Retirer » for the author (Retirer for the admin too), « Masquer pour moi » for the one named: small, at the bottom. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PostActions(item: GoodNewsItem, onEdit: () -> Unit, onRemove: () -> Unit, onHide: (Boolean) -> Unit) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (item.canEdit) {
-            ClayLink(stringResource(R.string.goodnews_edit), onClick = onEdit)
-        }
+private fun PostActions(item: GoodNewsItem, onEdit: () -> Unit, onRemove: () -> Unit, onHide: (Boolean) -> Unit, tint: ClayTint) {
+    val color = FamiliaClay.colors.onTintVariant(tint)
+    val actions = buildList<Pair<String, () -> Unit>> {
+        if (item.canEdit) add(stringResource(R.string.goodnews_edit) to onEdit)
+        if (item.canRemove) add(stringResource(R.string.goodnews_remove) to onRemove)
         if (item.canHide) {
             val label = if (item.isHiddenForMe) R.string.goodnews_unhide else R.string.goodnews_hide
-            ClayLink(stringResource(label), onClick = { onHide(!item.isHiddenForMe) })
+            add(stringResource(label) to { onHide(!item.isHiddenForMe) })
         }
-        if (item.canRemove) {
-            TextButton(
-                onClick = onRemove,
-                modifier = Modifier.heightIn(min = 56.dp),
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-            ) { Text(stringResource(R.string.goodnews_remove)) }
+    }
+    FlowRow {
+        actions.forEachIndexed { index, (label, action) ->
+            if (index > 0) Text("·", style = MaterialTheme.typography.bodyMedium, color = color, modifier = Modifier.align(Alignment.CenterVertically).clearAndSetSemantics { })
+            TextButton(onClick = action, modifier = Modifier.heightIn(min = 56.dp), contentPadding = PaddingValues(horizontal = 8.dp)) {
+                Text(label, style = MaterialTheme.typography.bodyMedium, color = color)
+            }
         }
     }
 }
@@ -165,44 +167,6 @@ private fun Photos(item: GoodNewsItem, full: Boolean) {
             }
             // Two photos keep the size of three, so every card has the same rhythm.
             if (news.photoIds.size == 2) Box(Modifier.weight(1f))
-        }
-    }
-}
-
-@Composable
-private fun ReactionChip(reaction: Reaction, count: Int, mine: Boolean, onReact: (Reaction) -> Unit) {
-    val name = stringResource(reactionName(reaction))
-    val description = if (mine) {
-        stringResource(R.string.goodnews_reaction_mine, name, count)
-    } else {
-        stringResource(R.string.goodnews_reaction, name, count)
-    }
-    FilterChip(
-        selected = mine,
-        onClick = { onReact(reaction) },
-        label = { Text(if (count > 0) "${reaction.emoji} $count" else reaction.emoji, style = MaterialTheme.typography.titleSmall) },
-        modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = description },
-    )
-}
-
-@Composable
-private fun PostMenu(item: GoodNewsItem, onEdit: () -> Unit, onRemove: () -> Unit, onHide: (Boolean) -> Unit) {
-    var open by remember { mutableStateOf(false) }
-    Box {
-        IconButton(onClick = { open = true }, modifier = Modifier.size(56.dp)) {
-            Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.goodnews_menu))
-        }
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            if (item.canEdit) {
-                DropdownMenuItem(text = { Text(stringResource(R.string.goodnews_edit)) }, onClick = { open = false; onEdit() })
-            }
-            if (item.canHide) {
-                val label = if (item.isHiddenForMe) R.string.goodnews_unhide else R.string.goodnews_hide
-                DropdownMenuItem(text = { Text(stringResource(label)) }, onClick = { open = false; onHide(!item.isHiddenForMe) })
-            }
-            if (item.canRemove) {
-                DropdownMenuItem(text = { Text(stringResource(R.string.goodnews_remove)) }, onClick = { open = false; onRemove() })
-            }
         }
     }
 }

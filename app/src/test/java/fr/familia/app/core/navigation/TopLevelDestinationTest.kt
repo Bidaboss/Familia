@@ -15,9 +15,8 @@ class TopLevelDestinationTest {
     }
 
     @Test
-    fun `app opens on the accueil once its module shows, on the planning before`() {
-        assertEquals(TopLevelDestination.Planning, TopLevelDestination.startFor(homeOn = false))
-        assertEquals(TopLevelDestination.Home, TopLevelDestination.startFor(homeOn = true))
+    fun `app opens on the accueil`() {
+        assertEquals(TopLevelDestination.Home, TopLevelDestination.START)
     }
 
     @Test
@@ -27,10 +26,11 @@ class TopLevelDestinationTest {
     }
 
     @Test
-    fun `the accueil, gifts and entraide tabs are in the base, always there for everyone`() {
-        // « La base » has no switch any more (Kévin le 18/11, 20 h 39).
-        assertEquals(TopLevelDestination.entries.toList(), TopLevelDestination.visible(FeatureFlags()))
-        assertEquals(TopLevelDestination.entries.toList(), TopLevelDestination.visible(FeatureFlags(mapOf("gifts" to false))))
-        assertEquals(TopLevelDestination.entries.toList(), TopLevelDestination.visible(FeatureFlags(isOwner = true)))
+    fun `the bar holds 4 tabs around Tout Familia, the planning being a page`() {
+        // « La base » has no switch any more (Kévin le 18/11, 20 h 39); Planning left the bar (DESIGN-55).
+        val bar = listOf(TopLevelDestination.Home, TopLevelDestination.Gifts, TopLevelDestination.HelpRequests, TopLevelDestination.Members)
+        assertEquals(bar, TopLevelDestination.visible(FeatureFlags()))
+        assertEquals(bar, TopLevelDestination.visible(FeatureFlags(mapOf("gifts" to false))))
+        assertEquals(bar, TopLevelDestination.visible(FeatureFlags(isOwner = true)))
     }
 }

@@ -58,7 +58,6 @@ class MainActivity : ComponentActivity() {
     private val openGoodDeals = mutableStateOf(false)
     /** A thing to lend whose ask, answer or reminder was touched (récit 51). */
     private val openLendItemId = mutableStateOf<String?>(null)
-    private val openTurnId = mutableStateOf<String?>(null)
     /** A message of the admin principal whose notification was touched (récit 69). */
     private val openAnnouncementId = mutableStateOf<String?>(null)
 
@@ -91,7 +90,6 @@ class MainActivity : ComponentActivity() {
             val feedbackToOpen by openFeedback
             val goodDealsToOpen by openGoodDeals
             val lendItemToOpen by openLendItemId
-            val turnToOpen by openTurnId
             val announcementToOpen by openAnnouncementId
             val wishToAdd by sharedWish
             val memberToOpen by openMemberId
@@ -132,8 +130,6 @@ class MainActivity : ComponentActivity() {
                                 onGoodDealsOpened = { openGoodDeals.value = false },
                                 openLendItemId = lendItemToOpen,
                                 onLendItemOpened = { openLendItemId.value = null },
-                                openTurnId = turnToOpen,
-                                onTurnOpened = { openTurnId.value = null },
                                 openAnnouncementId = announcementToOpen,
                                 onAnnouncementOpened = { openAnnouncementId.value = null },
                                 sharedWish = wishToAdd,
@@ -173,7 +169,6 @@ class MainActivity : ComponentActivity() {
                 is DeepLink.Feedback -> openFeedback.value = link.key
                 DeepLink.GoodDeals -> openGoodDeals.value = true
                 is DeepLink.LendItem -> openLendItemId.value = link.id
-                is DeepLink.Turn -> openTurnId.value = link.id
                 is DeepLink.Announcement -> openAnnouncementId.value = link.id
             }
         }

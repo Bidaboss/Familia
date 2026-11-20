@@ -24,12 +24,12 @@ import fr.familia.app.core.data.FamilyData
 import fr.familia.app.core.data.FeedbackRepository
 import fr.familia.app.core.data.ExportRepository
 import fr.familia.app.core.data.GenealogyRepository
+import fr.familia.app.core.data.KinPhotoChange
 import fr.familia.app.core.data.GiftRepository
 import fr.familia.app.core.data.BirthdayCardRepository
 import fr.familia.app.core.data.GoodNewsRepository
 import fr.familia.app.core.data.GoodDealRepository
 import fr.familia.app.core.data.LendItemRepository
-import fr.familia.app.core.data.TurnRepository
 import fr.familia.app.core.data.HelpRequestRepository
 import fr.familia.app.core.data.JoinMeRepository
 import fr.familia.app.core.data.MemberCardRepository
@@ -82,7 +82,6 @@ import fr.familia.app.core.model.JoinMe
 import fr.familia.app.core.model.Kin
 import fr.familia.app.core.model.KinLink
 import fr.familia.app.core.model.LendItem
-import fr.familia.app.core.model.Turn
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MonthChallenge
 import fr.familia.app.core.model.NotebookBudget
@@ -275,20 +274,6 @@ class ReadOnlyLendItemRepository(private val inner: LendItemRepository, private 
     override suspend fun release(id: String) = guard.refuse()
 }
 
-class ReadOnlyTurnRepository(private val inner: TurnRepository, private val guard: ViewAsGuard) : TurnRepository {
-    override fun observeAll(): Flow<List<Turn>> = inner.observeAll()
-    override fun observe(id: String): Flow<Turn?> = inner.observe(id)
-    override fun newId(): String = inner.newId()
-    override suspend fun create(id: String, title: String, householdIds: List<String>, me: Member) = guard.refuse()
-    override suspend fun edit(id: String, title: String, householdIds: List<String>, current: Int) = guard.refuse()
-    override suspend fun done(turn: Turn, label: String) = guard.refuse()
-    override suspend fun skip(turn: Turn) = guard.refuse()
-    override suspend fun askSwap(turn: Turn, me: Member, toHouseholdId: String) = guard.refuse()
-    override suspend fun acceptSwap(turn: Turn) = guard.refuse()
-    override suspend fun dropSwap(id: String) = guard.refuse()
-    override suspend fun delete(id: String) = guard.refuse()
-}
-
 class ReadOnlyRecipeRepository(private val inner: RecipeRepository, private val guard: ViewAsGuard) : RecipeRepository {
     override fun observeRecipes(): Flow<List<Recipe>> = inner.observeRecipes()
     override fun observeRecipe(id: String): Flow<Recipe?> = inner.observeRecipe(id)
@@ -375,7 +360,7 @@ class ReadOnlyGenealogyRepository(private val inner: GenealogyRepository, privat
     override fun observeLinks(): Flow<List<KinLink>> = inner.observeLinks()
     override fun observeWords(memberId: String): Flow<Map<String, String>> = inner.observeWords(memberId)
     override fun newKinId(): String = inner.newKinId()
-    override suspend fun saveKin(kin: Kin, byMemberId: String, firstLink: KinLink?) = guard.refuse()
+    override suspend fun saveKin(kin: Kin, byMemberId: String, firstLink: KinLink?, photo: KinPhotoChange?) = guard.refuse()
     override suspend fun deleteKin(id: String) = guard.refuse()
     override suspend fun addLink(link: KinLink, byMemberId: String) = guard.refuse()
     override suspend fun removeLink(link: KinLink) = guard.refuse()

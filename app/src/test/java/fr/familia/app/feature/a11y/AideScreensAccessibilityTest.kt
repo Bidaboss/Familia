@@ -10,7 +10,6 @@ import fr.familia.app.core.model.BirthdayCard
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.GoodDeal
 import fr.familia.app.core.model.GoodDealKind
-import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.LendCategory
 import fr.familia.app.core.model.LendItem
 import fr.familia.app.core.model.WeeklyAnswer
@@ -52,14 +51,6 @@ import fr.familia.app.feature.lending.list.LendItemsScreen
 import fr.familia.app.feature.lending.list.previewLendItems
 import fr.familia.app.feature.members.admin.AdministrationScreen
 import fr.familia.app.feature.members.admin.previewAdministrationState
-import fr.familia.app.feature.turns.TurnDetailActions
-import fr.familia.app.feature.turns.TurnDetailScreen
-import fr.familia.app.feature.turns.TurnEditScreen
-import fr.familia.app.feature.turns.TurnEditUiState
-import fr.familia.app.feature.turns.TurnForm
-import fr.familia.app.feature.turns.TurnsScreen
-import fr.familia.app.feature.turns.previewTurnDetail
-import fr.familia.app.feature.turns.previewTurns
 import fr.familia.app.feature.wishes.BirthdayCardsContent
 import fr.familia.app.feature.wishes.BirthdayCardsState
 import fr.familia.app.feature.yearinreview.ReviewPage
@@ -75,7 +66,7 @@ import java.time.LocalDate
 
 /**
  * Police 200 % and TalkBack in the CI for the screens of the coups de main (Entraide, Bons plans,
- * On se prête, À qui le tour ?, Bonnes nouvelles, Notre année, Mes premiers pas, vœux)
+ * On se prête, Bonnes nouvelles, Notre année, Mes premiers pas, vœux)
  * and Administration > Modules, with [checkAccessibility]. Fictional family only.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -163,21 +154,6 @@ class AideScreensAccessibilityTest {
             LendItemEditUiState.Editing(LendItemForm(), isNew = true, errors = setOf(LendFormError.NameMissing, LendFormError.CategoryMissing)),
             {}, {}, {},
         )
-    }
-
-    @Test
-    fun `À qui le tour ?`() = check { TurnsScreen(previewTurns(), {}, {}, {}) }
-
-    @Test
-    fun `a turn`() = check { TurnDetailScreen(previewTurnDetail(), TurnDetailActions(), {}) }
-
-    @Test
-    fun `a turn, with a swap asked`() = check { TurnDetailScreen(previewTurnDetail(swapForUs = true), TurnDetailActions(), {}) }
-
-    @Test
-    fun `a new turn`() = check {
-        val households = listOf(Household("h1", "Foyer Camille"), Household("h2", "Foyer Inès"), Household("h3", "Foyer Noé"))
-        TurnEditScreen(TurnEditUiState.Editing(TurnForm("Qui reçoit Noël", listOf("h2", "h1")), households, isNew = true), {}, {}, {}, {}, {}, {}, {})
     }
 
     @Test
