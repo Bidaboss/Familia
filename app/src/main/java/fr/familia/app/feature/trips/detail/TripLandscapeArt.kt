@@ -75,7 +75,7 @@ fun DrawScope.drawLandscape(landscape: TripLandscape) {
 }
 
 /** « M x0 y0 Q c p T p2 T p3 … V300 H0 z »: a smooth layer down to the bottom. */
-private fun layer(start: Offset, control: Offset, vararg points: Offset): Path = Path().apply {
+private fun layer(start: Offset, control: Offset, points: List<Offset>): Path = Path().apply {
     moveTo(start.x, start.y)
     var c = control
     var from = start
@@ -90,22 +90,22 @@ private fun layer(start: Offset, control: Offset, vararg points: Offset): Path =
 }
 
 private fun DrawScope.rolling(p: LandscapePalette, rows: Boolean) {
-    drawPath(layer(Offset(0f, 110f), Offset(90f, 70f), Offset(190f, 100f), Offset(390f, 85f)), p.far)
-    drawPath(layer(Offset(0f, 180f), Offset(120f, 140f), Offset(240f, 170f), Offset(390f, 160f)), p.mid)
+    drawPath(layer(Offset(0f, 110f), Offset(90f, 70f), listOf(Offset(190f, 100f), Offset(390f, 85f))), p.far)
+    drawPath(layer(Offset(0f, 180f), Offset(120f, 140f), listOf(Offset(240f, 170f), Offset(390f, 160f))), p.mid)
     if (rows) {
         repeat(12) { i ->
             drawLine(rgb(0x9DBB5C).copy(alpha = 0.7f), Offset(-20f + i * 40, 300f), Offset(60f + i * 28, 175f), strokeWidth = 3f)
         }
     }
-    drawPath(layer(Offset(0f, 250f), Offset(140f, 215f), Offset(260f, 240f), Offset(390f, 232f)), p.near)
+    drawPath(layer(Offset(0f, 250f), Offset(140f, 215f), listOf(Offset(260f, 240f), Offset(390f, 232f))), p.near)
 }
 
 private fun DrawScope.sea(p: LandscapePalette) {
-    val waves = (1..5).map { Offset(it * 80f, 110f) }.toTypedArray()
-    drawPath(layer(Offset(0f, 110f), Offset(40f, 104f), *waves), p.far)
-    val waves2 = (1..5).map { Offset(it * 80f, 170f) }.toTypedArray()
-    drawPath(layer(Offset(0f, 170f), Offset(40f, 162f), *waves2), p.mid)
-    drawPath(layer(Offset(0f, 235f), Offset(120f, 200f), Offset(240f, 225f), Offset(390f, 215f)), p.near)
+    val waves = (1..5).map { Offset(it * 80f, 110f) }
+    drawPath(layer(Offset(0f, 110f), Offset(40f, 104f), waves), p.far)
+    val waves2 = (1..5).map { Offset(it * 80f, 170f) }
+    drawPath(layer(Offset(0f, 170f), Offset(40f, 162f), waves2), p.mid)
+    drawPath(layer(Offset(0f, 235f), Offset(120f, 200f), listOf(Offset(240f, 225f), Offset(390f, 215f))), p.near)
 }
 
 private fun DrawScope.peaks(p: LandscapePalette) {
@@ -119,8 +119,8 @@ private fun DrawScope.peaks(p: LandscapePalette) {
         polygon(284f to 80f, 300f to 60f, 316f to 80f, 306f to 76f, 300f to 84f, 292f to 76f),
         polygon(52f to 80f, 60f to 70f, 69f to 81f),
     ).forEach { drawPath(it, Color.White) }
-    drawPath(layer(Offset(0f, 190f), Offset(120f, 140f), Offset(240f, 175f), Offset(390f, 165f)), p.mid)
-    drawPath(layer(Offset(0f, 255f), Offset(140f, 220f), Offset(260f, 245f), Offset(390f, 235f)), p.near)
+    drawPath(layer(Offset(0f, 190f), Offset(120f, 140f), listOf(Offset(240f, 175f), Offset(390f, 165f))), p.mid)
+    drawPath(layer(Offset(0f, 255f), Offset(140f, 220f), listOf(Offset(260f, 245f), Offset(390f, 235f))), p.near)
 }
 
 private fun DrawScope.city(p: LandscapePalette) {
