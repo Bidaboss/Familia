@@ -6,11 +6,14 @@ import fr.familia.app.feature.gooddeals.GoodDealHomeCard
 import fr.familia.app.feature.helprequests.todo.rememberHelpRequestTodos
 import fr.familia.app.feature.helprequests.todo.helpActionErrorText
 import fr.familia.app.feature.helprequests.todo.HelpRequestTodoCard
+import fr.familia.app.feature.joinme.JoinMeHomeContent
+import fr.familia.app.feature.joinme.rememberJoinMeHome
 import fr.familia.app.feature.tree.challenges.rememberHasChallenge
 import fr.familia.app.feature.tree.challenges.ChallengeHomeCard
 import fr.familia.app.feature.trips.now.rememberNowTravelling
 import fr.familia.app.feature.trips.now.NowTravellingCard
 import androidx.compose.material.icons.outlined.Event
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -25,7 +28,9 @@ import fr.familia.app.feature.feed.rememberFeedState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import android.widget.Toast
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -52,6 +57,8 @@ import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripArrival
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.goodnews.home.GoodNewsHomeCard
@@ -155,6 +162,8 @@ fun HomeRoute(
         }
     }
     val hasChallenge = rememberHasChallenge(container, currentMember)
+    // « Rejoignez-moi » (récit 33): lost with the old Accueil (#397), back at the top (Kévin, 20/11).
+    val joinMe = if (flags.isOn(Feature.Places)) rememberJoinMeHome(container, currentMember)?.takeIf { it.hasShares } else null
     // The coups de main answer right on their card (help-requests thread, #210).
     val help = if (helpOn) rememberHelpRequestTodos(container, currentMember) else null
     val helpError = help?.let { helpActionErrorText(it.error) }
@@ -180,6 +189,14 @@ fun HomeRoute(
         if (feedAsked && feed != null) {
             onFeed = true
             FeedOpenRequest.consume()
+        }
+    }
+    // A « rejoins-moi » opens the Accueil on « Aujourd'hui », where its tile is (Kévin, 20/11).
+    val todayAsked by TodayOpenRequest.asked.collectAsState()
+    LaunchedEffect(todayAsked) {
+        if (todayAsked) {
+            onFeed = false
+            TodayOpenRequest.consume()
         }
     }
     val feedNavigation = remember(actions) {
@@ -214,6 +231,14 @@ fun HomeRoute(
             }
         },
         state = shownState,
+        joinMe = joinMe?.let { shares ->
+            {
+                ClayCard(Modifier.fillMaxWidth()) {
+                    ClayCardTitle(stringResource(R.string.joinme_title))
+                    JoinMeHomeContent(shares.state, shares.stopFailed, shares.onStop)
+                }
+            }
+        },
         firstSteps = rememberFirstSteps(container, currentMember, onOpenTastes = onOpenMyProfile, onOpenGoodNews = onOpenGoodNewsFeed),
         challenge = if (hasChallenge) {
             { modifier, wide -> ChallengeHomeCard(container, currentMember, wide, onOpen = onOpenChallenges, onAddPhoto = onJoinChallenge, modifier = modifier) }
@@ -254,6 +279,23 @@ fun HomeRoute(
         },
         allBadge = allBadge,
     )
+}
+
+/**
+ * Asks the Accueil to show « Aujourd'hui » rather than « Le fil »: the notification « rejoins-moi »
+ * (MainActivity), whose place is at the top of the day. Kept until the Accueil reads it.
+ */
+object TodayOpenRequest {
+    private val state = kotlinx.coroutines.flow.MutableStateFlow(false)
+    val asked: kotlinx.coroutines.flow.StateFlow<Boolean> = state
+
+    fun ask() {
+        state.value = true
+    }
+
+    fun consume() {
+        state.value = false
+    }
 }
 
 /** Fictional home screen for previews and screenshots. */

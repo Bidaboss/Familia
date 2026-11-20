@@ -19,6 +19,7 @@ import fr.familia.app.core.viewas.ViewAsHost
 import fr.familia.app.feature.gifts.share.SharedWish
 import fr.familia.app.feature.gifts.share.sharedWish
 import fr.familia.app.feature.auth.SessionRoute
+import fr.familia.app.feature.home.TodayOpenRequest
 
 class MainActivity : ComponentActivity() {
 
@@ -162,7 +163,10 @@ class MainActivity : ComponentActivity() {
                 is DeepLink.WeeklyQuestion -> openWeeklyQuestionId.value = link.id
                 DeepLink.Souvenir -> openSouvenir.value = true
                 is DeepLink.Poll -> openPollId.value = link.id
-                DeepLink.JoinMe -> openJoinMe.value = true
+                DeepLink.JoinMe -> {
+                    openJoinMe.value = true
+                    TodayOpenRequest.ask()
+                }
                 is DeepLink.Capsule -> openCapsuleId.value = link.id
                 is DeepLink.Recap -> openRecap.value = link.week
                 is DeepLink.Member -> openMemberId.value = link.id

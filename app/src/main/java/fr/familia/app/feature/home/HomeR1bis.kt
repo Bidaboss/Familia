@@ -120,6 +120,11 @@ fun HomeR1bisScreen(
     yearInReview: (@Composable () -> Unit)? = null,
     /** « Mes premiers pas » (récit 61), right after the chosen day, only while it has something to show. */
     firstSteps: (@Composable () -> Unit)? = null,
+    /**
+     * « Rejoignez-moi » (récit 33): the places I was sent in the last 24 h and the one I share, at the
+     * very top, above the frise, only while there is one (Kévin, 20/11).
+     */
+    joinMe: (@Composable () -> Unit)? = null,
     /** « Aujourd'hui » | « Le fil » (récit 67), at the top while the fil is on. */
     switcher: (@Composable () -> Unit)? = null,
     /** « Le fil », shown instead of the day while chosen; « Tout Familia » stays under it. */
@@ -185,6 +190,7 @@ fun HomeR1bisScreen(
                 // Expanded (§5): two panes, each scrolling on its own.
                 maxWidth >= 840.dp -> Row(horizontalArrangement = Arrangement.spacedBy(24.dp), modifier = Modifier.padding(horizontal = ClaySpacing.screen)) {
                     LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(top = 4.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        if (joinMe != null) item(key = "joinMe") { joinMe() }
                         item(key = "frise") { frise() }
                         item(key = "day") { detail() }
                         if (firstSteps != null) item(key = "firstSteps") { firstSteps() }
@@ -198,6 +204,7 @@ fun HomeR1bisScreen(
                 }
                 // Medium (§5): one column, with « À faire » beside the good news, the challenge and the trip.
                 maxWidth >= 600.dp -> LazyColumn(contentPadding = padding, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    if (joinMe != null) item(key = "joinMe") { joinMe() }
                     item(key = "frise") { frise() }
                     item(key = "day") { detail() }
                     if (firstSteps != null) item(key = "firstSteps") { firstSteps() }
@@ -213,6 +220,7 @@ fun HomeR1bisScreen(
                     item(key = "buttons") { buttons() }
                 }
                 else -> LazyColumn(contentPadding = padding, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    if (joinMe != null) item(key = "joinMe") { joinMe() }
                     item(key = "frise") { frise() }
                     item(key = "day") { detail() }
                     if (firstSteps != null) item(key = "firstSteps") { firstSteps() }
