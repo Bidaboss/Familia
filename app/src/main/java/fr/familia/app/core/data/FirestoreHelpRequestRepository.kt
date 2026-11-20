@@ -79,7 +79,8 @@ class FirestoreHelpRequestRepository(
         if (isNew) {
             journal.track(SendEntry(ref.path, SendKind.HelpRequest, request.title, request.authorId)) {
                 ref.set(
-                    fields + request.mentionIds.takeIf { it.isNotEmpty() }?.let { mapOf("mentionIds" to it) }.orEmpty() + mapOf(
+                    fields + placeFields(request.placeKind, request.placeHouseholdId).filterValues { it != null } +
+                        request.mentionIds.takeIf { it.isNotEmpty() }?.let { mapOf("mentionIds" to it) }.orEmpty() + mapOf(
                         "authorId" to request.authorId,
                         "authorName" to request.authorName,
                         "forMemberId" to request.forMemberId,
@@ -92,7 +93,8 @@ class FirestoreHelpRequestRepository(
                 )
             }
         } else {
-            ref.update(fields + ("mentionIds" to (request.mentionIds.takeIf { it.isNotEmpty() } ?: FieldValue.delete()))).await()
+            val place = placeFields(request.placeKind, request.placeHouseholdId).mapValues { (_, v) -> v ?: FieldValue.delete() }
+            ref.update(fields + place + ("mentionIds" to (request.mentionIds.takeIf { it.isNotEmpty() } ?: FieldValue.delete()))).await()
         }
     }
 
@@ -193,6 +195,8 @@ class FirestoreHelpRequestRepository(
             startTime = getString("startTime")?.toTime(),
             endTime = getString("endTime")?.toTime(),
             place = getString("place"),
+            placeKind = readPlaceKind(),
+            placeHouseholdId = readPlaceHouseholdId(),
             note = getString("note"),
             authorId = getString("authorId") ?: return null,
             authorName = getString("authorName").orEmpty(),

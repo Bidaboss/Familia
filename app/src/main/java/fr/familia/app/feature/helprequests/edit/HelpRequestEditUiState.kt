@@ -1,5 +1,6 @@
 package fr.familia.app.feature.helprequests.edit
 
+import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.ui.PickGroup
 
@@ -23,6 +24,8 @@ sealed interface HelpRequestEditUiState {
         val shortcuts: List<NotifyShortcut>,
         /** The adults who can be warned, by household: a box per household ticks them all (règle du 17/11). */
         val groups: List<PickGroup> = emptyList(),
+        /** The households for « Chez un foyer », by name. */
+        val households: List<Household> = emptyList(),
         /** Always warned and not untickable: the parents of a child, the current volunteer. */
         val lockedIds: Set<String>,
         val errors: Set<HelpFormError>,

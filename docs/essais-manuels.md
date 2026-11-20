@@ -554,10 +554,11 @@ Avec l'interrupteur « Partager » allumé :
 3. « Ta question » : laisse-la vide et touche Envoyer. Le message rouge s'affiche sous le champ, et l'écran remonte jusqu'à lui.
 4. « Précisions » : tape « @ », puis les premières lettres d'une personne cochée dans « Qui prévenir ». Choisis-la : son prénom passe en gras. Une personne non cochée n'est pas proposée. Envoie : elle reçoit « … t'a nommé dans « … » » au lieu de la notification habituelle.
 5. « Quand » : touche « Demain », puis « Autre jour » pour ouvrir le calendrier. « De » et « À » ouvrent l'horloge, et la croix retire l'heure.
-6. « Pour qui » (parent seulement) : la photo choisie est nette et cochée, les autres sont pâlies.
-7. « Qui prévenir » : « Toute la famille » coche tout le monde. La case d'un foyer est cochée, vide ou à moitié cochée. Un parent toujours prévenu porte un cadenas et « · toujours », et ne se décoche pas.
-8. Modifie une demande : le bouton devient « Enregistrer ».
-9. Police à 130 % : les tuiles Garde, Trajet et Autre passent sur deux lignes, et les jours vont à la ligne. À 200 %, tout défile. TalkBack lit les titres des tuiles comme des titres.
+6. « Où » (après « Publier Firebase ») : comme pour un événement, « Chez un foyer », « Une adresse » ou « Autre ». Choisis un foyer qui a une adresse dans ses Coordonnées, envoie, puis ouvre la demande : le nom du foyer et « Itinéraire » s'affichent. Une ancienne demande avec un lieu écrit s'ouvre sur « Autre », son texte intact.
+7. « Pour qui » (parent seulement) : la photo choisie est nette et cochée, les autres sont pâlies.
+8. « Qui prévenir » : « Toute la famille » coche tout le monde. La case d'un foyer est cochée, vide ou à moitié cochée. Un parent toujours prévenu porte un cadenas et « · toujours », et ne se décoche pas.
+9. Modifie une demande : le bouton devient « Enregistrer ».
+10. Police à 130 % : les tuiles Garde, Trajet et Autre passent sur deux lignes, et les jours vont à la ligne. À 200 %, tout défile. TalkBack lit les titres des tuiles comme des titres.
 
 ## L'écran Défis (R1 bis, maquette R7)
 

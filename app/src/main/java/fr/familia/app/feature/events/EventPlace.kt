@@ -14,12 +14,16 @@ data class EventPlaceView(val text: String, val directions: String?)
  * has an address in its Coordonnées (récit 66). « Adresse » always has its « Itinéraire ». « Autre »
  * (the free text of before) has one only with the place component on ([placesOn], récit 33).
  */
-fun eventPlaceView(event: Event, households: List<Household>, placesOn: Boolean): EventPlaceView? = when (event.placeKind) {
+fun eventPlaceView(event: Event, households: List<Household>, placesOn: Boolean): EventPlaceView? =
+    placeView(event.placeKind, event.place, event.placeHouseholdId, households, placesOn)
+
+/** The same for any place of récit 74: an event or a coup de main (Kévin 20/11). */
+fun placeView(kind: PlaceKind, place: String?, householdId: String?, households: List<Household>, placesOn: Boolean): EventPlaceView? = when (kind) {
     PlaceKind.Household -> {
-        val household = households.firstOrNull { it.id == event.placeHouseholdId }
-        val text = household?.name ?: event.place
+        val household = households.firstOrNull { it.id == householdId }
+        val text = household?.name ?: place
         text?.let { EventPlaceView(it, household?.address?.trim()?.ifEmpty { null }?.let(::directionsUri)) }
     }
-    PlaceKind.Address -> event.place?.let { EventPlaceView(it, directionsUriForAddress(it)) }
-    PlaceKind.Other -> event.place?.let { EventPlaceView(it, if (placesOn) directionsUri(it) else null) }
+    PlaceKind.Address -> place?.let { EventPlaceView(it, directionsUriForAddress(it)) }
+    PlaceKind.Other -> place?.let { EventPlaceView(it, if (placesOn) directionsUri(it) else null) }
 }

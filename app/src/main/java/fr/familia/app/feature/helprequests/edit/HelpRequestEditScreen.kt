@@ -98,8 +98,10 @@ import fr.familia.app.R
 import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.mention.MentionTextField
 import fr.familia.app.core.model.HelpKind
+import fr.familia.app.core.model.Household
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
+import fr.familia.app.core.model.PlaceKind
 import fr.familia.app.core.photo.PhotoField
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.theme.LocalClayColors
@@ -112,6 +114,7 @@ import fr.familia.app.core.ui.PickGroup
 import fr.familia.app.core.ui.householdState
 import fr.familia.app.core.ui.toggleHousehold
 import fr.familia.app.core.ui.toggleMember
+import fr.familia.app.core.ui.form.PlaceChooser
 import fr.familia.app.core.ui.formatTime
 import fr.familia.app.feature.feed.FeedTone
 import fr.familia.app.feature.helprequests.kindLabel
@@ -265,18 +268,17 @@ private fun FormContent(
         Tile(Icons.Outlined.CalendarMonth, stringResource(R.string.helprequest_when), Modifier.bringIntoViewRequester(time)) {
             WhenFields(form, errors, onChange)
         }
-        // « Où » with « Chez un foyer » comes next (récit 76): the place stays a text until then.
+        // « Où » like the events (récit 74, Kévin 20/11): chez un foyer, une adresse, or autre.
         Tile(Icons.Outlined.Place, stringResource(R.string.helprequest_where), Modifier.bringIntoViewRequester(place)) {
-            OutlinedTextField(
-                value = form.place,
-                onValueChange = { value -> onChange { it.copy(place = value) } },
-                label = { Text(stringResource(R.string.event_place)) },
-                isError = HelpFormError.PlaceTooLong in errors,
-                supportingText = errorText(errors, HelpFormError.PlaceTooLong),
-                singleLine = true,
-                enabled = !state.isSaving,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                modifier = Modifier.fillMaxWidth(),
+            PlaceChooser(
+                kind = form.placeKind,
+                onKind = { kind -> onChange { it.withPlaceKind(kind) } },
+                households = state.households,
+                householdId = form.placeHouseholdId,
+                onHousehold = { household -> onChange { it.atHousehold(household) } },
+                text = form.place,
+                onText = { text -> onChange { it.copy(place = text) } },
+                error = errorMessage(errors, HelpFormError.PlaceTooLong),
             )
         }
         if (state.targets.size > 1) {
@@ -678,18 +680,25 @@ private fun NotifyFields(state: HelpRequestEditUiState.Editing, onPick: (Set<Str
 }
 
 @Composable
+private fun errorMessage(errors: Set<HelpFormError>, kind: HelpFormError): String? =
+    if (kind in errors) errorString(kind) else null
+
+@Composable
+private fun errorString(error: HelpFormError): String = when (error) {
+    HelpFormError.TitleMissing -> stringResource(R.string.error_event_title_missing)
+    HelpFormError.TitleTooLong -> stringResource(R.string.error_event_title_too_long)
+    HelpFormError.DateMissing -> stringResource(R.string.error_event_date_missing)
+    HelpFormError.DatePast -> stringResource(R.string.helprequest_error_date_past)
+    HelpFormError.EndBeforeStart -> stringResource(R.string.helprequest_error_end_before_start)
+    HelpFormError.PlaceTooLong -> stringResource(R.string.error_event_place_too_long)
+    HelpFormError.NoteTooLong -> stringResource(R.string.error_event_note_too_long)
+    HelpFormError.NobodyWarned -> stringResource(R.string.helprequest_error_nobody)
+}
+
+@Composable
 private fun errorText(errors: Set<HelpFormError>, vararg kinds: HelpFormError): (@Composable () -> Unit)? {
     val error = kinds.firstOrNull { it in errors } ?: return null
-    val message = when (error) {
-        HelpFormError.TitleMissing -> stringResource(R.string.error_event_title_missing)
-        HelpFormError.TitleTooLong -> stringResource(R.string.error_event_title_too_long)
-        HelpFormError.DateMissing -> stringResource(R.string.error_event_date_missing)
-        HelpFormError.DatePast -> stringResource(R.string.helprequest_error_date_past)
-        HelpFormError.EndBeforeStart -> stringResource(R.string.helprequest_error_end_before_start)
-        HelpFormError.PlaceTooLong -> stringResource(R.string.error_event_place_too_long)
-        HelpFormError.NoteTooLong -> stringResource(R.string.error_event_note_too_long)
-        HelpFormError.NobodyWarned -> stringResource(R.string.helprequest_error_nobody)
-    }
+    val message = errorString(error)
     return { Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
 }
 
@@ -715,12 +724,16 @@ internal fun previewHelpRequestEdit(errors: Set<HelpFormError> = emptySet()): He
             endTime = LocalTime.of(18, 0),
             forMemberId = "noe",
             notifyIds = setOf("ines"),
+            place = "Foyer Martin",
+            placeKind = PlaceKind.Household,
+            placeHouseholdId = "h1",
         ),
         isNew = true,
         targets = listOf(me, kid),
         adults = adults,
         shortcuts = listOf(NotifyShortcut(null, adults.map { it.id }.toSet())),
         groups = listOf(PickGroup("Foyer Martin", listOf(adults[1])), PickGroup("Foyer Petit", listOf(adults[0], adults[2]))),
+        households = listOf(Household("h1", "Foyer Martin", "3 rue des Lilas, Nantes"), Household("h2", "Foyer Petit")),
         lockedIds = setOf("jules"),
         errors = errors,
     )

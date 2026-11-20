@@ -8,6 +8,7 @@ import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.HelpRequest
 import fr.familia.app.core.model.HelpStatus
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.model.PlaceKind
 import fr.familia.app.core.model.helpRequestPhotoBase
 import fr.familia.app.core.photo.PhotoEdit
 import fr.familia.app.core.photo.SinglePhotoSaver
@@ -106,7 +107,7 @@ class HelpRequestEditViewModel(
             )
         }
         // Only adults who are still in the family can stay ticked.
-        initialForm = form.copy(notifyIds = form.notifyIds.intersect(adultIds))
+        initialForm = form.copy(notifyIds = form.notifyIds.intersect(adultIds)).withCurrentHousehold(loaded.family)
         val authorId = existing?.authorId ?: current.id
         _uiState.value = HelpRequestEditUiState.Editing(
             form = initialForm,
@@ -115,6 +116,7 @@ class HelpRequestEditViewModel(
             adults = adults,
             shortcuts = shortcuts(adults),
             groups = notifyGroups(adults, loaded.family, current),
+            households = loaded.family.households.sortedBy { it.name.lowercase() },
             lockedIds = locked(authorId, initialForm.forMemberId, existing),
             errors = emptySet(),
             storedPhoto = existing?.photo,
@@ -179,6 +181,7 @@ class HelpRequestEditViewModel(
         val form = state.form
         val authorId = existing?.authorId ?: author.id
         val notifyIds = (form.notifyIds + state.lockedIds - authorId).sorted()
+        val (place, placeKind, placeHouseholdId) = form.savedPlace()
         fun request(photo: String?) = HelpRequest(
             id = editedId,
             kind = form.kind,
@@ -186,7 +189,9 @@ class HelpRequestEditViewModel(
             date = requireNotNull(form.date),
             startTime = form.startTime,
             endTime = form.endTime,
-            place = form.place.trim().ifEmpty { null },
+            place = place,
+            placeKind = placeKind,
+            placeHouseholdId = placeHouseholdId,
             note = form.note.trim().ifEmpty { null },
             // Only who is warned can be named: the others would not see the request.
             mentionIds = if (form.note.isBlank()) emptyList() else form.mentionIds.filter { it in notifyIds }.distinct(),
@@ -264,4 +269,15 @@ internal fun notifyGroups(adults: List<Member>, family: Family, me: Member): Lis
     }
     val rest = adults.filter { it.householdId !in known }.sortedWith(byName)
     return if (rest.isEmpty()) groups else groups + PickGroup("", rest)
+}
+
+/**
+ * « Chez un foyer » shows the household's name as it is now; a household gone leaves the name that
+ * was saved, as a plain text (« Autre »).
+ */
+private fun HelpRequestForm.withCurrentHousehold(family: Family): HelpRequestForm {
+    if (placeKind != PlaceKind.Household) return this
+    val household = family.households.firstOrNull { it.id == placeHouseholdId }
+        ?: return copy(placeKind = PlaceKind.Other, placeHouseholdId = null)
+    return atHousehold(household)
 }

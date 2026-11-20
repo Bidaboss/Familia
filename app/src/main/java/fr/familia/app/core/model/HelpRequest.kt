@@ -66,6 +66,10 @@ data class HelpRequest(
     val pending: Boolean = false,
     /** The members named « @Prénom » in [note] (Kévin, 19/11), all among [notifyIds]. */
     val mentionIds: List<String> = emptyList(),
+    /** What [place] is (récit 74, Kévin 20/11): free text, an address, or a household of the family. */
+    val placeKind: PlaceKind = PlaceKind.Other,
+    /** The household of « Chez un foyer »; [place] then holds its name. */
+    val placeHouseholdId: String? = null,
 )
 
 /** helpRequests/{requestId}/{memberId}/{photoId}: sent by [memberId], removed by the server with the request. */
