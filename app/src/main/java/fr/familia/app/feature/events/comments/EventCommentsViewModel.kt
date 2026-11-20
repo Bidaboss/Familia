@@ -33,6 +33,8 @@ data class EventCommentsUiState(
     val hasMore: Boolean = false,
     val isLoading: Boolean = true,
     val draft: String = "",
+    /** The members named « @Prénom » in [draft] so far. */
+    val draftMentionIds: List<String> = emptyList(),
     val isSending: Boolean = false,
     /** « Ne plus être prévenu » for this event. */
     val muted: Boolean = false,
@@ -59,6 +61,7 @@ class EventCommentsViewModel(
 ) : ViewModel() {
 
     private val draft = savedState.getStateFlow(DRAFT, "")
+    private val draftMentions = savedState.getStateFlow(DRAFT_MENTIONS, arrayListOf<String>())
     private val limit = savedState.getStateFlow(LIMIT, EventComment.PAGE)
     private val sending = MutableStateFlow(false)
     private val problem = MutableStateFlow<EventCommentProblem?>(null)
@@ -69,9 +72,11 @@ class EventCommentsViewModel(
             MutableStateFlow(EventCommentsUiState(isLoading = false)) // Firebase not configured (previews).
         } else {
             val page = limit.flatMapLatest { comments.observe(eventId, it) }
-            val local = combine(draft, sending, problem) { text, isSending, issue -> Triple(text, isSending, issue) }
+            val typed = combine(draft, draftMentions) { text, ids -> text to ids.toList() }
+            val local = combine(typed, sending, problem) { text, isSending, issue -> Triple(text, isSending, issue) }
             combine(page, members.observeFamily(), comments.observeMuted(eventId, currentMemberId), local) {
-                    shown: CommentPage, family, muted, (text, isSending, issue) ->
+                    shown: CommentPage, family, muted, (typedNow, isSending, issue) ->
+                val (text, mentionIds) = typedNow
                 val current = family.members.firstOrNull { it.id == currentMemberId }
                 me = current
                 EventCommentsUiState(
@@ -85,6 +90,7 @@ class EventCommentsViewModel(
                     hasMore = shown.hasMore,
                     isLoading = false,
                     draft = text,
+                    draftMentionIds = mentionIds,
                     isSending = isSending,
                     muted = muted,
                     problem = issue,
@@ -94,8 +100,10 @@ class EventCommentsViewModel(
                 .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), EventCommentsUiState())
         }
 
-    fun type(text: String) {
+    /** [mentionIds]: the members still named « @Prénom » in [text]. */
+    fun type(text: String, mentionIds: List<String> = emptyList()) {
         savedState[DRAFT] = text.take(EventComment.MAX_TEXT)
+        savedState[DRAFT_MENTIONS] = ArrayList(mentionIds.distinct())
         problem.value = null
     }
 
@@ -110,11 +118,13 @@ class EventCommentsViewModel(
         val state = uiState.value
         if (!state.canSend) return
         val text = state.draft.trim()
+        val mentionIds = state.draftMentionIds
         sending.value = true
         viewModelScope.launch {
             try {
-                withTimeoutOrNull(writeTimeoutMillis) { repo.add(eventId, text, author) }
+                withTimeoutOrNull(writeTimeoutMillis) { repo.add(eventId, text, author, mentionIds) }
                 savedState[DRAFT] = ""
+                savedState[DRAFT_MENTIONS] = arrayListOf<String>()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -126,12 +136,12 @@ class EventCommentsViewModel(
     }
 
     /** Returns false when [text] cannot be saved (empty or too long), so the dialog stays open. */
-    fun edit(row: EventCommentRow, text: String): Boolean {
+    fun edit(row: EventCommentRow, text: String, mentionIds: List<String> = emptyList()): Boolean {
         val repo = comments ?: return false
         val clean = text.trim()
         if (!row.canEdit || clean.isEmpty() || clean.length > EventComment.MAX_TEXT) return false
-        if (clean == row.comment.text) return true
-        write(EventCommentProblem.EditFailed) { repo.edit(eventId, row.comment.id, clean) }
+        if (clean == row.comment.text && mentionIds.toSet() == row.comment.mentionIds.toSet()) return true
+        write(EventCommentProblem.EditFailed) { repo.edit(eventId, row.comment.id, clean, mentionIds.distinct()) }
         return true
     }
 
@@ -166,6 +176,7 @@ class EventCommentsViewModel(
 
     private companion object {
         const val DRAFT = "event_comment_draft"
+        const val DRAFT_MENTIONS = "event_comment_draft_mentions"
         const val LIMIT = "event_comment_limit"
     }
 }

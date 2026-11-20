@@ -16,6 +16,8 @@ data class EventComment(
     val createdAt: Instant?,
     /** Set when its author changed the text. */
     val editedAt: Instant? = null,
+    /** The members named « @Prénom » in [text] (Kévin, 19/11), each told once. */
+    val mentionIds: List<String> = emptyList(),
 ) {
     companion object {
         const val MAX_TEXT = 500

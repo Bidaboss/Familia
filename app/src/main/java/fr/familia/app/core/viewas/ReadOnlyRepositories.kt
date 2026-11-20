@@ -190,8 +190,8 @@ class ReadOnlyBringRepository(private val inner: BringRepository, private val gu
 
 class ReadOnlyEventCommentRepository(private val inner: EventCommentRepository, private val guard: ViewAsGuard) : EventCommentRepository {
     override fun observe(eventId: String, limit: Int): Flow<CommentPage> = inner.observe(eventId, limit)
-    override suspend fun add(eventId: String, text: String, me: Member) = guard.refuse()
-    override suspend fun edit(eventId: String, commentId: String, text: String) = guard.refuse()
+    override suspend fun add(eventId: String, text: String, me: Member, mentionIds: List<String>) = guard.refuse()
+    override suspend fun edit(eventId: String, commentId: String, text: String, mentionIds: List<String>) = guard.refuse()
     override suspend fun delete(eventId: String, commentId: String) = guard.refuse()
     override fun observeMuted(eventId: String, memberId: String): Flow<Boolean> = inner.observeMuted(eventId, memberId)
     override suspend fun setMuted(eventId: String, memberId: String, muted: Boolean) = guard.refuse()
@@ -282,7 +282,7 @@ class ReadOnlyRecipeRepository(private val inner: RecipeRepository, private val 
     override suspend fun saveRecipe(recipe: Recipe, isNew: Boolean) = guard.refuse()
     override suspend fun deleteRecipe(id: String) = guard.refuse()
     override fun observeComments(recipeId: String): Flow<List<RecipeComment>> = inner.observeComments(recipeId)
-    override suspend fun addComment(recipeId: String, text: String, me: Member) = guard.refuse()
+    override suspend fun addComment(recipeId: String, text: String, me: Member, mentionIds: List<String>) = guard.refuse()
     override suspend fun deleteComment(recipeId: String, commentId: String) = guard.refuse()
 }
 

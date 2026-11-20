@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddAPhoto
@@ -39,7 +38,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -51,6 +49,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -63,12 +62,14 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import fr.familia.app.R
 import fr.familia.app.core.photo.keepPhotoAccess
-import fr.familia.app.core.ui.HouseholdMemberPicker
+import fr.familia.app.core.mention.MentionTextField
+import fr.familia.app.core.mention.mentionedIds
 import fr.familia.app.core.ui.pickGroups
 import fr.familia.app.core.model.GoodNews
 import fr.familia.app.core.model.Member
@@ -177,9 +178,22 @@ private fun Form(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        OutlinedTextField(
-            value = form.text,
-            onValueChange = onText,
+        // « @Prénom » in the text names a member (Kévin, 19/11). Members named before, by the old
+        // checkboxes, are kept as they were.
+        val named = state.candidates.filter { it.id in form.mentionIds }
+        val legacy = remember(state.existing?.id) { form.mentionIds - mentionedIds(form.text, named) }
+        var field by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue(form.text, TextRange(form.text.length))) }
+        val value = if (field.text == form.text) field else TextFieldValue(form.text, TextRange(form.text.length))
+        MentionTextField(
+            value = value,
+            onChange = { next, stillNamed ->
+                field = next
+                if (next.text != form.text) onText(next.text)
+                val ids = legacy + stillNamed.map { it.id }
+                if (ids != form.mentionIds) onMentions(ids)
+            },
+            groups = state.mentionGroups,
+            chosen = named,
             label = { Text(stringResource(R.string.goodnews_text_field)) },
             placeholder = { Text(stringResource(R.string.goodnews_text_hint)) },
             isError = GoodNewsFormError.TextMissing in errors || GoodNewsFormError.TextTooLong in errors,
@@ -193,9 +207,10 @@ private fun Form(
             },
             minLines = 3,
             enabled = !state.isSaving,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
         )
+        if (state.candidates.isNotEmpty()) {
+            Text(stringResource(R.string.goodnews_mentions), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
 
         SectionTitle(stringResource(R.string.goodnews_photos))
         if (state.isNew) {
@@ -218,11 +233,6 @@ private fun Form(
             MemberChips(state.targets, setOf(form.forMemberId), enabled = !state.isSaving, onClick = onFor) { member ->
                 if (member.id == state.targets.first().id) stringResource(R.string.goodnews_for_me) else member.firstName
             }
-        }
-
-        if (state.candidates.isNotEmpty()) {
-            SectionTitle(stringResource(R.string.goodnews_mentions))
-            HouseholdMemberPicker(state.mentionGroups, form.mentionIds, onChange = onMentions, enabled = !state.isSaving)
         }
 
         if (littleOnes != null && state.isNew && form.forMemberId != state.targets.first().id) {

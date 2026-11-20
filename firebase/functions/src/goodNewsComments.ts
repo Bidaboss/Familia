@@ -8,6 +8,7 @@
 
 import { FieldValue, type Firestore } from 'firebase-admin/firestore';
 import { GoodNewsNotice, GoodNewsSender, preview } from './goodNews';
+import { mentionTitle, namedIn } from './mentions';
 import { deliver, noticeTime } from './prefs';
 import { featureAudience } from './store';
 
@@ -15,6 +16,8 @@ export interface GoodNewsCommentData {
   text: string;
   authorId: string;
   authorName: string;
+  /** The members named « @Prénom » (Kévin, 19/11). */
+  mentionIds?: string[];
 }
 
 /** What the server reads of the news to choose whom to tell. */
@@ -44,12 +47,21 @@ export function goodNewsCommentMessages(
   withApp: Set<string>,
 ): GoodNewsCommentMessage[] {
   const hidden = new Set(news.hiddenByIds ?? []);
+  // Who is named hears it once, as « t'a nommé », even with the comments muted; never once the
+  // news is hidden for them.
+  const named = namedIn(comment, withApp).filter((id) => !hidden.has(id));
   const keep = (id: string | undefined): id is string =>
-    typeof id === 'string' && id !== comment.authorId && withApp.has(id) && !mutedIds.has(id) && !hidden.has(id);
+    typeof id === 'string' && id !== comment.authorId && withApp.has(id) && !mutedIds.has(id) && !hidden.has(id) && !named.includes(id);
   const owners = [...new Set([news.authorId, news.forMemberId].filter(keep))].sort();
   const others = [...new Set(earlierIds.filter(keep))].filter((id) => !owners.includes(id)).sort();
   const body = preview(comment.text);
   const messages: GoodNewsCommentMessage[] = [];
+  if (named.length > 0) {
+    messages.push({
+      recipientIds: named,
+      notice: { channel: 'comments', title: mentionTitle(comment.authorName), body, goodNewsId: postId, direct: true },
+    });
+  }
   if (owners.length > 0) {
     messages.push({
       recipientIds: owners,
