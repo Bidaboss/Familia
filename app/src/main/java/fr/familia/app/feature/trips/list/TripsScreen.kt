@@ -262,7 +262,7 @@ private fun LazyListScope.rows(title: Int, key: String, trips: List<TripSummary>
             stringResource(title),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            color = Color.White,
+            color = TripPathColors.Ink,
             modifier = Modifier.fillMaxWidth().background(ground).padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp).semantics { heading() },
         )
     }
