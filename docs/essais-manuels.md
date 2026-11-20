@@ -548,6 +548,17 @@ Avec l'interrupteur « Partager » allumé :
 3. Sur le téléphone d'un membre non prévenu, la demande n'apparaît pas, et la photo non plus.
 4. Modifie la demande, touche « Retirer la photo », enregistre : elle disparaît pour tout le monde.
 
+## « Demander un coup de main » refait (récit 76, DESIGN-48 A)
+1. Entraide, « Demander un coup de main » : une seule page sur le fond du thème, avec le rond blanc « Retour » et six tuiles blanches à bord lilas. Le bouton noir reste en bas et compte les personnes : « Envoyer à 3 personnes ».
+2. « De quoi as-tu besoin ? » : Garde, Trajet ou Autre. La tuile choisie est lilas pâle, avec un contour noir et une coche.
+3. « Ta question » : laisse-la vide et touche Envoyer. Le message rouge s'affiche sous le champ, et l'écran remonte jusqu'à lui.
+4. « Précisions » : tape « @ », puis les premières lettres d'une personne cochée dans « Qui prévenir ». Choisis-la : son prénom passe en gras. Une personne non cochée n'est pas proposée. Envoie : elle reçoit « … t'a nommé dans « … » » au lieu de la notification habituelle.
+5. « Quand » : touche « Demain », puis « Autre jour » pour ouvrir le calendrier. « De » et « À » ouvrent l'horloge, et la croix retire l'heure.
+6. « Pour qui » (parent seulement) : la photo choisie est nette et cochée, les autres sont pâlies.
+7. « Qui prévenir » : « Toute la famille » coche tout le monde. La case d'un foyer est cochée, vide ou à moitié cochée. Un parent toujours prévenu porte un cadenas et « · toujours », et ne se décoche pas.
+8. Modifie une demande : le bouton devient « Enregistrer ».
+9. Police à 130 % : les tuiles Garde, Trajet et Autre passent sur deux lignes, et les jours vont à la ligne. À 200 %, tout défile. TalkBack lit les titres des tuiles comme des titres.
+
 ## L'écran Défis (R1 bis, maquette R7)
 
 1. Ouvre « Défis » depuis Tout Familia. En haut, la carte noire : « DÉFI DE DÉCEMBRE », le défi, la jauge jaune et « On le réussit ensemble, sans classement ». Avant décembre : « Premier défi le 1er décembre ».

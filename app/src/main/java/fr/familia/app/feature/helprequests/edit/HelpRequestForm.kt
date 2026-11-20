@@ -15,6 +15,8 @@ data class HelpRequestForm(
     val endTime: LocalTime? = null,
     val place: String = "",
     val note: String = "",
+    /** The members named « @Prénom » in [note] (Kévin, 19/11). */
+    val mentionIds: List<String> = emptyList(),
     val forMemberId: String = "",
     /** The people ticked, without those who are always warned (see [HelpRequestEditUiState.Editing.lockedIds]). */
     val notifyIds: Set<String> = emptySet(),
@@ -31,6 +33,7 @@ data class HelpRequestForm(
             endTime = request.endTime,
             place = request.place.orEmpty(),
             note = request.note.orEmpty(),
+            mentionIds = request.mentionIds,
             forMemberId = request.forMemberId,
             notifyIds = request.notifyIds.toSet(),
         )

@@ -188,6 +188,8 @@ class HelpRequestEditViewModel(
             endTime = form.endTime,
             place = form.place.trim().ifEmpty { null },
             note = form.note.trim().ifEmpty { null },
+            // Only who is warned can be named: the others would not see the request.
+            mentionIds = if (form.note.isBlank()) emptyList() else form.mentionIds.filter { it in notifyIds }.distinct(),
             authorId = authorId,
             authorName = existing?.authorName ?: author.firstName,
             forMemberId = form.forMemberId,

@@ -64,6 +64,8 @@ data class HelpRequest(
     val photo: String? = null,
     /** Changed on this phone without network (« Je m'en occupe »…): it goes by itself, once, when the network is back. */
     val pending: Boolean = false,
+    /** The members named « @Prénom » in [note] (Kévin, 19/11), all among [notifyIds]. */
+    val mentionIds: List<String> = emptyList(),
 )
 
 /** helpRequests/{requestId}/{memberId}/{photoId}: sent by [memberId], removed by the server with the request. */

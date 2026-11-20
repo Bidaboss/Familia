@@ -47,7 +47,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -141,12 +141,12 @@ fun GiftListScreen(state: GiftListUiState, actions: GiftListActions, modifier: M
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(
+            FamiliaTopBar(
                 title = {
                     Text(
                         success?.let { listTitle(it.list, it.beneficiary.firstName, it.isMine) }
                             ?: stringResource(R.string.gift_list_title),
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                 },

@@ -31,7 +31,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -89,9 +89,9 @@ fun NotebookIdeaScreen(
     }
     Scaffold(
         topBar = {
-            TopAppBar(
+            FamiliaTopBar(
                 title = {
-                    Text(stringResource(if (editing?.isNew == false) R.string.notebook_idea_edit_title else R.string.notebook_idea_new_title), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(stringResource(if (editing?.isNew == false) R.string.notebook_idea_edit_title else R.string.notebook_idea_new_title), maxLines = 2, overflow = TextOverflow.Ellipsis)
                 },
                 navigationIcon = { BackButton(onClick = { if (hasChanges) confirmLeave = true else onBack() }) },
                 actions = { HelpButton(ScreenHelp.Notebook) },
