@@ -42,7 +42,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.semantics.Role
 import androidx.compose.material3.Switch
@@ -107,8 +107,8 @@ fun GoodNewsEditScreen(
     BackHandler(enabled = hasContent && editing?.isSaving == false) { confirmLeave = true }
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(if (editing?.isNew == false) R.string.goodnews_edit_title else R.string.goodnews_publish_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            FamiliaTopBar(
+                title = { Text(stringResource(if (editing?.isNew == false) R.string.goodnews_edit_title else R.string.goodnews_publish_title), maxLines = 2, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
                     BackButton(onClick = { if (hasContent && editing?.isSaving == false) confirmLeave = true else if (editing?.isSaving != true) onBack() })
                 },

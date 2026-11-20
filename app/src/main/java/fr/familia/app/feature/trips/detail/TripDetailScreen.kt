@@ -10,7 +10,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,11 +46,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -123,32 +123,23 @@ fun TripDetailScreen(
     val path = illustrated && success != null
     Scaffold(
         topBar = {
-            TopAppBar(
+            FamiliaTopBar(
                 title = {
                     if (path && success != null) {
                         PathTitle(success)
                     } else {
-                        Text(success?.trip?.title ?: stringResource(R.string.trip_title), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(success?.trip?.title ?: stringResource(R.string.trip_title), maxLines = 2, overflow = TextOverflow.Ellipsis)
                     }
                 },
                 navigationIcon = { BackButton(onClick = onBack) },
-                colors = if (path) {
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = success?.trip?.landscape?.palette?.sky ?: TripPathColors.Sky,
-                        scrolledContainerColor = success?.trip?.landscape?.palette?.sky ?: TripPathColors.Sky,
-                        navigationIconContentColor = TripPathColors.Ink,
-                        titleContentColor = TripPathColors.Ink,
-                        actionIconContentColor = TripPathColors.Ink,
-                    )
-                } else {
-                    TopAppBarDefaults.topAppBarColors()
-                },
+                // The sky of the trip's landscape goes on under the bar (récit 81).
+                containerColor = if (path) success?.trip?.landscape?.palette?.sky ?: TripPathColors.Sky else Color.Transparent,
+                contentColor = if (path) TripPathColors.Ink else Color.Unspecified,
                 actions = {
                     if (success?.canManage == true) {
                         TextButton(
                             onClick = onEditTrip,
                             modifier = Modifier.heightIn(min = 56.dp),
-                            colors = if (path) ButtonDefaults.textButtonColors(contentColor = TripPathColors.Ink) else ButtonDefaults.textButtonColors(),
                         ) {
                             Text(stringResource(R.string.trip_edit))
                         }
