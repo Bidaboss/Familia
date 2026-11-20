@@ -61,6 +61,9 @@ class TripViewModelsTest {
         assertEquals(listOf("later"), state.upcoming.map { it.trip.id })
         assertEquals(listOf("before"), state.past.map { it.trip.id })
         assertEquals(listOf("Adult1", "Adult2"), state.ongoing.single().participants)
+        // The faces of the list (récit 80), and « Comptes » only for those who take part.
+        assertEquals(listOf("Adult1", "Adult2"), state.ongoing.single().people.map { it.firstName })
+        assertFalse(state.ongoing.single().isParticipant)
         assertFalse(state.canCreate) // kid1 is a child: no « Nouveau voyage »
     }
 

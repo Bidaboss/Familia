@@ -1,5 +1,7 @@
 package fr.familia.app.feature.trips.detail
 
+import fr.familia.app.feature.trips.list.TripPart
+
 import fr.familia.app.core.share.tripShare
 import fr.familia.app.core.share.share
 import fr.familia.app.core.ui.LocalFeatureFlags
@@ -31,6 +33,8 @@ fun TripDetailRoute(
     onBack: () -> Unit,
     /** « Comptes du voyage » (récit 16 bis): null while the switch is off or for a child. */
     onOpenExpenses: (() -> Unit)? = null,
+    /** The part to show first, from the list (récit 80); null: the top. */
+    openAt: TripPart? = null,
 ) {
     val viewModel: TripDetailViewModel = viewModel(
         key = "trip-$tripId",
@@ -74,6 +78,7 @@ fun TripDetailRoute(
         photoActions = photoActions,
         onOpenExpenses = onOpenExpenses,
         illustrated = true,
+        openAt = openAt,
         onSeePhotos = onSeePhotos,
         onShare = shown?.takeIf { shareOn && it.canShare }?.let { success -> { share(context, tripShare(context, success.trip, success.today)) } },
     )

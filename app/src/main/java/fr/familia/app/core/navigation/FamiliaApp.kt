@@ -299,6 +299,7 @@ import fr.familia.app.feature.trips.TripPhotosDestination
 import fr.familia.app.feature.yearago.MemoryAlbum
 import fr.familia.app.feature.trips.TripStepEditDestination
 import fr.familia.app.feature.trips.TripsDestination
+import fr.familia.app.feature.trips.list.TripPart
 import fr.familia.app.feature.trips.detail.TripDetailRoute
 import fr.familia.app.feature.trips.edit.TripEditRoute
 import fr.familia.app.feature.trips.list.TripsRoute
@@ -1116,6 +1117,16 @@ fun FamiliaApp(
                             onAddTrip = { navController.navigate(TripEditDestination()) },
                             onBack = { navController.popBackStack() },
                             onOpenAlbums = if (features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums)) ({ navController.navigate(AlbumsDestination) { launchSingleTop = true } }) else null,
+                            // Étapes, À prévoir, Comptes of the next trip (récit 80): « Comptes » opens over the trip, so back leads to it.
+                            onOpenPart = { id, part ->
+                                if (part == TripPart.Expenses) {
+                                    navController.navigate(TripDetailDestination(id))
+                                    navController.navigate(TripExpensesDestination(id))
+                                } else {
+                                    navController.navigate(TripDetailDestination(id, part.name))
+                                }
+                            },
+                            expensesOn = features.isOn(Feature.Expenses) && currentMember.profile == MemberProfile.Adult,
                         )
                     }
                     composable<TripDetailDestination> { entry ->
@@ -1124,6 +1135,7 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             tripId = tripId,
+                            openAt = entry.toRoute<TripDetailDestination>().open?.let { name -> TripPart.entries.firstOrNull { it.name == name } },
                             onEditTrip = { navController.navigate(TripEditDestination(tripId)) },
                             onAddStep = { navController.navigate(TripStepEditDestination(tripId)) },
                             onEditStep = { stepId -> navController.navigate(TripStepEditDestination(tripId, stepId)) },

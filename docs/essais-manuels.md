@@ -1455,4 +1455,15 @@ Un téléphone avec l'appli d'avant, puis « APK de publication » lancé pour u
 3. Touche « Ajouter l'objet » sans rien remplir. **Attendu :** la page remonte à « L'objet », et « Donne un nom à l'objet. » s'affiche sous le nom, puis « Choisis une catégorie. » sous les catégories.
 4. Catégorie : **Attendu :** 6 tuiles avec une icône (Cuisine, Bricolage et jardin, Bébé et enfants, Sport et loisirs, Voyage, Autre), sur 3 colonnes, ou 2 avec le texte à 130 %. La tuile choisie devient lilas, avec une coche. TalkBack les lit comme des cases d'option.
 5. Modifie un objet qui a une photo. **Attendu :** sa photo est en haut, et le bouton dit « Enregistrer ».
+## Liste « Voyages » en chemin (récit 80, DESIGN-52 B)
+
+1. Accueil ou Planning, Voyages. **Attendu :** fond ciel, quel que soit le thème. En haut, le rond Retour, « Voyages » et le rond « ? ». Dessous, la bascule « À venir | Souvenirs » avec le nombre de voyages passés en jaune. En bas, le bouton noir « + Nouveau voyage » (adultes seulement).
+2. « À venir » avec un voyage prévu. **Attendu :** le grand paysage, avec un chemin qui part d'« Aujourd'hui » et monte jusqu'au drapeau, et la bulle « Dans N jours ». Posée sur la dune, la carte « PROCHAIN VOYAGE » montre le titre, « Du dim. 11 au ven. 16 avril 2027 · 6 jours », les visages et les prénoms.
+3. Touche le titre de la carte. **Attendu :** le voyage s'ouvre. Touche « Étapes » : le voyage s'ouvre sur le carnet du jour. « À prévoir » : il s'ouvre sur ce qu'il faut emporter. « Comptes » (participant adulte, Comptes allumé) : les comptes s'ouvrent, et Retour ramène au voyage.
+4. Avec plusieurs voyages à venir. **Attendu :** seul le plus proche est dans le paysage. Les autres sont sous « Ensuite », triés par date, une ligne blanche chacun, avec une petite vignette du paysage et la pastille « Dans N jours ».
+5. Pendant un voyage. **Attendu :** « EN CE MOMENT » sur la carte, la bulle « Jour 3 sur 6 », et le rond du jour en jaune sur le chemin. Si deux voyages ont lieu en même temps, l'autre s'affiche sous « En ce moment ».
+6. Sans voyage à venir. **Attendu :** le chemin mène à un point d'interrogation, avec « Et la prochaine aventure ? ».
+7. « Souvenirs ». **Attendu :** les voyages passés sur 2 colonnes, du plus récent au plus ancien, avec le paysage pâli, le titre et « Août 2026 · 8 jours ». Sur 1 colonne avec le texte à 130 %.
+8. Un voyage surprise que je ne dois pas voir. **Attendu :** il n'apparaît ni dans « À venir », ni dans « Souvenirs ».
+9. TalkBack sur la carte. **Attendu :** « La Palmyre, du dimanche 11 avril 2027 au vendredi 16 avril 2027, dans 142 jours, avec Inès, Hugo et Noé ».
 

@@ -26,9 +26,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import java.time.LocalDate
 
-/** One trip of the list, with the first names of its participants. */
-data class TripSummary(val trip: Trip, val participants: List<String>)
-
 sealed interface TripsUiState {
     data object Loading : TripsUiState
     data object Error : TripsUiState
@@ -79,7 +76,15 @@ class TripsViewModel(
     }
 
     private fun state(list: List<Trip>, family: Family, day: LocalDate): TripsUiState {
-        val byPhase = list.map { TripSummary(it, firstNames(it.participantIds, family)) }
+        val byId = family.members.associateBy { it.id }
+        val byPhase = list.map { trip ->
+            TripSummary(
+                trip,
+                firstNames(trip.participantIds, family),
+                people = trip.participantIds.mapNotNull { byId[it] },
+                isParticipant = currentMemberId in trip.participantIds,
+            )
+        }
             .groupBy { tripPhase(it.trip, day) }
         return TripsUiState.Success(
             ongoing = byPhase[TripPhase.Ongoing].orEmpty(),

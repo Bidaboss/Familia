@@ -49,12 +49,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.feature.trips.list.TripPart
 import fr.familia.app.core.album.AlbumPhotosSection
 import fr.familia.app.core.album.AlbumPhotosUiState
 import fr.familia.app.core.album.PhotoActions
@@ -114,6 +116,8 @@ fun TripDetailScreen(
      * in « À emporter », with these bags under it. Null: the checklist as before.
      */
     packing: (@Composable () -> Unit)? = null,
+    /** The part to show first (récit 80: « Étapes » or « À prévoir » from the list); null: the top. */
+    openAt: TripPart? = null,
 ) {
     val success = state as? TripDetailUiState.Success
     val path = illustrated && success != null
@@ -184,7 +188,7 @@ fun TripDetailScreen(
                     },
                 )
                 is TripDetailUiState.Success -> if (illustrated) {
-                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing)
+                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt)
                 } else {
                     Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing)
                 }
@@ -289,6 +293,7 @@ private fun PathContent(
     onOpenExpenses: (() -> Unit)?,
     onSeePhotos: () -> Unit,
     packing: (@Composable () -> Unit)?,
+    openAt: TripPart? = null,
 ) {
     val days = remember(state.trip.startDate, state.trip.endDate) { TripDays.of(state.trip) }
     var chosenEpoch by rememberSaveable(state.trip.id) { mutableStateOf<Long?>(null) }
@@ -304,6 +309,19 @@ private fun PathContent(
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val notebookIndex = if (state.sendFailed) 4 else 3
+    // « À prévoir » comes after the title of the carnet and its steps (or the line that says there are none).
+    val checklistIndex = notebookIndex + 1 + daySteps.size.coerceAtLeast(1)
+    // Opened from « Étapes » or « À prévoir » of the list: that part first, once.
+    var opened by rememberSaveable(state.trip.id) { mutableStateOf(false) }
+    LaunchedEffect(openAt) {
+        if (opened || openAt == null) return@LaunchedEffect
+        opened = true
+        when (openAt) {
+            TripPart.Steps -> listState.scrollToItem(notebookIndex)
+            TripPart.ToBring -> listState.scrollToItem(checklistIndex)
+            TripPart.Expenses -> Unit
+        }
+    }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         state = listState,
