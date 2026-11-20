@@ -69,7 +69,7 @@ fun EventDetailRoute(
         // Deleted from the form opened here, or by someone else: back to the planning.
         if (state is EventDetailUiState.Success) wasShown = true
         if (state == EventDetailUiState.Missing && wasShown) onBack()
-                }
+    }
     val context = LocalContext.current
     val calendarOn = LocalFeatureFlags.current.isOn(Feature.Calendar)
     val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)

@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -81,6 +80,7 @@ import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.dayTitle
+import fr.familia.app.core.ui.form.ChipGroup
 import fr.familia.app.core.ui.form.FormChip
 import fr.familia.app.core.ui.form.FormTile
 import fr.familia.app.core.ui.form.FormTileShape
@@ -421,7 +421,8 @@ private fun AnswerRow(answerer: Answerer, onAnswer: (String, RsvpStatus) -> Unit
                 MemberAvatar(answerer.member, size = 40.dp)
                 Text(name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 10.dp, end = 4.dp))
             }
-            Row(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            // A FlowRow too: at 200 % on a small phone, « Non » goes to the next line instead of off screen.
+            ChipGroup {
                 RsvpStatus.entries.forEach { status ->
                     FormChip(
                         label = stringResource(status.shortLabel()),
