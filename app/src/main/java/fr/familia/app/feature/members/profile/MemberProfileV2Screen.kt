@@ -3,7 +3,6 @@ package fr.familia.app.feature.members.profile
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -62,7 +61,6 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
@@ -76,8 +74,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import fr.familia.app.R
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.photo.StorageImage
@@ -92,6 +88,7 @@ import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.core.ui.memberColor
 import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.members.photo.MemberPhotoEditor
+import fr.familia.app.feature.members.photo.MemberPhotoViewer
 import kotlinx.coroutines.launch
 
 /** What the new page needs besides the old one: its data, and where its rows lead. */
@@ -268,15 +265,21 @@ private fun Header(
             }
         }
     }
+    // The same full screen as the Famille tab, with its zoom (retour d'essai, 20/11: it opened too small here).
     if (fullPhoto && photo != null) {
-        Dialog(onDismissRequest = { fullPhoto = false }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-            Box(
-                Modifier.fillMaxSize().background(Color.Black).clickable(onClickLabel = stringResource(R.string.profile_v2_photo_close)) { fullPhoto = false },
-                contentAlignment = Alignment.Center,
-            ) {
-                Image(photo, contentDescription = stringResource(R.string.profile_v2_photo_of, member.firstName), modifier = Modifier.fillMaxWidth(), contentScale = ContentScale.Fit)
-            }
-        }
+        MemberPhotoViewer(
+            member = member,
+            photo = photo,
+            onDismiss = { fullPhoto = false },
+            onChange = if (onSavePhoto != null) {
+                {
+                    fullPhoto = false
+                    changePhoto = true
+                }
+            } else {
+                null
+            },
+        )
     }
     if (changePhoto && onSavePhoto != null) {
         MemberPhotoEditor(

@@ -1391,8 +1391,6 @@
     <string name="recipes_from_title">Recettes de %1$s</string>
     <!-- Récit 66 : la fiche de membre organisée. -->
     <string name="profile_v2_photo_open">Voir la photo de %1$s en grand</string>
-    <string name="profile_v2_photo_close">Fermer la photo</string>
-    <string name="profile_v2_photo_of">Photo de %1$s</string>
     <string name="profile_v2_age_and_birthday">%1$s · %2$s</string>
     <string name="profile_v2_birthday_in">anniversaire %1$s</string>
     <string name="profile_v2_birthday_today">anniversaire aujourd\'hui</string>
