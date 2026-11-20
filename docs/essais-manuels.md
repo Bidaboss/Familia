@@ -255,6 +255,15 @@ Après « Publier Firebase », allume « Défis expliqués » dans Administratio
 5. Dans le guide « Préparer le défi », écris un mot à l'étape 3, puis publie. **Attendu :** le mot apparaît dans « Comment ça marche » pour toute la famille. Sans mot, le texte automatique.
 6. Avec TalkBack, passe sur chaque carte. **Attendu :** TalkBack dit « bouton » et ce que fait la carte.
 
+## « Rejoignez-moi » revenu sur l'Accueil (Kévin, 20/11)
+
+Sans interrupteur nouveau, derrière « Lieux ». Deux téléphones, A et B.
+
+1. Sur A, « Dire où je suis », envoie ta position à B. **Attendu :** sur B, la notification « A : rejoins-moi ».
+2. Sur B, touche la notification. **Attendu :** l'Accueil s'ouvre avec, tout en haut au-dessus des jours, la tuile « Rejoignez-moi » : le prénom, l'heure, le lieu, « Itinéraire » et « Street View ». Pas l'écran pour envoyer sa propre position.
+3. Sur A, ouvre l'Accueil. **Attendu :** la même tuile avec « Tu partages ce lieu jusqu'à … » et « Ne plus partager ». Touche-le : la tuile disparaît sur A, et le lieu disparaît sur B.
+4. Sans partage en cours, ou au bout de 24 h. **Attendu :** pas de tuile.
+
 ## Défi du mois de l'Accueil précisé (Kévin, 20/11)
 
 Sans interrupteur. À partir du 1er décembre, quand un défi tourne.
