@@ -2,6 +2,9 @@ package fr.familia.app.core.navigation
 
 import fr.familia.app.core.mention.LocalMentionFamily
 import fr.familia.app.core.mention.LocalOpenMember
+import fr.familia.app.core.welcome.OliveMascot
+import fr.familia.app.core.welcome.LocalMascotFruits
+import fr.familia.app.core.welcome.welcomeFruits
 import androidx.compose.foundation.background
 import androidx.compose.ui.Alignment
 import fr.familia.app.core.data.FAMILY_ZONE
@@ -751,6 +754,10 @@ fun FamiliaApp(
         LocalMemberPhotos provides photos,
         LocalMemberInitials provides remember(liveFamily?.members) {
             memberInitials(liveFamily?.members.orEmpty())
+        },
+        // The fruits of the olive tree mascot (DESIGN-58): the family, my household first.
+        LocalMascotFruits provides remember(liveFamily, currentMember) {
+            liveFamily?.let { welcomeFruits(it, currentMember) }.orEmpty()
         },
         LocalFeatureFlags provides features,
         // « @Prénom » in the texts and comments (Kévin, 19/11).
@@ -1941,10 +1948,17 @@ private fun TabTopBar(
         title = {
             // 26 sp for the titles of the 5 tabs (DESIGN-11), scaled like titleLarge for a wide font.
             val base = MaterialTheme.typography.titleLarge
-            Text(
-                greeting ?: stringResource(if (tab == TopLevelDestination.HelpRequests) R.string.helprequest_screen_title else tab.labelFor(member)),
-                style = base.copy(fontSize = base.fontSize * TAB_TITLE_SCALE, lineHeight = base.lineHeight * TAB_TITLE_SCALE),
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // The olive tree mascot before « Bonjour Camille » (DESIGN-58): colored fruits, decorative.
+                if (greeting != null) {
+                    OliveMascot(56.dp)
+                    Spacer(Modifier.width(8.dp))
+                }
+                Text(
+                    greeting ?: stringResource(if (tab == TopLevelDestination.HelpRequests) R.string.helprequest_screen_title else tab.labelFor(member)),
+                    style = base.copy(fontSize = base.fontSize * TAB_TITLE_SCALE, lineHeight = base.lineHeight * TAB_TITLE_SCALE),
+                )
+            }
         },
         actions = {
             when (tab) {
