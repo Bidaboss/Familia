@@ -78,11 +78,18 @@ class TreePosterTest {
     }
 
     @Test
-    fun `without photos, or without a profile photo, and for a relative, the initial`() {
+    fun `without photos, or without a profile photo, the initial`() {
         assertEquals(listOf<String?>(null), content(photos = false).rows.flatten().map { it.photoOf }.distinct())
         val none = posterContent(tree, PosterStart.Everyone, "adult1", true, { false }, "T", 2026, PosterFormat.A3)
         assertEquals(listOf<String?>(null), none.rows.flatten().map { it.photoOf }.distinct())
-        assertNull(content().rows.flatten().first { it.id == "kin-granny" }.photoOf)
+    }
+
+    @Test
+    fun `a relative without an account shows the photo added in the tree (récit 79)`() {
+        assertEquals("kin-granny", content().rows.flatten().first { it.id == "kin-granny" }.photoOf)
+        assertNull(content(photos = false).rows.flatten().first { it.id == "kin-granny" }.photoOf)
+        val others = posterContent(tree, PosterStart.Everyone, "adult1", true, { it != "kin-granny" }, "T", 2026, PosterFormat.A3)
+        assertNull(others.rows.flatten().first { it.id == "kin-granny" }.photoOf)
     }
 
     @Test

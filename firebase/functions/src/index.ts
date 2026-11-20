@@ -21,7 +21,7 @@ import {
 } from './gifts';
 import { countLeftovers, deleteLeftovers, openDueCapsules } from './capsules';
 import { CommentData, deleteCommentMutesOf, deleteEventComments, onCommentCreated } from './comments';
-import { deleteLinksOf, removeMemberFromTree } from './genealogy';
+import { removeKinFromTree, removeMemberFromTree } from './genealogy';
 import { checkConsumptionIfDue } from './consumption';
 import { CrashData, onCrashReported } from './crashes';
 import { FeedbackData, onFeedbackChanged, onFeedbackCreated, screenshotToDelete } from './feedback';
@@ -671,7 +671,7 @@ export const onMemberDeletedKin = onDocumentDeleted('members/{memberId}', async 
 });
 
 export const onKinDeleted = onDocumentDeleted('kin/{kinId}', async (event) => {
-  await deleteLinksOf(getFirestore(), event.params.kinId);
+  await removeKinFromTree(getFirestore(), event.params.kinId);
 });
 
 // Carnet de recettes (récit 38): a removed recipe takes its photos and comments with it, records

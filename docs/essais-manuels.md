@@ -636,7 +636,7 @@ Avec l'interrupteur « Bons plans » allumé (l'admin principal le voit toujours
 
 ## Bonnes adresses (récit 45)
 Avec l'interrupteur « Bons plans » allumé :
-1. Bons plans, « Publier » : **Attendu :** le choix « Un bon plan » ou « Une bonne adresse ». Choisis l'adresse : nom, catégorie (obligatoire), ville, téléphone, lien, « Pourquoi je la recommande ». Pas de date ni de photo.
+1. Bons plans, « Publier » : **Attendu :** le choix « Un bon plan » ou « Une bonne adresse ». Choisis l'adresse : nom, catégorie (obligatoire), ville, téléphone, lien, « Pourquoi tu la conseilles ». Pas de date ni de photo.
 2. **Attendu :** la section « Bonnes adresses » sous les bons plans, avec la recherche et les catégories. « ecully » trouve « Écully » ; toucher deux fois une catégorie les montre toutes.
 3. Avec un autre adulte, ouvre l'adresse : « Recommandée par » l'auteur, puis « Je recommande aussi » ajoute « Moi ». « Appeler le … » ouvre le téléphone.
 4. Avec l'auteur ou un enfant : **Attendu :** pas de bouton « Je recommande aussi ». Aucune notification pour une bonne adresse.
@@ -1433,3 +1433,17 @@ Un téléphone avec l'appli d'avant, puis « APK de publication » lancé pour u
 5. Touche une notification d'événement ou d'un sondage : l'événement ou le Planning s'ouvre comme avant.
 6. TalkBack sur le rond : « Tout Familia, 3 nouveautés » (ou « Tout Familia » sans nouveauté).
 7. Avec le texte à 130 % puis au maximum : les libellés des 4 onglets tiennent sur une ligne. Sur une tablette, le rond est en bas de la barre latérale, sous les onglets.
+
+## Formulaires Bon plan et Bonne adresse en tuiles (récit 78, DESIGN-51)
+
+1. Entraide, Bons plans, « Publier », « Un bon plan ». **Attendu :** un bandeau jaune pâle avec un bouclier, « Partagé avec toute la famille : pas de mot de passe ni de code de porte ici. ». Puis trois tuiles : « Le bon plan », « Jusqu'à quand » et « Où le trouver ». En bas, un bouton noir « Publier pour la famille » qui reste en place quand tu fais défiler.
+2. Touche « Publier pour la famille » sans rien remplir. **Attendu :** la page remonte à « Le bon plan », et « Donne un titre au bon plan. » s'affiche en rouge sous le titre.
+3. Touche « Ce week-end ». **Attendu :** la puce devient noire, et une ligne lilas dit « Jusqu'au dimanche …, puis il disparaît tout seul. ». « Dans une semaine » donne le jour 7 jours plus tard.
+4. Touche « Autre jour ». **Attendu :** le calendrier ne propose que les jours d'aujourd'hui à dans 3 mois. Le jour choisi s'affiche en puce noire, par exemple « Jeu. 3 déc. ».
+5. Ajoute une photo. **Attendu :** elle s'affiche dans la tuile « Le bon plan », avec « Changer la photo » et « Retirer la photo ».
+6. Mets « exemple » dans Lien, puis publie. **Attendu :** la page descend à « Où le trouver », avec l'erreur du lien sous le champ.
+7. « Publier », « Une bonne adresse ». **Attendu :** le même bandeau, puis « La bonne adresse » (le nom et « Pourquoi tu la conseilles »), « Catégorie » et « Pour la joindre » (Ville, Téléphone, Lien, avec « Le lien de prise de rendez-vous, par exemple. »).
+8. Catégorie : **Attendu :** 6 tuiles avec une icône, sur 3 colonnes. La tuile choisie devient lilas, avec un bord foncé et une coche. Avec le texte à 130 % (Réglages Android, Affichage, Taille de la police), elles passent sur 2 colonnes.
+9. TalkBack sur les catégories. **Attendu :** chaque tuile est lue comme une case d'option (« Auto, sélectionné »), dans un groupe.
+10. Modifie un bon plan existant. **Attendu :** le bouton du bas dit « Enregistrer », et le bon plan garde ses valeurs.
+11. Thème sombre. **Attendu :** les tuiles restent lisibles, le bandeau jaune et la ligne lilas gardent leurs couleurs.

@@ -741,7 +741,20 @@ Un lien entre deux personnes de l'arbre, membres ou proches. Son identifiant est
 | `aId`, `bId` | texte | Deux personnes différentes, qui existent |
 | `updatedBy`, `updatedAt` | texte, horodatage | Qui l'a écrit, et l'heure du serveur |
 
-Un proche et son premier lien partent dans le même batch. Quand un proche est supprimé, `onKinDeleted` retire ses liens. Quand un membre est retiré, `onMemberDeletedKin` retire ses liens et ses mots.
+Un proche et son premier lien partent dans le même batch. Quand un proche est supprimé, `onKinDeleted` retire ses liens et sa photo. Quand un membre est retiré, `onMemberDeletedKin` retire ses liens et ses mots.
+
+### `kinPhotos/{kinId}` (récit 79)
+
+La photo d'un proche sans compte, faite comme une photo de profil (même format que `memberPhotos`).
+
+| Champ | Type | Description |
+|---|---|---|
+| `jpeg` | bytes | Photo carrée de 512 px au plus, 150 Ko au maximum dans les règles |
+| `updatedAt` | horodatage | Heure du serveur |
+
+- **Qui la change :** ceux qui peuvent modifier le proche, donc l'admin principal et les chefs de son foyer. Elle part dans le même batch que la fiche du proche.
+- **Qui la lit :** toute la famille. L'appli la mêle aux photos de profil (les identifiants ne se croisent pas) : le fruit de l'arbre, la fiche, l'affiche et les liens du profil la montrent, sinon l'initiale.
+- **Quand le proche est retiré**, `onKinDeleted` retire aussi sa photo.
 
 ### `kinWords/{memberId}`
 

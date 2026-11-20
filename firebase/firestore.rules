@@ -2820,6 +2820,26 @@ service cloud.firestore {
       allow delete: if isMember() && managesHousehold(resource.data.householdId);
     }
 
+    // kinPhotos/{kinId} -> { jpeg, updatedAt } (récit 79): the photo of a relative without an
+    // account, made by the app like a profile photo (square, about 100 KB). Whoever may edit the
+    // relative may change it; getAfter, so a new relative and their photo go in one batch. When
+    // the relative leaves the tree, the server removes it (onKinDeleted).
+    function canChangeKinPhoto(kinId) {
+      return isMember() && existsAfter(kinPath(kinId))
+        && managesHousehold(getAfter(kinPath(kinId)).data.householdId);
+    }
+
+    match /kinPhotos/{kinId} {
+      allow read: if isMember();
+      allow create, update: if canChangeKinPhoto(kinId)
+        && request.resource.data.keys().hasOnly(['jpeg', 'updatedAt'])
+        && request.resource.data.jpeg is bytes
+        && request.resource.data.jpeg.size() > 0
+        && request.resource.data.jpeg.size() <= 150000
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if canChangeKinPhoto(kinId);
+    }
+
     // One document per link, named after it, so the same link is never there twice. Two partners
     // are written in alphabetical order. A link never changes: it is removed, then made again.
     function isValidKinLink(l, linkId) {
