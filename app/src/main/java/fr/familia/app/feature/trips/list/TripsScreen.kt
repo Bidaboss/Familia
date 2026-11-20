@@ -74,7 +74,10 @@ import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.core.ui.form.StickyActionBar
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
+import fr.familia.app.core.model.TripLandscape
 import fr.familia.app.feature.trips.detail.TripPathColors
+import fr.familia.app.feature.trips.detail.drawLandscape
+import fr.familia.app.feature.trips.detail.palette
 import fr.familia.app.feature.trips.joinNames
 import java.time.LocalDate
 
@@ -136,6 +139,7 @@ fun TripsScreen(
                             title = stringResource(R.string.trips_empty_title),
                             body = stringResource(R.string.trips_empty_body_child),
                             action = onOpenAlbums?.let { open -> { ClayLink(stringResource(R.string.trips_empty_albums), onClick = open) } },
+                            mascot = true,
                         )
                         souvenirs -> Souvenirs(state, onOpenTrip)
                         else -> Coming(state, onOpenTrip, onOpenPart, expensesOn)
@@ -146,9 +150,9 @@ fun TripsScreen(
     }
 }
 
-/** The round « Retour », « Voyages » in the title font, the round « ? ». */
+/** The round « Retour », « Voyages » (or [title]) in the title font, the round « ? ». */
 @Composable
-private fun TripsTopBar(onBack: () -> Unit) {
+internal fun TripsTopBar(onBack: () -> Unit, title: String = stringResource(R.string.trips_title), help: ScreenHelp = ScreenHelp.Trips) {
     Row(
         Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -156,13 +160,13 @@ private fun TripsTopBar(onBack: () -> Unit) {
     ) {
         Surface(shape = CircleShape, color = Color.White, contentColor = TripPathColors.Ink) { BackButton(onClick = onBack) }
         Text(
-            stringResource(R.string.trips_title),
+            title,
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.SemiBold,
             color = TripPathColors.Ink,
             modifier = Modifier.weight(1f).padding(start = 8.dp).semantics { heading() },
         )
-        Surface(shape = CircleShape, color = Color.White, contentColor = TripPathColors.Ink) { HelpButton(ScreenHelp.Trips) }
+        Surface(shape = CircleShape, color = Color.White, contentColor = TripPathColors.Ink) { HelpButton(help) }
     }
 }
 
@@ -229,9 +233,11 @@ private fun Coming(
         else -> LandscapeGoal.Next(waitLabel(hero.trip, state.today))
     }
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
-        item(key = "landscape") { TripsLandscape(goal, stringResource(R.string.day_today)) }
+        val landscape = hero?.trip?.landscape ?: TripLandscape.Dunes
+        val ground = landscape.palette.near
+        item(key = "landscape") { TripsLandscape(goal, stringResource(R.string.day_today), landscape = landscape) }
         item(key = "hero") {
-            Box(Modifier.fillMaxWidth().background(TripPathColors.DuneNear).padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Box(Modifier.fillMaxWidth().background(ground).padding(horizontal = 16.dp, vertical = 8.dp)) {
                 if (hero != null) {
                     HeroCard(hero, plan.heroOngoing, state.today, onOpenTrip, onOpenPart, expensesOn)
                 } else {
@@ -244,13 +250,13 @@ private fun Coming(
                 }
             }
         }
-        rows(R.string.trips_now, "now", plan.now, state.today, onOpenTrip)
-        rows(R.string.trips_then, "then", plan.next, state.today, onOpenTrip)
-        item(key = "sand") { Spacer(Modifier.fillMaxWidth().heightIn(min = 24.dp).background(TripPathColors.DuneNear)) }
+        rows(R.string.trips_now, "now", plan.now, state.today, ground, onOpenTrip)
+        rows(R.string.trips_then, "then", plan.next, state.today, ground, onOpenTrip)
+        item(key = "sand") { Spacer(Modifier.fillMaxWidth().heightIn(min = 24.dp).background(ground)) }
     }
 }
 
-private fun LazyListScope.rows(title: Int, key: String, trips: List<TripSummary>, today: LocalDate, onOpenTrip: (String) -> Unit) {
+private fun LazyListScope.rows(title: Int, key: String, trips: List<TripSummary>, today: LocalDate, ground: Color, onOpenTrip: (String) -> Unit) {
     if (trips.isEmpty()) return
     item(key = "title-$key") {
         Text(
@@ -258,11 +264,11 @@ private fun LazyListScope.rows(title: Int, key: String, trips: List<TripSummary>
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = TripPathColors.Ink,
-            modifier = Modifier.fillMaxWidth().background(TripPathColors.DuneNear).padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp).semantics { heading() },
+            modifier = Modifier.fillMaxWidth().background(ground).padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp).semantics { heading() },
         )
     }
     items(trips, key = { "$key-${it.trip.id}" }) { summary ->
-        Box(Modifier.fillMaxWidth().background(TripPathColors.DuneNear).padding(horizontal = 16.dp, vertical = 6.dp)) {
+        Box(Modifier.fillMaxWidth().background(ground).padding(horizontal = 16.dp, vertical = 6.dp)) {
             TripRow(summary, today, onClick = { onOpenTrip(summary.trip.id) })
         }
     }
@@ -412,7 +418,7 @@ private fun TripRow(summary: TripSummary, today: LocalDate, onClick: () -> Unit)
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        MiniLandscape(Modifier.size(64.dp))
+        MiniLandscape(trip.landscape, Modifier.size(64.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(trip.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, color = TripPathColors.Ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Text(dates, style = MaterialTheme.typography.bodyMedium, color = TripPathColors.InkSoft)
@@ -428,22 +434,11 @@ private fun TripRow(summary: TripSummary, today: LocalDate, onClick: () -> Unit)
     }
 }
 
-/** The landscape in small: sky, sun and three dunes. [pale]: for a past trip without a cover. */
+/** The landscape of the trip in small (récit 81). [pale]: for a past trip, which has no cover. */
 @Composable
-private fun MiniLandscape(modifier: Modifier, pale: Boolean = false) {
+internal fun MiniLandscape(landscape: TripLandscape, modifier: Modifier, pale: Boolean = false) {
     androidx.compose.foundation.Canvas(modifier.clip(RoundedCornerShape(16.dp)).alpha(if (pale) 0.55f else 1f)) {
-        drawRect(TripPathColors.Sky)
-        drawCircle(TripPathColors.Sun, size.minDimension * 0.16f, androidx.compose.ui.geometry.Offset(size.width * 0.12f, size.height * 0.42f))
-        listOf(TripPathColors.DuneFar to 0.45f, TripPathColors.DuneMid to 0.62f, TripPathColors.DuneNear to 0.8f).forEach { (color, top) ->
-            val path = androidx.compose.ui.graphics.Path().apply {
-                moveTo(0f, size.height * (top + 0.06f))
-                quadraticTo(size.width * 0.5f, size.height * (top - 0.1f), size.width, size.height * top)
-                lineTo(size.width, size.height)
-                lineTo(0f, size.height)
-                close()
-            }
-            drawPath(path, color)
-        }
+        drawLandscape(landscape)
     }
 }
 
@@ -485,7 +480,7 @@ private fun SouvenirCard(summary: TripSummary, modifier: Modifier, onClick: () -
             .clickable(role = Role.Button, onClick = onClick)
             .clearAndSetSemantics { contentDescription = description },
     ) {
-        MiniLandscape(Modifier.fillMaxWidth().aspectRatio(1.45f), pale = true)
+        MiniLandscape(trip.landscape, Modifier.fillMaxWidth().aspectRatio(1.45f), pale = true)
         Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(trip.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = TripPathColors.Ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Text(line, style = MaterialTheme.typography.bodyMedium, color = TripPathColors.InkSoft)

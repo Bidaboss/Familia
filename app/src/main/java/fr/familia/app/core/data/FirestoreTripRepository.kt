@@ -8,6 +8,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.StepType
 import fr.familia.app.core.model.Trip
+import fr.familia.app.core.model.TripLandscape
 import fr.familia.app.core.model.TripArrival
 import fr.familia.app.core.model.TripItem
 import fr.familia.app.core.model.TripStep
@@ -87,6 +88,7 @@ class FirestoreTripRepository(private val db: FirebaseFirestore) : TripRepositor
             "endDate" to trip.endDate.toString(),
             "participantIds" to trip.participantIds,
             "readerIds" to trip.readerIds,
+            "landscape" to trip.landscape.key,
             "updatedAt" to FieldValue.serverTimestamp(),
         )
         if (isNew) {
@@ -228,6 +230,7 @@ class FirestoreTripRepository(private val db: FirebaseFirestore) : TripRepositor
             readerIds = stringList("readerIds"),
             creatorId = getString("creatorId").orEmpty(),
             creatorName = getString("creatorName").orEmpty(),
+            landscape = TripLandscape.of(getString("landscape")),
         )
     }
 

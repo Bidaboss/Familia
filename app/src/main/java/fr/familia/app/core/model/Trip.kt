@@ -18,7 +18,25 @@ data class Trip(
     val readerIds: List<String>,
     val creatorId: String,
     val creatorName: String,
+    /** The decor of the path (récit 81, DESIGN-53); an older trip has none and stays in the dunes. */
+    val landscape: TripLandscape = TripLandscape.Dunes,
 )
+
+/** The six landscapes of a trip, [key] as stored in Firestore. */
+enum class TripLandscape(val key: String) {
+    Dunes("dunes"),
+    Sea("mer"),
+    Mountain("montagne"),
+    Country("campagne"),
+    City("ville"),
+    Snow("neige"),
+    ;
+
+    companion object {
+        /** Dunes for a trip without landscape, or one this version does not know. */
+        fun of(key: String?): TripLandscape = entries.firstOrNull { it.key == key } ?: Dunes
+    }
+}
 
 /** The kinds of step of récit 11, in the order of the form. */
 enum class StepType(val firestoreValue: String) {

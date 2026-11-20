@@ -2414,7 +2414,9 @@ service cloud.firestore {
       return t.keys().hasAll(['title', 'startDate', 'endDate', 'participantIds', 'readerIds', 'creatorId',
                               'creatorName', 'createdAt', 'updatedAt'])
         && t.keys().hasOnly(['title', 'startDate', 'endDate', 'participantIds', 'readerIds', 'creatorId',
-                             'creatorName', 'createdAt', 'updatedAt'])
+                             'creatorName', 'createdAt', 'updatedAt', 'landscape'])
+        // The landscape of the path (récit 81, DESIGN-53): optional, an older trip or app has none (dunes).
+        && (!('landscape' in t) || t.landscape in ['dunes', 'mer', 'montagne', 'campagne', 'ville', 'neige'])
         && t.title is string && t.title.size() > 0 && t.title.size() <= 80
         && isDay(t.startDate) && isDay(t.endDate) && t.endDate >= t.startDate
         && isIdList(t.participantIds, 1, 13)

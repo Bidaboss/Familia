@@ -1,6 +1,7 @@
 package fr.familia.app.feature.trips.edit
 
 import fr.familia.app.core.model.Trip
+import fr.familia.app.core.model.TripLandscape
 import java.time.LocalDate
 
 /** What is being typed in the trip form. Participants always follow the trip (récit 12). */
@@ -10,6 +11,8 @@ data class TripForm(
     val endDate: LocalDate? = null,
     val participantIds: Set<String> = emptySet(),
     val readerIds: Set<String> = emptySet(),
+    /** The decor of the path (récit 81): dunes until another one is chosen. */
+    val landscape: TripLandscape = TripLandscape.Dunes,
 ) {
     /** Ticks or unticks a participant; a new participant also follows the trip. */
     fun withParticipant(id: String, taking: Boolean): TripForm =
@@ -42,6 +45,7 @@ data class TripForm(
             endDate = trip.endDate,
             participantIds = trip.participantIds.toSet(),
             readerIds = trip.readerIds.toSet(),
+            landscape = trip.landscape,
         )
     }
 }

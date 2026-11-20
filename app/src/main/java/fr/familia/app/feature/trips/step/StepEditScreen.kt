@@ -1,7 +1,7 @@
 package fr.familia.app.feature.trips.step
 
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,62 +9,89 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Notes
 import androidx.compose.material.icons.outlined.CardTravel
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.StepType
+import fr.familia.app.core.model.Trip
 import fr.familia.app.core.theme.FamiliaTheme
-import fr.familia.app.core.ui.BackButton
+import fr.familia.app.core.theme.LocalClayColors
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
-import fr.familia.app.feature.help.HelpButton
+import fr.familia.app.core.ui.form.CategoryTiles
+import fr.familia.app.core.ui.form.FormHint
+import fr.familia.app.core.ui.form.FormLabel
+import fr.familia.app.core.ui.form.TimeBox
 import fr.familia.app.feature.help.ScreenHelp
-import fr.familia.app.feature.trips.TripDateButton
-import fr.familia.app.feature.trips.TripSectionTitle
-import fr.familia.app.feature.trips.TripTimeButton
+import fr.familia.app.feature.trips.TripDayBox
+import fr.familia.app.feature.trips.TripDeleteButton
+import fr.familia.app.feature.trips.TripFormColors
+import fr.familia.app.feature.trips.TripFormScaffold
+import fr.familia.app.feature.trips.TripTile
+import fr.familia.app.feature.trips.detail.TripPathColors
+import fr.familia.app.feature.trips.list.tripRangeEnds
 import fr.familia.app.feature.trips.stepTypeIcon
 import fr.familia.app.feature.trips.stepTypeLabel
 import java.time.LocalDate
 import java.time.LocalTime
 
-/** Step form (create, edit, delete). Stateless: every change goes through [onChange]. */
-@OptIn(ExperimentalMaterial3Api::class)
+/** The parts of the form, in their order on the page, to go up to the first one to fix. */
+private enum class StepPart { Where, When, Note }
+
+private fun StepFormError.part(): StepPart = when (this) {
+    StepFormError.PlaceMissing, StepFormError.PlaceTooLong -> StepPart.Where
+    StepFormError.DepartMissing, StepFormError.ArriveBeforeDepart -> StepPart.When
+    StepFormError.NoteTooLong -> StepPart.Note
+}
+
+/**
+ * Step form (create, edit, delete), in tiles on the sky of the trips (DESIGN-57). Stateless:
+ * every change goes through [onChange].
+ */
 @Composable
 fun StepEditScreen(
     state: StepEditUiState,
@@ -88,25 +115,24 @@ fun StepEditScreen(
             },
         )
     }
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(if (editing?.isNew == false) R.string.trip_step_edit_title else R.string.trip_step_add_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                navigationIcon = { BackButton(onClick = { if (hasChanges) confirmLeave = true else onBack() }) },
-                actions = { HelpButton(ScreenHelp.TripStepEdit) },
-            )
-        },
-    ) { padding ->
-        Box(Modifier.padding(padding).fillMaxSize()) {
-            when (state) {
-                StepEditUiState.Loading, StepEditUiState.Done -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-                StepEditUiState.Unavailable -> EmptyState(
+    TripFormScaffold(
+        title = stringResource(if (editing?.isNew == false) R.string.trip_step_edit_title else R.string.trip_step_add_title),
+        help = ScreenHelp.TripStepEdit,
+        onBack = { if (hasChanges) confirmLeave = true else onBack() },
+        action = editing?.let { stringResource(if (it.isNew) R.string.trip_step_add else R.string.member_save) },
+        busy = editing?.isSaving == true,
+        onAction = onSave,
+    ) {
+        when (state) {
+            StepEditUiState.Loading, StepEditUiState.Done -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+            StepEditUiState.Unavailable -> CompositionLocalProvider(LocalContentColor provides TripPathColors.Ink) {
+                EmptyState(
                     icon = Icons.Outlined.CardTravel,
                     title = stringResource(R.string.trip_step_unavailable_title),
                     body = stringResource(R.string.trip_step_unavailable_body),
                 )
-                is StepEditUiState.Editing -> FormContent(state, onChange, onSave, onDelete)
             }
+            is StepEditUiState.Editing -> FormContent(state, onChange, onDelete)
         }
     }
 }
@@ -115,112 +141,161 @@ fun StepEditScreen(
 private fun FormContent(
     state: StepEditUiState.Editing,
     onChange: ((StepForm) -> StepForm) -> Unit,
-    onSave: () -> Unit,
     onDelete: () -> Unit,
 ) {
     val form = state.form
     val errors = state.errors
+    val scroll = rememberScrollState()
+    val tops = remember { mutableStateMapOf<StepPart, Int>() }
+    // After a refused « Ajouter l'étape », the page goes up to the first question to fix.
+    LaunchedEffect(errors) {
+        val first = errors.map { it.part() }.minOrNull() ?: return@LaunchedEffect
+        tops[first]?.let { scroll.animateScrollTo(it) }
+    }
+    fun Modifier.part(part: StepPart) = onGloballyPositioned { tops[part] = it.positionInParent().y.toInt() }
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .imePadding()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .verticalScroll(scroll)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Column {
-            TripSectionTitle(stringResource(R.string.trip_step_field_type))
-            Column(Modifier.selectableGroup()) {
-                StepType.entries.forEach { type ->
-                    val selected = form.type == type
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 56.dp)
-                            .selectable(selected = selected, role = Role.RadioButton) { onChange { it.copy(type = type) } },
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(selected = selected, onClick = null)
-                        Spacer(Modifier.width(16.dp))
-                        Icon(stepTypeIcon(type), contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(Modifier.width(12.dp))
-                        Text(stepTypeLabel(type), style = MaterialTheme.typography.bodyLarge)
-                    }
-                }
-            }
-        }
+        state.trip?.let { TripReminder(it) }
 
-        OutlinedTextField(
-            value = form.place,
-            onValueChange = { value -> onChange { it.copy(place = value) } },
-            label = { Text(stringResource(R.string.trip_step_field_place)) },
-            isError = StepFormError.PlaceMissing in errors || StepFormError.PlaceTooLong in errors,
-            supportingText = errorText(errors, StepFormError.PlaceMissing, StepFormError.PlaceTooLong),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            TripSectionTitle(stringResource(R.string.trip_step_field_depart))
-            TripDateButton(form.departDate, stringResource(R.string.event_pick_date), onPick = { day ->
-                onChange { it.copy(departDate = day, arriveDate = it.arriveDate?.takeIf { a -> a >= day }) }
-            })
-            errorText(errors, StepFormError.DepartMissing)?.invoke()
-            TripTimeButton(form.departTime, stringResource(R.string.event_pick_time), onPick = { time -> onChange { it.copy(departTime = time) } })
-        }
-
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            TripSectionTitle(stringResource(R.string.trip_step_field_arrive))
-            Text(
-                stringResource(R.string.trip_step_field_arrive_help),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+        TripTile(Icons.Outlined.Category, stringResource(R.string.trip_step_tile_type)) {
+            CategoryTiles(
+                options = StepType.entries,
+                selected = form.type,
+                onSelect = { type -> onChange { it.copy(type = type) } },
+                label = { stepTypeLabel(it) },
+                icon = ::stepTypeIcon,
+                selectedColor = TripFormColors.IconBackground,
+                selectedContentColor = TripPathColors.Ink,
             )
-            TripDateButton(
-                form.arriveDate ?: form.departDate,
-                stringResource(R.string.event_pick_date),
-                onPick = { day -> onChange { it.copy(arriveDate = day) } },
+        }
+
+        TripTile(Icons.Outlined.Place, stringResource(R.string.trip_step_tile_where), Modifier.part(StepPart.Where)) {
+            val label = stringResource(R.string.trip_step_field_place)
+            FormLabel(label)
+            OutlinedTextField(
+                value = form.place,
+                onValueChange = { value -> onChange { it.copy(place = value) } },
+                isError = StepFormError.PlaceMissing in errors || StepFormError.PlaceTooLong in errors,
+                singleLine = true,
+                shape = RoundedCornerShape(16.dp),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
+            )
+            val placeError = errorMessage(errors, StepFormError.PlaceMissing, StepFormError.PlaceTooLong)
+            val hint = if (form.type == StepType.Lodging) R.string.trip_step_place_hint_lodging else R.string.trip_step_place_hint
+            FormHint(placeError ?: stringResource(hint), isError = placeError != null)
+        }
+
+        TripTile(Icons.Outlined.Schedule, stringResource(R.string.trip_step_tile_when), Modifier.part(StepPart.When)) {
+            FormLabel(stringResource(R.string.trip_step_field_depart))
+            DayAndTime(
+                day = form.departDate,
+                onDay = { day -> onChange { it.copy(departDate = day, arriveDate = it.arriveDate?.takeIf { a -> a >= day }) } },
+                time = form.departTime,
+                onTime = { time -> onChange { it.copy(departTime = time) } },
+            )
+            errorMessage(errors, StepFormError.DepartMissing)?.let { FormHint(it, isError = true) }
+            FormLabel(stringResource(R.string.trip_step_field_arrive))
+            DayAndTime(
+                day = form.arriveDate ?: form.departDate,
+                onDay = { day -> onChange { it.copy(arriveDate = day) } },
+                time = form.arriveTime,
+                onTime = { time -> onChange { it.copy(arriveTime = time) } },
                 initial = form.departDate,
             )
-            TripTimeButton(form.arriveTime, stringResource(R.string.event_pick_time), onPick = { time -> onChange { it.copy(arriveTime = time) } })
-            errorText(errors, StepFormError.ArriveBeforeDepart)?.invoke()
+            errorMessage(errors, StepFormError.ArriveBeforeDepart)?.let { FormHint(it, isError = true) }
+            ReminderBand()
         }
 
-        OutlinedTextField(
-            value = form.note,
-            onValueChange = { value -> onChange { it.copy(note = value) } },
-            label = { Text(stringResource(R.string.event_note)) },
-            isError = StepFormError.NoteTooLong in errors,
-            supportingText = errorText(errors, StepFormError.NoteTooLong),
-            minLines = 3,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
-        )
+        TripTile(Icons.AutoMirrored.Outlined.Notes, stringResource(R.string.trip_step_tile_note), Modifier.part(StepPart.Note)) {
+            val label = stringResource(R.string.event_note)
+            OutlinedTextField(
+                value = form.note,
+                onValueChange = { value -> onChange { it.copy(note = value) } },
+                isError = StepFormError.NoteTooLong in errors,
+                minLines = 3,
+                shape = RoundedCornerShape(16.dp),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
+            )
+            val noteError = errorMessage(errors, StepFormError.NoteTooLong)
+            FormHint(noteError ?: stringResource(R.string.trip_step_note_hint), isError = noteError != null)
+        }
 
         if (state.saveFailed) {
-            Text(stringResource(R.string.trip_save_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
-        }
-        Button(onClick = onSave, enabled = !state.isSaving, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            if (state.isSaving) {
-                CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-            } else {
-                Text(stringResource(R.string.member_save))
+            Surface(shape = RoundedCornerShape(16.dp), color = LocalClayColors.current.card) {
+                FormHint(stringResource(R.string.trip_save_failed), isError = true, modifier = Modifier.padding(14.dp))
             }
         }
         if (state.canDelete) DeleteStepButton(form.place, enabled = !state.isSaving, onDelete)
+        Spacer(Modifier.height(8.dp))
+    }
+}
+
+/** « Dans le voyage · La Palmyre · 11 → 16 avril », a small white card, not a button. */
+@Composable
+private fun TripReminder(trip: Trip) {
+    val (from, to) = tripRangeEnds(trip, weekday = false)
+    val dates = if (trip.startDate == trip.endDate) to else stringResource(R.string.trip_preview_range, from, to)
+    Text(
+        stringResource(R.string.trip_step_in_trip, trip.title, dates),
+        style = MaterialTheme.typography.bodyLarge,
+        fontWeight = FontWeight.SemiBold,
+        color = TripPathColors.Ink,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    )
+}
+
+/** A day box and the hour (TimeBox) side by side, one under the other with a big font. */
+@Composable
+private fun DayAndTime(day: LocalDate?, onDay: (LocalDate) -> Unit, time: LocalTime?, onTime: (LocalTime?) -> Unit, initial: LocalDate? = null) {
+    val dayLabel = stringResource(R.string.trip_step_day)
+    val timeLabel = stringResource(R.string.trip_step_time)
+    if (LocalDensity.current.fontScale >= 1.3f) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            TripDayBox(dayLabel, day, onDay, Modifier.fillMaxWidth(), initial = initial)
+            TimeBox(time = time, onPick = onTime, modifier = Modifier.fillMaxWidth(), label = timeLabel)
+        }
+    } else {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TripDayBox(dayLabel, day, onDay, Modifier.weight(1f), initial = initial)
+            TimeBox(time = time, onPick = onTime, modifier = Modifier.weight(1f), label = timeLabel)
+        }
+    }
+}
+
+/** The reminder of « Bien arrivé », in a pale blue band with a clock. */
+@Composable
+private fun ReminderBand() {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(TripFormColors.IconBackground)
+            .padding(12.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Icon(Icons.Outlined.Schedule, contentDescription = null, tint = TripFormColors.Icon, modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(10.dp))
+        Text(stringResource(R.string.trip_step_field_arrive_help), style = MaterialTheme.typography.bodyMedium, color = TripFormColors.Icon)
     }
 }
 
 @Composable
 private fun DeleteStepButton(place: String, enabled: Boolean, onDelete: () -> Unit) {
     var confirm by rememberSaveable { mutableStateOf(false) }
-    OutlinedButton(
-        onClick = { confirm = true },
-        enabled = enabled,
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-    ) { Text(stringResource(R.string.trip_step_delete)) }
+    TripDeleteButton(stringResource(R.string.trip_step_delete), enabled = enabled, onClick = { confirm = true })
     if (confirm) {
         AlertDialog(
             onDismissRequest = { confirm = false },
@@ -237,9 +312,9 @@ private fun DeleteStepButton(place: String, enabled: Boolean, onDelete: () -> Un
 }
 
 @Composable
-private fun errorText(errors: Set<StepFormError>, vararg kinds: StepFormError): (@Composable () -> Unit)? {
+private fun errorMessage(errors: Set<StepFormError>, vararg kinds: StepFormError): String? {
     val error = kinds.firstOrNull { it in errors } ?: return null
-    val message = stringResource(
+    return stringResource(
         when (error) {
             StepFormError.PlaceMissing -> R.string.error_step_place_missing
             StepFormError.PlaceTooLong -> R.string.error_event_place_too_long
@@ -248,14 +323,13 @@ private fun errorText(errors: Set<StepFormError>, vararg kinds: StepFormError): 
             StepFormError.NoteTooLong -> R.string.error_event_note_too_long
         },
     )
-    return { Text(message, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
 }
 
 /** Fictional data for previews and screenshots. */
-internal fun previewStepEditState(isNew: Boolean = false): StepEditUiState.Editing = StepEditUiState.Editing(
+internal fun previewStepEditState(isNew: Boolean = false, errors: Set<StepFormError> = emptySet()): StepEditUiState.Editing = StepEditUiState.Editing(
     form = StepForm(
         type = StepType.Flight,
-        place = "Ajaccio",
+        place = if (errors.isEmpty()) "Ajaccio" else "",
         departDate = LocalDate.of(2027, 8, 2),
         departTime = LocalTime.of(8, 15),
         arriveDate = LocalDate.of(2027, 8, 2),
@@ -264,7 +338,8 @@ internal fun previewStepEditState(isNew: Boolean = false): StepEditUiState.Editi
     ),
     isNew = isNew,
     canDelete = !isNew,
-    errors = emptySet(),
+    errors = errors,
+    trip = Trip("t1", "Corse", LocalDate.of(2027, 8, 2), LocalDate.of(2027, 8, 16), emptyList(), emptyList(), "a", "Camille"),
 )
 
 @FamiliaPreviews
