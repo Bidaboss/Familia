@@ -35,7 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -92,13 +92,13 @@ fun GiftItemEditScreen(
     }
     Scaffold(
         topBar = {
-            TopAppBar(
+            FamiliaTopBar(
                 title = {
                     Text(
                         stringResource(
                             if ((state as? GiftItemEditUiState.Editing)?.isNew == false) R.string.gift_item_edit_title else R.string.gift_item_new_title,
                         ),
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                     )
                 },

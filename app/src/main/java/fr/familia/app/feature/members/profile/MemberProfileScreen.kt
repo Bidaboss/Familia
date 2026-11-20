@@ -21,14 +21,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.material3.ButtonDefaults
 import fr.familia.app.core.theme.OnMemberColor
 import fr.familia.app.core.ui.memberColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -87,21 +87,13 @@ fun MemberProfileScreen(
             val ready = state as? MemberProfileUiState.Ready
             // PRODUIT-114: the bar takes the color of the band under it, and the first name lives in
             // the page; « Ma fiche » on mine. Never a ⋮ menu.
-            TopAppBar(
+            FamiliaTopBar(
                 title = {
                     val title = if (ready?.isMe == true) stringResource(R.string.profile_v2_my_page) else ""
-                    Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(title, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 },
-                colors = if (ready != null) {
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = memberColor(ready.member),
-                        titleContentColor = OnMemberColor,
-                        navigationIconContentColor = OnMemberColor,
-                        actionIconContentColor = OnMemberColor,
-                    )
-                } else {
-                    TopAppBarDefaults.topAppBarColors()
-                },
+                containerColor = ready?.let { memberColor(it.member) } ?: Color.Transparent,
+                contentColor = if (ready != null) OnMemberColor else Color.Unspecified,
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = {
                     // « Modifier » up on the right, for those who may (DESIGN, 16/11): never from the list.
@@ -109,7 +101,6 @@ fun MemberProfileScreen(
                         TextButton(
                             onClick = onEdit,
                             modifier = Modifier.heightIn(min = 56.dp),
-                            colors = ButtonDefaults.textButtonColors(contentColor = OnMemberColor),
                         ) {
                             Text(stringResource(R.string.profile_edit))
                         }
