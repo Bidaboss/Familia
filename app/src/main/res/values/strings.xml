@@ -3285,12 +3285,17 @@
     <string name="feed_more">Voir plus ancien</string>
     <string name="feed_label_planning">Planning</string>
     <string name="feed_event_going">J\'y vais</string>
-    <string name="feed_label_birthday">Anniversaire</string>
-    <plurals name="feed_birthday_age">
-        <item quantity="one">%1$s a %2$d an</item>
-        <item quantity="other">%1$s a %2$d ans</item>
-    </plurals>
     <string name="feed_birthday_mine">C\'est ton anniversaire !</string>
+    <string name="feed_birthday_mine_a11y">Anniversaire. C\'est ton anniversaire !</string>
+    <string name="feed_birthday_pill">🎂 Anniversaire · aujourd\'hui</string>
+    <plurals name="feed_birthday_turns">
+        <item quantity="one">%1$s fête son premier anniversaire</item>
+        <item quantity="other">%1$s fête ses %2$d ans</item>
+    </plurals>
+    <plurals name="feed_birthday_a11y">
+        <item quantity="one">Anniversaire. %1$s fête son premier anniversaire aujourd\'hui.</item>
+        <item quantity="other">Anniversaire. %1$s fête ses %2$d ans aujourd\'hui.</item>
+    </plurals>
     <string name="feed_birthday_wish">Lui souhaiter</string>
     <string name="feed_label_album">Photos</string>
     <plurals name="feed_album_photos">

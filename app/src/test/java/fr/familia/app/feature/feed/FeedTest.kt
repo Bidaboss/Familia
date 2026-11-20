@@ -12,7 +12,12 @@ import java.time.LocalDate
 
 /** Le fil d'actualité (récit 67). Fictional first names only. */
 class FeedTest {
-    private class Card(override val key: String, at: String, override val authorId: String? = "ines") : FeedCard {
+    private class Card(
+        override val key: String,
+        at: String,
+        override val authorId: String? = "ines",
+        override val pinRank: Int? = null,
+    ) : FeedCard {
         override val at: Instant = Instant.parse(at)
 
         @Composable
@@ -28,6 +33,27 @@ class FeedTest {
             ),
         )
         assertEquals(listOf("event:e1", "birthday:m1", "event:e2"), merged.map { it.key })
+    }
+
+    @Test
+    fun `the birthdays of the day on top of it, the youngest first, then the day goes on`() {
+        // Midnight in Paris for the birthdays, the news of the morning, and the day before.
+        val merged = mergeFeed(
+            listOf(
+                listOf(Card("news:n1", "2026-11-18T08:00:00Z"), Card("news:n0", "2026-11-17T20:00:00Z")),
+                listOf(
+                    Card("birthday:lou", "2026-11-17T23:00:00Z", authorId = null, pinRank = 40),
+                    Card("birthday:noe", "2026-11-17T23:00:00Z", authorId = null, pinRank = 8),
+                ),
+            ),
+        )
+        assertEquals(listOf("birthday:noe", "birthday:lou", "news:n1", "news:n0"), merged.map { it.key })
+    }
+
+    @Test
+    fun `a birthday card is pinned by its age`() {
+        val sam = Member("sam", "Sam", null, LocalDate.of(2016, 11, 18), "h1", MemberProfile.ChildWithoutApp, false, emptyList(), null)
+        assertEquals(10, BirthdayFeedCard(birthdaysOn(listOf(sam), LocalDate.of(2026, 11, 18)).single(), wishes = true).pinRank)
     }
 
     @Test
