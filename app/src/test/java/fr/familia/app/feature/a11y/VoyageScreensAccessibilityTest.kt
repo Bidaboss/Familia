@@ -30,6 +30,12 @@ class VoyageScreensAccessibilityTest {
     fun `edit a trip, with errors`() = compose.checkAccessibility(VoyageScreens.screen("edit a trip, with errors"))
 
     @Test
+    fun `a new step`() = compose.checkAccessibility(VoyageScreens.screen("a new step"))
+
+    @Test
+    fun `edit a step, with errors`() = compose.checkAccessibility(VoyageScreens.screen("edit a step, with errors"))
+
+    @Test
     fun `a trip`() = compose.checkAccessibility(VoyageScreens.screen("a trip"))
 
     @Test

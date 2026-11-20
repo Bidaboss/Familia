@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import fr.familia.app.core.data.MemberRepository
 import fr.familia.app.core.data.TripRepository
 import fr.familia.app.core.model.StepType
+import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripStep
 import fr.familia.app.feature.trips.canDeleteStep
 import fr.familia.app.feature.trips.edit.toDate
@@ -36,6 +37,8 @@ sealed interface StepEditUiState {
         val hasChanges: Boolean = false,
         val isSaving: Boolean = false,
         val saveFailed: Boolean = false,
+        /** The trip of the step, recalled at the top of the form (DESIGN-57). */
+        val trip: Trip? = null,
     ) : StepEditUiState
 
     data object Done : StepEditUiState
@@ -96,6 +99,7 @@ class StepEditViewModel(
             isNew = existing == null,
             canDelete = existing != null && canDeleteStep(trip, me, family),
             errors = emptySet(),
+            trip = trip,
         )
     }
 
