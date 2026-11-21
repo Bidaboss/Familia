@@ -300,7 +300,9 @@ import fr.familia.app.feature.expenses.TripExpensesDestination
 import fr.familia.app.feature.trips.TripEditDestination
 import fr.familia.app.feature.trips.TripPhotosDestination
 import fr.familia.app.feature.yearago.MemoryAlbum
+import fr.familia.app.feature.trips.TripMapDestination
 import fr.familia.app.feature.trips.TripStepEditDestination
+import fr.familia.app.feature.trips.map.TripMapRoute
 import fr.familia.app.feature.trips.TripsDestination
 import fr.familia.app.feature.trips.list.TripPart
 import fr.familia.app.feature.trips.detail.TripDetailRoute
@@ -1147,6 +1149,7 @@ fun FamiliaApp(
                             onAddStep = { navController.navigate(TripStepEditDestination(tripId)) },
                             onEditStep = { stepId -> navController.navigate(TripStepEditDestination(tripId, stepId)) },
                             onSeePhotos = { navController.navigate(TripPhotosDestination(tripId)) },
+                            onOpenMap = { navController.navigate(TripMapDestination(tripId)) },
                             onBack = { navController.popBackStack() },
                             // The accounts are for the adults who take part (récit 16 bis); the trip view checks the participant.
                             onOpenExpenses = if (features.isOn(Feature.Expenses) && currentMember.profile == MemberProfile.Adult) {
@@ -1154,6 +1157,16 @@ fun FamiliaApp(
                             } else {
                                 null
                             },
+                        )
+                    }
+                    composable<TripMapDestination> { entry ->
+                        val tripId = entry.toRoute<TripMapDestination>().tripId
+                        TripMapRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            tripId = tripId,
+                            onEditStep = { stepId -> navController.navigate(TripStepEditDestination(tripId, stepId)) },
+                            onBack = { navController.popBackStack() },
                         )
                     }
                     composable<TripExpensesDestination> { entry ->

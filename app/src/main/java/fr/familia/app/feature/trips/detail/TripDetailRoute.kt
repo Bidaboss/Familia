@@ -35,6 +35,8 @@ fun TripDetailRoute(
     onOpenExpenses: (() -> Unit)? = null,
     /** The part to show first, from the list (récit 80); null: the top. */
     openAt: TripPart? = null,
+    /** « La carte du voyage » (récit 87). */
+    onOpenMap: (() -> Unit)? = null,
 ) {
     val viewModel: TripDetailViewModel = viewModel(
         key = "trip-$tripId",
@@ -79,6 +81,7 @@ fun TripDetailRoute(
         onOpenExpenses = onOpenExpenses,
         illustrated = true,
         openAt = openAt,
+        onOpenMap = onOpenMap,
         onSeePhotos = onSeePhotos,
         onShare = shown?.takeIf { shareOn && it.canShare }?.let { success -> { share(context, tripShare(context, success.trip, success.today)) } },
     )

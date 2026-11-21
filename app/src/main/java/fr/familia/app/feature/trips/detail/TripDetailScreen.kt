@@ -118,6 +118,8 @@ fun TripDetailScreen(
     packing: (@Composable () -> Unit)? = null,
     /** The part to show first (récit 80: « Étapes » or « À prévoir » from the list); null: the top. */
     openAt: TripPart? = null,
+    /** « La carte » (récit 87), offered once a step has a point; null elsewhere. */
+    onOpenMap: (() -> Unit)? = null,
 ) {
     val success = state as? TripDetailUiState.Success
     val path = illustrated && success != null
@@ -179,9 +181,9 @@ fun TripDetailScreen(
                     },
                 )
                 is TripDetailUiState.Success -> if (illustrated) {
-                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt)
+                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap)
                 } else {
-                    Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing)
+                    Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing, onOpenMap)
                 }
             }
         }
@@ -199,6 +201,7 @@ private fun Content(
     photoActions: PhotoActions,
     onOpenExpenses: (() -> Unit)?,
     packing: (@Composable () -> Unit)?,
+    onOpenMap: (() -> Unit)? = null,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -244,6 +247,9 @@ private fun Content(
         }
         item(key = "checklist-title") { TripSectionTitle(stringResource(if (packing != null) R.string.packing_title else R.string.trip_checklist)) }
         item(key = "checklist") { PackingOrChecklist(state, checklist, packing) }
+        if (onOpenMap != null && state.steps.any { it.hasPosition }) {
+            item(key = "map") { ClayLink(stringResource(R.string.trip_map_title), onClick = onOpenMap) }
+        }
         if (onOpenExpenses != null && state.isParticipant) {
             item(key = "expenses") {
                 ClayLink(stringResource(R.string.expenses_open), onClick = onOpenExpenses)
@@ -285,6 +291,7 @@ private fun PathContent(
     onSeePhotos: () -> Unit,
     packing: (@Composable () -> Unit)?,
     openAt: TripPart? = null,
+    onOpenMap: (() -> Unit)? = null,
 ) {
     val days = remember(state.trip.startDate, state.trip.endDate) { TripDays.of(state.trip) }
     var chosenEpoch by rememberSaveable(state.trip.id) { mutableStateOf<Long?>(null) }
@@ -340,6 +347,7 @@ private fun PathContent(
                     onPhotos = onSeePhotos,
                     onNotebook = { scope.launch { listState.animateScrollToItem(notebookIndex) } },
                     onExpenses = onOpenExpenses?.takeIf { state.isParticipant },
+                    onMap = onOpenMap?.takeIf { state.steps.any { it.hasPosition } },
                 )
             }
         }
@@ -526,7 +534,7 @@ private fun whenLabel(day: LocalDate, time: LocalTime?, today: LocalDate): Strin
 }
 
 /** Fictional trip for previews and screenshots. */
-internal fun previewTripDetail(isParticipant: Boolean = true): TripDetailUiState.Success {
+internal fun previewTripDetail(isParticipant: Boolean = true, withPositions: Boolean = false): TripDetailUiState.Success {
     val start = LocalDate.of(2027, 8, 2)
     return TripDetailUiState.Success(
         trip = Trip("1", "Corse", start, LocalDate.of(2027, 8, 16), listOf("a", "b", "c"), listOf("a", "b", "c", "d"), "a", "Camille"),
@@ -539,7 +547,9 @@ internal fun previewTripDetail(isParticipant: Boolean = true): TripDetailUiState
             ),
             TripStep("s2", StepType.Lodging, "Gîte de Porto", start, LocalTime.of(16, 0), LocalDate.of(2027, 8, 9), null, null),
             TripStep("s3", StepType.Car, "Bonifacio", LocalDate.of(2027, 8, 9), LocalTime.of(10, 0), LocalDate.of(2027, 8, 9), LocalTime.of(13, 30), null),
-        ),
+        ).let { steps ->
+            if (!withPositions) steps else steps.zip(listOf(41.92 to 8.74, 42.27 to 8.70, 41.39 to 9.16)) { s, p -> s.copy(lat = p.first, lng = p.second) }
+        },
         canManage = true,
         isParticipant = isParticipant,
         today = start,

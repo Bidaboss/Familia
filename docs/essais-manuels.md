@@ -1621,3 +1621,18 @@ Rien ne change à l'écran. À l'enregistrement d'une étape, le téléphone che
 3. Rouvre une étape et change seulement la note. **Attendu :** elle s'enregistre sans rechercher le lieu de nouveau.
 
 **Après la fusion :** lancer « Publier Firebase » avant l'APK (la règle des étapes accepte deux nombres facultatifs, `lat` et `lng`).
+
+## La carte du voyage, 2e partie : la carte (récit 87, 21/11)
+
+Dans le détail d'un voyage, un bouton « La carte » (en bas de la carte du jour, ou un lien « La carte du voyage » dans l'ancienne présentation) ouvre la carte. Il n'apparaît qu'une fois qu'une étape a un point (étape enregistrée avec le réseau depuis la 1re partie).
+
+1. Ouvre un voyage dont deux étapes au moins ont un lieu connu (« Ajaccio », « Bastia »). Touche « La carte ». **Attendu :** le paysage du voyage, les étapes reliées dans l'ordre par un chemin en pointillés, chacune avec son numéro. Le nord est en haut.
+2. Touche un point. **Attendu :** il devient jaune et plus grand, et la fiche de l'étape apparaît sous la carte (lieu, rang « Étape 2 sur 4 », type et jour, « Bien arrivé » s'il a été dit). Touche un autre point : la fiche change.
+3. Avec un compte qui participe : « Modifier l'étape » ouvre l'étape. Avec un compte qui suit sans partir : pas de bouton, la fiche seule.
+4. Une étape dont le lieu n'a pas été trouvé (« Chez Mamie » enregistrée hors ligne) : elle n'est pas sur la carte, mais elle est listée sous la carte dans « Sans point sur la carte », avec son numéro.
+5. Un voyage sans aucune étape placée : « Pas encore de carte », et le bouton « La carte » n'est pas proposé dans le détail.
+6. Un voyage surprise : la carte est vue par ceux qui ont le droit de voir le voyage, pas par les autres (mêmes règles que les étapes).
+7. Texte à 200 % et TalkBack : chaque point se lit « Étape 2 sur 4, Bastia », et le point choisi est annoncé comme sélectionné. Les points se touchent sans viser (56 dp).
+8. Aucun GPS : la carte ne suit personne.
+
+**Après la fusion :** rien de plus que « Publier Firebase » de la 1re partie (#463), à lancer avant l'APK.

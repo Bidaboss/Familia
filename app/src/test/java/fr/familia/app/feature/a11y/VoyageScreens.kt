@@ -61,6 +61,7 @@ import fr.familia.app.feature.trips.edit.TripEditScreen
 import fr.familia.app.feature.trips.edit.TripFormError
 import fr.familia.app.feature.trips.edit.previewTripEditState
 import fr.familia.app.feature.trips.list.TripsScreen
+import fr.familia.app.feature.trips.map.TripMapScreen
 import fr.familia.app.feature.trips.step.StepEditScreen
 import fr.familia.app.feature.trips.step.StepFormError
 import fr.familia.app.feature.trips.step.previewStepEditState
@@ -103,6 +104,12 @@ internal object VoyageScreens {
             StepEditScreen(previewStepEditState(errors = setOf(StepFormError.PlaceMissing, StepFormError.ArriveBeforeDepart)), {}, {}, {}, {})
         },
         screen("a trip") { TripDetailScreen(previewTripDetail(), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos(), onOpenExpenses = {}) },
+        screen("a trip with the link to its map") {
+            TripDetailScreen(previewTripDetail(withPositions = true), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos(), onOpenMap = {})
+        },
+        screen("the map of a trip") { TripMapScreen(previewTripDetail(withPositions = true), {}, {}) },
+        screen("the map of a trip, for who does not take part") { TripMapScreen(previewTripDetail(isParticipant = false, withPositions = true), {}, {}) },
+        screen("the map of a trip, with no step placed") { TripMapScreen(previewTripDetail(), {}, {}) },
         screen("a trip, for who does not take part") { TripDetailScreen(previewTripDetail(isParticipant = false), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos()) },
         screen("À emporter") {
             PackingBags(
