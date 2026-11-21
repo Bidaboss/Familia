@@ -76,6 +76,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import fr.familia.app.R
+import fr.familia.app.core.model.Recipe
 import fr.familia.app.core.photo.keepPhotoAccess
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.theme.LocalClayColors
@@ -265,7 +266,7 @@ private val RecipeFormError.tile: RecipeTile
 
 /**
  * « Parts » with « − » and « + » (maquette): still optional, so « − » from 1 leaves it empty, shown
- * « — ». At most 99, as the field allowed two digits.
+ * « — ». At most [Recipe.MAX_SERVINGS], the limit of the rules.
  */
 @Composable
 private fun Servings(value: String, isError: Boolean, onValue: (String) -> Unit) {
@@ -275,7 +276,7 @@ private fun Servings(value: String, isError: Boolean, onValue: (String) -> Unit)
         OutlinedIconButton(
             onClick = { onValue(if (n == null || n <= 1) "" else (n - 1).toString()) },
             enabled = n != null,
-            modifier = Modifier.size(48.dp),
+            modifier = Modifier.size(56.dp),
         ) { Icon(Icons.Outlined.Remove, contentDescription = stringResource(R.string.recipe_servings_less)) }
         Text(
             n?.toString() ?: "—",
@@ -286,9 +287,9 @@ private fun Servings(value: String, isError: Boolean, onValue: (String) -> Unit)
             textAlign = TextAlign.Center,
         )
         OutlinedIconButton(
-            onClick = { onValue(((n ?: 0) + 1).coerceAtMost(99).toString()) },
-            enabled = (n ?: 0) < 99,
-            modifier = Modifier.size(48.dp),
+            onClick = { onValue(((n ?: 0) + 1).coerceAtMost(Recipe.MAX_SERVINGS).toString()) },
+            enabled = (n ?: 0) < Recipe.MAX_SERVINGS,
+            modifier = Modifier.size(56.dp),
         ) { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.recipe_servings_more)) }
     }
     if (isError) FormHint(stringResource(R.string.error_recipe_servings), isError = true)
