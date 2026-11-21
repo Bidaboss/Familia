@@ -1549,6 +1549,10 @@
     <string name="recipe_unavailable_body">Seule la personne qui l\'a notée, ou l\'administrateur, peut la modifier.</string>
     <string name="recipe_leave_title">Quitter sans enregistrer ?</string>
     <string name="recipe_leave_body">Ce que tu as écrit sera perdu.</string>
+    <string name="recipe_tile_main">La recette</string>
+    <string name="recipe_add_confirm">Ajouter la recette</string>
+    <string name="recipe_servings_less">Une part de moins</string>
+    <string name="recipe_servings_more">Une part de plus</string>
     <string name="recipe_field_title">Nom de la recette</string>
     <string name="recipe_pick_origin">De qui vient la recette ?</string>
     <string name="recipe_origin_none">Personne de la famille</string>
@@ -1768,6 +1772,7 @@
     <string name="expense_unavailable_title">Tu ne peux pas modifier cette dépense</string>
     <string name="expense_unavailable_body">Elle a été supprimée, les comptes sont clôturés, ou seul son auteur et le créateur du voyage peuvent la modifier.</string>
     <string name="expense_unavailable_body_event">Elle a été supprimée, les comptes sont clôturés, ou seul son auteur et l\'organisateur de l\'événement peuvent la modifier.</string>
+    <string name="expense_tile_main">La dépense</string>
     <string name="expense_title_field">Quoi ?</string>
     <string name="expense_amount_field">Montant</string>
     <string name="expense_currency_field">Devise</string>

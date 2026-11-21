@@ -1,8 +1,15 @@
 package fr.familia.app.feature.recipes
 
+import fr.familia.app.core.ui.form.FormTile
+import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
+import androidx.compose.material.icons.automirrored.outlined.Article
+import fr.familia.app.core.theme.LocalClayColors
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
+import fr.familia.app.core.theme.themeBackground
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import fr.familia.app.core.ui.ClayLink
-import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.text.font.FontStyle
@@ -47,7 +54,6 @@ import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
-import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
 import fr.familia.app.feature.help.HelpButton
@@ -70,6 +76,9 @@ fun RecipeDetailScreen(
     bookOn: Boolean = false,
 ) {
     Scaffold(
+        // The background of the theme, as on the redone screens (refonte lot 4).
+        containerColor = Color.Transparent,
+        modifier = Modifier.themeBackground(),
         topBar = {
             FamiliaTopBar(
                 title = { Text(stringResource(R.string.recipe_title), maxLines = 2, overflow = TextOverflow.Ellipsis) },
@@ -124,12 +133,11 @@ private fun Content(
             photos()
         }
         // What to buy comes first in the kitchen: the point of the screen (DESIGN-11).
-        ClayCard(modifier = Modifier.fillMaxWidth(), emphasis = true) {
-            ClayCardTitle(stringResource(R.string.recipe_ingredients), style = MaterialTheme.typography.titleMedium)
+        // Tiles with an icon, as in the form (refonte lot 4).
+        FormTile(Icons.AutoMirrored.Outlined.FormatListBulleted, stringResource(R.string.recipe_ingredients), Modifier.fillMaxWidth()) {
             recipe.ingredientLines.forEach { line -> Line("•", line) }
         }
-        ClayCard(modifier = Modifier.fillMaxWidth()) {
-            ClayCardTitle(stringResource(R.string.recipe_steps), style = MaterialTheme.typography.titleMedium)
+        FormTile(Icons.AutoMirrored.Outlined.Article, stringResource(R.string.recipe_steps), Modifier.fillMaxWidth()) {
             recipe.stepLines.forEachIndexed { index, line -> Line("${index + 1}.", line) }
         }
         Text(stringResource(R.string.recipe_written_by, recipe.authorName), style = MaterialTheme.typography.bodyMedium, color = muted)
@@ -167,9 +175,13 @@ private fun Line(mark: String, text: String) {
 @Composable
 private fun RemoveButton(title: String, onRemove: () -> Unit) {
     var confirm by rememberSaveable { mutableStateOf(false) }
+    // At the very bottom, outlined in pale red (recette commune n° 7).
+    val error = MaterialTheme.colorScheme.error
     OutlinedButton(
         onClick = { confirm = true },
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.5.dp, error.copy(alpha = 0.35f)),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = error, containerColor = LocalClayColors.current.card),
         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
     ) { Text(stringResource(R.string.recipe_remove)) }
     if (confirm) {
