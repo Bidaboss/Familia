@@ -72,14 +72,23 @@ class FirestoreExportRepository(private val db: FirebaseFirestore) : ExportRepos
         (written.await() + opened.await()).distinctBy { it.id }.map(::toExport)
     }
 
-    /** The rules let one read a trip, its steps and its items only when one follows it. */
+    /**
+     * The rules let one read a trip and its steps when one follows it, but its items (« À prévoir »,
+     * récit 86) only when one takes part: a follower who stays home has none to export, and asking
+     * would be refused, which would fail the whole export.
+     */
     private suspend fun trips(memberId: String): Triple<List<ExportDocument>, List<ExportTripChild>, List<ExportTripChild>> =
         coroutineScope {
             val docs = db.collection("trips").whereArrayContains("readerIds", memberId).get(Source.SERVER).await().documents
             val children = docs.map { trip ->
                 async {
                     val steps = trip.reference.collection("steps").get(Source.SERVER).await().documents
-                    val items = trip.reference.collection("items").get(Source.SERVER).await().documents
+                    val participants = (trip.get("participantIds") as? List<*>).orEmpty()
+                    val items = if (memberId in participants) {
+                        trip.reference.collection("items").get(Source.SERVER).await().documents
+                    } else {
+                        emptyList()
+                    }
                     steps.map { ExportTripChild(trip.id, it.id, plain(it.data.orEmpty())) } to
                         items.map { ExportTripChild(trip.id, it.id, plain(it.data.orEmpty())) }
                 }

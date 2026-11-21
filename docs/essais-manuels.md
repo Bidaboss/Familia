@@ -1611,3 +1611,14 @@ Les écrans suivent les maquettes « Une dépense » et « Une recette ». Rien 
 6. Les parts : « + » passe de « — » à 1, puis 2 ; « − » depuis 1 revient à « — ». Le bouton noir dit « Ajouter la recette ».
 7. Une recette : les ingrédients et les étapes sont des tuiles avec une icône, et « Retirer la recette » est bordé de rouge pâle. La liste des recettes et les comptes gardent leurs cartes, sur le fond du thème.
 8. Refais 1 et 5 avec le texte à 200 % et en thème sombre. **Attendu :** rien n'est coupé, et les tuiles des catégories passent sur deux colonnes.
+
+## « À prévoir » réservé à ceux qui partent (récit 86, 21/11)
+
+Celui qui suit un voyage sans y participer ne voit plus la liste « À prévoir » ni « Pour tout le monde ». Il garde les étapes, les photos de l'album et le « bien arrivé ». Pas de comptes ni de valises pour lui, comme avant.
+
+1. Avec un compte qui participe à un voyage : ouvre le voyage. **Attendu :** la liste « À prévoir » (ou « Pour tout le monde » et les valises) est là et marche comme avant.
+2. Avec un compte qui suit le même voyage sans y participer : ouvre le voyage. **Attendu :** les étapes, « Bien arrivé » et les photos s'affichent. La liste « À prévoir » n'apparaît pas, et aucun message d'erreur non plus.
+3. Ajoute un participant au voyage depuis le premier compte. **Attendu :** au retour sur le voyage, le deuxième compte voit maintenant la liste.
+4. Le rappel « À emporter » de 18 h ne part qu'aux participants avec l'appli.
+
+**Après la fusion :** lancer « Publier Firebase » avant l'APK (les règles changent).

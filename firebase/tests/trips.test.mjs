@@ -284,11 +284,19 @@ describe('trip checklist', () => {
     await assertSucceeds(deleteDoc(doc(as(env, NEIGHBOUR), 'trips/t1/items/i1')));
   });
 
-  test('a follower reads the checklist but cannot change it', async () => {
+  test('a participant reads the checklist, a follower who does not go reads nothing (récit 86)', async () => {
+    await setDoc(doc(as(env, ADULT), 'trips/t1/items/i1'), item());
+    const mate = as(env, NEIGHBOUR);
+    await assertSucceeds(getDoc(doc(mate, 'trips/t1/items/i1')));
+    await assertSucceeds(getDocs(collection(mate, 'trips/t1/items')));
+    const follower = as(env, KID);
+    await assertFails(getDoc(doc(follower, 'trips/t1/items/i1')));
+    await assertFails(getDocs(collection(follower, 'trips/t1/items')));
+  });
+
+  test('a follower cannot change the checklist', async () => {
     await setDoc(doc(as(env, ADULT), 'trips/t1/items/i1'), item());
     const db = as(env, KID);
-    await assertSucceeds(getDoc(doc(db, 'trips/t1/items/i1')));
-    await assertSucceeds(getDocs(collection(db, 'trips/t1/items')));
     await assertFails(setDoc(doc(db, 'trips/t1/items/i2'), item()));
     await assertFails(updateDoc(doc(db, 'trips/t1/items/i1'), { done: true, updatedAt: serverTimestamp() }));
     await assertFails(deleteDoc(doc(db, 'trips/t1/items/i1')));
@@ -312,8 +320,9 @@ describe('trip checklist', () => {
     await assertFails(setDoc(ref, item({ updatedAt: Timestamp.fromMillis(0) })));
   });
 
-  test('the admin principal may delete a line, not add one', async () => {
+  test('the admin principal, if he does not go, reads nothing, may delete a line, not add one', async () => {
     await setDoc(doc(as(env, ADULT), 'trips/t1/items/i1'), item());
+    await assertFails(getDoc(doc(as(env, ADMIN), 'trips/t1/items/i1')));
     await assertFails(setDoc(doc(as(env, ADMIN), 'trips/t1/items/i2'), item()));
     await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'trips/t1/items/i1')));
   });
