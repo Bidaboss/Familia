@@ -1636,3 +1636,14 @@ Dans le détail d'un voyage, un bouton « La carte » (en bas de la carte du jou
 8. Aucun GPS : la carte ne suit personne.
 
 **Après la fusion :** rien de plus que « Publier Firebase » de la 1re partie (#463), à lancer avant l'APK.
+
+## « À prévoir » réservé à ceux qui partent (récit 86, 21/11)
+
+Celui qui suit un voyage sans y participer ne voit plus la liste « À prévoir » ni « Pour tout le monde ». Il garde les étapes, les photos de l'album et le « bien arrivé ». Pas de comptes ni de valises pour lui, comme avant.
+
+1. Avec un compte qui participe à un voyage : ouvre le voyage. **Attendu :** la liste « À prévoir » (ou « Pour tout le monde » et les valises) est là et marche comme avant.
+2. Avec un compte qui suit le même voyage sans y participer : ouvre le voyage. **Attendu :** les étapes, « Bien arrivé » et les photos s'affichent. La liste « À prévoir » n'apparaît pas, et aucun message d'erreur non plus.
+3. Ajoute un participant au voyage depuis le premier compte. **Attendu :** au retour sur le voyage, le deuxième compte voit maintenant la liste.
+4. Le rappel « À emporter » de 18 h ne part qu'aux participants avec l'appli.
+
+**Après la fusion :** lancer « Publier Firebase » avant l'APK (les règles changent).

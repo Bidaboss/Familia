@@ -2532,10 +2532,11 @@ service cloud.firestore {
                 && i.assigneeName is string && i.assigneeName.size() > 0 && i.assigneeName.size() <= 40));
     }
 
-    // trips/{tripId}/items/{itemId}. The followers read the checklist; the participants add, tick,
-    // edit and delete its lines, like the steps. Deleting the trip deletes them on the server.
+    // trips/{tripId}/items/{itemId}. Only the participants read the checklist (récit 86: a follower
+    // sees the steps, the photos and « bien arrivé », not what to bring) and add, tick, edit and
+    // delete its lines. Deleting the trip deletes them on the server.
     match /trips/{tripId}/items/{itemId} {
-      allow read: if isMember() && myMemberId() in tripOf(tripId).readerIds;
+      allow read: if isMember() && isParticipantOf(tripId);
       allow create, update: if isMember() && isParticipantOf(tripId) && isValidItem(request.resource.data, tripId);
       allow delete: if isMember() && (isParticipantOf(tripId) || isOwner());
     }
