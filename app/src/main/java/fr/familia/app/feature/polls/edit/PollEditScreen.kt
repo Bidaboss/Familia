@@ -1,12 +1,13 @@
 package fr.familia.app.feature.polls.edit
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,28 +16,31 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.outlined.Poll
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -44,25 +48,33 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
-import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import fr.familia.app.R
 import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.Member
@@ -70,13 +82,26 @@ import fr.familia.app.core.model.MemberProfile
 import fr.familia.app.core.model.Poll
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
+import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.FamiliaTopBar
 import fr.familia.app.core.ui.HouseholdMemberPicker
 import fr.familia.app.core.ui.PickGroup
+import fr.familia.app.core.ui.form.ChipGroup
+import fr.familia.app.core.ui.form.FormChip
+import fr.familia.app.core.ui.form.FormHint
+import fr.familia.app.core.ui.form.FormOutlineButton
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.StickyActionBar
 import fr.familia.app.core.ui.formatDay
 import fr.familia.app.core.ui.formatTime
+import fr.familia.app.feature.help.HelpButton
+import fr.familia.app.feature.help.ScreenHelp
+import fr.familia.app.feature.home.DayTone
+import fr.familia.app.feature.home.toneColors
 import fr.familia.app.feature.polls.closingDayLabel
+import fr.familia.app.feature.polls.detail.pollAccent
 import fr.familia.app.feature.polls.kindLabel
 import java.time.Instant
 import java.time.LocalDate
@@ -118,7 +143,12 @@ fun PollEditScreen(
             FamiliaTopBar(
                 title = { Text(stringResource(R.string.poll_new_title), maxLines = 2, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = { if (hasChanges) confirmLeave = true else onBack() }) },
+                actions = { HelpButton(ScreenHelp.Polls) },
             )
+        },
+        // « Envoyer le sondage », the black button at the bottom (maquette lot-1-sondage).
+        bottomBar = {
+            (state as? PollEditUiState.Editing)?.let { StickyActionBar(stringResource(R.string.poll_send), onSave, busy = it.isSaving) }
         },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
@@ -129,13 +159,13 @@ fun PollEditScreen(
                     title = stringResource(R.string.poll_unavailable_title),
                     body = stringResource(R.string.poll_unavailable_body),
                 )
-                is PollEditUiState.Editing -> FormContent(state, today, onChange, onAsked, onShortcut, onAddOption, onRemoveOption, onSave)
+                is PollEditUiState.Editing -> FormContent(state, today, onChange, onAsked, onShortcut, onAddOption, onRemoveOption)
             }
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun FormContent(
     state: PollEditUiState.Editing,
@@ -145,117 +175,146 @@ private fun FormContent(
     onShortcut: (AskShortcut) -> Unit,
     onAddOption: () -> Unit,
     onRemoveOption: (Int) -> Unit,
-    onSave: () -> Unit,
 ) {
     val form = state.form
     val errors = state.errors
+    val accent = pollAccent()
+    // The screen goes to the first tile with an error (plan de refonte du 21/11).
+    val tiles = remember { PollTile.entries.associateWith { BringIntoViewRequester() } }
+    LaunchedEffect(errors) { errors.mapNotNull(::tileOf).minOrNull()?.let { tiles.getValue(it).bringIntoView() } }
+    fun Modifier.tile(tile: PollTile) = bringIntoViewRequester(tiles.getValue(tile))
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .imePadding()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
         val event = state.forEvent
         if (event != null) {
             // Asked from an event (retour du 18/11): about it only, the event never changes here.
             EventHeader(event, today)
-            SectionTitle(stringResource(R.string.poll_motive))
-            val questions = PollMotive.entries.associateWith { motiveQuestion(it, event.title) }
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                PollMotive.entries.forEach { motive ->
-                    val selected = form.motive == motive
-                    FilterChip(
-                        selected = selected,
-                        onClick = {
-                            onChange { f ->
-                                // « Autre question » keeps what was typed, only a question written in by a motive goes.
-                                val written = questions.getValue(motive).ifEmpty { f.question.takeUnless { it in questions.values }.orEmpty() }
-                                f.withMotive(motive, written)
-                            }
-                        },
-                        label = { Text(motiveLabel(motive, event.title), style = MaterialTheme.typography.labelLarge) },
-                        leadingIcon = if (selected) ({ Icon(Icons.Outlined.Check, contentDescription = null) }) else null,
-                        modifier = Modifier.heightIn(min = 56.dp),
-                    )
+            FormTile(Icons.AutoMirrored.Outlined.HelpOutline, stringResource(R.string.poll_motive), accent = accent) {
+                val questions = PollMotive.entries.associateWith { motiveQuestion(it, event.title) }
+                ChipGroup {
+                    PollMotive.entries.forEach { motive ->
+                        FormChip(
+                            motiveLabel(motive, event.title),
+                            selected = form.motive == motive,
+                            onClick = {
+                                onChange { f ->
+                                    // « Autre question » keeps what was typed, only a question written in by a motive goes.
+                                    val written = questions.getValue(motive).ifEmpty { f.question.takeUnless { it in questions.values }.orEmpty() }
+                                    f.withMotive(motive, written)
+                                }
+                            },
+                        )
+                    }
                 }
             }
         } else {
-            SectionTitle(stringResource(R.string.poll_kind))
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Poll.Kind.entries.forEach { kind ->
-                    val selected = form.kind == kind
-                    FilterChip(
-                        selected = selected,
-                        onClick = { onChange { it.copy(kind = kind) } },
-                        label = { Text(kindLabel(kind), style = MaterialTheme.typography.labelLarge) },
-                        leadingIcon = if (selected) ({ Icon(Icons.Outlined.Check, contentDescription = null) }) else null,
-                        modifier = Modifier.heightIn(min = 56.dp),
-                    )
+            FormTile(Icons.Outlined.Poll, stringResource(R.string.poll_kind), accent = accent) {
+                ChipGroup {
+                    Poll.Kind.entries.forEach { kind ->
+                        FormChip(
+                            kindLabel(kind),
+                            selected = form.kind == kind,
+                            onClick = { onChange { it.copy(kind = kind) } },
+                            icon = if (kind == Poll.Kind.Date) Icons.Outlined.CalendarMonth else Icons.AutoMirrored.Outlined.List,
+                        )
+                    }
                 }
             }
         }
 
-        OutlinedTextField(
-            value = form.question,
-            onValueChange = { value -> onChange { it.copy(question = value) } },
-            label = { Text(stringResource(R.string.poll_question)) },
-            placeholder = {
-                Text(
-                    event?.let { stringResource(R.string.poll_question_hint_event, it.title) }
-                        ?: stringResource(if (form.kind == Poll.Kind.Date) R.string.poll_question_hint_date else R.string.poll_question_hint_choice),
-                )
-            },
-            isError = PollFormError.QuestionMissing in errors || PollFormError.QuestionTooLong in errors,
-            supportingText = errorText(errors, PollFormError.QuestionMissing, PollFormError.QuestionTooLong),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
-        )
+        FormTile(Icons.Outlined.ChatBubbleOutline, stringResource(R.string.poll_tile_question), Modifier.tile(PollTile.Question), accent = accent) {
+            OutlinedTextField(
+                value = form.question,
+                onValueChange = { value -> onChange { it.copy(question = value) } },
+                label = { Text(stringResource(R.string.poll_question)) },
+                placeholder = {
+                    Text(
+                        event?.let { stringResource(R.string.poll_question_hint_event, it.title) }
+                            ?: stringResource(if (form.kind == Poll.Kind.Date) R.string.poll_question_hint_date else R.string.poll_question_hint_choice),
+                    )
+                },
+                isError = PollFormError.QuestionMissing in errors || PollFormError.QuestionTooLong in errors,
+                supportingText = errorText(errors, PollFormError.QuestionMissing, PollFormError.QuestionTooLong),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
 
         if (form.kind == Poll.Kind.Date) {
-            DatesSection(form, errors, today, onChange, onRemoveOption)
-        } else {
-            ChoicesSection(form, errors, onChange, onRemoveOption)
-        }
-        if (form.canAddOption) {
-            OutlinedButton(onClick = onAddOption, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Icon(Icons.Outlined.Add, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(if (form.kind == Poll.Kind.Date) R.string.poll_add_date else R.string.poll_add_choice))
+            FormTile(Icons.Outlined.CalendarMonth, stringResource(R.string.poll_dates), Modifier.tile(PollTile.Options), accent = accent) {
+                DatesSection(form, errors, today, onChange, onRemoveOption)
+                AddOptionRow(form, R.string.poll_add_date, Poll.MAX_DATES, form.dates.size, onAddOption)
             }
-        }
-        if (form.kind == Poll.Kind.Choice) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp)
-                    .toggleable(value = form.multiple, role = Role.Switch) { value -> onChange { it.copy(multiple = value) } },
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(stringResource(R.string.poll_multiple), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                Switch(checked = form.multiple, onCheckedChange = null)
+        } else {
+            FormTile(Icons.AutoMirrored.Outlined.List, stringResource(R.string.poll_choices), Modifier.tile(PollTile.Options), accent = accent) {
+                ChoicesSection(form, errors, onChange, onRemoveOption)
+                AddOptionRow(form, R.string.poll_add_choice, Poll.MAX_CHOICES, form.choices.size, onAddOption)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 56.dp)
+                        .toggleable(value = form.multiple, role = Role.Switch) { value -> onChange { it.copy(multiple = value) } },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(stringResource(R.string.poll_multiple), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                    Switch(checked = form.multiple, onCheckedChange = null)
+                }
             }
         }
 
-        AskedSection(state, onAsked, onShortcut)
-        ClosesSection(form, errors, today, onChange)
+        FormTile(Icons.Outlined.Groups, stringResource(R.string.poll_asked), Modifier.tile(PollTile.Asked), accent = accent) {
+            AskedSection(state, onAsked, onShortcut)
+        }
+        FormTile(Icons.Outlined.Schedule, stringResource(R.string.poll_closes), Modifier.tile(PollTile.Closes), accent = accent) {
+            ClosesSection(form, errors, today, onChange)
+        }
 
         if (state.saveFailed) {
-            Text(stringResource(R.string.poll_save_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
-        }
-        Button(onClick = onSave, enabled = !state.isSaving, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            if (state.isSaving) {
-                CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-            } else {
-                Text(stringResource(R.string.poll_send))
-            }
+            Text(
+                stringResource(R.string.poll_save_failed),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            )
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+/** The tiles the screen can scroll to, in their order. */
+private enum class PollTile { Question, Options, Asked, Closes }
+
+private fun tileOf(error: PollFormError): PollTile = when (error) {
+    PollFormError.QuestionMissing, PollFormError.QuestionTooLong -> PollTile.Question
+    PollFormError.TooFewOptions, PollFormError.OptionTooLong, PollFormError.DatePast -> PollTile.Options
+    PollFormError.NobodyAsked -> PollTile.Asked
+    PollFormError.ClosesPast -> PollTile.Closes
+}
+
+/** « + Ajouter une date » and « 3 sur 5 » beside it. */
+@Composable
+private fun AddOptionRow(form: PollForm, label: Int, max: Int, count: Int, onAddOption: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (form.canAddOption) {
+            FormOutlineButton(stringResource(label), onAddOption, modifier = Modifier.weight(1f), icon = Icons.Outlined.Add)
+        } else {
+            Spacer(Modifier.weight(1f))
+        }
+        Text(stringResource(R.string.poll_options_count, count, max), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+/**
+ * One line per date (maquette lot-1-sondage): a box « Jour », a box « Heure » (or « Sans heure »),
+ * and a round × to take it away.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DatesSection(
     form: PollForm,
@@ -270,35 +329,33 @@ private fun DatesSection(
     fun set(index: Int, change: (DateChoice) -> DateChoice) = onChange { f ->
         f.copy(dates = f.dates.mapIndexed { i, d -> if (i == index) change(d) else d })
     }
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SectionTitle(stringResource(R.string.poll_dates))
-        Hint(stringResource(R.string.poll_dates_hint))
-        form.dates.forEachIndexed { index, choice ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                FlowRow(
-                    modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    OutlinedButton(onClick = { dayPicker = index }, modifier = Modifier.heightIn(min = 56.dp)) {
-                        Text(choice.day?.let { formatDay(it, today) } ?: stringResource(R.string.event_pick_date))
-                    }
-                    if (choice.day != null) {
-                        TextButton(onClick = { timePicker = index }, modifier = Modifier.heightIn(min = 56.dp)) {
-                            Text(choice.time?.let(::formatTime) ?: stringResource(R.string.poll_add_time))
-                        }
-                    }
-                }
-                if (form.canRemoveOption) {
-                    val name = choice.day?.let { formatDay(it, today) } ?: stringResource(R.string.event_pick_date)
-                    IconButton(onClick = { onRemoveOption(index) }, modifier = Modifier.size(56.dp)) {
-                        Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.poll_remove_option, name))
-                    }
+    FormHint(stringResource(R.string.poll_dates_hint))
+    form.dates.forEachIndexed { index, choice ->
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            PickBox(
+                label = stringResource(R.string.poll_day_label),
+                value = choice.day?.let { formatDay(it, today) },
+                empty = stringResource(R.string.event_pick_date),
+                onClick = { dayPicker = index },
+                modifier = Modifier.weight(1.2f),
+            )
+            PickBox(
+                label = stringResource(R.string.poll_hour_label),
+                value = choice.time?.let(::formatTime) ?: stringResource(R.string.event_no_time).takeIf { choice.day != null },
+                empty = stringResource(R.string.poll_add_time),
+                onClick = { timePicker = index },
+                modifier = Modifier.weight(1f),
+                enabled = choice.day != null,
+            )
+            if (form.canRemoveOption) {
+                val name = choice.day?.let { formatDay(it, today) } ?: stringResource(R.string.event_pick_date)
+                OutlinedIconButton(onClick = { onRemoveOption(index) }, modifier = Modifier.size(56.dp)) {
+                    Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.poll_remove_option, name))
                 }
             }
         }
-        errorText(errors, PollFormError.TooFewOptions, PollFormError.DatePast)?.invoke()
     }
+    errorText(errors, PollFormError.TooFewOptions, PollFormError.DatePast)?.invoke()
     val day = dayPicker
     if (day != null) {
         val initial = form.dates.getOrNull(day)?.day ?: today
@@ -309,9 +366,9 @@ private fun DatesSection(
                 TextButton(onClick = {
                     pickerState.selectedDateMillis?.let { millis -> set(day) { it.copy(day = millis.toUtcDate()) } }
                     dayPicker = null
-                }) { Text(stringResource(R.string.action_ok)) }
+                }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_ok)) }
             },
-            dismissButton = { TextButton(onClick = { dayPicker = null }) { Text(stringResource(R.string.action_cancel)) } },
+            dismissButton = { TextButton(onClick = { dayPicker = null }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) } },
         ) { DatePicker(state = pickerState) }
     }
     val time = timePicker
@@ -325,15 +382,45 @@ private fun DatesSection(
                 TextButton(onClick = {
                     set(time) { it.copy(time = LocalTime.of(pickerState.hour, pickerState.minute)) }
                     timePicker = null
-                }) { Text(stringResource(R.string.action_ok)) }
+                }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_ok)) }
             },
             dismissButton = {
                 TextButton(onClick = {
                     set(time) { it.copy(time = null) }
                     timePicker = null
-                }) { Text(stringResource(R.string.event_no_time)) }
+                }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.event_no_time)) }
             },
         )
+    }
+}
+
+/** A box of 64 dp like the TimeBox of the forms: a small label, then the value in bold; it opens a picker. */
+@Composable
+private fun PickBox(label: String, value: String?, empty: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+    val colors = MaterialTheme.colorScheme
+    val shown = value ?: empty
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = colors.surface,
+        border = BorderStroke(1.5.dp, if (value != null) colors.outline else colors.outlineVariant),
+        modifier = modifier
+            .heightIn(min = 64.dp)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .clearAndSetSemantics {
+                contentDescription = "$label $shown"
+                role = Role.Button
+                if (enabled) onClick { onClick(); true } else disabled()
+            },
+    ) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+            Text(label, style = MaterialTheme.typography.labelMedium, color = colors.onSurfaceVariant)
+            Text(
+                shown,
+                fontSize = if (value != null) 18.sp else 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (value != null) colors.onSurface else colors.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -344,89 +431,96 @@ private fun ChoicesSection(
     onChange: ((PollForm) -> PollForm) -> Unit,
     onRemoveOption: (Int) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SectionTitle(stringResource(R.string.poll_choices))
-        Hint(stringResource(R.string.poll_choices_hint))
-        form.choices.forEachIndexed { index, text ->
-            val label = stringResource(R.string.poll_choice_n, index + 1)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
-                    value = text,
-                    onValueChange = { value ->
-                        onChange { f -> f.copy(choices = f.choices.mapIndexed { i, c -> if (i == index) value else c }) }
-                    },
-                    label = { Text(label) },
-                    isError = text.trim().length > Poll.MAX_OPTION,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                    modifier = Modifier.weight(1f),
-                )
-                if (form.canRemoveOption) {
-                    IconButton(onClick = { onRemoveOption(index) }, modifier = Modifier.size(56.dp)) {
-                        Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.poll_remove_option, label))
-                    }
+    FormHint(stringResource(R.string.poll_choices_hint))
+    form.choices.forEachIndexed { index, text ->
+        val label = stringResource(R.string.poll_choice_n, index + 1)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { value ->
+                    onChange { f -> f.copy(choices = f.choices.mapIndexed { i, c -> if (i == index) value else c }) }
+                },
+                label = { Text(label) },
+                isError = text.trim().length > Poll.MAX_OPTION,
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                modifier = Modifier.weight(1f),
+            )
+            if (form.canRemoveOption) {
+                OutlinedIconButton(onClick = { onRemoveOption(index) }, modifier = Modifier.size(56.dp)) {
+                    Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.poll_remove_option, label))
                 }
             }
         }
-        errorText(errors, PollFormError.TooFewOptions, PollFormError.OptionTooLong)?.invoke()
     }
+    errorText(errors, PollFormError.TooFewOptions, PollFormError.OptionTooLong)?.invoke()
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * « Qui répond ? », folded on its summary (« Toute la famille ») with « Changer », which opens the
+ * shortcuts and the households (each household ticks all its members, règle de Kévin, 17/11).
+ */
 @Composable
 private fun AskedSection(state: PollEditUiState.Editing, onAsked: (Set<String>) -> Unit, onShortcut: (AskShortcut) -> Unit) {
     val asked = state.form.askedIds
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        SectionTitle(stringResource(R.string.poll_asked))
-        Hint(stringResource(R.string.poll_asked_hint))
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(vertical = 4.dp),
+    val everyone = state.shortcuts.firstOrNull { it.label == null }
+    var open by rememberSaveable { mutableStateOf(everyone == null || asked != everyone.memberIds) }
+    val tone = toneColors(DayTone.Organise)
+    if (!open) {
+        Row(
+            Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(tone.pale).padding(start = 14.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.poll_asked_everyone), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = tone.text)
+                Text(stringResource(R.string.poll_asked_hint), style = MaterialTheme.typography.bodyMedium, color = tone.text)
+            }
+            TextButton(onClick = { open = true }, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.poll_asked_change), fontWeight = FontWeight.Bold, color = tone.text)
+            }
+        }
+    } else {
+        FormHint(stringResource(R.string.poll_asked_hint))
+        ChipGroup {
             state.shortcuts.filter { it.label == null }.forEach { shortcut ->
-                val selected = asked == shortcut.memberIds
-                FilterChip(
-                    selected = selected,
+                FormChip(
+                    shortcut.label ?: stringResource(R.string.poll_asked_everyone),
+                    selected = asked == shortcut.memberIds,
                     onClick = { onShortcut(shortcut) },
-                    label = { Text(shortcut.label ?: stringResource(R.string.poll_asked_everyone), style = MaterialTheme.typography.labelLarge) },
-                    leadingIcon = if (selected) ({ Icon(Icons.Outlined.Check, contentDescription = null) }) else null,
-                    modifier = Modifier.heightIn(min = 56.dp),
                 )
             }
         }
-        // Each household ticks all its members (règle de Kévin, 17/11): the chips keep « Tout le monde ».
         HouseholdMemberPicker(
             groups = state.groups.map { PickGroup(it.name, it.members) },
             selected = asked,
             onChange = onAsked,
         )
-        errorText(state.errors, PollFormError.NobodyAsked)?.invoke()
     }
+    errorText(state.errors, PollFormError.NobodyAsked)?.invoke()
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+/**
+ * « Fin des réponses »: Sans fin, Dans 3 jours, Dans une semaine, Autre jour (the calendar), then the
+ * sentence it makes. The pills only fill closesOn: no rule changes.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ClosesSection(form: PollForm, errors: Set<PollFormError>, today: LocalDate, onChange: ((PollForm) -> PollForm) -> Unit) {
     var picker by rememberSaveable { mutableStateOf(false) }
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SectionTitle(stringResource(R.string.poll_closes))
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { picker = true }, modifier = Modifier.heightIn(min = 56.dp)) {
-                Text(
-                    form.closesOn?.let { stringResource(R.string.poll_closes_value, closingDayLabel(it)) }
-                        ?: stringResource(R.string.poll_closes_pick),
-                )
-            }
-            if (form.closesOn != null) {
-                TextButton(onClick = { onChange { it.copy(closesOn = null) } }, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.poll_closes_remove))
-                }
-            }
-        }
-        if (form.closesOn == null) Hint(stringResource(R.string.poll_closes_none))
-        errorText(errors, PollFormError.ClosesPast)?.invoke()
+    val quick = listOf(3L, 7L).map { today.plusDays(it) }
+    ChipGroup {
+        FormChip(stringResource(R.string.poll_closes_never), selected = form.closesOn == null, onClick = { onChange { it.copy(closesOn = null) } })
+        FormChip(stringResource(R.string.poll_closes_3_days), selected = form.closesOn == quick[0], onClick = { onChange { it.copy(closesOn = quick[0]) } })
+        FormChip(stringResource(R.string.poll_closes_week), selected = form.closesOn == quick[1], onClick = { onChange { it.copy(closesOn = quick[1]) } })
+        FormChip(
+            stringResource(R.string.form_other_day),
+            selected = form.closesOn != null && form.closesOn !in quick,
+            onClick = { picker = true },
+            icon = Icons.Outlined.CalendarMonth,
+        )
     }
+    FormHint(form.closesOn?.let { stringResource(R.string.poll_closes_value, closingDayLabel(it)) } ?: stringResource(R.string.poll_closes_none))
+    errorText(errors, PollFormError.ClosesPast)?.invoke()
     if (picker) {
         val pickerState = rememberDatePickerState(initialSelectedDateMillis = (form.closesOn ?: today.plusDays(7)).toUtcMillis())
         DatePickerDialog(
@@ -435,9 +529,9 @@ private fun ClosesSection(form: PollForm, errors: Set<PollFormError>, today: Loc
                 TextButton(onClick = {
                     pickerState.selectedDateMillis?.let { millis -> onChange { it.copy(closesOn = millis.toUtcDate()) } }
                     picker = false
-                }) { Text(stringResource(R.string.action_ok)) }
+                }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_ok)) }
             },
-            dismissButton = { TextButton(onClick = { picker = false }) { Text(stringResource(R.string.action_cancel)) } },
+            dismissButton = { TextButton(onClick = { picker = false }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) } },
         ) { DatePicker(state = pickerState) }
     }
 }
@@ -473,16 +567,6 @@ private fun motiveQuestion(motive: PollMotive, title: String): String = when (mo
     PollMotive.Place -> stringResource(R.string.poll_motive_q_place, title)
     PollMotive.Menu -> stringResource(R.string.poll_motive_q_menu, title)
     PollMotive.Other -> ""
-}
-
-@Composable
-private fun SectionTitle(text: String) {
-    Text(text, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
-}
-
-@Composable
-private fun Hint(text: String) {
-    Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable

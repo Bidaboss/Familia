@@ -21,7 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +29,8 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.ui.ClaySpacing
+import fr.familia.app.core.ui.FamiliaTopBar
 import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.Poll
 import fr.familia.app.core.theme.ClayTint
@@ -62,11 +63,7 @@ fun PollsScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.polls_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                navigationIcon = { BackButton(onClick = onBack) },
-                actions = { HelpButton(ScreenHelp.Polls) },
-            )
+            FamiliaTopBar(stringResource(R.string.polls_title), onBack = onBack, actions = { HelpButton(ScreenHelp.Polls) })
         },
         floatingActionButton = {
             if ((state as? PollsUiState.Success)?.canAsk == true) {
@@ -107,8 +104,8 @@ fun PollsScreen(
 @Composable
 private fun PollList(state: PollsUiState.Success, today: LocalDate, onOpen: (String) -> Unit) {
     LazyColumn(
-        contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 96.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(start = ClaySpacing.screen, top = 16.dp, end = ClaySpacing.screen, bottom = 96.dp),
+        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
         if (state.open.isNotEmpty()) {
             item(key = "open") { SectionTitle(stringResource(R.string.polls_section_open)) }

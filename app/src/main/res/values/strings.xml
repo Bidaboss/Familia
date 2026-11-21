@@ -2270,6 +2270,14 @@
     <string name="poll_closes_pick">Choisir une date de fin</string>
     <string name="poll_closes_remove">Sans date de fin</string>
     <string name="poll_send">Envoyer le sondage</string>
+    <string name="poll_tile_question">La question</string>
+    <string name="poll_options_count">%1$d sur %2$d</string>
+    <string name="poll_day_label">Jour</string>
+    <string name="poll_hour_label">Heure</string>
+    <string name="poll_asked_change">Changer</string>
+    <string name="poll_closes_never">Sans fin</string>
+    <string name="poll_closes_3_days">Dans 3 jours</string>
+    <string name="poll_closes_week">Dans une semaine</string>
     <string name="poll_leave_title">Abandonner ce sondage ?</string>
     <string name="poll_leave_body">Le sondage n\'est pas envoyé.</string>
     <string name="poll_error_question_missing">Écris la question.</string>

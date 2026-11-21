@@ -1,42 +1,42 @@
 package fr.familia.app.feature.polls.detail
 
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.ChildCare
+import androidx.compose.material.icons.outlined.Event
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.HowToVote
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Poll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,25 +44,40 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.data.familyToday
-import fr.familia.app.core.share.ShareButton
 import fr.familia.app.core.model.DateAnswer
 import fr.familia.app.core.model.Poll
+import fr.familia.app.core.share.ShareButton
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
-import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.FamiliaTopBar
+import fr.familia.app.core.ui.LoadingState
+import fr.familia.app.core.ui.form.ChipGroup
+import fr.familia.app.core.ui.form.FormChip
+import fr.familia.app.core.ui.form.FormDeleteButton
+import fr.familia.app.core.ui.form.FormHint
+import fr.familia.app.core.ui.form.FormOutlineButton
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.StickyActionBar
+import fr.familia.app.feature.home.DayTone
+import fr.familia.app.feature.home.toneColors
 import fr.familia.app.feature.polls.closingDayLabel
 import fr.familia.app.feature.polls.kindLabel
 import fr.familia.app.feature.polls.lastDayOf
@@ -70,7 +85,6 @@ import fr.familia.app.feature.polls.optionLabel
 import fr.familia.app.feature.polls.shortDateLabel
 import java.time.Instant
 import java.time.LocalDate
-import fr.familia.app.core.ui.LoadingState
 
 /** One poll: answer, results, and for its author « Terminer » and « Choisir cette date ». Stateless. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -99,6 +113,14 @@ fun PollDetailScreen(
                     if (onShare != null && state is PollDetailUiState.Success) ShareButton(onClick = onShare)
                 },
             )
+        },
+        // « Envoyer ma réponse », the black button at the bottom (maquette lot-1-sondage).
+        bottomBar = {
+            val success = state as? PollDetailUiState.Success
+            val mine = success?.answers?.firstOrNull { it.isMe }
+            if (success != null && mine != null && !mine.isSaved) {
+                StickyActionBar(stringResource(R.string.poll_answer_send), onClick = { onSend(mine.memberId) }, enabled = !success.isBusy)
+            }
         },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
@@ -138,38 +160,32 @@ private fun Content(
     var confirmClose by rememberSaveable { mutableStateOf(false) }
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     var choosing by rememberSaveable { mutableStateOf<Int?>(null) }
+    val accent = pollAccent()
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
-        Header(state, today, onOpenEvent)
-        state.answers.forEach { card -> AnswerSection(poll, card, today, onAnswer, onToggleChoice, onSend, enabled = !state.isBusy) }
+        Header(state, today, accent, onOpenEvent)
+        // Mine first, then the children I answer for (maquette lot-1-sondage).
+        state.answers.sortedByDescending { it.isMe }.forEach { card ->
+            AnswerTile(poll, card, state.results, today, accent, onAnswer, onToggleChoice, onSend, enabled = !state.isBusy)
+        }
 
-        SectionTitle(stringResource(R.string.poll_results))
-        state.results.forEach { result ->
-            ResultCard(poll, result, today, canChoose = state.canChooseDate && !state.isBusy, onChoose = { choosing = result.index })
+        FormTile(Icons.Outlined.BarChart, stringResource(R.string.poll_results), accent = accent) {
+            state.results.forEach { result ->
+                ResultRow(poll, result, today, canChoose = state.canChooseDate && !state.isBusy, onChoose = { choosing = result.index })
+            }
+            if (state.results.all { it.yesNames.isEmpty() && it.maybeNames.isEmpty() }) FormHint(stringResource(R.string.poll_no_answer))
         }
-        if (state.results.all { it.yesNames.isEmpty() && it.maybeNames.isEmpty() }) Hint(stringResource(R.string.poll_no_answer))
         if (state.table.isNotEmpty() && state.results.any { it.yesNames.isNotEmpty() || it.maybeNames.isNotEmpty() }) {
-            AnswersTable(poll, state.table)
+            AnswersTable(poll, state.table, accent)
         }
-        Hint(
-            if (state.notAnsweredNames.isEmpty()) {
-                stringResource(R.string.poll_everyone_answered)
-            } else {
-                stringResource(R.string.poll_not_answered, state.notAnsweredNames.joinToString(", "))
-            },
-        )
 
         if (state.canManage && state.isOpen) {
-            OutlinedButton(onClick = { confirmClose = true }, enabled = !state.isBusy, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.poll_close))
-            }
+            FormOutlineButton(stringResource(R.string.poll_close), onClick = { confirmClose = true }, enabled = !state.isBusy, icon = Icons.Outlined.Lock)
         }
         if (state.canManage) {
-            TextButton(onClick = { confirmDelete = true }, enabled = !state.isBusy, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.poll_delete), color = MaterialTheme.colorScheme.error)
-            }
+            FormDeleteButton(stringResource(R.string.poll_delete), onClick = { confirmDelete = true }, enabled = !state.isBusy)
         }
     }
 
@@ -210,118 +226,170 @@ private fun Content(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { choosing = null; onChooseDate(index, title) }) { Text(stringResource(R.string.poll_choose_confirm)) }
+                TextButton(onClick = { choosing = null; onChooseDate(index, title) }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.poll_choose_confirm)) }
             },
-            dismissButton = { TextButton(onClick = { choosing = null }) { Text(stringResource(R.string.action_cancel)) } },
+            dismissButton = { TextButton(onClick = { choosing = null }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }
 
+/** The lilac of « Organiser » (Planning, sondages), for the edge of the tiles and the bars. */
 @Composable
-private fun Header(state: PollDetailUiState.Success, today: LocalDate, onOpenEvent: (String) -> Unit) {
+internal fun pollAccent(): Color = toneColors(DayTone.Organise).text
+
+/** The kind on a pale pill, the question, who asked and until when, then who has not answered. */
+@Composable
+private fun Header(state: PollDetailUiState.Success, today: LocalDate, accent: Color, onOpenEvent: (String) -> Unit) {
     val poll = state.poll
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(kindLabel(poll.kind), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-        Text(poll.question, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
-        Hint(if (state.isMine) stringResource(R.string.poll_by_me) else stringResource(R.string.poll_by, state.authorName))
+    val tone = toneColors(DayTone.Organise)
+    FormTile(Icons.Outlined.Poll, poll.question, accent = accent) {
+        Text(
+            kindLabel(poll.kind),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = tone.text,
+            modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(tone.pale).padding(horizontal = 8.dp, vertical = 2.dp),
+        )
         val status = when {
             poll.chosen != null -> stringResource(R.string.poll_chosen_date, optionLabel(poll, poll.chosen, today))
             !state.isOpen -> stringResource(R.string.poll_closed)
             poll.closesAt != null -> stringResource(R.string.poll_closes_on, closingDayLabel(lastDayOf(poll.closesAt)))
             else -> null
         }
-        if (status != null) Text(status, style = MaterialTheme.typography.titleSmall)
+        val by = if (state.isMine) stringResource(R.string.poll_by_me) else stringResource(R.string.poll_by, state.authorName)
+        Text(listOfNotNull(by, status).joinToString(" · "), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            if (state.notAnsweredNames.isEmpty()) {
+                stringResource(R.string.poll_everyone_answered)
+            } else {
+                stringResource(R.string.poll_not_answered, state.notAnsweredNames.joinToString(", "))
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
         val eventId = poll.createdEventId
-        if (eventId != null) {
-            OutlinedButton(onClick = { onOpenEvent(eventId) }, modifier = Modifier.padding(top = 8.dp).heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.poll_see_event))
-            }
-        }
+        if (eventId != null) FormOutlineButton(stringResource(R.string.poll_see_event), onClick = { onOpenEvent(eventId) }, icon = Icons.Outlined.Event)
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * « Ma réponse », or « Réponse de Noé » for a child I answer for (maquette lot-1-sondage). A date:
+ * its counts, a bar (dark lilac for yes, lilac for maybe), « En tête », then Oui, Peut-être, Non.
+ * A free choice: one pill per answer. Mine is sent by the black button at the bottom, a child's here.
+ */
 @Composable
-private fun AnswerSection(
+private fun AnswerTile(
     poll: Poll,
     card: AnswerCard,
+    results: List<OptionResult>,
     today: LocalDate,
+    accent: Color,
     onAnswer: (String, Int, DateAnswer) -> Unit,
     onToggleChoice: (String, Int) -> Unit,
     onSend: (String) -> Unit,
     enabled: Boolean,
 ) {
-    ClayCard(Modifier.fillMaxWidth()) {
-        Text(
-            if (card.isMe) stringResource(R.string.poll_my_answer) else stringResource(R.string.poll_answer_for, card.firstName),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.semantics { heading() },
-        )
-        Spacer(Modifier.size(8.dp))
+    FormTile(
+        if (card.isMe) Icons.Outlined.HowToVote else Icons.Outlined.ChildCare,
+        if (card.isMe) stringResource(R.string.poll_my_answer) else stringResource(R.string.poll_answer_for, card.firstName),
+        accent = accent,
+    ) {
         if (poll.kind == Poll.Kind.Date) {
             poll.options.indices.forEach { i ->
-                Text(optionLabel(poll, i, today), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(top = 8.dp))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    DateAnswer.entries.forEach { answer ->
-                        val selected = card.draft.answers.getOrNull(i) == answer
-                        FilterChip(
-                            selected = selected,
-                            onClick = { onAnswer(card.memberId, i, answer) },
-                            label = { Text(answerLabel(answer), style = MaterialTheme.typography.labelLarge) },
-                            leadingIcon = if (selected) ({ Icon(Icons.Outlined.Check, contentDescription = null) }) else null,
-                            modifier = Modifier.heightIn(min = 56.dp),
-                        )
-                    }
+                DateAnswerRow(poll, i, results.firstOrNull { it.index == i }, card, today, onAnswer)
+            }
+        } else if (poll.multiple) {
+            poll.options.indices.forEach { i ->
+                val selected = i in card.draft.choices
+                Row(
+                    Modifier.fillMaxWidth().heightIn(min = 56.dp).toggleable(value = selected, role = Role.Checkbox) { onToggleChoice(card.memberId, i) },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Checkbox(checked = selected, onCheckedChange = null)
+                    Spacer(Modifier.width(12.dp))
+                    Text(optionLabel(poll, i, today), style = MaterialTheme.typography.bodyLarge)
                 }
             }
         } else {
-            poll.options.indices.forEach { i ->
-                val selected = i in card.draft.choices
-                val toggle = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp)
-                    .let {
-                        if (poll.multiple) {
-                            it.toggleable(value = selected, role = Role.Checkbox) { onToggleChoice(card.memberId, i) }
-                        } else {
-                            it.selectable(selected = selected, role = Role.RadioButton) { onToggleChoice(card.memberId, i) }
-                        }
-                    }
-                Row(toggle, verticalAlignment = Alignment.CenterVertically) {
-                    if (poll.multiple) Checkbox(checked = selected, onCheckedChange = null) else RadioButton(selected = selected, onClick = null)
-                    Spacer(Modifier.width(16.dp))
-                    Text(optionLabel(poll, i, today), style = MaterialTheme.typography.bodyLarge)
+            ChipGroup {
+                poll.options.indices.forEach { i ->
+                    FormChip(optionLabel(poll, i, today), selected = i in card.draft.choices, onClick = { onToggleChoice(card.memberId, i) })
                 }
             }
         }
         if (card.incomplete) {
-            Text(
+            FormHint(
                 stringResource(if (poll.kind == Poll.Kind.Date) R.string.poll_answer_incomplete else R.string.poll_answer_none_chosen),
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 8.dp),
+                isError = true,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
             )
         }
-        Spacer(Modifier.size(8.dp))
         if (card.isSaved) {
             Row(Modifier.heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Icon(Icons.Outlined.CheckCircle, contentDescription = null, tint = accent)
                 Spacer(Modifier.width(8.dp))
                 Text(stringResource(R.string.poll_answer_saved), style = MaterialTheme.typography.bodyLarge)
             }
-        } else {
-            // A tonal button: the screen keeps at most one filled button (charte Argile).
-            FilledTonalButton(onClick = { onSend(card.memberId) }, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(if (card.isMe) stringResource(R.string.poll_answer_send) else stringResource(R.string.poll_answer_send_for, card.firstName))
+        } else if (!card.isMe) {
+            FormOutlineButton(stringResource(R.string.poll_answer_send_for, card.firstName), onClick = { onSend(card.memberId) }, enabled = enabled)
+        }
+    }
+}
+
+/** One date: its label and counts, the bar of yes and maybe, and the three answers side by side. */
+@Composable
+private fun DateAnswerRow(poll: Poll, index: Int, result: OptionResult?, card: AnswerCard, today: LocalDate, onAnswer: (String, Int, DateAnswer) -> Unit) {
+    val tone = toneColors(DayTone.Organise)
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(optionLabel(poll, index, today), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            if (result != null && (result.isLeader || result.isChosen)) {
+                Text(
+                    stringResource(if (result.isChosen) R.string.poll_chosen else R.string.poll_leading),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF6B5320),
+                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Color(0xFFFFF1C2)).padding(horizontal = 8.dp, vertical = 2.dp),
+                )
+            }
+        }
+        if (result != null) {
+            val yes = result.yesNames.size
+            val maybe = result.maybeNames.size
+            Text(
+                listOf(stringResource(R.string.poll_count_yes, yes), stringResource(R.string.poll_count_maybe, maybe)).joinToString(" · "),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = tone.text,
+            )
+            val total = (askedCount(poll) ?: (yes + maybe)).coerceAtLeast(yes + maybe).coerceAtLeast(1)
+            Row(Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)).background(MaterialTheme.colorScheme.surfaceVariant).clearAndSetSemantics { }) {
+                if (yes > 0) Box(Modifier.weight(yes.toFloat()).fillMaxHeight().background(tone.text))
+                if (maybe > 0) Box(Modifier.weight(maybe.toFloat()).fillMaxHeight().background(tone.pill))
+                val rest = total - yes - maybe
+                if (rest > 0) Spacer(Modifier.weight(rest.toFloat()))
+            }
+        }
+        Row(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            DateAnswer.entries.forEach { answer ->
+                FormChip(
+                    answerLabel(answer),
+                    selected = card.draft.answers.getOrNull(index) == answer,
+                    onClick = { onAnswer(card.memberId, index, answer) },
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
     }
 }
 
+/** How many can answer, for the width of the bars: everyone asked, or null when unknown. */
+private fun askedCount(poll: Poll): Int? = poll.askedIds.size.takeIf { it > 0 }
+
+/** A line of the results: the option, its counts and names, « Choisir cette date » for the author. */
 @Composable
-private fun ResultCard(poll: Poll, result: OptionResult, today: LocalDate, canChoose: Boolean, onChoose: () -> Unit) {
-    // Tints say who an event is for (charte Argile): the lead is told in words.
-    ClayCard(Modifier.fillMaxWidth()) {
+private fun ResultRow(poll: Poll, result: OptionResult, today: LocalDate, canChoose: Boolean, onChoose: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         if (result.isChosen || result.isLeader) {
             Text(
                 stringResource(if (result.isChosen) R.string.poll_chosen else R.string.poll_leading),
@@ -348,23 +416,18 @@ private fun ResultCard(poll: Poll, result: OptionResult, today: LocalDate, canCh
         if (result.maybeNames.isNotEmpty()) {
             Text(stringResource(R.string.poll_maybe_names, result.maybeNames.joinToString(", ")), style = MaterialTheme.typography.bodyMedium)
         }
-        if (canChoose) {
-            OutlinedButton(onClick = onChoose, modifier = Modifier.padding(top = 8.dp).fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.poll_choose_date))
-            }
-        }
+        if (canChoose) FormOutlineButton(stringResource(R.string.poll_choose_date), onChoose, modifier = Modifier.padding(top = 4.dp))
     }
 }
 
 /** « Par foyer »: a column per date, a row per member asked, ✓ ? ✗ or – while not answered. */
 @Composable
-private fun AnswersTable(poll: Poll, table: List<TableGroup>) {
+private fun AnswersTable(poll: Poll, table: List<TableGroup>, accent: Color) {
     val yes = stringResource(R.string.poll_answer_yes)
     val maybe = stringResource(R.string.poll_answer_maybe)
     val no = stringResource(R.string.poll_answer_no)
-    ClayCard(Modifier.fillMaxWidth()) {
-        Text(stringResource(R.string.poll_by_household), style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
-        Row(Modifier.fillMaxWidth().padding(top = 8.dp).clearAndSetSemantics { }) {
+    FormTile(Icons.Outlined.Groups, stringResource(R.string.poll_by_household), accent = accent) {
+        Row(Modifier.fillMaxWidth().clearAndSetSemantics { }) {
             Spacer(Modifier.weight(1.4f))
             poll.options.indices.forEach { i ->
                 Text(shortDateLabel(poll, i), style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
@@ -431,19 +494,9 @@ private fun Confirm(title: String, body: String, confirm: String, onConfirm: () 
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = { Text(body) },
-        confirmButton = { TextButton(onClick = onConfirm) { Text(confirm) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+        confirmButton = { TextButton(onClick = onConfirm, modifier = Modifier.heightIn(min = 56.dp)) { Text(confirm) } },
+        dismissButton = { TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) } },
     )
-}
-
-@Composable
-private fun SectionTitle(text: String) {
-    Text(text, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
-}
-
-@Composable
-private fun Hint(text: String) {
-    Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 /** Fictional data for previews and screenshots. */
