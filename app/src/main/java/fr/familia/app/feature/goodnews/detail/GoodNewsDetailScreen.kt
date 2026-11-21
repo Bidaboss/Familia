@@ -16,7 +16,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.ui.FamiliaTopBar
 import fr.familia.app.core.model.GoodNews
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Reaction
@@ -63,9 +63,9 @@ fun GoodNewsDetailScreen(
     var removing by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.goodnews_detail_title), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                navigationIcon = { BackButton(onClick = onBack) },
+            FamiliaTopBar(
+                stringResource(R.string.goodnews_detail_title),
+                onBack = onBack,
                 actions = { onShare?.let { ShareButton(onClick = it) } },
             )
         },

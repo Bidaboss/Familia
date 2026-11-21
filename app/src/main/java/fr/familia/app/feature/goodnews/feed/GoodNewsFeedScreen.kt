@@ -15,13 +15,11 @@ import androidx.compose.material.icons.outlined.Celebration
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +30,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.ui.form.FormChip
+import fr.familia.app.core.ui.form.ChipGroup
+import fr.familia.app.core.ui.FamiliaTopBar
 import fr.familia.app.core.model.Reaction
 import fr.familia.app.core.photo.LocalOnline
 import fr.familia.app.core.theme.FamiliaTheme
@@ -71,7 +72,7 @@ fun GoodNewsFeedScreen(
     var removing by rememberSaveable { mutableStateOf<String?>(null) }
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.goodnews_title), maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) })
+            FamiliaTopBar(stringResource(R.string.goodnews_title), onBack = onBack)
         },
         floatingActionButton = {
             // Empty, the screen keeps a single action: the button of its message.
@@ -144,12 +145,10 @@ private fun Feed(
         if (yearAgain != null) item(key = "yearAgain") { yearAgain() }
         if (littleOnesFilter != null) {
             item(key = "littleOnes") {
-                FilterChip(
-                    selected = state.littleOnesOnly,
-                    onClick = { littleOnesFilter(!state.littleOnesOnly) },
-                    label = { Text(stringResource(R.string.goodnews_little_ones_filter)) },
-                    modifier = Modifier.heightIn(min = 56.dp),
-                )
+                // The pills of the forms (plan de refonte du 21/11).
+                ChipGroup {
+                    FormChip(stringResource(R.string.goodnews_little_ones_filter), selected = state.littleOnesOnly, onClick = { littleOnesFilter(!state.littleOnesOnly) })
+                }
             }
             if (state.littleOnesOnly && state.items.isEmpty()) {
                 item(key = "littleOnesEmpty") {

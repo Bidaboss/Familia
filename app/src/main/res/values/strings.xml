@@ -1062,6 +1062,7 @@
     <string name="helprequest_back_to_list">Retour aux coups de main</string>
     <string name="helprequest_warned">Prévenus : %1$s</string>
     <string name="helprequest_take">Je m\'en occupe</string>
+    <string name="helprequest_tile_status">Où on en est</string>
     <string name="helprequest_take_title">Tu t\'en occupes ?</string>
     <string name="helprequest_note_label">Un mot pour %1$s (facultatif)</string>
     <string name="helprequest_note_hint">Par exemple : « Je passe vers 17 h. »</string>
@@ -1198,6 +1199,7 @@
     <string name="goodnews_photos_fixed">Les photos ne se changent pas. Pour en mettre d\'autres, retire cette actualité et publies-en une nouvelle.</string>
     <string name="goodnews_for">De qui est cette nouvelle ?</string>
     <string name="goodnews_for_me">Moi</string>
+    <string name="goodnews_tile_more">En plus</string>
     <string name="goodnews_mentions">Pour nommer quelqu\'un, écris « @ » puis son prénom.</string>
     <string name="goodnews_publish_action">Publier pour toute la famille</string>
     <string name="goodnews_save_action">Enregistrer</string>
@@ -2857,6 +2859,7 @@
     <string name="lend_decline">Pas cette fois</string>
     <string name="lend_drop_ask">Retirer ma demande</string>
     <string name="lend_returned">Rendu</string>
+    <string name="lend_tile_where">Où il est</string>
     <string name="lend_ask_title">Je voudrais l\'emprunter</string>
     <string name="lend_ask_body">Les dates sont facultatives. Celui qui le prête est prévenu tout de suite.</string>
     <string name="lend_pick_from">À partir de quand ? (facultatif)</string>
@@ -2943,6 +2946,8 @@
     <string name="gooddeal_call">Appeler le %1$s</string>
     <string name="gooddeal_recommended_by">Recommandée par %1$s</string>
     <string name="gooddeal_recommend">Je recommande aussi</string>
+    <string name="gooddeal_tile_interested">Qui est intéressé ?</string>
+    <string name="gooddeal_tile_recommended">Qui la recommande ?</string>
     <string name="gooddeal_not_recommend">Je ne la recommande plus</string>
     <string name="gooddeal_field_name">Nom</string>
     <string name="gooddeal_field_why">Pourquoi tu la conseilles (facultatif)</string>
