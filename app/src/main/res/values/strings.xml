@@ -460,8 +460,9 @@
     <string name="member_birth_date_none">Choisir une date</string>
     <string name="member_parents">Adultes responsables</string>
     <string name="member_parents_help">Ils voient et gèrent ce qui concerne l\'enfant. Coche au moins une personne.</string>
-    <string name="member_color">Couleur</string>
-    <string name="member_color_change">Touche l\'avatar pour changer sa couleur</string>
+    <string name="member_color_hint">Sa couleur, dans le planning et l\'arbre</string>
+    <string name="member_tile_who">Qui est-ce ?</string>
+    <string name="member_tile_household">Son foyer</string>
     <string name="member_locked_fields">Les champs grisés ne peuvent être changés que par l\'admin principal.</string>
     <string name="member_color_n">Couleur %1$d</string>
     <string name="member_save">Enregistrer</string>
