@@ -1,5 +1,13 @@
 package fr.familia.app.feature.all
 
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.outlined.Celebration
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.PhotoAlbum
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import fr.familia.app.core.theme.LocalClayColors
+import fr.familia.app.core.theme.themeBackground
+import fr.familia.app.core.ui.form.FormTile
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -52,17 +60,16 @@ import androidx.compose.ui.unit.sp
 import fr.familia.app.R
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClaySpacing
-import fr.familia.app.core.ui.SectionLabel
 import fr.familia.app.feature.home.DayTone
 import fr.familia.app.feature.home.toneColors
 import java.text.Normalizer
 import java.util.Locale
 
 /** The three families of « Tout Familia » (R1 bis, §3), each with the color of its days on the frise. */
-enum class ModuleFamily(@StringRes val labelRes: Int, val tone: DayTone) {
-    Organise(R.string.all_family_organise, DayTone.Organise),
-    Treat(R.string.all_family_treat, DayTone.Party),
-    Remember(R.string.all_family_remember, DayTone.Help),
+enum class ModuleFamily(@StringRes val labelRes: Int, val tone: DayTone, val icon: ImageVector) {
+    Organise(R.string.all_family_organise, DayTone.Organise, Icons.Outlined.CalendarMonth),
+    Treat(R.string.all_family_treat, DayTone.Party, Icons.Outlined.Celebration),
+    Remember(R.string.all_family_remember, DayTone.Help, Icons.Outlined.PhotoAlbum),
 }
 
 /** One round icon of the drawer: only the modules on for me, each opening its screen. */
@@ -102,6 +109,8 @@ fun AllFamiliaScreen(modules: List<AllModule>, onBack: () -> Unit) {
         else -> 4
     }
     Scaffold(
+        modifier = Modifier.themeBackground(),
+        containerColor = Color.Transparent,
         topBar = {
             FamiliaTopBar(
                 title = { Text(stringResource(R.string.home_r1_all)) },
@@ -122,6 +131,11 @@ fun AllFamiliaScreen(modules: List<AllModule>, onBack: () -> Unit) {
                     placeholder = { Text(stringResource(R.string.all_search)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = LocalClayColors.current.card,
+                        unfocusedContainerColor = LocalClayColors.current.card,
+                    ),
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -133,12 +147,14 @@ fun AllFamiliaScreen(modules: List<AllModule>, onBack: () -> Unit) {
             ModuleFamily.entries.forEach { family ->
                 val inFamily = shown.filter { it.family == family }
                 if (inFamily.isNotEmpty()) {
-                    item(key = "family-${family.name}") { SectionLabel(stringResource(family.labelRes)) }
-                    inFamily.chunked(perLine).forEachIndexed { line, row ->
-                        item(key = "line-${family.name}-$line") {
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                                row.forEach { module -> ModuleIcon(module, Modifier.weight(1f)) }
-                                repeat(perLine - row.size) { Spacer(Modifier.weight(1f)) }
+                    // One tile per family (refonte, lot 3): its title, then the round icons.
+                    item(key = "family-${family.name}") {
+                        FormTile(icon = family.icon, title = stringResource(family.labelRes), accent = toneColors(family.tone).text) {
+                            inFamily.chunked(perLine).forEach { row ->
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                                    row.forEach { module -> ModuleIcon(module, Modifier.weight(1f)) }
+                                    repeat(perLine - row.size) { Spacer(Modifier.weight(1f)) }
+                                }
                             }
                         }
                     }
