@@ -1,5 +1,19 @@
 package fr.familia.app.feature.gifts.notebook
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.automirrored.outlined.List
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import fr.familia.app.core.theme.themeBackground
+import fr.familia.app.core.ui.form.FormHint
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.StickyActionBar
+import fr.familia.app.feature.gifts.giftAccent
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -71,7 +85,20 @@ data class ProposeIdeaActions(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProposeIdeaScreen(state: ProposeIdeaUiState, actions: ProposeIdeaActions, today: LocalDate = familyToday()) {
+    val choosing = state as? ProposeIdeaUiState.Choosing
     Scaffold(
+        containerColor = Color.Transparent,
+        modifier = Modifier.themeBackground(),
+        bottomBar = {
+            if (choosing != null && choosing.lists.isNotEmpty()) {
+                StickyActionBar(
+                    text = stringResource(R.string.notebook_propose_confirm),
+                    onClick = actions.onPropose,
+                    enabled = choosing.selectedListId != null,
+                    busy = choosing.isSaving,
+                )
+            }
+        },
         topBar = {
             FamiliaTopBar(
                 title = { Text(stringResource(R.string.notebook_propose), maxLines = 2, overflow = TextOverflow.Ellipsis) },
@@ -94,85 +121,78 @@ fun ProposeIdeaScreen(state: ProposeIdeaUiState, actions: ProposeIdeaActions, to
     }
 }
 
+/** The idea, then the list it goes to, in tiles (refonte globale, lot 2). */
 @Composable
 private fun ChoosingContent(state: ProposeIdeaUiState.Choosing, actions: ProposeIdeaActions, today: LocalDate) {
     val entry = state.entry
     val name = entry.personName
+    val accent = giftAccent()
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Text(entry.title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
-        entry.price?.let { Text(formatEuros(it), style = MaterialTheme.typography.bodyLarge) }
-        Text(
-            stringResource(R.string.notebook_propose_body, name),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        FormTile(Icons.Outlined.CardGiftcard, entry.title, accent = accent) {
+            entry.price?.let { Text(formatEuros(it), style = MaterialTheme.typography.bodyLarge) }
+            FormHint(stringResource(R.string.notebook_propose_body, name))
+        }
         if (state.lists.isEmpty()) {
             Text(stringResource(R.string.notebook_propose_no_list, name), style = MaterialTheme.typography.bodyLarge)
             if (state.canPrepareSurprise) {
                 OutlinedButton(
                     onClick = { entry.personId?.let(actions.onNewSurprise) },
+                    shape = RoundedCornerShape(16.dp),
                     modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                 ) { Text(stringResource(R.string.gifts_prepare_surprise)) }
             }
             return@Column
         }
-        Text(
-            stringResource(R.string.notebook_propose_where),
-            style = MaterialTheme.typography.titleSmall,
-            modifier = Modifier.semantics { heading() },
-        )
-        Column(Modifier.selectableGroup()) {
-            state.lists.forEach { list -> ListChoice(list, name, selected = list.id == state.selectedListId, today) { actions.onSelectList(list.id) } }
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .toggleable(value = state.takeIt, role = Role.Checkbox, onValueChange = actions.onTakeIt),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Checkbox(checked = state.takeIt, onCheckedChange = null)
-            Text(stringResource(R.string.notebook_propose_take_it), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp))
-        }
-        Text(
-            stringResource(R.string.notebook_propose_note_kept),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        if (state.saveFailed) {
-            Text(stringResource(R.string.gift_save_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
-        }
-        Button(
-            onClick = actions.onPropose,
-            enabled = state.selectedListId != null && !state.isSaving,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-        ) {
-            if (state.isSaving) {
-                CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-            } else {
-                Text(stringResource(R.string.notebook_propose_confirm))
+        FormTile(Icons.AutoMirrored.Outlined.List, stringResource(R.string.notebook_propose_where), accent = accent) {
+            Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                state.lists.forEach { list ->
+                    ListChoice(list, name, selected = list.id == state.selectedListId, today) { actions.onSelectList(list.id) }
+                }
             }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 56.dp)
+                    .toggleable(value = state.takeIt, role = Role.Checkbox, onValueChange = actions.onTakeIt),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(checked = state.takeIt, onCheckedChange = null)
+                Text(stringResource(R.string.notebook_propose_take_it), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp))
+            }
+            FormHint(stringResource(R.string.notebook_propose_note_kept))
+        }
+        if (state.saveFailed) {
+            FormHint(
+                stringResource(R.string.gift_save_failed),
+                isError = true,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            )
         }
     }
 }
 
+/** One list as a choice card: outlined, dark edge and a check when chosen, a radio for TalkBack. */
 @Composable
 private fun ListChoice(list: GiftList, name: String, selected: Boolean, today: LocalDate, onClick: () -> Unit) {
-    Row(
+    val colors = MaterialTheme.colorScheme
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = colors.surface,
+        border = BorderStroke(if (selected) 2.dp else 1.5.dp, if (selected) colors.inverseSurface else colors.outlineVariant),
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 56.dp)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
     ) {
-        RadioButton(selected = selected, onClick = null)
-        Column(Modifier.padding(start = 12.dp)) {
-            Text(listTitle(list, name, isMine = false), style = MaterialTheme.typography.bodyLarge)
-            Text(listSubtitle(list, name, today), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(Modifier.padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(listTitle(list, name, isMine = false), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                Text(listSubtitle(list, name, today), style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
+            }
+            if (selected) Icon(Icons.Outlined.CheckCircle, contentDescription = null, modifier = Modifier.padding(start = 8.dp))
         }
     }
 }
