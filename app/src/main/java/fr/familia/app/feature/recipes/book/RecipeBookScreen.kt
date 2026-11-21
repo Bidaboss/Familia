@@ -3,36 +3,34 @@ package fr.familia.app.feature.recipes.book
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Restaurant
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,15 +41,21 @@ import fr.familia.app.core.print.printFailedText
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.theme.LocalClayColors
+import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.ui.BackButton
-import fr.familia.app.core.ui.ClayCard
-import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClayLink
-import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
-import fr.familia.app.feature.recipes.previewRecipes
+import fr.familia.app.core.ui.FamiliaTopBar
 import fr.familia.app.core.ui.LoadingState
+import fr.familia.app.core.ui.form.ChipGroup
+import fr.familia.app.core.ui.form.FormChip
+import fr.familia.app.core.ui.form.FormHint
+import fr.familia.app.core.ui.form.FormLabel
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.StickyActionBar
+import fr.familia.app.feature.recipes.previewRecipes
 
 /** What the screen can ask, so the route stays short. */
 data class RecipeBookActions(
@@ -66,15 +70,28 @@ data class RecipeBookActions(
  * « Faire le livre » (récit 47): the title of the cover, its photo, the recipes to put in, then the
  * single filled button. A line says a photo shop can print it. Stateless.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeBookScreen(state: RecipeBookUiState, actions: RecipeBookActions, onBack: () -> Unit) {
+    val choosing = state as? RecipeBookUiState.Choosing
     Scaffold(
+        containerColor = Color.Transparent,
+        modifier = Modifier.themeBackground(),
         topBar = {
             FamiliaTopBar(
                 title = { Text(stringResource(R.string.recipe_book_title), maxLines = 2, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
             )
+        },
+        // The single black button at the bottom (refonte, recette commune n° 7).
+        bottomBar = {
+            if (choosing != null) {
+                StickyActionBar(
+                    text = stringResource(R.string.recipe_book_make),
+                    onClick = actions.onMake,
+                    enabled = choosing.canMake,
+                    busy = choosing.isMaking,
+                )
+            }
         },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
@@ -92,79 +109,61 @@ fun RecipeBookScreen(state: RecipeBookUiState, actions: RecipeBookActions, onBac
     }
 }
 
+/** The book in tiles (refonte lot 4): the cover, then the recipes to put in. */
 @Composable
 private fun Choosing(state: RecipeBookUiState.Choosing, actions: RecipeBookActions) {
-    val muted = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = ClaySpacing.screen, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        item(key = "intro") {
-            Text(stringResource(R.string.recipe_book_intro), style = MaterialTheme.typography.bodyLarge)
-        }
-        item(key = "cover") {
-            ClayCard(modifier = Modifier.fillMaxWidth()) {
-                ClayCardTitle(stringResource(R.string.recipe_book_cover), style = MaterialTheme.typography.titleMedium)
-                OutlinedTextField(
-                    value = state.title,
-                    onValueChange = actions.onTitle,
-                    label = { Text(stringResource(R.string.recipe_book_field_title)) },
-                    supportingText = { Text(stringResource(R.string.recipe_book_year, state.year), color = muted) },
-                    isError = state.title.isBlank(),
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Text(stringResource(R.string.recipe_book_cover_photo), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.semantics { heading() })
-                ChoiceRow(stringResource(R.string.recipe_book_cover_none), state.coverRecipeId == null) { actions.onCover(null) }
-                state.coverChoices.forEach { item ->
-                    ChoiceRow(stringResource(R.string.recipe_book_cover_of, item.recipe.title), state.coverRecipeId == item.recipe.id) {
-                        actions.onCover(item.recipe.id)
-                    }
-                }
-            }
-        }
-        item(key = "recipes-title") {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    pluralStringResource(R.plurals.recipe_book_chosen, state.chosen.size, state.chosen.size, state.recipes.size),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.semantics { heading() },
-                )
-                val all = state.chosen.size == state.recipes.size
-                ClayLink(stringResource(if (all) R.string.recipe_book_none else R.string.recipe_book_all), onClick = { actions.onChooseAll(!all) })
-            }
-        }
-        items(state.recipes, key = { it.recipe.id }) { item ->
-            RecipeRow(item, item.recipe.id in state.chosen) { actions.onToggle(item.recipe.id) }
-        }
-        item(key = "make") {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                if (state.failed) {
-                    Text(printFailedText(state.problem, R.string.recipe_book_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
-                }
-                Button(onClick = actions.onMake, enabled = state.canMake, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                    if (state.isMaking) {
-                        CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                    } else {
-                        Text(stringResource(R.string.recipe_book_make))
-                    }
-                }
-                Text(stringResource(R.string.recipe_book_print_hint), style = MaterialTheme.typography.bodyMedium, color = muted)
-            }
-        }
-    }
-}
+        Text(stringResource(R.string.recipe_book_intro), style = MaterialTheme.typography.bodyLarge)
 
-@Composable
-private fun ChoiceRow(label: String, selected: Boolean, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        RadioButton(selected = selected, onClick = null)
-        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        FormTile(Icons.AutoMirrored.Outlined.MenuBook, stringResource(R.string.recipe_book_cover)) {
+            val label = stringResource(R.string.recipe_book_field_title)
+            FormLabel(label)
+            OutlinedTextField(
+                value = state.title,
+                onValueChange = actions.onTitle,
+                isError = state.title.isBlank(),
+                singleLine = true,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
+            )
+            FormHint(stringResource(R.string.recipe_book_year, state.year))
+            FormLabel(stringResource(R.string.recipe_book_cover_photo), Modifier.padding(top = 8.dp).semantics { heading() })
+            ChipGroup {
+                FormChip(stringResource(R.string.recipe_book_cover_none), state.coverRecipeId == null, onClick = { actions.onCover(null) })
+                state.coverChoices.forEach { item ->
+                    FormChip(
+                        stringResource(R.string.recipe_book_cover_of, item.recipe.title),
+                        state.coverRecipeId == item.recipe.id,
+                        onClick = { actions.onCover(item.recipe.id) },
+                    )
+                }
+            }
+        }
+
+        FormTile(
+            Icons.Outlined.Restaurant,
+            pluralStringResource(R.plurals.recipe_book_chosen, state.chosen.size, state.chosen.size, state.recipes.size),
+        ) {
+            val all = state.chosen.size == state.recipes.size
+            ClayLink(stringResource(if (all) R.string.recipe_book_none else R.string.recipe_book_all), onClick = { actions.onChooseAll(!all) })
+            state.recipes.forEach { item ->
+                RecipeRow(item, item.recipe.id in state.chosen) { actions.onToggle(item.recipe.id) }
+            }
+        }
+
+        if (state.failed) {
+            Surface(shape = RoundedCornerShape(16.dp), color = LocalClayColors.current.card) {
+                FormHint(printFailedText(state.problem, R.string.recipe_book_failed), isError = true, modifier = Modifier.padding(14.dp))
+            }
+        }
+        FormHint(stringResource(R.string.recipe_book_print_hint))
+        Spacer(Modifier.height(8.dp))
     }
 }
 

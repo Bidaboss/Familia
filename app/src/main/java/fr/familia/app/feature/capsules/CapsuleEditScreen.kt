@@ -4,34 +4,35 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.triStateToggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddAPhoto
-import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material.icons.outlined.Event
+import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.HourglassEmpty
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -41,10 +42,12 @@ import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import fr.familia.app.core.ui.FamiliaTopBar
+import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -52,11 +55,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -64,13 +73,23 @@ import coil.compose.AsyncImage
 import fr.familia.app.R
 import fr.familia.app.core.model.Capsule
 import fr.familia.app.core.photo.keepPhotoAccess
-import fr.familia.app.core.theme.ClayTint
-import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.theme.LocalClayColors
+import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
-import fr.familia.app.core.ui.HouseholdMemberPicker
+import fr.familia.app.core.ui.FamiliaTopBar
+import fr.familia.app.core.ui.LoadingState
+import fr.familia.app.core.ui.PickGroup
+import fr.familia.app.core.ui.form.FormHint
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.PeopleRow
+import fr.familia.app.core.ui.form.PersonChoice
+import fr.familia.app.core.ui.form.StickyActionBar
+import fr.familia.app.core.ui.householdState
+import fr.familia.app.core.ui.toggleHousehold
+import fr.familia.app.core.ui.toggleMember
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 import java.time.Instant
@@ -92,7 +111,10 @@ data class CapsuleEditActions(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CapsuleEditScreen(state: CapsuleEditUiState, actions: CapsuleEditActions, onBack: () -> Unit) {
+    val editing = state as? CapsuleEditUiState.Editing
     Scaffold(
+        containerColor = Color.Transparent,
+        modifier = Modifier.themeBackground(),
         topBar = {
             FamiliaTopBar(
                 title = { Text(stringResource(R.string.capsules_add), maxLines = 2, overflow = TextOverflow.Ellipsis) },
@@ -100,10 +122,21 @@ fun CapsuleEditScreen(state: CapsuleEditUiState, actions: CapsuleEditActions, on
                 actions = { HelpButton(ScreenHelp.Capsules) },
             )
         },
+        // The single black button at the bottom (refonte, recette commune n° 7).
+        bottomBar = {
+            if (editing != null) {
+                StickyActionBar(
+                    text = stringResource(R.string.capsule_edit_seal),
+                    onClick = actions.onSeal,
+                    enabled = !editing.isSaving,
+                    busy = editing.isSaving,
+                )
+            }
+        },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                CapsuleEditUiState.Loading, is CapsuleEditUiState.Done -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                CapsuleEditUiState.Loading, is CapsuleEditUiState.Done -> LoadingState(Modifier.align(Alignment.Center))
                 CapsuleEditUiState.Unavailable -> EmptyState(
                     icon = Icons.Outlined.HourglassEmpty,
                     title = stringResource(R.string.capsules_error_title),
@@ -115,64 +148,77 @@ fun CapsuleEditScreen(state: CapsuleEditUiState, actions: CapsuleEditActions, on
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+/** The capsule in tiles (refonte lot 4): the message, the photos, for whom, when it opens. */
 @Composable
 private fun Form(state: CapsuleEditUiState.Editing, actions: CapsuleEditActions) {
     val form = state.form
-    val muted = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
     val enabled = !state.isSaving
+    val scroll = rememberScrollState()
+    // Where each tile starts, to bring the first one in error into view (recette commune n° 3).
+    val tops = remember { mutableStateMapOf<CapsuleTile, Int>() }
+    LaunchedEffect(state.errors) {
+        val first = CapsuleTile.entries.firstOrNull { tile -> state.errors.any { it.tile == tile } } ?: return@LaunchedEffect
+        tops[first]?.let { scroll.animateScrollTo(it) }
+    }
+    fun Modifier.top(tile: CapsuleTile) = onGloballyPositioned { tops[tile] = it.positionInParent().y.toInt() }
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(scroll).imePadding().padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        OutlinedTextField(
-            value = form.text,
-            onValueChange = actions.onText,
-            label = { Text(stringResource(R.string.capsule_edit_text)) },
-            supportingText = { Text(stringResource(R.string.capsule_edit_count, form.text.length, Capsule.MAX_TEXT)) },
-            isError = CapsuleFormError.TextMissing in state.errors,
-            minLines = 5,
-            enabled = enabled,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Photos(state, actions)
-        SectionTitle(stringResource(R.string.capsule_edit_who))
-        if (state.groups.isNotEmpty()) {
-            HouseholdMemberPicker(state.groups, form.recipientIds, onChange = actions.onRecipients, enabled = enabled)
-        } else FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            state.members.forEach { member ->
-                val selected = member.id in form.recipientIds
-                FilterChip(
-                    selected = selected,
-                    onClick = { actions.onToggleRecipient(member.id) },
-                    enabled = enabled,
-                    label = { Text(member.firstName, style = MaterialTheme.typography.labelLarge) },
-                    leadingIcon = if (selected) ({ Icon(Icons.Outlined.Check, contentDescription = null) }) else null,
-                    modifier = Modifier.heightIn(min = 56.dp),
+        FormTile(Icons.Outlined.EditNote, stringResource(R.string.capsule_edit_text), Modifier.top(CapsuleTile.Text)) {
+            val label = stringResource(R.string.capsule_edit_text)
+            val missing = CapsuleFormError.TextMissing in state.errors
+            OutlinedTextField(
+                value = form.text,
+                onValueChange = actions.onText,
+                isError = missing,
+                minLines = 5,
+                enabled = enabled,
+                shape = RoundedCornerShape(16.dp),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
+            )
+            FormHint(stringResource(R.string.capsule_edit_count, form.text.length, Capsule.MAX_TEXT), isError = missing)
+            // The photos go with the message: no title of their own.
+            Photos(state, actions)
+        }
+        FormTile(Icons.Outlined.Groups, stringResource(R.string.capsule_edit_who), Modifier.top(CapsuleTile.Who)) {
+            val toggle: (String) -> Unit = { id -> if (enabled) actions.onToggleRecipient(id) }
+            if (state.groups.isNotEmpty()) {
+                // By household (règle de Kévin, 17/11): the household box ticks all of it.
+                Faces(state.groups, form.recipientIds, enabled, actions.onRecipients)
+            } else {
+                PeopleRow(
+                    choices = state.members.map { PersonChoice(it.id, it.firstName, selected = it.id in form.recipientIds, memberId = it.id) },
+                    multiple = true,
+                    onToggle = toggle,
                 )
             }
+            if (CapsuleFormError.NoRecipient in state.errors) FormHint(stringResource(R.string.capsule_edit_no_recipient), isError = true)
         }
-        if (CapsuleFormError.NoRecipient in state.errors) ErrorText(stringResource(R.string.capsule_edit_no_recipient))
-        SectionTitle(stringResource(R.string.capsule_edit_when))
-        val first = Capsule.earliestOpening(state.today)
-        val last = Capsule.latestOpening(state.today)
-        OpenDayButton(form.openAt, first, last, enabled, actions.onOpenAt)
-        Text(stringResource(R.string.capsule_edit_when_hint, capsuleDay(first), capsuleDay(last)), style = MaterialTheme.typography.bodyMedium, color = muted)
-        if (CapsuleFormError.DateMissing in state.errors || CapsuleFormError.DateOutOfRange in state.errors) {
-            ErrorText(stringResource(R.string.capsule_edit_no_date))
+        FormTile(Icons.Outlined.Event, stringResource(R.string.capsule_edit_when), Modifier.top(CapsuleTile.When)) {
+            val first = Capsule.earliestOpening(state.today)
+            val last = Capsule.latestOpening(state.today)
+            val wrong = CapsuleFormError.DateMissing in state.errors || CapsuleFormError.DateOutOfRange in state.errors
+            OpenDayBox(form.openAt, first, last, enabled, wrong, actions.onOpenAt)
+            if (wrong) FormHint(stringResource(R.string.capsule_edit_no_date), isError = true)
+            FormHint(stringResource(R.string.capsule_edit_when_hint, capsuleDay(first), capsuleDay(last)))
+            FormHint(stringResource(R.string.capsule_edit_sealed_note))
         }
-        Text(stringResource(R.string.capsule_edit_sealed_note), style = MaterialTheme.typography.bodyMedium, color = muted)
         state.failure?.let { failure ->
-            ErrorText(
-                stringResource(
-                    when (failure) {
-                        CapsuleSaveFailure.NeedsNetwork -> R.string.capsule_edit_needs_network
-                        CapsuleSaveFailure.PhotoUnreadable -> R.string.capsule_edit_photo_unreadable
-                        CapsuleSaveFailure.Failed -> R.string.capsule_edit_failed
-                    },
-                ),
-            )
+            Surface(shape = RoundedCornerShape(16.dp), color = LocalClayColors.current.card) {
+                FormHint(
+                    stringResource(
+                        when (failure) {
+                            CapsuleSaveFailure.NeedsNetwork -> R.string.capsule_edit_needs_network
+                            CapsuleSaveFailure.PhotoUnreadable -> R.string.capsule_edit_photo_unreadable
+                            CapsuleSaveFailure.Failed -> R.string.capsule_edit_failed
+                        },
+                    ),
+                    isError = true,
+                    modifier = Modifier.padding(14.dp),
+                )
+            }
         }
         state.sendingPhoto?.let { n ->
             // Text only: a moving bar would freeze the screenshots.
@@ -181,8 +227,48 @@ private fun Form(state: CapsuleEditUiState.Editing, actions: CapsuleEditActions)
                 style = MaterialTheme.typography.bodyLarge,
             )
         }
-        Button(onClick = actions.onSeal, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            Text(stringResource(R.string.capsule_edit_seal))
+        Spacer(Modifier.height(8.dp))
+    }
+}
+
+/** The tiles that can hold an error, top to bottom. */
+private enum class CapsuleTile { Text, Who, When }
+
+private val CapsuleFormError.tile: CapsuleTile
+    get() = when (this) {
+        CapsuleFormError.TextMissing -> CapsuleTile.Text
+        CapsuleFormError.NoRecipient -> CapsuleTile.Who
+        CapsuleFormError.DateMissing, CapsuleFormError.DateOutOfRange -> CapsuleTile.When
+    }
+
+/** Each household: its box, which ticks all of it, then a round per member. */
+@Composable
+private fun Faces(groups: List<PickGroup>, selected: Set<String>, enabled: Boolean, onChange: (Set<String>) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        groups.forEach { group ->
+            val ids = group.members.map { it.id }
+            val state = householdState(selected, ids)
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 56.dp)
+                    .triStateToggleable(state = state, enabled = enabled && ids.isNotEmpty(), role = Role.Checkbox) { onChange(toggleHousehold(selected, ids)) },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TriStateCheckbox(state = state, onClick = null, enabled = enabled && ids.isNotEmpty())
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    group.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f).semantics { heading() },
+                )
+            }
+            PeopleRow(
+                choices = group.members.map { PersonChoice(it.id, it.firstName, selected = it.id in selected, memberId = it.id) },
+                multiple = true,
+                onToggle = { id -> if (enabled) onChange(toggleMember(selected, id)) },
+            )
         }
     }
 }
@@ -225,10 +311,28 @@ private fun Photos(state: CapsuleEditUiState.Editing, actions: CapsuleEditAction
 /** Opens a calendar where only the days the rules accept can be picked. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun OpenDayButton(day: LocalDate?, first: LocalDate, last: LocalDate, enabled: Boolean, onPick: (LocalDate) -> Unit) {
+private fun OpenDayBox(day: LocalDate?, first: LocalDate, last: LocalDate, enabled: Boolean, isError: Boolean, onPick: (LocalDate) -> Unit) {
     var open by rememberSaveable { mutableStateOf(false) }
-    OutlinedButton(onClick = { open = true }, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-        Text(day?.let { stringResource(R.string.capsule_opens_on, capsuleDay(it)) } ?: stringResource(R.string.capsule_edit_pick_day))
+    val colors = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(16.dp)
+    // A box like the other days of the forms (refonte lot 4), not a « Choisir » button.
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .clip(shape)
+            .background(colors.surface)
+            .border(1.5.dp, if (isError) colors.error else if (day != null) colors.outline else colors.outlineVariant, shape)
+            .clickable(enabled = enabled, role = Role.Button, onClick = { open = true })
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        Text(
+            day?.let { stringResource(R.string.capsule_opens_on, capsuleDay(it)) } ?: stringResource(R.string.capsule_edit_pick_day),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = if (day != null) colors.onSurface else colors.onSurfaceVariant,
+        )
     }
     if (open) {
         val firstMillis = first.toUtcMillis()
@@ -258,16 +362,6 @@ private fun OpenDayButton(day: LocalDate?, first: LocalDate, last: LocalDate, en
 }
 
 private fun LocalDate.toUtcMillis(): Long = atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
-
-@Composable
-private fun SectionTitle(text: String) {
-    Text(text, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
-}
-
-@Composable
-private fun ErrorText(text: String) {
-    Text(text, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
-}
 
 /** A half-written capsule of Camille for Inès, for previews and screenshots: no photo to load. */
 internal fun previewCapsuleEdit(): CapsuleEditUiState.Editing = CapsuleEditUiState.Editing(

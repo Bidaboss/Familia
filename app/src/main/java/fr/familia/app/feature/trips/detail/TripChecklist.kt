@@ -9,21 +9,19 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.PersonOff
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -47,6 +45,8 @@ import fr.familia.app.core.model.TripItem
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.form.PeopleRow
+import fr.familia.app.core.ui.form.PersonChoice
 
 /** What the checklist can do; only a participant gets the changing ones. */
 data class ChecklistActions(
@@ -232,10 +232,19 @@ private fun ItemDialog(
                     style = MaterialTheme.typography.titleSmall,
                     modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
                 )
-                Column(Modifier.selectableGroup()) {
-                    AssigneeRow(stringResource(R.string.trip_checklist_nobody), assigneeId == null) { assigneeId = null }
-                    assignees.forEach { a -> AssigneeRow(a.name, assigneeId == a.id) { assigneeId = a.id } }
-                }
+                // One round each, as everywhere else (refonte lot 4); « Personne » first.
+                PeopleRow(
+                    choices = listOf(
+                        PersonChoice(
+                            key = NOBODY,
+                            label = stringResource(R.string.trip_checklist_nobody),
+                            selected = assigneeId == null,
+                            icon = Icons.Outlined.PersonOff,
+                        ),
+                    ) + assignees.map { a -> PersonChoice(key = a.id, label = a.name, selected = assigneeId == a.id, memberId = a.id) },
+                    multiple = false,
+                    onToggle = { key -> assigneeId = key.takeIf { it != NOBODY } },
+                )
                 if (onDelete != null) {
                     TextButton(onClick = { confirmDelete = true }, modifier = Modifier.padding(top = 8.dp).heightIn(min = 56.dp)) {
                         Text(stringResource(R.string.trip_checklist_delete), color = MaterialTheme.colorScheme.error)
@@ -256,17 +265,5 @@ private fun ItemDialog(
     )
 }
 
-@Composable
-private fun AssigneeRow(name: String, selected: Boolean, onSelect: () -> Unit) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onSelect),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = selected, onClick = null)
-        Spacer(Modifier.width(12.dp))
-        Text(name, style = MaterialTheme.typography.bodyLarge)
-    }
-}
+/** The key of « Personne » among the rounds; the others are member ids. */
+private const val NOBODY = ""
