@@ -953,6 +953,13 @@
     <string name="gift_item_field_note">Note (facultative)</string>
     <string name="gift_item_field_note_hint">Taille, couleur, où le trouver…</string>
     <string name="gift_item_delete">Supprimer l\'article</string>
+    <!-- The tiles of a wish (refonte globale, lot 2, maquette lot-2-envie). -->
+    <string name="gift_item_tile_wish">L\'envie</string>
+    <string name="gift_item_tile_where">Où le trouver</string>
+    <string name="gift_item_tile_joint">Cadeau commun&#160;?</string>
+    <string name="gift_item_tile_bought">Déjà acheté&#160;?</string>
+    <string name="gift_item_co_choice">Avec %1$s</string>
+    <string name="gift_item_add">Ajouter l\'envie</string>
     <string name="gift_item_delete_title">Supprimer « %1$s » ?</string>
     <string name="gift_item_unavailable_title">Article introuvable</string>
     <string name="gift_item_unavailable_body">Il a été supprimé, réservé entre-temps, ou la liste est archivée.</string>

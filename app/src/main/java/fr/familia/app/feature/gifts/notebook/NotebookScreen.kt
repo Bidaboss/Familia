@@ -1,5 +1,8 @@
 package fr.familia.app.feature.gifts.notebook
 
+import fr.familia.app.core.theme.themeBackground
+import fr.familia.app.core.ui.form.ChipGroup
+import fr.familia.app.core.ui.form.FormChip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -111,7 +114,8 @@ data class NotebookActions(
 @Composable
 fun NotebookScreen(state: NotebookUiState, actions: NotebookActions, modifier: Modifier = Modifier) {
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.themeBackground(),
+        containerColor = Color.Transparent,
         topBar = {
             FamiliaTopBar(
                 title = { Text(stringResource(R.string.notebook_title), maxLines = 2, overflow = TextOverflow.Ellipsis) },
@@ -219,25 +223,20 @@ private fun Content(state: NotebookUiState.Success, actions: NotebookActions) {
 @Composable
 private fun OccasionPicker(state: NotebookUiState.Success, onSelect: (NotebookOccasion) -> Unit, onToggleArchive: () -> Unit) {
     val label = stringResource(R.string.notebook_occasions)
+    // The pills of the redone screens (refonte globale, lot 2): one occasion at a time.
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.semantics { contentDescription = label },
+        modifier = Modifier.selectableGroup().semantics { contentDescription = label },
     ) {
         items(state.occasions, key = { "${it.occasion}-${it.year}" }) { occasion ->
-            FilterChip(
-                selected = occasion == state.selected,
-                onClick = { onSelect(occasion) },
-                label = { Text(occasionName(occasion)) },
-                modifier = Modifier.heightIn(min = 56.dp),
-            )
+            FormChip(label = occasionName(occasion), selected = occasion == state.selected, onClick = { onSelect(occasion) })
         }
         if (state.archivedCount > 0) {
             item(key = "archive") {
-                FilterChip(
+                FormChip(
+                    label = stringResource(R.string.notebook_archive, state.archivedCount),
                     selected = state.showArchive,
                     onClick = onToggleArchive,
-                    label = { Text(stringResource(R.string.notebook_archive, state.archivedCount)) },
-                    modifier = Modifier.heightIn(min = 56.dp),
                 )
             }
         }
@@ -484,18 +483,10 @@ internal fun StatusSheetContent(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
         )
-        Column(Modifier.selectableGroup()) {
+        // Pills rather than radio buttons (refonte globale, recette 4).
+        ChipGroup {
             GiftStatus.entries.forEach { status ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 56.dp)
-                        .selectable(selected = status == entry.status, role = Role.RadioButton) { onSetStatus(status) },
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    RadioButton(selected = status == entry.status, onClick = null)
-                    Text(statusLabel(status), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp))
-                }
+                FormChip(label = statusLabel(status), selected = status == entry.status, onClick = { onSetStatus(status) })
             }
         }
         // « Mes envies » (and the ideas of the family) has no occasion: the member says which one the gift is for, the next
@@ -514,15 +505,14 @@ internal fun StatusSheetContent(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             } else {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ChipGroup {
                     WISH_OCCASIONS.sortedBy { it.ordinal }.forEach { occasion ->
                         val selected = entry.occasion.occasion == occasion
-                        FilterChip(
+                        FormChip(
+                            // The year is the server's: the next one after the reservation.
+                            label = if (selected) occasionName(entry.occasion) else occasionLabel(occasion),
                             selected = selected,
                             onClick = { onSetOccasion(NotebookOccasion(occasion, thisYear)) },
-                            // The year is the server's: the next one after the reservation.
-                            label = { Text(if (selected) occasionName(entry.occasion) else occasionLabel(occasion)) },
-                            modifier = Modifier.heightIn(min = 56.dp),
                         )
                     }
                 }
