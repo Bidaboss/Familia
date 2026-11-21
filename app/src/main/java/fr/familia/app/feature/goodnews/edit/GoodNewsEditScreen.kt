@@ -5,7 +5,6 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,9 +31,6 @@ import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.Face
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.foundation.relocation.BringIntoViewRequester
-import androidx.compose.foundation.relocation.bringIntoViewRequester
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
@@ -85,6 +81,7 @@ import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.form.FormHint
 import fr.familia.app.core.ui.form.FormOutlineButton
 import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.scrollToFirstError
 import fr.familia.app.core.ui.form.PeopleRow
 import fr.familia.app.core.ui.form.PersonChoice
 import fr.familia.app.core.ui.form.StickyActionBar
@@ -178,7 +175,6 @@ fun GoodNewsEditScreen(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun Form(
     state: GoodNewsEditUiState.Editing,
@@ -194,20 +190,19 @@ private fun Form(
     val form = state.form
     val errors = state.errors
     val accent = MaterialTheme.colorScheme.primary
-    val textTile = remember { BringIntoViewRequester() }
-    val photosTile = remember { BringIntoViewRequester() }
+    val scroll = rememberScrollState()
     // The screen goes to the first tile with an error (plan de refonte du 21/11).
-    LaunchedEffect(errors) {
-        when {
-            GoodNewsFormError.TextMissing in errors || GoodNewsFormError.TextTooLong in errors -> textTile.bringIntoView()
-            GoodNewsFormError.NoPhoto in errors -> photosTile.bringIntoView()
-        }
+    val firstError = when {
+        GoodNewsFormError.TextMissing in errors || GoodNewsFormError.TextTooLong in errors -> GoodNewsTile.Text
+        GoodNewsFormError.NoPhoto in errors -> GoodNewsTile.Photos
+        else -> null
     }
+    val tileTop = scrollToFirstError(scroll, errors, firstError)
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding().padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(scroll).imePadding().padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
-        FormTile(Icons.Outlined.EditNote, stringResource(R.string.goodnews_text_field), Modifier.bringIntoViewRequester(textTile), accent = accent) {
+        FormTile(Icons.Outlined.EditNote, stringResource(R.string.goodnews_text_field), tileTop(GoodNewsTile.Text), accent = accent) {
             // « @Prénom » in the text names a member (Kévin, 19/11). Members named before, by the old
             // checkboxes, are kept as they were.
             val named = state.candidates.filter { it.id in form.mentionIds }
@@ -241,7 +236,7 @@ private fun Form(
             if (state.candidates.isNotEmpty()) FormHint(stringResource(R.string.goodnews_mentions))
         }
 
-        FormTile(Icons.Outlined.PhotoLibrary, stringResource(R.string.goodnews_photos), Modifier.bringIntoViewRequester(photosTile), accent = accent) {
+        FormTile(Icons.Outlined.PhotoLibrary, stringResource(R.string.goodnews_photos), tileTop(GoodNewsTile.Photos), accent = accent) {
             if (state.isNew) {
                 NewPhotos(state, onAddPhotos, onRemovePhoto)
                 if (GoodNewsFormError.NoPhoto in errors) FormHint(stringResource(R.string.goodnews_error_no_photo), isError = true)
@@ -396,3 +391,5 @@ private fun SwitchRow(text: String, checked: Boolean, enabled: Boolean, onChange
         Switch(checked = checked, onCheckedChange = null, enabled = enabled)
     }
 }
+
+private enum class GoodNewsTile { Text, Photos }
