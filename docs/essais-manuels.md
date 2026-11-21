@@ -255,6 +255,19 @@ Après « Publier Firebase », allume « Défis expliqués » dans Administratio
 5. Dans le guide « Préparer le défi », écris un mot à l'étape 3, puis publie. **Attendu :** le mot apparaît dans « Comment ça marche » pour toute la famille. Sans mot, le texte automatique.
 6. Avec TalkBack, passe sur chaque carte. **Attendu :** TalkBack dit « bouton » et ce que fait la carte.
 
+## Refonte, lot 1 : sondages en tuiles (maquette lot-1-sondage, 21/11)
+
+Sans interrupteur. À faire aussi en texte à 200 %, en thème sombre et avec TalkBack.
+
+1. Planning > « + Ajouter » > « Un sondage ». **Attendu :** les tuiles « Type de sondage » (pilules Trouver une date, Choix libre), « La question », « Dates proposées », « Qui répond ? », « Fin des réponses ». « Envoyer le sondage » est le bouton noir en bas.
+2. Dans « Dates proposées ». **Attendu :** une ligne par date avec une case « Jour », une case « Heure » et un rond ×. En dessous, « Ajouter une date » et « 2 sur 5 ». L'heure se retire avec « Sans heure » dans l'horloge.
+3. « Qui répond ? ». **Attendu :** replié sur « Toute la famille » avec « Changer ». « Changer » ouvre les foyers ; cocher un foyer coche tout le foyer.
+4. « Fin des réponses ». **Attendu :** les pilules Sans fin, Dans 3 jours, Dans une semaine, Autre jour (le calendrier), et la phrase dessous (« Jusqu'au … inclus »).
+5. Touche « Envoyer le sondage » sans question. **Attendu :** l'écran remonte à « La question », avec l'erreur sous le champ.
+6. Ouvre un sondage de dates. **Attendu :** une tuile d'en-tête (le type sur une pastille, la question, l'auteur et la fin, qui n'a pas répondu), puis « Ma réponse » : pour chaque date, les oui et peut-être, une barre lilas, « En tête » sur la première, et trois pilules Oui, Peut-être, Non. « Envoyer ma réponse » est le bouton noir en bas, puis « Réponse envoyée ».
+7. Un parent : une tuile « Réponse de Noé » avec son propre bouton « Envoyer la réponse de Noé ».
+8. L'auteur : « Terminer le sondage » en bouton à contour, « Supprimer » tout en bas avec un contour rouge pâle.
+
 ## Refonte, lot 1 : Entraide et actualités en tuiles (21/11)
 
 Sans interrupteur. À faire aussi en texte à 130 % et 200 %, en thème sombre et avec TalkBack.
