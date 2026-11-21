@@ -2,18 +2,14 @@ package fr.familia.app.feature.members.admin
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -21,12 +17,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.ui.form.ChipGroup
+import fr.familia.app.core.ui.form.FormChip
 import fr.familia.app.feature.tree.ChallengeCatalog
 import fr.familia.app.feature.tree.MonthPick
 import java.time.YearMonth
@@ -82,18 +78,14 @@ private fun ChallengeChoiceDialog(pick: MonthPick, onConfirm: (String) -> Unit, 
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.administration_challenge_dialog_title, monthLabel(pick.month))) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState()).selectableGroup()) {
+            // The radios became pills (refonte, lot 3): one group, read as radios by TalkBack.
+            ChipGroup(Modifier.verticalScroll(rememberScrollState())) {
                 ChallengeCatalog.choices.forEach { choice ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 56.dp)
-                            .selectable(selected = selected == choice.id, onClick = { selected = choice.id }, role = Role.RadioButton),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(selected = selected == choice.id, onClick = null)
-                        Text("${choice.emoji} ${choice.title}", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp))
-                    }
+                    FormChip(
+                        label = "${choice.emoji} ${choice.title}",
+                        selected = selected == choice.id,
+                        onClick = { selected = choice.id },
+                    )
                 }
             }
         },

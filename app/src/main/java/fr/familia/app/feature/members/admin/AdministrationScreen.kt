@@ -1,5 +1,11 @@
 package fr.familia.app.feature.members.admin
 
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import fr.familia.app.core.theme.dayHeaderTextStyle
+import fr.familia.app.core.theme.themeBackground
+import fr.familia.app.core.ui.ClayCard
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,7 +43,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -143,7 +148,8 @@ fun AdministrationScreen(
     calendarLinks: (@Composable () -> Unit)? = null,
 ) {
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.themeBackground(),
+        containerColor = Color.Transparent,
         topBar = {
             FamiliaTopBar(
                 title = { Text(stringResource(R.string.administration_title), maxLines = 2, overflow = TextOverflow.Ellipsis) },
@@ -237,11 +243,15 @@ private fun ReadyContent(
     fun toggle(key: String) {
         open = if (key in open) open - key else open + key
     }
-    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 8.dp)) {
+    LazyColumn(
+        Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
         if (onViewAs != null && viewAsMembers.isNotEmpty()) {
             adminGroup("demo", R.string.administration_group_demo, R.string.administration_group_demo_help, open, ::toggle) {
                 if (onViewAs != null && viewAsMembers.isNotEmpty()) {
-                    item(key = "view-as") {
+                    Column {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -267,22 +277,16 @@ private fun ReadyContent(
         }
         if (onOpenAnnouncements != null) {
             item(key = "announcements") {
-                Column {
-                    HorizontalDivider()
+                ClayCard(onClick = onOpenAnnouncements, contentPadding = PaddingValues(0.dp), modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable(onClick = onOpenAnnouncements)
                             .heightIn(min = 56.dp)
                             .padding(horizontal = ClaySpacing.screen, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(
-                                stringResource(R.string.announcements_title),
-                                style = MaterialTheme.typography.titleLarge,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
+                            Text(stringResource(R.string.announcements_title), style = dayHeaderTextStyle())
                             Text(
                                 stringResource(R.string.announcements_entry_help),
                                 style = MaterialTheme.typography.bodyMedium,
@@ -301,8 +305,7 @@ private fun ReadyContent(
                 badge = (if (onOpenFeedback != null) feedbackUnseen else 0) + (if (onOpenCrashes != null) crashCount else 0),
             ) {
                 if (onOpenFeedback != null) {
-                    item(key = "feedback") {
-                        HorizontalDivider(Modifier.padding(top = 8.dp))
+                    Column {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -329,8 +332,7 @@ private fun ReadyContent(
                     }
                 }
                 if (onOpenCrashes != null) {
-                    item(key = "crashes") {
-                        HorizontalDivider(Modifier.padding(top = 8.dp))
+                    Column {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -359,30 +361,28 @@ private fun ReadyContent(
             }
         }
         adminGroup("family", R.string.administration_group_family, R.string.administration_group_family_help, open, ::toggle) {
-            item(key = "chefs-title") {
+            Column {
                 SectionTitle(R.string.administration_chefs_title)
             }
-            items(state.adults, key = { "adult-${it.member.id}" }) { row -> AdultSwitchRow(row, onSetChef) }
-            item(key = "households-title") {
-                HorizontalDivider(Modifier.padding(top = 8.dp))
+            state.adults.forEach { row -> AdultSwitchRow(row, onSetChef) }
+            Column {
                 SectionTitle(R.string.administration_households_title)
             }
-            items(state.households, key = { "household-${it.household.id}" }) { row ->
+            state.households.forEach { row ->
                 HouseholdLine(
                     row,
                     onRename = onRenameHousehold?.let { { renaming = row.household.id } },
                     onDelete = { deleting = row.household.id },
                 )
             }
-            item(key = "household-add") {
+            Column {
                 OutlinedButton(
                     onClick = { adding = true },
                     modifier = Modifier.fillMaxWidth().padding(horizontal = ClaySpacing.screen, vertical = 8.dp).heightIn(min = 56.dp),
                 ) { Text(stringResource(R.string.administration_household_add)) }
             }
             if (onShareApp != null) {
-                item(key = "share-app") {
-                    HorizontalDivider(Modifier.padding(top = 8.dp))
+                Column {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -409,20 +409,18 @@ private fun ReadyContent(
             adminGroup("features", R.string.administration_features_title, R.string.administration_features_help, open, ::toggle) {
                 // BUG-2 (Kévin le 18/11): the modules au choix, then the new versions, the base folded at the bottom.
                 val byTier = Feature.entries.groupBy { it.tier }
-                item(key = "features-choice-title") { SectionTitle(R.string.administration_features_choice) }
-                items(byTier[FeatureTier.Choice].orEmpty(), key = { "feature-${it.key}" }) { feature ->
+                Column { SectionTitle(R.string.administration_features_choice) }
+                byTier[FeatureTier.Choice].orEmpty().forEach { feature ->
                     FeatureSwitchRow(feature, on = features[feature.key] ?: feature.onByDefault, onSetFeature = onSetFeature)
                 }
-                item(key = "features-new-title") {
-                    HorizontalDivider(Modifier.padding(top = 8.dp))
+                Column {
                     SectionTitle(R.string.administration_features_new, R.string.administration_features_new_help)
                 }
-                items(byTier[FeatureTier.NewVersion].orEmpty(), key = { "feature-${it.key}" }) { feature ->
+                byTier[FeatureTier.NewVersion].orEmpty().forEach { feature ->
                     FeatureSwitchRow(feature, on = features[feature.key] ?: feature.onByDefault, onSetFeature = onSetFeature)
                 }
                 // « La base » has no switch any more (Kévin le 18/11, 20 h 39): always on, only named here.
-                item(key = "features-base") {
-                    HorizontalDivider(Modifier.padding(top = 8.dp))
+                Column {
                     SectionTitle(R.string.administration_features_base)
                     Text(
                         stringResource(
@@ -441,35 +439,32 @@ private fun ReadyContent(
         ) {
             adminGroup("life", R.string.administration_group_life, R.string.administration_group_life_help, open, ::toggle) {
                 if (onPickChallenge != null && challenges.isNotEmpty()) {
-                    item(key = "challenge-title") {
-                        HorizontalDivider(Modifier.padding(top = 8.dp))
+                    Column {
                         SectionTitle(R.string.administration_challenge_title)
                     }
-                    item(key = "challenge") { ChallengePickSection(challenges, onPickChallenge) }
+                    Column { ChallengePickSection(challenges, onPickChallenge) }
                 }
                 if (capsuleLeftovers.isNotEmpty()) {
-                    item(key = "capsule-leftovers") { CapsuleLeftoversSection(capsuleLeftovers, onDeleteCapsuleLeftovers) }
+                    Column { CapsuleLeftoversSection(capsuleLeftovers, onDeleteCapsuleLeftovers) }
                 }
                 if (onSaveRotation != null && rotation != null && rotation.households.isNotEmpty()) {
-                    item(key = "rotation-title") {
+                    Column {
                         SectionTitle(R.string.administration_rotation_title)
                     }
-                    item(key = "rotation") { ChallengeRotationSection(rotation, onSaveRotation) }
+                    Column { ChallengeRotationSection(rotation, onSaveRotation) }
                 }
                 if (onSaveDiscoverOrder != null) {
-                    item(key = "discover-title") {
-                        HorizontalDivider(Modifier.padding(top = 8.dp))
+                    Column {
                         SectionTitle(R.string.administration_discover_title)
                     }
-                    item(key = "discover") { DiscoverOrderSection(discoverOrder, discoverInTutorial, onSaveDiscoverOrder) }
+                    Column { DiscoverOrderSection(discoverOrder, discoverInTutorial, onSaveDiscoverOrder) }
                 }
             }
         }
         if (onOpenUsage != null || consumption != null) {
             adminGroup("follow", R.string.administration_group_follow, R.string.administration_group_follow_help, open, ::toggle) {
                 if (onOpenUsage != null) {
-                    item(key = "usage") {
-                        HorizontalDivider(Modifier.padding(top = 8.dp))
+                    Column {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -485,12 +480,11 @@ private fun ReadyContent(
                     }
                 }
                 if (consumption != null) {
-                    item(key = "consumption") { ConsumptionSection(consumption) }
+                    Column { ConsumptionSection(consumption) }
                 }
                 // Kévin le 18/11 : le budget Firebase en un geste, depuis Administration.
-                item(key = "firebase-budget") {
+                Column {
                     val uri = LocalUriHandler.current
-                    HorizontalDivider(Modifier.padding(top = 8.dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -514,9 +508,8 @@ private fun ReadyContent(
             }
         }
         adminGroup("data", R.string.administration_group_data, R.string.administration_group_data_help, open, ::toggle) {
-            if (calendarLinks != null) item(key = "calendar-links") { calendarLinks() }
-            item(key = "backup") {
-                HorizontalDivider(Modifier.padding(top = 8.dp))
+            if (calendarLinks != null) Column { calendarLinks() }
+            Column {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -572,8 +565,9 @@ private fun ReadyContent(
 }
 
 /**
- * A group of Administration: a header of 56 dp that opens or closes it, then, open, its lines.
- * [badge] shows on the header what waits inside (new retours, plantages), even closed.
+ * A group of Administration, in its own card (refonte, lot 3): a header of 56 dp that opens or
+ * closes it, then, open, its lines in the card. [badge] shows on the header what waits inside (new
+ * retours, plantages), even closed.
  */
 private fun LazyListScope.adminGroup(
     key: String,
@@ -582,13 +576,12 @@ private fun LazyListScope.adminGroup(
     open: List<String>,
     onToggle: (String) -> Unit,
     badge: Int = 0,
-    content: LazyListScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     val expanded = key in open
     item(key = "group-$key") {
         val state = stringResource(if (expanded) R.string.administration_group_open else R.string.administration_group_closed)
-        Column {
-            HorizontalDivider()
+        ClayCard(contentPadding = PaddingValues(vertical = 4.dp), modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -602,7 +595,7 @@ private fun LazyListScope.adminGroup(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(stringResource(titleRes), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                    Text(stringResource(titleRes), style = dayHeaderTextStyle())
                     Text(
                         stringResource(helpRes),
                         style = MaterialTheme.typography.bodyMedium,
@@ -616,9 +609,9 @@ private fun LazyListScope.adminGroup(
                 Spacer(Modifier.width(8.dp))
                 Icon(if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, contentDescription = null)
             }
+            if (expanded) content()
         }
     }
-    if (expanded) content()
 }
 
 @Composable
@@ -626,8 +619,8 @@ private fun SectionTitle(titleRes: Int, helpRes: Int? = null) {
     Column(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             stringResource(titleRes),
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.ExtraBold,
             modifier = Modifier.semantics { heading() },
         )
         if (helpRes != null) {
