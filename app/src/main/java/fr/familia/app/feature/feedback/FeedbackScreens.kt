@@ -1,5 +1,12 @@
 package fr.familia.app.feature.feedback
 
+import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.ui.graphics.Color
+import fr.familia.app.core.theme.themeBackground
+import fr.familia.app.core.ui.form.ChipGroup
+import fr.familia.app.core.ui.form.FormChip
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.StickyActionBar
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -11,13 +18,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -100,8 +105,13 @@ fun FeedbackFormScreen(
         if (uri != null) onScreenshot(uri.toString())
     }
     Scaffold(
+        modifier = Modifier.themeBackground(),
+        containerColor = Color.Transparent,
         topBar = {
             FamiliaTopBar(title = { Text(stringResource(R.string.feedback_title), maxLines = 2, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) })
+        },
+        bottomBar = {
+            if (!state.sent) StickyActionBar(stringResource(R.string.feedback_send), onClick = onSend, enabled = state.canSend)
         },
     ) { padding ->
         Column(
@@ -109,7 +119,6 @@ fun FeedbackFormScreen(
                 .padding(padding)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .imePadding()
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -133,15 +142,14 @@ fun FeedbackFormScreen(
                 return@Column
             }
             Text(stringResource(R.string.feedback_intro), style = MaterialTheme.typography.bodyLarge)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FormTile(icon = Icons.Outlined.Lightbulb, title = stringResource(R.string.feedback_title)) {
+            ChipGroup {
                 Feedback.Kind.entries.forEach { kind ->
-                    val selected = state.kind == kind
-                    FilterChip(
-                        selected = selected,
+                    FormChip(
+                        label = stringResource(kindLabel(kind)),
+                        selected = state.kind == kind,
                         onClick = { onChoose(kind) },
-                        label = { Text(stringResource(kindLabel(kind)), style = MaterialTheme.typography.labelLarge) },
-                        leadingIcon = if (selected) ({ Icon(Icons.Outlined.Check, contentDescription = null) }) else null,
-                        modifier = Modifier.heightIn(min = 56.dp),
+                        icon = if (kind == Feedback.Kind.Problem) Icons.Outlined.BugReport else Icons.Outlined.Lightbulb,
                     )
                 }
             }
@@ -159,7 +167,8 @@ fun FeedbackFormScreen(
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 modifier = Modifier.fillMaxWidth(),
             )
-            if (state.canAddScreenshot) {
+            }
+            if (state.canAddScreenshot) FormTile(icon = Icons.Outlined.AddPhotoAlternate, title = stringResource(R.string.feedback_screenshot)) {
                 val shot = state.screenshot
                 if (shot == null) {
                     OutlinedButton(
@@ -185,9 +194,6 @@ fun FeedbackFormScreen(
             }
             if (state.failed) {
                 Text(stringResource(R.string.feedback_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
-            }
-            Button(onClick = onSend, enabled = state.canSend, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.feedback_send))
             }
             Text(stringResource(R.string.feedback_context), style = MaterialTheme.typography.bodySmall)
             if (onOpenMine != null) {
@@ -223,6 +229,8 @@ fun FeedbackListScreen(
     var copied by rememberSaveable { mutableStateOf<String?>(null) }
     val clipboard = LocalClipboardManager.current
     Scaffold(
+        modifier = Modifier.themeBackground(),
+        containerColor = Color.Transparent,
         topBar = {
             FamiliaTopBar(
                 title = { Text(stringResource(if (forAdmin) R.string.feedback_list_title else R.string.feedback_mine_title), maxLines = 2, overflow = TextOverflow.Ellipsis) },

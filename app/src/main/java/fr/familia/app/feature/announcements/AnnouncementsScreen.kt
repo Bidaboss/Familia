@@ -1,6 +1,13 @@
 package fr.familia.app.feature.announcements
 
-import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.NotificationsActive
+import androidx.compose.ui.graphics.Color
+import fr.familia.app.core.theme.dayHeaderTextStyle
+import fr.familia.app.core.theme.themeBackground
+import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.StickyActionBar
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,10 +28,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Campaign
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -99,6 +104,16 @@ fun AnnouncementsScreen(
     val groups = remember(candidates, family, me.householdId, others) { pickGroups(candidates, family, me.householdId, others) }
     val canSend = !sending && canSendAnnouncement(title, text, selected)
     Scaffold(
+        modifier = Modifier.themeBackground(),
+        containerColor = Color.Transparent,
+        bottomBar = {
+            StickyActionBar(
+                pluralStringResource(R.plurals.announcements_send, selected.size, selected.size),
+                onClick = { confirming = true },
+                enabled = canSend,
+                busy = sending,
+            )
+        },
         topBar = {
             FamiliaTopBar(
                 title = { Text(stringResource(R.string.announcements_title), maxLines = 2, overflow = TextOverflow.Ellipsis) },
@@ -118,7 +133,8 @@ fun AnnouncementsScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            item(key = "title") {
+            item(key = "message") {
+                FormTile(icon = Icons.Outlined.Campaign, title = stringResource(R.string.announcements_tile_message)) {
                 OutlinedTextField(
                     value = title,
                     onValueChange = onTitle,
@@ -128,8 +144,6 @@ fun AnnouncementsScreen(
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Next),
                     modifier = Modifier.fillMaxWidth(),
                 )
-            }
-            item(key = "text") {
                 OutlinedTextField(
                     value = text,
                     onValueChange = onText,
@@ -139,8 +153,6 @@ fun AnnouncementsScreen(
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                     modifier = Modifier.fillMaxWidth(),
                 )
-            }
-            item(key = "urgent") {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -159,27 +171,19 @@ fun AnnouncementsScreen(
                         )
                     }
                 }
-            }
-            item(key = "to-title") { Heading(R.string.announcements_to) }
-            item(key = "to") {
-                HouseholdMemberPicker(groups = groups, selected = selected, onChange = onSelect, enabled = !sending)
-            }
-            item(key = "preview-title") { Heading(R.string.announcements_preview) }
-            item(key = "preview") { NotificationPreview(title, text) }
-            item(key = "send") {
-                Button(
-                    onClick = { confirming = true },
-                    enabled = canSend,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                ) {
-                    Text(pluralStringResource(R.plurals.announcements_send, selected.size, selected.size))
                 }
             }
-            item(key = "sent-title") {
-                HorizontalDivider(Modifier.padding(top = 8.dp))
-                Spacer(Modifier.padding(top = 8.dp))
-                Heading(R.string.announcements_sent_title)
+            item(key = "to") {
+                FormTile(icon = Icons.Outlined.Groups, title = stringResource(R.string.announcements_to)) {
+                    HouseholdMemberPicker(groups = groups, selected = selected, onChange = onSelect, enabled = !sending)
+                }
             }
+            item(key = "preview") {
+                FormTile(icon = Icons.Outlined.NotificationsActive, title = stringResource(R.string.announcements_preview)) {
+                    NotificationPreview(title, text)
+                }
+            }
+            item(key = "sent-title") { Heading(R.string.announcements_sent_title) }
             when {
                 sent == null -> item(key = "sent-loading") { LoadingState() }
                 sent.isEmpty() -> item(key = "sent-empty") {
@@ -232,9 +236,8 @@ fun AnnouncementsScreen(
 private fun Heading(res: Int) {
     Text(
         stringResource(res),
-        style = MaterialTheme.typography.titleLarge,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.semantics { heading() },
+        style = dayHeaderTextStyle(),
+        modifier = Modifier.padding(top = 8.dp).semantics { heading() },
     )
 }
 
@@ -271,17 +274,11 @@ private fun NotificationPreview(title: String, text: String) {
     }
 }
 
+/** One message already sent, in its card (refonte, lot 3). */
 @Composable
 private fun SentRow(a: Announcement, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .heightIn(min = 56.dp)
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    ClayCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.fillMaxWidth().heightIn(min = 32.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(a.title, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
                 listOfNotNull(
@@ -311,6 +308,8 @@ private fun deliveryLabel(a: Announcement): String = stringResource(
 @Composable
 fun AnnouncementScreen(state: AnnouncementState, onBack: () -> Unit) {
     Scaffold(
+        modifier = Modifier.themeBackground(),
+        containerColor = Color.Transparent,
         topBar = {
             FamiliaTopBar(
                 title = { Text(stringResource(R.string.announcement_title), maxLines = 2, overflow = TextOverflow.Ellipsis) },
