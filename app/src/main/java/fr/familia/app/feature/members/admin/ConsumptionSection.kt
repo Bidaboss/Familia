@@ -53,6 +53,10 @@ private fun ReadyConsumption(consumption: Consumption) {
     )
     if (consumption.failed) {
         Text(stringResource(R.string.consumption_failed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+        // What Google answered, as it came: the admin principal can tell the cause (role, API, request).
+        consumption.errorDetail?.let {
+            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         return
     }
     consumption.gauges.forEach { GaugeLine(it) }

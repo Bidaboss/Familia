@@ -38,6 +38,7 @@ class FirestoreConsumptionRepository(private val db: FirebaseFirestore) : Consum
             monthCost = doc.getDouble("monthCost") ?: 0.0,
             monthCosts = monthCostsOf(doc.get("monthCosts")),
             failed = doc.getString("error") != null,
+            errorDetail = doc.getString("errorDetail"),
         )
     }
 }
