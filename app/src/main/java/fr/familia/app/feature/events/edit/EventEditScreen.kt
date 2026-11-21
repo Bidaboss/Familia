@@ -1,5 +1,6 @@
 package fr.familia.app.feature.events.edit
 
+import fr.familia.app.core.ui.form.FormDeleteButton
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -288,19 +289,8 @@ private fun personChoice(choice: TargetChoice, selected: Boolean): PersonChoice 
 @Composable
 private fun DeleteButton(title: String, isOccurrence: Boolean, enabled: Boolean, onDelete: (SeriesScope) -> Unit) {
     var confirm by rememberSaveable { mutableStateOf(false) }
-    val error = MaterialTheme.colorScheme.error
-    OutlinedButton(
-        onClick = { confirm = true },
-        enabled = enabled,
-        shape = RoundedCornerShape(18.dp),
-        border = BorderStroke(1.5.dp, error.copy(alpha = 0.35f)),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = error, containerColor = LocalClayColors.current.card),
-        modifier = Modifier.fillMaxWidth().padding(top = 16.dp).heightIn(min = 56.dp),
-    ) {
-        Icon(Icons.Outlined.Delete, contentDescription = null)
-        Spacer(Modifier.width(8.dp))
-        Text(stringResource(R.string.event_delete), fontWeight = FontWeight.Bold)
-    }
+    // The shared red button of the redone forms (refonte globale).
+    FormDeleteButton(stringResource(R.string.event_delete), onClick = { confirm = true }, enabled = enabled)
     if (confirm && isOccurrence) {
         SeriesScopeDialog(
             title = R.string.event_scope_delete_title,
