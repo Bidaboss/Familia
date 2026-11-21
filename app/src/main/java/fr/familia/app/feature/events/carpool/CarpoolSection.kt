@@ -22,6 +22,11 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.foundation.text.KeyboardOptions
@@ -42,13 +46,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
+import fr.familia.app.core.ui.form.FormTileHeading
+import fr.familia.app.core.ui.form.FormOutlineButton
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Ride
 import fr.familia.app.core.place.DirectionsButton
 import fr.familia.app.core.place.directionsUri
-import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.ui.formatTime
 import fr.familia.app.feature.trips.TripTimeButton
@@ -102,7 +107,7 @@ fun CarpoolContent(
     var askingSeat by rememberSaveable { mutableStateOf(false) }
     val enabled = !state.isBusy
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(stringResource(R.string.carpool_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+        FormTileHeading(Icons.Outlined.DirectionsCar, stringResource(R.string.carpool_title))
         if (!state.isLoading && state.cars.isEmpty() && state.needs.isEmpty()) {
             Text(stringResource(R.string.carpool_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -127,11 +132,7 @@ fun CarpoolContent(
             )
         }
         if (state.canOffer) {
-            OutlinedButton(onClick = { offering = true }, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Icon(Icons.Outlined.DirectionsCar, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.carpool_offer))
-            }
+            FormOutlineButton(stringResource(R.string.carpool_offer), onClick = { offering = true }, enabled = enabled, icon = Icons.Outlined.DirectionsCar)
         }
         val askable = state.riders.filter { r -> state.carOf(r.id) == null && state.cars.none { it.isMine && it.driver.id == r.id } }
         if (askable.isNotEmpty()) {
@@ -164,12 +165,12 @@ fun CarpoolContent(
             title = { Text(stringResource(R.string.carpool_withdraw_title)) },
             text = { Text(stringResource(R.string.carpool_withdraw_body)) },
             confirmButton = {
-                TextButton(onClick = { withdrawing = false; onWithdraw() }, modifier = Modifier.heightIn(min = 48.dp)) {
+                TextButton(onClick = { withdrawing = false; onWithdraw() }, modifier = Modifier.heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.carpool_withdraw))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { withdrawing = false }, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.action_cancel)) }
+                TextButton(onClick = { withdrawing = false }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
@@ -209,7 +210,7 @@ fun CarpoolContent(
             onDismissRequest = onDismissError,
             text = { Text(stringResource(R.string.carpool_failed)) },
             confirmButton = {
-                TextButton(onClick = onDismissError, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.action_ok)) }
+                TextButton(onClick = onDismissError, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_ok)) }
             },
         )
     }
@@ -229,8 +230,14 @@ private fun CarCard(
     onLetOut: (String) -> Unit,
 ) {
     val ride = car.ride
-    ClayCard(Modifier.fillMaxWidth()) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    // A car is a pale outlined box inside the tile of the section (plan de refonte du 21/11).
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Outlined.DirectionsCar, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.width(12.dp))
@@ -251,10 +258,10 @@ private fun CarCard(
             } else if (car.isMine) {
                 // The driver lets anyone out, one line each with a written label.
                 car.passengers.forEach { p ->
-                    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text(p.firstName, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
                         val label = stringResource(R.string.carpool_let_out, p.firstName)
-                        IconButton(onClick = { onLetOut(p.id) }, enabled = enabled) {
+                        IconButton(onClick = { onLetOut(p.id) }, enabled = enabled, modifier = Modifier.size(56.dp)) {
                             Icon(Icons.Outlined.Close, contentDescription = label)
                         }
                     }
@@ -265,20 +272,20 @@ private fun CarCard(
             if (ride.from != null && LocalFeatureFlags.current.isOn(Feature.Places)) DirectionsButton(directionsUri(ride.from))
             if (car.isMine) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = onEdit, enabled = enabled, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.carpool_edit)) }
-                    TextButton(onClick = onWithdraw, enabled = enabled, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.carpool_withdraw)) }
+                    OutlinedButton(onClick = onEdit, enabled = enabled, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.carpool_edit)) }
+                    TextButton(onClick = onWithdraw, enabled = enabled, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.carpool_withdraw)) }
                 }
             } else {
                 val others = riders.filter { it.id != car.driver.id }
                 val meInside = car.passengers.any { it.id == meId }
                 when {
-                    others.size > 1 -> OutlinedButton(onClick = onChoose, enabled = enabled, modifier = Modifier.heightIn(min = 48.dp)) {
+                    others.size > 1 -> OutlinedButton(onClick = onChoose, enabled = enabled, modifier = Modifier.heightIn(min = 56.dp)) {
                         Text(stringResource(R.string.carpool_who_gets_in))
                     }
-                    others.size == 1 && meInside -> OutlinedButton(onClick = onGetOutAlone, enabled = enabled, modifier = Modifier.heightIn(min = 48.dp)) {
+                    others.size == 1 && meInside -> OutlinedButton(onClick = onGetOutAlone, enabled = enabled, modifier = Modifier.heightIn(min = 56.dp)) {
                         Text(stringResource(R.string.carpool_get_out))
                     }
-                    others.size == 1 && ride.seatsLeft > 0 -> OutlinedButton(onClick = onGetInAlone, enabled = enabled, modifier = Modifier.heightIn(min = 48.dp)) {
+                    others.size == 1 && ride.seatsLeft > 0 -> OutlinedButton(onClick = onGetInAlone, enabled = enabled, modifier = Modifier.heightIn(min = 56.dp)) {
                         Text(stringResource(R.string.carpool_get_in))
                     }
                 }
@@ -332,11 +339,11 @@ private fun OfferDialog(initial: Ride?, onConfirm: (Int, String, LocalTime?) -> 
             TextButton(
                 onClick = { onConfirm(seats, from, leaveAt?.let { runCatching { LocalTime.parse(it) }.getOrNull() }) },
                 enabled = !tooLong,
-                modifier = Modifier.heightIn(min = 48.dp),
+                modifier = Modifier.heightIn(min = 56.dp),
             ) { Text(stringResource(R.string.carpool_offer_confirm)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.action_cancel)) }
+            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
         },
     )
 }
@@ -378,10 +385,10 @@ private fun PickRidersDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(chosen.toSet()) }, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.action_ok)) }
+            TextButton(onClick = { onConfirm(chosen.toSet()) }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_ok)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.action_cancel)) }
+            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) }
         },
     )
 }

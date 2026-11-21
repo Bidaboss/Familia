@@ -255,6 +255,12 @@ Après « Publier Firebase », allume « Défis expliqués » dans Administratio
 5. Dans le guide « Préparer le défi », écris un mot à l'étape 3, puis publie. **Attendu :** le mot apparaît dans « Comment ça marche » pour toute la famille. Sans mot, le texte automatique.
 6. Avec TalkBack, passe sur chaque carte. **Attendu :** TalkBack dit « bouton » et ce que fait la carte.
 
+## Refonte, lot 1 : sections de l'événement en tuiles (21/11)
+1. Ouvre un événement. « Covoiturage », « Qui apporte quoi » et « Rappels » ont un titre avec une icône carrée, comme les autres tuiles.
+2. Covoiturage : chaque voiture est une petite carte à bord fin, « Je propose ma voiture » est un bouton à contour. Tous les boutons font au moins 56 dp.
+3. Rappels : touche la tuile, pour un événement qui se répète, la fenêtre propose « Cette fois seulement » et « Toutes les fois » en deux puces, sans boutons radio ni trait.
+4. Texte à 200 %, thème sombre : rien ne se chevauche.
+
 ## Refonte, lot 1 : sondages en tuiles (maquette lot-1-sondage, 21/11)
 
 Sans interrupteur. À faire aussi en texte à 200 %, en thème sombre et avec TalkBack.

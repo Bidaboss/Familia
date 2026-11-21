@@ -14,6 +14,8 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.AlertDialog
@@ -35,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -45,6 +46,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
+import fr.familia.app.core.ui.form.FormTileHeading
+import fr.familia.app.core.ui.form.FormOutlineButton
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.BringItem
 import fr.familia.app.core.model.Member
@@ -117,7 +120,7 @@ fun BringContent(
         }
     }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(stringResource(R.string.bring_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+        FormTileHeading(Icons.Outlined.Restaurant, stringResource(R.string.bring_title))
         if (!state.isLoading && state.rows.isEmpty()) {
             Text(
                 stringResource(R.string.bring_empty),
@@ -184,11 +187,7 @@ fun BringContent(
                 )
             }
         }
-        OutlinedButton(
-            onClick = add,
-            enabled = label.isNotBlank() && !tooLong && !state.isBusy,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-        ) { Text(stringResource(R.string.bring_add)) }
+        FormOutlineButton(stringResource(R.string.bring_add), onClick = add, enabled = label.isNotBlank() && !tooLong && !state.isBusy, icon = Icons.Outlined.Add)
     }
 
     val id = deleting
@@ -197,8 +196,8 @@ fun BringContent(
         AlertDialog(
             onDismissRequest = { deleting = null },
             title = { Text(stringResource(R.string.bring_delete_title, name)) },
-            confirmButton = { TextButton(onClick = { deleting = null; onDelete(id) }) { Text(stringResource(R.string.bring_delete_confirm)) } },
-            dismissButton = { TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.action_cancel)) } },
+            confirmButton = { TextButton(onClick = { deleting = null; onDelete(id) }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.bring_delete_confirm)) } },
+            dismissButton = { TextButton(onClick = { deleting = null }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
     if (state.failed) {
