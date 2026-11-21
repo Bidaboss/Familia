@@ -242,8 +242,11 @@ private fun Content(
             val empty = if (photos.canAdd) R.string.trip_photos_empty_participant else R.string.trip_photos_empty
             AlbumPhotosSection(photos, photoActions, stringResource(empty))
         }
-        item(key = "checklist-title") { TripSectionTitle(stringResource(if (packing != null) R.string.packing_title else R.string.trip_checklist)) }
-        item(key = "checklist") { PackingOrChecklist(state, checklist, packing) }
+        // « À prévoir » is for those who go (récit 86): a follower sees the steps, the photos and « bien arrivé ».
+        if (state.isParticipant) {
+            item(key = "checklist-title") { TripSectionTitle(stringResource(if (packing != null) R.string.packing_title else R.string.trip_checklist)) }
+            item(key = "checklist") { PackingOrChecklist(state, checklist, packing) }
+        }
         if (onOpenExpenses != null && state.isParticipant) {
             item(key = "expenses") {
                 ClayLink(stringResource(R.string.expenses_open), onClick = onOpenExpenses)
@@ -382,15 +385,18 @@ private fun PathContent(
                 modifier = Modifier.padding(horizontal = ClaySpacing.screen, vertical = ClaySpacing.between / 2),
             )
         }
-        item(key = "checklist-title") {
-            TripSectionTitle(
-                stringResource(if (packing != null) R.string.packing_title else R.string.trip_checklist),
-                Modifier.padding(horizontal = ClaySpacing.screen),
-            )
-        }
-        item(key = "checklist") {
-            Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) {
-                PackingOrChecklist(state, checklist, packing)
+        // « À prévoir » is for those who go (récit 86).
+        if (state.isParticipant) {
+            item(key = "checklist-title") {
+                TripSectionTitle(
+                    stringResource(if (packing != null) R.string.packing_title else R.string.trip_checklist),
+                    Modifier.padding(horizontal = ClaySpacing.screen),
+                )
+            }
+            item(key = "checklist") {
+                Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) {
+                    PackingOrChecklist(state, checklist, packing)
+                }
             }
         }
         item(key = "photos-title") {

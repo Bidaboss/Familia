@@ -1621,3 +1621,14 @@ Rien ne change à l'écran. À l'enregistrement d'une étape, le téléphone che
 3. Rouvre une étape et change seulement la note. **Attendu :** elle s'enregistre sans rechercher le lieu de nouveau.
 
 **Après la fusion :** lancer « Publier Firebase » avant l'APK (la règle des étapes accepte deux nombres facultatifs, `lat` et `lng`).
+
+## « À prévoir » réservé à ceux qui partent (récit 86, 21/11)
+
+Celui qui suit un voyage sans y participer ne voit plus la liste « À prévoir » ni « Pour tout le monde ». Il garde les étapes, les photos de l'album et le « bien arrivé ». Pas de comptes ni de valises pour lui, comme avant.
+
+1. Avec un compte qui participe à un voyage : ouvre le voyage. **Attendu :** la liste « À prévoir » (ou « Pour tout le monde » et les valises) est là et marche comme avant.
+2. Avec un compte qui suit le même voyage sans y participer : ouvre le voyage. **Attendu :** les étapes, « Bien arrivé » et les photos s'affichent. La liste « À prévoir » n'apparaît pas, et aucun message d'erreur non plus.
+3. Ajoute un participant au voyage depuis le premier compte. **Attendu :** au retour sur le voyage, le deuxième compte voit maintenant la liste.
+4. Le rappel « À emporter » de 18 h ne part qu'aux participants avec l'appli.
+
+**Après la fusion :** lancer « Publier Firebase » avant l'APK (les règles changent).
