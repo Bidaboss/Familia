@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Luggage
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
@@ -27,7 +29,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -43,8 +44,8 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.PackingLine
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
-import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayLink
+import fr.familia.app.feature.trips.TripTile
 
 /**
  * « Ma valise » (récit 62) under « Pour tout le monde »: my bag, then those of my children who come.
@@ -118,12 +119,12 @@ private fun BagCard(bag: BagUiState, actions: PackingActions) {
     var removing by rememberSaveable(ownerId) { mutableStateOf<Int?>(null) }
     var kept by rememberSaveable(ownerId) { mutableStateOf(false) }
     val tint = ClayTint.Plain
-    ClayCard(Modifier.fillMaxWidth(), tint = tint) {
-        Text(
-            if (bag.owner.isMe) stringResource(R.string.packing_my_bag) else stringResource(R.string.packing_bag_of, bag.owner.firstName),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.semantics { heading() },
-        )
+    // A tile per bag, like the other tiles of the trip (refonte lot 4).
+    TripTile(
+        icon = Icons.Outlined.Luggage,
+        title = if (bag.owner.isMe) stringResource(R.string.packing_my_bag) else stringResource(R.string.packing_bag_of, bag.owner.firstName),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
         Text(
             if (bag.left == 0) stringResource(R.string.packing_all_done) else stringResource(R.string.packing_left, bag.left),
             style = MaterialTheme.typography.bodyMedium,
