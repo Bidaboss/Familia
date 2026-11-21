@@ -1,5 +1,11 @@
 package fr.familia.app.feature.members.profile
 
+import androidx.compose.material.icons.outlined.TaskAlt
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import fr.familia.app.core.theme.LocalClayColors
+import fr.familia.app.core.ui.form.FormTile
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.BorderStroke
@@ -57,8 +63,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -170,9 +174,9 @@ private fun EmptyInvite(text: String) {
 }
 
 /**
- * The top of the page (PRODUIT-114): a band of the member's color with pale bubbles, the round photo
- * of 108 dp over its edge, the first name, the age and the birthday, a pill « Anniversaire dans N
- * jours », then the round buttons. None on my own page.
+ * The top of the page (PRODUIT-114, calmed by DESIGN-60): a flat band of the member's color, the round photo
+ * of 96 dp over its edge, the first name, the age and the birthday, a pill « Anniversaire dans N
+ * jours », then the buttons Vœux, Appeler, Itinéraire (none on my own page).
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -193,16 +197,13 @@ private fun Header(
     val color = memberColor(member)
     val soon = birthdaySoon(member.birthDate, today)
     Box(Modifier.fillMaxWidth()) {
+        // The calm band under the bar (DESIGN-60, option A): one flat color, no bubbles, 22 dp corners.
         Box(
             Modifier
                 .fillMaxWidth()
                 .height(BAND_HEIGHT)
-                .clip(RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp))
-                .background(color)
-                .drawBehind {
-                    drawCircle(Color.White.copy(alpha = 0.16f), radius = size.height * 0.9f, center = Offset(size.width * 0.9f, size.height * 0.1f))
-                    drawCircle(Color.White.copy(alpha = 0.10f), radius = size.height * 0.6f, center = Offset(size.width * 0.15f, size.height * 1.1f))
-                },
+                .clip(RoundedCornerShape(bottomStart = 22.dp, bottomEnd = 22.dp))
+                .background(calmBandColor(color)),
         )
         Column(
             Modifier.fillMaxWidth().padding(top = BAND_HEIGHT - AVATAR_SIZE / 2, start = 16.dp, end = 16.dp),
@@ -211,16 +212,11 @@ private fun Header(
         ) {
             Box {
                 val photoLabel = stringResource(R.string.profile_v2_photo_open, member.firstName)
-                Box(
-                    Modifier
-                        .border(3.dp, color, CircleShape)
-                        .padding(3.dp)
-                        .border(4.dp, Color.White, CircleShape)
-                        .padding(4.dp),
-                ) {
+                // A single white ring, like the other tiles.
+                Box(Modifier.border(4.dp, Color.White, CircleShape)) {
                     MemberAvatar(
                         member,
-                        size = AVATAR_SIZE - 14.dp,
+                        size = AVATAR_SIZE,
                         modifier = if (photo != null) Modifier.clip(CircleShape).clickable(onClickLabel = photoLabel) { fullPhoto = true } else Modifier,
                     )
                 }
@@ -254,14 +250,13 @@ private fun Header(
             val phone = member.phone?.takeIf { hasCoordinates(member) && !state.isMe }
             val address = data?.household?.address?.takeIf { hasCoordinates(member) && !state.isMe }
             if (onWish != null || phone != null || address != null) {
-                FlowRow(
+                Row(
                     Modifier.fillMaxWidth().padding(top = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    onWish?.let { RoundAction(Icons.Outlined.Cake, stringResource(R.string.profile_v2_wishes_button), dark = soon, onClick = it) }
-                    phone?.let { number -> RoundAction(Icons.Outlined.Phone, stringResource(R.string.profile_v2_call)) { dial(context, number) } }
-                    address?.let { place -> RoundAction(Icons.Outlined.Directions, stringResource(R.string.profile_v2_directions)) { directions(context, place) } }
+                    onWish?.let { ActionButton(Icons.Outlined.Cake, stringResource(R.string.profile_v2_wishes_button), Modifier.weight(1f), dark = soon, onClick = it) }
+                    phone?.let { number -> ActionButton(Icons.Outlined.Phone, stringResource(R.string.profile_v2_call), Modifier.weight(1f)) { dial(context, number) } }
+                    address?.let { place -> ActionButton(Icons.Outlined.Directions, stringResource(R.string.profile_v2_directions), Modifier.weight(1f)) { directions(context, place) } }
                 }
             }
         }
@@ -293,8 +288,13 @@ private fun Header(
     }
 }
 
-private val BAND_HEIGHT = 112.dp
-private val AVATAR_SIZE = 108.dp
+/** The bar is above the band now: the band only needs the upper half of the photo. */
+private val BAND_HEIGHT = 64.dp
+private val AVATAR_SIZE = 96.dp
+
+/** The color of the member at about 35 % over the page, the same under the bar and in the band. */
+@Composable
+internal fun calmBandColor(color: Color): Color = color.copy(alpha = 0.35f).compositeOver(MaterialTheme.colorScheme.background)
 
 /** « Anniversaire dans 114 jours », dark in the 30 days before (P2). */
 @Composable
@@ -305,7 +305,7 @@ private fun BirthdayPill(days: Int, dark: Boolean) {
         stringResource(R.string.profile_v2_birthday_pill, pluralStringResource(R.plurals.gifts_in_days, days, days))
     }
     Surface(
-        shape = RoundedCornerShape(50),
+        shape = RoundedCornerShape(16.dp),
         color = if (dark) MaterialTheme.colorScheme.inverseSurface else MaterialTheme.colorScheme.surface,
         contentColor = if (dark) MaterialTheme.colorScheme.inverseOnSurface else MaterialTheme.colorScheme.onSurface,
         border = if (dark) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
@@ -317,26 +317,35 @@ private fun BirthdayPill(days: Int, dark: Boolean) {
     }
 }
 
-/** A round button of 56 dp with its label under it: Vœux, Appeler, Itinéraire. */
+/**
+ * Vœux, Appeler, Itinéraire (DESIGN-60): a button of 56 dp or more with a 1.5 dp edge, the icon then
+ * the text; from 130 % of text the icon goes above the text. Dark in the 30 days before a birthday.
+ */
 @Composable
-private fun RoundAction(icon: ImageVector, label: String, dark: Boolean = false, onClick: () -> Unit) {
-    Column(
-        Modifier.widthIn(min = 72.dp).clip(RoundedCornerShape(16.dp)).clickable(role = Role.Button, onClick = onClick).padding(4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
+private fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, dark: Boolean = false, onClick: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    val content = if (dark) colors.inverseOnSurface else colors.onSurface
+    val stacked = LocalDensity.current.fontScale >= 1.3f
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(16.dp),
+        color = if (dark) colors.inverseSurface else LocalClayColors.current.card,
+        contentColor = content,
+        border = BorderStroke(1.5.dp, if (dark) colors.inverseSurface else colors.outlineVariant),
+        modifier = modifier.heightIn(min = 56.dp),
     ) {
-        Surface(
-            shape = CircleShape,
-            color = if (dark) MaterialTheme.colorScheme.inverseSurface else MaterialTheme.colorScheme.surface,
-            border = if (dark) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-            modifier = Modifier.size(56.dp),
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(icon, contentDescription = null, tint = if (dark) MaterialTheme.colorScheme.inverseOnSurface else MaterialTheme.colorScheme.onSurface)
-            }
+        val inner: @Composable () -> Unit = {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
+            Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, maxLines = 1, textAlign = TextAlign.Center)
         }
-        Text(label, style = MaterialTheme.typography.labelLarge)
+        if (stacked) {
+            Column(Modifier.padding(horizontal = 6.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) { inner() }
+        } else {
+            Row(Modifier.padding(horizontal = 6.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally)) { inner() }
+        }
     }
 }
+
 
 private fun dial(context: android.content.Context, number: String) {
     runCatching { context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + number.filter { c -> c.isDigit() || c == '+' }))) }
@@ -356,26 +365,18 @@ private fun FillGauge(member: Member, data: ProfileV2State, souvenirShown: Boole
     val percent = fillPercent(parts)
     if (percent == 100) return
     val missing = parts.filter { !it.second }.map { fillPartLabel(it.first) }
-    Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.profile_v2_fill_title, percent), style = MaterialTheme.typography.titleMedium)
-            LinearProgressIndicator(
-                progress = { percent / 100f },
-                drawStopIndicator = {},
-                gapSize = 0.dp,
-                modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)),
-            )
-            Text(
-                stringResource(R.string.profile_v2_fill_missing, joinNames(missing)),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+    FormTile(icon = Icons.Outlined.TaskAlt, title = stringResource(R.string.profile_v2_fill_title, percent)) {
+        LinearProgressIndicator(
+            progress = { percent / 100f },
+            drawStopIndicator = {},
+            gapSize = 0.dp,
+            modifier = Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(5.dp)),
+        )
+        Text(
+            stringResource(R.string.profile_v2_fill_missing, joinNames(missing)),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

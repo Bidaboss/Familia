@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -45,6 +46,8 @@ fun FormTile(
     /** The small square of the icon and the icon; by default, a pale [accent] and [accent]. */
     iconBackground: Color = accent.copy(alpha = 0.16f),
     iconTint: Color = accent,
+    /** At the end of the title row (a pencil, a pill); the title then takes the room left. */
+    trailing: (@Composable RowScope.() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Surface(
@@ -74,8 +77,12 @@ fun FormTile(
                     title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(start = 12.dp).semantics { heading() },
+                    modifier = Modifier
+                        .padding(start = 12.dp)
+                        .then(if (trailing != null) Modifier.weight(1f) else Modifier)
+                        .semantics { heading() },
                 )
+                trailing?.invoke(this)
             }
             content()
         }

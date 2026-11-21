@@ -23,7 +23,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.material3.ButtonDefaults
-import fr.familia.app.core.theme.OnMemberColor
+import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.ui.memberColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -83,17 +83,22 @@ fun MemberProfileScreen(
         }
     }
     Scaffold(
+        modifier = Modifier.themeBackground(),
+        containerColor = Color.Transparent,
         topBar = {
             val ready = state as? MemberProfileUiState.Ready
-            // PRODUIT-114: the bar takes the color of the band under it, and the first name lives in
-            // the page; « Ma fiche » on mine. Never a ⋮ menu.
+            // DESIGN-60, option A: the bar sits on the calm band of the member's color, « Fiche de
+            // Hugo » (« Ma fiche » on mine). Never a ⋮ menu.
             FamiliaTopBar(
                 title = {
-                    val title = if (ready?.isMe == true) stringResource(R.string.profile_v2_my_page) else ""
+                    val title = when {
+                        ready == null -> ""
+                        ready.isMe -> stringResource(R.string.profile_v2_my_page)
+                        else -> stringResource(R.string.profile_v2_page_title, ready.member.firstName)
+                    }
                     Text(title, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 },
-                containerColor = ready?.let { memberColor(it.member) } ?: Color.Transparent,
-                contentColor = if (ready != null) OnMemberColor else Color.Unspecified,
+                containerColor = ready?.let { calmBandColor(memberColor(it.member)) } ?: Color.Transparent,
                 navigationIcon = { BackButton(onClick = onBack) },
                 actions = {
                     // « Modifier » up on the right, for those who may (DESIGN, 16/11): never from the list.
