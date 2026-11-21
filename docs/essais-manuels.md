@@ -1550,6 +1550,17 @@ Avant l'APK : lance « Publier Firebase » (les règles acceptent le champ lands
 4. Avec TalkBack : la carte se lit « Anniversaire. Noé fête ses 10 ans aujourd'hui. », puis « Lui souhaiter, bouton ». Les confettis ne sont pas lus et ne bougent pas.
 5. Le lendemain : la carte redescend sous « Hier », à sa place.
 
+## Refonte, lot 4 : affiche, à prévoir, valises, capsule et livres (21/11)
+
+Ces écrans passent au nouveau design : des tuiles avec une icône, des pastilles au lieu des ronds à cocher, et le bouton noir fixé en bas. Rien d'autre ne change.
+
+1. Arbre, « Faire l'affiche ». **Attendu :** trois tuiles (le titre, « À partir de qui ? », la feuille). « Toute la famille » puis les ronds des personnes rangés par foyer. Touche une personne : la ligne « … et ses descendants » apparaît sous les ronds. Le bouton noir « Faire l'affiche » reste en bas et devient gris si le titre est vide.
+2. Un voyage, « À prévoir » : ajoute une ligne. **Attendu :** « Qui s'en occupe ? » montre « Personne » puis un rond par participant. Un seul rond est choisi à la fois, et la ligne enregistrée montre la bonne personne.
+3. Un voyage avec les valises allumées. **Attendu :** chaque valise est une tuile avec une icône de valise, et cocher, ajouter ou retirer une affaire marche comme avant.
+4. Nouvelle capsule : touche « Sceller la capsule » sans rien remplir. **Attendu :** l'écran remonte jusqu'au message, en rouge, et les erreurs « Pour qui ? » et « Quand l'ouvrir ? » s'affichent sous leurs tuiles. La case du foyer coche tout le foyer. Le jour se choisit en touchant la case du jour.
+5. Recettes, « Faire le livre ». **Attendu :** la couverture en tuile, la photo de couverture en pastilles, puis la tuile des recettes avec « Tout cocher ». Le bouton noir reste en bas.
+6. Les photos d'un voyage, « Faire le livre photo ». **Attendu :** le titre et la taille des pages en tuiles (une pastille « A4 en paysage » et une « Carré »), puis les photos comme avant. Le bouton noir reste en bas.
+7. Refais 1, 4 et 5 avec le texte à 200 % et en thème sombre. **Attendu :** rien n'est coupé, et le bouton noir ne cache pas le dernier champ.
 ## Refonte, lot 4 (suite) : comptes et recettes (21/11)
 
 Les écrans suivent les maquettes « Une dépense » et « Une recette ». Rien d'autre ne change.

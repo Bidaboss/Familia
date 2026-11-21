@@ -16,33 +16,32 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoStories
 import androidx.compose.material.icons.outlined.PhotoLibrary
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.outlined.Title
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
@@ -52,14 +51,21 @@ import fr.familia.app.core.print.printFailedText
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.theme.LocalClayColors
+import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.ClayCard
-import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
-import java.time.LocalDate
+import fr.familia.app.core.ui.FamiliaTopBar
 import fr.familia.app.core.ui.LoadingState
+import fr.familia.app.core.ui.form.ChipGroup
+import fr.familia.app.core.ui.form.FormChip
+import fr.familia.app.core.ui.form.FormHint
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.StickyActionBar
+import java.time.LocalDate
 
 /** What the screen can ask, so the route stays short. */
 data class PhotoBookActions(
@@ -77,15 +83,28 @@ data class PhotoBookActions(
  * box and, once chosen, « Plus tôt », « Plus tard », « En grand » and « En couverture ». The single
  * filled button is at the end. Stateless.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PhotoBookScreen(state: PhotoBookUiState, actions: PhotoBookActions, onBack: () -> Unit) {
+    val choosing = state as? PhotoBookUiState.Choosing
     Scaffold(
+        containerColor = Color.Transparent,
+        modifier = Modifier.themeBackground(),
         topBar = {
             FamiliaTopBar(
                 title = { Text(stringResource(R.string.photo_book_title), maxLines = 2, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
             )
+        },
+        // The single black button at the bottom (refonte, recette commune n° 7).
+        bottomBar = {
+            if (choosing != null) {
+                StickyActionBar(
+                    text = stringResource(R.string.photo_book_make),
+                    onClick = actions.onMake,
+                    enabled = choosing.canMake,
+                    busy = choosing.isMaking,
+                )
+            }
         },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
@@ -104,7 +123,6 @@ fun PhotoBookScreen(state: PhotoBookUiState, actions: PhotoBookActions, onBack: 
 
 @Composable
 private fun Choosing(state: PhotoBookUiState.Choosing, actions: PhotoBookActions) {
-    val muted = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = ClaySpacing.screen, vertical = 16.dp),
@@ -113,28 +131,34 @@ private fun Choosing(state: PhotoBookUiState.Choosing, actions: PhotoBookActions
         item(key = "intro") {
             Text(stringResource(R.string.photo_book_intro), style = MaterialTheme.typography.bodyLarge)
         }
+        // The title and the pages in tiles (refonte lot 4); the photos stay a list of cards.
         item(key = "title") {
-            OutlinedTextField(
-                value = state.title,
-                onValueChange = actions.onTitle,
-                label = { Text(stringResource(R.string.photo_book_field_title)) },
-                supportingText = { Text(state.dates, color = muted) },
-                isError = state.title.isBlank(),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            FormTile(Icons.Outlined.Title, stringResource(R.string.photo_book_field_title)) {
+                val label = stringResource(R.string.photo_book_field_title)
+                OutlinedTextField(
+                    value = state.title,
+                    onValueChange = actions.onTitle,
+                    isError = state.title.isBlank(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
+                )
+                FormHint(state.dates)
+            }
         }
         item(key = "format") {
-            ClayCard(modifier = Modifier.fillMaxWidth()) {
-                ClayCardTitle(stringResource(R.string.photo_book_format), style = MaterialTheme.typography.titleMedium)
-                ChoiceRow(stringResource(R.string.photo_book_landscape), state.format == PhotoBookFormat.Landscape) { actions.onFormat(PhotoBookFormat.Landscape) }
-                ChoiceRow(stringResource(R.string.photo_book_square), state.format == PhotoBookFormat.Square) { actions.onFormat(PhotoBookFormat.Square) }
+            FormTile(Icons.Outlined.AutoStories, stringResource(R.string.photo_book_format)) {
+                ChipGroup {
+                    FormChip(stringResource(R.string.photo_book_landscape), state.format == PhotoBookFormat.Landscape, onClick = { actions.onFormat(PhotoBookFormat.Landscape) })
+                    FormChip(stringResource(R.string.photo_book_square), state.format == PhotoBookFormat.Square, onClick = { actions.onFormat(PhotoBookFormat.Square) })
+                }
             }
         }
         item(key = "count") {
             Text(
                 pluralStringResource(R.plurals.photo_book_count, state.chosen.size, state.chosen.size, state.pageCount),
                 style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.semantics { heading() },
             )
         }
         itemsIndexed(state.photos, key = { _, it -> it.photo.id }) { index, photo ->
@@ -150,16 +174,11 @@ private fun Choosing(state: PhotoBookUiState.Choosing, actions: PhotoBookActions
         item(key = "make") {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (state.failed) {
-                    Text(printFailedText(state.problem, R.string.photo_book_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
-                }
-                Button(onClick = actions.onMake, enabled = state.canMake, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                    if (state.isMaking) {
-                        CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                    } else {
-                        Text(stringResource(R.string.photo_book_make))
+                    Surface(shape = RoundedCornerShape(16.dp), color = LocalClayColors.current.card) {
+                        FormHint(printFailedText(state.problem, R.string.photo_book_failed), isError = true, modifier = Modifier.padding(14.dp))
                     }
                 }
-                Text(stringResource(R.string.photo_book_hint), style = MaterialTheme.typography.bodyMedium, color = muted)
+                FormHint(stringResource(R.string.photo_book_hint))
             }
         }
     }
@@ -217,18 +236,6 @@ fun PhotoBookButton(onClick: () -> Unit) {
 @Composable
 private fun SmallAction(label: String, enabled: Boolean = true, onClick: () -> Unit) {
     TextButton(onClick = onClick, enabled = enabled, modifier = Modifier.heightIn(min = 56.dp)) { Text(label) }
-}
-
-@Composable
-private fun ChoiceRow(label: String, selected: Boolean, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        RadioButton(selected = selected, onClick = null)
-        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-    }
 }
 
 @FamiliaPreviews

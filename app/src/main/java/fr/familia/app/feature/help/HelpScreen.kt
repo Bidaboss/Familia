@@ -1,9 +1,7 @@
 package fr.familia.app.feature.help
 
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,7 +19,6 @@ import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Replay
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -37,11 +34,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.outlined.SupportAgent
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.ui.graphics.Color
+import fr.familia.app.core.theme.LocalClayColors
+import fr.familia.app.core.theme.themeBackground
+import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.form.FormTile
 import fr.familia.app.BuildConfig
 import fr.familia.app.R
 import fr.familia.app.core.theme.FamiliaTheme
@@ -65,7 +67,8 @@ fun HelpScreen(
 ) {
     var openTopic by rememberSaveable { mutableStateOf(initiallyOpen) }
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.themeBackground(),
+        containerColor = Color.Transparent,
         topBar = {
             FamiliaTopBar(
                 title = { Text(stringResource(R.string.help_title), maxLines = 2, overflow = TextOverflow.Ellipsis) },
@@ -73,11 +76,16 @@ fun HelpScreen(
             )
         },
     ) { padding ->
-        LazyColumn(Modifier.padding(padding).fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
+        LazyColumn(
+            Modifier.padding(padding).fillMaxSize(),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
             item(key = "replay") {
                 OutlinedButton(
                     onClick = onReplayOnboarding,
-                    modifier = Modifier.fillMaxWidth().padding(16.dp).heightIn(min = 56.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = LocalClayColors.current.card, contentColor = MaterialTheme.colorScheme.onSurface),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                 ) {
                     Icon(Icons.Outlined.Replay, contentDescription = null)
                     Spacer(Modifier.width(8.dp))
@@ -86,29 +94,23 @@ fun HelpScreen(
             }
             items(state.topics, key = { it.name }) { topic ->
                 TopicRow(topic, open = openTopic == topic, onToggle = { openTopic = if (openTopic == topic) null else topic })
-                HorizontalDivider()
             }
             item(key = "contact") {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        stringResource(R.string.help_contact_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.semantics { heading() },
-                    )
+                FormTile(icon = Icons.Outlined.SupportAgent, title = stringResource(R.string.help_contact_title)) {
                     Text(
                         state.admins?.let { stringResource(R.string.help_contact_body, it) }
                             ?: stringResource(R.string.help_contact_body_unknown),
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     if (onOpenFeedback != null) {
-                        OutlinedButton(onClick = onOpenFeedback, modifier = Modifier.fillMaxWidth().padding(top = 8.dp).heightIn(min = 56.dp)) {
+                        OutlinedButton(onClick = onOpenFeedback, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                             Icon(Icons.Outlined.Lightbulb, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
                             Text(stringResource(R.string.feedback_title))
                         }
                     }
                     if (onOpenWhatsNew != null) {
-                        OutlinedButton(onClick = onOpenWhatsNew, modifier = Modifier.fillMaxWidth().padding(top = 8.dp).heightIn(min = 56.dp)) {
+                        OutlinedButton(onClick = onOpenWhatsNew, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                             Icon(Icons.Outlined.AutoAwesome, contentDescription = null)
                             Spacer(Modifier.width(8.dp))
                             Text(stringResource(R.string.account_whats_new))
@@ -122,22 +124,21 @@ fun HelpScreen(
                     stringResource(R.string.app_version, versionName),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(horizontal = 4.dp),
                 )
             }
         }
     }
 }
 
+/** One question, in its own card: the card opens and closes on a tap (DESIGN refonte, lot 3). */
 @Composable
 private fun TopicRow(topic: HelpTopic, open: Boolean, onToggle: () -> Unit) {
     val stateText = stringResource(if (open) R.string.help_topic_open else R.string.help_topic_closed)
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .clickable(role = Role.Button, onClick = onToggle)
-            .semantics { stateDescription = stateText }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ClayCard(
+        onClick = onToggle,
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        modifier = Modifier.fillMaxWidth().semantics { stateDescription = stateText },
     ) {
         Row(Modifier.heightIn(min = 32.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(topic.titleRes), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))

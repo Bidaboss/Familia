@@ -894,6 +894,7 @@
     <string name="notebook_share_occasion">%1$s, choisi par le responsable du cadeau commun</string>
     <string name="notebook_idea_year">Année (facultative)</string>
     <string name="notebook_idea_status">Où en est-il</string>
+    <string name="notebook_idea_tile">L\'idée</string>
     <string name="notebook_idea_delete">Retirer l\'idée</string>
     <string name="notebook_idea_delete_title">Retirer « %1$s » ?</string>
     <string name="notebook_idea_unavailable_title">Idée introuvable</string>
@@ -3246,6 +3247,7 @@
     <string name="announcements_count">%1$d sur %2$d caractères</string>
     <string name="announcements_urgent">Urgent</string>
     <string name="announcements_urgent_help">Entre 22 h et 8 h, un message attend 8 h. « Urgent » le fait arriver tout de suite.</string>
+    <string name="announcements_tile_message">Le message</string>
     <string name="announcements_to">Qui le reçoit</string>
     <string name="announcements_others">Sans foyer</string>
     <string name="announcements_preview">Aperçu</string>

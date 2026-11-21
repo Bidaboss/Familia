@@ -1,5 +1,10 @@
 package fr.familia.app.feature.birthdays
 
+import fr.familia.app.core.theme.ClayTint
+import fr.familia.app.core.theme.FamiliaClay
+import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.ClaySpacing
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -79,7 +84,12 @@ fun BirthdaysScreen(
                 modifier = modifier,
             )
         } else {
-            LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 8.dp)) {
+            // Cards rather than lines between rows (refonte globale, lot 2).
+            LazyColumn(
+                modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = ClaySpacing.screen, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
                 items(state.birthdays, key = { "birthday-${it.member.id}" }) { birthday ->
                     BirthdayRow(
                         birthday,
@@ -99,23 +109,18 @@ fun BirthdaysScreen(
 @Composable
 private fun BirthdayRow(birthday: Birthday, today: LocalDate, onAddToCalendar: (() -> Unit)?, onShare: (() -> Unit)?) {
     val isToday = birthday.date == today
-    Column {
+    // Today's birthday stands out with the birthday tint of the theme.
+    val tint = if (isToday) ClayTint.Birthday else ClayTint.Plain
+    val secondary = if (isToday) FamiliaClay.colors.onTintVariant(ClayTint.Birthday) else MaterialTheme.colorScheme.onSurfaceVariant
+    ClayCard(Modifier.fillMaxWidth(), tint = tint, contentPadding = PaddingValues(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp)) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .then(if (isToday) Modifier.background(MaterialTheme.colorScheme.primaryContainer) else Modifier)
-                .heightIn(min = 56.dp)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             MemberAvatar(birthday.member)
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    birthday.member.firstName,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = if (isToday) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
-                )
+                Text(birthday.member.firstName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 Text(
                     stringResource(
                         R.string.birthday_when_age,
@@ -123,7 +128,7 @@ private fun BirthdayRow(birthday: Birthday, today: LocalDate, onAddToCalendar: (
                         pluralStringResource(R.plurals.birthday_age, birthday.age, birthday.age),
                     ),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = if (isToday) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = secondary,
                 )
             }
             if (onAddToCalendar != null) {
@@ -132,7 +137,6 @@ private fun BirthdayRow(birthday: Birthday, today: LocalDate, onAddToCalendar: (
                     Icon(
                         Icons.Outlined.EventAvailable,
                         contentDescription = stringResource(R.string.calendar_add_birthday, birthday.member.firstName),
-                        tint = if (isToday) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -141,25 +145,20 @@ private fun BirthdayRow(birthday: Birthday, today: LocalDate, onAddToCalendar: (
                     Icon(
                         Icons.Outlined.Share,
                         contentDescription = stringResource(R.string.share_birthday_button, birthday.member.firstName),
-                        tint = if (isToday) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
                     )
                 }
             }
         }
-        HorizontalDivider(Modifier.padding(start = 72.dp))
     }
 }
 
 @Composable
 private fun MissingDates(members: List<Member>) {
-    Column(
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
+    ClayCard(Modifier.fillMaxWidth().padding(top = 8.dp)) {
         Text(
             stringResource(R.string.birthdays_missing_title),
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.SemiBold,
             modifier = Modifier.semantics { heading() },
         )
         Text(
