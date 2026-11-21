@@ -1639,6 +1639,7 @@ Dans le détail d'un voyage, un bouton « La carte » (en bas de la carte du jou
 
 **Après la fusion :** rien de plus que « Publier Firebase » de la 1re partie (#463), à lancer avant l'APK.
 
+
 ## « À prévoir » réservé à ceux qui partent (récit 86, 21/11)
 
 Celui qui suit un voyage sans y participer ne voit plus la liste « À prévoir » ni « Pour tout le monde ». Il garde les étapes, les photos de l'album et le « bien arrivé ». Pas de comptes ni de valises pour lui, comme avant.
