@@ -26,18 +26,18 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddAPhoto
 import androidx.compose.material.icons.outlined.Celebration
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material.icons.outlined.Face
+import androidx.compose.material.icons.outlined.PhotoLibrary
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -59,7 +59,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextRange
@@ -78,6 +77,14 @@ import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.ClaySpacing
+import fr.familia.app.core.ui.form.FormHint
+import fr.familia.app.core.ui.form.FormOutlineButton
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.scrollToFirstError
+import fr.familia.app.core.ui.form.PeopleRow
+import fr.familia.app.core.ui.form.PersonChoice
+import fr.familia.app.core.ui.form.StickyActionBar
 import fr.familia.app.feature.goodnews.previewGoodNewsFamily
 
 /** Publish a good news, or change one's own (récit 32). Stateless. */
@@ -114,6 +121,16 @@ fun GoodNewsEditScreen(
                 },
             )
         },
+        // The black button at the bottom (plan de refonte du 21/11); the photos in flight are told above it.
+        bottomBar = {
+            editing?.let {
+                StickyActionBar(
+                    stringResource(if (it.isNew) R.string.goodnews_publish_action else R.string.goodnews_save_action),
+                    onSave,
+                    busy = it.isSaving,
+                )
+            }
+        },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
@@ -124,7 +141,7 @@ fun GoodNewsEditScreen(
                     body = stringResource(R.string.goodnews_missing_body),
                 )
                 is GoodNewsEditUiState.Editing -> Form(
-                    state, onText, onAddPhotos, onRemovePhoto, onFor, onMentions, onSave, onForChallenge,
+                    state, onText, onAddPhotos, onRemovePhoto, onFor, onMentions, onForChallenge,
                     littleOnes = if (littleOnesOn) onLittleOnes else null,
                     onCancelSending = onCancelSending,
                 )
@@ -158,7 +175,6 @@ fun GoodNewsEditScreen(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Form(
     state: GoodNewsEditUiState.Editing,
@@ -167,102 +183,109 @@ private fun Form(
     onRemovePhoto: (String) -> Unit,
     onFor: (String) -> Unit,
     onMentions: (Set<String>) -> Unit,
-    onSave: () -> Unit,
     onForChallenge: (Boolean) -> Unit,
     littleOnes: ((Boolean) -> Unit)?,
     onCancelSending: () -> Unit,
 ) {
     val form = state.form
     val errors = state.errors
+    val accent = MaterialTheme.colorScheme.primary
+    val scroll = rememberScrollState()
+    // The screen goes to the first tile with an error (plan de refonte du 21/11).
+    val firstError = when {
+        GoodNewsFormError.TextMissing in errors || GoodNewsFormError.TextTooLong in errors -> GoodNewsTile.Text
+        GoodNewsFormError.NoPhoto in errors -> GoodNewsTile.Photos
+        else -> null
+    }
+    val tileTop = scrollToFirstError(scroll, errors, firstError)
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(scroll).imePadding().padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
-        // « @Prénom » in the text names a member (Kévin, 19/11). Members named before, by the old
-        // checkboxes, are kept as they were.
-        val named = state.candidates.filter { it.id in form.mentionIds }
-        val legacy = remember(state.existing?.id) { form.mentionIds - mentionedIds(form.text, named) }
-        var field by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue(form.text, TextRange(form.text.length))) }
-        val value = if (field.text == form.text) field else TextFieldValue(form.text, TextRange(form.text.length))
-        MentionTextField(
-            value = value,
-            onChange = { next, stillNamed ->
-                field = next
-                if (next.text != form.text) onText(next.text)
-                val ids = legacy + stillNamed.map { it.id }
-                if (ids != form.mentionIds) onMentions(ids)
-            },
-            groups = state.mentionGroups,
-            chosen = named,
-            label = { Text(stringResource(R.string.goodnews_text_field)) },
-            placeholder = { Text(stringResource(R.string.goodnews_text_hint)) },
-            isError = GoodNewsFormError.TextMissing in errors || GoodNewsFormError.TextTooLong in errors,
-            supportingText = {
-                val error = when {
-                    GoodNewsFormError.TextMissing in errors -> stringResource(R.string.goodnews_error_text_missing)
-                    GoodNewsFormError.TextTooLong in errors -> stringResource(R.string.goodnews_error_text_too_long, GoodNews.TEXT_MAX)
-                    else -> null
-                }
-                Text(error ?: stringResource(R.string.goodnews_text_count, form.text.length, GoodNews.TEXT_MAX))
-            },
-            minLines = 3,
-            enabled = !state.isSaving,
-        )
-        if (state.candidates.isNotEmpty()) {
-            Text(stringResource(R.string.goodnews_mentions), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        FormTile(Icons.Outlined.EditNote, stringResource(R.string.goodnews_text_field), tileTop(GoodNewsTile.Text), accent = accent) {
+            // « @Prénom » in the text names a member (Kévin, 19/11). Members named before, by the old
+            // checkboxes, are kept as they were.
+            val named = state.candidates.filter { it.id in form.mentionIds }
+            val legacy = remember(state.existing?.id) { form.mentionIds - mentionedIds(form.text, named) }
+            var field by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue(form.text, TextRange(form.text.length))) }
+            val value = if (field.text == form.text) field else TextFieldValue(form.text, TextRange(form.text.length))
+            MentionTextField(
+                value = value,
+                onChange = { next, stillNamed ->
+                    field = next
+                    if (next.text != form.text) onText(next.text)
+                    val ids = legacy + stillNamed.map { it.id }
+                    if (ids != form.mentionIds) onMentions(ids)
+                },
+                groups = state.mentionGroups,
+                chosen = named,
+                label = null,
+                placeholder = { Text(stringResource(R.string.goodnews_text_hint)) },
+                isError = GoodNewsFormError.TextMissing in errors || GoodNewsFormError.TextTooLong in errors,
+                supportingText = {
+                    val error = when {
+                        GoodNewsFormError.TextMissing in errors -> stringResource(R.string.goodnews_error_text_missing)
+                        GoodNewsFormError.TextTooLong in errors -> stringResource(R.string.goodnews_error_text_too_long, GoodNews.TEXT_MAX)
+                        else -> null
+                    }
+                    Text(error ?: stringResource(R.string.goodnews_text_count, form.text.length, GoodNews.TEXT_MAX))
+                },
+                minLines = 3,
+                enabled = !state.isSaving,
+            )
+            if (state.candidates.isNotEmpty()) FormHint(stringResource(R.string.goodnews_mentions))
         }
 
-        SectionTitle(stringResource(R.string.goodnews_photos))
-        if (state.isNew) {
-            NewPhotos(state, onAddPhotos, onRemovePhoto)
-            if (GoodNewsFormError.NoPhoto in errors) {
-                Text(stringResource(R.string.goodnews_error_no_photo), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
-            }
-        } else {
-            val existing = state.existing!!
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                existing.photoIds.forEachIndexed { index, id ->
-                    StorageImage(existing.thumbnailPath(id), stringResource(R.string.goodnews_photo_number, index + 1), Modifier.size(96.dp).clip(RoundedCornerShape(16.dp)))
+        FormTile(Icons.Outlined.PhotoLibrary, stringResource(R.string.goodnews_photos), tileTop(GoodNewsTile.Photos), accent = accent) {
+            if (state.isNew) {
+                NewPhotos(state, onAddPhotos, onRemovePhoto)
+                if (GoodNewsFormError.NoPhoto in errors) FormHint(stringResource(R.string.goodnews_error_no_photo), isError = true)
+            } else {
+                val existing = state.existing!!
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    existing.photoIds.forEachIndexed { index, id ->
+                        StorageImage(existing.thumbnailPath(id), stringResource(R.string.goodnews_photo_number, index + 1), Modifier.size(96.dp).clip(RoundedCornerShape(16.dp)))
+                    }
                 }
+                FormHint(stringResource(R.string.goodnews_photos_fixed))
             }
-            Text(stringResource(R.string.goodnews_photos_fixed), style = MaterialTheme.typography.bodyMedium)
         }
 
         if (state.isNew && state.targets.size > 1) {
-            SectionTitle(stringResource(R.string.goodnews_for))
-            MemberChips(state.targets, setOf(form.forMemberId), enabled = !state.isSaving, onClick = onFor) { member ->
-                if (member.id == state.targets.first().id) stringResource(R.string.goodnews_for_me) else member.firstName
+            FormTile(Icons.Outlined.Face, stringResource(R.string.goodnews_for), accent = accent) {
+                val me = state.targets.first().id
+                PeopleRow(
+                    choices = state.targets.map { member ->
+                        PersonChoice(
+                            key = member.id,
+                            label = if (member.id == me) stringResource(R.string.goodnews_for_me) else member.firstName,
+                            selected = member.id == form.forMemberId,
+                            memberId = member.id,
+                        )
+                    },
+                    multiple = false,
+                    onToggle = { if (!state.isSaving) onFor(it) },
+                )
             }
         }
 
-        if (littleOnes != null && state.isNew && form.forMemberId != state.targets.first().id) {
-            SwitchRow(stringResource(R.string.goodnews_little_ones_switch), form.littleOnes, !state.isSaving, littleOnes)
-        }
-
-        val challenge = state.challenge
-        if (state.isNew && challenge != null) {
-            SwitchRow(
-                stringResource(R.string.goodnews_for_challenge, challenge.emoji, challenge.title),
-                form.forChallenge, !state.isSaving, onForChallenge,
-            )
+        val showLittleOnes = littleOnes != null && state.isNew && form.forMemberId != state.targets.first().id
+        val challenge = state.challenge?.takeIf { state.isNew }
+        if (showLittleOnes || challenge != null) {
+            FormTile(Icons.Outlined.Tune, stringResource(R.string.goodnews_tile_more), accent = accent) {
+                if (showLittleOnes && littleOnes != null) {
+                    SwitchRow(stringResource(R.string.goodnews_little_ones_switch), form.littleOnes, !state.isSaving, littleOnes)
+                }
+                if (challenge != null) {
+                    SwitchRow(
+                        stringResource(R.string.goodnews_for_challenge, challenge.emoji, challenge.title),
+                        form.forChallenge, !state.isSaving, onForChallenge,
+                    )
+                }
+            }
         }
 
         SendingProgress(state, onCancelSending)
-
-        Button(onClick = onSave, enabled = !state.isSaving, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            if (state.isSaving) {
-                CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-                Spacer(Modifier.width(12.dp))
-                Text(
-                    when (val photo = state.sendingPhoto) {
-                        null, 0 -> stringResource(R.string.goodnews_saving)
-                        else -> stringResource(R.string.goodnews_sending_photo, photo, form.photos.size)
-                    },
-                )
-            } else {
-                Text(stringResource(if (state.isNew) R.string.goodnews_publish_action else R.string.goodnews_save_action))
-            }
-        }
     }
 }
 
@@ -275,6 +298,11 @@ private fun SendingProgress(state: GoodNewsEditUiState.Editing, onCancel: () -> 
     val photo = state.sendingPhoto ?: return
     if (!state.isNew) return
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            if (photo == 0) stringResource(R.string.goodnews_saving) else stringResource(R.string.goodnews_sending_photo, photo, state.form.photos.size),
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+        )
         val progress = state.progress
         if (progress == null) {
             LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -289,9 +317,7 @@ private fun SendingProgress(state: GoodNewsEditUiState.Editing, onCancel: () -> 
             )
         }
         if (photo > 0) {
-            TextButton(onClick = onCancel, modifier = Modifier.heightIn(min = 48.dp)) {
-                Text(stringResource(R.string.goodnews_cancel_sending))
-            }
+            FormOutlineButton(stringResource(R.string.goodnews_cancel_sending), onCancel)
         }
     }
 }
@@ -323,44 +349,12 @@ private fun NewPhotos(state: GoodNewsEditUiState.Editing, onAddPhotos: (List<Str
         }
     }
     if (state.canAddPhotos && !state.isSaving) {
-        OutlinedButton(
+        FormOutlineButton(
+            stringResource(if (state.form.photos.isEmpty()) R.string.goodnews_add_photos else R.string.goodnews_add_more_photos),
             onClick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-            modifier = Modifier.heightIn(min = 56.dp),
-        ) {
-            Icon(Icons.Outlined.AddAPhoto, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(if (state.form.photos.isEmpty()) R.string.goodnews_add_photos else R.string.goodnews_add_more_photos))
-        }
+            icon = Icons.Outlined.AddAPhoto,
+        )
     }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun MemberChips(
-    members: List<Member>,
-    selectedIds: Set<String>,
-    enabled: Boolean,
-    onClick: (String) -> Unit,
-    label: @Composable (Member) -> String,
-) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        members.forEach { member ->
-            val selected = member.id in selectedIds
-            FilterChip(
-                selected = selected,
-                onClick = { onClick(member.id) },
-                enabled = enabled,
-                label = { Text(label(member), style = MaterialTheme.typography.labelLarge) },
-                leadingIcon = if (selected) ({ Icon(Icons.Outlined.Check, contentDescription = null) }) else null,
-                modifier = Modifier.heightIn(min = 56.dp),
-            )
-        }
-    }
-}
-
-@Composable
-private fun SectionTitle(text: String) {
-    Text(text, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
 }
 
 /** Fictional data for previews and screenshots. */
@@ -397,3 +391,5 @@ private fun SwitchRow(text: String, checked: Boolean, enabled: Boolean, onChange
         Switch(checked = checked, onCheckedChange = null, enabled = enabled)
     }
 }
+
+private enum class GoodNewsTile { Text, Photos }

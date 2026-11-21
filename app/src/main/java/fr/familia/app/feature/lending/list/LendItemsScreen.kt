@@ -3,8 +3,6 @@ package fr.familia.app.feature.lending.list
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,7 +16,6 @@ import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -30,6 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.ui.form.FormChip
+import fr.familia.app.core.ui.form.ChipGroup
 import fr.familia.app.core.data.FAMILY_ZONE
 import fr.familia.app.core.model.LendCategory
 import fr.familia.app.core.model.LendItem
@@ -130,7 +129,6 @@ fun LendItemsScreen(
 }
 
 /** Search by name, « Disponible », and one category at a time. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun LendSearch(filter: LendFilter, onSearch: (String) -> Unit, onPickCategory: (LendCategory?) -> Unit, onToggleAvailable: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -142,20 +140,13 @@ private fun LendSearch(filter: LendFilter, onSearch: (String) -> Unit, onPickCat
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(
-                selected = filter.availableOnly,
-                onClick = onToggleAvailable,
-                label = { Text(stringResource(R.string.lend_filter_available)) },
-                modifier = Modifier.heightIn(min = 56.dp),
-            )
+        // The pills of the forms (plan de refonte du 21/11): « Disponibles » on its own, then one category at a time.
+        ChipGroup {
+            FormChip(stringResource(R.string.lend_filter_available), selected = filter.availableOnly, onClick = onToggleAvailable)
+        }
+        ChipGroup {
             LendCategory.entries.forEach { category ->
-                FilterChip(
-                    selected = filter.category == category,
-                    onClick = { onPickCategory(category) },
-                    label = { Text(lendCategoryLabel(category)) },
-                    modifier = Modifier.heightIn(min = 56.dp),
-                )
+                FormChip(lendCategoryLabel(category), selected = filter.category == category, onClick = { onPickCategory(category) })
             }
         }
     }

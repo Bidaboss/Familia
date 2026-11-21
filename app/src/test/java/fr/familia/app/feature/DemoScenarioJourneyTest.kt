@@ -222,8 +222,8 @@ class DemoScenarioJourneyTest {
             }
         }
         waitForText("Publier pour toute la famille")
-        // The button is under the photos and the pickers: scrolled to, as a finger would.
-        compose.onNodeWithText("Publier pour toute la famille").performScrollTo().performClick()
+        // The black button stays at the bottom of the screen (refonte du 21/11).
+        compose.onNodeWithText("Publier pour toute la famille").performClick()
 
         compose.waitUntil(TIMEOUT) { edit.uiState.value == GoodNewsEditUiState.Done }
         val news = repo.published.single()

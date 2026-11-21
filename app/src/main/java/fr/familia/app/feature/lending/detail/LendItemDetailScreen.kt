@@ -13,8 +13,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,7 +27,6 @@ import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,8 +37,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
@@ -49,11 +50,15 @@ import fr.familia.app.core.photo.StorageImage
 import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
-import fr.familia.app.core.ui.BackButton
-import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.FamiliaTopBar
+import fr.familia.app.core.ui.form.FormDeleteButton
+import fr.familia.app.core.ui.form.FormOutlineButton
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.StickyActionBar
+import fr.familia.app.feature.helprequests.entraideAccent
 import fr.familia.app.core.ui.LoadingState
 import fr.familia.app.core.ui.formatDay
 import fr.familia.app.feature.lending.lendCategoryLabel
@@ -68,8 +73,11 @@ import androidx.compose.ui.semantics.LiveRegionMode
 
 private val PARIS: ZoneId = ZoneId.of("Europe/Paris")
 
-/** One thing to lend (PRD, récit 51). Stateless. */
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * One thing to lend (PRD, récit 51). Stateless. In tiles (plan de refonte du 21/11): the thing, then
+ * where it is; the one action of each in the black button at the bottom (« Je voudrais
+ * l'emprunter », « D'accord », « Rendu »), and « Retirer l'objet » at the very bottom of the page.
+ */
 @Composable
 fun LendItemDetailScreen(
     state: LendItemDetailUiState,
@@ -82,9 +90,17 @@ fun LendItemDetailScreen(
     onRemove: () -> Unit,
     onBack: () -> Unit,
 ) {
+    var asking by rememberSaveable { mutableStateOf(false) }
+    val ready = state as? LendItemDetailUiState.Ready
     Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(stringResource(R.string.lend_title)) }, navigationIcon = { BackButton(onClick = onBack) })
+        topBar = { FamiliaTopBar(stringResource(R.string.lend_title), onBack = onBack) },
+        bottomBar = {
+            when {
+                ready == null -> Unit
+                ready.canAsk -> StickyActionBar(stringResource(R.string.lend_ask), onClick = { asking = true })
+                ready.canAnswer -> StickyActionBar(stringResource(R.string.lend_accept), onAccept)
+                ready.canReturn -> StickyActionBar(stringResource(R.string.lend_returned), onRelease)
+            }
         },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
@@ -95,48 +111,46 @@ fun LendItemDetailScreen(
                     title = stringResource(R.string.lend_missing_title),
                     body = stringResource(R.string.lend_missing_body),
                 )
-                is LendItemDetailUiState.Ready -> Content(state, today, onAsk, onAccept, onRelease, onEdit, onRemove)
+                is LendItemDetailUiState.Ready -> Content(state, today, onRelease, onEdit, onRemove)
             }
         }
     }
+    if (asking) AskDialog(today, onDismiss = { asking = false }, onAsk = { from, until -> asking = false; onAsk(from, until) })
 }
 
 @Composable
 private fun Content(
     state: LendItemDetailUiState.Ready,
     today: LocalDate,
-    onAsk: (LocalDate?, LocalDate?) -> Unit,
-    onAccept: () -> Unit,
     onRelease: () -> Unit,
     onEdit: () -> Unit,
     onRemove: () -> Unit,
 ) {
     val item = state.item
     val muted = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
-    var asking by rememberSaveable { mutableStateOf(false) }
+    val accent = entraideAccent()
     var confirmRemove by rememberSaveable { mutableStateOf(false) }
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        FormTile(Icons.Outlined.Inventory2, item.name, accent = accent) {
             Text(lendCategoryLabel(item.category), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-            Text(item.name, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
             Text(
                 if (state.isMine) stringResource(R.string.lend_owner_me) else stringResource(R.string.lend_owner, item.ownerName),
                 style = MaterialTheme.typography.bodyLarge,
                 color = muted,
             )
+            item.photo?.let { base ->
+                StorageImage(
+                    path = SinglePhoto.photoPath(base),
+                    contentDescription = stringResource(R.string.lend_photo_label),
+                    modifier = Modifier.fillMaxWidth().aspectRatio(4f / 3f).clip(RoundedCornerShape(16.dp)),
+                )
+            }
+            if (item.note.isNotBlank()) Text(item.note, style = MaterialTheme.typography.bodyLarge)
         }
-        item.photo?.let { base ->
-            StorageImage(
-                path = SinglePhoto.photoPath(base),
-                contentDescription = stringResource(R.string.lend_photo_label),
-                modifier = Modifier.fillMaxWidth().aspectRatio(4f / 3f).clip(RoundedCornerShape(16.dp)),
-            )
-        }
-        if (item.note.isNotBlank()) Text(item.note, style = MaterialTheme.typography.bodyLarge)
-        LoanCard(state, today, onAskClick = { asking = true }, onAccept = onAccept, onRelease = onRelease)
+        LoanTile(state, today, accent, onRelease)
         state.lostTo?.let { lost ->
             Text(
                 stringResource(if (lost == LendLost.AskedFirst) R.string.lend_asked_first else R.string.lend_changed_first),
@@ -148,15 +162,10 @@ private fun Content(
             Text(stringResource(R.string.lend_action_failed), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
         }
         if (state.canManage) {
-            OutlinedButton(onClick = onEdit, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.lend_edit))
-            }
-            TextButton(onClick = { confirmRemove = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.lend_remove), color = MaterialTheme.colorScheme.error)
-            }
+            FormOutlineButton(stringResource(R.string.lend_edit), onEdit, icon = Icons.Outlined.Edit)
+            FormDeleteButton(stringResource(R.string.lend_remove), onClick = { confirmRemove = true })
         }
     }
-    if (asking) AskDialog(today, onDismiss = { asking = false }, onAsk = { from, until -> asking = false; onAsk(from, until) })
     if (confirmRemove) {
         AlertDialog(
             onDismissRequest = { confirmRemove = false },
@@ -190,39 +199,24 @@ private fun datesLabel(item: LendItem, today: LocalDate): String? {
     }
 }
 
-/** Where the thing is, and the one action each can take: ask, answer, drop the ask, « Rendu ». */
+/** Where the thing is, and the second actions: « Pas cette fois », « Retirer ma demande ». */
 @Composable
-private fun LoanCard(state: LendItemDetailUiState.Ready, today: LocalDate, onAskClick: () -> Unit, onAccept: () -> Unit, onRelease: () -> Unit) {
+private fun LoanTile(state: LendItemDetailUiState.Ready, today: LocalDate, accent: Color, onRelease: () -> Unit) {
     val item = state.item
     val dates = datesLabel(item, today)
-    ClayCard(modifier = Modifier.fillMaxWidth(), emphasis = state.canAsk || state.canAnswer) {
+    FormTile(Icons.Outlined.Place, stringResource(R.string.lend_tile_where), accent = accent) {
         val line = when {
             state.canAnswer -> stringResource(R.string.lend_asked_of_me, item.borrowerName.orEmpty())
             state.canDropAsk -> stringResource(R.string.lend_asked_by_me, item.ownerName)
             else -> lendWhereLabel(item, state.iAmBorrower)
         }
-        Text(line, style = MaterialTheme.typography.bodyLarge)
+        Text(line, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
         if (item.status != LendStatus.Available && dates != null) {
             Text(dates, style = MaterialTheme.typography.bodyMedium, color = FamiliaClay.colors.onTintVariant(ClayTint.Plain))
         }
         when {
-            state.canAsk -> Button(onClick = onAskClick, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                Text(stringResource(R.string.lend_ask))
-            }
-            state.canAnswer -> {
-                Button(onClick = onAccept, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                    Text(stringResource(R.string.lend_accept))
-                }
-                OutlinedButton(onClick = onRelease, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                    Text(stringResource(R.string.lend_decline))
-                }
-            }
-            state.canDropAsk -> OutlinedButton(onClick = onRelease, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                Text(stringResource(R.string.lend_drop_ask))
-            }
-            state.canReturn -> Button(onClick = onRelease, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                Text(stringResource(R.string.lend_returned))
-            }
+            state.canAnswer -> FormOutlineButton(stringResource(R.string.lend_decline), onRelease)
+            state.canDropAsk -> FormOutlineButton(stringResource(R.string.lend_drop_ask), onRelease)
         }
     }
 }
@@ -257,7 +251,7 @@ private fun AskDialog(today: LocalDate, onDismiss: () -> Unit, onAsk: (LocalDate
 @Composable
 private fun DayButton(day: LocalDate?, today: LocalDate, first: LocalDate, pickLabel: Int, dayLabel: Int, onPick: (LocalDate) -> Unit) {
     var open by rememberSaveable { mutableStateOf(false) }
-    OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+    OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
         Text(day?.let { stringResource(dayLabel, formatDay(it, today).lowercase(Locale.FRANCE)) } ?: stringResource(pickLabel))
     }
     if (open) {

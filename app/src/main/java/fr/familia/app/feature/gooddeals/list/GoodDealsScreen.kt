@@ -3,8 +3,6 @@ package fr.familia.app.feature.gooddeals.list
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,14 +15,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.LocalOffer
+import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -43,6 +40,9 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import fr.familia.app.core.ui.form.FormChip
+import fr.familia.app.core.ui.form.FormOutlineButton
+import fr.familia.app.core.ui.form.ChipGroup
 import fr.familia.app.core.model.GoodDeal
 import fr.familia.app.core.model.GoodDealCategory
 import fr.familia.app.core.model.GoodDealKind
@@ -141,12 +141,8 @@ fun GoodDealsScreen(
             title = { Text(stringResource(R.string.gooddeal_publish_what)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { choosing = false; onPublish(GoodDealKind.Deal) }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                        Text(stringResource(R.string.gooddeal_kind_deal))
-                    }
-                    OutlinedButton(onClick = { choosing = false; onPublish(GoodDealKind.Address) }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                        Text(stringResource(R.string.gooddeal_kind_address))
-                    }
+                    FormOutlineButton(stringResource(R.string.gooddeal_kind_deal), onClick = { choosing = false; onPublish(GoodDealKind.Deal) }, icon = Icons.Outlined.LocalOffer)
+                    FormOutlineButton(stringResource(R.string.gooddeal_kind_address), onClick = { choosing = false; onPublish(GoodDealKind.Address) }, icon = Icons.Outlined.Storefront)
                 }
             },
             confirmButton = {},
@@ -165,7 +161,6 @@ private fun SectionTitle(text: String) {
 }
 
 /** Search by name or town, and one category at a time. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AddressSearch(filter: AddressFilter, onPickCategory: (GoodDealCategory?) -> Unit, onSearch: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -177,14 +172,10 @@ private fun AddressSearch(filter: AddressFilter, onPickCategory: (GoodDealCatego
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        // The pills of the forms (plan de refonte du 21/11), one category at a time.
+        ChipGroup {
             GoodDealCategory.entries.forEach { category ->
-                FilterChip(
-                    selected = filter.category == category,
-                    onClick = { onPickCategory(category) },
-                    label = { Text(categoryLabel(category)) },
-                    modifier = Modifier.heightIn(min = 56.dp),
-                )
+                FormChip(categoryLabel(category), selected = filter.category == category, onClick = { onPickCategory(category) })
             }
         }
     }
