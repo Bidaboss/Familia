@@ -1,5 +1,7 @@
 package fr.familia.app.feature.gifts
 
+import androidx.compose.ui.graphics.Color
+import fr.familia.app.core.theme.themeBackground
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
@@ -18,6 +20,8 @@ import fr.familia.app.core.ui.BackButton
 @Composable
 fun AllBirthdaysScreen(onBack: () -> Unit, content: @Composable () -> Unit) {
     Scaffold(
+        containerColor = Color.Transparent,
+        modifier = Modifier.themeBackground(),
         topBar = {
             FamiliaTopBar(
                 title = { Text(stringResource(R.string.nav_birthdays), maxLines = 2, overflow = TextOverflow.Ellipsis) },
