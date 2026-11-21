@@ -9,17 +9,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Alarm
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -38,6 +34,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
+import fr.familia.app.core.ui.form.FormTileHeading
+import fr.familia.app.core.ui.form.FormChip
+import fr.familia.app.core.ui.form.ChipGroup
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Event
 import fr.familia.app.core.model.EventReminders
@@ -73,20 +72,16 @@ fun EventRemindersContent(state: EventRemindersUiState, onSave: (Set<ReminderOff
         state.fromSeries -> stringResource(R.string.reminders_every_time_summary, labels(state.effective))
         else -> labels(state.effective).replaceFirstChar { it.uppercase() }
     }
-    Row(
+    // The heading of its tile, then what is set; the whole block opens the choice (plan de refonte du 21/11).
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 56.dp)
-            .clickable(enabled = !state.isLoading, onClickLabel = stringResource(R.string.reminders_title)) { open = true }
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .clickable(enabled = !state.isLoading, onClickLabel = stringResource(R.string.reminders_title)) { open = true },
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Icon(Icons.Outlined.Alarm, contentDescription = null)
-        Spacer(Modifier.width(16.dp))
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(stringResource(R.string.reminders_title), style = MaterialTheme.typography.titleMedium)
-            Text(summary, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+        FormTileHeading(Icons.Outlined.Alarm, stringResource(R.string.reminders_title))
+        Text(summary, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
     if (state.failed) {
         Text(stringResource(R.string.reminders_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
@@ -128,10 +123,10 @@ private fun RemindersDialog(state: EventRemindersUiState, onDismiss: () -> Unit,
                     }
                 }
                 if (state.inSeries) {
-                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                    Column(Modifier.selectableGroup()) {
-                        ScopeRow(stringResource(R.string.reminders_this_time), selected = !everyTime) { everyTime = false }
-                        ScopeRow(stringResource(R.string.reminders_every_time), selected = everyTime) { everyTime = true }
+                    // Pills instead of radio buttons (plan de refonte du 21/11).
+                    ChipGroup(Modifier.padding(top = 12.dp)) {
+                        FormChip(stringResource(R.string.reminders_this_time), selected = !everyTime, onClick = { everyTime = false })
+                        FormChip(stringResource(R.string.reminders_every_time), selected = everyTime, onClick = { everyTime = true })
                     }
                 }
             }
@@ -147,21 +142,6 @@ private fun RemindersDialog(state: EventRemindersUiState, onDismiss: () -> Unit,
             }
         },
     )
-}
-
-@Composable
-private fun ScopeRow(text: String, selected: Boolean, onSelect: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onSelect),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = selected, onClick = null)
-        Spacer(Modifier.width(12.dp))
-        Text(text, style = MaterialTheme.typography.bodyLarge)
-    }
 }
 
 /** « 1 h avant, le matin à 8 h », in the order of the choices. */
