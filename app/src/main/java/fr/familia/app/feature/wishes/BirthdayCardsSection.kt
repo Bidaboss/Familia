@@ -4,7 +4,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Cake
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.feature.gifts.giftAccent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -62,8 +68,8 @@ fun BirthdayCardsSection(container: AppContainer?, currentMember: Member, person
 @Composable
 fun BirthdayCardsContent(state: BirthdayCardsState, firstName: String, onSend: (String) -> Unit, onRemove: () -> Unit) {
     if (state.isEmpty) return
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(stringResource(R.string.wishes_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+    // One tile, like the sections of the redone screens (refonte globale, lot 2).
+    FormTile(Icons.Outlined.Cake, stringResource(R.string.wishes_title), accent = giftAccent()) {
         if (state.canWrite) Composer(state, firstName, onSend, onRemove)
         state.cards.forEach { WishCard(it) }
     }
@@ -87,11 +93,12 @@ private fun Composer(state: BirthdayCardsState, firstName: String, onSend: (Stri
     var text by rememberSaveable { mutableStateOf("") }
     // My card already sent: its text, to change it.
     LaunchedEffect(state.mine?.text) { state.mine?.let { text = it.text } }
-    ClayCard(Modifier.fillMaxWidth(), tint = ClayTint.Birthday) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(stringResource(R.string.wishes_write, firstName), style = MaterialTheme.typography.titleMedium)
         OutlinedTextField(
             value = text,
             onValueChange = { if (it.length <= BirthdayCard.TEXT_MAX) text = it },
+            shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth(),
             label = { Text(stringResource(R.string.wishes_field)) },
             minLines = 2,
@@ -106,9 +113,15 @@ private fun Composer(state: BirthdayCardsState, firstName: String, onSend: (Stri
                     Text(stringResource(R.string.wishes_remove))
                 }
             }
-            FilledTonalButton(
+            // Dark like the main action of the redone screens.
+            Button(
                 onClick = { onSend(text) },
                 enabled = text.isNotBlank() && !state.saving && text.trim() != state.mine?.text,
+                shape = RoundedCornerShape(18.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.inverseSurface,
+                    contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                ),
                 modifier = Modifier.heightIn(min = 56.dp),
             ) {
                 Text(stringResource(if (state.mine == null) R.string.wishes_send else R.string.wishes_change))

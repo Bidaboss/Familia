@@ -1,5 +1,21 @@
 package fr.familia.app.feature.gifts.notebook
 
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Celebration
+import androidx.compose.material.icons.outlined.Checklist
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import fr.familia.app.core.theme.themeBackground
+import fr.familia.app.core.ui.form.ChipGroup
+import fr.familia.app.core.ui.form.FormChip
+import fr.familia.app.core.ui.form.FormDeleteButton
+import fr.familia.app.core.ui.form.FormHint
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.StickyActionBar
+import fr.familia.app.core.ui.form.scrollToFirstError
+import fr.familia.app.feature.gifts.giftAccent
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
@@ -88,6 +104,11 @@ fun NotebookIdeaScreen(
         )
     }
     Scaffold(
+        containerColor = Color.Transparent,
+        modifier = Modifier.themeBackground(),
+        bottomBar = {
+            editing?.let { StickyActionBar(text = stringResource(R.string.member_save), onClick = onSave, busy = it.isSaving) }
+        },
         topBar = {
             FamiliaTopBar(
                 title = {
@@ -106,41 +127,48 @@ fun NotebookIdeaScreen(
                     title = stringResource(R.string.notebook_idea_unavailable_title),
                     body = stringResource(R.string.notebook_idea_unavailable_body),
                 )
-                is NotebookIdeaUiState.Editing -> FormContent(state, onChange, onSave, onDelete)
+                is NotebookIdeaUiState.Editing -> FormContent(state, onChange, onDelete)
             }
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+/** The tiles of the form, in their order on the screen. */
+private enum class IdeaPart { Person, Occasion, Idea }
+
+/** The form in tiles (refonte globale, lot 2): same fields, same order, same rules. */
 @Composable
 private fun FormContent(
     state: NotebookIdeaUiState.Editing,
     onChange: ((NotebookIdeaForm) -> NotebookIdeaForm) -> Unit,
-    onSave: () -> Unit,
     onDelete: () -> Unit,
 ) {
     val form = state.form
+    val accent = giftAccent()
+    val scroll = rememberScrollState()
+    val firstError = when {
+        state.errors.any { it == NotebookIdeaError.PersonMissing || it == NotebookIdeaError.NameTooLong } -> IdeaPart.Person
+        NotebookIdeaError.BadYear in state.errors -> IdeaPart.Occasion
+        state.itemErrors.isNotEmpty() -> IdeaPart.Idea
+        else -> null
+    }
+    val part = scrollToFirstError(scroll, state.errors to state.itemErrors, firstError)
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding().padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
+        modifier = Modifier.fillMaxSize().verticalScroll(scroll).imePadding().padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Text(
-            stringResource(R.string.notebook_idea_private),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Section(R.string.notebook_idea_for) {
+        FormHint(stringResource(R.string.notebook_idea_private))
+        FormTile(Icons.Outlined.Person, stringResource(R.string.notebook_idea_for), part(IdeaPart.Person), accent = accent) {
             // From a member's page (retour d'essai du 18/11): that member, and no other choice.
             val fixed = state.fixedPerson
             if (fixed != null) {
                 Text(fixed.firstName, style = MaterialTheme.typography.bodyLarge)
             } else {
-                ChipRow {
+                ChipGroup {
                     state.people.forEach { person ->
-                        Chip(person.firstName, selected = form.personId == person.id) {
+                        FormChip(person.firstName, selected = form.personId == person.id, onClick = {
                             onChange { it.copy(personId = if (it.personId == person.id) null else person.id, otherName = "") }
-                        }
+                        })
                     }
                 }
                 OutlinedTextField(
@@ -154,17 +182,18 @@ private fun FormContent(
                         else -> null
                     },
                     singleLine = true,
+                    shape = FieldShape,
                     keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
-        Section(R.string.notebook_idea_occasion) {
-            ChipRow {
+        FormTile(Icons.Outlined.Celebration, stringResource(R.string.notebook_idea_occasion), part(IdeaPart.Occasion), accent = accent) {
+            ChipGroup {
                 GiftOccasion.entries.forEach { occasion ->
-                    Chip(occasionLabel(occasion), selected = form.occasion == occasion) {
+                    FormChip(occasionLabel(occasion), selected = form.occasion == occasion, onClick = {
                         onChange { it.copy(occasion = if (it.occasion == occasion) null else occasion) }
-                    }
+                    })
                 }
             }
             OutlinedTextField(
@@ -174,100 +203,82 @@ private fun FormContent(
                 isError = NotebookIdeaError.BadYear in state.errors,
                 supportingText = if (NotebookIdeaError.BadYear in state.errors) errorLine(R.string.error_notebook_bad_year) else null,
                 singleLine = true,
+                shape = FieldShape,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-        OutlinedTextField(
-            value = form.title,
-            onValueChange = { value -> onChange { it.copy(title = value) } },
-            label = { Text(stringResource(R.string.gift_item_field_title)) },
-            isError = GiftItemFormError.TitleMissing in state.itemErrors || GiftItemFormError.TitleTooLong in state.itemErrors,
-            supportingText = itemError(state.itemErrors, GiftItemFormError.TitleMissing, GiftItemFormError.TitleTooLong),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        OutlinedTextField(
-            value = form.url,
-            onValueChange = { value -> onChange { it.copy(url = value) } },
-            label = { Text(stringResource(R.string.gift_item_field_link)) },
-            isError = GiftItemFormError.BadLink in state.itemErrors,
-            supportingText = itemError(state.itemErrors, GiftItemFormError.BadLink),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        OutlinedTextField(
-            value = form.price,
-            onValueChange = { value -> onChange { it.copy(price = value) } },
-            label = { Text(stringResource(R.string.gift_item_field_price)) },
-            suffix = { Text("€") },
-            isError = GiftItemFormError.BadPrice in state.itemErrors,
-            supportingText = itemError(state.itemErrors, GiftItemFormError.BadPrice),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        OutlinedTextField(
-            value = form.note,
-            onValueChange = { value -> onChange { it.copy(note = value) } },
-            label = { Text(stringResource(R.string.gift_item_field_note)) },
-            isError = GiftItemFormError.NoteTooLong in state.itemErrors,
-            supportingText = itemError(state.itemErrors, GiftItemFormError.NoteTooLong),
-            minLines = 2,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Section(R.string.notebook_idea_status) {
-            ChipRow {
+        FormTile(Icons.Outlined.CardGiftcard, stringResource(R.string.notebook_idea_tile), part(IdeaPart.Idea), accent = accent) {
+            OutlinedTextField(
+                value = form.title,
+                onValueChange = { value -> onChange { it.copy(title = value) } },
+                label = { Text(stringResource(R.string.gift_item_field_title)) },
+                isError = GiftItemFormError.TitleMissing in state.itemErrors || GiftItemFormError.TitleTooLong in state.itemErrors,
+                supportingText = itemError(state.itemErrors, GiftItemFormError.TitleMissing, GiftItemFormError.TitleTooLong),
+                singleLine = true,
+                shape = FieldShape,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
+                value = form.url,
+                onValueChange = { value -> onChange { it.copy(url = value) } },
+                label = { Text(stringResource(R.string.gift_item_field_link)) },
+                isError = GiftItemFormError.BadLink in state.itemErrors,
+                supportingText = itemError(state.itemErrors, GiftItemFormError.BadLink),
+                singleLine = true,
+                shape = FieldShape,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
+                value = form.price,
+                onValueChange = { value -> onChange { it.copy(price = value) } },
+                label = { Text(stringResource(R.string.gift_item_field_price)) },
+                suffix = { Text("€") },
+                isError = GiftItemFormError.BadPrice in state.itemErrors,
+                supportingText = itemError(state.itemErrors, GiftItemFormError.BadPrice),
+                singleLine = true,
+                shape = FieldShape,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
+                value = form.note,
+                onValueChange = { value -> onChange { it.copy(note = value) } },
+                label = { Text(stringResource(R.string.gift_item_field_note)) },
+                isError = GiftItemFormError.NoteTooLong in state.itemErrors,
+                supportingText = itemError(state.itemErrors, GiftItemFormError.NoteTooLong),
+                minLines = 2,
+                shape = FieldShape,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        FormTile(Icons.Outlined.Checklist, stringResource(R.string.notebook_idea_status), accent = accent) {
+            ChipGroup {
                 GiftStatus.entries.forEach { status ->
-                    Chip(statusLabel(status), selected = form.status == status) { onChange { it.copy(status = status) } }
+                    FormChip(statusLabel(status), selected = form.status == status, onClick = { onChange { it.copy(status = status) } })
                 }
             }
         }
         if (state.saveFailed) {
-            Text(stringResource(R.string.gift_save_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
-        }
-        Button(onClick = onSave, enabled = !state.isSaving, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            if (state.isSaving) {
-                CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-            } else {
-                Text(stringResource(R.string.member_save))
-            }
+            FormHint(
+                stringResource(R.string.gift_save_failed),
+                isError = true,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            )
         }
         if (!state.isNew) DeleteButton(form.title, !state.isSaving, onDelete)
     }
 }
 
-@Composable
-private fun Section(title: Int, content: @Composable () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(stringResource(title), style = MaterialTheme.typography.titleSmall, modifier = Modifier.semantics { heading() })
-        content()
-    }
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun ChipRow(content: @Composable () -> Unit) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { content() }
-}
-
-@Composable
-private fun Chip(label: String, selected: Boolean, onClick: () -> Unit) {
-    FilterChip(selected = selected, onClick = onClick, label = { Text(label) }, modifier = Modifier.heightIn(min = 56.dp))
-}
+private val FieldShape = RoundedCornerShape(16.dp)
 
 @Composable
 private fun DeleteButton(title: String, enabled: Boolean, onDelete: () -> Unit) {
     var confirm by rememberSaveable { mutableStateOf(false) }
-    OutlinedButton(
-        onClick = { confirm = true },
-        enabled = enabled,
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-    ) { Text(stringResource(R.string.notebook_idea_delete)) }
+    FormDeleteButton(stringResource(R.string.notebook_idea_delete), onClick = { confirm = true }, enabled = enabled)
     if (confirm) {
         AlertDialog(
             onDismissRequest = { confirm = false },

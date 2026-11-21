@@ -54,6 +54,24 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import fr.familia.app.feature.gifts.giftAccent
+import fr.familia.app.core.ui.form.scrollToFirstError
+import fr.familia.app.core.ui.form.StickyActionBar
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.FormHint
+import fr.familia.app.core.ui.form.FormDeleteButton
+import fr.familia.app.core.ui.form.FormChip
+import fr.familia.app.core.ui.form.ChipGroup
+import fr.familia.app.core.theme.themeBackground
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Celebration
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.foundation.shape.RoundedCornerShape
 import fr.familia.app.R
 import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.model.GiftOccasion
@@ -102,6 +120,8 @@ fun GiftListEditScreen(
         )
     }
     Scaffold(
+        containerColor = Color.Transparent,
+        modifier = Modifier.themeBackground(),
         topBar = {
             FamiliaTopBar(
                 title = {
@@ -117,6 +137,12 @@ fun GiftListEditScreen(
                 actions = { HelpButton(ScreenHelp.GiftListEdit) },
             )
         },
+        // The one dark action, fixed at the bottom (refonte globale, recette 7).
+        bottomBar = {
+            (state as? GiftListEditUiState.Editing)?.let { editing ->
+                StickyActionBar(text = stringResource(R.string.member_save), onClick = onSave, busy = editing.isSaving)
+            }
+        },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
@@ -126,93 +152,95 @@ fun GiftListEditScreen(
                     title = stringResource(R.string.gift_list_missing_title),
                     body = stringResource(R.string.gift_list_unavailable_body),
                 )
-                is GiftListEditUiState.Editing -> FormContent(state, onChange, onSave, onDelete)
+                is GiftListEditUiState.Editing -> FormContent(state, onChange, onDelete)
             }
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+/** The tiles of the form, in their order on the screen. */
+private enum class ListPart { Title, Date }
+
+private fun GiftListFormError.part(): ListPart = when (this) {
+    GiftListFormError.TitleMissing, GiftListFormError.TitleTooLong -> ListPart.Title
+    GiftListFormError.DateMissing -> ListPart.Date
+}
+
+/** The form in tiles (refonte globale, lot 2): same fields, same order, same rules. */
 @Composable
 private fun FormContent(
     state: GiftListEditUiState.Editing,
     onChange: ((GiftListForm) -> GiftListForm) -> Unit,
-    onSave: () -> Unit,
     onDelete: () -> Unit,
 ) {
     val form = state.form
+    val accent = giftAccent()
+    val scroll = rememberScrollState()
+    val part = scrollToFirstError(scroll, state.errors, state.errors.map { it.part() }.minOrNull())
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding().padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
+        modifier = Modifier.fillMaxSize().verticalScroll(scroll).imePadding().padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        OutlinedTextField(
-            value = form.title,
-            onValueChange = { value -> onChange { it.copy(title = value) } },
-            label = { Text(stringResource(R.string.gift_list_field_title)) },
-            placeholder = { Text(stringResource(R.string.gift_list_field_title_hint)) },
-            isError = GiftListFormError.TitleMissing in state.errors || GiftListFormError.TitleTooLong in state.errors,
-            supportingText = titleError(state.errors),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
-        )
-
-        SectionTitle(R.string.gift_list_field_occasion)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            GiftOccasion.entries.forEach { occasion ->
-                FilterChip(
-                    selected = form.occasion == occasion,
-                    onClick = { onChange { it.copy(occasion = occasion) } },
-                    label = { Text(occasionLabel(occasion), style = MaterialTheme.typography.labelLarge) },
-                    modifier = Modifier.heightIn(min = 56.dp),
-                )
-            }
-        }
-
-        DateField(form.date, GiftListFormError.DateMissing in state.errors) { date -> onChange { it.copy(date = date) } }
-
-        SectionTitle(R.string.gift_list_field_for_whom)
-        if (state.isNew) {
-            Column(Modifier.selectableGroup()) {
-                state.beneficiaries.forEach { choice ->
-                    val selected = form.beneficiaryId == choice.member.id
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 56.dp)
-                            .selectable(selected = selected, role = Role.RadioButton) {
-                                onChange { it.copy(beneficiaryId = choice.member.id) }
-                            },
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(selected = selected, onClick = null)
-                        Spacer(Modifier.width(16.dp))
-                        Text(beneficiaryLabel(choice), style = MaterialTheme.typography.bodyLarge)
-                    }
-                }
-            }
-        } else {
-            state.beneficiary?.let { Text(beneficiaryLabel(it), style = MaterialTheme.typography.bodyLarge) }
-        }
-        if (state.beneficiary?.surprise == true) {
-            Text(
-                stringResource(R.string.gift_list_surprise_hint, state.beneficiary?.member?.firstName.orEmpty()),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+        FormTile(Icons.Outlined.Edit, stringResource(R.string.gift_list_field_title), part(ListPart.Title), accent = accent) {
+            OutlinedTextField(
+                value = form.title,
+                onValueChange = { value -> onChange { it.copy(title = value) } },
+                label = { Text(stringResource(R.string.gift_list_field_title)) },
+                placeholder = { Text(stringResource(R.string.gift_list_field_title_hint)) },
+                isError = GiftListFormError.TitleMissing in state.errors || GiftListFormError.TitleTooLong in state.errors,
+                supportingText = titleError(state.errors),
+                singleLine = true,
+                shape = RoundedCornerShape(16.dp),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                modifier = Modifier.fillMaxWidth(),
             )
         }
 
-        Viewers(state, onChange)
+        FormTile(Icons.Outlined.Celebration, stringResource(R.string.gift_list_field_occasion), accent = accent) {
+            ChipGroup {
+                GiftOccasion.entries.forEach { occasion ->
+                    FormChip(
+                        label = occasionLabel(occasion),
+                        selected = form.occasion == occasion,
+                        onClick = { onChange { it.copy(occasion = occasion) } },
+                    )
+                }
+            }
+        }
+
+        FormTile(Icons.Outlined.CalendarMonth, stringResource(R.string.gift_list_field_date), part(ListPart.Date), accent = accent) {
+            DateField(form.date, GiftListFormError.DateMissing in state.errors) { date -> onChange { it.copy(date = date) } }
+        }
+
+        FormTile(Icons.Outlined.Person, stringResource(R.string.gift_list_field_for_whom), accent = accent) {
+            if (state.isNew) {
+                ChipGroup {
+                    state.beneficiaries.forEach { choice ->
+                        FormChip(
+                            label = beneficiaryLabel(choice),
+                            selected = form.beneficiaryId == choice.member.id,
+                            onClick = { onChange { it.copy(beneficiaryId = choice.member.id) } },
+                        )
+                    }
+                }
+            } else {
+                state.beneficiary?.let { Text(beneficiaryLabel(it), style = MaterialTheme.typography.bodyLarge) }
+            }
+            if (state.beneficiary?.surprise == true) {
+                FormHint(stringResource(R.string.gift_list_surprise_hint, state.beneficiary?.member?.firstName.orEmpty()))
+            }
+        }
+
+        FormTile(Icons.Outlined.Visibility, stringResource(R.string.gift_list_field_viewers), accent = accent) {
+            Viewers(state, onChange)
+        }
 
         if (state.saveFailed) {
-            Text(stringResource(R.string.gift_save_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
-        }
-        Button(onClick = onSave, enabled = !state.isSaving, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            if (state.isSaving) {
-                CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-            } else {
-                Text(stringResource(R.string.member_save))
-            }
+            FormHint(
+                stringResource(R.string.gift_save_failed),
+                isError = true,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            )
         }
         if (!state.isNew) DeleteButton(form.title, !state.isSaving, onDelete)
     }
@@ -227,7 +255,6 @@ private fun Viewers(state: GiftListEditUiState.Editing, onChange: ((GiftListForm
     // The beneficiary of a surprise list is never offered.
     val candidates = state.members.filter { !surprise || it.id != beneficiaryId }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        SectionTitle(R.string.gift_list_field_viewers)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(
                 onClick = { onChange { form -> form.copy(viewerIds = candidates.map { it.id }.toSet()) } },
@@ -263,11 +290,6 @@ private fun beneficiaryLabel(choice: BeneficiaryChoice): String = when {
     else -> choice.member.firstName
 }
 
-@Composable
-private fun SectionTitle(res: Int) {
-    Text(stringResource(res), style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
-}
-
 private fun titleError(errors: Set<GiftListFormError>): (@Composable () -> Unit)? {
     val res = when {
         GiftListFormError.TitleMissing in errors -> R.string.error_gift_title_missing
@@ -287,11 +309,14 @@ private fun ErrorText(res: Int) {
 private fun DateField(date: LocalDate?, missing: Boolean, onPick: (LocalDate) -> Unit) {
     var picker by rememberSaveable { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SectionTitle(R.string.gift_list_field_date)
-        OutlinedButton(onClick = { picker = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+        OutlinedButton(
+            onClick = { picker = true },
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+        ) {
             Text(date?.format(dateFormatter) ?: stringResource(R.string.event_pick_date))
         }
-        if (missing) ErrorText(R.string.error_event_date_missing)
+        if (missing) FormHint(stringResource(R.string.error_event_date_missing), isError = true)
     }
     if (picker) {
         val pickerState = rememberDatePickerState(
@@ -313,12 +338,7 @@ private fun DateField(date: LocalDate?, missing: Boolean, onPick: (LocalDate) ->
 @Composable
 private fun DeleteButton(title: String, enabled: Boolean, onDelete: () -> Unit) {
     var confirm by rememberSaveable { mutableStateOf(false) }
-    OutlinedButton(
-        onClick = { confirm = true },
-        enabled = enabled,
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-    ) { Text(stringResource(R.string.gift_list_delete)) }
+    FormDeleteButton(stringResource(R.string.gift_list_delete), onClick = { confirm = true }, enabled = enabled)
     if (confirm) {
         AlertDialog(
             onDismissRequest = { confirm = false },
