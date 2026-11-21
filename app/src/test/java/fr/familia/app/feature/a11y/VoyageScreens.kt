@@ -104,8 +104,9 @@ internal object VoyageScreens {
             StepEditScreen(previewStepEditState(errors = setOf(StepFormError.PlaceMissing, StepFormError.ArriveBeforeDepart)), {}, {}, {}, {})
         },
         screen("a trip") { TripDetailScreen(previewTripDetail(), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos(), onOpenExpenses = {}) },
+        // For who does not take part: no « Bien arrivé » button and no « Ajouter une étape » button over it, only the link.
         screen("a trip with the link to its map") {
-            TripDetailScreen(previewTripDetail(withPositions = true), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos(), onOpenMap = {})
+            TripDetailScreen(previewTripDetail(isParticipant = false, withPositions = true), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos(), onOpenMap = {})
         },
         screen("the map of a trip") { TripMapScreen(previewTripDetail(withPositions = true), {}, {}) },
         screen("the map of a trip, for who does not take part") { TripMapScreen(previewTripDetail(isParticipant = false, withPositions = true), {}, {}) },
