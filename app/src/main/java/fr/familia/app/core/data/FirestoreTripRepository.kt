@@ -118,6 +118,8 @@ class FirestoreTripRepository(private val db: FirebaseFirestore) : TripRepositor
             "arriveDate" to step.arriveDate?.toString(),
             "arriveTime" to step.arriveTime?.hhmm(),
             "note" to step.note,
+            "lat" to step.lat,
+            "lng" to step.lng,
             "remindAt" to remindAt?.let { Timestamp(Date.from(it)) },
             "updatedAt" to FieldValue.serverTimestamp(),
         )
@@ -247,6 +249,8 @@ class FirestoreTripRepository(private val db: FirebaseFirestore) : TripRepositor
             arriveDate = getString("arriveDate")?.toDay(),
             arriveTime = getString("arriveTime")?.toTime(),
             note = getString("note"),
+            lat = getDouble("lat"),
+            lng = getDouble("lng"),
             // A « bien arrivé » tapped offline has no server time yet: the estimate shows it at once.
             arrival = arrivedBy?.let {
                 TripArrival(
