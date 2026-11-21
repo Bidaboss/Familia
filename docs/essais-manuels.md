@@ -255,6 +255,17 @@ Après « Publier Firebase », allume « Défis expliqués » dans Administratio
 5. Dans le guide « Préparer le défi », écris un mot à l'étape 3, puis publie. **Attendu :** le mot apparaît dans « Comment ça marche » pour toute la famille. Sans mot, le texte automatique.
 6. Avec TalkBack, passe sur chaque carte. **Attendu :** TalkBack dit « bouton » et ce que fait la carte.
 
+## Refonte, lot 1 : Entraide et actualités en tuiles (21/11)
+
+Sans interrupteur. À faire aussi en texte à 130 % et 200 %, en thème sombre et avec TalkBack.
+
+1. Ouvre un coup de main d'un autre. **Attendu :** une tuile avec le titre, le jour, le lieu et qui demande, puis la tuile « Où on en est ». « Je m'en occupe » est le bouton noir en bas de l'écran. Plus de trait de séparation.
+2. Ouvre un de tes coups de main. **Attendu :** « Dupliquer » en bouton à contour, puis « Annuler la demande » tout en bas, avec un contour rouge pâle. Il demande toujours confirmation.
+3. Ouvre un bon plan. **Attendu :** une tuile pour le bon plan, puis « Qui est intéressé ? ». « Ça m'intéresse » est le bouton noir en bas. Une fois touché, le bouton noir disparaît et « Ça ne m'intéresse plus » apparaît dans la tuile. Une bonne adresse : « Qui la recommande ? » et « Je recommande aussi ».
+4. Ouvre un objet de « On se prête ». **Attendu :** la tuile de l'objet, puis « Où il est ». « Je voudrais l'emprunter », « D'accord » ou « Rendu » sont le bouton noir en bas. « Retirer l'objet » est tout en bas, avec un contour rouge pâle.
+5. Dans les listes des bons plans et des objets, les filtres sont des pilules de 56 dp. Les actualités : la barre du haut commune, et la pilule « Les petits ».
+6. « Publier une actualité ». **Attendu :** les tuiles « Ton actualité », « Photos (1 à 3) », « De qui est cette nouvelle ? » (des ronds par personne) et « En plus ». « Publier pour toute la famille » est le bouton noir en bas. Sans photo, l'écran remonte jusqu'à la tuile des photos.
+
 ## « Rejoignez-moi » revenu sur l'Accueil (Kévin, 20/11)
 
 Sans interrupteur nouveau, derrière « Lieux ». Deux téléphones, A et B.
