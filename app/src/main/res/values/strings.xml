@@ -2798,6 +2798,8 @@
     <string name="who_is_it_pick_photo">Choisir la photo</string>
     <string name="who_is_it_change_photo">Changer de photo</string>
     <string name="who_is_it_photo_missing">Choisis d\'abord une photo.</string>
+    <string name="who_is_it_tile_photo">La photo</string>
+    <string name="who_is_it_tile_hint">Pour aider à deviner</string>
     <string name="who_is_it_hint">Un indice (facultatif)</string>
     <string name="who_is_it_hint_help">Par exemple : un mariage, au printemps.</string>
     <string name="who_is_it_answer_who">Qui est dessus ?</string>

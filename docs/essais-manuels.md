@@ -255,6 +255,14 @@ Après « Publier Firebase », allume « Défis expliqués » dans Administratio
 5. Dans le guide « Préparer le défi », écris un mot à l'étape 3, puis publie. **Attendu :** le mot apparaît dans « Comment ça marche » pour toute la famille. Sans mot, le texte automatique.
 6. Avec TalkBack, passe sur chaque carte. **Attendu :** TalkBack dit « bouton » et ce que fait la carte.
 
+## Refonte, lot 5 : petits modules en tuiles (21/11)
+1. « Rejoignez-moi » : trois tuiles (Où ?, Le lieu en quelques mots, À qui ?) et « Envoyer » en bouton noir fixé en bas. Un nom de plus de 60 caractères fait remonter l'écran à la tuile du nom.
+2. Accueil : chaque lieu reçu ou partagé est une petite carte à bord fin, sans trait entre eux.
+3. Lancer un défi : chaque étape est une tuile avec son aide, le type en puces, « Suivant » puis « Publier » en bouton noir en bas. « Garder en brouillon » reste sous la tuile.
+4. Question de la semaine : la question dans une tuile d'en-tête, « Ta réponse » dans une tuile, « Répondre » en bas ; « Passer » et « Annuler » en boutons à contour.
+5. « Qui est-ce ? » : « Publier une photo » en trois tuiles (La photo, Pour aider à deviner, La réponse), « Publier » en bas, l'écran remonte à la première erreur. Sur la page d'une photo, « Retirer la photo » a un contour rouge pâle.
+6. Texte à 200 %, thème sombre et TalkBack sur ces écrans.
+
 ## Refonte, lot 1 : sections de l'événement en tuiles (21/11)
 1. Ouvre un événement. « Covoiturage », « Qui apporte quoi » et « Rappels » ont un titre avec une icône carrée, comme les autres tuiles.
 2. Covoiturage : chaque voiture est une petite carte à bord fin, « Je propose ma voiture » est un bouton à contour. Tous les boutons font au moins 56 dp.
