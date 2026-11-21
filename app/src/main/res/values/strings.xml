@@ -2644,6 +2644,7 @@
     <string name="joinme_note_hint">On est près du poste de secours</string>
     <string name="joinme_note_too_long">200 caractères au plus.</string>
     <string name="joinme_who">À qui ?</string>
+    <string name="joinme_tile_words">Le lieu en quelques mots</string>
     <string name="joinme_who_household">Mon foyer</string>
     <string name="joinme_who_family">Toute la famille</string>
     <string name="joinme_send">Envoyer</string>
