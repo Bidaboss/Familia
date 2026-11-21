@@ -1,5 +1,7 @@
 package fr.familia.app.feature.expenses
 
+import fr.familia.app.core.theme.themeBackground
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,6 +46,9 @@ import fr.familia.app.core.ui.LoadingState
 fun ExpenseHistoryScreen(state: ExpenseHistoryUiState, onRetry: () -> Unit, onBack: () -> Unit) {
     val success = state as? ExpenseHistoryUiState.Success
     Scaffold(
+        // The background of the theme, as on the redone screens (refonte lot 4).
+        containerColor = Color.Transparent,
+        modifier = Modifier.themeBackground(),
         topBar = {
             FamiliaTopBar(
                 title = {

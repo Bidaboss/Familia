@@ -1,5 +1,7 @@
 package fr.familia.app.feature.expenses
 
+import fr.familia.app.core.theme.themeBackground
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import android.content.Context
 import android.widget.Toast
@@ -121,6 +123,9 @@ fun ExpensesScreen(
         }
     }
     Scaffold(
+        // The background of the theme, as on the redone screens (refonte lot 4).
+        containerColor = Color.Transparent,
+        modifier = Modifier.themeBackground(),
         topBar = {
             FamiliaTopBar(
                 title = { Text(success?.let { stringResource(R.string.expenses_title_of, it.title) } ?: stringResource(if (isEvent) R.string.expenses_title_event else R.string.expenses_title), maxLines = 2, overflow = TextOverflow.Ellipsis) },

@@ -1,5 +1,7 @@
 package fr.familia.app.feature.recipes
 
+import fr.familia.app.core.theme.themeBackground
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.core.ui.ClaySpacing
@@ -58,6 +60,9 @@ fun RecipesScreen(
 ) {
     val origin = (state as? RecipesUiState.Ready)?.originName
     Scaffold(
+        // The background of the theme, as on the redone screens (refonte lot 4).
+        containerColor = Color.Transparent,
+        modifier = Modifier.themeBackground(),
         topBar = {
             FamiliaTopBar(
                 title = { Text(if (origin != null) stringResource(R.string.recipes_from_title, origin) else stringResource(R.string.recipes_title), maxLines = 2, overflow = TextOverflow.Ellipsis) },

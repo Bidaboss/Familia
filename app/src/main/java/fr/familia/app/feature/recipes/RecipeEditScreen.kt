@@ -5,6 +5,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,63 +13,88 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Article
+import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AddAPhoto
+import androidx.compose.material.icons.outlined.HistoryEdu
+import androidx.compose.material.icons.outlined.PersonOff
+import androidx.compose.material.icons.outlined.PhotoLibrary
+import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import fr.familia.app.R
 import fr.familia.app.core.photo.keepPhotoAccess
 import fr.familia.app.core.theme.FamiliaTheme
+import fr.familia.app.core.theme.LocalClayColors
+import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.FamiliaTopBar
+import fr.familia.app.core.ui.LoadingState
+import fr.familia.app.core.ui.form.FormHint
+import fr.familia.app.core.ui.form.FormLabel
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.PeopleRow
+import fr.familia.app.core.ui.form.PersonChoice
+import fr.familia.app.core.ui.form.StickyActionBar
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 
 /** Recipe form. Stateless: every change goes through [onChange]. */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeEditScreen(
     state: RecipeEditUiState,
@@ -100,6 +126,8 @@ fun RecipeEditScreen(
         )
     }
     Scaffold(
+        containerColor = Color.Transparent,
+        modifier = Modifier.themeBackground(),
         topBar = {
             FamiliaTopBar(
                 title = { Text(stringResource(if (editing?.isNew == false) R.string.recipe_edit else R.string.recipes_add), maxLines = 2, overflow = TextOverflow.Ellipsis) },
@@ -107,95 +135,163 @@ fun RecipeEditScreen(
                 actions = { HelpButton(ScreenHelp.Recipes) },
             )
         },
+        // The single black button at the bottom (refonte lot 4, maquette « Une recette »).
+        bottomBar = {
+            if (editing != null) {
+                val sending = editing.sendingPhoto
+                StickyActionBar(
+                    text = when {
+                        sending != null -> stringResource(R.string.recipe_edit_sending_photo, sending, editing.photos.size)
+                        editing.isNew -> stringResource(R.string.recipe_add_confirm)
+                        else -> stringResource(R.string.member_save)
+                    },
+                    onClick = onSave,
+                    enabled = !editing.isSaving,
+                    busy = editing.isSaving && sending == null,
+                )
+            }
+        },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
-                RecipeEditUiState.Loading, is RecipeEditUiState.Done -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                RecipeEditUiState.Loading, is RecipeEditUiState.Done -> LoadingState(Modifier.align(Alignment.Center))
                 RecipeEditUiState.Unavailable -> EmptyState(
                     icon = Icons.Outlined.Restaurant,
                     title = stringResource(R.string.recipe_missing_title),
                     body = stringResource(R.string.recipe_unavailable_body),
                 )
-                is RecipeEditUiState.Editing -> Form(state, onChange, onSave, showStory, photos)
+                is RecipeEditUiState.Editing -> Form(state, onChange, showStory, photos)
             }
         }
     }
 }
 
+/** The tiles of the maquette: the photo, the recipe, its ingredients, its steps, its story. */
 @Composable
 private fun Form(
     state: RecipeEditUiState.Editing,
     onChange: ((RecipeForm) -> RecipeForm) -> Unit,
-    onSave: () -> Unit,
     showStory: Boolean,
     photos: RecipeEditPhotoActions?,
 ) {
     val form = state.form
     val errors = state.errors
+    val scroll = rememberScrollState()
+    // Where each tile starts, to bring the first one in error into view (recette commune n° 3).
+    val tops = remember { mutableStateMapOf<RecipeTile, Int>() }
+    LaunchedEffect(errors) {
+        val first = RecipeTile.entries.firstOrNull { tile -> errors.any { it.tile == tile } } ?: return@LaunchedEffect
+        tops[first]?.let { scroll.animateScrollTo(it) }
+    }
+    fun Modifier.top(tile: RecipeTile) = onGloballyPositioned { tops[tile] = it.positionInParent().y.toInt() }
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(scroll).imePadding().padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Field(form.title, { v -> onChange { it.copy(title = v) } }, R.string.recipe_field_title, errors, RecipeFormError.TitleMissing, RecipeFormError.TitleTooLong)
-        OriginPicker(state, onChange)
-        if (form.originMemberId == null) {
-            Field(form.origin, { v -> onChange { it.copy(origin = v) } }, R.string.recipe_field_origin, errors, RecipeFormError.OriginTooLong)
+        if (photos != null && state.isNew) Photos(state, photos)
+
+        FormTile(Icons.Outlined.Restaurant, stringResource(R.string.recipe_tile_main), Modifier.top(RecipeTile.Main)) {
+            Field(form.title, { v -> onChange { it.copy(title = v) } }, R.string.recipe_field_title, errors, RecipeFormError.TitleMissing, RecipeFormError.TitleTooLong)
+            FormLabel(stringResource(R.string.recipe_pick_origin), Modifier.padding(top = 4.dp))
+            OriginRounds(state, onChange)
+            if (form.originMemberId == null) {
+                Field(form.origin, { v -> onChange { it.copy(origin = v) } }, R.string.recipe_field_origin, errors, RecipeFormError.OriginTooLong)
+            }
+            Servings(form.servings, isError = RecipeFormError.ServingsInvalid in errors) { v -> onChange { it.copy(servings = v) } }
+            Field(form.tags, { v -> onChange { it.copy(tags = v) } }, R.string.recipe_field_tags, errors, help = R.string.recipe_field_tags_help)
         }
-        Field(
-            form.servings,
-            { v -> onChange { it.copy(servings = v.filter(Char::isDigit).take(2)) } },
-            R.string.recipe_field_servings,
-            errors,
-            RecipeFormError.ServingsInvalid,
-            keyboard = KeyboardOptions(keyboardType = KeyboardType.Number),
-        )
-        Field(
-            form.ingredients,
-            { v -> onChange { it.copy(ingredients = v) } },
-            R.string.recipe_field_ingredients,
-            errors,
-            RecipeFormError.IngredientsMissing,
-            RecipeFormError.IngredientsTooLong,
-            help = R.string.recipe_field_lines_help,
-            singleLine = false,
-        )
-        Field(
-            form.steps,
-            { v -> onChange { it.copy(steps = v) } },
-            R.string.recipe_field_steps,
-            errors,
-            RecipeFormError.StepsMissing,
-            RecipeFormError.StepsTooLong,
-            help = R.string.recipe_field_lines_help,
-            singleLine = false,
-        )
-        Field(form.tags, { v -> onChange { it.copy(tags = v) } }, R.string.recipe_field_tags, errors, help = R.string.recipe_field_tags_help)
-        if (showStory) {
+
+        FormTile(Icons.AutoMirrored.Outlined.FormatListBulleted, stringResource(R.string.recipe_field_ingredients), Modifier.top(RecipeTile.Ingredients)) {
             Field(
-                form.story,
-                { v -> onChange { it.copy(story = v) } },
-                R.string.recipe_field_story,
+                form.ingredients,
+                { v -> onChange { it.copy(ingredients = v) } },
+                R.string.recipe_field_ingredients,
                 errors,
-                RecipeFormError.StoryTooLong,
-                help = R.string.recipe_field_story_help,
+                RecipeFormError.IngredientsMissing,
+                RecipeFormError.IngredientsTooLong,
+                help = R.string.recipe_field_lines_help,
                 singleLine = false,
+                showLabel = false,
             )
         }
-        if (photos != null && state.isNew) Photos(state, photos)
-        if (state.saveFailed) {
-            Text(stringResource(R.string.recipe_save_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+
+        FormTile(Icons.AutoMirrored.Outlined.Article, stringResource(R.string.recipe_field_steps), Modifier.top(RecipeTile.Steps)) {
+            Field(
+                form.steps,
+                { v -> onChange { it.copy(steps = v) } },
+                R.string.recipe_field_steps,
+                errors,
+                RecipeFormError.StepsMissing,
+                RecipeFormError.StepsTooLong,
+                help = R.string.recipe_field_lines_help,
+                singleLine = false,
+                showLabel = false,
+            )
         }
-        Button(onClick = onSave, enabled = !state.isSaving, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            val sending = state.sendingPhoto
-            if (sending != null) {
-                Text(stringResource(R.string.recipe_edit_sending_photo, sending, state.photos.size))
-            } else if (state.isSaving) {
-                CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-            } else {
-                Text(stringResource(R.string.member_save))
+
+        if (showStory) {
+            FormTile(Icons.Outlined.HistoryEdu, stringResource(R.string.recipe_field_story), Modifier.top(RecipeTile.Story)) {
+                Field(
+                    form.story,
+                    { v -> onChange { it.copy(story = v) } },
+                    R.string.recipe_field_story,
+                    errors,
+                    RecipeFormError.StoryTooLong,
+                    help = R.string.recipe_field_story_help,
+                    singleLine = false,
+                    showLabel = false,
+                )
             }
         }
+        if (state.saveFailed) {
+            Surface(shape = RoundedCornerShape(16.dp), color = LocalClayColors.current.card) {
+                FormHint(stringResource(R.string.recipe_save_failed), isError = true, modifier = Modifier.padding(14.dp))
+            }
+        }
+        Spacer(Modifier.height(8.dp))
     }
+}
+
+/** The tiles that can hold an error, top to bottom. */
+private enum class RecipeTile { Main, Ingredients, Steps, Story }
+
+private val RecipeFormError.tile: RecipeTile
+    get() = when (this) {
+        RecipeFormError.TitleMissing, RecipeFormError.TitleTooLong, RecipeFormError.OriginTooLong, RecipeFormError.ServingsInvalid -> RecipeTile.Main
+        RecipeFormError.IngredientsMissing, RecipeFormError.IngredientsTooLong -> RecipeTile.Ingredients
+        RecipeFormError.StepsMissing, RecipeFormError.StepsTooLong -> RecipeTile.Steps
+        RecipeFormError.StoryTooLong -> RecipeTile.Story
+    }
+
+/**
+ * « Parts » with « − » and « + » (maquette): still optional, so « − » from 1 leaves it empty, shown
+ * « — ». At most 99, as the field allowed two digits.
+ */
+@Composable
+private fun Servings(value: String, isError: Boolean, onValue: (String) -> Unit) {
+    val n = value.toIntOrNull()
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FormLabel(stringResource(R.string.recipe_field_servings), Modifier.weight(1f))
+        OutlinedIconButton(
+            onClick = { onValue(if (n == null || n <= 1) "" else (n - 1).toString()) },
+            enabled = n != null,
+            modifier = Modifier.size(48.dp),
+        ) { Icon(Icons.Outlined.Remove, contentDescription = stringResource(R.string.recipe_servings_less)) }
+        Text(
+            n?.toString() ?: "—",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.widthIn(min = 32.dp),
+            textAlign = TextAlign.Center,
+        )
+        OutlinedIconButton(
+            onClick = { onValue(((n ?: 0) + 1).coerceAtMost(99).toString()) },
+            enabled = (n ?: 0) < 99,
+            modifier = Modifier.size(48.dp),
+        ) { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.recipe_servings_more)) }
+    }
+    if (isError) FormHint(stringResource(R.string.error_recipe_servings), isError = true)
 }
 
 /** What the photos of a new recipe do. */
@@ -215,8 +311,13 @@ private fun Photos(state: RecipeEditUiState.Editing, actions: RecipeEditPhotoAct
         keepPhotoAccess(context, uris)
         if (uris.isNotEmpty()) actions.onAdd(uris.map { it.toString() })
     }
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(stringResource(R.string.recipe_photos_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+    val pick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
+    if (state.photos.isEmpty()) {
+        // No photo yet: the dashed box of the maquette.
+        if (state.canAddPhotos) AddPhotoBox(onClick = pick)
+        return
+    }
+    FormTile(Icons.Outlined.PhotoLibrary, stringResource(R.string.recipe_photos_title)) {
         state.photos.forEachIndexed { index, uri ->
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 AsyncImage(
@@ -235,14 +336,42 @@ private fun Photos(state: RecipeEditUiState.Editing, actions: RecipeEditPhotoAct
         if (state.canAddPhotos) {
             val left = RECIPE_PHOTOS - state.photos.size
             OutlinedButton(
-                onClick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                onClick = pick,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             ) {
                 Icon(Icons.Outlined.AddAPhoto, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text(if (state.photos.isEmpty()) stringResource(R.string.recipe_edit_add_photo) else stringResource(R.string.capsule_edit_add_photos, left))
+                Text(stringResource(R.string.capsule_edit_add_photos, left))
             }
         }
+    }
+}
+
+/** « Ajouter une photo du plat » in a dashed box, at the top of a new recipe. */
+@Composable
+private fun AddPhotoBox(onClick: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    val outline = colors.outline
+    val shape = RoundedCornerShape(20.dp)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 112.dp)
+            .clip(shape)
+            .drawBehind {
+                drawRoundRect(
+                    color = outline,
+                    cornerRadius = CornerRadius(20.dp.toPx()),
+                    style = Stroke(width = 1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f))),
+                )
+            }
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+    ) {
+        Icon(Icons.Outlined.AddAPhoto, contentDescription = null, tint = colors.onSurfaceVariant)
+        Text(stringResource(R.string.recipe_edit_add_photo), style = MaterialTheme.typography.titleSmall, color = colors.onSurfaceVariant)
     }
 }
 
@@ -256,23 +385,25 @@ private fun Field(
     help: Int? = null,
     singleLine: Boolean = true,
     keyboard: KeyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+    /** False when the tile already says it. */
+    showLabel: Boolean = true,
 ) {
     val error = kinds.firstOrNull { it in errors }
-    val supportingRes = error?.let { errorRes(it) } ?: help
-    val supporting: (@Composable () -> Unit)? = if (supportingRes == null) null else {
-        { Text(stringResource(supportingRes), color = if (error != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant) }
+    val label = stringResource(labelRes)
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        if (showLabel) FormLabel(label)
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValue,
+            isError = error != null,
+            singleLine = singleLine,
+            minLines = if (singleLine) 1 else 4,
+            shape = RoundedCornerShape(16.dp),
+            keyboardOptions = keyboard,
+            modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
+        )
+        (error?.let { errorRes(it) } ?: help)?.let { FormHint(stringResource(it), isError = error != null) }
     }
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValue,
-        label = { Text(stringResource(labelRes)) },
-        isError = error != null,
-        supportingText = supporting,
-        singleLine = singleLine,
-        minLines = if (singleLine) 1 else 4,
-        keyboardOptions = keyboard,
-        modifier = Modifier.fillMaxWidth(),
-    )
 }
 
 private fun errorRes(error: RecipeFormError): Int = when (error) {
@@ -284,58 +415,41 @@ private fun errorRes(error: RecipeFormError): Int = when (error) {
     RecipeFormError.IngredientsTooLong, RecipeFormError.StepsTooLong, RecipeFormError.StoryTooLong -> R.string.error_recipe_too_long
 }
 
-/** « De qui vient la recette ? »: a member of the family, or nobody in particular (then a free origin). */
+/**
+ * « De qui vient la recette ? »: a member of the family, by household, or nobody in particular (then
+ * a free origin). Rounds, as everywhere else (refonte lot 4), instead of a dialog of radio buttons.
+ */
 @Composable
-private fun OriginPicker(state: RecipeEditUiState.Editing, onChange: ((RecipeForm) -> RecipeForm) -> Unit) {
-    var open by rememberSaveable { mutableStateOf(false) }
-    val chosen = state.members.firstOrNull { it.id == state.form.originMemberId }
-    OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-        Text(chosen?.let { stringResource(R.string.recipe_from, it.firstName) } ?: stringResource(R.string.recipe_pick_origin))
+private fun OriginRounds(state: RecipeEditUiState.Editing, onChange: ((RecipeForm) -> RecipeForm) -> Unit) {
+    val chosen = state.form.originMemberId
+    val pick: (String) -> Unit = { key -> onChange { it.copy(originMemberId = key.takeIf { k -> k != NOBODY }) } }
+    PeopleRow(
+        choices = listOf(
+            PersonChoice(NOBODY, stringResource(R.string.recipe_origin_none), selected = chosen == null, icon = Icons.Outlined.PersonOff),
+        ),
+        multiple = false,
+        onToggle = pick,
+    )
+    if (state.groups.isEmpty()) {
+        PeopleRow(
+            choices = state.members.map { PersonChoice(it.id, it.firstName, selected = it.id == chosen, memberId = it.id) },
+            multiple = false,
+            onToggle = pick,
+        )
     }
-    if (open) {
-        AlertDialog(
-            onDismissRequest = { open = false },
-            title = { Text(stringResource(R.string.recipe_pick_origin)) },
-            text = {
-                Column(Modifier.verticalScroll(rememberScrollState())) {
-                    OriginRow(stringResource(R.string.recipe_origin_none), state.form.originMemberId == null) {
-                        onChange { it.copy(originMemberId = null) }
-                        open = false
-                    }
-                    // By household (règle de Kévin, 17/11): one choice, so no box for the household.
-                    state.groups.forEach { group ->
-                        Text(
-                            group.name,
-                            style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier.padding(top = 12.dp, bottom = 4.dp).semantics { heading() },
-                        )
-                        group.members.forEach { member ->
-                            OriginRow(member.firstName, member.id == state.form.originMemberId) {
-                                onChange { it.copy(originMemberId = member.id) }
-                                open = false
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { open = false }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.album_photo_close)) }
-            },
+    // By household (règle de Kévin, 17/11): one choice, so no box for the household.
+    state.groups.forEach { group ->
+        if (group.name.isNotBlank()) FormHint(group.name, modifier = Modifier.semantics { heading() })
+        PeopleRow(
+            choices = group.members.map { PersonChoice(it.id, it.firstName, selected = it.id == chosen, memberId = it.id) },
+            multiple = false,
+            onToggle = pick,
         )
     }
 }
 
-@Composable
-private fun OriginRow(label: String, selected: Boolean, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).selectable(selected, onClick = onClick, role = Role.RadioButton),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        RadioButton(selected = selected, onClick = null)
-        Text(label, style = MaterialTheme.typography.bodyLarge)
-    }
-}
+/** The key of « Personne de la famille » among the rounds; the others are member ids. */
+private const val NOBODY = ""
 
 internal fun previewRecipeEdit(isNew: Boolean = false): RecipeEditUiState.Editing = RecipeEditUiState.Editing(
     form = RecipeForm.from(previewRecipes().first()),

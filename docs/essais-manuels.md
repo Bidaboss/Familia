@@ -1549,3 +1549,16 @@ Avant l'APK : lance « Publier Firebase » (les règles acceptent le champ lands
 3. Sur son propre anniversaire : la même carte, « C'est ton anniversaire ! », sans bouton.
 4. Avec TalkBack : la carte se lit « Anniversaire. Noé fête ses 10 ans aujourd'hui. », puis « Lui souhaiter, bouton ». Les confettis ne sont pas lus et ne bougent pas.
 5. Le lendemain : la carte redescend sous « Hier », à sa place.
+
+## Refonte, lot 4 (suite) : comptes et recettes (21/11)
+
+Les écrans suivent les maquettes « Une dépense » et « Une recette ». Rien d'autre ne change.
+
+1. Comptes d'un voyage, « Ajouter une dépense ». **Attendu :** la tuile « La dépense » (Quoi ?, Montant, Devise, la case du jour), la catégorie en tuiles avec une icône, « Qui a payé ? » en ronds, puis « Partagée entre » avec les pastilles et les foyers. Le bouton noir « Ajouter une dépense » reste en bas.
+2. Touche le bouton noir sans rien remplir. **Attendu :** l'écran remonte jusqu'à « La dépense » et les erreurs s'affichent sous les champs, en rouge.
+3. Mets la devise « USD ». **Attendu :** le champ du taux apparaît avec son aide. Choisis « Montants à la main » : un champ par foyer coché.
+4. Ouvre une dépense existante. **Attendu :** le bouton noir dit « Enregistrer », « Voir l'historique » est un lien, et « Supprimer la dépense » est tout en bas, bordé de rouge pâle.
+5. Recettes, « Nouvelle recette ». **Attendu :** la case en pointillés « Ajouter une photo du plat » en haut, puis les tuiles « La recette », « Ingrédients », « Étapes » (et « Sa petite histoire » si le livre est allumé). « De qui vient la recette ? » montre « Personne de la famille » puis les ronds par foyer ; le champ « Origine » n'apparaît qu'avec « Personne de la famille ».
+6. Les parts : « + » passe de « — » à 1, puis 2 ; « − » depuis 1 revient à « — ». Le bouton noir dit « Ajouter la recette ».
+7. Une recette : les ingrédients et les étapes sont des tuiles avec une icône, et « Retirer la recette » est bordé de rouge pâle. La liste des recettes et les comptes gardent leurs cartes, sur le fond du thème.
+8. Refais 1 et 5 avec le texte à 200 % et en thème sombre. **Attendu :** rien n'est coupé, et les tuiles des catégories passent sur deux colonnes.
