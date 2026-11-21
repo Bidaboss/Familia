@@ -32,14 +32,11 @@ import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -66,6 +63,19 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.outlined.EmojiEvents
+import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Visibility
+import fr.familia.app.core.ui.form.ChipGroup
+import fr.familia.app.core.ui.form.FormChip
+import fr.familia.app.core.ui.form.FormHint
+import fr.familia.app.core.ui.form.FormLabel
+import fr.familia.app.core.ui.form.FormOutlineButton
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.StickyActionBar
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.data.AppContainer
@@ -154,6 +164,18 @@ fun HostChallengeScreen(state: HostGuideState, onBack: () -> Unit, actions: Host
                 },
             )
         },
+        // The main action of each step stays at the bottom of the screen (plan de refonte du 21/11).
+        bottomBar = {
+            when {
+                state.step < 4 -> StickyActionBar(
+                    stringResource(R.string.host_next),
+                    actions.next,
+                    enabled = state.step != 3 || state.draft.title.isNotBlank(),
+                )
+                state.canPublish -> StickyActionBar(stringResource(R.string.host_publish), actions.publish, enabled = !state.saving, busy = state.saving)
+                else -> StickyActionBar(stringResource(R.string.host_save_for_adults), actions.saveDraft, enabled = !state.saving, busy = state.saving)
+            }
+        },
     ) { padding ->
         Column(
             Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
@@ -169,13 +191,6 @@ fun HostChallengeScreen(state: HostGuideState, onBack: () -> Unit, actions: Host
                 2 -> TargetStep(state.draft, actions)
                 3 -> LookStep(state.draft, actions, noteOn)
                 else -> PreviewStep(state, actions)
-            }
-            if (state.step < 4) {
-                Button(
-                    onClick = actions.next,
-                    enabled = state.step != 3 || state.draft.title.isNotBlank(),
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                ) { Text(stringResource(R.string.host_next)) }
             }
         }
     }
@@ -210,10 +225,14 @@ fun HostChallengeScreen(state: HostGuideState, onBack: () -> Unit, actions: Host
     }
 }
 
+/** Each step is one tile, its help under the title (plan de refonte du 21/11). */
 @Composable
-private fun StepTitle(text: String, help: String) {
-    Text(text, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
-    Text(help, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun StepTile(icon: ImageVector, title: String, help: String, content: @Composable ColumnScope.() -> Unit) {
+    FormTile(icon, title) {
+        FormHint(help)
+        Spacer(Modifier.height(12.dp))
+        content()
+    }
 }
 
 private val kindLabels = mapOf(
@@ -226,21 +245,13 @@ private val kindLabels = mapOf(
 
 @Composable
 private fun KindStep(draft: HostDraft, actions: HostGuideActions) {
-    StepTitle(stringResource(R.string.host_kind_title), stringResource(R.string.host_kind_help))
-    Column(Modifier.selectableGroup()) {
-        HostedKind.entries.forEach { kind ->
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 56.dp)
-                    .selectable(selected = draft.kind == kind, onClick = { actions.chooseKind(kind) }, role = Role.RadioButton),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                RadioButton(selected = draft.kind == kind, onClick = null)
-                Text(
-                    "${HostGuide.start(kind, draft.target).emoji}  ${stringResource(kindLabels.getValue(kind))}",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(start = 12.dp),
+    StepTile(Icons.Outlined.EmojiEvents, stringResource(R.string.host_kind_title), stringResource(R.string.host_kind_help)) {
+        ChipGroup {
+            HostedKind.entries.forEach { kind ->
+                FormChip(
+                    label = "${HostGuide.start(kind, draft.target).emoji}  ${stringResource(kindLabels.getValue(kind))}",
+                    selected = draft.kind == kind,
+                    onClick = { actions.chooseKind(kind) },
                 )
             }
         }
@@ -249,24 +260,25 @@ private fun KindStep(draft: HostDraft, actions: HostGuideActions) {
 
 @Composable
 private fun TargetStep(draft: HostDraft, actions: HostGuideActions) {
-    StepTitle(stringResource(R.string.host_target_title), stringResource(R.string.host_target_help))
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-        IconButton(
-            onClick = { actions.setTarget(draft.target - 1) },
-            enabled = draft.target > HostedChallenge.TARGET_MIN,
-            modifier = Modifier.size(56.dp),
-        ) { Icon(Icons.Outlined.Remove, contentDescription = stringResource(R.string.host_target_less)) }
-        Text(
-            draft.target.toString(),
-            style = MaterialTheme.typography.displaySmall,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.width(96.dp),
-        )
-        IconButton(
-            onClick = { actions.setTarget(draft.target + 1) },
-            enabled = draft.target < HostedChallenge.TARGET_MAX,
-            modifier = Modifier.size(56.dp),
-        ) { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.host_target_more)) }
+    StepTile(Icons.Outlined.Flag, stringResource(R.string.host_target_title), stringResource(R.string.host_target_help)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+            IconButton(
+                onClick = { actions.setTarget(draft.target - 1) },
+                enabled = draft.target > HostedChallenge.TARGET_MIN,
+                modifier = Modifier.size(56.dp),
+            ) { Icon(Icons.Outlined.Remove, contentDescription = stringResource(R.string.host_target_less)) }
+            Text(
+                draft.target.toString(),
+                style = MaterialTheme.typography.displaySmall,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.width(96.dp),
+            )
+            IconButton(
+                onClick = { actions.setTarget(draft.target + 1) },
+                enabled = draft.target < HostedChallenge.TARGET_MAX,
+                modifier = Modifier.size(56.dp),
+            ) { Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.host_target_more)) }
+        }
     }
 }
 
@@ -282,40 +294,43 @@ private val illustrationIcons: Map<HostedIllustration, Pair<ImageVector, Int>> =
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun LookStep(draft: HostDraft, actions: HostGuideActions, noteOn: Boolean = false) {
-    StepTitle(stringResource(R.string.host_look_title), stringResource(R.string.host_look_help))
-    OutlinedTextField(
-        value = draft.title,
-        onValueChange = actions.setTitle,
-        label = { Text(stringResource(R.string.host_look_name)) },
-        supportingText = { Text("${draft.title.length} / ${HostedChallenge.TITLE_MAX}") },
-        singleLine = true,
-        modifier = Modifier.fillMaxWidth(),
-    )
-    if (noteOn) {
+    StepTile(Icons.Outlined.Palette, stringResource(R.string.host_look_title), stringResource(R.string.host_look_help)) {
         OutlinedTextField(
-            value = draft.note,
-            onValueChange = actions.setNote,
-            label = { Text(stringResource(R.string.host_look_note)) },
-            supportingText = { Text(stringResource(R.string.host_look_note_help) + "  ${draft.note.length} / ${HostedChallenge.NOTE_MAX}") },
-            minLines = 2,
+            value = draft.title,
+            onValueChange = actions.setTitle,
+            label = { Text(stringResource(R.string.host_look_name)) },
+            supportingText = { Text("${draft.title.length} / ${HostedChallenge.TITLE_MAX}") },
+            singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-    }
-    Text(stringResource(R.string.host_look_emoji), style = MaterialTheme.typography.titleMedium)
-    FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        HostGuide.emojis.forEach { emoji ->
-            Choice(selected = draft.emoji == emoji, label = emoji, onClick = { actions.setEmoji(emoji) }) {
-                Text(emoji, fontSize = 24.sp)
+        if (noteOn) {
+            OutlinedTextField(
+                value = draft.note,
+                onValueChange = actions.setNote,
+                label = { Text(stringResource(R.string.host_look_note)) },
+                supportingText = { Text(stringResource(R.string.host_look_note_help) + "  ${draft.note.length} / ${HostedChallenge.NOTE_MAX}") },
+                minLines = 2,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        FormLabel(stringResource(R.string.host_look_emoji))
+        FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            HostGuide.emojis.forEach { emoji ->
+                Choice(selected = draft.emoji == emoji, label = emoji, onClick = { actions.setEmoji(emoji) }) {
+                    Text(emoji, fontSize = 24.sp)
+                }
             }
         }
-    }
-    Text(stringResource(R.string.host_look_illustration), style = MaterialTheme.typography.titleMedium)
-    FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        HostedIllustration.entries.forEach { illustration ->
-            val (icon, label) = illustrationIcons.getValue(illustration)
-            val name = stringResource(label)
-            Choice(selected = draft.illustration == illustration, label = name, onClick = { actions.setIllustration(illustration) }) {
-                Icon(icon, contentDescription = null)
+        Spacer(Modifier.height(8.dp))
+        FormLabel(stringResource(R.string.host_look_illustration))
+        FlowRow(Modifier.selectableGroup(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            HostedIllustration.entries.forEach { illustration ->
+                val (icon, label) = illustrationIcons.getValue(illustration)
+                val name = stringResource(label)
+                Choice(selected = draft.illustration == illustration, label = name, onClick = { actions.setIllustration(illustration) }) {
+                    Icon(icon, contentDescription = null)
+                }
             }
         }
     }
@@ -339,36 +354,30 @@ private fun Choice(selected: Boolean, label: String, onClick: () -> Unit, conten
 @Composable
 private fun PreviewStep(state: HostGuideState, actions: HostGuideActions) {
     val draft = state.draft
-    StepTitle(stringResource(R.string.host_preview_title), stringResource(R.string.host_preview_help))
-    // The challenge as the family will see it: the point of this step (DESIGN-11).
-    ClayCard(Modifier.fillMaxWidth(), emphasis = true) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(56.dp).background(MaterialTheme.colorScheme.secondaryContainer, CircleShape), contentAlignment = Alignment.Center) {
-                Icon(illustrationIcons.getValue(draft.illustration).first, contentDescription = null)
+    StepTile(Icons.Outlined.Visibility, stringResource(R.string.host_preview_title), stringResource(R.string.host_preview_help)) {
+        // The challenge as the family will see it: the point of this step (DESIGN-11).
+        ClayCard(Modifier.fillMaxWidth(), emphasis = true) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(56.dp).background(MaterialTheme.colorScheme.secondaryContainer, CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(illustrationIcons.getValue(draft.illustration).first, contentDescription = null)
+                }
+                Spacer(Modifier.width(16.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.tree_challenge, draft.emoji, draft.title.trim()), style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        stringResource(R.string.tree_challenge_progress, 0, draft.target),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
-            Spacer(Modifier.width(16.dp))
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.tree_challenge, draft.emoji, draft.title.trim()), style = MaterialTheme.typography.titleMedium)
-                Text(
-                    stringResource(R.string.tree_challenge_progress, 0, draft.target),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            Text(stringResource(R.string.host_preview_how), style = MaterialTheme.typography.bodyMedium)
         }
-        Text(stringResource(R.string.host_preview_how), style = MaterialTheme.typography.bodyMedium)
     }
+    // Publishing (or, for a child, saving for the adults) is the black button at the bottom.
     if (state.canPublish) {
-        Button(onClick = actions.publish, enabled = !state.saving, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            Text(stringResource(R.string.host_publish))
-        }
-        OutlinedButton(onClick = actions.saveDraft, enabled = !state.saving, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            Text(stringResource(R.string.host_save_draft))
-        }
+        FormOutlineButton(stringResource(R.string.host_save_draft), actions.saveDraft, Modifier.fillMaxWidth(), enabled = !state.saving)
     } else {
-        Button(onClick = actions.saveDraft, enabled = !state.saving, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            Text(stringResource(R.string.host_save_for_adults))
-        }
-        Text(stringResource(R.string.host_child_note), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        FormHint(stringResource(R.string.host_child_note))
     }
 }
