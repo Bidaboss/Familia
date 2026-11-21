@@ -14,6 +14,8 @@ import fr.familia.app.feature.trips.edit.TripFormError
 import fr.familia.app.feature.trips.list.TripsUiState
 import fr.familia.app.feature.trips.list.TripsViewModel
 import fr.familia.app.feature.trips.step.StepEditUiState
+import fr.familia.app.core.place.Place
+import fr.familia.app.core.place.PlaceLocator
 import fr.familia.app.feature.trips.step.StepEditViewModel
 import fr.familia.app.feature.trips.step.StepFormError
 import fr.familia.app.testing.MainDispatcherRule
@@ -287,6 +289,53 @@ class TripViewModelsTest {
         assertEquals("Ajaccio", step.place)
         assertEquals(LocalDate.of(2027, 7, 10), step.arriveDate)
         assertEquals(Instant.parse("2027-07-10T10:40:00Z"), remindAt)
+    }
+
+    /** A phone that finds [place] at one point, or nothing. */
+    private class FakeLocator(private val found: Place?) : PlaceLocator {
+        var asked = 0
+        override suspend fun currentPosition(): Pair<Double, Double>? = null
+        override suspend fun addressOf(lat: Double, lng: Double): String? = null
+        override suspend fun find(query: String): Place? { asked++; return found }
+        override suspend fun expand(shortLink: String): String? = null
+    }
+
+    @Test
+    fun `saving a step keeps the point the phone found for its place`() {
+        val trips = FakeTrips()
+        val locator = FakeLocator(Place(41.9192, 8.7386, address = "Ajaccio"))
+        val vm = StepEditViewModel(trips, FakeMembers(), "adult2", "t1", null, zone = paris, now = beforeTrip, locator = locator)
+        vm.update { it.copy(place = "Ajaccio") }
+        vm.save()
+        val step = trips.savedSteps.single().first
+        assertEquals(41.9192, step.lat)
+        assertEquals(8.7386, step.lng)
+        assertTrue(step.hasPosition)
+    }
+
+    @Test
+    fun `a place the phone does not find saves the step without a point`() {
+        val trips = FakeTrips()
+        val vm = StepEditViewModel(trips, FakeMembers(), "adult2", "t1", null, zone = paris, now = beforeTrip, locator = FakeLocator(null))
+        vm.update { it.copy(place = "Chez Mamie") }
+        vm.save()
+        assertEquals(StepEditUiState.Done, vm.uiState.value)
+        val step = trips.savedSteps.single().first
+        assertNull(step.lat)
+        assertFalse(step.hasPosition)
+    }
+
+    @Test
+    fun `editing a step without changing its place keeps its point and asks nothing`() {
+        val located = TestTrips.step(lat = 41.9, lng = 8.7)
+        val trips = FakeTrips(steps = mapOf("t1" to listOf(located)))
+        val locator = FakeLocator(Place(1.0, 2.0))
+        val vm = StepEditViewModel(trips, FakeMembers(), "adult1", "t1", "s1", zone = paris, now = beforeTrip, locator = locator)
+        vm.update { it.copy(note = "Retard") }
+        vm.save()
+        val step = trips.savedSteps.single().first
+        assertEquals(41.9, step.lat)
+        assertEquals(0, locator.asked)
     }
 
     @Test

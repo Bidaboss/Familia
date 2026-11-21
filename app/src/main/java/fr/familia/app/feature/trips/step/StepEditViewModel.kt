@@ -8,6 +8,7 @@ import fr.familia.app.core.data.TripRepository
 import fr.familia.app.core.model.StepType
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripStep
+import fr.familia.app.core.place.PlaceLocator
 import fr.familia.app.feature.trips.canDeleteStep
 import fr.familia.app.feature.trips.edit.toDate
 import fr.familia.app.feature.trips.isParticipant
@@ -57,6 +58,8 @@ class StepEditViewModel(
     private val writeTimeoutMillis: Long = 4_000,
     private val zone: () -> ZoneId = ZoneId::systemDefault,
     private val now: () -> Instant = Instant::now,
+    /** Finds the point of the place on the map (récit 87); null, or no answer, leaves the step without a point. */
+    private val locator: PlaceLocator? = null,
     /** Keeps the draft when Android stops the app in the background (audit design n° 3). */
     private val savedState: SavedStateHandle = SavedStateHandle(),
 ) : ViewModel() {
@@ -153,16 +156,36 @@ class StepEditViewModel(
             _uiState.value = state.copy(errors = errors)
             return
         }
-        val step = state.form.toStep(editedId, original?.arrival)
-        val remindAt = reminderTime(step, zone(), now())
+        val typed = state.form.toStep(editedId, original?.arrival)
+        val remindAt = reminderTime(typed, zone(), now())
         _uiState.value = state.copy(isSaving = true, saveFailed = false)
         viewModelScope.launch {
+            val step = withPosition(typed)
             if (write { repo.saveStep(tripId, step, isNew = original == null, remindAt = remindAt) }) {
                 _uiState.value = StepEditUiState.Done
             } else {
                 markFailed()
             }
         }
+    }
+
+    /**
+     * The step with its point on the map: kept as it was when the place did not change, else looked
+     * up by the phone for at most [GEOCODE_MILLIS] (offline or unknown place: no point, the step
+     * still saves and stays in the list).
+     */
+    private suspend fun withPosition(step: TripStep): TripStep {
+        val before = original
+        if (before != null && before.place == step.place && before.hasPosition) return step.copy(lat = before.lat, lng = before.lng)
+        val finder = locator ?: return step
+        val found = try {
+            withTimeoutOrNull(GEOCODE_MILLIS) { finder.find(step.place) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        }
+        return if (found == null) step else step.copy(lat = found.lat, lng = found.lng)
     }
 
     fun delete() {
@@ -192,6 +215,8 @@ class StepEditViewModel(
     }
 
     companion object {
+        /** The longest a save waits for the phone to find the place. */
+        const val GEOCODE_MILLIS = 3_000L
         const val DRAFT_TYPE = "step_draft_type"
         const val DRAFT_PLACE = "step_draft_place"
         const val DRAFT_DEPART_DATE = "step_draft_depart_date"
