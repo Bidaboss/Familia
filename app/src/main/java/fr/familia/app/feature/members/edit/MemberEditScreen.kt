@@ -11,6 +11,8 @@ import fr.familia.app.core.theme.LocalClayColors
 import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.form.ChoiceTile
+import fr.familia.app.core.ui.form.FormDeleteButton
+import fr.familia.app.core.ui.form.scrollToFirstError
 import fr.familia.app.core.ui.form.ChoiceTiles
 import fr.familia.app.core.ui.form.FormHint
 import fr.familia.app.core.ui.form.FormLabel
@@ -199,17 +201,20 @@ private fun MemberFormContent(
 ) {
     val form = state.form
     val errors = state.errors
+    val scroll = rememberScrollState()
+    // After a refused « Enregistrer », the page goes up to the first tile to fix (recette 3).
+    val part = scrollToFirstError(scroll, errors, errors.map { it.part() }.minOrNull())
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scroll)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         // The avatar and its color in one tile (lot-3-fiche-et-reglages.png): no dialog any more.
         AvatarHeader(form) { index -> onChange { it.copy(colorIndex = index) } }
 
-        FormTile(icon = Icons.Outlined.Group, title = stringResource(R.string.member_tile_who)) {
+        FormTile(icon = Icons.Outlined.Group, title = stringResource(R.string.member_tile_who), modifier = part(MemberPart.Who)) {
             OutlinedTextField(
                 value = form.firstName,
                 onValueChange = { value -> onChange { it.copy(firstName = value) } },
@@ -258,10 +263,11 @@ private fun MemberFormContent(
             errors,
             onChange,
             onAddHousehold = if (state.canAddHousehold) onAddHousehold else null,
+            modifier = part(MemberPart.Household),
         )
 
         if (form.needsParents) {
-            FormTile(icon = Icons.Outlined.FamilyRestroom, title = stringResource(R.string.member_parents)) {
+            FormTile(icon = Icons.Outlined.FamilyRestroom, title = stringResource(R.string.member_parents), modifier = part(MemberPart.Parents)) {
                 FormHint(stringResource(R.string.member_parents_help))
                 // By household, the child's first; a household ticks its adults (règle de Kévin, 17/11).
                 HouseholdMemberPicker(
@@ -321,13 +327,7 @@ private fun AvatarHeader(form: MemberForm, onPickColor: (Int) -> Unit) {
 private fun RemoveButton(firstName: String, soleParentOf: List<String>, enabled: Boolean, onRemove: () -> Unit) {
     var confirm by rememberSaveable { mutableStateOf(false) }
     val blocked = soleParentOf.isNotEmpty()
-    OutlinedButton(
-        onClick = { confirm = true },
-        enabled = enabled && !blocked,
-        colors = ButtonDefaults.outlinedButtonColors(containerColor = LocalClayColors.current.card, contentColor = MaterialTheme.colorScheme.error),
-        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.4f)),
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-    ) { Text(stringResource(R.string.member_remove)) }
+    FormDeleteButton(stringResource(R.string.member_remove), onClick = { confirm = true }, enabled = enabled && !blocked)
     if (blocked) {
         Text(
             stringResource(R.string.member_remove_blocked, soleParentOf.joinToString(", ")),
@@ -392,9 +392,10 @@ private fun HouseholdSection(
     onChange: ((MemberForm) -> MemberForm) -> Unit,
     /** Null for a chef de famille: only the admin principal creates households. */
     onAddHousehold: ((String) -> Unit)?,
+    modifier: Modifier = Modifier,
 ) {
     var dialogOpen by rememberSaveable { mutableStateOf(false) }
-    FormTile(icon = Icons.Outlined.Home, title = stringResource(R.string.member_tile_household)) {
+    FormTile(icon = Icons.Outlined.Home, title = stringResource(R.string.member_tile_household), modifier = modifier) {
         ChoiceTiles(households, columns = 2) { household, tileModifier ->
             ChoiceTile(
                 title = household.name,
@@ -538,6 +539,17 @@ private fun errorText(errors: Set<FormError>, vararg kinds: FormError): (@Compos
 }
 
 private fun helpText(text: String): @Composable () -> Unit = { Text(text) }
+
+/** The tiles of the fiche, in their order on the page: the first one in error is scrolled to. */
+private enum class MemberPart { Who, Household, Parents }
+
+private fun FormError.part(): MemberPart = when (this) {
+    FormError.FirstNameMissing, FormError.FirstNameTooLong, FormError.EmailInvalid, FormError.EmailTaken,
+    FormError.BirthDateInFuture,
+    -> MemberPart.Who
+    FormError.HouseholdMissing -> MemberPart.Household
+    FormError.ParentsMissing, FormError.TooManyParents, FormError.SoleParentOfChild -> MemberPart.Parents
+}
 
 private fun FormError.messageRes(): Int = when (this) {
     FormError.FirstNameMissing -> R.string.error_first_name_missing
