@@ -36,6 +36,8 @@ enum class ScreenHelp(
     Genealogy(R.string.help_screen_genealogy_title, R.string.help_screen_genealogy_body),
     JoinMe(R.string.help_topic_joinme_title, R.string.help_topic_joinme_body),
     Administration(R.string.help_screen_administration_title, R.string.help_screen_administration_body),
+    /** The long help of the Notifications moved into their « ? » (refonte, lot 3). */
+    Notifications(R.string.notifications_title, R.string.notifications_events_help),
 }
 
 /** Who sees a topic of the help page: the functions they can use. */
