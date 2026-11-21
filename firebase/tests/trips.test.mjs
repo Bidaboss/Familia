@@ -453,8 +453,9 @@ describe('« le mot de l\'étape » (récit 88)', () => {
 
   test('a participant writes a word, signed, for a step that exists', async () => {
     await setup();
+    await storedStep('t1', 's2');
     await assertSucceeds(setDoc(doc(as(env, ADULT), 'trips/t1/words/s1'), word(ADULT)));
-    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/words/s1'), word(NEIGHBOUR, { photoIds: [] })));
+    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/words/s2'), word(NEIGHBOUR, { photoIds: [] })));
     await assertFails(setDoc(doc(as(env, ADULT), 'trips/t1/words/nope'), word(ADULT)));
   });
 
