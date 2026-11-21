@@ -2076,12 +2076,13 @@
     <string name="app_icon_terre">Terre</string>
     <string name="app_icon_or">Or</string>
     <string name="app_icon_changed">L\'icône change dans quelques secondes. Si elle était sur ton écran d\'accueil, elle peut disparaître de cet endroit : retrouve-la dans la liste des applis.</string>
-    <string name="appearance_sample_event">Repas de famille · 12 h 30</string>
     <string name="appearance_opening_title">Animation d\'ouverture</string>
     <string name="appearance_opening_help">Ce qui s\'affiche à chaque ouverture de l\'appli, sur ce téléphone. Touche l\'écran pour passer l\'animation.</string>
-    <string name="appearance_opening_long">Longue : la bienvenue avec la famille (8 secondes)</string>
-    <string name="appearance_opening_short">Courte : l\'arbre qui pousse (1,5 seconde)</string>
-    <string name="appearance_opening_none">Aucune animation</string>
+    <string name="appearance_opening_long_title">Longue</string>
+    <string name="appearance_opening_long_sub">La bienvenue, 8 s</string>
+    <string name="appearance_opening_short_title">Courte</string>
+    <string name="appearance_opening_short_sub">L\'arbre qui pousse, 1,5 s</string>
+    <string name="appearance_opening_none_title">Aucune</string>
     <string name="welcome_animation_title">Bienvenue dans Familia</string>
     <string name="welcome_animation_hello">Bonjour %1$s, tu es chez toi.</string>
     <string name="welcome_animation_skip">Passer</string>

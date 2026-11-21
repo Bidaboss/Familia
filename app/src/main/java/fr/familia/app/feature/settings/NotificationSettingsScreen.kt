@@ -1,5 +1,16 @@
 package fr.familia.app.feature.settings
 
+import androidx.compose.material.icons.outlined.Checklist
+import androidx.compose.material.icons.outlined.NotificationsActive
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.ui.graphics.Color
+import fr.familia.app.core.theme.themeBackground
+import fr.familia.app.core.ui.form.ChoiceTile
+import fr.familia.app.core.ui.form.ChoiceTiles
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.feature.help.HelpButton
+import fr.familia.app.feature.help.ScreenHelp
 import androidx.compose.ui.text.style.TextOverflow
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.ui.LocalFeatureFlags
@@ -14,8 +25,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -25,11 +34,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -40,8 +46,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.EveningKind
@@ -83,11 +87,13 @@ fun NotificationSettingsScreen(
     defaultReminders: (@Composable () -> Unit)? = null,
 ) {
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.themeBackground(),
+        containerColor = Color.Transparent,
         topBar = {
             FamiliaTopBar(
                 title = { Text(stringResource(R.string.notifications_title), maxLines = 2, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = { BackButton(onClick = onBack) },
+                actions = { HelpButton(ScreenHelp.Notifications) },
             )
         },
     ) { padding ->
@@ -106,134 +112,125 @@ fun NotificationSettingsScreen(
                     },
                 )
                 is NotificationSettingsUiState.Ready -> Column(
-                    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
                     if (!notificationsAllowed) BlockedCard(onAllowNotifications)
-                    Text(
-                        stringResource(R.string.notifications_events_help),
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                    )
-                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
                     val flags = LocalFeatureFlags.current
-                    // Récit 6 quinquies: a level sets every family at once; the switches stay free.
-                    SectionTitle(stringResource(R.string.notifications_level_title))
-                    Column(Modifier.selectableGroup()) {
-                        NotificationLevel.entries.forEach { level ->
-                            LevelRow(level, selected = state.prefs.level == level, onSelect = { onLevelChange(level) })
-                        }
-                    }
-                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                    SectionTitle(stringResource(R.string.notifications_families_title))
-                    NotificationFamily.entries.filter { familyShown(it, flags) }.forEach { family ->
-                        SettingSwitch(
-                            title = stringResource(familyTitle(family)),
-                            help = stringResource(familyHelp(family)),
-                            checked = state.prefs.isOn(family),
-                            onChange = { onFamilyChange(family, it) },
-                        )
-                    }
-                    SettingSwitch(
-                        title = stringResource(R.string.notifications_quiet_hours),
-                        help = stringResource(R.string.notifications_quiet_hours_help),
-                        checked = state.prefs.quietHours,
-                        onChange = onQuietHoursChange,
-                    )
                     // Résumé du soir (récit 70): shown only with its module on, as the server reads it.
                     val eveningKinds = eveningKindsShown(state.prefs, flags)
                     if (eveningKinds.isNotEmpty()) {
-                        HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                        SectionTitle(stringResource(R.string.notifications_evening_title))
-                        Text(
-                            stringResource(R.string.notifications_evening_help),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                        )
-                        eveningKinds.forEach { kind ->
-                            val inSummary = kind in state.prefs.evening
-                            SettingSwitch(
-                                title = stringResource(eveningTitle(kind)),
-                                help = stringResource(
-                                    if (inSummary) R.string.notifications_evening_in_summary else R.string.notifications_evening_immediate,
-                                ),
-                                checked = inSummary,
-                                onChange = { onEveningChange(kind, it) },
+                        FormTile(icon = Icons.Outlined.NotificationsActive, title = stringResource(R.string.notifications_evening_title)) {
+                            Text(stringResource(R.string.notifications_evening_help), style = MaterialTheme.typography.bodyMedium)
+                            eveningKinds.forEach { kind ->
+                                val inSummary = kind in state.prefs.evening
+                                SettingSwitch(
+                                    title = stringResource(eveningTitle(kind)),
+                                    help = stringResource(
+                                        if (inSummary) R.string.notifications_evening_in_summary else R.string.notifications_evening_immediate,
+                                    ),
+                                    checked = inSummary,
+                                    onChange = { onEveningChange(kind, it) },
+                                )
+                            }
+                        }
+                    }
+                    // Récit 6 quinquies: a level sets every family at once; the switches stay free.
+                    FormTile(icon = Icons.Outlined.Tune, title = stringResource(R.string.notifications_level_title)) {
+                        ChoiceTiles(NotificationLevel.entries, columns = 1) { level, tileModifier ->
+                            val (title, help) = levelTexts(level)
+                            ChoiceTile(
+                                title = stringResource(title),
+                                selected = state.prefs.level == level,
+                                onClick = { onLevelChange(level) },
+                                modifier = tileModifier,
+                                subtitle = stringResource(help),
                             )
                         }
                     }
-                    if (defaultReminders != null) {
-                        HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                        defaultReminders()
-                    }
-                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                    SectionTitle(stringResource(R.string.notifications_details_title))
-                    // The finer switches inside a family, as before.
-                    if (state.prefs.isOn(NotificationFamily.Reminders)) {
+                    FormTile(icon = Icons.Outlined.Checklist, title = stringResource(R.string.notifications_families_title)) {
+                        NotificationFamily.entries.filter { familyShown(it, flags) }.forEach { family ->
+                            SettingSwitch(
+                                title = stringResource(familyTitle(family)),
+                                help = stringResource(familyHelp(family)),
+                                checked = state.prefs.isOn(family),
+                                onChange = { onFamilyChange(family, it) },
+                            )
+                        }
                         SettingSwitch(
-                            title = stringResource(R.string.notifications_reminder),
-                            help = stringResource(R.string.notifications_reminder_help),
-                            checked = state.dayBeforeReminder,
-                            onChange = onDayBeforeReminderChange,
+                            title = stringResource(R.string.notifications_quiet_hours),
+                            help = stringResource(R.string.notifications_quiet_hours_help),
+                            checked = state.prefs.quietHours,
+                            onChange = onQuietHoursChange,
                         )
                     }
-                    if (state.prefs.isOn(NotificationFamily.Weekly)) {
-                        if (flags.isOn(Feature.Souvenirs)) {
+                    if (defaultReminders != null) defaultReminders()
+                    FormTile(icon = Icons.Outlined.Settings, title = stringResource(R.string.notifications_details_title)) {
+                        // The finer switches inside a family, as before.
+                        if (state.prefs.isOn(NotificationFamily.Reminders)) {
                             SettingSwitch(
-                                title = stringResource(R.string.notifications_souvenirs),
-                                help = stringResource(R.string.notifications_souvenirs_help),
-                                checked = state.souvenirs,
-                                onChange = onSouvenirsChange,
+                                title = stringResource(R.string.notifications_reminder),
+                                help = stringResource(R.string.notifications_reminder_help),
+                                checked = state.dayBeforeReminder,
+                                onChange = onDayBeforeReminderChange,
                             )
                         }
-                        if (flags.isOn(Feature.Tree)) {
+                        if (state.prefs.isOn(NotificationFamily.Weekly)) {
+                            if (flags.isOn(Feature.Souvenirs)) {
+                                SettingSwitch(
+                                    title = stringResource(R.string.notifications_souvenirs),
+                                    help = stringResource(R.string.notifications_souvenirs_help),
+                                    checked = state.souvenirs,
+                                    onChange = onSouvenirsChange,
+                                )
+                            }
+                            if (flags.isOn(Feature.Tree)) {
+                                SettingSwitch(
+                                    title = stringResource(R.string.notifications_tree),
+                                    help = stringResource(R.string.notifications_tree_help),
+                                    checked = state.tree,
+                                    onChange = onTreeChange,
+                                )
+                            }
+                            if (flags.isOn(Feature.Recap)) {
+                                SettingSwitch(
+                                    title = stringResource(R.string.notifications_recap),
+                                    help = stringResource(R.string.notifications_recap_help),
+                                    checked = state.recap,
+                                    onChange = onRecapChange,
+                                )
+                            }
+                            if (flags.isOn(Feature.BirthdayWishes)) {
+                                SettingSwitch(
+                                    title = stringResource(R.string.notifications_birthday_wishes),
+                                    help = stringResource(R.string.notifications_birthday_wishes_help),
+                                    checked = state.birthdayWishes,
+                                    onChange = onBirthdayWishesChange,
+                                )
+                            }
+                        }
+                        // « Ma valise » (récit 62): a trips notice, so it follows the switch of the trips.
+                        if (flags.isOn(Feature.PackingList) && state.prefs.isOn(NotificationFamily.Trips)) {
                             SettingSwitch(
-                                title = stringResource(R.string.notifications_tree),
-                                help = stringResource(R.string.notifications_tree_help),
-                                checked = state.tree,
-                                onChange = onTreeChange,
+                                title = stringResource(R.string.notifications_packing),
+                                help = stringResource(R.string.notifications_packing_help),
+                                checked = state.packingReminder,
+                                onChange = onPackingReminderChange,
                             )
                         }
-                        if (flags.isOn(Feature.Recap)) {
-                            SettingSwitch(
-                                title = stringResource(R.string.notifications_recap),
-                                help = stringResource(R.string.notifications_recap_help),
-                                checked = state.recap,
-                                onChange = onRecapChange,
-                            )
+                        OutlinedButton(
+                            onClick = onOpenSystemSettings,
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                        ) {
+                            Text(stringResource(R.string.notifications_system_settings))
                         }
-                        if (flags.isOn(Feature.BirthdayWishes)) {
-                            SettingSwitch(
-                                title = stringResource(R.string.notifications_birthday_wishes),
-                                help = stringResource(R.string.notifications_birthday_wishes_help),
-                                checked = state.birthdayWishes,
-                                onChange = onBirthdayWishesChange,
-                            )
-                        }
-                    }
-                    // « Ma valise » (récit 62): a trips notice, so it follows the switch of the trips.
-                    if (flags.isOn(Feature.PackingList) && state.prefs.isOn(NotificationFamily.Trips)) {
-                        SettingSwitch(
-                            title = stringResource(R.string.notifications_packing),
-                            help = stringResource(R.string.notifications_packing_help),
-                            checked = state.packingReminder,
-                            onChange = onPackingReminderChange,
-                        )
                     }
                     if (state.saveFailed) {
                         Text(
                             stringResource(R.string.notifications_save_failed),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(horizontal = 16.dp),
                         )
-                    }
-                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                    OutlinedButton(
-                        onClick = onOpenSystemSettings,
-                        modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().heightIn(min = 56.dp),
-                    ) {
-                        Text(stringResource(R.string.notifications_system_settings))
                     }
                 }
             }
@@ -292,44 +289,17 @@ private fun familyHelp(family: NotificationFamily): Int = when (family) {
     NotificationFamily.Weekly -> R.string.notifications_family_weekly_help
 }
 
-@Composable
-private fun SectionTitle(text: String) {
-    Text(
-        text,
-        style = MaterialTheme.typography.titleLarge,
-        modifier = Modifier.padding(horizontal = 16.dp).semantics { heading() },
-    )
-}
-
-@Composable
-private fun LevelRow(level: NotificationLevel, selected: Boolean, onSelect: () -> Unit) {
-    val (title, help) = when (level) {
-        NotificationLevel.All -> R.string.notifications_level_all to R.string.notifications_level_all_help
-        NotificationLevel.Essential -> R.string.notifications_level_essential to R.string.notifications_level_essential_help
-        NotificationLevel.Minimal -> R.string.notifications_level_minimal to R.string.notifications_level_minimal_help
-    }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onSelect)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = selected, onClick = null)
-        Spacer(Modifier.width(16.dp))
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
-            Text(stringResource(help), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
+private fun levelTexts(level: NotificationLevel): Pair<Int, Int> = when (level) {
+    NotificationLevel.All -> R.string.notifications_level_all to R.string.notifications_level_all_help
+    NotificationLevel.Essential -> R.string.notifications_level_essential to R.string.notifications_level_essential_help
+    NotificationLevel.Minimal -> R.string.notifications_level_minimal to R.string.notifications_level_minimal_help
 }
 
 @Composable
 private fun BlockedCard(onAllow: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-        modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(
@@ -351,7 +321,7 @@ private fun SettingSwitch(title: String, help: String, checked: Boolean, onChang
             .fillMaxWidth()
             .heightIn(min = 56.dp)
             .toggleable(value = checked, role = Role.Switch, onValueChange = onChange)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
