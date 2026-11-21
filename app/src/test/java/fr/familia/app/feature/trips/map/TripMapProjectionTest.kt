@@ -7,6 +7,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
+import kotlin.math.hypot
 
 class TripMapProjectionTest {
     private val ajaccio = GeoPoint(41.92, 8.74)
@@ -55,7 +56,7 @@ class TripMapProjectionTest {
     @Test
     fun `two steps in the same town stay close instead of filling the map`() {
         val (a, b) = projectToUnit(listOf(GeoPoint(48.8566, 2.3522), GeoPoint(48.8606, 2.3376)))
-        assertTrue(a.gapTo(b) < 0.2f)
+        assertTrue(hypot(a.x - b.x, a.y - b.y) < 0.2f)
     }
 
     @Test
