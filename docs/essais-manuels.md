@@ -1616,6 +1616,8 @@ Les écrans suivent les maquettes « Une dépense » et « Une recette ». Rien 
 
 Rien ne change à l'écran. À l'enregistrement d'une étape, le téléphone cherche son lieu et garde un point (latitude, longitude) pour la carte, qui arrive dans la 2e partie.
 
+**Confidentialité :** pour trouver le point, le nom du lieu est envoyé au service de géocodage du téléphone (celui d'Android, fourni par Google), sans compte ni clé ; Familia ne garde que le point (latitude, longitude) dans la fiche de l'étape.
+
 1. Avec le réseau : ajoute une étape « Ajaccio » à un voyage. **Attendu :** elle s'enregistre comme avant, sans attente visible.
 2. En mode avion : ajoute une étape « Chez Mamie ». **Attendu :** elle s'enregistre quand même (au plus 3 secondes de plus), sans message d'erreur.
 3. Rouvre une étape et change seulement la note. **Attendu :** elle s'enregistre sans rechercher le lieu de nouveau.
