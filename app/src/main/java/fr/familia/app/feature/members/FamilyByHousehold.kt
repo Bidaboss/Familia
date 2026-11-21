@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -155,7 +154,6 @@ private fun FoldedHousehold(group: HouseholdGroup, name: String, unfolded: Boole
     }
     val action = stringResource(if (unfolded) R.string.members_household_fold else R.string.members_household_unfold)
     Column {
-        HorizontalDivider(Modifier.padding(horizontal = ClaySpacing.screen))
         Row(
             modifier = Modifier
                 .fillMaxWidth()

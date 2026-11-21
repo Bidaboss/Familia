@@ -1,5 +1,23 @@
 package fr.familia.app.feature.members.edit
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.FamilyRestroom
+import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.ui.graphics.Color
+import fr.familia.app.core.theme.LocalClayColors
+import fr.familia.app.core.theme.themeBackground
+import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.form.ChoiceTile
+import fr.familia.app.core.ui.form.FormDeleteButton
+import fr.familia.app.core.ui.form.scrollToFirstError
+import fr.familia.app.core.ui.form.ChoiceTiles
+import fr.familia.app.core.ui.form.FormHint
+import fr.familia.app.core.ui.form.FormLabel
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.StickyActionBar
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -14,7 +32,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -42,7 +59,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
@@ -62,12 +78,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.clickable
 import fr.familia.app.core.data.familyToday
 import fr.familia.app.core.ui.MemberAvatar
 import fr.familia.app.R
@@ -128,7 +142,15 @@ fun MemberEditScreen(
             },
         )
     }
+    val editing = state as? MemberEditUiState.Editing
     Scaffold(
+        modifier = Modifier.themeBackground(),
+        containerColor = Color.Transparent,
+        bottomBar = {
+            if (editing != null) {
+                StickyActionBar(stringResource(R.string.member_save), onClick = onSave, enabled = !editing.isSaving, busy = editing.isSaving)
+            }
+        },
         topBar = {
             FamiliaTopBar(
                 title = {
@@ -172,68 +194,67 @@ private fun MemberFormContent(
     state: MemberEditUiState.Editing,
     onChange: ((MemberForm) -> MemberForm) -> Unit,
     onAddHousehold: (String) -> Unit,
-    onSave: () -> Unit,
+    @Suppress("UNUSED_PARAMETER") onSave: () -> Unit,
     onRemove: () -> Unit,
     onInvite: (firstName: String, email: String) -> Unit,
     today: LocalDate,
 ) {
     val form = state.form
     val errors = state.errors
-    var pickColor by rememberSaveable { mutableStateOf(false) }
+    val scroll = rememberScrollState()
+    // After a refused « Enregistrer », the page goes up to the first tile to fix (recette 3).
+    val part = scrollToFirstError(scroll, errors, errors.map { it.part() }.minOrNull())
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .imePadding()
+            .verticalScroll(scroll)
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        // The color is chosen by touching the avatar (DESIGN-5); a new member gets a free one.
-        AvatarHeader(form, onClick = { pickColor = true })
-        // One sentence for every field this member cannot change, instead of one per field.
-        if (!state.canEditEmail && form.needsEmail || !state.canEditParents && form.needsParents) {
-            Text(
-                stringResource(R.string.member_locked_fields),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        OutlinedTextField(
-            value = form.firstName,
-            onValueChange = { value -> onChange { it.copy(firstName = value) } },
-            label = { Text(stringResource(R.string.member_first_name)) },
-            isError = FormError.FirstNameMissing in errors || FormError.FirstNameTooLong in errors,
-            supportingText = errorText(errors, FormError.FirstNameMissing, FormError.FirstNameTooLong),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-            modifier = Modifier.fillMaxWidth(),
-        )
+        // The avatar and its color in one tile (lot-3-fiche-et-reglages.png): no dialog any more.
+        AvatarHeader(form) { index -> onChange { it.copy(colorIndex = index) } }
 
-        Section(stringResource(R.string.member_profile)) {
-            Column(Modifier.selectableGroup()) {
-                MemberProfile.entries.forEach { profile ->
-                    ChoiceRow(
-                        label = stringResource(profile.labelRes()),
-                        selected = form.profile == profile,
-                        onClick = { onChange { it.copy(profile = profile) } },
-                    )
-                }
-            }
-        }
-
-        if (form.needsEmail) {
+        FormTile(icon = Icons.Outlined.Group, title = stringResource(R.string.member_tile_who), modifier = part(MemberPart.Who)) {
             OutlinedTextField(
-                value = form.email,
-                onValueChange = { value -> onChange { it.copy(email = value) } },
-                label = { Text(stringResource(R.string.member_email)) },
-                isError = FormError.EmailInvalid in errors || FormError.EmailTaken in errors,
-                supportingText = errorText(errors, FormError.EmailInvalid, FormError.EmailTaken)
-                    ?: if (state.canEditEmail) helpText(stringResource(R.string.member_email_help_optional)) else null,
-                enabled = state.canEditEmail,
+                value = form.firstName,
+                onValueChange = { value -> onChange { it.copy(firstName = value) } },
+                label = { Text(stringResource(R.string.member_first_name)) },
+                isError = FormError.FirstNameMissing in errors || FormError.FirstNameTooLong in errors,
+                supportingText = errorText(errors, FormError.FirstNameMissing, FormError.FirstNameTooLong),
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
                 modifier = Modifier.fillMaxWidth(),
             )
+            BirthDateField(form.birthDate, FormError.BirthDateInFuture in errors, today) { date ->
+                onChange { it.copy(birthDate = date) }
+            }
+            FormLabel(stringResource(R.string.member_profile))
+            ChoiceTiles(MemberProfile.entries, columns = 3) { profile, tileModifier ->
+                ChoiceTile(
+                    title = stringResource(profile.labelRes()),
+                    selected = form.profile == profile,
+                    onClick = { onChange { it.copy(profile = profile) } },
+                    modifier = tileModifier,
+                )
+            }
+            if (form.needsEmail) {
+                OutlinedTextField(
+                    value = form.email,
+                    onValueChange = { value -> onChange { it.copy(email = value) } },
+                    label = { Text(stringResource(R.string.member_email)) },
+                    isError = FormError.EmailInvalid in errors || FormError.EmailTaken in errors,
+                    supportingText = errorText(errors, FormError.EmailInvalid, FormError.EmailTaken)
+                        ?: if (state.canEditEmail) helpText(stringResource(R.string.member_email_help_optional)) else null,
+                    enabled = state.canEditEmail,
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            // One sentence for every field this member cannot change, instead of one per field.
+            if (!state.canEditEmail && form.needsEmail || !state.canEditParents && form.needsParents) {
+                FormHint(stringResource(R.string.member_locked_fields))
+            }
         }
 
         HouseholdSection(
@@ -242,19 +263,12 @@ private fun MemberFormContent(
             errors,
             onChange,
             onAddHousehold = if (state.canAddHousehold) onAddHousehold else null,
+            modifier = part(MemberPart.Household),
         )
 
-        BirthDateField(form.birthDate, FormError.BirthDateInFuture in errors, today) { date ->
-            onChange { it.copy(birthDate = date) }
-        }
-
         if (form.needsParents) {
-            Section(stringResource(R.string.member_parents)) {
-                Text(
-                    stringResource(R.string.member_parents_help),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            FormTile(icon = Icons.Outlined.FamilyRestroom, title = stringResource(R.string.member_parents), modifier = part(MemberPart.Parents)) {
+                FormHint(stringResource(R.string.member_parents_help))
                 // By household, the child's first; a household ticks its adults (règle de Kévin, 17/11).
                 HouseholdMemberPicker(
                     groups = pickGroups(state.adults, state.households, form.householdId),
@@ -266,7 +280,6 @@ private fun MemberFormContent(
             }
         }
 
-
         if (state.saveFailed) {
             Text(
                 stringResource(R.string.member_save_failed),
@@ -274,20 +287,10 @@ private fun MemberFormContent(
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
-        Button(
-            onClick = onSave,
-            enabled = !state.isSaving,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-        ) {
-            if (state.isSaving) {
-                CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-            } else {
-                Text(stringResource(R.string.member_save))
-            }
-        }
         if (state.canInvite) {
             OutlinedButton(
                 onClick = { onInvite(form.firstName.trim(), form.email.trim().lowercase()) },
+                colors = ButtonDefaults.outlinedButtonColors(containerColor = LocalClayColors.current.card, contentColor = MaterialTheme.colorScheme.onSurface),
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
             ) {
                 Icon(Icons.Outlined.Share, contentDescription = null)
@@ -295,49 +298,28 @@ private fun MemberFormContent(
                 Text(stringResource(R.string.invite_send))
             }
         }
+        // « Retirer » at the very bottom, with a pale red outline (recette de la refonte, point 7).
         if (state.canRemove) RemoveButton(form.firstName, state.soleParentOf, enabled = !state.isSaving, onRemove)
         if (state.removeOwnerOnly) {
-            Text(
-                stringResource(R.string.member_remove_owner_only, form.firstName),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            FormHint(stringResource(R.string.member_remove_owner_only, form.firstName))
         }
-    }
-    if (pickColor) {
-        AlertDialog(
-            onDismissRequest = { pickColor = false },
-            title = { Text(stringResource(R.string.member_color)) },
-            text = {
-                ColorChoices(form.colorIndex) { index ->
-                    onChange { it.copy(colorIndex = index) }
-                    pickColor = false
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { pickColor = false }, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.action_ok))
-                }
-            },
-        )
     }
 }
 
-/** The avatar as it will look, 72 dp; a tap opens the colors. */
+/** The avatar as it will look, 96 dp, and the colors to choose from under it, in one tile. */
 @Composable
-private fun AvatarHeader(form: MemberForm, onClick: () -> Unit) {
+private fun AvatarHeader(form: MemberForm, onPickColor: (Int) -> Unit) {
     val preview = form.toMember(id = "preview", uid = null).copy(firstName = form.firstName.ifBlank { "?" })
-    val label = stringResource(R.string.member_color_change)
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clickable(onClickLabel = label, role = Role.Button, onClick = onClick)
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        MemberAvatar(preview, size = 72.dp)
-        Spacer(Modifier.width(16.dp))
-        Text(label, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+    ClayCard(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            MemberAvatar(preview, size = 96.dp)
+            ColorChoices(form.colorIndex, onPickColor)
+            FormHint(stringResource(R.string.member_color_hint))
+        }
     }
 }
 
@@ -345,12 +327,7 @@ private fun AvatarHeader(form: MemberForm, onClick: () -> Unit) {
 private fun RemoveButton(firstName: String, soleParentOf: List<String>, enabled: Boolean, onRemove: () -> Unit) {
     var confirm by rememberSaveable { mutableStateOf(false) }
     val blocked = soleParentOf.isNotEmpty()
-    OutlinedButton(
-        onClick = { confirm = true },
-        enabled = enabled && !blocked,
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-    ) { Text(stringResource(R.string.member_remove)) }
+    FormDeleteButton(stringResource(R.string.member_remove), onClick = { confirm = true }, enabled = enabled && !blocked)
     if (blocked) {
         Text(
             stringResource(R.string.member_remove_blocked, soleParentOf.joinToString(", ")),
@@ -408,29 +385,6 @@ private fun AddedContent(
 }
 
 @Composable
-private fun Section(title: String, content: @Composable () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
-        content()
-    }
-}
-
-@Composable
-private fun ChoiceRow(label: String, selected: Boolean, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = selected, onClick = null)
-        Spacer(Modifier.width(16.dp))
-        Text(label, style = MaterialTheme.typography.bodyLarge)
-    }
-}
-
-@Composable
 private fun HouseholdSection(
     households: List<Household>,
     selectedId: String?,
@@ -438,16 +392,22 @@ private fun HouseholdSection(
     onChange: ((MemberForm) -> MemberForm) -> Unit,
     /** Null for a chef de famille: only the admin principal creates households. */
     onAddHousehold: ((String) -> Unit)?,
+    modifier: Modifier = Modifier,
 ) {
     var dialogOpen by rememberSaveable { mutableStateOf(false) }
-    Section(stringResource(R.string.member_household)) {
-        Column(Modifier.selectableGroup()) {
-            households.forEach { household ->
-                ChoiceRow(household.name, household.id == selectedId) { onChange { it.copy(householdId = household.id) } }
-            }
+    FormTile(icon = Icons.Outlined.Home, title = stringResource(R.string.member_tile_household), modifier = modifier) {
+        ChoiceTiles(households, columns = 2) { household, tileModifier ->
+            ChoiceTile(
+                title = household.name,
+                selected = household.id == selectedId,
+                onClick = { onChange { it.copy(householdId = household.id) } },
+                modifier = tileModifier,
+            )
         }
         if (onAddHousehold != null) {
-            TextButton(onClick = { dialogOpen = true }, modifier = Modifier.heightIn(min = 56.dp)) {
+            OutlinedButton(onClick = { dialogOpen = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Icon(Icons.Outlined.Add, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
                 Text(stringResource(R.string.member_household_new))
             }
         }
@@ -484,19 +444,34 @@ private fun HouseholdSection(
 @Composable
 private fun BirthDateField(date: LocalDate?, inFuture: Boolean, today: LocalDate, onPick: (LocalDate?) -> Unit) {
     var pickerOpen by rememberSaveable { mutableStateOf(false) }
-    Section(stringResource(R.string.member_birth_date)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { pickerOpen = true }, modifier = Modifier.heightIn(min = 56.dp)) {
-                Text(date?.format(dateFormatter) ?: stringResource(R.string.member_birth_date_none))
-            }
-            if (date != null) {
-                TextButton(onClick = { onPick(null) }, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.action_clear))
-                }
+    // A box like the other fields: the label, then the date; a tap opens the calendar.
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Surface(
+            onClick = { pickerOpen = true },
+            shape = RoundedCornerShape(12.dp),
+            color = LocalClayColors.current.card,
+            border = BorderStroke(1.dp, if (inFuture) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline),
+            modifier = Modifier.weight(1f).heightIn(min = 64.dp),
+        ) {
+            Column(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalArrangement = Arrangement.Center) {
+                Text(
+                    stringResource(R.string.member_birth_date),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    date?.format(dateFormatter) ?: stringResource(R.string.member_birth_date_none),
+                    style = MaterialTheme.typography.titleMedium,
+                )
             }
         }
-        if (inFuture) errorText(setOf(FormError.BirthDateInFuture), FormError.BirthDateInFuture)?.invoke()
+        if (date != null) {
+            TextButton(onClick = { onPick(null) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.action_clear))
+            }
+        }
     }
+    if (inFuture) errorText(setOf(FormError.BirthDateInFuture), FormError.BirthDateInFuture)?.invoke()
     if (pickerOpen) {
         val todayMillis = today.toUtcMillis()
         // A birth date is typed rather than scrolled to, decades back (audit DESIGN du 14/11);
@@ -530,9 +505,9 @@ private fun BirthDateField(date: LocalDate?, inFuture: Boolean, today: LocalDate
 @Composable
 private fun ColorChoices(selected: Int?, onPick: (Int) -> Unit) {
     FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.selectableGroup(),
+        modifier = Modifier.fillMaxWidth().selectableGroup(),
     ) {
         MemberColors.forEachIndexed { index, color ->
             val isSelected = index == selected
@@ -564,6 +539,17 @@ private fun errorText(errors: Set<FormError>, vararg kinds: FormError): (@Compos
 }
 
 private fun helpText(text: String): @Composable () -> Unit = { Text(text) }
+
+/** The tiles of the fiche, in their order on the page: the first one in error is scrolled to. */
+private enum class MemberPart { Who, Household, Parents }
+
+private fun FormError.part(): MemberPart = when (this) {
+    FormError.FirstNameMissing, FormError.FirstNameTooLong, FormError.EmailInvalid, FormError.EmailTaken,
+    FormError.BirthDateInFuture,
+    -> MemberPart.Who
+    FormError.HouseholdMissing -> MemberPart.Household
+    FormError.ParentsMissing, FormError.TooManyParents, FormError.SoleParentOfChild -> MemberPart.Parents
+}
 
 private fun FormError.messageRes(): Int = when (this) {
     FormError.FirstNameMissing -> R.string.error_first_name_missing
