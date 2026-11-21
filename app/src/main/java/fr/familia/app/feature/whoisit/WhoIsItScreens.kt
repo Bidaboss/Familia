@@ -58,6 +58,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import fr.familia.app.R
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.outlined.Person
+import fr.familia.app.core.ui.form.FormDeleteButton
+import fr.familia.app.core.ui.form.FormHint
+import fr.familia.app.core.ui.form.FormOutlineButton
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.StickyActionBar
+import fr.familia.app.core.ui.form.scrollToFirstError
 import fr.familia.app.core.model.WhoIsItAnswer
 import fr.familia.app.core.model.WhoIsItGuess
 import fr.familia.app.core.model.WhoIsItPost
@@ -189,9 +199,7 @@ fun WhoIsItPostScreen(state: WhoIsItPostUiState, actions: WhoIsItActions, onDele
 @Composable
 private fun RemoveButton(onDelete: () -> Unit) {
     var confirm by rememberSaveable { mutableStateOf(false) }
-    OutlinedButton(onClick = { confirm = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-        Text(stringResource(R.string.who_is_it_remove))
-    }
+    FormDeleteButton(stringResource(R.string.who_is_it_remove), onClick = { confirm = true })
     if (confirm) {
         AlertDialog(
             onDismissRequest = { confirm = false },
@@ -295,65 +303,79 @@ fun WhoIsItEditScreen(state: WhoIsItEditUiState.Editing, actions: WhoIsItEditAct
             actions.onPhoto(it.toString())
         }
     }
+    val scroll = rememberScrollState()
+    // The screen goes to the first tile with an error (plan de refonte du 21/11).
+    val firstError = when {
+        WhoIsItFormError.PhotoMissing in state.errors -> WhoIsItTile.Photo
+        WhoIsItFormError.WhoMissing in state.errors || WhoIsItFormError.YearInvalid in state.errors -> WhoIsItTile.Answer
+        else -> null
+    }
+    val tileTop = scrollToFirstError(scroll, state.errors, firstError)
     Scaffold(
         topBar = { FamiliaTopBar(title = { Text(stringResource(R.string.who_is_it_add), maxLines = 2, overflow = TextOverflow.Ellipsis) }, navigationIcon = { BackButton(onClick = onBack) }) },
+        bottomBar = { StickyActionBar(stringResource(R.string.who_is_it_publish), actions.onPublish, enabled = !state.sending, busy = state.sending) },
     ) { padding ->
         Column(
-            Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            Modifier.padding(padding).fillMaxSize().verticalScroll(scroll).imePadding().padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
         ) {
             Text(stringResource(R.string.who_is_it_edit_intro), style = MaterialTheme.typography.bodyLarge)
-            state.form.photo?.let {
-                AsyncImage(
-                    model = it,
-                    contentDescription = stringResource(R.string.who_is_it_photo),
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxWidth().aspectRatio(4f / 3f).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.surfaceVariant),
+            FormTile(Icons.Outlined.PhotoAlbum, stringResource(R.string.who_is_it_tile_photo), tileTop(WhoIsItTile.Photo)) {
+                state.form.photo?.let {
+                    AsyncImage(
+                        model = it,
+                        contentDescription = stringResource(R.string.who_is_it_photo),
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.fillMaxWidth().aspectRatio(4f / 3f).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.surfaceVariant),
+                    )
+                    Spacer(Modifier.height(12.dp))
+                }
+                FormOutlineButton(
+                    stringResource(if (state.form.photo == null) R.string.who_is_it_pick_photo else R.string.who_is_it_change_photo),
+                    { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+                    Modifier.fillMaxWidth(),
+                    enabled = !state.sending,
+                    icon = Icons.Outlined.AddAPhoto,
                 )
+                if (WhoIsItFormError.PhotoMissing in state.errors) FormHint(stringResource(R.string.who_is_it_photo_missing), isError = true)
             }
-            OutlinedButton(
-                onClick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-                enabled = !state.sending,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            ) {
-                Icon(Icons.Outlined.AddAPhoto, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(if (state.form.photo == null) R.string.who_is_it_pick_photo else R.string.who_is_it_change_photo))
+            FormTile(Icons.Outlined.Lightbulb, stringResource(R.string.who_is_it_tile_hint)) {
+                OutlinedTextField(
+                    value = state.form.hint,
+                    onValueChange = actions.onHint,
+                    label = { Text(stringResource(R.string.who_is_it_hint)) },
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                    enabled = !state.sending,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                FormHint(stringResource(R.string.who_is_it_hint_help))
             }
-            if (WhoIsItFormError.PhotoMissing in state.errors) ErrorText(stringResource(R.string.who_is_it_photo_missing))
-            OutlinedTextField(
-                value = state.form.hint,
-                onValueChange = actions.onHint,
-                label = { Text(stringResource(R.string.who_is_it_hint)) },
-                supportingText = { Text(stringResource(R.string.who_is_it_hint_help)) },
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                enabled = !state.sending,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            OutlinedTextField(
-                value = state.form.who,
-                onValueChange = actions.onWho,
-                label = { Text(stringResource(R.string.who_is_it_answer_who)) },
-                isError = WhoIsItFormError.WhoMissing in state.errors,
-                supportingText = { Text(stringResource(R.string.who_is_it_answer_who_help)) },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
-                enabled = !state.sending,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            OutlinedTextField(
-                value = state.form.year,
-                onValueChange = actions.onYear,
-                label = { Text(stringResource(R.string.who_is_it_answer_year_label)) },
-                isError = WhoIsItFormError.YearInvalid in state.errors,
-                supportingText = {
-                    Text(stringResource(if (WhoIsItFormError.YearInvalid in state.errors) R.string.who_is_it_year_invalid else R.string.who_is_it_year_help))
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                enabled = !state.sending,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            FormTile(Icons.Outlined.Person, stringResource(R.string.who_is_it_answer), tileTop(WhoIsItTile.Answer)) {
+                OutlinedTextField(
+                    value = state.form.who,
+                    onValueChange = actions.onWho,
+                    label = { Text(stringResource(R.string.who_is_it_answer_who)) },
+                    isError = WhoIsItFormError.WhoMissing in state.errors,
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+                    enabled = !state.sending,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                FormHint(stringResource(R.string.who_is_it_answer_who_help), isError = WhoIsItFormError.WhoMissing in state.errors)
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = state.form.year,
+                    onValueChange = actions.onYear,
+                    label = { Text(stringResource(R.string.who_is_it_answer_year_label)) },
+                    isError = WhoIsItFormError.YearInvalid in state.errors,
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    enabled = !state.sending,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                val yearInvalid = WhoIsItFormError.YearInvalid in state.errors
+                FormHint(stringResource(if (yearInvalid) R.string.who_is_it_year_invalid else R.string.who_is_it_year_help), isError = yearInvalid)
+            }
             state.failure?.let {
                 ErrorText(
                     stringResource(
@@ -365,12 +387,11 @@ fun WhoIsItEditScreen(state: WhoIsItEditUiState.Editing, actions: WhoIsItEditAct
                     ),
                 )
             }
-            Button(onClick = actions.onPublish, enabled = !state.sending, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(stringResource(if (state.sending) R.string.who_is_it_sending else R.string.who_is_it_publish))
-            }
         }
     }
 }
+
+private enum class WhoIsItTile { Photo, Answer }
 
 @Composable
 private fun ErrorText(text: String) {

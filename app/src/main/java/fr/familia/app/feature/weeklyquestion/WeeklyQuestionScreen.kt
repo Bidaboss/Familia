@@ -19,12 +19,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddAPhoto
 import androidx.compose.material.icons.outlined.QuestionAnswer
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -51,6 +49,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import fr.familia.app.R
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
+import androidx.compose.material.icons.outlined.EditNote
+import fr.familia.app.core.ui.ClaySpacing
+import fr.familia.app.core.ui.form.FormOutlineButton
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.StickyActionBar
 import fr.familia.app.core.photo.keepPhotoAccess
 import fr.familia.app.core.model.WEEKLY_ANSWER_MAX
 import fr.familia.app.core.model.WeeklyAnswer
@@ -122,6 +130,7 @@ fun WeeklyQuestionScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Content(
     state: WeeklyQuestionUiState.Success,
@@ -136,94 +145,94 @@ private fun Content(
     // The photo chosen on the phone, not sent yet; keepPhoto says whether the one sent stays.
     var newPhoto by rememberSaveable(question.id) { mutableStateOf<String?>(null) }
     var keepPhoto by rememberSaveable(question.id) { mutableStateOf(true) }
-    Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Text(
-            stringResource(R.string.weekly_week_of, weekLabel(question.publishedAt)),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        Text(question.text, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.semantics { heading() })
-        question.proposedByName?.let {
-            Text(stringResource(R.string.weekly_proposed_by, it), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-
-        val mine = state.myAnswer
-        if (mine == null || editing) {
-            OutlinedTextField(
-                value = draft,
-                onValueChange = { draft = it.take(WEEKLY_ANSWER_MAX) },
-                label = { Text(stringResource(R.string.weekly_answer_label)) },
-                minLines = 3,
-                enabled = !state.isBusy,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            PhotoPicker(
-                questionId = question.id,
-                memberId = state.myAnswer?.memberId,
-                sentId = mine?.photoId?.takeIf { keepPhoto },
-                newPhoto = newPhoto,
-                enabled = !state.isBusy,
-                onPick = { newPhoto = it },
-                onRemove = { newPhoto = null; keepPhoto = false },
-            )
-            Button(
-                onClick = { onAnswer(draft, newPhoto, keepPhoto); editing = false; newPhoto = null; keepPhoto = true },
-                enabled = !state.isBusy && draft.isNotBlank(),
-                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-            ) { Text(stringResource(R.string.weekly_answer)) }
-            if (mine == null) {
-                OutlinedButton(onClick = onSkip, enabled = !state.isBusy, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.weekly_skip))
-                }
-            } else {
-                TextButton(onClick = { editing = false; newPhoto = null; keepPhoto = true }, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.action_cancel))
+    val mine = state.myAnswer
+    val answering = mine == null || editing
+    val send = { onAnswer(draft, newPhoto, keepPhoto); editing = false; newPhoto = null; keepPhoto = true }
+    Column(Modifier.fillMaxSize()) {
+        Column(
+            Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
+        ) {
+            // The question in a header tile, like the other pages (plan de refonte du 21/11).
+            FormTile(Icons.Outlined.QuestionAnswer, question.text) {
+                Text(
+                    stringResource(R.string.weekly_week_of, weekLabel(question.publishedAt)),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                question.proposedByName?.let {
+                    Text(stringResource(R.string.weekly_proposed_by, it), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-        } else {
-            ClayCard(Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.weekly_my_answer), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-                Text(
-                    if (mine.skipped) stringResource(R.string.weekly_i_skipped) else mine.text.orEmpty(),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+
+            if (answering) FormTile(Icons.Outlined.EditNote, stringResource(R.string.weekly_answer_label)) {
+                OutlinedTextField(
+                    value = draft,
+                    onValueChange = { draft = it.take(WEEKLY_ANSWER_MAX) },
+                    label = { Text(stringResource(R.string.weekly_answer_label)) },
+                    minLines = 3,
+                    enabled = !state.isBusy,
+                    modifier = Modifier.fillMaxWidth(),
                 )
-                mine.photoId?.let { AnswerPhoto(question.id, mine.memberId, it) }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(
-                        onClick = { draft = mine.text.orEmpty(); editing = true },
-                        enabled = !state.isBusy,
-                        modifier = Modifier.heightIn(min = 56.dp),
-                    ) { Text(stringResource(if (mine.skipped) R.string.weekly_answer_after_all else R.string.weekly_edit)) }
-                    TextButton(onClick = onRemove, enabled = !state.isBusy, modifier = Modifier.heightIn(min = 56.dp)) {
-                        Text(stringResource(R.string.weekly_remove))
+                Spacer(Modifier.height(12.dp))
+                PhotoPicker(
+                    questionId = question.id,
+                    memberId = state.myAnswer?.memberId,
+                    sentId = mine?.photoId?.takeIf { keepPhoto },
+                    newPhoto = newPhoto,
+                    enabled = !state.isBusy,
+                    onPick = { newPhoto = it },
+                    onRemove = { newPhoto = null; keepPhoto = false },
+                )
+            }
+            if (answering) {
+                // « Répondre » is the black button at the bottom; passing or cancelling stays under the tile.
+                if (mine == null) {
+                    FormOutlineButton(stringResource(R.string.weekly_skip), onSkip, Modifier.fillMaxWidth(), enabled = !state.isBusy)
+                } else {
+                    FormOutlineButton(stringResource(R.string.action_cancel), { editing = false; newPhoto = null; keepPhoto = true }, Modifier.fillMaxWidth())
+                }
+            } else if (mine != null) {
+                FormTile(Icons.Outlined.ChatBubbleOutline, stringResource(R.string.weekly_my_answer)) {
+                    Text(
+                        if (mine.skipped) stringResource(R.string.weekly_i_skipped) else mine.text.orEmpty(),
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                    )
+                    mine.photoId?.let { AnswerPhoto(question.id, mine.memberId, it) }
+                    Spacer(Modifier.height(12.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FormOutlineButton(
+                            stringResource(if (mine.skipped) R.string.weekly_answer_after_all else R.string.weekly_edit),
+                            { draft = mine.text.orEmpty(); editing = true },
+                            enabled = !state.isBusy,
+                        )
+                        FormOutlineButton(stringResource(R.string.weekly_remove), onRemove, enabled = !state.isBusy)
                     }
                 }
             }
-        }
-        if (state.isBusy) CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
+            if (state.isBusy && !answering) CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
 
-        Text(
-            pluralStringResource(R.plurals.weekly_answer_count, question.answerCount, question.answerCount),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(top = 8.dp).semantics { heading() },
-        )
-        when {
-            !state.canSeeAnswers -> Text(
-                stringResource(R.string.weekly_hidden_until, revealLabel(question.revealAt)),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            Text(
+                pluralStringResource(R.plurals.weekly_answer_count, question.answerCount, question.answerCount),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 8.dp).semantics { heading() },
             )
-            state.answers.isEmpty() -> Text(
-                stringResource(R.string.weekly_no_other_answer),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            else -> state.answers.forEach { AnswerCard(question.id, it) }
+            when {
+                !state.canSeeAnswers -> Text(
+                    stringResource(R.string.weekly_hidden_until, revealLabel(question.revealAt)),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                state.answers.isEmpty() -> Text(
+                    stringResource(R.string.weekly_no_other_answer),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                else -> state.answers.forEach { AnswerCard(question.id, it) }
+            }
         }
+        if (answering) StickyActionBar(stringResource(R.string.weekly_answer), send, enabled = !state.isBusy && draft.isNotBlank(), busy = state.isBusy)
     }
 }
 
@@ -274,19 +283,16 @@ private fun PhotoPicker(
             } else if (sentId != null && memberId != null) {
                 StorageImage(weeklyThumbnailPath(questionId, memberId, sentId), description, thumb)
             }
-            TextButton(onClick = onRemove, enabled = enabled, modifier = Modifier.heightIn(min = 56.dp)) {
-                Text(stringResource(R.string.weekly_photo_remove))
-            }
+            FormOutlineButton(stringResource(R.string.weekly_photo_remove), onRemove, enabled = enabled)
         }
     } else {
-        OutlinedButton(
-            onClick = { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+        FormOutlineButton(
+            stringResource(R.string.weekly_photo_add),
+            { picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+            Modifier.fillMaxWidth(),
             enabled = enabled,
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-        ) {
-            Icon(Icons.Outlined.AddAPhoto, contentDescription = null)
-            Text(stringResource(R.string.weekly_photo_add), modifier = Modifier.padding(start = 8.dp))
-        }
+            icon = Icons.Outlined.AddAPhoto,
+        )
     }
 }
 

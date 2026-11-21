@@ -1,11 +1,14 @@
 package fr.familia.app.feature.joinme
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -13,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -79,9 +84,9 @@ fun JoinMeHomeContent(
     val tint = LocalClayCardTint.current
     val received = state.received
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        received.forEachIndexed { index, share ->
-            if (index > 0) HorizontalDivider()
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        // One small card per place, rather than lines between them (plan de refonte du 21/11).
+        received.forEach { share ->
+            ShareCard(verticalSpacing = 8.dp) {
                 Text(
                     stringResource(R.string.joinme_from, share.authorName, postedLabel(share.createdAt, state.now)),
                     style = MaterialTheme.typography.labelLarge,
@@ -97,8 +102,7 @@ fun JoinMeHomeContent(
             }
         }
         state.sent.forEach { share ->
-            if (received.isNotEmpty()) HorizontalDivider()
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            ShareCard(verticalSpacing = 4.dp) {
                 Text(
                     stringResource(R.string.joinme_mine, formatTime(share.expireAt.atZone(zone).toLocalTime())),
                     style = MaterialTheme.typography.labelLarge,
@@ -111,6 +115,19 @@ fun JoinMeHomeContent(
         if (stopFailed) {
             Text(stringResource(R.string.joinme_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
         }
+    }
+}
+
+/** A share on the Accueil: a thin border on the card's own tint, so its texts keep their colors. */
+@Composable
+private fun ShareCard(verticalSpacing: Dp, content: @Composable ColumnScope.() -> Unit) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = Color.Transparent,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(verticalSpacing), content = content)
     }
 }
 

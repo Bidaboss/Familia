@@ -4,8 +4,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,27 +18,21 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import fr.familia.app.core.ui.FamiliaTopBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
@@ -48,6 +40,18 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.outlined.EditNote
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.Place
+import fr.familia.app.core.ui.ClaySpacing
+import fr.familia.app.core.ui.form.ChipGroup
+import fr.familia.app.core.ui.form.FormChip
+import fr.familia.app.core.ui.form.FormHint
+import fr.familia.app.core.ui.form.FormOutlineButton
+import fr.familia.app.core.ui.form.FormTile
+import fr.familia.app.core.ui.form.StickyActionBar
+import fr.familia.app.core.ui.form.scrollToFirstError
 import fr.familia.app.core.ui.HouseholdMemberPicker
 import fr.familia.app.core.ui.PickGroup
 import fr.familia.app.core.model.Member
@@ -85,6 +89,12 @@ fun JoinMeScreen(
                 actions = { HelpButton(ScreenHelp.JoinMe) },
             )
         },
+        // The main action stays at the bottom of the screen (plan de refonte du 21/11).
+        bottomBar = {
+            if (state is JoinMeUiState.Editing) {
+                StickyActionBar(stringResource(R.string.joinme_send), onSend, enabled = state.canSend, busy = state.sending)
+            }
+        },
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
             when (state) {
@@ -94,13 +104,12 @@ fun JoinMeScreen(
                     title = stringResource(R.string.joinme_unavailable_title),
                     body = stringResource(R.string.joinme_unavailable_body),
                 )
-                is JoinMeUiState.Editing -> Form(state, onLocate, onSource, onQuery, onSearch, onName, onNote, onRecipients, onShortcut, onSend)
+                is JoinMeUiState.Editing -> Form(state, onLocate, onSource, onQuery, onSearch, onName, onNote, onRecipients, onShortcut)
             }
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Form(
     state: JoinMeUiState.Editing,
@@ -112,68 +121,70 @@ private fun Form(
     onNote: (String) -> Unit,
     onRecipients: (Set<String>) -> Unit,
     onShortcut: (RecipientShortcut) -> Unit,
-    onSend: () -> Unit,
 ) {
+    val accent = MaterialTheme.colorScheme.primary
+    val scroll = rememberScrollState()
+    // The screen goes to the first tile with an error (plan de refonte du 21/11).
+    val firstError = if (JoinMeError.NameTooLong in state.errors || JoinMeError.NoteTooLong in state.errors) JoinMeTile.Words else null
+    val tileTop = scrollToFirstError(scroll, state.errors, firstError)
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding().padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.fillMaxSize().verticalScroll(scroll).imePadding().padding(horizontal = ClaySpacing.screen, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
-        SectionTitle(stringResource(R.string.joinme_where))
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            PlaceSource.entries.forEach { source ->
-                val selected = state.source == source
-                FilterChip(
-                    selected = selected,
-                    onClick = { onSource(source) },
-                    label = {
-                        Text(
-                            stringResource(if (source == PlaceSource.Here) R.string.joinme_source_here else R.string.joinme_source_elsewhere),
-                            style = MaterialTheme.typography.labelLarge,
-                        )
-                    },
-                    leadingIcon = if (selected) ({ Icon(Icons.Outlined.Check, contentDescription = null) }) else null,
-                    modifier = Modifier.heightIn(min = 56.dp),
-                )
+        FormTile(Icons.Outlined.Place, stringResource(R.string.joinme_where), accent = accent) {
+            ChipGroup {
+                PlaceSource.entries.forEach { source ->
+                    FormChip(
+                        label = stringResource(if (source == PlaceSource.Here) R.string.joinme_source_here else R.string.joinme_source_elsewhere),
+                        selected = state.source == source,
+                        onClick = { onSource(source) },
+                        icon = if (source == PlaceSource.Here) Icons.Outlined.MyLocation else Icons.Outlined.Search,
+                    )
+                }
             }
+            Spacer(Modifier.height(12.dp))
+            if (state.source == PlaceSource.Here) HereSection(state.lookup, onLocate) else ElsewhereSection(state, onQuery, onSearch)
         }
-        if (state.source == PlaceSource.Here) HereSection(state.lookup, onLocate) else ElsewhereSection(state, onQuery, onSearch)
 
-        OutlinedTextField(
-            value = state.name,
-            onValueChange = onName,
-            label = { Text(stringResource(R.string.joinme_name)) },
-            placeholder = { Text(stringResource(R.string.joinme_name_hint)) },
-            isError = JoinMeError.NameTooLong in state.errors,
-            supportingText = if (JoinMeError.NameTooLong in state.errors) ({ Text(stringResource(R.string.joinme_name_too_long)) }) else null,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        OutlinedTextField(
-            value = state.note,
-            onValueChange = onNote,
-            label = { Text(stringResource(R.string.joinme_note)) },
-            placeholder = { Text(stringResource(R.string.joinme_note_hint)) },
-            isError = JoinMeError.NoteTooLong in state.errors,
-            supportingText = if (JoinMeError.NoteTooLong in state.errors) ({ Text(stringResource(R.string.joinme_note_too_long)) }) else null,
-            minLines = 2,
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            modifier = Modifier.fillMaxWidth(),
-        )
+        FormTile(Icons.Outlined.EditNote, stringResource(R.string.joinme_tile_words), tileTop(JoinMeTile.Words), accent = accent) {
+            OutlinedTextField(
+                value = state.name,
+                onValueChange = onName,
+                label = { Text(stringResource(R.string.joinme_name)) },
+                placeholder = { Text(stringResource(R.string.joinme_name_hint)) },
+                isError = JoinMeError.NameTooLong in state.errors,
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            if (JoinMeError.NameTooLong in state.errors) FormHint(stringResource(R.string.joinme_name_too_long), isError = true)
+            Spacer(Modifier.height(12.dp))
+            OutlinedTextField(
+                value = state.note,
+                onValueChange = onNote,
+                label = { Text(stringResource(R.string.joinme_note)) },
+                placeholder = { Text(stringResource(R.string.joinme_note_hint)) },
+                isError = JoinMeError.NoteTooLong in state.errors,
+                minLines = 2,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            if (JoinMeError.NoteTooLong in state.errors) FormHint(stringResource(R.string.joinme_note_too_long), isError = true)
+        }
 
-        RecipientsSection(state, onRecipients, onShortcut)
+        FormTile(Icons.Outlined.Groups, stringResource(R.string.joinme_who), accent = accent) {
+            RecipientsSection(state, onRecipients, onShortcut)
+            FormHint(stringResource(R.string.joinme_send_hint))
+        }
 
         if (state.sendFailed) {
-            Text(stringResource(R.string.joinme_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                stringResource(R.string.joinme_failed),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            )
         }
-        Button(onClick = onSend, enabled = state.canSend, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            if (state.sending) {
-                CircularProgressIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-            } else {
-                Text(stringResource(R.string.joinme_send))
-            }
-        }
-        Hint(stringResource(R.string.joinme_send_hint))
     }
 }
 
@@ -184,7 +195,7 @@ private fun HereSection(lookup: PlaceLookup, onLocate: () -> Unit) {
             PlaceLookup.Searching -> Searching(stringResource(R.string.joinme_locating))
             is PlaceLookup.Found -> {
                 PlaceLines(lookup.place)
-                TextButton(onClick = onLocate, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.joinme_locate_again)) }
+                FormOutlineButton(stringResource(R.string.joinme_locate_again), onLocate, icon = Icons.Outlined.MyLocation)
             }
             else -> {
                 when (lookup) {
@@ -192,11 +203,7 @@ private fun HereSection(lookup: PlaceLookup, onLocate: () -> Unit) {
                     PlaceLookup.NoPermission -> Problem(stringResource(R.string.joinme_no_permission))
                     else -> Unit
                 }
-                OutlinedButton(onClick = onLocate, modifier = Modifier.heightIn(min = 56.dp)) {
-                    Icon(Icons.Outlined.MyLocation, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.joinme_locate))
-                }
+                FormOutlineButton(stringResource(R.string.joinme_locate), onLocate, icon = Icons.Outlined.MyLocation)
             }
         }
     }
@@ -222,40 +229,22 @@ private fun ElsewhereSection(state: JoinMeUiState.Editing, onQuery: (String) -> 
             else -> Unit
         }
         if (state.lookup !is PlaceLookup.Found && state.lookup != PlaceLookup.Searching) {
-            OutlinedButton(onClick = onSearch, enabled = state.query.isNotBlank(), modifier = Modifier.heightIn(min = 56.dp)) {
-                Icon(Icons.Outlined.Search, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.joinme_search))
-            }
+            FormOutlineButton(stringResource(R.string.joinme_search), onSearch, enabled = state.query.isNotBlank(), icon = Icons.Outlined.Search)
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun RecipientsSection(state: JoinMeUiState.Editing, onRecipients: (Set<String>) -> Unit, onShortcut: (RecipientShortcut) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        SectionTitle(stringResource(R.string.joinme_who))
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(vertical = 4.dp),
-        ) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        ChipGroup {
             state.shortcuts.forEach { shortcut ->
-                val selected = state.recipientIds == shortcut.memberIds
-                FilterChip(
-                    selected = selected,
+                FormChip(
+                    label = stringResource(
+                        if (shortcut.kind == RecipientShortcut.Kind.MyHousehold) R.string.joinme_who_household else R.string.joinme_who_family,
+                    ),
+                    selected = state.recipientIds == shortcut.memberIds,
                     onClick = { onShortcut(shortcut) },
-                    label = {
-                        Text(
-                            stringResource(
-                                if (shortcut.kind == RecipientShortcut.Kind.MyHousehold) R.string.joinme_who_household else R.string.joinme_who_family,
-                            ),
-                            style = MaterialTheme.typography.labelLarge,
-                        )
-                    },
-                    leadingIcon = if (selected) ({ Icon(Icons.Outlined.Check, contentDescription = null) }) else null,
-                    modifier = Modifier.heightIn(min = 56.dp),
                 )
             }
         }
@@ -287,16 +276,6 @@ private fun Problem(text: String) {
     )
 }
 
-@Composable
-private fun SectionTitle(text: String) {
-    Text(text, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
-}
-
-@Composable
-private fun Hint(text: String) {
-    Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-}
-
 /** A form with a place found and two recipients ticked, for the previews and the screenshot tests. */
 internal fun previewJoinMeForm(): JoinMeUiState.Editing {
     fun member(id: String, name: String, household: String, profile: MemberProfile = MemberProfile.Adult) =
@@ -325,3 +304,4 @@ private fun JoinMeScreenPreview() {
     }
 }
 
+private enum class JoinMeTile { Words }
