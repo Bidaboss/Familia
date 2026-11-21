@@ -1622,3 +1622,12 @@ Celui qui suit un voyage sans y participer ne voit plus la liste « À prévoir 
 4. Le rappel « À emporter » de 18 h ne part qu'aux participants avec l'appli.
 
 **Après la fusion :** lancer « Publier Firebase » avant l'APK (les règles changent).
+
+## Le mot de l'étape, 1re partie : les données (récit 88, 21/11)
+
+Rien ne change à l'écran : cette partie prépare le mot, ses cœurs et ses commentaires (règles Firestore, suppression avec l'étape, accès aux données). La page du mot arrive dans la 2e partie.
+
+1. Supprime une étape d'un voyage. **Attendu :** elle disparaît comme avant, sans erreur.
+2. Supprime un voyage entier. **Attendu :** il disparaît comme avant.
+
+**Après la fusion :** lancer « Publier Firebase » avant l'APK (règles et fonctions : `onStepDeletedWord`). Un seul lancement pour tout le lot du mot de l'étape.

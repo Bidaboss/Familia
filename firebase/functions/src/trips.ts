@@ -107,3 +107,8 @@ export async function sendArrivalReminders(db: Firestore, send: Sender, now: Dat
 export async function deleteTripContents(db: Firestore, tripId: string): Promise<void> {
   await db.recursiveDelete(db.collection('trips').doc(tripId));
 }
+
+/** The word of a deleted step (récit 88) goes with its hearts and its comments. */
+export async function deleteStepWord(db: Firestore, tripId: string, stepId: string): Promise<void> {
+  await db.recursiveDelete(db.collection('trips').doc(tripId).collection('words').doc(stepId));
+}

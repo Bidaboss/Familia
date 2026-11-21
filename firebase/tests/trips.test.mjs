@@ -4,7 +4,7 @@
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
 import {
-  collection, deleteDoc, doc, getDoc, getDocs, query, serverTimestamp, setDoc, Timestamp, updateDoc, where,
+  collection, deleteDoc, deleteField, doc, getDoc, getDocs, query, serverTimestamp, setDoc, Timestamp, updateDoc, where,
 } from 'firebase/firestore';
 import { ADMIN, ADULT, NEIGHBOUR, OTHER_ADULT, STRANGER, adultDoc, as, createEnv, seed } from './helpers.mjs';
 
@@ -421,5 +421,130 @@ describe('trips/{tripId}/bags', () => {
     await assertFails(setDoc(doc(db, 'trips/t1/bags/adult3'), { ...bag(NEIGHBOUR), extra: 1 }));
     await assertFails(setDoc(doc(db, 'trips/t1/bags/adult3'), bag(NEIGHBOUR, 'Chargeur')));
     await assertFails(setDoc(doc(db, 'trips/t1/bags/adult3'), bag(NEIGHBOUR, Array.from({ length: 81 }, (_, i) => ({ label: `o${i}`, done: false })))));
+  });
+});
+
+// « Le mot de l'étape » (récit 88): trips/t1/words/s1. adult1 and adult3 take part, admin1 and adult2
+// follow, a trip hidden from adult2 has no word for them.
+describe('« le mot de l\'étape » (récit 88)', () => {
+  const word = (m, overrides = {}) => ({
+    text: 'Bien arrivés à Ajaccio, il fait beau.',
+    photoIds: ['adult1_1', 'adult1_2'],
+    authorId: m.memberId,
+    authorName: m.memberId,
+    hearts: {},
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    ...overrides,
+  });
+
+  async function setup(tripOverrides = {}) {
+    await storedTrip('t1', ADULT, tripOverrides);
+    await storedStep('t1', 's1');
+  }
+
+  async function storedWord(m, overrides = {}) {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), 'trips/t1/words/s1'), {
+        ...word(m, overrides), createdAt: Timestamp.fromMillis(0), updatedAt: Timestamp.fromMillis(0),
+      });
+    });
+  }
+
+  test('a participant writes a word, signed, for a step that exists', async () => {
+    await setup();
+    await assertSucceeds(setDoc(doc(as(env, ADULT), 'trips/t1/words/s1'), word(ADULT)));
+    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/words/s1'), word(NEIGHBOUR, { photoIds: [] })));
+    await assertFails(setDoc(doc(as(env, ADULT), 'trips/t1/words/nope'), word(ADULT)));
+  });
+
+  test('a follower who does not take part writes nothing, and nobody writes in another name', async () => {
+    await setup();
+    await assertFails(setDoc(doc(as(env, ADMIN), 'trips/t1/words/s1'), word(ADMIN)));
+    await assertFails(setDoc(doc(as(env, ADULT), 'trips/t1/words/s1'), word(NEIGHBOUR)));
+    await assertFails(setDoc(doc(as(env, ADULT), 'trips/t1/words/s1'), word(ADULT, { authorName: 'Maman' })));
+  });
+
+  test('the shape is checked: 280 characters, 4 photos, no hearts yet', async () => {
+    await setup();
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/words/s1'), word(ADULT, { text: 'a'.repeat(280), photoIds: ['a_1', 'a_2', 'a_3', 'a_4'] })));
+    await assertFails(setDoc(doc(db, 'trips/t1/words/s1'), word(ADULT, { text: 'a'.repeat(281) })));
+    await assertFails(setDoc(doc(db, 'trips/t1/words/s1'), word(ADULT, { text: '' })));
+    await assertFails(setDoc(doc(db, 'trips/t1/words/s1'), word(ADULT, { photoIds: ['a_1', 'a_2', 'a_3', 'a_4', 'a_5'] })));
+    await assertFails(setDoc(doc(db, 'trips/t1/words/s1'), word(ADULT, { photoIds: ['a_1', 'a_1'] })));
+    await assertFails(setDoc(doc(db, 'trips/t1/words/s1'), word(ADULT, { hearts: { admin1: true } })));
+    await assertFails(setDoc(doc(db, 'trips/t1/words/s1'), word(ADULT, { extra: 1 })));
+  });
+
+  test('followers read the word, an unticked member does not', async () => {
+    await setup({ readerIds: ['admin1', 'adult1', 'adult3'] });
+    await storedWord(ADULT);
+    await assertSucceeds(getDoc(doc(as(env, ADMIN), 'trips/t1/words/s1')));
+    await assertSucceeds(getDoc(doc(as(env, NEIGHBOUR), 'trips/t1/words/s1')));
+    await assertFails(getDoc(doc(as(env, OTHER_ADULT), 'trips/t1/words/s1')));
+  });
+
+  test('only its author changes the text and the photos, and takes the word back', async () => {
+    await setup();
+    await storedWord(ADULT);
+    const change = { text: 'Changé', photoIds: ['adult1_3'], updatedAt: serverTimestamp() };
+    await assertFails(updateDoc(doc(as(env, NEIGHBOUR), 'trips/t1/words/s1'), change));
+    await assertFails(updateDoc(doc(as(env, ADMIN), 'trips/t1/words/s1'), change));
+    await assertFails(updateDoc(doc(as(env, ADULT), 'trips/t1/words/s1'), { ...change, authorId: 'adult3' }));
+    await assertSucceeds(updateDoc(doc(as(env, ADULT), 'trips/t1/words/s1'), change));
+    await assertFails(deleteDoc(doc(as(env, NEIGHBOUR), 'trips/t1/words/s1')));
+    await assertSucceeds(deleteDoc(doc(as(env, ADULT), 'trips/t1/words/s1')));
+  });
+
+  test('the admin principal takes a word back', async () => {
+    await setup();
+    await storedWord(ADULT);
+    await assertSucceeds(deleteDoc(doc(as(env, ADMIN), 'trips/t1/words/s1')));
+  });
+
+  test('a follower puts and takes back their own heart, and nobody else\'s', async () => {
+    await setup();
+    await storedWord(ADULT);
+    const db = as(env, OTHER_ADULT);
+    await assertSucceeds(updateDoc(doc(db, 'trips/t1/words/s1'), { 'hearts.adult2': true }));
+    await assertFails(updateDoc(doc(db, 'trips/t1/words/s1'), { 'hearts.admin1': true }));
+    await assertFails(updateDoc(doc(db, 'trips/t1/words/s1'), { 'hearts.adult2': 'yes' }));
+    await assertFails(updateDoc(doc(db, 'trips/t1/words/s1'), { text: 'Changé', 'hearts.adult2': true }));
+    await assertSucceeds(updateDoc(doc(as(env, ADULT), 'trips/t1/words/s1'), { 'hearts.adult1': true }));
+    await assertSucceeds(updateDoc(doc(db, 'trips/t1/words/s1'), { 'hearts.adult2': deleteField() }));
+  });
+
+  test('an unticked member puts no heart and no comment', async () => {
+    await setup({ readerIds: ['admin1', 'adult1', 'adult3'] });
+    await storedWord(ADULT);
+    const db = as(env, OTHER_ADULT);
+    await assertFails(updateDoc(doc(db, 'trips/t1/words/s1'), { 'hearts.adult2': true }));
+    await assertFails(setDoc(doc(db, 'trips/t1/words/s1/comments/c1'), comment(OTHER_ADULT)));
+  });
+
+  const comment = (m, overrides = {}) => ({
+    text: 'Quelle belle photo !', authorId: m.memberId, authorName: m.memberId, createdAt: serverTimestamp(), ...overrides,
+  });
+
+  test('a follower comments with a mention, and changes or removes their own comment', async () => {
+    await setup();
+    await storedWord(ADULT);
+    const db = as(env, ADMIN);
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/words/s1/comments/c1'), comment(ADMIN, { mentionIds: ['adult1'] })));
+    await assertFails(setDoc(doc(db, 'trips/t1/words/s1/comments/c2'), comment(ADMIN, { text: 'a'.repeat(501) })));
+    await assertFails(setDoc(doc(db, 'trips/t1/words/s1/comments/c3'), comment(OTHER_ADULT)));
+    await assertSucceeds(updateDoc(doc(db, 'trips/t1/words/s1/comments/c1'), { text: 'Merci', editedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(as(env, OTHER_ADULT), 'trips/t1/words/s1/comments/c1'), { text: 'X', editedAt: serverTimestamp() }));
+    await assertSucceeds(deleteDoc(doc(db, 'trips/t1/words/s1/comments/c1')));
+  });
+
+  test('the author of the word removes a comment under it, and no comment without a word', async () => {
+    await setup();
+    await storedWord(ADULT);
+    await setDoc(doc(as(env, ADMIN), 'trips/t1/words/s1/comments/c1'), comment(ADMIN));
+    await assertFails(deleteDoc(doc(as(env, NEIGHBOUR), 'trips/t1/words/s1/comments/c1')));
+    await assertSucceeds(deleteDoc(doc(as(env, ADULT), 'trips/t1/words/s1/comments/c1')));
+    await assertFails(setDoc(doc(as(env, ADMIN), 'trips/t1/words/s2/comments/c1'), comment(ADMIN)));
   });
 });

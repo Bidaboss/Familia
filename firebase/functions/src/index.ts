@@ -43,7 +43,7 @@ import {
 import { actorUid, addDays, changeNotice, EventData, hasVisibleChange, Member, Notice, parisDay } from './logic';
 import { comingMembers, deleteEventAnswers, featureAudience, loadMembers, deleteMemberData, memberForUid, notify, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
 import { deleteExpenseBook, ExpenseData, historyEntry, sendExpenseNotices, writeExpenseHistory } from './expenses';
-import { deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
+import { deleteStepWord, deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
 import {
   countGesture, countHelpGiven, deleteSouvenirsOf, giveSouvenir, giveYearSouvenirs, isNewWeeklyAnswer, souvenirMark,
@@ -621,6 +621,11 @@ export const onTripStepUpdated = onDocumentUpdatedWithAuthContext('trips/{tripId
     await giveSouvenir(getFirestore(), send, by, 'firstArrival', new Date());
     await grow('arrival', () => addLeaf(getFirestore(), by, treeMark.arrival(event.params.tripId, event.params.stepId), new Date()));
   }
+});
+
+// « Le mot de l'étape » (récit 88) goes with its step, with its hearts and comments.
+export const onStepDeletedWord = onDocumentDeleted('trips/{tripId}/steps/{stepId}', async (event) => {
+  await deleteStepWord(getFirestore(), event.params.tripId, event.params.stepId);
 });
 
 export const onTripDeleted = onDocumentDeleted('trips/{tripId}', async (event) => {

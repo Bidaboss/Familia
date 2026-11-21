@@ -7,7 +7,7 @@ import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 import { Member, Notice } from '../src/logic';
 import { Sender } from '../src/store';
 import {
-  arrivalNotice, deleteTripContents, isNewArrival, joinNames, notifyArrival, sendArrivalReminders, StepData, TripData, withApp,
+  arrivalNotice, deleteStepWord, deleteTripContents, isNewArrival, joinNames, notifyArrival, sendArrivalReminders, StepData, TripData, withApp,
 } from '../src/trips';
 
 assert.ok(process.env.FIRESTORE_EMULATOR_HOST, 'Start these tests with the emulator: npm run test:functions');
@@ -132,5 +132,27 @@ describe('store', () => {
     await db.doc('trips/t1').delete();
     await deleteTripContents(db, 't1');
     assert.equal((await db.collection('trips/t1/steps').get()).size, 0);
+  });
+});
+
+describe('le mot de l\'étape (récit 88)', () => {
+  beforeEach(async () => {
+    await db.recursiveDelete(db.collection('trips'));
+  });
+
+  test('the word of a deleted step goes with its hearts and comments, the others stay', async () => {
+    await db.doc('trips/t1/words/s1').set({ text: 'Bien arrivés', hearts: { lou: true } });
+    await db.doc('trips/t1/words/s1/comments/c1').set({ text: 'Super' });
+    await db.doc('trips/t1/words/s2').set({ text: 'Autre étape' });
+    await deleteStepWord(db, 't1', 's1');
+    assert.equal((await db.doc('trips/t1/words/s1').get()).exists, false);
+    assert.equal((await db.collection('trips/t1/words/s1/comments').get()).size, 0);
+    assert.equal((await db.doc('trips/t1/words/s2').get()).exists, true);
+  });
+
+  test('deleting the trip deletes its words', async () => {
+    await db.doc('trips/t1/words/s1').set({ text: 'Bien arrivés' });
+    await deleteTripContents(db, 't1');
+    assert.equal((await db.collection('trips/t1/words').get()).size, 0);
   });
 });
