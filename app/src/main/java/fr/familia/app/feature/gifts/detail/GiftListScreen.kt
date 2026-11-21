@@ -1,5 +1,12 @@
 package fr.familia.app.feature.gifts.detail
 
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.IconButton
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.graphics.Color
+import fr.familia.app.core.theme.themeBackground
+import fr.familia.app.core.ui.form.ChipGroup
+import fr.familia.app.core.ui.form.FormChip
 import fr.familia.app.core.photo.CoverBanner
 import fr.familia.app.core.photo.CoverThumbnail
 import fr.familia.app.core.model.Feature
@@ -139,7 +146,8 @@ data class GiftListActions(
 fun GiftListScreen(state: GiftListUiState, actions: GiftListActions, modifier: Modifier = Modifier) {
     val success = state as? GiftListUiState.Success
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.themeBackground(),
+        containerColor = Color.Transparent,
         topBar = {
             FamiliaTopBar(
                 title = {
@@ -155,8 +163,9 @@ fun GiftListScreen(state: GiftListUiState, actions: GiftListActions, modifier: M
                     HelpButton(ScreenHelp.GiftList)
                     if (actions.onShareOutside != null && success?.canSendOutside == true) ShareButton(onClick = actions.onShareOutside)
                     if (success?.canManage == true && !success.list.kind.isPermanent) {
-                        TextButton(onClick = actions.onEditList, modifier = Modifier.heightIn(min = 56.dp)) {
-                            Text(stringResource(R.string.event_detail_edit), style = MaterialTheme.typography.labelLarge)
+                        // The pencil round of the redone pages (refonte globale, lot 2).
+                        IconButton(onClick = actions.onEditList, modifier = Modifier.size(56.dp)) {
+                            Icon(Icons.Outlined.Edit, contentDescription = stringResource(R.string.event_detail_edit))
                         }
                     }
                 },
@@ -220,18 +229,20 @@ private fun Content(state: GiftListUiState.Success, actions: GiftListActions) {
         item(key = "header") { Header(state, actions.onOpenReceived, actions.onOpenBeneficiary) }
         if (state.items.isEmpty()) {
             item(key = "empty") {
-                Text(
-                    when {
-                        state.keptFromMe -> stringResource(R.string.gift_list_empty_mine)
-                        state.list.kind == GiftListKind.Ideas -> stringResource(R.string.gift_ideas_empty)
-                        state.list.kind == GiftListKind.Wishes && !state.canAddItems ->
-                            stringResource(R.string.gift_wishes_empty_other, state.beneficiary.firstName)
-                        else -> stringResource(R.string.gift_list_empty)
-                    },
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 16.dp),
-                )
+                // A card rather than a loose sentence (refonte globale, recette 8); « Ajouter » stays the button below.
+                ClayCard(Modifier.fillMaxWidth()) {
+                    Text(
+                        when {
+                            state.keptFromMe -> stringResource(R.string.gift_list_empty_mine)
+                            state.list.kind == GiftListKind.Ideas -> stringResource(R.string.gift_ideas_empty)
+                            state.list.kind == GiftListKind.Wishes && !state.canAddItems ->
+                                stringResource(R.string.gift_wishes_empty_other, state.beneficiary.firstName)
+                            else -> stringResource(R.string.gift_list_empty)
+                        },
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
         items(state.items, key = { it.item.id }) { row ->
@@ -614,13 +625,12 @@ private fun ClaimOccasion(claim: ClaimView, onSelect: (GiftOccasion) -> Unit) {
         style = MaterialTheme.typography.titleSmall,
         modifier = Modifier.padding(top = 4.dp).semantics { heading() },
     )
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    ChipGroup {
         listOf(GiftOccasion.Christmas, GiftOccasion.Birthday).forEach { choice ->
-            FilterChip(
+            FormChip(
+                label = occasionLabel(choice),
                 selected = choice == occasion,
                 onClick = { if (choice != occasion) onSelect(choice) },
-                label = { Text(occasionLabel(choice)) },
-                modifier = Modifier.heightIn(min = 56.dp),
             )
         }
     }
