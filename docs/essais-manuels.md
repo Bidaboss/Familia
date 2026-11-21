@@ -1611,3 +1611,13 @@ Les écrans suivent les maquettes « Une dépense » et « Une recette ». Rien 
 6. Les parts : « + » passe de « — » à 1, puis 2 ; « − » depuis 1 revient à « — ». Le bouton noir dit « Ajouter la recette ».
 7. Une recette : les ingrédients et les étapes sont des tuiles avec une icône, et « Retirer la recette » est bordé de rouge pâle. La liste des recettes et les comptes gardent leurs cartes, sur le fond du thème.
 8. Refais 1 et 5 avec le texte à 200 % et en thème sombre. **Attendu :** rien n'est coupé, et les tuiles des catégories passent sur deux colonnes.
+
+## La carte du voyage, 1re partie : la position des étapes (récit 87, 21/11)
+
+Rien ne change à l'écran. À l'enregistrement d'une étape, le téléphone cherche son lieu et garde un point (latitude, longitude) pour la carte, qui arrive dans la 2e partie.
+
+1. Avec le réseau : ajoute une étape « Ajaccio » à un voyage. **Attendu :** elle s'enregistre comme avant, sans attente visible.
+2. En mode avion : ajoute une étape « Chez Mamie ». **Attendu :** elle s'enregistre quand même (au plus 3 secondes de plus), sans message d'erreur.
+3. Rouvre une étape et change seulement la note. **Attendu :** elle s'enregistre sans rechercher le lieu de nouveau.
+
+**Après la fusion :** lancer « Publier Firebase » avant l'APK (la règle des étapes accepte deux nombres facultatifs, `lat` et `lng`).

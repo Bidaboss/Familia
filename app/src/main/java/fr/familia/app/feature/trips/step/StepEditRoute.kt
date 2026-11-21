@@ -23,6 +23,7 @@ fun StepEditRoute(container: AppContainer?, currentMember: Member, tripId: Strin
                     currentMember.id,
                     tripId,
                     stepId,
+                    locator = container?.placeLocator,
                     savedState = createSavedStateHandle(),
                 )
             }

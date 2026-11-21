@@ -216,6 +216,24 @@ describe('steps (récit 11)', () => {
     await assertFails(setDoc(doc(db, 'trips/t1/steps/f'), step({ cost: 120 })));
   });
 
+  test('a step may carry its point on the map, both numbers in range or both null (récit 87)', async () => {
+    await storedTrip('t1', ADULT);
+    const db = as(env, ADULT);
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/steps/m1'), step({ lat: 41.9192, lng: 8.7386 })));
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/steps/m2'), step({ lat: null, lng: null })));
+    await assertSucceeds(setDoc(doc(db, 'trips/t1/steps/m3'), step({ lat: -33.9, lng: -151.2 })));
+    await assertFails(setDoc(doc(db, 'trips/t1/steps/m4'), step({ lat: 41.9, lng: null })));
+    await assertFails(setDoc(doc(db, 'trips/t1/steps/m5'), step({ lat: 91, lng: 8.7 })));
+    await assertFails(setDoc(doc(db, 'trips/t1/steps/m6'), step({ lat: 41.9, lng: 181 })));
+    await assertFails(setDoc(doc(db, 'trips/t1/steps/m7'), step({ lat: '41.9', lng: '8.7' })));
+  });
+
+  test('a step with a point keeps it when someone says « bien arrivé »', async () => {
+    await storedTrip('t1', ADULT);
+    await storedStep('t1', 's1', { lat: 41.9192, lng: 8.7386 });
+    await assertSucceeds(updateDoc(doc(as(env, NEIGHBOUR), 'trips/t1/steps/s1'), { ...arrival(NEIGHBOUR), updatedAt: serverTimestamp() }));
+  });
+
   test('no step without its trip', async () => {
     await assertFails(setDoc(doc(as(env, ADULT), 'trips/missing/steps/s1'), step()));
   });

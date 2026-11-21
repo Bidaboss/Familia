@@ -2460,11 +2460,21 @@ service cloud.firestore {
     // Shape of a step (récit 11). remindAt is the planned arrival plus 3 hours: the server reminds
     // the participants then, and clears it (récit 14). Once someone said « bien arrivé », there is
     // nothing left to remind.
+    // The point of a step on the map of the trip (récit 87): optional, both numbers in range or both
+    // null. Steps saved before the map, or by an older app, have neither.
+    function isValidStepPosition(s) {
+      return (!('lat' in s) && !('lng' in s))
+        || (s.get('lat', null) == null && s.get('lng', null) == null)
+        || (s.get('lat', null) is number && s.get('lng', null) is number
+            && s.lat >= -90 && s.lat <= 90 && s.lng >= -180 && s.lng <= 180);
+    }
+
     function isValidStep(s) {
       return s.keys().hasAll(['type', 'place', 'departDate', 'departTime', 'arriveDate', 'arriveTime', 'note',
                               'remindAt', 'arrivedAt', 'arrivedBy', 'arrivedByName', 'updatedAt'])
         && s.keys().hasOnly(['type', 'place', 'departDate', 'departTime', 'arriveDate', 'arriveTime', 'note',
-                             'remindAt', 'arrivedAt', 'arrivedBy', 'arrivedByName', 'updatedAt'])
+                             'remindAt', 'arrivedAt', 'arrivedBy', 'arrivedByName', 'updatedAt', 'lat', 'lng'])
+        && isValidStepPosition(s)
         && s.type in ['flight', 'train', 'car', 'lodging', 'activity']
         && s.place is string && s.place.size() > 0 && s.place.size() <= 120
         && isDay(s.departDate)

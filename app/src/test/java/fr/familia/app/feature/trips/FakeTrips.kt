@@ -31,8 +31,8 @@ object TestTrips {
         end: LocalDate = LocalDate.of(2027, 7, 20),
     ) = Trip(id, "Voyage $id", start, end, participants, readers, creator, creator.replaceFirstChar { it.uppercase() })
 
-    fun step(id: String = "s1", day: LocalDate = LocalDate.of(2027, 7, 10), arrival: TripArrival? = null) =
-        TripStep(id, StepType.Flight, "Ajaccio", day, LocalTime.of(8, 15), day, LocalTime.of(9, 40), null, arrival)
+    fun step(id: String = "s1", day: LocalDate = LocalDate.of(2027, 7, 10), arrival: TripArrival? = null, lat: Double? = null, lng: Double? = null) =
+        TripStep(id, StepType.Flight, "Ajaccio", day, LocalTime.of(8, 15), day, LocalTime.of(9, 40), null, arrival, lat, lng)
 }
 
 class FakeTrips(

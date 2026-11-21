@@ -69,7 +69,16 @@ data class TripStep(
     val arriveTime: LocalTime?,
     val note: String?,
     val arrival: TripArrival? = null,
-)
+    /**
+     * Where the place is on the map of the trip (récit 87), found by the phone when the step is
+     * saved; both null when the place was not found. Never typed by the member.
+     */
+    val lat: Double? = null,
+    val lng: Double? = null,
+) {
+    /** True when the step has a point on the map. */
+    val hasPosition: Boolean get() = lat != null && lng != null
+}
 
 /**
  * One line of the trip checklist (récit 13): something to bring or to book, maybe in someone's
