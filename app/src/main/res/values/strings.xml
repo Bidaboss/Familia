@@ -316,14 +316,10 @@
     <string name="share_to_wishes">Mes envies Familia</string>
     <string name="share_add_to_wishes">Ajouter à mes envies</string>
     <string name="gift_item_preview_loading">Lecture de la page de la boutique…</string>
-    <string name="feature_map_streets">Carte du voyage avec les rues</string>
-    <string name="feature_help_map_streets">Essai : la carte d\'un voyage montre les rues (Mapbox) au lieu du paysage. Sans réseau, la carte dessinée reste.</string>
     <string name="trip_map_streets_credit">Les rues viennent de Mapbox et d\'OpenStreetMap. Pour les afficher, ton téléphone leur envoie la zone du voyage, rien d\'autre.</string>
     <string name="trip_map_credit_mapbox">© Mapbox</string>
     <string name="trip_map_credit_osm">© OpenStreetMap</string>
     <string name="trip_map_credit_improve">Améliorer cette carte</string>
-    <string name="feature_place_links">Idées autour d\'une étape</string>
-    <string name="feature_help_place_links">Sur l\'étape : Restaurants, Hôtels, Tripadvisor. Un appui ouvre Google Maps ou Tripadvisor avec le nom du lieu. Rien n\'est gardé.</string>
     <string name="place_links_restaurants">Restaurants près de %1$s</string>
     <string name="place_links_hotels">Hôtels à %1$s</string>
     <string name="place_links_tripadvisor">Voir %1$s sur Tripadvisor</string>
@@ -335,8 +331,6 @@
     <string name="trip_countdown_tomorrow">Demain, c\'est le départ</string>
     <string name="trip_countdown_today">C\'est le jour J</string>
     <string name="trip_countdown_during">Jour %1$d sur %2$d</string>
-    <string name="feature_trip_destination_first">Créer un voyage par sa destination</string>
-    <string name="feature_help_trip_destination_first">Un nouveau voyage commence par « Où allez-vous ? », prend le nom du lieu, puis propose la première étape.</string>
     <string name="trip_destination_title">Où allez-vous ?</string>
     <string name="trip_destination_question">Votre destination</string>
     <string name="trip_destination_field">Un lieu, une ville, un pays</string>
@@ -346,8 +340,6 @@
     <string name="trip_destination_hint">Tape un lieu puis touche « Chercher » : jusqu\'à 5 propositions.</string>
     <string name="trip_destination_continue">Continuer</string>
     <string name="trip_destination_type_name">Je tape un nom</string>
-    <string name="feature_map_globe">Globe animé du voyage</string>
-    <string name="feature_help_map_globe">Essai : « Lancer le voyage » fait voler la caméra d\'étape en étape. Sans réseau ou sans animations, la carte à plat et la liste restent.</string>
     <string name="trip_route_title">Le trajet</string>
     <string name="trip_route_hint">Étape par étape, sans animation : touche une étape pour l\'ouvrir.</string>
     <string name="trip_route_row">Étape %1$d sur %2$d, %3$s, %4$s</string>

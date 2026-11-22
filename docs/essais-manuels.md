@@ -1781,7 +1781,7 @@ Taille : voir le résumé de la CI (« Taille des APK ») ; avant R8 : 31 Mo.
 
 ## La carte du voyage : « Le trajet » en liste (récit 94, temps 1)
 
-Rien à publier : aucune règle ni function. Le module « Globe animé du voyage » existe dans Administration > Modules, éteint : il ne fait rien encore.
+Rien à publier : aucune règle ni function. (Le module « Globe animé du voyage » a disparu depuis : tout est actif.)
 
 1. Ouvre la carte d'un voyage avec plusieurs étapes. Sous la carte, une tuile « Le trajet » : une ligne par étape (numéro, lieu, jour, « 1 mot », « 3 photos » quand il y en a). Un appui ouvre l'étape.
 2. Une étape sans position (« chez Mamie ») est aussi dans la liste.
@@ -1791,11 +1791,11 @@ Rien à publier : aucune règle ni function. Le module « Globe animé du voyage
 
 ## Liens de lieu sur l'étape (récit 96, temps 1)
 
-Module éteint par défaut : Administration > Modules > « Idées autour d'une étape ».
+(Plus d'interrupteur depuis : actif pour tous.)
 1. Ouvrir la carte d'un voyage, toucher une étape qui a un lieu.
 2. Sur la fiche de l'étape, trois boutons : « Restaurants près de… », « Hôtels à… », « Voir… sur Tripadvisor ».
 3. Chacun ouvre la recherche dans Google Maps ou Tripadvisor (navigateur ou appli installée).
-4. Module éteint : les boutons n'apparaissent pas. Étape sans lieu : pas de boutons.
+4. Étape sans lieu : pas de boutons.
 
 ## Globe, temps 2 : le moteur du vol (récit 94)
 
@@ -1803,9 +1803,9 @@ Rien à voir ni à essayer sur le téléphone : seul le moteur du vol (aperçu, 
 
 ## Créer un voyage par sa destination (récit 95, temps 1)
 
-Rien à publier : aucune règle ni function. Module éteint par défaut : Administration > Modules > « Créer un voyage par sa destination ».
-1. Module éteint : « + » sur la liste des voyages ouvre le formulaire d'avant.
-2. Module allumé : « Où allez-vous ? » s'ouvre d'abord. Taper « La Palmyre », toucher « Chercher » : jusqu'à 5 lieux. En toucher un, puis « Continuer ».
+Rien à publier : aucune règle ni function. (Plus d'interrupteur depuis : actif pour tous.)
+1. « + » sur la liste des voyages : « Où allez-vous ? » s'ouvre d'abord.
+2.  Taper « La Palmyre », toucher « Chercher » : jusqu'à 5 lieux. En toucher un, puis « Continuer ».
 3. Le formulaire s'ouvre avec le nom du voyage déjà rempli (« La Palmyre »), modifiable. Départ et Retour restent obligatoires.
 4. « Créer le voyage » : le voyage s'ouvre, puis le formulaire d'étape arrive avec le lieu déjà rempli. Le retour (flèche) laisse la première étape pour plus tard.
 5. « Je tape un nom » : on passe directement au formulaire d'avant, sans lieu ni première étape.
@@ -1819,3 +1819,11 @@ Rien à publier : aucune règle ni function. Pas d'interrupteur : actif pour tou
 2. La veille : « Demain, c'est le départ ». Le jour du départ : « C'est le jour J ».
 3. Pendant le voyage : « Jour 2 sur 6 ». Après le retour : rien.
 Pas encore : la pastille sur la liste et la carte de l'Accueil (parties suivantes).
+
+## Voyage : plus d'interrupteurs, tout est actif (décision de Kévin, 22/11)
+
+Rien à publier : aucune règle ni function. Les modules « Carte du voyage avec les rues », « Idées autour d'une étape », « Globe animé du voyage » et « Créer un voyage par sa destination » ont disparu de Administration > Modules : tout est actif pour tous.
+1. « + » sur la liste des voyages : « Où allez-vous ? » s'ouvre d'abord (« Je tape un nom » reste possible).
+2. Carte d'un voyage : le fond de rues quand l'APK a la clé Mapbox, sinon la carte dessinée (aussi sans réseau).
+3. Fiche d'une étape sur la carte : « Restaurants près de… », « Hôtels à… », « Voir… sur Tripadvisor ».
+4. Administration > Modules : plus de ligne pour ces quatre modules.

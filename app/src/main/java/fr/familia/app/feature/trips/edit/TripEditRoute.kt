@@ -22,8 +22,8 @@ import fr.familia.app.core.model.Member
 /**
  * Connects the trip form to its ViewModel. [onSaved] gets the trip to show (a new one opens at
  * once) and the name of its destination when one was chosen, [onDeleted] closes the trip too,
- * [onBack] leaves without saving. With [askDestination] (module « Où allez-vous ? »), a new trip
- * starts with the question of its destination (récit 95).
+ * [onBack] leaves without saving. A new trip starts
+ * with the question of its destination (récit 95).
  */
 @Composable
 fun TripEditRoute(
@@ -33,7 +33,6 @@ fun TripEditRoute(
     onSaved: (tripId: String, firstPlace: String?) -> Unit,
     onDeleted: () -> Unit,
     onBack: () -> Unit,
-    askDestination: Boolean = false,
 ) {
     val viewModel: TripEditViewModel = viewModel(
         factory = viewModelFactory {
@@ -49,7 +48,7 @@ fun TripEditRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    var asking by rememberSaveable { mutableStateOf(askDestination && tripId == null) }
+    var asking by rememberSaveable { mutableStateOf(tripId == null) }
     var query by rememberSaveable { mutableStateOf("") }
     var chosen by rememberSaveable(stateSaver = PlaceSaver) { mutableStateOf<Place?>(null) }
     var search by remember { mutableStateOf<DestinationSearch>(DestinationSearch.Idle) }
