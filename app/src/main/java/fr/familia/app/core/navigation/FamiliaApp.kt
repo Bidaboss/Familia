@@ -298,6 +298,8 @@ import fr.familia.app.feature.trips.TripEditDestination
 import fr.familia.app.feature.trips.TripPhotosDestination
 import fr.familia.app.feature.yearago.MemoryAlbum
 import fr.familia.app.feature.trips.TripMapDestination
+import fr.familia.app.feature.trips.TripPackingDestination
+import fr.familia.app.feature.trips.packing.TripPackingRoute
 import fr.familia.app.feature.trips.TripStoryDestination
 import fr.familia.app.feature.trips.TripWordDestination
 import fr.familia.app.feature.trips.story.TripStoryRoute
@@ -1139,6 +1141,10 @@ fun FamiliaApp(
                                 if (part == TripPart.Expenses) {
                                     navController.navigate(TripDetailDestination(id))
                                     navController.navigate(TripExpensesDestination(id))
+                                } else if (part == TripPart.ToBring) {
+                                    // « À prévoir » opens « Valise » over the trip (récit 98), so back leads to it.
+                                    navController.navigate(TripDetailDestination(id))
+                                    navController.navigate(TripPackingDestination(id))
                                 } else {
                                     navController.navigate(TripDetailDestination(id, part.name))
                                 }
@@ -1158,6 +1164,7 @@ fun FamiliaApp(
                             onEditStep = { stepId -> navController.navigate(TripStepEditDestination(tripId, stepId)) },
                             onSeePhotos = { navController.navigate(TripPhotosDestination(tripId)) },
                             onOpenMap = { navController.navigate(TripMapDestination(tripId)) },
+                            onOpenPacking = { navController.navigate(TripPackingDestination(tripId)) },
                             onOpenWord = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
                             onOpenStory = { day -> navController.navigate(TripStoryDestination(tripId, day.toString())) },
                             onBack = { navController.popBackStack() },
@@ -1168,6 +1175,10 @@ fun FamiliaApp(
                                 null
                             },
                         )
+                    }
+                    composable<TripPackingDestination> { entry ->
+                        val route = entry.toRoute<TripPackingDestination>()
+                        TripPackingRoute(container = container, currentMember = currentMember, tripId = route.tripId, open = route.open, onBack = { navController.popBackStack() })
                     }
                     composable<TripMapDestination> { entry ->
                         val tripId = entry.toRoute<TripMapDestination>().tripId

@@ -34,7 +34,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -47,14 +46,11 @@ import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.ui.ClayLink
 import fr.familia.app.feature.trips.TripTile
 
-/**
- * « Ma valise » (récit 62) under « Pour tout le monde »: my bag, then those of my children who come.
- * Nothing for a follower or in « Voir comme » (no repository).
- */
+/** The ViewModel of the bags I see in [tripId]: mine, and those of my children who come (récit 62). */
 @Composable
-fun PackingSection(container: AppContainer?, currentMember: Member, tripId: String) {
+fun rememberPackingViewModel(container: AppContainer?, currentMember: Member, tripId: String): PackingViewModel {
     val context = LocalContext.current
-    val viewModel: PackingViewModel = viewModel(
+    return viewModel(
         key = "packing-$tripId-${currentMember.id}",
         factory = viewModelFactory {
             initializer {
@@ -69,19 +65,15 @@ fun PackingSection(container: AppContainer?, currentMember: Member, tripId: Stri
             }
         },
     )
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
-    if (state.bags.isEmpty()) return
-    PackingBags(
-        state,
-        PackingActions(
-            onToggle = viewModel::toggle,
-            onAdd = viewModel::add,
-            onRemove = viewModel::remove,
-            onKeepAsMyList = viewModel::keepAsMyList,
-            onDismissFailure = viewModel::dismissFailure,
-        ),
-    )
 }
+
+fun PackingViewModel.actions() = PackingActions(
+    onToggle = this::toggle,
+    onAdd = this::add,
+    onRemove = this::remove,
+    onKeepAsMyList = this::keepAsMyList,
+    onDismissFailure = this::dismissFailure,
+)
 
 class PackingActions(
     val onToggle: (ownerId: String, index: Int, done: Boolean) -> Unit = { _, _, _ -> },
@@ -113,7 +105,7 @@ fun PackingBags(state: PackingUiState, actions: PackingActions) {
 }
 
 @Composable
-private fun BagCard(bag: BagUiState, actions: PackingActions) {
+internal fun BagCard(bag: BagUiState, actions: PackingActions) {
     val ownerId = bag.owner.memberId
     var adding by rememberSaveable(ownerId) { mutableStateOf(false) }
     var removing by rememberSaveable(ownerId) { mutableStateOf<Int?>(null) }

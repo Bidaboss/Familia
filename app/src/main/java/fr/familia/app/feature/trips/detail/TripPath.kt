@@ -3,6 +3,15 @@ package fr.familia.app.feature.trips.detail
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Luggage
+import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -219,6 +228,9 @@ fun TripDayCard(
     modifier: Modifier = Modifier,
     /** « La carte » (récit 87), once a step has a point. */
     onMap: (() -> Unit)? = null,
+    /** « Valise » (récit 98): the round button under the menus, for those who go. */
+    onPacking: (() -> Unit)? = null,
+    packingCount: Int = 0,
 ) {
     val title = if (places.isEmpty()) {
         stringResource(R.string.trip_day_title, number, frenchDate(day, "EEEE d MMMM"))
@@ -245,6 +257,7 @@ fun TripDayCard(
             if (onExpenses != null) DayButton(stringResource(R.string.trip_expenses_short), onExpenses, item)
             if (onMap != null) DayButton(stringResource(R.string.trip_map_open), onMap, item)
         }
+        if (onPacking != null) PackingRound(packingCount, onPacking, Modifier.align(Alignment.CenterHorizontally))
     }
 }
 
@@ -258,5 +271,44 @@ private fun DayButton(text: String, onClick: () -> Unit, modifier: Modifier) {
         contentPadding = PaddingValues(horizontal = 8.dp),
     ) {
         Text(text, fontWeight = FontWeight.Bold, maxLines = 2, textAlign = TextAlign.Center)
+    }
+}
+
+/**
+ * « Valise »: a round 48 dp button with its word under it and, on its top right corner, the number of
+ * things left to do (a green tick once everything is ready). TalkBack reads « Valise, 6 choses à faire ».
+ */
+@Composable
+private fun PackingRound(count: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val description = if (count == 0) stringResource(R.string.packing_round_ready) else pluralStringResource(R.plurals.packing_round_todo, count, count)
+    Column(
+        modifier
+            .heightIn(min = 56.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 12.dp)
+            .semantics(mergeDescendants = true) { contentDescription = description },
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(Modifier.padding(top = 4.dp, end = 6.dp)) {
+            Box(
+                Modifier.size(48.dp).clip(CircleShape).background(Color.White).border(2.dp, TripPathColors.Ink, CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Outlined.Luggage, contentDescription = null, tint = TripPathColors.Ink)
+            }
+            Box(
+                Modifier.align(Alignment.TopEnd).offset(x = 6.dp, y = (-4).dp).size(22.dp).clip(CircleShape)
+                    .background(if (count == 0) Color(0xFF2E7D32) else Color(0xFFC62828)),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (count == 0) {
+                    Icon(Icons.Outlined.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                } else {
+                    Text(count.coerceAtMost(99).toString(), color = Color.White, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+        Text(stringResource(R.string.packing_round_label), style = MaterialTheme.typography.labelLarge, color = TripPathColors.Ink, textAlign = TextAlign.Center)
     }
 }

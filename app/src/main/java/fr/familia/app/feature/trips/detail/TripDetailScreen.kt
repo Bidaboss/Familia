@@ -127,6 +127,9 @@ fun TripDetailScreen(
     onOpenWord: ((stepId: String) -> Unit)? = null,
     /** « Jour par jour » (récit 90), under the steps. */
     storyDays: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
+    /** « Valise » (récit 98), for those who go; the number of things left to do on the round button. */
+    onOpenPacking: (() -> Unit)? = null,
+    packingCount: Int = 0,
 ) {
     val success = state as? TripDetailUiState.Success
     val path = illustrated && success != null
@@ -188,7 +191,7 @@ fun TripDetailScreen(
                     },
                 )
                 is TripDetailUiState.Success -> if (illustrated) {
-                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, storyDays)
+                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, storyDays, onOpenPacking, packingCount)
                 } else {
                     Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing, onOpenMap, onOpenWord, storyDays)
                 }
@@ -311,6 +314,8 @@ private fun PathContent(
     onOpenMap: (() -> Unit)? = null,
     onOpenWord: ((stepId: String) -> Unit)? = null,
     storyDays: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
+    onOpenPacking: (() -> Unit)? = null,
+    packingCount: Int = 0,
 ) {
     val days = remember(state.trip.startDate, state.trip.endDate) { TripDays.of(state.trip) }
     var chosenEpoch by rememberSaveable(state.trip.id) { mutableStateOf<Long?>(null) }
@@ -326,8 +331,6 @@ private fun PathContent(
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val notebookIndex = if (state.sendFailed) 4 else 3
-    // « À prévoir » comes after the title of the carnet and its steps (or the line that says there are none).
-    val checklistIndex = notebookIndex + 1 + daySteps.size.coerceAtLeast(1)
     // Opened from « Étapes » or « À prévoir » of the list: that part first, once.
     var opened by rememberSaveable(state.trip.id) { mutableStateOf(false) }
     LaunchedEffect(openAt) {
@@ -335,7 +338,8 @@ private fun PathContent(
         opened = true
         when (openAt) {
             TripPart.Steps -> listState.scrollToItem(notebookIndex)
-            TripPart.ToBring -> listState.scrollToItem(checklistIndex)
+            // « À prévoir » has its own screen now (récit 98): the list opens « Valise » directly.
+            TripPart.ToBring -> Unit
             TripPart.Expenses -> Unit
         }
     }
@@ -367,6 +371,8 @@ private fun PathContent(
                     onNotebook = { scope.launch { listState.animateScrollToItem(notebookIndex) } },
                     onExpenses = onOpenExpenses?.takeIf { state.isParticipant },
                     onMap = onOpenMap?.takeIf { state.steps.isNotEmpty() },
+                    onPacking = onOpenPacking?.takeIf { state.isParticipant },
+                    packingCount = packingCount,
                 )
             }
         }
@@ -409,20 +415,6 @@ private fun PathContent(
                 onOpenWord = onOpenWord?.let { open -> { open(step.id) } },
                 modifier = Modifier.padding(horizontal = ClaySpacing.screen, vertical = ClaySpacing.between / 2),
             )
-        }
-        // « À prévoir » is for those who go (récit 86).
-        if (state.isParticipant) {
-            item(key = "checklist-title") {
-                TripSectionTitle(
-                    stringResource(if (packing != null) R.string.packing_title else R.string.trip_checklist),
-                    Modifier.padding(horizontal = ClaySpacing.screen),
-                )
-            }
-            item(key = "checklist") {
-                Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) {
-                    PackingOrChecklist(state, checklist, packing)
-                }
-            }
         }
         if (storyDays != null) {
             item(key = "story-days") { Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) { storyDays(state) } }

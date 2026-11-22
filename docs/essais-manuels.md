@@ -1835,6 +1835,15 @@ Rien à publier : aucune règle ni function. Les modules « Carte du voyage avec
 3. Fiche d'une étape sur la carte : « Restaurants près de… », « Hôtels à… », « Voir… sur Tripadvisor ».
 4. Administration > Modules : plus de ligne pour ces quatre modules.
 
+## Voyage : la valise sur son propre écran (récit 98, 1/2)
+
+Rien à publier : aucune règle ni function. Pas d'interrupteur.
+1. Ouvrir un voyage auquel on participe : la page n'a plus le bloc « À emporter ». Sous les boutons du jour, un rond « Valise » avec un point rouge (nombre de choses à faire : mes objets restants + les lignes sans responsable) ; une coche verte quand tout est prêt.
+2. Toucher le rond : écran « Valise », puces « Pour tout le monde », « Ma valise » et une par enfant qui part. Une seule liste à la fois ; s'il reste des lignes sans responsable, « Pour tout le monde » s'ouvre d'abord.
+3. Cocher, ajouter, retirer, « Je m'en charge », « Garder comme ma liste » : comme avant.
+4. Liste des voyages, « À prévoir » : ouvre directement l'écran Valise ; retour vers le voyage.
+5. Quelqu'un qui suit le voyage : pas de rond « Valise ».
+6. TalkBack sur le rond : « Valise, 6 choses à faire ».
 ## « Autour de l'étape » dans la page d'étape (récit 96, temps 3)
 
 Rien à publier : aucune règle ni function, rien n'est enregistré, aucune autorisation de position. Pas d'interrupteur.
