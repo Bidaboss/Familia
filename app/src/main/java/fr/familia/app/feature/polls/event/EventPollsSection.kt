@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Poll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -15,8 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -25,6 +24,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.ui.form.FormTileHeading
 import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.polls.list.PollCard
 import fr.familia.app.feature.polls.list.PollsUiState
@@ -71,7 +71,7 @@ fun EventPollsContent(
 ) {
     if (state.isEmpty && !canAsk) return
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(stringResource(R.string.event_polls_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+        FormTileHeading(Icons.Outlined.Poll, stringResource(R.string.event_polls_title))
         (state.open + state.closed).forEach { row -> PollCard(row, today, onOpenPoll) }
         if (canAsk) {
             if (state.isEmpty) Text(stringResource(R.string.event_polls_hint), style = MaterialTheme.typography.bodyLarge)
