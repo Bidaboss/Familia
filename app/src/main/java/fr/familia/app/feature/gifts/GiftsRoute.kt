@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.Feature
+import fr.familia.app.core.model.wishesListId
 import fr.familia.app.core.ui.LocalFeatureFlags
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -30,6 +31,10 @@ fun GiftsRoute(
     onOpenSurprisePicker: () -> Unit = {},
     /** « Ajouter une envie » on the new tab (PRODUIT-119). */
     onAddWish: (listId: String) -> Unit = onOpenList,
+    /** The page of another member, from their row (récit 91). */
+    onOpenMember: (memberId: String) -> Unit = {},
+    /** « Cadeaux reçus » at the bottom of the tab; null hides the line. */
+    onOpenReceived: (() -> Unit)? = null,
 ) {
     val singleList = LocalFeatureFlags.current.isOn(Feature.SingleList)
     val presentation = true
@@ -78,5 +83,11 @@ fun GiftsRoute(
         onOpenMyPage = onOpenMyPage,
         onOpenSurprisePicker = onOpenSurprisePicker,
         onAddWish = onAddWish,
+        onOpenMember = { memberId ->
+            // Opening their page is the visit: the « nouvelles » of their wishes reset on this phone.
+            if (countsVisits) visits.markSeen(wishesListId(memberId))
+            onOpenMember(memberId)
+        },
+        onOpenReceived = onOpenReceived,
     )
 }

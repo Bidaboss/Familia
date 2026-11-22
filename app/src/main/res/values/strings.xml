@@ -2516,28 +2516,21 @@
     <string name="gifts_next_my_birthday">Ton anniversaire, %1$s</string>
     <string name="gifts_upcoming_title">À venir</string>
     <!-- Nouvel onglet Cadeaux (PRODUIT-119 et 120) -->
-    <string name="gifts_v2_surprise_label">Surprise en préparation</string>
-    <string name="gifts_v2_surprise_birthday">Son anniversaire, %1$s</string>
-    <string name="gifts_v2_open_surprise">Ouvrir la surprise</string>
-    <string name="gifts_v2_next_birthday">Prochain anniversaire</string>
-    <string name="gifts_v2_their_age">%1$s fête ses %2$s</string>
-    <string name="gifts_v2_my_age">Tu fêtes tes %1$s</string>
-    <string name="gifts_v2_date_line">%1$s · %2$s</string>
-    <string name="gifts_v2_their_wishes">Ses envies</string>
-    <string name="gifts_v2_surprise">Surprise</string>
-    <string name="gifts_v2_open">ouvrir</string>
     <string name="gifts_v2_my_wishes_none">Aucune envie pour l\'instant</string>
     <plurals name="gifts_v2_my_wishes_line">
         <item quantity="one">%d envie · la famille la voit</item>
         <item quantity="other">%d envies · la famille les voit</item>
     </plurals>
     <string name="gifts_v2_add_wish">Ajouter une envie</string>
-    <string name="gifts_v2_see">Voir</string>
-    <string name="gifts_v2_see_my_wishes">Voir mes envies</string>
-    <string name="gifts_v2_family">La famille</string>
-    <string name="gifts_v2_fold">replier %1$s</string>
-    <string name="gifts_v2_unfold">ouvrir %1$s</string>
-    <string name="gifts_v2_birthday_on">Anniversaire le %1$s</string>
+    <string name="gifts_v2_family">Toute la famille</string>
+    <string name="gifts_v2_soon">Bientôt</string>
+    <string name="gifts_v2_my_page">Ma fiche</string>
+    <string name="gifts_v2_open_person">ouvrir la fiche de %1$s</string>
+    <string name="gifts_v2_received">Cadeaux reçus</string>
+    <plurals name="gifts_v2_surprises_bar">
+        <item quantity="one">%d surprise en préparation</item>
+        <item quantity="other">%d surprises en préparation</item>
+    </plurals>
     <string name="gifts_v2_archived">Listes archivées (%1$d)</string>
     <plurals name="gifts_in_days">
         <item quantity="one">demain</item>
