@@ -1811,3 +1811,11 @@ Rien à publier : aucune règle ni function. Module éteint par défaut : Admini
 5. « Je tape un nom » : on passe directement au formulaire d'avant, sans lieu ni première étape.
 6. Sans réseau ou lieu inconnu : « Aucun lieu trouvé », « Je tape un nom » reste possible.
 7. Modifier un voyage existant : pas de « Où allez-vous ? », le formulaire s'ouvre directement.
+
+## Voyage : plus d'interrupteurs, tout est actif (décision de Kévin, 22/11)
+
+Rien à publier : aucune règle ni function. Les modules « Carte du voyage avec les rues », « Idées autour d'une étape », « Globe animé du voyage » et « Créer un voyage par sa destination » ont disparu de Administration > Modules : tout est actif pour tous.
+1. « + » sur la liste des voyages : « Où allez-vous ? » s'ouvre d'abord (« Je tape un nom » reste possible).
+2. Carte d'un voyage : le fond de rues quand l'APK a la clé Mapbox, sinon la carte dessinée (aussi sans réseau).
+3. Fiche d'une étape sur la carte : « Restaurants près de… », « Hôtels à… », « Voir… sur Tripadvisor ».
+4. Administration > Modules : plus de ligne pour ces quatre modules.

@@ -10,8 +10,6 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.BuildConfig
 import fr.familia.app.core.data.AppContainer
-import fr.familia.app.core.model.Feature
-import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.model.Member
 import fr.familia.app.feature.trips.detail.TripDetailViewModel
 
@@ -35,9 +33,8 @@ fun TripMapRoute(
     // The words read with the rules of the trip (récit 88): « Le trajet » says which step has one.
     val words by remember(container, tripId) { container?.tripWordRepository?.observeWords(tripId) ?: flowOf(emptyMap()) }
         .collectAsStateWithLifecycle(emptyMap())
-    // Module on for this member + token in this APK; else the drawn map (the image falls back by itself without network).
+    // The streets when this APK holds the token; else the drawn map (the image falls back by itself without network).
     val token = BuildConfig.MAPBOX_PUBLIC_TOKEN
-    val streetsOn = LocalFeatureFlags.current.isOn(Feature.MapStreets)
-    val ground = mapGround(streetsOn, token, hasNetwork = true)
+    val ground = mapGround(streetsOn = true, token, hasNetwork = true)
     TripMapScreen(state, onOpenStep, onEditStep, onBack, streetsToken = token.takeIf { ground == MapGround.Streets }, words = words)
 }

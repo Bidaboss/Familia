@@ -1250,7 +1250,6 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             tripId = tripId,
-                            askDestination = features.isOn(Feature.TripDestinationFirst),
                             onSaved = { savedId, firstPlace ->
                                 if (tripId == null) {
                                     // A new trip opens at once, in place of its form.
