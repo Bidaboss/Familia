@@ -340,6 +340,15 @@
     <string name="trip_destination_hint">Tape un lieu puis touche « Chercher » : jusqu\'à 5 propositions.</string>
     <string name="trip_destination_continue">Continuer</string>
     <string name="trip_destination_type_name">Je tape un nom</string>
+    <string name="nearby_title">Autour de l\'étape</string>
+    <string name="nearby_eat">À manger</string>
+    <string name="nearby_see">À voir</string>
+    <string name="nearby_loading">On cherche les lieux proches…</string>
+    <string name="nearby_offline">Pas de réseau : les lieux proches reviendront dès que le téléphone sera connecté.</string>
+    <string name="nearby_none">Aucun site trouvé à moins de 5 km de cette étape.</string>
+    <string name="nearby_opens_map">Un appui ouvre le lieu dans l\'appli de cartes du téléphone.</string>
+    <string name="nearby_source">Données : © les contributeurs d\'OpenStreetMap</string>
+    <string name="nearby_row_description">%1$s, %2$s, à %3$s, ouvre la carte</string>
     <string name="place_article_title">À savoir sur %1$s</string>
     <string name="place_article_loading">On cherche des infos sur ce lieu…</string>
     <string name="place_article_more">Lire la suite</string>

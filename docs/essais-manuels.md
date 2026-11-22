@@ -1834,3 +1834,13 @@ Rien à publier : aucune règle ni function. Les modules « Carte du voyage avec
 2. Carte d'un voyage : le fond de rues quand l'APK a la clé Mapbox, sinon la carte dessinée (aussi sans réseau).
 3. Fiche d'une étape sur la carte : « Restaurants près de… », « Hôtels à… », « Voir… sur Tripadvisor ».
 4. Administration > Modules : plus de ligne pour ces quatre modules.
+
+## « Autour de l'étape » dans la page d'étape (récit 96, temps 3)
+
+Rien à publier : aucune règle ni function, rien n'est enregistré, aucune autorisation de position. Pas d'interrupteur.
+1. Ouvrir une étape qui a un point sur la carte (lieu trouvé), page « Le mot de l'étape ».
+2. Tuile « Autour de l'étape » : « À manger » par défaut, « À voir » à côté. Jusqu'à 5 lieux à moins de 5 km, du plus proche au plus loin, avec genre et distance (« Restaurant · 350 m »).
+3. Toucher un lieu : il s'ouvre dans l'appli de cartes du téléphone. TalkBack lit « Le Cabanon, Restaurant, à 350 m, ouvre la carte ».
+4. Sous la liste : « Données : © les contributeurs d'OpenStreetMap ».
+5. Sans réseau : « Pas de réseau : les lieux proches reviendront… ». Rien de proche : « Aucun site trouvé à moins de 5 km de cette étape ».
+6. Étape sans point sur la carte (« chez Mamie ») : la tuile n'apparaît pas.

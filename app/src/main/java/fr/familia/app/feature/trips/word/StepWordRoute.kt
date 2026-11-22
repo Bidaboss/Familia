@@ -60,7 +60,12 @@ fun StepWordRoute(
     val wordAuthorId = (state as? StepWordUiState.Ready)?.word?.authorId
     val ready = state as? StepWordUiState.Ready
     StepWordScreen(state, actions, onSite = {
-        if (ready != null) PlaceArticleTile(ready.step.place, container?.placeArticles)
+        if (ready != null) {
+            PlaceArticleTile(ready.step.place, container?.placeArticles)
+            val lat = ready.step.lat
+            val lng = ready.step.lng
+            if (lat != null && lng != null) NearbyTile(lat, lng, container?.nearbyPlaces)
+        }
     }) {
         CommentsSection(
             repository = container?.tripWordRepository?.comments(tripId, stepId),
