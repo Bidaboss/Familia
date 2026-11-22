@@ -838,7 +838,8 @@ fun FamiliaApp(
                 val onGoodNews = if (goodNewsOn && viaPlanning) ({ navController.navigate(GoodNewsFeedDestination) }) else null
                 val onWeekly = if (weeklyOn && viaPlanning) ({ navController.navigate(WeeklyQuestionDestination()) }) else null
                 val onTrips = if (features.isOn(Feature.Trips) && viaPlanning) ({ navController.navigate(TripsDestination) { launchSingleTop = true } }) else null
-                if (tab != null) {
+                // The Voyages list draws its own sky-colored bar.
+                if (tab != null && tab != TopLevelDestination.Trips) {
                     TabTopBar(
                         tab, currentMember,
                         scrollBehavior = topBarScroll,
@@ -847,8 +848,8 @@ fun FamiliaApp(
                         onWeeklyQuestion = onWeekly,
                         onAccount = { accountOpen = true },
                         greeting = if (tab == TopLevelDestination.Home) stringResource(R.string.home_r1_greeting, currentMember.firstName) else null,
-                        // The Planning is a page (récit 82): its round « Retour » goes back to the Accueil.
-                        onBack = if (tab == TopLevelDestination.Planning) ({ if (!navController.popBackStack()) navController.navigateToTab(TopLevelDestination.Home) }) else null,
+                        // The Planning is a page (récit 82), and Entraide once Voyages is in the bar: the round « Retour » goes back to the Accueil.
+                        onBack = if (TopLevelDestination.isPage(tab, features)) ({ if (!navController.popBackStack()) navController.navigateToTab(TopLevelDestination.Home) }) else null,
                         onAdd = when {
                             tab == TopLevelDestination.Home -> ({ addOpen = true })
                             else -> null
@@ -1136,7 +1137,8 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
                             onAddTrip = { navController.navigate(TripEditDestination()) },
-                            onBack = { navController.popBackStack() },
+                            // A tab of the bar when its module is on: no « Retour » then.
+                            onBack = if (TopLevelDestination.Trips in tabs) null else ({ navController.popBackStack() }),
                             onOpenAlbums = if (features.isOn(Feature.Trips) || features.isOn(Feature.EventAlbums)) ({ navController.navigate(AlbumsDestination) { launchSingleTop = true } }) else null,
                             // Étapes, À prévoir, Comptes of the next trip (récit 80): « Comptes » opens over the trip, so back leads to it.
                             onOpenPart = { id, part ->
@@ -2052,6 +2054,7 @@ private fun TabTopBar(
                 }
                 TopLevelDestination.Members -> HelpButton(ScreenHelp.Family)
                 TopLevelDestination.HelpRequests -> HelpButton(ScreenHelp.HelpRequests)
+                TopLevelDestination.Trips -> HelpButton(ScreenHelp.Trips)
                 TopLevelDestination.Gifts -> HelpButton(ScreenHelp.Gifts)
             }
             onAccount?.let { AccountButton(member, onClick = it) }
@@ -2129,7 +2132,7 @@ private fun allModules(
         navController.leaveAllFamiliaFor(TopLevelDestination.Gifts)
     }
     module(features.isOn(Feature.Trips), "trips", R.string.all_trips, Icons.Outlined.CardTravel, ModuleFamily.Treat) {
-        navController.navigate(TripsDestination) { launchSingleTop = true }
+        navController.leaveAllFamiliaFor(TopLevelDestination.Trips)
     }
     module(features.isOn(Feature.Recipes), "recipes", R.string.all_recipes, Icons.Outlined.MenuBook, ModuleFamily.Treat) {
         navController.navigate(RecipesDestination()) { launchSingleTop = true }

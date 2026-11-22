@@ -16,7 +16,7 @@ fun TripsRoute(
     currentMember: Member,
     onOpenTrip: (tripId: String) -> Unit,
     onAddTrip: () -> Unit,
-    onBack: () -> Unit,
+    onBack: (() -> Unit)?,
     onOpenAlbums: (() -> Unit)? = null,
     onOpenPart: ((tripId: String, part: TripPart) -> Unit)? = null,
     expensesOn: Boolean = false,
