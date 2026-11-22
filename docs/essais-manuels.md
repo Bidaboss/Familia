@@ -1675,3 +1675,16 @@ Chaque étape a une page « Le mot de l'étape », ouverte depuis l'étape (bout
 
 **Après la fusion :** rien de plus que « Publier Firebase » de la 1re partie. Les phrases d'aide de cette page (help_*) restent à écrire par le [DEV] principal : elle réutilise pour l'instant l'aide « Voyage ».
 
+
+## Le mot de l'étape, 3e partie : les commentaires (récit 88, 22/11)
+
+Sous un mot publié, la page de l'étape a un bloc « Commentaires » (le même que celui des événements et des bonnes nouvelles), avec les `@` pour prévenir quelqu'un.
+
+1. Ouvre une étape qui a un mot. **Attendu :** sous le mot (et le cœur), « Commentaires », la phrase « Pas encore de commentaire… » et le champ. Sans mot, ou pendant l'écriture d'un mot neuf : pas de bloc.
+2. Écris un commentaire avec `@` et un prénom, envoie. **Attendu :** il apparaît signé, la personne citée est prévenue comme pour un événement.
+3. Modifie puis retire ton commentaire. Un autre membre ne peut pas modifier le tien.
+4. L'auteur du mot retire le commentaire d'un autre ; Kévin (admin principal) aussi ; un simple suiveur ne retire que les siens.
+5. Compte qui ne suit pas le voyage : il n'ouvre pas la page. « Voir comme » : les commentaires se lisent, le champ n'envoie rien.
+6. Texte à 200 % et TalkBack : même lecture que sous un événement.
+
+**Après la fusion :** rien de plus que « Publier Firebase » de la 1re partie (les règles des commentaires y sont déjà).

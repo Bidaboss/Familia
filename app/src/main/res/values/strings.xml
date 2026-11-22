@@ -3392,6 +3392,7 @@
     <string name="feed_recipe_origin">La recette de %1$s</string>
     <!-- « Le mot de l'étape » (récit 88) -->
     <string name="word_title">Le mot de l\'étape</string>
+    <string name="word_comments_empty">Pas encore de commentaire. Un mot pour la suite, une question, un « j\'y étais » ?</string>
     <string name="word_edit_step">Modifier l\'étape</string>
     <string name="word_your_word">Ton mot</string>
     <string name="word_your_word_hint">Quelques mots pour ceux qui suivent</string>
