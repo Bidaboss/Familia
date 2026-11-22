@@ -1853,3 +1853,11 @@ Rien à publier : aucune règle ni function, rien n'est enregistré, aucune auto
 4. Sous la liste : « Données : © les contributeurs d'OpenStreetMap ».
 5. Sans réseau : « Pas de réseau : les lieux proches reviendront… ». Rien de proche : « Aucun site trouvé à moins de 5 km de cette étape ».
 6. Étape sans point sur la carte (« chez Mamie ») : la tuile n'apparaît pas.
+
+## Voyage : trois menus puis deux ronds (récit 98, 2/2)
+
+Rien à publier : aucune règle ni function. Pas d'interrupteur.
+1. Page d'un voyage, carte du jour : trois boutons avec texte dans cet ordre, « Carnet », « La carte » (une fois une étape posée), « Photos ». À 130 % ils s'empilent.
+2. Dessous, pour ceux qui partent : deux ronds de 48 dp centrés, « Comptes » (seulement un adulte qui part, comme avant) puis « Valise » avec son point de compteur, le mot sous chaque rond.
+3. « Comptes » ouvre les comptes du voyage, « Valise » l'écran Valise. TalkBack : « Comptes du voyage », « Valise, 6 choses à faire ».
+4. Quelqu'un qui suit : les trois boutons seulement, aucune rangée de ronds.
