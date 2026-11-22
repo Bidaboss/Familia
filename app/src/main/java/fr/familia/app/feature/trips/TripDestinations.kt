@@ -30,6 +30,10 @@ data class TripStepEditDestination(val tripId: String, val stepId: String? = nul
 @Serializable
 data class TripMapDestination(val tripId: String)
 
+/** « Lancer le voyage » (récit 94): the globe of [tripId], from the map. */
+@Serializable
+data class TripGlobeDestination(val tripId: String)
+
 /** « Le mot de l'étape » of [stepId] in [tripId] (récit 88): written by a participant, read by the followers. */
 @Serializable
 data class TripWordDestination(val tripId: String, val stepId: String)

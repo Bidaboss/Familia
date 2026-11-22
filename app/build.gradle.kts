@@ -83,6 +83,8 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            // The globe brings native code for every processor: the family's phones are 64 and 32 bits ARM.
+            ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             if (signingValue("FAMILIA_KEYSTORE_PATH") != null) signingConfig = signingConfigs.getByName("release")
         }
@@ -135,6 +137,8 @@ dependencies {
     implementation(libs.media3.transformer)
     implementation(libs.media3.effect)
     implementation(libs.media3.common)
+    // The globe of the trip (récit 94, essai du SDK): the map view of Mapbox, its public token in the release build only.
+    implementation("com.mapbox.maps:android:11.35.2")
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     testImplementation(libs.junit)
