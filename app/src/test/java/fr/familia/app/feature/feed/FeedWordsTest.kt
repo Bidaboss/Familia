@@ -25,7 +25,7 @@ class FeedWordsTest {
         Trip(id, "Voyage $id", start, end, listOf("ines"), readers, "ines", "ines")
 
     private fun step(id: String, place: String = "Ajaccio") =
-        TripStep(id, StepType.Stay, place, today.minusDays(4), null, null, null, null)
+        TripStep(id, StepType.Lodging, place, today.minusDays(4), null, null, null, null)
 
     private fun word(step: String, at: String?, author: String = "ines") =
         TripWord(step, "Bien arrivés", emptyList(), author, author, emptySet(), at?.let(Instant::parse))
