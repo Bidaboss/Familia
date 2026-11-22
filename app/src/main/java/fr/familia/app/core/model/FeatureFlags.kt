@@ -203,6 +203,7 @@ enum class Feature(
      * Aucune règle ni function.
      */
     TripDestinationFirst("tripDestinationFirst", R.string.feature_trip_destination_first),
+
 }
 
 /**

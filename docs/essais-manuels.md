@@ -1812,6 +1812,14 @@ Rien à publier : aucune règle ni function. Module éteint par défaut : Admini
 6. Sans réseau ou lieu inconnu : « Aucun lieu trouvé », « Je tape un nom » reste possible.
 7. Modifier un voyage existant : pas de « Où allez-vous ? », le formulaire s'ouvre directement.
 
+## Compte à rebours du voyage (récit 95, temps 2, première partie)
+
+Rien à publier : aucune règle ni function. Pas d'interrupteur : actif pour tous (décision de Kévin, 22/11).
+1. Ouvrir un voyage qui commence dans plus de 2 jours : en haut de la carte « Résumé », « 4 nuits avant le départ ».
+2. La veille : « Demain, c'est le départ ». Le jour du départ : « C'est le jour J ».
+3. Pendant le voyage : « Jour 2 sur 6 ». Après le retour : rien.
+Pas encore : la pastille sur la liste et la carte de l'Accueil (parties suivantes).
+
 ## « À savoir sur… » dans la page d'étape (récit 96, temps 2)
 
 Rien à publier : aucune règle ni function, rien n'est enregistré. Pas d'interrupteur : actif pour tous (décision de Kévin, 22/11).
