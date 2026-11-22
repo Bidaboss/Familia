@@ -1659,3 +1659,19 @@ Rien ne change à l'écran : cette partie prépare le mot, ses cœurs et ses com
 2. Supprime un voyage entier. **Attendu :** il disparaît comme avant.
 
 **Après la fusion :** lancer « Publier Firebase » avant l'APK (règles et fonctions : `onStepDeletedWord`). Un seul lancement pour tout le lot du mot de l'étape.
+
+## Le mot de l'étape, 2e partie : la page du mot (récit 88, 22/11)
+
+Chaque étape a une page « Le mot de l'étape », ouverte depuis l'étape (bouton « Le mot de l'étape ») ou depuis la carte (« Ouvrir l'étape »). Un participant y écrit un mot court et choisit jusqu'à 4 photos de l'album ; ceux qui suivent le lisent et mettent un cœur. Les commentaires arrivent dans la 3e partie.
+
+1. Avec un compte qui participe : ouvre une étape, « Le mot de l'étape ». **Attendu :** le rappel de l'étape, « Ton mot » (compteur 0 / 280), « Les photos » (l'album en grille de 3), « Qui le voit ? » (le nombre de personnes qui suivent), et « Publier le mot » en bas, grisé tant que le mot est vide.
+2. Écris un mot, choisis 3 photos : 1 puis 2 puis 3 apparaissent dans des pastilles noires, « 3 choisies sur 4 ». Touche la 2e photo : elle se retire et la 3e devient 2. Une 5e photo ne se choisit pas.
+3. « Publier le mot ». **Attendu :** la page se ferme. Rouvre-la : le mot et les photos sont là, le bouton dit « Enregistrer », et « Retirer mon mot » (en rouge pâle) demande confirmation, puis le mot disparaît.
+4. Avec un compte qui suit sans participer : ouvre la même étape. **Attendu :** le mot, ses photos (1 grande, 2 côte à côte, 1 grande et 2 petites, ou 4 en carré), le cœur de 104 × 48 avec le nombre, et « Touche le cœur, ou garde le doigt appuyé sur le mot ». Le cœur devient plein à la touche, le nombre monte, les visages de ceux qui en ont mis s'affichent ; touché de nouveau, il se retire. L'appui long sur le mot fait la même chose.
+5. Un voyage sans mot : le compte qui suit lit « Pas encore de mot pour cette étape » ; un participant arrive sur la page d'écriture.
+6. Un participant qui n'est pas l'auteur du mot : il le lit et met un cœur, sans pouvoir le changer ni le retirer.
+7. Supprime une photo de l'album qui était dans le mot. **Attendu :** le mot s'affiche sans elle, sans erreur.
+8. Texte à 200 % et TalkBack : le cœur se lit « Mettre un cœur, 5 », chaque photo à choisir se lit « Photo choisie, numéro 2 » ou « Photo de l'album, à choisir ».
+
+**Après la fusion :** rien de plus que « Publier Firebase » de la 1re partie. Les phrases d'aide de cette page (help_*) restent à écrire par le [DEV] principal : elle réutilise pour l'instant l'aide « Voyage ».
+

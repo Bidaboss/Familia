@@ -62,6 +62,9 @@ import fr.familia.app.feature.trips.edit.TripFormError
 import fr.familia.app.feature.trips.edit.previewTripEditState
 import fr.familia.app.feature.trips.list.TripsScreen
 import fr.familia.app.feature.trips.map.TripMapScreen
+import fr.familia.app.feature.trips.word.StepWordActions
+import fr.familia.app.feature.trips.word.StepWordScreen
+import fr.familia.app.feature.trips.word.previewStepWord
 import fr.familia.app.feature.trips.step.StepEditScreen
 import fr.familia.app.feature.trips.step.StepFormError
 import fr.familia.app.feature.trips.step.previewStepEditState
@@ -110,6 +113,10 @@ internal object VoyageScreens {
         },
         screen("the map of a trip") { TripMapScreen(previewTripDetail(withPositions = true), {}, {}) },
         screen("the map of a trip, for who does not take part") { TripMapScreen(previewTripDetail(isParticipant = false, withPositions = true), {}, {}) },
+        screen("the word of a step, to write") { StepWordScreen(previewStepWord(canWrite = true, withWord = false), StepWordActions()) },
+        screen("the word of a step, to change") { StepWordScreen(previewStepWord(canWrite = true, withWord = true), StepWordActions()) },
+        screen("the word of a step, to read") { StepWordScreen(previewStepWord(canWrite = false, withWord = true, isParticipant = false), StepWordActions()) },
+        screen("the word of a step, with no word yet, to read") { StepWordScreen(previewStepWord(canWrite = false, withWord = false, isParticipant = false), StepWordActions()) },
         screen("the map of a trip, with no step placed") { TripMapScreen(previewTripDetail(), {}, {}) },
         screen("a trip, for who does not take part") { TripDetailScreen(previewTripDetail(isParticipant = false), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos()) },
         screen("À emporter") {
