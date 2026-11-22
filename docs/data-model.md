@@ -1200,7 +1200,7 @@ La position est lue une seule fois, quand le membre touche « Prendre ma positio
 | `lat`, `lng` | nombres | La position |
 | `note` | texte (1 à 200) ou null | Un mot (« On est près du poste de secours ») |
 | `createdAt` | horodatage serveur | |
-| `expireAt` | horodatage | 24 h après l'envoi, écrit par le téléphone (la règle accepte entre 22 h et 26 h, pour une horloge un peu fausse). Firestore supprime le document ensuite (TTL déclarée dans `firestore.indexes.json`) ; l'appli le cache dès `expireAt` |
+| `expireAt` | horodatage | 2 h après l'envoi, écrit par le téléphone (la règle accepte entre 1 h et 3 h, pour une horloge un peu fausse). Firestore supprime le document ensuite (TTL déclarée dans `firestore.indexes.json`) ; l'appli le cache dès `expireAt` |
 
 Droits : tout membre avec l'appli l'envoie, en son nom. Seuls l'auteur et les destinataires le lisent, pas même l'admin principal. Personne ne le modifie. Seul l'auteur le retire (« Ne plus partager »).
 

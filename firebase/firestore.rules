@@ -3099,7 +3099,7 @@ service cloud.firestore {
     // joinMe/{shareId}: a place sent by a member to the members they ticked (nobody is ticked at
     // first, carte AVIS-13): their position of the moment, taken once when they touched the button,
     // or a place they chose. It is never changed; its author takes it back by deleting it, and
-    // Firestore deletes it on its own 24 h later (TTL on expireAt). Only its author and its
+    // Firestore deletes it on its own after it expires, 2 h after it was sent (TTL on expireAt). Only its author and its
     // recipients read it.
 
     function isValidJoinMe(d) {
@@ -3122,10 +3122,10 @@ service cloud.firestore {
         && request.resource.data.authorId == myMemberId()
         && request.resource.data.authorName == me().firstName
         && request.resource.data.createdAt == request.time
-        // The phone writes « now + 24 h » from its own clock: a few hours of drift are let through.
+        // The phone writes « now + 2 h » from its own clock: an hour of drift is let through.
         && request.resource.data.expireAt is timestamp
-        && request.resource.data.expireAt > request.time + duration.value(22, 'h')
-        && request.resource.data.expireAt < request.time + duration.value(26, 'h');
+        && request.resource.data.expireAt > request.time + duration.value(1, 'h')
+        && request.resource.data.expireAt < request.time + duration.value(3, 'h');
       allow update: if false;
       allow delete: if isMember() && resource.data.authorId == myMemberId();
     }

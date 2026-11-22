@@ -301,7 +301,7 @@ Sans interrupteur nouveau, derrière « Lieux ». Deux téléphones, A et B.
 2. Sur B, touche la notification. **Attendu :** l'Accueil s'ouvre avec, tout en haut au-dessus des jours, la tuile « Rejoignez-moi » : le prénom, l'heure, le lieu, « Itinéraire » et « Street View ». Pas l'écran pour envoyer sa propre position.
    Même si l'Accueil de B était resté sur « Le fil » : il repasse sur « Aujourd'hui ».
 3. Sur A, ouvre l'Accueil. **Attendu :** la même tuile avec « Tu partages ce lieu jusqu'à … » et « Ne plus partager ». Touche-le : la tuile disparaît sur A, et le lieu disparaît sur B.
-4. Sans partage en cours, ou au bout de 24 h. **Attendu :** pas de tuile.
+4. Sans partage en cours, ou au bout de 2 h. **Attendu :** pas de tuile.
 
 ## Défi du mois de l'Accueil précisé (Kévin, 20/11)
 
