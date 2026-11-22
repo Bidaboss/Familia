@@ -33,6 +33,7 @@ import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -181,7 +182,11 @@ private fun StepRecap(state: StepWordUiState.Ready, onEditStep: () -> Unit) {
                 }
             }
             if (state.isParticipant) {
-                TextButton(onClick = onEditStep, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.word_edit_step)) }
+                TextButton(
+                    onClick = onEditStep,
+                    colors = ButtonDefaults.textButtonColors(contentColor = TripPathColors.Ink),
+                    modifier = Modifier.heightIn(min = 56.dp),
+                ) { Text(stringResource(R.string.word_edit_step), fontWeight = FontWeight.Bold) }
             }
         }
     }
