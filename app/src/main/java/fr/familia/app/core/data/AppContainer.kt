@@ -20,6 +20,8 @@ import fr.familia.app.core.photo.PhotoUploader
 import fr.familia.app.core.photo.PreferencesLinks
 import fr.familia.app.core.photo.StoragePhotoUploader
 import fr.familia.app.core.place.AndroidPlaceLocator
+import fr.familia.app.core.place.PlaceArticles
+import fr.familia.app.core.place.WikivoyagePlaceArticles
 import fr.familia.app.core.usage.UsageTracker
 import fr.familia.app.core.video.Media3PhotoFilmMaker
 import fr.familia.app.core.video.PhotoFilmMaker
@@ -59,6 +61,9 @@ interface AppContainer {
 
     /** « Le mot de l'étape » (récit 88). */
     val tripWordRepository: TripWordRepository? get() = null
+
+    /** « À savoir sur… » (récit 96): a short article about the place of a step. */
+    val placeArticles: PlaceArticles? get() = null
     val expenseRepository: ExpenseRepository?
     val recipeRepository: RecipeRepository?
     val capsuleRepository: CapsuleRepository?
@@ -284,6 +289,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
 
     /** The position of the moment and the geocoder of the phone, for every place (récit 33). */
     override val placeLocator: AndroidPlaceLocator by lazy { AndroidPlaceLocator(appContext) }
+    override val placeArticles: PlaceArticles? by lazy { WikivoyagePlaceArticles() }
 
     override val exportRepository: ExportRepository? by lazy { firestore?.let { FirestoreExportRepository(it) } }
 

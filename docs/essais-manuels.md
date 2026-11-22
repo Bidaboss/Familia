@@ -1820,6 +1820,13 @@ Rien à publier : aucune règle ni function. Pas d'interrupteur : actif pour tou
 3. Pendant le voyage : « Jour 2 sur 6 ». Après le retour : rien.
 Pas encore : la pastille sur la liste et la carte de l'Accueil (parties suivantes).
 
+## « À savoir sur… » dans la page d'étape (récit 96, temps 2)
+
+Rien à publier : aucune règle ni function, rien n'est enregistré. Pas d'interrupteur : actif pour tous (décision de Kévin, 22/11).
+1. Ouvrir une étape d'un voyage dont le lieu est connu de Wikivoyage (« La Palmyre », « Lyon »), page « Le mot de l'étape ».
+2. Sous le mot : la tuile « À savoir sur La Palmyre » (3 lignes environ), « Lire la suite » (ouvre le navigateur) et « Source : Wikivoyage · CC BY-SA ».
+3. Pendant la recherche : des blocs gris et « On cherche des infos sur ce lieu… », jamais d'indicateur qui tourne.
+4. Lieu inconnu, sans réseau ou page qui nomme plusieurs lieux : la tuile ne s'affiche pas.
 ## Voyage : plus d'interrupteurs, tout est actif (décision de Kévin, 22/11)
 
 Rien à publier : aucune règle ni function. Les modules « Carte du voyage avec les rues », « Idées autour d'une étape », « Globe animé du voyage » et « Créer un voyage par sa destination » ont disparu de Administration > Modules : tout est actif pour tous.

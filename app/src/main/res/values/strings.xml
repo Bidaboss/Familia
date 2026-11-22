@@ -340,6 +340,10 @@
     <string name="trip_destination_hint">Tape un lieu puis touche « Chercher » : jusqu\'à 5 propositions.</string>
     <string name="trip_destination_continue">Continuer</string>
     <string name="trip_destination_type_name">Je tape un nom</string>
+    <string name="place_article_title">À savoir sur %1$s</string>
+    <string name="place_article_loading">On cherche des infos sur ce lieu…</string>
+    <string name="place_article_more">Lire la suite</string>
+    <string name="place_article_source">Source : Wikivoyage · CC BY-SA</string>
     <string name="trip_route_title">Le trajet</string>
     <string name="trip_route_hint">Étape par étape, sans animation : touche une étape pour l\'ouvrir.</string>
     <string name="trip_route_row">Étape %1$d sur %2$d, %3$s, %4$s</string>

@@ -58,7 +58,10 @@ fun StepWordRoute(
     }
     val readOnly = LocalViewAs.current.viewed != null
     val wordAuthorId = (state as? StepWordUiState.Ready)?.word?.authorId
-    StepWordScreen(state, actions) {
+    val ready = state as? StepWordUiState.Ready
+    StepWordScreen(state, actions, onSite = {
+        if (ready != null) PlaceArticleTile(ready.step.place, container?.placeArticles)
+    }) {
         CommentsSection(
             repository = container?.tripWordRepository?.comments(tripId, stepId),
             container = container,
