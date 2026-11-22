@@ -41,3 +41,11 @@ data class TripStoryDestination(val tripId: String, val day: String? = null)
 /** All the photos of [tripId] (récit 15). */
 @Serializable
 data class TripPhotosDestination(val tripId: String, val photoId: String? = null)
+
+/**
+ * « Valise » of [tripId] (récit 98): « Pour tout le monde », « Ma valise » and one bag per child who
+ * goes, a chip each. [open]: « everyone » or the id of the owner of the bag to show first; null: the
+ * list that needs something.
+ */
+@Serializable
+data class TripPackingDestination(val tripId: String, val open: String? = null)

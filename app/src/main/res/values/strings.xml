@@ -3293,6 +3293,16 @@
     <string name="packing_title">À emporter</string>
     <string name="notifications_packing">Ma valise</string>
     <string name="notifications_packing_help">La veille d\'un voyage, à 18 h, s\'il reste des objets à mettre dans ta valise.</string>
+    <string name="packing_screen_title">Valise</string>
+    <string name="packing_followers">La valise est réservée à ceux qui partent.</string>
+    <string name="packing_everyone_note">Visible seulement de ceux qui partent.</string>
+    <string name="packing_private_note">Tu es la seule personne à voir cette liste.</string>
+    <string name="packing_round_label">Valise</string>
+    <string name="packing_round_ready">Valise, tout est prêt</string>
+    <plurals name="packing_round_todo">
+        <item quantity="one">Valise, %1$d chose à faire</item>
+        <item quantity="other">Valise, %1$d choses à faire</item>
+    </plurals>
     <string name="packing_everyone">Pour tout le monde</string>
     <string name="packing_take">Je m\'en charge</string>
     <string name="packing_release">Je ne peux plus</string>

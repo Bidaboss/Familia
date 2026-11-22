@@ -17,7 +17,8 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.core.album.rememberPhotoActions
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Member
-import fr.familia.app.feature.trips.packing.PackingSection
+import fr.familia.app.feature.trips.packing.packingCount
+import fr.familia.app.feature.trips.packing.rememberPackingViewModel
 import fr.familia.app.feature.trips.photos.rememberTripAlbum
 
 /** Connects the trip view to its ViewModel. */
@@ -41,6 +42,8 @@ fun TripDetailRoute(
     onOpenWord: ((stepId: String) -> Unit)? = null,
     /** « Jour par jour » (récit 90): the story of a day. */
     onOpenStory: ((day: java.time.LocalDate) -> Unit)? = null,
+    /** « Valise » (récit 98): the screen of the bags, opened from the round button. */
+    onOpenPacking: (() -> Unit)? = null,
 ) {
     val viewModel: TripDetailViewModel = viewModel(
         key = "trip-$tripId",
@@ -49,20 +52,12 @@ fun TripDetailRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val checklist = remember(viewModel) {
-        ChecklistActions(
-            onAdd = viewModel::addItem,
-            onEdit = viewModel::editItem,
-            onDone = viewModel::setItemDone,
-            onDelete = viewModel::deleteItem,
-            onTake = viewModel::takeItem,
-            onRelease = viewModel::releaseItem,
-            myId = currentMember.id,
-        )
-    }
     // « À emporter » (récit 62): « Je m'en charge » and « Ma valise » only while packingList is on.
     val packingOn = LocalFeatureFlags.current.isOn(Feature.PackingList)
-    val shownChecklist = if (packingOn) checklist else ChecklistActions(checklist.onAdd, checklist.onEdit, checklist.onDone, checklist.onDelete)
+    val shownChecklist = remember(viewModel, packingOn) { viewModel.checklistActions(currentMember.id, packingOn) }
+    // The number on the round « Valise »: what is left in my bag, and the lines nobody has taken.
+    val bags by rememberPackingViewModel(container, currentMember, tripId).uiState.collectAsStateWithLifecycle()
+    val packingCount = (state as? TripDetailUiState.Success)?.let { success -> packingCount(success.items, bags, packingOn) } ?: 0
     val album = rememberTripAlbum(container, currentMember, tripId)
     val photos by album.uiState.collectAsStateWithLifecycle()
     val photoActions = rememberPhotoActions(album, onSeePhotos)
@@ -79,7 +74,8 @@ fun TripDetailRoute(
         onClearArrival = viewModel::clearArrival,
         onBack = onBack,
         checklist = shownChecklist,
-        packing = if (packingOn) ({ PackingSection(container, currentMember, tripId) }) else null,
+        onOpenPacking = onOpenPacking,
+        packingCount = packingCount,
         photos = photos,
         photoActions = photoActions,
         onOpenExpenses = onOpenExpenses,
@@ -96,3 +92,11 @@ fun TripDetailRoute(
         onShare = shown?.takeIf { shareOn && it.canShare }?.let { success -> { share(context, tripShare(context, success.trip, success.today)) } },
     )
 }
+
+/** The actions of « À prévoir »: « Je m'en charge » and « Je ne peux plus » only while packingList is on. */
+fun TripDetailViewModel.checklistActions(myId: String, packingOn: Boolean): ChecklistActions =
+    if (packingOn) {
+        ChecklistActions(this::addItem, this::editItem, this::setItemDone, this::deleteItem, this::takeItem, this::releaseItem, myId)
+    } else {
+        ChecklistActions(this::addItem, this::editItem, this::setItemDone, this::deleteItem)
+    }
