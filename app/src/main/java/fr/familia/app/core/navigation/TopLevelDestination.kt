@@ -4,7 +4,6 @@ import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CardGiftcard
-import androidx.compose.material.icons.filled.CardTravel
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.VolunteerActivism
@@ -240,7 +239,7 @@ enum class TopLevelDestination(
     Gifts(GiftsRoute, R.string.nav_gifts, Icons.Filled.CardGiftcard, Icons.Outlined.CardGiftcard, Feature.Gifts),
     HelpRequests(HelpRequestsRoute, R.string.nav_help_requests, Icons.Filled.VolunteerActivism, Icons.Outlined.VolunteerActivism, Feature.HelpRequests),
     /** The Voyages tab: it takes the place of Entraide in the bar while its module is on (Kévin 22/11). */
-    Trips(TripsDestination, R.string.nav_trips, Icons.Filled.CardTravel, Icons.Outlined.CardTravel, Feature.Trips),
+    Trips(TripsDestination, R.string.nav_trips, Icons.Outlined.CardTravel, Icons.Outlined.CardTravel, Feature.Trips),
     Members(MembersRoute, R.string.nav_members, Icons.Filled.Groups, Icons.Outlined.Groups),
     ;
 
