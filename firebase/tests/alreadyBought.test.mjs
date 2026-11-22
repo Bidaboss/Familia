@@ -1,5 +1,5 @@
 // « Déjà acheté, participation bienvenue » (PRD rév. 309, récit 68). Not a surprise: the keeper of
-// the wishes reads every first name and amount, the others only their part and the total.
+// the wishes reads the total and every first name, never an amount (récit 93); the others only their part.
 // Fictional family: adult1, adult2, admin1 in h1, adult3 in h2, kid1 (child with the app, parent
 // adult1), kid2 (child without the app, parent adult2).
 import { after, before, beforeEach, describe, test } from 'node:test';
@@ -42,6 +42,7 @@ beforeEach(async () => {
     await setDoc(doc(db, `${WISHES}/items/plain`), storedItem({ title: 'Un livre', price: 15 }));
     await setDoc(doc(db, BOUGHT), storedItem({ alreadyBought: true, contributedTotal: 30 }));
     await setDoc(doc(db, `${BOUGHT}/contributions/adult3`), { amount: 30, memberName: 'adult3', updatedAt: OLD });
+    await setDoc(doc(db, `${BOUGHT}/contributors/adult3`), { memberName: 'adult3', updatedAt: OLD });
     // An own list of adult1, where « Déjà acheté » has no place.
     await setDoc(doc(db, 'giftLists/own1'), {
       ...wishes('adult1'), kind: 'own', title: 'Noël', occasion: 'christmas', date: '2026-12-25', viewerIds: ['adult1', 'adult2'],
@@ -57,6 +58,7 @@ beforeEach(async () => {
 function contribute(db, who, amount, previous = 0, item = BOUGHT) {
   const batch = writeBatch(db);
   batch.set(doc(db, `${item}/contributions/${who.memberId}`), { amount, memberName: who.memberId, updatedAt: serverTimestamp() });
+  batch.set(doc(db, `${item}/contributors/${who.memberId}`), { memberName: who.memberId, updatedAt: serverTimestamp() });
   batch.update(doc(db, item), { contributedTotal: increment(amount - previous) });
   return batch.commit();
 }
@@ -106,6 +108,7 @@ describe('« Je participe »', () => {
     await assertSucceeds(contribute(db, NEIGHBOUR, 50, 30));
     const batch = writeBatch(db);
     batch.delete(doc(db, `${BOUGHT}/contributions/adult3`));
+    batch.delete(doc(db, `${BOUGHT}/contributors/adult3`));
     batch.update(doc(db, BOUGHT), { contributedTotal: increment(-50) });
     await assertSucceeds(batch.commit());
   });
@@ -160,18 +163,53 @@ describe('« Je participe »', () => {
 });
 
 describe('who reads the parts', () => {
-  test('the person reads every first name and amount', async () => {
-    await assertSucceeds(getDocs(collection(as(env, ADULT), `${BOUGHT}/contributions`)));
+  test('the person reads the first names, never an amount', async () => {
+    await assertSucceeds(getDocs(collection(as(env, ADULT), `${BOUGHT}/contributors`)));
+    await assertFails(getDocs(collection(as(env, ADULT), `${BOUGHT}/contributions`)));
+    await assertFails(getDoc(doc(as(env, ADULT), `${BOUGHT}/contributions/adult3`)));
   });
 
   test('the keeper of a child without the app too', async () => {
-    await assertSucceeds(getDocs(collection(as(env, OTHER_ADULT), 'giftLists/wishes-kid2/items/k1/contributions')));
+    await assertSucceeds(getDocs(collection(as(env, OTHER_ADULT), 'giftLists/wishes-kid2/items/k1/contributors')));
+    await assertFails(getDocs(collection(as(env, OTHER_ADULT), 'giftLists/wishes-kid2/items/k1/contributions')));
   });
 
   test('the others only their own part, and the total on the wish', async () => {
     await assertFails(getDocs(collection(as(env, OTHER_ADULT), `${BOUGHT}/contributions`)));
     await assertFails(getDoc(doc(as(env, OTHER_ADULT), `${BOUGHT}/contributions/adult3`)));
+    await assertFails(getDocs(collection(as(env, OTHER_ADULT), `${BOUGHT}/contributors`)));
     await assertSucceeds(getDoc(doc(as(env, NEIGHBOUR), `${BOUGHT}/contributions/adult3`)));
+    await assertSucceeds(getDoc(doc(as(env, NEIGHBOUR), `${BOUGHT}/contributors/adult3`)));
     await assertSucceeds(getDoc(doc(as(env, OTHER_ADULT), BOUGHT)));
+  });
+
+  test('a first name alone is written for oneself, with the part, and carries no amount', async () => {
+    const db = as(env, OTHER_ADULT);
+    // Alone, without the part, it would be a name with nothing behind it.
+    await assertFails(setDoc(doc(db, `${BOUGHT}/contributors/adult2`), { memberName: 'adult2', updatedAt: serverTimestamp() }));
+    // With an amount in it, it would leak the part.
+    const leaking = writeBatch(db);
+    leaking.set(doc(db, `${BOUGHT}/contributions/adult2`), { amount: 10, memberName: 'adult2', updatedAt: serverTimestamp() });
+    leaking.set(doc(db, `${BOUGHT}/contributors/adult2`), { memberName: 'adult2', amount: 10, updatedAt: serverTimestamp() });
+    leaking.update(doc(db, BOUGHT), { contributedTotal: increment(10) });
+    await assertFails(leaking.commit());
+    // For somebody else.
+    const other = writeBatch(db);
+    other.set(doc(db, `${BOUGHT}/contributions/adult2`), { amount: 10, memberName: 'adult2', updatedAt: serverTimestamp() });
+    other.set(doc(db, `${BOUGHT}/contributors/adult3`), { memberName: 'adult3', updatedAt: serverTimestamp() });
+    other.update(doc(db, BOUGHT), { contributedTotal: increment(10) });
+    await assertFails(other.commit());
+  });
+
+  test('an old part without its name gets one later, written by its author alone', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `${BOUGHT}/contributions/adult2`), { amount: 5, memberName: 'adult2', updatedAt: OLD });
+    });
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), `${BOUGHT}/contributors/adult2`), { memberName: 'adult2', updatedAt: serverTimestamp() }));
+    await assertSucceeds(setDoc(doc(as(env, OTHER_ADULT), `${BOUGHT}/contributors/adult2`), { memberName: 'adult2', updatedAt: serverTimestamp() }));
+  });
+
+  test('taking one\'s name back is not possible while the part stands', async () => {
+    await assertFails(deleteDoc(doc(as(env, NEIGHBOUR), `${BOUGHT}/contributors/adult3`)));
   });
 });

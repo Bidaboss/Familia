@@ -2052,9 +2052,10 @@ service cloud.firestore {
     }
 
     // giftLists/{listId}/items/{itemId}/contributions/{memberId}: « Je participe » on a wish its
-    // keeper already bought (récit 68), in whole euros. Not a surprise: whoever keeps the lists of
-    // the person reads every first name and amount; the others only their own part, and the total
-    // on the item. Each write changes the total of the item by the same amount, in one batch.
+    // keeper already bought (récit 68), in whole euros. The amount of a part is read by its author
+    // alone (récit 93): whoever keeps the lists of the person sees the total on the item and, in
+    // contributors/ below, the first names, never an amount. Each write changes the total of the
+    // item by the same amount, in one batch.
     match /giftLists/{listId}/items/{itemId}/contributions/{memberId} {
       function list() {
         return get(giftListPath(listId)).data;
@@ -2072,9 +2073,10 @@ service cloud.firestore {
         return getAfter(itemPath()).data.get('contributedTotal', 0);
       }
 
+      // Never the keeper: the amount of each part stays with the one who gives it (récit 93).
       allow read: if isMember()
         && list().kind == 'wishes'
-        && (memberId == myMemberId() || keepsListsOf(list().beneficiaryId));
+        && memberId == myMemberId();
 
       allow create, update: if isMember()
         && memberId == myMemberId()
@@ -2095,6 +2097,39 @@ service cloud.firestore {
       allow delete: if isMember()
         && memberId == myMemberId()
         && totalAfter() == totalBefore() - resource.data.amount;
+    }
+
+    // giftLists/{listId}/items/{itemId}/contributors/{memberId}: who takes part in a wish already
+    // bought, a first name and no amount (récit 93). Read by the one concerned and by whoever keeps
+    // the lists of the person; written by the one concerned in the batch of their part.
+    match /giftLists/{listId}/items/{itemId}/contributors/{memberId} {
+      function list() {
+        return get(giftListPath(listId)).data;
+      }
+
+      function partPath() {
+        return /databases/$(database)/documents/giftLists/$(listId)/items/$(itemId)/contributions/$(memberId);
+      }
+
+      allow read: if isMember()
+        && list().kind == 'wishes'
+        && (memberId == myMemberId() || keepsListsOf(list().beneficiaryId));
+
+      allow create, update: if isMember()
+        && memberId == myMemberId()
+        && me().profile == 'adult'
+        && list().kind == 'wishes'
+        && !keepsListsOf(list().beneficiaryId)
+        && existsAfter(partPath())
+        && request.resource.data.keys().hasAll(['memberName', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['memberName', 'updatedAt'])
+        && request.resource.data.memberName == me().firstName
+        && request.resource.data.updatedAt == request.time;
+
+      // Taking one's part back takes the name away in the same batch.
+      allow delete: if isMember()
+        && memberId == myMemberId()
+        && !existsAfter(partPath());
     }
 
     // giftLists/{listId}/received/{itemId}: « On m'a offert » (récit 10 bis), the wishes revealed
