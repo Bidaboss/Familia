@@ -122,6 +122,8 @@ fun TripDetailScreen(
     onOpenMap: (() -> Unit)? = null,
     /** « Le mot de l'étape » (récit 88), from a step. */
     onOpenWord: ((stepId: String) -> Unit)? = null,
+    /** « Jour par jour » (récit 90), under the steps. */
+    storyDays: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
 ) {
     val success = state as? TripDetailUiState.Success
     val path = illustrated && success != null
@@ -183,9 +185,9 @@ fun TripDetailScreen(
                     },
                 )
                 is TripDetailUiState.Success -> if (illustrated) {
-                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord)
+                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, storyDays)
                 } else {
-                    Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing, onOpenMap, onOpenWord)
+                    Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing, onOpenMap, onOpenWord, storyDays)
                 }
             }
         }
@@ -205,6 +207,7 @@ private fun Content(
     packing: (@Composable () -> Unit)?,
     onOpenMap: (() -> Unit)? = null,
     onOpenWord: ((stepId: String) -> Unit)? = null,
+    storyDays: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -244,6 +247,7 @@ private fun Content(
             )
         }
         // The steps come first: on the way, « Bien arrivé » matters more than the figures, the photos and what to bring.
+        if (storyDays != null) item(key = "story-days") { storyDays(state) }
         tripFigures(state.trip, state.steps, photos.photos.size)?.let { figures ->
             item(key = "figures") { TripFiguresTile(figures) }
         }
@@ -303,6 +307,7 @@ private fun PathContent(
     openAt: TripPart? = null,
     onOpenMap: (() -> Unit)? = null,
     onOpenWord: ((stepId: String) -> Unit)? = null,
+    storyDays: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
 ) {
     val days = remember(state.trip.startDate, state.trip.endDate) { TripDays.of(state.trip) }
     var chosenEpoch by rememberSaveable(state.trip.id) { mutableStateOf<Long?>(null) }
@@ -415,6 +420,9 @@ private fun PathContent(
                     PackingOrChecklist(state, checklist, packing)
                 }
             }
+        }
+        if (storyDays != null) {
+            item(key = "story-days") { Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) { storyDays(state) } }
         }
         tripFigures(state.trip, state.steps, photos.photos.size)?.let { figures ->
             item(key = "figures") { TripFiguresTile(figures, Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) }

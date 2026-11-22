@@ -34,6 +34,10 @@ data class TripMapDestination(val tripId: String)
 @Serializable
 data class TripWordDestination(val tripId: String, val stepId: String)
 
+/** « Le voyage jour par jour » of [tripId] (récit 90), on [day] (an ISO date) when it has a word. */
+@Serializable
+data class TripStoryDestination(val tripId: String, val day: String? = null)
+
 /** All the photos of [tripId] (récit 15). */
 @Serializable
 data class TripPhotosDestination(val tripId: String, val photoId: String? = null)
