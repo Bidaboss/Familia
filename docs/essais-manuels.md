@@ -1788,3 +1788,11 @@ Rien à publier : aucune règle ni function. Le module « Globe animé du voyage
 3. Active TalkBack : la liste passe au-dessus de la carte et chaque ligne est lue d'un bloc, « Étape 4 sur 5, La Palmyre, 14 avril, 1 mot, 3 photos, bouton ».
 4. Même chose en coupant les animations d'Android (Options pour les développeurs, échelle de durée d'animation à « Animation désactivée »).
 5. Un voyage vu par quelqu'un qui n'y participe pas : la liste montre ce qu'il peut déjà lire, rien de plus.
+
+## Liens de lieu sur l'étape (récit 96, temps 1)
+
+Module éteint par défaut : Administration > Modules > « Idées autour d'une étape ».
+1. Ouvrir la carte d'un voyage, toucher une étape qui a un lieu.
+2. Sur la fiche de l'étape, trois boutons : « Restaurants près de… », « Hôtels à… », « Voir… sur Tripadvisor ».
+3. Chacun ouvre la recherche dans Google Maps ou Tripadvisor (navigateur ou appli installée).
+4. Module éteint : les boutons n'apparaissent pas. Étape sans lieu : pas de boutons.

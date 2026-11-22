@@ -322,6 +322,12 @@
     <string name="trip_map_credit_mapbox">© Mapbox</string>
     <string name="trip_map_credit_osm">© OpenStreetMap</string>
     <string name="trip_map_credit_improve">Améliorer cette carte</string>
+    <string name="feature_place_links">Idées autour d\'une étape</string>
+    <string name="feature_help_place_links">Sur l\'étape : Restaurants, Hôtels, Tripadvisor. Un appui ouvre Google Maps ou Tripadvisor avec le nom du lieu. Rien n\'est gardé.</string>
+    <string name="place_links_restaurants">Restaurants près de %1$s</string>
+    <string name="place_links_hotels">Hôtels à %1$s</string>
+    <string name="place_links_tripadvisor">Voir %1$s sur Tripadvisor</string>
+    <string name="place_links_hint">Un appui ouvre Google Maps ou Tripadvisor avec le nom du lieu. Familia ne garde rien.</string>
     <string name="feature_map_globe">Globe animé du voyage</string>
     <string name="feature_help_map_globe">Essai : « Lancer le voyage » fait voler la caméra d\'étape en étape. Sans réseau ou sans animations, la carte à plat et la liste restent.</string>
     <string name="trip_route_title">Le trajet</string>
