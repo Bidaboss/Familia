@@ -181,6 +181,41 @@ describe('the daily check', () => {
     assert.equal(sent.length, 0);
   });
 
+  test('the cause of the failure is kept, with what Google said', async () => {
+    const { send } = fakeSender();
+    const refused: MonitoringReader = {
+      metricTypes: async () => { throw new Error('Monitoring 403 (metricDescriptors) : Permission denied'); },
+      total: async () => null,
+    };
+    await checkConsumption(db, refused, send, '2026-11-20');
+    assert.equal((await db.doc('consumption/2026-11-20').get()).get('errorDetail'), 'Monitoring 403 (metricDescriptors) : Permission denied');
+  });
+
+  test('a day that failed is tried again after a few hours, never a day that was read', async () => {
+    const { send } = fakeSender();
+    let reads = 0;
+    const working: MonitoringReader = {
+      metricTypes: async () => { reads++; return [p + 'document/read_ops_count']; },
+      total: async () => 1_000,
+    };
+    const failedAt = (hoursAgo: number, now: Date) => new Date(now.getTime() - hoursAgo * 3_600_000);
+    const now = new Date('2026-11-21T10:00:00Z');
+    // Failed one hour ago: left alone.
+    await db.doc('consumption/2026-11-20').set({ day: '2026-11-20', error: 'monitoring', checkedAt: failedAt(1, now) });
+    assert.equal(await checkConsumptionIfDue(db, working, send, now), null);
+    assert.equal(reads, 0);
+    // Failed four hours ago: read again, and the error is gone.
+    await db.doc('consumption/2026-11-20').set({ day: '2026-11-20', error: 'monitoring', checkedAt: failedAt(4, now) });
+    assert.equal(await checkConsumptionIfDue(db, working, send, now), '2026-11-20');
+    assert.equal(reads, 1);
+    const doc = await db.doc('consumption/2026-11-20').get();
+    assert.equal(doc.get('error'), undefined);
+    assert.equal(doc.get('reads'), 1_000);
+    // Read: never again.
+    assert.equal(await checkConsumptionIfDue(db, working, send, new Date(now.getTime() + 6 * 3_600_000)), null);
+    assert.equal(reads, 1);
+  });
+
   test('the 30-minute task reads the day before once, from 8 h in Paris', async () => {
     const { send } = fakeSender();
     let reads = 0;

@@ -883,6 +883,24 @@ La liste « À prévoir » du voyage (récit 13) : ce qu'il faut apporter ou ré
 Droits : les lecteurs du voyage lisent la liste. Les participants, enfants compris, ajoutent, cochent, modifient et retirent les lignes. L'admin principal peut retirer une ligne. La personne en charge est forcément un participant. La suppression du voyage supprime sa liste sur le serveur. Tests : `firebase/tests/trips.test.mjs`.
 
 
+### `trips/{tripId}/words/{stepId}` (récit 88, « Le mot de l'étape »)
+
+Un mot court par étape, au plus (l'identifiant est celui de l'étape), avec jusqu'à 4 photos de l'album du voyage.
+
+| Champ | Type | Description |
+|---|---|---|
+| `text` | texte, 1 à 280 caractères | Le mot |
+| `photoIds` | liste de 4 textes au plus, sans doublon | Les photos de l'album (`{auteur}_{place}`), dans l'ordre choisi. Une photo retirée de l'album disparaît du mot à l'affichage |
+| `authorId`, `authorName` | `memberId`, texte | Le participant qui l'a écrit, son prénom gardé |
+| `hearts` | table `memberId` → `true` | Les cœurs. Chaque lecteur met ou retire le sien, rien d'autre |
+| `createdAt`, `updatedAt` | horodatages serveur | |
+
+Droits : les lecteurs du voyage le lisent. Un participant l'écrit, pour une étape qui existe ; seul son auteur change le texte et les photos ou le retire (l'admin principal aussi, pour le retirer). Le mot part avec son étape et avec son voyage (`onStepDeletedWord`, `onTripDeleted`).
+
+#### `trips/{tripId}/words/{stepId}/comments/{commentId}`
+
+Les commentaires du mot, de la même forme que ceux d'un événement (`text` de 1 à 500 caractères, `authorId`, `authorName`, `createdAt`, `mentionIds` facultatif, `editedAt`), sans date d'expiration : ils partent avec le mot. Chaque lecteur du voyage commente et change ou retire le sien ; l'auteur du mot et l'admin principal retirent aussi. `commentMutes/{memberId}` : « Ne plus être prévenu », comme pour un événement.
+
 ### `trips/{tripId}/bags/{memberId}` (récit 62, « Ma valise », module `packingList`)
 
 La valise d'un participant pour ce voyage : une liste à cocher privée. Seuls le membre et ses adultes responsables (la valise d'un enfant) la lisent et l'écrivent, et seulement pour un participant du voyage. Ni l'admin principal ni « Voir comme » ne la lisent. Supprimée avec le voyage, quand le membre est retiré du voyage (fonction `onTripParticipantsChanged`), et avec le membre quand il est retiré de la famille.
@@ -1281,7 +1299,8 @@ L'usage de la base un jour donné, lu une fois chaque matin à partir de 8 h dan
 | `monthCosts` | map | Le même coût, limite par limite : `reads`, `writes`, `deletes`, `storage`, `photos`, `downloads`, en euros. Absent pour un jour relevé avant le détail : la carte n'affiche alors que le total. |
 | `alerts` | liste | Les limites atteintes à 80 % (`reads`, `writes`, `deletes`, `storage`) et `cost` au-delà de 0,50 €. Une alerte n'est envoyée qu'une fois par jour. |
 | `checkedAt` | timestamp | L'heure du relevé. |
-| `error` | string | `monitoring` quand Monitoring n'a pas pu être lu (rôle « Lecteur Monitoring » manquant, docs/deploiement.md). Les autres champs manquent alors. |
+| `error` | string | `monitoring` quand Monitoring n'a pas pu être lu (rôle « Lecteur Monitoring » manquant, API éteinte, requête refusée : voir `errorDetail`). Les autres champs manquent alors. Un jour en échec est relu toutes les 3 heures. |
+| `errorDetail` | string | Avec `error` : ce que Google a répondu (code et message, 300 signes au plus), affiché sous le message de la carte « Consommation ». |
 
 Ces documents sont petits (un par jour) et ne contiennent rien sur la famille.
 

@@ -18,7 +18,18 @@ async function get(path: string, params: Record<string, string>): Promise<Record
   const token = (await applicationDefault().getAccessToken()).access_token;
   const url = `${API}/projects/${projectId()}/${path}?${new URLSearchParams(params)}`;
   const response = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-  if (!response.ok) throw new Error(`Monitoring ${response.status}`);
+  if (!response.ok) {
+    // What Google says goes to the card of the admin principal: a missing role, an API switched off
+    // and a bad request are told apart there (retour d'essai, 21/11).
+    const text = await response.text().catch(() => '');
+    let message = text;
+    try {
+      message = (JSON.parse(text) as { error?: { message?: string } }).error?.message ?? text;
+    } catch {
+      // Not JSON: the text is kept as it is.
+    }
+    throw new Error(`Monitoring ${response.status} (${path}) : ${message}`.slice(0, 300));
+  }
   return (await response.json()) as Record<string, unknown>;
 }
 

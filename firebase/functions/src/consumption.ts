@@ -217,8 +217,12 @@ export async function checkConsumption(db: Firestore, monitoring: MonitoringRead
       photoBytes: await read(metrics.photos, true),
       downloadBytes: (await read(metrics.downloads)) ?? 0,
     };
-  } catch {
-    await ref.set({ day, error: 'monitoring', checkedAt: new Date() });
+  } catch (error) {
+    // The cause is kept (status and message of Google), for the card and for the logs: a missing
+    // role, an API switched off and a bad request look alike without it.
+    const detail = (error instanceof Error ? error.message : String(error)).slice(0, 300);
+    console.warn(`Consumption of ${day}: Monitoring could not be read. ${detail}`);
+    await ref.set({ day, error: 'monitoring', errorDetail: detail, checkedAt: new Date() });
     return [];
   }
   const month = day.slice(0, 7);
@@ -249,16 +253,26 @@ export async function checkConsumption(db: Firestore, monitoring: MonitoringRead
 /** The hour from which the day before is read: Monitoring has all its figures by then. */
 export const CHECK_FROM_HOUR = 8;
 
+/** A day whose reading failed is tried again after this long, not at every run of the task. */
+export const RETRY_AFTER_MS = 3 * 3_600_000;
+
 /**
  * Called by the task every 30 minutes (one paid Cloud Scheduler task less): from 8 h in Paris,
- * reads the day before once, when consumption/{day before} does not exist yet. Returns the day
- * read, or null when there was nothing to do.
+ * reads the day before once, when consumption/{day before} does not exist yet or failed more than
+ * [RETRY_AFTER_MS] ago. Returns the day read, or null when there was nothing to do.
  */
 export async function checkConsumptionIfDue(db: Firestore, monitoring: MonitoringReader, send: Sender, now: Date): Promise<string | null> {
   const hour = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', hour: '2-digit', hourCycle: 'h23' }).format(now));
   if (hour < CHECK_FROM_HOUR) return null;
   const day = addDays(parisDay(now), -1);
-  if ((await db.collection('consumption').doc(day).get()).exists) return null;
+  const existing = await db.collection('consumption').doc(day).get();
+  if (existing.exists) {
+    // A day read is never read again; a day that failed is tried again every few hours, so that a role
+    // or an API switched on the same day shows without waiting for the next morning.
+    const checkedAt = (existing.get('checkedAt') as { toDate?: () => Date } | undefined)?.toDate?.();
+    const recent = checkedAt !== undefined && now.getTime() - checkedAt.getTime() < RETRY_AFTER_MS;
+    if (existing.get('error') == null || recent) return null;
+  }
   await checkConsumption(db, monitoring, send, day);
   return day;
 }

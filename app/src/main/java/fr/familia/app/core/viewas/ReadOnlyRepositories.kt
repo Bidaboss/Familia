@@ -44,6 +44,7 @@ import fr.familia.app.core.data.RsvpRepository
 import fr.familia.app.core.data.SouvenirRepository
 import fr.familia.app.core.data.TreeRepository
 import fr.familia.app.core.data.TripRepository
+import fr.familia.app.core.data.TripWordRepository
 import fr.familia.app.core.data.UsageRepository
 import fr.familia.app.core.data.WeeklyQuestionRepository
 import fr.familia.app.core.model.BringItem
@@ -101,6 +102,7 @@ import fr.familia.app.core.model.Transfer
 import fr.familia.app.core.model.Trip
 import fr.familia.app.core.model.TripItem
 import fr.familia.app.core.model.TripStep
+import fr.familia.app.core.model.TripWord
 import fr.familia.app.core.model.UsageDay
 import fr.familia.app.core.model.WeeklyAnswer
 import fr.familia.app.core.model.WeeklyQuestion
@@ -209,6 +211,16 @@ class ReadOnlyHelpRequestRepository(private val inner: HelpRequestRepository, pr
     override suspend fun markUnavailable(id: String, memberId: String) = guard.refuse()
     override suspend fun thank(id: String) = guard.refuse()
     override suspend fun cancel(id: String) = guard.refuse()
+}
+
+class ReadOnlyTripWordRepository(private val inner: TripWordRepository, private val guard: ViewAsGuard) : TripWordRepository {
+    override fun observeWords(tripId: String): Flow<Map<String, TripWord>> = inner.observeWords(tripId)
+    override fun observeWord(tripId: String, stepId: String): Flow<TripWord?> = inner.observeWord(tripId, stepId)
+    override suspend fun saveWord(tripId: String, stepId: String, text: String, photoIds: List<String>, me: Member, isNew: Boolean) = guard.refuse()
+    override suspend fun deleteWord(tripId: String, stepId: String) = guard.refuse()
+    override suspend fun setHeart(tripId: String, stepId: String, memberId: String, hearted: Boolean) = guard.refuse()
+    override fun comments(tripId: String, stepId: String): EventCommentRepository =
+        ReadOnlyEventCommentRepository(inner.comments(tripId, stepId), guard)
 }
 
 class ReadOnlyTripRepository(private val inner: TripRepository, private val guard: ViewAsGuard) : TripRepository {

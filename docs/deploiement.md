@@ -82,7 +82,7 @@ Pour lire Monitoring, la fonction a besoin du rôle « Lecteur Monitoring ». Le
 2. Trouve la ligne `<numéro>-compute@developer.gserviceaccount.com` (le compte qui fait tourner les fonctions), puis touche le crayon au bout de la ligne.
 3. Touche **Ajouter un autre rôle**, cherche **Lecteur Monitoring** (`roles/monitoring.viewer`), choisis-le, puis **Enregistrer**.
 
-Sans ce rôle, rien ne casse : la carte affiche « Familia n'a pas pu lire la consommation ». Le lendemain matin du rôle ajouté, elle affiche les chiffres.
+Sans ce rôle, rien ne casse : la carte affiche « Familia n'a pas pu lire la consommation », avec dessous ce que Google a répondu (par exemple « Permission … denied » pour un rôle manquant, ou « Cloud Monitoring API has not been used … or it is disabled » : active alors l'API Cloud Monitoring dans **API et services**). Un jour en échec est relu toutes les 3 heures, donc la carte se corrige dans la matinée qui suit ton réglage. Le lendemain matin du rôle ajouté, elle affiche les chiffres.
 
 Pour une famille de 13 personnes, les notifications et le rappel restent dans la part gratuite. Les fonctions sont limitées à une seule instance, ce qui plafonne le coût même en cas de bug.
 

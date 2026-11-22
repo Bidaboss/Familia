@@ -1659,3 +1659,12 @@ Un lieu sans adresse précise (« Chez Mamie », « Le camping ») ne donne aucu
 2. Avec un compte qui participe : touche « Saisir une adresse ». **Attendu :** l'étape s'ouvre ; écris « 12 rue de la Paix, Ajaccio » : au retour, l'étape a son point sur la carte.
 3. Avec un compte qui suit sans participer. **Attendu :** « Position non trouvée » est écrit, sans bouton « Saisir une adresse ».
 4. **Essai du géocodeur sur le plus vieux téléphone de la famille, avant d'allumer le module :** ajoute les étapes « Ajaccio », « Gare de Lyon, Paris » et « Chez Mamie ». **Attendu :** les deux premières ont un point (en moins de 3 secondes avec le réseau), la troisième dit « Position non trouvée », et aucune n'empêche l'enregistrement. Si le téléphone n'a pas de service de géocodage, toutes disent « Position non trouvée » : c'est acceptable, la carte reste vide sans erreur.
+
+## Le mot de l'étape, 1re partie : les données (récit 88, 21/11)
+
+Rien ne change à l'écran : cette partie prépare le mot, ses cœurs et ses commentaires (règles Firestore, suppression avec l'étape, accès aux données). La page du mot arrive dans la 2e partie.
+
+1. Supprime une étape d'un voyage. **Attendu :** elle disparaît comme avant, sans erreur.
+2. Supprime un voyage entier. **Attendu :** il disparaît comme avant.
+
+**Après la fusion :** lancer « Publier Firebase » avant l'APK (règles et fonctions : `onStepDeletedWord`). Un seul lancement pour tout le lot du mot de l'étape.

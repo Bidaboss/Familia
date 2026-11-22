@@ -22,6 +22,8 @@ data class Consumption(
     /** What each limit costs since the 1st of the month, in euros; empty for a day read before the detail. */
     val monthCosts: Map<Limit, Double> = emptyMap(),
     val failed: Boolean = false,
+    /** What Google answered when [failed] (status and message), to tell a missing role from an API switched off. */
+    val errorDetail: String? = null,
 ) {
     /** One line of the card: how much of a free limit [used] takes, and what it costs this month ([cost]). */
     data class Gauge(val limit: Limit, val used: Long, val cost: Double? = null) {

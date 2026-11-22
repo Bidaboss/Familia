@@ -56,6 +56,9 @@ interface AppContainer {
     val goodNewsCommentRepository: EventCommentRepository? get() = null
     val helpRequestRepository: HelpRequestRepository?
     val tripRepository: TripRepository?
+
+    /** « Le mot de l'étape » (récit 88). */
+    val tripWordRepository: TripWordRepository? get() = null
     val expenseRepository: ExpenseRepository?
     val recipeRepository: RecipeRepository?
     val capsuleRepository: CapsuleRepository?
@@ -169,6 +172,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
 
     override val helpRequestRepository: HelpRequestRepository? by lazy { firestore?.let { FirestoreHelpRequestRepository(it, sendJournal) } }
     override val tripRepository: TripRepository? by lazy { firestore?.let { FirestoreTripRepository(it) } }
+    override val tripWordRepository: TripWordRepository? by lazy { firestore?.let { FirestoreTripWordRepository(it) } }
 
     /** The accounts of a trip (récit 16 bis). */
     override val expenseRepository: ExpenseRepository? by lazy { firestore?.let { FirestoreExpenseRepository(it) } }
