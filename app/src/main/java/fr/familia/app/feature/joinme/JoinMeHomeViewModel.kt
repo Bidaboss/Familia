@@ -22,7 +22,7 @@ import java.time.Instant
 sealed interface JoinMeHomeUiState {
     data object Loading : JoinMeHomeUiState
 
-    /** What I was sent and what I sent, still within their 24 h, newest first. */
+    /** What I was sent and what I sent, still within their 2 h, newest first. */
     data class Ready(val received: List<JoinMe>, val sent: List<JoinMe>, val now: Instant) : JoinMeHomeUiState
 }
 

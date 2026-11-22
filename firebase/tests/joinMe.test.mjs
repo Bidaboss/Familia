@@ -18,12 +18,12 @@ beforeEach(async () => {
 const share = (db, id = 's1') => doc(db, `joinMe/${id}`);
 const inHours = (h) => Timestamp.fromMillis(Date.now() + h * 3_600_000);
 
-/** What the app writes: expireAt is « now + 24 h » from the phone's clock. */
+/** What the app writes: expireAt is « now + 2 h » from the phone's clock. */
 function joinMe(by, recipientIds = [OTHER_ADULT.memberId], overrides = {}) {
   return {
     authorId: by.memberId, authorName: by.memberId, recipientIds,
     name: 'Plage des Sables', address: '1 promenade de la Mer, 85100 Les Sables', lat: 46.49, lng: -1.79,
-    note: 'On est au poste de secours', createdAt: serverTimestamp(), expireAt: inHours(24), ...overrides,
+    note: 'On est au poste de secours', createdAt: serverTimestamp(), expireAt: inHours(2), ...overrides,
   };
 }
 
@@ -53,9 +53,9 @@ describe('sending', () => {
     await assertFails(setDoc(share(as(env, STRANGER)), joinMe({ memberId: 'x' })));
   });
 
-  test('it lasts about 24 h, never longer', async () => {
-    await assertFails(setDoc(share(as(env, ADULT)), joinMe(ADULT, undefined, { expireAt: inHours(72) })));
-    await assertFails(setDoc(share(as(env, ADULT)), joinMe(ADULT, undefined, { expireAt: inHours(1) })));
+  test('it lasts about 2 h, never longer', async () => {
+    await assertFails(setDoc(share(as(env, ADULT)), joinMe(ADULT, undefined, { expireAt: inHours(24) })));
+    await assertFails(setDoc(share(as(env, ADULT)), joinMe(ADULT, undefined, { expireAt: inHours(0.5) })));
     await assertFails(setDoc(share(as(env, ADULT)), joinMe(ADULT, undefined, { expireAt: null })));
     await assertFails(setDoc(share(as(env, ADULT)), joinMe(ADULT, undefined, { createdAt: Timestamp.fromMillis(0) })));
   });

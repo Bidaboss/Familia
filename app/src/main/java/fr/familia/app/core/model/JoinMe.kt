@@ -25,6 +25,6 @@ data class JoinMe(
 
     companion object {
         const val MAX_NOTE = 200
-        val LIFETIME: Duration = Duration.ofHours(24)
+        val LIFETIME: Duration = Duration.ofHours(2)
     }
 }

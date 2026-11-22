@@ -47,7 +47,7 @@ import java.time.ZoneId
 
 /**
  * What « Rejoignez-moi » (récit 33) puts at the top of « À faire pour moi » on the Accueil (PRD rév. 205):
- * the places I was sent in the last 24 h, with « Itinéraire », and the one I am sharing, with
+ * the places I was sent in the last 2 h, with « Itinéraire », and the one I am sharing, with
  * « Ne plus partager ». [hasShares] is false while there is none; the block then does not show for it.
  */
 class JoinMeHome(
