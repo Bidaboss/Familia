@@ -5,6 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material.icons.outlined.Payments
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -213,8 +217,8 @@ private fun DrawScope.drawLabel(at: Offset, label: String, measurer: androidx.co
 }
 
 /**
- * The chosen day under the path: « Jour 3 : l'Alcázar et les jardins », then « 18 photos », « Carnet »
- * and « Comptes » (participants only). The buttons are 48 dp, inside the card.
+ * The chosen day under the path: « Jour 3 : l'Alcázar et les jardins », then « Carnet », « La carte »
+ * and « 18 photos », and for those who go the round « Comptes » and « Valise ».
  */
 @Composable
 fun TripDayCard(
@@ -251,13 +255,36 @@ fun TripDayCard(
             color = TripPathColors.Ink,
             modifier = Modifier.semantics { heading() },
         )
+        // Reading first: the notebook (what happens today), the map, the photos (Kévin, 22/11).
         SideBySide { item ->
-            DayButton(pluralStringResource(R.plurals.trip_photo_count, photoCount, photoCount), onPhotos, item)
             DayButton(stringResource(R.string.trip_notebook), onNotebook, item)
-            if (onExpenses != null) DayButton(stringResource(R.string.trip_expenses_short), onExpenses, item)
             if (onMap != null) DayButton(stringResource(R.string.trip_map_open), onMap, item)
+            DayButton(pluralStringResource(R.plurals.trip_photo_count, photoCount, photoCount), onPhotos, item)
         }
-        if (onPacking != null) PackingRound(packingCount, onPacking, Modifier.align(Alignment.CenterHorizontally))
+        // Then the tools, for those who go: two round buttons with their word under them.
+        if (onExpenses != null || onPacking != null) {
+            Row(Modifier.align(Alignment.CenterHorizontally), horizontalArrangement = Arrangement.spacedBy(28.dp)) {
+                if (onExpenses != null) {
+                    ToolRound(Icons.Outlined.Payments, stringResource(R.string.trip_expenses_short), stringResource(R.string.expenses_open), onExpenses)
+                }
+                if (onPacking != null) {
+                    val description = if (packingCount == 0) stringResource(R.string.packing_round_ready) else pluralStringResource(R.plurals.packing_round_todo, packingCount, packingCount)
+                    ToolRound(Icons.Outlined.Luggage, stringResource(R.string.packing_round_label), description, onPacking) {
+                        Box(
+                            Modifier.align(Alignment.TopEnd).offset(x = 6.dp, y = (-4).dp).size(22.dp).clip(CircleShape)
+                                .background(if (packingCount == 0) Color(0xFF2E7D32) else Color(0xFFC62828)),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (packingCount == 0) {
+                                Icon(Icons.Outlined.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                            } else {
+                                Text(packingCount.coerceAtMost(99).toString(), color = Color.White, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -275,14 +302,13 @@ private fun DayButton(text: String, onClick: () -> Unit, modifier: Modifier) {
 }
 
 /**
- * « Valise »: a round 48 dp button with its word under it and, on its top right corner, the number of
- * things left to do (a green tick once everything is ready). TalkBack reads « Valise, 6 choses à faire ».
+ * A tool of the trip as a round 48 dp button with its word under it (« Comptes », « Valise »), and
+ * a [badge] on its top right corner when it has one. TalkBack reads [description].
  */
 @Composable
-private fun PackingRound(count: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val description = if (count == 0) stringResource(R.string.packing_round_ready) else pluralStringResource(R.plurals.packing_round_todo, count, count)
+private fun ToolRound(icon: ImageVector, label: String, description: String, onClick: () -> Unit, badge: @Composable BoxScope.() -> Unit = {}) {
     Column(
-        modifier
+        Modifier
             .heightIn(min = 56.dp)
             .clip(RoundedCornerShape(16.dp))
             .clickable(role = Role.Button, onClick = onClick)
@@ -295,20 +321,10 @@ private fun PackingRound(count: Int, onClick: () -> Unit, modifier: Modifier = M
                 Modifier.size(48.dp).clip(CircleShape).background(Color.White).border(2.dp, TripPathColors.Ink, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(Icons.Outlined.Luggage, contentDescription = null, tint = TripPathColors.Ink)
+                Icon(icon, contentDescription = null, tint = TripPathColors.Ink)
             }
-            Box(
-                Modifier.align(Alignment.TopEnd).offset(x = 6.dp, y = (-4).dp).size(22.dp).clip(CircleShape)
-                    .background(if (count == 0) Color(0xFF2E7D32) else Color(0xFFC62828)),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (count == 0) {
-                    Icon(Icons.Outlined.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
-                } else {
-                    Text(count.coerceAtMost(99).toString(), color = Color.White, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                }
-            }
+            badge()
         }
-        Text(stringResource(R.string.packing_round_label), style = MaterialTheme.typography.labelLarge, color = TripPathColors.Ink, textAlign = TextAlign.Center)
+        Text(label, style = MaterialTheme.typography.labelLarge, color = TripPathColors.Ink, textAlign = TextAlign.Center)
     }
 }
