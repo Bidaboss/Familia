@@ -125,8 +125,6 @@ data class GiftListActions(
     val onSetShare: (itemId: String, amount: Double) -> Unit = { _, _ -> },
     val onLeaveShare: (itemId: String) -> Unit = {},
     val onMarkReceived: (itemId: String, memberId: String, received: Boolean) -> Unit = { _, _, _ -> },
-    /** « On m'a offert », on one's own wishes; null while its module is off (récit 10 bis). */
-    val onOpenReceived: (() -> Unit)? = null,
     /** The page of the beneficiary, for their sizes and tastes (récit 7 bis); null while that module is off. */
     val onOpenBeneficiary: ((memberId: String) -> Unit)? = null,
     /** « Je l'ai reçue » on a wish of « Mes envies » (rév. 232); null while the reveal is off. */
@@ -226,7 +224,7 @@ private fun Content(state: GiftListUiState.Success, actions: GiftListActions) {
         contentPadding = PaddingValues(start = ClaySpacing.screen, end = ClaySpacing.screen, top = 16.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(ClaySpacing.between),
     ) {
-        item(key = "header") { Header(state, actions.onOpenReceived, actions.onOpenBeneficiary) }
+        item(key = "header") { Header(state, actions.onOpenBeneficiary) }
         if (state.items.isEmpty()) {
             item(key = "empty") {
                 // A card rather than a loose sentence (refonte globale, recette 8); « Ajouter » stays the button below.
@@ -279,7 +277,7 @@ private fun Content(state: GiftListUiState.Success, actions: GiftListActions) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun Header(state: GiftListUiState.Success, onOpenReceived: (() -> Unit)?, onOpenBeneficiary: ((String) -> Unit)? = null) {
+private fun Header(state: GiftListUiState.Success, onOpenBeneficiary: ((String) -> Unit)? = null) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         val subtitle = listSubtitle(state.list, state.beneficiary.firstName, state.today)
         if (subtitle.isNotEmpty()) {
@@ -298,9 +296,6 @@ private fun Header(state: GiftListUiState.Success, onOpenReceived: (() -> Unit)?
         FlowRow(verticalArrangement = Arrangement.Center) {
             Text(notice, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             HelpLink(ScreenHelp.GiftList)
-        }
-        if (onOpenReceived != null && state.isMine && state.list.kind == GiftListKind.Wishes) {
-            ClayLink(stringResource(R.string.received_open), onClick = onOpenReceived)
         }
         // Someone else's list: their sizes and tastes are one touch away (récit 7 bis).
         if (onOpenBeneficiary != null && !state.isMine) {

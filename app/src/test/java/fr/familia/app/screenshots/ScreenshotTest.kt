@@ -102,8 +102,6 @@ import fr.familia.app.feature.gifts.notebook.StatusSheetContent
 import fr.familia.app.feature.gifts.notebook.previewNotebook
 import fr.familia.app.feature.gifts.notebook.previewNotebookIdea
 import fr.familia.app.feature.gifts.notebook.previewProposeIdea
-import fr.familia.app.feature.gifts.received.ReceivedGiftsScreen
-import fr.familia.app.feature.gifts.received.previewReceivedGifts
 import fr.familia.app.core.ui.LocalMemberPhotos
 import fr.familia.app.feature.members.photo.PhotoCropContent
 import fr.familia.app.feature.members.photo.previewPicture
@@ -689,13 +687,6 @@ class ScreenshotTest {
     fun proposeIdeaFontScale200() = capture("carnet_cadeaux_proposer_police_200") {
         ProposeIdeaScreen(previewProposeIdea(), ProposeIdeaActions(), today = LocalDate.of(2026, 11, 16))
     }
-
-    @Test
-    fun receivedGiftsLight() = capture("on_m_a_offert_clair") { ReceivedGiftsScreen(previewReceivedGifts()) }
-
-    @Test
-    @Config(fontScale = 2f)
-    fun receivedGiftsFontScale200() = capture("on_m_a_offert_police_200") { ReceivedGiftsScreen(previewReceivedGifts()) }
 
     @Test
     fun giftListFormLight() = capture("liste_cadeaux_formulaire_clair") { GiftListEditScreen(previewGiftListForm(), {}, {}, {}, {}) }
