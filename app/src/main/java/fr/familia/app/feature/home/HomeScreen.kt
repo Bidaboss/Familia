@@ -78,6 +78,7 @@ class HomeActions(
     val onOpenWishes: ((memberId: String) -> Unit)? = null,
     val onOpenList: (String) -> Unit = {},
     val onOpenTrip: (String) -> Unit = {},
+    val onOpenWord: (String, String) -> Unit = { _, _ -> },
     /** A photo of « Il y a N ans »: its album, opened on it (récit 36). */
     val onOpenAlbumPhoto: (MemoryAlbum, String) -> Unit = { _, _ -> },
     val onNewTrip: () -> Unit = {},
@@ -206,6 +207,7 @@ fun HomeRoute(
             onOpenGoodNews = onOpenGoodNews,
             onOpenHelpRequest = actions.onOpenHelpRequest,
             onOpenTrip = actions.onOpenTrip,
+            onOpenWord = actions.onOpenWord,
             onOpenRecipe = onOpenRecipe,
             onOpenAlbumPhoto = actions.onOpenAlbumPhoto,
             onOpenWeeklyQuestion = onOpenWeeklyQuestion,

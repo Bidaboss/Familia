@@ -36,6 +36,8 @@ import fr.familia.app.feature.feed.AlbumFeedCard
 import fr.familia.app.feature.feed.FeedAlbum
 import fr.familia.app.feature.feed.FeedContext
 import fr.familia.app.feature.feed.RecipeFeedCard
+import fr.familia.app.feature.feed.WordFeedCard
+import fr.familia.app.core.model.TripWord
 import fr.familia.app.feature.genealogy.GenealogyScreen
 import fr.familia.app.feature.genealogy.GenealogyUiState
 import fr.familia.app.feature.genealogy.poster.PosterChoice
@@ -245,6 +247,7 @@ internal object VoyageScreens {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 AlbumFeedCard(album, LocalDate.of(2026, 11, 18), photos.reversed()).Content(context)
                 RecipeFeedCard(recipe, recipes, null).Content(context)
+                WordFeedCard("t1", "Une semaine à la mer", "Ajaccio", TripWord("s1", "Arrivés à Ajaccio ! Premier café sur le port.", listOf("a", "b"), "ines", "Inès", setOf("camille", "ines"), Instant.parse("2026-11-18T09:30:00Z"))).Content(context)
             }
         },
         screen("Qui est-ce ?, the list") { WhoIsItListScreen(WhoIsItListUiState.Ready(listOf(WhoIsItPost("w1", "a", "Camille", "Un mariage, au printemps", null))), {}, onAdd = {}, onBack = {}) },

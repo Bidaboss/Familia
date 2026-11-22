@@ -1697,3 +1697,19 @@ Sous un mot publié, la page de l'étape a un bloc « Commentaires » (le même 
 6. Texte à 200 % et TalkBack : même lecture que sous un événement.
 
 **Après la fusion :** rien de plus que « Publier Firebase » de la 1re partie (les règles des commentaires y sont déjà).
+
+## Le mot de l'étape, 4e partie : la carte au fil (récit 88, 22/11)
+
+Chaque mot publié apparaît dans « Le fil » de l'Accueil, avec le mot en 3 lignes, l'étape et le voyage, le nombre de photos et de cœurs. Une touche ouvre la page de l'étape.
+
+Interrupteurs : « Le fil » (`newsFeed`) et « Voyages » allumés.
+
+1. Un participant publie un mot sur une étape d'un voyage que toute la famille suit. **Attendu :** sur le téléphone d'un autre membre, dans Le fil, une carte verte « Mot d'étape » signée de l'auteur : « Ajaccio · Nom du voyage », le texte (3 lignes au plus), « 📷 2 photos » et « ❤️ 3 » seulement s'il y en a.
+2. Touche la carte. **Attendu :** la page du mot de cette étape s'ouvre.
+3. Un voyage caché à quelqu'un (une surprise) : aucune carte de mot, même sur le téléphone de ceux qui le suivent.
+4. Retire le mot ou supprime l'étape : la carte disparaît. Un mot de plus de 14 jours n'est plus dans Le fil (« Voir plus ancien » le rapporte).
+5. Interrupteur « Voyages » éteint, ou « Le fil » éteint : aucune carte de mot.
+6. Au plus 20 voyages sont lus pour Le fil ; un voyage de plus de 30 jours avant la période n'est pas lu.
+7. Texte à 200 % et TalkBack : la carte se lit en entier (auteur, étape, texte, photos, cœurs).
+
+**Après la fusion :** rien de plus que « Publier Firebase » du lot.

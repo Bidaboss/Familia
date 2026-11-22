@@ -86,6 +86,8 @@ class FeedNavigation(
     val onOpenGoodNews: (String) -> Unit = {},
     val onOpenHelpRequest: (String) -> Unit = {},
     val onOpenTrip: (String) -> Unit = {},
+    /** The page of the word of a step: the trip, then the step (récit 88). */
+    val onOpenWord: (String, String) -> Unit = { _, _ -> },
     val onOpenRecipe: (String) -> Unit = {},
     /** An album of an event or a trip, on one of its photos (fil voyage). */
     val onOpenAlbumPhoto: (MemoryAlbum, String) -> Unit = { _, _ -> },
