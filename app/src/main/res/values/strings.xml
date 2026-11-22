@@ -320,10 +320,11 @@
     <string name="trip_map_credit_mapbox">© Mapbox</string>
     <string name="trip_map_credit_osm">© OpenStreetMap</string>
     <string name="trip_map_credit_improve">Améliorer cette carte</string>
+    <string name="place_links_title">Chercher plus loin</string>
     <string name="place_links_restaurants">Restaurants près de %1$s</string>
     <string name="place_links_hotels">Hôtels à %1$s</string>
     <string name="place_links_tripadvisor">Voir %1$s sur Tripadvisor</string>
-    <string name="place_links_hint">Un appui ouvre Google Maps ou Tripadvisor avec le nom du lieu. Familia ne garde rien.</string>
+    <string name="place_links_hint">Ces liens ouvrent une autre appli (Google Maps ou Tripadvisor) avec le nom du lieu. Familia ne garde rien.</string>
     <plurals name="trip_countdown_nights">
         <item quantity="one">%d nuit avant le départ</item>
         <item quantity="other">%d nuits avant le départ</item>

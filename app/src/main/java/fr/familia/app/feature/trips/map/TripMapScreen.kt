@@ -237,29 +237,7 @@ private fun StopCard(stop: MapStop, onOpen: () -> Unit) {
             Button(onClick = onOpen, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.trip_map_open_step))
             }
-            PlaceLinksRow(step.place)
         }
-    }
-}
-
-/** « Restaurants près de… », « Hôtels à… », « Voir sur Tripadvisor » for the step (récit 96). */
-@Composable
-private fun PlaceLinksRow(place: String) {
-    val links = remember(place) { placeLinks(place) } ?: return
-    val uri = LocalUriHandler.current
-    val name = place.trim()
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        links.forEach { link ->
-            val label = when (link.kind) {
-                PlaceLinkKind.Restaurants -> stringResource(R.string.place_links_restaurants, name)
-                PlaceLinkKind.Hotels -> stringResource(R.string.place_links_hotels, name)
-                PlaceLinkKind.Tripadvisor -> stringResource(R.string.place_links_tripadvisor, name)
-            }
-            TextButton(onClick = { runCatching { uri.openUri(link.url) } }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                Text(label, color = TripPathColors.Ink)
-            }
-        }
-        Text(stringResource(R.string.place_links_hint), style = MaterialTheme.typography.bodySmall, color = TripPathColors.InkSoft)
     }
 }
 
