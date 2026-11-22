@@ -28,24 +28,20 @@ class TopLevelDestinationTest {
     }
 
     @Test
-    fun `the bar holds 4 tabs around Tout Familia, the planning being a page`() {
-        // « La base » has no switch any more (Kévin le 18/11, 20 h 39); Planning left the bar (DESIGN-55).
-        val bar = listOf(TopLevelDestination.Home, TopLevelDestination.Gifts, TopLevelDestination.HelpRequests, TopLevelDestination.Members)
+    fun `the bar holds 4 tabs around Tout Familia, Voyages in place of Entraide, the planning being a page`() {
+        // « La base » has no switch (Kévin le 18/11), and Voyages joined it on 22/11 with no switch either.
+        val bar = listOf(TopLevelDestination.Home, TopLevelDestination.Gifts, TopLevelDestination.Trips, TopLevelDestination.Members)
         assertEquals(bar, TopLevelDestination.visible(FeatureFlags()))
-        assertEquals(bar, TopLevelDestination.visible(FeatureFlags(mapOf("gifts" to false))))
+        assertEquals(bar, TopLevelDestination.visible(FeatureFlags(mapOf("trips" to false, "gifts" to false))))
+        assertEquals(bar, TopLevelDestination.visible(FeatureFlags(isOwner = true)))
     }
 
     @Test
-    fun `Voyages takes the place of Entraide once its module is on, Entraide then being a page`() {
-        val bar = listOf(TopLevelDestination.Home, TopLevelDestination.Gifts, TopLevelDestination.Trips, TopLevelDestination.Members)
-        val on = FeatureFlags(mapOf("trips" to true))
-        assertEquals(bar, TopLevelDestination.visible(on))
-        assertEquals(bar, TopLevelDestination.visible(FeatureFlags(isOwner = true)))
-        assertTrue(TopLevelDestination.isPage(TopLevelDestination.HelpRequests, on))
-        assertTrue(TopLevelDestination.isPage(TopLevelDestination.Planning, on))
-        assertFalse(TopLevelDestination.isPage(TopLevelDestination.Trips, on))
-        // Without the module, Entraide keeps its tab and Voyages has none.
-        assertFalse(TopLevelDestination.isPage(TopLevelDestination.HelpRequests, FeatureFlags()))
-        assertTrue(TopLevelDestination.isPage(TopLevelDestination.Trips, FeatureFlags()))
+    fun `Planning and Entraide are pages of the Accueil, out of the bar`() {
+        val flags = FeatureFlags()
+        assertTrue(TopLevelDestination.isPage(TopLevelDestination.HelpRequests, flags))
+        assertTrue(TopLevelDestination.isPage(TopLevelDestination.Planning, flags))
+        assertFalse(TopLevelDestination.isPage(TopLevelDestination.Trips, flags))
+        assertFalse(TopLevelDestination.isPage(TopLevelDestination.Home, flags))
     }
 }

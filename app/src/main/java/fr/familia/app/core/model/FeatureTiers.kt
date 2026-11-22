@@ -11,7 +11,7 @@ private val BASE = setOf(
     Feature.Home, Feature.Gifts, Feature.HelpRequests, Feature.GoodNews, Feature.Polls, Feature.Bring,
     Feature.Comments, Feature.BirthdayWishes, Feature.Calendar, Feature.Share, Feature.ShareToWishes,
     Feature.WishFromShare, Feature.MemberCard, Feature.Themes, Feature.RecurringEvents, Feature.MyReminders,
-    Feature.Welcome, Feature.OpeningAnimation,
+    Feature.Welcome, Feature.OpeningAnimation, Feature.Trips,
 )
 
 /** Kept on once tried; after the 21st the old version and its switch go away. */
