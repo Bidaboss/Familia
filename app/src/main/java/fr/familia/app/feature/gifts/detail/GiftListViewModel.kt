@@ -62,7 +62,7 @@ data class ClaimView(
 
 /**
  * A wish already bought (récit 68): the total of the parts, mine, and for whoever keeps the lists
- * of the person every first name and amount ([parts], empty for the others).
+ * of the person every first name, never an amount ([parts], empty for the others, récit 93).
  */
 data class ContributionView(
     val total: Int,

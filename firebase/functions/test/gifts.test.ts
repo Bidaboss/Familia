@@ -204,9 +204,11 @@ describe('functions', () => {
 
   test('a removed wish already bought leaves no participation behind (récit 68)', async () => {
     await db.doc('giftLists/wishes-ines/items/w9/contributions/camille').set({ amount: 20, memberName: 'Camille' });
+    await db.doc('giftLists/wishes-ines/items/w9/contributors/camille').set({ memberName: 'Camille' });
     await db.doc('giftLists/wishes-ines/items/w8/contributions/camille').set({ amount: 10, memberName: 'Camille' });
     await deleteItemContributions(db, 'wishes-ines', 'w9');
     assert.equal((await db.collection('giftLists/wishes-ines/items/w9/contributions').get()).size, 0);
+    assert.equal((await db.collection('giftLists/wishes-ines/items/w9/contributors').get()).size, 0);
     assert.equal((await db.collection('giftLists/wishes-ines/items/w8/contributions').get()).size, 1);
   });
 

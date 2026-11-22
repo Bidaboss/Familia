@@ -102,10 +102,11 @@ data class GiftItem(
 data class SharedWish(val listId: String, val item: GiftItem)
 
 /**
- * A part of [memberId] in a wish already bought (récit 68), in whole euros. Not a surprise: whoever
- * keeps the lists of the person reads every one, the others only their own.
+ * A part of [memberId] in a wish already bought (récit 68), in whole euros. Only its author reads
+ * the amount (récit 93): whoever keeps the lists of the person gets the first name with [amount] 0,
+ * and the total on the wish.
  */
-data class GiftContribution(val memberId: String, val memberName: String, val amount: Int)
+data class GiftContribution(val memberId: String, val memberName: String, val amount: Int = 0)
 
 enum class ClaimType(val firestoreValue: String) {
     /** « Je le prends ». */
