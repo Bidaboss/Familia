@@ -62,7 +62,7 @@ La carte sera un composant dont le fond se remplace (aujourd'hui le paysage, plu
 
 - Avoir **18 ans** pour ouvrir le compte : Kévin, pas les enfants. Chaque requête porte la clé du compte, qui répond de tout usage.
 - La licence « production » est conditionnée au paiement quand elle est exigée ; le texte lu ne dit pas clairement si une appli familiale gratuite en relève. Le seuil gratuit est prévu « for most products » : à confirmer par écrit avec le support avant de compter dessus.
-- **Logo et attribution obligatoires** : le mot-symbole Mapbox sur chaque carte, et l'attribution lisible. Elle contient aussi l'opposition à la télémétrie : la loi du contrat oblige à offrir à chaque utilisateur un moyen de la refuser. Pour une appli familiale avec des enfants, la télémétrie (envoi d'usage à Mapbox) est à désactiver par défaut ou à expliquer dans l'écran de confidentialité de Familia.
+- **Logo et attribution obligatoires** : le mot-symbole Mapbox sur chaque carte, et l'attribution lisible. Elle contient aussi l'opposition à la télémétrie : le contrat oblige à offrir à chaque utilisateur un moyen de la refuser. Pour une appli familiale avec des enfants, la télémétrie (envoi d'usage à Mapbox) est à désactiver par défaut ou à expliquer dans l'écran de confidentialité de Familia.
 - Les nouvelles conditions s'appliquent dès leur publication, et ne pas utiliser la dernière version du SDK « may result in … higher fees ».
 
 ### Hors ligne
