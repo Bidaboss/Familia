@@ -1605,6 +1605,8 @@
     <string name="photo_book_cover">En couverture</string>
     <string name="photo_book_is_cover">Couverture</string>
     <string name="photo_book_is_big">Seule sur sa page</string>
+    <string name="photo_book_words_title">Les mots et les chiffres du voyage</string>
+    <string name="photo_book_figures">La page des chiffres</string>
     <string name="photo_book_make">Faire le livre photo</string>
     <string name="print_failed_no_room">Il n\'y a plus assez de place sur le téléphone pour ce fichier. Libère de la place (photos, vidéos, applis), puis réessaie.</string>
     <string name="print_failed_too_big">Ce fichier est trop gros pour ce téléphone. Retire des photos, puis réessaie.</string>

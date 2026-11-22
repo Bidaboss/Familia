@@ -17,7 +17,15 @@ import java.io.File
 import java.time.Instant
 
 /** What the album is: read by the route from the trip or the event. */
-data class BookSource(val folder: String, val title: String, val dates: String, val steps: List<BookStep> = emptyList())
+data class BookSource(
+    val folder: String,
+    val title: String,
+    val dates: String,
+    val steps: List<BookStep> = emptyList(),
+    /** The words of the steps, in the order of the trip (récit 91). */
+    val words: List<BookWord> = emptyList(),
+    val figures: List<BookFigure> = emptyList(),
+)
 
 sealed interface PhotoBookUiState {
     data object Loading : PhotoBookUiState
@@ -38,10 +46,23 @@ sealed interface PhotoBookUiState {
         val failed: Boolean = false,
         /** The room or the memory of the phone, when that is why it failed; else the connection. */
         val problem: PrintProblem? = null,
+        /** The words of the steps that can go in the book, and which do (all, to start). */
+        val words: List<BookWord> = emptyList(),
+        val wordsIn: Set<String> = words.map { it.stepId }.toSet(),
+        /** The figures of the trip, and whether their page goes in. */
+        val figures: List<BookFigure> = emptyList(),
+        val figuresIn: Boolean = figures.isNotEmpty(),
     ) : PhotoBookUiState {
         val inBook: List<BookPhoto> get() = photos.filter { it.photo.id in chosen }
-        val pageCount: Int get() = 1 + bookPages(inBook).size + if (steps.isEmpty()) 0 else 1
-        val canMake: Boolean get() = chosen.isNotEmpty() && title.isNotBlank() && !isMaking
+        val wordsInBook: List<BookWord> get() = words.filter { it.stepId in wordsIn }
+
+        /** The photos on the pages of the photos: those already on a page of a word are not shown twice. */
+        val freePhotos: List<BookPhoto> get() {
+            val onWords = wordsInBook.flatMap { w -> w.photos.map { it.id } }.toSet()
+            return inBook.filter { it.photo.id !in onWords }
+        }
+        val pageCount: Int get() = 1 + wordsInBook.size + bookPages(freePhotos).size + (if (steps.isEmpty()) 0 else 1) + (if (figuresIn && figures.isNotEmpty()) 1 else 0)
+        val canMake: Boolean get() = (chosen.isNotEmpty() || wordsInBook.isNotEmpty()) && title.isNotBlank() && !isMaking
     }
 }
 
@@ -89,16 +110,18 @@ class PhotoBookViewModel(
         }
         val (book, all) = loaded
         val ordered = all.sortedWith(compareBy<AlbumPhoto> { it.createdAt ?: Instant.MAX }.thenBy { it.id })
-        _uiState.value = if (ordered.isEmpty()) {
+        _uiState.value = if (ordered.isEmpty() && book.words.isEmpty()) {
             PhotoBookUiState.Empty
         } else {
             PhotoBookUiState.Choosing(
                 photos = ordered.map { BookPhoto(it, caption(it)) },
                 chosen = ordered.map { it.id }.toSet(),
-                coverId = ordered.first().id,
+                coverId = ordered.firstOrNull()?.id,
                 title = book.title.take(PHOTO_BOOK_TITLE_MAX),
                 dates = book.dates,
                 steps = book.steps,
+                words = book.words,
+                figures = book.figures,
             )
         }
     }
@@ -119,6 +142,14 @@ class PhotoBookViewModel(
         val cover = state.coverId?.takeIf { it in chosen } ?: state.photos.firstOrNull { it.photo.id in chosen }?.photo?.id
         state.copy(chosen = chosen, coverId = cover)
     }
+
+    /** Takes the word of a step in or out of the book (récit 91). */
+    fun toggleWord(stepId: String) = change { state ->
+        state.copy(wordsIn = if (stepId in state.wordsIn) state.wordsIn - stepId else state.wordsIn + stepId)
+    }
+
+    /** The page of the figures of the trip, in or out. */
+    fun setFigures(on: Boolean) = change { it.copy(figuresIn = on) }
 
     fun setCover(id: String) = change { if (id in it.chosen) it.copy(coverId = id) else it }
 
@@ -145,8 +176,10 @@ class PhotoBookViewModel(
             dates = state.dates,
             format = state.format,
             cover = state.photos.firstOrNull { it.photo.id == state.coverId }?.photo,
-            pages = bookPages(state.inBook),
+            pages = bookPages(state.freePhotos),
             steps = state.steps,
+            words = state.wordsInBook,
+            figures = if (state.figuresIn) state.figures else emptyList(),
         )
         _uiState.value = state.copy(isMaking = true, failed = false, problem = null)
         viewModelScope.launch {

@@ -1743,3 +1743,15 @@ Cette partie : la story, ses écrans et leur navigation, le cœur, l'écran de f
 5. Dernier écran du jour : le trajet du jour (les étapes du jour placées, reliées), « Le trajet du jour », « Bordeaux → La Palmyre · 118 km à vol d'oiseau » ; si une étape du jour n'a pas de position : « … · Trajet non placé ». Un bouton blanc « Jour 3 » passe au jour suivant qui a un mot, « Revoir ce jour » revient au premier écran. Le dernier jour n'a que « Revoir ce jour » et « Fermer ».
 6. Une photo retirée de l'album tombe de la story. Un mot retiré pendant la lecture : la story reste sur un écran qui existe.
 7. Texte à 130 % et plus et TalkBack : « Suivant » et « Précédent » sont annoncés (les zones invisibles ne le sont pas), chaque jour de la rangée se lit « Jour 2, 12 avril, à revoir » ou « rien à revoir ».
+
+
+## Livre du voyage : les mots d'étape et les chiffres en pages (récit 91)
+
+Rien à publier pour ces essais : aucune nouvelle donnée ni règle. Il faut un voyage avec au moins deux étapes, un mot sur deux d'entre elles (avec une photo pour l'un) et des photos dans l'album.
+
+1. Ouvre le voyage, **Voir les photos**, **Faire le livre photo**. Sous le format, une liste « Les mots et les chiffres du voyage » montre un interrupteur par mot (lieu, auteur, jour) et « La page des chiffres ». Tout est allumé au départ.
+2. Éteins un mot : le nombre de pages du compteur baisse de 1. Éteins la page des chiffres : de 1 aussi.
+3. Fais le livre. Dans le PDF : la couverture, une page par mot (jour et lieu en titre, photos en haut, mot en dessous signé de son auteur), les photos libres, la liste des étapes, puis la page des chiffres.
+4. Une photo mise sur un mot n'est pas répétée sur les pages de photos.
+5. Un voyage sans aucun mot ni chiffre : le livre est celui d'avant, rien ne change.
+6. Un voyage avec des mots mais sans photo dans l'album : on peut quand même faire le livre.
