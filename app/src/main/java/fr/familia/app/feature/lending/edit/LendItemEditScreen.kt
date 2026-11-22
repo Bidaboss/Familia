@@ -80,11 +80,11 @@ import fr.familia.app.core.theme.LocalClayColors
 import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.FamiliaTopBar
 import fr.familia.app.core.ui.form.CategoryTiles
 import fr.familia.app.core.ui.form.FormHint
 import fr.familia.app.core.ui.form.FormLabel
 import fr.familia.app.core.ui.form.FormTile
-import fr.familia.app.core.ui.form.FormTopBar
 import fr.familia.app.core.ui.form.StickyActionBar
 import fr.familia.app.feature.feed.FeedTone
 import fr.familia.app.feature.lending.lendCategoryLabel
@@ -102,7 +102,7 @@ fun LendItemEditScreen(
         containerColor = Color.Transparent,
         modifier = Modifier.themeBackground(),
         topBar = {
-            FormTopBar(
+            FamiliaTopBar(
                 title = stringResource(if (editing?.isNew == false) R.string.lend_edit_title else R.string.lend_new_title),
                 onBack = onBack,
             )

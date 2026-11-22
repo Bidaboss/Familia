@@ -1,5 +1,6 @@
 package fr.familia.app.feature.events.edit
 
+import fr.familia.app.core.ui.FamiliaTopBar
 import fr.familia.app.core.ui.form.FormDeleteButton
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
@@ -74,7 +75,6 @@ import fr.familia.app.core.ui.form.DayChips
 import fr.familia.app.core.ui.form.FormHint
 import fr.familia.app.core.ui.form.FormLabel
 import fr.familia.app.core.ui.form.FormTile
-import fr.familia.app.core.ui.form.FormTopBar
 import fr.familia.app.core.ui.form.PeopleRow
 import fr.familia.app.core.ui.form.PersonChoice
 import fr.familia.app.core.ui.form.PlaceChooser
@@ -130,7 +130,7 @@ fun EventEditScreen(
         containerColor = Color.Transparent,
         modifier = Modifier.themeBackground(),
         topBar = {
-            FormTopBar(
+            FamiliaTopBar(
                 title = stringResource(if (editing?.isNew == false) R.string.event_edit_title else R.string.event_add_title),
                 onBack = back,
                 actions = { HelpButton(ScreenHelp.EventEdit) },
