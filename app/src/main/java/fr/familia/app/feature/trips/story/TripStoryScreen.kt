@@ -219,7 +219,7 @@ private fun Navigation(state: TripStoryUiState.Ready, actions: TripStoryActions,
 private fun ArrowButton(icon: androidx.compose.ui.graphics.vector.ImageVector, description: String, onClick: () -> Unit, ink: Color) {
     IconButton(
         onClick = onClick,
-        modifier = Modifier.size(48.dp),
+        modifier = Modifier.size(56.dp),
         colors = IconButtonDefaults.iconButtonColors(containerColor = Color.Black.copy(alpha = 0.45f), contentColor = ink),
     ) { Icon(icon, contentDescription = description) }
 }
@@ -292,7 +292,7 @@ private fun WordBlock(
         OutlinedButton(
             onClick = actions.onHeart,
             colors = ButtonDefaults.outlinedButtonColors(contentColor = ink),
-            modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = heartLabel },
+            modifier = Modifier.heightIn(min = 56.dp).semantics { contentDescription = heartLabel },
         ) {
             Icon(if (state.hearted) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder, contentDescription = null)
             Spacer(Modifier.width(6.dp))
@@ -301,7 +301,7 @@ private fun WordBlock(
         OutlinedButton(
             onClick = { actions.onOpenWord(story.step.id) },
             colors = ButtonDefaults.outlinedButtonColors(contentColor = ink),
-            modifier = Modifier.heightIn(min = 48.dp),
+            modifier = Modifier.heightIn(min = 56.dp),
         ) {
             Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = null)
             Spacer(Modifier.width(6.dp))
