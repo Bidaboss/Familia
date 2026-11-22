@@ -53,6 +53,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.text.font.FontWeight
+import fr.familia.app.feature.trips.TripCountdown
+import fr.familia.app.feature.trips.tripCountdown
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
@@ -453,11 +456,25 @@ private fun PackingOrChecklist(state: TripDetailUiState.Success, checklist: Chec
     }
 }
 
+/** « 4 nuits avant le départ », « Demain », « Jour 2 sur 6 »; nothing once the trip is over. */
+@Composable
+private fun CountdownLine(countdown: TripCountdown) {
+    val text = when (countdown) {
+        is TripCountdown.NightsBefore -> pluralStringResource(R.plurals.trip_countdown_nights, countdown.nights, countdown.nights)
+        TripCountdown.Tomorrow -> stringResource(R.string.trip_countdown_tomorrow)
+        TripCountdown.DepartureDay -> stringResource(R.string.trip_countdown_today)
+        is TripCountdown.During -> stringResource(R.string.trip_countdown_during, countdown.day, countdown.of)
+        TripCountdown.Over -> return
+    }
+    Text(text, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+}
+
 @Composable
 private fun Summary(state: TripDetailUiState.Success) {
     val variant = FamiliaClay.colors.onTintVariant(ClayTint.Family)
     // The point of the screen: when and with whom (DESIGN-11).
     ClayCard(Modifier.fillMaxWidth(), tint = ClayTint.Family, emphasis = true) {
+        CountdownLine(tripCountdown(state.trip.startDate, state.trip.endDate, state.today))
         ClayCardTitle(tripDatesLabel(state.trip, state.today), style = MaterialTheme.typography.titleMedium)
         Text(
             stringResource(R.string.trip_with, joinNames(state.participants)),

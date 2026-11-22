@@ -328,6 +328,13 @@
     <string name="place_links_hotels">Hôtels à %1$s</string>
     <string name="place_links_tripadvisor">Voir %1$s sur Tripadvisor</string>
     <string name="place_links_hint">Un appui ouvre Google Maps ou Tripadvisor avec le nom du lieu. Familia ne garde rien.</string>
+    <plurals name="trip_countdown_nights">
+        <item quantity="one">%d nuit avant le départ</item>
+        <item quantity="other">%d nuits avant le départ</item>
+    </plurals>
+    <string name="trip_countdown_tomorrow">Demain, c\'est le départ</string>
+    <string name="trip_countdown_today">C\'est le jour J</string>
+    <string name="trip_countdown_during">Jour %1$d sur %2$d</string>
     <string name="feature_trip_destination_first">Créer un voyage par sa destination</string>
     <string name="feature_help_trip_destination_first">Un nouveau voyage commence par « Où allez-vous ? », prend le nom du lieu, puis propose la première étape.</string>
     <string name="trip_destination_title">Où allez-vous ?</string>
