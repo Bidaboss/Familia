@@ -1676,7 +1676,7 @@ Chaque étape a une page « Le mot de l'étape », ouverte depuis l'étape (bout
 1. Avec un compte qui participe : ouvre une étape, « Le mot de l'étape ». **Attendu :** le rappel de l'étape, « Ton mot » (compteur 0 / 280), « Les photos » (l'album en grille de 3), « Qui le voit ? » (le nombre de personnes qui suivent), et « Publier le mot » en bas, grisé tant que le mot est vide.
 2. Écris un mot, choisis 3 photos : 1 puis 2 puis 3 apparaissent dans des pastilles noires, « 3 choisies sur 4 ». Touche la 2e photo : elle se retire et la 3e devient 2. Une 5e photo ne se choisit pas.
 3. « Publier le mot ». **Attendu :** la page se ferme. Rouvre-la : le mot et les photos sont là, le bouton dit « Enregistrer », et « Retirer mon mot » (en rouge pâle) demande confirmation, puis le mot disparaît.
-4. Avec un compte qui suit sans participer : ouvre la même étape. **Attendu :** le mot, ses photos (1 grande, 2 côte à côte, 1 grande et 2 petites, ou 4 en carré), le cœur de 104 × 48 avec le nombre, et « Touche le cœur, ou garde le doigt appuyé sur le mot ». Le cœur devient plein à la touche, le nombre monte, les visages de ceux qui en ont mis s'affichent ; touché de nouveau, il se retire. L'appui long sur le mot fait la même chose.
+4. Avec un compte qui suit sans participer : ouvre la même étape. **Attendu :** le mot, ses photos (1 grande, 2 côte à côte, 1 grande et 2 petites, ou 4 en carré), le cœur de 112 × 56 avec le nombre, et « Touche le cœur, ou garde le doigt appuyé sur le mot ». Le cœur devient plein à la touche, le nombre monte, les visages de ceux qui en ont mis s'affichent ; touché de nouveau, il se retire. L'appui long sur le mot fait la même chose.
 5. Un voyage sans mot : le compte qui suit lit « Pas encore de mot pour cette étape » ; un participant arrive sur la page d'écriture.
 6. Un participant qui n'est pas l'auteur du mot : il le lit et met un cœur, sans pouvoir le changer ni le retirer.
 7. Supprime une photo de l'album qui était dans le mot. **Attendu :** le mot s'affiche sans elle, sans erreur.
@@ -1727,3 +1727,19 @@ Aucun « Publier Firebase » : rien ne change côté serveur.
 5. Ajoute une photo à l'album : « Photos » monte. Ajoute une étape : « Étapes » monte.
 6. Texte à 130 % et plus : la grille passe sur 1 colonne. TalkBack lit chaque case d'un trait (« Étapes 5 »).
 7. Un voyage surprise : la tuile n'apparaît que pour ceux qui voient le voyage.
+
+## Le voyage jour par jour (récit 90, 22/11), 1re partie : la story d'un jour
+
+Dans la page d'un voyage, sous les étapes, une tuile « Jour par jour » avec la rangée des jours (J1 · 11 avr…). Un point pêche sous un jour qui a un mot ; le jour sans mot est grisé et ne se touche pas ; le jour du jour (ou le dernier jour avec un mot) est en noir. « 3 jours à revoir » à droite. La tuile n'existe que si un jour a un mot. Touche un jour : une story plein écran, noire comme le diaporama du mois. Rien n'avance seul.
+
+Aucun « Publier Firebase » : rien ne change côté serveur. Les voyages cachés (surprise) ne montrent rien à ceux qui ne les voient pas, comme le reste du voyage.
+
+Cette partie : la story, ses écrans et leur navigation, le cœur, l'écran de fin. La carte du voyage du fil d'actualité qui ouvre le jour viendra après.
+
+1. Ouvre un jour avec un mot et 2 photos. **Attendu :** en haut 3 segments (2 photos et le trajet), « Fermer » à gauche, « Jour 2 » et « lundi 12 avril » à droite ; la photo remplit le cadre ; en bas, sur un fond sombre, l'avatar de l'auteur, son prénom, l'étape, le mot en blanc (4 lignes au plus ; une touche sur le mot l'affiche en entier), un bouton cœur avec le nombre et un bouton « Commentaires ».
+2. Touche le tiers droit de l'écran, la flèche ronde de droite, ou balaie vers la gauche : l'écran suivant. Le tiers gauche, la flèche de gauche ou un balayage vers la droite : le précédent. Il n'y a pas de flèche gauche sur le premier écran. **Attendu :** rien ne défile tout seul, même au bout d'une minute.
+3. Touche le cœur : il se remplit, le nombre monte ; de nouveau, il se retire. « Commentaires » ouvre la page de l'étape, où l'on répond ; en revenant, on retrouve la story au même endroit.
+4. Un jour dont le mot n'a pas de photo : le mot (grand, en gras) sur une carte blanche sur fond ciel, « Pas de photo ce jour-là », segments et « Fermer » en encre sombre.
+5. Dernier écran du jour : le trajet du jour (les étapes du jour placées, reliées), « Le trajet du jour », « Bordeaux → La Palmyre · 118 km à vol d'oiseau » ; si une étape du jour n'a pas de position : « … · Trajet non placé ». Un bouton blanc « Jour 3 » passe au jour suivant qui a un mot, « Revoir ce jour » revient au premier écran. Le dernier jour n'a que « Revoir ce jour » et « Fermer ».
+6. Une photo retirée de l'album tombe de la story. Un mot retiré pendant la lecture : la story reste sur un écran qui existe.
+7. Texte à 130 % et plus et TalkBack : « Suivant » et « Précédent » sont annoncés (les zones invisibles ne le sont pas), chaque jour de la rangée se lit « Jour 2, 12 avril, à revoir » ou « rien à revoir ».
