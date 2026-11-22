@@ -32,27 +32,39 @@ interface NearbyPlaces {
     suspend fun around(lat: Double, lng: Double, kind: NearbyKind): List<NearbyPlace>?
 }
 
-/** Overpass, the free query service of OpenStreetMap, with a generic User-Agent. */
+/**
+ * Overpass, the free query service of OpenStreetMap, with a generic User-Agent. The main server is
+ * often busy (it answers 429 or 504 at some hours): the same question then goes to a second
+ * server, and only when both fail is the service said not to answer.
+ */
 class OverpassNearbyPlaces : NearbyPlaces {
     override suspend fun around(lat: Double, lng: Double, kind: NearbyKind): List<NearbyPlace>? = withContext(Dispatchers.IO) {
-        withTimeoutOrNull(TIMEOUT_MS) {
-            runCatching {
-                val address = "https://overpass-api.de/api/interpreter?data=" + URLEncoder.encode(overpassQuery(kind, lat, lng), "UTF-8")
-                val connection = URL(address).openConnection() as HttpURLConnection
-                try {
-                    connection.connectTimeout = 6_000
-                    connection.readTimeout = 10_000
-                    connection.setRequestProperty("User-Agent", "Familia/1.0 (application familiale)")
-                    if (connection.responseCode != 200) null else parseNearby(connection.inputStream.bufferedReader().readText(), lat, lng)
-                } finally {
-                    connection.disconnect()
-                }
-            }.getOrNull()
+        val query = overpassQuery(kind, lat, lng)
+        for (server in SERVERS) {
+            val places = withTimeoutOrNull(TIMEOUT_MS) { ask(server, query, lat, lng) }
+            if (places != null) return@withContext places
         }
+        null
     }
 
+    private fun ask(server: String, query: String, lat: Double, lng: Double): List<NearbyPlace>? = runCatching {
+        val connection = URL(server + "?data=" + URLEncoder.encode(query, "UTF-8")).openConnection() as HttpURLConnection
+        try {
+            connection.connectTimeout = 6_000
+            connection.readTimeout = 12_000
+            connection.setRequestProperty("User-Agent", "Familia/1.0 (application familiale)")
+            if (connection.responseCode != 200) null else parseNearby(connection.inputStream.bufferedReader().readText(), lat, lng)
+        } finally {
+            connection.disconnect()
+        }
+    }.getOrNull()
+
     private companion object {
-        const val TIMEOUT_MS = 15_000L
+        const val TIMEOUT_MS = 16_000L
+        val SERVERS = listOf(
+            "https://overpass-api.de/api/interpreter",
+            "https://overpass.kumi.systems/api/interpreter",
+        )
     }
 }
 
@@ -70,7 +82,7 @@ fun overpassQuery(kind: NearbyKind, lat: Double, lng: Double): String {
         )
     }
     val body = filters.joinToString("") { "nwr$it[\"name\"]$around;" }
-    return "[out:json][timeout:10];($body);out center 60;"
+    return "[out:json][timeout:20];($body);out center 60;"
 }
 
 /** Reads an Overpass answer: named places, nearest first, at most [NEARBY_MAX]; null when it is not readable. */

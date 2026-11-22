@@ -21,7 +21,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -46,7 +49,11 @@ import fr.familia.app.feature.trips.TripTile
 /** What the tile shows for the chosen kind. */
 private sealed interface NearbyState {
     data object Loading : NearbyState
+    /** No network on the phone. */
     data object Offline : NearbyState
+
+    /** The phone is online but the service did not answer (busy, refused). */
+    data object Unavailable : NearbyState
     data class Found(val places: List<NearbyPlace>) : NearbyState
 }
 
@@ -59,9 +66,11 @@ private sealed interface NearbyState {
 fun NearbyTile(lat: Double, lng: Double, nearby: NearbyPlaces?) {
     if (nearby == null) return
     var kind by rememberSaveable { mutableStateOf(NearbyKind.Eat) }
-    var state by remember(lat, lng, kind) { mutableStateOf<NearbyState>(NearbyState.Loading) }
-    LaunchedEffect(lat, lng, kind) {
-        state = nearby.around(lat, lng, kind)?.let { NearbyState.Found(it) } ?: NearbyState.Offline
+    var attempt by remember { mutableIntStateOf(0) }
+    var state by remember(lat, lng, kind, attempt) { mutableStateOf<NearbyState>(NearbyState.Loading) }
+    val context = LocalContext.current
+    LaunchedEffect(lat, lng, kind, attempt) {
+        state = nearby.around(lat, lng, kind)?.let { NearbyState.Found(it) } ?: if (hasNetwork(context)) NearbyState.Unavailable else NearbyState.Offline
     }
     val uri = LocalUriHandler.current
     TripTile(Icons.Outlined.Place, stringResource(R.string.nearby_title)) {
@@ -89,6 +98,10 @@ fun NearbyTile(lat: Double, lng: Double, nearby: NearbyPlaces?) {
                 FormHint(stringResource(R.string.nearby_loading))
             }
             NearbyState.Offline -> FormHint(stringResource(R.string.nearby_offline))
+            NearbyState.Unavailable -> {
+                FormHint(stringResource(R.string.nearby_unavailable))
+                TextButton(onClick = { attempt++ }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_retry)) }
+            }
             is NearbyState.Found -> if (current.places.isEmpty()) {
                 FormHint(stringResource(R.string.nearby_none))
             } else {
@@ -118,3 +131,10 @@ private fun NearbyRow(place: NearbyPlace, onOpen: () -> Unit) {
         }
     }
 }
+
+/** True when the phone has a network that reaches the internet; true too when it cannot tell. */
+private fun hasNetwork(context: android.content.Context): Boolean = runCatching {
+    val manager = context.getSystemService(android.net.ConnectivityManager::class.java) ?: return@runCatching true
+    val capabilities = manager.getNetworkCapabilities(manager.activeNetwork) ?: return@runCatching false
+    capabilities.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
+}.getOrDefault(true)
