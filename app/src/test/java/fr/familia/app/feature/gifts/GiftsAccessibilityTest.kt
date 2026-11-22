@@ -59,7 +59,7 @@ class GiftsAccessibilityTest {
     }
 
     @Test
-    fun `the new Cadeaux tab`() = check { GiftsScreen(newTab(), {}, {}, {}, onOpenSurprisePicker = {}, onOpenMyPage = {}, onOpenReceived = {}) }
+    fun `the new Cadeaux tab`() = check { GiftsScreen(newTab(), {}, {}, {}, onOpenSurprisePicker = {}, onOpenMyPage = {}) }
 
     @Test
     fun `the new Cadeaux tab of a child`() = check {
