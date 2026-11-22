@@ -2567,6 +2567,7 @@ service cloud.firestore {
         && isValidWordPhotos(request.resource.data.photoIds)
         && request.resource.data.authorId == myMemberId()
         && request.resource.data.authorName == me().firstName
+        && request.resource.data.hearts is map
         && request.resource.data.hearts.size() == 0
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;

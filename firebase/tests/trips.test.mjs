@@ -493,6 +493,8 @@ describe('« le mot de l\'étape » (récit 88)', () => {
     await assertFails(setDoc(doc(db, 'trips/t1/words/s1'), word(ADULT, { photoIds: ['a_1', 'a_2', 'a_3', 'a_4', 'a_5'] })));
     await assertFails(setDoc(doc(db, 'trips/t1/words/s1'), word(ADULT, { photoIds: ['a_1', 'a_1'] })));
     await assertFails(setDoc(doc(db, 'trips/t1/words/s1'), word(ADULT, { hearts: { admin1: true } })));
+    await assertFails(setDoc(doc(db, 'trips/t1/words/s1'), word(ADULT, { hearts: [] })));
+    await assertFails(setDoc(doc(db, 'trips/t1/words/s1'), word(ADULT, { hearts: '' })));
     await assertFails(setDoc(doc(db, 'trips/t1/words/s1'), word(ADULT, { extra: 1 })));
   });
 
