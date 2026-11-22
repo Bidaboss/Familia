@@ -14,7 +14,7 @@ class TripRouteTest {
         return MapStop(step, number, total, null)
     }
 
-    private fun word(stepId: String, photos: Int) = TripWord(stepId, "Un mot", List(photos) { "p$it" }, "a1", "Alexandrine")
+    private fun word(stepId: String, photos: Int) = TripWord(stepId, "Un mot", List(photos) { "p$it" }, "a1", "Camille")
 
     @Test
     fun `every step is a line in its order with its words and photos`() {
