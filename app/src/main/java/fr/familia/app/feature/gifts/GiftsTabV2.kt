@@ -15,7 +15,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.CardGiftcard
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -70,7 +69,6 @@ internal class GiftsV2Actions(
     val onOpenMyPage: (() -> Unit)?,
     val onAddWish: (listId: String) -> Unit,
     val onOpenSurprisePicker: (() -> Unit)?,
-    val onOpenReceived: (() -> Unit)?,
 )
 
 internal fun LazyListScope.giftsV2Content(state: GiftsUiState.Success, actions: GiftsV2Actions, showPreparing: Boolean) {
@@ -103,7 +101,6 @@ internal fun LazyListScope.giftsV2Content(state: GiftsUiState.Success, actions: 
             }
         }
     }
-    actions.onOpenReceived?.let { open -> item(key = "received") { ReceivedRow(open) } }
     if (state.archived.isNotEmpty()) item(key = "archived") { ArchivedRow(state, actions.onOpenList) }
 }
 
@@ -310,12 +307,6 @@ private fun EdgedCard(edge: Color, onClick: (() -> Unit)? = null, onClickLabel: 
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) { content() }
     }
-}
-
-/** « Cadeaux reçus », a plain line at the bottom. */
-@Composable
-private fun ReceivedRow(onOpen: () -> Unit) {
-    PlainRow(Icons.Outlined.CardGiftcard, stringResource(R.string.gifts_v2_received), onOpen)
 }
 
 @Composable

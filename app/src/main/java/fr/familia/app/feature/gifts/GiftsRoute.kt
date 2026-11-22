@@ -30,8 +30,6 @@ fun GiftsRoute(
     onOpenSurprisePicker: () -> Unit = {},
     /** « Ajouter une envie » on the new tab (PRODUIT-119). */
     onAddWish: (listId: String) -> Unit = onOpenList,
-    /** « Cadeaux reçus » at the bottom of the tab; null hides the line. */
-    onOpenReceived: (() -> Unit)? = null,
 ) {
     val singleList = LocalFeatureFlags.current.isOn(Feature.SingleList)
     val presentation = true
@@ -80,6 +78,5 @@ fun GiftsRoute(
         onOpenMyPage = onOpenMyPage,
         onOpenSurprisePicker = onOpenSurprisePicker,
         onAddWish = onAddWish,
-        onOpenReceived = onOpenReceived,
     )
 }

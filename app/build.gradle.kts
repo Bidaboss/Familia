@@ -43,6 +43,11 @@ android {
         // workflow « APK de publication » refuses to build without it.
         val downloadUrl = signingValue("FAMILIA_DOWNLOAD_URL").orEmpty().trim()
         buildConfigField("String", "DOWNLOAD_URL", "\"${downloadUrl.replace("\"", "")}\"")
+        // The public token (pk.) of the street map (PRODUIT-147). Only « APK de publication » has it,
+        // from the GitHub secret MAPBOX_PUBLIC_TOKEN (or keystore.properties): never in the repository,
+        // never in the test APKs, which are public artifacts. Empty: the drawn map stays.
+        val mapToken = signingValue("MAPBOX_PUBLIC_TOKEN").orEmpty().trim()
+        buildConfigField("String", "MAPBOX_PUBLIC_TOKEN", "\"${mapToken.replace("\"", "")}\"")
     }
 
     signingConfigs {
@@ -112,7 +117,6 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

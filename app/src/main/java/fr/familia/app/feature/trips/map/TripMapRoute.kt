@@ -6,7 +6,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import fr.familia.app.BuildConfig
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Feature
+import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.model.Member
 import fr.familia.app.feature.trips.detail.TripDetailViewModel
 
@@ -27,5 +30,9 @@ fun TripMapRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    TripMapScreen(state, onOpenStep, onEditStep, onBack)
+    // Module on for this member + token in this APK; else the drawn map (the image falls back by itself without network).
+    val token = BuildConfig.MAPBOX_PUBLIC_TOKEN
+    val streetsOn = LocalFeatureFlags.current.isOn(Feature.MapStreets)
+    val ground = mapGround(streetsOn, token, hasNetwork = true)
+    TripMapScreen(state, onOpenStep, onEditStep, onBack, streetsToken = token.takeIf { ground == MapGround.Streets })
 }

@@ -51,13 +51,12 @@ class GiftsTabV2Test {
         someListsHidden: Boolean = false,
         onOpenList: (String) -> Unit = {},
         onPicker: () -> Unit = {},
-        onReceived: (() -> Unit)? = null,
     ) {
         compose.setContent {
             FamiliaTheme {
                 GiftsScreen(
                     state, onOpenList = onOpenList, onNewList = {}, onRetry = {}, someListsHidden = someListsHidden,
-                    onOpenSurprisePicker = onPicker, onOpenMyPage = {}, onOpenReceived = onReceived,
+                    onOpenSurprisePicker = onPicker, onOpenMyPage = {},
                 )
             }
         }
@@ -212,25 +211,10 @@ class GiftsTabV2Test {
     }
 
     @Test
-    fun `the lines at the bottom lead to what was received`() {
-        var received = 0
-        show(stateFor("adult1"), onReceived = { received++ })
-        compose.onNodeWithText("Cadeaux reçus").performClick()
-        assertEquals(1, received)
-        compose.onAllNodesWithText("Cadeaux reçus").fetchSemanticsNodes().let { assertEquals(1, it.size) }
-    }
-
-    @Test
-    fun `without the feature, no line of received gifts`() {
-        show(stateFor("adult1"))
-        assertEquals(0, count("Cadeaux reçus"))
-    }
-
-    @Test
     fun `at 130 percent every target is big enough and named`() = compose.checkAccessibility {
         GiftsScreen(
             stateFor("adult1").copy(surprisePreparedFor = setOf("adult2"), newWishes = mapOf("wishes-admin1" to 1)),
-            onOpenList = {}, onNewList = {}, onRetry = {}, onOpenSurprisePicker = {}, onOpenMyPage = {}, onOpenReceived = {},
+            onOpenList = {}, onNewList = {}, onRetry = {}, onOpenSurprisePicker = {}, onOpenMyPage = {},
         )
     }
 

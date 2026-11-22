@@ -250,7 +250,6 @@ import kotlinx.coroutines.CancellationException
 import fr.familia.app.feature.gifts.AllBirthdaysScreen
 import fr.familia.app.feature.gifts.GiftsRoute
 import fr.familia.app.feature.gifts.detail.GiftListRoute
-import fr.familia.app.feature.gifts.received.ReceivedGiftsRoute
 import fr.familia.app.feature.gifts.edit.GiftListEditRoute
 import fr.familia.app.feature.gifts.item.GiftItemEditRoute
 import fr.familia.app.feature.gifts.notebook.NotebookIdeaRoute
@@ -1488,11 +1487,6 @@ fun FamiliaApp(
                             onOpenMyPage = { navController.navigate(MemberProfileDestination(currentMember.id)) },
                             onOpenSurprisePicker = { navController.navigate(SurprisePickDestination) },
                             onAddWish = { id -> navController.navigate(GiftItemEditDestination(id)) },
-                            onOpenReceived = if (features.isOn(Feature.WishesReveal)) {
-                                { navController.navigate(ReceivedGiftsDestination) }
-                            } else {
-                                null
-                            },
                         )
                     }
                     composable<SurprisePickDestination> {
@@ -1556,20 +1550,12 @@ fun FamiliaApp(
                             onBack = { navController.popBackStack() },
                             onOpenList = { other -> navController.navigate(GiftListDestination(other)) },
                             showClaimOccasion = features.isOn(Feature.WishesReveal),
-                            onOpenReceived = if (features.isOn(Feature.WishesReveal)) {
-                                { navController.navigate(ReceivedGiftsDestination) }
-                            } else {
-                                null
-                            },
                             onOpenBeneficiary = if (features.isOn(Feature.MemberCard)) {
                                 { id -> navController.navigate(MemberProfileDestination(id)) }
                             } else {
                                 null
                             },
                         )
-                    }
-                    composable<ReceivedGiftsDestination> {
-                        ReceivedGiftsRoute(container = container, currentMember = currentMember, onBack = { navController.popBackStack() })
                     }
                     composable<GiftListEditDestination> { entry ->
                         val route = entry.toRoute<GiftListEditDestination>()
