@@ -336,7 +336,7 @@ private fun WordPhotos(photos: List<AlbumPhoto>) {
     }
 }
 
-/** The heart button (104 × 48 dp, with the number), then the faces and the names of those who put one. */
+/** The heart button (112 × 56 dp, with the number), then the faces and the names of those who put one. */
 @Composable
 private fun HeartRow(state: StepWordUiState.Ready, onHeart: () -> Unit) {
     val count = state.word?.heartIds?.size ?: 0
@@ -344,7 +344,7 @@ private fun HeartRow(state: StepWordUiState.Ready, onHeart: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(
             Modifier
-                .size(104.dp, 48.dp)
+                .size(112.dp, 56.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(MaterialTheme.colorScheme.error.copy(alpha = 0.10f))
                 .clickable(role = Role.Button, onClick = onHeart)
