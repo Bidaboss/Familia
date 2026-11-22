@@ -85,12 +85,10 @@ fun GlobeMapView(
                 var cancelled = false
                 map.camera.flyTo(
                     command.target.toOptions(),
-                    mapAnimationOptions {
-                        duration(command.millis)
-                        animatorListener(object : AnimatorListenerAdapter() {
-                            override fun onAnimationCancel(animation: Animator) { cancelled = true }
-                            override fun onAnimationEnd(animation: Animator) { if (!cancelled) onArrived(command.id) }
-                        })
+                    mapAnimationOptions { duration(command.millis) },
+                    object : AnimatorListenerAdapter() {
+                        override fun onAnimationCancel(animation: Animator) { cancelled = true }
+                        override fun onAnimationEnd(animation: Animator) { if (!cancelled) onArrived(command.id) }
                     },
                 )
             }
