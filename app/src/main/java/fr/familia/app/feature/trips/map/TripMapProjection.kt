@@ -63,9 +63,13 @@ data class MapStop(val step: TripStep, val number: Int, val total: Int, val poin
  * The stops of [steps], already in the order of the trip. A step with no position keeps its rank
  * but has no [MapStop.point]: it stays in the list, never on the map.
  */
-fun mapStops(steps: List<TripStep>, aspect: Float = MAP_ASPECT): List<MapStop> {
+fun mapStops(
+    steps: List<TripStep>,
+    aspect: Float = MAP_ASPECT,
+    project: (List<GeoPoint>) -> List<UnitPoint> = { projectToUnit(it, aspect) },
+): List<MapStop> {
     val placed = steps.filter { it.hasPosition }
-    val projected = projectToUnit(placed.map { GeoPoint(it.lat!!, it.lng!!) }, aspect)
+    val projected = project(placed.map { GeoPoint(it.lat!!, it.lng!!) })
     val pointOf = placed.map { it.id }.zip(projected).toMap()
     return steps.mapIndexed { i, step -> MapStop(step, i + 1, steps.size, pointOf[step.id]) }
 }

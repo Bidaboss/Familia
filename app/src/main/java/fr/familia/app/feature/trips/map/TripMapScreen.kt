@@ -60,7 +60,14 @@ import fr.familia.app.feature.trips.stepTypeLabel
  * the same map (the steps are read with the same rules) and open the step, with its word (récit 88). A step with no point stays in the list under the map. No live position. Stateless.
  */
 @Composable
-fun TripMapScreen(state: TripDetailUiState, onOpenStep: (stepId: String) -> Unit, onEditStep: (stepId: String) -> Unit, onBack: () -> Unit) {
+fun TripMapScreen(
+    state: TripDetailUiState,
+    onOpenStep: (stepId: String) -> Unit,
+    onEditStep: (stepId: String) -> Unit,
+    onBack: () -> Unit,
+    /** The public token when the streets are asked for (module on, token in this APK); null: the drawn map. */
+    streetsToken: String? = null,
+) {
     val success = state as? TripDetailUiState.Success
     val sky = success?.trip?.landscape?.palette?.sky ?: TripPathColors.Sky
     Scaffold(
@@ -82,15 +89,24 @@ fun TripMapScreen(state: TripDetailUiState, onOpenStep: (stepId: String) -> Unit
                     title = stringResource(R.string.trip_missing_title),
                     body = stringResource(R.string.trip_missing_body),
                 )
-                is TripDetailUiState.Success -> MapContent(state, onOpenStep, onEditStep)
+                is TripDetailUiState.Success -> MapContent(state, onOpenStep, onEditStep, streetsToken)
             }
         }
     }
 }
 
 @Composable
-private fun MapContent(state: TripDetailUiState.Success, onOpenStep: (String) -> Unit, onEditStep: (String) -> Unit) {
-    val stops = remember(state.steps) { mapStops(state.steps) }
+private fun MapContent(state: TripDetailUiState.Success, onOpenStep: (String) -> Unit, onEditStep: (String) -> Unit, streetsToken: String?) {
+    // The streets: the points are placed by the maths of the image; without them, as before.
+    val streets = remember(state.steps, streetsToken) {
+        streetsToken?.let { token ->
+            val points = state.steps.filter { it.hasPosition }.map { GeoPoint(it.lat!!, it.lng!!) }
+            streetsFrame(points)?.let { frame -> frame to streetsUrl(frame, token) }
+        }
+    }
+    val stops = remember(state.steps, streets) {
+        if (streets == null) mapStops(state.steps) else mapStops(state.steps, project = { projectStreets(it, streets.first) })
+    }
     val placed = stops.filter { it.point != null }
     val unplaced = stops.filter { it.point == null }
     if (placed.isEmpty()) {
@@ -116,7 +132,14 @@ private fun MapContent(state: TripDetailUiState.Success, onOpenStep: (String) ->
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        TripMap(placed, selectedId, onSelect = { selectedId = it }, landscape = state.trip.landscape, modifier = Modifier.fillMaxWidth())
+        if (streets == null) {
+            TripMap(placed, selectedId, onSelect = { selectedId = it }, landscape = state.trip.landscape, modifier = Modifier.fillMaxWidth())
+        } else {
+            TripMap(
+                placed, selectedId, onSelect = { selectedId = it }, landscape = state.trip.landscape, modifier = Modifier.fillMaxWidth(),
+                background = { StreetsBackground(streets.second, state.trip.landscape) },
+            )
+        }
         if (selected == null) {
             Text(stringResource(R.string.trip_map_pick), style = MaterialTheme.typography.bodyLarge, color = TripPathColors.Ink)
         } else {
