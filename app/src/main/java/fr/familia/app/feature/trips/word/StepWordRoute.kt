@@ -69,6 +69,8 @@ fun StepWordRoute(
             // The author of the comment, the author of the word and the admin principal (the rules check the same).
             canRemove = { family, comment, me -> canRemoveWordComment(comment.authorId, wordAuthorId, me.id, family.isOwner(me)) },
             empty = R.string.word_comments_empty,
+            // No function listens to words/*/comments yet: nobody is warned, so no « Ne plus être prévenu ».
+            canMute = false,
         )
     }
 }
