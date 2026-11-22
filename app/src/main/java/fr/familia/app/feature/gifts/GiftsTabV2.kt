@@ -56,7 +56,7 @@ import java.time.temporal.ChronoUnit
 
 /*
  * The Cadeaux tab by people (récit 91, variant A): one row per person, grouped by household, and a
- * single gesture, touching the row opens the person's page. From the top: the black surprise bar,
+ * single gesture, touching the row opens the person's list of wishes. From the top: the black surprise bar,
  * « Mes envies », « Bientôt » (the birthdays of the next 30 days), « Toute la famille », then
  * « Cadeaux reçus » and « Listes archivées ».
  *
@@ -69,8 +69,6 @@ internal class GiftsV2Actions(
     val onOpenList: (String) -> Unit,
     val onOpenMyPage: (() -> Unit)?,
     val onAddWish: (listId: String) -> Unit,
-    /** The page of another member; the caller notes that their wishes were seen. */
-    val onOpenMember: (memberId: String) -> Unit,
     val onOpenSurprisePicker: (() -> Unit)?,
     val onOpenReceived: (() -> Unit)?,
 )
@@ -87,7 +85,7 @@ internal fun LazyListScope.giftsV2Content(state: GiftsUiState.Success, actions: 
     if (soon.isNotEmpty()) {
         item(key = "soon-title") { Title(stringResource(R.string.gifts_v2_soon)) }
         soon.forEach { birthday ->
-            item(key = "soon-${birthday.member.id}") { SoonRow(state, birthday, actions.onOpenMember) }
+            item(key = "soon-${birthday.member.id}") { SoonRow(state, birthday, actions.onOpenList) }
         }
     }
     val others = state.sections.filter { !it.isMe }
@@ -100,7 +98,7 @@ internal fun LazyListScope.giftsV2Content(state: GiftsUiState.Success, actions: 
             block.sections.forEach { section ->
                 item(key = "person-${section.member.id}") {
                     val fresh = section.wishes?.id?.let { state.newWishes[it] } ?: 0
-                    PersonRow(state, section, fresh, actions.onOpenMember)
+                    PersonRow(state, section, fresh, actions.onOpenList)
                 }
             }
         }
@@ -230,15 +228,18 @@ private fun MyWishesCard(state: GiftsUiState.Success, mine: GiftPersonSection, a
     }
 }
 
-/** A birthday of the next 30 days: the person, « dans 9 jours »; it opens their page. */
+private fun wishesFor(state: GiftsUiState.Success, memberId: String): String =
+    state.sections.firstOrNull { it.member.id == memberId }?.wishes?.id ?: wishesListId(memberId)
+
+/** A birthday of the next 30 days: the person, « dans 9 jours »; it opens their list of wishes. */
 @Composable
-private fun SoonRow(state: GiftsUiState.Success, birthday: Birthday, onOpenMember: (String) -> Unit) {
+private fun SoonRow(state: GiftsUiState.Success, birthday: Birthday, onOpenList: (String) -> Unit) {
     val member = birthday.member
     val name = member.firstName
     ClayCard(
         Modifier.fillMaxWidth().heightIn(min = 56.dp),
-        onClick = { onOpenMember(member.id) },
-        onClickLabel = stringResource(R.string.gifts_v2_open_person, name),
+        onClick = { onOpenList(wishesFor(state, member.id)) },
+        onClickLabel = stringResource(R.string.gifts_v2_open_wishes, name),
         contentPadding = ClaySpacing.card,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -266,13 +267,13 @@ private fun SoonRow(state: GiftsUiState.Success, birthday: Birthday, onOpenMembe
 /**
  * One person (récit 91): an edge of their color, avatar, first name, « 6 envies » and, when there
  * are some, the black pill « 2 nouvelles ». Never how many ideas nor reservations. One gesture:
- * it opens their page.
+ * it opens their list of wishes (the page of the person is one link away from it).
  */
 @Composable
-private fun PersonRow(state: GiftsUiState.Success, section: GiftPersonSection, fresh: Int, onOpenMember: (String) -> Unit) {
+private fun PersonRow(state: GiftsUiState.Success, section: GiftPersonSection, fresh: Int, onOpenList: (String) -> Unit) {
     val member = section.member
     val count = section.wishes?.let { state.wishPreviews[it.id]?.count } ?: 0
-    EdgedCard(memberColor(member), onClick = { onOpenMember(member.id) }, onClickLabel = stringResource(R.string.gifts_v2_open_person, member.firstName)) {
+    EdgedCard(memberColor(member), onClick = { onOpenList(wishesFor(state, member.id)) }, onClickLabel = stringResource(R.string.gifts_v2_open_wishes, member.firstName)) {
         Row(Modifier.heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             MemberAvatar(member, size = 48.dp)
             Column(Modifier.weight(1f)) {

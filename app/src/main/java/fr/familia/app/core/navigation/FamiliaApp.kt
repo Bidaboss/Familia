@@ -1488,7 +1488,6 @@ fun FamiliaApp(
                             onOpenMyPage = { navController.navigate(MemberProfileDestination(currentMember.id)) },
                             onOpenSurprisePicker = { navController.navigate(SurprisePickDestination) },
                             onAddWish = { id -> navController.navigate(GiftItemEditDestination(id)) },
-                            onOpenMember = { id -> navController.navigate(MemberProfileDestination(id)) },
                             onOpenReceived = if (features.isOn(Feature.WishesReveal)) {
                                 { navController.navigate(ReceivedGiftsDestination) }
                             } else {

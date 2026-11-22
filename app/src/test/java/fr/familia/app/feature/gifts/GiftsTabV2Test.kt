@@ -50,7 +50,6 @@ class GiftsTabV2Test {
         state: GiftsUiState.Success,
         someListsHidden: Boolean = false,
         onOpenList: (String) -> Unit = {},
-        onOpenMember: (String) -> Unit = {},
         onPicker: () -> Unit = {},
         onReceived: (() -> Unit)? = null,
     ) {
@@ -58,7 +57,7 @@ class GiftsTabV2Test {
             FamiliaTheme {
                 GiftsScreen(
                     state, onOpenList = onOpenList, onNewList = {}, onRetry = {}, someListsHidden = someListsHidden,
-                    onOpenSurprisePicker = onPicker, onOpenMyPage = {}, onOpenMember = onOpenMember, onOpenReceived = onReceived,
+                    onOpenSurprisePicker = onPicker, onOpenMyPage = {}, onOpenReceived = onReceived,
                 )
             }
         }
@@ -106,14 +105,12 @@ class GiftsTabV2Test {
     }
 
     @Test
-    fun `touching a person opens their page, not their list`() {
-        val members = mutableListOf<String>()
+    fun `touching a person opens their list of wishes`() {
         val lists = mutableListOf<String>()
-        show(stateFor("adult1"), onOpenList = { lists += it }, onOpenMember = { members += it })
+        show(stateFor("adult1"), onOpenList = { lists += it })
         compose.onNodeWithText("Kid2").performClick()
         compose.waitForIdle()
-        assertEquals(listOf("kid2"), members)
-        assertTrue(lists.isEmpty())
+        assertEquals(listOf("wishes-kid2"), lists)
     }
 
     @Test
@@ -151,14 +148,14 @@ class GiftsTabV2Test {
     }
 
     @Test
-    fun `the birthday soon is a pill on a row that opens their page`() {
-        val members = mutableListOf<String>()
-        show(stateFor("adult1"), onOpenMember = { members += it })
+    fun `the birthday soon is a pill on a row that opens their list of wishes`() {
+        val lists = mutableListOf<String>()
+        show(stateFor("adult1"), onOpenList = { lists += it })
         assertEquals(1, count("Bientôt"))
         assertEquals(1, count("dans 9 jours"))
         compose.onNodeWithText("dans 9 jours").performClick()
         compose.waitForIdle()
-        assertEquals(listOf("adult2"), members)
+        assertEquals(listOf("wishes-adult2"), lists)
     }
 
     @Test
