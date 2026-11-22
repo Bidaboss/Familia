@@ -2541,6 +2541,87 @@ service cloud.firestore {
       allow delete: if isMember() && (isParticipantOf(tripId) || isOwner());
     }
 
+    // « Le mot de l'étape » (récit 88): trips/{tripId}/words/{stepId}, one short word per step, with
+    // up to 4 photos of the trip album (their ids, in the order chosen) and the hearts of those
+    // who follow the trip. A participant writes the word and signs it; only its author changes
+    // the text and the photos or takes it back (the admin principal too, to take it back). Every
+    // follower puts or takes back their own heart, and nothing else, with the `hearts` map
+    // (member id: true). The word goes with its step and with its trip (server).
+    function isValidWordPhotos(ids) {
+      return ids is list && ids.size() <= 4 && ids.toSet().size() == ids.size();
+    }
+
+    function isWordText(text) {
+      return text is string && text.size() > 0 && text.size() <= 280;
+    }
+
+    match /trips/{tripId}/words/{stepId} {
+      allow read: if isMember() && myMemberId() in tripOf(tripId).readerIds;
+
+      allow create: if isMember()
+        && isParticipantOf(tripId)
+        && exists(/databases/$(database)/documents/trips/$(tripId)/steps/$(stepId))
+        && request.resource.data.keys().hasOnly(['text', 'photoIds', 'authorId', 'authorName', 'hearts', 'createdAt', 'updatedAt'])
+        && request.resource.data.keys().hasAll(['text', 'photoIds', 'authorId', 'authorName', 'hearts', 'createdAt', 'updatedAt'])
+        && isWordText(request.resource.data.text)
+        && isValidWordPhotos(request.resource.data.photoIds)
+        && request.resource.data.authorId == myMemberId()
+        && request.resource.data.authorName == me().firstName
+        && request.resource.data.hearts.size() == 0
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if isMember() && (
+        (resource.data.authorId == myMemberId()
+          && isParticipantOf(tripId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'photoIds', 'updatedAt'])
+          && isWordText(request.resource.data.text)
+          && isValidWordPhotos(request.resource.data.photoIds)
+          && request.resource.data.updatedAt == request.time)
+        || (myMemberId() in tripOf(tripId).readerIds
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hearts'])
+          && request.resource.data.hearts.diff(resource.data.hearts).affectedKeys().hasOnly([myMemberId()])
+          && (!(myMemberId() in request.resource.data.hearts) || request.resource.data.hearts[myMemberId()] == true)));
+
+      allow delete: if isMember() && (resource.data.authorId == myMemberId() || isOwner());
+
+      // The comments under a word: every follower reads and writes their own (1 to 500 characters,
+      // with « @Prénom »), as under a good news. They go with the word.
+      match /comments/{commentId} {
+        allow read: if isMember() && myMemberId() in tripOf(tripId).readerIds;
+        allow create: if isMember()
+          && myMemberId() in tripOf(tripId).readerIds
+          && exists(/databases/$(database)/documents/trips/$(tripId)/words/$(stepId))
+          && request.resource.data.keys().hasAll(['text', 'authorId', 'authorName', 'createdAt'])
+          && request.resource.data.keys().hasOnly(['text', 'authorId', 'authorName', 'createdAt', 'mentionIds'])
+          && isCommentText(request.resource.data.text)
+          && hasCommentMentions(request.resource.data)
+          && request.resource.data.authorId == myMemberId()
+          && request.resource.data.authorName == me().firstName
+          && request.resource.data.createdAt == request.time;
+        allow update: if isMember()
+          && resource.data.authorId == myMemberId()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'editedAt', 'mentionIds'])
+          && isCommentText(request.resource.data.text)
+          && hasCommentMentions(request.resource.data)
+          && request.resource.data.editedAt == request.time;
+        allow delete: if isMember()
+          && (resource.data.authorId == myMemberId()
+              || isOwner()
+              || get(/databases/$(database)/documents/trips/$(tripId)/words/$(stepId)).data.authorId == myMemberId());
+      }
+
+      // « Ne plus être prévenu » for the comments of a word, as for an event.
+      match /commentMutes/{memberId} {
+        allow read: if isMember() && memberId == myMemberId();
+        allow create: if isMember()
+          && memberId == myMemberId()
+          && request.resource.data.keys().hasOnly(['mutedAt'])
+          && request.resource.data.mutedAt == request.time;
+        allow delete: if isMember() && memberId == myMemberId();
+      }
+    }
+
     // « Ma valise » (récit 62, module packingList): trips/{tripId}/bags/{memberId}, one private list
     // per participant, ticked by them or by one of their responsible adults (a child's bag), never
     // read by anyone else. `items` holds { label, done } maps, written whole each time. Deleting the
