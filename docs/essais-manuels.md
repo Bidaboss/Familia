@@ -1650,3 +1650,12 @@ Celui qui suit un voyage sans y participer ne voit plus la liste « À prévoir 
 4. Le rappel « À emporter » de 18 h ne part qu'aux participants avec l'appli.
 
 **Après la fusion :** lancer « Publier Firebase » avant l'APK (les règles changent).
+
+## La carte du voyage : « Position non trouvée » (retour de l'audit AVIS, 22/11)
+
+Un lieu sans adresse précise (« Chez Mamie », « Le camping ») ne donne aucun point. Au lieu de ne rien dire, la carte le dit.
+
+1. Ajoute une étape « Chez Mamie » à un voyage, sans autre étape placée. **Attendu :** « La carte » s'ouvre (même sans point) sur « Pas encore de carte », et dessous « Sans point sur la carte » liste l'étape avec « Position non trouvée ».
+2. Avec un compte qui participe : touche « Saisir une adresse ». **Attendu :** l'étape s'ouvre ; écris « 12 rue de la Paix, Ajaccio » : au retour, l'étape a son point sur la carte.
+3. Avec un compte qui suit sans participer. **Attendu :** « Position non trouvée » est écrit, sans bouton « Saisir une adresse ».
+4. **Essai du géocodeur sur le plus vieux téléphone de la famille, avant d'allumer le module :** ajoute les étapes « Ajaccio », « Gare de Lyon, Paris » et « Chez Mamie ». **Attendu :** les deux premières ont un point (en moins de 3 secondes avec le réseau), la troisième dit « Position non trouvée », et aucune n'empêche l'enregistrement. Si le téléphone n'a pas de service de géocodage, toutes disent « Position non trouvée » : c'est acceptable, la carte reste vide sans erreur.

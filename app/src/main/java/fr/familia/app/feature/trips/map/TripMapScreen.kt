@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -94,11 +95,17 @@ private fun MapContent(state: TripDetailUiState.Success, onEditStep: (String) ->
     val placed = stops.filter { it.point != null }
     val unplaced = stops.filter { it.point == null }
     if (placed.isEmpty()) {
-        EmptyState(
-            icon = Icons.Outlined.Map,
-            title = stringResource(R.string.trip_map_empty_title),
-            body = stringResource(R.string.trip_map_empty_body),
-        )
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            EmptyState(
+                icon = Icons.Outlined.Map,
+                title = stringResource(R.string.trip_map_empty_title),
+                body = stringResource(R.string.trip_map_empty_body),
+            )
+            // « Chez Mamie »: a place the phone cannot find says so, instead of nothing.
+            if (unplaced.isNotEmpty()) {
+                Box(Modifier.padding(16.dp)) { UnplacedTile(unplaced, state.isParticipant, onEditStep) }
+            }
+        }
         return
     }
     var selectedId by rememberSaveable(state.trip.id) { mutableStateOf<String?>(null) }
@@ -113,14 +120,33 @@ private fun MapContent(state: TripDetailUiState.Success, onEditStep: (String) ->
         } else {
             StopCard(selected, canOpen = state.isParticipant, onOpen = { onEditStep(selected.step.id) })
         }
-        if (unplaced.isNotEmpty()) {
-            FormTile(Icons.Outlined.Place, stringResource(R.string.trip_map_unplaced_title)) {
-                unplaced.forEach { stop ->
-                    Text("${stop.number}. ${stop.step.place}", style = MaterialTheme.typography.bodyLarge)
+        if (unplaced.isNotEmpty()) UnplacedTile(unplaced, state.isParticipant, onEditStep)
+    }
+}
+
+/**
+ * The steps the phone found no point for (« chez Mamie », « le camping »): each says « Position non
+ * trouvée », and a participant can type a more precise address in the step.
+ */
+@Composable
+private fun UnplacedTile(unplaced: List<MapStop>, canEdit: Boolean, onEditStep: (String) -> Unit) {
+    FormTile(Icons.Outlined.Place, stringResource(R.string.trip_map_unplaced_title)) {
+        unplaced.forEach { stop ->
+            Column(Modifier.fillMaxWidth()) {
+                Text("${stop.number}. ${stop.step.place}", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    stringResource(R.string.trip_map_not_found),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (canEdit) {
+                    TextButton(onClick = { onEditStep(stop.step.id) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                        Text(stringResource(R.string.trip_map_type_address))
+                    }
                 }
-                FormHint(stringResource(R.string.trip_map_unplaced_hint))
             }
         }
+        FormHint(stringResource(R.string.trip_map_unplaced_hint))
     }
 }
 
