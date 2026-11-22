@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Route
+import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -84,7 +84,7 @@ private fun touchExploration(context: Context): Boolean =
 @Composable
 fun TripRouteTile(entries: List<RouteEntry>, onOpenStep: (String) -> Unit, modifier: Modifier = Modifier) {
     if (entries.isEmpty()) return
-    FormTile(Icons.Outlined.Route, stringResource(R.string.trip_route_title), modifier) {
+    FormTile(Icons.Outlined.Place, stringResource(R.string.trip_route_title), modifier) {
         entries.forEach { entry -> RouteRow(entry, onOpen = { onOpenStep(entry.stepId) }) }
         FormHint(stringResource(R.string.trip_route_hint))
     }
