@@ -4,11 +4,13 @@ import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.CardTravel
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.VolunteerActivism
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CardGiftcard
+import androidx.compose.material.icons.outlined.CardTravel
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.VolunteerActivism
@@ -19,6 +21,7 @@ import fr.familia.app.core.model.MemberProfile
 import kotlinx.serialization.Serializable
 import fr.familia.app.core.model.FeatureFlags
 import fr.familia.app.core.model.Feature
+import fr.familia.app.feature.trips.TripsDestination
 
 /** Type-safe routes of the tabs. */
 @Serializable
@@ -236,6 +239,8 @@ enum class TopLevelDestination(
     Planning(PlanningRoute, R.string.nav_planning, Icons.Filled.CalendarMonth, Icons.Outlined.CalendarMonth),
     Gifts(GiftsRoute, R.string.nav_gifts, Icons.Filled.CardGiftcard, Icons.Outlined.CardGiftcard, Feature.Gifts),
     HelpRequests(HelpRequestsRoute, R.string.nav_help_requests, Icons.Filled.VolunteerActivism, Icons.Outlined.VolunteerActivism, Feature.HelpRequests),
+    /** The Voyages tab: it takes the place of Entraide in the bar while its module is on (Kévin 22/11). */
+    Trips(TripsDestination, R.string.nav_trips, Icons.Filled.CardTravel, Icons.Outlined.CardTravel, Feature.Trips),
     Members(MembersRoute, R.string.nav_members, Icons.Filled.Groups, Icons.Outlined.Groups),
     ;
 
@@ -251,9 +256,13 @@ enum class TopLevelDestination(
         /**
          * The tabs of the bar: those of the modules switched off stay hidden, and the Planning is a
          * page of the Accueil since DESIGN-55 (récit 82), opened by « Tout le planning » or Tout Familia.
+         * Voyages takes the place of Entraide while its module is on; Entraide then opens from Tout Familia.
          */
         fun visible(flags: FeatureFlags): List<TopLevelDestination> =
-            entries.filter { it != Planning && (it.feature?.let(flags::isOn) ?: true) }
+            entries.filter { it != Planning && (it.feature?.let(flags::isOn) ?: true) && !(it == HelpRequests && flags.isOn(Feature.Trips)) }
+
+        /** A tab out of the bar is a page of the Accueil: its title bar has a round « Retour ». */
+        fun isPage(tab: TopLevelDestination, flags: FeatureFlags): Boolean = tab !in visible(flags)
     }
 }
 

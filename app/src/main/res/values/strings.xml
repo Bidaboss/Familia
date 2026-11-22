@@ -1032,6 +1032,7 @@
 
     <!-- Coups de main (PRD, récits 13 à 18) : fil [DEV] coups de main -->
     <string name="nav_help_requests">Entraide</string>
+    <string name="nav_trips">Voyages</string>
     <string name="helprequest_screen_title">Entraide</string>
     <string name="helprequest_photo_hint">Un QR code de colis, ce qu\'il faut récupérer, l\'endroit : seuls ceux que tu préviens la voient.</string>
     <string name="helprequest_photo_label">Photo jointe à la demande</string>
