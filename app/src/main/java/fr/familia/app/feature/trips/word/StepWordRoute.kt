@@ -10,7 +10,9 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
 import fr.familia.app.core.data.AppContainer
+import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.isOwner
+import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.viewas.LocalViewAs
 import fr.familia.app.feature.events.comments.CommentsSection
 import fr.familia.app.core.model.Member
@@ -58,7 +60,11 @@ fun StepWordRoute(
     }
     val readOnly = LocalViewAs.current.viewed != null
     val wordAuthorId = (state as? StepWordUiState.Ready)?.word?.authorId
-    StepWordScreen(state, actions) {
+    val features = LocalFeatureFlags.current
+    val ready = state as? StepWordUiState.Ready
+    StepWordScreen(state, actions, onSite = {
+        if (ready != null && features.isOn(Feature.PlaceArticle)) PlaceArticleTile(ready.step.place, container?.placeArticles)
+    }) {
         CommentsSection(
             repository = container?.tripWordRepository?.comments(tripId, stepId),
             container = container,

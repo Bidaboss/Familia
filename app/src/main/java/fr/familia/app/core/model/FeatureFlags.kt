@@ -197,6 +197,12 @@ enum class Feature(
     MapGlobe("mapGlobe", R.string.feature_map_globe),
 
     /**
+     * « À savoir sur… » (PRODUIT-149, récit 96, DESIGN-69) : quelques lignes de Wikivoyage sur le lieu
+     * de l'étape, dans sa page. Éteint, rien. Rien n'est enregistré, aucune règle ni function.
+     */
+    PlaceArticle("placeArticle", R.string.feature_place_article),
+
+    /**
      * La création d'un voyage « destination d'abord » (PRODUIT-150, récit 95) : la question « Où
      * allez-vous ? », le nom pré-rempli, puis la première étape. Éteint, le formulaire d'avant.
      * Aucune règle ni function.
