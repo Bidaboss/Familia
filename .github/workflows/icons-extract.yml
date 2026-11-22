@@ -1,0 +1,20 @@
+name: Extract icons (one-off)
+on:
+  push:
+    branches: [claude/project-thread-j8022q]
+    paths: [.github/workflows/icons-extract.yml, scripts/extract-icons.sh]
+permissions:
+  contents: write
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: scripts/extract-icons.sh
+      - name: Commit the icons to this branch
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add app/src/main/java/androidx
+          git commit -m "Icônes utilisées copiées depuis material-icons-extended" || echo "nothing to commit"
+          git push
