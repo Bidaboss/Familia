@@ -120,6 +120,8 @@ fun TripDetailScreen(
     openAt: TripPart? = null,
     /** « La carte » (récit 87), offered once the trip has a step; null elsewhere. */
     onOpenMap: (() -> Unit)? = null,
+    /** « Le mot de l'étape » (récit 88), from a step. */
+    onOpenWord: ((stepId: String) -> Unit)? = null,
 ) {
     val success = state as? TripDetailUiState.Success
     val path = illustrated && success != null
@@ -181,9 +183,9 @@ fun TripDetailScreen(
                     },
                 )
                 is TripDetailUiState.Success -> if (illustrated) {
-                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap)
+                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord)
                 } else {
-                    Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing, onOpenMap)
+                    Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing, onOpenMap, onOpenWord)
                 }
             }
         }
@@ -202,6 +204,7 @@ private fun Content(
     onOpenExpenses: (() -> Unit)?,
     packing: (@Composable () -> Unit)?,
     onOpenMap: (() -> Unit)? = null,
+    onOpenWord: ((stepId: String) -> Unit)? = null,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -237,6 +240,7 @@ private fun Content(
                 onEdit = { onEditStep(step.id) },
                 onArrived = { onArrived(step.id) },
                 onClearArrival = { onClearArrival(step.id) },
+                onOpenWord = onOpenWord?.let { open -> { open(step.id) } },
             )
         }
         // The steps come first: on the way, « Bien arrivé » matters more than the photos and what to bring.
@@ -295,6 +299,7 @@ private fun PathContent(
     packing: (@Composable () -> Unit)?,
     openAt: TripPart? = null,
     onOpenMap: (() -> Unit)? = null,
+    onOpenWord: ((stepId: String) -> Unit)? = null,
 ) {
     val days = remember(state.trip.startDate, state.trip.endDate) { TripDays.of(state.trip) }
     var chosenEpoch by rememberSaveable(state.trip.id) { mutableStateOf<Long?>(null) }
@@ -390,6 +395,7 @@ private fun PathContent(
                 onEdit = { onEditStep(step.id) },
                 onArrived = { onArrived(step.id) },
                 onClearArrival = { onClearArrival(step.id) },
+                onOpenWord = onOpenWord?.let { open -> { open(step.id) } },
                 modifier = Modifier.padding(horizontal = ClaySpacing.screen, vertical = ClaySpacing.between / 2),
             )
         }
@@ -466,6 +472,7 @@ private fun StepCard(
     onArrived: () -> Unit,
     onClearArrival: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenWord: (() -> Unit)? = null,
 ) {
     val variant = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
     ClayCard(
@@ -507,6 +514,10 @@ private fun StepCard(
             }
         } else {
             Text(stringResource(R.string.trip_not_arrived), style = MaterialTheme.typography.bodyMedium, color = variant)
+        }
+        // The word of the step (récit 88): written by a participant, read by the followers.
+        if (onOpenWord != null) {
+            TextButton(onClick = onOpenWord, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.word_title)) }
         }
     }
 }

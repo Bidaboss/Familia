@@ -301,6 +301,8 @@ import fr.familia.app.feature.trips.TripEditDestination
 import fr.familia.app.feature.trips.TripPhotosDestination
 import fr.familia.app.feature.yearago.MemoryAlbum
 import fr.familia.app.feature.trips.TripMapDestination
+import fr.familia.app.feature.trips.TripWordDestination
+import fr.familia.app.feature.trips.word.StepWordRoute
 import fr.familia.app.feature.trips.TripStepEditDestination
 import fr.familia.app.feature.trips.map.TripMapRoute
 import fr.familia.app.feature.trips.TripsDestination
@@ -1150,6 +1152,7 @@ fun FamiliaApp(
                             onEditStep = { stepId -> navController.navigate(TripStepEditDestination(tripId, stepId)) },
                             onSeePhotos = { navController.navigate(TripPhotosDestination(tripId)) },
                             onOpenMap = { navController.navigate(TripMapDestination(tripId)) },
+                            onOpenWord = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
                             onBack = { navController.popBackStack() },
                             // The accounts are for the adults who take part (récit 16 bis); the trip view checks the participant.
                             onOpenExpenses = if (features.isOn(Feature.Expenses) && currentMember.profile == MemberProfile.Adult) {
@@ -1165,7 +1168,18 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             tripId = tripId,
-                            onEditStep = { stepId -> navController.navigate(TripStepEditDestination(tripId, stepId)) },
+                            onOpenStep = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<TripWordDestination> { entry ->
+                        val route = entry.toRoute<TripWordDestination>()
+                        StepWordRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            tripId = route.tripId,
+                            stepId = route.stepId,
+                            onEditStep = { navController.navigate(TripStepEditDestination(route.tripId, route.stepId)) },
                             onBack = { navController.popBackStack() },
                         )
                     }

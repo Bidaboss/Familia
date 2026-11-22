@@ -37,6 +37,8 @@ fun TripDetailRoute(
     openAt: TripPart? = null,
     /** « La carte du voyage » (récit 87). */
     onOpenMap: (() -> Unit)? = null,
+    /** « Le mot de l'étape » (récit 88). */
+    onOpenWord: ((stepId: String) -> Unit)? = null,
 ) {
     val viewModel: TripDetailViewModel = viewModel(
         key = "trip-$tripId",
@@ -82,6 +84,7 @@ fun TripDetailRoute(
         illustrated = true,
         openAt = openAt,
         onOpenMap = onOpenMap,
+        onOpenWord = onOpenWord,
         onSeePhotos = onSeePhotos,
         onShare = shown?.takeIf { shareOn && it.canShare }?.let { success -> { share(context, tripShare(context, success.trip, success.today)) } },
     )
