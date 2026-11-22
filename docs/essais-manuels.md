@@ -1797,6 +1797,10 @@ Module éteint par défaut : Administration > Modules > « Idées autour d'une �
 3. Chacun ouvre la recherche dans Google Maps ou Tripadvisor (navigateur ou appli installée).
 4. Module éteint : les boutons n'apparaissent pas. Étape sans lieu : pas de boutons.
 
+## Globe, temps 2 : le moteur du vol (récit 94)
+
+Rien à voir ni à essayer sur le téléphone : seul le moteur du vol (aperçu, vol, pause, étape suivante) est ajouté, avec ses tests. L'écran arrive au temps 4.
+
 ## Créer un voyage par sa destination (récit 95, temps 1)
 
 Rien à publier : aucune règle ni function. Module éteint par défaut : Administration > Modules > « Créer un voyage par sa destination ».
