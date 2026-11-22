@@ -163,6 +163,7 @@ private fun Choosing(state: PhotoBookUiState.Choosing, actions: PhotoBookActions
             item(key = "words_title") {
                 Text(stringResource(R.string.photo_book_words_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
             }
+            item(key = "words_hint") { FormHint(stringResource(R.string.photo_book_words_hint)) }
             items(state.words, key = { "word_" + it.stepId }) { word ->
                 BookSwitchRow(
                     title = word.place,
