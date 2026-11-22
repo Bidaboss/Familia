@@ -3,6 +3,14 @@ package fr.familia.app.feature.trips.edit
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
+import fr.familia.app.core.place.Place
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -13,16 +21,19 @@ import fr.familia.app.core.model.Member
 
 /**
  * Connects the trip form to its ViewModel. [onSaved] gets the trip to show (a new one opens at
- * once), [onDeleted] closes the trip too, [onBack] leaves without saving.
+ * once) and the name of its destination when one was chosen, [onDeleted] closes the trip too,
+ * [onBack] leaves without saving. With [askDestination] (module « Où allez-vous ? »), a new trip
+ * starts with the question of its destination (récit 95).
  */
 @Composable
 fun TripEditRoute(
     container: AppContainer?,
     currentMember: Member,
     tripId: String?,
-    onSaved: (tripId: String) -> Unit,
+    onSaved: (tripId: String, firstPlace: String?) -> Unit,
     onDeleted: () -> Unit,
     onBack: () -> Unit,
+    askDestination: Boolean = false,
 ) {
     val viewModel: TripEditViewModel = viewModel(
         factory = viewModelFactory {
@@ -38,9 +49,48 @@ fun TripEditRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var asking by rememberSaveable { mutableStateOf(askDestination && tripId == null) }
+    var query by rememberSaveable { mutableStateOf("") }
+    var chosen by rememberSaveable(stateSaver = PlaceSaver) { mutableStateOf<Place?>(null) }
+    var search by remember { mutableStateOf<DestinationSearch>(DestinationSearch.Idle) }
+    val scope = rememberCoroutineScope()
     LaunchedEffect(state) {
         val done = state as? TripEditUiState.Done ?: return@LaunchedEffect
-        if (done.deleted) onDeleted() else done.tripId?.let(onSaved)
+        if (done.deleted) onDeleted() else done.tripId?.let { onSaved(it, chosen?.let(::destinationName)) }
+    }
+    if (asking && state is TripEditUiState.Editing) {
+        TripDestinationScreen(
+            query = query,
+            search = search,
+            chosen = chosen,
+            onQueryChange = { query = it; chosen = null; search = DestinationSearch.Idle },
+            onSearch = {
+                val typed = query.trim()
+                if (typed.isNotEmpty()) {
+                    search = DestinationSearch.Searching
+                    scope.launch {
+                        val places = container?.placeLocator?.suggest(typed).orEmpty()
+                        search = if (places.isEmpty()) DestinationSearch.NothingFound else DestinationSearch.Found(places)
+                    }
+                }
+            },
+            onPick = { chosen = it },
+            onContinue = {
+                chosen?.let { place -> viewModel.update { form -> if (form.title.isBlank()) form.copy(title = destinationName(place)) else form } }
+                asking = false
+            },
+            onTypeAName = { chosen = null; asking = false },
+            onBack = onBack,
+        )
+        return
     }
     TripEditScreen(state = state, onChange = viewModel::update, onSave = viewModel::save, onDelete = viewModel::delete, onBack = onBack)
 }
+
+/** Keeps the chosen destination when Android recreates the screen. */
+private val PlaceSaver = listSaver<Place?, Any?>(
+    save = { place -> if (place == null) emptyList() else listOf(place.lat, place.lng, place.name, place.address) },
+    restore = { saved ->
+        if (saved.isEmpty()) null else Place(saved[0] as Double, saved[1] as Double, saved[2] as String?, saved[3] as String?)
+    },
+)

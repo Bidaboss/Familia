@@ -278,6 +278,13 @@ class TripViewModelsTest {
     }
 
     @Test
+    fun `a new step can start with the destination just chosen`() {
+        val vm = StepEditViewModel(FakeTrips(), FakeMembers(), "adult2", "t1", null, presetPlace = "La Palmyre", zone = paris, now = beforeTrip)
+        assertEquals("La Palmyre", vm.editing().form.place)
+        assertEquals(LocalDate.of(2027, 7, 10), vm.editing().form.departDate)
+    }
+
+    @Test
     fun `saving a step sets the reminder 3 hours after the planned arrival`() {
         val trips = FakeTrips()
         val vm = StepEditViewModel(trips, FakeMembers(), "adult2", "t1", null, zone = paris, now = beforeTrip)

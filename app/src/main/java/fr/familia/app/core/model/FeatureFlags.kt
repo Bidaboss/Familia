@@ -195,6 +195,13 @@ enum class Feature(
      * vole d'étape en étape. Éteint, rien ne change : la carte reste à plat. Aucune règle ni function.
      */
     MapGlobe("mapGlobe", R.string.feature_map_globe),
+
+    /**
+     * La création d'un voyage « destination d'abord » (PRODUIT-150, récit 95) : la question « Où
+     * allez-vous ? », le nom pré-rempli, puis la première étape. Éteint, le formulaire d'avant.
+     * Aucune règle ni function.
+     */
+    TripDestinationFirst("tripDestinationFirst", R.string.feature_trip_destination_first),
 }
 
 /**

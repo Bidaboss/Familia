@@ -1796,3 +1796,14 @@ Module éteint par défaut : Administration > Modules > « Idées autour d'une �
 2. Sur la fiche de l'étape, trois boutons : « Restaurants près de… », « Hôtels à… », « Voir… sur Tripadvisor ».
 3. Chacun ouvre la recherche dans Google Maps ou Tripadvisor (navigateur ou appli installée).
 4. Module éteint : les boutons n'apparaissent pas. Étape sans lieu : pas de boutons.
+
+## Créer un voyage par sa destination (récit 95, temps 1)
+
+Rien à publier : aucune règle ni function. Module éteint par défaut : Administration > Modules > « Créer un voyage par sa destination ».
+1. Module éteint : « + » sur la liste des voyages ouvre le formulaire d'avant.
+2. Module allumé : « Où allez-vous ? » s'ouvre d'abord. Taper « La Palmyre », toucher « Chercher » : jusqu'à 5 lieux. En toucher un, puis « Continuer ».
+3. Le formulaire s'ouvre avec le nom du voyage déjà rempli (« La Palmyre »), modifiable. Départ et Retour restent obligatoires.
+4. « Créer le voyage » : le voyage s'ouvre, puis le formulaire d'étape arrive avec le lieu déjà rempli. Le retour (flèche) laisse la première étape pour plus tard.
+5. « Je tape un nom » : on passe directement au formulaire d'avant, sans lieu ni première étape.
+6. Sans réseau ou lieu inconnu : « Aucun lieu trouvé », « Je tape un nom » reste possible.
+7. Modifier un voyage existant : pas de « Où allez-vous ? », le formulaire s'ouvre directement.

@@ -37,6 +37,9 @@ interface PlaceLocator {
     /** The point of an address typed by the member, with its full address, or null. */
     suspend fun find(query: String): Place?
 
+    /** Up to [max] places for what the member typed, best first; empty when the phone finds none. */
+    suspend fun suggest(query: String, max: Int = 5): List<Place> = emptyList()
+
     /** The long link behind a short Google Maps link (maps.app.goo.gl), or null. */
     suspend fun expand(shortLink: String): String?
 }
@@ -115,9 +118,15 @@ class AndroidPlaceLocator(private val context: Context) : PlaceLocator {
         return Place(found.latitude, found.longitude, address = addressLine(found) ?: query.take(Place.MAX_ADDRESS))
     }
 
+    override suspend fun suggest(query: String, max: Int): List<Place> =
+        geocode(Request.Forward(query, max.coerceIn(1, 5))).orEmpty().mapNotNull { found ->
+            if (!found.hasLatitude() || !found.hasLongitude()) return@mapNotNull null
+            Place(found.latitude, found.longitude, address = addressLine(found) ?: query.take(Place.MAX_ADDRESS))
+        }
+
     private sealed interface Request {
         data class Reverse(val lat: Double, val lng: Double) : Request
-        data class Forward(val query: String) : Request
+        data class Forward(val query: String, val max: Int = 1) : Request
     }
 
     /** Runs the geocoder: its listener from Android 13, its blocking call before, off the main thread. */
@@ -146,14 +155,14 @@ class AndroidPlaceLocator(private val context: Context) : PlaceLocator {
         }
         when (request) {
             is Request.Reverse -> geocoder.getFromLocation(request.lat, request.lng, 1, listener)
-            is Request.Forward -> geocoder.getFromLocationName(request.query, 1, listener)
+            is Request.Forward -> geocoder.getFromLocationName(request.query, request.max, listener)
         }
     }
 
     @Suppress("DEPRECATION")
     private fun blocking(geocoder: Geocoder, request: Request): List<Address>? = when (request) {
         is Request.Reverse -> geocoder.getFromLocation(request.lat, request.lng, 1)
-        is Request.Forward -> geocoder.getFromLocationName(request.query, 1)
+        is Request.Forward -> geocoder.getFromLocationName(request.query, request.max)
     }
 
     override suspend fun expand(shortLink: String): String? = withContext(Dispatchers.IO) {

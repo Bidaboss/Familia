@@ -1250,12 +1250,15 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             tripId = tripId,
-                            onSaved = { savedId ->
+                            askDestination = features.isOn(Feature.TripDestinationFirst),
+                            onSaved = { savedId, firstPlace ->
                                 if (tripId == null) {
                                     // A new trip opens at once, in place of its form.
                                     navController.navigate(TripDetailDestination(savedId)) {
                                         popUpTo<TripEditDestination> { inclusive = true }
                                     }
+                                    // « Ta première étape ? », already holding the destination; back leaves it for later.
+                                    if (firstPlace != null) navController.navigate(TripStepEditDestination(savedId, null, firstPlace))
                                 } else {
                                     navController.popBackStack()
                                 }
@@ -1272,6 +1275,7 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             tripId = route.tripId,
                             stepId = route.stepId,
+                            presetPlace = route.place,
                             onDone = { navController.popBackStack() },
                         )
                     }

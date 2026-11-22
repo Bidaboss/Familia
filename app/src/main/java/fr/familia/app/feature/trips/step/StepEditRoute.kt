@@ -13,7 +13,7 @@ import fr.familia.app.core.model.Member
 
 /** Connects the step form to its ViewModel, and closes it once saved or deleted. */
 @Composable
-fun StepEditRoute(container: AppContainer?, currentMember: Member, tripId: String, stepId: String?, onDone: () -> Unit) {
+fun StepEditRoute(container: AppContainer?, currentMember: Member, tripId: String, stepId: String?, onDone: () -> Unit, presetPlace: String? = null) {
     val viewModel: StepEditViewModel = viewModel(
         factory = viewModelFactory {
             initializer {
@@ -23,6 +23,7 @@ fun StepEditRoute(container: AppContainer?, currentMember: Member, tripId: Strin
                     currentMember.id,
                     tripId,
                     stepId,
+                    presetPlace = presetPlace,
                     locator = container?.placeLocator,
                     savedState = createSavedStateHandle(),
                 )
