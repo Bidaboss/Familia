@@ -1281,7 +1281,8 @@ L'usage de la base un jour donné, lu une fois chaque matin à partir de 8 h dan
 | `monthCosts` | map | Le même coût, limite par limite : `reads`, `writes`, `deletes`, `storage`, `photos`, `downloads`, en euros. Absent pour un jour relevé avant le détail : la carte n'affiche alors que le total. |
 | `alerts` | liste | Les limites atteintes à 80 % (`reads`, `writes`, `deletes`, `storage`) et `cost` au-delà de 0,50 €. Une alerte n'est envoyée qu'une fois par jour. |
 | `checkedAt` | timestamp | L'heure du relevé. |
-| `error` | string | `monitoring` quand Monitoring n'a pas pu être lu (rôle « Lecteur Monitoring » manquant, docs/deploiement.md). Les autres champs manquent alors. |
+| `error` | string | `monitoring` quand Monitoring n'a pas pu être lu (rôle « Lecteur Monitoring » manquant, API éteinte, requête refusée : voir `errorDetail`). Les autres champs manquent alors. Un jour en échec est relu toutes les 3 heures. |
+| `errorDetail` | string | Avec `error` : ce que Google a répondu (code et message, 300 signes au plus), affiché sous le message de la carte « Consommation ». |
 
 Ces documents sont petits (un par jour) et ne contiennent rien sur la famille.
 
