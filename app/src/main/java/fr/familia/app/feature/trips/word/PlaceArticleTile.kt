@@ -62,7 +62,7 @@ fun PlaceArticleTile(place: String, articles: PlaceArticles?) {
             Text(current.article.extract, style = MaterialTheme.typography.bodyLarge)
             TextButton(
                 onClick = { runCatching { uri.openUri(current.article.url) } },
-                modifier = Modifier.heightIn(min = 48.dp),
+                modifier = Modifier.heightIn(min = 56.dp),
             ) { Text(stringResource(R.string.place_article_more)) }
             FormHint(stringResource(R.string.place_article_source))
         }
