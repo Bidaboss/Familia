@@ -56,6 +56,8 @@ fun rememberFeedSources(container: AppContainer?, me: Member, family: Family?, t
             if (family != null && events != null && albums != null && (tripsOn || eventAlbumsOn)) {
                 add(AlbumFeedSource(container.tripRepository, events, albums, family, me.id, today, tripsOn, eventAlbumsOn))
             }
+            // Le mot de l'étape (fil voyage): never a trip hidden from someone.
+            if (family != null && tripsOn) add(WordFeedSource(container?.tripRepository, container?.tripWordRepository, family, me.id, today))
             // Recettes ajoutées (fil voyage), with their last comment.
             container?.recipeRepository?.takeIf { recipesOn }?.let { add(RecipeFeedSource(it, container.albumPhotoRepository)) }
             // Capsule ouverte, Il y a un an, La semaine de la famille (le dimanche), Notre année (récit 71).
