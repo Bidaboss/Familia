@@ -301,7 +301,7 @@ Sans interrupteur nouveau, derrière « Lieux ». Deux téléphones, A et B.
 2. Sur B, touche la notification. **Attendu :** l'Accueil s'ouvre avec, tout en haut au-dessus des jours, la tuile « Rejoignez-moi » : le prénom, l'heure, le lieu, « Itinéraire » et « Street View ». Pas l'écran pour envoyer sa propre position.
    Même si l'Accueil de B était resté sur « Le fil » : il repasse sur « Aujourd'hui ».
 3. Sur A, ouvre l'Accueil. **Attendu :** la même tuile avec « Tu partages ce lieu jusqu'à … » et « Ne plus partager ». Touche-le : la tuile disparaît sur A, et le lieu disparaît sur B.
-4. Sans partage en cours, ou au bout de 24 h. **Attendu :** pas de tuile.
+4. Sans partage en cours, ou au bout de 2 h. **Attendu :** pas de tuile.
 
 ## Défi du mois de l'Accueil précisé (Kévin, 20/11)
 
@@ -1844,3 +1844,12 @@ Rien à publier : aucune règle ni function. Pas d'interrupteur.
 4. Liste des voyages, « À prévoir » : ouvre directement l'écran Valise ; retour vers le voyage.
 5. Quelqu'un qui suit le voyage : pas de rond « Valise ».
 6. TalkBack sur le rond : « Valise, 6 choses à faire ».
+## « Autour de l'étape » dans la page d'étape (récit 96, temps 3)
+
+Rien à publier : aucune règle ni function, rien n'est enregistré, aucune autorisation de position. Pas d'interrupteur.
+1. Ouvrir une étape qui a un point sur la carte (lieu trouvé), page « Le mot de l'étape ».
+2. Tuile « Autour de l'étape » : « À manger » par défaut, « À voir » à côté. Jusqu'à 5 lieux à moins de 5 km, du plus proche au plus loin, avec genre et distance (« Restaurant · 350 m »).
+3. Toucher un lieu : il s'ouvre dans l'appli de cartes du téléphone. TalkBack lit « Le Cabanon, Restaurant, à 350 m, ouvre la carte ».
+4. Sous la liste : « Données : © les contributeurs d'OpenStreetMap ».
+5. Sans réseau : « Pas de réseau : les lieux proches reviendront… ». Rien de proche : « Aucun site trouvé à moins de 5 km de cette étape ».
+6. Étape sans point sur la carte (« chez Mamie ») : la tuile n'apparaît pas.

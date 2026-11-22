@@ -340,6 +340,15 @@
     <string name="trip_destination_hint">Tape un lieu puis touche « Chercher » : jusqu\'à 5 propositions.</string>
     <string name="trip_destination_continue">Continuer</string>
     <string name="trip_destination_type_name">Je tape un nom</string>
+    <string name="nearby_title">Autour de l\'étape</string>
+    <string name="nearby_eat">À manger</string>
+    <string name="nearby_see">À voir</string>
+    <string name="nearby_loading">On cherche les lieux proches…</string>
+    <string name="nearby_offline">Pas de réseau : les lieux proches reviendront dès que le téléphone sera connecté.</string>
+    <string name="nearby_none">Aucun site trouvé à moins de 5 km de cette étape.</string>
+    <string name="nearby_opens_map">Un appui ouvre le lieu dans l\'appli de cartes du téléphone.</string>
+    <string name="nearby_source">Données : © les contributeurs d\'OpenStreetMap</string>
+    <string name="nearby_row_description">%1$s, %2$s, à %3$s, ouvre la carte</string>
     <string name="place_article_title">À savoir sur %1$s</string>
     <string name="place_article_loading">On cherche des infos sur ce lieu…</string>
     <string name="place_article_more">Lire la suite</string>
@@ -2702,7 +2711,7 @@
     <string name="place_street_view">Voir la rue</string>
     <string name="place_no_maps_app">Aucune appli de cartes sur ce téléphone. Installe Google Maps ou Waze.</string>
     <string name="joinme_title">Rejoignez-moi</string>
-    <string name="joinme_home_empty">Envoie l\'endroit où tu es à qui tu veux, pour qu\'on te rejoigne. Il s\'efface tout seul au bout de 24 h.</string>
+    <string name="joinme_home_empty">Envoie l\'endroit où tu es à qui tu veux, pour qu\'on te rejoigne. Il s\'efface tout seul au bout de 2 h.</string>
     <string name="joinme_from">%1$s, %2$s</string>
     <string name="joinme_mine">Tu partages ce lieu jusqu\'à %1$s</string>
     <string name="joinme_stop">Ne plus partager</string>
@@ -2734,9 +2743,9 @@
     <string name="joinme_who_household">Mon foyer</string>
     <string name="joinme_who_family">Toute la famille</string>
     <string name="joinme_send">Envoyer</string>
-    <string name="joinme_send_hint">Ta position est prise une seule fois. Ceux que tu as cochés la voient 24 h, et tu peux arrêter avant.</string>
+    <string name="joinme_send_hint">Ta position est prise une seule fois. Ceux que tu as cochés la voient 2 h, et tu peux arrêter avant.</string>
     <string name="help_topic_joinme_title">Rejoignez-moi</string>
-    <string name="help_topic_joinme_body">Sur l\'accueil, touche la puce « Dire où je suis ». Prends ta position du moment, ou tape une adresse, ou colle un lien Google Maps. Coche ceux qui doivent te rejoindre (si personne n\'est coché, choisis à chaque fois qui le reçoit), puis « Envoyer » : ils reçoivent une notification et une carte avec « Itinéraire », qui ouvre Google Maps ou Waze. Ta position n\'est prise qu\'au moment où tu touches le bouton, jamais en continu. Le partage s\'efface tout seul au bout de 24 h, ou dès que tu touches « Ne plus partager ».</string>
+    <string name="help_topic_joinme_body">Sur l\'accueil, touche la puce « Dire où je suis ». Prends ta position du moment, ou tape une adresse, ou colle un lien Google Maps. Coche ceux qui doivent te rejoindre (si personne n\'est coché, choisis à chaque fois qui le reçoit), puis « Envoyer » : ils reçoivent une notification et une carte avec « Itinéraire », qui ouvre Google Maps ou Waze. Ta position n\'est prise qu\'au moment où tu touches le bouton, jamais en continu. Le partage s\'efface tout seul au bout de 2 h, ou dès que tu touches « Ne plus partager ».</string>
     <string name="capsule_sealed_note">Encore scellée : les destinataires ne savent pas qu\'elle existe. Elle ne se modifie plus.</string>
     <string name="capsule_photo">Photo %1$d sur %2$d de la capsule</string>
     <string name="capsule_missing_title">Capsule introuvable</string>

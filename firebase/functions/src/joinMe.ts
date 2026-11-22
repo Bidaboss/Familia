@@ -1,6 +1,6 @@
 // « Rejoignez-moi » (PRD, récit 33): a member sends a place, their position of the moment or a
 // place they chose, to the members they ticked. The recipients are told at once (it is aimed at
-// them, so it is never grouped nor cut, carte AVIS-14). Firestore deletes it 24 h later (TTL).
+// them, so it is never grouped nor cut, carte AVIS-14). Firestore deletes it after it expires, 2 h after it was sent (TTL).
 // Data model: docs/data-model.md.
 
 import { Firestore } from 'firebase-admin/firestore';

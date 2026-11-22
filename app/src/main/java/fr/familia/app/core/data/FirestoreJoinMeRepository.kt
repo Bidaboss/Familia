@@ -39,7 +39,7 @@ class FirestoreJoinMeRepository(
     }
 
     override suspend fun send(authorId: String, authorName: String, recipientIds: List<String>, place: Place, note: String?) {
-        // The rules accept « now + 24 h » from the phone's clock, within a few hours.
+        // The rules accept « now + 2 h » from the phone's clock, within an hour.
         val expireAt = clock().plus(JoinMe.LIFETIME)
         shares.document().set(
             mapOf(
