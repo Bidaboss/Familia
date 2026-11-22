@@ -74,7 +74,6 @@ private val HELP: Map<Feature, Int> = mapOf(
     Feature.PlaceLinks to R.string.feature_help_place_links,
     Feature.MapGlobe to R.string.feature_help_map_globe,
     Feature.TripDestinationFirst to R.string.feature_help_trip_destination_first,
-    Feature.TripCountdown to R.string.feature_help_trip_countdown,
 )
 
 @StringRes

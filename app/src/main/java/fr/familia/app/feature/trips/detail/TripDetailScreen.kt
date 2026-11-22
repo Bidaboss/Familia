@@ -54,8 +54,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
-import fr.familia.app.core.model.Feature
-import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.trips.TripCountdown
 import fr.familia.app.feature.trips.tripCountdown
 import androidx.compose.ui.res.stringResource
@@ -476,7 +474,7 @@ private fun Summary(state: TripDetailUiState.Success) {
     val variant = FamiliaClay.colors.onTintVariant(ClayTint.Family)
     // The point of the screen: when and with whom (DESIGN-11).
     ClayCard(Modifier.fillMaxWidth(), tint = ClayTint.Family, emphasis = true) {
-        if (LocalFeatureFlags.current.isOn(Feature.TripCountdown)) CountdownLine(tripCountdown(state.trip.startDate, state.trip.endDate, state.today))
+        CountdownLine(tripCountdown(state.trip.startDate, state.trip.endDate, state.today))
         ClayCardTitle(tripDatesLabel(state.trip, state.today), style = MaterialTheme.typography.titleMedium)
         Text(
             stringResource(R.string.trip_with, joinNames(state.participants)),

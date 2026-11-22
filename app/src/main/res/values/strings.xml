@@ -328,8 +328,6 @@
     <string name="place_links_hotels">Hôtels à %1$s</string>
     <string name="place_links_tripadvisor">Voir %1$s sur Tripadvisor</string>
     <string name="place_links_hint">Un appui ouvre Google Maps ou Tripadvisor avec le nom du lieu. Familia ne garde rien.</string>
-    <string name="feature_trip_countdown">Compte à rebours du voyage</string>
-    <string name="feature_help_trip_countdown">Sur la fiche d\'un voyage : les nuits avant le départ, « Demain », puis « Jour 2 sur 6 ».</string>
     <plurals name="trip_countdown_nights">
         <item quantity="one">%d nuit avant le départ</item>
         <item quantity="other">%d nuits avant le départ</item>

@@ -1814,9 +1814,8 @@ Rien à publier : aucune règle ni function. Module éteint par défaut : Admini
 
 ## Compte à rebours du voyage (récit 95, temps 2, première partie)
 
-Rien à publier : aucune règle ni function. Module éteint par défaut : Administration > Modules > « Compte à rebours du voyage ».
+Rien à publier : aucune règle ni function. Pas d'interrupteur : actif pour tous (décision de Kévin, 22/11).
 1. Ouvrir un voyage qui commence dans plus de 2 jours : en haut de la carte « Résumé », « 4 nuits avant le départ ».
 2. La veille : « Demain, c'est le départ ». Le jour du départ : « C'est le jour J ».
 3. Pendant le voyage : « Jour 2 sur 6 ». Après le retour : rien.
-4. Module éteint : aucune ligne de plus.
 Pas encore : la pastille sur la liste et la carte de l'Accueil (parties suivantes).
