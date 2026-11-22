@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -18,8 +20,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,6 +41,7 @@ import fr.familia.app.core.theme.ClayTint
 import fr.familia.app.core.theme.FamiliaClay
 import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.ClayCard
+import fr.familia.app.core.ui.form.FormTileHeading
 import fr.familia.app.core.ui.frenchDateTime
 import java.time.Instant
 
@@ -129,7 +130,7 @@ fun EventCommentsContent(
     var editMentions by rememberSaveable { mutableStateOf(listOf<String>()) }
     val muted = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(stringResource(R.string.event_comments_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+        FormTileHeading(Icons.Outlined.ChatBubbleOutline, stringResource(R.string.event_comments_title))
         if (state.hasMore) {
             TextButton(onClick = onShowMore, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.event_comments_more)) }
         }
