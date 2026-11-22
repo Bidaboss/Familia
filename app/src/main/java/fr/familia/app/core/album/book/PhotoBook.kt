@@ -43,6 +43,22 @@ data class BookPhoto(val photo: AlbumPhoto, val caption: String, val big: Boolea
 /** A step of the trip, on the last page: its kind as said in French (« Train »), where and when it left. */
 data class BookStep(val kind: String, val place: String, val date: LocalDate)
 
+/**
+ * « Le mot de l'étape » (récit 91) as a page of the book: the place and the day of the step, who
+ * wrote it, the word and the album photos it chose, in the order chosen.
+ */
+data class BookWord(
+    val stepId: String,
+    val place: String,
+    val date: LocalDate,
+    val authorName: String,
+    val text: String,
+    val photos: List<AlbumPhoto>,
+)
+
+/** One of « Les chiffres du voyage » (récit 89), said for the last page: « 5 » and « étapes ». */
+data class BookFigure(val value: String, val label: String)
+
 /** What the printer needs. */
 data class PhotoBookContent(
     val title: String,
@@ -52,8 +68,12 @@ data class PhotoBookContent(
     val cover: AlbumPhoto?,
     val pages: List<List<BookPhoto>>,
     val steps: List<BookStep>,
+    /** The words that go in, a page each, after the cover (récit 91). */
+    val words: List<BookWord> = emptyList(),
+    /** The figures of the trip, on the last page; empty: no such page. */
+    val figures: List<BookFigure> = emptyList(),
 ) {
-    val photos: List<AlbumPhoto> get() = (listOfNotNull(cover) + pages.flatten().map { it.photo }).distinctBy { it.id }
+    val photos: List<AlbumPhoto> get() = (listOfNotNull(cover) + words.flatMap { it.photos } + pages.flatten().map { it.photo }).distinctBy { it.id }
 }
 
 /** At most this many photos on a page; a photo shown big is alone on its page. */
