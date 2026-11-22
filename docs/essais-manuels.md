@@ -1713,3 +1713,17 @@ Interrupteurs : « Le fil » (`newsFeed`) et « Voyages » allumés.
 7. Texte à 200 % et TalkBack : la carte se lit en entier (auteur, étape, texte, photos, cœurs).
 
 **Après la fusion :** rien de plus que « Publier Firebase » du lot.
+
+## Les chiffres du voyage (récit 89, 22/11)
+
+Dans la page d'un voyage, sous les étapes (avant les photos), une tuile « Le voyage en chiffres » : Étapes, Jours, Lieux, Photos et Distance à vol d'oiseau, tous calculés seuls. Pas de classement, pas de comparaison, pas de « record ».
+
+Aucun « Publier Firebase » : rien ne change côté serveur.
+
+1. Un voyage de 5 étapes dont toutes ont un point sur la carte, 6 jours, 38 photos. **Attendu :** une grille de 2 colonnes (Étapes 5, Jours 6, Lieux 4, Photos 38) puis une case large « 412 km » (le total des trajets entre les étapes dans l'ordre). Sans étape sans position, aucune ligne sous la distance.
+2. Une étape sans position (« Chez Mamie ») : **Attendu :** la distance ne la compte pas et la tuile dit « 4 étapes sur 5 : une étape sans position n'est pas comptée. »
+3. Un voyage à peine commencé (1 étape) : **Attendu :** seulement « Étape 1 » et « Jour 1 » puis la phrase « La distance apparaît dès deux étapes placées sur la carte. Les photos et les lieux se comptent au fil du voyage. » Aucun chiffre à 0 ; « Lieux » ne s'affiche qu'à partir de 2 lieux différents ; « Photos » qu'à partir d'une photo.
+4. Voyage sans étape : pas de tuile.
+5. Ajoute une photo à l'album : « Photos » monte. Ajoute une étape : « Étapes » monte.
+6. Texte à 130 % et plus : la grille passe sur 1 colonne. TalkBack lit chaque case d'un trait (« Étapes 5 »).
+7. Un voyage surprise : la tuile n'apparaît que pour ceux qui voient le voyage.

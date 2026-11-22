@@ -1901,6 +1901,28 @@
     <string name="trip_map_point">Étape %1$d sur %2$d, %3$s</string>
     <string name="trip_map_rank">Étape %1$d sur %2$d</string>
     <string name="trip_map_pick">Touche un point pour voir l\'étape.</string>
+    <!-- Les chiffres du voyage (récit 89) -->
+    <string name="figures_title">Le voyage en chiffres</string>
+    <plurals name="figures_steps">
+        <item quantity="one">Étape</item>
+        <item quantity="other">Étapes</item>
+    </plurals>
+    <plurals name="figures_days">
+        <item quantity="one">Jour</item>
+        <item quantity="other">Jours</item>
+    </plurals>
+    <plurals name="figures_places">
+        <item quantity="one">Lieu</item>
+        <item quantity="other">Lieux</item>
+    </plurals>
+    <plurals name="figures_photos">
+        <item quantity="one">Photo</item>
+        <item quantity="other">Photos</item>
+    </plurals>
+    <string name="figures_distance">Distance à vol d\'oiseau</string>
+    <string name="figures_km">%1$d km</string>
+    <string name="figures_unplaced">%1$d étapes sur %2$d : une étape sans position n\'est pas comptée.</string>
+    <string name="figures_distance_later">La distance apparaît dès deux étapes placées sur la carte. Les photos et les lieux se comptent au fil du voyage.</string>
     <string name="trip_map_open_step">Ouvrir l\'étape</string>
     <string name="trip_map_unplaced_title">Sans point sur la carte</string>
     <string name="trip_map_not_found">Position non trouvée</string>
