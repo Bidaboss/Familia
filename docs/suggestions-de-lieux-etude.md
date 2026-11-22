@@ -29,10 +29,23 @@
 - **Non lu** : carte bancaire exigée, règle de cache, attribution (la FAQ est bloquée).
 - **Pour nous** : 10 000 appels gratuits, c'est « beaucoup » pour 13 personnes, mais le palier de 500 appels à 0 $ et ensuite payant, la carte non confirmée et la règle de cache non lue : **pas retenu**.
 
-### Mapbox, recherche par catégories (Search Box)
-- **Lu** : points `suggest`, `retrieve`, `category`, `list/category` (catégories dont « restaurant » et « lodging »), jusqu'à 10 résultats, 256 caractères au plus, l'attribution à afficher, facturation par « session ».
-- **Non lu** : les sections « limites », « prix » et « facturation par session » n'ont pas pu être lues, donc ni le gratuit, ni la règle de stockage. La règle du géocodage voisin (étude précédente) est qu'on ne garde pas un résultat temporaire sans carte bancaire.
-- **Pour nous** : **pas retenu**, pour la même raison que la recherche de lieu : un résultat qu'on ne peut pas garder et un quota non confirmé.
+### Mapbox, recherche par catégories (Search Box), relue le 22/11 après #487
+
+Oui, Mapbox propose des suggestions de lieux, avec une réserve forte sur la règle de stockage et un point sur les prix qu'on n'a pas pu lire.
+
+- **Certain (texte de la documentation officielle)** :
+  - Recherche par catégorie autour d'un point : `GET https://api.mapbox.com/search/searchbox/v1/category/{catégorie}` avec le jeton ; paramètres `proximity` (longitude,latitude), `limit` (jusqu'à 25), `language` (anglais par défaut, `fr` possible), `bbox`, `radius`, `country`, `show_closed_pois`, `exclude_fields` (`photos`, `reviews`). La liste des catégories : `GET .../v1/list/category` (on y voit « restaurant » et « lodging » ; les « sites à visiter » n'ont pas été vérifiés).
+  - La réponse est un `FeatureCollection` : pour chaque lieu, la catégorie (`poi_category`), la marque, la distance, et `metadata` avec au moins le téléphone, le site web et les horaires d'ouverture ; la note (`rating`), l'accessibilité en fauteuil et la popularité apparaissent dans les exemples. Le site, l'adresse et le nom viennent des propriétés usuelles.
+  - Un lieu précis se relit avec `retrieve` et des jeux d'attributs (`photos`, `visit`, `venue`) ; la liste complète des champs de `metadata` n'est pas écrite (nombre d'avis, niveau de prix et photos : **non vérifiés** comme champs).
+  - L'estimation de trajet (`eta_type`) est payante en plus : on ne l'utilise pas.
+- **Plutôt sûr (résumés de pages tronquées, à relire)** :
+  - La recherche par catégorie se facture à la requête (sans jeton de session) ; la saisie « suggest » puis « retrieve » forme une session facturée une fois et demande un `session_token` (un identifiant tiré au hasard par saisie, 180 secondes pour finir, 50 appels « suggest » au plus). **Pour des catégories autour d'un point, un jeton de session n'est donc pas nécessaire.**
+  - Limite : 10 requêtes par seconde.
+  - **Stockage** : les données ne sont disponibles « que pour un usage temporaire » selon les conditions de Mapbox ; garder une position demande de contacter les ventes. Pour nous (« affichage seulement, rien enregistré ») ce n'est pas bloquant, à condition de ne rien copier dans Firestore ni dans une base locale durable, seulement un cache de session en mémoire.
+- **Non lu** : le gratuit et le prix à la requête pour la recherche par catégorie, le plafond d'un compte « demo » sans carte, et la section « restrictions et limites » en toutes lettres. Kévin peut les lire dans sa console Mapbox (page Facturation et page Prix du produit « Search Box API »).
+- **Vie privée** : la zone autour de l'étape (point + rayon) part vers Mapbox ; rien d'autre. Aucun jeton de session n'identifie la personne.
+- **Qualité** : bonne en France (données de fournisseurs), à vérifier à l'étranger sur quelques destinations connues avant de s'engager.
+- **Pour nous** : c'est l'option la plus proche de Polarsteps : des restaurants et des hôtels avec téléphone, site et horaires, sans composer plusieurs sources. Elle passe par le même jeton public que la carte, sans nouvelle clé. Elle devient la **première API à essayer** après les liens (PR 1), à la condition que Kévin lise le gratuit et le plafond demo de ce produit dans sa console, et que les résultats ne soient jamais enregistrés. Sans note ni avis fiables (les avis ne sont pas confirmés), on garde « Ouvrir sur Google Maps » sur chaque ligne pour les avis.
 
 ## Tableau de synthèse
 
@@ -43,17 +56,17 @@
 | OpenStreetMap (Overpass) | 0, sans clé | très large | non | aucun | la zone cherchée | bonne / inégale, sans notes |
 | Tripadvisor API | non confirmé | 50 appels/s | non lu | aucun | la zone cherchée | très bonne / très bonne |
 | Foursquare | 10 000 appels gratuits, carte non confirmée | large au début | non lu | aucun | la zone cherchée | bonne / bonne |
-| Mapbox Search Box | non confirmé | non lu | non lu | aucun | la zone cherchée | bonne / bonne |
+| Mapbox Search Box (catégories) | non lu, à lire dans la console | 10 requêtes/s | « usage temporaire » : affichage seulement | aucun | la zone autour de l'étape | bonne en France, à vérifier ailleurs |
 
 ## Recommandation
 
-Commencer par **les liens**, qui donnent à Kévin 80 % de ce qu'il demande pour zéro risque : pas de clé, pas de quota, pas de stockage, pas d'attribution à gérer, et le contenu reste chez Google ou Tripadvisor. Ajouter ensuite des suggestions **seulement si elles restent gratuites et sans carte** : un texte Wikivoyage/Wikipédia sur la destination, puis des lieux OpenStreetMap, affichés sans les garder. Tripadvisor, Foursquare, Mapbox : rien tant que la gratuité sans carte et la règle de stockage ne sont pas lues sur leur page officielle (Kévin peut les lire dans son compte, comme pour Mapbox).
+Commencer par **les liens**, qui donnent à Kévin 80 % de ce qu'il demande pour zéro risque : pas de clé, pas de quota, pas de stockage, pas d'attribution à gérer, et le contenu reste chez Google ou Tripadvisor. Ajouter ensuite des suggestions **seulement si elles restent gratuites et sans carte** : un texte Wikivoyage/Wikipédia sur la destination, puis des lieux OpenStreetMap, affichés sans les garder. Mapbox Search Box (catégories) vient juste après les liens, une fois son gratuit et son plafond demo lus par Kévin ; Tripadvisor et Foursquare : rien tant que la gratuité sans carte et la règle de stockage ne sont pas lues sur leur page officielle (Kévin peut les lire dans son compte, comme pour Mapbox).
 
 ## Découpage en PR (une à la fois)
 
 1. **Liens « Ouvrir »** : sur la page d'un voyage et d'une étape avec lieu, trois boutons de 56 dp : « Restaurants près de… » (Google Maps), « Hôtels à… » (Google Maps), « Voir sur Tripadvisor » (recherche web). Aucune donnée, aucun appel, module éteint par défaut. Gestes pour Kévin : ouvrir un voyage avec une destination et toucher un bouton.
 2. **« À savoir sur… »** : un court texte de Wikivoyage ou de Wikipédia, mis en cache sur le téléphone seulement, avec « Lire sur Wikipédia » et l'attribution CC BY-SA ; repli silencieux sans réseau. Phrase dans l'aide : ce qui part (le nom de la destination).
-3. **Lieux proches par OpenStreetMap** (si Kévin les veut) : restaurants, hôtels et lieux d'intérêt autour d'une étape, affichés sous forme de liste d'au plus 10 lignes avec « © OpenStreetMap », jamais enregistrés, avec une pause de 30 s sur erreur et une limite côté appli. Bouton « Ouvrir sur Google Maps » sur chaque ligne.
+3. **Lieux proches par Mapbox (catégories : restaurants, hôtels) ou, si Kévin refuse Mapbox, par OpenStreetMap** (si Kévin les veut) : restaurants, hôtels et lieux d'intérêt autour d'une étape, affichés sous forme de liste d'au plus 10 lignes avec « © OpenStreetMap », jamais enregistrés, avec une pause de 30 s sur erreur et une limite côté appli. Bouton « Ouvrir sur Google Maps » sur chaque ligne.
 4. **Plus tard, si Kévin le demande** : une API à note (Tripadvisor ou Foursquare) seulement après lecture écrite de leur gratuité sans carte, de leur règle de stockage et de leurs obligations d'affichage.
 
 Aucune règle ni function dans les trois premiers temps : pas de « Publier Firebase ».
