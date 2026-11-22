@@ -126,7 +126,7 @@ class FlightEngineTest {
     @Test
     fun `a flight lasts between 2,5 and 6 seconds and the first one 4,5`() {
         assertEquals(4_500L, FlightEngine.flightMillis(null, lyon))
-        assertEquals(FlightEngine.MIN_FLY_MILLIS, FlightEngine.flightMillis(lyon, GeoPoint(45.77, 4.84)))
+        assertEquals(FlightEngine.MIN_FLY_MILLIS, FlightEngine.flightMillis(lyon, lyon))
         assertEquals(FlightEngine.MAX_FLY_MILLIS, FlightEngine.flightMillis(lyon, GeoPoint(-33.86, 151.2)))
     }
 }
