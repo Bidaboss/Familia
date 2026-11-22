@@ -94,6 +94,8 @@ private fun MapContent(state: TripDetailUiState.Success, onOpenStep: (String) ->
     val placed = stops.filter { it.point != null }
     val unplaced = stops.filter { it.point == null }
     if (placed.isEmpty()) {
+        // The sky colour is for the map; the text of this page follows the theme, so it sits on the theme background.
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
             EmptyState(
                 icon = Icons.Outlined.Map,
@@ -104,6 +106,7 @@ private fun MapContent(state: TripDetailUiState.Success, onOpenStep: (String) ->
             if (unplaced.isNotEmpty()) {
                 Box(Modifier.padding(16.dp)) { UnplacedTile(unplaced, state.isParticipant, onEditStep) }
             }
+        }
         }
         return
     }
