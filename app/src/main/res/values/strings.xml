@@ -1890,6 +1890,21 @@
     <string name="trip_delete_body">Le voyage, ses étapes et ses photos seront supprimés pour tout le monde.</string>
     <string name="trip_step_add_title">Nouvelle étape</string>
     <string name="trip_step_edit_title">Modifier l\'étape</string>
+    <string name="trip_map_title">La carte du voyage</string>
+    <string name="trip_map_open">La carte</string>
+    <plurals name="trip_map_placed">
+        <item quantity="one">Carte du voyage, une étape placée</item>
+        <item quantity="many">Carte du voyage, %d étapes placées</item>
+        <item quantity="other">Carte du voyage, %d étapes placées</item>
+    </plurals>
+    <string name="trip_map_point">Étape %1$d sur %2$d, %3$s</string>
+    <string name="trip_map_rank">Étape %1$d sur %2$d</string>
+    <string name="trip_map_pick">Touche un point pour voir l\'étape.</string>
+    <string name="trip_map_open_step">Modifier l\'étape</string>
+    <string name="trip_map_unplaced_title">Sans point sur la carte</string>
+    <string name="trip_map_unplaced_hint">Le téléphone n\'a pas trouvé ce lieu. Précise-le dans l\'étape pour qu\'il apparaisse.</string>
+    <string name="trip_map_empty_title">Pas encore de carte</string>
+    <string name="trip_map_empty_body">Les étapes dont le lieu est trouvé apparaissent ici, reliées dans l\'ordre.</string>
     <string name="trip_step_tile_type">Quel type d\'étape ?</string>
     <string name="trip_step_tile_where">Où ?</string>
     <string name="trip_step_place_hint">D\'où à où : « Paris → Bordeaux »</string>

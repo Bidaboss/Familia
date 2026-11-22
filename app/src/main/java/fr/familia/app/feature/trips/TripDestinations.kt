@@ -26,6 +26,10 @@ data class TripEditDestination(val tripId: String? = null)
 @Serializable
 data class TripStepEditDestination(val tripId: String, val stepId: String? = null)
 
+/** The map of [tripId]: its steps joined in order on the landscape (récit 87). */
+@Serializable
+data class TripMapDestination(val tripId: String)
+
 /** All the photos of [tripId] (récit 15). */
 @Serializable
 data class TripPhotosDestination(val tripId: String, val photoId: String? = null)

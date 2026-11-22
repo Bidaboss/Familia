@@ -217,6 +217,8 @@ fun TripDayCard(
     onNotebook: () -> Unit,
     onExpenses: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    /** « La carte » (récit 87), once a step has a point. */
+    onMap: (() -> Unit)? = null,
 ) {
     val title = if (places.isEmpty()) {
         stringResource(R.string.trip_day_title, number, frenchDate(day, "EEEE d MMMM"))
@@ -241,6 +243,7 @@ fun TripDayCard(
             DayButton(pluralStringResource(R.plurals.trip_photo_count, photoCount, photoCount), onPhotos, item)
             DayButton(stringResource(R.string.trip_notebook), onNotebook, item)
             if (onExpenses != null) DayButton(stringResource(R.string.trip_expenses_short), onExpenses, item)
+            if (onMap != null) DayButton(stringResource(R.string.trip_map_open), onMap, item)
         }
     }
 }
