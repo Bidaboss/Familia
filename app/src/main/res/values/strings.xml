@@ -1593,6 +1593,9 @@
     <string name="photo_book_cover">En couverture</string>
     <string name="photo_book_is_cover">Couverture</string>
     <string name="photo_book_is_big">Seule sur sa page</string>
+    <string name="photo_book_words_title">Les mots et les chiffres du voyage</string>
+    <string name="photo_book_words_hint">Les mots écrits par les autres participants sont dans le livre, avec leur nom. Éteins ceux que tu ne veux pas y mettre : le PDF peut être envoyé hors de Familia.</string>
+    <string name="photo_book_figures">La page des chiffres</string>
     <string name="photo_book_make">Faire le livre photo</string>
     <string name="print_failed_no_room">Il n\'y a plus assez de place sur le téléphone pour ce fichier. Libère de la place (photos, vidéos, applis), puis réessaie.</string>
     <string name="print_failed_too_big">Ce fichier est trop gros pour ce téléphone. Retire des photos, puis réessaie.</string>
@@ -1889,8 +1892,56 @@
     <string name="trip_map_point">Étape %1$d sur %2$d, %3$s</string>
     <string name="trip_map_rank">Étape %1$d sur %2$d</string>
     <string name="trip_map_pick">Touche un point pour voir l\'étape.</string>
-    <string name="trip_map_open_step">Modifier l\'étape</string>
+    <!-- Les chiffres du voyage (récit 89) -->
+    <string name="figures_title">Le voyage en chiffres</string>
+    <plurals name="figures_steps">
+        <item quantity="one">Étape</item>
+        <item quantity="other">Étapes</item>
+    </plurals>
+    <plurals name="figures_days">
+        <item quantity="one">Jour</item>
+        <item quantity="other">Jours</item>
+    </plurals>
+    <plurals name="figures_places">
+        <item quantity="one">Lieu</item>
+        <item quantity="other">Lieux</item>
+    </plurals>
+    <plurals name="figures_photos">
+        <item quantity="one">Photo</item>
+        <item quantity="other">Photos</item>
+    </plurals>
+    <string name="figures_distance">Distance à vol d\'oiseau</string>
+    <string name="figures_km">%1$d km</string>
+    <string name="figures_unplaced">%1$d étapes sur %2$d : une étape sans position n\'est pas comptée.</string>
+    <string name="figures_distance_later">La distance apparaît dès deux étapes placées sur la carte. Les photos et les lieux se comptent au fil du voyage.</string>
+    <!-- Le voyage jour par jour (récit 90) -->
+    <string name="story_tile_title">Jour par jour</string>
+    <plurals name="story_tile_count">
+        <item quantity="one">%1$d jour à revoir</item>
+        <item quantity="other">%1$d jours à revoir</item>
+    </plurals>
+    <string name="story_tile_hint">Un point sous le jour : il y a un mot ou des photos. Touche un jour pour le revoir.</string>
+    <string name="story_chip_a11y">Jour %1$d, %2$s, à revoir</string>
+    <string name="story_chip_empty_a11y">Jour %1$d, %2$s, rien à revoir</string>
+    <string name="story_day">Jour %1$d</string>
+    <string name="story_previous">Précédent</string>
+    <string name="story_next">Suivant</string>
+    <string name="story_heart">Cœur, %1$d</string>
+    <string name="story_heart_failed">Le cœur n\'est pas parti. Réessaie.</string>
+    <string name="story_comments">Commentaires</string>
+    <string name="story_no_photo">Pas de photo ce jour-là.</string>
+    <string name="story_route_title">Le trajet du jour</string>
+    <string name="story_route_line">%1$s · %2$d km à vol d\'oiseau</string>
+    <string name="story_route_unplaced">%1$s · Trajet non placé</string>
+    <string name="story_route_unplaced_only">Trajet non placé</string>
+    <string name="story_next_day">Jour %1$d</string>
+    <string name="story_replay">Revoir ce jour</string>
+    <string name="story_missing_title">Rien à revoir pour l\'instant</string>
+    <string name="story_missing_body">Le voyage n\'a pas encore de mot publié, ou tu ne le suis plus.</string>
+    <string name="trip_map_open_step">Ouvrir l\'étape</string>
     <string name="trip_map_unplaced_title">Sans point sur la carte</string>
+    <string name="trip_map_not_found">Position non trouvée</string>
+    <string name="trip_map_type_address">Saisir une adresse</string>
     <string name="trip_map_unplaced_hint">Le téléphone n\'a pas trouvé ce lieu. Précise-le dans l\'étape pour qu\'il apparaisse.</string>
     <string name="trip_map_empty_title">Pas encore de carte</string>
     <string name="trip_map_empty_body">Les étapes dont le lieu est trouvé apparaissent ici, reliées dans l\'ordre.</string>
@@ -2504,28 +2555,21 @@
     <string name="gifts_next_my_birthday">Ton anniversaire, %1$s</string>
     <string name="gifts_upcoming_title">À venir</string>
     <!-- Nouvel onglet Cadeaux (PRODUIT-119 et 120) -->
-    <string name="gifts_v2_surprise_label">Surprise en préparation</string>
-    <string name="gifts_v2_surprise_birthday">Son anniversaire, %1$s</string>
-    <string name="gifts_v2_open_surprise">Ouvrir la surprise</string>
-    <string name="gifts_v2_next_birthday">Prochain anniversaire</string>
-    <string name="gifts_v2_their_age">%1$s fête ses %2$s</string>
-    <string name="gifts_v2_my_age">Tu fêtes tes %1$s</string>
-    <string name="gifts_v2_date_line">%1$s · %2$s</string>
-    <string name="gifts_v2_their_wishes">Ses envies</string>
-    <string name="gifts_v2_surprise">Surprise</string>
-    <string name="gifts_v2_open">ouvrir</string>
     <string name="gifts_v2_my_wishes_none">Aucune envie pour l\'instant</string>
     <plurals name="gifts_v2_my_wishes_line">
         <item quantity="one">%d envie · la famille la voit</item>
         <item quantity="other">%d envies · la famille les voit</item>
     </plurals>
     <string name="gifts_v2_add_wish">Ajouter une envie</string>
-    <string name="gifts_v2_see">Voir</string>
-    <string name="gifts_v2_see_my_wishes">Voir mes envies</string>
-    <string name="gifts_v2_family">La famille</string>
-    <string name="gifts_v2_fold">replier %1$s</string>
-    <string name="gifts_v2_unfold">ouvrir %1$s</string>
-    <string name="gifts_v2_birthday_on">Anniversaire le %1$s</string>
+    <string name="gifts_v2_family">Toute la famille</string>
+    <string name="gifts_v2_soon">Bientôt</string>
+    <string name="gifts_v2_my_page">Ma fiche</string>
+    <string name="gifts_v2_open_person">ouvrir la fiche de %1$s</string>
+    <string name="gifts_v2_received">Cadeaux reçus</string>
+    <plurals name="gifts_v2_surprises_bar">
+        <item quantity="one">%d surprise en préparation</item>
+        <item quantity="other">%d surprises en préparation</item>
+    </plurals>
     <string name="gifts_v2_archived">Listes archivées (%1$d)</string>
     <plurals name="gifts_in_days">
         <item quantity="one">demain</item>
@@ -3353,6 +3397,17 @@
     </plurals>
     <string name="feed_album_more">+%1$d</string>
     <string name="feed_label_recipe">Recette</string>
+    <!-- Le mot de l'étape (récit 88) -->
+    <string name="feed_label_word">Mot d\'étape</string>
+    <string name="feed_word_where">%1$s · %2$s</string>
+    <plurals name="feed_word_photos">
+        <item quantity="one">📷 %1$d photo</item>
+        <item quantity="other">📷 %1$d photos</item>
+    </plurals>
+    <plurals name="feed_word_hearts">
+        <item quantity="one">❤️ %1$d</item>
+        <item quantity="other">❤️ %1$d</item>
+    </plurals>
     <!-- Se souvenir en un seul lieu (récit 71) -->
     <string name="feed_label_capsule">Capsule</string>
     <string name="feed_capsule_opened">La capsule de %1$s s\'est ouverte</string>
@@ -3378,4 +3433,47 @@
     <string name="feed_publish">Publier</string>
     <string name="feed_publish_photo">Publier une photo</string>
     <string name="feed_recipe_origin">La recette de %1$s</string>
+    <!-- « Le mot de l'étape » (récit 88) -->
+    <string name="word_title">Le mot de l\'étape</string>
+    <string name="word_comments_empty">Pas encore de commentaire. Un mot pour la suite, une question, un « j\'y étais » ?</string>
+    <string name="word_edit_step">Modifier l\'étape</string>
+    <string name="word_your_word">Ton mot</string>
+    <string name="word_your_word_hint">Quelques mots pour ceux qui suivent</string>
+    <string name="word_field_label">Ton mot pour cette étape</string>
+    <string name="word_counter">%1$d / %2$d</string>
+    <string name="word_photos_title">Les photos</string>
+    <string name="word_photos_hint">Choisis jusqu\'à %1$d photos de l\'album du voyage. Touche pour choisir, dans l\'ordre.</string>
+    <string name="word_photos_empty">L\'album du voyage est vide. Ajoute des photos depuis le voyage : elles apparaîtront ici.</string>
+    <plurals name="word_photos_chosen">
+        <item quantity="one">%1$d choisie sur %2$d</item>
+        <item quantity="many">%1$d choisies sur %2$d</item>
+        <item quantity="other">%1$d choisies sur %2$d</item>
+    </plurals>
+    <string name="word_photo_pick">Photo de l\'album, à choisir</string>
+    <string name="word_photo_chosen">Photo choisie, numéro %1$d</string>
+    <string name="word_who_title">Qui le voit ?</string>
+    <plurals name="word_who_line">
+        <item quantity="one">Ceux qui suivent le voyage · %1$d personne</item>
+        <item quantity="many">Ceux qui suivent le voyage · %1$d personnes</item>
+        <item quantity="other">Ceux qui suivent le voyage · %1$d personnes</item>
+    </plurals>
+    <string name="word_who_hint">Ils pourront mettre un cœur et répondre. Tu peux changer ou retirer ton mot plus tard.</string>
+    <string name="word_publish">Publier le mot</string>
+    <string name="word_remove">Retirer mon mot</string>
+    <string name="word_remove_title">Retirer ton mot ?</string>
+    <string name="word_remove_body">Ses cœurs et ses commentaires partent avec lui.</string>
+    <string name="word_remove_confirm">Retirer</string>
+    <string name="word_remove_keep">Garder mon mot</string>
+    <string name="word_failed">Le mot n\'a pas pu être envoyé. Réessaie.</string>
+    <string name="word_empty_follower">Pas encore de mot pour cette étape.</string>
+    <string name="word_heart_put">Mettre un cœur, %1$d</string>
+    <string name="word_heart_take">Retirer mon cœur, %1$d</string>
+    <string name="word_heart_put_short">Mettre un cœur</string>
+    <string name="word_heart_take_short">Retirer mon cœur</string>
+    <string name="word_heart_hint">Touche le cœur, ou garde le doigt appuyé sur le mot.</string>
+    <plurals name="word_hearts_more">
+        <item quantity="one">%1$s, %2$s et %3$d autre</item>
+        <item quantity="many">%1$s, %2$s et %3$d autres</item>
+        <item quantity="other">%1$s, %2$s et %3$d autres</item>
+    </plurals>
 </resources>

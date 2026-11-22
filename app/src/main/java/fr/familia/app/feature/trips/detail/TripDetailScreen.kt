@@ -118,8 +118,12 @@ fun TripDetailScreen(
     packing: (@Composable () -> Unit)? = null,
     /** The part to show first (récit 80: « Étapes » or « À prévoir » from the list); null: the top. */
     openAt: TripPart? = null,
-    /** « La carte » (récit 87), offered once a step has a point; null elsewhere. */
+    /** « La carte » (récit 87), offered once the trip has a step; null elsewhere. */
     onOpenMap: (() -> Unit)? = null,
+    /** « Le mot de l'étape » (récit 88), from a step. */
+    onOpenWord: ((stepId: String) -> Unit)? = null,
+    /** « Jour par jour » (récit 90), under the steps. */
+    storyDays: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
 ) {
     val success = state as? TripDetailUiState.Success
     val path = illustrated && success != null
@@ -181,9 +185,9 @@ fun TripDetailScreen(
                     },
                 )
                 is TripDetailUiState.Success -> if (illustrated) {
-                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap)
+                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, storyDays)
                 } else {
-                    Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing, onOpenMap)
+                    Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing, onOpenMap, onOpenWord, storyDays)
                 }
             }
         }
@@ -202,6 +206,8 @@ private fun Content(
     onOpenExpenses: (() -> Unit)?,
     packing: (@Composable () -> Unit)?,
     onOpenMap: (() -> Unit)? = null,
+    onOpenWord: ((stepId: String) -> Unit)? = null,
+    storyDays: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -237,9 +243,14 @@ private fun Content(
                 onEdit = { onEditStep(step.id) },
                 onArrived = { onArrived(step.id) },
                 onClearArrival = { onClearArrival(step.id) },
+                onOpenWord = onOpenWord?.let { open -> { open(step.id) } },
             )
         }
-        // The steps come first: on the way, « Bien arrivé » matters more than the photos and what to bring.
+        // The steps come first: on the way, « Bien arrivé » matters more than the figures, the photos and what to bring.
+        if (storyDays != null) item(key = "story-days") { storyDays(state) }
+        tripFigures(state.trip, state.steps, photos.photos.size)?.let { figures ->
+            item(key = "figures") { TripFiguresTile(figures) }
+        }
         item(key = "photos-title") { TripSectionTitle(stringResource(R.string.trip_photos)) }
         item(key = "photos") {
             val empty = if (photos.canAdd) R.string.trip_photos_empty_participant else R.string.trip_photos_empty
@@ -250,7 +261,7 @@ private fun Content(
             item(key = "checklist-title") { TripSectionTitle(stringResource(if (packing != null) R.string.packing_title else R.string.trip_checklist)) }
             item(key = "checklist") { PackingOrChecklist(state, checklist, packing) }
         }
-        if (onOpenMap != null && state.steps.any { it.hasPosition }) {
+        if (onOpenMap != null && state.steps.isNotEmpty()) {
             item(key = "map") { ClayLink(stringResource(R.string.trip_map_title), onClick = onOpenMap) }
         }
         if (onOpenExpenses != null && state.isParticipant) {
@@ -295,6 +306,8 @@ private fun PathContent(
     packing: (@Composable () -> Unit)?,
     openAt: TripPart? = null,
     onOpenMap: (() -> Unit)? = null,
+    onOpenWord: ((stepId: String) -> Unit)? = null,
+    storyDays: (@Composable (TripDetailUiState.Success) -> Unit)? = null,
 ) {
     val days = remember(state.trip.startDate, state.trip.endDate) { TripDays.of(state.trip) }
     var chosenEpoch by rememberSaveable(state.trip.id) { mutableStateOf<Long?>(null) }
@@ -350,7 +363,7 @@ private fun PathContent(
                     onPhotos = onSeePhotos,
                     onNotebook = { scope.launch { listState.animateScrollToItem(notebookIndex) } },
                     onExpenses = onOpenExpenses?.takeIf { state.isParticipant },
-                    onMap = onOpenMap?.takeIf { state.steps.any { it.hasPosition } },
+                    onMap = onOpenMap?.takeIf { state.steps.isNotEmpty() },
                 )
             }
         }
@@ -390,6 +403,7 @@ private fun PathContent(
                 onEdit = { onEditStep(step.id) },
                 onArrived = { onArrived(step.id) },
                 onClearArrival = { onClearArrival(step.id) },
+                onOpenWord = onOpenWord?.let { open -> { open(step.id) } },
                 modifier = Modifier.padding(horizontal = ClaySpacing.screen, vertical = ClaySpacing.between / 2),
             )
         }
@@ -406,6 +420,12 @@ private fun PathContent(
                     PackingOrChecklist(state, checklist, packing)
                 }
             }
+        }
+        if (storyDays != null) {
+            item(key = "story-days") { Box(Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) { storyDays(state) } }
+        }
+        tripFigures(state.trip, state.steps, photos.photos.size)?.let { figures ->
+            item(key = "figures") { TripFiguresTile(figures, Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) }
         }
         item(key = "photos-title") {
             TripSectionTitle(stringResource(R.string.trip_photos), Modifier.padding(horizontal = ClaySpacing.screen))
@@ -466,6 +486,7 @@ private fun StepCard(
     onArrived: () -> Unit,
     onClearArrival: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenWord: (() -> Unit)? = null,
 ) {
     val variant = FamiliaClay.colors.onTintVariant(ClayTint.Plain)
     ClayCard(
@@ -507,6 +528,10 @@ private fun StepCard(
             }
         } else {
             Text(stringResource(R.string.trip_not_arrived), style = MaterialTheme.typography.bodyMedium, color = variant)
+        }
+        // The word of the step (récit 88): written by a participant, read by the followers.
+        if (onOpenWord != null) {
+            TextButton(onClick = onOpenWord, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.word_title)) }
         }
     }
 }

@@ -54,10 +54,16 @@ suspend fun writePhotoBook(content: PhotoBookContent, file: File, photo: suspend
     }
     try {
         page(listOfNotNull(content.cover)) { canvas, bitmaps -> drawing.cover(canvas, content.cover?.let { bitmaps[it.id] }) }
-        content.pages.forEachIndexed { i, photos ->
-            page(photos.map { it.photo }) { canvas, bitmaps -> drawing.photos(canvas, photos, bitmaps, i + 2) }
+        content.words.forEach { word ->
+            val n = number
+            page(word.photos) { canvas, bitmaps -> drawing.word(canvas, word, bitmaps, n) }
+        }
+        content.pages.forEach { photos ->
+            val n = number
+            page(photos.map { it.photo }) { canvas, bitmaps -> drawing.photos(canvas, photos, bitmaps, n) }
         }
         if (content.steps.isNotEmpty()) page(emptyList()) { canvas, _ -> drawing.steps(canvas) }
+        if (content.figures.isNotEmpty()) page(emptyList()) { canvas, _ -> drawing.figures(canvas) }
         FileOutputStream(file).use { document.writeTo(it) }
     } finally {
         document.close()
@@ -119,6 +125,61 @@ private class BookDrawing(private val content: PhotoBookContent) {
         canvas.drawText(text, (width - small.measureText(text)) / 2, height - margin / 2, small)
     }
 
+    /** A word of a step: the place and the day, its photos on top, the author and the words below (récit 91). */
+    fun word(canvas: Canvas, word: BookWord, bitmaps: Map<String, Bitmap>, number: Int) {
+        val header = paint(13f, PRINT_CLAY_DEEP, serif)
+        val title = TextUtils.ellipsize("${frenchDate(word.date, "EEEE d MMMM")} · ${word.place}", header, width - 2 * margin, TextUtils.TruncateAt.END).toString()
+        canvas.drawText(title, margin, margin + 12f, header)
+        val hasPhotos = word.photos.isNotEmpty()
+        val bodyTop = margin + 28f
+        val bottom = height - margin - 14f
+        val photoBottom = if (hasPhotos) bodyTop + (bottom - bodyTop) * 0.55f else bodyTop
+        if (hasPhotos) {
+            slots(RectF(margin, bodyTop, width - margin, photoBottom), word.photos.size.coerceAtMost(4)).zip(word.photos).forEach { (area, photo) ->
+                val bitmap = bitmaps[photo.id]
+                if (bitmap != null) {
+                    drawCroppedPhoto(canvas, bitmap, area, rounded(area))
+                } else {
+                    canvas.drawRoundRect(area, corner, corner, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = PRINT_CLAY })
+                }
+            }
+        }
+        val textTop = if (hasPhotos) photoBottom + 20f else bodyTop + (bottom - bodyTop) * 0.25f
+        val textPaint = paint(if (hasPhotos) 13f else 18f)
+        val layout = StaticLayout.Builder.obtain(word.text, 0, word.text.length, textPaint, (width - 2 * margin).toInt())
+            .setAlignment(if (hasPhotos) Layout.Alignment.ALIGN_NORMAL else Layout.Alignment.ALIGN_CENTER)
+            .setMaxLines(((bottom - textTop - 24f) / textPaint.fontSpacing).toInt().coerceAtLeast(1))
+            .setEllipsize(TextUtils.TruncateAt.END)
+            .build()
+        canvas.save()
+        canvas.translate(margin, textTop)
+        layout.draw(canvas)
+        canvas.restore()
+        val by = paint(11f, PRINT_INK_SOFT)
+        val author = TextUtils.ellipsize("— ${word.authorName}", by, width - 2 * margin, TextUtils.TruncateAt.END).toString()
+        canvas.drawText(author, margin, (textTop + layout.height + 20f).coerceAtMost(bottom), by)
+        val small = paint(8f, PRINT_CLAY_DEEP)
+        val text = number.toString()
+        canvas.drawText(text, (width - small.measureText(text)) / 2, height - margin / 2, small)
+    }
+
+    /** The figures of the trip, one big number each with its label. */
+    fun figures(canvas: Canvas) {
+        canvas.drawText(FIGURES_TITLE, margin, margin + 22f, paint(22f, typeface = serif))
+        val value = paint(26f, PRINT_CLAY_DEEP, serif)
+        val label = paint(12f, PRINT_INK_SOFT)
+        val step = 52f
+        val rows = ((height - 2 * margin - 44f) / step).toInt().coerceAtLeast(1)
+        val columns = if (content.figures.size > rows) 2 else 1
+        val columnWidth = (width - 2 * margin) / columns
+        content.figures.take(rows * columns).forEachIndexed { i, f ->
+            val x = margin + (i / rows) * columnWidth
+            val y = margin + 70f + (i % rows) * step
+            canvas.drawText(TextUtils.ellipsize(f.value, value, columnWidth - 8f, TextUtils.TruncateAt.END).toString(), x, y, value)
+            canvas.drawText(TextUtils.ellipsize(f.label, label, columnWidth - 8f, TextUtils.TruncateAt.END).toString(), x, y + 16f, label)
+        }
+    }
+
     /** Where the photos of a page go: one alone, two side by side (or one above the other on a square), three, or four. */
     private fun slots(area: RectF, count: Int): List<RectF> {
         val l = area.left
@@ -168,5 +229,6 @@ private class BookDrawing(private val content: PhotoBookContent) {
 
     companion object {
         const val STEPS_TITLE = "Les étapes du voyage"
+        const val FIGURES_TITLE = "Le voyage en chiffres"
     }
 }

@@ -555,7 +555,7 @@ internal fun contributionGauge(total: Int, price: Double?): Float? {
     return (total / of).toFloat().coerceIn(0f, 1f)
 }
 
-/** Who takes part and how much: for whoever keeps the person's lists only (PRODUIT-109). */
+/** Who takes part, never how much: for whoever keeps the person's lists only (récit 93). */
 @Composable
 private fun Contributors(parts: List<GiftContribution>) {
     Text(
@@ -568,7 +568,7 @@ private fun Contributors(parts: List<GiftContribution>) {
     }
     parts.forEach { part ->
         Text(
-            stringResource(R.string.gift_share_line, part.memberName, formatEuros(part.amount.toDouble())),
+            part.memberName,
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier.padding(vertical = 4.dp),
         )

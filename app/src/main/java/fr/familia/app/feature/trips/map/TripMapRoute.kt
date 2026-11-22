@@ -16,6 +16,7 @@ fun TripMapRoute(
     container: AppContainer?,
     currentMember: Member,
     tripId: String,
+    onOpenStep: (stepId: String) -> Unit,
     onEditStep: (stepId: String) -> Unit,
     onBack: () -> Unit,
 ) {
@@ -26,5 +27,5 @@ fun TripMapRoute(
         },
     )
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    TripMapScreen(state, onEditStep, onBack)
+    TripMapScreen(state, onOpenStep, onEditStep, onBack)
 }

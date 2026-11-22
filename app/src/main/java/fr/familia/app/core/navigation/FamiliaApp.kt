@@ -88,7 +88,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
@@ -242,7 +241,6 @@ import fr.familia.app.feature.polls.canAskPoll
 import fr.familia.app.feature.polls.rememberPollsSummary
 import fr.familia.app.core.share.shareApp
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import fr.familia.app.feature.settings.NotificationSettingsRoute
 import fr.familia.app.feature.export.ExportRoute
 import fr.familia.app.feature.members.admin.AdministrationRoute
@@ -300,6 +298,10 @@ import fr.familia.app.feature.trips.TripEditDestination
 import fr.familia.app.feature.trips.TripPhotosDestination
 import fr.familia.app.feature.yearago.MemoryAlbum
 import fr.familia.app.feature.trips.TripMapDestination
+import fr.familia.app.feature.trips.TripStoryDestination
+import fr.familia.app.feature.trips.TripWordDestination
+import fr.familia.app.feature.trips.story.TripStoryRoute
+import fr.familia.app.feature.trips.word.StepWordRoute
 import fr.familia.app.feature.trips.TripStepEditDestination
 import fr.familia.app.feature.trips.map.TripMapRoute
 import fr.familia.app.feature.trips.TripsDestination
@@ -851,7 +853,12 @@ fun FamiliaApp(
                 }
             },
             bottomBar = {
+                // The round rises ALL_ROUND_RISE above the bar (récit 82). That rise belongs to the bar's
+                // height: the screens then stop above it, so the round never hides the end of a list, and
+                // its top half is touchable too (note C de #431).
                 if (onTab && !useRail) Box {
+                Column {
+                Spacer(Modifier.height(ALL_ROUND_RISE))
                 NavigationBar {
                     tabs.forEachIndexed { index, destination ->
                         // « Tout Familia » takes the center: 2 tabs on each side (DESIGN-55, variante A).
@@ -876,10 +883,11 @@ fun FamiliaApp(
                         )
                     }
                 }
+                }
                 AllFamiliaRound(
                     news = helpBadge,
                     onClick = { navController.navigate(AllFamiliaDestination) { launchSingleTop = true } },
-                    modifier = Modifier.align(Alignment.TopCenter).offset(y = -ALL_ROUND_RISE),
+                    modifier = Modifier.align(Alignment.TopCenter),
                 )
                 }
             },
@@ -944,6 +952,7 @@ fun FamiliaApp(
                                 },
                                 onOpenList = { id -> navController.navigate(GiftListDestination(id)) },
                                 onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
+                                onOpenWord = { tripId, stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
                                 onOpenAlbumPhoto = { album, photoId ->
                                     when (album.kind) {
                                         MemoryAlbum.Kind.Trip -> navController.navigate(TripPhotosDestination(album.id, photoId))
@@ -1149,6 +1158,8 @@ fun FamiliaApp(
                             onEditStep = { stepId -> navController.navigate(TripStepEditDestination(tripId, stepId)) },
                             onSeePhotos = { navController.navigate(TripPhotosDestination(tripId)) },
                             onOpenMap = { navController.navigate(TripMapDestination(tripId)) },
+                            onOpenWord = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
+                            onOpenStory = { day -> navController.navigate(TripStoryDestination(tripId, day.toString())) },
                             onBack = { navController.popBackStack() },
                             // The accounts are for the adults who take part (récit 16 bis); the trip view checks the participant.
                             onOpenExpenses = if (features.isOn(Feature.Expenses) && currentMember.profile == MemberProfile.Adult) {
@@ -1164,7 +1175,30 @@ fun FamiliaApp(
                             container = container,
                             currentMember = currentMember,
                             tripId = tripId,
+                            onOpenStep = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
                             onEditStep = { stepId -> navController.navigate(TripStepEditDestination(tripId, stepId)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<TripStoryDestination> { entry ->
+                        val route = entry.toRoute<TripStoryDestination>()
+                        TripStoryRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            tripId = route.tripId,
+                            day = route.day,
+                            onOpenWord = { stepId -> navController.navigate(TripWordDestination(route.tripId, stepId)) },
+                            onBack = { navController.popBackStack() },
+                        )
+                    }
+                    composable<TripWordDestination> { entry ->
+                        val route = entry.toRoute<TripWordDestination>()
+                        StepWordRoute(
+                            container = container,
+                            currentMember = currentMember,
+                            tripId = route.tripId,
+                            stepId = route.stepId,
+                            onEditStep = { navController.navigate(TripStepEditDestination(route.tripId, route.stepId)) },
                             onBack = { navController.popBackStack() },
                         )
                     }
@@ -1453,6 +1487,12 @@ fun FamiliaApp(
                             onOpenMyPage = { navController.navigate(MemberProfileDestination(currentMember.id)) },
                             onOpenSurprisePicker = { navController.navigate(SurprisePickDestination) },
                             onAddWish = { id -> navController.navigate(GiftItemEditDestination(id)) },
+                            onOpenMember = { id -> navController.navigate(MemberProfileDestination(id)) },
+                            onOpenReceived = if (features.isOn(Feature.WishesReveal)) {
+                                { navController.navigate(ReceivedGiftsDestination) }
+                            } else {
+                                null
+                            },
                         )
                     }
                     composable<SurprisePickDestination> {

@@ -37,6 +37,10 @@ fun TripDetailRoute(
     openAt: TripPart? = null,
     /** « La carte du voyage » (récit 87). */
     onOpenMap: (() -> Unit)? = null,
+    /** « Le mot de l'étape » (récit 88). */
+    onOpenWord: ((stepId: String) -> Unit)? = null,
+    /** « Jour par jour » (récit 90): the story of a day. */
+    onOpenStory: ((day: java.time.LocalDate) -> Unit)? = null,
 ) {
     val viewModel: TripDetailViewModel = viewModel(
         key = "trip-$tripId",
@@ -82,6 +86,12 @@ fun TripDetailRoute(
         illustrated = true,
         openAt = openAt,
         onOpenMap = onOpenMap,
+        onOpenWord = onOpenWord,
+        storyDays = if (onOpenStory != null) {
+            { success -> fr.familia.app.feature.trips.story.TripStoryDaysSlot(container, success.trip, success.steps, success.today, onOpenStory) }
+        } else {
+            null
+        },
         onSeePhotos = onSeePhotos,
         onShare = shown?.takeIf { shareOn && it.canShare }?.let { success -> { share(context, tripShare(context, success.trip, success.today)) } },
     )

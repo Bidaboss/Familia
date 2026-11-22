@@ -36,6 +36,8 @@ import fr.familia.app.feature.feed.AlbumFeedCard
 import fr.familia.app.feature.feed.FeedAlbum
 import fr.familia.app.feature.feed.FeedContext
 import fr.familia.app.feature.feed.RecipeFeedCard
+import fr.familia.app.feature.feed.WordFeedCard
+import fr.familia.app.core.model.TripWord
 import fr.familia.app.feature.genealogy.GenealogyScreen
 import fr.familia.app.feature.genealogy.GenealogyUiState
 import fr.familia.app.feature.genealogy.poster.PosterChoice
@@ -62,6 +64,18 @@ import fr.familia.app.feature.trips.edit.TripFormError
 import fr.familia.app.feature.trips.edit.previewTripEditState
 import fr.familia.app.feature.trips.list.TripsScreen
 import fr.familia.app.feature.trips.map.TripMapScreen
+import fr.familia.app.R
+import fr.familia.app.core.model.EventComment
+import fr.familia.app.feature.events.comments.EventCommentRow
+import fr.familia.app.feature.events.comments.EventCommentsContent
+import fr.familia.app.feature.events.comments.EventCommentsUiState
+import fr.familia.app.feature.trips.story.TripStoryActions
+import fr.familia.app.feature.trips.story.TripStoryDaysTile
+import fr.familia.app.feature.trips.story.TripStoryScreen
+import fr.familia.app.feature.trips.story.previewTripStory
+import fr.familia.app.feature.trips.word.StepWordActions
+import fr.familia.app.feature.trips.word.StepWordScreen
+import fr.familia.app.feature.trips.word.previewStepWord
 import fr.familia.app.feature.trips.step.StepEditScreen
 import fr.familia.app.feature.trips.step.StepFormError
 import fr.familia.app.feature.trips.step.previewStepEditState
@@ -108,9 +122,44 @@ internal object VoyageScreens {
         screen("a trip with the link to its map") {
             TripDetailScreen(previewTripDetail(isParticipant = false, withPositions = true), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos(), onOpenMap = {})
         },
-        screen("the map of a trip") { TripMapScreen(previewTripDetail(withPositions = true), {}, {}) },
-        screen("the map of a trip, for who does not take part") { TripMapScreen(previewTripDetail(isParticipant = false, withPositions = true), {}, {}) },
-        screen("the map of a trip, with no step placed") { TripMapScreen(previewTripDetail(), {}, {}) },
+        screen("the map of a trip") { TripMapScreen(previewTripDetail(withPositions = true), {}, {}, {}) },
+        screen("the map of a trip, for who does not take part") { TripMapScreen(previewTripDetail(isParticipant = false, withPositions = true), {}, {}, {}) },
+        screen("the story of a day, a photo") { TripStoryScreen(previewTripStory(frame = 0), TripStoryActions()) },
+        screen("the story of a day, a word with no photo") { TripStoryScreen(previewTripStory(frame = 0, withPhoto = false, lastDay = true), TripStoryActions()) },
+        screen("the story of a day, the route") { TripStoryScreen(previewTripStory(frame = 2, lastDay = true), TripStoryActions()) },
+        screen("the story of a day, the route, with a day after") { TripStoryScreen(previewTripStory(frame = 2), TripStoryActions()) },
+        screen("the days of a trip, one with a word") {
+            TripStoryDaysTile(
+                (11..16).map { java.time.LocalDate.of(2026, 4, it) },
+                setOf(java.time.LocalDate.of(2026, 4, 11), java.time.LocalDate.of(2026, 4, 12), java.time.LocalDate.of(2026, 4, 13)),
+                java.time.LocalDate.of(2026, 4, 12),
+                {},
+            )
+        },
+        screen("the word of a step, to write") { StepWordScreen(previewStepWord(canWrite = true, withWord = false), StepWordActions()) },
+        screen("the word of a step, to change") { StepWordScreen(previewStepWord(canWrite = true, withWord = true), StepWordActions()) },
+        screen("the word of a step, to read") { StepWordScreen(previewStepWord(canWrite = false, withWord = true, isParticipant = false), StepWordActions()) },
+        screen("the word of a step, to read, with comments") {
+            StepWordScreen(previewStepWord(canWrite = false, withWord = true, isParticipant = false), StepWordActions()) {
+                EventCommentsContent(
+                    state = EventCommentsUiState(
+                        rows = listOf(
+                            EventCommentRow(EventComment("c1", "Quelle belle arrivée, @Camille !", "m1", "Inès", null), canEdit = false, canRemove = false),
+                        ),
+                        isLoading = false,
+                    ),
+                    onType = { _, _ -> },
+                    onSend = {},
+                    onShowMore = {},
+                    onEdit = { _, _, _ -> true },
+                    onRemove = {},
+                    onMute = {},
+                    empty = R.string.word_comments_empty,
+                )
+            }
+        },
+        screen("the word of a step, with no word yet, to read") { StepWordScreen(previewStepWord(canWrite = false, withWord = false, isParticipant = false), StepWordActions()) },
+        screen("the map of a trip, with no step placed") { TripMapScreen(previewTripDetail(), {}, {}, {}) },
         screen("a trip, for who does not take part") { TripDetailScreen(previewTripDetail(isParticipant = false), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos()) },
         screen("À emporter") {
             PackingBags(
@@ -214,6 +263,7 @@ internal object VoyageScreens {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 AlbumFeedCard(album, LocalDate.of(2026, 11, 18), photos.reversed()).Content(context)
                 RecipeFeedCard(recipe, recipes, null).Content(context)
+                WordFeedCard("t1", "Une semaine à la mer", "Ajaccio", TripWord("s1", "Arrivés à Ajaccio ! Premier café sur le port.", listOf("a", "b"), "ines", "Inès", setOf("camille", "ines"), Instant.parse("2026-11-18T09:30:00Z"))).Content(context)
             }
         },
         screen("Qui est-ce ?, the list") { WhoIsItListScreen(WhoIsItListUiState.Ready(listOf(WhoIsItPost("w1", "a", "Camille", "Un mariage, au printemps", null))), {}, onAdd = {}, onBack = {}) },

@@ -72,8 +72,9 @@ class ShareTargetSwitch(context: Context) {
     }
 
     private companion object {
-        /** Declared in the namespace of the code, which the test build's package name extends. */
-        val CODE_PACKAGE: String = SharedWish::class.java.name.substringBefore(".feature.")
+        /** Declared in the namespace of the code, which the test build's package name extends. Written
+         * out, not read from a class name, so it survives R8. */
+        const val CODE_PACKAGE: String = "fr.familia.app"
     }
 }
 

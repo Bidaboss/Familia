@@ -74,6 +74,8 @@ fun CommentsSection(
     readOnly: Boolean = false,
     canRemove: ((Family, EventComment, Member) -> Boolean)? = null,
     @StringRes empty: Int = R.string.event_comments_empty,
+    /** False under a word of a step: no function warns anyone of its comments yet, so no setting to show. */
+    canMute: Boolean = true,
 ) {
     val viewModel: EventCommentsViewModel = viewModel(
         key = key,
@@ -95,6 +97,7 @@ fun CommentsSection(
         groups = mentionGroups(currentMember),
         readOnly = readOnly,
         empty = empty,
+        canMute = canMute,
         onType = viewModel::type,
         onSend = viewModel::send,
         onShowMore = viewModel::showMore,
@@ -118,6 +121,7 @@ fun EventCommentsContent(
     groups: List<PickGroup> = emptyList(),
     readOnly: Boolean = false,
     @StringRes empty: Int = R.string.event_comments_empty,
+    canMute: Boolean = true,
 ) {
     var removing by rememberSaveable { mutableStateOf<String?>(null) }
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
@@ -172,8 +176,10 @@ fun EventCommentsContent(
         OutlinedButton(onClick = onSend, enabled = state.canSend, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
             Text(stringResource(R.string.recipe_comment_send))
         }
-        TextButton(onClick = { onMute(!state.muted) }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-            Text(stringResource(if (state.muted) R.string.event_comments_unmute else R.string.event_comments_mute))
+        if (canMute) {
+            TextButton(onClick = { onMute(!state.muted) }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text(stringResource(if (state.muted) R.string.event_comments_unmute else R.string.event_comments_mute))
+            }
         }
     }
     state.rows.firstOrNull { it.comment.id == removing }?.let { target ->

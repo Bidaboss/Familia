@@ -122,4 +122,11 @@ class FeedTest {
         assertEquals(LocalDate.of(2026, 12, 31), feedEventDay(e(LocalDate.of(2026, 12, 31)), LocalDate.of(2027, 1, 2)))
         assertEquals(LocalDate.of(2026, 12, 24), feedEventDay(e(LocalDate.of(2026, 12, 24)), today))
     }
+
+    @Test
+    fun `an old event typed on 29 February comes back on 28 February, then on 29 in a leap year`() {
+        val old = Event("b", "Fête du 29", LocalDate.of(2024, 2, 29), null, null, null, EventTarget.ForFamily, "ines", "Inès")
+        assertEquals(LocalDate.of(2027, 2, 28), feedEventDay(old, LocalDate.of(2026, 11, 20)))
+        assertEquals(LocalDate.of(2028, 2, 29), feedEventDay(old, LocalDate.of(2027, 3, 1)))
+    }
 }

@@ -72,8 +72,13 @@ android {
             applicationIdSuffix = ".test"
             if (signingValue("FAMILIA_TEST_KEYSTORE_PATH") != null) signingConfig = signingConfigs.getByName("test")
         }
+        // R8 and the resource shrinker (audit du 22/11, APK de 31 Mo): unused code, icons and
+        // resources leave the APK. Names are kept (-dontobfuscate in proguard-rules.pro), so the
+        // crash reports stay readable and nothing that reads a class name breaks.
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             if (signingValue("FAMILIA_KEYSTORE_PATH") != null) signingConfig = signingConfigs.getByName("release")
         }
     }

@@ -1651,6 +1651,15 @@ Celui qui suit un voyage sans y participer ne voit plus la liste « À prévoir 
 
 **Après la fusion :** lancer « Publier Firebase » avant l'APK (les règles changent).
 
+## La carte du voyage : « Position non trouvée » (retour de l'audit AVIS, 22/11)
+
+Un lieu sans adresse précise (« Chez Mamie », « Le camping ») ne donne aucun point. Au lieu de ne rien dire, la carte le dit.
+
+1. Ajoute une étape « Chez Mamie » à un voyage, sans autre étape placée. **Attendu :** « La carte » s'ouvre (même sans point) sur « Pas encore de carte », et dessous « Sans point sur la carte » liste l'étape avec « Position non trouvée ».
+2. Avec un compte qui participe : touche « Saisir une adresse ». **Attendu :** l'étape s'ouvre ; écris « 12 rue de la Paix, Ajaccio » : au retour, l'étape a son point sur la carte.
+3. Avec un compte qui suit sans participer. **Attendu :** « Position non trouvée » est écrit, sans bouton « Saisir une adresse ».
+4. **Essai du géocodeur sur le plus vieux téléphone de la famille, avant d'allumer le module :** ajoute les étapes « Ajaccio », « Gare de Lyon, Paris » et « Chez Mamie ». **Attendu :** les deux premières ont un point (en moins de 3 secondes avec le réseau), la troisième dit « Position non trouvée », et aucune n'empêche l'enregistrement. Si le téléphone n'a pas de service de géocodage, toutes disent « Position non trouvée » : c'est acceptable, la carte reste vide sans erreur.
+
 ## Le mot de l'étape, 1re partie : les données (récit 88, 21/11)
 
 Rien ne change à l'écran : cette partie prépare le mot, ses cœurs et ses commentaires (règles Firestore, suppression avec l'étape, accès aux données). La page du mot arrive dans la 2e partie.
@@ -1659,3 +1668,112 @@ Rien ne change à l'écran : cette partie prépare le mot, ses cœurs et ses com
 2. Supprime un voyage entier. **Attendu :** il disparaît comme avant.
 
 **Après la fusion :** lancer « Publier Firebase » avant l'APK (règles et fonctions : `onStepDeletedWord`). Un seul lancement pour tout le lot du mot de l'étape.
+
+## Le mot de l'étape, 2e partie : la page du mot (récit 88, 22/11)
+
+Chaque étape a une page « Le mot de l'étape », ouverte depuis l'étape (bouton « Le mot de l'étape ») ou depuis la carte (« Ouvrir l'étape »). Un participant y écrit un mot court et choisit jusqu'à 4 photos de l'album ; ceux qui suivent le lisent et mettent un cœur. Les commentaires arrivent dans la 3e partie.
+
+1. Avec un compte qui participe : ouvre une étape, « Le mot de l'étape ». **Attendu :** le rappel de l'étape, « Ton mot » (compteur 0 / 280), « Les photos » (l'album en grille de 3), « Qui le voit ? » (le nombre de personnes qui suivent), et « Publier le mot » en bas, grisé tant que le mot est vide.
+2. Écris un mot, choisis 3 photos : 1 puis 2 puis 3 apparaissent dans des pastilles noires, « 3 choisies sur 4 ». Touche la 2e photo : elle se retire et la 3e devient 2. Une 5e photo ne se choisit pas.
+3. « Publier le mot ». **Attendu :** la page se ferme. Rouvre-la : le mot et les photos sont là, le bouton dit « Enregistrer », et « Retirer mon mot » (en rouge pâle) demande confirmation, puis le mot disparaît.
+4. Avec un compte qui suit sans participer : ouvre la même étape. **Attendu :** le mot, ses photos (1 grande, 2 côte à côte, 1 grande et 2 petites, ou 4 en carré), le cœur de 112 × 56 avec le nombre, et « Touche le cœur, ou garde le doigt appuyé sur le mot ». Le cœur devient plein à la touche, le nombre monte, les visages de ceux qui en ont mis s'affichent ; touché de nouveau, il se retire. L'appui long sur le mot fait la même chose.
+5. Un voyage sans mot : le compte qui suit lit « Pas encore de mot pour cette étape » ; un participant arrive sur la page d'écriture.
+6. Un participant qui n'est pas l'auteur du mot : il le lit et met un cœur, sans pouvoir le changer ni le retirer.
+7. Supprime une photo de l'album qui était dans le mot. **Attendu :** le mot s'affiche sans elle, sans erreur.
+8. Texte à 200 % et TalkBack : le cœur se lit « Mettre un cœur, 5 », chaque photo à choisir se lit « Photo choisie, numéro 2 » ou « Photo de l'album, à choisir ».
+
+**Après la fusion :** rien de plus que « Publier Firebase » de la 1re partie. Les phrases d'aide de cette page (help_*) restent à écrire par le [DEV] principal : elle réutilise pour l'instant l'aide « Voyage ».
+
+
+## Le mot de l'étape, 3e partie : les commentaires (récit 88, 22/11)
+
+Sous un mot publié, la page de l'étape a un bloc « Commentaires » (le même que celui des événements et des bonnes nouvelles), avec les `@` pour prévenir quelqu'un.
+
+1. Ouvre une étape qui a un mot. **Attendu :** sous le mot (et le cœur), « Commentaires », la phrase « Pas encore de commentaire… » et le champ. Sans mot, ou pendant l'écriture d'un mot neuf : pas de bloc.
+2. Écris un commentaire avec `@` et un prénom, envoie. **Attendu :** il apparaît signé, la personne citée est prévenue comme pour un événement.
+3. Modifie puis retire ton commentaire. Un autre membre ne peut pas modifier le tien.
+4. L'auteur du mot retire le commentaire d'un autre ; Kévin (admin principal) aussi ; un simple suiveur ne retire que les siens.
+5. Compte qui ne suit pas le voyage : il n'ouvre pas la page. « Voir comme » : les commentaires se lisent, le champ n'envoie rien.
+6. Texte à 200 % et TalkBack : même lecture que sous un événement.
+
+**Après la fusion :** rien de plus que « Publier Firebase » de la 1re partie (les règles des commentaires y sont déjà).
+
+## Le mot de l'étape, 4e partie : la carte au fil (récit 88, 22/11)
+
+Chaque mot publié apparaît dans « Le fil » de l'Accueil, avec le mot en 3 lignes, l'étape et le voyage, le nombre de photos et de cœurs. Une touche ouvre la page de l'étape.
+
+Interrupteurs : « Le fil » (`newsFeed`) et « Voyages » allumés.
+
+1. Un participant publie un mot sur une étape d'un voyage que toute la famille suit. **Attendu :** sur le téléphone d'un autre membre, dans Le fil, une carte verte « Mot d'étape » signée de l'auteur : « Ajaccio · Nom du voyage », le texte (3 lignes au plus), « 📷 2 photos » et « ❤️ 3 » seulement s'il y en a.
+2. Touche la carte. **Attendu :** la page du mot de cette étape s'ouvre.
+3. Un voyage caché à quelqu'un (une surprise) : aucune carte de mot, même sur le téléphone de ceux qui le suivent.
+4. Retire le mot ou supprime l'étape : la carte disparaît. Un mot de plus de 14 jours n'est plus dans Le fil (« Voir plus ancien » le rapporte).
+5. Interrupteur « Voyages » éteint, ou « Le fil » éteint : aucune carte de mot.
+6. Au plus 20 voyages sont lus pour Le fil ; un voyage de plus de 30 jours avant la période n'est pas lu.
+7. Texte à 200 % et TalkBack : la carte se lit en entier (auteur, étape, texte, photos, cœurs).
+
+**Après la fusion :** rien de plus que « Publier Firebase » du lot.
+
+## Les chiffres du voyage (récit 89, 22/11)
+
+Dans la page d'un voyage, sous les étapes (avant les photos), une tuile « Le voyage en chiffres » : Étapes, Jours, Lieux, Photos et Distance à vol d'oiseau, tous calculés seuls. Pas de classement, pas de comparaison, pas de « record ».
+
+Aucun « Publier Firebase » : rien ne change côté serveur.
+
+1. Un voyage de 5 étapes dont toutes ont un point sur la carte, 6 jours, 38 photos. **Attendu :** une grille de 2 colonnes (Étapes 5, Jours 6, Lieux 4, Photos 38) puis une case large « 412 km » (le total des trajets entre les étapes dans l'ordre). Sans étape sans position, aucune ligne sous la distance.
+2. Une étape sans position (« Chez Mamie ») : **Attendu :** la distance ne la compte pas et la tuile dit « 4 étapes sur 5 : une étape sans position n'est pas comptée. »
+3. Un voyage à peine commencé (1 étape) : **Attendu :** seulement « Étape 1 » et « Jour 1 » puis la phrase « La distance apparaît dès deux étapes placées sur la carte. Les photos et les lieux se comptent au fil du voyage. » Aucun chiffre à 0 ; « Lieux » ne s'affiche qu'à partir de 2 lieux différents ; « Photos » qu'à partir d'une photo.
+4. Voyage sans étape : pas de tuile.
+5. Ajoute une photo à l'album : « Photos » monte. Ajoute une étape : « Étapes » monte.
+6. Texte à 130 % et plus : la grille passe sur 1 colonne. TalkBack lit chaque case d'un trait (« Étapes 5 »).
+7. Un voyage surprise : la tuile n'apparaît que pour ceux qui voient le voyage.
+
+## Le voyage jour par jour (récit 90, 22/11), 1re partie : la story d'un jour
+
+Dans la page d'un voyage, sous les étapes, une tuile « Jour par jour » avec la rangée des jours (J1 · 11 avr…). Un point pêche sous un jour qui a un mot ; le jour sans mot est grisé et ne se touche pas ; le jour du jour (ou le dernier jour avec un mot) est en noir. « 3 jours à revoir » à droite. La tuile n'existe que si un jour a un mot. Touche un jour : une story plein écran, noire comme le diaporama du mois. Rien n'avance seul.
+
+Aucun « Publier Firebase » : rien ne change côté serveur. Les voyages cachés (surprise) ne montrent rien à ceux qui ne les voient pas, comme le reste du voyage.
+
+Cette partie : la story, ses écrans et leur navigation, le cœur, l'écran de fin. La carte du voyage du fil d'actualité qui ouvre le jour viendra après.
+
+1. Ouvre un jour avec un mot et 2 photos. **Attendu :** en haut 3 segments (2 photos et le trajet), « Fermer » à gauche, « Jour 2 » et « lundi 12 avril » à droite ; la photo remplit le cadre ; en bas, sur un fond sombre, l'avatar de l'auteur, son prénom, l'étape, le mot en blanc (4 lignes au plus ; une touche sur le mot l'affiche en entier), un bouton cœur avec le nombre et un bouton « Commentaires ».
+2. Touche le tiers droit de l'écran, la flèche ronde de droite, ou balaie vers la gauche : l'écran suivant. Le tiers gauche, la flèche de gauche ou un balayage vers la droite : le précédent. Il n'y a pas de flèche gauche sur le premier écran. **Attendu :** rien ne défile tout seul, même au bout d'une minute.
+3. Touche le cœur : il se remplit, le nombre monte ; de nouveau, il se retire. « Commentaires » ouvre la page de l'étape, où l'on répond ; en revenant, on retrouve la story au même endroit.
+4. Un jour dont le mot n'a pas de photo : le mot (grand, en gras) sur une carte blanche sur fond ciel, « Pas de photo ce jour-là », segments et « Fermer » en encre sombre.
+5. Dernier écran du jour : le trajet du jour (les étapes du jour placées, reliées), « Le trajet du jour », « Bordeaux → La Palmyre · 118 km à vol d'oiseau » ; si une étape du jour n'a pas de position : « … · Trajet non placé ». Un bouton blanc « Jour 3 » passe au jour suivant qui a un mot, « Revoir ce jour » revient au premier écran. Le dernier jour n'a que « Revoir ce jour » et « Fermer ».
+6. Une photo retirée de l'album tombe de la story. Un mot retiré pendant la lecture : la story reste sur un écran qui existe.
+7. Texte à 130 % et plus et TalkBack : « Suivant » et « Précédent » sont annoncés (les zones invisibles ne le sont pas), chaque jour de la rangée se lit « Jour 2, 12 avril, à revoir » ou « rien à revoir ».
+
+
+## Livre du voyage : les mots d'étape et les chiffres en pages (récit 91)
+
+Rien à publier pour ces essais : aucune nouvelle donnée ni règle. Il faut un voyage avec au moins deux étapes, un mot sur deux d'entre elles (avec une photo pour l'un) et des photos dans l'album.
+
+1. Ouvre le voyage, **Voir les photos**, **Faire le livre photo**. Sous le format, une liste « Les mots et les chiffres du voyage » montre un interrupteur par mot (lieu, auteur, jour) et « La page des chiffres ». Tout est allumé au départ.
+2. Éteins un mot : le nombre de pages du compteur baisse de 1. Éteins la page des chiffres : de 1 aussi.
+3. Fais le livre. Dans le PDF : la couverture, une page par mot (jour et lieu en titre, photos en haut, mot en dessous signé de son auteur), les photos libres, la liste des étapes, puis la page des chiffres.
+4. Une photo mise sur un mot n'est pas répétée sur les pages de photos.
+5. Un voyage sans aucun mot ni chiffre : le livre est celui d'avant, rien ne change.
+6. Un voyage avec des mots mais sans photo dans l'album : on peut quand même faire le livre.
+
+## APK allégée par R8 (audit du 22/11)
+
+L'APK de publication passe par R8 et le tri des ressources. Kévin a choisi (22/11) de la publier
+directement : la famille essaie avec lui. Tout doit marcher comme avant ; un écran qui plante ou
+une image qui manque vient sans doute de R8 (le plantage arrive dans Administration > Plantages).
+Pour revenir en arrière : remettre isMinifyEnabled et isShrinkResources à false et republier.
+
+1. Connexion avec Google, puis déconnexion et reconnexion.
+2. Accueil, Planning (semaine, mois), page d'un événement avec ses tuiles, « Tu viens ? ».
+3. Créer un événement, un sondage et voter, un coup de main, une bonne nouvelle.
+4. Cadeaux : une fiche, une envie, « Je le prends ».
+5. Photos : en ajouter une (appareil et galerie), l'ouvrir en grand, un album, le film d'un album.
+6. Voyage : la carte, un mot d'étape avec photo, le livre du voyage en PDF.
+7. Notifications : en recevoir une (commentaire d'un autre membre), la toucher ouvre le bon écran.
+8. Apparence : changer l'icône de l'appli (l'icône change sur l'écran d'accueil du téléphone).
+9. Partager une envie vers une messagerie, puis l'ouvrir depuis le lien reçu.
+10. Administration : Consommation, Modules, « Voir comme ».
+11. Mode avion : l'appli s'ouvre et montre ce qu'elle a déjà.
+12. Mettre à jour : le bouton « Mettre à jour » télécharge et installe.
+
+Taille : voir le résumé de la CI (« Taille des APK ») ; avant R8 : 31 Mo.

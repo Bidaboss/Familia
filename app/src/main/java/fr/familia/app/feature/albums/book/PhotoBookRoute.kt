@@ -3,6 +3,7 @@ package fr.familia.app.feature.albums.book
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.content.res.Resources
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -16,8 +17,10 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import fr.familia.app.R
 import fr.familia.app.core.album.AlbumPhoto
+import fr.familia.app.core.album.book.BookFigure
 import fr.familia.app.core.album.book.BookSource
 import fr.familia.app.core.album.book.BookStep
+import fr.familia.app.core.album.book.BookWord
 import fr.familia.app.core.album.book.PhotoBookActions
 import fr.familia.app.core.album.book.PhotoBookContent
 import fr.familia.app.core.album.book.PhotoBookDestination
@@ -34,8 +37,11 @@ import fr.familia.app.core.print.PRINT_BYTES_PER_PHOTO
 import fr.familia.app.core.print.writePdfSafely
 import fr.familia.app.core.share.ShareConsentReminder
 import fr.familia.app.feature.events.album.eventAlbumFolder
+import fr.familia.app.feature.trips.detail.TripFigures
+import fr.familia.app.feature.trips.detail.tripFigures
 import fr.familia.app.feature.trips.photos.tripAlbumFolder
 import fr.familia.app.feature.trips.stepTypeLabel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -58,13 +64,14 @@ fun PhotoBookRoute(container: AppContainer?, album: PhotoBookDestination, onBack
         onDispose { thread(name = "photo-book-cache") { bookPhotos(app).deleteRecursively() } }
     }
     val labels = StepType.entries.associateWith { stepTypeLabel(it) }
+    val resources = context.resources
     val viewModel: PhotoBookViewModel = viewModel(
         key = "photo-book-${album.kind}-${album.id}",
         factory = viewModelFactory {
             initializer {
                 PhotoBookViewModel(
                     photos = container?.albumPhotoRepository,
-                    source = { bookSource(container, album, labels) },
+                    source = { bookSource(container, album, labels, resources) },
                     print = { content -> printBook(app, content, container?.photoStorage) },
                 )
             }
@@ -93,6 +100,8 @@ fun PhotoBookRoute(container: AppContainer?, album: PhotoBookDestination, onBack
             onMove = viewModel::move,
             onBig = viewModel::toggleBig,
             onCover = viewModel::setCover,
+            onWord = viewModel::toggleWord,
+            onFigures = viewModel::setFigures,
             onMake = viewModel::make,
         ),
         onBack = onBack,
@@ -100,19 +109,47 @@ fun PhotoBookRoute(container: AppContainer?, album: PhotoBookDestination, onBack
 }
 
 /** The title, the dates and, for a trip, the steps, oldest first. */
-private suspend fun bookSource(container: AppContainer?, album: PhotoBookDestination, labels: Map<StepType, String>): BookSource? = when (album.kind) {
+private suspend fun bookSource(container: AppContainer?, album: PhotoBookDestination, labels: Map<StepType, String>, resources: Resources): BookSource? = when (album.kind) {
     PhotoBookDestination.TRIP -> container?.tripRepository?.let { trips ->
         trips.getTrip(album.id)?.let { trip ->
-            val steps = trips.observeSteps(album.id).first()
-                .sortedWith(compareBy({ it.departDate }, { it.departTime }))
-                .map { BookStep(labels.getValue(it.type), it.place, it.departDate) }
-            BookSource(tripAlbumFolder(trip.id), trip.title, bookDates(trip.startDate, trip.endDate), steps)
+            val ordered = trips.observeSteps(album.id).first().sortedWith(compareBy({ it.departDate }, { it.departTime }))
+            val steps = ordered.map { BookStep(labels.getValue(it.type), it.place, it.departDate) }
+            val folder = tripAlbumFolder(trip.id)
+            // Récit 91: the words and the figures are read with what the member can already read.
+            val albumPhotos = try {
+                container?.albumPhotoRepository?.observePhotos(folder)?.first().orEmpty()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                emptyList()
+            }
+            val words = try {
+                container?.tripWordRepository?.observeWords(trip.id)?.first().orEmpty()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                emptyMap()
+            }
+            val bookWords = ordered.mapNotNull { step ->
+                words[step.id]?.let { w -> BookWord(step.id, step.place, step.departDate, w.authorName, w.text, w.photosIn(albumPhotos)) }
+            }
+            val figures = tripFigures(trip, ordered, albumPhotos.size)?.let { bookFigures(it, resources) }.orEmpty()
+            BookSource(folder, trip.title, bookDates(trip.startDate, trip.endDate), steps, bookWords, figures)
         }
     }
     PhotoBookDestination.EVENT -> container?.eventRepository?.observeEvent(album.id)?.first()?.let { event ->
         BookSource(eventAlbumFolder(event.id), event.title, bookDates(event.date))
     }
     else -> null
+}
+
+/** The figures of the trip as lines of the book: only those worth a number, as on the tile. */
+private fun bookFigures(f: TripFigures, r: Resources): List<BookFigure> = buildList {
+    add(BookFigure(f.steps.toString(), r.getQuantityString(R.plurals.figures_steps, f.steps)))
+    add(BookFigure(f.days.toString(), r.getQuantityString(R.plurals.figures_days, f.days)))
+    if (f.showPlaces) add(BookFigure(f.places.toString(), r.getQuantityString(R.plurals.figures_places, f.places)))
+    if (f.showPhotos) add(BookFigure(f.photos.toString(), r.getQuantityString(R.plurals.figures_photos, f.photos)))
+    f.distanceKm?.let { add(BookFigure(r.getString(R.string.figures_km, it), r.getString(R.string.figures_distance))) }
 }
 
 /**

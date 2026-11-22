@@ -105,6 +105,42 @@ class PhotoBookTest {
     }
 
     @Test
+    fun `the words of the steps become pages, the photos on them are not shown twice (récit 91)`() = runTest {
+        val album = FakeAlbum((1..3).map { photo(TestFamily.adult, it) })
+        var printed: PhotoBookContent? = null
+        val onWord = listOf(photo(TestFamily.adult, 1))
+        val words = listOf(
+            BookWord("s1", "Lisbonne", LocalDate.of(2026, 8, 4), "Adult1", "Pastéis !", onWord),
+            BookWord("s2", "Porto", LocalDate.of(2026, 8, 5), "Adult1", "Le pont", emptyList()),
+        )
+        val figures = listOf(BookFigure("2", "Étapes"))
+        val vm = PhotoBookViewModel(
+            album,
+            source = { BookSource("trips/t1", "Vacances", "4 août 2026", emptyList(), words, figures) },
+            print = { printed = it; File("livre.pdf") },
+        )
+        val state = vm.uiState.value as PhotoBookUiState.Choosing
+        // cover + 2 words + 1 page for the two free photos + figures
+        assertEquals(5, state.pageCount)
+        vm.toggleWord("s2")
+        vm.setFigures(false)
+        assertEquals(3, (vm.uiState.value as PhotoBookUiState.Choosing).pageCount)
+        vm.make()
+        val content = printed!!
+        assertEquals(listOf("s1"), content.words.map { it.stepId })
+        assertEquals(emptyList<BookFigure>(), content.figures)
+        assertEquals(listOf(listOf("adult1_2", "adult1_3")), content.pages.map { page -> page.map { it.photo.id } })
+    }
+
+    @Test
+    fun `a trip with words but no photo still makes a book`() = runTest {
+        val words = listOf(BookWord("s1", "Lisbonne", LocalDate.of(2026, 8, 4), "Adult1", "Pastéis !", emptyList()))
+        val vm = PhotoBookViewModel(FakeAlbum(emptyList()), source = { BookSource("trips/t1", "V", "", words = words) }, print = { null })
+        val state = vm.uiState.value as PhotoBookUiState.Choosing
+        assertEquals(true, state.canMake)
+    }
+
+    @Test
     fun `an empty album or one that cannot be read gives the empty screen`() = runTest {
         val vm = PhotoBookViewModel(FakeAlbum(emptyList()), source = { BookSource("trips/t1", "V", "") }, print = { null })
         assertEquals(PhotoBookUiState.Empty, vm.uiState.value)

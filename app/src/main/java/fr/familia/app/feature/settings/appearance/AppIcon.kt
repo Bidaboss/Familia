@@ -67,6 +67,7 @@ class AppIconSwitcher(context: Context) {
     }
 
     private companion object {
-        val CODE_PACKAGE: String = AppIcon::class.java.name.substringBefore(".feature.")
+        /** The namespace of the code, where the activity-alias live: written out, it survives R8. */
+        const val CODE_PACKAGE: String = "fr.familia.app"
     }
 }

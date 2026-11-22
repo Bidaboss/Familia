@@ -71,7 +71,10 @@ class AlreadyBoughtTest {
         val written = mutableListOf<String>()
         override fun observeContributions(listId: String, itemIds: List<String>, memberId: String, all: Boolean): Flow<Map<String, List<GiftContribution>>> {
             asked += itemIds to all
-            return parts.map { list -> itemIds.associateWith { if (all) list else list.filter { it.memberId == memberId } } }
+            // As the repository reads them (récit 93): the keeper gets first names alone, the others their own part.
+            return parts.map { list ->
+                itemIds.associateWith { if (all) list.map { it.copy(amount = 0) } else list.filter { it.memberId == memberId } }
+            }
         }
         override suspend fun setContribution(listId: String, itemId: String, contribution: GiftContribution, previous: Int) {
             written += "set $itemId ${contribution.memberId} ${contribution.amount} after $previous"
@@ -104,12 +107,14 @@ class AlreadyBoughtTest {
     }
 
     @Test
-    fun `the person sees every first name and amount, and does not take part`() = runTest {
+    fun `the person sees every first name and no amount, and does not take part`() = runTest {
         val gifts = Gifts(wishes("adult1"), bike)
         val state = viewModel(gifts, "adult1", "wishes-adult1").success()
         assertTrue(state.seesContributors)
         assertFalse(state.canContribute)
-        assertEquals(listOf("Admin1", "Adult2"), state.items.first { it.item.id == "bike" }.contributions?.parts?.map { it.memberName })
+        val parts = state.items.first { it.item.id == "bike" }.contributions?.parts
+        assertEquals(listOf("Admin1", "Adult2"), parts?.map { it.memberName })
+        assertEquals(listOf(0, 0), parts?.map { it.amount })
         assertEquals(listOf(listOf("bike") to true), gifts.asked)
     }
 
@@ -188,7 +193,7 @@ class AlreadyBoughtTest {
     private fun sheet(seesContributors: Boolean, canContribute: Boolean, mine: Int? = null) {
         val row = ItemRow(
             bike, canEdit = false, isSurpriseIdea = false, claim = null,
-            contributions = ContributionView(45, mine, if (seesContributors) listOf(GiftContribution("adult2", "Camille", 45)) else emptyList()),
+            contributions = ContributionView(45, mine, if (seesContributors) listOf(GiftContribution("adult2", "Camille")) else emptyList()),
         )
         val beneficiary = fr.familia.app.feature.events.TestFamily.adult
         val state = GiftListUiState.Success(
@@ -221,6 +226,8 @@ class AlreadyBoughtTest {
     fun `the sheet of the person names who takes part`() {
         sheet(seesContributors = true, canContribute = false)
         assertEquals(1, count("Camille"))
+        // The name, never what it gave (récit 93).
+        assertEquals(0, count("Camille :"))
         assertEquals(0, count("Je participe"))
     }
 

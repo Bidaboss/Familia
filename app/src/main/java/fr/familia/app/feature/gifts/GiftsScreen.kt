@@ -19,10 +19,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CardGiftcard
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -85,6 +81,10 @@ fun GiftsScreen(
     onOpenSurprisePicker: (() -> Unit)? = null,
     /** « Ajouter une envie » on the new tab (PRODUIT-119). */
     onAddWish: (listId: String) -> Unit = onOpenList,
+    /** The page of another member, from their row of the new tab (récit 91). */
+    onOpenMember: (memberId: String) -> Unit = {},
+    /** « Cadeaux reçus » at the bottom of the new tab; null hides the line. */
+    onOpenReceived: (() -> Unit)? = null,
 ) {
     Box(modifier.fillMaxSize()) {
         when (state) {
@@ -123,7 +123,7 @@ fun GiftsScreen(
                 if (state.tabV2) {
                     giftsV2Content(
                         state,
-                        GiftsV2Actions(onOpenList, onAllBirthdays, onOpenMyPage, onAddWish),
+                        GiftsV2Actions(onOpenList, onOpenMyPage, onAddWish, onOpenMember, onOpenSurprisePicker, onOpenReceived),
                         showPreparing = !someListsHidden,
                     )
                     return@LazyColumn
@@ -156,10 +156,10 @@ fun GiftsScreen(
                 if (state.archived.isNotEmpty()) archivedSection(state.archived, state.today, onOpenList)
             }
         }
+        // On the new tab, « Préparer une surprise » lives in the black bar at the top (récit 91).
         val surpriseButton = (state as? GiftsUiState.Success)
-            ?.takeIf { it.surpriseButton && it.canPrepareSurprise && !someListsHidden }
+            ?.takeIf { it.surpriseButton && it.canPrepareSurprise && !someListsHidden && !it.tabV2 }
             ?.let { onOpenSurprisePicker }
-        val v2 = (state as? GiftsUiState.Success)?.tabV2 == true
         Column(
             Modifier.align(Alignment.BottomEnd).padding(16.dp),
             horizontalAlignment = Alignment.End,
@@ -179,15 +179,11 @@ fun GiftsScreen(
                     onClick = open,
                     icon = {
                         Icon(
-                            if (v2) Icons.Outlined.AutoAwesome else Icons.Outlined.CardGiftcard,
+                            Icons.Outlined.CardGiftcard,
                             contentDescription = stringResource(R.string.gifts_prepare_surprise),
-                            tint = if (v2) V2_SUN else LocalContentColor.current,
                         )
                     },
                     text = { Text(stringResource(R.string.gifts_prepare_surprise)) },
-                    // Dark on the new tab (C2).
-                    containerColor = if (v2) MaterialTheme.colorScheme.inverseSurface else FloatingActionButtonDefaults.containerColor,
-                    contentColor = if (v2) MaterialTheme.colorScheme.inverseOnSurface else contentColorFor(FloatingActionButtonDefaults.containerColor),
                 )
             }
         }

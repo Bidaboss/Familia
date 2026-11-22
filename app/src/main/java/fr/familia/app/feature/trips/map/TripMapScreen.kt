@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,11 +57,10 @@ import fr.familia.app.feature.trips.stepTypeLabel
 /**
  * « La carte du voyage » (récit 87): the steps joined in order on the landscape of the trip, with
  * their number; a touch on a point shows its step under the map. Followers and participants see
- * the same map (the steps are read with the same rules); only a participant can open the step to
- * change it. A step with no point stays in the list under the map. No live position. Stateless.
+ * the same map (the steps are read with the same rules) and open the step, with its word (récit 88). A step with no point stays in the list under the map. No live position. Stateless.
  */
 @Composable
-fun TripMapScreen(state: TripDetailUiState, onEditStep: (stepId: String) -> Unit, onBack: () -> Unit) {
+fun TripMapScreen(state: TripDetailUiState, onOpenStep: (stepId: String) -> Unit, onEditStep: (stepId: String) -> Unit, onBack: () -> Unit) {
     val success = state as? TripDetailUiState.Success
     val sky = success?.trip?.landscape?.palette?.sky ?: TripPathColors.Sky
     Scaffold(
@@ -82,23 +82,32 @@ fun TripMapScreen(state: TripDetailUiState, onEditStep: (stepId: String) -> Unit
                     title = stringResource(R.string.trip_missing_title),
                     body = stringResource(R.string.trip_missing_body),
                 )
-                is TripDetailUiState.Success -> MapContent(state, onEditStep)
+                is TripDetailUiState.Success -> MapContent(state, onOpenStep, onEditStep)
             }
         }
     }
 }
 
 @Composable
-private fun MapContent(state: TripDetailUiState.Success, onEditStep: (String) -> Unit) {
+private fun MapContent(state: TripDetailUiState.Success, onOpenStep: (String) -> Unit, onEditStep: (String) -> Unit) {
     val stops = remember(state.steps) { mapStops(state.steps) }
     val placed = stops.filter { it.point != null }
     val unplaced = stops.filter { it.point == null }
     if (placed.isEmpty()) {
-        EmptyState(
-            icon = Icons.Outlined.Map,
-            title = stringResource(R.string.trip_map_empty_title),
-            body = stringResource(R.string.trip_map_empty_body),
-        )
+        // The sky colour is for the map; the text of this page follows the theme, so it sits on the theme background.
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+            EmptyState(
+                icon = Icons.Outlined.Map,
+                title = stringResource(R.string.trip_map_empty_title),
+                body = stringResource(R.string.trip_map_empty_body),
+            )
+            // « Chez Mamie »: a place the phone cannot find says so, instead of nothing.
+            if (unplaced.isNotEmpty()) {
+                Box(Modifier.padding(16.dp)) { UnplacedTile(unplaced, state.isParticipant, onEditStep) }
+            }
+        }
+        }
         return
     }
     var selectedId by rememberSaveable(state.trip.id) { mutableStateOf<String?>(null) }
@@ -111,22 +120,41 @@ private fun MapContent(state: TripDetailUiState.Success, onEditStep: (String) ->
         if (selected == null) {
             Text(stringResource(R.string.trip_map_pick), style = MaterialTheme.typography.bodyLarge, color = TripPathColors.Ink)
         } else {
-            StopCard(selected, canOpen = state.isParticipant, onOpen = { onEditStep(selected.step.id) })
+            StopCard(selected, onOpen = { onOpenStep(selected.step.id) })
         }
-        if (unplaced.isNotEmpty()) {
-            FormTile(Icons.Outlined.Place, stringResource(R.string.trip_map_unplaced_title)) {
-                unplaced.forEach { stop ->
-                    Text("${stop.number}. ${stop.step.place}", style = MaterialTheme.typography.bodyLarge)
+        if (unplaced.isNotEmpty()) UnplacedTile(unplaced, state.isParticipant, onEditStep)
+    }
+}
+
+/**
+ * The steps the phone found no point for (« chez Mamie », « le camping »): each says « Position non
+ * trouvée », and a participant can type a more precise address in the step.
+ */
+@Composable
+private fun UnplacedTile(unplaced: List<MapStop>, canEdit: Boolean, onEditStep: (String) -> Unit) {
+    FormTile(Icons.Outlined.Place, stringResource(R.string.trip_map_unplaced_title)) {
+        unplaced.forEach { stop ->
+            Column(Modifier.fillMaxWidth()) {
+                Text("${stop.number}. ${stop.step.place}", style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    stringResource(R.string.trip_map_not_found),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (canEdit) {
+                    TextButton(onClick = { onEditStep(stop.step.id) }, modifier = Modifier.heightIn(min = 56.dp)) {
+                        Text(stringResource(R.string.trip_map_type_address))
+                    }
                 }
-                FormHint(stringResource(R.string.trip_map_unplaced_hint))
             }
         }
+        FormHint(stringResource(R.string.trip_map_unplaced_hint))
     }
 }
 
 /** The step of the chosen point: its rank, its place, its type and day, « Bien arrivé ». */
 @Composable
-private fun StopCard(stop: MapStop, canOpen: Boolean, onOpen: () -> Unit) {
+private fun StopCard(stop: MapStop, onOpen: () -> Unit) {
     val step: TripStep = stop.step
     Surface(shape = RoundedCornerShape(20.dp), color = Color.White, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -151,10 +179,8 @@ private fun StopCard(stop: MapStop, canOpen: Boolean, onOpen: () -> Unit) {
             step.arrival?.let {
                 Text(stringResource(R.string.trip_arrived_by, it.name), style = MaterialTheme.typography.bodyMedium, color = TripPathColors.InkSoft)
             }
-            if (canOpen) {
-                Button(onClick = onOpen, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
-                    Text(stringResource(R.string.trip_map_open_step))
-                }
+            Button(onClick = onOpen, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text(stringResource(R.string.trip_map_open_step))
             }
         }
     }
@@ -163,5 +189,5 @@ private fun StopCard(stop: MapStop, canOpen: Boolean, onOpen: () -> Unit) {
 @FamiliaPreviews
 @Composable
 private fun TripMapPreview() {
-    FamiliaTheme { Surface { TripMapScreen(previewTripDetail(withPositions = true), {}, {}) } }
+    FamiliaTheme { Surface { TripMapScreen(previewTripDetail(withPositions = true), {}, {}, {}) } }
 }

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,6 +30,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -65,6 +67,7 @@ import fr.familia.app.core.ui.form.FormChip
 import fr.familia.app.core.ui.form.FormHint
 import fr.familia.app.core.ui.form.FormTile
 import fr.familia.app.core.ui.form.StickyActionBar
+import fr.familia.app.core.ui.frenchDate
 import java.time.LocalDate
 
 /** What the screen can ask, so the route stays short. */
@@ -75,6 +78,8 @@ data class PhotoBookActions(
     val onMove: (id: String, by: Int) -> Unit = { _, _ -> },
     val onBig: (String) -> Unit = {},
     val onCover: (String) -> Unit = {},
+    val onWord: (String) -> Unit = {},
+    val onFigures: (Boolean) -> Unit = {},
     val onMake: () -> Unit = {},
 )
 
@@ -154,6 +159,30 @@ private fun Choosing(state: PhotoBookUiState.Choosing, actions: PhotoBookActions
                 }
             }
         }
+        if (state.words.isNotEmpty() || state.figures.isNotEmpty()) {
+            item(key = "words_title") {
+                Text(stringResource(R.string.photo_book_words_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
+            }
+            item(key = "words_hint") { FormHint(stringResource(R.string.photo_book_words_hint)) }
+            items(state.words, key = { "word_" + it.stepId }) { word ->
+                BookSwitchRow(
+                    title = word.place,
+                    detail = word.authorName + " · " + frenchDate(word.date, "EEEE d MMMM"),
+                    checked = word.stepId in state.wordsIn,
+                    onChange = { actions.onWord(word.stepId) },
+                )
+            }
+            if (state.figures.isNotEmpty()) {
+                item(key = "figures_switch") {
+                    BookSwitchRow(
+                        title = stringResource(R.string.photo_book_figures),
+                        detail = state.figures.joinToString(" · ") { it.value + " " + it.label }.take(120),
+                        checked = state.figuresIn,
+                        onChange = actions.onFigures,
+                    )
+                }
+            }
+        }
         item(key = "count") {
             Text(
                 pluralStringResource(R.plurals.photo_book_count, state.chosen.size, state.chosen.size, state.pageCount),
@@ -219,6 +248,25 @@ private fun PhotoRow(photo: BookPhoto, chosen: Boolean, isCover: Boolean, isFirs
                 SmallAction(stringResource(if (photo.big) R.string.photo_book_small else R.string.photo_book_big)) { actions.onBig(id) }
                 SmallAction(stringResource(R.string.photo_book_cover), enabled = !isCover) { actions.onCover(id) }
             }
+        }
+    }
+}
+
+/** One page of the book that can be left out: a word of a step, or the page of figures. */
+@Composable
+private fun BookSwitchRow(title: String, detail: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    ClayCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)
+                .toggleable(value = checked, role = Role.Switch, onValueChange = onChange),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.bodyLarge, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(detail, style = MaterialTheme.typography.bodyMedium, maxLines = 2, overflow = TextOverflow.Ellipsis, color = FamiliaClay.colors.onTintVariant(ClayTint.Plain))
+            }
+            Switch(checked = checked, onCheckedChange = null)
         }
     }
 }

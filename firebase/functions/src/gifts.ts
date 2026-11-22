@@ -235,7 +235,9 @@ export async function deleteClaimShares(db: Firestore, listId: string, itemId: s
  * Nobody could read nor take them back any more.
  */
 export async function deleteItemContributions(db: Firestore, listId: string, itemId: string): Promise<void> {
-  await db.recursiveDelete(db.collection('giftLists').doc(listId).collection('items').doc(itemId).collection('contributions'));
+  const item = db.collection('giftLists').doc(listId).collection('items').doc(itemId);
+  await db.recursiveDelete(item.collection('contributions'));
+  await db.recursiveDelete(item.collection('contributors'));
 }
 
 /** Who reserved the item, or took part in its joint gift. */
