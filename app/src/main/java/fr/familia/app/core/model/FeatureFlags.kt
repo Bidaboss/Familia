@@ -183,6 +183,18 @@ enum class Feature(
      * celle dessinée sur le paysage du voyage, comme sans réseau ou sans jeton. Aucune règle ni function.
      */
     MapStreets("mapStreets", R.string.feature_map_streets),
+
+    /**
+     * Les liens d'idées sur la carte du voyage (PRODUIT-149, récit 96) : « Restaurants près de… »,
+     * « Hôtels à… », « Voir sur Tripadvisor ». Éteint, aucun lien. Aucune règle ni function.
+     */
+    PlaceLinks("placeLinks", R.string.feature_place_links),
+
+    /**
+     * Le globe animé de la carte du voyage (PRODUIT-148, récit 94) : « Lancer le voyage », la caméra
+     * vole d'étape en étape. Éteint, rien ne change : la carte reste à plat. Aucune règle ni function.
+     */
+    MapGlobe("mapGlobe", R.string.feature_map_globe),
 }
 
 /**

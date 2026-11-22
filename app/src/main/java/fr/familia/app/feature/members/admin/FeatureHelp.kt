@@ -71,6 +71,8 @@ private val HELP: Map<Feature, Int> = mapOf(
     Feature.NewsFeed to R.string.feature_help_news_feed,
     Feature.EveningDigest to R.string.feature_help_evening_digest,
     Feature.MapStreets to R.string.feature_help_map_streets,
+    Feature.PlaceLinks to R.string.feature_help_place_links,
+    Feature.MapGlobe to R.string.feature_help_map_globe,
 )
 
 @StringRes

@@ -322,6 +322,25 @@
     <string name="trip_map_credit_mapbox">© Mapbox</string>
     <string name="trip_map_credit_osm">© OpenStreetMap</string>
     <string name="trip_map_credit_improve">Améliorer cette carte</string>
+    <string name="feature_place_links">Idées autour d\'une étape</string>
+    <string name="feature_help_place_links">Sur l\'étape : Restaurants, Hôtels, Tripadvisor. Un appui ouvre Google Maps ou Tripadvisor avec le nom du lieu. Rien n\'est gardé.</string>
+    <string name="place_links_restaurants">Restaurants près de %1$s</string>
+    <string name="place_links_hotels">Hôtels à %1$s</string>
+    <string name="place_links_tripadvisor">Voir %1$s sur Tripadvisor</string>
+    <string name="place_links_hint">Un appui ouvre Google Maps ou Tripadvisor avec le nom du lieu. Familia ne garde rien.</string>
+    <string name="feature_map_globe">Globe animé du voyage</string>
+    <string name="feature_help_map_globe">Essai : « Lancer le voyage » fait voler la caméra d\'étape en étape. Sans réseau ou sans animations, la carte à plat et la liste restent.</string>
+    <string name="trip_route_title">Le trajet</string>
+    <string name="trip_route_hint">Étape par étape, sans animation : touche une étape pour l\'ouvrir.</string>
+    <string name="trip_route_row">Étape %1$d sur %2$d, %3$s, %4$s</string>
+    <plurals name="trip_route_words">
+        <item quantity="one">%d mot</item>
+        <item quantity="other">%d mots</item>
+    </plurals>
+    <plurals name="trip_route_photos">
+        <item quantity="one">%d photo</item>
+        <item quantity="other">%d photos</item>
+    </plurals>
     <string name="feature_trips">Carnet de voyage</string>
     <string name="feature_good_news">Actualités</string>
     <string name="feature_themes">Thèmes au choix</string>
@@ -2570,7 +2589,7 @@
     <string name="gifts_v2_family">Toute la famille</string>
     <string name="gifts_v2_soon">Bientôt</string>
     <string name="gifts_v2_my_page">Ma fiche</string>
-    <string name="gifts_v2_open_person">ouvrir la fiche de %1$s</string>
+    <string name="gifts_v2_open_wishes">ouvrir les envies de %1$s</string>
     <plurals name="gifts_v2_surprises_bar">
         <item quantity="one">%d surprise en préparation</item>
         <item quantity="other">%d surprises en préparation</item>

@@ -51,6 +51,9 @@ import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.core.ui.form.FormHint
 import fr.familia.app.core.ui.form.FormTile
 import fr.familia.app.feature.trips.detail.TripDetailUiState
+import fr.familia.app.core.model.Feature
+import fr.familia.app.core.ui.LocalFeatureFlags
+import fr.familia.app.core.model.TripWord
 import fr.familia.app.feature.trips.detail.TripPathColors
 import fr.familia.app.feature.trips.detail.palette
 import fr.familia.app.feature.trips.detail.previewTripDetail
@@ -70,6 +73,8 @@ fun TripMapScreen(
     onBack: () -> Unit,
     /** The public token when the streets are asked for (module on, token in this APK); null: the drawn map. */
     streetsToken: String? = null,
+    /** The words of the steps by step id, for « Le trajet » (récit 94). */
+    words: Map<String, TripWord> = emptyMap(),
 ) {
     val success = state as? TripDetailUiState.Success
     val sky = success?.trip?.landscape?.palette?.sky ?: TripPathColors.Sky
@@ -92,14 +97,14 @@ fun TripMapScreen(
                     title = stringResource(R.string.trip_missing_title),
                     body = stringResource(R.string.trip_missing_body),
                 )
-                is TripDetailUiState.Success -> MapContent(state, onOpenStep, onEditStep, streetsToken)
+                is TripDetailUiState.Success -> MapContent(state, onOpenStep, onEditStep, streetsToken, words)
             }
         }
     }
 }
 
 @Composable
-private fun MapContent(state: TripDetailUiState.Success, onOpenStep: (String) -> Unit, onEditStep: (String) -> Unit, streetsToken: String?) {
+private fun MapContent(state: TripDetailUiState.Success, onOpenStep: (String) -> Unit, onEditStep: (String) -> Unit, streetsToken: String?, words: Map<String, TripWord>) {
     // The streets: the points are placed by the maths of the image; without them, as before.
     val streets = remember(state.steps, streetsToken) {
         streetsToken?.let { token ->
@@ -110,6 +115,9 @@ private fun MapContent(state: TripDetailUiState.Success, onOpenStep: (String) ->
     val stops = remember(state.steps, streets) {
         if (streets == null) mapStops(state.steps) else mapStops(state.steps, project = { projectStreets(it, streets.first) })
     }
+    val entries = remember(stops, words) { routeEntries(stops, words) }
+    // TalkBack or « supprimer les animations »: the list comes before the map.
+    val listFirst = rememberPrefersStillMap()
     val placed = stops.filter { it.point != null }
     val unplaced = stops.filter { it.point == null }
     if (placed.isEmpty()) {
@@ -121,6 +129,7 @@ private fun MapContent(state: TripDetailUiState.Success, onOpenStep: (String) ->
                 title = stringResource(R.string.trip_map_empty_title),
                 body = stringResource(R.string.trip_map_empty_body),
             )
+            TripRouteTile(entries, onOpenStep, Modifier.padding(horizontal = 16.dp))
             // « Chez Mamie »: a place the phone cannot find says so, instead of nothing.
             if (unplaced.isNotEmpty()) {
                 Box(Modifier.padding(16.dp)) { UnplacedTile(unplaced, state.isParticipant, onEditStep) }
@@ -135,6 +144,7 @@ private fun MapContent(state: TripDetailUiState.Success, onOpenStep: (String) ->
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
+        if (listFirst) TripRouteTile(entries, onOpenStep)
         if (streets == null) {
             TripMap(placed, selectedId, onSelect = { selectedId = it }, landscape = state.trip.landscape, modifier = Modifier.fillMaxWidth())
         } else {
@@ -149,6 +159,7 @@ private fun MapContent(state: TripDetailUiState.Success, onOpenStep: (String) ->
         } else {
             StopCard(selected, onOpen = { onOpenStep(selected.step.id) })
         }
+        if (!listFirst) TripRouteTile(entries, onOpenStep)
         if (unplaced.isNotEmpty()) UnplacedTile(unplaced, state.isParticipant, onEditStep)
     }
 }
@@ -228,7 +239,30 @@ private fun StopCard(stop: MapStop, onOpen: () -> Unit) {
             Button(onClick = onOpen, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.trip_map_open_step))
             }
+            PlaceLinksRow(step.place)
         }
+    }
+}
+
+/** « Restaurants près de… », « Hôtels à… », « Voir sur Tripadvisor » for the step, behind the module (récit 96). */
+@Composable
+private fun PlaceLinksRow(place: String) {
+    if (!LocalFeatureFlags.current.isOn(Feature.PlaceLinks)) return
+    val links = remember(place) { placeLinks(place) } ?: return
+    val uri = LocalUriHandler.current
+    val name = place.trim()
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        links.forEach { link ->
+            val label = when (link.kind) {
+                PlaceLinkKind.Restaurants -> stringResource(R.string.place_links_restaurants, name)
+                PlaceLinkKind.Hotels -> stringResource(R.string.place_links_hotels, name)
+                PlaceLinkKind.Tripadvisor -> stringResource(R.string.place_links_tripadvisor, name)
+            }
+            TextButton(onClick = { runCatching { uri.openUri(link.url) } }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text(label, color = TripPathColors.Ink)
+            }
+        }
+        Text(stringResource(R.string.place_links_hint), style = MaterialTheme.typography.bodySmall, color = TripPathColors.InkSoft)
     }
 }
 
