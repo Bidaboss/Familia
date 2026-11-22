@@ -322,6 +322,19 @@
     <string name="trip_map_credit_mapbox">© Mapbox</string>
     <string name="trip_map_credit_osm">© OpenStreetMap</string>
     <string name="trip_map_credit_improve">Améliorer cette carte</string>
+    <string name="feature_map_globe">Globe animé du voyage</string>
+    <string name="feature_help_map_globe">Essai : « Lancer le voyage » fait voler la caméra d\'étape en étape sur un globe. Sans réseau, sur un téléphone lent ou avec les animations coupées, la carte à plat et la liste du trajet restent.</string>
+    <string name="trip_route_title">Le trajet</string>
+    <string name="trip_route_hint">Étape par étape, sans animation : touche une étape pour l\'ouvrir.</string>
+    <string name="trip_route_row">Étape %1$d sur %2$d, %3$s, %4$s</string>
+    <plurals name="trip_route_words">
+        <item quantity="one">%d mot</item>
+        <item quantity="other">%d mots</item>
+    </plurals>
+    <plurals name="trip_route_photos">
+        <item quantity="one">%d photo</item>
+        <item quantity="other">%d photos</item>
+    </plurals>
     <string name="feature_trips">Carnet de voyage</string>
     <string name="feature_good_news">Actualités</string>
     <string name="feature_themes">Thèmes au choix</string>
