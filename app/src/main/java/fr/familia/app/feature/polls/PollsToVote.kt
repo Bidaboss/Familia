@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import java.time.Instant
 
@@ -43,9 +44,13 @@ class PollsToVoteViewModel(
 ) : ViewModel() {
     private fun <T> Flow<T>.orElse(value: T): Flow<T> = catch { e -> if (e is CancellationException) throw e else emit(value) }
 
+    /** One listener on my polls, shared by [open] and [count] (note C du récit 75). */
+    private val mine: Flow<List<Poll>>? = repository?.observeMine(memberId)
+        ?.shareIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), replay = 1)
+
     /** The open polls I see (récit 75): the card « Sondages » of the Planning shows only with one. */
     val open: StateFlow<Int> = (
-        repository?.observeMine(memberId)
+        mine
             ?.map { list -> list.count { it.isOpen(clock()) } }
             ?.distinctUntilChanged()
             ?.orElse(0)
@@ -53,8 +58,9 @@ class PollsToVoteViewModel(
         ).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
 
     val count: StateFlow<Int> = (
-        repository?.let { repo ->
-            repo.observeMine(memberId)
+        mine?.let { shared ->
+            val repo = repository ?: return@let null
+            shared
                 .map { list -> list.filter { it.isOpen(clock()) && memberId in it.askedIds } }
                 .distinctUntilChanged()
                 .flatMapLatest { asked ->

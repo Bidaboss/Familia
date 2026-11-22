@@ -32,7 +32,13 @@ class FakePolls(initial: List<Poll> = emptyList(), private val failWith: Excepti
     val created = mutableListOf<Poll>()
     val chosen = mutableListOf<Triple<String, Int, String>>()
 
-    override fun observeMine(memberId: String): Flow<List<Poll>> = polls.map { list -> list.filter { memberId in it.viewerIds } }
+    /** How many times observeMine was asked: one listener is enough per screen. */
+    var mineCalls = 0
+
+    override fun observeMine(memberId: String): Flow<List<Poll>> {
+        mineCalls++
+        return polls.map { list -> list.filter { memberId in it.viewerIds } }
+    }
     override fun observePoll(id: String): Flow<Poll?> = polls.map { list -> list.firstOrNull { it.id == id } }
     override fun observeVotes(pollId: String): Flow<List<PollVote>> = votes.map { it[pollId].orEmpty() }
 

@@ -28,7 +28,6 @@ import fr.familia.app.core.data.CalendarFeedRepository
 import fr.familia.app.core.model.Family
 import fr.familia.app.core.model.Member
 import fr.familia.app.core.model.MemberProfile
-import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.pickGroups
@@ -60,32 +59,34 @@ internal fun CalendarLinksSection(family: Family, repository: CalendarFeedReposi
     var busy by rememberSaveable { mutableStateOf(false) }
     var result by remember { mutableStateOf<CutResult?>(null) }
     val adults = family.members.filter { it.profile == MemberProfile.Adult }
-    ClayCard(modifier.fillMaxWidth().padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            ClayCardTitle(stringResource(R.string.calendar_links_title), style = MaterialTheme.typography.titleMedium)
-            Text(stringResource(R.string.calendar_links_help), style = MaterialTheme.typography.bodyMedium)
-            pickGroups(adults, family).forEach { group ->
-                Text(group.name, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                group.members.forEach { adult ->
-                    OutlinedButton(
-                        onClick = { confirming = adult.id },
-                        enabled = !busy,
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                    ) { Text(stringResource(R.string.calendar_links_cut, adult.firstName)) }
-                }
+    // A section of its group card in Administration, not a card of its own (no card in a card).
+    Column(
+        modifier.fillMaxWidth().padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        ClayCardTitle(stringResource(R.string.calendar_links_title), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.calendar_links_help), style = MaterialTheme.typography.bodyMedium)
+        pickGroups(adults, family).forEach { group ->
+            Text(group.name, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            group.members.forEach { adult ->
+                OutlinedButton(
+                    onClick = { confirming = adult.id },
+                    enabled = !busy,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                ) { Text(stringResource(R.string.calendar_links_cut, adult.firstName)) }
             }
-            result?.let { shown ->
-                Text(
-                    when (shown) {
-                        is CutResult.Done -> stringResource(R.string.calendar_links_cut_done, shown.firstName)
-                        is CutResult.Queued -> stringResource(R.string.calendar_links_cut_queued, shown.firstName)
-                        CutResult.Failed -> stringResource(R.string.calendar_links_cut_failed)
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (shown is CutResult.Failed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                )
-            }
+        }
+        result?.let { shown ->
+            Text(
+                when (shown) {
+                    is CutResult.Done -> stringResource(R.string.calendar_links_cut_done, shown.firstName)
+                    is CutResult.Queued -> stringResource(R.string.calendar_links_cut_queued, shown.firstName)
+                    CutResult.Failed -> stringResource(R.string.calendar_links_cut_failed)
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (shown is CutResult.Failed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+            )
         }
     }
     val asked: Member? = adults.firstOrNull { it.id == confirming }
