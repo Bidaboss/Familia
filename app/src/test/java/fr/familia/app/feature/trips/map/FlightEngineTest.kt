@@ -15,7 +15,7 @@ class FlightEngineTest {
     private fun engine(vararg p: GeoPoint) = FlightEngine(p.toList())
 
     @Test
-    fun `fewer than two placed steps: nothing to fly`() {
+    fun `fewer than two placed steps, nothing to fly`() {
         val e = engine(lyon)
         e.start()
         assertFalse(e.canFly)
