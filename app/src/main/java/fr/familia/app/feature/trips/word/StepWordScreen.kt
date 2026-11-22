@@ -107,9 +107,9 @@ data class StepWordActions(
 fun StepWordScreen(
     state: StepWordUiState,
     actions: StepWordActions,
-    comments: @Composable () -> Unit = {},
     /** « Sur place » (récit 96): ideas about the place of the step, under the word. */
     onSite: @Composable () -> Unit = {},
+    comments: @Composable () -> Unit = {},
 ) {
     val ready = state as? StepWordUiState.Ready
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
