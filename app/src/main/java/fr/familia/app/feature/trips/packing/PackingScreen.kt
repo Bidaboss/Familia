@@ -30,7 +30,7 @@ import fr.familia.app.R
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.Feature
 import fr.familia.app.core.model.Member
-import fr.familia.app.core.theme.ClaySpacing
+import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.BackButton
 import fr.familia.app.core.ui.FamiliaTopBar
 import fr.familia.app.core.ui.LocalFeatureFlags
