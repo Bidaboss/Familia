@@ -23,7 +23,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.CapsuleLeftover
-import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
 
@@ -39,27 +38,29 @@ internal fun CapsuleLeftoversSection(
     modifier: Modifier = Modifier,
 ) {
     var confirming by rememberSaveable { mutableStateOf<String?>(null) }
-    ClayCard(modifier.fillMaxWidth().padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            ClayCardTitle(stringResource(R.string.capsule_leftovers_title), style = MaterialTheme.typography.titleMedium)
-            Text(stringResource(R.string.capsule_leftovers_help), style = MaterialTheme.typography.bodyMedium)
-            leftovers.forEach { left ->
+    // A section of its group card in Administration, not a card of its own (no card in a card).
+    Column(
+        modifier.fillMaxWidth().padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        ClayCardTitle(stringResource(R.string.capsule_leftovers_title), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.capsule_leftovers_help), style = MaterialTheme.typography.bodyMedium)
+        leftovers.forEach { left ->
+            Text(
+                pluralStringResource(R.plurals.capsule_leftovers_line, left.count, left.memberName, left.count),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            if (left.deleteAsked) {
                 Text(
-                    pluralStringResource(R.plurals.capsule_leftovers_line, left.count, left.memberName, left.count),
-                    style = MaterialTheme.typography.bodyLarge,
+                    stringResource(R.string.capsule_leftovers_deleting),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                if (left.deleteAsked) {
-                    Text(
-                        stringResource(R.string.capsule_leftovers_deleting),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                } else {
-                    OutlinedButton(
-                        onClick = { confirming = left.memberId },
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
-                    ) { Text(pluralStringResource(R.plurals.capsule_leftovers_delete, left.count, left.count)) }
-                }
+            } else {
+                OutlinedButton(
+                    onClick = { confirming = left.memberId },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                ) { Text(pluralStringResource(R.plurals.capsule_leftovers_delete, left.count, left.count)) }
             }
         }
     }

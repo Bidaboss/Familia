@@ -17,7 +17,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import fr.familia.app.R
 import fr.familia.app.core.model.Consumption
-import fr.familia.app.core.ui.ClayCard
 import fr.familia.app.core.ui.ClayCardTitle
 import fr.familia.app.core.ui.ClaySpacing
 import fr.familia.app.core.ui.frenchDate
@@ -32,13 +31,15 @@ import kotlin.math.roundToInt
  */
 @Composable
 internal fun ConsumptionSection(card: ConsumptionCard, modifier: Modifier = Modifier) {
-    ClayCard(modifier.fillMaxWidth().padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            ClayCardTitle(stringResource(R.string.consumption_title), style = MaterialTheme.typography.titleMedium)
-            when (card) {
-                ConsumptionCard.Waiting -> Text(stringResource(R.string.consumption_waiting), style = MaterialTheme.typography.bodyMedium)
-                is ConsumptionCard.Ready -> ReadyConsumption(card.consumption)
-            }
+    // A section of its group card in Administration, not a card of its own (no card in a card).
+    Column(
+        modifier.fillMaxWidth().padding(horizontal = ClaySpacing.screen, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        ClayCardTitle(stringResource(R.string.consumption_title), style = MaterialTheme.typography.titleMedium)
+        when (card) {
+            ConsumptionCard.Waiting -> Text(stringResource(R.string.consumption_waiting), style = MaterialTheme.typography.bodyMedium)
+            is ConsumptionCard.Ready -> ReadyConsumption(card.consumption)
         }
     }
 }

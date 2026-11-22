@@ -128,9 +128,9 @@ fun EventDetailRoute(
             }
             // Its polls (récit 2 quater): a date, a menu, a place, asked to its guests.
             if (success != null && LocalFeatureFlags.current.isOn(Feature.Polls)) {
-                EventSectionTile {
-                    EventPollsSection(container, currentMember, eventId, success.today, onNewPoll, onOpenPoll)
-                }
+                EventPollsSection(container, currentMember, eventId, success.today, onNewPoll, onOpenPoll, tile = { content ->
+                    EventSectionTile { content() }
+                })
             }
             // The comments (récit 28), last: they can grow long.
             if (success != null && LocalFeatureFlags.current.isOn(Feature.Comments)) {

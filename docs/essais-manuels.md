@@ -1755,3 +1755,25 @@ Rien à publier pour ces essais : aucune nouvelle donnée ni règle. Il faut un 
 4. Une photo mise sur un mot n'est pas répétée sur les pages de photos.
 5. Un voyage sans aucun mot ni chiffre : le livre est celui d'avant, rien ne change.
 6. Un voyage avec des mots mais sans photo dans l'album : on peut quand même faire le livre.
+
+## APK allégée par R8 (audit du 22/11)
+
+L'APK de publication passe par R8 et le tri des ressources. Kévin a choisi (22/11) de la publier
+directement : la famille essaie avec lui. Tout doit marcher comme avant ; un écran qui plante ou
+une image qui manque vient sans doute de R8 (le plantage arrive dans Administration > Plantages).
+Pour revenir en arrière : remettre isMinifyEnabled et isShrinkResources à false et republier.
+
+1. Connexion avec Google, puis déconnexion et reconnexion.
+2. Accueil, Planning (semaine, mois), page d'un événement avec ses tuiles, « Tu viens ? ».
+3. Créer un événement, un sondage et voter, un coup de main, une bonne nouvelle.
+4. Cadeaux : une fiche, une envie, « Je le prends ».
+5. Photos : en ajouter une (appareil et galerie), l'ouvrir en grand, un album, le film d'un album.
+6. Voyage : la carte, un mot d'étape avec photo, le livre du voyage en PDF.
+7. Notifications : en recevoir une (commentaire d'un autre membre), la toucher ouvre le bon écran.
+8. Apparence : changer l'icône de l'appli (l'icône change sur l'écran d'accueil du téléphone).
+9. Partager une envie vers une messagerie, puis l'ouvrir depuis le lien reçu.
+10. Administration : Consommation, Modules, « Voir comme ».
+11. Mode avion : l'appli s'ouvre et montre ce qu'elle a déjà.
+12. Mettre à jour : le bouton « Mettre à jour » télécharge et installe.
+
+Taille : voir le résumé de la CI (« Taille des APK ») ; avant R8 : 31 Mo.

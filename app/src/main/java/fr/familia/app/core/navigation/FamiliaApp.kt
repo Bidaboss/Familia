@@ -88,7 +88,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Surface
@@ -242,7 +241,6 @@ import fr.familia.app.feature.polls.canAskPoll
 import fr.familia.app.feature.polls.rememberPollsSummary
 import fr.familia.app.core.share.shareApp
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import fr.familia.app.feature.settings.NotificationSettingsRoute
 import fr.familia.app.feature.export.ExportRoute
 import fr.familia.app.feature.members.admin.AdministrationRoute
@@ -856,7 +854,12 @@ fun FamiliaApp(
                 }
             },
             bottomBar = {
+                // The round rises ALL_ROUND_RISE above the bar (récit 82). That rise belongs to the bar's
+                // height: the screens then stop above it, so the round never hides the end of a list, and
+                // its top half is touchable too (note C de #431).
                 if (onTab && !useRail) Box {
+                Column {
+                Spacer(Modifier.height(ALL_ROUND_RISE))
                 NavigationBar {
                     tabs.forEachIndexed { index, destination ->
                         // « Tout Familia » takes the center: 2 tabs on each side (DESIGN-55, variante A).
@@ -881,10 +884,11 @@ fun FamiliaApp(
                         )
                     }
                 }
+                }
                 AllFamiliaRound(
                     news = helpBadge,
                     onClick = { navController.navigate(AllFamiliaDestination) { launchSingleTop = true } },
-                    modifier = Modifier.align(Alignment.TopCenter).offset(y = -ALL_ROUND_RISE),
+                    modifier = Modifier.align(Alignment.TopCenter),
                 )
                 }
             },

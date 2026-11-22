@@ -90,6 +90,18 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug
 
+      # The release build, shrunk by R8 (audit du 22/11) and left unsigned here: it shows on every PR
+      # that R8 still builds, and gives the size the family will download.
+      - name: Build release APK with R8 (unsigned)
+        run: |
+          ./gradlew assembleRelease
+          {
+            echo "### Taille des APK"
+            for apk in app/build/outputs/apk/debug/*.apk app/build/outputs/apk/release/*.apk; do
+              echo "- $(basename "$apk") : $(du -h "$apk" | cut -f1)"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Android lint
         run: ./gradlew lintDebug
 

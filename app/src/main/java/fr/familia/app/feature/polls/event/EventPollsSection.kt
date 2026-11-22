@@ -33,7 +33,8 @@ import java.time.LocalDate
 
 /**
  * The polls of an event on its page (récit 2 quater): open ones first, then their results, and
- * « Lancer un sondage » for an adult. Nothing shows when there is none and none can be asked.
+ * « Lancer un sondage » for an adult. Nothing shows, not even [tile], while loading or when there
+ * is none and none can be asked.
  */
 @Composable
 fun EventPollsSection(
@@ -43,6 +44,8 @@ fun EventPollsSection(
     today: LocalDate,
     onNewPoll: () -> Unit,
     onOpenPoll: (pollId: String) -> Unit,
+    /** The tile around, drawn only once there is something to show: no empty tile while loading. */
+    tile: @Composable (content: @Composable () -> Unit) -> Unit = { it() },
 ) {
     val viewModel: PollsViewModel = viewModel(
         key = "eventPolls-$eventId",
@@ -54,7 +57,8 @@ fun EventPollsSection(
     val success = state as? PollsUiState.Success ?: return
     // In « Voir comme », nothing is asked.
     val canAsk = success.canAsk && LocalViewAs.current.viewed == null
-    EventPollsContent(success, today, canAsk, onNewPoll, onOpenPoll)
+    if (success.isEmpty && !canAsk) return
+    tile { EventPollsContent(success, today, canAsk, onNewPoll, onOpenPoll) }
 }
 
 @Composable
