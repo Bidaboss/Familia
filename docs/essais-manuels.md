@@ -1777,3 +1777,11 @@ Pour revenir en arrière : remettre isMinifyEnabled et isShrinkResources à fals
 12. Mettre à jour : le bouton « Mettre à jour » télécharge et installe.
 
 Taille : voir le résumé de la CI (« Taille des APK ») ; avant R8 : 31 Mo.
+
+## Liens de lieu sur l'étape (récit 96, temps 1)
+
+Module éteint par défaut : Administration > Modules > « Liens de lieu ».
+1. Ouvrir la carte d'un voyage, toucher une étape qui a un lieu.
+2. Sur la fiche de l'étape, trois boutons : Restaurants, Hôtels, Tripadvisor.
+3. Chacun ouvre la recherche dans Google Maps ou Tripadvisor (navigateur ou appli installée).
+4. Module éteint : les boutons n'apparaissent pas. Étape sans lieu : pas de boutons.
