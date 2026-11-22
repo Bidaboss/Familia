@@ -34,7 +34,6 @@ fun GiftsRoute(
     /** The page of another member, from their row (récit 91). */
     onOpenMember: (memberId: String) -> Unit = {},
     /** « Cadeaux reçus » at the bottom of the tab; null hides the line. */
-    onOpenReceived: (() -> Unit)? = null,
 ) {
     val singleList = LocalFeatureFlags.current.isOn(Feature.SingleList)
     val presentation = true
@@ -88,6 +87,5 @@ fun GiftsRoute(
             if (countsVisits) visits.markSeen(wishesListId(memberId))
             onOpenMember(memberId)
         },
-        onOpenReceived = onOpenReceived,
     )
 }

@@ -19,8 +19,6 @@ import fr.familia.app.feature.gifts.notebook.ProposeIdeaScreen
 import fr.familia.app.feature.gifts.notebook.previewNotebook
 import fr.familia.app.feature.gifts.notebook.previewNotebookIdea
 import fr.familia.app.feature.gifts.notebook.previewProposeIdea
-import fr.familia.app.feature.gifts.received.ReceivedGiftsScreen
-import fr.familia.app.feature.gifts.received.previewReceivedGifts
 import fr.familia.app.feature.members.card.MemberCardContent
 import fr.familia.app.feature.members.card.MemberCardUiState
 import org.junit.Rule
@@ -61,7 +59,7 @@ class GiftsAccessibilityTest {
     }
 
     @Test
-    fun `the new Cadeaux tab`() = check { GiftsScreen(newTab(), {}, {}, {}, onOpenSurprisePicker = {}, onOpenMyPage = {}, onOpenReceived = {}) }
+    fun `the new Cadeaux tab`() = check { GiftsScreen(newTab(), {}, {}, {}, onOpenSurprisePicker = {}, onOpenMyPage = {}) }
 
     @Test
     fun `the new Cadeaux tab of a child`() = check {
@@ -88,9 +86,6 @@ class GiftsAccessibilityTest {
 
     @Test
     fun `propose an idea`() = check { ProposeIdeaScreen(previewProposeIdea(), ProposeIdeaActions(), today = LocalDate.of(2026, 11, 16)) }
-
-    @Test
-    fun `what I was given`() = check { ReceivedGiftsScreen(previewReceivedGifts()) }
 
     @Test
     fun `« Goûts et passions » on the page of a member`() = check {

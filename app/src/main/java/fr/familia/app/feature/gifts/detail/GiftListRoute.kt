@@ -27,7 +27,6 @@ fun GiftListRoute(
     onBack: () -> Unit,
     /** « Cadeaux communs » (récit 73): the list where a shared wish lives. */
     onOpenList: (listId: String) -> Unit = {},
-    onOpenReceived: (() -> Unit)? = null,
     /** The occasion of a reservation of « Mes envies » is shown and chosen only with the reveal on. */
     showClaimOccasion: Boolean = false,
     /** The beneficiary's page, for their sizes and tastes (récit 7 bis). */
@@ -71,7 +70,6 @@ fun GiftListRoute(
             onContribute = viewModel::contribute,
             onWithdrawContribution = viewModel::withdrawContribution,
             onOpenList = onOpenList,
-            onOpenReceived = onOpenReceived,
             onOpenBeneficiary = onOpenBeneficiary,
             onMarkWishReceived = if (showClaimOccasion && readerId == currentMember.id) viewModel::askWishReceived else null,
             onShareOutside = shown?.takeIf { shareOn && it.canSendOutside }?.let { success ->
