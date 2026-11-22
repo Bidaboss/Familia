@@ -1169,6 +1169,7 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             tripId = tripId,
                             onOpenStep = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
+                            onEditStep = { stepId -> navController.navigate(TripStepEditDestination(tripId, stepId)) },
                             onBack = { navController.popBackStack() },
                         )
                     }
