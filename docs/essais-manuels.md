@@ -1778,6 +1778,17 @@ Pour revenir en arrière : remettre isMinifyEnabled et isShrinkResources à fals
 
 Taille : voir le résumé de la CI (« Taille des APK ») ; avant R8 : 31 Mo.
 
+
+## La carte du voyage : « Le trajet » en liste (récit 94, temps 1)
+
+Rien à publier : aucune règle ni function. Le module « Globe animé du voyage » existe dans Administration > Modules, éteint : il ne fait rien encore.
+
+1. Ouvre la carte d'un voyage avec plusieurs étapes. Sous la carte, une tuile « Le trajet » : une ligne par étape (numéro, lieu, jour, « 1 mot », « 3 photos » quand il y en a). Un appui ouvre l'étape.
+2. Une étape sans position (« chez Mamie ») est aussi dans la liste.
+3. Active TalkBack : la liste passe au-dessus de la carte et chaque ligne est lue d'un bloc, « Étape 4 sur 5, La Palmyre, 14 avril, 1 mot, 3 photos, bouton ».
+4. Même chose en coupant les animations d'Android (Options pour les développeurs, échelle de durée d'animation à « Animation désactivée »).
+5. Un voyage vu par quelqu'un qui n'y participe pas : la liste montre ce qu'il peut déjà lire, rien de plus.
+
 ## Liens de lieu sur l'étape (récit 96, temps 1)
 
 Module éteint par défaut : Administration > Modules > « Idées autour d'une étape ».

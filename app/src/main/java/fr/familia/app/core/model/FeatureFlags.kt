@@ -189,6 +189,12 @@ enum class Feature(
      * « Hôtels à… », « Voir sur Tripadvisor ». Éteint, aucun lien. Aucune règle ni function.
      */
     PlaceLinks("placeLinks", R.string.feature_place_links),
+
+    /**
+     * Le globe animé de la carte du voyage (PRODUIT-148, récit 94) : « Lancer le voyage », la caméra
+     * vole d'étape en étape. Éteint, rien ne change : la carte reste à plat. Aucune règle ni function.
+     */
+    MapGlobe("mapGlobe", R.string.feature_map_globe),
 }
 
 /**
