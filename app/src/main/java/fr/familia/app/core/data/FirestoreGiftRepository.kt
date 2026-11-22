@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
@@ -289,8 +290,15 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
         if (itemIds.isEmpty()) return flowOf(emptyMap())
         val items = db.collection(LISTS).document(listId).collection(ITEMS)
         val flows = itemIds.map { itemId ->
-            val parts = items.document(itemId).collection(CONTRIBUTIONS)
-            val read = if (all) parts.observe { it.toContribution() } else parts.document(memberId).observeOneContribution()
+            val item = items.document(itemId)
+            // Whoever keeps the lists reads the first names alone (récit 93); the others their own part.
+            val read = if (all) {
+                item.collection(CONTRIBUTORS).observe { it.toContributor() }
+            } else {
+                item.collection(CONTRIBUTIONS).document(memberId).observeOneContribution().onEach { mine ->
+                    mine.firstOrNull()?.let { backfillContributor(item, it) }
+                }
+            }
             // The parts never take the list down: without them, the wish shows its total only.
             read.catch { e ->
                 if (e is CancellationException) throw e
@@ -300,9 +308,30 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
         return combine(flows) { parts -> itemIds.zip(parts.toList()).toMap() }
     }
 
+    /** The parts whose first name this phone already checked, so that it asks the server once. */
+    private val checkedContributors = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
     /**
-     * The part and the total of the wish in one batch, as the rules want: an increment rather than a
-     * transaction, so it waits in the queue offline like the other writes.
+     * A part taken before récit 93 has no first name in contributors/: its author writes it the next
+     * time they see it, since nobody else could (the keeper no longer reads the parts).
+     */
+    private suspend fun backfillContributor(item: DocumentReference, part: GiftContribution) {
+        if (!checkedContributors.add(item.path)) return
+        try {
+            val name = item.collection(CONTRIBUTORS).document(part.memberId)
+            if (!name.get().await().exists()) {
+                name.set(mapOf("memberName" to part.memberName, "updatedAt" to FieldValue.serverTimestamp())).await()
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            checkedContributors.remove(item.path)
+        }
+    }
+
+    /**
+     * The part, its first name and the total of the wish in one batch, as the rules want: an
+     * increment rather than a transaction, so it waits in the queue offline like the other writes.
      */
     override suspend fun setContribution(listId: String, itemId: String, contribution: GiftContribution, previous: Int) {
         val item = db.collection(LISTS).document(listId).collection(ITEMS).document(itemId)
@@ -315,6 +344,10 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
                     "updatedAt" to FieldValue.serverTimestamp(),
                 ),
             )
+            .set(
+                item.collection(CONTRIBUTORS).document(contribution.memberId),
+                mapOf("memberName" to contribution.memberName, "updatedAt" to FieldValue.serverTimestamp()),
+            )
             .update(item, "contributedTotal", FieldValue.increment((contribution.amount - previous).toLong()))
             .commit()
             .await()
@@ -324,6 +357,7 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
         val item = db.collection(LISTS).document(listId).collection(ITEMS).document(itemId)
         db.batch()
             .delete(item.collection(CONTRIBUTIONS).document(memberId))
+            .delete(item.collection(CONTRIBUTORS).document(memberId))
             .update(item, "contributedTotal", FieldValue.increment(-previous.toLong()))
             .commit()
             .await()
@@ -450,6 +484,10 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
         )
     }
 
+    /** A first name alone (récit 93): the amount of a part is never read by the keeper. */
+    private fun DocumentSnapshot.toContributor(): GiftContribution? =
+        GiftContribution(memberId = id, memberName = getString("memberName").orEmpty())
+
     private fun DocumentSnapshot.toGiftClaim(): GiftClaim? {
         return GiftClaim(
             itemId = id,
@@ -495,6 +533,7 @@ class FirestoreGiftRepository(private val db: FirebaseFirestore) : GiftRepositor
         const val CLAIMS = "claims"
         const val SHARES = "shares"
         const val CONTRIBUTIONS = "contributions"
+        const val CONTRIBUTORS = "contributors"
         const val RECEIVED = "received"
         const val SHARE_RETRIES = 20L
         const val SHARE_RETRY_DELAY_MILLIS = 750L

@@ -401,9 +401,22 @@ Une participation à une envie déjà achetée, une par adulte. Ce n'est pas une
 | `memberName` | texte | Prénom de celui qui participe |
 | `updatedAt` | horodatage serveur | |
 
-- **Lire** : sa propre participation ; toutes, par qui tient les listes de la personne (elle-même, ou le parent d'un enfant sans l'appli). Les autres ne voient que le total `contributedTotal` sur l'envie (PRODUIT-109).
+- **Lire** : sa propre participation, par son auteur seul (récit 93). Qui tient les listes de la personne ne lit jamais un montant : il voit le total `contributedTotal` sur l'envie et les prénoms de `contributors`. Les autres ne voient que le total.
 - **Participer, changer, retirer** : un adulte qui ne tient pas les listes de la personne, pour lui-même, sur une envie `alreadyBought`, en changeant `contributedTotal` du même montant dans le même lot.
-- Une envie retirée ou marquée « Reçue » perd ses participations sur le serveur (`onGiftItemWritten`) ; « Je le prends » est refusé sur une envie déjà achetée.
+- Une envie retirée ou marquée « Reçue » perd ses participations et leurs prénoms sur le serveur (`onGiftItemWritten`) ; « Je le prends » est refusé sur une envie déjà achetée.
+
+### `giftLists/{listId}/items/{itemId}/contributors/{memberId}` (récit 93)
+
+Le prénom de ceux qui participent à une envie déjà achetée, sans montant. Écrit dans le même lot que la participation.
+
+| Champ | Type | Description |
+|---|---|---|
+| `memberName` | texte | Prénom de celui qui participe |
+| `updatedAt` | horodatage serveur | |
+
+- **Lire** : l'auteur, et qui tient les listes de la personne.
+- **Écrire** : l'auteur seul, tant que sa participation existe ; **supprimer** : l'auteur, en même temps que sa participation.
+- Une participation prise avant le récit 93 n'a pas de prénom ici : son auteur l'écrit la première fois qu'il la revoit dans l'appli.
 
 ### `giftLists/{listId}/received/{itemId}` (« On m'a offert », PRD, récit 10 bis)
 
