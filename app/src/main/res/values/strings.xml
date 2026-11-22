@@ -2570,7 +2570,7 @@
     <string name="gifts_v2_family">Toute la famille</string>
     <string name="gifts_v2_soon">Bientôt</string>
     <string name="gifts_v2_my_page">Ma fiche</string>
-    <string name="gifts_v2_open_person">ouvrir la fiche de %1$s</string>
+    <string name="gifts_v2_open_wishes">ouvrir les envies de %1$s</string>
     <plurals name="gifts_v2_surprises_bar">
         <item quantity="one">%d surprise en préparation</item>
         <item quantity="other">%d surprises en préparation</item>

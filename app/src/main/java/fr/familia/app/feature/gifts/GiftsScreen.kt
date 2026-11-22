@@ -81,9 +81,6 @@ fun GiftsScreen(
     onOpenSurprisePicker: (() -> Unit)? = null,
     /** « Ajouter une envie » on the new tab (PRODUIT-119). */
     onAddWish: (listId: String) -> Unit = onOpenList,
-    /** The page of another member, from their row of the new tab (récit 91). */
-    onOpenMember: (memberId: String) -> Unit = {},
-    /** « Cadeaux reçus » at the bottom of the new tab; null hides the line. */
 ) {
     Box(modifier.fillMaxSize()) {
         when (state) {
@@ -122,7 +119,7 @@ fun GiftsScreen(
                 if (state.tabV2) {
                     giftsV2Content(
                         state,
-                        GiftsV2Actions(onOpenList, onOpenMyPage, onAddWish, onOpenMember, onOpenSurprisePicker),
+                        GiftsV2Actions(onOpenList, onOpenMyPage, onAddWish, onOpenSurprisePicker),
                         showPreparing = !someListsHidden,
                     )
                     return@LazyColumn
