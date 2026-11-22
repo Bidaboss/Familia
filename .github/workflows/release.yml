@@ -82,6 +82,8 @@ jobs:
           FAMILIA_KEY_ALIAS: ${{ secrets.FAMILIA_KEY_ALIAS }}
           FAMILIA_KEY_PASSWORD: ${{ secrets.FAMILIA_KEY_PASSWORD }}
           FAMILIA_DOWNLOAD_URL: ${{ secrets.FAMILIA_DOWNLOAD_URL }}
+          # Optional: the public token (pk.) of the street map. Without it the drawn map stays.
+          MAPBOX_PUBLIC_TOKEN: ${{ secrets.MAPBOX_PUBLIC_TOKEN }}
         run: ./gradlew --no-daemon assembleRelease -PfamiliaVersionCode="$VERSION_CODE"
 
       - name: Check the signature and name the file

@@ -177,6 +177,12 @@ enum class Feature(
      * immédiat. Lu avec isOnForFamily côté serveur et dans les réglages : éteint, rien ne change.
      */
     EveningDigest("eveningDigest", R.string.feature_evening_digest),
+
+    /**
+     * Le fond de rues de la carte du voyage (PRODUIT-147, essai de Mapbox). Éteint, la carte reste
+     * celle dessinée sur le paysage du voyage, comme sans réseau ou sans jeton. Aucune règle ni function.
+     */
+    MapStreets("mapStreets", R.string.feature_map_streets),
 }
 
 /**
