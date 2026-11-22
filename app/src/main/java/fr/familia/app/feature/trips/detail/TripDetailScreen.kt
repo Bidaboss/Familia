@@ -243,7 +243,10 @@ private fun Content(
                 onOpenWord = onOpenWord?.let { open -> { open(step.id) } },
             )
         }
-        // The steps come first: on the way, « Bien arrivé » matters more than the photos and what to bring.
+        // The steps come first: on the way, « Bien arrivé » matters more than the figures, the photos and what to bring.
+        tripFigures(state.trip, state.steps, photos.photos.size)?.let { figures ->
+            item(key = "figures") { TripFiguresTile(figures) }
+        }
         item(key = "photos-title") { TripSectionTitle(stringResource(R.string.trip_photos)) }
         item(key = "photos") {
             val empty = if (photos.canAdd) R.string.trip_photos_empty_participant else R.string.trip_photos_empty
@@ -412,6 +415,9 @@ private fun PathContent(
                     PackingOrChecklist(state, checklist, packing)
                 }
             }
+        }
+        tripFigures(state.trip, state.steps, photos.photos.size)?.let { figures ->
+            item(key = "figures") { TripFiguresTile(figures, Modifier.padding(horizontal = ClaySpacing.screen, vertical = 8.dp)) }
         }
         item(key = "photos-title") {
             TripSectionTitle(stringResource(R.string.trip_photos), Modifier.padding(horizontal = ClaySpacing.screen))
