@@ -339,8 +339,6 @@
     <string name="trip_destination_hint">Tape un lieu puis touche « Chercher » : jusqu\'à 5 propositions.</string>
     <string name="trip_destination_continue">Continuer</string>
     <string name="trip_destination_type_name">Je tape un nom</string>
-    <string name="feature_place_article">À savoir sur le lieu d\'une étape</string>
-    <string name="feature_help_place_article">Dans la page d\'une étape : quelques lignes de Wikivoyage sur le lieu. Rien n\'est gardé.</string>
     <string name="place_article_title">À savoir sur %1$s</string>
     <string name="place_article_loading">On cherche des infos sur ce lieu…</string>
     <string name="place_article_more">Lire la suite</string>

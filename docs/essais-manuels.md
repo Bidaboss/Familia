@@ -1814,9 +1814,8 @@ Rien à publier : aucune règle ni function. Module éteint par défaut : Admini
 
 ## « À savoir sur… » dans la page d'étape (récit 96, temps 2)
 
-Rien à publier : aucune règle ni function, rien n'est enregistré. Module éteint par défaut : Administration > Modules > « À savoir sur le lieu d'une étape ».
+Rien à publier : aucune règle ni function, rien n'est enregistré. Pas d'interrupteur : actif pour tous (décision de Kévin, 22/11).
 1. Ouvrir une étape d'un voyage dont le lieu est connu de Wikivoyage (« La Palmyre », « Lyon »), page « Le mot de l'étape ».
 2. Sous le mot : la tuile « À savoir sur La Palmyre » (3 lignes environ), « Lire la suite » (ouvre le navigateur) et « Source : Wikivoyage · CC BY-SA ».
 3. Pendant la recherche : des blocs gris et « On cherche des infos sur ce lieu… », jamais d'indicateur qui tourne.
 4. Lieu inconnu, sans réseau ou page qui nomme plusieurs lieux : la tuile ne s'affiche pas.
-5. Module éteint : la page est inchangée.

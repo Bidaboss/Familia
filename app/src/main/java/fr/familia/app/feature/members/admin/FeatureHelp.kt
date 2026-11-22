@@ -73,7 +73,6 @@ private val HELP: Map<Feature, Int> = mapOf(
     Feature.MapStreets to R.string.feature_help_map_streets,
     Feature.PlaceLinks to R.string.feature_help_place_links,
     Feature.MapGlobe to R.string.feature_help_map_globe,
-    Feature.PlaceArticle to R.string.feature_help_place_article,
     Feature.TripDestinationFirst to R.string.feature_help_trip_destination_first,
 )
 
