@@ -65,6 +65,7 @@ fun StepWordRoute(
             val lat = ready.step.lat
             val lng = ready.step.lng
             if (lat != null && lng != null) NearbyTile(lat, lng, container?.nearbyPlaces)
+            PlaceLinksTile(ready.step.place)
         }
     }) {
         CommentsSection(

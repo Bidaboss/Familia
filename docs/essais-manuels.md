@@ -1861,3 +1861,10 @@ Rien à publier : aucune règle ni function. Pas d'interrupteur.
 2. Dessous, pour ceux qui partent : deux ronds de 48 dp centrés, « Comptes » (seulement un adulte qui part, comme avant) puis « Valise » avec son point de compteur, le mot sous chaque rond.
 3. « Comptes » ouvre les comptes du voyage, « Valise » l'écran Valise. TalkBack : « Comptes du voyage », « Valise, 6 choses à faire ».
 4. Quelqu'un qui suit : les trois boutons seulement, aucune rangée de ronds.
+
+## Voyage : « Chercher plus loin » passe dans « Sur place » (récit 96, DESIGN-69)
+
+Rien à publier : aucune règle ni function.
+1. Carte du voyage, fiche d'une étape : les liens « Restaurants près de… », « Hôtels à… » et « Voir… sur Tripadvisor » n'y sont plus ; il reste « Ouvrir l'étape ».
+2. Page d'une étape (« Le mot de l'étape »), sous « À savoir sur… » et « Autour de l'étape » : la tuile « Chercher plus loin », trois lignes de 56 dp et la phrase « Ces liens ouvrent une autre appli… ». Toujours là, même sans réseau ou si l'étape n'a pas de position.
+3. Une ligne ouvre Google Maps ou Tripadvisor avec le nom du lieu.
