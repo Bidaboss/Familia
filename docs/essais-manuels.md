@@ -1811,3 +1811,12 @@ Rien à publier : aucune règle ni function. Module éteint par défaut : Admini
 5. « Je tape un nom » : on passe directement au formulaire d'avant, sans lieu ni première étape.
 6. Sans réseau ou lieu inconnu : « Aucun lieu trouvé », « Je tape un nom » reste possible.
 7. Modifier un voyage existant : pas de « Où allez-vous ? », le formulaire s'ouvre directement.
+
+## Compte à rebours du voyage (récit 95, temps 2, première partie)
+
+Rien à publier : aucune règle ni function. Module éteint par défaut : Administration > Modules > « Compte à rebours du voyage ».
+1. Ouvrir un voyage qui commence dans plus de 2 jours : en haut de la carte « Résumé », « 4 nuits avant le départ ».
+2. La veille : « Demain, c'est le départ ». Le jour du départ : « C'est le jour J ».
+3. Pendant le voyage : « Jour 2 sur 6 ». Après le retour : rien.
+4. Module éteint : aucune ligne de plus.
+Pas encore : la pastille sur la liste et la carte de l'Accueil (parties suivantes).

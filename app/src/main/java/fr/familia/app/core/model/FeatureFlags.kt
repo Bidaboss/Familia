@@ -202,6 +202,12 @@ enum class Feature(
      * Aucune règle ni function.
      */
     TripDestinationFirst("tripDestinationFirst", R.string.feature_trip_destination_first),
+
+    /**
+     * Le compte à rebours du voyage en nuits (PRODUIT-150, récit 95) : « 4 nuits avant le départ »,
+     * « Demain », « Jour 2 sur 6 ». Éteint, rien ne s'affiche. Aucune règle ni function.
+     */
+    TripCountdown("tripCountdown", R.string.feature_trip_countdown),
 }
 
 /**
