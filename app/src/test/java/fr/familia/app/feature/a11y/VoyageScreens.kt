@@ -62,6 +62,11 @@ import fr.familia.app.feature.trips.edit.TripFormError
 import fr.familia.app.feature.trips.edit.previewTripEditState
 import fr.familia.app.feature.trips.list.TripsScreen
 import fr.familia.app.feature.trips.map.TripMapScreen
+import fr.familia.app.R
+import fr.familia.app.core.model.EventComment
+import fr.familia.app.feature.events.comments.EventCommentRow
+import fr.familia.app.feature.events.comments.EventCommentsContent
+import fr.familia.app.feature.events.comments.EventCommentsUiState
 import fr.familia.app.feature.trips.word.StepWordActions
 import fr.familia.app.feature.trips.word.StepWordScreen
 import fr.familia.app.feature.trips.word.previewStepWord
@@ -116,6 +121,25 @@ internal object VoyageScreens {
         screen("the word of a step, to write") { StepWordScreen(previewStepWord(canWrite = true, withWord = false), StepWordActions()) },
         screen("the word of a step, to change") { StepWordScreen(previewStepWord(canWrite = true, withWord = true), StepWordActions()) },
         screen("the word of a step, to read") { StepWordScreen(previewStepWord(canWrite = false, withWord = true, isParticipant = false), StepWordActions()) },
+        screen("the word of a step, to read, with comments") {
+            StepWordScreen(previewStepWord(canWrite = false, withWord = true, isParticipant = false), StepWordActions()) {
+                EventCommentsContent(
+                    state = EventCommentsUiState(
+                        rows = listOf(
+                            EventCommentRow(EventComment("c1", "Quelle belle arrivée, @Camille !", "m1", "Inès", null), canEdit = false, canRemove = false),
+                        ),
+                        isLoading = false,
+                    ),
+                    onType = { _, _ -> },
+                    onSend = {},
+                    onShowMore = {},
+                    onEdit = { _, _, _ -> true },
+                    onRemove = {},
+                    onMute = {},
+                    empty = R.string.word_comments_empty,
+                )
+            }
+        },
         screen("the word of a step, with no word yet, to read") { StepWordScreen(previewStepWord(canWrite = false, withWord = false, isParticipant = false), StepWordActions()) },
         screen("the map of a trip, with no step placed") { TripMapScreen(previewTripDetail(), {}, {}, {}) },
         screen("a trip, for who does not take part") { TripDetailScreen(previewTripDetail(isParticipant = false), {}, {}, {}, {}, {}, {}, {}, photos = previewAlbumPhotos()) },

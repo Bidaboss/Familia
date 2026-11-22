@@ -104,7 +104,7 @@ data class StepWordActions(
  * up to 4 photos of the album and publishes; a follower reads it and puts a heart. Stateless.
  */
 @Composable
-fun StepWordScreen(state: StepWordUiState, actions: StepWordActions) {
+fun StepWordScreen(state: StepWordUiState, actions: StepWordActions, comments: @Composable () -> Unit = {}) {
     val ready = state as? StepWordUiState.Ready
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
     val hasChanges = ready?.canWrite == true && ready.hasChanges
@@ -135,13 +135,13 @@ fun StepWordScreen(state: StepWordUiState, actions: StepWordActions) {
                 body = stringResource(R.string.trips_error_body),
                 action = { Button(onClick = actions.onRetry, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.action_retry)) } },
             )
-            is StepWordUiState.Ready -> WordContent(state, actions)
+            is StepWordUiState.Ready -> WordContent(state, actions, comments)
         }
     }
 }
 
 @Composable
-private fun WordContent(state: StepWordUiState.Ready, actions: StepWordActions) {
+private fun WordContent(state: StepWordUiState.Ready, actions: StepWordActions, comments: @Composable () -> Unit) {
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
@@ -151,6 +151,8 @@ private fun WordContent(state: StepWordUiState.Ready, actions: StepWordActions) 
             Text(stringResource(R.string.word_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
         }
         if (state.canWrite) WriteWord(state, actions) else ReadWord(state, actions)
+        // The comments come under a published word only (the rules check the same).
+        if (state.word != null && !state.busy) comments()
     }
 }
 
