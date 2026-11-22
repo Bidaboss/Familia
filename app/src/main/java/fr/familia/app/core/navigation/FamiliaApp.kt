@@ -297,7 +297,9 @@ import fr.familia.app.feature.expenses.TripExpensesDestination
 import fr.familia.app.feature.trips.TripEditDestination
 import fr.familia.app.feature.trips.TripPhotosDestination
 import fr.familia.app.feature.yearago.MemoryAlbum
+import fr.familia.app.feature.trips.TripGlobeDestination
 import fr.familia.app.feature.trips.TripMapDestination
+import fr.familia.app.feature.trips.map.TripGlobeRoute
 import fr.familia.app.feature.trips.TripPackingDestination
 import fr.familia.app.feature.trips.packing.TripPackingRoute
 import fr.familia.app.feature.trips.TripStoryDestination
@@ -1188,8 +1190,13 @@ fun FamiliaApp(
                             tripId = tripId,
                             onOpenStep = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
                             onEditStep = { stepId -> navController.navigate(TripStepEditDestination(tripId, stepId)) },
+                            onLaunch = { navController.navigate(TripGlobeDestination(tripId)) },
                             onBack = { navController.popBackStack() },
                         )
+                    }
+                    composable<TripGlobeDestination> { entry ->
+                        val tripId = entry.toRoute<TripGlobeDestination>().tripId
+                        TripGlobeRoute(container, currentMember, tripId, BuildConfig.MAPBOX_PUBLIC_TOKEN, onBack = { navController.popBackStack() })
                     }
                     composable<TripStoryDestination> { entry ->
                         val route = entry.toRoute<TripStoryDestination>()

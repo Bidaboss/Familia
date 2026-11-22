@@ -73,6 +73,8 @@ fun TripMapScreen(
     streetsToken: String? = null,
     /** The words of the steps by step id, for « Le trajet » (récit 94). */
     words: Map<String, TripWord> = emptyMap(),
+    /** « Lancer le voyage » (récit 94): the globe; null without the token of the globe. */
+    onLaunch: (() -> Unit)? = null,
 ) {
     val success = state as? TripDetailUiState.Success
     val sky = success?.trip?.landscape?.palette?.sky ?: TripPathColors.Sky
@@ -95,14 +97,14 @@ fun TripMapScreen(
                     title = stringResource(R.string.trip_missing_title),
                     body = stringResource(R.string.trip_missing_body),
                 )
-                is TripDetailUiState.Success -> MapContent(state, onOpenStep, onEditStep, streetsToken, words)
+                is TripDetailUiState.Success -> MapContent(state, onOpenStep, onEditStep, streetsToken, words, onLaunch)
             }
         }
     }
 }
 
 @Composable
-private fun MapContent(state: TripDetailUiState.Success, onOpenStep: (String) -> Unit, onEditStep: (String) -> Unit, streetsToken: String?, words: Map<String, TripWord>) {
+private fun MapContent(state: TripDetailUiState.Success, onOpenStep: (String) -> Unit, onEditStep: (String) -> Unit, streetsToken: String?, words: Map<String, TripWord>, onLaunch: (() -> Unit)?) {
     // The streets: the points are placed by the maths of the image; without them, as before.
     val streets = remember(state.steps, streetsToken) {
         streetsToken?.let { token ->
@@ -143,6 +145,10 @@ private fun MapContent(state: TripDetailUiState.Success, onOpenStep: (String) ->
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         if (listFirst) TripRouteTile(entries, onOpenStep)
+        // The flight is for who sees: not offered with TalkBack or without animations, nor with fewer than two points.
+        if (onLaunch != null && !listFirst && placed.size >= 2) {
+            Button(onClick = onLaunch, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) { Text(stringResource(R.string.globe_launch)) }
+        }
         if (streets == null) {
             TripMap(placed, selectedId, onSelect = { selectedId = it }, landscape = state.trip.landscape, modifier = Modifier.fillMaxWidth())
         } else {

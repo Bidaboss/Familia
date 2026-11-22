@@ -1868,3 +1868,13 @@ Rien à publier : aucune règle ni function.
 1. Carte du voyage, fiche d'une étape : les liens « Restaurants près de… », « Hôtels à… » et « Voir… sur Tripadvisor » n'y sont plus ; il reste « Ouvrir l'étape ».
 2. Page d'une étape (« Le mot de l'étape »), sous « À savoir sur… » et « Autour de l'étape » : la tuile « Chercher plus loin », trois lignes de 56 dp et la phrase « Ces liens ouvrent une autre appli… ». Toujours là, même sans réseau ou si l'étape n'a pas de position.
 3. Une ligne ouvre Google Maps ou Tripadvisor avec le nom du lieu.
+
+## Voyage : le globe Mapbox et « Lancer le voyage » (récit 94, temps 3 et 4)
+
+Rien à publier côté Firebase. Seule l'« APK de publication » a la clé Mapbox : dans les APK d'essai de la CI, le bouton n'apparaît pas et la carte dessinée reste.
+1. Carte d'un voyage (au moins 2 étapes placées), avec l'APK de publication : un bouton noir « Lancer le voyage » au-dessus de la carte. Il n'apparaît pas avec TalkBack ni « supprimer les animations ».
+2. Toucher le bouton : le globe (la Terre est ronde de loin), une carte blanche en bas : phrase d'aide, « Lancer le voyage », « Voir directement la carte ». Rien ne démarre seul.
+3. « Lancer le voyage » : la caméra descend vers l'étape 1, s'y arrête 3 s, vole vers l'étape 2, etc. Le trait se trace en foncé derrière, clair devant. La carte du bas dit « Étape 2 sur 5 », le lieu et la date.
+4. Pause, Précédent, Suivant, « Voir la carte » : boutons de 56 dp, toujours visibles. Pause arrête le compte des 3 s ; Reprendre le relance.
+5. Fin : « Voilà tout le trajet. », « Rejouer le survol » et « Voir la carte » (retour à la carte à plat).
+6. Sans réseau ou si Mapbox ne démarre pas dans les 10 s : retour tout seul à la carte à plat, sans message.
