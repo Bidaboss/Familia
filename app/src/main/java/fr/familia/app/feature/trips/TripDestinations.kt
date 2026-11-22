@@ -24,7 +24,7 @@ data class TripEditDestination(val tripId: String? = null)
 
 /** Step form: a new step of [tripId] when [stepId] is null. */
 @Serializable
-data class TripStepEditDestination(val tripId: String, val stepId: String? = null)
+data class TripStepEditDestination(val tripId: String, val stepId: String? = null, val place: String? = null)
 
 /** The map of [tripId]: its steps joined in order on the landscape (récit 87). */
 @Serializable

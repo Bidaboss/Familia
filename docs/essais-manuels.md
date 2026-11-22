@@ -1800,3 +1800,14 @@ Module éteint par défaut : Administration > Modules > « Idées autour d'une �
 ## Globe, temps 2 : le moteur du vol (récit 94)
 
 Rien à voir ni à essayer sur le téléphone : seul le moteur du vol (aperçu, vol, pause, étape suivante) est ajouté, avec ses tests. L'écran arrive au temps 4.
+
+## Créer un voyage par sa destination (récit 95, temps 1)
+
+Rien à publier : aucune règle ni function. Module éteint par défaut : Administration > Modules > « Créer un voyage par sa destination ».
+1. Module éteint : « + » sur la liste des voyages ouvre le formulaire d'avant.
+2. Module allumé : « Où allez-vous ? » s'ouvre d'abord. Taper « La Palmyre », toucher « Chercher » : jusqu'à 5 lieux. En toucher un, puis « Continuer ».
+3. Le formulaire s'ouvre avec le nom du voyage déjà rempli (« La Palmyre »), modifiable. Départ et Retour restent obligatoires.
+4. « Créer le voyage » : le voyage s'ouvre, puis le formulaire d'étape arrive avec le lieu déjà rempli. Le retour (flèche) laisse la première étape pour plus tard.
+5. « Je tape un nom » : on passe directement au formulaire d'avant, sans lieu ni première étape.
+6. Sans réseau ou lieu inconnu : « Aucun lieu trouvé », « Je tape un nom » reste possible.
+7. Modifier un voyage existant : pas de « Où allez-vous ? », le formulaire s'ouvre directement.

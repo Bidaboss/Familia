@@ -328,6 +328,17 @@
     <string name="place_links_hotels">Hôtels à %1$s</string>
     <string name="place_links_tripadvisor">Voir %1$s sur Tripadvisor</string>
     <string name="place_links_hint">Un appui ouvre Google Maps ou Tripadvisor avec le nom du lieu. Familia ne garde rien.</string>
+    <string name="feature_trip_destination_first">Créer un voyage par sa destination</string>
+    <string name="feature_help_trip_destination_first">Un nouveau voyage commence par « Où allez-vous ? », prend le nom du lieu, puis propose la première étape.</string>
+    <string name="trip_destination_title">Où allez-vous ?</string>
+    <string name="trip_destination_question">Votre destination</string>
+    <string name="trip_destination_field">Un lieu, une ville, un pays</string>
+    <string name="trip_destination_search">Chercher</string>
+    <string name="trip_destination_searching">Recherche en cours…</string>
+    <string name="trip_destination_none">Aucun lieu trouvé. Essaie un autre nom, ou tape le nom du voyage toi-même.</string>
+    <string name="trip_destination_hint">Tape un lieu puis touche « Chercher » : jusqu\'à 5 propositions.</string>
+    <string name="trip_destination_continue">Continuer</string>
+    <string name="trip_destination_type_name">Je tape un nom</string>
     <string name="feature_map_globe">Globe animé du voyage</string>
     <string name="feature_help_map_globe">Essai : « Lancer le voyage » fait voler la caméra d\'étape en étape. Sans réseau ou sans animations, la carte à plat et la liste restent.</string>
     <string name="trip_route_title">Le trajet</string>
