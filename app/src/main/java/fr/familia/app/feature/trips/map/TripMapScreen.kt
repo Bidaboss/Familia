@@ -60,7 +60,7 @@ import fr.familia.app.feature.trips.stepTypeLabel
  * the same map (the steps are read with the same rules) and open the step, with its word (récit 88). A step with no point stays in the list under the map. No live position. Stateless.
  */
 @Composable
-fun TripMapScreen(state: TripDetailUiState, onOpenStep: (stepId: String) -> Unit, onBack: () -> Unit) {
+fun TripMapScreen(state: TripDetailUiState, onOpenStep: (stepId: String) -> Unit, onEditStep: (stepId: String) -> Unit, onBack: () -> Unit) {
     val success = state as? TripDetailUiState.Success
     val sky = success?.trip?.landscape?.palette?.sky ?: TripPathColors.Sky
     Scaffold(
@@ -82,14 +82,14 @@ fun TripMapScreen(state: TripDetailUiState, onOpenStep: (stepId: String) -> Unit
                     title = stringResource(R.string.trip_missing_title),
                     body = stringResource(R.string.trip_missing_body),
                 )
-                is TripDetailUiState.Success -> MapContent(state, onOpenStep)
+                is TripDetailUiState.Success -> MapContent(state, onOpenStep, onEditStep)
             }
         }
     }
 }
 
 @Composable
-private fun MapContent(state: TripDetailUiState.Success, onOpenStep: (String) -> Unit) {
+private fun MapContent(state: TripDetailUiState.Success, onOpenStep: (String) -> Unit, onEditStep: (String) -> Unit) {
     val stops = remember(state.steps) { mapStops(state.steps) }
     val placed = stops.filter { it.point != null }
     val unplaced = stops.filter { it.point == null }
@@ -186,5 +186,5 @@ private fun StopCard(stop: MapStop, onOpen: () -> Unit) {
 @FamiliaPreviews
 @Composable
 private fun TripMapPreview() {
-    FamiliaTheme { Surface { TripMapScreen(previewTripDetail(withPositions = true), {}, {}) } }
+    FamiliaTheme { Surface { TripMapScreen(previewTripDetail(withPositions = true), {}, {}, {}) } }
 }
