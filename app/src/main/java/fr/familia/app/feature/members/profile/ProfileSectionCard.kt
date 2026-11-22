@@ -1,5 +1,12 @@
 package fr.familia.app.feature.members.profile
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import fr.familia.app.core.ui.ClaySpacing
+import fr.familia.app.core.ui.form.FormTile
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,7 +23,6 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,8 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -36,8 +40,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import fr.familia.app.core.ui.ClayCard
-import fr.familia.app.core.ui.ClaySpacing
 
 /**
  * The sections of the member page drawn as their own cards (PRODUIT-115, maquettes P1 à P5). A
@@ -66,8 +68,9 @@ enum class SectionAccent(private val light: Color, private val dark: Color) {
 }
 
 /**
- * One section of the page: its icon in a rounded square, its title, an optional pill ([badge]) and,
- * on my page, a pencil ([onEdit], 56 dp), above [content]. A thin line of [accent] runs on its left.
+ * One section of the page, a [FormTile] like the rest of the app (DESIGN-60, option A): its icon in
+ * a rounded square, its title, an optional pill ([badge]) and, on my page, a round pencil of 48 dp
+ * ([onEdit]), above [content]. The edge of the tile is the color of [accent].
  */
 @Composable
 fun ProfileSectionCard(
@@ -81,39 +84,49 @@ fun ProfileSectionCard(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val color = accent.color()
-    ClayCard(modifier.fillMaxWidth(), contentPadding = ClaySpacing.card) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .drawBehind {
-                    drawRoundRect(color, topLeft = Offset.Zero, size = Size(4.dp.toPx(), size.height), cornerRadius = CornerRadius(2.dp.toPx()))
+    FormTile(
+        icon = icon,
+        title = title,
+        modifier = modifier,
+        accent = color,
+        iconBackground = color.copy(alpha = 0.28f),
+        iconTint = MaterialTheme.colorScheme.onSurface,
+        trailing = if (badge != null || onEdit != null) {
+            {
+                badge?.let {
+                    Surface(shape = RoundedCornerShape(16.dp), color = color) {
+                        Text(it, style = MaterialTheme.typography.labelMedium, color = Color(0xFF2B1D10), modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
+                    }
                 }
-                .padding(start = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            SectionHeader(title, icon, color, badge, onEdit, editLabel)
-            content()
-        }
-    }
+                onEdit?.let { edit ->
+                    val label = editLabel ?: title
+                    Box(
+                        Modifier
+                            .padding(start = 8.dp)
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(color.copy(alpha = 0.16f))
+                            .clickable(role = Role.Button, onClickLabel = label, onClick = edit),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(Icons.Outlined.Edit, contentDescription = label, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(22.dp))
+                    }
+                }
+            }
+        } else {
+            null
+        },
+        content = content,
+    )
 }
 
 @Composable
-private fun SectionHeader(title: String, icon: ImageVector, color: Color, badge: String?, onEdit: (() -> Unit)?, editLabel: String?) {
+private fun SectionHeader(title: String, icon: ImageVector, color: Color) {
     Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Box(Modifier.size(36.dp).background(color.copy(alpha = 0.28f), RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
             Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
         }
-        Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f).semantics { heading() })
-        badge?.let {
-            Surface(shape = RoundedCornerShape(50), color = color) {
-                Text(it, style = MaterialTheme.typography.labelMedium, color = Color(0xFF2B1D10), modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
-            }
-        }
-        onEdit?.let { edit ->
-            IconButton(onClick = edit, modifier = Modifier.size(56.dp)) {
-                Icon(Icons.Outlined.Edit, contentDescription = editLabel ?: title)
-            }
-        }
+        Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f).semantics { heading() })
     }
 }
 
@@ -130,14 +143,14 @@ fun ProfileInviteCard(title: String, icon: ImageVector, accent: SectionAccent, t
             .drawBehind {
                 drawRoundRect(
                     color,
-                    cornerRadius = CornerRadius(24.dp.toPx()),
+                    cornerRadius = CornerRadius(22.dp.toPx()),
                     style = Stroke(width = 2.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(10.dp.toPx(), 8.dp.toPx()))),
                 )
             }
             .padding(ClaySpacing.card),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        SectionHeader(title, icon, color, badge = null, onEdit = null, editLabel = null)
+        SectionHeader(title, icon, color)
         Text(text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Button(
             onClick = onAction,
