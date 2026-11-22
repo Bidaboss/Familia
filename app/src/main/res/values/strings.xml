@@ -330,6 +330,10 @@
     <string name="gift_item_preview_loading">Lecture de la page de la boutique…</string>
     <string name="feature_map_streets">Carte du voyage avec les rues</string>
     <string name="feature_help_map_streets">Essai : la carte d\'un voyage montre les rues (Mapbox) au lieu du paysage. Sans réseau, la carte dessinée reste.</string>
+    <string name="trip_map_streets_credit">Les rues viennent de Mapbox et d\'OpenStreetMap. Pour les afficher, ton téléphone leur envoie la zone du voyage, rien d\'autre.</string>
+    <string name="trip_map_credit_mapbox">© Mapbox</string>
+    <string name="trip_map_credit_osm">© OpenStreetMap</string>
+    <string name="trip_map_credit_improve">Améliorer cette carte</string>
     <string name="feature_trips">Carnet de voyage</string>
     <string name="feature_good_news">Actualités</string>
     <string name="feature_themes">Thèmes au choix</string>

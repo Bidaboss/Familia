@@ -2,6 +2,8 @@ package fr.familia.app.feature.trips.map
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,6 +25,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -140,12 +143,32 @@ private fun MapContent(state: TripDetailUiState.Success, onOpenStep: (String) ->
                 background = { StreetsBackground(streets.second, state.trip.landscape) },
             )
         }
+        if (streets != null) StreetsCredit()
         if (selected == null) {
             Text(stringResource(R.string.trip_map_pick), style = MaterialTheme.typography.bodyLarge, color = TripPathColors.Ink)
         } else {
             StopCard(selected, onOpen = { onOpenStep(selected.step.id) })
         }
         if (unplaced.isNotEmpty()) UnplacedTile(unplaced, state.isParticipant, onEditStep)
+    }
+}
+
+/** The attribution of Mapbox and OpenStreetMap under the streets, as their terms ask: text and links, legible. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun StreetsCredit() {
+    val uri = LocalUriHandler.current
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(stringResource(R.string.trip_map_streets_credit), style = MaterialTheme.typography.bodyMedium, color = TripPathColors.Ink)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            listOf(
+                R.string.trip_map_credit_mapbox to "https://www.mapbox.com/about/maps",
+                R.string.trip_map_credit_osm to "https://www.openstreetmap.org/about/",
+                R.string.trip_map_credit_improve to "https://apps.mapbox.com/feedback/",
+            ).forEach { (label, url) ->
+                TextButton(onClick = { runCatching { uri.openUri(url) } }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(label)) }
+            }
+        }
     }
 }
 
