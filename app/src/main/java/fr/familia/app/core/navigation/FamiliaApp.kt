@@ -1169,6 +1169,7 @@ fun FamiliaApp(
                             currentMember = currentMember,
                             tripId = tripId,
                             onOpenStep = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
+                            onEditStep = { stepId -> navController.navigate(TripStepEditDestination(tripId, stepId)) },
                             onBack = { navController.popBackStack() },
                         )
                     }
@@ -1468,6 +1469,12 @@ fun FamiliaApp(
                             onOpenMyPage = { navController.navigate(MemberProfileDestination(currentMember.id)) },
                             onOpenSurprisePicker = { navController.navigate(SurprisePickDestination) },
                             onAddWish = { id -> navController.navigate(GiftItemEditDestination(id)) },
+                            onOpenMember = { id -> navController.navigate(MemberProfileDestination(id)) },
+                            onOpenReceived = if (features.isOn(Feature.WishesReveal)) {
+                                { navController.navigate(ReceivedGiftsDestination) }
+                            } else {
+                                null
+                            },
                         )
                     }
                     composable<SurprisePickDestination> {

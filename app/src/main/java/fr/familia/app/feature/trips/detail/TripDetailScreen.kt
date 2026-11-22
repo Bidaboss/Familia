@@ -118,7 +118,7 @@ fun TripDetailScreen(
     packing: (@Composable () -> Unit)? = null,
     /** The part to show first (récit 80: « Étapes » or « À prévoir » from the list); null: the top. */
     openAt: TripPart? = null,
-    /** « La carte » (récit 87), offered once a step has a point; null elsewhere. */
+    /** « La carte » (récit 87), offered once the trip has a step; null elsewhere. */
     onOpenMap: (() -> Unit)? = null,
     /** « Le mot de l'étape » (récit 88), from a step. */
     onOpenWord: ((stepId: String) -> Unit)? = null,
@@ -254,7 +254,7 @@ private fun Content(
             item(key = "checklist-title") { TripSectionTitle(stringResource(if (packing != null) R.string.packing_title else R.string.trip_checklist)) }
             item(key = "checklist") { PackingOrChecklist(state, checklist, packing) }
         }
-        if (onOpenMap != null && state.steps.any { it.hasPosition }) {
+        if (onOpenMap != null && state.steps.isNotEmpty()) {
             item(key = "map") { ClayLink(stringResource(R.string.trip_map_title), onClick = onOpenMap) }
         }
         if (onOpenExpenses != null && state.isParticipant) {
@@ -355,7 +355,7 @@ private fun PathContent(
                     onPhotos = onSeePhotos,
                     onNotebook = { scope.launch { listState.animateScrollToItem(notebookIndex) } },
                     onExpenses = onOpenExpenses?.takeIf { state.isParticipant },
-                    onMap = onOpenMap?.takeIf { state.steps.any { it.hasPosition } },
+                    onMap = onOpenMap?.takeIf { state.steps.isNotEmpty() },
                 )
             }
         }
