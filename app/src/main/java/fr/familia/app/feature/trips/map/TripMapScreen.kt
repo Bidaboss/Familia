@@ -51,8 +51,6 @@ import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.core.ui.form.FormHint
 import fr.familia.app.core.ui.form.FormTile
 import fr.familia.app.feature.trips.detail.TripDetailUiState
-import fr.familia.app.core.model.Feature
-import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.core.model.TripWord
 import fr.familia.app.feature.trips.detail.TripPathColors
 import fr.familia.app.feature.trips.detail.palette
@@ -244,10 +242,9 @@ private fun StopCard(stop: MapStop, onOpen: () -> Unit) {
     }
 }
 
-/** « Restaurants près de… », « Hôtels à… », « Voir sur Tripadvisor » for the step, behind the module (récit 96). */
+/** « Restaurants près de… », « Hôtels à… », « Voir sur Tripadvisor » for the step (récit 96). */
 @Composable
 private fun PlaceLinksRow(place: String) {
-    if (!LocalFeatureFlags.current.isOn(Feature.PlaceLinks)) return
     val links = remember(place) { placeLinks(place) } ?: return
     val uri = LocalUriHandler.current
     val name = place.trim()

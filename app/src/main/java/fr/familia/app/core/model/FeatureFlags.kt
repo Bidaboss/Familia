@@ -177,33 +177,6 @@ enum class Feature(
      * immédiat. Lu avec isOnForFamily côté serveur et dans les réglages : éteint, rien ne change.
      */
     EveningDigest("eveningDigest", R.string.feature_evening_digest),
-
-    /**
-     * Le fond de rues de la carte du voyage (PRODUIT-147, essai de Mapbox). Éteint, la carte reste
-     * celle dessinée sur le paysage du voyage, comme sans réseau ou sans jeton. Aucune règle ni function.
-     */
-    MapStreets("mapStreets", R.string.feature_map_streets),
-
-    /**
-     * Les liens d'idées sur la carte du voyage (PRODUIT-149, récit 96) : « Restaurants près de… »,
-     * « Hôtels à… », « Voir sur Tripadvisor ». Éteint, aucun lien. Aucune règle ni function.
-     */
-    PlaceLinks("placeLinks", R.string.feature_place_links),
-
-    /**
-     * Le globe animé de la carte du voyage (PRODUIT-148, récit 94) : « Lancer le voyage », la caméra
-     * vole d'étape en étape. Éteint, rien ne change : la carte reste à plat. Aucune règle ni function.
-     */
-    MapGlobe("mapGlobe", R.string.feature_map_globe),
-
-
-    /**
-     * La création d'un voyage « destination d'abord » (PRODUIT-150, récit 95) : la question « Où
-     * allez-vous ? », le nom pré-rempli, puis la première étape. Éteint, le formulaire d'avant.
-     * Aucune règle ni function.
-     */
-    TripDestinationFirst("tripDestinationFirst", R.string.feature_trip_destination_first),
-
 }
 
 /**
