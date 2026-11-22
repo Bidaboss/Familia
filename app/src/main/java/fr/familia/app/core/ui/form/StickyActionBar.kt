@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import fr.familia.app.core.ui.FamiliaTopBar
 
 /**
  * The main button of a form, fixed at the bottom (DESIGN-50): dark, 56 dp, over the navigation bar
@@ -54,10 +53,4 @@ fun StickyActionBar(
             }
         }
     }
-}
-
-/** The top of a form (DESIGN-50): now [FamiliaTopBar], for every screen (récit 83). Kept for the time of the change. */
-@Composable
-fun FormTopBar(title: String, onBack: () -> Unit, modifier: Modifier = Modifier, actions: @Composable () -> Unit = {}) {
-    FamiliaTopBar(title = title, onBack = onBack, modifier = modifier, actions = { actions() })
 }

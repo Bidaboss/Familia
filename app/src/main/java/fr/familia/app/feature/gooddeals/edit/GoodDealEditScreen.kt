@@ -73,13 +73,13 @@ import fr.familia.app.core.theme.LocalClayColors
 import fr.familia.app.core.theme.themeBackground
 import fr.familia.app.core.ui.EmptyState
 import fr.familia.app.core.ui.FamiliaPreviews
+import fr.familia.app.core.ui.FamiliaTopBar
 import fr.familia.app.core.ui.form.CategoryTiles
 import fr.familia.app.core.ui.form.ChipGroup
 import fr.familia.app.core.ui.form.FormChip
 import fr.familia.app.core.ui.form.FormHint
 import fr.familia.app.core.ui.form.FormLabel
 import fr.familia.app.core.ui.form.FormTile
-import fr.familia.app.core.ui.form.FormTopBar
 import fr.familia.app.core.ui.form.StickyActionBar
 import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.feature.feed.FeedTone
@@ -104,7 +104,7 @@ fun GoodDealEditScreen(
         containerColor = Color.Transparent,
         modifier = Modifier.themeBackground(),
         topBar = {
-            FormTopBar(
+            FamiliaTopBar(
                 title = stringResource(
                     when {
                         editing?.isNew == false && address -> R.string.gooddeal_address_edit_title
