@@ -322,6 +322,12 @@
     <string name="trip_map_credit_mapbox">© Mapbox</string>
     <string name="trip_map_credit_osm">© OpenStreetMap</string>
     <string name="trip_map_credit_improve">Améliorer cette carte</string>
+    <string name="feature_place_links">Idées autour d\'une étape</string>
+    <string name="feature_help_place_links">Sur la carte d\'un voyage, l\'étape choisie propose « Restaurants près de… », « Hôtels à… » et « Voir sur Tripadvisor ». Un appui ouvre Google Maps ou Tripadvisor avec le nom du lieu, rien d\'autre ; Familia ne garde rien.</string>
+    <string name="place_links_restaurants">Restaurants près de %1$s</string>
+    <string name="place_links_hotels">Hôtels à %1$s</string>
+    <string name="place_links_tripadvisor">Voir %1$s sur Tripadvisor</string>
+    <string name="place_links_hint">Un appui ouvre Google Maps ou Tripadvisor avec le nom du lieu. Familia ne garde rien.</string>
     <string name="feature_trips">Carnet de voyage</string>
     <string name="feature_good_news">Actualités</string>
     <string name="feature_themes">Thèmes au choix</string>

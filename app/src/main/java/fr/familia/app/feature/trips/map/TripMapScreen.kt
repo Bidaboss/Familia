@@ -51,6 +51,8 @@ import fr.familia.app.core.ui.frenchDate
 import fr.familia.app.core.ui.form.FormHint
 import fr.familia.app.core.ui.form.FormTile
 import fr.familia.app.feature.trips.detail.TripDetailUiState
+import fr.familia.app.core.model.Feature
+import fr.familia.app.core.ui.LocalFeatureFlags
 import fr.familia.app.feature.trips.detail.TripPathColors
 import fr.familia.app.feature.trips.detail.palette
 import fr.familia.app.feature.trips.detail.previewTripDetail
@@ -228,7 +230,30 @@ private fun StopCard(stop: MapStop, onOpen: () -> Unit) {
             Button(onClick = onOpen, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.trip_map_open_step))
             }
+            PlaceLinksRow(step.place)
         }
+    }
+}
+
+/** « Restaurants près de… », « Hôtels à… », « Voir sur Tripadvisor » for the step, behind the module (récit 96). */
+@Composable
+private fun PlaceLinksRow(place: String) {
+    if (!LocalFeatureFlags.current.isOn(Feature.PlaceLinks)) return
+    val links = remember(place) { placeLinks(place) } ?: return
+    val uri = LocalUriHandler.current
+    val name = place.trim()
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        links.forEach { link ->
+            val label = when (link.kind) {
+                PlaceLinkKind.Restaurants -> stringResource(R.string.place_links_restaurants, name)
+                PlaceLinkKind.Hotels -> stringResource(R.string.place_links_hotels, name)
+                PlaceLinkKind.Tripadvisor -> stringResource(R.string.place_links_tripadvisor, name)
+            }
+            TextButton(onClick = { runCatching { uri.openUri(link.url) } }, modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)) {
+                Text(label, color = TripPathColors.Ink)
+            }
+        }
+        Text(stringResource(R.string.place_links_hint), style = MaterialTheme.typography.bodySmall, color = TripPathColors.InkSoft)
     }
 }
 
