@@ -58,16 +58,7 @@ fun GlobeMapView(
                     view.mapboxMap.setCamera(command.target.toOptions())
                     view.mapboxMap.loadStyle(Style.SATELLITE) { style ->
                         runCatching {
-<<<<<<< HEAD
                             configureSatelliteGlobe(style)
-=======
-                            // Satellite view, forced round (only Standard is a globe by itself), in a starry sky.
-                            style.setStyleProjectionProperty("name", Value.valueOf("globe"))
-                            mapOf("color" to "#BFD9F2", "high-color" to "#3C6FB5", "space-color" to "#050B1A")
-                                .forEach { (key, color) -> style.setStyleAtmosphereProperty(key, Value.valueOf(color)) }
-                            style.setStyleAtmosphereProperty("horizon-blend", Value.valueOf(0.04))
-                            style.setStyleAtmosphereProperty("star-intensity", Value.valueOf(0.7))
->>>>>>> origin/main
                             style.addSource(geoJsonSource(TRAIL_ALL) { geometry(trail(points, points.size - 1)) })
                             style.addSource(geoJsonSource(TRAIL_DONE) { geometry(trail(points, 0)) })
                             style.addSource(geoJsonSource(STEPS) { featureCollection(com.mapbox.geojson.FeatureCollection.fromFeatures(points.map { com.mapbox.geojson.Feature.fromGeometry(it.toPoint()) })) })
