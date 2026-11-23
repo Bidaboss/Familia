@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Layers
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
@@ -51,6 +51,7 @@ import com.mapbox.maps.extension.style.layers.generated.circleLayer
 import com.mapbox.maps.extension.style.layers.generated.lineLayer
 import com.mapbox.maps.extension.style.layers.generated.symbolLayer
 import com.mapbox.maps.extension.style.sources.addSource
+import com.mapbox.maps.extension.style.sources.getSourceAs
 import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.maps.plugin.animation.MapAnimationOptions.Companion.mapAnimationOptions
@@ -205,7 +206,7 @@ fun TripSatelliteMap(
             onClick = { settingsOpen = true },
             modifier = Modifier.align(Alignment.BottomEnd).padding(end = 12.dp, bottom = (bottomPaddingDp + 12.0).dp).size(48.dp),
         ) {
-            Icon(Icons.Outlined.Layers, contentDescription = stringResource(R.string.trip_map_settings))
+            Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.trip_map_settings))
         }
     }
     if (settingsOpen) {
@@ -257,7 +258,7 @@ private fun feature(points: List<GeoPoint>, names: List<String>, arrived: List<B
 
 private fun showSelected(style: Style, points: List<GeoPoint>, names: List<String>, selected: Int?) {
     val features = if (selected != null && points.getOrNull(selected) != null) listOf(feature(points, names, emptyList(), selected)) else emptyList()
-    (style.getSource("home-selected") as? GeoJsonSource)?.featureCollection(FeatureCollection.fromFeatures(features))
+    style.getSourceAs<GeoJsonSource>("home-selected")?.featureCollection(FeatureCollection.fromFeatures(features))
 }
 
 private fun drawSteps(style: Style, points: List<GeoPoint>, names: List<String>, arrived: List<Boolean>, nextIndex: Int, selected: Int?, trail: String) {
