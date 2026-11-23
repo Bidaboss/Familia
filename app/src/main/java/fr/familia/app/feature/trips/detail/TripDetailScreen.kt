@@ -374,7 +374,7 @@ private fun PathContent(
         label = "sheet",
     )
     if (satellite) {
-        val next = remember(state.steps) { placed.indexOfFirst { it.arrival == null }.coerceAtLeast(0) }
+        val next = remember(state.steps) { placed.indexOfFirst { it.arrival == null } }
         TripSatelliteMap(
             token = satelliteToken,
             points = placed.map { GeoPoint(it.lat!!, it.lng!!) },

@@ -121,12 +121,12 @@ fun TripSatelliteMap(
         delay(6_000L)
         if (!drawn) onFailed()
     }
-    // The arrival: out to Europe, then in on the trip, unless the person touches the map.
+    // The arrival: out to the continent of the trip, then in on the trip, unless the person touches the map.
     LaunchedEffect(drawn) {
         if (!drawn || !intro) return@LaunchedEffect
         val map = view[0] ?: return@LaunchedEffect
         if (touched) return@LaunchedEffect
-        map.camera.easeTo(CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(8.0, 47.0)).zoom(3.2).build(), mapAnimationOptions { duration(1_300L) })
+        map.camera.easeTo(CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(points.map { it.lng }.average(), points.map { it.lat }.average())).zoom(3.2).build(), mapAnimationOptions { duration(1_300L) })
         delay(1_400L)
         if (touched) return@LaunchedEffect
         map.camera.flyTo(frame(map, points, bottomPaddingDp * density, tilted), mapAnimationOptions { duration(2_400L) })
@@ -204,7 +204,7 @@ fun TripSatelliteMap(
         // The only control: discreet, at the bottom right of the map, above the sheet.
         FilledTonalIconButton(
             onClick = { settingsOpen = true },
-            modifier = Modifier.align(Alignment.BottomEnd).padding(end = 12.dp, bottom = (bottomPaddingDp + 12.0).dp).size(48.dp),
+            modifier = Modifier.align(Alignment.BottomEnd).padding(end = 12.dp, bottom = (bottomPaddingDp + 12.0).dp).size(56.dp),
         ) {
             Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.trip_map_settings))
         }
