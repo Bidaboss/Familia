@@ -1895,7 +1895,7 @@ Rien à publier côté Firebase. Seule l'« APK de publication » a la clé Mapb
 1. Liste Voyages, voyages avec lieu : fond de nuit, globe satellite qui tourne lentement (1 tour en 90 s), un point par voyage (le prochain en noir, les autres en jaune ; Souvenirs : points blancs bordés d'orange). Dessous, une feuille blanche arrondie avec la carte « Prochain voyage » et la suite. Un voyage sans lieu n'a pas de point.
 2. Bouton « Arrêter » (56 dp) sur le globe : arrête la rotation ; « Reprendre » la relance.
 3. Le globe s'arrête quand on quitte l'écran ou éteint le téléphone ; il reste fixe en économie d'énergie et avec « supprimer les animations ».
-4. Sans réseau, Mapbox en panne ou globe pas affiché en 3 s : retour au paysage dessiné, et pas de globe pendant 6 h sur ce téléphone. Avec TalkBack : toujours le paysage.
+4. Sans réseau, Mapbox en panne ou globe pas dessiné en 6 s (écran noir) : retour au paysage dessiné, et pas de globe pendant 6 h sur ce téléphone. Avec TalkBack : toujours le paysage.
 5. Pas encore là : vol vers le voyage au toucher d'un point, feuille tirable.
 ## Voyages : vol du globe vers le voyage (récit 99, étape 3)
 
@@ -1903,3 +1903,8 @@ Rien à publier côté Firebase. Avec l'« APK de publication ».
 1. Liste Voyages avec le globe : toucher un voyage qui a un lieu (carte « Prochain voyage », ligne ou souvenir) : la rotation s'arrête, la caméra vole 2 s vers le lieu (le globe s'incline et se rapproche), puis le voyage s'ouvre.
 2. Toucher encore pendant le vol : le voyage s'ouvre tout de suite.
 3. Voyage sans lieu, « supprimer les animations », ou repli sur le paysage : le voyage s'ouvre sans vol.
+## Voyages : globe sur « Standard satellite » et repli si l'image ne vient pas (retour d'essai du 23/11)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Liste Voyages : le globe doit montrer la Terre en vue satellite (et plus un fond noir avec un seul point). Même chose pour « Lancer le voyage ».
+2. Si l'image de la Terre n'est pas dessinée en 6 s (réseau lent), retour au paysage dessiné, pas d'écran noir.

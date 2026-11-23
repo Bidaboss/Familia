@@ -100,9 +100,9 @@ fun TripsGlobe(
     val first = markers.firstOrNull { it.highlighted } ?: markers.firstOrNull()
     var view by remember { mutableStateOf<MapView?>(null) }
     var ready by remember { mutableStateOf(false) }
-    // 3 s to show the globe: a phone too slow or a network too poor gives it up for the landscape.
+    // 6 s to draw the globe (style and imagery): a phone too slow or a network too poor gives it up for the landscape.
     LaunchedEffect(Unit) {
-        delay(3_000L)
+        delay(6_000L)
         if (!ready) onFailed()
     }
     // A trip opened: the camera flies there (the globe turns, tilts, comes closer), then the screen opens the trip.
@@ -161,13 +161,14 @@ fun TripsGlobe(
                     map.mapboxMap.setCamera(
                         CameraOptions.Builder().center(com.mapbox.geojson.Point.fromLngLat(first?.point?.lng ?: 0.0, 0.0)).zoom(0.6).pitch(20.0).build(),
                     )
-                    map.mapboxMap.loadStyle(Style.SATELLITE) { style ->
+                    map.mapboxMap.loadStyle(Style.STANDARD_SATELLITE) { style ->
                         runCatching {
                             configureSatelliteGlobe(style)
                             addMarkers(style, markers, souvenirs)
                         }.onFailure { onFailed() }
-                        ready = true
                     }
+                    // Shown only once the picture is really drawn: a black void is worse than the landscape.
+                    map.mapboxMap.subscribeMapLoaded { ready = true }
                     view = map
                 }
             }.getOrElse {
