@@ -24,6 +24,8 @@ import fr.familia.app.core.place.NearbyPlaces
 import fr.familia.app.core.place.OverpassNearbyPlaces
 import fr.familia.app.core.place.PlaceArticles
 import fr.familia.app.core.place.WikivoyagePlaceArticles
+import fr.familia.app.core.place.PlacePhotos
+import fr.familia.app.core.place.WikimediaPlacePhotos
 import fr.familia.app.core.usage.UsageTracker
 import fr.familia.app.core.video.Media3PhotoFilmMaker
 import fr.familia.app.core.video.PhotoFilmMaker
@@ -66,6 +68,9 @@ interface AppContainer {
 
     /** « À savoir sur… » (récit 96): a short article about the place of a step. */
     val placeArticles: PlaceArticles? get() = null
+
+    /** The photo of the place of a trip (règle 12, PRODUIT-153), from Wikimedia Commons. */
+    val placePhotos: PlacePhotos? get() = null
 
     /** « Autour de l'étape » (récit 96): restaurants and sites around the place of a step. */
     val nearbyPlaces: NearbyPlaces? get() = null
@@ -295,6 +300,7 @@ class FirebaseAppContainer(context: Context) : AppContainer {
     /** The position of the moment and the geocoder of the phone, for every place (récit 33). */
     override val placeLocator: AndroidPlaceLocator by lazy { AndroidPlaceLocator(appContext) }
     override val placeArticles: PlaceArticles? by lazy { WikivoyagePlaceArticles() }
+    override val placePhotos: PlacePhotos? by lazy { WikimediaPlacePhotos() }
     override val nearbyPlaces: NearbyPlaces? by lazy { OverpassNearbyPlaces() }
 
     override val exportRepository: ExportRepository? by lazy { firestore?.let { FirestoreExportRepository(it) } }
