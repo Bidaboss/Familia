@@ -44,6 +44,9 @@ fun TripSatelliteMap(
 ) {
     val context = LocalContext.current
     var drawn by remember { mutableStateOf(false) }
+    // The listener of the map is cancelled with the screen.
+    val listener = remember { arrayOfNulls<com.mapbox.common.Cancelable>(1) }
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { listener[0]?.cancel() } }
     LaunchedEffect(Unit) {
         delay(6_000L)
         if (!drawn) onFailed()
@@ -56,7 +59,7 @@ fun TripSatelliteMap(
                 MapView(context).also { view ->
                     val density = context.resources.displayMetrics.density
                     view.mapboxMap.setCamera(frame(view, points, bottomPaddingDp * density))
-                    view.mapboxMap.subscribeMapLoaded { drawn = true }
+                    listener[0] = view.mapboxMap.subscribeMapLoaded { drawn = true }
                     view.mapboxMap.loadStyle(Style.STANDARD_SATELLITE) { style ->
                         runCatching {
                             configureSatelliteGlobe(style)
