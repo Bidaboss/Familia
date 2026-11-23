@@ -1895,7 +1895,7 @@ Rien à publier côté Firebase. Seule l'« APK de publication » a la clé Mapb
 1. Liste Voyages, voyages avec lieu : fond de nuit, globe satellite qui tourne lentement (1 tour en 90 s), un point par voyage (le prochain en noir, les autres en jaune ; Souvenirs : points blancs bordés d'orange). Dessous, une feuille blanche arrondie avec la carte « Prochain voyage » et la suite. Un voyage sans lieu n'a pas de point.
 2. Bouton « Arrêter » (56 dp) sur le globe : arrête la rotation ; « Reprendre » la relance.
 3. Le globe s'arrête quand on quitte l'écran ou éteint le téléphone ; il reste fixe en économie d'énergie et avec « supprimer les animations ».
-4. Sans réseau, Mapbox en panne ou globe pas affiché en 3 s : retour au paysage dessiné, et pas de globe pendant 6 h sur ce téléphone. Avec TalkBack : toujours le paysage.
+4. Sans réseau, Mapbox en panne ou globe pas dessiné en 6 s (écran noir) : retour au paysage dessiné, et pas de globe pendant 6 h sur ce téléphone. Avec TalkBack : toujours le paysage.
 5. Pas encore là : vol vers le voyage au toucher d'un point, feuille tirable.
 ## Voyages : vol du globe vers le voyage (récit 99, étape 3)
 
@@ -1910,3 +1910,8 @@ Rien à publier côté Firebase. « APK de publication » (clé Mapbox) ; les AP
 2. Toucher ou tirer la poignée : la feuille monte à 85 % (tout le carnet, Jour par jour, chiffres, album) ; la retoucher la redescend.
 3. Si l'image n'est pas dessinée en 6 s, avec TalkBack, ou sans étape placée : l'écran d'avant (chemin illustré), et pas de carte pendant 6 h sur ce téléphone si elle a échoué.
 4. Pas encore là : repères ronds avec la photo de l'étape, animation d'arrivée depuis la liste, recadrage sur la prochaine étape à la hauteur haute.
+## Voyages : globe sur « Standard satellite » et repli si l'image ne vient pas (retour d'essai du 23/11)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Liste Voyages : le globe doit montrer la Terre en vue satellite (et plus un fond noir avec un seul point). Même chose pour « Lancer le voyage ».
+2. Si l'image de la Terre n'est pas dessinée en 6 s (réseau lent), retour au paysage dessiné, pas d'écran noir.
