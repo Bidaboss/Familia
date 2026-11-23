@@ -16,7 +16,7 @@ data class EmergencyNumber(val kind: EmergencyKind, val number: String)
 
 /**
  * The emergency numbers of the countries abroad (récit 105, règle 43): a fixed table in the app,
- * nothing asked to a server. France is left out on purpose (Kévin: « pas pour la France »). A
+ * nothing asked to a server. France is left out on purpose (choix produit, règle 43). A
  * country that is not in the table shows nothing, rather than a number that may be wrong.
  */
 object EmergencyNumbers {
