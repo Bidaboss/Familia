@@ -1875,3 +1875,12 @@ Rien à publier : aucune règle ni function.
 1. Page d'une étape en Wi-Fi : « Autour de l'étape » charge les lieux (le service essaie un second serveur s'il est occupé).
 2. Si les deux serveurs échouent alors que le téléphone est connecté : « Le service des lieux proches ne répond pas pour le moment » et un bouton « Réessayer » de 56 dp. Le message « Pas de réseau » ne vient que sans réseau (mode avion).
 3. « Chercher plus loin » : trois zones grises arrondies de 56 dp, texte à gauche en couleur d'encre, petite icône « ouvrir ailleurs » ; plus de liens rouges centrés.
+## Voyage : le globe Mapbox et « Lancer le voyage » (récit 94, temps 3 et 4)
+
+Rien à publier côté Firebase. Seule l'« APK de publication » a la clé Mapbox : dans les APK d'essai de la CI, le bouton n'apparaît pas et la carte dessinée reste.
+1. Carte d'un voyage (au moins 2 étapes placées), avec l'APK de publication : un bouton noir « Lancer le voyage » au-dessus de la carte. Il n'apparaît pas avec TalkBack ni « supprimer les animations ».
+2. Toucher le bouton : le globe (la Terre est ronde de loin), une carte blanche en bas : phrase d'aide, « Lancer le voyage », « Voir directement la carte ». Rien ne démarre seul.
+3. « Lancer le voyage » : la caméra descend vers l'étape 1, s'y arrête 3 s, vole vers l'étape 2, etc. Le trait se trace en foncé derrière, clair devant. La carte du bas dit « Étape 2 sur 5 », le lieu et la date.
+4. Pause, Précédent, Suivant, « Voir la carte » : boutons de 56 dp, toujours visibles. Pause arrête le compte des 3 s ; Reprendre le relance.
+5. Fin : « Voilà tout le trajet. », « Rejouer le survol » et « Voir la carte » (retour à la carte à plat).
+6. Sans réseau ou si Mapbox ne démarre pas dans les 10 s : retour tout seul à la carte à plat, sans message.

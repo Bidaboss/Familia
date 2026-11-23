@@ -2,14 +2,16 @@ package fr.familia.app.core.navigation
 
 import fr.familia.app.core.model.FeatureFlags
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TopLevelDestinationTest {
 
     @Test
-    fun `bottom bar shows accueil, planning, gifts, entraide and family in that order`() {
+    fun `tabs are listed accueil, planning, gifts, entraide, voyages and family in that order`() {
         assertEquals(
-            listOf(TopLevelDestination.Home, TopLevelDestination.Planning, TopLevelDestination.Gifts, TopLevelDestination.HelpRequests, TopLevelDestination.Members),
+            listOf(TopLevelDestination.Home, TopLevelDestination.Planning, TopLevelDestination.Gifts, TopLevelDestination.HelpRequests, TopLevelDestination.Trips, TopLevelDestination.Members),
             TopLevelDestination.entries.toList(),
         )
     }
@@ -26,11 +28,20 @@ class TopLevelDestinationTest {
     }
 
     @Test
-    fun `the bar holds 4 tabs around Tout Familia, the planning being a page`() {
-        // « La base » has no switch any more (Kévin le 18/11, 20 h 39); Planning left the bar (DESIGN-55).
-        val bar = listOf(TopLevelDestination.Home, TopLevelDestination.Gifts, TopLevelDestination.HelpRequests, TopLevelDestination.Members)
+    fun `the bar holds 4 tabs around Tout Familia, Voyages in place of Entraide, the planning being a page`() {
+        // « La base » has no switch (Kévin le 18/11), and Voyages joined it on 22/11 with no switch either.
+        val bar = listOf(TopLevelDestination.Home, TopLevelDestination.Gifts, TopLevelDestination.Trips, TopLevelDestination.Members)
         assertEquals(bar, TopLevelDestination.visible(FeatureFlags()))
-        assertEquals(bar, TopLevelDestination.visible(FeatureFlags(mapOf("gifts" to false))))
+        assertEquals(bar, TopLevelDestination.visible(FeatureFlags(mapOf("trips" to false, "gifts" to false))))
         assertEquals(bar, TopLevelDestination.visible(FeatureFlags(isOwner = true)))
+    }
+
+    @Test
+    fun `Planning and Entraide are pages of the Accueil, out of the bar`() {
+        val flags = FeatureFlags()
+        assertTrue(TopLevelDestination.isPage(TopLevelDestination.HelpRequests, flags))
+        assertTrue(TopLevelDestination.isPage(TopLevelDestination.Planning, flags))
+        assertFalse(TopLevelDestination.isPage(TopLevelDestination.Trips, flags))
+        assertFalse(TopLevelDestination.isPage(TopLevelDestination.Home, flags))
     }
 }

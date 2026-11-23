@@ -95,7 +95,8 @@ fun TripsScreen(
     onRetry: () -> Unit,
     onOpenTrip: (tripId: String) -> Unit,
     onAddTrip: () -> Unit,
-    onBack: () -> Unit,
+    /** Null when the list is a tab of the bar: nothing to go back to. */
+    onBack: (() -> Unit)?,
     onOpenAlbums: (() -> Unit)? = null,
     /** Étapes, À prévoir, Comptes of the next trip; null: the card has no buttons. */
     onOpenPart: ((tripId: String, part: TripPart) -> Unit)? = null,
@@ -152,13 +153,13 @@ fun TripsScreen(
 
 /** The round « Retour », « Voyages » (or [title]) in the title font, the round « ? ». */
 @Composable
-internal fun TripsTopBar(onBack: () -> Unit, title: String = stringResource(R.string.trips_title), help: ScreenHelp = ScreenHelp.Trips) {
+internal fun TripsTopBar(onBack: (() -> Unit)?, title: String = stringResource(R.string.trips_title), help: ScreenHelp = ScreenHelp.Trips) {
     Row(
         Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Surface(shape = CircleShape, color = Color.White, contentColor = TripPathColors.Ink) { BackButton(onClick = onBack) }
+        if (onBack != null) Surface(shape = CircleShape, color = Color.White, contentColor = TripPathColors.Ink) { BackButton(onClick = onBack) }
         Text(
             title,
             style = MaterialTheme.typography.headlineMedium,

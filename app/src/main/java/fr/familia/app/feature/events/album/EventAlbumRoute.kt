@@ -2,6 +2,8 @@ package fr.familia.app.feature.events.album
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -10,8 +12,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.createSavedStateHandle
@@ -31,6 +31,7 @@ import fr.familia.app.core.album.rememberPhotoActions
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.data.currentDayFlow
 import fr.familia.app.core.model.Member
+import fr.familia.app.core.ui.form.FormTileHeading
 import fr.familia.app.feature.help.HelpButton
 import fr.familia.app.feature.help.ScreenHelp
 import java.io.File
@@ -71,11 +72,7 @@ fun EventAlbumSection(container: AppContainer?, currentMember: Member, eventId: 
     val album = rememberEventAlbum(container, currentMember, eventId)
     val state by album.uiState.collectAsStateWithLifecycle()
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            stringResource(R.string.event_album_title),
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.semantics { heading() },
-        )
+        FormTileHeading(Icons.Outlined.PhotoLibrary, stringResource(R.string.event_album_title))
         val empty = when {
             !isOpen -> R.string.event_album_not_open
             state.canAdd -> R.string.event_album_empty_coming
