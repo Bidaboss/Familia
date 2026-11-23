@@ -203,7 +203,6 @@ private fun FormContent(
                     if (nights == 0) stringResource(R.string.trip_form_no_night) else pluralStringResource(R.plurals.trip_form_nights, nights, nights),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = TripPathColors.Ink,
                 )
             }
             errorMessage(errors, TripFormError.StartMissing, TripFormError.EndMissing, TripFormError.EndBeforeStart)
