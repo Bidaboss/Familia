@@ -1376,8 +1376,7 @@
         <item quantity="many">%d photos</item>
         <item quantity="other">%d photos</item>
     </plurals>
-    <string name="trip_notebook">Carnet</string>
-    <string name="trip_notebook_day">Carnet du jour %1$d</string>
+    <string name="trip_notebook_day">Programme, jour %1$d</string>
     <string name="trip_expenses_short">Comptes</string>
     <string name="trip_day_no_steps">Rien de noté ce jour-là. Choisis un autre jour en haut.</string>
     <string name="now_travelling_label">En ce moment</string>
@@ -1951,6 +1950,12 @@
     <string name="globe_pause">Pause</string>
     <string name="globe_resume">Reprendre</string>
     <string name="trip_map_open">La carte</string>
+    <string name="trip_map_settings">Réglages de la carte</string>
+    <string name="trip_map_settings_done">Fermer</string>
+    <string name="trip_map_look_satellite">Satellite</string>
+    <string name="trip_map_look_streets">Rues</string>
+    <string name="trip_map_mode_2d">2D</string>
+    <string name="trip_map_mode_3d">3D</string>
     <plurals name="trip_map_placed">
         <item quantity="one">Carte du voyage, une étape placée</item>
         <item quantity="many">Carte du voyage, %d étapes placées</item>
@@ -1981,30 +1986,6 @@
     <string name="figures_km">%1$d km</string>
     <string name="figures_unplaced">%1$d étapes sur %2$d : une étape sans position n\'est pas comptée.</string>
     <string name="figures_distance_later">La distance apparaît dès deux étapes placées sur la carte. Les photos et les lieux se comptent au fil du voyage.</string>
-    <!-- Le voyage jour par jour (récit 90) -->
-    <string name="story_tile_title">Jour par jour</string>
-    <plurals name="story_tile_count">
-        <item quantity="one">%1$d jour à revoir</item>
-        <item quantity="other">%1$d jours à revoir</item>
-    </plurals>
-    <string name="story_tile_hint">Un point sous le jour : il y a un mot ou des photos. Touche un jour pour le revoir.</string>
-    <string name="story_chip_a11y">Jour %1$d, %2$s, à revoir</string>
-    <string name="story_chip_empty_a11y">Jour %1$d, %2$s, rien à revoir</string>
-    <string name="story_day">Jour %1$d</string>
-    <string name="story_previous">Précédent</string>
-    <string name="story_next">Suivant</string>
-    <string name="story_heart">Cœur, %1$d</string>
-    <string name="story_heart_failed">Le cœur n\'est pas parti. Réessaie.</string>
-    <string name="story_comments">Commentaires</string>
-    <string name="story_no_photo">Pas de photo ce jour-là.</string>
-    <string name="story_route_title">Le trajet du jour</string>
-    <string name="story_route_line">%1$s · %2$d km à vol d\'oiseau</string>
-    <string name="story_route_unplaced">%1$s · Trajet non placé</string>
-    <string name="story_route_unplaced_only">Trajet non placé</string>
-    <string name="story_next_day">Jour %1$d</string>
-    <string name="story_replay">Revoir ce jour</string>
-    <string name="story_missing_title">Rien à revoir pour l\'instant</string>
-    <string name="story_missing_body">Le voyage n\'a pas encore de mot publié, ou tu ne le suis plus.</string>
     <string name="trip_map_open_step">Ouvrir l\'étape</string>
     <string name="trip_map_unplaced_title">Sans point sur la carte</string>
     <string name="trip_map_not_found">Position non trouvée</string>

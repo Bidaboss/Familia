@@ -69,10 +69,6 @@ import fr.familia.app.core.model.EventComment
 import fr.familia.app.feature.events.comments.EventCommentRow
 import fr.familia.app.feature.events.comments.EventCommentsContent
 import fr.familia.app.feature.events.comments.EventCommentsUiState
-import fr.familia.app.feature.trips.story.TripStoryActions
-import fr.familia.app.feature.trips.story.TripStoryDaysTile
-import fr.familia.app.feature.trips.story.TripStoryScreen
-import fr.familia.app.feature.trips.story.previewTripStory
 import fr.familia.app.feature.trips.word.StepWordActions
 import fr.familia.app.feature.trips.word.StepWordScreen
 import fr.familia.app.feature.trips.word.previewStepWord
@@ -124,18 +120,6 @@ internal object VoyageScreens {
         },
         screen("the map of a trip") { TripMapScreen(previewTripDetail(withPositions = true), {}, {}, {}) },
         screen("the map of a trip, for who does not take part") { TripMapScreen(previewTripDetail(isParticipant = false, withPositions = true), {}, {}, {}) },
-        screen("the story of a day, a photo") { TripStoryScreen(previewTripStory(frame = 0), TripStoryActions()) },
-        screen("the story of a day, a word with no photo") { TripStoryScreen(previewTripStory(frame = 0, withPhoto = false, lastDay = true), TripStoryActions()) },
-        screen("the story of a day, the route") { TripStoryScreen(previewTripStory(frame = 2, lastDay = true), TripStoryActions()) },
-        screen("the story of a day, the route, with a day after") { TripStoryScreen(previewTripStory(frame = 2), TripStoryActions()) },
-        screen("the days of a trip, one with a word") {
-            TripStoryDaysTile(
-                (11..16).map { java.time.LocalDate.of(2026, 4, it) },
-                setOf(java.time.LocalDate.of(2026, 4, 11), java.time.LocalDate.of(2026, 4, 12), java.time.LocalDate.of(2026, 4, 13)),
-                java.time.LocalDate.of(2026, 4, 12),
-                {},
-            )
-        },
         screen("the word of a step, to write") { StepWordScreen(previewStepWord(canWrite = true, withWord = false), StepWordActions()) },
         screen("the word of a step, to change") { StepWordScreen(previewStepWord(canWrite = true, withWord = true), StepWordActions()) },
         screen("the word of a step, to read") { StepWordScreen(previewStepWord(canWrite = false, withWord = true, isParticipant = false), StepWordActions()) },
