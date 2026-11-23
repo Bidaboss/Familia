@@ -47,7 +47,8 @@ jobs:
       - name: Decide and publish
         run: |
           set -euo pipefail
-          APK_RE='^(app/|gradle/|build\.gradle|settings\.gradle|gradle\.properties|gradlew)'
+          # Tests alone (app/src/test, app/src/androidTest) do not change the APK.
+          APK_RE='^(app/(src/(main|release|debug)/|build\.gradle|proguard|[^/]+\.(json|pro|kts?)$)|gradle/|build\.gradle|settings\.gradle|gradle\.properties|gradlew)'
           FIREBASE_RE='^firebase/(\.firebaserc|firebase\.json|firestore\.rules|firestore\.indexes\.json|storage\.rules|functions/(src/|package(-lock)?\.json|tsconfig\.json)|hosting/)'
 
           # Last commit already published by a workflow, whoever started it (Kévin or this one).
@@ -67,8 +68,13 @@ jobs:
           [ -n "$apk_base" ] || echo "::warning::Aucune APK déjà publiée : rien d'automatique pour l'APK."
           [ -n "$fb_base" ] || echo "::warning::Aucun Publier Firebase déjà réussi : rien d'automatique pour Firebase."
 
+          # Commits not yet published by at least one of the two workflows (union of both ranges).
+          not_published=()
+          [ -n "$apk_base" ] && not_published+=("$apk_base")
+          [ -n "$fb_base" ] && not_published+=("$fb_base")
           apk_first=false
-          if git log "${apk_base:-HEAD}..HEAD" "${fb_base:-HEAD}..HEAD" --format=%B | grep -qF '[apk-d-abord]'; then
+          if [ "${#not_published[@]}" -gt 0 ] \
+            && git log HEAD --not "${not_published[@]}" --format=%B | grep -qF '[apk-d-abord]'; then
             apk_first=true
           fi
 
