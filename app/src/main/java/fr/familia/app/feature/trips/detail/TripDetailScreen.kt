@@ -372,7 +372,9 @@ private fun PathContent(
         TripSatelliteMap(
             token = satelliteToken,
             points = placed.map { GeoPoint(it.lat!!, it.lng!!) },
+            names = placed.map { it.place },
             nextIndex = next,
+            sheetHigh = expanded,
             bottomPaddingDp = lowHeight.value.toDouble(),
             onFailed = { GlobeHealth.markFailed(context); mapFailed = true },
             modifier = Modifier.fillMaxSize(),

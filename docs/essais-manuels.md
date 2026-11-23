@@ -1915,3 +1915,9 @@ Rien à publier côté Firebase. « APK de publication » (clé Mapbox) ; les AP
 Rien à publier côté Firebase. « APK de publication ».
 1. Liste Voyages : le globe doit montrer la Terre en vue satellite (et plus un fond noir avec un seul point). Même chose pour « Lancer le voyage ».
 2. Si l'image de la Terre n'est pas dessinée en 6 s (réseau lent), retour au paysage dessiné, pas d'écran noir.
+## Voyage : repères numérotés et recadrage sur la prochaine étape (récit 100, étape 2)
+
+Rien à publier côté Firebase. « APK de publication ».
+1. Accueil d'un voyage en carte satellite : chaque étape est un rond noir numéroté (1, 2, 3…) avec son lieu dessous ; la prochaine étape est plus grosse, jaune, son lieu en surbrillance jaune.
+2. Monter la feuille à 85 % : la carte se rapproche de la prochaine étape (0,6 s) ; la redescendre recadre toutes les étapes au-dessus de la feuille.
+3. Pas encore là : la photo de l'étape dans le rond, l'animation d'arrivée depuis la liste, le regroupement des repères trop proches.
