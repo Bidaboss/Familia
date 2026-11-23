@@ -7,16 +7,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import com.mapbox.bindgen.Value
 import com.mapbox.common.MapboxOptions
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
 import com.mapbox.maps.Style
-import com.mapbox.maps.StyleProjection
-import com.mapbox.maps.StyleProjectionName
-import com.mapbox.maps.extension.style.atmosphere.generated.atmosphere
-import com.mapbox.maps.extension.style.atmosphere.setAtmosphere
 import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.generated.circleLayer
 import com.mapbox.maps.extension.style.layers.generated.lineLayer
@@ -62,8 +59,11 @@ fun GlobeMapView(
                     view.mapboxMap.loadStyle(Style.SATELLITE) { style ->
                         runCatching {
                             // Satellite view, forced round (only Standard is a globe by itself), in a starry sky.
-                            style.setProjection(StyleProjection(StyleProjectionName.GLOBE))
-                            style.setAtmosphere(atmosphere { color("#BFD9F2"); highColor("#3C6FB5"); spaceColor("#050B1A"); horizonBlend(0.04); starIntensity(0.7) })
+                            style.setStyleProjectionProperty("name", Value.valueOf("globe"))
+                            mapOf("color" to "#BFD9F2", "high-color" to "#3C6FB5", "space-color" to "#050B1A")
+                                .forEach { (key, color) -> style.setStyleAtmosphereProperty(key, Value.valueOf(color)) }
+                            style.setStyleAtmosphereProperty("horizon-blend", Value.valueOf(0.04))
+                            style.setStyleAtmosphereProperty("star-intensity", Value.valueOf(0.7))
                             style.addSource(geoJsonSource(TRAIL_ALL) { geometry(trail(points, points.size - 1)) })
                             style.addSource(geoJsonSource(TRAIL_DONE) { geometry(trail(points, 0)) })
                             style.addSource(geoJsonSource(STEPS) { featureCollection(com.mapbox.geojson.FeatureCollection.fromFeatures(points.map { com.mapbox.geojson.Feature.fromGeometry(it.toPoint()) })) })
