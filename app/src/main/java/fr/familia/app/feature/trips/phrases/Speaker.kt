@@ -22,13 +22,23 @@ class Speaker internal constructor(context: Context) {
     var available by mutableStateOf<Set<PhraseLanguage>>(emptySet())
         private set
 
+    /** True once the engine said it is ready; the callback may come before [engine] is assigned. */
+    @Volatile private var ready = false
+
     init {
         engine = TextToSpeech(context.applicationContext) { status ->
-            val tts = engine
-            if (status == TextToSpeech.SUCCESS && tts != null) {
-                available = PhraseLanguage.entries.filter { tts.isLanguageAvailable(it.locale) >= TextToSpeech.LANG_AVAILABLE }.toSet()
+            if (status == TextToSpeech.SUCCESS) {
+                ready = true
+                refresh()
             }
         }
+        refresh()
+    }
+
+    private fun refresh() {
+        val tts = engine ?: return
+        if (!ready) return
+        available = PhraseLanguage.entries.filter { tts.isLanguageAvailable(it.locale) >= TextToSpeech.LANG_AVAILABLE }.toSet()
     }
 
     fun say(text: String, language: PhraseLanguage) {
