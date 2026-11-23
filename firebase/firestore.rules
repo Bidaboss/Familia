@@ -2079,12 +2079,14 @@ service cloud.firestore {
 
       // Never the keeper: the amount of each part stays with the one who gives it (récit 93).
       allow read: if isMember()
+        && canSeeList(list())
         && list().kind == 'wishes'
         && memberId == myMemberId();
 
       allow create, update: if isMember()
         && memberId == myMemberId()
         && me().profile == 'adult'
+        && canSeeList(list())
         && list().kind == 'wishes'
         && !keepsListsOf(list().beneficiaryId)
         && get(itemPath()).data.get('coBeneficiaryId', null) != myMemberId()
@@ -2116,12 +2118,14 @@ service cloud.firestore {
       }
 
       allow read: if isMember()
+        && canSeeList(list())
         && list().kind == 'wishes'
         && (memberId == myMemberId() || keepsListsOf(list().beneficiaryId));
 
       allow create, update: if isMember()
         && memberId == myMemberId()
         && me().profile == 'adult'
+        && canSeeList(list())
         && list().kind == 'wishes'
         && !keepsListsOf(list().beneficiaryId)
         && existsAfter(partPath())

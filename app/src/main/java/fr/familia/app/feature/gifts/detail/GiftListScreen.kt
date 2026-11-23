@@ -318,6 +318,7 @@ private fun ActionMessage(state: GiftListUiState.Success, itemId: String? = null
     val text = when {
         lost?.reason == ClaimLost.Reason.Taken -> stringResource(R.string.gift_claim_taken)
         lost?.reason == ClaimLost.Reason.Removed -> stringResource(R.string.gift_claim_removed)
+        lost?.reason == ClaimLost.Reason.AlreadyBought -> stringResource(R.string.gift_claim_already_bought)
         state.actionFailed -> stringResource(R.string.gift_action_failed)
         else -> return
     }
