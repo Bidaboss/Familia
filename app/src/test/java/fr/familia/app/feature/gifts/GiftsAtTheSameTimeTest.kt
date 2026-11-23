@@ -65,6 +65,18 @@ class GiftsAtTheSameTimeTest {
     }
 
     @Test
+    fun `the idea is already bought, the refusal says so instead of failing`() = runTest {
+        val gifts = FakeGifts(list)
+        gifts.items.value = gifts.items.value.map { it.copy(alreadyBought = true) }
+        gifts.onClaim = { throw refused }
+        val vm = opened(gifts)
+        vm.take("i1")
+        runCurrent()
+        assertEquals(ClaimLost("i1", ClaimLost.Reason.AlreadyBought), vm.shown().claimLost)
+        assertFalse(vm.shown().actionFailed)
+    }
+
+    @Test
     fun `the idea was removed while I reserved it`() = runTest {
         val gifts = FakeGifts(list)
         gifts.onClaim = {

@@ -94,7 +94,7 @@ data class SharedWishRow(val listId: String, val item: GiftItem, val ownerName: 
 
 /** Why a reservation did not hold, told gently rather than as a failure. */
 data class ClaimLost(val itemId: String, val reason: Reason) {
-    enum class Reason { Taken, Removed }
+    enum class Reason { Taken, Removed, AlreadyBought }
 }
 
 sealed interface GiftListUiState {
@@ -309,6 +309,10 @@ class GiftListViewModel(
             when {
                 items.none { it.id == failure.itemId } -> ClaimLost(failure.itemId, ClaimLost.Reason.Removed)
                 claimById[failure.itemId]?.let { it.holderId != me.id } == true -> ClaimLost(failure.itemId, ClaimLost.Reason.Taken)
+                // Checked « Déjà acheté » while its switch was on, then the switch went off: the server still
+                // refuses « Je le prends » on it, so the screen says why (notes C de #370).
+                items.firstOrNull { it.id == failure.itemId }?.alreadyBought == true ->
+                    ClaimLost(failure.itemId, ClaimLost.Reason.AlreadyBought)
                 else -> null
             }
         }

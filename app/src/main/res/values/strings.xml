@@ -868,6 +868,7 @@
     <string name="gift_action_failed">Ça n\'a pas marché. Vérifie ta connexion, puis réessaie.</string>
     <string name="gift_claim_taken">Quelqu\'un vient de la réserver, juste avant toi.</string>
     <string name="gift_claim_removed">Son auteur vient de la retirer de la liste.</string>
+    <string name="gift_claim_already_bought">Cette envie est déjà achetée : on ne la réserve plus.</string>
     <string name="gift_item_price">Environ %1$s</string>
     <string name="gift_item_idea_of">Idée de %1$s</string>
     <!-- « Cadeau commun avec… » (récit 73) -->
