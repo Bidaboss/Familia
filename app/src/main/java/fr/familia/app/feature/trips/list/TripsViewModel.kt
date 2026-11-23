@@ -10,6 +10,7 @@ import fr.familia.app.core.model.Trip
 import fr.familia.app.feature.trips.TripPhase
 import fr.familia.app.feature.trips.canCreateTrip
 import fr.familia.app.feature.trips.firstNames
+import fr.familia.app.feature.trips.map.GeoPoint
 import fr.familia.app.feature.trips.tripPhase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -59,8 +61,8 @@ class TripsViewModel(
             if (trips == null || members == null) {
                 today.flatMapLatest { flowOf(TripsUiState.Success(emptyList(), emptyList(), emptyList(), it)) }
             } else {
-                combine(trips.observeFollowedTrips(currentMemberId), members.observeFamily(), today) { list, family, day ->
-                    state(list, family, day)
+                trips.observeFollowedTrips(currentMemberId).flatMapLatest { list ->
+                    combine(placesOf(trips, list), members.observeFamily(), today) { places, family, day -> state(list, family, day, places) }
                 }
                     .onStart { if (n > 0) emit(TripsUiState.Loading) }
                     .catch { e ->
@@ -75,7 +77,21 @@ class TripsViewModel(
         attempt.update { it + 1 }
     }
 
-    private fun state(list: List<Trip>, family: Family, day: LocalDate): TripsUiState {
+    /** The first step with a position of each trip: where it goes. A trip whose steps cannot be read has no point. */
+    private fun placesOf(repo: TripRepository, list: List<Trip>): Flow<Map<String, GeoPoint>> =
+        if (list.isEmpty()) {
+            flowOf(emptyMap())
+        } else {
+            combine(
+                list.map { trip ->
+                    repo.observeSteps(trip.id)
+                        .map { steps -> trip.id to steps.firstOrNull { it.hasPosition }?.let { GeoPoint(it.lat!!, it.lng!!) } }
+                        .catch { e -> if (e is CancellationException) throw e else emit(trip.id to null) }
+                },
+            ) { pairs -> pairs.mapNotNull { (id, point) -> point?.let { id to it } }.toMap() }
+        }
+
+    private fun state(list: List<Trip>, family: Family, day: LocalDate, places: Map<String, GeoPoint>): TripsUiState {
         val byId = family.members.associateBy { it.id }
         val byPhase = list.map { trip ->
             TripSummary(
@@ -83,6 +99,7 @@ class TripsViewModel(
                 firstNames(trip.participantIds, family),
                 people = trip.participantIds.mapNotNull { byId[it] },
                 isParticipant = currentMemberId in trip.participantIds,
+                place = places[trip.id],
             )
         }
             .groupBy { tripPhase(it.trip, day) }

@@ -1135,6 +1135,7 @@ fun FamiliaApp(
                         TripsRoute(
                             container = container,
                             currentMember = currentMember,
+                            globeToken = BuildConfig.MAPBOX_PUBLIC_TOKEN,
                             onOpenTrip = { id -> navController.navigate(TripDetailDestination(id)) },
                             onAddTrip = { navController.navigate(TripEditDestination()) },
                             // A tab of the bar when its module is on: no « Retour » then.

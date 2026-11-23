@@ -34,6 +34,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -41,6 +42,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -79,6 +81,7 @@ import fr.familia.app.feature.trips.detail.TripPathColors
 import fr.familia.app.feature.trips.detail.drawLandscape
 import fr.familia.app.feature.trips.detail.palette
 import fr.familia.app.feature.trips.joinNames
+import fr.familia.app.feature.trips.map.GlobeHealth
 import java.time.LocalDate
 
 /** A part of a trip that the card of the next trip opens directly. */
@@ -102,16 +105,46 @@ fun TripsScreen(
     onOpenPart: ((tripId: String, part: TripPart) -> Unit)? = null,
     /** Whether « Comptes » exists for this member (the switch, an adult). */
     expensesOn: Boolean = false,
+    /** Public Mapbox token of this APK; blank: no globe, the drawn landscape stays (récit 99). */
+    globeToken: String = "",
 ) {
     var souvenirs by rememberSaveable { mutableStateOf(false) }
+    var globeStopped by rememberSaveable { mutableStateOf(false) }
+    // The globe gave up (slow phone, no network, Mapbox error): the landscape from now on, and for 6 h on this phone.
+    var globeFailed by rememberSaveable { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
     val success = state as? TripsUiState.Success
+    val globeAllowed = remember { GlobeHealth.usable(context) && !talkBackOn(context) }
+    val globeOn = globeToken.isNotBlank() && globeAllowed && !globeFailed && success?.isEmpty == false
+    val markers = if (success == null || !globeOn) {
+        emptyList()
+    } else if (souvenirs) {
+        success.past.mapNotNull { s -> s.place?.let { GlobeMarker(it, false) } }
+    } else {
+        (success.ongoing + success.upcoming).mapNotNull { s -> s.place?.let { GlobeMarker(it, false) } }
+            .let { list -> list.mapIndexed { i, m -> if (i == 0) m.copy(highlighted = true) else m } }
+    }
+    // Over the globe the top bar sits on the night sky.
+    val dark = globeOn
+    val skyColor = if (dark) Color.Transparent else TripPathColors.Sky
+    Box(Modifier.fillMaxSize().then(if (dark) Modifier.background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF0B1F45), Color(0xFF050B1A)))) else Modifier)) {
+    if (globeOn) {
+        TripsGlobe(
+            token = globeToken,
+            markers = markers,
+            souvenirs = souvenirs,
+            stopped = globeStopped,
+            onFailed = { GlobeHealth.markFailed(context); globeFailed = true },
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.62f).align(Alignment.TopCenter),
+        )
+    }
     CompositionLocalProvider(LocalContentColor provides TripPathColors.Ink) {
         Scaffold(
-            containerColor = TripPathColors.Sky,
+            containerColor = skyColor,
             contentColor = TripPathColors.Ink,
             topBar = {
-                Column(Modifier.background(TripPathColors.Sky).statusBarsPadding()) {
-                    TripsTopBar(onBack)
+                Column(Modifier.background(skyColor).statusBarsPadding()) {
+                    TripsTopBar(onBack, onDark = dark)
                     if (success != null && !success.isEmpty) {
                         TripsSwitch(souvenirs, success.past.size, onChoose = { souvenirs = it }, Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                     }
@@ -121,7 +154,20 @@ fun TripsScreen(
                 if (success?.canCreate == true) StickyActionBar(text = "+ " + stringResource(R.string.trips_add), onClick = onAddTrip)
             },
         ) { padding ->
-            Box(Modifier.padding(padding).fillMaxSize()) {
+            Column(Modifier.padding(padding).fillMaxSize()) {
+              if (globeOn) {
+                Box(Modifier.weight(0.4f).fillMaxWidth()) {
+                    OutlinedButton(
+                        onClick = { globeStopped = !globeStopped },
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp).heightIn(min = 48.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White),
+                    ) { Text(stringResource(if (globeStopped) R.string.globe_list_resume else R.string.globe_list_stop)) }
+                }
+              }
+              Box(
+                Modifier.weight(if (globeOn) 0.6f else 1f).fillMaxWidth()
+                    .then(if (globeOn) Modifier.clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(TripPathColors.Sky) else Modifier),
+              ) {
                 when (state) {
                     TripsUiState.Loading -> LoadingState(Modifier.align(Alignment.Center))
                     TripsUiState.Error -> EmptyState(
@@ -143,17 +189,19 @@ fun TripsScreen(
                             mascot = true,
                         )
                         souvenirs -> Souvenirs(state, onOpenTrip)
-                        else -> Coming(state, onOpenTrip, onOpenPart, expensesOn)
+                        else -> Coming(state, onOpenTrip, onOpenPart, expensesOn, withLandscape = !globeOn)
                     }
                 }
+              }
             }
         }
+    }
     }
 }
 
 /** The round « Retour », « Voyages » (or [title]) in the title font, the round « ? ». */
 @Composable
-internal fun TripsTopBar(onBack: (() -> Unit)?, title: String = stringResource(R.string.trips_title), help: ScreenHelp = ScreenHelp.Trips) {
+internal fun TripsTopBar(onBack: (() -> Unit)?, title: String = stringResource(R.string.trips_title), help: ScreenHelp = ScreenHelp.Trips, onDark: Boolean = false) {
     Row(
         Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -164,7 +212,7 @@ internal fun TripsTopBar(onBack: (() -> Unit)?, title: String = stringResource(R
             title,
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.SemiBold,
-            color = TripPathColors.Ink,
+            color = if (onDark) Color.White else TripPathColors.Ink,
             modifier = Modifier.weight(1f).padding(start = 8.dp).semantics { heading() },
         )
         Surface(shape = CircleShape, color = Color.White, contentColor = TripPathColors.Ink) { HelpButton(help) }
@@ -221,6 +269,7 @@ private fun Coming(
     onOpenTrip: (String) -> Unit,
     onOpenPart: ((String, TripPart) -> Unit)?,
     expensesOn: Boolean,
+    withLandscape: Boolean = true,
 ) {
     val plan = tripsPathPlan(state.ongoing, state.upcoming)
     val hero = plan.hero
@@ -236,7 +285,7 @@ private fun Coming(
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
         val landscape = hero?.trip?.landscape ?: TripLandscape.Dunes
         val ground = landscape.palette.near
-        item(key = "landscape") { TripsLandscape(goal, stringResource(R.string.day_today), landscape = landscape) }
+        if (withLandscape) item(key = "landscape") { TripsLandscape(goal, stringResource(R.string.day_today), landscape = landscape) }
         item(key = "hero") {
             Box(Modifier.fillMaxWidth().background(ground).padding(horizontal = 16.dp, vertical = 8.dp)) {
                 if (hero != null) {
