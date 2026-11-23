@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Luggage
+import androidx.compose.material.icons.outlined.QuestionAnswer
 import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -235,6 +236,8 @@ fun TripDayCard(
     /** « Valise » (récit 98): the round button under the menus, for those who go. */
     onPacking: (() -> Unit)? = null,
     packingCount: Int = 0,
+    /** « Phrases » (récit 105): the round button of a trip with a step abroad, for anyone who reads it. */
+    onPhrases: (() -> Unit)? = null,
 ) {
     val title = if (places.isEmpty()) {
         stringResource(R.string.trip_day_title, number, frenchDate(day, "EEEE d MMMM"))
@@ -262,10 +265,13 @@ fun TripDayCard(
             DayButton(pluralStringResource(R.plurals.trip_photo_count, photoCount, photoCount), onPhotos, item)
         }
         // Then the tools, for those who go: two round buttons with their word under them.
-        if (onExpenses != null || onPacking != null) {
+        if (onExpenses != null || onPacking != null || onPhrases != null) {
             Row(Modifier.align(Alignment.CenterHorizontally), horizontalArrangement = Arrangement.spacedBy(28.dp)) {
                 if (onExpenses != null) {
                     ToolRound(Icons.Outlined.Payments, stringResource(R.string.trip_expenses_short), stringResource(R.string.expenses_open), onExpenses)
+                }
+                if (onPhrases != null) {
+                    ToolRound(Icons.Outlined.QuestionAnswer, stringResource(R.string.phrases_round_label), stringResource(R.string.phrases_round_description), onPhrases)
                 }
                 if (onPacking != null) {
                     val description = if (packingCount == 0) stringResource(R.string.packing_round_ready) else pluralStringResource(R.plurals.packing_round_todo, packingCount, packingCount)

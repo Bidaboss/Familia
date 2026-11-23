@@ -34,6 +34,9 @@ interface PlaceLocator {
     /** The postal address of a point, or null when the geocoder of the phone has none. */
     suspend fun addressOf(lat: Double, lng: Double): String?
 
+    /** The country (ISO 3166 code, upper case) of a point, or null when the phone cannot tell (récit 105). */
+    suspend fun countryCodeOf(lat: Double, lng: Double): String? = null
+
     /** The point of an address typed by the member, with its full address, or null. */
     suspend fun find(query: String): Place?
 
@@ -111,6 +114,9 @@ class AndroidPlaceLocator(private val context: Context) : PlaceLocator {
 
     override suspend fun addressOf(lat: Double, lng: Double): String? =
         geocode(Request.Reverse(lat, lng))?.firstOrNull()?.let(::addressLine)
+
+    override suspend fun countryCodeOf(lat: Double, lng: Double): String? =
+        geocode(Request.Reverse(lat, lng))?.firstOrNull()?.countryCode?.trim()?.uppercase(Locale.ROOT)?.takeIf { it.length == 2 }
 
     override suspend fun find(query: String): Place? {
         val found = geocode(Request.Forward(query))?.firstOrNull() ?: return null

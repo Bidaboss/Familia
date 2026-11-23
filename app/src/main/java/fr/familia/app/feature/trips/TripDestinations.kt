@@ -26,6 +26,10 @@ data class TripEditDestination(val tripId: String? = null)
 @Serializable
 data class TripStepEditDestination(val tripId: String, val stepId: String? = null, val place: String? = null)
 
+/** « Phrases utiles » of [tripId] (récit 105): ten phrases of the language of each country abroad. */
+@Serializable
+data class TripPhrasesDestination(val tripId: String)
+
 /** The map of [tripId]: its steps joined in order on the landscape (récit 87). */
 @Serializable
 data class TripMapDestination(val tripId: String)

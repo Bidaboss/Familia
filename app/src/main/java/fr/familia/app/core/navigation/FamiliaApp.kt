@@ -301,6 +301,8 @@ import fr.familia.app.feature.trips.TripGlobeDestination
 import fr.familia.app.feature.trips.TripMapDestination
 import fr.familia.app.feature.trips.map.TripGlobeRoute
 import fr.familia.app.feature.trips.TripPackingDestination
+import fr.familia.app.feature.trips.TripPhrasesDestination
+import fr.familia.app.feature.trips.phrases.TripPhrasesRoute
 import fr.familia.app.feature.trips.packing.TripPackingRoute
 import fr.familia.app.feature.trips.TripStoryDestination
 import fr.familia.app.feature.trips.TripWordDestination
@@ -1170,6 +1172,7 @@ fun FamiliaApp(
                             onSeePhotos = { navController.navigate(TripPhotosDestination(tripId)) },
                             onOpenMap = { navController.navigate(TripMapDestination(tripId)) },
                             onOpenPacking = { navController.navigate(TripPackingDestination(tripId)) },
+                            onOpenPhrases = { navController.navigate(TripPhrasesDestination(tripId)) },
                             onOpenWord = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
                             onOpenStory = { day -> navController.navigate(TripStoryDestination(tripId, day.toString())) },
                             onBack = { navController.popBackStack() },
@@ -1184,6 +1187,9 @@ fun FamiliaApp(
                     composable<TripPackingDestination> { entry ->
                         val route = entry.toRoute<TripPackingDestination>()
                         TripPackingRoute(container = container, currentMember = currentMember, tripId = route.tripId, open = route.open, onBack = { navController.popBackStack() })
+                    }
+                    composable<TripPhrasesDestination> { entry ->
+                        TripPhrasesRoute(container = container, currentMember = currentMember, tripId = entry.toRoute<TripPhrasesDestination>().tripId, onBack = { navController.popBackStack() })
                     }
                     composable<TripMapDestination> { entry ->
                         val tripId = entry.toRoute<TripMapDestination>().tripId
