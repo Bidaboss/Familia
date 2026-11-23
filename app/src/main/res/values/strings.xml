@@ -346,6 +346,7 @@
     <string name="nearby_see">À voir</string>
     <string name="nearby_loading">On cherche les lieux proches…</string>
     <string name="nearby_offline">Pas de réseau : les lieux proches reviendront dès que le téléphone sera connecté.</string>
+    <string name="nearby_unavailable">Le service des lieux proches ne répond pas pour le moment. Réessaie dans un instant.</string>
     <string name="nearby_none">Aucun site trouvé à moins de 5 km de cette étape.</string>
     <string name="nearby_opens_map">Un appui ouvre le lieu dans l\'appli de cartes du téléphone.</string>
     <string name="nearby_source">Données : © les contributeurs d\'OpenStreetMap</string>

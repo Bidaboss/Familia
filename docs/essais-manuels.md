@@ -1869,6 +1869,12 @@ Rien à publier : aucune règle ni function.
 2. Page d'une étape (« Le mot de l'étape »), sous « À savoir sur… » et « Autour de l'étape » : la tuile « Chercher plus loin », trois lignes de 56 dp et la phrase « Ces liens ouvrent une autre appli… ». Toujours là, même sans réseau ou si l'étape n'a pas de position.
 3. Une ligne ouvre Google Maps ou Tripadvisor avec le nom du lieu.
 
+## Voyage : « Autour de l'étape » plus robuste et liens plus lisibles (retour d'essai du 22/11)
+
+Rien à publier : aucune règle ni function.
+1. Page d'une étape en Wi-Fi : « Autour de l'étape » charge les lieux (le service essaie un second serveur s'il est occupé).
+2. Si les deux serveurs échouent alors que le téléphone est connecté : « Le service des lieux proches ne répond pas pour le moment » et un bouton « Réessayer » de 56 dp. Le message « Pas de réseau » ne vient que sans réseau (mode avion).
+3. « Chercher plus loin » : trois zones grises arrondies de 56 dp, texte à gauche en couleur d'encre, petite icône « ouvrir ailleurs » ; plus de liens rouges centrés.
 ## Voyage : le globe Mapbox et « Lancer le voyage » (récit 94, temps 3 et 4)
 
 Rien à publier côté Firebase. Seule l'« APK de publication » a la clé Mapbox : dans les APK d'essai de la CI, le bouton n'apparaît pas et la carte dessinée reste.
