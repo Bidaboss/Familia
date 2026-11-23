@@ -175,6 +175,17 @@ describe('editing a trip', () => {
     await assertFails(updateDoc(doc(db, 'trips/t1'), { title: 'Sans date de modif' }));
   });
 
+  test('« Monnaie » (récit 105): the creator sets an ISO code or takes it back; nothing else is a currency', async () => {
+    await storedTrip('t1', ADULT);
+    const db = as(env, ADULT);
+    await assertSucceeds(updateDoc(doc(db, 'trips/t1'), { currency: 'THB', updatedAt: serverTimestamp() }));
+    await assertSucceeds(updateDoc(doc(db, 'trips/t1'), { currency: deleteField(), updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db, 'trips/t1'), { currency: 'thb', updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db, 'trips/t1'), { currency: 'BAHT', updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(db, 'trips/t1'), { currency: 12, updatedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(as(env, NEIGHBOUR), 'trips/t1'), { currency: 'THB', updatedAt: serverTimestamp() }));
+  });
+
   test('a participant cannot be unticked from the followers', async () => {
     await storedTrip('t1', ADULT);
     await assertFails(updateDoc(doc(as(env, ADULT), 'trips/t1'), { readerIds: ['adult1'], updatedAt: serverTimestamp() }));

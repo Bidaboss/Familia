@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Euro
 import androidx.compose.material.icons.outlined.HealthAndSafety
 import androidx.compose.material.icons.outlined.Luggage
 import androidx.compose.material.icons.outlined.QuestionAnswer
@@ -242,6 +243,8 @@ fun TripDayCard(
     onPhrases: (() -> Unit)? = null,
     /** « Sécurité » (récit 105): the round button of a trip with a step in a country of the table of numbers. */
     onSafety: (() -> Unit)? = null,
+    /** « Monnaie » (récit 105): the currency of the trip and the rate of the day, for those who go. */
+    onMoney: (() -> Unit)? = null,
 ) {
     val title = if (places.isEmpty()) {
         stringResource(R.string.trip_day_title, number, frenchDate(day, "EEEE d MMMM"))
@@ -268,7 +271,7 @@ fun TripDayCard(
             DayButton(pluralStringResource(R.plurals.trip_photo_count, photoCount, photoCount), onPhotos, item)
         }
         // Then the tools, for those who go: two round buttons with their word under them.
-        if (onExpenses != null || onPacking != null || onPhrases != null || onSafety != null) {
+        if (onExpenses != null || onPacking != null || onPhrases != null || onSafety != null || onMoney != null) {
             // Up to four rounds: they go on a second line rather than out of the card.
             FlowRow(
                 Modifier.fillMaxWidth(),
@@ -280,6 +283,9 @@ fun TripDayCard(
                 }
                 if (onPhrases != null) {
                     ToolRound(Icons.Outlined.QuestionAnswer, stringResource(R.string.phrases_round_label), stringResource(R.string.phrases_round_description), onPhrases)
+                }
+                if (onMoney != null) {
+                    ToolRound(Icons.Outlined.Euro, stringResource(R.string.money_round_label), stringResource(R.string.money_round_description), onMoney)
                 }
                 if (onSafety != null) {
                     ToolRound(Icons.Outlined.HealthAndSafety, stringResource(R.string.safety_round_label), stringResource(R.string.safety_round_description), onSafety)

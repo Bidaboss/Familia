@@ -146,6 +146,8 @@ fun TripDetailScreen(
     onOpenPhrases: (() -> Unit)? = null,
     /** « Sécurité » (récit 105): offered when a step is in a country of the table of numbers; null elsewhere. */
     onOpenSafety: (() -> Unit)? = null,
+    /** « Monnaie » (récit 105): for those who go, on a trip abroad or with a currency; null elsewhere. */
+    onOpenMoney: (() -> Unit)? = null,
     /** Public Mapbox token of this APK: with it the home is the satellite map and a sheet (récit 100); blank: the drawn path. */
     satelliteToken: String = "",
 ) {
@@ -209,7 +211,7 @@ fun TripDetailScreen(
                     },
                 )
                 is TripDetailUiState.Success -> if (illustrated) {
-                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken, onOpenPhrases, onOpenSafety)
+                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken, onOpenPhrases, onOpenSafety, onOpenMoney)
                 } else {
                     Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing, onOpenMap, onOpenWord)
                 }
@@ -334,6 +336,7 @@ private fun PathContent(
     satelliteToken: String = "",
     onOpenPhrases: (() -> Unit)? = null,
     onOpenSafety: (() -> Unit)? = null,
+    onOpenMoney: (() -> Unit)? = null,
 ) {
     val days = remember(state.trip.startDate, state.trip.endDate) { TripDays.of(state.trip) }
     var chosenEpoch by rememberSaveable(state.trip.id) { mutableStateOf<Long?>(null) }
@@ -434,6 +437,7 @@ private fun PathContent(
                     packingCount = packingCount,
                     onPhrases = onOpenPhrases,
                     onSafety = onOpenSafety,
+                    onMoney = onOpenMoney,
                 )
             }
         }

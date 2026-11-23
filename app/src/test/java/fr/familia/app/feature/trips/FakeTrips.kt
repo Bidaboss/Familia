@@ -96,6 +96,12 @@ class FakeTrips(
     }
 
     val alerts = mutableListOf<Pair<String, String>>()
+    val currencies = mutableListOf<Pair<String, String?>>()
+
+    override suspend fun setCurrency(tripId: String, code: String?) {
+        failWith?.let { throw it }
+        currencies += tripId to code
+    }
 
     override suspend fun alertFamily(tripId: String, me: Member) {
         failWith?.let { throw it }
