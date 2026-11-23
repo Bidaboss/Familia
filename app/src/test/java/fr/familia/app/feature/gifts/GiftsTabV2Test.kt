@@ -9,8 +9,6 @@ import fr.familia.app.core.theme.FamiliaTheme
 import fr.familia.app.core.ui.checkAccessibility
 import fr.familia.app.feature.events.TestFamily
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -43,8 +41,8 @@ class GiftsTabV2Test {
         },
     )
 
-    private fun stateFor(reader: String, day: LocalDate = today, tabV2: Boolean = true, singleList: Boolean = true): GiftsUiState.Success =
-        (giftsState(family, emptyList(), reader, day, singleList = singleList, surpriseButton = true, tabV2 = tabV2) as GiftsUiState.Success)
+    private fun stateFor(reader: String, day: LocalDate = today): GiftsUiState.Success =
+        (giftsState(family, emptyList(), reader, day, surpriseButton = true) as GiftsUiState.Success)
 
     private fun show(
         state: GiftsUiState.Success,
@@ -55,7 +53,7 @@ class GiftsTabV2Test {
         compose.setContent {
             FamiliaTheme {
                 GiftsScreen(
-                    state, onOpenList = onOpenList, onNewList = {}, onRetry = {}, someListsHidden = someListsHidden,
+                    state, onOpenList = onOpenList, onRetry = {}, someListsHidden = someListsHidden,
                     onOpenSurprisePicker = onPicker, onOpenMyPage = {},
                 )
             }
@@ -68,13 +66,6 @@ class GiftsTabV2Test {
     private fun button(label: String) = compose.onAllNodesWithContentDescription(label).fetchSemanticsNodes().size
 
     private fun top(text: String) = compose.onNodeWithText(text).fetchSemanticsNode().boundsInRoot.top
-
-    @Test
-    fun `the new tab needs its switch and the single list`() {
-        assertTrue(stateFor("adult1").tabV2)
-        assertFalse(stateFor("adult1", tabV2 = false).tabV2)
-        assertFalse(stateFor("adult1", singleList = false).tabV2)
-    }
 
     @Test
     fun `my household first, the others after`() {
@@ -214,12 +205,12 @@ class GiftsTabV2Test {
     fun `at 130 percent every target is big enough and named`() = compose.checkAccessibility {
         GiftsScreen(
             stateFor("adult1").copy(surprisePreparedFor = setOf("adult2"), newWishes = mapOf("wishes-admin1" to 1)),
-            onOpenList = {}, onNewList = {}, onRetry = {}, onOpenSurprisePicker = {}, onOpenMyPage = {},
+            onOpenList = {}, onRetry = {}, onOpenSurprisePicker = {}, onOpenMyPage = {},
         )
     }
 
     @Test
     fun `at 130 percent, a child too`() = compose.checkAccessibility {
-        GiftsScreen(stateFor("kid1"), onOpenList = {}, onNewList = {}, onRetry = {}, onOpenMyPage = {})
+        GiftsScreen(stateFor("kid1"), onOpenList = {}, onRetry = {}, onOpenMyPage = {})
     }
 }

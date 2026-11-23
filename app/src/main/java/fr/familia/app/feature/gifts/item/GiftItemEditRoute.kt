@@ -28,7 +28,6 @@ fun GiftItemEditRoute(
     /** Récit 50: from « Ajouter à mes envies »: « Une idée pour… », and nothing read from the shop. */
     fromShare: Boolean = false,
 ) {
-    val singleList = LocalFeatureFlags.current.isOn(Feature.SingleList)
     val morePhotos = LocalFeatureFlags.current.isOn(Feature.MorePhotos)
     // « Déjà acheté » (récit 68): for the whole family or nobody.
     val alreadyBought = LocalFeatureFlags.current.isOnForFamily(Feature.AlreadyBought)
@@ -40,7 +39,6 @@ fun GiftItemEditRoute(
                     saved = createSavedStateHandle(),
                     shared = shared?.let { GiftItemForm(title = it.title, url = it.url) },
                     previews = container?.linkPreviewRepository,
-                    singleList = singleList,
                     photos = if (morePhotos) photoSaver(container) else null,
                     fromShare = fromShare,
                     alreadyBought = alreadyBought,

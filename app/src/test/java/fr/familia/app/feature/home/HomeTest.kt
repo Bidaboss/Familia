@@ -1,11 +1,6 @@
 package fr.familia.app.feature.home
 
-import fr.familia.app.core.model.ClaimType
 import fr.familia.app.core.model.EventTarget
-import fr.familia.app.core.model.GiftClaim
-import fr.familia.app.core.model.GiftList
-import fr.familia.app.core.model.GiftListKind
-import fr.familia.app.core.model.GiftOccasion
 import fr.familia.app.core.model.Rsvp
 import fr.familia.app.core.model.RsvpStatus
 import fr.familia.app.core.model.TripArrival
@@ -13,7 +8,6 @@ import fr.familia.app.feature.events.FakeEvents
 import fr.familia.app.feature.events.FakeMembers
 import fr.familia.app.feature.events.FakeRsvps
 import fr.familia.app.feature.events.TestFamily
-import fr.familia.app.feature.gifts.FakeGifts
 import fr.familia.app.feature.helprequests.FakeHelpRequests
 import fr.familia.app.feature.helprequests.helpRequest
 import fr.familia.app.feature.trips.FakeTrips
@@ -43,14 +37,6 @@ class HomeTest {
     private val today = LocalDate.of(2026, 11, 21)
     private val family = TestFamily.family
     private val me = TestFamily.adult
-
-    private fun list(
-        id: String,
-        date: LocalDate?,
-        kind: GiftListKind = GiftListKind.Own,
-        beneficiary: String = "adult2",
-        viewers: List<String> = listOf(me.id),
-    ) = GiftList(id, kind, "Liste $id", GiftOccasion.Birthday, date, beneficiary, viewers, beneficiary, "Adult2")
 
     @Test
     fun `to do lists the events of the month without my answer, and the coups de main for me`() {
@@ -99,39 +85,6 @@ class HomeTest {
     }
 
     @Test
-    fun `the next occasion skips wishes, surprises, past and revealed lists`() {
-        val lists = listOf(
-            list("wishes", null, GiftListKind.Wishes),
-            list("surprise", today, GiftListKind.Surprise),
-            list("past", today.minusDays(1)),
-            list("revealed", today.plusDays(1)).copy(revealed = true),
-            list("far", today.plusDays(30)),
-            list("next", today.plusDays(10)),
-        )
-        assertEquals("next", nextOccasionList(lists, me.id, today)?.id)
-    }
-
-    @Test
-    fun `the beneficiary of a surprise never learns it exists, nor a list they cannot read, even in Voir comme`() {
-        // The surprise for me, read by the others: what the account of the admin principal gets in Voir comme.
-        val surprise = list("surprise", today.plusDays(2), GiftListKind.Surprise, beneficiary = me.id, viewers = listOf("adult2"))
-        val notMine = list("closed", today.plusDays(3), viewers = listOf("adult2"))
-        assertNull(nextOccasionList(listOf(surprise, notMine), me.id, today))
-        val mine = list("mine", today.plusDays(5), beneficiary = me.id, viewers = listOf(me.id))
-        val shown = occasion(nextOccasionList(listOf(surprise, notMine, mine), me.id, today), me, family, 0, today)
-        assertEquals("mine", shown?.list?.id)
-        assertTrue(shown?.isMine == true)
-    }
-
-    @Test
-    fun `my own occasion never says what is reserved for me`() {
-        val mine = occasion(list("l", today.plusDays(3), beneficiary = me.id), me, family, 2, today)
-        assertNull(mine?.myClaims)
-        assertEquals(3L, mine?.daysLeft)
-        assertEquals(2, occasion(list("l", today.plusDays(3)), me, family, 2, today)?.myClaims)
-    }
-
-    @Test
     fun `the ongoing trip shows its last arrival`() {
         val ongoing = TestTrips.trip("t1", start = today.minusDays(1), end = today.plusDays(2))
         val soon = TestTrips.trip("t2", start = today.plusDays(5), end = today.plusDays(6))
@@ -148,8 +101,6 @@ class HomeTest {
     @Test
     fun `the view model gathers every card, each module only while it shows`() = runTest {
         val events = FakeEvents(listOf(TestFamily.event("e1", TestFamily.admin, date = today.plusDays(1))))
-        val gifts = FakeGifts(list("l1", today.plusDays(4)))
-        gifts.claims.value = listOf(GiftClaim("i1", ClaimType.Solo, me.id, "Adult1"))
         val trip = TestTrips.trip("t1", start = today.minusDays(1), end = today.plusDays(2))
         val vm = HomeViewModel(
             members = FakeMembers(),
@@ -157,29 +108,20 @@ class HomeTest {
             currentMemberId = me.id,
             rsvps = FakeRsvps(),
             helpRequests = FakeHelpRequests(listOf(helpRequest("r1", TestFamily.otherAdult, listOf(me.id), today.plusDays(2)))),
-            gifts = gifts,
             trips = FakeTrips(listOf(trip), mapOf("t1" to listOf(TestTrips.step(arrival = TripArrival(null, "adult2", "Adult2"))))),
             today = flowOf(today),
         )
         vm.uiState.launchIn(backgroundScope)
-        val ready = vm.uiState.first { it is HomeUiState.Ready && it.occasion?.myClaims == 1 && it.trips.firstOrNull()?.lastArrival != null }
+        val ready = vm.uiState.first { it is HomeUiState.Ready && it.trips.firstOrNull()?.lastArrival != null }
             as HomeUiState.Ready
         assertEquals(2, ready.todos.size)
         assertEquals(listOf("e1"), ready.week.map { it.id })
-        assertEquals("l1", ready.occasion?.list?.id)
         assertTrue(ready.canCreateTrip)
 
         val off = HomeViewModel(FakeMembers(), events, me.id, today = flowOf(today))
         off.uiState.launchIn(backgroundScope)
         val bare = off.uiState.first { it is HomeUiState.Ready && it.week.isNotEmpty() } as HomeUiState.Ready
-        assertNull(bare.occasion)
         assertTrue(bare.trips.isEmpty())
-
-        // With the single list (récit 9 ter), no list of an occasion to point to.
-        val single = HomeViewModel(FakeMembers(), events, me.id, gifts = gifts, today = flowOf(today), singleList = true)
-        single.uiState.launchIn(backgroundScope)
-        val noChip = single.uiState.first { it is HomeUiState.Ready && it.week.isNotEmpty() } as HomeUiState.Ready
-        assertNull(noChip.occasion)
     }
 
     @Test

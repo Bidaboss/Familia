@@ -119,8 +119,6 @@ class GiftItemEditViewModel(
     private val shared: GiftItemForm? = null,
     /** Reads the title, picture and price of a shared link (récit 8 bis). */
     previews: LinkPreviewRepository? = null,
-    /** The switch « Liste unique » (récit 9 ter): a wish then says what it is for. */
-    private val singleList: Boolean = false,
     /** Sends and removes the photo (PRD, récit 44); null hides it, as when « Plus de photos » is off. */
     private val photos: SinglePhotoSaver? = null,
     /**
@@ -230,7 +228,7 @@ class GiftItemEditViewModel(
             beneficiaryName = beneficiary.firstName,
             imageUrl = existing?.imageUrl,
             previewLoading = shared != null && existing == null && previews != null,
-            showOccasion = singleList && target.kind == GiftListKind.Wishes,
+            showOccasion = target.kind == GiftListKind.Wishes,
             forMe = beneficiary.id == current.id,
             showPhoto = photos != null,
             storedPhoto = existing?.photo,
@@ -301,7 +299,7 @@ class GiftItemEditViewModel(
             listExists = stored != null
             visible = addsVisibleItem(target, current, known)
             saved[DRAFT_TARGET] = memberId
-            val showOccasion = singleList && target.kind == GiftListKind.Wishes
+            val showOccasion = target.kind == GiftListKind.Wishes
             _uiState.value = now.copy(
                 targetId = memberId,
                 hiddenFromBeneficiary = !visible && beneficiary.id != current.id,

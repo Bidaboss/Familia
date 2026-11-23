@@ -17,17 +17,14 @@ fun ProposeIdeaRoute(
     currentMember: Member,
     entryId: String,
     onBack: () -> Unit,
-    onNewSurprise: (personId: String) -> Unit,
     onDone: (listId: String) -> Unit,
-    singleList: Boolean = false,
 ) {
     val viewModel: ProposeIdeaViewModel = viewModel(
-        key = "propose-$entryId-$singleList",
+        key = "propose-$entryId",
         factory = viewModelFactory {
             initializer {
                 ProposeIdeaViewModel(
                     container?.notebookRepository, container?.giftRepository, container?.memberRepository, currentMember.id, entryId,
-                    singleList = singleList,
                 )
             }
         },
@@ -43,7 +40,6 @@ fun ProposeIdeaRoute(
             onSelectList = viewModel::selectList,
             onTakeIt = viewModel::setTakeIt,
             onPropose = viewModel::propose,
-            onNewSurprise = onNewSurprise,
         ),
     )
 }
