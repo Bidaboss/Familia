@@ -1889,7 +1889,6 @@ Rien à publier côté Firebase. Seule l'« APK de publication » a la clé Mapb
 Rien à publier côté Firebase. Seule l'« APK de publication » a la clé Mapbox.
 1. « Lancer le voyage » : la Terre est maintenant en vue satellite, ronde, dans un ciel étoilé ; le trait est jaune devant, blanc derrière.
 2. Si le globe n'a pas démarré (avion, Mapbox en panne), l'appli revient à la carte à plat sans message, et le bouton « Lancer le voyage » reste caché 6 heures sur ce téléphone. Un globe qui démarre efface ce repli.
-<<<<<<< HEAD
 ## Voyages : le globe en fond de la liste (récit 99, étape 2)
 
 Rien à publier côté Firebase. Seule l'« APK de publication » a la clé Mapbox ; les APK d'essai gardent le paysage dessiné.
@@ -1898,5 +1897,3 @@ Rien à publier côté Firebase. Seule l'« APK de publication » a la clé Mapb
 3. Le globe s'arrête quand on quitte l'écran ou éteint le téléphone ; il reste fixe en économie d'énergie et avec « supprimer les animations ».
 4. Sans réseau, Mapbox en panne ou globe pas affiché en 3 s : retour au paysage dessiné, et pas de globe pendant 6 h sur ce téléphone. Avec TalkBack : toujours le paysage.
 5. Pas encore là : vol vers le voyage au toucher d'un point, feuille tirable.
-=======
->>>>>>> origin/main
