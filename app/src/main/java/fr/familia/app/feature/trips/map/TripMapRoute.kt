@@ -37,5 +37,5 @@ fun TripMapRoute(
     // The streets when this APK holds the token; else the drawn map (the image falls back by itself without network).
     val token = BuildConfig.MAPBOX_PUBLIC_TOKEN
     val ground = mapGround(streetsOn = true, token, hasNetwork = true)
-    TripMapScreen(state, onOpenStep, onEditStep, onBack, streetsToken = token.takeIf { ground == MapGround.Streets }, words = words, onLaunch = onLaunch.takeIf { token.isNotBlank() })
+    TripMapScreen(state, onOpenStep, onEditStep, onBack, streetsToken = token.takeIf { ground == MapGround.Streets }, words = words, onLaunch = onLaunch.takeIf { token.isNotBlank() && GlobeHealth.usable(androidx.compose.ui.platform.LocalContext.current) })
 }

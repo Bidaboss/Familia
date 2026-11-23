@@ -13,6 +13,10 @@ import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapView
 import com.mapbox.maps.Style
+import com.mapbox.maps.StyleProjection
+import com.mapbox.maps.StyleProjectionName
+import com.mapbox.maps.extension.style.atmosphere.generated.atmosphere
+import com.mapbox.maps.extension.style.atmosphere.setAtmosphere
 import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.generated.circleLayer
 import com.mapbox.maps.extension.style.layers.generated.lineLayer
@@ -31,7 +35,7 @@ private const val STEPS = "steps"
 data class GlobeCommand(val id: Int, val target: CameraTarget, val millis: Long, val completedLegs: Int)
 
 /**
- * The map of Mapbox as a globe (Standard style: the Earth is round while far, flat once close), with
+ * The map of Mapbox as a satellite globe (récit 99: the Satellite style, projection forced to globe), with
  * the trail of the trip and a point per step (récit 94). It only draws: [command] says where the
  * camera goes, [onArrived] says it got there. Created with the public [token] of this APK; when the
  * view or its style cannot start, [onFailed] tells the screen, which falls back on the flat map.
@@ -55,13 +59,16 @@ fun GlobeMapView(
                 MapboxOptions.accessToken = token
                 MapView(context).also { view ->
                     view.mapboxMap.setCamera(command.target.toOptions())
-                    view.mapboxMap.loadStyle(Style.STANDARD) { style ->
+                    view.mapboxMap.loadStyle(Style.SATELLITE) { style ->
                         runCatching {
+                            // Satellite view, forced round (only Standard is a globe by itself), in a starry sky.
+                            style.setProjection(StyleProjection(StyleProjectionName.GLOBE))
+                            style.setAtmosphere(atmosphere { color("#BFD9F2"); highColor("#3C6FB5"); spaceColor("#050B1A"); horizonBlend(0.04); starIntensity(0.7) })
                             style.addSource(geoJsonSource(TRAIL_ALL) { geometry(trail(points, points.size - 1)) })
                             style.addSource(geoJsonSource(TRAIL_DONE) { geometry(trail(points, 0)) })
                             style.addSource(geoJsonSource(STEPS) { featureCollection(com.mapbox.geojson.FeatureCollection.fromFeatures(points.map { com.mapbox.geojson.Feature.fromGeometry(it.toPoint()) })) })
-                            style.addLayer(lineLayer("trail-all-line", TRAIL_ALL) { lineColor("#9FD3F2"); lineWidth(4.0) })
-                            style.addLayer(lineLayer("trail-done-line", TRAIL_DONE) { lineColor("#2E4A57"); lineWidth(5.0) })
+                            style.addLayer(lineLayer("trail-all-line", TRAIL_ALL) { lineColor("#FFE27A"); lineWidth(4.0) })
+                            style.addLayer(lineLayer("trail-done-line", TRAIL_DONE) { lineColor("#FFFFFF"); lineWidth(5.0) })
                             style.addLayer(circleLayer("steps-dots", STEPS) { circleRadius(7.0); circleColor("#2E4A57"); circleStrokeColor("#FFFFFF"); circleStrokeWidth(2.0) })
                         }.onFailure { onFailed() }
                         onStyleReady()
