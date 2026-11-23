@@ -20,6 +20,7 @@ import fr.familia.app.core.model.Member
 import fr.familia.app.feature.trips.packing.packingCount
 import fr.familia.app.feature.trips.packing.rememberPackingViewModel
 import fr.familia.app.feature.trips.photos.rememberTripAlbum
+import fr.familia.app.feature.trips.phrases.rememberAbroadCountries
 
 /** Connects the trip view to its ViewModel. */
 @Composable
@@ -42,6 +43,8 @@ fun TripDetailRoute(
     onOpenWord: ((stepId: String) -> Unit)? = null,
     /** « Valise » (récit 98): the screen of the bags, opened from the round button. */
     onOpenPacking: (() -> Unit)? = null,
+    /** « Phrases utiles » (récit 105): opened from the round button when a step is abroad. */
+    onOpenPhrases: (() -> Unit)? = null,
 ) {
     val viewModel: TripDetailViewModel = viewModel(
         key = "trip-$tripId",
@@ -62,6 +65,7 @@ fun TripDetailRoute(
     val context = LocalContext.current
     val shareOn = LocalFeatureFlags.current.isOn(Feature.Share)
     val shown = state as? TripDetailUiState.Success
+    val abroad = rememberAbroadCountries(container, shown?.steps.orEmpty())
     TripDetailScreen(
         state = state,
         onRetry = viewModel::retry,
@@ -73,6 +77,7 @@ fun TripDetailRoute(
         onBack = onBack,
         checklist = shownChecklist,
         onOpenPacking = onOpenPacking,
+        onOpenPhrases = onOpenPhrases?.takeIf { abroad.isNotEmpty() },
         packingCount = packingCount,
         photos = photos,
         photoActions = photoActions,

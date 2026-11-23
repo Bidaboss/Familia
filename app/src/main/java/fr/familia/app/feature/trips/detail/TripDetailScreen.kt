@@ -142,6 +142,8 @@ fun TripDetailScreen(
     /** « Valise » (récit 98), for those who go; the number of things left to do on the round button. */
     onOpenPacking: (() -> Unit)? = null,
     packingCount: Int = 0,
+    /** « Phrases utiles » (récit 105): offered when a step is abroad, in a language of the table; null elsewhere. */
+    onOpenPhrases: (() -> Unit)? = null,
     /** Public Mapbox token of this APK: with it the home is the satellite map and a sheet (récit 100); blank: the drawn path. */
     satelliteToken: String = "",
 ) {
@@ -205,7 +207,7 @@ fun TripDetailScreen(
                     },
                 )
                 is TripDetailUiState.Success -> if (illustrated) {
-                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken)
+                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken, onOpenPhrases)
                 } else {
                     Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing, onOpenMap, onOpenWord)
                 }
@@ -328,6 +330,7 @@ private fun PathContent(
     onOpenPacking: (() -> Unit)? = null,
     packingCount: Int = 0,
     satelliteToken: String = "",
+    onOpenPhrases: (() -> Unit)? = null,
 ) {
     val days = remember(state.trip.startDate, state.trip.endDate) { TripDays.of(state.trip) }
     var chosenEpoch by rememberSaveable(state.trip.id) { mutableStateOf<Long?>(null) }
@@ -426,6 +429,7 @@ private fun PathContent(
                     onMap = onOpenMap?.takeIf { state.steps.isNotEmpty() },
                     onPacking = onOpenPacking?.takeIf { state.isParticipant },
                     packingCount = packingCount,
+                    onPhrases = onOpenPhrases,
                 )
             }
         }
