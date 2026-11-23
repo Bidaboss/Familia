@@ -1,0 +1,105 @@
+name: Publication automatique
+
+# After a merge into main, publishes what the merge changed, without anyone clicking:
+#   - « Publier Firebase » only if rules, indexes, storage, functions or hosting changed;
+#   - « APK de publication » only if the app or its build changed.
+# It starts the two existing workflows (which stay runnable by hand), one after the other, and
+# waits for each: if the first fails, the second does not start. Order: Firebase first (the app
+# may rely on a new rule), unless a commit of the batch says [apk-d-abord] (the app must be out
+# before a rule that would lock out the old version).
+# A merge lot is grouped: the run waits a few minutes for the next merges, then publishes once.
+# Switch off: Settings, Secrets and variables, Actions, Variables, PUBLICATION_AUTO = off.
+# This workflow holds no secret: the keys stay in the two workflows it starts.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+
+permissions:
+  actions: write
+  contents: read
+
+# One at a time; while one runs, only the latest waiting run is kept.
+concurrency:
+  group: publication-auto
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish what changed
+    if: ${{ vars.PUBLICATION_AUTO != 'off' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Wait for the other merges of the lot
+        run: sleep 420
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Decide and publish
+        run: |
+          set -euo pipefail
+          APK_RE='^(app/|gradle/|build\.gradle|settings\.gradle|gradle\.properties|gradlew)'
+          FIREBASE_RE='^firebase/(\.firebaserc|firebase\.json|firestore\.rules|firestore\.indexes\.json|storage\.rules|functions/(src/|package(-lock)?\.json|tsconfig\.json)|hosting/)'
+
+          # Last commit already published by a workflow, whoever started it (Kévin or this one).
+          last_published() {
+            gh run list --workflow "$1" --branch main --status success --limit 1 \
+              --json headSha --jq '.[0].headSha // empty'
+          }
+          needs() { # <base sha> <regex>
+            [ -n "$1" ] && git diff --name-only "$1" HEAD | grep -Eq "$2"
+          }
+
+          apk_base=$(last_published release.yml)
+          fb_base=$(last_published deploy-firebase.yml)
+          do_apk=false; do_fb=false
+          needs "$apk_base" "$APK_RE" && do_apk=true
+          needs "$fb_base" "$FIREBASE_RE" && do_fb=true
+          [ -n "$apk_base" ] || echo "::warning::Aucune APK déjà publiée : rien d'automatique pour l'APK."
+          [ -n "$fb_base" ] || echo "::warning::Aucun Publier Firebase déjà réussi : rien d'automatique pour Firebase."
+
+          apk_first=false
+          if git log "${apk_base:-HEAD}..HEAD" "${fb_base:-HEAD}..HEAD" --format=%B | grep -qF '[apk-d-abord]'; then
+            apk_first=true
+          fi
+
+          {
+            echo "### Publication automatique de $(git rev-parse --short HEAD)"
+            echo "- Firebase : $do_fb"
+            echo "- APK : $do_apk (avant Firebase : $apk_first)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          run_workflow() { # <workflow file>
+            local file="$1" since id=""
+            since=$(date -u -d '-1 minute' +%Y-%m-%dT%H:%M:%SZ)
+            gh workflow run "$file" --ref main
+            for _ in $(seq 1 30); do
+              sleep 5
+              id=$(gh run list --workflow "$file" --event workflow_dispatch --branch main \
+                --created ">=$since" --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+              [ -n "$id" ] && break
+            done
+            [ -n "$id" ] || { echo "::error::Le lancement de $file n'est pas apparu."; exit 1; }
+            gh run watch "$id" --exit-status --interval 30 --compact
+          }
+
+          if [ "$apk_first" = true ]; then
+            order="release.yml:$do_apk deploy-firebase.yml:$do_fb"
+          else
+            order="deploy-firebase.yml:$do_fb release.yml:$do_apk"
+          fi
+          for step in $order; do
+            if [ "${step#*:}" = true ]; then
+              echo "Lancement de ${step%%:*}"
+              run_workflow "${step%%:*}"
+            fi
+          done
