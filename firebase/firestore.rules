@@ -182,6 +182,10 @@ service cloud.firestore {
       allow update: if isMember()
         && isValidMember(request.resource.data)
         && request.resource.data.uid == resource.data.uid
+        // Coordonnées (récit 66): the phone is the member's own. Whoever edits the rest of the
+        // member leaves it as it was; it only goes when the member stops being an adult.
+        && (request.resource.data.get('phone', null) == resource.data.get('phone', null)
+            || (request.resource.data.profile != 'adult' && !('phone' in request.resource.data)))
         // A member who already signed in keeps an address: removing it would lock them out.
         && (resource.data.uid == null || request.resource.data.email != null)
         && emailIndexMatches(memberId, request.resource.data.email)

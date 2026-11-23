@@ -2,7 +2,7 @@
 import { after, before, beforeEach, describe, test } from 'node:test';
 import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
 import { deleteField, doc, setDoc, updateDoc } from 'firebase/firestore';
-import { ADMIN, ADULT, OTHER_ADULT, NEIGHBOUR, adultDoc, as, createEnv, seed } from './helpers.mjs';
+import { ADMIN, ADULT, OTHER_ADULT, NEIGHBOUR, SECOND_ADMIN, adultDoc, as, createEnv, seed } from './helpers.mjs';
 
 let env;
 before(async () => { env = await createEnv(); });
@@ -35,8 +35,32 @@ describe('phone of a member', () => {
     await assertFails(updateDoc(doc(as(env, ADMIN), 'members/kid1'), { phone: '06 12 34 56 78' }));
   });
 
-  test('the admin principal keeps the phone when editing a member', async () => {
-    await assertSucceeds(updateDoc(doc(as(env, ADMIN), 'members/adult1'), { phone: '06 12 34 56 78' }));
+  test('the admin principal and a chef edit the rest of a member and keep their phone', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), 'members/adult1'), { phone: '06 12 34 56 78' });
+    });
+    // The form sends the whole member back, phone as it was.
+    const whole = adultDoc(ADULT, { phone: '06 12 34 56 78' });
+    await assertSucceeds(setDoc(doc(as(env, ADMIN), 'members/adult1'), { ...whole, firstName: 'Autre prénom' }));
+    await assertSucceeds(setDoc(doc(as(env, SECOND_ADMIN), 'members/adult1'), { ...whole, firstName: 'Encore un autre' }));
+  });
+
+  test('neither the admin principal nor a chef sets, changes or removes the phone of someone else', async () => {
+    await assertFails(updateDoc(doc(as(env, ADMIN), 'members/adult1'), { phone: '06 12 34 56 78' }));
+    await assertFails(updateDoc(doc(as(env, SECOND_ADMIN), 'members/adult1'), { phone: '06 12 34 56 78' }));
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), 'members/adult1'), { phone: '06 12 34 56 78' });
+    });
+    await assertFails(updateDoc(doc(as(env, ADMIN), 'members/adult1'), { phone: '07 00 00 00 00' }));
+    await assertFails(updateDoc(doc(as(env, SECOND_ADMIN), 'members/adult1'), { phone: deleteField() }));
+  });
+
+  test('a member who stops being an adult loses their phone with the profile', async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await updateDoc(doc(ctx.firestore(), 'members/adult1'), { phone: '06 12 34 56 78' });
+    });
+    const child = adultDoc(ADULT, { profile: 'childWithApp', parentIds: ['admin2'] });
+    await assertSucceeds(setDoc(doc(as(env, ADMIN), 'members/adult1'), child));
   });
 });
 
