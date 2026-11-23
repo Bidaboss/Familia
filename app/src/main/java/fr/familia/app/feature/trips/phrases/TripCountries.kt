@@ -8,11 +8,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.TripStep
+import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.roundToInt
 
 /**
- * The countries of the steps of a trip that have « Phrases utiles » (récit 105), found by the
+ * The countries abroad of the steps of a trip (récit 105: « Phrases utiles », « Sécurité »), found by the
  * geocoder of the phone from the point each step already has (nothing new is stored). A step the
  * phone cannot place, or that is in France, counts for nothing. Remembered for the life of the app so
  * the trip and the phrases screen do not ask twice.
@@ -22,7 +23,7 @@ object TripCountries {
 
     private fun keyOf(lat: Double, lng: Double): String = "${(lat * 10).roundToInt()}/${(lng * 10).roundToInt()}"
 
-    /** The country codes abroad, in the order of the steps, each once. */
+    /** The country codes abroad (France left out), in the order of the steps, each once. */
     suspend fun abroad(steps: List<TripStep>, countryOf: suspend (Double, Double) -> String?): List<String> {
         val codes = steps.mapNotNull { step ->
             val lat = step.lat ?: return@mapNotNull null
@@ -30,11 +31,11 @@ object TripCountries {
             val key = keyOf(lat, lng)
             known[key] ?: countryOf(lat, lng)?.also { known[key] = it }
         }
-        return PhraseBook.abroad(codes)
+        return codes.map { it.uppercase(Locale.ROOT) }.filter { it.length == 2 && it != "FR" }.distinct()
     }
 }
 
-/** The countries abroad of [steps] with a table of phrases; empty while they are looked up or when none. */
+/** The countries abroad of [steps]; empty while they are looked up or when none. */
 @Composable
 fun rememberAbroadCountries(container: AppContainer?, steps: List<TripStep>): List<String> {
     val locator = container?.placeLocator

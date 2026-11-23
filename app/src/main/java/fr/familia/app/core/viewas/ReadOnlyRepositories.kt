@@ -236,6 +236,7 @@ class ReadOnlyTripRepository(private val inner: TripRepository, private val guar
     override suspend fun saveStep(tripId: String, step: TripStep, isNew: Boolean, remindAt: Instant?) = guard.refuse()
     override suspend fun deleteStep(tripId: String, stepId: String) = guard.refuse()
     override suspend fun markArrived(tripId: String, stepId: String, me: Member) = guard.refuse()
+    override suspend fun alertFamily(tripId: String, me: Member) = guard.refuse()
     override suspend fun clearArrival(tripId: String, stepId: String) = guard.refuse()
     override fun observeItems(tripId: String): Flow<List<TripItem>> = inner.observeItems(tripId)
     override fun newItemId(tripId: String): String = inner.newItemId(tripId)

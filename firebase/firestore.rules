@@ -2562,6 +2562,26 @@ service cloud.firestore {
       allow delete: if isMember() && (isParticipantOf(tripId) || isOwner());
     }
 
+    // « Prévenir ma famille » (récit 105, règle 43): trips/{tripId}/alerts/{memberId}, one document
+    // per participant, rewritten for each alert. The server tells the followers of the trip. Nobody
+    // reads it in the app, and no position is in it. A new one only 10 minutes after the last, so a
+    // tap repeated in panic does not ring the family ten times.
+    function isValidAlert(a) {
+      return a.keys().hasAll(['authorId', 'authorName', 'createdAt'])
+        && a.keys().hasOnly(['authorId', 'authorName', 'createdAt'])
+        && a.authorId == myMemberId()
+        && a.authorName == me().firstName
+        && a.createdAt == request.time;
+    }
+
+    match /trips/{tripId}/alerts/{memberId} {
+      allow create: if isMember() && memberId == myMemberId() && isParticipantOf(tripId)
+        && isValidAlert(request.resource.data);
+      allow update: if isMember() && memberId == myMemberId() && isParticipantOf(tripId)
+        && isValidAlert(request.resource.data)
+        && request.time > resource.data.createdAt + duration.value(10, 'm');
+    }
+
     // Shape of a line of the checklist (récit 13). The person in charge, if any, takes part in the
     // trip; their first name is kept so the line stays readable if they leave it.
     function isValidItem(i, tripId) {

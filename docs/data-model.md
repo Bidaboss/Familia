@@ -936,6 +936,18 @@ La liste de départ de « Ma valise », modifiable par le membre seul (« Garder
 | `updatedAt` | horodatage serveur | |
 
 `members/{memberId}/settings/notifications.packingReminder` (booléen, facultatif) : `false` coupe le rappel de la veille du départ quand il reste des objets non cochés.
+### `trips/{tripId}/alerts/{memberId}` (récit 105, « Prévenir ma famille », règle 43)
+
+| Champ | Type | Rôle |
+|---|---|---|
+| `authorId` | texte | Le participant qui prévient, égal à `{memberId}` |
+| `authorName` | texte | Son prénom, au moment de l'envoi |
+| `createdAt` | horodatage | Heure du serveur |
+
+Un document par participant, réécrit à chaque alerte. Aucune position n'y est. Droits : seul un participant du voyage écrit le sien, signé de son nom, à l'heure du serveur ; un nouvel envoi n'est accepté que 10 minutes après le précédent. Personne ne le lit dans l'appli. `onTripAlertWritten` prévient aussitôt, sur le canal `trips` et même la nuit (ce qui me vise directement), tous ceux qui suivent le voyage (`readerIds`) et ont l'appli, sauf l'auteur. La suppression du voyage l'emporte. Tests : `firebase/tests/trips.test.mjs` et `firebase/functions/test/trips.test.ts`.
+
+Les numéros d'urgence de l'écran « Sécurité » sont une table fixe dans l'appli (`feature/trips/safety/EmergencyNumbers.kt`), jamais pour la France. Le pays d'une étape est lu par le géocodeur du téléphone à partir de son point : rien de nouveau n'est stocké.
+
 ### `trips/{tripId}/photos/{authorId}_{slot}`
 
 Les photos du voyage (récit 15). Chaque participant a 30 places, numérotées de 1 à 30. L'identifiant du document est l'auteur suivi de la place, par exemple `m1_7`. Ainsi, les règles limitent les photos à 30 par personne sans avoir à les compter.

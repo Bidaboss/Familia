@@ -146,6 +146,21 @@ class FirestoreTripRepository(private val db: FirebaseFirestore) : TripRepositor
         ).await()
     }
 
+    override suspend fun alertFamily(tripId: String, me: Member) {
+        try {
+            db.collection(TRIPS).document(tripId).collection(ALERTS).document(me.id).set(
+                mapOf(
+                    "authorId" to me.id,
+                    "authorName" to me.firstName,
+                    "createdAt" to FieldValue.serverTimestamp(),
+                ),
+            ).await()
+        } catch (e: FirebaseFirestoreException) {
+            if (e.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) throw AlertTooSoonException(e)
+            throw e
+        }
+    }
+
     override suspend fun clearArrival(tripId: String, stepId: String) {
         steps(tripId).document(stepId).update(
             mapOf(
@@ -276,5 +291,6 @@ class FirestoreTripRepository(private val db: FirebaseFirestore) : TripRepositor
         const val TRIPS = "trips"
         const val STEPS = "steps"
         const val ITEMS = "items"
+        const val ALERTS = "alerts"
     }
 }
