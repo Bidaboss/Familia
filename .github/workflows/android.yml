@@ -81,7 +81,7 @@ jobs:
         with:
           name: captures-ecrans
           path: app/build/outputs/roborazzi/
-          retention-days: 14
+          retention-days: 3
 
       - name: Upload test reports
         if: always()
@@ -91,7 +91,7 @@ jobs:
           path: |
             app/build/reports/
             app/build/test-results/
-          retention-days: 14
+          retention-days: 3
 
   lint:
     name: Android lint
@@ -118,7 +118,7 @@ jobs:
         with:
           name: reports-lint
           path: app/build/reports/
-          retention-days: 14
+          retention-days: 3
 
   apk:
     name: Build debug and release APKs
@@ -170,7 +170,7 @@ jobs:
         with:
           name: familia-debug-apk
           path: app/build/outputs/apk/debug/*.apk
-          retention-days: 14
+          retention-days: 3
 
   rules:
     name: Firestore security rules tests
