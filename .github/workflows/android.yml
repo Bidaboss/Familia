@@ -54,8 +54,74 @@ jobs:
           echo "android=$android" >> "$GITHUB_OUTPUT"
           echo "firebase=$firebase" >> "$GITHUB_OUTPUT"
 
-  build:
-    name: Build, lint and unit tests
+  # The Android checks run as three jobs side by side instead of one after the other (23/11): the
+  # pull request waits for the longest one (about 8 min) instead of their sum (about 20 min).
+  # Each job restores the same Gradle cache from main, so none of them starts from scratch.
+  tests:
+    name: Unit tests and screenshots
+    needs: changes
+    if: ${{ needs.changes.outputs.android == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Unit tests and screenshots
+        run: ./gradlew recordRoborazziDebug
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: captures-ecrans
+          path: app/build/outputs/roborazzi/
+          retention-days: 14
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: |
+            app/build/reports/
+            app/build/test-results/
+          retention-days: 14
+
+  lint:
+    name: Android lint
+    needs: changes
+    if: ${{ needs.changes.outputs.android == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Android lint
+        run: ./gradlew lintDebug
+
+      - name: Upload lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-lint
+          path: app/build/reports/
+          retention-days: 14
+
+  apk:
+    name: Build debug and release APKs
     needs: changes
     if: ${{ needs.changes.outputs.android == 'true' }}
     runs-on: ubuntu-latest
@@ -85,16 +151,13 @@ jobs:
           echo "$FAMILIA_TEST_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/familia-test.jks"
           echo "FAMILIA_TEST_KEYSTORE_PATH=$RUNNER_TEMP/familia-test.jks" >> "$GITHUB_ENV"
 
-      # The three steps share one Gradle daemon (setup-gradle stops it at the end of the job):
-      # the second and third ones skip the start-up and the project configuration.
-      - name: Build debug APK
-        run: ./gradlew assembleDebug
-
-      # The release build, shrunk by R8 (audit du 22/11) and left unsigned here: it shows on every PR
-      # that R8 still builds, and gives the size the family will download.
-      - name: Build release APK with R8 (unsigned)
+      # Both APKs in one Gradle call (one start-up, one configuration). The release build is shrunk by R8 (audit du 22/11) and left unsigned here: it shows on every
+      # PR that R8 still builds, and gives the size the family will download. lintVitalRelease is
+      # skipped here only: the « Android lint » job runs the full lint (a superset of it) on the same
+      # code, and « APK de publication » still runs it before the family gets an APK.
+      - name: Build debug APK and release APK with R8 (unsigned)
         run: |
-          ./gradlew assembleRelease
+          ./gradlew assembleDebug assembleRelease -x lintVitalRelease
           {
             echo "### Taille des APK"
             for apk in app/build/outputs/apk/debug/*.apk app/build/outputs/apk/release/*.apk; do
@@ -102,34 +165,11 @@ jobs:
             done
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Android lint
-        run: ./gradlew lintDebug
-
-      - name: Unit tests and screenshots
-        run: ./gradlew recordRoborazziDebug
-
-      - name: Upload screenshots
-        uses: actions/upload-artifact@v4
-        with:
-          name: captures-ecrans
-          path: app/build/outputs/roborazzi/
-          retention-days: 14
-
       - name: Upload test APK
         uses: actions/upload-artifact@v4
         with:
           name: familia-debug-apk
           path: app/build/outputs/apk/debug/*.apk
-          retention-days: 14
-
-      - name: Upload lint and test reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: reports
-          path: |
-            app/build/reports/
-            app/build/test-results/
           retention-days: 14
 
   rules:
