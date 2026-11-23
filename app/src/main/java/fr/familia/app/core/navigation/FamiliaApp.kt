@@ -304,9 +304,11 @@ import fr.familia.app.feature.trips.TripPackingDestination
 import fr.familia.app.feature.trips.TripPhrasesDestination
 import fr.familia.app.feature.trips.TripSafetyDestination
 import fr.familia.app.feature.trips.TripMoneyDestination
+import fr.familia.app.feature.trips.TripDocumentsDestination
 import fr.familia.app.feature.trips.phrases.TripPhrasesRoute
 import fr.familia.app.feature.trips.safety.TripSafetyRoute
 import fr.familia.app.feature.trips.money.TripMoneyRoute
+import fr.familia.app.feature.trips.documents.TripDocumentsRoute
 import fr.familia.app.feature.trips.packing.TripPackingRoute
 import fr.familia.app.feature.trips.TripWordDestination
 import fr.familia.app.feature.trips.word.StepWordRoute
@@ -1177,6 +1179,7 @@ fun FamiliaApp(
                             onOpenPhrases = { navController.navigate(TripPhrasesDestination(tripId)) },
                             onOpenSafety = { navController.navigate(TripSafetyDestination(tripId)) },
                             onOpenMoney = { navController.navigate(TripMoneyDestination(tripId)) },
+                            onOpenDocuments = { navController.navigate(TripDocumentsDestination(tripId)) },
                             onOpenWord = { stepId -> navController.navigate(TripWordDestination(tripId, stepId)) },
                             onBack = { navController.popBackStack() },
                             // The accounts are for the adults who take part (récit 16 bis); the trip view checks the participant.
@@ -1199,6 +1202,9 @@ fun FamiliaApp(
                     }
                     composable<TripMoneyDestination> { entry ->
                         TripMoneyRoute(container = container, currentMember = currentMember, tripId = entry.toRoute<TripMoneyDestination>().tripId, onBack = { navController.popBackStack() })
+                    }
+                    composable<TripDocumentsDestination> { entry ->
+                        TripDocumentsRoute(container = container, currentMember = currentMember, tripId = entry.toRoute<TripDocumentsDestination>().tripId, onBack = { navController.popBackStack() })
                     }
                     composable<TripMapDestination> { entry ->
                         val tripId = entry.toRoute<TripMapDestination>().tripId

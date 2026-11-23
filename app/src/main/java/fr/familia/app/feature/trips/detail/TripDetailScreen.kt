@@ -148,6 +148,8 @@ fun TripDetailScreen(
     onOpenSafety: (() -> Unit)? = null,
     /** « Monnaie » (récit 105): for those who go, on a trip abroad or with a currency; null elsewhere. */
     onOpenMoney: (() -> Unit)? = null,
+    /** « Documents » (récit 105, règle 41): for those who go; null for the followers. */
+    onOpenDocuments: (() -> Unit)? = null,
     /** Public Mapbox token of this APK: with it the home is the satellite map and a sheet (récit 100); blank: the drawn path. */
     satelliteToken: String = "",
 ) {
@@ -211,7 +213,7 @@ fun TripDetailScreen(
                     },
                 )
                 is TripDetailUiState.Success -> if (illustrated) {
-                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken, onOpenPhrases, onOpenSafety, onOpenMoney)
+                    PathContent(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, onSeePhotos, packing, openAt, onOpenMap, onOpenWord, onOpenPacking, packingCount, satelliteToken, onOpenPhrases, onOpenSafety, onOpenMoney, onOpenDocuments)
                 } else {
                     Content(state, onEditStep, onArrived, onClearArrival, checklist, photos, photoActions, onOpenExpenses, packing, onOpenMap, onOpenWord)
                 }
@@ -337,6 +339,7 @@ private fun PathContent(
     onOpenPhrases: (() -> Unit)? = null,
     onOpenSafety: (() -> Unit)? = null,
     onOpenMoney: (() -> Unit)? = null,
+    onOpenDocuments: (() -> Unit)? = null,
 ) {
     val days = remember(state.trip.startDate, state.trip.endDate) { TripDays.of(state.trip) }
     var chosenEpoch by rememberSaveable(state.trip.id) { mutableStateOf<Long?>(null) }
@@ -438,6 +441,7 @@ private fun PathContent(
                     onPhrases = onOpenPhrases,
                     onSafety = onOpenSafety,
                     onMoney = onOpenMoney,
+                    onDocuments = onOpenDocuments?.takeIf { state.isParticipant },
                 )
             }
         }

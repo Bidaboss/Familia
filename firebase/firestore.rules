@@ -2576,6 +2576,32 @@ service cloud.firestore {
         && a.createdAt == request.time;
     }
 
+    // « Documents » (récit 105, règle 41): trips/{tripId}/documents/{docId}, a ticket, a booking or
+    // a paper (a passport may be one), its file in Storage at trips/{tripId}/documents/{ownerId}/{file}.
+    // Only those who go read them: never the followers, never the album. The owner adds their own,
+    // after sending the file; nothing is ever edited. The owner, the creator of the trip or the
+    // admin principal removes one. Deleting the trip removes them on the server.
+    function isValidTripDocument(d, docId) {
+      return d.keys().hasAll(['ownerId', 'ownerName', 'title', 'kind', 'file', 'contentType', 'size', 'createdAt'])
+        && d.keys().hasOnly(['ownerId', 'ownerName', 'title', 'kind', 'file', 'contentType', 'size', 'createdAt'])
+        && d.ownerId == myMemberId()
+        && d.ownerName == me().firstName
+        && d.title is string && d.title.size() > 0 && d.title.size() <= 80
+        && d.kind in ['ticket', 'booking', 'paper']
+        && ((d.contentType == 'application/pdf' && d.file == docId + '.pdf')
+            || (d.contentType == 'image/jpeg' && d.file == docId + '.jpg')
+            || (d.contentType == 'image/png' && d.file == docId + '.png'))
+        && d.size is int && d.size > 0 && d.size <= 5 * 1024 * 1024
+        && d.createdAt == request.time;
+    }
+
+    match /trips/{tripId}/documents/{docId} {
+      allow read: if isMember() && isParticipantOf(tripId);
+      allow create: if isMember() && isParticipantOf(tripId) && isValidTripDocument(request.resource.data, docId);
+      allow delete: if isMember()
+        && (resource.data.ownerId == myMemberId() || tripOf(tripId).creatorId == myMemberId() || isOwner());
+    }
+
     match /trips/{tripId}/alerts/{memberId} {
       allow create: if isMember() && memberId == myMemberId() && isParticipantOf(tripId)
         && isValidAlert(request.resource.data);

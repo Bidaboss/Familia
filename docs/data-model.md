@@ -951,6 +951,20 @@ Un document par participant, réécrit à chaque alerte. Aucune position n'y est
 
 Les numéros d'urgence de l'écran « Sécurité » sont une table fixe dans l'appli (`feature/trips/safety/EmergencyNumbers.kt`), jamais pour la France. Le pays d'une étape est lu par le géocodeur du téléphone à partir de son point : rien de nouveau n'est stocké.
 
+### `trips/{tripId}/documents/{docId}` (récit 105, « Documents », règle 41)
+
+| Champ | Type | Rôle |
+|---|---|---|
+| `ownerId`, `ownerName` | texte | Le participant qui l'a ajouté et son prénom au moment de l'ajout |
+| `title` | texte, 1 à 80 caractères | Le nom donné au document, proposé d'après le nom du fichier |
+| `kind` | `ticket`, `booking` ou `paper` | Billet, réservation ou papier (passeport, visa…) |
+| `file` | texte | `{docId}.pdf`, `{docId}.jpg` ou `{docId}.png`, selon `contentType` |
+| `contentType` | `application/pdf`, `image/jpeg` ou `image/png` | |
+| `size` | entier, 1 octet à 5 Mo | |
+| `createdAt` | horodatage serveur | La liste va du plus récent au plus ancien |
+
+Fichier dans Storage : `trips/{tripId}/documents/{ownerId}/{file}`, 5 Mo au plus, envoyé avant le document qui le nomme et jamais remplacé. Seuls les participants (`participantIds`) lisent l'un et l'autre, jamais ceux qui suivent le voyage : un passeport peut en être un. Rien n'est modifié. Le propriétaire, le créateur du voyage ou l'admin principal supprime le document ; Storage ne laisse supprimer le fichier qu'au propriétaire et au créateur (limite de deux lectures), celui d'un document retiré par l'admin part avec le voyage. Le téléphone ouvre un document dans le dossier de cache `documents/`, vidé à chaque visite de l'écran. Absent de « Voir comme ». La suppression du voyage efface les documents et le dossier. Tests : `firebase/tests/trips.test.mjs` et `firebase/tests/storage.test.mjs`.
+
 ### `trips/{tripId}/photos/{authorId}_{slot}`
 
 Les photos du voyage (récit 15). Chaque participant a 30 places, numérotées de 1 à 30. L'identifiant du document est l'auteur suivi de la place, par exemple `m1_7`. Ainsi, les règles limitent les photos à 30 par personne sans avoir à les compter.
