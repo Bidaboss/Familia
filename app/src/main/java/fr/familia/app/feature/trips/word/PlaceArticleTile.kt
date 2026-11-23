@@ -44,6 +44,20 @@ private sealed interface ArticleState {
  */
 @Composable
 fun PlaceArticleTile(place: String, articles: PlaceArticles?) {
+    ArticleTile(place, articles, stringResource(R.string.place_article_title, place), stringResource(R.string.place_article_source))
+}
+
+/**
+ * « Le saviez-vous ? » (récit 105, règle 45): the anecdote of a destination, a few lines of
+ * Wikipédia at the bottom of the step, with its source and licence. Hidden without an article.
+ */
+@Composable
+fun PlaceAnecdoteTile(place: String, anecdotes: PlaceArticles?) {
+    ArticleTile(place, anecdotes, stringResource(R.string.place_anecdote_title), stringResource(R.string.place_anecdote_source))
+}
+
+@Composable
+private fun ArticleTile(place: String, articles: PlaceArticles?, title: String, source: String) {
     var state by remember(place) { mutableStateOf<ArticleState>(if (articles == null) ArticleState.None else ArticleState.Loading) }
     LaunchedEffect(place, articles) {
         if (articles == null) return@LaunchedEffect
@@ -52,19 +66,19 @@ fun PlaceArticleTile(place: String, articles: PlaceArticles?) {
     val uri = LocalUriHandler.current
     when (val current = state) {
         ArticleState.None -> Unit
-        ArticleState.Loading -> TripTile(Icons.Outlined.Place, stringResource(R.string.place_article_title, place)) {
+        ArticleState.Loading -> TripTile(Icons.Outlined.Place, title) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 repeat(3) { Box(Modifier.fillMaxWidth().height(14.dp).clip(RoundedCornerShape(7.dp)).background(MaterialTheme.colorScheme.surfaceVariant)) }
             }
             FormHint(stringResource(R.string.place_article_loading))
         }
-        is ArticleState.Found -> TripTile(Icons.Outlined.Place, stringResource(R.string.place_article_title, place)) {
+        is ArticleState.Found -> TripTile(Icons.Outlined.Place, title) {
             Text(current.article.extract, style = MaterialTheme.typography.bodyLarge)
             TextButton(
                 onClick = { runCatching { uri.openUri(current.article.url) } },
                 modifier = Modifier.heightIn(min = 56.dp),
             ) { Text(stringResource(R.string.place_article_more)) }
-            FormHint(stringResource(R.string.place_article_source))
+            FormHint(source)
         }
     }
 }
