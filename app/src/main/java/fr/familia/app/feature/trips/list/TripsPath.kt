@@ -16,6 +16,8 @@ data class TripSummary(
     val participants: List<String>,
     val people: List<Member> = emptyList(),
     val isParticipant: Boolean = false,
+    /** Where the trip goes (its first step with a position), for the globe of the list (récit 99). */
+    val place: fr.familia.app.feature.trips.map.GeoPoint? = null,
 )
 
 /**

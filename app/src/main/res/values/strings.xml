@@ -1939,6 +1939,8 @@
     <string name="globe_direct">Voir directement la carte</string>
     <string name="globe_done">Voilà tout le trajet.</string>
     <string name="globe_replay">Rejouer le survol</string>
+    <string name="globe_list_stop">Arrêter</string>
+    <string name="globe_list_resume">Reprendre</string>
     <string name="globe_see_map">Voir la carte</string>
     <string name="globe_step">Étape %1$d sur %2$d</string>
     <string name="globe_previous">Précédent</string>

@@ -58,12 +58,7 @@ fun GlobeMapView(
                     view.mapboxMap.setCamera(command.target.toOptions())
                     view.mapboxMap.loadStyle(Style.SATELLITE) { style ->
                         runCatching {
-                            // Satellite view, forced round (only Standard is a globe by itself), in a starry sky.
-                            style.setStyleProjectionProperty("name", Value.valueOf("globe"))
-                            mapOf("color" to "#BFD9F2", "high-color" to "#3C6FB5", "space-color" to "#050B1A")
-                                .forEach { (key, color) -> style.setStyleAtmosphereProperty(key, Value.valueOf(color)) }
-                            style.setStyleAtmosphereProperty("horizon-blend", Value.valueOf(0.04))
-                            style.setStyleAtmosphereProperty("star-intensity", Value.valueOf(0.7))
+                            configureSatelliteGlobe(style)
                             style.addSource(geoJsonSource(TRAIL_ALL) { geometry(trail(points, points.size - 1)) })
                             style.addSource(geoJsonSource(TRAIL_DONE) { geometry(trail(points, 0)) })
                             style.addSource(geoJsonSource(STEPS) { featureCollection(com.mapbox.geojson.FeatureCollection.fromFeatures(points.map { com.mapbox.geojson.Feature.fromGeometry(it.toPoint()) })) })
@@ -103,13 +98,22 @@ fun GlobeMapView(
     )
 }
 
-private fun GeoPoint.toPoint(): Point = Point.fromLngLat(lng, lat)
+internal fun GeoPoint.toPoint(): Point = Point.fromLngLat(lng, lat)
 
-private fun CameraTarget.toOptions(): CameraOptions =
+internal fun CameraTarget.toOptions(): CameraOptions =
     CameraOptions.Builder().center(point.toPoint()).zoom(zoom).pitch(pitch).bearing(bearing).build()
 
 /** The trail from the first step to step [upTo] (at least two points so the line exists). */
 private fun trail(points: List<GeoPoint>, upTo: Int): LineString {
     val list = points.take((upTo + 1).coerceAtLeast(1)).map { it.toPoint() }
     return LineString.fromLngLats(if (list.size >= 2) list else listOf(list.first(), list.first()))
+}
+
+/** Satellite view, forced round (only Standard is a globe by itself), in a starry sky. Shared by every globe of the app. */
+internal fun configureSatelliteGlobe(style: Style) {
+    style.setStyleProjectionProperty("name", Value.valueOf("globe"))
+    mapOf("color" to "#BFD9F2", "high-color" to "#3C6FB5", "space-color" to "#050B1A")
+        .forEach { (key, color) -> style.setStyleAtmosphereProperty(key, Value.valueOf(color)) }
+    style.setStyleAtmosphereProperty("horizon-blend", Value.valueOf(0.04))
+    style.setStyleAtmosphereProperty("star-intensity", Value.valueOf(0.7))
 }
