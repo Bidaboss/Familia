@@ -198,7 +198,7 @@ fun TripDocumentsScreen(
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.weight(1f),
                     )
-                    TextButton(onClick = onDismissProblem, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.documents_ok)) }
+                    TextButton(onClick = onDismissProblem, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.documents_ok)) }
                 }
             }
             when (state) {
@@ -231,12 +231,12 @@ fun TripDocumentsScreen(
             title = { Text(stringResource(R.string.documents_delete_title)) },
             text = { Text(stringResource(R.string.documents_delete_body, document.title)) },
             confirmButton = {
-                TextButton(onClick = { deleting = null; onDelete(document) }, modifier = Modifier.heightIn(min = 48.dp)) {
+                TextButton(onClick = { deleting = null; onDelete(document) }, modifier = Modifier.heightIn(min = 56.dp)) {
                     Text(stringResource(R.string.documents_delete_confirm))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { deleting = null }, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.documents_cancel)) }
+                TextButton(onClick = { deleting = null }, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.documents_cancel)) }
             },
         )
     }
@@ -266,7 +266,7 @@ private fun DocumentRow(document: TripDocument, onOpen: () -> Unit, onDelete: ((
             }
         }
         if (onDelete != null) {
-            IconButton(onClick = onDelete, modifier = Modifier.size(48.dp)) {
+            IconButton(onClick = onDelete, modifier = Modifier.size(56.dp)) {
                 Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.documents_delete_description, document.title))
             }
         }
@@ -307,12 +307,12 @@ private fun AddDocumentDialog(suggested: String, onConfirm: (String, TripDocumen
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(title.trim(), kind) }, enabled = title.isNotBlank(), modifier = Modifier.heightIn(min = 48.dp)) {
+            TextButton(onClick = { onConfirm(title.trim(), kind) }, enabled = title.isNotBlank(), modifier = Modifier.heightIn(min = 56.dp)) {
                 Text(stringResource(R.string.documents_send))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.documents_cancel)) }
+            TextButton(onClick = onDismiss, modifier = Modifier.heightIn(min = 56.dp)) { Text(stringResource(R.string.documents_cancel)) }
         },
     )
 }
