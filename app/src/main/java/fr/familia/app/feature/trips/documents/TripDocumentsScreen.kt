@@ -21,10 +21,10 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Badge
-import androidx.compose.material.icons.outlined.ConfirmationNumber
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Hotel
+import androidx.compose.material.icons.outlined.LocalActivity
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -369,7 +369,7 @@ private fun kindLabel(kind: TripDocumentKind): Int = when (kind) {
 }
 
 private fun kindIcon(kind: TripDocumentKind): ImageVector = when (kind) {
-    TripDocumentKind.Ticket -> Icons.Outlined.ConfirmationNumber
+    TripDocumentKind.Ticket -> Icons.Outlined.LocalActivity
     TripDocumentKind.Booking -> Icons.Outlined.Hotel
-    TripDocumentKind.Paper -> Icons.Outlined.Badge
+    TripDocumentKind.Paper -> Icons.Outlined.Lock
 }
