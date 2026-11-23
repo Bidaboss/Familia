@@ -167,7 +167,7 @@ private fun Source(date: String) {
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier
-            .heightIn(min = 48.dp)
+            .heightIn(min = 56.dp)
             .clickable(role = Role.Button) {
                 try {
                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(OpenExchangeRates.SOURCE_URL)))
