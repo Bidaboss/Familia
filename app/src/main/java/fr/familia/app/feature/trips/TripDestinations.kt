@@ -30,6 +30,10 @@ data class TripStepEditDestination(val tripId: String, val stepId: String? = nul
 @Serializable
 data class TripPhrasesDestination(val tripId: String)
 
+/** « Sécurité » (récit 105, règle 43). */
+@Serializable
+data class TripSafetyDestination(val tripId: String)
+
 /** The map of [tripId]: its steps joined in order on the landscape (récit 87). */
 @Serializable
 data class TripMapDestination(val tripId: String)

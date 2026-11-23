@@ -52,7 +52,7 @@ fun TripPhrasesRoute(container: AppContainer?, currentMember: Member, tripId: St
     )
     val state by detail.uiState.collectAsStateWithLifecycle()
     val steps = (state as? TripDetailUiState.Success)?.steps.orEmpty()
-    val countries = rememberAbroadCountries(container, steps)
+    val countries = PhraseBook.abroad(rememberAbroadCountries(container, steps))
     TripPhrasesScreen(loading = state !is TripDetailUiState.Success, countries = countries, speaker = rememberSpeaker(), onBack = onBack)
 }
 

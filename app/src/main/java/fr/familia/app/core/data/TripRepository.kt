@@ -46,6 +46,13 @@ interface TripRepository {
     /** Takes back a « bien arrivé » tapped by mistake. */
     suspend fun clearArrival(tripId: String, stepId: String)
 
+    /**
+     * « Prévenir ma famille » (récit 105, règle 43): [me], who takes part in the trip, asks the
+     * server to tell everyone who follows it. No position is sent. Refused by the rules within 10
+     * minutes of the last one from [me] on this trip: [AlertTooSoonException].
+     */
+    suspend fun alertFamily(tripId: String, me: Member)
+
     /** The checklist of a trip (récit 13), in [itemOrder], updated live. */
     fun observeItems(tripId: String): Flow<List<TripItem>>
 
@@ -65,6 +72,9 @@ interface TripRepository {
 
     suspend fun deleteItem(tripId: String, itemId: String)
 }
+
+/** « Prévenir ma famille » refused: the last one from this member was less than 10 minutes ago. */
+class AlertTooSoonException(cause: Throwable? = null) : Exception(cause)
 
 /** What is left to do first, then by label. */
 val itemOrder: Comparator<TripItem> = compareBy<TripItem>({ it.done }, { it.label.lowercase() })

@@ -569,3 +569,45 @@ describe('« le mot de l\'étape » (récit 88)', () => {
     await assertFails(setDoc(doc(as(env, ADMIN), 'trips/t1/words/s2/comments/c1'), comment(ADMIN)));
   });
 });
+
+describe('« Prévenir ma famille » (récit 105, règle 43)', () => {
+  const alert = (m) => ({ authorId: m.memberId, authorName: m.memberId, createdAt: serverTimestamp() });
+
+  async function storedAlert(tripId, m, millis) {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), `trips/${tripId}/alerts/${m.memberId}`), {
+        authorId: m.memberId, authorName: m.memberId, createdAt: Timestamp.fromMillis(millis),
+      });
+    });
+  }
+
+  test('a participant sends one, signed with their own name and the server time', async () => {
+    await storedTrip('t1', ADULT);
+    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/alerts/adult3'), alert(NEIGHBOUR)));
+  });
+
+  test('nobody sends one for someone else, with another time or with more in it', async () => {
+    await storedTrip('t1', ADULT);
+    const db = as(env, NEIGHBOUR);
+    await assertFails(setDoc(doc(db, 'trips/t1/alerts/adult1'), alert(ADULT)));
+    await assertFails(setDoc(doc(db, 'trips/t1/alerts/adult3'), { ...alert(NEIGHBOUR), createdAt: Timestamp.fromMillis(0) }));
+    await assertFails(setDoc(doc(db, 'trips/t1/alerts/adult3'), { ...alert(NEIGHBOUR), authorName: 'Maman' }));
+    await assertFails(setDoc(doc(db, 'trips/t1/alerts/adult3'), { ...alert(NEIGHBOUR), lat: 41.9, lng: 8.7 }));
+  });
+
+  test('a follower who does not go cannot send one, and nobody reads them', async () => {
+    await storedTrip('t1', ADULT);
+    await assertFails(setDoc(doc(as(env, KID), 'trips/t1/alerts/kid1'), alert(KID)));
+    await storedAlert('t1', NEIGHBOUR, 0);
+    await assertFails(getDoc(doc(as(env, NEIGHBOUR), 'trips/t1/alerts/adult3')));
+    await assertFails(getDoc(doc(as(env, ADULT), 'trips/t1/alerts/adult3')));
+  });
+
+  test('a new one only 10 minutes after the last', async () => {
+    await storedTrip('t1', ADULT);
+    await storedAlert('t1', NEIGHBOUR, Date.now() - 60 * 1000);
+    await assertFails(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/alerts/adult3'), alert(NEIGHBOUR)));
+    await storedAlert('t1', NEIGHBOUR, Date.now() - 11 * 60 * 1000);
+    await assertSucceeds(setDoc(doc(as(env, NEIGHBOUR), 'trips/t1/alerts/adult3'), alert(NEIGHBOUR)));
+  });
+});

@@ -43,7 +43,9 @@ import {
 import { actorUid, addDays, changeNotice, EventData, hasVisibleChange, Member, Notice, parisDay } from './logic';
 import { comingMembers, deleteEventAnswers, featureAudience, loadMembers, deleteMemberData, memberForUid, notify, notifyChange, releaseBringOf, Sender, sendDayBeforeReminders } from './store';
 import { deleteExpenseBook, ExpenseData, historyEntry, sendExpenseNotices, writeExpenseHistory } from './expenses';
-import { deleteStepWord, deleteTripContents, isNewArrival, notifyArrival, sendArrivalReminders, StepData } from './trips';
+import {
+  AlertData, deleteStepWord, deleteTripContents, isNewAlert, isNewArrival, notifyAlert, notifyArrival, sendArrivalReminders, StepData,
+} from './trips';
 import { countAnswers, deleteAnswersOf, publishWeeklyQuestion, removeOldAnswerPhoto } from './weeklyQuestion';
 import {
   countGesture, countHelpGiven, deleteSouvenirsOf, giveSouvenir, giveYearSouvenirs, isNewWeeklyAnswer, souvenirMark,
@@ -621,6 +623,14 @@ export const onTripStepUpdated = onDocumentUpdatedWithAuthContext('trips/{tripId
     await giveSouvenir(getFirestore(), send, by, 'firstArrival', new Date());
     await grow('arrival', () => addLeaf(getFirestore(), by, treeMark.arrival(event.params.tripId, event.params.stepId), new Date()));
   }
+});
+
+// « Prévenir ma famille » (récit 105, règle 43): the followers of the trip are told at once.
+export const onTripAlertWritten = onDocumentWritten('trips/{tripId}/alerts/{memberId}', async (event) => {
+  const before = event.data?.before.data() as AlertData | undefined;
+  const after = event.data?.after.data() as AlertData | undefined;
+  if (!after || !isNewAlert(before, after)) return;
+  await notifyAlert(getFirestore(), send, event.params.tripId, event.params.memberId, after);
 });
 
 // « Le mot de l'étape » (récit 88) goes with its step, with its hearts and comments.
