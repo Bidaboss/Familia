@@ -2,7 +2,10 @@ package fr.familia.app.feature.trips.phrases
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import fr.familia.app.core.data.AppContainer
 import fr.familia.app.core.model.TripStep
 import java.util.concurrent.ConcurrentHashMap
@@ -35,8 +38,9 @@ object TripCountries {
 @Composable
 fun rememberAbroadCountries(container: AppContainer?, steps: List<TripStep>): List<String> {
     val locator = container?.placeLocator
-    val state by produceState(initialValue = emptyList<String>(), steps, locator) {
-        value = if (locator == null) emptyList() else TripCountries.abroad(steps, locator::countryCodeOf)
+    var state by remember { mutableStateOf(emptyList<String>()) }
+    LaunchedEffect(steps, locator) {
+        state = if (locator == null) emptyList() else TripCountries.abroad(steps, locator::countryCodeOf)
     }
     return state
 }
