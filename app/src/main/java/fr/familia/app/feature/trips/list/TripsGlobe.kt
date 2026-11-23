@@ -31,6 +31,8 @@ import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.generated.circleLayer
 import com.mapbox.maps.extension.style.sources.addSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
+import com.mapbox.maps.plugin.animation.MapAnimationOptions.Companion.mapAnimationOptions
+import com.mapbox.maps.plugin.animation.camera
 import fr.familia.app.feature.trips.map.GeoPoint
 import fr.familia.app.feature.trips.map.configureSatelliteGlobe
 import fr.familia.app.feature.trips.map.toPoint
@@ -38,6 +40,11 @@ import kotlinx.coroutines.delay
 
 /** One point of the globe of the list: where a trip goes. [highlighted]: the next trip, in black. */
 data class GlobeMarker(val point: GeoPoint, val highlighted: Boolean)
+
+/** The flight to a trip the member opened: the camera goes there in [FLIGHT_MILLIS], then the trip opens. */
+data class GlobeFlight(val id: Int, val tripId: String, val point: GeoPoint)
+
+internal const val FLIGHT_MILLIS = 2_000L
 
 /** Degrees per second: one turn in 90 s (récit 99). */
 internal const val GLOBE_DEGREES_PER_SECOND = 4.0
@@ -74,6 +81,7 @@ fun TripsGlobe(
     markers: List<GlobeMarker>,
     souvenirs: Boolean,
     stopped: Boolean,
+    flight: GlobeFlight?,
     onFailed: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -88,7 +96,7 @@ fun TripsGlobe(
         onDispose { context.unregisterReceiver(receiver) }
     }
     val stillAnyway = remember { animationsOff(context) }
-    val turns = globeTurns(started, stopped, powerSave, stillAnyway)
+    val turns = globeTurns(started, stopped || flight != null, powerSave, stillAnyway)
     val first = markers.firstOrNull { it.highlighted } ?: markers.firstOrNull()
     var view by remember { mutableStateOf<MapView?>(null) }
     var ready by remember { mutableStateOf(false) }
@@ -96,6 +104,16 @@ fun TripsGlobe(
     LaunchedEffect(Unit) {
         delay(3_000L)
         if (!ready) onFailed()
+    }
+    // A trip opened: the camera flies there (the globe turns, tilts, comes closer), then the screen opens the trip.
+    LaunchedEffect(flight?.id, view) {
+        val target = flight ?: return@LaunchedEffect
+        val map = view ?: return@LaunchedEffect
+        if (!ready) return@LaunchedEffect
+        map.camera.flyTo(
+            CameraOptions.Builder().center(target.point.toPoint()).zoom(4.5).pitch(50.0).build(),
+            mapAnimationOptions { duration(FLIGHT_MILLIS) },
+        )
     }
     // The rotation: one camera move per frame, at most 30 per second, 15 when the phone struggles.
     LaunchedEffect(view, turns, ready) {

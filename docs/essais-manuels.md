@@ -1897,3 +1897,9 @@ Rien à publier côté Firebase. Seule l'« APK de publication » a la clé Mapb
 3. Le globe s'arrête quand on quitte l'écran ou éteint le téléphone ; il reste fixe en économie d'énergie et avec « supprimer les animations ».
 4. Sans réseau, Mapbox en panne ou globe pas affiché en 3 s : retour au paysage dessiné, et pas de globe pendant 6 h sur ce téléphone. Avec TalkBack : toujours le paysage.
 5. Pas encore là : vol vers le voyage au toucher d'un point, feuille tirable.
+## Voyages : vol du globe vers le voyage (récit 99, étape 3)
+
+Rien à publier côté Firebase. Avec l'« APK de publication ».
+1. Liste Voyages avec le globe : toucher un voyage qui a un lieu (carte « Prochain voyage », ligne ou souvenir) : la rotation s'arrête, la caméra vole 2 s vers le lieu (le globe s'incline et se rapproche), puis le voyage s'ouvre.
+2. Toucher encore pendant le vol : le voyage s'ouvre tout de suite.
+3. Voyage sans lieu, « supprimer les animations », ou repli sur le paysage : le voyage s'ouvre sans vol.

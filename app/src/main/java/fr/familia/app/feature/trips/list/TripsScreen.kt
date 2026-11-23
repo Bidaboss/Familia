@@ -125,6 +125,27 @@ fun TripsScreen(
         (success.ongoing + success.upcoming).mapNotNull { s -> s.place?.let { GlobeMarker(it, false) } }
             .let { list -> list.mapIndexed { i, m -> if (i == 0) m.copy(highlighted = true) else m } }
     }
+    // Opening a trip from the globe: the camera flies there for 2 s, then the trip opens; a second touch opens it at once.
+    var flight by remember { mutableStateOf<GlobeFlight?>(null) }
+    var flights by remember { mutableStateOf(0) }
+    val still = remember { animationsOff(context) }
+    androidx.compose.runtime.LaunchedEffect(flight?.id) {
+        flight?.let {
+            kotlinx.coroutines.delay(FLIGHT_MILLIS)
+            flight = null
+            onOpenTrip(it.tripId)
+        }
+    }
+    val openTrip: (String) -> Unit = { id ->
+        val place = success?.let { (it.ongoing + it.upcoming + it.past).firstOrNull { s -> s.trip.id == id }?.place }
+        if (globeOn && place != null && !still && flight == null) {
+            flights++
+            flight = GlobeFlight(flights, id, place)
+        } else {
+            flight = null
+            onOpenTrip(id)
+        }
+    }
     // Over the globe the top bar sits on the night sky.
     val dark = globeOn
     val skyColor = if (dark) Color.Transparent else TripPathColors.Sky
@@ -135,6 +156,7 @@ fun TripsScreen(
             markers = markers,
             souvenirs = souvenirs,
             stopped = globeStopped,
+            flight = flight,
             onFailed = { GlobeHealth.markFailed(context); globeFailed = true },
             modifier = Modifier.fillMaxWidth().fillMaxHeight(0.62f).align(Alignment.TopCenter),
         )
@@ -189,8 +211,8 @@ fun TripsScreen(
                             action = onOpenAlbums?.let { open -> { ClayLink(stringResource(R.string.trips_empty_albums), onClick = open) } },
                             mascot = true,
                         )
-                        souvenirs -> Souvenirs(state, onOpenTrip)
-                        else -> Coming(state, onOpenTrip, onOpenPart, expensesOn, withLandscape = !globeOn)
+                        souvenirs -> Souvenirs(state, openTrip)
+                        else -> Coming(state, openTrip, onOpenPart, expensesOn, withLandscape = !globeOn)
                     }
                 }
               }
