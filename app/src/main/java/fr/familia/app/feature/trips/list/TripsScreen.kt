@@ -160,7 +160,7 @@ fun TripsScreen(
                 Box(Modifier.weight(0.4f).fillMaxWidth()) {
                     OutlinedButton(
                         onClick = { globeStopped = !globeStopped },
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp).heightIn(min = 48.dp),
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp).heightIn(min = 56.dp),
                         colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White),
                     ) { Text(stringResource(if (globeStopped) R.string.globe_list_resume else R.string.globe_list_stop)) }
                 }
